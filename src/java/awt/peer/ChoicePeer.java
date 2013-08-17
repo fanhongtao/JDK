@@ -1,8 +1,11 @@
 /*
- * @(#)ChoicePeer.java	1.12 01/11/29
+ * @(#)ChoicePeer.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt.peer;
 
@@ -18,6 +21,7 @@ import java.awt.*;
 public interface ChoicePeer extends ComponentPeer {
     void add(String item, int index);
     void remove(int index);
+    void removeAll();
     void select(int index);
 
     /*

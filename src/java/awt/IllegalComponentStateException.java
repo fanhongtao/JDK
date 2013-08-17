@@ -1,8 +1,11 @@
 /*
- * @(#)IllegalComponentStateException.java	1.8 01/11/29
+ * @(#)IllegalComponentStateException.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -11,7 +14,7 @@ package java.awt;
  * Signals that an AWT component is not in an appropriate state for
  * the requested operation.
  *
- * @version 	1.8, 11/29/01
+ * @version 	1.9, 02/02/00
  * @author	Jonni Kanerva
  */
 public class IllegalComponentStateException extends IllegalStateException {

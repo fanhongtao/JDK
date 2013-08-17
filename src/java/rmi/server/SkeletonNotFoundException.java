@@ -1,8 +1,11 @@
 /*
- * @(#)SkeletonNotFoundException.java	1.8 01/11/29
+ * @(#)SkeletonNotFoundException.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -12,15 +15,15 @@ import java.rmi.RemoteException;
 /**
  * A <code>SkeletonNotFoundException</code> is thrown if the
  * <code>Skeleton</code> corresponding to the remote object being exported is
- * not found.  Skeletons are not required in JDK1.2, so this exception is
+ * not found.  Skeletons are not required in the Java 2 platform, so this exception is
  * never thrown if stubs are generated with <code>rmic -v1.2</code>.  To
- * generate stubs and skeletons compatible with JDK1.1 and JDK1.2, use
- * <code>rmic -vcompat</code> which is the default in JDK1.2.
+ * generate stubs and skeletons compatible with JDK1.1 and the Java 2 SDK, use
+ * <code>rmic -vcompat</code> which is the default in the Java 2 SDK.
  * 
- * @version 1.8, 11/29/01
+ * @version 1.11, 02/02/00
  * @since   JDK1.1
  * @deprecated no replacement.  Skeletons are no longer required for remote
- * method calls in JDK1.2 and greater.
+ * method calls in the Java 2 platform v1.2 and greater.
  */
 public class SkeletonNotFoundException extends RemoteException {
 

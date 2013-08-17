@@ -1,13 +1,17 @@
 /*
- * @(#)MotifSplitPaneDivider.java	1.11 01/11/29
+ * @(#)MotifSplitPaneDivider.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
 
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.JSplitPane;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
@@ -24,17 +28,26 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.11 11/29/01
+ * @version 1.14 02/02/00
  * @author Jeff Dinkins
  */
 public class MotifSplitPaneDivider extends BasicSplitPaneDivider
 {
+    /**
+     * Default cursor, supers is package private, so we have to have one
+     * too.
+     */
+    private static final Cursor defaultCursor =
+                            Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+
 
     public static final int minimumThumbSize = 6;
     public static final int defaultDividerSize = 18;
 
     protected  static final int pad = 6;
 
+    private int hThumbOffset = 30;
+    private int vThumbOffset = 40;
     protected int hThumbWidth = 12;
     protected int hThumbHeight = 18;
     protected int vThumbWidth = 18;
@@ -60,10 +73,21 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
      * PENDING(jeff) - rewrite JSplitPane so that this ins't needed
      */
     public void setDividerSize(int newSize) {
-        if (newSize < pad + minimumThumbSize) {
-            setDividerSize(pad + minimumThumbSize);
+	Insets          insets = getInsets();
+	int             borderSize = 0;
+	if (getBasicSplitPaneUI().getOrientation() ==
+	    JSplitPane.HORIZONTAL_SPLIT) {
+	    if (insets != null) {
+		borderSize = insets.left + insets.right;
+	    }
+	}
+	else if (insets != null) {
+	    borderSize = insets.top + insets.bottom;
+	}
+        if (newSize < pad + minimumThumbSize + borderSize) {
+            setDividerSize(pad + minimumThumbSize + borderSize);
         } else {
-            vThumbHeight = hThumbWidth = newSize - pad;
+            vThumbHeight = hThumbWidth = newSize - pad - borderSize;
             super.setDividerSize(newSize);
         }                  
     }
@@ -84,8 +108,8 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
         if(getBasicSplitPaneUI().getOrientation() ==
            JSplitPane.HORIZONTAL_SPLIT) {
             int center = size.width/2;
-            int x = size.width/2 - hThumbWidth/2;
-            int y = 30;  // PENDING(jeff) - don't hard code this.
+            int x = center - hThumbWidth/2;
+            int y = hThumbOffset;
 
             // split line
             g.setColor(shadowColor);
@@ -111,7 +135,7 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
 
         } else {
             int center = size.height/2;
-            int x = size.width - 40; // PENDING(jeff) - don't hard code this
+            int x = size.width - vThumbOffset;
             int y = size.height/2 - vThumbHeight/2;
 
             // split line
@@ -145,5 +169,113 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
       */
     public Dimension getMinimumSize() {
         return getPreferredSize();
+    }
+
+    /**
+     * Sets the SplitPaneUI that is using the receiver. This is completely
+     * overriden from super to create a different MouseHandler.
+     */
+    public void setBasicSplitPaneUI(BasicSplitPaneUI newUI) {
+        if (splitPane != null) {
+            splitPane.removePropertyChangeListener(this);
+           if (mouseHandler != null) {
+               splitPane.removeMouseListener(mouseHandler);
+               splitPane.removeMouseMotionListener(mouseHandler);
+	       removeMouseListener(mouseHandler);
+	       removeMouseMotionListener(mouseHandler);
+               mouseHandler = null;
+           }
+        }
+        splitPaneUI = newUI;
+        if (newUI != null) {
+            splitPane = newUI.getSplitPane();
+            if (splitPane != null) {
+                if (mouseHandler == null) mouseHandler=new MotifMouseHandler();
+                splitPane.addMouseListener(mouseHandler);
+                splitPane.addMouseMotionListener(mouseHandler);
+		addMouseListener(mouseHandler);
+		addMouseMotionListener(mouseHandler);
+                splitPane.addPropertyChangeListener(this);
+                if (splitPane.isOneTouchExpandable()) {
+                    oneTouchExpandableChanged();
+                }
+            }
+        }
+        else {
+            splitPane = null;
+        }
+    }
+
+    /**
+     * Returns true if the point at <code>x</code>, <code>y</code>
+     * is inside the thumb.
+     */
+    private boolean isInThumb(int x, int y) {
+        Dimension           size = getSize();
+	int                 thumbX;
+	int                 thumbY;
+	int                 thumbWidth;
+	int                 thumbHeight;
+
+	if (getBasicSplitPaneUI().getOrientation() ==
+	    JSplitPane.HORIZONTAL_SPLIT) {
+            int center = size.width/2;
+            thumbX = center - hThumbWidth/2;
+            thumbY = hThumbOffset;
+	    thumbWidth = hThumbWidth;
+	    thumbHeight = hThumbHeight;
+	}
+	else {
+            int center = size.height/2;
+            thumbX = size.width - vThumbOffset;
+            thumbY = size.height/2 - vThumbHeight/2;
+	    thumbWidth = vThumbWidth;
+	    thumbHeight = vThumbHeight;
+	}
+	return (x >= thumbX && x < (thumbX + thumbWidth) &&
+		y >= thumbY && y < (thumbY + thumbHeight));
+    }
+
+    //
+    // Two methods are exposed so that MotifMouseHandler can see the
+    // superclass protected ivars
+    //
+
+    private DragController getDragger() {
+	return dragger;
+    }
+
+    private JSplitPane getSplitPane() {
+	return splitPane;
+    }
+
+
+    /**
+     * MouseHandler is subclassed to only pass off to super if the mouse
+     * is in the thumb. Motif only allows dragging when the thumb is clicked
+     * in.
+     */
+    private class MotifMouseHandler extends MouseHandler {
+        public void mousePressed(MouseEvent e) {
+	    // Constrain the mouse pressed to the thumb.
+	    if (e.getSource() == MotifSplitPaneDivider.this &&
+		getDragger() == null && getSplitPane().isEnabled() &&
+		isInThumb(e.getX(), e.getY())) {
+		super.mousePressed(e);
+	    }
+	}
+
+        public void mouseMoved(MouseEvent e) {
+	    if (getDragger() != null) {
+		return;
+	    }
+	    if (!isInThumb(e.getX(), e.getY())) {
+		if (getCursor() != defaultCursor) {
+		    setCursor(defaultCursor);
+		}
+		return;
+	    }
+	    super.mouseMoved(e);
+	}
     }
 }

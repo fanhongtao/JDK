@@ -1,8 +1,11 @@
 /*
- * @(#)PlainDocument.java	1.32 01/11/29
+ * @(#)PlainDocument.java	1.34 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -34,7 +37,7 @@ import javax.swing.event.*;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.32 11/29/01
+ * @version 1.34 02/02/00
  * @see     Document
  * @see     AbstractDocument
  */
@@ -171,6 +174,7 @@ public class PlainDocument extends AbstractDocument {
 	} catch (BadLocationException e) {
 	    throw new Error("Internal error: " + e.toString());
 	}
+	super.insertUpdate(chng, attr);
     }
     
     /**
@@ -220,6 +224,7 @@ public class PlainDocument extends AbstractDocument {
 		}
 	    }
 	}
+	super.removeUpdate(chng);
     }
   
     //

@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractColorChooserPanel.java	1.11 01/11/29
+ * @(#)AbstractColorChooserPanel.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.colorchooser;
@@ -13,8 +16,9 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 /**
- * The is the abstract superclass for color choosers.  If you want to add a new color chooser
- * panel into a JColorChooser, sublclass this class.
+ * This is the abstract superclass for color choosers.  If you want to add
+ * a new color chooser panel into a <code>JColorChooser</code>, subclass
+ * this class.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -23,38 +27,65 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.11 11/29/01
+ * @version 1.13 02/02/00
  * @author Tom Santos
  * @author Steve Wilson
  */
 public abstract class AbstractColorChooserPanel extends JPanel {
 
+    /**
+     * 
+     */
     private JColorChooser chooser;
+
+    /**
+     * 
+     */
     private ChangeListener colorListener;
+
+    /**
+     * 
+     */
     private boolean dirty  = true;
 
 
     /**
-      * override this method to update your ChooserPanel
-      * This method will be automatically called when the model's state
-      * changes.
-      * It is also called by installChooserPanel to allow you to set up
-      * the initial state of your chooser
+      * Invoked automatically when the model's state changes.
+      * It is also called by <code>installChooserPanel</code> to allow
+      * you to set up the initial state of your chooser.
+      * Override this method to update your <code>ChooserPanel</code>.
       */
     public abstract void updateChooser();
 
+    /**
+     * Builds a new chooser panel.
+     */
     protected abstract void buildChooser();
 
+    /**
+     * Returns a string containing the display name of the panel.
+     * @return the name of the display panel
+     */
     public abstract String getDisplayName();
 
+    /**
+     * Returns the large display icon for the panel.
+     * @return the large display icon
+     */
     public abstract Icon getSmallDisplayIcon();
 
+    /**
+     * Returns the small display icon for the panel.
+     * @return the small display icon
+     */
     public abstract Icon getLargeDisplayIcon();
 
     /**
-     * This get called when the panel is added to the chooser.
-     *
-     * if you're going to override this, be sure to call super.
+     * Invoked when the panel is added to the chooser.
+     * If you're going to override this, be sure to call super.
+     * @param enclosingChooser  the panel to be added
+     * @exception RuntimeException  if the chooser panel has already been
+     *				installed
      */
     public void installChooserPanel(JColorChooser enclosingChooser) {
         if (chooser != null) {
@@ -68,9 +99,8 @@ public abstract class AbstractColorChooserPanel extends JPanel {
     }
 
     /**
-     * This get called when the panel is removed from the chooser.
-     *
-     * if you're going to override this, be sure to call super.
+     * Invoked when the panel is removed from the chooser.
+     * If you're going to override this, be sure to call super.
      */
   public void uninstallChooserPanel(JColorChooser enclosingChooser) {
         getColorSelectionModel().removeChangeListener(colorListener);
@@ -78,16 +108,26 @@ public abstract class AbstractColorChooserPanel extends JPanel {
     }
 
     /**
-      * @return The model this panel is editing
+      * Returns the model that the chooser panel is editing.
+      * @return the <code>ColorSelectionModel</code> model this panel
+      *		is editing
       */
     public ColorSelectionModel getColorSelectionModel() {
         return chooser.getSelectionModel();
     }
 
+    /**
+     * Returns the color that is currently selected.
+     * @return the <code>Color</code> that is selected
+     */
     protected Color getColorFromModel() {
         return getColorSelectionModel().getSelectedColor();
     }
 
+    /**
+     * Draws the panel. 
+     * @param g  the <code>Graphics</code> object
+     */
     public void paint(Graphics g) {
 	if (dirty) {
 	    updateChooser();
@@ -96,6 +136,9 @@ public abstract class AbstractColorChooserPanel extends JPanel {
         super.paint(g);
     }
 
+    /**
+     * 
+     */
     class ModelListener implements ChangeListener, Serializable {
         public void stateChanged(ChangeEvent e) {
 	  if (isShowing()) {  // isVisible

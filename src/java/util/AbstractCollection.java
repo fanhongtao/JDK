@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractCollection.java	1.12 01/11/29
+ * @(#)AbstractCollection.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -31,9 +34,9 @@ package java.util;
  * the collection being implemented admits a more efficient implementation.
  *
  * @author  Josh Bloch
- * @version 1.12 11/29/01
+ * @version 1.16, 02/02/00
  * @see Collection
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AbstractCollection implements Collection {
@@ -367,6 +370,7 @@ public abstract class AbstractCollection implements Collection {
      * <tt>UnsupportedOperationException</tt> if the iterator returned by the
      * <tt>iterator</tt> method does not implement the remove method.
      *
+     * @param c elements to be retained in this collection.
      * @return <tt>true</tt> if this collection changed as a result of the
      *         call.
      * 

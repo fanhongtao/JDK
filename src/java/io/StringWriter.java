@@ -1,8 +1,11 @@
 /*
- * @(#)StringWriter.java	1.16 01/11/29
+ * @(#)StringWriter.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -12,7 +15,7 @@ package java.io;
  * A character stream that collects its output in a string buffer, which can
  * then be used to construct a string.
  *
- * @version 	1.16, 01/11/29
+ * @version 	1.18, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -46,6 +49,8 @@ public class StringWriter extends Writer {
     /**
      * Create a new string writer, using the specified initial string-buffer
      * size.
+     *
+     * @param initialSize  an int specifying the initial size of the buffer.
      */
     public StringWriter(int initialSize) {
 	if (initialSize < 0) {
@@ -110,6 +115,8 @@ public class StringWriter extends Writer {
 
     /**
      * Return the string buffer itself.
+     *
+     * @return StringBuffer holding the current buffer value.
      */
     public StringBuffer getBuffer() {
 	return buf;

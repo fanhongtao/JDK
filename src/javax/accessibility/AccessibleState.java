@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleState.java	1.27 01/11/29
+ * @(#)AccessibleState.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -13,7 +16,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
- * <P>Class AccessibleState describes a componets particular state.  The actual
+ * <P>Class AccessibleState describes a component's particular state.  The actual
  * state of the component is defined as an AccessibleStateSet, which is a
  * composed set of AccessibleStates.
  * <p>The toDisplayString method allows you to obtain the localized string 
@@ -26,7 +29,7 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.27 11/29/01 23:09:28
+ * @version     1.27 10/12/99 14:48:59
  * @author      Willie Walker
  * @author	Peter Korn
  */
@@ -150,7 +153,7 @@ public class AccessibleState extends AccessibleBundle {
             = new AccessibleState("focusable");
 
     /**
-     * Indicates this object current has the keyboard focus.
+     * Indicates this object currently has the keyboard focus.
      * @see #FOCUSABLE
      */
     public static final AccessibleState FOCUSED
@@ -304,7 +307,7 @@ public class AccessibleState extends AccessibleBundle {
             = new AccessibleState("transient");
 
     /**
-     * Create a new AccessibleState using the given locale independent key.
+     * Creates a new AccessibleState using the given locale independent key.
      * This should not be a public method.  Instead, it is used to create
      * the constants in this file to make it a strongly typed enumeration.
      * Subclasses of this class should enforce similar policy.

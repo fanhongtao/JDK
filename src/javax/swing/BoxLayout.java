@@ -1,8 +1,11 @@
 /*
- * @(#)BoxLayout.java	1.21 01/11/29
+ * @(#)BoxLayout.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 
@@ -78,7 +81,7 @@ import java.io.PrintStream;
  * @see Component#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version  1.21 11/29/01
+ * @version  1.24 02/02/00
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 
@@ -88,7 +91,7 @@ public class BoxLayout implements LayoutManager2, Serializable {
     public static final int X_AXIS = 0;
     
     /**
-     * Specifies that components should be laid out top to buttom.
+     * Specifies that components should be laid out top to bottom.
      */
     public static final int Y_AXIS = 1;
 
@@ -349,6 +352,11 @@ public class BoxLayout implements LayoutManager2, Serializable {
             yChildren = new SizeRequirements[n];
             for (int i = 0; i < n; i++) {
                 Component c = target.getComponent(i);
+		if (!c.isVisible()) {
+		    xChildren[i] = new SizeRequirements(0,0,0, c.getAlignmentX());
+		    yChildren[i] = new SizeRequirements(0,0,0, c.getAlignmentY());
+		    continue;
+		}
                 Dimension min = c.getMinimumSize();
                 Dimension typ = c.getPreferredSize();
                 Dimension max = c.getMaximumSize();

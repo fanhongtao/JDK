@@ -1,8 +1,11 @@
 /*
- * @(#)BoxView.java	1.36 01/11/29
+ * @(#)BoxView.java	1.44 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -23,7 +26,7 @@ import javax.swing.SizeRequirements;
  * columns, pages, etc.
  *
  * @author  Timothy Prinzing
- * @version 1.36 11/29/01
+ * @version 1.44 02/02/00
  */
 public class BoxView extends CompositeView {
 
@@ -35,6 +38,7 @@ public class BoxView extends CompositeView {
      */
     public BoxView(Element elem, int axis) {
 	super(elem);
+	tempRect = new Rectangle();
 	this.axis = axis;
 	xOffsets = new int[0];
 	xSpans = new int[0];
@@ -52,7 +56,7 @@ public class BoxView extends CompositeView {
      * @return the major axis of the box, either 
      *  View.X_AXIS or View.Y_AXIS.
      */
-    /*public*/ int getAxis() {
+    public int getAxis() {
 	return axis;
     }
 
@@ -61,7 +65,7 @@ public class BoxView extends CompositeView {
      *
      * @param axis either View.X_AXIS or View.Y_AXIS
      */
-    /*public*/void setAxis(int axis) {
+    public void setAxis(int axis) {
 	this.axis = axis;
 	preferenceChanged(null, true, true);
     }
@@ -71,14 +75,19 @@ public class BoxView extends CompositeView {
      * automatically if the preferences have changed for
      * any of the child views.  In some cases the layout
      * may need to be recalculated when the preferences
-     * have not changed.
+     * have not changed.  The layout can be marked as
+     * invalid by calling this method.  The layout will
+     * be updated the next time the setSize method is called
+     * on this view (typically in paint).
+     *
+     * @param axis either View.X_AXIS or View.Y_AXIS
      */
-    /*public*/void layoutChanged(int axis) {
-	if (axis == X_AXIS) {
-	    xAllocValid = false;
-	} else {
-	    yAllocValid = false;
-	}
+    public void layoutChanged(int axis) {
+ 	if (axis == X_AXIS) {
+ 	    xAllocValid = false;
+ 	} else {
+ 	    yAllocValid = false;
+ 	}
     }
 
     /**
@@ -101,21 +110,24 @@ public class BoxView extends CompositeView {
      * be accessed for the old layout, but the new children
      * will have an offset and span of 0.
      *
-     * @param offset the starting offset into the child views >= 0
-     * @param length the number of existing views to replace >= 0
-     * @param elems the child views to insert
+     * @param index the starting index into the child views to insert
+     *   the new views.  This should be a value >= 0 and <= getViewCount.
+     * @param length the number of existing child views to remove.
+     *   This should be a value >= 0 and <= (getViewCount() - offset).
+     * @param views the child views to add.  This value can be null
+     *   to indicate no children are being added (useful to remove).
      */
-    public void replace(int offset, int length, View[] elems) {
-	super.replace(offset, length, elems);
+    public void replace(int index, int length, View[] elems) {
+	super.replace(index, length, elems);
 
 	// invalidate cache 
-	int nInserted = elems.length;
-	xOffsets = updateLayoutArray(xOffsets, offset, nInserted);
-	xSpans = updateLayoutArray(xSpans, offset, nInserted);
+	int nInserted = (elems != null) ? elems.length : 0;
+	xOffsets = updateLayoutArray(xOffsets, index, nInserted);
+	xSpans = updateLayoutArray(xSpans, index, nInserted);
 	xValid = false;
 	xAllocValid = false;
-	yOffsets = updateLayoutArray(xOffsets, offset, nInserted);
-	ySpans = updateLayoutArray(xSpans, offset, nInserted);
+	yOffsets = updateLayoutArray(yOffsets, index, nInserted);
+	ySpans = updateLayoutArray(ySpans, index, nInserted);
 	yValid = false;
 	yAllocValid = false;
     }
@@ -154,14 +166,15 @@ public class BoxView extends CompositeView {
      * @see #removeUpdate
      * @see #changedUpdate     
      */
-    /*protected*/ void forwardUpdate(DocumentEvent.ElementChange ec, 
+    protected void forwardUpdate(DocumentEvent.ElementChange ec, 
 				     DocumentEvent e, Shape a, ViewFactory f) {
 	boolean wasValid = isAllocationValid();
 	super.forwardUpdate(ec, e, a, f);
 
 	// determine if a repaint is needed
 	if (wasValid && (! isAllocationValid())) {
-	    // repaint is needed
+	    // repaint is needed, if there is a hosting component and
+	    // and an allocated shape.
 	    Component c = getContainer();
 	    if ((a != null) && (c != null)) {
 		int pos = e.getOffset();
@@ -265,23 +278,20 @@ public class BoxView extends CompositeView {
      * @see View#paint
      */
     public void paint(Graphics g, Shape allocation) {
-	Rectangle alloc = allocation.getBounds();
+	Rectangle alloc = (allocation instanceof Rectangle) ?
+	                   (Rectangle)allocation : allocation.getBounds();
 	setSize(alloc.width, alloc.height);
 	int n = getViewCount();
 	int x = alloc.x + getLeftInset();
 	int y = alloc.y + getTopInset();
 	Rectangle clip = g.getClipBounds();
-	AttributeSet attr = getAttributes();
-    int firstLineIndent = (int)StyleConstants.getFirstLineIndent(attr);
-    if (firstLineIndent < 0)
-        clip.width += -firstLineIndent;
 	for (int i = 0; i < n; i++) {
-	    alloc.x = x + xOffsets[i];
-	    alloc.y = y + yOffsets[i];
-	    alloc.width = xSpans[i];
-	    alloc.height = ySpans[i];
-	    if (alloc.intersects(clip)) {
-		paintChild(g, alloc, i);
+	    tempRect.x = x + xOffsets[i];
+	    tempRect.y = y + yOffsets[i];
+	    tempRect.width = xSpans[i];
+	    tempRect.height = ySpans[i];
+	    if (tempRect.intersects(clip)) {
+		paintChild(g, tempRect, i);
 	    }
 	}
     }
@@ -595,7 +605,7 @@ public class BoxView extends CompositeView {
      * The current width of the box.  This is the width that
      * it was last allocated.
      */
-    public final int getWidth() {
+    public int getWidth() {
 	return width;
     }
 
@@ -603,7 +613,7 @@ public class BoxView extends CompositeView {
      * The current height of the box.  This is the height that
      * it was last allocated.
      */
-    public final int getHeight() {
+    public int getHeight() {
 	return height;
     }
 
@@ -625,23 +635,62 @@ public class BoxView extends CompositeView {
      *  offsets and spans parameters.
      */
     protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
-	SizeRequirements.calculateTiledPositions(targetSpan, null, getChildRequests(axis),
-						 offsets, spans);
-    }
-
-    SizeRequirements[] getChildRequests(int axis) {
-	// PENDING(prinz) This generates too much garbage.
+	/*
+	 * first pass, calculate the preferred sizes
+	 * and the flexibility to adjust the sizes.
+	 */
+	long minimum = 0;
+	long maximum = 0;
+	long preferred = 0;
 	int n = getViewCount();
-	SizeRequirements[] reqs = new SizeRequirements[n];
 	for (int i = 0; i < n; i++) {
 	    View v = getView(i);
-	    int min = (int) v.getMinimumSpan(axis);
-	    int pref = (int) v.getPreferredSpan(axis);
-	    int max = (int) v.getMaximumSpan(axis);
-	    float a = v.getAlignment(axis);
-	    reqs[i] = new SizeRequirements(min, pref, max, a);
+	    spans[i] = (int) v.getPreferredSpan(axis);
+	    preferred += spans[i];
+	    minimum += v.getMinimumSpan(axis);
+	    maximum += v.getMaximumSpan(axis);
 	}
-	return reqs;
+
+	/*
+	 * Second pass, expand or contract by as much as possible to reach
+	 * the target span.  
+	 */
+
+	// determine the adjustment to be made
+	long desiredAdjustment = targetSpan - preferred;
+	float adjustmentFactor = 0.0f;
+	if (desiredAdjustment != 0) {
+	    float maximumAdjustment = (desiredAdjustment > 0) ? 
+		maximum - preferred : preferred - minimum;
+            if (maximumAdjustment == 0.0f) {
+                adjustmentFactor = 0.0f;
+            }
+            else {
+                adjustmentFactor = desiredAdjustment / maximumAdjustment;
+                adjustmentFactor = Math.min(adjustmentFactor, 1.0f);
+                adjustmentFactor = Math.max(adjustmentFactor, -1.0f);
+            }
+	}
+
+	// make the adjustments
+	int totalOffset = 0;
+	for (int i = 0; i < n; i++) {
+	    View v = getView(i);
+	    offsets[i] = totalOffset;
+	    int availableSpan = (adjustmentFactor > 0.0f) ? 
+		(int) v.getMaximumSpan(axis) - spans[i] : 
+		spans[i] - (int) v.getMinimumSpan(axis);
+            float adjF = adjustmentFactor * availableSpan;
+            if (adjF < 0) {
+                adjF -= .5f;
+            }
+            else {
+                adjF += .5f;
+            }
+	    int adj = (int)adjF;
+	    spans[i] += adj;
+	    totalOffset = (int) Math.min((long) totalOffset + (long) spans[i], Integer.MAX_VALUE);
+	}
     }
 
     /**
@@ -824,7 +873,7 @@ public class BoxView extends CompositeView {
     /**
      * Fetch the offset of a particular childs current layout
      */
-    protected final int getOffset(int axis, int childIndex) {
+    protected int getOffset(int axis, int childIndex) {
 	int[] offsets = (axis == X_AXIS) ? xOffsets : yOffsets;
 	return offsets[childIndex];
     }
@@ -832,7 +881,7 @@ public class BoxView extends CompositeView {
     /**
      * Fetch the span of a particular childs current layout
      */
-    protected final int getSpan(int axis, int childIndex) {
+    protected int getSpan(int axis, int childIndex) {
 	int[] spans = (axis == X_AXIS) ? xSpans : ySpans;
 	return spans[childIndex];
     }
@@ -877,4 +926,7 @@ public class BoxView extends CompositeView {
     boolean yAllocValid;
     int[] yOffsets;
     int[] ySpans;
+
+    /** used in paint. */
+    Rectangle tempRect;
 }

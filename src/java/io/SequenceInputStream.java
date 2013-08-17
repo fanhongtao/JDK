@@ -1,8 +1,11 @@
 /*
- * @(#)SequenceInputStream.java	1.21 01/11/29
+ * @(#)SequenceInputStream.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -22,7 +25,7 @@ import java.util.Vector;
  * on the last of the contained input streams.
  *
  * @author  Author van Hoff
- * @version 1.21, 11/29/01
+ * @version 1.23, 02/02/00
  * @since   JDK1.0
  */
 public
@@ -155,6 +158,7 @@ class SequenceInputStream extends InputStream {
      * @param      b     the buffer into which the data is read.
      * @param      off   the start offset of the data.
      * @param      len   the maximum number of bytes read.
+     * @return     int   the number of bytes read.
      * @exception  IOException  if an I/O error occurs.
      */
     public int read(byte b[], int off, int len) throws IOException {

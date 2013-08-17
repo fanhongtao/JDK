@@ -1,8 +1,11 @@
 /*
- * @(#)BasicSliderUI.java	1.75 01/11/29
+ * @(#)BasicSliderUI.java	1.81 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -20,7 +23,8 @@ import java.awt.Color;
 import java.awt.IllegalComponentStateException;
 import java.awt.Polygon;
 import java.beans.*;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
 
 import javax.swing.border.AbstractBorder;
 
@@ -32,20 +36,21 @@ import javax.swing.plaf.*;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.75 11/29/01
+ * @version 1.81 02/02/00
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
-    public final int POSITIVE_SCROLL = +1;
-    public final int NEGATIVE_SCROLL = -1;
-    public final int MIN_SCROLL = -2;
-    public final int MAX_SCROLL = +2;
+    public static final int POSITIVE_SCROLL = +1;
+    public static final int NEGATIVE_SCROLL = -1;
+    public static final int MIN_SCROLL = -2;
+    public static final int MAX_SCROLL = +2;
 
     protected Timer scrollTimer;
     protected JSlider slider;
 
     protected Insets focusInsets = null;
     protected Insets insetCache = null;
+    protected boolean leftToRightCache = true;
     protected Rectangle focusRect = null;
     protected Rectangle contentRect = null;
     protected Rectangle labelRect = null;
@@ -119,6 +124,7 @@ public class BasicSliderUI extends SliderUI{
         scrollTimer.setInitialDelay( 300 );   
 
 	insetCache = slider.getInsets();
+	leftToRightCache = BasicGraphicsUtils.isLeftToRight(slider);
 	focusRect = new Rectangle();
 	contentRect = new Rectangle();
 	labelRect = new Rectangle();
@@ -146,6 +152,7 @@ public class BasicSliderUI extends SliderUI{
 
 	focusInsets = null;
 	insetCache = null;
+	leftToRightCache = true;
 	focusRect = null;
 	contentRect = null;
 	labelRect = null;
@@ -215,68 +222,53 @@ public class BasicSliderUI extends SliderUI{
     }
 
     protected void installKeyboardActions( JSlider slider ) {
-        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0), 
-                                      JComponent.WHEN_FOCUSED);
+	InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
 
-        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke("KP_RIGHT"), 
-                                      JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIInputMap(slider, JComponent.WHEN_FOCUSED,
+				       km);
+	ActionMap am = getActionMap();
 
-        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0), 
-                                      JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIActionMap(slider, am);
+    }
 
-        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke("KP_DOWN"), 
-                                      JComponent.WHEN_FOCUSED);
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_FOCUSED) {
+	    return (InputMap)UIManager.get("Slider.focusInputMap");
+	}
+	return null;
+    }
 
-        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, true),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0), 
-                                      JComponent.WHEN_FOCUSED);
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("Slider.actionMap");
 
-        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0), 
-                                      JComponent.WHEN_FOCUSED);
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("Slider.actionMap", map);
+	    }
+	}
+	return map;
+    }
 
-        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke("KP_LEFT"), 
-                                      JComponent.WHEN_FOCUSED);
-
-        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_UP,0), 
-                                      JComponent.WHEN_FOCUSED);
-
-        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
-                                      KeyStroke.getKeyStroke("KP_UP"), 
-                                      JComponent.WHEN_FOCUSED);
-
-        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, true),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0), 
-                                      JComponent.WHEN_FOCUSED);
-
-        slider.registerKeyboardAction(new ActionScroller(slider, MIN_SCROLL, true),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_HOME,0), 
-                                      JComponent.WHEN_FOCUSED);
-
-        slider.registerKeyboardAction(new ActionScroller(slider, MAX_SCROLL, true),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_END,0), 
-                                      JComponent.WHEN_FOCUSED);
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+        map.put("positiveUnitIncrement", new SharedActionScroller
+		(POSITIVE_SCROLL, false));
+        map.put("positiveBlockIncrement", new SharedActionScroller
+		(POSITIVE_SCROLL, true));
+        map.put("negativeUnitIncrement", new SharedActionScroller
+		(NEGATIVE_SCROLL, false));
+        map.put("negativeBlockIncrement", new SharedActionScroller
+		(NEGATIVE_SCROLL, true));
+        map.put("minScroll", new SharedActionScroller(MIN_SCROLL, true));
+        map.put("maxScroll", new SharedActionScroller(MAX_SCROLL, true));
+	return map;
     }
 
     protected void uninstallKeyboardActions( JSlider slider ) {
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_RIGHT" ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_DOWN" ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_DOWN, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_LEFT" ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_UP" ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_UP, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_HOME, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_END, 0 ) );
+	SwingUtilities.replaceUIActionMap(slider, null);
+	SwingUtilities.replaceUIInputMap(slider, JComponent.WHEN_FOCUSED,
+					 null);
     }
 
     public Dimension getPreferredHorizontalSize() {
@@ -452,7 +444,17 @@ public class BasicSliderUI extends SliderUI{
 	    trackRect.height = thumbRect.height;
 	}
 	else {
-	    trackRect.x = contentRect.x;
+	    if(BasicGraphicsUtils.isLeftToRight(slider)) {
+	        trackRect.x = contentRect.x;
+	    }
+	    else {
+	        int tickLength = 0;
+		if ( slider.getPaintTicks() ) {
+		    tickLength = getTickLength();
+		}
+	        trackRect.x = contentRect.x + tickLength +
+		                      getWidthOfWidestLabel();
+	    }
 	    trackRect.y = contentRect.y + trackBuffer;
 	    trackRect.width = thumbRect.width;
 	    trackRect.height = contentRect.height - (trackBuffer * 2);
@@ -482,9 +484,15 @@ public class BasicSliderUI extends SliderUI{
 	    }
 	}
 	else {
-	    tickRect.x = trackRect.x + trackRect.width;
+	    if(BasicGraphicsUtils.isLeftToRight(slider)) {
+	        tickRect.x = trackRect.x + trackRect.width;
+		tickRect.width = getTickLength();
+	    }
+	    else {
+	        tickRect.width = getTickLength();
+	        tickRect.x = trackRect.x - tickRect.width;
+	    }
 	    tickRect.y = trackRect.y;
-	    tickRect.width = getTickLength();
 	    tickRect.height = trackRect.height;
 
 	    if ( !slider.getPaintTicks() ) {
@@ -503,9 +511,15 @@ public class BasicSliderUI extends SliderUI{
                 labelRect.height = getHeightOfTallestLabel();
             }
             else {
-	        labelRect.x = tickRect.x + tickRect.width;
+	        if(BasicGraphicsUtils.isLeftToRight(slider)) {
+		    labelRect.x = tickRect.x + tickRect.width;
+		    labelRect.width = getWidthOfWidestLabel();
+		}
+		else {
+		    labelRect.width = getWidthOfWidestLabel();
+		    labelRect.x = tickRect.x - labelRect.width;
+		}
 		labelRect.y = tickRect.y - trackBuffer;
-                labelRect.width = getWidthOfWidestLabel();
 		labelRect.height = tickRect.height + (trackBuffer * 2);
             }
         }
@@ -517,7 +531,12 @@ public class BasicSliderUI extends SliderUI{
 		labelRect.height = 0;
             }
             else {
-	        labelRect.x = tickRect.x + tickRect.width;
+	        if(BasicGraphicsUtils.isLeftToRight(slider)) {
+		    labelRect.x = tickRect.x + tickRect.width;
+		}
+		else {
+		    labelRect.x = tickRect.x;
+		}
 		labelRect.y = tickRect.y;
 		labelRect.width = 0;
 		labelRect.height = tickRect.height;
@@ -633,6 +652,18 @@ public class BasicSliderUI extends SliderUI{
         return height;
     }
 
+    protected boolean drawInverted() {
+        if (slider.getOrientation()==JSlider.HORIZONTAL) {
+	    if(BasicGraphicsUtils.isLeftToRight(slider)) {
+	        return slider.getInverted();
+	    } else {
+	        return !slider.getInverted();
+	    }
+	} else {
+	    return slider.getInverted();
+	}
+    }
+
     /**
      * Returns the label that corresponds to the highest slider value in the label table.
      * @see JSlider#setLabelTable
@@ -685,6 +716,7 @@ public class BasicSliderUI extends SliderUI{
 
     public void paint( Graphics g, JComponent c )   {
         recalculateIfInsetsChanged();
+	recalculateIfOrientationChanged();
 	Rectangle clip = g.getClipBounds();
 
 	if ( slider.getPaintTrack() && clip.intersects( trackRect ) ) {
@@ -708,6 +740,14 @@ public class BasicSliderUI extends SliderUI{
         Insets newInsets = slider.getInsets();
         if ( !newInsets.equals( insetCache ) ) {
 	    insetCache = newInsets;
+	    calculateGeometry();
+	}
+    }
+
+    protected void recalculateIfOrientationChanged() {
+        boolean ltr = BasicGraphicsUtils.isLeftToRight(slider);
+        if ( ltr!=leftToRightCache ) {
+	    leftToRightCache = ltr;
 	    calculateGeometry();
 	}
     }
@@ -813,21 +853,38 @@ public class BasicSliderUI extends SliderUI{
             int yPos = 0;
 
             if ( slider.getMinorTickSpacing() > 0 ) {
+	        int offset = 0;
+	        if(!BasicGraphicsUtils.isLeftToRight(slider)) {
+		    offset = tickBounds.width - tickBounds.width / 2;
+		    g.translate(offset, 0);
+		}
+
                 while ( value <= slider.getMaximum() ) {
                     yPos = yPositionForValue( value );
                     paintMinorTickForVertSlider( g, tickBounds, yPos );
                     value += slider.getMinorTickSpacing();
                 }
+
+		if(!BasicGraphicsUtils.isLeftToRight(slider)) {
+		    g.translate(-offset, 0);
+		}
             }
 
             if ( slider.getMajorTickSpacing() > 0 ) {
                 value = slider.getMinimum();
+	        if(!BasicGraphicsUtils.isLeftToRight(slider)) {
+		    g.translate(2, 0);
+		}
 
                 while ( value <= slider.getMaximum() ) {
                     yPos = yPositionForValue( value );
                     paintMajorTickForVertSlider( g, tickBounds, yPos );
                     value += slider.getMajorTickSpacing();
                 }
+
+	        if(!BasicGraphicsUtils.isLeftToRight(slider)) {
+		    g.translate(-2, 0);
+		}
             }
             g.translate(-tickBounds.x, 0);
         }
@@ -865,9 +922,14 @@ public class BasicSliderUI extends SliderUI{
 		    g.translate( 0, -labelBounds.y );
                 }
                 else {
-		    g.translate( labelBounds.x, 0 );
+		    int offset = 0;
+		    if(!BasicGraphicsUtils.isLeftToRight(slider)) {
+		        offset = labelBounds.width -
+			              label.getPreferredSize().width;
+		    }
+		    g.translate( labelBounds.x + offset, 0 );
                     paintVerticalLabel( g, key.intValue(), label );
-		    g.translate( -labelBounds.x, 0 );
+		    g.translate( -labelBounds.x - offset, 0 );
                 }
             }
         }
@@ -915,6 +977,8 @@ public class BasicSliderUI extends SliderUI{
         }
 
         if ( !slider.getPaintTicks() ) {
+
+	    // "plain" version
             g.fillRect(0, 0, w, h);
 
             g.setColor(Color.black);
@@ -951,27 +1015,49 @@ public class BasicSliderUI extends SliderUI{
             g.drawLine(w-2, 1, w-2, h-2-cw);    
             g.drawLine(w-2, h-1-cw, w-1-cw, h-2);       
         }
-        else {
+        else {  // vertical
             int cw = h / 2;
-            g.fillRect(1, 1, w-1-cw, h-3);
-            Polygon p = new Polygon();
-            p.addPoint(w-cw-1, 0);
-            p.addPoint(w-1, cw);
-            p.addPoint(w-1-cw, h-2);
-            g.fillPolygon(p);       
+	    if(BasicGraphicsUtils.isLeftToRight(slider)) {
+		  g.fillRect(1, 1, w-1-cw, h-3);
+	          Polygon p = new Polygon();
+                  p.addPoint(w-cw-1, 0);
+                  p.addPoint(w-1, cw);
+                  p.addPoint(w-1-cw, h-2);
+                  g.fillPolygon(p);
 
-            g.setColor(highlightColor);
-            g.drawLine(0, 0, 0, h - 2);
-            g.drawLine(1, 0, w-1-cw, 0);
-            g.drawLine(w-cw-1, 0, w-1, cw); 
+                  g.setColor(highlightColor);
+	          g.drawLine(0, 0, 0, h - 2);                  // left
+	          g.drawLine(1, 0, w-1-cw, 0);                 // top
+	          g.drawLine(w-cw-1, 0, w-1, cw);              // top slant
 
-            g.setColor(Color.black);
-            g.drawLine(0, h-1, w-2-cw, h-1);    
-            g.drawLine(w-1-cw, h-1, w-1, h-1-cw);       
+                  g.setColor(Color.black);
+	          g.drawLine(0, h-1, w-2-cw, h-1);             // bottom
+	          g.drawLine(w-1-cw, h-1, w-1, h-1-cw);        // bottom slant
 
-            g.setColor(shadowColor);
-            g.drawLine(1, h-2, w-2-cw,  h-2 );    
-            g.drawLine(w-1-cw, h-2, w-2, h-cw-1 );      
+                  g.setColor(shadowColor);
+                  g.drawLine(1, h-2, w-2-cw,  h-2 );         // bottom
+                  g.drawLine(w-1-cw, h-2, w-2, h-cw-1 );     // bottom slant
+	    }
+	    else {
+		  g.fillRect(5, 1, w-1-cw, h-3);
+	          Polygon p = new Polygon();
+                  p.addPoint(cw, 0);
+                  p.addPoint(0, cw);
+                  p.addPoint(cw, h-2);
+                  g.fillPolygon(p);
+
+                  g.setColor(highlightColor);
+                  g.drawLine(cw-1, 0, w-2, 0);             // top
+                  g.drawLine(0, cw, cw, 0);                // top slant
+
+                  g.setColor(Color.black);
+                  g.drawLine(0, h-1-cw, cw, h-1 );         // bottom slant
+                  g.drawLine(cw, h-1, w-1, h-1);           // bottom
+
+                  g.setColor(shadowColor);
+                  g.drawLine(cw, h-2, w-2,  h-2 );         // bottom
+                  g.drawLine(w-1, 1, w-1,  h-2 );          // right
+	    }
         }
 
         g.translate(-knobBounds.x, -knobBounds.y);
@@ -1029,7 +1115,7 @@ public class BasicSliderUI extends SliderUI{
         int trackRight = trackRect.x + (trackRect.width - 1);
         int xPosition;
 
-        if ( !slider.getInverted() ) {
+        if ( !drawInverted() ) {
             xPosition = trackLeft;
             xPosition += Math.round( pixelsPerValue * (double)(value - min) );
         }
@@ -1054,7 +1140,7 @@ public class BasicSliderUI extends SliderUI{
         int trackBottom = trackRect.y + (trackRect.height - 1);
         int yPosition;
 
-        if ( !slider.getInverted() ) {
+        if ( !drawInverted() ) {
             yPosition = trackTop;
             yPosition += Math.round( pixelsPerValue * (double)(max - value ) );
         }
@@ -1083,10 +1169,10 @@ public class BasicSliderUI extends SliderUI{
 	final int trackBottom = trackRect.y + (trackRect.height - 1);
 	
 	if ( yPos <= trackTop ) {
-	    value = slider.getInverted() ? minValue : maxValue;
+	    value = drawInverted() ? minValue : maxValue;
 	}
 	else if ( yPos >= trackBottom ) {
-	    value = slider.getInverted() ? maxValue : minValue;
+	    value = drawInverted() ? maxValue : minValue;
 	}
 	else {
 	    int distanceFromTrackTop = yPos - trackTop;
@@ -1094,7 +1180,7 @@ public class BasicSliderUI extends SliderUI{
 	    double valuePerPixel = (double)valueRange / (double)trackLength;
 	    int valueFromTrackTop = (int)Math.round( distanceFromTrackTop * valuePerPixel );
 
-	    value = slider.getInverted() ? minValue + valueFromTrackTop : maxValue - valueFromTrackTop;
+	    value = drawInverted() ? minValue + valueFromTrackTop : maxValue - valueFromTrackTop;
 	}
 	
 	return value;
@@ -1114,10 +1200,10 @@ public class BasicSliderUI extends SliderUI{
 	final int trackRight = trackRect.x + (trackRect.width - 1);
 	
 	if ( xPos <= trackLeft ) {
-	    value = slider.getInverted() ? maxValue : minValue;
+	    value = drawInverted() ? maxValue : minValue;
 	}
 	else if ( xPos >= trackRight ) {
-	    value = slider.getInverted() ? minValue : maxValue;
+	    value = drawInverted() ? minValue : maxValue;
 	}
 	else {
 	    int distanceFromTrackLeft = xPos - trackLeft;
@@ -1125,7 +1211,7 @@ public class BasicSliderUI extends SliderUI{
 	    double valuePerPixel = (double)valueRange / (double)trackLength;
 	    int valueFromTrackLeft = (int)Math.round( distanceFromTrackLeft * valuePerPixel );
 	    
-	    value = slider.getInverted() ? maxValue - valueFromTrackLeft :
+	    value = drawInverted() ? maxValue - valueFromTrackLeft :
 	      minValue + valueFromTrackLeft;
 	}
 	
@@ -1230,7 +1316,7 @@ public class BasicSliderUI extends SliderUI{
             case JSlider.VERTICAL:
                 if ( thumbRect.isEmpty() ) {
                     int scrollbarCenter = sbSize.height / 2;
-                    if ( !slider.getInverted() ) {
+                    if ( !drawInverted() ) {
                         direction = (currentMouseY < scrollbarCenter) ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
                     }
                     else {
@@ -1239,7 +1325,7 @@ public class BasicSliderUI extends SliderUI{
                 }
                 else {
                     int thumbY = thumbRect.y;
-                    if ( !slider.getInverted() ) {
+                    if ( !drawInverted() ) {
                         direction = (currentMouseY < thumbY) ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
                     }
                     else {
@@ -1250,7 +1336,7 @@ public class BasicSliderUI extends SliderUI{
             case JSlider.HORIZONTAL:
                 if ( thumbRect.isEmpty() ) {
                     int scrollbarCenter = sbSize.width / 2;
-                    if ( !slider.getInverted() ) {
+                    if ( !drawInverted() ) {
                         direction = (currentMouseX < scrollbarCenter) ? NEGATIVE_SCROLL : POSITIVE_SCROLL;
                     }
                     else {
@@ -1259,7 +1345,7 @@ public class BasicSliderUI extends SliderUI{
                 }
                 else {
                     int thumbX = thumbRect.x;
-                    if ( !slider.getInverted() ) {
+                    if ( !drawInverted() ) {
                         direction = (currentMouseX < thumbX) ? NEGATIVE_SCROLL : POSITIVE_SCROLL;
                     }
                     else {
@@ -1282,7 +1368,7 @@ public class BasicSliderUI extends SliderUI{
         public boolean shouldScroll(int direction) {
             Rectangle r = thumbRect;
             if ( slider.getOrientation() == JSlider.VERTICAL ) {
-                if ( slider.getInverted() ? direction < 0 : direction > 0 ) {
+                if ( drawInverted() ? direction < 0 : direction > 0 ) {
                     if ( r.y + r.height  <= currentMouseY ) {
                         return false;
                     }
@@ -1292,7 +1378,7 @@ public class BasicSliderUI extends SliderUI{
                 }
             }
             else {
-                if ( slider.getInverted() ? direction < 0 : direction > 0 ) {
+                if ( drawInverted() ? direction < 0 : direction > 0 ) {
                     if ( r.x + r.width  >= currentMouseX ) {
                         return false;
                     }
@@ -1433,7 +1519,14 @@ public class BasicSliderUI extends SliderUI{
     };
 
     /**
-     * Defines the action to take when scrolled.
+     * As of Java 2 platform v1.3 this undocumented class is no longer used.
+     * The recommended approach to creating bindings is to use a
+     * combination of an <code>ActionMap</code>, to contain the action,
+     * and an <code>InputMap</code> to contain the mapping from KeyStroke
+     * to action description. The InputMap is is usually described in the
+     * LookAndFeel tables.
+     * <p>
+     * Please refer to the key bindings specification for further details.
      * <p>
      * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
@@ -1453,7 +1546,7 @@ public class BasicSliderUI extends SliderUI{
         public void actionPerformed(ActionEvent e) {
 	    if ( dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL ) {
 		int realDir = dir;
-		if ( slider.getInverted() ) {
+		if ( drawInverted() ) {
 		    realDir = dir == NEGATIVE_SCROLL ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
 		}
 		
@@ -1463,7 +1556,7 @@ public class BasicSliderUI extends SliderUI{
 		    scrollByUnit(realDir);
 	    }
 	    else {
-		if ( slider.getInverted() ) {
+		if ( drawInverted() ) {
 		    if ( dir == MIN_SCROLL )
 			slider.setValue(slider.getMaximum());
 		    else if ( dir == MAX_SCROLL )
@@ -1487,5 +1580,47 @@ public class BasicSliderUI extends SliderUI{
 
     };
 
-}
 
+    /**
+     * A static version of the above.
+     */
+    static class SharedActionScroller extends AbstractAction {
+        int dir;
+        boolean block;
+
+        public SharedActionScroller(int dir, boolean block) {
+            this.dir = dir;
+            this.block = block;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+	    JSlider slider = (JSlider)e.getSource();
+	    if ( dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL ) {
+		int realDir = dir;
+		BasicSliderUI ui = (BasicSliderUI)slider.getUI();
+		if ( slider.getInverted() ) {
+		    realDir = dir == NEGATIVE_SCROLL ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
+		}
+		
+		if ( block )
+		    ui.scrollByBlock(realDir);
+		else
+		    ui.scrollByUnit(realDir);
+	    }
+	    else {
+		if ( slider.getInverted() ) {
+		    if ( dir == MIN_SCROLL )
+			slider.setValue(slider.getMaximum());
+		    else if ( dir == MAX_SCROLL )
+			slider.setValue(slider.getMinimum());
+		}
+		else {
+		    if ( dir == MIN_SCROLL )
+			slider.setValue(slider.getMinimum());
+		    else if ( dir == MAX_SCROLL )
+			slider.setValue(slider.getMaximum());
+		}       
+	    }
+	}
+    }
+}

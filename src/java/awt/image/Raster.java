@@ -1,8 +1,11 @@
 /*
- * @(#)Raster.java	1.38 01/11/29
+ * @(#)Raster.java	1.46 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -197,8 +200,12 @@ public class Raster {
      * The dataType parameter should be one of the enumerated values
      * defined in the DataBuffer class.
      *
-     * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
-     * and TYPE_INT.
+     * <p> Note that interleaved <code>DataBuffer.TYPE_INT</code>
+     * Rasters are not supported.  To create a 1-band Raster of type
+     * <code>DataBuffer.TYPE_INT</code>, use
+     * Raster.createPackedRaster().
+     * <p> The only dataTypes supported currently are TYPE_BYTE
+     * and TYPE_USHORT.
      */
     public static WritableRaster createInterleavedRaster(int dataType,
                                                          int w, int h,
@@ -223,8 +230,17 @@ public class Raster {
      * The dataType parameter should be one of the enumerated values
      * defined in the DataBuffer class.
      *
-     * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
-     * and TYPE_INT.
+     * <p> Note that interleaved <code>DataBuffer.TYPE_INT</code>
+     * Rasters are not supported.  To create a 1-band Raster of type
+     * <code>DataBuffer.TYPE_INT</code>, use
+     * Raster.createPackedRaster().
+     * <p> The only dataTypes supported currently are TYPE_BYTE
+     * and TYPE_USHORT.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>
      */
     public static WritableRaster createInterleavedRaster(int dataType,
                                                          int w, int h,
@@ -251,10 +267,6 @@ public class Raster {
             d = new DataBufferUShort(size);
             break;
 
-        case DataBuffer.TYPE_INT:
-            d = new DataBufferInt(size);
-            break;
-
         default:
             throw new IllegalArgumentException("Unsupported data type " +
                                                 dataType);
@@ -275,6 +287,8 @@ public class Raster {
      *
      * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
      * and TYPE_INT.
+     * @throws ArrayIndexOutOfBoundsException if <code>bands</code>
+     *         is less than 1
      */
     public static WritableRaster createBandedRaster(int dataType,
                                                     int w, int h,
@@ -310,6 +324,13 @@ public class Raster {
      *
      * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
      * and TYPE_INT.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>bankIndices</code> 
+     *         or <code>bandOffsets</code> is <code>null</code>
      */
     public static WritableRaster createBandedRaster(int dataType,
                                                     int w, int h,
@@ -377,6 +398,11 @@ public class Raster {
      *
      * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
      * and TYPE_INT.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>
      */
     public static WritableRaster createPackedRaster(int dataType,
                                                     int w, int h,
@@ -424,6 +450,17 @@ public class Raster {
      *
      * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
      * and TYPE_INT.
+     * @throws IllegalArgumentException if the product of 
+     *         <code>bitsPerBand</code> and <code>bands</code> is 
+     *         greater than the number of bits held by 
+     *         <code>dataType</code>
+     * @throws IllegalArgumentException if <code>bitsPerBand</code> or
+     *         <code>bands</code> is not greater than zero  
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>     
      */
     public static WritableRaster createPackedRaster(int dataType,
                                                     int w, int h,
@@ -432,6 +469,16 @@ public class Raster {
                                                     Point location) {
         DataBuffer d;
 
+        if (bands <= 0) {
+            throw new IllegalArgumentException("Number of bands ("+bands+
+                                               ") must be greater than 0");
+        }
+
+        if (bitsPerBand <= 0) {
+            throw new IllegalArgumentException("Bits per band ("+bitsPerBand+
+                                               ") must be greater than 0");
+        }
+        
         if (bands != 1) {
             int[] masks = new int[bands];
             int mask = (1 << bitsPerBand) - 1;
@@ -491,6 +538,16 @@ public class Raster {
      * bandOffsets.length.  The upper left corner of the Raster
      * is given by the location argument.  If location is null, (0, 0)
      * will be used.
+     * <p> Note that interleaved <code>DataBuffer.TYPE_INT</code>
+     * Rasters are not supported.  To create a 1-band Raster of type
+     * <code>DataBuffer.TYPE_INT</code>, use
+     * Raster.createPackedRaster().
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code>
+     * @throws RasterFormatException if <code>dataBuffer</code> has more
+     *         than one bank.
      */
     public static WritableRaster createInterleavedRaster(DataBuffer dataBuffer,
                                                          int w, int h,
@@ -515,9 +572,6 @@ public class Raster {
         case DataBuffer.TYPE_USHORT:
             return new ShortInterleavedRaster(csm, dataBuffer, location);
 
-        case DataBuffer.TYPE_INT:
-            return new IntegerInterleavedRaster(csm, dataBuffer, location);
-
         default:
             throw new IllegalArgumentException("Unsupported data type " +
                                                 dataType);
@@ -531,6 +585,11 @@ public class Raster {
      * from bankIndices.length and bandOffsets.length, which must be
      * the same.  The upper left corner of the Raster is given by the
      * location argument.  If location is null, (0, 0) will be used.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>
      */
     public static WritableRaster createBandedRaster(DataBuffer dataBuffer,
                                                     int w, int h,
@@ -576,6 +635,13 @@ public class Raster {
      * band masks.  The number of bands is inferred from bandMasks.length.
      * The upper left corner of the Raster is given by
      * the location argument.  If location is null, (0, 0) will be used.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>
+     * @throws RasterFormatException if <code>dataBuffer</code> has more
+     *         than one bank.
      */
     public static WritableRaster createPackedRaster(DataBuffer dataBuffer,
                                                     int w, int h,
@@ -612,6 +678,13 @@ public class Raster {
      * specified DataBuffer, width, height, and bits per pixel.  The upper
      * left corner of the Raster is given by the location argument.  If
      * location is null, (0, 0) will be used.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types, which are
+     *         <code>DataBuffer.TYPE_BYTE</code>, 
+     *         <code>DataBuffer.TYPE_USHORT</code> 
+     *         or <code>DataBuffer.TYPE_INT</code>
+     * @throws RasterFormatException if <code>dataBuffer</code> has more
+     *         than one bank.
      */
     public static WritableRaster createPackedRaster(DataBuffer dataBuffer,
                                                     int w, int h,
@@ -622,6 +695,12 @@ public class Raster {
         }
         int dataType = dataBuffer.getDataType();
 
+        if (dataBuffer.getNumBanks() != 1) {
+            throw new 
+                RasterFormatException("DataBuffer for packed Rasters"+
+                                      " must only have 1 bank.");
+        }
+        
         MultiPixelPackedSampleModel sbpsm =
                 new MultiPixelPackedSampleModel(dataType, w, h, bitsPerPixel);
 
@@ -646,10 +725,18 @@ public class Raster {
      *  Creates a Raster with the specified SampleModel and DataBuffer.
      *  The upper left corner of the Raster is given by the location argument.
      *  If location is null, (0, 0) will be used.
+     * @throws RasterFormatException if <code>dataBuffer</code> has more
+     *         than one bank and the <code>sampleModel</code> is
+     *         PixelInterleavedSampleModel, SinglePixelPackedSampleModel,
+     *         or MultiPixelPackedSampleModel.
      */
     public static Raster createRaster(SampleModel sm,
                                       DataBuffer db,
                                       Point location) {
+        if (db == null) {
+            throw new NullPointerException("DataBuffer cannot be null");
+        }
+        
         if (location == null) {
            location = new Point(0,0);
         }
@@ -688,6 +775,8 @@ public class Raster {
      *  Creates a WritableRaster with the specified SampleModel.
      *  The upper left corner of the Raster is given by the location argument.
      *  If location is null, (0, 0) will be used.
+     * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
+     * and TYPE_INT.
      */
     public static WritableRaster createWritableRaster(SampleModel sm,
                                                       Point location) {
@@ -704,10 +793,19 @@ public class Raster {
      *  Creates a WritableRaster with the specified SampleModel and DataBuffer.
      *  The upper left corner of the Raster is given by the location argument.
      *  If location is null, (0, 0) will be used.
+     * <p> The only dataTypes supported currently are TYPE_BYTE, TYPE_USHORT,
+     * and TYPE_INT.
+     * @throws RasterFormatException if <code>dataBuffer</code> has more
+     *         than one bank and the <code>sampleModel</code> is
+     *         PixelInterleavedSampleModel, SinglePixelPackedSampleModel,
+     *         or MultiPixelPackedSampleModel.
      */
     public static WritableRaster createWritableRaster(SampleModel sm,
                                                       DataBuffer db,
                                                       Point location) {
+        if (db == null) {
+            throw new NullPointerException("DataBuffer cannot be null");
+        }
         if (location == null) {
            location = new Point(0,0);
         }
@@ -808,6 +906,10 @@ public class Raster {
                      Rectangle aRegion,
                      Point sampleModelTranslate,
 	             Raster parent) {
+        
+        if (dataBuffer == null) {
+            throw new NullPointerException("DataBuffer cannot be null");
+        }
        this.sampleModel = sampleModel;
        this.dataBuffer = dataBuffer;
        minX = aRegion.x;
@@ -1022,7 +1124,8 @@ public class Raster {
         return numBands;
     }
 
-    /** Returns the number of data elements needed to transfer one pixel
+    /** 
+     *  Returns the number of data elements needed to transfer one pixel
      *  via the getDataElements and setDataElements methods.  When pixels
      *  are transferred via these methods, they may be transferred in a
      *  packed or unpacked format, depending on the implementation of the
@@ -1035,7 +1138,8 @@ public class Raster {
         return sampleModel.getNumDataElements();
     }
 
-    /** Returns the TransferType used to transfer pixels via the
+    /** 
+     *  Returns the TransferType used to transfer pixels via the
      *  getDataElements and setDataElements methods.  When pixels
      *  are transferred via these methods, they may be transferred in a
      *  packed or unpacked format, depending on the implementation of the
@@ -1061,9 +1165,9 @@ public class Raster {
 
     /**
      * Returns data for a single pixel in a primitive array of type
-     * TransferType.  For image data supported by the Java 2D API, this
-     * will be one of DataBuffer.TYPE_BYTE, DataBuffer.TYPE_USHORT, or
-     * DataBuffer.TYPE_INT.  Data may be returned in a packed format,
+     * TransferType.  For image data supported by the Java 2D(tm) API, 
+     * this will be one of DataBuffer.TYPE_BYTE, DataBuffer.TYPE_USHORT, 
+     * or DataBuffer.TYPE_INT.  Data may be returned in a packed format,
      * thus increasing efficiency for data transfers.
      * There will be no explicit bounds checking on the parameters.
      * An ArrayIndexOutOfBoundsException may be thrown

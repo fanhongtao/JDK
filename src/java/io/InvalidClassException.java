@@ -1,8 +1,11 @@
 /*
- * @(#)InvalidClassException.java	1.14 01/11/29
+ * @(#)InvalidClassException.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -18,23 +21,31 @@ package java.io;
  * </UL>
  *
  * @author  unascribed
- * @version 1.14, 11/29/01
+ * @version 1.17, 02/02/00
  * @since   JDK1.1
  */
 public class InvalidClassException extends ObjectStreamException {
     /**
+     * Name of the invalid class.
+     *
      * @serial Name of the invalid class.
      */
     public String classname;
 
     /**
      * Report a InvalidClassException for the reason specified.
+     *
+     * @param reason  String describing the reason for the exception.
      */
     public InvalidClassException(String reason) {
 	super(reason);
     }
 
     /**
+     * Constructs an InvalidClassException object.
+     *
+     * @param cname   a String naming the invalid class.
+     * @param reason  a String describing the reason for the exception.
      */
     public InvalidClassException(String cname, String reason) {
 	super(reason);

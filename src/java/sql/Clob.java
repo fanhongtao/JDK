@@ -1,14 +1,16 @@
 /*
- * @(#)Clob.java	1.11 01/11/29
+ * @(#)Clob.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
  
 /**
- * JDBC 2.0
  * The mapping in the Java<sup><font size=-2>TM</font></sup> programming language 
  * for the SQL <code>CLOB</code> type.
  * An SQL <code>CLOB</code> is a built-in type
@@ -27,7 +29,9 @@ package java.sql;
  * Methods in the interfaces {@link ResultSet},
  * {@link CallableStatement}, and {@link PreparedStatement}, such as
  * <code>getClob</code> and <code>setClob</code> allow a programmer to
- * access the SQL <code>CLOB</code>.
+ * access an SQL <code>CLOB</code> value.
+ <P>
+ * This class is new in the JDBC 2.0 API.
  */
 
 public interface Clob {
@@ -39,6 +43,8 @@ public interface Clob {
    * @return length of the <code>CLOB</code> in characters
    * @exception SQLException if there is an error accessing the
    * length of the <code>CLOB</code>
+   * @since 1.2
+   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   long length() throws SQLException;
 
@@ -56,14 +62,19 @@ public interface Clob {
    *         the <code>CLOB</code> value designated by this <code>Clob</code> object
    * @exception SQLException if there is an error accessing the
    * <code>CLOB</code> 
+   * @since 1.2
+   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   String getSubString(long pos, int length) throws SQLException;
 
   /**
-   * Gets the <code>Clob</code> contents as a Unicode stream.
+   * Gets the <code>CLOB</code> value designated by this <code>Clob</code>
+   * object as a Unicode stream.
    * @return a Unicode stream containing the <code>CLOB</code> data
    * @exception SQLException if there is an error accessing the 
-   * <code>CLOB</code>
+   * <code>CLOB</code> value
+   * @since 1.2
+   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   java.io.Reader getCharacterStream() throws SQLException;
 
@@ -73,12 +84,15 @@ public interface Clob {
    * @return an ascii stream containing the <code>CLOB</code> data
    * @exception SQLException if there is an error accessing the 
    * <code>CLOB</code> value
+   * @since 1.2
+   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   java.io.InputStream getAsciiStream() throws SQLException;
 
   /** 
    * Determines the character position at which the specified substring 
-   * <code>searchstr</code> appears in the <code>CLOB</code>.  The search 
+   * <code>searchstr</code> appears in the SQL <code>CLOB</code> value
+   * represented by this <code>Clob</code> object.  The search 
    * begins at position <code>start</code>.
    * @param searchstr the substring for which to search 
    * @param start the position at which to begin searching; the first position
@@ -87,6 +101,8 @@ public interface Clob {
    *         position is 1
    * @exception SQLException if there is an error accessing the       
    * <code>CLOB</code> value
+   * @since 1.2
+   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   long position(String searchstr, long start) throws SQLException;
 
@@ -102,6 +118,8 @@ public interface Clob {
    * else -1; the first position is 1
    * @exception SQLException if there is an error accessing the 
    * <code>CLOB</code> value
+   * @since 1.2
+   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   long position(Clob searchstr, long start) throws SQLException;
 }

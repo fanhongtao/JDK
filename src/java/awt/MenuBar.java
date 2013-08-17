@@ -1,8 +1,11 @@
 /*
- * @(#)MenuBar.java	1.47 01/11/29
+ * @(#)MenuBar.java	1.54 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -10,6 +13,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.awt.peer.MenuBarPeer;
 import java.awt.event.KeyEvent;
+import javax.accessibility.*;
 
 /**
  * The <code>MenuBar</code> class encapsulates the platform's
@@ -35,7 +39,7 @@ import java.awt.event.KeyEvent;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.47, 11/29/01
+ * @version 1.54, 04/06/00
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -44,7 +48,7 @@ import java.awt.event.KeyEvent;
  * @see        java.awt.MenuShortcut
  * @since      JDK1.0
  */
-public class MenuBar extends MenuComponent implements MenuContainer {
+public class MenuBar extends MenuComponent implements MenuContainer, Accessible {
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -138,8 +142,10 @@ public class MenuBar extends MenuComponent implements MenuContainer {
     }
 
     /**
-     * Sets the help menu on this menu bar to be the specified menu.
-     * @param     m    the menu to be set as the help menu.
+     * Sets the specified menu to be this menu bar's help menu.
+     * If this menu bar has an existing help menu, the old help menu is
+     * removed from the menu bar, and replaced with the specified menu.
+     * @param m    the menu to be set as the help menu
      */
     public void setHelpMenu(Menu m) {
         synchronized (getTreeLock()) {
@@ -147,8 +153,7 @@ public class MenuBar extends MenuComponent implements MenuContainer {
 	        return;
 	    }
 	    if (helpMenu != null) {
-	        helpMenu.removeNotify();
-		helpMenu.parent = null;
+                remove(helpMenu);
 	    }
 	    if (m.parent != this) {
 	        add(m);
@@ -202,14 +207,14 @@ public class MenuBar extends MenuComponent implements MenuContainer {
      */
     public void remove(int index) {
         synchronized (getTreeLock()) {
+            Menu m = getMenu(index);
+            menus.removeElementAt(index);
 	    MenuBarPeer peer = (MenuBarPeer)this.peer;
 	    if (peer != null) {
-	        Menu m = getMenu(index);
 		m.removeNotify();
 		m.parent = null;
 		peer.delMenu(index);
 	    }
-	    menus.removeElementAt(index);
 	}
     }
 
@@ -410,4 +415,50 @@ public class MenuBar extends MenuComponent implements MenuContainer {
      * Initialize JNI field and method IDs
      */
     private static native void initIDs();
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this MenuBar. 
+     * For menu bars, the AccessibleContext takes the form of an 
+     * AccessibleAWTMenuBar. 
+     * A new AccessibleAWTMenuBar instance is created if necessary.
+     *
+     * @return an AccessibleAWTMenuBar that serves as the 
+     *         AccessibleContext of this MenuBar
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTMenuBar();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * Inner class of MenuBar used to provide default support for
+     * accessibility.  This class is not meant to be used directly by
+     * application developers, but is instead meant only to be
+     * subclassed by menu component developers.
+     * <p>
+     * This class implements accessibility support for the 
+     * <code>MenuBar</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to menu bar user-interface elements.
+     */
+    protected class AccessibleAWTMenuBar extends AccessibleAWTMenuComponent {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.MENU_BAR;
+        }
+
+    } // class AccessibleAWTMenuBar
+
 }

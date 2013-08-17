@@ -1,8 +1,11 @@
 /*
- * @(#)X509CRL.java	1.14 01/11/29
+ * @(#)X509CRL.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security.cert;
@@ -45,9 +48,10 @@ import java.util.Set;
  *     signature            BIT STRING  }
  * </pre>
  * <p>
- * A good decription and profiling is provided in the IETF PKIX WG
- * draft, Part I:  X.509 Certificate and CRL Profile,
- * &lt;draft-ietf-pkix-ipki-part1-07.txt&gt;.
+ * More information can be found in RFC 2459,
+ * "Internet X.509 Public Key Infrastructure Certificate and CRL
+ * Profile" at <A HREF="http://www.ietf.org/rfc/rfc2459.txt">
+ * http://www.ietf.org/rfc/rfc2459.txt </A>.    
  * <p>
  * The ASN.1 definition of <code>tbsCertList</code> is:
  * <pre>
@@ -80,7 +84,7 @@ import java.util.Set;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.14
+ * @version 1.18
  *
  * @see CRL
  * @see CertificateFactory
@@ -150,6 +154,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
     /**
      * Returns the ASN.1 DER-encoded form of this CRL.
      *
+     * @return the encoded form of this certificate
      * @exception CRLException if an encoding error occurs.
      */
     public abstract byte[] getEncoded()
@@ -267,9 +272,10 @@ public abstract class X509CRL extends CRL implements X509Extension {
     public abstract Date getNextUpdate();
 
     /**
-     * Gets the CRL entry with the given <code>serialNumber</code>
-     * from this CRL.
+     * Gets the CRL entry, if any, with the given certificate serialNumber.
      *
+     * @param serialNumber the serial number of the certificate for which a CRL entry
+     * is to be looked up
      * @return the entry with the given serial number, or null if no such entry
      * exists in this CRL.
      * @see X509CRLEntry
@@ -334,7 +340,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * An OID is represented by a set of positive whole numbers separated
      * by periods.
      * For example, the string "1.2.840.10040.4.3" identifies the SHA-1
-     * with DSA signature algorithm, as per the PKIX part I.
+     * with DSA signature algorithm, as per RFC 2459.
      * 
      * <p>See {@link getSigAlgName()#getSigAlgName} for 
      * relevant ASN.1 definitions.

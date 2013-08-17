@@ -1,8 +1,11 @@
 /*
- * @(#)StyleConstants.java	1.24 01/11/29
+ * @(#)StyleConstants.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -25,7 +28,7 @@ import javax.swing.Icon;
  * <p>
  * 
  * @author  Timothy Prinzing
- * @version 1.24 11/29/01
+ * @version 1.27 02/02/00
  */
 public class StyleConstants {
 
@@ -747,24 +750,15 @@ public class StyleConstants {
 
     // --- privates ---------------------------------------------
 
-    private static Object[] keys = { 
+    static Object[] keys = { 
         NameAttribute, ResolveAttribute, BidiLevel,
         FontFamily, FontSize, Bold, Italic, Underline, 
 	StrikeThrough, Superscript, Subscript, Foreground, 
 	Background, ComponentAttribute, IconAttribute, 
 	FirstLineIndent, LeftIndent, RightIndent, LineSpacing, 
-	SpaceAbove, SpaceBelow, Alignment, TabSet, Orientation
+	SpaceAbove, SpaceBelow, Alignment, TabSet, Orientation,
+	ModelAttribute, ComposedTextAttribute
     };
-
-    static {
-        try {
-            for (int i = 0; i < keys.length; i++) {
-                StyleContext.registerStaticAttributeKey(keys[i]);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
 
     StyleConstants(String representation) {
         this.representation = representation;
@@ -993,4 +987,6 @@ public class StyleConstants {
             super(representation);
         }
     }
+
+
 }

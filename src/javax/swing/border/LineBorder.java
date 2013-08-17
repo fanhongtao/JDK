@@ -1,8 +1,11 @@
 /*
- * @(#)LineBorder.java	1.16 01/11/29
+ * @(#)LineBorder.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -23,7 +26,7 @@ import java.awt.Component;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.16 11/29/01
+ * @version 1.19 02/02/00
  * @author David Kloba
  */
 public class LineBorder extends AbstractBorder
@@ -77,8 +80,9 @@ public class LineBorder extends AbstractBorder
      * @param color the color of the border
      * @param thickness the thickness of the border
      * @param roundedCorners whether or not border corners should be round
+     * @since 1.3
      */
-    LineBorder(Color color, int thickness, boolean roundedCorners)  {
+    public LineBorder(Color color, int thickness, boolean roundedCorners)  {
         lineColor = color;
         this.thickness = thickness;
 	this.roundedCorners = roundedCorners;
@@ -142,8 +146,17 @@ public class LineBorder extends AbstractBorder
     }
 
     /**
+     * Returns whether this border will be drawn with rounded corners.
+     */
+    public boolean getRoundedCorners() {
+        return roundedCorners;
+    }
+
+    /**
      * Returns whether or not the border is opaque.
      */
-    public boolean isBorderOpaque() { return true; }
+    public boolean isBorderOpaque() { 
+        return !roundedCorners; 
+    }
 
 }

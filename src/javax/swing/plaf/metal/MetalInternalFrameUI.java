@@ -1,8 +1,11 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.17 01/11/29
+ * @(#)MetalInternalFrameUI.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -10,6 +13,7 @@ package javax.swing.plaf.metal;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 import java.util.EventListener;
@@ -22,7 +26,7 @@ import javax.swing.plaf.*;
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.17 11/29/01
+ * @version 1.20 02/02/00
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
@@ -34,7 +38,12 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
   private static final Border handyEmptyBorder = new EmptyBorder(0,0,0,0);
   
-  protected static String IS_PALETTE = "JInternalFrame.isPalette";
+  protected static String IS_PALETTE   = "JInternalFrame.isPalette";
+
+  private static String FRAME_TYPE     = "JInternalFrame.frameType";
+  private static String NORMAL_FRAME   = "normal";
+  private static String PALETTE_FRAME  = "palette";
+  private static String OPTION_DIALOG  = "optionDialog";
 
   public MetalInternalFrameUI(JInternalFrame b)   {
     super(b);
@@ -66,6 +75,8 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
   
   public void uninstallUI(JComponent c) {                  
+      frame = (JInternalFrame)c;
+
       c.removePropertyChangeListener(paletteListener);
       c.removePropertyChangeListener(contentPaneListener);
 
@@ -102,19 +113,26 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
   }
 
 
-    protected void replacePane(JComponent currentPane, JComponent newPane) {
-        super.replacePane(currentPane, newPane);
+  private void setFrameType( String frameType )
+  {
+      if ( frameType.equals( OPTION_DIALOG ) )
+      {
+          LookAndFeel.installBorder(frame, "InternalFrame.optionDialogBorder");
+	  titlePane.setPalette( false );
+      }
+      else if ( frameType.equals( PALETTE_FRAME ) )
+      {
+          LookAndFeel.installBorder(frame, "InternalFrame.paletteBorder");
+	  titlePane.setPalette( true );
+      }
+      else
+      {
+          LookAndFeel.installBorder(frame, "InternalFrame.border");
+	  titlePane.setPalette( false );
+      }
+  }
 
-	//fix for 4146355
-        if(currentPane != null) {
-	  if (currentPane instanceof MetalInternalFrameTitlePane) {  
-            frame.removePropertyChangeListener((PropertyChangeListener)currentPane);
-	  }
-        }
-    
-    }
-
-
+  // this should be deprecated - jcs
   public void setPalette(boolean isPalette) {
     if (isPalette) {
         LookAndFeel.installBorder(frame, "InternalFrame.paletteBorder");
@@ -125,18 +143,31 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
   }
 
-  class PaletteListener implements PropertyChangeListener {
-    public void propertyChange(PropertyChangeEvent e) {
-	String name = e.getPropertyName();
-	if ( name.equals( IS_PALETTE ) ) {
-	    if ( e.getNewValue() != null ) {
-	        setPalette( ((Boolean)e.getNewValue()).booleanValue() );
-	    }
-	    else {
-		setPalette( false );
-	    }
-        }
-    }
+  class PaletteListener implements PropertyChangeListener
+  {
+      public void propertyChange(PropertyChangeEvent e)
+      {
+	  String name = e.getPropertyName();
+
+	  if ( name.equals( FRAME_TYPE ) )
+	  {
+	      if ( e.getNewValue() instanceof String )
+	      {
+		  setFrameType( (String) e.getNewValue() );
+	      }
+	  }
+	  else if ( name.equals( IS_PALETTE ) )
+	  {
+	      if ( e.getNewValue() != null )
+	      {
+	          setPalette( ((Boolean)e.getNewValue()).booleanValue() );
+	      }
+	      else
+	      {
+		  setPalette( false );
+	      }
+	  }
+      }
   } // end class PaletteListener
 
   class ContentPaneListener implements PropertyChangeListener {
@@ -147,7 +178,6 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
         }
     }
   } // end class ContentPaneListener
-
 
 }
 

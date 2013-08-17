@@ -1,8 +1,11 @@
 /*
- * @(#)FrameView.java	1.12 01/11/29
+ * @(#)FrameView.java	1.19 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -16,11 +19,11 @@ import javax.swing.event.*;
 
 /**
  * Implements a FrameView, intended to support the HTML
- * <FRAME> tag.  Supports the frameborder, scrolling,
+ * &lt;FRAME&gt; tag.  Supports the frameborder, scrolling,
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.12, 11/29/01
+ * @version   1.19, 04/06/00
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {
@@ -32,6 +35,8 @@ class FrameView extends ComponentView implements HyperlinkListener {
     float width;
     float height;
     URL src;
+    /** Set to true when the component has been created. */
+    private boolean createdComponent;
 
     /**
      * Creates a new Frame.
@@ -52,11 +57,21 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	    try {
 		URL base = ((HTMLDocument)elem.getDocument()).getBase();
 		src = new URL(base, srcAtt);
-		htmlPane = new JEditorPane(src);
-		htmlPane.addHyperlinkListener(this);
-		htmlPane.setEditable(editable);
-		HTMLDocument doc = (HTMLDocument)htmlPane.getDocument();
-		doc.setFrameDocumentState(true);
+                htmlPane = new JEditorPane();
+                htmlPane.addHyperlinkListener(this);
+                JEditorPane host = getHostPane();
+                if (host != null) {
+                    htmlPane.setEditable(host.isEditable());
+		    String charset = (String) host.getClientProperty("charset");
+		    if (charset != null) {
+			htmlPane.putClientProperty("charset", charset);
+		    }
+                }
+                htmlPane.setPage(src);
+		Document doc = htmlPane.getDocument();
+		if (doc instanceof HTMLDocument) {
+		    ((HTMLDocument)doc).setFrameDocumentState(true);
+		}
 		setMargin();
 		createScrollPane();
 		setBorder();
@@ -66,7 +81,16 @@ class FrameView extends ComponentView implements HyperlinkListener {
 		e1.printStackTrace();
 	    }
 	}
+	createdComponent = true;
 	return scroller;
+    }
+
+    JEditorPane getHostPane() {
+	Container c = getContainer();
+	while ((c != null) && ! (c instanceof JEditorPane)) {
+	    c = c.getParent();
+	}
+	return (JEditorPane) c;
     }
 
 
@@ -187,7 +211,6 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	JViewport vp = scroller.getViewport();
 	vp.add(htmlPane);
 	vp.setBackingStoreEnabled(true);
-	scroller.setVisible(false);
 	scroller.setMinimumSize(new Dimension(5,5));
 	scroller.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     }
@@ -293,12 +316,17 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	URL base = ((HTMLDocument)elem.getDocument()).getBase();
 	try {
 	    src = new URL(base, srcAtt);
+	    if (!createdComponent) {
+		return;
+	    }
 	    if (oldPage.equals(src)) {
 		return;
 	    }
 	    htmlPane.setPage(src);
-	    HTMLDocument newDoc = (HTMLDocument)htmlPane.getDocument();
-	    newDoc.setFrameDocumentState(true);
+	    Document newDoc = htmlPane.getDocument();
+	    if (newDoc instanceof HTMLDocument) {
+		((HTMLDocument)newDoc).setFrameDocumentState(true);
+	    }
 	} catch (MalformedURLException e1) {
 	    // Need a way to handle exceptions
 	    //e1.printStackTrace();

@@ -1,8 +1,11 @@
 /*
- * @(#)StyleSheet.java	1.54 01/11/29
+ * @(#)StyleSheet.java	1.63 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -18,8 +21,8 @@ import javax.swing.text.*;
 
 /**
  * Support for defining the visual characteristics of
- * html views being rendered.  The StyleSheet is used to
- * translate the html model into visual characteristics.
+ * HTML views being rendered.  The StyleSheet is used to
+ * translate the HTML model into visual characteristics.
  * This enables views to be customized by a look-and-feel,
  * multiple views over the same model can be rendered
  * differently, etc.  This can be thought of as a CSS
@@ -47,7 +50,7 @@ import javax.swing.text.*;
  * and have the sharing potentially at the level that a
  * selector is common to multiple views.  Since the StyleSheet
  * may be used by views over multiple documents and typically
- * the html attributes don't effect the selector being used,
+ * the HTML attributes don't effect the selector being used,
  * the potential for sharing is significant.
  * <p>
  * The rules are stored as named styles, and other information
@@ -79,6 +82,24 @@ import javax.swing.text.*;
  * &nbsp; 
  * </pre></code>
  * <p>
+ * The semantics for when a CSS style should overide visual attributes
+ * defined by an element are not well defined. For example, the html
+ * <code>&lt;body bgcolor=red&gt;</code> makes the body have a red
+ * background. But if the html file also contains the CSS rule
+ * <code>body { background: blue }</code> it becomes less clear as to
+ * what color the background of the body should be. The current
+ * implemention gives visual attributes defined in the element the
+ * highest precedence, that is they are always checked before any styles.
+ * Therefore, in the previous example the background would have a
+ * red color as the body element defines the background color to be red.
+ * <p>
+ * As already mentioned this supports CSS. We don't support the full CSS
+ * spec. Refer to the javadoc of the CSS class to see what properties
+ * we support. The two major CSS parsing related
+ * concepts we do not currently
+ * support are pseudo selectors, such as <code>A:link { color: red }</code>,
+ * and the <code>important</code> modifier.
+ * <p>
  * <font color="red">Note: This implementation is currently
  * incomplete.  It can be replaced with alternative implementations
  * that are complete.  Future versions of this class will provide
@@ -88,7 +109,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.54 11/29/01
+ * @version 1.63 02/02/00
  */
 public class StyleSheet extends StyleContext {
 
@@ -105,8 +126,8 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Fetch the style to use to render the given type
-     * of html tag.  The element given is representing
+     * Fetches the style to use to render the given type
+     * of HTML tag.  The element given is representing
      * the tag and can be used to determine the nesting
      * for situations where the attributes will differ
      * if nesting inside of elements.
@@ -116,7 +137,7 @@ public class StyleSheet extends StyleContext {
      *  can be used to determine the nesting for situations where
      *  the attributes will differ if nested inside of other
      *  elements.
-     * @returns the set of css attributes to use to render
+     * @returns the set of CSS attributes to use to render
      *  the tag.
      */
     public Style getRule(HTML.Tag t, Element e) {
@@ -142,17 +163,7 @@ public class StyleSheet extends StyleContext {
                 e = (Element)searchContext.elementAt(counter);
                 attr = e.getAttributes();
                 name = attr.getAttribute(StyleConstants.NameAttribute);
-                if (name instanceof HTML.Tag) {
-                    if (name == HTML.Tag.IMPLIED) {
-                        eName = HTML.Tag.P.toString();
-                    }
-                    else {
-                        eName = name.toString();
-                    }
-                }
-                else {
-                    eName = name.toString();
-                }
+		eName = name.toString();
                 cacheLookup.append(eName);
                 if (attr != null) {
                     if (attr.isDefined(HTML.Attribute.ID)) {
@@ -168,12 +179,19 @@ public class StyleSheet extends StyleContext {
                 }
                 cacheLookup.append(' ');
             }
-	    if (t == HTML.Tag.IMPLIED) {
-		t = HTML.Tag.P;
-	    }
             cacheLookup.append(t.toString());
 	    e = (Element)searchContext.elementAt(0);
-            attr = e.getAttributes();
+	    attr = e.getAttributes();
+	    if (e.isLeaf()) {
+		// For leafs, we use the second tier attributes.
+		Object testAttr = attr.getAttribute(t);
+		if (testAttr instanceof AttributeSet) {
+		    attr = (AttributeSet)testAttr;
+		}
+		else {
+		    attr = null;
+		}
+	    }
             if (attr != null) {
                 if (attr.isDefined(HTML.Attribute.ID)) {
                     cacheLookup.append('#');
@@ -196,7 +214,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Fetch the rule that best matches the selector given
+     * Fetches the rule that best matches the selector given
      * in string form. Where <code>selector</code> is a space separated
      * String of the element names. For example, <code>selector</code>
      * might be 'html body tr td''<p>
@@ -216,7 +234,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Add a set of rules to the sheet.  The rules are expected to
+     * Adds a set of rules to the sheet.  The rules are expected to
      * be in valid CSS format.  Typically this would be called as
      * a result of parsing a &lt;style&gt; tag.
      */
@@ -230,7 +248,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Translate a CSS declaration to an AttributeSet that represents
+     * Translates a CSS declaration to an AttributeSet that represents
      * the CSS declaration.  Typically this would be called as a
      * result of encountering an HTML style attribute.
      */
@@ -243,14 +261,14 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Load a set of rules that have been specified in terms of
+     * Loads a set of rules that have been specified in terms of
      * CSS1 grammar.  If there are collisions with existing rules,
      * the newly specified rule will win.
      *
-     * @param in the stream to read the css grammar from.
-     * @param ref the reference url.  This value represents the
+     * @param in the stream to read the CSS grammar from
+     * @param ref the reference URL.  This value represents the
      *  location of the stream and may be null.  All relative
-     *  urls specified in the stream will be based upon this
+     *  URLs specified in the stream will be based upon this
      *  parameter.
      */
     public void loadRules(Reader in, URL ref) throws IOException {
@@ -259,7 +277,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Fetch a set of attributes to use in the view for
+     * Fetches a set of attributes to use in the view for
      * displaying.  This is basically a set of attributes that
      * can be used for View.getAttributes.
      */
@@ -305,30 +323,36 @@ public class StyleSheet extends StyleContext {
      * the receiver. <code>ss's</code> rules will override the rules of
      * any previously added style sheets. An added StyleSheet will never
      * override the rules of the receiving style sheet.
+     *
+     * @since 1.3
      */
-    /* public */
-    synchronized void addStyleSheet(StyleSheet ss) {
-	if (linkedStyleSheets == null) {
-	    linkedStyleSheets = new Vector();
-	}
-	if (!linkedStyleSheets.contains(ss)) {
-	    linkedStyleSheets.insertElementAt(ss, 0);
-	    linkStyleSheetAt(ss, 0);
+    public void addStyleSheet(StyleSheet ss) {
+	synchronized(this) {
+	    if (linkedStyleSheets == null) {
+		linkedStyleSheets = new Vector();
+	    }
+	    if (!linkedStyleSheets.contains(ss)) {
+		linkedStyleSheets.insertElementAt(ss, 0);
+		linkStyleSheetAt(ss, 0);
+	    }
 	}
     }
 
     /**
      * Removes the StyleSheet <code>ss</code> from those of the receiver.
+     *
+     * @since 1.3
      */
-    /* public */
-    synchronized void removeStyleSheet(StyleSheet ss) {
-	if (linkedStyleSheets != null) {
-	    int index = linkedStyleSheets.indexOf(ss);
-	    if (index != -1) {
-		linkedStyleSheets.removeElementAt(index);
-		unlinkStyleSheet(ss, index);
-		if (index == 0 && linkedStyleSheets.size() == 0) {
-		    linkedStyleSheets = null;
+    public void removeStyleSheet(StyleSheet ss) {
+	synchronized(this) {
+	    if (linkedStyleSheets != null) {
+		int index = linkedStyleSheets.indexOf(ss);
+		if (index != -1) {
+		    linkedStyleSheets.removeElementAt(index);
+		    unlinkStyleSheet(ss, index);
+		    if (index == 0 && linkedStyleSheets.size() == 0) {
+			linkedStyleSheets = null;
+		    }
 		}
 	    }
 	}
@@ -339,15 +363,24 @@ public class StyleSheet extends StyleContext {
     //
 
     /**
-     * Returns an enumeration of the linked StyleSheets. Will return null
+     * Returns an array of the linked StyleSheets. Will return null
      * if there are no linked StyleSheets.
+     *
+     * @since 1.3
      */
-    /* public */
-    synchronized Enumeration getStyleSheets() {
-	if (linkedStyleSheets == null) {
-	    return null;
+    public StyleSheet[] getStyleSheets() {
+	StyleSheet[] retValue;
+
+	synchronized(this) {
+	    if (linkedStyleSheets != null) {
+		retValue = new StyleSheet[linkedStyleSheets.size()];
+		linkedStyleSheets.copyInto(retValue);
+	    }
+	    else {
+		retValue = null;
+	    }
 	}
-	return linkedStyleSheets.elements();
+	return retValue;
     }
 
     /**
@@ -355,8 +388,10 @@ public class StyleSheet extends StyleContext {
      * are directly added to the receiver. If you do not want the rules
      * to become part of the receiver, create a new StyleSheet and use
      * addStyleSheet to link it in.
+     *
+     * @since 1.3
      */
-    void importStyleSheet(URL url) {
+    public void importStyleSheet(URL url) {
 	try {
 	    InputStream is;
 
@@ -375,38 +410,39 @@ public class StyleSheet extends StyleContext {
     /**
      * Sets the base. All import statements that are relative, will be
      * relative to <code>base</code>.
+     *
+     * @since 1.3
      */
-    /* public */
-    void setBase(URL base) {
+    public void setBase(URL base) {
 	this.base = base;
     }
 
     /**
      * Returns the base.
+     *
+     * @since 1.3
      */
-    /* public */
-    URL getBase() {
+    public URL getBase() {
 	return base;
     }
 
     /**
-     * Add a CSS attribute to the given set.
+     * Adds a CSS attribute to the given set.
+     *
+     * @since 1.3
      */
-    boolean addCSSAttribute(MutableAttributeSet attr, CSS.Attribute key,
-			    String value) {
-	Object iValue = css.getInternalCSSValue(key, value);
-	if (iValue != null) {
-	    attr.addAttribute(key, iValue);
-	    return true;
-	}
-	return false;
+    public void addCSSAttribute(MutableAttributeSet attr, CSS.Attribute key,
+				String value) {
+	css.addInternalCSSValue(attr, key, value);
     }
 
     /**
-     * Add a CSS attribute to the given set.
+     * Adds a CSS attribute to the given set.
+     *
+     * @since 1.3
      */
-    boolean addCSSAttributeFromHTML(MutableAttributeSet attr,
-				    CSS.Attribute key, String value) {
+    public boolean addCSSAttributeFromHTML(MutableAttributeSet attr,
+					   CSS.Attribute key, String value) {
 	Object iValue = css.getCssValue(key, value);
 	if (iValue != null) {
 	    attr.addAttribute(key, iValue);
@@ -418,8 +454,8 @@ public class StyleSheet extends StyleContext {
     // ---- Conversion functionality ---------------------------------
 
     /**
-     * Convert a set of html attributes to an equivalent
-     * set of css attributes.
+     * Converts a set of HTML attributes to an equivalent
+     * set of CSS attributes.
      *
      * @param AttributeSet containing the HTML attributes.
      * @param AttributeSet containing the corresponding CSS attributes.
@@ -439,7 +475,7 @@ public class StyleSheet extends StyleContext {
      * Adds an attribute to the given set, and returns
      * the new representative set.  This is reimplemented to
      * convert StyleConstant attributes to CSS prior to forwarding
-     * to the superclass behavior.  The the StyleConstants attribute
+     * to the superclass behavior.  The StyleConstants attribute
      * has no corresponding CSS entry, the StyleConstants attribute
      * is stored (but will likely be unused).
      *
@@ -533,7 +569,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Create a compact set of attributes that might be shared.
+     * Creates a compact set of attributes that might be shared.
      * This is a hook for subclasses that want to alter the 
      * behavior of SmallAttributeSet.  This can be reimplemented
      * to return an AttributeSet that provides some sort of
@@ -547,7 +583,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Create a large set of attributes that should trade off
+     * Creates a large set of attributes that should trade off
      * space for time.  This set will not be shared.  This is
      * a hook for subclasses that want to alter the behavior
      * of the larger attribute storage format (which is 
@@ -563,7 +599,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Convert a set of attributes (if necessary) so that
+     * Converts a set of attributes (if necessary) so that
      * any attributes that were specified as StyleConstants
      * attributes and have a CSS mapping, will be converted
      * to CSS attributes.
@@ -672,7 +708,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * small set of attributes that does conversion of requests
+     * Small set of attributes that does conversion of requests
      * for attributes of type StyleConstants.
      */
     class SmallConversionSet extends SmallAttributeSet {
@@ -730,7 +766,7 @@ public class StyleSheet extends StyleContext {
     // ---- Resource handling ----------------------------------------
 
     /**
-     * Fetch the font to use for the given set of attributes.
+     * Fetches the font to use for the given set of attributes.
      */
     public Font getFont(AttributeSet a) {
 	return css.getFont(this, a, 12);
@@ -765,19 +801,19 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Fetch the box formatter to use for the given set
-     * of css attributes.
+     * Fetches the box formatter to use for the given set
+     * of CSS attributes.
      */
     public BoxPainter getBoxPainter(AttributeSet a) {
 	return new BoxPainter(a, css, this);
     }
 
     /**
-     * Fetch the list formatter to use for the given set
-     * of css attributes.
+     * Fetches the list formatter to use for the given set
+     * of CSS attributes.
      */
     public ListPainter getListPainter(AttributeSet a) {
-	return new ListPainter(a);
+	return new ListPainter(a, this);
     }
 
     public void setBaseFontSize(int sz) {
@@ -793,24 +829,24 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Return the point size, given a size index.
+     * Returns the point size, given a size index.
      */
     public float getPointSize(int index) {
 	return css.getPointSize(index);
     }
 
     /**
-     *  Given a string "+2", "-2", "2".
-     *  returns a point size value
+     *  Given a string such as "+2", "-2", or "2",
+     *  returns a point size value.
      */
     public float getPointSize(String size) {
 	return css.getPointSize(size);
     }
 
     /**
-     * Convert a color string "RED" or "#NNNNNN" to a Color.
-     * Note: This will only convert the HTML3.2 colors strings
-     *       or string of length 7
+     * Converts a color string such as "RED" or "#NNNNNN" to a Color.
+     * Note: This will only convert the HTML3.2 color strings
+     *       or a string of length 7;
      *       otherwise, it will return null.
      */
     public Color stringToColor(String string) {
@@ -818,12 +854,25 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * This method adds a rule into the StyleSheet.
+     * Returns the ImageIcon to draw in the background for
+     * <code>attr</code>.
+     */
+    ImageIcon getBackgroundImage(AttributeSet attr) {
+	Object value = attr.getAttribute(CSS.Attribute.BACKGROUND_IMAGE);
+
+	if (value != null) {
+	    return ((CSS.BackgroundImage)value).getImage(getBase());
+	}
+	return null;
+    }
+
+    /**
+     * Adds a rule into the StyleSheet.
      *
      * @param selector the selector to use for the rule.
      *  This will be a set of simple selectors, and must
      *  be a length of 1 or greater.
-     * @param declaration the set of css attributes that
+     * @param declaration the set of CSS attributes that
      *  make up the rule.
      */
     void addRule(String[] selector, AttributeSet declaration,
@@ -900,7 +949,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * @return simple selectors that comprise selector.
+     * Returns the simple selectors that comprise selector.
      */
     /* protected */
     String[] getSimpleSelectors(String selector) {
@@ -1278,7 +1327,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Creates a returns Style containing all the rules that match
+     * Creates and returns a Style containing all the rules that match
      *  <code>selector</code>.
      */
     private synchronized Style createResolvedStyle(String selector,
@@ -1361,19 +1410,19 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Creates and returns Style containing all the rules that
-     * matches <code>selector</code>. Elements is a
-     * Vector of all the Elements the style is being asked for. The
-     * first Element is the deepest Element, with the last Element
-     * representing the root. <code>t</code> gives the Tag to use for
-     * the first Element in <code>elements</code>.
+     * Creates and returns a Style containing all the rules that
+     * matches <code>selector</code>.
+     *
+     * @param elements  a Vector of all the Elements
+     *                  the style is being asked for. The
+     *                  first Element is the deepest Element, with the last Element
+     *                  representing the root.
+     * @param t         the Tag to use for
+     *                  the first Element in <code>elements</code>
      */
     private Style createResolvedStyle(String selector, Vector elements,
 				      HTML.Tag t) {
 	int numElements = elements.size();
-	if (t == HTML.Tag.IMPLIED) {
-	    t = HTML.Tag.P;
-	}
         // Build three arrays, one for tags, one for class's, and one for
         // id's
         String tags[] = new String[numElements];
@@ -1382,12 +1431,19 @@ public class StyleSheet extends StyleContext {
         for (int counter = 0; counter < numElements; counter++) {
             Element e = (Element)elements.elementAt(counter);
             AttributeSet attr = e.getAttributes();
+	    if (counter == 0 && e.isLeaf()) {
+		// For leafs, we use the second tier attributes.
+		Object testAttr = attr.getAttribute(t);
+		if (testAttr instanceof AttributeSet) {
+		    attr = (AttributeSet)testAttr;
+		}
+		else {
+		    attr = null;
+		}
+	    }
             if (attr != null) {
 		HTML.Tag tag = (HTML.Tag)attr.getAttribute(StyleConstants.
 							   NameAttribute);
-		if (tag == HTML.Tag.IMPLIED) {
-		    tag = HTML.Tag.P;
-		}
                 if (tag != null) {
                     tags[counter] = tag.toString();
                 }
@@ -1418,7 +1474,7 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Creates a returns a Style containing all the rules that match
+     * Creates and returns a Style containing all the rules that match
      *  <code>selector</code>. It is assumed that each simple selector
      * in <code>selector</code> is separated by a space.
      */
@@ -1564,7 +1620,7 @@ public class StyleSheet extends StyleContext {
 
     /**
      * Should be invoked when a new rule is added that did not previously
-     * exist. Will go through and refresh the necessary resovled
+     * exist. Goes through and refreshes the necessary resolved
      * rules.
      */
     private synchronized void refreshResolvedRules(String selectorName,
@@ -1577,6 +1633,38 @@ public class StyleSheet extends StyleContext {
 		ResolvedStyle style = (ResolvedStyle)values.nextElement();
 		if (style.matches(selectorName)) {
 		    style.insertStyle(newStyle, specificity);
+		}
+	    }
+	}
+    }
+
+    // Serialization support
+
+    private void readObject(ObjectInputStream s)
+	throws ClassNotFoundException, IOException {
+	s.defaultReadObject();
+	// Remap SheetAttributes to the shared versions
+	updateSheetAttributes(selectorMapping);
+    }
+
+    private void updateSheetAttributes(Hashtable mapping) {
+	Enumeration keys = mapping.keys();
+	while (keys.hasMoreElements()) {
+	    Object key = keys.nextElement();
+	    Object value = mapping.get(key);
+	    if (key instanceof SheetAttribute) {
+		if (key.toString().equals("specificity")) {
+		    mapping.remove(key);
+		    mapping.put(SPECIFICITY, value);
+		}
+		else if (key.toString().equals("rule")) {
+		    mapping.remove(key);
+		    mapping.put(RULE, value);
+		}
+	    }
+	    else {
+		if (value instanceof Hashtable) {
+		    updateSheetAttributes((Hashtable)value);
 		}
 	    }
 	}
@@ -1660,14 +1748,14 @@ public class StyleSheet extends StyleContext {
 
     /**
      * Class to carry out some of the duties of
-     * css formatting.  Implementations of this
-     * class enable views to present the css formatting
-     * while not knowing anything about how the css values
+     * CSS formatting.  Implementations of this
+     * class enable views to present the CSS formatting
+     * while not knowing anything about how the CSS values
      * are being cached.
      * <p>
      * As a delegate of Views, this object is responsible for
      * the insets of a View and making sure the background
-     * is maintained according to the css attributes.
+     * is maintained according to the CSS attributes.
      */
     public static class BoxPainter implements Serializable {
 
@@ -1676,10 +1764,18 @@ public class StyleSheet extends StyleContext {
 	    this.css = css;
 	    border = getBorder(a);
 	    binsets = border.getBorderInsets(null);
+	    topMargin = getLength(CSS.Attribute.MARGIN_TOP, a);
+	    bottomMargin = getLength(CSS.Attribute.MARGIN_BOTTOM, a);
+	    leftMargin = getLength(CSS.Attribute.MARGIN_LEFT, a);
+	    rightMargin = getLength(CSS.Attribute.MARGIN_RIGHT, a);
+	    bg = ss.getBackground(a);
+	    if (ss.getBackgroundImage(a) != null) {
+		bgPainter = new BackgroundImagePainter(a, css, ss);
+	    }
 	}
 
 	/**
-	 * Fetch a border to render for the given attributes.
+	 * Fetches a border to render for the given attributes.
 	 * PENDING(prinz) This is pretty badly hacked at the 
 	 * moment.
 	 */
@@ -1688,7 +1784,7 @@ public class StyleSheet extends StyleContext {
 	    Object o = a.getAttribute(CSS.Attribute.BORDER_STYLE);
 	    if (o != null) {
 		String bstyle = o.toString();
-		int bw = (int) getLength(CSS.Attribute.BORDER_WIDTH, a);
+		int bw = (int) getLength(CSS.Attribute.BORDER_TOP_WIDTH, a);
 		if (bw > 0) {
 		    if (bstyle.equals("inset")) {
 			Color c = getBorderColor(a);
@@ -1706,7 +1802,7 @@ public class StyleSheet extends StyleContext {
 	}
 
 	/**
-	 * Fetch the color to use for borders.  This will either be
+	 * Fetches the color to use for borders.  This will either be
 	 * the value specified by the border-color attribute (which
 	 * is not inherited), or it will default to the color attribute
 	 * (which is inherited).
@@ -1723,7 +1819,7 @@ public class StyleSheet extends StyleContext {
 	}
 
 	/**
-	 * Fetchs the inset needed on a given side to
+	 * Fetches the inset needed on a given side to
 	 * account for the margin, border, and padding.
 	 *
 	 * @param side The size of the box to fetch the
@@ -1739,22 +1835,22 @@ public class StyleSheet extends StyleContext {
 	    float inset = 0;
 	    switch(side) {
 	    case View.LEFT:
-		inset += getLength(CSS.Attribute.MARGIN_LEFT, a);
+		inset += leftMargin;
 		inset += binsets.left;
 		inset += getLength(CSS.Attribute.PADDING_LEFT, a);
 		break;
 	    case View.RIGHT:
-		inset += getLength(CSS.Attribute.MARGIN_RIGHT, a);
+		inset += rightMargin;
 		inset += binsets.right;
 		inset += getLength(CSS.Attribute.PADDING_RIGHT, a);
 		break;
 	    case View.TOP:
-		inset += getLength(CSS.Attribute.MARGIN_TOP, a);
+		inset += topMargin;
 		inset += binsets.top;
 		inset += getLength(CSS.Attribute.PADDING_TOP, a);
 		break;
 	    case View.BOTTOM:
-		inset += getLength(CSS.Attribute.MARGIN_BOTTOM, a);
+		inset += bottomMargin;
 		inset += binsets.bottom;
 		inset += getLength(CSS.Attribute.PADDING_BOTTOM, a);
 		break;
@@ -1765,7 +1861,7 @@ public class StyleSheet extends StyleContext {
 	}
 
 	/**
-	 * Paints the css box according to the attributes
+	 * Paints the CSS box according to the attributes
 	 * given.  This should paint the border, padding,
 	 * and background.
 	 *
@@ -1781,31 +1877,20 @@ public class StyleSheet extends StyleContext {
 	 *  resolve percentage arguments.
 	 */
         public void paint(Graphics g, float x, float y, float w, float h, View v) {
-	    AttributeSet a = v.getAttributes();
-
 	    // PENDING(prinz) implement real rendering... which would
 	    // do full set of border and background capabilities.
-	    StyleSheet sheet = ss;
-
 	    // remove margin
-	    float top = getLength(CSS.Attribute.MARGIN_TOP, a);
-	    float left = getLength(CSS.Attribute.MARGIN_LEFT, a);
-	    x += left;
-	    y += top;
-	    w -= left + getLength(CSS.Attribute.MARGIN_RIGHT, a);
-	    h -= top + getLength(CSS.Attribute.MARGIN_BOTTOM, a);
+	    x += leftMargin;
+	    y += topMargin;
+	    w -= leftMargin + rightMargin;
+	    h -= topMargin + bottomMargin;
 
-	    Color bg;
-	    if (sheet != null) {
-		bg = sheet.getBackground(a);
-	    }
-	    else {
-		bg = null;
-	    }
 	    if (bg != null) {
-
 		g.setColor(bg);
 		g.fillRect((int) x, (int) y, (int) w, (int) h);
+	    }
+	    if (bgPainter != null) {
+		bgPainter.paint(g, x, y, w, h, v);
 	    }
 	    border.paintBorder(null, g, (int) x, (int) y, (int) w, (int) h);
 	}
@@ -1814,29 +1899,38 @@ public class StyleSheet extends StyleContext {
 	    return css.getLength(a, key);
 	}
 
+	float topMargin;
+	float bottomMargin;
+	float leftMargin;
+	float rightMargin;
+	// Bitmask, used to indicate what margins are relative:
+	// bit 0 for top, 1 for bottom, 2 for left and 3 for right.
+	short marginFlags;
 	Border border;
 	Insets binsets;
 	CSS css;
 	StyleSheet ss;
+	Color bg;
+	BackgroundImagePainter bgPainter;
     }
 
     /**
-     * class to carry out some of the duties of css list
+     * Class to carry out some of the duties of CSS list
      * formatting.  Implementations of this
-     * class enable views to present the css formatting
-     * while not knowing anything about how the css values
+     * class enable views to present the CSS formatting
+     * while not knowing anything about how the CSS values
      * are being cached.
      */
     public static class ListPainter implements Serializable {
 
-	ListPainter(AttributeSet attr) {
+	ListPainter(AttributeSet attr, StyleSheet ss) {
 	    /* Get the image to use as a list bullet */
 	    String imgstr = (String)attr.getAttribute(CSS.Attribute.
 						      LIST_STYLE_IMAGE);
 	    type = null;
 	    if (imgstr != null && !imgstr.equals("none")) {
+		String tmpstr = null;
 		try {
-		    String tmpstr = null;
 		    StringTokenizer st = new StringTokenizer(imgstr, "()");
 		    if (st.hasMoreTokens())
 			tmpstr = st.nextToken();
@@ -1845,8 +1939,17 @@ public class StyleSheet extends StyleContext {
 		    URL u = new URL(tmpstr);
 		    img = new ImageIcon(u);
 		} catch (MalformedURLException e) {
-		    type = null;
-		    img = null;
+		    if (tmpstr != null && ss != null && ss.getBase() != null) {
+			try {
+			    URL u = new URL(ss.getBase(), tmpstr);
+			    img = new ImageIcon(u);
+			} catch (MalformedURLException murle) {
+			    img = null;
+			}
+		    }
+		    else {
+			img = null;
+		    }
 		}
 	    }
 
@@ -1923,7 +2026,7 @@ public class StyleSheet extends StyleContext {
         }
 
 	/**
-	 * Paints the css list decoration according to the
+	 * Paints the CSS list decoration according to the
 	 * attributes given.
 	 *
 	 * @param g the rendering surface.
@@ -1933,7 +2036,7 @@ public class StyleSheet extends StyleContext {
 	 * @param h the height of the list item allocation
 	 * @param s the allocated area to paint into.
 	 * @param item which list item is being painted.  This
-	 *  is a number >= 0.
+	 *  is a number greater than or equal to 0.
 	 */
         public void paint(Graphics g, float x, float y, float w, float h, View v, int item) {
 	    View cv = v.getView(item);
@@ -1945,8 +2048,13 @@ public class StyleSheet extends StyleContext {
                 name != HTML.Tag.LI) {
                 return;
             }
-	    CSS.Value childtype = getChildType(cv);
 	    float align = cv.getAlignment(View.Y_AXIS);
+	    if (img != null) {
+    		drawIcon(g, (int) x, (int) y, (int) h, align,
+			 v.getContainer());
+		return;
+	    }
+	    CSS.Value childtype = getChildType(cv);
 	    Font font = ((StyledDocument)cv.getDocument()).
 		                         getFont(cv.getAttributes());
 	    if (font != null) {
@@ -1972,9 +2080,6 @@ public class StyleSheet extends StyleContext {
 	    } else if (childtype == CSS.Value.UPPER_ROMAN) {
 		drawLetter(g, 'I', (int) x, (int) y, (int) h,
                            getRenderIndex(v, item));
-	    } else if (childtype == null && img != null) {
-    		drawIcon(g, (int) x, (int) y, (int) h, align,
-			 v.getContainer());
 	    }
 	}
 
@@ -2169,11 +2274,177 @@ public class StyleSheet extends StyleContext {
         private int bulletgap = 5;
     }
 
+
+    /**
+     * Paints the background image.
+     */
+    static class BackgroundImagePainter implements Serializable {
+	ImageIcon   backgroundImage;
+	float       hPosition;
+	float       vPosition;
+	// bit mask: 0 for repeat x, 1 for repeat y, 2 for horiz relative,
+	// 3 for vert relative
+	short       flags;
+	// These are used when painting, updatePaintCoordinates updates them.
+	private int paintX;
+	private int paintY;
+	private int paintMaxX;
+	private int paintMaxY;
+
+	BackgroundImagePainter(AttributeSet a, CSS css, StyleSheet ss) {
+	    backgroundImage = ss.getBackgroundImage(a);
+	    // Determine the position.
+	    CSS.BackgroundPosition pos = (CSS.BackgroundPosition)a.getAttribute
+		                           (CSS.Attribute.BACKGROUND_POSITION);
+	    if (pos != null) {
+		hPosition = pos.getHorizontalPosition();
+		vPosition = pos.getVerticalPosition();
+		if (pos.isHorizontalPositionRelativeToSize()) {
+		    flags |= 4;
+		}
+		else if (pos.isHorizontalPositionRelativeToSize()) {
+		    hPosition *= css.getFontSize(a, 12);
+		}
+		if (pos.isVerticalPositionRelativeToSize()) {
+		    flags |= 8;
+		}
+		else if (pos.isVerticalPositionRelativeToFontSize()) {
+		    vPosition *= css.getFontSize(a, 12);
+		}
+	    }
+	    // Determine any repeating values.
+	    CSS.Value repeats = (CSS.Value)a.getAttribute(CSS.Attribute.
+							  BACKGROUND_REPEAT);
+	    if (repeats == null || repeats == CSS.Value.BACKGROUND_REPEAT) {
+		flags |= 3;
+	    }
+	    else if (repeats == CSS.Value.BACKGROUND_REPEAT_X) {
+		flags |= 1;
+	    }
+	    else if (repeats == CSS.Value.BACKGROUND_REPEAT_Y) {
+		flags |= 2;
+	    }
+	}
+
+        void paint(Graphics g, float x, float y, float w, float h, View v) {
+	    Rectangle clip = g.getClipRect();
+	    if (clip != null) {
+		// Constrain the clip so that images don't draw outside the
+		// legal bounds.
+		g.clipRect((int)x, (int)y, (int)w, (int)h);
+	    }
+	    if ((flags & 3) == 0) {
+		// no repeating
+		int width = backgroundImage.getIconWidth();
+		int height = backgroundImage.getIconWidth();
+		if ((flags & 4) == 4) {
+		    paintX = (int)(x + w * hPosition -
+				  (float)width * hPosition);
+		}
+		else {
+		    paintX = (int)x + (int)hPosition;
+		}
+		if ((flags & 8) == 8) {
+		    paintY = (int)(y + h * vPosition -
+				  (float)height * vPosition);
+		}
+		else {
+		    paintY = (int)y + (int)vPosition;
+		}
+		if (clip == null ||
+		    !((paintX + width <= clip.x) ||
+		      (paintY + height <= clip.y) ||
+		      (paintX >= clip.x + clip.width) ||
+		      (paintY >= clip.y + clip.height))) {
+		    backgroundImage.paintIcon(null, g, paintX, paintY);
+		}
+	    }
+	    else {
+		int width = backgroundImage.getIconWidth();
+		int height = backgroundImage.getIconHeight();
+		if (width > 0 && height > 0) {
+		    paintX = (int)x;
+		    paintY = (int)y;
+		    paintMaxX = (int)(x + w);
+		    paintMaxY = (int)(y + h);
+		    if (updatePaintCoordinates(clip, width, height)) {
+			while (paintX < paintMaxX) {
+			    int ySpot = paintY;
+			    while (ySpot < paintMaxY) {
+				backgroundImage.paintIcon(null, g, paintX,
+							  ySpot);
+				ySpot += height;
+			    }
+			    paintX += width;
+			}
+		    }
+		}
+	    }
+	    if (clip != null) {
+		// Reset clip.
+		g.setClip(clip.x, clip.y, clip.width, clip.height);
+	    }
+	}
+
+	private boolean updatePaintCoordinates
+	         (Rectangle clip, int width, int height){
+	    if ((flags & 3) == 1) {
+		paintMaxY = paintY + 1;
+	    }
+	    else if ((flags & 3) == 2) {
+		paintMaxX = paintX + 1;
+	    }
+	    if (clip != null) {
+		if ((flags & 3) == 1 && ((paintY + height <= clip.y) ||
+					 (paintY > clip.y + clip.height))) {
+		    // not visible.
+		    return false;
+		}
+		if ((flags & 3) == 2 && ((paintX + width <= clip.x) ||
+					 (paintX > clip.x + clip.width))) {
+		    // not visible.
+		    return false;
+		}
+		if ((flags & 1) == 1) {
+		    if ((clip.x + clip.width) < paintMaxX) {
+			if ((clip.x + clip.width - paintX) % width == 0) {
+			    paintMaxX = clip.x + clip.width;
+			}
+			else {
+			    paintMaxX = ((clip.x + clip.width - paintX) /
+					 width + 1) * width + paintX;
+			}
+		    }
+		    if (clip.x > paintX) {
+			paintX = (clip.x - paintX) / width * width + paintX;
+		    }
+		}
+		if ((flags & 2) == 2) {
+		    if ((clip.y + clip.height) < paintMaxY) {
+			if ((clip.y + clip.height - paintY) % height == 0) {
+			    paintMaxY = clip.y + clip.height;
+			}
+			else {
+			    paintMaxY = ((clip.y + clip.height - paintY) /
+					 height + 1) * height + paintY;
+			}
+		    }
+		    if (clip.y > paintY) {
+			paintY = (clip.y - paintY) / height * height + paintY;
+		    }
+		}
+	    }
+	    // Valid
+	    return true;
+	}
+    }
+
+
     /**
      * An implementation of AttributeSet that can multiplex
      * across a set of AttributeSets.
      */
-    static class MuxingAttributeSet implements AttributeSet {
+    static class MuxingAttributeSet implements AttributeSet, Serializable {
 	MuxingAttributeSet(AttributeSet[] attrs) {
 	    this.attrs = attrs;
 	}
@@ -2195,7 +2466,8 @@ public class StyleSheet extends StyleContext {
 
 	/**
 	 * Inserts <code>as</code> at <code>index</code>. This assumes
-	 * <code>index</code> is >= 0 && <= attrs.length.
+	 * the value of <code>index</code> is between 0 and attrs.length,
+	 * inclusive.
 	 */
 	protected synchronized void insertAttributeSetAt(AttributeSet as,
 							 int index) {
@@ -2220,7 +2492,8 @@ public class StyleSheet extends StyleContext {
 
 	/**
 	 * Removes the AttributeSet at <code>index</code>. This assumes
-	 * <code>index</code> is >= 0 && < attrs.length
+	 * the value of <code>index</code> is greater than or equal to 0,
+	 * and less than attrs.length.
 	 */
 	protected synchronized void removeAttributeSetAt(int index) {
 	    int numAttrs = attrs.length;
@@ -2491,9 +2764,6 @@ public class StyleSheet extends StyleContext {
 		    } else {
 			HTML.Tag t = (HTML.Tag) a.getAttribute
 			             (StyleConstants.NameAttribute);
-			if (t == HTML.Tag.IMPLIED) {
-			    t = HTML.Tag.P;
-			}
 			AttributeSet cssRule = styles.getRule(t, elem);
 			if (cssRule != null) {
 			    muxList.addElement(cssRule);
@@ -2548,7 +2818,7 @@ public class StyleSheet extends StyleContext {
 		    Object value = doGetAttribute(cssKey);
 		    if (value instanceof CSS.CssValue) {
 			return ((CSS.CssValue)value).toStyleConstants
-			             ((StyleConstants)key);
+			             ((StyleConstants)key, host);
 		    }
 		}
 	    }
@@ -2603,7 +2873,7 @@ public class StyleSheet extends StyleContext {
     // or change getRule to return an AttributeSet and then don't make this
     // implement Style.
     static class ResolvedStyle extends MuxingAttributeSet implements
-                  Style {
+                  Serializable, Style {
 	ResolvedStyle(String name, AttributeSet[] attrs, int extendedIndex) {
 	    this.attrs = attrs;
 	    this.name = name;
@@ -2654,7 +2924,7 @@ public class StyleSheet extends StyleContext {
 	}
 
 	/**
-	 * Adds <code>s</code> as one of the Attributesets to look up
+	 * Adds <code>s</code> as one of the AttributeSets to look up
 	 * attributes in. It will be the AttributeSet last checked.
 	 */
 	synchronized void addExtendedStyle(Style attr) {
@@ -2833,7 +3103,8 @@ public class StyleSheet extends StyleContext {
 
     /** An inverted graph of the selectors. Each key will be a String tag,
      * and each value will be a Hashtable. Further the key RULE is used
-     * for the styles attached to the particular location.
+     * for the styles attached to the particular location, and 
+     * SPECIFICITY is used to indicate the specificity.
      */
     private Hashtable selectorMapping;
 
@@ -2852,8 +3123,10 @@ public class StyleSheet extends StyleContext {
     /**
      * Internal StyleSheet attribute.  This is used for
      * caches, weights, rule storage, etc.
+     * <p>While this implements serializable, on unarchiving you sure make
+     * sure to reference the static finals.
      */
-    static class SheetAttribute {
+    static class SheetAttribute implements Serializable {
 
 	SheetAttribute(String s, boolean cache) {
 	    name = s;
@@ -2874,32 +3147,20 @@ public class StyleSheet extends StyleContext {
 
     static final SheetAttribute SPECIFICITY = new SheetAttribute("specificity", false);
     static final SheetAttribute RULE = new SheetAttribute("rule", false);
-    static final SheetAttribute WEIGHT = new SheetAttribute("rule-weight", false);
-
-    static final SheetAttribute BOX_PAINTER = new SheetAttribute("box-painter", true);
-    static final SheetAttribute LIST_PAINTER = new SheetAttribute("list-painter", true);
-
-
-    static {
-	StyleContext.registerStaticAttributeKey(RULE);
-	StyleContext.registerStaticAttributeKey(WEIGHT);
-	StyleContext.registerStaticAttributeKey(BOX_PAINTER);
-	StyleContext.registerStaticAttributeKey(LIST_PAINTER);
-    }
 
 
     /**
-     * Default parser for css specifications that get loaded into
+     * Default parser for CSS specifications that get loaded into
      * the StyleSheet.<p>
-     * This class is not thread safe, do not ask it to parse while it is
+     * This class is NOT thread safe, do not ask it to parse while it is
      * in the middle of parsing.
      */
-    class CssParser implements Serializable {
+    class CssParser implements CSSParser.CSSParserCallback {
 
 	/**
 	 * Parses the passed in CSS declaration into an AttributeSet.
 	 */
-	AttributeSet parseDeclaration(String string) {
+	public AttributeSet parseDeclaration(String string) {
 	    try {
 		return parseDeclaration(new StringReader(string));
 	    } catch (IOException ioe) {}
@@ -2909,246 +3170,95 @@ public class StyleSheet extends StyleContext {
 	/**
 	 * Parses the passed in CSS declaration into an AttributeSet.
 	 */
-	AttributeSet parseDeclaration(Reader r) throws IOException {
+	public AttributeSet parseDeclaration(Reader r) throws IOException {
 	    parse(base, r, true, false);
 	    return declaration.copyAttributes();
 	}
 
 	/**
-	 * Parse the given css stream
+	 * Parse the given CSS stream
 	 */
-	void parse(URL base, Reader r, boolean parseDeclaration,
-				boolean isLink) throws IOException {
+	public void parse(URL base, Reader r, boolean parseDeclaration,
+			  boolean isLink) throws IOException {
 	    this.base = base;
 	    this.isLink = isLink;
+	    this.parsingDeclaration = parseDeclaration;
 	    declaration.removeAttributes(declaration);
 	    selectorTokens.removeAllElements();
 	    selectors.removeAllElements();
-	    ruleTokens.removeAllElements();
-	    this.parsingDeclaration = parseDeclaration;
-	    StreamTokenizer st = new StreamTokenizer(r);
-	    st.ordinaryChar('/');
-	    st.slashStarComments(true);
-	    // Treat # as a word.
-	    st.wordChars('#', '#');
-	    boolean inRule = parseDeclaration;
-	    // Set to true when an '@' is encountered.
-	    boolean inAt = false;
-	    // Set to true if import is reached.
-	    boolean inImport = false;
-	    // Set to true when first selector/rule is encountered.
-	    boolean encounteredRule = false;
-	    // The import is added here.
-	    StringBuffer importBuffer = null;
-	    // Set to true if the last character was a dot ('.')
-	    boolean lastWasDot = false;
-	    char[] tempChar = new char[1];
-	    for (int token = st.nextToken(); token != StreamTokenizer.TT_EOF;
-		 token = st.nextToken()) {
-
-		// process tokens
-		switch (token) {
-		case StreamTokenizer.TT_WORD:
-		    if (inAt) {
-			if (inImport) {
-			    importBuffer.append(st.sval);
-			}
-			else if (st.sval.equals("import")) {
-			    inImport = true;
-			    if (importBuffer == null) {
-				importBuffer = new StringBuffer();
-			    }
-			    else {
-				importBuffer.setLength(0);
-			    }
-			}
-		    }
-		    else if (inRule) {
-			ruleTokens.addElement(st.sval);
-		    } else {
-			if (lastWasDot) {
-			    selectorTokens.addElement('.' + st.sval);
-			}
-			else {
-			    selectorTokens.addElement(st.sval);
-			}
-			encounteredRule = true;
-		    }
-		    lastWasDot = false;
-		    break;
-		case StreamTokenizer.TT_NUMBER:
-		    lastWasDot = false;
-		    if (inAt) {
-			if (inImport) {
-			    importBuffer.append(st.nval);
-			}
-		    }
-		    else if (inRule) {
-			ruleTokens.addElement(new Integer((int) st.nval));
-		    } else {
-			if (st.nval == 0) {
-			    // Most likely indicates a selector is starting
-			    // with a . (eg .foo)
-			    lastWasDot = true;
-			}
-			else {
-			    String s = (String) selectorTokens.lastElement();
-			    s = s + ((int) st.nval);
-			    selectorTokens.setElementAt(s, selectorTokens.
-							size()-1);
-			    encounteredRule = true;
-			}
-		    }
-		    break;
-		case StreamTokenizer.TT_EOL:
-		    break;
-		default:
-		    lastWasDot = false;
-		    if (inAt) {
-			if (st.ttype == ';') {
-			    inAt = false;
-			    if (inImport) {
-				if (!encounteredRule) {
-				    addImport(importBuffer.toString());
-				}
-				inImport = false;
-			    }
-			}
-			else if (inImport) {
-			    if (st.ttype == '\'' ||
-				st.ttype == '"') {
-				importBuffer.append(st.sval);
-			    }
-			    else {
-				importBuffer.append((char)st.ttype);
-			    }
-			}
-		    }
-		    else {
-			switch(st.ttype) {
-			case '{':
-			    encounteredRule = true;
-			    addSelector();
-			    inRule = true;
-			    break;
-			case '}':
-			    if (ruleTokens.size() > 0) {
-				// Won't happen if just encountered a ;
-				addKeyValueToDeclaration();
-			    }
-			    addRule();
-			    inRule = false;
-			    break;
-			case ';':
-			    addKeyValueToDeclaration();
-			    break;
-			case ':':
-			    key = getDeclarationString();
-			    break;
-			case ',':
-			    if (inRule) {
-				ruleTokens.addElement(new Character(','));
-			    } else {
-				addSelector();
-			    }
-			    break;
-			case '@':
-			    inAt = true;
-			    inImport = false;
-			    break;
-			default:
-			    if (inRule) {
-				ruleTokens.addElement(new Character(','));
-			    } else {
-				if (selectorTokens.size() == 0) {
-				    tempChar[0] = (char)st.ttype;
-				    selectorTokens.addElement(new String
-							      (tempChar));
-				}
-				else {
-				    String s = (String) selectorTokens.
-				                    lastElement();
-				    s = s + ((char) st.ttype);
-				    selectorTokens.setElementAt(s,
-					       selectorTokens.size()-1);
-				}
-			    }
-			}
-		    }
-		}
-	    }
-	    if (parsingDeclaration && ruleTokens.size() > 0) {
-		addKeyValueToDeclaration();
-	    }
+	    propertyName = null;
+	    parser.parse(r, this, parseDeclaration);
 	}
 
-	void addImport(String importString) {
-	    if (importString.startsWith("url(") &&
-		importString.endsWith(")")) {
-		try {
-		    URL url = new URL(importString.substring
-				      (4, importString.length() - 1));
-		    if (url != null) {
-			importStyleSheet(url);
-		    }
-		} catch (MalformedURLException mue) {
-		}
-	    }
-	    else if (base != null) {
-		// Relative URL, try from base
-		try {
-		    URL url = new URL(base, importString);
-		    if (url != null) {
-			importStyleSheet(url);
-		    }
-		}
-		catch (MalformedURLException muee) {
-		}
-	    }
-	}
+	//
+	// CSSParserCallback methods, public to implement the interface.
+	//
 
-	void addSelector() {
-	    String[] selector = new String[selectorTokens.size()];
-	    selectorTokens.copyInto(selector);
-	    selectors.addElement(selector);
-	    selectorTokens.removeAllElements();
-	}
-
-	void addKeyValueToDeclaration() {
-	    CSS.Attribute cssKey = CSS.getAttribute(key);
-	    if (cssKey != null) {
-		Object o = getValue(cssKey);
-		if (o != null) {
-		    declaration.addAttribute(cssKey, o);
-		}
+	/**
+	 * Invoked when a valid @import is encountered, will call
+	 * <code>importStyleSheet</code> if a 
+	 * <code>MalformedURLException</code> is not thrown in creating
+	 * the URL.
+	 */
+	public void handleImport(String importString) {
+	    URL url = CSS.getURL(base, importString);
+	    if (url != null) {
+		importStyleSheet(url);
 	    }
-	    ruleTokens.removeAllElements();
 	}
 
 	/**
-	 * This fetches the value for the current key using the
-	 * current contents of the ruleTokens collection.  The
-	 * value should be converted from tokens into however
-	 * we choose to store it in the StyleSheet.
+	 * A selector has been encountered.
 	 */
-	Object getValue(CSS.Attribute key) {
-	    return css.getInternalCSSValue(key, getDeclarationString());
+	public void handleSelector(String selector) {
+	    int length = selector.length();
+
+	    if (selector.endsWith(",")) {
+		if (length > 1) {
+		    selector = selector.substring(0, length - 1);
+		    selectorTokens.addElement(selector);
+		}
+		addSelector();
+	    }
+	    else if (length > 0) {
+		selectorTokens.addElement(selector);
+	    }
 	}
 
-	String getDeclarationString() {
-	    String s = "";
-	    int n = ruleTokens.size();
-	    for (int i = 0; i < n; i++) {
-		s += ruleTokens.elementAt(i);
+	/**
+	 * Invoked when the start of a rule is encountered.
+	 */
+	public void startRule() {
+	    if (selectorTokens.size() > 0) {
+		addSelector();
 	    }
-	    ruleTokens.removeAllElements();
-	    return s;
+	    propertyName = null;
 	}
 
-	void addRule() {
-	    if (parsingDeclaration) {
-		throw new RuntimeException("Declaration should not contain rules");
+	/**
+	 * Invoked when a property name is encountered.
+	 */
+	public void handleProperty(String property) {
+	    propertyName = property;
+	}
+
+	/**
+	 * Invoked when a property value is encountered.
+	 */
+	public void handleValue(String value) {
+	    if (propertyName != null) {
+		CSS.Attribute cssKey = CSS.getAttribute(propertyName);
+		if (cssKey != null) {
+		    addCSSAttribute(declaration, cssKey, value);
+		}
+		propertyName = null;
 	    }
+	}
+
+	/**
+	 * Invoked when the end of a rule is encountered.
+	 */
+	public void endRule() {
 	    int n = selectors.size();
 	    for (int i = 0; i < n; i++) {
 		String[] selector = (String[]) selectors.elementAt(i);
@@ -3160,16 +3270,26 @@ public class StyleSheet extends StyleContext {
 	    selectors.removeAllElements();
 	}
 
+	private void addSelector() {
+	    String[] selector = new String[selectorTokens.size()];
+	    selectorTokens.copyInto(selector);
+	    selectors.addElement(selector);
+	    selectorTokens.removeAllElements();
+	}
+
+
 	Vector selectors = new Vector();
 	Vector selectorTokens = new Vector();
-	String key;
-	Vector ruleTokens = new Vector();
+	/** Name of the current property. */
+	String propertyName;
 	MutableAttributeSet declaration = new SimpleAttributeSet();
 	/** True if parsing a declaration, that is the Reader will not
 	 * contain a selector. */
 	boolean parsingDeclaration;
 	/** True if the attributes are coming from a linked/imported style. */
 	boolean isLink;
+	/** Where the CSS stylesheet lives. */
 	URL base;
+	CSSParser parser = new CSSParser();
     }
 }

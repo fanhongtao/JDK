@@ -1,8 +1,11 @@
 /*
- * @(#)DropTargetContext.java	1.25 01/11/29
+ * @(#)DropTargetContext.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.dnd;
@@ -42,8 +45,8 @@ import java.util.List;
  * drag under feedback, but also to effect the subsequent data transfer
  * if appropriate.
  *
- * @version 1.8
- * @since JDK1.2
+ * @version 	1.28, 02/02/00
+ * @since 1.2
  */
 
 public class DropTargetContext {

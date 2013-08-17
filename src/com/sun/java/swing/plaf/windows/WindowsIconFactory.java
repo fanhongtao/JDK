@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsIconFactory.java	1.12 01/11/29
+ * @(#)WindowsIconFactory.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -26,7 +29,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.12 11/29/01
+ * @version 1.14 02/02/00
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -207,25 +210,37 @@ public class WindowsIconFactory implements Serializable
     {
 	final static int csize = 13;
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-	    AbstractButton b = (AbstractButton) c;
-	    ButtonModel model = b.getModel();
+	    JCheckBox cb = (JCheckBox) c;
+	    ButtonModel model = cb.getModel();
 
 	    // outer bevel
-	    g.setColor(UIManager.getColor("CheckBox.background"));
-	    g.fill3DRect(x, y, csize, csize, false);
+	    if(!cb.isBorderPaintedFlat()) {
+		g.setColor(UIManager.getColor("CheckBox.background"));
+		g.fill3DRect(x, y, csize, csize, false);
 		
-	    // inner bevel
-	    g.setColor(UIManager.getColor("CheckBox.shadow"));
-	    g.fill3DRect(x+1, y+1, csize-2, csize-2, false);
+		// inner bevel
+		g.setColor(UIManager.getColor("CheckBox.shadow"));
+		g.fill3DRect(x+1, y+1, csize-2, csize-2, false);
 
 		// inside box 
-	    if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
-		g.setColor(UIManager.getColor("CheckBox.background"));
+		if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
+		    g.setColor(UIManager.getColor("CheckBox.background"));
+		} else {
+		    g.setColor(UIManager.getColor("CheckBox.highlight"));
+		}
+		g.fillRect(x+2, y+2, csize-4, csize-4);
 	    } else {
-		g.setColor(UIManager.getColor("CheckBox.highlight"));
+		g.setColor(UIManager.getColor("CheckBox.shadow"));
+		g.drawRect(x+1, y+1, csize-3, csize-3);
+
+		if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
+		    g.setColor(UIManager.getColor("CheckBox.background"));
+		} else {
+		    g.setColor(UIManager.getColor("CheckBox.highlight"));
+		}
+		g.fillRect(x+2, y+2, csize-4, csize-4);
 	    }
-	    g.fillRect(x+2, y+2, csize-4, csize-4);
-		    
+
 	    if(model.isEnabled()) {
 		g.setColor(UIManager.getColor("CheckBox.darkShadow"));
 	    } else {

@@ -1,8 +1,11 @@
 /*
- * @(#)RemoteRef.java	1.13 01/11/29
+ * @(#)RemoteRef.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -14,14 +17,14 @@ import java.rmi.*;
  * <code>RemoteStub</code> uses a remote reference to carry out a
  * remote method invocation to a remote object.
  *
- * @version 1.13, 11/29/01
+ * @version 1.18, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.server.RemoteStub
  */
 public interface RemoteRef extends java.io.Externalizable {
 
-    /** indicate compatibility with JDK 1.1.x version of class */
+    /** indicate compatibility with JDK 1.1.x version of class. */
     static final long serialVersionUID = 3632638527362204081L;
 
     /**
@@ -49,9 +52,10 @@ public interface RemoteRef extends java.io.Externalizable {
      * @param method the method to be invoked
      * @param params the parameter list
      * @param opnum  a hash that may be used to represent the method
+     * @return result of remote method invocation
      * @exception Exception if any exception occurs during remote method
      * invocation
-     * @since JDK1.2
+     * @since 1.2
      */
     Object invoke(Remote obj,
 		  java.lang.reflect.Method method,
@@ -67,7 +71,7 @@ public interface RemoteRef extends java.io.Externalizable {
      * encode in the call.
      *
      * @since JDK1.1
-     * @deprecated JDK1.2 style stubs no longer use this method. Instead of
+     * @deprecated 1.2 style stubs no longer use this method. Instead of
      * using a sequence of method calls on the stub's the remote reference
      * (<code>newCall</code>, <code>invoke</code>, and <code>done</code>), a
      * stub uses a single method, <code>invoke(Remote, Method, Object[],
@@ -75,10 +79,16 @@ public interface RemoteRef extends java.io.Externalizable {
      * marshalling, remote method executing and unmarshalling of the return
      * value.
      *
-     * <p>JDK1.2 stubs are generated using <code>rmic -v1.2</code>. By
+     * <p>1.2 stubs are generated using <code>rmic -v1.2</code>. By
      * default, <code>rmic</code> generates stubs compatible with JDK1.1 and
-     * JDK1.2. The compatible stubs can also be generated using <code>rmic
-     * -vcompat</code>.
+     * the Java 2 SDK. The compatible stubs can also be generated using
+     * <code>rmic -vcompat</code>.
+     * @param obj remote stub through which to make call
+     * @param op array of stub operations
+     * @param opnum operation number
+     * @param hash stub/skeleton interface hash
+     * @return call object representing remote call
+     * @throws RemoteException if failed to initiate new remote call
      * @see #invoke(Remote,java.lang.reflect.Method,Object[],long)
      */
     RemoteCall newCall(RemoteObject obj, Operation[] op, int opnum, long hash) 
@@ -94,7 +104,7 @@ public interface RemoteRef extends java.io.Externalizable {
      * "user" or remote exception.
      *
      * @since JDK1.1
-     * @deprecated JDK1.2 style stubs no longer use this method. Instead of
+     * @deprecated 1.2 style stubs no longer use this method. Instead of
      * using a sequence of method calls to the remote reference
      * (<code>newCall</code>, <code>invoke</code>, and <code>done</code>), a
      * stub uses a single method, <code>invoke(Remote, Method, Object[],
@@ -102,10 +112,12 @@ public interface RemoteRef extends java.io.Externalizable {
      * marshalling, remote method executing and unmarshalling of the return
      * value.
      *
-     * <p>JDK1.2 stubs are generated using <code>rmic -v1.2</code>. By
+     * <p>1.2 stubs are generated using <code>rmic -v1.2</code>. By
      * default, <code>rmic</code> generates stubs compatible with JDK1.1 and
-     * JDK1.2. The compatible stubs can also be generated using <code>rmic
-     * -vcompat</code>.
+     * the Java 2 SDK. The compatible stubs can also be generated using
+     * <code>rmic -vcompat</code>.
+     * @param call object representing remote call
+     * @throws Exception if any exception occurs during remote method
      * @see #invoke(Remote,java.lang.reflect.Method,Object[],long)
      */
     void invoke(RemoteCall call) throws Exception;
@@ -116,7 +128,7 @@ public interface RemoteRef extends java.io.Externalizable {
      * (non-exceptionally) to the stub.
      *
      * @since JDK1.1
-     * @deprecated JDK1.2 style stubs no longer use this method. Instead of
+     * @deprecated 1.2 style stubs no longer use this method. Instead of
      * using a sequence of method calls to the remote reference
      * (<code>newCall</code>, <code>invoke</code>, and <code>done</code>), a
      * stub uses a single method, <code>invoke(Remote, Method, Object[],
@@ -124,10 +136,12 @@ public interface RemoteRef extends java.io.Externalizable {
      * marshalling, remote method executing and unmarshalling of the return
      * value.
      *
-     * <p>JDK1.2 stubs are generated using <code>rmic -v1.2</code>. By
+     * <p>1.2 stubs are generated using <code>rmic -v1.2</code>. By
      * default, <code>rmic</code> generates stubs compatible with JDK1.1 and
-     * JDK1.2. The compatible stubs can also be generated using <code>rmic
+     * the Java 2 SDK. The compatible stubs can also be generated using <code>rmic
      * -vcompat</code>.
+     * @param call object representing remote call
+     * @throws RemoteException if remote error occurs during call cleanup
      * @see #invoke(Remote,java.lang.reflect.Method,Object[],long)
      */
     void done(RemoteCall call) throws RemoteException;
@@ -147,6 +161,7 @@ public interface RemoteRef extends java.io.Externalizable {
      * that refer to the same remote object will have the same hash code
      * (in order to support remote objects as keys in hash tables).
      *
+     * @return remote object hashcode
      * @see		java.util.Hashtable
      * @since JDK1.1
      */
@@ -167,6 +182,7 @@ public interface RemoteRef extends java.io.Externalizable {
     /**
      * Returns a String that represents the reference of this remote
      * object.
+     * @return string representing remote object reference
      * @since JDK1.1
      */
     String remoteToString();

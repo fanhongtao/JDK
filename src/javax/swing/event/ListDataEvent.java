@@ -1,8 +1,11 @@
 /*
- * @(#)ListDataEvent.java	1.10 01/11/29
+ * @(#)ListDataEvent.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -20,7 +23,7 @@ import java.util.EventObject;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.10 11/29/01
+ * @version 1.12 02/02/00
  * @author Hans Muller
  */
 public class ListDataEvent extends EventObject 
@@ -39,9 +42,9 @@ public class ListDataEvent extends EventObject
     /**
      * Returns the event type. The possible values are:
      * <ul>
-     * <li> {@link CONTENTS_CHANGED}
-     * <li> {@link INTERVAL_ADDED}
-     * <li> {@link INTERVAL_REMOVED}
+     * <li> {@link #CONTENTS_CHANGED}
+     * <li> {@link #INTERVAL_ADDED}
+     * <li> {@link #INTERVAL_REMOVED}
      * </ul>
      *
      * @return an int representing the type value
@@ -68,8 +71,8 @@ public class ListDataEvent extends EventObject
      * Constructs a ListDataEvent object.
      *
      * @param source  the source Object (typically <code>this</code>)
-     * @param type    an int specifying {@link CONTENTS_CHANGED},
-     *                {@link INTERVAL_ADDED}, or {@link INTERVAL_REMOVED}
+     * @param type    an int specifying {@link #CONTENTS_CHANGED},
+     *                {@link #INTERVAL_ADDED}, or {@link #INTERVAL_REMOVED}
      * @param index0  an int specifying the bottom of a range
      * @param index1  an int specifying the top of a range
      */

@@ -1,8 +1,11 @@
 /*
- * @(#)ObjectStreamConstants.java	1.23 01/11/29
+ * @(#)ObjectStreamConstants.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -11,11 +14,19 @@ package java.io;
  * Constants written into the Object Serialization Stream. 
  *
  * @author  unascribed
- * @version 1.23, 11/29/01
+ * @version 1.29, 02/02/00
  * @since JDK 1.1
  */
 public interface ObjectStreamConstants {
+
+    /**
+     * Magic number that is written to the stream header.
+     */
     final static short STREAM_MAGIC = (short)0xaced;
+
+    /**
+     * Version number that is written to the stream header.
+     */
     final static short STREAM_VERSION = 5;
 
     /* Each item in the stream is preceded by a tag
@@ -25,6 +36,7 @@ public interface ObjectStreamConstants {
      * First tag value.
      */
     final static byte TC_BASE = 0x70;
+
     /**
      * Null object reference.
      */
@@ -41,17 +53,17 @@ public interface ObjectStreamConstants {
     final static byte TC_CLASSDESC = 	(byte)0x72;
 
     /**
-     * new Object
+     * new Object.
      */
     final static byte TC_OBJECT = 	(byte)0x73;
 
     /** 
-     * new String
+     * new String.
      */
     final static byte TC_STRING = 	(byte)0x74;
 
     /**
-     * new Array
+     * new Array.
      */
     final static byte TC_ARRAY = 	(byte)0x75;
 
@@ -87,10 +99,20 @@ public interface ObjectStreamConstants {
      */
     final static byte TC_EXCEPTION = 	(byte)0x7B;
 
+    /**
+     * Long string.
+     */
+    final static byte TC_LONGSTRING = 	(byte)0x7C;
+
+    /**
+     * new Proxy Class Descriptor.
+     */
+    final static byte TC_PROXYCLASSDESC =	(byte)0x7D;
+
     /** 
      * Last tag value.
      */
-    final static byte TC_MAX = 		(byte)0x7B;
+    final static byte TC_MAX = 		(byte)0x7D;
 
     /**
      * First wire handle to be assigned. 
@@ -113,7 +135,7 @@ public interface ObjectStreamConstants {
      * Added for PROTOCOL_VERSION_2.
      *
      * @see #PROTOCOL_VERSION_2
-     * @since JDK 1.2
+     * @since 1.2
      */
     final static byte SC_BLOCK_DATA = 0x08;  
 
@@ -137,7 +159,7 @@ public interface ObjectStreamConstants {
      *
      * @see java.io.ObjectOutputStream#enableReplaceObject(boolean)
      * @see java.io.ObjectInputStream#enableResolveObject(boolean)
-     * @since JDK 1.2
+     * @since 1.2
      */
     final static SerializablePermission SUBSTITUTION_PERMISSION =
                            new SerializablePermission("enableSubstitution");
@@ -147,7 +169,7 @@ public interface ObjectStreamConstants {
      *
      * @see java.io.ObjectOutputStream#writeObjectOverride(Object)
      * @see java.io.ObjectInputStream#readObjectOverride()
-     * @since JDK 1.2
+     * @since 1.2
      */
     final static SerializablePermission SUBCLASS_IMPLEMENTATION_PERMISSION =
                     new SerializablePermission("enableSubclassImplementation");
@@ -160,7 +182,7 @@ public interface ObjectStreamConstants {
     * pre-JDK 1.1.6 JVMs.
     *
     * @see java.io.ObjectOutputStream#useProtocolVersion(int)
-    * @since JDK 1.2
+    * @since 1.2
     */
     public final static int PROTOCOL_VERSION_1 = 1;
 
@@ -181,7 +203,7 @@ public interface ObjectStreamConstants {
     *
     * @see java.io.ObjectOutputStream#useProtocolVersion(int)
     * @see #SC_BLOCK_DATA
-    * @since JDK 1.2
+    * @since 1.2
     */
     public final static int PROTOCOL_VERSION_2 = 2;
 }

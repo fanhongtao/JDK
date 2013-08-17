@@ -1,17 +1,16 @@
 /*
- * @(#)Normalizer.java	1.29 01/11/29
+ * @(#)Normalizer.java	1.31 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)Normalizer.java	1.29 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
- *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -47,10 +33,10 @@ package java.text;
   * be able to decompose a Unicode character into an equivalent string.
   * The composition operation is also necessary.
   *
-  * @version    1.29 11/29/01
+  * @version    1.28 01/27/99
   * @author     Mark Davis, Helena Shih, Laura Werner
   */
-class Normalizer {
+class Normalizer implements Cloneable{
     /**
      * Null order which indicates the end of string is reached by the
      * cursor.
@@ -107,6 +93,22 @@ class Normalizer {
         pIndex = 0;
     }
 
+    public Object clone() {
+        Normalizer result = null;
+        try {
+            result = (Normalizer)super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            // swallow the exception, which will never actually be thrown
+        }
+        
+        result.str = (CharacterIterator)str.clone();
+        if (parsedStr != null)
+            result.parsedStr = new StringBuffer(parsedStr.toString());
+            
+        return result;
+    }
+    
     /**
      * Set the decomposition mode of the normalizer.
      * @param mode the new decomposition mode.
@@ -145,6 +147,11 @@ class Normalizer {
         str = source;
         ownIterator = false;
         reset();
+    }
+
+    CharacterIterator getText()
+    {
+        return str;
     }
 
     /**

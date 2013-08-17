@@ -1,8 +1,11 @@
 /*
- * @(#)DynamicImplementation.java	1.11 01/11/29
+ * @(#)DynamicImplementation.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -22,18 +25,18 @@ import org.omg.CORBA.portable.ObjectImpl;
  */
 
 public abstract
-class DynamicImplementation extends org.omg.CORBA.portable.ObjectImpl {
+    class DynamicImplementation extends org.omg.CORBA.portable.ObjectImpl {
 
-  /**
-   * Accepts a <code>ServerRequest</code> object and uses its methods to
-   * determine the request target, operation, and parameters, and to
-   * set the result or exception.
-   * Deprecated by the Portable Object Adapter.
-   *
-   * @param request             a <code>ServerRequest</code> object representing
-   *                            the request to be invoked
-   *
-   */
+	/**
+	 * Accepts a <code>ServerRequest</code> object and uses its methods to
+	 * determine the request target, operation, and parameters, and to
+	 * set the result or exception.
+	 * Deprecated by the Portable Object Adapter.
+	 *
+	 * @param request             a <code>ServerRequest</code> object representing
+	 *                            the request to be invoked
+	 *
+	 */
 
-  public abstract void invoke(ServerRequest request);
-}
+	public abstract void invoke(ServerRequest request);
+    }

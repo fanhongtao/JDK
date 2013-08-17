@@ -1,8 +1,11 @@
 /*
- * @(#)CardLayout.java	1.28 01/11/29
+ * @(#)CardLayout.java	1.30 00/06/30
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -26,7 +29,7 @@ import java.util.Enumeration;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.28 11/29/01
+ * @version 	1.30 06/30/00
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
@@ -165,12 +168,16 @@ public class CardLayout implements LayoutManager2,
 
     /**
      * Removes the specified component from the layout.
+     * If the card was visible on top, the next card underneath it is shown.
      * @param   comp   the component to be removed.
      * @see     java.awt.Container#remove(java.awt.Component)
      * @see     java.awt.Container#removeAll()
      */
     public void removeLayoutComponent(Component comp) {
       synchronized (comp.getTreeLock()) {
+        if (comp.visible) {
+          next(comp.parent);
+        }
 	for (Enumeration e = tab.keys() ; e.hasMoreElements() ; ) {
 	    String key = (String)e.nextElement();
 	    if (tab.get(key) == comp) {
@@ -328,18 +335,21 @@ public class CardLayout implements LayoutManager2,
      */
     public void first(Container parent) {
 	synchronized (parent.getTreeLock()) {
+	    Component comp;
 	    checkLayout(parent);
 	    int ncomponents = parent.getComponentCount();
-	    for (int i = 0 ; i < ncomponents ; i++) {
-		Component comp = parent.getComponent(i);
+	    for (int i = 1 ; i < ncomponents ; i++) {
+		comp = parent.getComponent(i);
 		if (comp.visible) {
 		    comp.hide();
-		    comp = parent.getComponent(0);
-		    comp.show();
-		    parent.validate();
-		    return;
-		}
+                    break;
+                }
 	    }
+            if (ncomponents > 0) {
+		comp = parent.getComponent(0);
+		comp.show();
+		parent.validate();
+            }
 	}
     }
 
@@ -401,18 +411,21 @@ public class CardLayout implements LayoutManager2,
      */
     public void last(Container parent) {
 	synchronized (parent.getTreeLock()) {
+            Component comp;
 	    checkLayout(parent);
 	    int ncomponents = parent.getComponentCount();
-	    for (int i = 0 ; i < ncomponents ; i++) {
-		Component comp = parent.getComponent(i);
+	    for (int i = 0 ; i < ncomponents - 1 ; i++) {
+		comp = parent.getComponent(i);
 		if (comp.visible) {
 		    comp.hide();
-		    comp = parent.getComponent(ncomponents - 1);
-		    comp.show();
-		    parent.validate();
-		    return;
+                    break;
 		}
 	    }
+            if (ncomponents > 0) {
+		comp = parent.getComponent(ncomponents - 1);
+		comp.show();
+		parent.validate();
+            }
 	}
     }
 

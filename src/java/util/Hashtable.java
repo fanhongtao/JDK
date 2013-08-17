@@ -1,8 +1,11 @@
 /*
- * @(#)Hashtable.java	1.73 01/11/29
+ * @(#)Hashtable.java	1.82 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -62,7 +65,7 @@ import java.io.*;
  *     }
  * </pre></blockquote>
  * <p>
- * As of JDK1.2, this class has been retrofitted to implement Map,
+ * As of the Java 2 platform v1.2, this class has been retrofitted to implement Map,
  * so that it becomes a part of Java's collection framework.  Unlike
  * the new collection implementations, Hashtable is synchronized.<p>
  *
@@ -79,7 +82,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.73, 11/29/01
+ * @version 1.82, 02/02/00
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -90,7 +93,7 @@ import java.io.*;
  * @since JDK1.0
  */
 public class Hashtable extends Dictionary implements Map, Cloneable,
-						     java.io.Serializable {
+                                                   java.io.Serializable {
     /**
      * The hash table data.
      */
@@ -108,7 +111,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @serial
      */
     private int threshold;
-
+							 
     /**
      * The load factor for the hashtable.
      *
@@ -141,7 +144,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	if (initialCapacity < 0)
 	    throw new IllegalArgumentException("Illegal Capacity: "+
                                                initialCapacity);
-        if (loadFactor <= 0)
+        if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal Load: "+loadFactor);
 
         if (initialCapacity==0)
@@ -168,7 +171,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * factor, which is <tt>0.75</tt>. 
      */
     public Hashtable() {
-	this(101, 0.75f);
+	this(11, 0.75f);
     }
 
     /**
@@ -177,7 +180,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * of entries in the given Map or 11 (whichever is greater), and a
      * default load factor, which is <tt>0.75</tt>.
      *
-     * @since   JDK1.2
+     * @param t the map whose mappings are to be placed in this map.
+     * @since   1.2
      */
     public Hashtable(Map t) {
 	this(Math.max(2*t.size(), 11), 0.75f);
@@ -213,7 +217,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @see	Map
      */
     public synchronized Enumeration keys() {
-	return new Enumerator(KEYS, false);
+	return getEnumeration(KEYS);
     }
 
     /**
@@ -228,7 +232,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @see	Map
      */
     public synchronized Enumeration elements() {
-	return new Enumerator(VALUES, false);
+	return getEnumeration(VALUES);
     }
 
     /**
@@ -272,8 +276,10 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * (which predates the Map interface).
      *
      * @param value value whose presence in this Hashtable is to be tested.
+     * @return <tt>true</tt> if this map maps one or more keys to the
+     *         specified value.
      * @see	   Map
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean containsValue(Object value) {
 	return contains(value);
@@ -436,7 +442,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * These mappings will replace any mappings that this Hashtable had for any
      * of the keys currently in the specified Map. 
      *
-     * @since JDK1.2
+     * @param t Mappings to be stored in this map.
+     * @since 1.2
      */
     public synchronized void putAll(Map t) {
 	Iterator i = t.entrySet().iterator();
@@ -511,6 +518,22 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     }
 
 
+    private Enumeration getEnumeration(int type) {
+	if (count == 0) {
+	    return emptyEnumerator;
+	} else {
+	    return new Enumerator(type, false);
+	}
+    }
+
+    private Iterator getIterator(int type) {
+	if (count == 0) {
+	    return emptyIterator;
+	} else {
+	    return new Enumerator(type, true);
+	}
+    }
+							 
     // Views
 
     private transient Set keySet = null;
@@ -524,7 +547,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * (which removes the corresponding entry from the Hashtable), but not
      * element addition.
      *
-     * @since JDK1.2
+     * @return a set view of the keys contained in this map.
+     * @since 1.2
      */
     public Set keySet() {
 	if (keySet == null)
@@ -534,7 +558,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
     private class KeySet extends AbstractSet {
         public Iterator iterator() {
-            return new Enumerator(KEYS, true);
+	    return getIterator(KEYS);
         }
         public int size() {
             return count;
@@ -558,8 +582,9 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * (which removes the corresponding entry from the Hashtable),
      * but not element addition.
      *
+     * @return a set view of the mappings contained in this map.
      * @see   Map.Entry
-     * @since JDK1.2
+     * @since 1.2
      */
     public Set entrySet() {
 	if (entrySet==null)
@@ -569,7 +594,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
     private class EntrySet extends AbstractSet {
         public Iterator iterator() {
-            return new Enumerator(ENTRIES, true);
+	    return getIterator(ENTRIES);
         }
 
         public boolean contains(Object o) {
@@ -629,7 +654,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * supports element removal (which removes the corresponding entry from
      * the Hashtable), but not element addition.
      *
-     * @since JDK1.2
+     * @return a collection view of the values contained in this map.
+     * @since 1.2
      */
     public Collection values() {
 	if (values==null)
@@ -640,7 +666,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
     private class ValueCollection extends AbstractCollection {
         public Iterator iterator() {
-            return new Enumerator(VALUES, true);
+	    return getIterator(VALUES);
         }
         public int size() {
             return count;
@@ -661,7 +687,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      *
      * @return true if the specified Object is equal to this Map.
      * @see Map#equals(Object)
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized boolean equals(Object o) {
 	if (o == this)
@@ -694,7 +720,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * Map interface.
      *
      * @see Map#hashCode()
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized int hashCode() {
 	int h = 0;
@@ -857,7 +883,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	 * List should have.  If this expectation is violated, the iterator
 	 * has detected concurrent modification.
 	 */
-	private int expectedModCount = modCount;
+	protected int expectedModCount = modCount;
 
 	Enumerator(int type, boolean iterator) {
 	    this.type = type;
@@ -865,17 +891,29 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	}
 
 	public boolean hasMoreElements() {
-	    while (entry==null && index>0)
-		entry = table[--index];
-
-	    return entry != null;
+	    Entry e = entry;
+	    int i = index;
+	    Entry t[] = table;
+	    /* Use locals for faster loop iteration */
+	    while (e == null && i > 0) { 
+		e = t[--i];
+	    }
+	    entry = e;
+	    index = i;
+	    return e != null;
 	}
 
 	public Object nextElement() {
-	    while (entry==null && index>0)
-		entry = table[--index];
-
-	    if (entry != null) {
+	    Entry et = entry;
+	    int i = index;
+	    Entry t[] = table;
+	    /* Use locals for faster loop iteration */
+	    while (et == null && i > 0) { 
+		et = t[--i];
+	    }
+	    entry = et;
+	    index = i;
+	    if (et != null) {
 		Entry e = lastReturned = entry;
 		entry = e.next;
 		return type == KEYS ? e.key : (type == VALUES ? e.value : e);
@@ -924,4 +962,50 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	    }
 	}
     }
+
+   
+    private static EmptyEnumerator emptyEnumerator = new EmptyEnumerator();
+    private static EmptyIterator emptyIterator = new EmptyIterator();
+
+    /**
+     * A hashtable enumerator class for empty hash tables, specializes
+     * the general Enumerator
+     */
+    private static class EmptyEnumerator implements Enumeration {
+
+	EmptyEnumerator() {
+	}
+
+	public boolean hasMoreElements() {
+	    return false;
+	}
+
+	public Object nextElement() {
+	    throw new NoSuchElementException("Hashtable Enumerator");
+	}
+    }
+
+
+    /**
+     * A hashtable iterator class for empty hash tables
+     */
+    private static class EmptyIterator implements Iterator {
+
+	EmptyIterator() {
+	}
+
+	public boolean hasNext() {
+	    return false;
+	}
+
+	public Object next() {
+	    throw new NoSuchElementException("Hashtable Iterator");
+	}
+
+	public void remove() {
+	    throw new IllegalStateException("Hashtable Iterator");
+	}
+
+    }
+
 }

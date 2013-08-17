@@ -1,8 +1,11 @@
 /*
- * @(#)MetalTextFieldUI.java	1.7 01/11/29
+ * @(#)MetalTextFieldUI.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.plaf.metal;
 
@@ -26,7 +29,7 @@ import javax.swing.plaf.basic.*;
  * long term persistence.
  *
  * @author  Steve Wilson
- * @version 1.7 11/29/01
+ * @version 1.9 02/02/00
  */
 public class MetalTextFieldUI extends BasicTextFieldUI {
 
@@ -45,8 +48,8 @@ public class MetalTextFieldUI extends BasicTextFieldUI {
 	    Color background = source.getBackground();
 	    boolean editable =  ((Boolean)e.getNewValue()).booleanValue();
 	    editableChanged( source, editable);
-
 	}
+        super.propertyChange(e);
     }
     private void editableChanged(JComponent c, boolean editable) {
 	    Color background = c.getBackground();

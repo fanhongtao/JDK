@@ -1,8 +1,11 @@
 /*
- * @(#)ObjID.java	1.17 01/11/29
+ * @(#)ObjID.java	1.22 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi.server;
 
@@ -24,16 +27,16 @@ import sun.security.action.GetBooleanAction;
  * no argument constructor will contain a cryptographically strong random
  * number.
  *
- * @version 1.17, 11/29/01
+ * @version 1.22, 04/06/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
 public final class ObjID implements java.io.Serializable {
-    /** well-known id for the registry */
+    /** well-known id for the registry. */
     public static final int REGISTRY_ID = 0;
-    /** well-known id for the activator */
+    /** well-known id for the activator. */
     public static final int ACTIVATOR_ID = 1;
-    /** well-known id for the distributed garbage collector */
+    /** well-known id for the distributed garbage collector. */
     public static final int DGC_ID = 2;
 
     /**
@@ -96,6 +99,8 @@ public final class ObjID implements java.io.Serializable {
 
     /**
      * Marshals object id to output stream.
+     * @param out output stream to write object ID to
+     * @throws IOException if an I/O error occurred
      * @since JDK1.1
      */
     public void write(ObjectOutput out) throws java.io.IOException {
@@ -106,6 +111,9 @@ public final class ObjID implements java.io.Serializable {
     /**
      * Constructs an object id whose contents is read from the specified input
      * stream.
+     * @param in input stream to read object ID from
+     * @return object ID instance read from stream
+     * @throws IOException if an I/O error occurred
      * @since JDK1.1
      */
     public static ObjID read(ObjectInput in) throws java.io.IOException {
@@ -149,6 +157,8 @@ public final class ObjID implements java.io.Serializable {
     }
 
     private static class InsecureRandom extends Random {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = -698228687531590145L;
 	private long nextNum;
 
 	synchronized public long nextLong() {

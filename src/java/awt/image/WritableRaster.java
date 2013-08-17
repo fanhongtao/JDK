@@ -1,8 +1,11 @@
 /*
- * @(#)WritableRaster.java	1.28 01/11/29
+ * @(#)WritableRaster.java	1.33 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -200,7 +203,7 @@ public class WritableRaster extends Raster {
         return new WritableRaster(sm,
                                   dataBuffer,
                                   new Rectangle(childMinX,childMinY,
-                                                width,height),
+                                                w, h),
                                   new Point(sampleModelTranslateX+deltaX,
                                             sampleModelTranslateY+deltaY),
                                   this);
@@ -209,7 +212,7 @@ public class WritableRaster extends Raster {
     /**
      * Sets the data for a single pixel from a
      * primitive array of type TransferType.  For image data supported by
-     * the Java 2D API, this will be one of DataBuffer.TYPE_BYTE,
+     * the Java 2D(tm) API, this will be one of DataBuffer.TYPE_BYTE,
      * DataBuffer.TYPE_USHORT, or DataBuffer.TYPE_INT.  Data in the array
      * may be in a packed format, thus increasing efficiency for data
      * transfers.
@@ -342,7 +345,6 @@ public class WritableRaster extends Raster {
     public void setRect(int dx, int dy, Raster srcRaster) {
         int width  = srcRaster.getWidth();
         int height = srcRaster.getHeight();
-        int[] tdata = null;
         int srcOffX = srcRaster.getMinX();
         int srcOffY = srcRaster.getMinY();
         int dstOffX = dx+srcOffX;
@@ -356,11 +358,41 @@ public class WritableRaster extends Raster {
             height = this.minY + this.height - dstOffY;
         }
 
-        for (int startY=0; startY < height; startY++) {
-            // Grab one scanline at a time
-            tdata =
-                srcRaster.getPixels(srcOffX, srcOffY+startY, width, 1, tdata);
-            setPixels(dstOffX, dstOffY+startY, width, 1, tdata);
+        switch (srcRaster.getSampleModel().getDataType()) {
+        case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_INT:
+            int[] iData = null;    
+            for (int startY=0; startY < height; startY++) {
+                // Grab one scanline at a time
+                iData =
+                    srcRaster.getPixels(srcOffX, srcOffY+startY, width, 1,
+                                        iData);
+                setPixels(dstOffX, dstOffY+startY, width, 1, iData);
+            }
+            break;
+
+        case DataBuffer.TYPE_FLOAT:
+            float[] fData = null;    
+            for (int startY=0; startY < height; startY++) {
+                fData =
+                    srcRaster.getPixels(srcOffX, srcOffY+startY, width, 1,
+                                        fData);
+                setPixels(dstOffX, dstOffY+startY, width, 1, fData);
+            }
+            break;
+
+        case DataBuffer.TYPE_DOUBLE:
+            double[] dData = null;    
+            for (int startY=0; startY < height; startY++) {
+                // Grab one scanline at a time
+                dData =
+                    srcRaster.getPixels(srcOffX, srcOffY+startY, width, 1,
+                                        dData);
+                setPixels(dstOffX, dstOffY+startY, width, 1, dData);
+            }
+            break;
         }
     }
 

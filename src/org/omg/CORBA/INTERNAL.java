@@ -1,8 +1,11 @@
 /*
- * @(#)INTERNAL.java	1.22 01/11/29
+ * @(#)INTERNAL.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -26,7 +29,7 @@ package org.omg.CORBA;
 public final class INTERNAL extends SystemException {
     /**
      * Constructs an <code>INTERNAL</code> exception with a default 
-	 * minor code of 0 and a completion state of COMPLETED_MAYBE.
+     * minor code of 0 and a completion state of COMPLETED_MAYBE.
      */
     public INTERNAL() {
         this("");
@@ -34,7 +37,7 @@ public final class INTERNAL extends SystemException {
 
     /**
      * Constructs an <code>INTERNAL</code> exception with the specified detail
-	 * message, a minor code of 0, and a completion state of COMPLETED_NO.
+     * message, a minor code of 0, and a completion state of COMPLETED_NO.
      * @param s the String containing a detail message
      */
     public INTERNAL(String s) {
@@ -46,8 +49,8 @@ public final class INTERNAL extends SystemException {
      * minor code and completion status.
      * @param minor the minor code
      * @param completed an instance of <code>CompletionStatus</code>
-	 *                  that indicates the completion status of the method
-	 *                  that threw this exception
+     *                  that indicates the completion status of the method
+     *                  that threw this exception
      */
     public INTERNAL(int minor, CompletionStatus completed) {
         this("", minor, completed);
@@ -60,8 +63,8 @@ public final class INTERNAL extends SystemException {
      * @param s the String containing a detail message
      * @param minor the minor code
      * @param completed an instance of <code>CompletionStatus</code>
-	 *                  that indicates the completion status of the method
-	 *                  that threw this exception
+     *                  that indicates the completion status of the method
+     *                  that threw this exception
      */
     public INTERNAL(String s, int minor, CompletionStatus completed) {
         super(s, minor, completed);

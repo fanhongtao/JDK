@@ -1,8 +1,11 @@
 /*
- * @(#)TextLayout.java	1.70 01/11/29
+ * @(#)TextLayout.java	1.74 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -313,8 +316,12 @@ public final class TextLayout implements Cloneable {
      * algorithm.
      * @param str the text to display
      * @param font a <code>Font</code> used to style the text
-     * @param frc contains the information needed to correctly measure the
-     *       text
+     * @param frc contains information about a graphics device which is needed 
+     *       to measure the text correctly.
+     *       Text measurements can vary slightly depending on the
+     *       device resolution, and attributes such as antialiasing.  This
+     *       parameter does not specify a translation between the
+     *       <code>TextLayout</code> and user space.
      */
     public TextLayout(String string, Font font, FontRenderContext frc) {
 
@@ -350,8 +357,12 @@ public final class TextLayout implements Cloneable {
      * entire paragraph is required for the bidirectional algorithm.
      * @param str the text to display
      * @param attributes the attributes used to style the text
-     * @param frc contains the information needed to correctly measure the
-     *       text 
+     * @param frc contains information about a graphics device which is needed 
+     *       to measure the text correctly.
+     *       Text measurements can vary slightly depending on the
+     *       device resolution, and attributes such as antialiasing.  This
+     *       parameter does not specify a translation between the
+     *       <code>TextLayout</code> and user space.
      */
     public TextLayout(String string, Map attributes, FontRenderContext frc) {
 
@@ -415,8 +426,12 @@ public final class TextLayout implements Cloneable {
      * entire paragraph is required for the bidirectional
      * algorithm.
      * @param text the styled text to display
-     * @param frc contains the information needed to correctly measure the
-     *       text
+     * @param frc contains information about a graphics device which is needed 
+     *       to measure the text correctly.
+     *       Text measurements can vary slightly depending on the
+     *       device resolution, and attributes such as antialiasing.  This
+     *       parameter does not specify a translation between the
+     *       <code>TextLayout</code> and user space.
      */
     public TextLayout(AttributedCharacterIterator text, FontRenderContext frc) {
 
@@ -1083,7 +1098,9 @@ public final class TextLayout implements Cloneable {
      * first (last) caret position in the layout.
      */
 
-    private float[] getCaretInfo(int caret, Rectangle2D bounds) {
+    private float[] getCaretInfo(int caret, 
+                                 Rectangle2D bounds,
+                                 float[] info) {
 
         float top1X, top2X;
         float bottom1X, bottom2X;
@@ -1137,7 +1154,9 @@ public final class TextLayout implements Cloneable {
         float topX = (top1X + top2X) / 2;
         float bottomX = (bottom1X + bottom2X) / 2;
 
-        float[] info = new float[2];
+        if (info == null) {
+            info = new float[2];
+        }
 
         if (isVerticalLine) {
             info[1] = (float) ((topX - bottomX) / bounds.getWidth());
@@ -1154,8 +1173,8 @@ public final class TextLayout implements Cloneable {
     /**
      * Returns information about the caret corresponding to <code>hit</code>.
      * The first element of the array is the intersection of the caret with
-     * the baseline. The second element of the array is the slope (run/rise)
-     * of the caret.
+     * the baseline. The second element of the array is the inverse slope 
+     * (run/rise) of the caret.
      * <p>
      * This method is meant for informational use.  To display carets, it
      * is better to use <code>getCaretShapes</code>.
@@ -1164,12 +1183,13 @@ public final class TextLayout implements Cloneable {
      * @return a two-element array containing the position and slope of
      * the caret.
      * @see #getCaretShapes(int, Rectangle2D, TextLayout.CaretPolicy)
+     * @see Font#getItalicAngle
      */
     public float[] getCaretInfo(TextHitInfo hit, Rectangle2D bounds) {
         ensureCache();
         checkTextHit(hit);
 
-        return getCaretInfo(hitToCaret(hit), bounds);
+        return getCaretInfo(hitToCaret(hit), bounds, null);
     }
 
     /**
@@ -1503,7 +1523,7 @@ public final class TextLayout implements Cloneable {
     private double[] getCaretPath(int caret, Rectangle2D bounds,
                                   boolean clipToBounds) {
 
-        float[] info = getCaretInfo(caret, bounds);
+        float[] info = getCaretInfo(caret, bounds, null);
 
         double pos = info[0];
         double slope = info[1];
@@ -1523,40 +1543,41 @@ public final class TextLayout implements Cloneable {
             if (slope >= 0) {
                 x0 = left;
                 x1 = right;
-                y0 = pos + x0 * slope;
-                y1 = pos + x1 * slope;
             }
             else {
                 x1 = left;
                 x0 = right;
-                y1 = pos + x1 * slope;
-                y0 = pos + x0 * slope;
             }
 
+            y0 = pos + x0 * slope;
+            y1 = pos + x1 * slope;
+
             // y0 <= y1, always
+
             if (clipToBounds) {
                 if (y0 < top) {
-                    if (slope == 0 || y1 <= top) {
+                    if (slope <= 0 || y1 <= top) {
                         y0 = y1 = top;
                     }
                     else {
                         threePoints = true;
-                        y2 = top;
-                        x2 = x0 + (top-y0)/slope;
                         y0 = top;
-                        if (y1 > bottom)
+                        y2 = top;
+                        x2 = x1 + (top-y1)/slope;
+                        if (y1 > bottom) {
                             y1 = bottom;
+                        }
                     }
                 }
                 else if (y1 > bottom) {
-                    if (slope == 0 || y0 >= bottom) {
+                    if (slope >= 0 || y0 >= bottom) {
                         y0 = y1 = bottom;
                     }
                     else {
                         threePoints = true;
-                        y2 = bottom;
-                        x2 = x1 - (y1-bottom)/slope;
                         y1 = bottom;
+                        y2 = bottom;
+                        x2 = x0 + (bottom-x1)/slope;
                     }
                 }
             }
@@ -1567,40 +1588,41 @@ public final class TextLayout implements Cloneable {
             if (slope >= 0) {
                 y0 = bottom;
                 y1 = top;
-                x0 = pos - y0 * slope;
-                x1 = pos - y1 * slope;
             }
             else {
                 y1 = bottom;
                 y0 = top;
-                x1 = pos - y0 * slope;
-                x0 = pos - y1 * slope;
             }
+
+            x0 = pos - y0 * slope;
+            x1 = pos - y1 * slope;
+            
             // x0 <= x1, always
 
             if (clipToBounds) {
                 if (x0 < left) {
-                    if (slope == 0 || x1 <= left) {
+                    if (slope <= 0 || x1 <= left) {
                         x0 = x1 = left;
                     }
                     else {
                         threePoints = true;
-                        x2 = left;
-                        y2 = y0 - (left-x0)/slope;
                         x0 = left;
-                        if (x1 > right)
+                        x2 = left;
+                        y2 = y1 - (left-x1)/slope;
+                        if (x1 > right) {
                             x1 = right;
+                        }
                     }
                 }
                 else if (x1 > right) {
-                    if (slope == 0 || x0 >= right) {
+                    if (slope >= 0 || x0 >= right) {
                         x0 = x1 = right;
                     }
                     else {
                         threePoints = true;
-                        x2 = right;
-                        y2 = y1 + (x1-right)/slope;
                         x1 = right;
+                        x2 = right;
+                        y2 = y0 - (right-x0)/slope;
                     }
                 }
             }
@@ -1802,10 +1824,44 @@ public final class TextLayout implements Cloneable {
     // A utility to return a path enclosing the given path
     // Path0 must be left or top of path1
     // {jbr} no assumptions about size of path0, path1 anymore.
-    private static GeneralPath boundingShape(double[] path0, double[] path1) {
+    private GeneralPath boundingShape(double[] path0, double[] path1) {
+
+        // Really, we want the path to be a convex hull around all of the
+        // points in path0 and path1.  But we can get by with less than
+        // that.  We do need to prevent the two segments which
+        // join path0 to path1 from crossing each other.  So, if we
+        // traverse path0 from top to bottom, we'll traverse path1 from
+        // bottom to top (and vice versa).
 
         GeneralPath result = pathToShape(path0, false);
-        for (int i = path1.length-2; i >=0; i -= 2) {
+
+        boolean sameDirection;
+                
+        if (isVerticalLine) {
+            sameDirection = (path0[1] > path0[path0.length-1]) ==
+                            (path1[1] > path1[path1.length-1]);
+        }
+        else {
+            sameDirection = (path0[0] > path0[path0.length-2]) ==
+                            (path1[0] > path1[path1.length-2]);
+        }
+
+        int start;
+        int limit;
+        int increment;
+
+        if (sameDirection) {
+            start = path1.length-2;
+            limit = -2;
+            increment = -2;
+        }
+        else {
+            start = 0;
+            limit = path1.length;
+            increment = 2;
+        }
+
+        for (int i = start; i != limit; i += increment) {
             result.lineTo((float)path1[i], (float)path1[i+1]);
         }
 
@@ -2188,7 +2244,7 @@ public final class TextLayout implements Cloneable {
          * characters from firstEndpoint to limit
          */
 
-        GeneralPath result = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
+        GeneralPath result = new GeneralPath(GeneralPath.WIND_NON_ZERO);
 
         if (firstEndpoint < characterCount) {
             for (int logIndex = firstEndpoint;
@@ -2253,10 +2309,10 @@ public final class TextLayout implements Cloneable {
 
         int hitLB, hitUB;
 
-        float[] caretInfo;
+        float[] caretInfo = new float[2];
 
         hitLB = 0;
-        caretInfo = getCaretInfo(hitLB, bounds);
+        caretInfo = getCaretInfo(hitLB, bounds, caretInfo);
 
         if (caretToPointDistance(caretInfo, x, y) < 0) {
             return textLine.isDirectionLTR()? TextHitInfo.trailing(-1) :
@@ -2264,7 +2320,7 @@ public final class TextLayout implements Cloneable {
         }
 
         hitUB = characterCount;
-        caretInfo = getCaretInfo(hitUB, bounds);
+        caretInfo = getCaretInfo(hitUB, bounds, caretInfo);
 
         if (caretToPointDistance(caretInfo, x, y) >= 0) {
             return textLine.isDirectionLTR()? TextHitInfo.leading(characterCount) :
@@ -2302,7 +2358,7 @@ public final class TextLayout implements Cloneable {
                     break;
             }
 
-            caretInfo = getCaretInfo(test, bounds);
+            caretInfo = getCaretInfo(test, bounds, caretInfo);
 
             float caretDist = caretToPointDistance(caretInfo, x, y);
 
@@ -2341,9 +2397,6 @@ public final class TextLayout implements Cloneable {
             hitAdvance += textLine.getCharAdvance(tempLogIndex) / 2;
         }
 
-        if (caretInfo == null) {
-            caretInfo = new float[2];
-        }
         caretInfo[0] = hitAdvance;
         caretInfo[1] = textLine.getCharAngle(logIndex);
         if (caretInfo[1] != 0) {

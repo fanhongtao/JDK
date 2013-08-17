@@ -1,8 +1,11 @@
 /*
- * @(#)Finalizer.java	1.15 01/11/29
+ * @(#)Finalizer.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang.ref;
@@ -134,16 +137,8 @@ final class Finalizer extends FinalReference { /* Package-private; must be in
 	});
     }
 
-    private static boolean runOnExit = false;
-
-    /* Called by Runtime.runFinalizersOnExit */
-    static void setRunFinalizersOnExit(boolean value) {
-	runOnExit = value;
-    }
-
-    /* Called on exit by the VM */
-    static void runFinalizersOnExit() {
-	if (!runOnExit) return;
+    /* Invoked by java.lang.Shutdown */
+    static void runAllFinalizers() {
 	forkSecondaryFinalizer(new Runnable() {
 	    public void run() {
 		for (;;) {

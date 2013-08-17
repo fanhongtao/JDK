@@ -1,8 +1,11 @@
 /*
- * @(#)SecureRandom.java	1.32 01/11/29
+ * @(#)SecureRandom.java	1.36 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -71,7 +74,7 @@ import java.util.Enumeration;
  * @see java.security.SecureRandomSpi
  * @see java.util.Random
  * 
- * @version 1.32, 01/11/29
+ * @version 1.36, 02/02/00
  * @author Benjamin Renaud
  * @author Josh Bloch 
  */
@@ -82,7 +85,7 @@ public class SecureRandom extends java.util.Random {
      * The provider.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      */
     private Provider provider = null;
  
@@ -90,7 +93,7 @@ public class SecureRandom extends java.util.Random {
      * The provider implementation.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      */
     private SecureRandomSpi secureRandomSpi = null;
 
@@ -210,7 +213,7 @@ public class SecureRandom extends java.util.Random {
      * @exception NoSuchAlgorithmException if the PRNG algorithm is
      * not available in the caller's environment.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static SecureRandom getInstance(String algorithm)
 	throws NoSuchAlgorithmException {
@@ -254,7 +257,7 @@ public class SecureRandom extends java.util.Random {
      *
      * @see Provider
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static SecureRandom getInstance(String algorithm, String provider)
 	throws NoSuchAlgorithmException, NoSuchProviderException
@@ -336,6 +339,9 @@ public class SecureRandom extends java.util.Random {
      *
      * @param numBits number of pseudo-random bits to be generated, where
      * 0 <= <code>numBits</code> <= 32.
+     *
+     * @return an <code>int</code> containing the user-specified number
+     * of pseudo-random bits (right justified, with leading zeros).
      */
     final protected int next(int numBits) {
 	int numBytes = (numBits+7)/8;

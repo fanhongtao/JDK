@@ -1,8 +1,11 @@
 /*
- * @(#)ScrollPaneConstants.java	1.12 01/11/29
+ * @(#)ScrollPaneConstants.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -11,7 +14,7 @@ package javax.swing;
 /**
  * Constants used with the JScrollPane component.
  *
- * @version 1.12 11/29/01
+ * @version 1.14 02/02/00
  * @author Hans Muller
  */
 public interface ScrollPaneConstants
@@ -43,6 +46,23 @@ public interface ScrollPaneConstants
     String UPPER_LEFT_CORNER = "UPPER_LEFT_CORNER";
     /** Identifies the upper right corner of the viewport. */
     String UPPER_RIGHT_CORNER = "UPPER_RIGHT_CORNER";
+
+    /** Identifies the lower leading edge corner of the viewport. The leading edge
+     * is determined relative to the Scroll Pane's ComponentOrientation property.
+     */
+    String LOWER_LEADING_CORNER = "LOWER_LEADING_CORNER";
+    /** Identifies the lower trailing edge corner of the viewport. The trailing edge
+     * is determined relative to the Scroll Pane's ComponentOrientation property.
+     */
+    String LOWER_TRAILING_CORNER = "LOWER_TRAILING_CORNER";
+    /** Identifies the upper leading edge corner of the viewport.  The leading edge
+     * is determined relative to the Scroll Pane's ComponentOrientation property.
+     */
+    String UPPER_LEADING_CORNER = "UPPER_LEADING_CORNER";
+    /** Identifies the upper trailing edge corner of the viewport. The trailing edge
+     * is determined relative to the Scroll Pane's ComponentOrientation property.
+     */
+    String UPPER_TRAILING_CORNER = "UPPER_TRAILING_CORNER";
 
     /** Identifies the vertical scroll bar policy property. */
     String VERTICAL_SCROLLBAR_POLICY = "VERTICAL_SCROLLBAR_POLICY";

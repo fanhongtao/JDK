@@ -1,8 +1,11 @@
 /*
- * @(#)SystemFlavorMap.java	1.12 01/11/29
+ * @(#)SystemFlavorMap.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.datatransfer;
@@ -35,8 +38,8 @@ import java.util.Properties;
  * the platform DnD System.
  * </p>
  *
- * @version 1.12
- * @since JDK1.2
+ * @version 1.19, 02/02/00
+ * @since 1.2
  *
  */
 

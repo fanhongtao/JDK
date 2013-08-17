@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextServicesSupport.java	1.10 01/11/29
+ * @(#)BeanContextServicesSupport.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -10,6 +13,7 @@ package java.beans.beancontext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,8 +40,8 @@ import java.util.Locale;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.10
- * @since JDK1.2
+ * @version 1.16, 02/02/00
+ * @since 1.2
  */
 
 public class      BeanContextServicesSupport extends BeanContextSupport
@@ -116,10 +120,12 @@ public class      BeanContextServicesSupport extends BeanContextSupport
     }
 
     /**
-     * @return the instance of BeanContext this object is providing the implemen
-tation for.
+     * Gets the <tt>BeanContextServices</tt> associated with this
+     * <tt>BeanContextServicesSupport</tt>.
+     *
+     * @return the instance of <tt>BeanContext</tt> 
+     * this object is providing the implementation for.
      */
- 
     public BeanContextServices getBeanContextServicesPeer() { 
 	return (BeanContextServices)getBeanContextChildPeer();
     }
@@ -205,6 +211,10 @@ tation for.
 		if (!current.equals(bcsp))
 		    throw new UnsupportedOperationException("existing service reference obtained from different BeanContextServiceProvider not supported");
 
+	    }
+
+	    Iterator cloneOfEntries() {
+		return ((HashMap)requestors.clone()).entrySet().iterator();
 	    }
 
 	    Iterator entries() { return requestors.entrySet().iterator(); }
@@ -304,13 +314,12 @@ tation for.
 	    	serviceClassRef = new BCSSCServiceClassRef(serviceClass, bcsp, isDelegated);
 		serviceClasses.put(serviceClass, serviceClassRef);
 
-		serviceClassRef.addRequestor(requestor, bcsrl);
-
 	    } else { // existing service ...
 		serviceClassRef.verifyAndMaybeSetProvider(bcsp, isDelegated); // throws
 		serviceClassRef.verifyRequestor(requestor, bcsrl); // throws
 	    }
 
+	    serviceClassRef.addRequestor(requestor, bcsrl);
 	    serviceClassRef.addRef(isDelegated);
 
 	    // now handle mapping from requestor to service(s)
@@ -392,7 +401,7 @@ tation for.
 
 	    if (serviceClassRef == null) return;
 
-	    Iterator i = serviceClassRef.entries();
+	    Iterator i = serviceClassRef.cloneOfEntries();
 
 	    BeanContextServiceRevokedEvent bcsre       = new BeanContextServiceRevokedEvent(BeanContextServicesSupport.this.getBeanContextServicesPeer(), serviceClass, revokeNow);
 	    boolean			   noMoreRefs  = false;
@@ -480,14 +489,15 @@ tation for.
         void revokeAllDelegatedServicesNow() {
 	    if (serviceClasses == null) return;
 
-	    Iterator serviceClassRefs  = serviceClasses.values().iterator();
+	    Iterator serviceClassRefs  = 
+		new HashSet(serviceClasses.values()).iterator();
 
 	    while (serviceClassRefs.hasNext()) {
 	        BCSSCServiceClassRef serviceClassRef = (BCSSCServiceClassRef)serviceClassRefs.next();
 
 	    	if (!serviceClassRef.isDelegated()) continue;
 
-	        Iterator 		       i           = serviceClassRef.entries();
+	        Iterator i = serviceClassRef.cloneOfEntries();
 	    	BeanContextServiceRevokedEvent bcsre       = new BeanContextServiceRevokedEvent(BeanContextServicesSupport.this.getBeanContextServicesPeer(), serviceClassRef.getServiceClass(), true);
 	    	boolean			       noMoreRefs  = false;
 
@@ -948,9 +958,12 @@ tation for.
     }
 
     /**
+     * Gets the <tt>BeanContextServicesListener</tt> (if any) of the specified
+     * child.
+     *
+     * @param child the specified child
      * @return the BeanContextServicesListener (if any) of the specified child
      */
-
     protected static final BeanContextServicesListener getChildBeanContextServicesListener(Object child) {
 	try {
 	    return (BeanContextServicesListener)child;
@@ -1028,15 +1041,20 @@ tation for.
     }
 
     /**
-     * Fire a BeanContextServiceEvent notifying of a new service
+     * Fires a <tt>BeanContextServiceEvent</tt> notifying of a new service.
      */
-
     protected final void fireServiceAdded(Class serviceClass) {
 	BeanContextServiceAvailableEvent bcssae = new BeanContextServiceAvailableEvent(getBeanContextServicesPeer(), serviceClass); 
 
 	fireServiceAdded(bcssae);
     }
 
+    /**
+     * Fires a <tt>BeanContextServiceAvailableEvent</tt> indicating that a new
+     * service has become available.
+     *
+     * @param bcssae the <tt>BeanContextServiceAvailableEvent</tt>
+     */
     protected final void fireServiceAdded(BeanContextServiceAvailableEvent bcssae) {
 	Object[]		         copy;
 
@@ -1048,9 +1066,10 @@ tation for.
     }
 
     /**
-     * Fire a BeanContextServiceEvent notifying of a service being revoked
+     * Fires a <tt>BeanContextServiceEvent</tt> notifying of a service being revoked.
+     *
+     * @param bcsre the <tt>BeanContextServiceRevokedEvent</tt>
      */
-
     protected final void fireServiceRevoked(BeanContextServiceRevokedEvent bcsre) {
 	Object[]		         copy;
 
@@ -1061,6 +1080,11 @@ tation for.
 	}
     }
 
+    /**
+     * Fires a <tt>BeanContextServiceRevokedEvent</tt> 
+     * indicating that a particular service is 
+     * no longer available.
+     */
     protected final void fireServiceRevoked(Class serviceClass, boolean revokeNow) {
 	Object[]		       copy;
 	BeanContextServiceRevokedEvent bcsre = new BeanContextServiceRevokedEvent(getBeanContextServicesPeer(), serviceClass, revokeNow); 
@@ -1168,12 +1192,22 @@ tation for.
      * all accesses to the <code> protected transient HashMap services </code>
      * field should be synchronized on that object
      */
-
     protected transient HashMap  		 services;
 
+    /**
+     * The number of instances of a serializable <tt>BeanContextServceProvider</tt>.
+     */
     protected transient int 	 		 serializable = 0;
 
+
+    /**
+     * Delegate for the <tt>BeanContextServiceProvider</tt>.
+     */
     protected transient BCSSProxyServiceProvider proxy;
 
+
+    /**
+     * List of <tt>BeanContextServicesListener</tt> objects.
+     */
     protected transient ArrayList		 bcsListeners;
 }

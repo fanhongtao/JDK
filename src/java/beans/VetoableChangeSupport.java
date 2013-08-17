@@ -1,8 +1,11 @@
 /*
- * @(#)VetoableChangeSupport.java	1.33 01/11/29
+ * @(#)VetoableChangeSupport.java	1.36 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans;
@@ -314,7 +317,7 @@ public class VetoableChangeSupport implements java.io.Serializable {
      * Hashtable for managing listeners for specific properties.
      * Maps property names to VetoableChangeSupport objects.
      * @serial 
-     * @since JDK 1.2
+     * @since 1.2
      */
     private java.util.Hashtable children;
 

@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractAction.java	1.33 01/11/29
+ * @(#)AbstractAction.java	1.41 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -12,12 +15,15 @@ import java.beans.*;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import javax.swing.event.SwingPropertyChangeSupport;
 
 /**
- * This class provides default implementations for the JFC Action 
+ * This class provides default implementations for the JFC <code>Action</code> 
  * interface. Standard behaviors like the get and set methods for
- * Action object properties (icon, text, and enabled) are defined
+ * <code>Action</code> object properties (icon, text, and enabled) are defined
  * here. The developer need only subclass this abstract class and
  * define the <code>actionPerformed</code> method. 
  * <p>
@@ -28,33 +34,41 @@ import javax.swing.event.SwingPropertyChangeSupport;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.33 11/29/01
+ * @version 1.41 02/02/00
  * @author Georges Saab
  * @see Action
  */
 public abstract class AbstractAction implements Action, Cloneable, Serializable 
 {
+    /**
+     * Specifies whether action is enabled; the default is true.
+     */
     protected boolean enabled = true;
-    private ArrayTable arrayTable = new ArrayTable();
+
 
     /**
-     * Defines an Action object with a default description string
-     * and default icon.
+     * Contains the array of key bindings.
+     */
+    private transient ArrayTable arrayTable;
+    
+    /**
+     * Defines an <code>Action</code> object with a default
+     * description string and default icon.
      */
     public AbstractAction() {
     }
     
     /**
-     * Defines an Action object with the specified description string
-     * and a default icon.
+     * Defines an <code>Action</code> object with the specified
+     * description string and a default icon.
      */
     public AbstractAction(String name) {
 	putValue(Action.NAME, name);
     }
 
     /**
-     * Defines an Action object with the specified description string
-     * and a the specified icon.
+     * Defines an <code>Action</code> object with the specified
+     * description string and a the specified icon.
      */
     public AbstractAction(String name, Icon icon) {
 	this(name);
@@ -62,35 +76,32 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
     }
     
     /** 
-     * Gets the Object associated with the specified key.
+     * Gets the <code>Object</code> associated with the specified key.
      *
-     * @return the Object stored with this key
+     * @param key a string containing the specified <code>key</code>
+     * @return the binding <code>Object</code> stored with this key; if there
+     *		are no keys, it will return <code>null</code>
      * @see Action#getValue
      */
     public Object getValue(String key) {
+	if (arrayTable == null) {
+	    return null;
+	}
 	return arrayTable.get(key);
     }
     
     /** 
-     * Sets the Value associated with the specified key.
+     * Sets the <code>Value</code> associated with the specified key.
      *
-     * @param key  the String that identifies the stored object
-     * @param newValue the Object to store using this key
+     * @param key  the <code>String</code> that identifies the stored object
+     * @param newValue the <code>Object</code> to store using this key
      * @see Action#putValue 
      */
-    public synchronized void putValue(String key, Object newValue) {
+    public void putValue(String key, Object newValue) {
 	Object oldValue = null;
-	/*
-	  if (keyTable.containsKey(key))
-	    oldValue = keyTable.get(key);
-	// Remove the entry for key if newValue is null
-	// else put in the newValue for key.
-	if (newValue == null) {
-		keyTable.remove(key);
-	} else {
-		keyTable.put(key,newValue);
+	if (arrayTable == null) {
+	    arrayTable = new ArrayTable();
 	}
-	*/
 	if (arrayTable.containsKey(key))
 	    oldValue = arrayTable.get(key);
 	// Remove the entry for key if newValue is null
@@ -106,7 +117,7 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
     /**
      * Returns true if the action is enabled.
      *
-     * @return true if the action is enabled
+     * @return true if the action is enabled, false otherwise
      * @see Action#isEnabled
      */
     public boolean isEnabled() {
@@ -120,23 +131,42 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      *                  disable it
      * @see Action#setEnabled
      */
-    public synchronized void setEnabled(boolean newValue) {
+    public void setEnabled(boolean newValue) {
 	boolean oldValue = this.enabled;
 	this.enabled = newValue;
 	firePropertyChange("enabled", 
 			   new Boolean(oldValue), new Boolean(newValue));
     }
 
-    /*
-     * If any PropertyChangeListeners have been registered, the
-     * changeSupport field describes them.
+
+    /**
+     * Returns an array of <code>Object</code>s which are keys for
+     * which values have been set for this <code>AbstractAction</code>,
+     * or <code>null</code> if no keys have values set.
+     * @return an array of key objects, or <code>null</code> if no
+     *			keys have values set
+     * @since 1.3
+     */
+    public Object[] getKeys() {
+	if (arrayTable == null) {
+	    return null;
+	}
+	Object[] keys = new Object[arrayTable.size()];
+	arrayTable.getKeys(keys);
+	return keys;
+    }
+
+    /**
+     * If any <code>PropertyChangeListeners</code> have been registered, the
+     * <code>changeSupport</code> field describes them.
      */
     protected SwingPropertyChangeSupport changeSupport;
 
     /**
-     * Support for reporting bound property changes.  This method can be called
+     * Supports reporting bound property changes.  This method can be called
      * when a bound property has changed and it will send the appropriate
-     * PropertyChangeEvent to any registered PropertyChangeListeners.
+     * <code>PropertyChangeEvent</code> to any registered 
+     * <code>PropertyChangeListeners</code>.
      */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         if (changeSupport == null) {
@@ -147,16 +177,17 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 
 
     /**
-     * Add a PropertyChangeListener to the listener list.
+     * Adds a <code>PropertyChangeListener</code> to the listener list.
      * The listener is registered for all properties.
      * <p>
-     * A PropertyChangeEvent will get fired in response to setting
-     * a bound property, e.g. setFont, setBackground, or setForeground.
+     * A <code>PropertyChangeEvent</code> will get fired in response to setting
+     * a bound property, e.g. <code>setFont</code>, <code>setBackground</code>,
+     * or <code>setForeground</code>.
      * Note that if the current component is inheriting its foreground, 
      * background, or font from its container, then no event will be 
      * fired in response to a change in the inherited property.
      *
-     * @param listener  The PropertyChangeListener to be added
+     * @param listener  The <code>PropertyChangeListener</code> to be added
      *
      * @see Action#addPropertyChangeListener 
      */
@@ -169,11 +200,11 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 
 
     /**
-     * Remove a PropertyChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
+     * Removes a <code>PropertyChangeListener</code> from the listener list.
+     * This removes a <code>PropertyChangeListener</code> that was registered
      * for all properties.
      *
-     * @param listener  The PropertyChangeListener to be removed
+     * @param listener  the <code>PropertyChangeListener</code> to be removed
      *
      * @see Action#removePropertyChangeListener 
      */
@@ -185,15 +216,62 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
     }
 
     /**
-     * Clone the abstract action. This gives the clone
+     * Clones the abstract action. This gives the clone
      * its own copy of the key/value list,
-     * which is not handled for you by Object.clone()
+     * which is not handled for you by <code>Object.clone()</code>.
      **/
 
     protected Object clone() throws CloneNotSupportedException {
 	AbstractAction newAction = (AbstractAction)super.clone();
-	newAction.arrayTable = (ArrayTable)arrayTable.clone();
+	synchronized(this) {
+	    if (arrayTable != null) {
+		newAction.arrayTable = (ArrayTable)arrayTable.clone();
+	    }
+	}
 	return newAction;
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+	// Store the default fields
+        s.defaultWriteObject();
+
+	// Store the arrayTable values:
+	Object[] keys = getKeys();
+	int validCount = 0;
+
+	// How many key values are Serializable?
+	if (keys!=null) {
+	    for(int counter = 0; counter < keys.length; counter++) {
+		Object value = getValue((String)keys[counter]);
+		if (value instanceof Serializable) {
+		    validCount++;
+		}
+		else {
+		    keys[counter] = null;
+		}
+	    }
+	}
+	// Record how many pairs will follow
+	s.writeInt(validCount);	
+
+	// Store the Serializable pairs
+	int counter = 0;
+	while (validCount > 0) {
+	    if (keys[counter] != null) {
+		s.writeObject(keys[counter]);
+		s.writeObject(getValue((String)keys[counter]));
+		validCount--;
+	    }
+	    counter++;
+	}
+    }
+
+    private void readObject(ObjectInputStream s) throws ClassNotFoundException,
+	IOException {
+        s.defaultReadObject();
+	for (int counter = s.readInt() - 1; counter >= 0; counter--) {
+	    putValue((String)s.readObject(), s.readObject());
+	}
     }
 
     /*
@@ -201,9 +279,12 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      * In most cases this will be an array of alternating
      * key-value pairs.  As it grows larger it is scaled
      * up to a Hashtable.
+     * <p>This is also used by InputMap and ActionMap, this does no
+     * synchronization, if you need thread safety synchronize on another
+     * object before calling this.
      */
 
-    private class ArrayTable implements Cloneable, Serializable {
+    static class ArrayTable implements Cloneable {
 	// Our field for storage
 	private Object table = null;
 	private static final int ARRAY_BOUNDARY = 8;
@@ -211,7 +292,7 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	/*
 	 * Put the key-value pair into storage
 	 */
-	public synchronized void put(Object key, Object value){
+	public void put(Object key, Object value){
 	    if (table==null) {
 		table = new Object[] {key, value};
 	    } else {
@@ -245,7 +326,7 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	}
 	
 	/*
-	 * Get the value for key
+	 * Gets the value for key
 	 */
 	public Object get(Object key) {
 	    Object value = null;
@@ -266,7 +347,7 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	}
     
 	/*
-	 * Return the number of pairs in storage
+	 * Returns the number of pairs in storage
 	 */
 	public int size() {
 	    int size;
@@ -302,10 +383,10 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	}
     
 	/*
-	 * Remove the key and its value
+	 * Removes the key and its value
 	 * Returns the value for the pair removed
 	 */
-	public synchronized Object remove(Object key){
+	public Object remove(Object key){
 	    Object value = null;
 	    if (key==null) {
 		return null;
@@ -347,10 +428,17 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	    return value;
 	}
 
- 	/* 
-	 * Return a clone of the ArrayTable
+	/**
+	 * Removes all the mappings.
 	 */
-	public synchronized Object clone() {
+	public void clear() {
+	    table = null;
+	}
+
+ 	/* 
+	 * Returns a clone of the <code>ArrayTable</code>.
+	 */
+	public Object clone() {
 	    ArrayTable newArrayTable = new ArrayTable();
 	    if (isArray()) {
 		Object[] array = (Object[])table;			
@@ -367,17 +455,50 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	    }
 	    return newArrayTable;
 	}
-    
+
+	/**
+	 * Returns the keys of the table, or <code>null</code> if there 
+	 * are currently no bindings.
+         * @param keys  array of keys
+         * @return an array of bindings
+	 */
+	public Object[] getKeys(Object[] keys) {
+	    if (table == null) {
+		return null;
+	    }
+	    if (isArray()) {
+		Object[] array = (Object[])table;			
+		if (keys == null) {
+		    keys = new Object[array.length / 2];
+		}
+		for (int i = 0, index = 0 ;i < array.length-1 ; i+=2,
+			 index++) {
+		    keys[index] = array[i];
+		}
+	    } else {
+		Hashtable tmp = (Hashtable)table;
+		Enumeration enum = tmp.keys();
+		int counter = tmp.size();
+		if (keys == null) {
+		    keys = new Object[counter];
+		}
+		while (counter > 0) {
+		    keys[--counter] = enum.nextElement();
+		}
+	    }
+	    return keys;
+	}
+
 	/*
-	 * Return true if the current storage mechanism is 
-	 * an array of alternating key-value pairs
+	 * Returns true if the current storage mechanism is 
+	 * an array of alternating key-value pairs.
 	 */
 	private boolean isArray(){
 	    return (table instanceof Object[]);
 	}
 
 	/*
-	 * Grow the storage from an array to a hashtable
+	 * Grows the storage from an array to a hashtable.
 	 */
 	private void grow() {
 	    Object[] array = (Object[])table;
@@ -389,7 +510,7 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	}
     
 	/*
-	 * Shrink the storage from a hashtable to an array
+	 * Shrinks the storage from a hashtable to an array.
 	 */
 	private void shrink() {
 	    Hashtable tmp = (Hashtable)table;

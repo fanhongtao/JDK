@@ -1,8 +1,31 @@
 /*
- * @(#)FileChooserDemo.java	1.10 01/11/29
+ * @(#)FileChooserDemo.java	1.12 99/10/13
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
+ * modify and redistribute this software in source and binary code form,
+ * provided that i) this copyright notice and license appear on all copies of
+ * the software; and ii) Licensee does not utilize the software in a manner
+ * which is disparaging to Sun.
+ * 
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY
+ * IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR
+ * NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT BE
+ * LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING
+ * OR DISTRIBUTING THE SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR ITS
+ * LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT,
+ * INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER
+ * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF THE USE OF
+ * OR INABILITY TO USE SOFTWARE, EVEN IF SUN HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * This software is not designed or intended for use in on-line control of
+ * aircraft, air traffic, aircraft navigation or aircraft communications; or in
+ * the design, construction, operation or maintenance of any nuclear
+ * facility. Licensee represents and warrants that it will not use or
+ * redistribute the Software for such purposes.
  */
 
 import javax.swing.*;
@@ -18,7 +41,7 @@ import java.beans.*;
  *
  * A demo which makes extensive use of the file chooser.
  *
- * 1.10 11/29/01
+ * 1.12 10/13/99
  * @author Jeff Dinkins
  */
 public class FileChooserDemo extends JPanel implements ActionListener {
@@ -33,14 +56,34 @@ public class FileChooserDemo extends JPanel implements ActionListener {
     static String windows = "Windows";
     static String windowsClassName = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
 
+    JButton showButton;
 
-    JButton button;
-    JCheckBox useFileViewButton, accessoryButton, hiddenButton, showFullDescriptionButton;
-    JButton noAllFilesFilterButton, yesAllFilesFilterButton;
-    JRadioButton addFiltersButton, defaultFiltersButton;
-    JRadioButton openButton, saveButton, customButton;
-    JRadioButton metalButton, motifButton, windowsButton;
-    JRadioButton justFilesButton, justDirectoriesButton, bothFilesAndDirectoriesButton;
+    JButton noAllFilesFilterButton;
+    JButton yesAllFilesFilterButton;
+
+    JCheckBox useFileViewCheckBox;
+    JCheckBox accessoryCheckBox;
+    JCheckBox setHiddenCheckBox;
+    JCheckBox showFullDescriptionCheckBox;
+    JCheckBox useControlsCheckBox;
+
+    JRadioButton singleSelectionRadioButton;
+    JRadioButton multiSelectionRadioButton;
+
+    JRadioButton addFiltersRadioButton;
+    JRadioButton defaultFiltersRadioButton;
+
+    JRadioButton openRadioButton;
+    JRadioButton saveRadioButton;
+    JRadioButton customButton;
+
+    JRadioButton metalRadioButton;
+    JRadioButton motifRadioButton;
+    JRadioButton windowsRadioButton;
+
+    JRadioButton justFilesRadioButton;
+    JRadioButton justDirectoriesRadioButton;
+    JRadioButton bothFilesAndDirectoriesRadioButton;
 
     JTextField customField;
 
@@ -51,6 +94,7 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 
     public final static Dimension hpad10 = new Dimension(10,1);
     public final static Dimension vpad10 = new Dimension(1,10);
+    public final static Insets insets = new Insets(5,10, 0, 10);
 
     FilePreviewer previewer;
     JFileChooser chooser;
@@ -62,10 +106,12 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	previewer = new FilePreviewer(chooser);
 	chooser.setAccessory(previewer);
 
+	// Create Filters
 	jpgFilter = new ExampleFileFilter("jpg", "JPEG Compressed Image Files");
 	gifFilter = new ExampleFileFilter("gif", "GIF Image Files");
 	bothFilter = new ExampleFileFilter(new String[] {"jpg", "gif"}, "JPEG and GIF Image Files");
 
+	// Create Custom FileView
 	fileView = new ExampleFileView();
 	fileView.putIcon("jpg", new ImageIcon("images/jpgIcon.jpg"));
 	fileView.putIcon("gif", new ImageIcon("images/gifIcon.gif"));
@@ -77,24 +123,29 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	OptionListener optionListener = new OptionListener();
 
 	// Create options
-	openButton = new JRadioButton("Open");
-	openButton.setSelected(true);
-	openButton.addActionListener(optionListener);
+	openRadioButton = new JRadioButton("Open");
+	openRadioButton.setSelected(true);
+	openRadioButton.addActionListener(optionListener);
 
-	saveButton = new JRadioButton("Save");
-	saveButton.addActionListener(optionListener);
+	saveRadioButton = new JRadioButton("Save");
+	saveRadioButton.addActionListener(optionListener);
 
 	customButton = new JRadioButton("Custom");
 	customButton.addActionListener(optionListener);
 
-	customField = new JTextField("Doit");
+	customField = new JTextField() {
+	    public Dimension getMaximumSize() {
+		return new Dimension(Short.MAX_VALUE, super.getPreferredSize().height);
+	    }
+	};
+	customField.setText("Doit");
 	customField.setAlignmentY(JComponent.TOP_ALIGNMENT);
 	customField.setEnabled(false);
 	customField.addActionListener(optionListener);
 
 	ButtonGroup group1 = new ButtonGroup();
-	group1.add(openButton);
-	group1.add(saveButton);
+	group1.add(openRadioButton);
+	group1.add(saveRadioButton);
 	group1.add(customButton);
 
 	// filter buttons
@@ -104,144 +155,206 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	yesAllFilesFilterButton = new JButton("Add \"All Files\" Filter");
 	yesAllFilesFilterButton.addActionListener(optionListener);
 
-	defaultFiltersButton = new JRadioButton("Default Filtering");
-	defaultFiltersButton.setSelected(true);
-	defaultFiltersButton.addActionListener(optionListener);
+	defaultFiltersRadioButton = new JRadioButton("Default Filtering");
+	defaultFiltersRadioButton.setSelected(true);
+	defaultFiltersRadioButton.addActionListener(optionListener);
 
-	addFiltersButton = new JRadioButton("Add JPG and GIF Filters");
-	addFiltersButton.addActionListener(optionListener);
+	addFiltersRadioButton = new JRadioButton("Add JPG and GIF Filters");
+	addFiltersRadioButton.addActionListener(optionListener);
 
 	ButtonGroup group2 = new ButtonGroup();
-	group2.add(addFiltersButton);
-	group2.add(defaultFiltersButton);
+	group2.add(addFiltersRadioButton);
+	group2.add(defaultFiltersRadioButton);
 
-	accessoryButton = new JCheckBox("Show Preview");
-	accessoryButton.addActionListener(optionListener);
-	accessoryButton.setSelected(true);
+	accessoryCheckBox = new JCheckBox("Show Preview");
+	accessoryCheckBox.addActionListener(optionListener);
+	accessoryCheckBox.setSelected(true);
 
 	// more options
-	hiddenButton = new JCheckBox("Show Hidden Files");
-	hiddenButton.addActionListener(optionListener);
+	setHiddenCheckBox = new JCheckBox("Show Hidden Files");
+	setHiddenCheckBox.addActionListener(optionListener);
 
-	showFullDescriptionButton = new JCheckBox("Show Extensions");
-	showFullDescriptionButton.addActionListener(optionListener);
-	showFullDescriptionButton.setSelected(true);
+	showFullDescriptionCheckBox = new JCheckBox("Show Extensions");
+	showFullDescriptionCheckBox.addActionListener(optionListener);
+	showFullDescriptionCheckBox.setSelected(true);
 
-	useFileViewButton = new JCheckBox("Use FileView");
-	useFileViewButton.addActionListener(optionListener);
-	useFileViewButton.setSelected(true);
+	useFileViewCheckBox = new JCheckBox("Use FileView");
+	useFileViewCheckBox.addActionListener(optionListener);
+	useFileViewCheckBox.setSelected(true);
+
+	useControlsCheckBox = new JCheckBox("Show Control Buttons");
+	useControlsCheckBox.addActionListener(optionListener);
+	useControlsCheckBox.setSelected(true);
 
 	// File or Directory chooser options
 	ButtonGroup group3 = new ButtonGroup();
-	justFilesButton = new JRadioButton("Just Select Files");
-	justFilesButton.setSelected(true);
-	group3.add(justFilesButton);
-	justFilesButton.addActionListener(optionListener);
+	justFilesRadioButton = new JRadioButton("Just Select Files");
+	justFilesRadioButton.setSelected(true);
+	group3.add(justFilesRadioButton);
+	justFilesRadioButton.addActionListener(optionListener);
 
-	justDirectoriesButton = new JRadioButton("Just Select Directories");
-	group3.add(justDirectoriesButton);
-	justDirectoriesButton.addActionListener(optionListener);
+	justDirectoriesRadioButton = new JRadioButton("Just Select Directories");
+	group3.add(justDirectoriesRadioButton);
+	justDirectoriesRadioButton.addActionListener(optionListener);
 
-	bothFilesAndDirectoriesButton = new JRadioButton("Select Files or Directories");
-	group3.add(bothFilesAndDirectoriesButton);
-	bothFilesAndDirectoriesButton.addActionListener(optionListener);
+	bothFilesAndDirectoriesRadioButton = new JRadioButton("Select Files or Directories");
+	group3.add(bothFilesAndDirectoriesRadioButton);
+	bothFilesAndDirectoriesRadioButton.addActionListener(optionListener);
 
-	// Create show button
-	button = new JButton("Show FileChooser");
-	button.addActionListener(this);
-        button.setMnemonic('s');
+	singleSelectionRadioButton = new JRadioButton("Single Selection", true);
+	singleSelectionRadioButton.addActionListener(optionListener);
 
-	// Create laf buttons.
-	metalButton = new JRadioButton(metal);
-        metalButton.setMnemonic('o');
-	metalButton.setActionCommand(metalClassName);
-
-	motifButton = new JRadioButton(motif);
-        motifButton.setMnemonic('m');
-	motifButton.setActionCommand(motifClassName);
-
-	windowsButton = new JRadioButton(windows);
-        windowsButton.setMnemonic('w');
-	windowsButton.setActionCommand(windowsClassName);
+	multiSelectionRadioButton = new JRadioButton("Multi Selection");
+	multiSelectionRadioButton.addActionListener(optionListener);
 
 	ButtonGroup group4 = new ButtonGroup();
-	group4.add(metalButton);
-	group4.add(motifButton);
-	group4.add(windowsButton);
+	group4.add(singleSelectionRadioButton);
+	group4.add(multiSelectionRadioButton);
+
+
+	// Create show button
+	showButton = new JButton("Show FileChooser");
+	showButton.addActionListener(this);
+        showButton.setMnemonic('s');
+
+	// Create laf buttons.
+	metalRadioButton = new JRadioButton(metal);
+        metalRadioButton.setMnemonic('o');
+	metalRadioButton.setActionCommand(metalClassName);
+
+	motifRadioButton = new JRadioButton(motif);
+        motifRadioButton.setMnemonic('m');
+	motifRadioButton.setActionCommand(motifClassName);
+
+	windowsRadioButton = new JRadioButton(windows);
+        windowsRadioButton.setMnemonic('w');
+	windowsRadioButton.setActionCommand(windowsClassName);
+
+	ButtonGroup group5 = new ButtonGroup();
+	group5.add(metalRadioButton);
+	group5.add(motifRadioButton);
+	group5.add(windowsRadioButton);
 
         // Register a listener for the laf buttons.
-	metalButton.addActionListener(optionListener);
-	motifButton.addActionListener(optionListener);
-	windowsButton.addActionListener(optionListener);
+	metalRadioButton.addActionListener(optionListener);
+	motifRadioButton.addActionListener(optionListener);
+	windowsRadioButton.addActionListener(optionListener);
 
-	JPanel control1 = new JPanel();
-	control1.setLayout(new BoxLayout(control1, BoxLayout.X_AXIS));
-	control1.add(Box.createRigidArea(hpad10));
-	control1.add(openButton);
-	control1.add(Box.createRigidArea(hpad10));
-	control1.add(saveButton);
-	control1.add(Box.createRigidArea(hpad10));
+	// ********************************************************
+	// ******************** Dialog Type ***********************
+	// ********************************************************
+	JPanel control1 = new InsetPanel(insets);
+	control1.setBorder(BorderFactory.createTitledBorder("Dialog Type"));
+
+	control1.setLayout(new BoxLayout(control1, BoxLayout.Y_AXIS));
+	control1.add(Box.createRigidArea(vpad10));
+	control1.add(openRadioButton);
+	control1.add(Box.createRigidArea(vpad10));
+	control1.add(saveRadioButton);
+	control1.add(Box.createRigidArea(vpad10));
 	control1.add(customButton);
+	control1.add(Box.createRigidArea(vpad10));
 	control1.add(customField);
-	control1.add(Box.createRigidArea(hpad10));
+	control1.add(Box.createGlue());
 
-	JPanel control2 = new JPanel();
-	control2.setLayout(new BoxLayout(control2, BoxLayout.X_AXIS));
-	control2.add(Box.createRigidArea(hpad10));
+	// ********************************************************
+	// ***************** Filter Controls **********************
+	// ********************************************************
+	JPanel control2 = new InsetPanel(insets);
+	control2.setBorder(BorderFactory.createTitledBorder("Filter Controls"));
+	control2.setLayout(new BoxLayout(control2, BoxLayout.Y_AXIS));
+	control2.add(Box.createRigidArea(vpad10));
 	control2.add(noAllFilesFilterButton);
-	control2.add(Box.createRigidArea(hpad10));
+	control2.add(Box.createRigidArea(vpad10));
 	control2.add(yesAllFilesFilterButton);
-	control2.add(Box.createRigidArea(hpad10));
-	control2.add(defaultFiltersButton);
-	control2.add(Box.createRigidArea(hpad10));
-	control2.add(addFiltersButton);
-	control2.add(Box.createRigidArea(hpad10));
-	control2.add(accessoryButton);
-	control2.add(Box.createRigidArea(hpad10));
+	control2.add(Box.createRigidArea(vpad10));
+	control2.add(defaultFiltersRadioButton);
+	control2.add(Box.createRigidArea(vpad10));
+	control2.add(addFiltersRadioButton);
+	control2.add(Box.createRigidArea(vpad10));
+	control2.add(Box.createGlue());
 
-	JPanel control3 = new JPanel();
-	control3.setLayout(new BoxLayout(control3, BoxLayout.X_AXIS));
-	control3.add(Box.createRigidArea(hpad10));
-	control3.add(hiddenButton);
-	control3.add(Box.createRigidArea(hpad10));
-	control3.add(showFullDescriptionButton);
-	control3.add(Box.createRigidArea(hpad10));
-	control3.add(useFileViewButton);
-	control3.add(Box.createRigidArea(hpad10));
+	// ********************************************************
+	// ****************** Display Options *********************
+	// ********************************************************
+	JPanel control3 = new InsetPanel(insets);
+	control3.setBorder(BorderFactory.createTitledBorder("Display Options"));
+	control3.setLayout(new BoxLayout(control3, BoxLayout.Y_AXIS));
+	control3.add(Box.createRigidArea(vpad10));
+	control3.add(setHiddenCheckBox);
+	control3.add(Box.createRigidArea(vpad10));
+	control3.add(showFullDescriptionCheckBox);
+	control3.add(Box.createRigidArea(vpad10));
+	control3.add(useFileViewCheckBox);
+	control3.add(Box.createRigidArea(vpad10));
+	control3.add(accessoryCheckBox);
+	control3.add(Box.createRigidArea(vpad10));
+	control3.add(useControlsCheckBox);
+	control3.add(Box.createRigidArea(vpad10));
+	control3.add(Box.createGlue());
 
-	JPanel control4 = new JPanel();
-	control4.setLayout(new BoxLayout(control4, BoxLayout.X_AXIS));
-	control4.add(Box.createRigidArea(hpad10));
-	control4.add(justFilesButton);
-	control4.add(Box.createRigidArea(hpad10));
-	control4.add(justDirectoriesButton);
-	control4.add(Box.createRigidArea(hpad10));
-	control4.add(bothFilesAndDirectoriesButton);
-	control4.add(Box.createRigidArea(hpad10));
+	// ********************************************************
+	// ************* File & Directory Options *****************
+	// ********************************************************
+	JPanel control4 = new InsetPanel(insets);
+	control4.setBorder(BorderFactory.createTitledBorder("File and Directory Options"));
+	control4.setLayout(new BoxLayout(control4, BoxLayout.Y_AXIS));
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(justFilesRadioButton);
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(justDirectoriesRadioButton);
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(bothFilesAndDirectoriesRadioButton);
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(singleSelectionRadioButton);
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(multiSelectionRadioButton);
+	control4.add(Box.createRigidArea(vpad10));
+	control4.add(Box.createGlue());
 
-	JPanel panel = new JPanel();
+
+	// ********************************************************
+	// **************** Look & Feel Switch ********************
+	// ********************************************************
+	JPanel panel = new InsetPanel(insets);
 	panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 	panel.add(Box.createRigidArea(hpad10));
-	panel.add(button);
+	panel.add(metalRadioButton);
 	panel.add(Box.createRigidArea(hpad10));
-	panel.add(metalButton);
+	panel.add(motifRadioButton);
 	panel.add(Box.createRigidArea(hpad10));
-	panel.add(motifButton);
+	panel.add(windowsRadioButton);
 	panel.add(Box.createRigidArea(hpad10));
-	panel.add(windowsButton);
+	panel.add(showButton);
 	panel.add(Box.createRigidArea(hpad10));
 
+	// ********************************************************
+	// ****************** Wrap 'em all up *********************
+	// ********************************************************
+	JPanel wrapper = new JPanel();
+	wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.X_AXIS));
+
 	add(Box.createRigidArea(vpad10));
-	add(control1);
-	add(Box.createRigidArea(vpad10));
-	add(control2);
-	add(Box.createRigidArea(vpad10));
-	add(control3);
-	add(Box.createRigidArea(vpad10));
-	add(control4);
+
+	wrapper.add(Box.createRigidArea(hpad10));
+	wrapper.add(control1);
+	wrapper.add(Box.createRigidArea(hpad10));
+	wrapper.add(control2);
+	wrapper.add(Box.createRigidArea(hpad10));
+	wrapper.add(control3);
+	wrapper.add(Box.createRigidArea(hpad10));
+	wrapper.add(control4);
+	wrapper.add(Box.createRigidArea(hpad10));
+	wrapper.add(Box.createRigidArea(hpad10));
+	wrapper.add(panel);
+	wrapper.add(Box.createRigidArea(hpad10));
+
+	add(wrapper);
 	add(Box.createRigidArea(vpad10));
 	add(Box.createRigidArea(vpad10));
 	add(panel);
+	add(Box.createRigidArea(vpad10));
 	add(Box.createRigidArea(vpad10));
     }
 
@@ -250,32 +363,49 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	if(retval == JFileChooser.APPROVE_OPTION) {
 	    File theFile = chooser.getSelectedFile();
 	    if(theFile != null) {
-		if(theFile.isDirectory()) {
+		File [] files = chooser.getSelectedFiles();
+		if(chooser.isMultiSelectionEnabled() && files != null && files.length > 1) {
+		    String filenames = "";
+		    for(int i = 0; i < files.length; i++) {
+			filenames = filenames + "\n" + files[i].getPath();
+		    }
+		    JOptionPane.showMessageDialog(
+			frame, "You chose these files: \n" + filenames
+		    );
+		} else if(theFile.isDirectory()) {
 		    JOptionPane.showMessageDialog(
 			frame, "You chose this directory: " +
-			chooser.getSelectedFile().getAbsolutePath()
+			chooser.getSelectedFile().getPath()
 		    );
 		} else {
 		    JOptionPane.showMessageDialog(
 			frame, "You chose this file: " +
-			chooser.getSelectedFile().getAbsolutePath()
+			chooser.getSelectedFile().getPath()
 		    );
 		}
 		return;
 	    }
+	} else if(retval == JFileChooser.CANCEL_OPTION) {
+	   JOptionPane.showMessageDialog(frame, "User cancelled operation. No file was chosen.");
+	} else if(retval == JFileChooser.ERROR_OPTION) {
+	   JOptionPane.showMessageDialog(frame, "An error occured. No file was chosen.");
+	} else {
+	   JOptionPane.showMessageDialog(frame, "Unknown operation occured.");
 	}
-	JOptionPane.showMessageDialog(frame, "No file was chosen.");
     }
 
     /** An ActionListener that listens to the radio buttons. */
     class OptionListener implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 	    JComponent c = (JComponent) e.getSource();
-	    if(c == openButton) {
+	    if(c == openRadioButton) {
 		chooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		customField.setEnabled(false);
 		repaint();
-	    } else if (c == saveButton) {
+	    } else if (c == useControlsCheckBox) {
+		boolean showButtons = ((JCheckBox)c).isSelected();
+		chooser.setControlButtonsAreShown(showButtons);
+	    } else if (c == saveRadioButton) {
 		chooser.setDialogType(JFileChooser.SAVE_DIALOG);
 		customField.setEnabled(false);
 		repaint();
@@ -285,50 +415,55 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 		chooser.setApproveButtonText(customField.getText());
 		repaint();
 	    } else if(c == noAllFilesFilterButton) {
-		// chooser.setAcceptAllFileFilterUsed(false);
-		chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
+		chooser.setAcceptAllFileFilterUsed(false);
 	    } else if(c == yesAllFilesFilterButton) {
-		// chooser.setAcceptAllFileFilterUsed(true);
-		chooser.addChoosableFileFilter(chooser.getAcceptAllFileFilter());
-	    } else if(c == defaultFiltersButton) {
+		chooser.setAcceptAllFileFilterUsed(true);
+	    } else if(c == defaultFiltersRadioButton) {
 		chooser.resetChoosableFileFilters();
-	    } else if(c == addFiltersButton) {
+	    } else if(c == addFiltersRadioButton) {
 		chooser.addChoosableFileFilter(bothFilter);
 		chooser.addChoosableFileFilter(jpgFilter);
 		chooser.addChoosableFileFilter(gifFilter);
-	    } else if(c == hiddenButton) {
-		chooser.setFileHidingEnabled(!hiddenButton.isSelected());
-	    } else if(c == accessoryButton) {
-		if(accessoryButton.isSelected()) {
+	    } else if(c == setHiddenCheckBox) {
+		chooser.setFileHidingEnabled(!setHiddenCheckBox.isSelected());
+	    } else if(c == accessoryCheckBox) {
+		if(accessoryCheckBox.isSelected()) {
 		    chooser.setAccessory(previewer);
 		} else {
 		    chooser.setAccessory(null);
 		}
-	    } else if(c == useFileViewButton) {
-		if(useFileViewButton.isSelected()) {
+	    } else if(c == useFileViewCheckBox) {
+		if(useFileViewCheckBox.isSelected()) {
 		    chooser.setFileView(fileView);
 		} else {
 		    chooser.setFileView(null);
 		}
-	    } else if(c == showFullDescriptionButton) {
-		jpgFilter.setExtensionListInDescription(showFullDescriptionButton.isSelected());
-		gifFilter.setExtensionListInDescription(showFullDescriptionButton.isSelected());
-		bothFilter.setExtensionListInDescription(showFullDescriptionButton.isSelected());
-		if(addFiltersButton.isSelected()) {
+	    } else if(c == showFullDescriptionCheckBox) {
+		jpgFilter.setExtensionListInDescription(showFullDescriptionCheckBox.isSelected());
+		gifFilter.setExtensionListInDescription(showFullDescriptionCheckBox.isSelected());
+		bothFilter.setExtensionListInDescription(showFullDescriptionCheckBox.isSelected());
+		if(addFiltersRadioButton.isSelected()) {
 		    chooser.resetChoosableFileFilters();
 		    chooser.addChoosableFileFilter(bothFilter);
 		    chooser.addChoosableFileFilter(jpgFilter);
 		    chooser.setFileFilter(gifFilter);
 		}
-	    } else if(c == justFilesButton) {
+	    } else if(c == justFilesRadioButton) {
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-	    } else if(c == justDirectoriesButton) {
+	    } else if(c == justDirectoriesRadioButton) {
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-	    } else if(c == bothFilesAndDirectoriesButton) {
+	    } else if(c == bothFilesAndDirectoriesRadioButton) {
 		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+	    } else if(c == singleSelectionRadioButton) {
+		if(singleSelectionRadioButton.isSelected()) {
+		    chooser.setMultiSelectionEnabled(false);
+		} 
+	    } else if(c == multiSelectionRadioButton) {
+		if(multiSelectionRadioButton.isSelected()) {
+		    chooser.setMultiSelectionEnabled(true);
+		} 
 	    } else {
 		String lnfName = e.getActionCommand();
-
 		try {
 		    UIManager.setLookAndFeel(lnfName);
 		    SwingUtilities.updateComponentTreeUI(frame);
@@ -337,7 +472,6 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 		    }
 		    frame.pack();
 		} catch (UnsupportedLookAndFeelException exc) {
-		    System.out.println("Unsupported L&F Error:" + exc);
 		    JRadioButton button = (JRadioButton)e.getSource();
 		    button.setEnabled(false);
 		    updateState();
@@ -356,11 +490,11 @@ public class FileChooserDemo extends JPanel implements ActionListener {
     public void updateState() {
 	String lnfName = UIManager.getLookAndFeel().getClass().getName();
 	if (lnfName.indexOf(metal) >= 0) {
-	    metalButton.setSelected(true);
+	    metalRadioButton.setSelected(true);
 	} else if (lnfName.indexOf(windows) >= 0) {
-	    windowsButton.setSelected(true);
+	    windowsRadioButton.setSelected(true);
 	} else if (lnfName.indexOf(motif) >= 0) {
-	    motifButton.setSelected(true);
+	    motifRadioButton.setSelected(true);
 	} else {
 	    System.err.println("FileChooserDemo if using an unknown L&F: " + lnfName);
 	}
@@ -462,5 +596,15 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	frame.setVisible(true);
 
 	panel.updateState();
+    }
+
+    class InsetPanel extends JPanel {
+	Insets i;
+	InsetPanel(Insets i) {
+	    this.i = i;
+	}
+	public Insets getInsets() {
+	    return i;
+	}
     }
 }

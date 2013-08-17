@@ -1,8 +1,11 @@
 /*
- * @(#)MetalCheckBoxIcon.java	1.10 01/11/29
+ * @(#)MetalCheckBoxIcon.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -24,7 +27,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.10 11/29/01
+ * @version 1.13 02/02/00
  * @author Steve Wilson
  */
 public class MetalCheckBoxIcon implements Icon, UIResource, Serializable {
@@ -39,24 +42,36 @@ public class MetalCheckBoxIcon implements Icon, UIResource, Serializable {
 
        	boolean drawCheck = model.isSelected();
 
-	if ( model.isEnabled() ) {
+	if (model.isEnabled()) {
+	    if(cb.isBorderPaintedFlat()) {
+		g.setColor(MetalLookAndFeel.getControlDarkShadow());
+		g.drawRect(x+1, y, controlSize-1, controlSize-1);
+	    }
    	    if (model.isPressed() && model.isArmed()) {
-	        g.setColor( MetalLookAndFeel.getControlShadow() );
-	        g.fillRect( x, y, controlSize-1, controlSize-1);
-	        MetalUtils.drawPressed3DBorder(g, x, y, controlSize, controlSize);
-	    } else {
+		if(cb.isBorderPaintedFlat()) {
+		    g.setColor(MetalLookAndFeel.getControlShadow());
+		    g.fillRect(x+2, y+1, controlSize-2, controlSize-2);
+		} else {
+		    g.setColor(MetalLookAndFeel.getControlShadow());
+		    g.fillRect(x, y, controlSize-1, controlSize-1);
+		    MetalUtils.drawPressed3DBorder(g, x, y, controlSize, controlSize);
+		}
+	    } else if(!cb.isBorderPaintedFlat()) {
 	        MetalUtils.drawFlush3DBorder(g, x, y, controlSize, controlSize);
 	    }
 	    g.setColor( MetalLookAndFeel.getControlInfo() );
        	} else {
-	        g.setColor( MetalLookAndFeel.getControlShadow() );
-	        g.drawRect( x, y, controlSize-1, controlSize-1);
+	    g.setColor( MetalLookAndFeel.getControlShadow() );
+	    g.drawRect( x, y, controlSize-1, controlSize-1);
 	}
 
-	if (model.isSelected()) {
+	
+	if(drawCheck) {
+	    if (cb.isBorderPaintedFlat()) {
+		x++;
+	    }
 	    drawCheck(c,g,x,y);
 	}
-     
     }
 
     protected void drawCheck(Component c, Graphics g, int x, int y) {

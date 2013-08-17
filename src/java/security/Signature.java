@@ -1,8 +1,11 @@
 /*
- * @(#)Signature.java	1.79 01/11/29
+ * @(#)Signature.java	1.85 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
   
 package java.security;
@@ -10,6 +13,8 @@ package java.security;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.*;
 import java.io.*;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 
 /**
  * This Signature class is used to provide applications the functionality
@@ -58,14 +63,12 @@ import java.io.*;
  *     <ul>
  *
  *     <li>a public key, which initializes the signature for
- *     verification (see {@link initVerify(PublicKey) initVerify}), or
+ *     verification (see {@link #initVerify(PublicKey) initVerify}), or
  *
  *     <li>a private key (and optionally a Secure Random Number Generator),
  *     which initializes the signature for signing
- *     (see {@link initSign(PrivateKey)}
- *     and <a href = 
- *     "#initSign(java.security.PrivateKey, java.security.SecureRandom)">
- *     initSign(PrivateKey, SecureRandom)</a>).
+ *     (see {@link #initSign(PrivateKey)}
+ *     and {@link #initSign(PrivateKey, SecureRandom)}).
  *
  *     </ul><p>
  *
@@ -73,10 +76,10 @@ import java.io.*;
  *
  * <p>Depending on the type of initialization, this will update the
  * bytes to be signed or verified. See the 
- * {@link update(byte) update} methods.<p>
+ * {@link #update(byte) update} methods.<p>
  *
  * <li>Signing or Verifying a signature on all updated bytes. See the 
- * {@link sign() sign} methods and the {@link verify(byte[]) verify}
+ * {@link #sign() sign} methods and the {@link #verify(byte[]) verify}
  * method.
  *
  * </ol>
@@ -90,7 +93,7 @@ import java.io.*;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.79 01/11/29
+ * @version 1.85, 02/02/00
  */
 
 public abstract class Signature extends SignatureSpi {
@@ -109,19 +112,19 @@ public abstract class Signature extends SignatureSpi {
     private Provider provider;
 
     /** 
-     * Possible <a href = "#state ">state </a> value, signifying that       
+     * Possible {@link #state} value, signifying that       
      * this signature object has not yet been initialized.
      */      
     protected final static int UNINITIALIZED = 0;       
        
     /** 
-     * Possible <a href = "#state ">state </a> value, signifying that       
+     * Possible {@link #state} value, signifying that       
      * this signature object has been initialized for signing.
      */      
     protected final static int SIGN = 2;
        
     /** 
-     * Possible <a href = "#state ">state </a> value, signifying that       
+     * Possible {@link #state} value, signifying that       
      * this signature object has been initialized for verification.
      */      
     protected final static int VERIFY = 3;
@@ -165,8 +168,6 @@ public abstract class Signature extends SignatureSpi {
      */
     public static Signature getInstance(String algorithm) 
     throws NoSuchAlgorithmException {
-	if (algorithm.equalsIgnoreCase("DSA"))
-	    algorithm = new String("SHA/DSA");
 	try {
 	    Object[] objs = Security.getImpl(algorithm, "Signature", null);
 	    if (objs[0] instanceof Signature) {
@@ -213,8 +214,6 @@ public abstract class Signature extends SignatureSpi {
     {
 	if (provider == null || provider.length() == 0)
 	    throw new IllegalArgumentException("missing provider");
-	if (algorithm.equalsIgnoreCase("DSA"))
-	    algorithm = new String("SHA/DSA");
 	Object[] objs = Security.getImpl(algorithm, "Signature", provider);
 	if (objs[0] instanceof Signature) {
 	    Signature sig = (Signature)objs[0];
@@ -249,6 +248,49 @@ public abstract class Signature extends SignatureSpi {
      */
     public final void initVerify(PublicKey publicKey) 
 	throws InvalidKeyException {
+	    engineInitVerify(publicKey);
+	    state = VERIFY;
+    }
+
+    /**
+      * Initializes this object for verification, using the public key from
+      * the given certificate.
+      * <p>If the certificate is of type X.509 and has a <i>key usage</i>
+     * extension field marked as critical, and the value of the <i>key usage</i>
+     * extension field implies that the public key in
+     * the certificate and its corresponding private key are not
+     * supposed to be used for digital signatures, an <code>InvalidKeyException</code>
+     * is thrown.
+     *
+     * @param certificate the certificate of the identity whose signature is
+     * going to be verified.
+     *
+     * @exception InvalidKeyException  if the public key in the certificate
+     * is not encoded properly or does not include required  parameter
+     * information or cannot be used for digital signature purposes.
+     */
+    public final void initVerify(Certificate certificate)
+	throws InvalidKeyException {
+	    // If the certificate is of type X509Certificate,
+	    // we should check whether it has a Key Usage
+	    // extension marked as critical.
+	    if (certificate instanceof java.security.cert.X509Certificate) {
+		// Check whether the cert has a key usage extension
+		// marked as a critical extension.
+		// The OID for KeyUsage extension is 2.5.29.15.
+		X509Certificate cert = (X509Certificate)certificate;
+		Set critSet = cert.getCriticalExtensionOIDs();
+
+		if (critSet != null && !critSet.isEmpty()
+		    && critSet.contains(new String("2.5.29.15"))) {
+		    boolean[] keyUsageInfo = cert.getKeyUsage();
+		    // keyUsageInfo[0] is for digitalSignature.
+		    if ((keyUsageInfo != null) && (keyUsageInfo[0] == false))
+			throw new InvalidKeyException("Wrong key usage");
+		}
+	    }
+		
+	    PublicKey publicKey = certificate.getPublicKey();
 	    engineInitVerify(publicKey);
 	    state = VERIFY;
     }
@@ -336,7 +378,7 @@ public abstract class Signature extends SignatureSpi {
      * @exception SignatureException if an error occurs or <code>len</code>
      * is less than the actual signature length.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public final int sign(byte[] outbuf, int offset, int len)
 	throws SignatureException {
@@ -481,9 +523,9 @@ public abstract class Signature extends SignatureSpi {
      * the parameter is already set
      * and cannot be set again, a security exception occurs, and so on.
      *
-     * @deprecated Use <a href = 
-     * "#setParameter(java.security.spec.AlgorithmParameterSpec)">
-     * setParameter</a>.
+     * @deprecated Use 
+     * {@link #setParameter(java.security.spec.AlgorithmParameterSpec)
+     * setParameter}.
      */
     public final void setParameter(String param, Object value) 
 	throws InvalidParameterException {

@@ -1,8 +1,11 @@
 /*
- * @(#)TextAttribute.java	1.29 01/11/29
+ * @(#)TextAttribute.java	1.35 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -114,8 +117,13 @@ public final class TextAttribute extends Attribute {
             return instance;
         } else {
             throw new InvalidObjectException("unknown attribute name");
-        };
+        }
     }
+    
+    // Serialization compatibility with Java 2 platform v1.2.
+    // 1.2 will throw an InvalidObjectException if ever asked to deserialize INPUT_METHOD_UNDERLINE.
+    // This shouldn't happen in real life.
+    static final long serialVersionUID = 7744112784117861702L;
 
     // 
     // For use with Font.
@@ -785,6 +793,64 @@ public final class TextAttribute extends Attribute {
      * @see java.awt.im.InputMethodHighlight
      */
     public static final TextAttribute INPUT_METHOD_HIGHLIGHT = new TextAttribute("input method highlight");
+
+    /**
+     * Attribute key for input method underline adornments.
+     *
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <TR>
+     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
+     * <TD VALIGN="TOP">INPUT_METHOD_UNDERLINE</TD></TR>
+     * <TR>
+     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
+     * <TD VALIGN="TOP">Integer</TD></TR>
+     * <TR>
+     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
+     * <TD VALIGN="TOP">UNDERLINE_LOW_ONE_PIXEL, UNDERLINE_LOW_TWO_PIXEL,
+     *     UNDERLINE_LOW_DOTTED, UNDERLINE_LOW_GRAY, UNDERLINE_LOW_DASHED</TD></TR>
+     * <TR>
+     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
+     * <TD VALIGN="TOP">no underline</TD></TR>
+     * </TABLE>
+     * @since 1.3
+     */
+    public static final TextAttribute INPUT_METHOD_UNDERLINE
+                 = new TextAttribute("input method underline");
+
+    /**
+     * Single pixel solid low underline.
+     * @see #INPUT_METHOD_UNDERLINE
+     * @since 1.3
+     */
+    public static final Integer UNDERLINE_LOW_ONE_PIXEL = new Integer(1);
+
+    /**
+     * Double pixel solid low underline.
+     * @see #INPUT_METHOD_UNDERLINE
+     * @since 1.3
+     */
+    public static final Integer UNDERLINE_LOW_TWO_PIXEL = new Integer(2);
+
+    /**
+     * Single pixel dotted low underline.
+     * @see #INPUT_METHOD_UNDERLINE
+     * @since 1.3
+     */
+    public static final Integer UNDERLINE_LOW_DOTTED = new Integer(3);
+
+    /**
+     * Double pixel gray low underline.
+     * @see #INPUT_METHOD_UNDERLINE
+     * @since 1.3
+     */
+    public static final Integer UNDERLINE_LOW_GRAY = new Integer(4);
+
+    /**
+     * Single pixel dashed low underline.
+     * @see #INPUT_METHOD_UNDERLINE
+     * @since 1.3
+     */
+    public static final Integer UNDERLINE_LOW_DASHED = new Integer(5);
 
     /**
      * Attribute key for swapping foreground and background Paints (or Colors).

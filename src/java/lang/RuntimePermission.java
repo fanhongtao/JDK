@@ -1,8 +1,11 @@
 /*
- * @(#)RuntimePermission.java	1.34 01/11/29
+ * @(#)RuntimePermission.java	1.37 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -97,6 +100,13 @@ import java.util.StringTokenizer;
  * </tr>
  *
  * <tr>
+ *   <td>shutdownHooks</td>
+ *   <td>Registration and cancellation of virtual-machine shutdown hooks</td>
+ *   <td>This allows an attacker to register a malicious shutdown
+ * hook that interferes with the clean shutdown of the virtual machine.</td>
+ * </tr>
+ *
+ * <tr>
  *   <td>setFactory</td>
  *   <td>Setting of the socket factory used by ServerSocket or Socket,
  * or of the stream handler factory used by URL</td>
@@ -137,9 +147,9 @@ import java.util.StringTokenizer;
  * <tr>
  *   <td>modifyThreadGroup</td>
  *   <td>modification of thread groups, e.g., via calls to ThreadGroup
- * <code>destroy</code>, <code>resume</code>, <code>setDaemon</code>,
- * <code>setMaxPriority</code>, <code>stop</code>, and <code>suspend</code>
- * methods</td>
+ * <code>destroy</code>, <code>getParent</code>, <code>resume</code>, 
+ * <code>setDaemon</code>, <code>setMaxPriority</code>, <code>stop</code>, 
+ * and <code>suspend</code> methods</td>
  *   <td>This allows an attacker to create thread groups and
  * set their run priority.</td>
  * </tr>
@@ -234,7 +244,7 @@ code to plant viruses or at the very least, fill up your entire disk.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.34 01/11/29
+ * @version 1.37 00/02/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers

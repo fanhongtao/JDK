@@ -1,8 +1,11 @@
 /*
- * @(#)LoaderHandler.java	1.11 01/11/29
+ * @(#)LoaderHandler.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -15,7 +18,7 @@ import java.net.URL;
  * runtime in previous implementation versions.  It should never be accessed
  * by application code.
  *
- * @version 1.11, 11/29/01
+ * @version 1.13, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  *
@@ -23,7 +26,7 @@ import java.net.URL;
  */
 public interface LoaderHandler {
 
-    /** package of system <code>LoaderHandler</code> implementation */
+    /** package of system <code>LoaderHandler</code> implementation. */
     final static String packagePrefix = "sun.rmi.server";
 
     /**

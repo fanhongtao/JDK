@@ -1,8 +1,11 @@
 /*
- * @(#)BlockView.java	1.18 01/11/29
+ * @(#)BlockView.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -18,7 +21,7 @@ import javax.swing.text.*;
  * with CSS specifications.
  *
  * @author  Timothy Prinzing
- * @version 1.18 11/29/01
+ * @version 1.25 02/02/00
  */
 public class BlockView extends BoxView  {
 
@@ -32,9 +35,27 @@ public class BlockView extends BoxView  {
      */
     public BlockView(Element elem, int axis) {
 	super(elem, axis);
-	StyleSheet sheet = getStyleSheet();
-	attr = sheet.getViewAttributes(this);
-	painter = sheet.getBoxPainter(attr);
+    }
+
+    /**
+     * Establishes the parent view for this view.  This is
+     * guaranteed to be called before any other methods if the
+     * parent view is functioning properly.
+     * <p> 
+     * This is implemented
+     * to forward to the superclass as well as call the
+     * <a href="#setPropertiesFromAttributes">setPropertiesFromAttributes</a>
+     * method to set the paragraph properties from the css
+     * attributes.  The call is made at this time to ensure
+     * the ability to resolve upward through the parents 
+     * view attributes.
+     *
+     * @param parent the new parent, or null if the view is
+     *  being removed from a parent it was previously added
+     *  to
+     */
+    public void setParent(View parent) {
+	super.setParent(parent);
 	setPropertiesFromAttributes();
     }
 
@@ -46,9 +67,13 @@ public class BlockView extends BoxView  {
      * the axis.
      */
     protected SizeRequirements calculateMajorAxisRequirements(int axis, SizeRequirements r) {
-	SizeRequirements rr = super.calculateMajorAxisRequirements(axis, r);
-	adjustSizeForCSS(axis, rr);
-	return rr;
+	if (r == null) {
+	    r = new SizeRequirements();
+	}
+	if (! spanSetFromAttributes(axis, r)) {
+	    r = super.calculateMajorAxisRequirements(axis, r);
+	}
+	return r;
     }
 
     /**
@@ -60,32 +85,144 @@ public class BlockView extends BoxView  {
      * the axis.
      */
     protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-	SizeRequirements rr = super.calculateMinorAxisRequirements(axis, r);
-	adjustSizeForCSS(axis, rr);
-	return rr;
+	if (r == null) {
+	    r = new SizeRequirements();
+	}
+
+	if (! spanSetFromAttributes(axis, r)) {
+
+	    /*
+	     * The requirements were not directly specified by attributes, so
+	     * compute the aggregate of the requirements of the children.  The
+	     * children that have a percentage value specified will be treated 
+	     * as completely stretchable since that child is not limited in any
+	     * way.
+	     */ 
+/*
+	    int min = 0;
+	    long pref = 0;
+	    int max = 0;
+	    int n = getViewCount();
+	    for (int i = 0; i < n; i++) {
+		View v = getView(i);
+		min = Math.max((int) v.getMinimumSpan(axis), min);
+		pref = Math.max((int) v.getPreferredSpan(axis), pref);
+		if (
+		max = Math.max((int) v.getMaximumSpan(axis), max);
+
+	    }
+	    r.preferred = (int) pref;
+	    r.minimum = min;
+	    r.maximum = max;
+	    */
+	    r = super.calculateMinorAxisRequirements(axis, r);
+	}
+
+	/*
+	 * Set the alignment based upon the CSS properties if it is
+	 * specified.  For X_AXIS this would be text-align, for 
+	 * Y_AXIS this would be vertical-align.
+	 */
+	if (axis == X_AXIS) {
+	    Object o = getAttributes().getAttribute(CSS.Attribute.TEXT_ALIGN);
+	    if (o != null) {
+		String align = o.toString();
+		if (align.equals("center")) {
+		    r.alignment = 0.5f;
+		} else if (align.equals("right")) {
+		    r.alignment = 1.0f;
+		} else {
+		    r.alignment = 0.0f;
+		}
+	    }
+	}
+	// Y_AXIS TBD
+
+	return r;
+    }
+
+    boolean isPercentage(int axis, AttributeSet a) {
+	if (axis == X_AXIS) {
+	    if (cssWidth != null) {
+		return cssWidth.isPercentage();
+	    }
+	} else {
+	    if (cssHeight != null) {
+		return cssHeight.isPercentage();
+	    }
+	}
+	return false;
+    }
+	    
+    /**
+     * Adjust the given requirements to the CSS width or height if
+     * it is specified along the applicable axis.  Return true if the
+     * size is exactly specified, false if the span is not specified 
+     * in an attribute or the size specified is a percentage.
+     */
+    boolean spanSetFromAttributes(int axis, SizeRequirements r) {
+	if (axis == X_AXIS) {
+	    if ((cssWidth != null) && (! cssWidth.isPercentage())) {
+		r.minimum = r.preferred = r.maximum = (int) cssWidth.getValue();
+		return true;
+	    }
+	} else {
+	    if ((cssHeight != null) && (! cssHeight.isPercentage())) {
+		r.minimum = r.preferred = r.maximum = (int) cssHeight.getValue();
+		return true;
+	    }
+	}
+	return false;
     }
 
     /**
-     * Adjust the given requirements to the CSS width or height if
-     * it is specified along the applicable axis.
+     * Perform layout for the minor axis of the box (i.e. the
+     * axis orthoginal to the axis that it represents).  The results 
+     * of the layout should be placed in the given arrays which represent 
+     * the allocations to the children along the minor axis.
+     *
+     * @param targetSpan the total span given to the view, which
+     *  whould be used to layout the children.
+     * @param axis the axis being layed out.
+     * @param offsets the offsets from the origin of the view for
+     *  each of the child views.  This is a return value and is
+     *  filled in by the implementation of this method.
+     * @param spans the span of each child view.  This is a return
+     *  value and is filled in by the implementation of this method.
+     * @returns the offset and span for each child view in the
+     *  offsets and spans parameters.
      */
-    /*protected*/ void adjustSizeForCSS(int axis, SizeRequirements r) {
-	if (axis == X_AXIS) {
-	    Object widthValue = attr.getAttribute(CSS.Attribute.WIDTH);
-	    if (widthValue != null) {
-		int width = (int) ((CSS.LengthValue)widthValue).getValue();
-		r.minimum = r.preferred = width;
-		r.maximum = Math.max(r.maximum, width);
+    protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
+	int n = getViewCount();
+	Object key = (axis == X_AXIS) ? CSS.Attribute.WIDTH : CSS.Attribute.HEIGHT;
+	for (int i = 0; i < n; i++) {
+	    View v = getView(i);
+	    int min = (int) v.getMinimumSpan(axis);
+	    int max = (int) v.getMaximumSpan(axis);
+
+	    // check for percentage span
+	    AttributeSet a = v.getAttributes();
+	    CSS.LengthValue lv = (CSS.LengthValue) a.getAttribute(key);
+	    if ((lv != null) && lv.isPercentage()) {
+		// bound the span to the percentage specified
+		min = (int) lv.getValue(targetSpan);
+		max = min;
 	    }
-	} else {
-	    Object heightValue = attr.getAttribute(CSS.Attribute.HEIGHT);
-	    if (heightValue != null) {
-		int height = (int) ((CSS.LengthValue)heightValue).getValue();
-		r.minimum = r.preferred = height;
-		r.maximum = Math.max(r.maximum, height);
+
+	    // assign the offset and span for the child
+	    if (max < targetSpan) {
+		// can't make the child this wide, align it
+		float align = v.getAlignment(axis);
+		offsets[i] = (int) ((targetSpan - max) * align);
+		spans[i] = max;
+	    } else {
+		// make it the target width, or as small as it can get.
+		offsets[i] = 0;
+		spans[i] = Math.max(min, targetSpan);
 	    }
 	}
     }
+
 
     /**
      * Renders using the given rendering surface and area on that
@@ -109,6 +246,10 @@ public class BlockView extends BoxView  {
      * model with a StyleSheet.
      */
     public AttributeSet getAttributes() {
+	if (attr == null) {
+	    StyleSheet sheet = getStyleSheet();
+	    attr = sheet.getViewAttributes(this);
+	}
 	return attr;
     }
 
@@ -141,6 +282,9 @@ public class BlockView extends BoxView  {
 	case View.X_AXIS:
 	    return 0;
 	case View.Y_AXIS:
+	    if (getViewCount() == 0) {
+		return 0;
+	    }
 	    float span = getPreferredSpan(View.Y_AXIS);
 	    View v = getView(0);
 	    float above = v.getPreferredSpan(View.Y_AXIS);
@@ -164,13 +308,23 @@ public class BlockView extends BoxView  {
      * Update any cached values that come from attributes.
      */
     protected void setPropertiesFromAttributes() {
-	attr = getStyleSheet().getViewAttributes(this);
+
+	// update attributes
+	StyleSheet sheet = getStyleSheet();
+	attr = sheet.getViewAttributes(this);
+
+	// Reset the painter
+	painter = sheet.getBoxPainter(attr);
 	if (attr != null) {
 	    setInsets((short) painter.getInset(TOP, this),
 		      (short) painter.getInset(LEFT, this),
 		      (short) painter.getInset(BOTTOM, this),
 		      (short) painter.getInset(RIGHT, this));
 	}
+
+	// Get the width/height
+	cssWidth = (CSS.LengthValue) attr.getAttribute(CSS.Attribute.WIDTH);
+	cssHeight = (CSS.LengthValue) attr.getAttribute(CSS.Attribute.HEIGHT);
     }
 
     protected StyleSheet getStyleSheet() {
@@ -178,6 +332,11 @@ public class BlockView extends BoxView  {
 	return doc.getStyleSheet();
     }
 
+
     private AttributeSet attr;
     private StyleSheet.BoxPainter painter;
+
+    private CSS.LengthValue cssWidth;
+    private CSS.LengthValue cssHeight;
+
 }

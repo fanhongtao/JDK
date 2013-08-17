@@ -1,8 +1,11 @@
 /*
- * @(#)PolicyError.java	1.7 01/11/29
+ * @(#)PolicyError.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -15,36 +18,36 @@ package org.omg.CORBA;
 
 public final class PolicyError extends org.omg.CORBA.UserException {
 
-/** 
- * The reason for the <code>PolicyError</code> exception being thrown.
- * @serial
- */
+    /** 
+     * The reason for the <code>PolicyError</code> exception being thrown.
+     * @serial
+     */
     public short reason;
 
     /**
-    * Constructs a default <code>PolicyError</code> user exception
-    * with no reason code and an empty reason detail message.
-    */
+     * Constructs a default <code>PolicyError</code> user exception
+     * with no reason code and an empty reason detail message.
+     */
     public PolicyError() {
 	super();
     }
 
     /**
-    * Constructs a <code>PolicyError</code> user exception
-    * initialized with the given reason code and an empty reason detail message.
-    * @param __reason the reason code.
-    */
+     * Constructs a <code>PolicyError</code> user exception
+     * initialized with the given reason code and an empty reason detail message.
+     * @param __reason the reason code.
+     */
     public PolicyError(short __reason) {
 	super();
 	reason = __reason;
     }
 
     /**
-    * Constructs a <code>PolicyError</code> user exception
-    * initialized with the given reason detail message and reason code.
-    * @param reason_string the reason detail message.
-    * @param __reason the reason code.
-    */
+     * Constructs a <code>PolicyError</code> user exception
+     * initialized with the given reason detail message and reason code.
+     * @param reason_string the reason detail message.
+     * @param __reason the reason code.
+     */
     public PolicyError(String reason_string, short __reason) {
 	super(reason_string);
 	reason = __reason;

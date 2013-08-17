@@ -1,8 +1,11 @@
 /*
- * @(#)Context.java	1.15 01/11/29
+ * @(#)Context.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -84,142 +87,143 @@ package org.omg.CORBA;
 
 public abstract class Context {
 
-  /**
-   * Retrieves the name of this <code>Context</code> object.
-   *
-   * @return			the name of this <code>Context</code> object
-   */
+    /**
+     * Retrieves the name of this <code>Context</code> object.
+     *
+     * @return			the name of this <code>Context</code> object
+     */
 
-  public abstract String context_name();
+    public abstract String context_name();
 
 
-  /**
-   * Retrieves the parent of this <code>Context</code> object.
-   *
-   * @return			the <code>Context</code> object that is the
-   *                    parent of this <code>Context</code> object
-   */
+    /**
+     * Retrieves the parent of this <code>Context</code> object.
+     *
+     * @return			the <code>Context</code> object that is the
+     *                    parent of this <code>Context</code> object
+     */
 
-  public abstract Context parent();
+    public abstract Context parent();
 
-  /**
-   * Creates a <code>Context</code> object with the given string as its
-   * name and with this <code>Context</code> object set as its parent.
-   * <P>
-   * The new <code>Context</code> object is chained into its parent
-   * <code>Context</code> object.  This means that in a search for
-   * matching property names, if a match is not found in this context,
-   * the search will continue in the parent.  If that is not successful,
-   * the search will continue in the grandparent, if there is one, and
-   * so on.
-   *
-   *
-   * @param child_ctx_name	the <code>String</code> object to be set as
-   *                        the name of the new <code>Context</code> object
-   * @return 			the newly-created child <code>Context</code> object
-   *                    initialized with the specified name
-   */
+    /**
+     * Creates a <code>Context</code> object with the given string as its
+     * name and with this <code>Context</code> object set as its parent.
+     * <P>
+     * The new <code>Context</code> object is chained into its parent
+     * <code>Context</code> object.  This means that in a search for
+     * matching property names, if a match is not found in this context,
+     * the search will continue in the parent.  If that is not successful,
+     * the search will continue in the grandparent, if there is one, and
+     * so on.
+     *
+     *
+     * @param child_ctx_name	the <code>String</code> object to be set as
+     *                        the name of the new <code>Context</code> object
+     * @return 			the newly-created child <code>Context</code> object
+     *                    initialized with the specified name
+     */
 
-  public abstract Context create_child(String child_ctx_name);
+    public abstract Context create_child(String child_ctx_name);
 
-  /**
-   * Creates a <code>NamedValue</code> object and adds it to this
-   * <code>Context</code> object.  The <code>name</code> field of the
-   * new <code>NamedValue</code> object is set to the given string,
-   * the <code>value</code> field is set to the given <code>Any</code>
-   * object, and the <code>flags</code> field is set to zero.
-   *
-   * @param propname		the name of the property to be set
-   * @param propvalue		the <code>Any</code> object to which the
-   *                        value of the property will be set.  The
-   *                        <code>Any</code> object's <code>value</code>
-   *                        field contains the value to be associated
-   *                        with the given propname; the
-   *                        <code>kind</code> field must be set to
-   *                        <code>TCKind.tk_string</code>.
-   */
+    /**
+     * Creates a <code>NamedValue</code> object and adds it to this
+     * <code>Context</code> object.  The <code>name</code> field of the
+     * new <code>NamedValue</code> object is set to the given string,
+     * the <code>value</code> field is set to the given <code>Any</code>
+     * object, and the <code>flags</code> field is set to zero.
+     *
+     * @param propname		the name of the property to be set
+     * @param propvalue		the <code>Any</code> object to which the
+     *                        value of the property will be set.  The
+     *                        <code>Any</code> object's <code>value</code>
+     *                        field contains the value to be associated
+     *                        with the given propname; the
+     *                        <code>kind</code> field must be set to
+     *                        <code>TCKind.tk_string</code>.
+     */
 
-  public abstract void set_one_value(String propname, Any propvalue);
+    public abstract void set_one_value(String propname, Any propvalue);
 
-  /**
-   I Sets one or more property values in this <code>Context</code>
-   * object. The <code>NVList</code> supplied to this method
-   * contains one or more <code>NamedValue</code> objects.
-   * In each <code>NamedValue</code> object,
-   * the <code>name</code> field holds the name of the property, and
-   * the <code>flags</code> field must be set to zero.
-   * The <code>NamedValue</code> object's <code>value</code> field
-   * contains an <code>Any</code> object, which, in turn, contains the value
-   * for the property.  Since the value is always a string,
-   * the <code>Any</code> object must have the <code>kind</code>
-   * field of its <code>TypeCode</code> set to <code>TCKind.tk_string</code>.
-   *
-   * @param values		an NVList containing the property
-   * 				    names and associated values to be set
-   *
-   * @see NamedValue
-   * @see Any
-   */
+    /**
+       I Sets one or more property values in this <code>Context</code>
+       * object. The <code>NVList</code> supplied to this method
+       * contains one or more <code>NamedValue</code> objects.
+       * In each <code>NamedValue</code> object,
+       * the <code>name</code> field holds the name of the property, and
+       * the <code>flags</code> field must be set to zero.
+       * The <code>NamedValue</code> object's <code>value</code> field
+       * contains an <code>Any</code> object, which, in turn, contains the value
+       * for the property.  Since the value is always a string,
+       * the <code>Any</code> object must have the <code>kind</code>
+       * field of its <code>TypeCode</code> set to <code>TCKind.tk_string</code>.
+       *
+       * @param values		an NVList containing the property
+       * 				    names and associated values to be set
+       *
+       * @see org.omg.CORBA.NamedValue
+       * @see org.omg.CORBA.Any
+       */
 
-  public abstract void set_values(NVList values);
+    public abstract void set_values(NVList values);
 
-  /**
-   * Deletes from this <code>Context</code> object the
-   * <code>NamedValue</code> object(s) whose
-   * <code>name</code> field matches the given property name.
-   * If the <code>String</code> object supplied for
-   * <code>propname</code> has a
-   * trailing wildcard character ("*"), then
-   * all <code>NamedValue</code> objects whose <code>name</code>
-   * fields match will be deleted. The search scope is always
-   * limited to this <code>Context</code> object.
-   * <P>
-   * If no matching property is found, an exception is returned.
-   *
-   * @param propname		name of the property to be deleted
-   */
+    /**
+     * Deletes from this <code>Context</code> object the
+     * <code>NamedValue</code> object(s) whose
+     * <code>name</code> field matches the given property name.
+     * If the <code>String</code> object supplied for
+     * <code>propname</code> has a
+     * trailing wildcard character ("*"), then
+     * all <code>NamedValue</code> objects whose <code>name</code>
+     * fields match will be deleted. The search scope is always
+     * limited to this <code>Context</code> object.
+     * <P>
+     * If no matching property is found, an exception is returned.
+     *
+     * @param propname		name of the property to be deleted
+     */
 
-  public abstract void delete_values(String propname);
+    public abstract void delete_values(String propname);
 
-  /**
-   * Retrieves the <code>NamedValue</code> objects whose
-   * <code>name</code> field matches the given name or name
-   * pattern.   This method allows for wildcard searches,
-   * which means that there can be multiple matches and
-   * therefore multiple values returned. If the
-   * property is not found at the indicated level, the search
-   * continues up the context object tree until a match is found or
-   * all <code>Context</code> objects in the chain have been exhausted.
-   * <P>
-   * If no match is found, an error is returned and no property list
-   * is returned.
-   *
-   * @param start_scope		a <code>String</code> object indicating the
-   *                context object level at which to initiate the
-   *				search for the specified properties
-   *				(for example, "_USER", "_GROUP", "_SYSTEM"). Valid scope
-   *				names are implementation-specific. If a
-   *				scope name is omitted, the search
-   *				begins with the specified context
-   *				object. If the specified scope name is
-   *				not found, an exception is returned.
-   * @param op_flags       an operation flag.  The one flag
-   *                that may be specified is <code>CTX_RESTRICT_SCOPE</code>.
-   *                If this flag is specified, searching is limited to the
-   *				specified <code>start_scope</code> or this
-   *                <code>Context</code> object.
-   * @param pattern		the property name whose values are to
-   *				be retrieved. <code>pattern</code> may be a
-   *                name or a name with a
-   *				trailing wildcard character ("*").
-   *
-   * @return		an <code>NVList</code> containing all the property values
-   *                (in the form of <code>NamedValue</code> objects)
-   *                whose associated property name matches the given name or
-   *                name pattern
-   */
+    /**
+     * Retrieves the <code>NamedValue</code> objects whose
+     * <code>name</code> field matches the given name or name
+     * pattern.   This method allows for wildcard searches,
+     * which means that there can be multiple matches and
+     * therefore multiple values returned. If the
+     * property is not found at the indicated level, the search
+     * continues up the context object tree until a match is found or
+     * all <code>Context</code> objects in the chain have been exhausted.
+     * <P>
+     * If no match is found, an error is returned and no property list
+     * is returned.
+     *
+     * @param start_scope		a <code>String</code> object indicating the
+     *                context object level at which to initiate the
+     *				search for the specified properties
+     *				(for example, "_USER", "_GROUP", "_SYSTEM"). Valid scope
+     *				names are implementation-specific. If a
+     *				scope name is omitted, the search
+     *				begins with the specified context
+     *				object. If the specified scope name is
+     *				not found, an exception is returned.
+     * @param op_flags       an operation flag.  The one flag
+     *                that may be specified is <code>CTX_RESTRICT_SCOPE</code>.
+     *                If this flag is specified, searching is limited to the
+     *				specified <code>start_scope</code> or this
+     *                <code>Context</code> object.
+     * @param pattern		the property name whose values are to
+     *				be retrieved. <code>pattern</code> may be a
+     *                name or a name with a
+     *				trailing wildcard character ("*").
+     *
+     * @return		an <code>NVList</code> containing all the property values
+     *                (in the form of <code>NamedValue</code> objects)
+     *                whose associated property name matches the given name or
+     *                name pattern
+	 * @see org.omg.CORBA.NamedValue
+     */
 
-  abstract public NVList get_values(String start_scope, int op_flags,
-				String pattern);
+    abstract public NVList get_values(String start_scope, int op_flags,
+				      String pattern);
 };
 

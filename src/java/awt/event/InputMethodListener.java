@@ -1,8 +1,11 @@
 /*
- * @(#)InputMethodListener.java	1.6 01/11/29
+ * @(#)InputMethodListener.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -17,11 +20,11 @@ import java.util.EventListener;
  * <p>
  * The text editing component also has to provide an instance of InputMethodRequests.
  *
+ * @author JavaSoft Asia/Pacific
+ * @version 1.8 02/02/00
  * @see InputMethodEvent
  * @see java.awt.im.InputMethodRequests
- *
- * @version 1.6 11/29/01
- * @author JavaSoft Asia/Pacific
+ * @since 1.2
  */
 
 public interface InputMethodListener extends EventListener {

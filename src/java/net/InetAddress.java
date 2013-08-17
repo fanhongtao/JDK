@@ -1,8 +1,11 @@
 /*
- * @(#)InetAddress.java	1.70 03/09/04
+ * @(#)InetAddress.java	1.70 00/02/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -21,7 +24,7 @@ import sun.net.InetAddressCachePolicy;
  * create a new <code>InetAddress</code> instance.
  *
  * @author  Chris Warth
- * @version 1.66, 05/16/00
+ * @version 1.70, 02/02/00
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
  * @see     java.net.InetAddress#getByName(java.lang.String)
  * @see     java.net.InetAddress#getLocalHost()
@@ -94,9 +97,11 @@ class InetAddress implements java.io.Serializable {
     }
 
     /**
-     * Utility routine to check if the InetAddress is a
+     * Utility routine to check if the InetAddress is an
      * IP multicast address. IP multicast address is a Class D
      * address i.e first four bits of the address are 1110.
+     * @return a <code>boolean</code> indicating if the InetAddress is 
+     * an IP multicast address
      * @since   JDK1.1
      */
     public boolean isMulticastAddress() {
@@ -104,16 +109,14 @@ class InetAddress implements java.io.Serializable {
     }
 
     /**
-     * Returns the hostname for this address.
-     * If the host is equal to null, then this address refers to any
-     * of the local machine's available network addresses.
+     * Gets the host name for this IP address.
      *
      * <p>If there is a security manager, its
      * <code>checkConnect</code> method is first called
      * with the hostname and <code>-1</code> 
      * as its arguments to see if the operation is allowed.
      *
-     * @return  the host name for this IP address.
+     * @return the host name for this IP address.
      * 
      * @exception  SecurityException  if a security manager exists and its  
      *  <code>checkConnect</code> method doesn't allow the operation .
@@ -287,19 +290,19 @@ class InetAddress implements java.io.Serializable {
 	long expiration;
     }
 
-    private static void cacheAddress(String hostname, Object address, boolean success) {
-      // if the cache policy is to cache nothing, just return
-      int policy = (success ? InetAddressCachePolicy.get() :InetAddressCachePolicy.getNegative());
-      if (policy == 0) {
-	return;
-      }
-      long expiration = -1;
-      if (policy != InetAddressCachePolicy.FOREVER) {
-	expiration = System.currentTimeMillis() + (policy * 1000);
-      }
-      cacheAddress(hostname, address, expiration);
+    private static void cacheAddress(String hostname, Object address) {
+	// if the cache policy is to cache nothing, just return
+	int policy = InetAddressCachePolicy.get();
+	if (policy == 0) {
+	    return;
+	}
+	long expiration = -1;
+	if (policy != InetAddressCachePolicy.FOREVER) {
+	    expiration = System.currentTimeMillis() + (policy * 1000);
+	}
+	cacheAddress(hostname, address, expiration);
     }
-  
+
     private static void cacheAddress(String hostname, Object address, long expiration) {
         hostname = hostname.toLowerCase();
 	synchronized (addressCache) {
@@ -316,8 +319,8 @@ class InetAddress implements java.io.Serializable {
 
     private static Object getCachedAddress(String hostname) {
         hostname = hostname.toLowerCase();
-        if ((InetAddressCachePolicy.get() == 0) && (InetAddressCachePolicy.getNegative() == 0)) {
-	  return null;
+	if (InetAddressCachePolicy.get() == 0) {
+	    return null;
 	}
 	synchronized (addressCache) {
 	    CacheEntry entry = (CacheEntry)addressCache.get(hostname);
@@ -583,7 +586,6 @@ class InetAddress implements java.io.Serializable {
 
     private static Object getAddressFromNameService(String host) {
 	Object obj = null;
-        boolean success = false;
 
 	// Check whether the host is in the lookupTable.
 	// 1) If the host isn't in the lookupTable when
@@ -623,13 +625,11 @@ class InetAddress implements java.io.Serializable {
 		    addr_array[i] = new InetAddress(host, addr);
 		}
 		obj = addr_array;
-                success = true;
 	    } catch (UnknownHostException e) {
 		obj  = unknown_array;
-                success = false;
 	    } finally {
 		// Cache the address.
-		cacheAddress(host, obj, success);
+		cacheAddress(host, obj);
 		// Delete the host from the lookupTable, and
 		// notify all threads waiting for the monitor
 		// for lookupTable.

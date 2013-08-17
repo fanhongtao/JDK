@@ -1,8 +1,11 @@
 /*
- * @(#)TreeMap.java	1.34 01/11/29
+ * @(#)TreeMap.java	1.43 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -16,7 +19,7 @@ package java.util;
  *
  * This implementation provides guaranteed log(n) time cost for the
  * <tt>containsKey</tt>, <tt>get</tt>, <tt>put</tt> and <tt>remove</tt>
- * operations.  Algorithms are adaptations of those in Corman, Leiserson, and
+ * operations.  Algorithms are adaptations of those in Cormen, Leiserson, and
  * Rivest's <I>Introduction to Algorithms</I>.<p>
  *
  * Note that the ordering maintained by a sorted map (whether or not an
@@ -55,7 +58,7 @@ package java.util;
  * future.
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.34, 11/29/01
+ * @version 1.43, 02/02/00
  * @see Map
  * @see HashMap
  * @see Hashtable
@@ -63,7 +66,7 @@ package java.util;
  * @see Comparator
  * @see Collection
  * @see Collections#synchronizedMap(Map)
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class TreeMap extends AbstractMap
@@ -116,6 +119,10 @@ public class TreeMap extends AbstractMap
      * <tt>k2</tt> in the map.  If the user attempts to put a key into the
      * map that violates this constraint, the <tt>put(Object key, Object
      * value)</tt> call will throw a <tt>ClassCastException</tt>.
+     *
+     * @param c the comparator that will be used to sort this map.  A
+     *        <tt>null</tt> value indicates that the keys' <i>natural
+     *        ordering</i> should be used.
      */
     public TreeMap(Comparator c) {
 	this.comparator = c;
@@ -130,8 +137,9 @@ public class TreeMap extends AbstractMap
      * for any elements <tt>k1</tt> and <tt>k2</tt> in the map.  This method
      * runs in n*log(n) time.
      *
-     * @throws    ClassCastException the keys in t are not Comparable, or
-     * are not mutually comparable.
+     * @param  m the map whose mappings are to be placed in this map.
+     * @throws ClassCastException the keys in t are not Comparable, or
+     *         are not mutually comparable.
      */
     public TreeMap(Map m) {
 	putAll(m);
@@ -141,6 +149,9 @@ public class TreeMap extends AbstractMap
      * Constructs a new map containing the same mappings as the given
      * <tt>SortedMap</tt>, sorted according to the same ordering.  This method
      * runs in linear time.
+     *
+     * @param  m the sorted map whose mappings are to be placed in this map,
+     *         and whose comparator is to be used to sort this map.
      */
     public TreeMap(SortedMap m) {
         comparator = m.comparator();
@@ -190,7 +201,7 @@ public class TreeMap extends AbstractMap
      * implementations of Map.
      *
      * @param value value whose presence in this Map is to be tested.
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean containsValue(Object value) {
         return (root==null ? false :
@@ -277,7 +288,7 @@ public class TreeMap extends AbstractMap
      * mappings replace any mappings that this map had for any of the keys
      * currently in the specified map.
      *
-     * @param t Mappings to be stored in this map.
+     * @param     map mappings to be stored in this map.
      * @throws    ClassCastException class of a key or value in the specified
      * 	          map prevents it from being stored in this map.
      * 
@@ -500,7 +511,28 @@ public class TreeMap extends AbstractMap
      * @return a shallow copy of this Map.
      */
     public Object clone() {
-        return new TreeMap(this);
+        TreeMap clone = null;
+	try { 
+	    clone = (TreeMap)super.clone();
+	} catch (CloneNotSupportedException e) { 
+	    throw new InternalError();
+	}
+
+        // Put clone into "virgin" state (except for comparator)
+        clone.root = null;
+        clone.size = 0;
+        clone.modCount = 0;
+        clone.keySet = clone.entrySet = null;
+        clone.values = null;
+
+        // Initialize clone with our mappings
+        try {
+            clone.buildFromSorted(size, entrySet().iterator(), null, null);
+        } catch (java.io.IOException cannotHappen) {
+        } catch (ClassNotFoundException cannotHappen) {
+        }
+
+        return clone;
     }
 
 
@@ -543,7 +575,9 @@ public class TreeMap extends AbstractMap
                 }
 
 		public boolean remove(Object o) {
-		    return TreeMap.this.remove(o) != null;
+                    int oldSize = size;
+                    TreeMap.this.remove(o);
+		    return size != oldSize;
 		}
 
 		public void clear() {
@@ -693,12 +727,14 @@ public class TreeMap extends AbstractMap
      * @return a view of the portion of this map whose keys range from
      * 	       <tt>fromKey</tt>, inclusive, to <tt>toKey</tt>, exclusive.
      * 
-     * @throws NullPointerException if <tt>fromKey</tt> or <tt>toKey</tt> is
-     *		  <tt>null</tt> and this map uses natural order, or its
-     *		  comparator does not tolerate <tt>null</tt> keys.
-     * 
+     * @throws ClassCastException if <tt>fromKey</tt> and <tt>toKey</tt>
+     *         cannot be compared to one another using this map's comparator
+     *         (or, if the map has no comparator, using natural ordering).
      * @throws IllegalArgumentException if <tt>fromKey</tt> is greater than
-     *            <tt>toKey</tt>.
+     *         <tt>toKey</tt>.
+     * @throws NullPointerException if <tt>fromKey</tt> or <tt>toKey</tt> is
+     *	       <tt>null</tt> and this map uses natural order, or its
+     *	       comparator does not tolerate <tt>null</tt> keys.
      */
     public SortedMap subMap(Object fromKey, Object toKey) {
 	return new SubMap(fromKey, toKey);
@@ -730,9 +766,16 @@ public class TreeMap extends AbstractMap
      * @param toKey high endpoint (exclusive) of the headMap.
      * @return a view of the portion of this map whose keys are strictly
      * 	       less than <tt>toKey</tt>.
+     *
+     * @throws ClassCastException if <tt>toKey</tt> is not compatible
+     *         with this map's comparator (or, if the map has no comparator,
+     *         if <tt>toKey</tt> does not implement <tt>Comparable</tt>).
+     * @throws IllegalArgumentException if this map is itself a subMap,
+     *         headMap, or tailMap, and <tt>toKey</tt> is not within the
+     *         specified range of the subMap, headMap, or tailMap.
      * @throws NullPointerException if <tt>toKey</tt> is <tt>null</tt> and
-     *		  this map uses natural order, or its comparator does * not
-     *		  tolerate <tt>null</tt> keys.
+     *	       this map uses natural order, or its comparator does not
+     *	       tolerate <tt>null</tt> keys.
      */
     public SortedMap headMap(Object toKey) {
 	return new SubMap(toKey, true);
@@ -763,9 +806,15 @@ public class TreeMap extends AbstractMap
      * @param fromKey low endpoint (inclusive) of the tailMap.
      * @return a view of the portion of this map whose keys are greater
      * 	       than or equal to <tt>fromKey</tt>.
-     * @throws    NullPointerException fromKey is <tt>null</tt> and this
-     *		  map uses natural ordering, or its comparator does
-     *            not tolerate <tt>null</tt> keys.
+     * @throws ClassCastException if <tt>fromKey</tt> is not compatible
+     *         with this map's comparator (or, if the map has no comparator,
+     *         if <tt>fromKey</tt> does not implement <tt>Comparable</tt>).
+     * @throws IllegalArgumentException if this map is itself a subMap,
+     *         headMap, or tailMap, and <tt>fromKey</tt> is not within the
+     *         specified range of the subMap, headMap, or tailMap.
+     * @throws NullPointerException if <tt>fromKey</tt> is <tt>null</tt> and
+     *	       this map uses natural order, or its comparator does not
+     *	       tolerate <tt>null</tt> keys.
      */
     public SortedMap tailMap(Object fromKey) {
 	return new SubMap(fromKey, false);
@@ -790,6 +839,8 @@ public class TreeMap extends AbstractMap
 	}
 
 	SubMap(Object key, boolean headMap) {
+            compare(key, key); // Type-check key
+
             if (headMap) {
                 fromStart = true;
                 toKey = key;
@@ -831,11 +882,17 @@ public class TreeMap extends AbstractMap
         }
 
         public Object firstKey() {
-            return key(fromStart ? firstEntry() : getCeilEntry(fromKey));
+            Object first = key(fromStart ? firstEntry():getCeilEntry(fromKey));
+            if (!toEnd && compare(first, toKey) >= 0)
+                throw(new NoSuchElementException());
+            return first;
         }
 
         public Object lastKey() {
-            return key(toEnd ? lastEntry() : getPrecedingEntry(toKey));
+            Object last = key(toEnd ? lastEntry() : getPrecedingEntry(toKey));
+            if (!fromStart && compare(last, fromKey) < 0)
+                throw(new NoSuchElementException());
+            return last;
         }
 
 	private transient Set entrySet = new EntrySetView();
@@ -870,7 +927,7 @@ public class TreeMap extends AbstractMap
 		Object key = entry.getKey();
                 if (!inRange(key))
                     return false;
-                Entry node = getEntry(key);
+                TreeMap.Entry node = getEntry(key);
                 return node != null &&
                        valEquals(node.getValue(), entry.getValue());
 	    }
@@ -882,7 +939,7 @@ public class TreeMap extends AbstractMap
 		Object key = entry.getKey();
                 if (!inRange(key))
                     return false;
-                Entry node = getEntry(key);
+                TreeMap.Entry node = getEntry(key);
                 if (node!=null && valEquals(node.getValue(),entry.getValue())){
 		    deleteEntry(node);
 		    return true;
@@ -898,7 +955,7 @@ public class TreeMap extends AbstractMap
 	}
 
         public SortedMap subMap(Object fromKey, Object toKey) {
-            if (!inRange(fromKey))
+            if (!inRange2(fromKey))
 		throw new IllegalArgumentException("fromKey out of range");
             if (!inRange2(toKey))
                 throw new IllegalArgumentException("toKey out of range");
@@ -912,7 +969,7 @@ public class TreeMap extends AbstractMap
         }
 
         public SortedMap tailMap(Object fromKey) {
-            if (!inRange(fromKey))
+            if (!inRange2(fromKey))
                 throw new IllegalArgumentException("fromKey out of range");
             return new SubMap(false, fromKey, toEnd, toKey);
         }

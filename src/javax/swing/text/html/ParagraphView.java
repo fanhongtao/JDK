@@ -1,8 +1,11 @@
 /*
- * @(#)ParagraphView.java	1.18 01/11/29
+ * @(#)ParagraphView.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -23,7 +26,7 @@ import javax.swing.text.JTextComponent;
  * configuration.
  *
  * @author  Timothy Prinzing
- * @version 1.18 11/29/01
+ * @version 1.21 02/02/00
  */
 
 public class ParagraphView extends javax.swing.text.ParagraphView {
@@ -35,9 +38,6 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      */
     public ParagraphView(Element elem) {
 	super(elem);
-	StyleSheet sheet = getStyleSheet();
-	attr = sheet.getViewAttributes(this);
-	painter = sheet.getBoxPainter(attr);
     }
 
     /**
@@ -68,23 +68,11 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * model with a StyleSheet.
      */
     public AttributeSet getAttributes() {
+	if (attr == null) {
+	    StyleSheet sheet = getStyleSheet();
+	    attr = sheet.getViewAttributes(this);
+	}
 	return attr;
-    }
-
-    /**
-     * Gives notification from the document that attributes were changed
-     * in a location that this view is responsible for.  This causes the
-     * set of view attributes to be recomputed.
-     *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#changedUpdate
-     */
-    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	StyleSheet sheet = getStyleSheet();
-	attr = sheet.getViewAttributes(this);
-	super.changedUpdate(e, a, f);
     }
 
     /**
@@ -93,6 +81,9 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * by the superclass).  Since
      */
     protected void setPropertiesFromAttributes() {
+	StyleSheet sheet = getStyleSheet();
+	attr = sheet.getViewAttributes(this);
+	painter = sheet.getBoxPainter(attr);
 	if (attr != null) {
 	    super.setPropertiesFromAttributes();
 	    setInsets((short) painter.getInset(TOP, this),
@@ -147,7 +138,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
 		min = Math.max(v.getMinimumSpan(axis), min);
 	    }
 	}
-	r.minimum = (int) min;
+	r.minimum = Math.max(r.minimum, (int) min);
 	r.preferred = Math.max(r.minimum,  r.preferred);
 	r.maximum = Math.max(r.preferred, r.maximum);
 	return r;
@@ -225,7 +216,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
-     * @see text.ParagraphView#getPreferredSpan
+     * @see javax.swing.text.ParagraphView#getPreferredSpan
      */
     public float getPreferredSpan(int axis) {
 	if (!isVisible()) {
@@ -241,7 +232,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
      * @returns  the minimum span the view can be rendered into.
-     * @see text.ParagraphView#getMinimumSpan
+     * @see javax.swing.text.ParagraphView#getMinimumSpan
      */
     public float getMinimumSpan(int axis) {
 	if (!isVisible()) {
@@ -257,7 +248,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
      * @returns  the maximum span the view can be rendered into.
-     * @see text.ParagraphView#getMaximumSpan
+     * @see javax.swing.text.ParagraphView#getMaximumSpan
      */
     public float getMaximumSpan(int axis) {
 	if (!isVisible()) {

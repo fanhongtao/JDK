@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultPreviewPanel.java	1.5 01/11/29
+ * @(#)DefaultPreviewPanel.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.colorchooser;
@@ -29,7 +32,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.5 11/29/01
+ * @version 1.7 02/02/00
  * @author Steve Wilson
  * @see JColorChooser
  */
@@ -42,7 +45,7 @@ class DefaultPreviewPanel extends JPanel {
 
     private int textGap = 5;
     private Font font = new Font("Dialog", Font.PLAIN, 12);
-    private String sampleText = "Sample Text  Sample Text";
+    private String sampleText = UIManager.getString("ColorChooser.sampleText");
 
     private int swatchWidth = 50;
 

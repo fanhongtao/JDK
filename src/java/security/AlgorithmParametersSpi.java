@@ -1,8 +1,11 @@
 /*
- * @(#)AlgorithmParametersSpi.java	1.5 01/11/29
+ * @(#)AlgorithmParametersSpi.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -22,13 +25,13 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.5 01/11/29
+ * @version 1.8, 02/02/00
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec
  * @see java.security.spec.DSAParameterSpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AlgorithmParametersSpi {

@@ -1,8 +1,11 @@
 /*
- * @(#)LineNumberInputStream.java	1.20 01/11/29
+ * @(#)LineNumberInputStream.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -21,7 +24,7 @@ package java.io;
  * <code>1</code> when a <code>read</code> returns a newline character.
  *
  * @author     Arthur van Hoff
- * @version    1.20, 11/29/01
+ * @version    1.22, 02/02/00
  * @see        java.io.LineNumberReader
  * @since      JDK1.0
  * @deprecated This class incorrectly assumes that bytes adequately represent
@@ -183,6 +186,7 @@ class LineNumberInputStream extends FilterInputStream {
      * Sets the line number to the specified argument. 
      *
      * @param      lineNumber   the new line number.
+     * @see #getLineNumber
      */
     public void setLineNumber(int lineNumber) {
 	this.lineNumber = lineNumber;
@@ -192,6 +196,7 @@ class LineNumberInputStream extends FilterInputStream {
      * Returns the current line number.
      *
      * @return     the current line number.
+     * @see #setLineNumber
      */
     public int getLineNumber() {
 	return lineNumber;

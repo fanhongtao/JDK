@@ -1,8 +1,11 @@
 /*
- * @(#)RTFEditorKit.java	1.9 01/11/29
+ * @(#)RTFEditorKit.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.rtf;
 
@@ -21,7 +24,7 @@ import javax.swing.*;
  * provided.
  *
  * @author  Timothy Prinzing (of this class, not the package!)
- * @version 1.9 11/29/01
+ * @version 1.9 02/02/00
  */
 public class RTFEditorKit extends StyledEditorKit {
 

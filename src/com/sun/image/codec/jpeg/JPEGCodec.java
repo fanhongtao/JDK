@@ -1,8 +1,11 @@
 /*
- * @(#)JPEGCodec.java	1.3 01/11/29
+ * @(#)JPEGCodec.java	1.5 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /**********************************************************************
@@ -129,8 +132,9 @@ public class JPEGCodec {
 	  * set reasonable defaults in the parameter object.  This must match
 	  * the number of bands given.
 	  */
-	public JPEGEncodeParam getDefaultJPEGEncodeParam(int numBands, int colorID)
-                	throws ImageFormatException
+	public static JPEGEncodeParam getDefaultJPEGEncodeParam(int numBands,
+                                                                int colorID)
+            throws ImageFormatException
 	{
   	return new JPEGParam(colorID, numBands);
 	}

@@ -1,8 +1,11 @@
 /*
- * @(#)Permissions.java	1.40 01/11/29
+ * @(#)Permissions.java	1.46 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -39,10 +42,12 @@ import java.util.ArrayList;
  * @see PermissionCollection
  * @see AllPermission
  * 
- * @version 1.40, 01/11/29
+ * @version 1.46, 00/02/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers
+ *
+ * @serial exclude
  */
 
 public final class Permissions extends PermissionCollection 
@@ -77,7 +82,7 @@ implements Serializable
      * @exception SecurityException if this Permissions object is
      * marked as readonly.
      * 
-     * @see isReadOnly
+     * @see PermissionCollection#isReadOnly()
      */
 
     public void add(Permission permission) {
@@ -333,9 +338,11 @@ final class PermissionsEnumerator implements Enumeration {
  * @see Permission
  * @see Permissions
  *
- * @version 1.40, 03/09/04
+ * @version 1.46, 02/02/00
  *
  * @author Roland Schemers
+ *
+ * @serial include
  */
 
 final class PermissionsHash extends PermissionCollection

@@ -1,8 +1,11 @@
 /*
- * @(#)SortedSet.java	1.11 01/11/29
+ * @(#)SortedSet.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -48,11 +51,11 @@ package java.util;
  * constructor with a single argument of type <tt>SortedSet</tt>, which
  * creates a new sorted set with the same elements and the same ordering as
  * the input sorted set.  There is no way to enforce this recommendation (as
- * interfaces cannot contain constructors) but the JDK implementation (the
+ * interfaces cannot contain constructors) but the SDK implementation (the
  * <tt>TreeSet</tt> class) complies.
  *
  * @author  Josh Bloch
- * @version 1.11 11/29/01
+ * @version 1.15, 02/02/00
  * @see Set
  * @see TreeSet
  * @see SortedMap
@@ -60,7 +63,7 @@ package java.util;
  * @see Comparable
  * @see Comparator
  * @see java.lang.ClassCastException
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface SortedSet extends Set {
@@ -109,15 +112,21 @@ public interface SortedSet extends Set {
      * @param toElement high endpoint (exclusive) of the subSet.
      * @return a view of the specified range within this sorted set.
      * 
-     * @throws ClassCastException if <tt>fromElement</tt> or <tt>toElement</tt>
-     *		  cannot be compared with the elements currently in the sorted
-     *		  set.  (Implementations may, but are not required to, throw
-     *		  this exception under these circumstances.)
+     * @throws ClassCastException if <tt>fromElement</tt> and
+     *         <tt>toElement</tt> cannot be compared to one another using this
+     *         set's comparator (or, if the set has no comparator, using
+     *         natural ordering).  Implementations may, but are not required
+     *	       to, throw this exception if <tt>fromElement</tt> or
+     *         <tt>toElement</tt> cannot be compared to elements currently in
+     *         the set.
+     * @throws IllegalArgumentException if <tt>fromElement</tt> is greater than
+     *         <tt>toElement</tt>; or if this set is itself a subSet, headSet,
+     *         or tailSet, and <tt>fromElement</tt> or <tt>toElement</tt> are
+     *         not within the specified range of the subSet, headSet, or
+     *         tailSet.
      * @throws NullPointerException if <tt>fromElement</tt> or
-     *		  <tt>toElement</tt> is <tt>null</tt> and this sorted set does
-     *		  not tolerate <tt>null</tt> elements.
-     * @throws IllegalArgumentException if <tt>fromElement</tt> is greater
-     *         than <tt>toElement</tt>.
+     *	       <tt>toElement</tt> is <tt>null</tt> and this sorted set does
+     *	       not tolerate <tt>null</tt> elements.
      */
     SortedSet subSet(Object fromElement, Object toElement);
 
@@ -144,13 +153,17 @@ public interface SortedSet extends Set {
      *
      * @param toElement high endpoint (exclusive) of the headSet.
      * @return a view of the specified initial range of this sorted set.
-     * 
-     * @throws ClassCastException if <tt>toElement</tt> cannot be compared
-     *		  with the elements currently in the sorted set.
-     *		  (Implementations may, but are not required to, throw this
-     *		  exception under these circumstances.)
+     * @throws ClassCastException if <tt>toElement</tt> is not compatible
+     *         with this set's comparator (or, if the set has no comparator,
+     *         if <tt>toElement</tt> does not implement <tt>Comparable</tt>).
+     *         Implementations may, but are not required to, throw this
+     *	       exception if <tt>toElement</tt> cannot be compared to elements
+     *         currently in the set.
      * @throws NullPointerException if <tt>toElement</tt> is <tt>null</tt> and
-     *         this sorted set does not tolerate <tt>null</tt> elements.
+     *	       this sorted set does not tolerate <tt>null</tt> elements.
+     * @throws IllegalArgumentException if this set is itself a subSet,
+     *         headSet, or tailSet, and <tt>toElement</tt> is not within the
+     *         specified range of the subSet, headSet, or tailSet.
      */
     SortedSet headSet(Object toElement);
 
@@ -177,15 +190,17 @@ public interface SortedSet extends Set {
      *
      * @param fromElement low endpoint (inclusive) of the tailSet.
      * @return a view of the specified final range of this sorted set.
-     * 
-     * @throws ClassCastException if <tt>fromElement</tt> cannot be compared
-     *		  with the elements currently in the sorted set.
-     *		  (Implementations may, but are not required to, throw this
-     *		  exception under these circumstances.)
-     * 
+     * @throws ClassCastException if <tt>fromElement</tt> is not compatible
+     *         with this set's comparator (or, if the set has no comparator,
+     *         if <tt>fromElement</tt> does not implement <tt>Comparable</tt>).
+     *         Implementations may, but are not required to, throw this
+     *	       exception if <tt>fromElement</tt> cannot be compared to elements
+     *         currently in the set.
      * @throws NullPointerException if <tt>fromElement</tt> is <tt>null</tt>
-     *            and this sorted set does not tolerate <tt>null</tt>
-     *            elements.
+     *	       and this sorted set does not tolerate <tt>null</tt> elements.
+     * @throws IllegalArgumentException if this set is itself a subSet,
+     *         headSet, or tailSet, and <tt>fromElement</tt> is not within the
+     *         specified range of the subSet, headSet, or tailSet.
      */
     SortedSet tailSet(Object fromElement);
 

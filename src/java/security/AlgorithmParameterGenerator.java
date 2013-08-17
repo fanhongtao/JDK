@@ -1,8 +1,11 @@
 /*
- * @(#)AlgorithmParameterGenerator.java	1.32 01/11/29
+ * @(#)AlgorithmParameterGenerator.java	1.36 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -50,12 +53,12 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Jan Luehe
  *
- * @version 1.32 01/11/29
+ * @version 1.36, 02/02/00
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class AlgorithmParameterGenerator {
@@ -72,7 +75,7 @@ public class AlgorithmParameterGenerator {
     /**
      * Creates an AlgorithmParameterGenerator object.
      *
-     * @param keyFacSpi the delegate
+     * @param paramGenSpi the delegate
      * @param provider the provider
      * @param algorithm the algorithm
      */
@@ -204,7 +207,7 @@ public class AlgorithmParameterGenerator {
      * <code>SecureRandom</code>, a system-provided source of randomness is
      * used.)
      *
-     * @param params the set of algorithm-specific parameter generation values.
+     * @param genParamSpec the set of algorithm-specific parameter generation values.
      *
      * @exception InvalidAlgorithmParameterException if the given parameter
      * generation values are inappropriate for this parameter generator.
@@ -218,7 +221,7 @@ public class AlgorithmParameterGenerator {
      * Initializes this parameter generator with a set of algorithm-specific
      * parameter generation values.
      *
-     * @param params the set of algorithm-specific parameter generation values.
+     * @param genParamSpec the set of algorithm-specific parameter generation values.
      * @param random the source of randomness.
      *
      * @exception InvalidAlgorithmParameterException if the given parameter

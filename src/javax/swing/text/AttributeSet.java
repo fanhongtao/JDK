@@ -1,8 +1,11 @@
 /*
- * @(#)AttributeSet.java	1.27 01/11/29
+ * @(#)AttributeSet.java	1.33 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -24,9 +27,8 @@ import java.util.Enumeration;
  * exists, the key will be resolved through the parent.
  *
  * @author  Timothy Prinzing
- * @version 1.27 11/29/01
+ * @version 1.33 02/02/00
  * @see MutableAttributeSet
- * @see AttributeCharacterIterator
  */
 public interface AttributeSet {
 
@@ -35,7 +37,7 @@ public interface AttributeSet {
      * to be present on any attribute key that contributes to
      * the determination of what font to use to render some 
      * text.  This is not considered to be a closed set, the 
-     * definition can change across version of the JDK and can 
+     * definition can change across version of the platform and can 
      * be ammended by additional user added entries that 
      * correspond to logical settings that are specific to
      * some type of content.

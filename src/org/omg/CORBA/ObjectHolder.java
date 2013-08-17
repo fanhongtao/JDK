@@ -1,8 +1,11 @@
 /*
- * @(#)ObjectHolder.java	1.22 01/11/29
+ * @(#)ObjectHolder.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -59,7 +62,7 @@ public final class ObjectHolder implements Streamable {
 
     /**
      * Reads from <code>input</code> and initalizes the value in
-	 * this <code>ObjectHolder</code> object
+     * this <code>ObjectHolder</code> object
      * with the unmarshalled data.
      *
      * @param input the InputStream containing CDR formatted data from the wire.
@@ -70,7 +73,7 @@ public final class ObjectHolder implements Streamable {
 
     /**
      * Marshals to <code>output</code> the value in 
-	 * this <code>ObjectHolder</code> object.
+     * this <code>ObjectHolder</code> object.
      *
      * @param output the OutputStream which will contain the CDR formatted data.
      */
@@ -80,10 +83,10 @@ public final class ObjectHolder implements Streamable {
 
     /**
      * Returns the TypeCode corresponding to the value held in 
-	 * this <code>ObjectHolder</code> object
+     * this <code>ObjectHolder</code> object
      *
      * @return    the TypeCode of the value held in
-	 *            this <code>ObjectHolder</code> object
+     *            this <code>ObjectHolder</code> object
      */
     public org.omg.CORBA.TypeCode _type() {
 	return org.omg.CORBA.ORB.init().get_primitive_tc(TCKind.tk_objref);

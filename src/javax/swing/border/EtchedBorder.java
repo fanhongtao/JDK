@@ -1,8 +1,11 @@
 /*
- * @(#)EtchedBorder.java	1.12 01/11/29
+ * @(#)EtchedBorder.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -27,7 +30,7 @@ import java.awt.Component;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.12 11/29/01
+ * @version 1.14 02/02/00
  * @author David Kloba
  * @author Amy Fowler
  */
@@ -144,19 +147,45 @@ public class EtchedBorder extends AbstractBorder
         return etchType;
     }
 
-   /**
-     * Returns the highlight color of the etched border.
+    /**
+     * Returns the highlight color of the etched border
+     * when rendered on the specified component.  If no highlight
+     * color was specified at instantiation, the highlight color
+     * is derived from the specified component's background color.
+     * @param c the component for which the highlight may be derived
      */
     public Color getHighlightColor(Component c)   {
         return highlight != null? highlight : 
                                        c.getBackground().brighter();
     }
 
-   /**
-     * Returns the shadow color of the etched border.
+    /**
+     * Returns the highlight color of the etched border.
+     * Will return null if no highlight color was specified
+     * at instantiation.
+     */
+    public Color getHighlightColor()   {
+        return highlight;
+    }
+
+    /**
+     * Returns the shadow color of the etched border
+     * when rendered on the specified component.  If no shadow
+     * color was specified at instantiation, the shadow color
+     * is derived from the specified component's background color.
+     * @param c the component for which the shadow may be derived
      */
     public Color getShadowColor(Component c)   {
         return shadow != null? shadow : c.getBackground().darker();
+    }
+
+    /**
+     * Returns the shadow color of the etched border.
+     * Will return null if no shadow color was specified
+     * at instantiation.
+     */
+    public Color getShadowColor()   {
+        return shadow;
     }
 
 }

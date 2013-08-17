@@ -1,8 +1,11 @@
 /*
- * @(#)URLConnection.java	1.61 01/11/29
+ * @(#)URLConnection.java	1.74 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -61,9 +64,7 @@ import java.security.AccessController;
  * Default values for the <code>AllowUserInteraction</code> and 
  * <code>UseCaches</code> parameters can be set using the methods 
  * <code>setDefaultAllowUserInteraction</code> and 
- * <code>setDefaultUseCaches</code>. Default values for general 
- * request properties can be set using the 
- * <code>setDefaultRequestProperty</code> method. 
+ * <code>setDefaultUseCaches</code>.
  * <p>
  * Each of the above <code>set</code> methods has a corresponding 
  * <code>get</code> method to retrieve the value of the parameter or 
@@ -105,7 +106,7 @@ import java.security.AccessController;
  * More information on the request properties and header fields of 
  * an <code>http</code> connection can be found at:
  * <blockquote><pre>
- * http://www.w3.org/hypertext/WWW/Protocols/HTTP1.0/draft-ietf-http-spec.html
+ * <a href="http://www.ietf.org/rfc/rfc2068.txt">http://www.ietf.org/rfc/rfc2068.txt</a>
  * </pre></blockquote>
  *
  * Note about <code>fileNameMap</code>: In versions prior to JDK 1.1.6, 
@@ -114,11 +115,11 @@ import java.security.AccessController;
  * and mutator methods {@link #getFileNameMap() getFileNameMap} and 
  * {@link #setFileNameMap(java.net.FileNameMap) setFileNameMap} are added
  * to access it.  This change is also described on the <a href=
- * "http://java.sun.com/products/jdk/1.2/compatibility.html#incompatibilities1.1">
- * JDK Compatibility</a> page.
+ * "http://java.sun.com/products/jdk/1.2/compatibility.html#incompatibilities1.2">
+ * Compatibility</a> page.
  *
  * @author  James Gosling
- * @version 1.61, 11/29/01
+ * @version 1.74, 02/02/00
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -133,7 +134,6 @@ import java.security.AccessController;
  * @see     java.net.URLConnection#getLastModified()
  * @see     java.net.URLConnection#getOutputStream()
  * @see     java.net.URLConnection#setAllowUserInteraction(boolean)
- * @see     java.net.URLConnection#setDefaultRequestProperty(java.lang.String, java.lang.String)
  * @see     java.net.URLConnection#setDefaultUseCaches(boolean)
  * @see     java.net.URLConnection#setDoInput(boolean)
  * @see     java.net.URLConnection#setDoOutput(boolean)
@@ -262,15 +262,20 @@ public abstract class URLConnection {
     private static FileNameMap fileNameMap;
 
     /**
-     * @since JDK1.2.2
+     * @since 1.2.2
      */
     private static boolean fileNameMapLoaded = false;
 
     /**
-     * Returns the FileNameMap.
+     * Loads filename map (a mimetable) from a data file. It will
+     * first try to load the user-specific table, defined
+     * by &quot;content.types.user.table&quot; property. If that fails,
+     * it tries to load the default built-in table at 
+     * lib/content-types.properties under java home.
      *
-     * @returns the FileNameMap
-     * @since JDK1.2
+     * @return the FileNameMap
+     * @since 1.2
+     * @see #setFileNameMap(java.net.FileNameMap)
      */
     public static synchronized FileNameMap getFileNameMap() {
 	if ((fileNameMap == null) && !fileNameMapLoaded) {
@@ -298,7 +303,8 @@ public abstract class URLConnection {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkSetFactory</code> method doesn't allow the operation.
      * @see        SecurityManager#checkSetFactory
-     * @since JDK1.2
+     * @see #getFileNameMap()
+     * @since 1.2
      */
     public static void setFileNameMap(FileNameMap map) {
 	SecurityManager sm = System.getSecurityManager();
@@ -553,6 +559,33 @@ public abstract class URLConnection {
 	return getContentHandler().getContent(this);
     }
 
+    /**
+     * Retrieves the contents of this URL connection. 
+     *
+     * @param classes the <code>Class</code> array 
+     * indicating the requested types
+     * @return     the object fetched that is the first match of the type
+     *               specified in the classes array. null if none of 
+     *               the requested types are supported.
+     *               The <code>instanceOf</code> operation should be used to 
+     *               determine the specific kind of object returned.
+     * @exception  IOException              if an I/O error occurs while
+     *               getting the content.
+     * @exception  UnknownServiceException  if the protocol does not support
+     *               the content type.
+     * @see        java.net.URLConnection#getContent()
+     * @see        java.net.ContentHandlerFactory#createContentHandler(java.lang.String)
+     * @see        java.net.URLConnection#getContent(java.lang.Class[])
+     * @see        java.net.URLConnection#setContentHandlerFactory(java.net.ContentHandlerFactory)
+     */
+    public Object getContent(Class[] classes) throws IOException {
+        // Must call getInputStream before GetHeaderField gets called
+        // so that FileNotFoundException has a chance to be thrown up
+        // from here without being caught.
+        getInputStream();
+	return getContentHandler().getContent(this, classes);
+    }
+
     /**  
      * Returns a permission object representing the permission
      * necessary to make the connection represented by this
@@ -640,8 +673,9 @@ public abstract class URLConnection {
      * false if not.  The default is true unless DoOutput is explicitly
      * set to true, in which case DoInput defaults to false.
      *
-     * @param   value   the new value.
+     * @param   doinput   the new value.
      * @see     java.net.URLConnection#doInput
+     * @see #getDoInput()
      */
     public void setDoInput(boolean doinput) {
 	if (connected)
@@ -655,7 +689,7 @@ public abstract class URLConnection {
      *
      * @return  the value of this <code>URLConnection</code>'s
      *          <code>doInput</code> flag.
-     * @see     java.net.URLConnection#doInput
+     * @see     #setDoInput(boolean)
      */
     public boolean getDoInput() {
 	return doInput;
@@ -669,8 +703,8 @@ public abstract class URLConnection {
      * flag to true if you intend to use the URL connection for output,
      * false if not.  The default is false.
      *
-     * @param   value   the new value.
-     * @see     java.net.URLConnection#doOutput
+     * @param   dooutput   the new value.
+     * @see #getDoOutput()
      */
     public void setDoOutput(boolean dooutput) {
 	if (connected)
@@ -684,7 +718,7 @@ public abstract class URLConnection {
      *
      * @return  the value of this <code>URLConnection</code>'s
      *          <code>doOutput</code> flag.
-     * @see     java.net.URLConnection#doOutput
+     * @see     #setDoOutput(boolean)
      */
     public boolean getDoOutput() {
 	return doOutput;
@@ -695,7 +729,7 @@ public abstract class URLConnection {
      * this <code>URLConnection</code>. 
      *
      * @param   allowuserinteraction   the new value.
-     * @see     java.net.URLConnection#allowUserInteraction
+     * @see     #getAllowUserInteraction()
      */
     public void setAllowUserInteraction(boolean allowuserinteraction) {
 	if (connected)
@@ -709,7 +743,7 @@ public abstract class URLConnection {
      *
      * @return  the value of the <code>allowUserInteraction</code> field for
      *          this object.
-     * @see     java.net.URLConnection#allowUserInteraction
+     * @see     #setAllowUserInteraction(boolean)
      */
     public boolean getAllowUserInteraction() {
 	return allowUserInteraction;
@@ -721,7 +755,7 @@ public abstract class URLConnection {
      * <code>URLConnection</code> objects to the specified value. 
      *
      * @param   defaultallowuserinteraction   the new value.
-     * @see     java.net.URLConnection#allowUserInteraction
+     * @see     #getDefaultAllowUserInteraction()
      */
     public static void setDefaultAllowUserInteraction(boolean defaultallowuserinteraction) {
 	defaultAllowUserInteraction = defaultallowuserinteraction;
@@ -737,7 +771,7 @@ public abstract class URLConnection {
      *
      * @return  the default value of the <code>allowUserInteraction</code>
      *          field.
-     * @see     java.net.URLConnection#allowUserInteraction
+     * @see     #setDefaultAllowUserInteraction(boolean)
      */
     public static boolean getDefaultAllowUserInteraction() {
 	return defaultAllowUserInteraction;
@@ -755,7 +789,9 @@ public abstract class URLConnection {
      *  The default value comes from DefaultUseCaches, which defaults to
      * true.
      *
-     * @see     java.net.URLConnection#useCaches
+     * @param usecaches a <code>boolean</code> indicating whether 
+     * or not to allow caching
+     * @see #getUseCaches()
      */
     public void setUseCaches(boolean usecaches) {
 	if (connected)
@@ -769,7 +805,7 @@ public abstract class URLConnection {
      *
      * @return  the value of this <code>URLConnection</code>'s
      *          <code>useCaches</code> field.
-     * @see     java.net.URLConnection#useCaches
+     * @see #setUseCaches(boolean)
      */
     public boolean getUseCaches() {
 	return useCaches;
@@ -779,8 +815,8 @@ public abstract class URLConnection {
      * Sets the value of the <code>ifModifiedSince</code> field of 
      * this <code>URLConnection</code> to the specified value.
      *
-     * @param   value   the new value.
-     * @see     java.net.URLConnection#ifModifiedSince
+     * @param   ifmodifiedsince   the new value.
+     * @see     #getIfModifiedSince()
      */
     public void setIfModifiedSince(long ifmodifiedsince) {
 	if (connected)
@@ -792,7 +828,7 @@ public abstract class URLConnection {
      * Returns the value of this object's <code>ifModifiedSince</code> field.
      *
      * @return  the value of this object's <code>ifModifiedSince</code> field.
-     * @see     java.net.URLConnection#ifModifiedSince
+     * @see #setIfModifiedSince(long)
      */
     public long getIfModifiedSince() {
 	return ifModifiedSince;
@@ -808,7 +844,7 @@ public abstract class URLConnection {
      *
      * @return  the default value of a <code>URLConnection</code>'s
      *          <code>useCaches</code> flag.
-     * @see     java.net.URLConnection#useCaches
+     * @see     #setDefaultUseCaches(boolean)
      */
     public boolean getDefaultUseCaches() {
 	return defaultUseCaches;
@@ -819,18 +855,25 @@ public abstract class URLConnection {
      * specified value. 
      *
      * @param   defaultusecaches   the new value.
-     * @see     java.net.URLConnection#useCaches
+     * @see     #getDefaultUseCaches()
      */
     public void setDefaultUseCaches(boolean defaultusecaches) {
 	defaultUseCaches = defaultusecaches;
     }
 
     /**
-     * Sets the general request property. 
+     * Sets the general request property. If a property with the key already
+     * exists, overwrite its value with the new value.
+     *
+     * <p> NOTE: HTTP requires all request properties which can
+     * legally have multiple instances with the same key
+     * to use a comma-seperated list syntax which enables multiple
+     * properties to be appended into a single property.
      *
      * @param   key     the keyword by which the request is known
      *                  (e.g., "<code>accept</code>").
      * @param   value   the value associated with it.
+     * @see #getRequestProperty(java.lang.String)
      */
     public void setRequestProperty(String key, String value) {
 	if (connected)
@@ -841,8 +884,10 @@ public abstract class URLConnection {
      * Returns the value of the named general request property for this
      * connection.
      *
+     * @param key the keyword by which the request is known (e.g., "accept").
      * @return  the value of the named general request property for this
      *           connection.
+     * @see #setRequestProperty(java.lang.String, java.lang.String)
      */
     public String getRequestProperty(String key) {
 	if (connected)
@@ -858,6 +903,14 @@ public abstract class URLConnection {
      * @param   key     the keyword by which the request is known
      *                  (e.g., "<code>accept</code>").
      * @param   value   the value associated with the key.
+     *
+     * @see java.net.URLConnection#setRequestProperty(java.lang.String,java.lang.String) 
+     *
+     * @deprecated The instance specific setRequestProperty method
+     * should be used after an appropriate instance of URLConnection
+     * is obtained.
+     *
+     * @see #getDefaultRequestProperty(java.lang.String)
      */
     public static void setDefaultRequestProperty(String key, String value) {
     }
@@ -866,8 +919,17 @@ public abstract class URLConnection {
      * Returns the value of the default request property. Default request 
      * properties are set for every connection. 
      *
-     * @return  the value of the default request property for the specified key.
-     * @see     java.net.URLConnection#setDefaultRequestProperty(java.lang.String, java.lang.String)
+     * @param key the keyword by which the request is known (e.g., "accept").
+     * @return  the value of the default request property 
+     * for the specified key.
+     *
+     * @see java.net.URLConnection#getRequestProperty(java.lang.String)
+     *
+     * @deprecated The instance specific getRequestProperty method
+     * should be used after an appropriate instance of URLConnection
+     * is obtained.
+     *
+     * @see #setDefaultRequestProperty(java.lang.String, java.lang.String)
      */
     public static String getDefaultRequestProperty(String key) {
 	return null;
@@ -987,10 +1049,21 @@ public abstract class URLConnection {
 	    String packagePrefix = packagePrefixIter.nextToken().trim();
 
 	    try {
-		String name = packagePrefix + "." + contentHandlerClassName;
-		ContentHandler handler =
-		    (ContentHandler) Class.forName(name).newInstance();
-		return handler;
+		String clsName = packagePrefix + "." + contentHandlerClassName;
+		Class cls = null;
+		try {
+		    cls = Class.forName(clsName);
+		} catch (ClassNotFoundException e) {
+		    ClassLoader cl = ClassLoader.getSystemClassLoader();
+		    if (cl != null) {
+			cls = cl.loadClass(clsName);
+		    }
+		}
+		if (cls != null) {
+		    ContentHandler handler = 
+			(ContentHandler)cls.newInstance();
+		    return handler;
+		}
 	    } catch(Exception e) {
 	    }
 	}
@@ -1104,6 +1177,10 @@ public abstract class URLConnection {
 	    return "image/x-bitmap";
 	if (c1 == '!' && c2 == ' ' && c3 == 'X' && c4 == 'P' && c5 == 'M' && c6 == '2')
 	    return "image/x-pixmap";
+	if (c1 == 137 && c2 == 80 && c3 == 78 && 
+		c4 == 71 && c5 == 13 && c6 == 10 &&
+		c7 == 26 && c8 == 10)
+	  return "image/png";
 
 	if (c1 == 0x2E && c2 == 0x73 && c3 == 0x6E && c4 == 0x64)
 	    return "audio/basic";  // .au format, big endian

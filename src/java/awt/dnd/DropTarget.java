@@ -1,8 +1,11 @@
 /*
- * @(#)DropTarget.java	1.30 01/11/29
+ * @(#)DropTarget.java	1.34 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.dnd;
@@ -38,8 +41,8 @@ import java.awt.dnd.peer.DropTargetPeer;
  * wishes
  * to accept drops during Drag and Drop operations. 
  * 
- * @version 1.30
- * @since JDK1.2
+ * @version 	1.34, 02/02/00
+ * @since 1.2
  */
 
 public class DropTarget implements DropTargetListener, Serializable {
@@ -61,6 +64,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * if the <code>DropTarget</code> is currently accepting drops, and 
      * a <code>FlavorMap</code> to use (or null).
      * <P>
+     * The Component will receive drops only if it is enabled.
      * @param c 	The <code>Component</code> with which this <code>DropTarget</code> is associated
      * @param ops	The default acceptable actions for this <code>DropTarget</code>
      * @param dtl	The <code>DropTargetListener</code> for this <code>DropTarget</code>
@@ -98,6 +102,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * to handle event processing, and a <code>boolean</code> indicating 
      * if the <code>DropTarget</code> is currently accepting drops.
      * <P>
+     * The Component will receive drops only if it is enabled.
      * @param c 	The <code>Component</code> with which this <code>DropTarget</code> is associated
      * @param ops	The default acceptable actions for this <code>DropTarget</code>
      * @param dtl	The <code>DropTargetListener</code> for this <code>DropTarget</code>
@@ -122,6 +127,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * to associate itself with, and the <code>DropTargetListener</code>
      * to handle event processing.
      * <P>
+     * The Component will receive drops only if it is enabled.
      * @param c 	The <code>Component</code> with which this <code>DropTarget</code> is associated
      * @param dtl	The <code>DropTargetListener</code> for this <code>DropTarget</code>
      */
@@ -136,6 +142,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * the default acceptable action(s) to support, and a
      * <code>DropTargetListener</code> to handle event processing.
      * <P>
+     * The Component will receive drops only if it is enabled.
      * @param c 	The <code>Component</code> with which this <code>DropTarget</code> is associated
      * @param ops	The default acceptable actions for this <code>DropTarget</code>
      * @param dtl	The <code>DropTargetListener</code> for this <code>DropTarget</code>
@@ -151,6 +158,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * <code> component.setDropTarget(droptarget); </code>
      * or <code> droptarget.setComponent(component); </code>
      * <P>
+     * The Component will receive drops only if it is enabled.
      * @param c The new <code>Component</code> this <code>DropTarget</code> 
      * is to be associated with.<P>
      */

@@ -1,8 +1,11 @@
 /*
- * @(#)TreeCellRenderer.java	1.14 01/11/29
+ * @(#)TreeCellRenderer.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.tree;
 
@@ -11,8 +14,13 @@ import javax.swing.JTree;
 
 /**
  * Defines the requirements for an object that displays a tree node.
+ * See <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
+ * in <em>The Java Tutorial</em>
+ * for an example of implementing a tree cell renderer
+ * that displays custom icons.
  *
- * @version 1.14 11/29/01
+ * @version 1.16 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet

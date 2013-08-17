@@ -1,8 +1,11 @@
 /*
- * @(#)BasicOptionPaneUI.java	1.31 01/11/29
+ * @(#)BasicOptionPaneUI.java	1.36 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -11,6 +14,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.OptionPaneUI;
 import java.awt.*;
@@ -42,7 +46,7 @@ import java.beans.PropertyChangeListener;
  * The Container, message, icon, and buttons are all determined from
  * abstract methods.
  * 
- * @version 1.31 11/29/01
+ * @version 1.36 02/02/00
  * @author James Gosling
  * @author Scott Violet
  * @author Amy Fowler
@@ -155,25 +159,49 @@ public class BasicOptionPaneUI extends OptionPaneUI {
     }
 
     protected void installKeyboardActions() {
-        // REMIND(aim,7/29/98): These actions should be broken
-        // out into protected inner classes in the next release where
-        // API changes are allowed
-        //
-        optionPane.registerKeyboardAction(
-            new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
-                }
-            },
-            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), 
-            JComponent.WHEN_IN_FOCUSED_WINDOW);
+	InputMap map = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+	SwingUtilities.replaceUIInputMap(optionPane, JComponent.
+				       WHEN_IN_FOCUSED_WINDOW, map);
+	ActionMap actionMap = getActionMap();
+
+	SwingUtilities.replaceUIActionMap(optionPane, actionMap);
     }
 
     protected void uninstallKeyboardActions() {
-        optionPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 
-                                                                   0));
+	SwingUtilities.replaceUIInputMap(optionPane, JComponent.
+				       WHEN_IN_FOCUSED_WINDOW, null);
+	SwingUtilities.replaceUIActionMap(optionPane, null);
     }
 
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
+	    Object[] bindings = (Object[])UIManager.get
+		                ("OptionPane.windowBindings");
+	    if (bindings != null) {
+		return LookAndFeel.makeComponentInputMap(optionPane, bindings);
+	    }
+	}
+	return null;
+    }
+
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("OptionPane.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("OptionPane.actionMap", map);
+	    }
+	}
+	return map;
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("close", new CloseAction());
+	return map;
+    }
 
     /**
      * Returns the minimum size the option pane should be. Primarily
@@ -287,10 +315,20 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    return;
         }
 	if (msg instanceof Component) {
-	    cons.fill = GridBagConstraints.HORIZONTAL;
+            // To workaround problem where Gridbad will set child
+            // to its minimum size if its preferred size will not fit
+            // within allocated cells
+            if (msg instanceof JScrollPane || msg instanceof JPanel) {
+                cons.fill = GridBagConstraints.BOTH;
+                cons.weighty = 1;
+            } else {
+	        cons.fill = GridBagConstraints.HORIZONTAL;
+            }
 	    cons.weightx = 1;
+
 	    container.add((Component) msg, cons);
 	    cons.weightx = 0;
+            cons.weighty = 0;
 	    cons.fill = GridBagConstraints.NONE;
 	    cons.gridy++;
 	    if (!internallyCreated) {
@@ -396,7 +434,10 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		    JTextField         tf = new JTextField(20);
 
 		    if (inputValue != null) {
-			tf.setText(inputValue.toString());
+                        String inputString = inputValue.toString();
+			tf.setText(inputString);
+                        tf.setSelectionStart(0);
+                        tf.setSelectionEnd(inputString.length());
                     }
 		    tf.addActionListener(new TextFieldActionListener());
 		    toAdd = inputComponent = tf;
@@ -1012,6 +1053,22 @@ public class BasicOptionPaneUI extends OptionPaneUI {
     {
 	public void actionPerformed(ActionEvent e) {
 	    optionPane.setInputValue(((JTextField)e.getSource()).getText());
+	}
+    }
+
+
+    // REMIND(aim,7/29/98): These actions should be broken
+    // out into protected inner classes in the next release where
+    // API changes are allowed
+    /**
+     * Registered in the ActionMap. Sets the value of the option pane
+     * to <code>JOptionPane.CLOSED_OPTION</code>.
+     */
+    private static class CloseAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JOptionPane optionPane = (JOptionPane)e.getSource();
+
+	    optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
 	}
     }
 }

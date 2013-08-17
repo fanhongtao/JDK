@@ -1,16 +1,21 @@
 /*
- * @(#)Checkbox.java	1.50 01/11/29
+ * @(#)Checkbox.java	1.59 00/03/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.CheckboxPeer;
 import java.awt.event.*;
+import java.util.EventListener;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import javax.accessibility.*;
 
 
 /**
@@ -48,13 +53,13 @@ import java.io.IOException;
  * forces any other check box in the same group that is on
  * into the "off" state.
  *
- * @version	1.50 11/29/01
+ * @version	1.59 03/14/00
  * @author 	Sami Shaio
  * @see         java.awt.GridLayout
  * @see         java.awt.CheckboxGroup
  * @since       JDK1.0
  */
-public class Checkbox extends Component implements ItemSelectable {
+public class Checkbox extends Component implements ItemSelectable, Accessible {
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -76,7 +81,7 @@ public class Checkbox extends Component implements ItemSelectable {
      * The state of the Checkbox.
 	 * @serial
      * @see getState()
-     * @see setLabel()
+     * @see setState()
      */
     boolean state;
 
@@ -357,6 +362,30 @@ public class Checkbox extends Component implements ItemSelectable {
         itemListener = AWTEventMulticaster.remove(itemListener, l);
     }
 
+    /**
+     * Return an array of all the listeners that were added to the Checkbox
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the ItemListener(s) for the
+     * given Checkbox <code>c</code>, one would write:
+     * <pre>
+     * ItemListener[] ils = (ItemListener[])(c.getListeners(ItemListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return	 all of the listeners of the specified type supported by this checkbox
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == ItemListener.class) { 
+	    l = itemListener;
+	} else {
+	    return super.getListeners(listenerType);
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
+    }
+
     // REMIND: remove when filtering is done at lower level
     boolean eventEnabled(AWTEvent e) {
         if (e.id == ItemEvent.ITEM_STATE_CHANGED) {
@@ -491,4 +520,185 @@ public class Checkbox extends Component implements ItemSelectable {
      * Initialize JNI field and method ids
      */
     private static native void initIDs();
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+
+    /**
+     * Gets the AccessibleContext associated with this Checkbox. 
+     * For checkboxes, the AccessibleContext takes the form of an 
+     * AccessibleAWTCheckbox. 
+     * A new AccessibleAWTCheckbox is created if necessary.
+     *
+     * @return an AccessibleAWTCheckbox that serves as the 
+     *         AccessibleContext of this Checkbox
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTCheckbox();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Checkbox</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to checkbox user-interface elements.
+     */
+    protected class AccessibleAWTCheckbox extends AccessibleAWTComponent
+        implements ItemListener, AccessibleAction, AccessibleValue {
+
+	public AccessibleAWTCheckbox() {
+	    super();
+	    Checkbox.this.addItemListener(this);
+	}
+
+	/**
+	 * Fire accessible property change events when the state of the
+	 * toggle button changes.
+	 */
+        public void itemStateChanged(ItemEvent e) {
+            Checkbox cb = (Checkbox) e.getSource();
+            if (Checkbox.this.accessibleContext != null) {
+                if (cb.getState()) {
+                    Checkbox.this.accessibleContext.firePropertyChange(
+                            AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                            null, AccessibleState.CHECKED);
+                } else {
+                    Checkbox.this.accessibleContext.firePropertyChange(
+                            AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                            AccessibleState.CHECKED, null);
+                }
+            }
+        }
+
+        /**
+         * Get the AccessibleAction associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleAction interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleAction getAccessibleAction() {
+            return this;
+        }
+
+        /**
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleValue getAccessibleValue() {
+            return this;
+        }
+
+        /**
+         * Returns the number of Actions available in this object.
+         * If there is more than one, the first one is the "default"
+         * action.
+         *
+         * @return the number of Actions in this object
+         */
+        public int getAccessibleActionCount() {
+            return 0;  //  To be fully implemented in a future release
+        }
+
+        /**
+         * Return a description of the specified action of the object.
+         *
+         * @param i zero-based index of the actions
+         */
+        public String getAccessibleActionDescription(int i) {
+            return null;  //  To be fully implemented in a future release
+        }
+
+        /**
+         * Perform the specified Action on the object
+         *
+         * @param i zero-based index of actions
+         * @return true if the the action was performed; else false.
+         */
+        public boolean doAccessibleAction(int i) {
+            return false;    //  To be fully implemented in a future release
+        }
+
+	/**
+	 * Get the value of this object as a Number.  If the value has not been
+	 * set, the return value will be null.
+	 *
+	 * @return value of the object
+	 * @see #setCurrentAccessibleValue
+	 */
+	public Number getCurrentAccessibleValue() {
+	    return null;  //  To be fully implemented in a future release
+	}
+
+	/**
+	 * Set the value of this object as a Number.
+	 *
+	 * @return True if the value was set; else False
+	 * @see #getCurrentAccessibleValue
+	 */
+	public boolean setCurrentAccessibleValue(Number n) {
+	    return false;  //  To be fully implemented in a future release
+	}
+
+	/**
+	 * Get the minimum value of this object as a Number.
+	 *
+	 * @return Minimum value of the object; null if this object does not
+	 * have a minimum value
+	 * @see #getMaximumAccessibleValue
+	 */
+	public Number getMinimumAccessibleValue() {
+	    return null;  //  To be fully implemented in a future release
+	}
+
+	/**
+	 * Get the maximum value of this object as a Number.
+	 *
+	 * @return Maximum value of the object; null if this object does not
+	 * have a maximum value
+	 * @see #getMinimumAccessibleValue
+	 */
+	public Number getMaximumAccessibleValue() {
+	    return null;  //  To be fully implemented in a future release
+	}
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of 
+	 * the object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.CHECK_BOX;
+        }
+
+        /**
+         * Get the state set of this object.
+         *
+         * @return an instance of AccessibleState containing the current state
+         * of the object
+         * @see AccessibleState
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (getState()) {
+                states.add(AccessibleState.CHECKED);
+            }
+            return states;
+        }
+
+
+    } // inner class AccessibleAWTCheckbox
+
 }

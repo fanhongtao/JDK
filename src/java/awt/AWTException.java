@@ -1,8 +1,11 @@
 /*
- * @(#)AWTException.java	1.12 01/11/29
+ * @(#)AWTException.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -10,7 +13,7 @@ package java.awt;
 /**
  * Signals that an Absract Window Toolkit exception has occurred.
  *
- * @version 	1.12 11/29/01
+ * @version 	1.13 02/02/00
  * @author 	Arthur van Hoff
  */
 public class AWTException extends Exception {

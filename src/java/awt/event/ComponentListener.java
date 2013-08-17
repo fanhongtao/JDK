@@ -1,8 +1,11 @@
 /*
- * @(#)ComponentListener.java	1.11 01/11/29
+ * @(#)ComponentListener.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -31,8 +34,9 @@ import java.util.EventListener;
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/componentlistener.html">Tutorial: Writing a Component Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.11 11/29/01
  * @author Carl Quinn
+ * @version 1.13 02/02/00
+ * @since 1.1
  */
 public interface ComponentListener extends EventListener {
     /**

@@ -1,8 +1,11 @@
 /*
- * @(#)ThreadGroup.java	1.46 01/11/29
+ * @(#)ThreadGroup.java	1.51 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -21,7 +24,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.46, 11/29/01
+ * @version 1.51, 02/02/00
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -125,9 +128,11 @@ class ThreadGroup {
      *
      * @return  the parent of this thread group. The top-level thread group
      *          is the only thread group whose parent is <code>null</code>.
-     * @exception  SecurityException  if the current thread cannot access
-     *               the parent thread group.
+     * @exception  SecurityException  if the current thread cannot modify
+     *               this thread group.
      * @see        java.lang.ThreadGroup#checkAccess()
+     * @see        java.lang.SecurityException
+     * @see        java.lang.RuntimePermission
      * @since   JDK1.0
      */
     public final ThreadGroup getParent() {
@@ -143,6 +148,7 @@ class ThreadGroup {
      *
      * @return  the maximum priority that a thread in this thread group
      *          can have.
+     * @see     #setMaxPriority
      * @since   JDK1.0
      */
     public final int getMaxPriority() {
@@ -165,6 +171,7 @@ class ThreadGroup {
     /**
      * Tests if this thread group has been destroyed.
      *
+     * @return  true if this object is destroyed
      * @since   JDK1.1
      */
     public synchronized boolean isDestroyed() {
@@ -206,6 +213,7 @@ class ThreadGroup {
      * @param      pri   the new priority of the thread group.
      * @exception  SecurityException  if the current thread cannot modify
      *               this thread group.
+     * @see        #getMaxPriority
      * @see        java.lang.SecurityException
      * @see        java.lang.ThreadGroup#checkAccess()
      * @since      JDK1.0
@@ -547,7 +555,7 @@ class ThreadGroup {
      * @see        java.lang.Thread#interrupt()
      * @see        java.lang.SecurityException
      * @see        java.lang.ThreadGroup#checkAccess()
-     * @since      JDK1.2
+     * @since      1.2
      */
     public final void interrupt() {
 	int ngroupsSnapshot;
@@ -900,6 +908,8 @@ class ThreadGroup {
     /**
      * Used by VM to control lowmem implicit suspension.
      *
+     * @param b boolean to allow or disallow suspension
+     * @return true on success
      * @since   JDK1.1
      * @deprecated The definition of this call depends on {@link #suspend},
      *		   which is deprecated.  Further, the behavior of this call

@@ -1,8 +1,11 @@
 /*
- * @(#)BasicMenuUI.java	1.121 01/11/29
+ * @(#)BasicMenuUI.java	1.129 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -20,7 +23,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.121 11/29/01
+ * @version 1.129 04/06/00
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -32,6 +35,14 @@ public class BasicMenuUI extends BasicMenuItemUI
     protected MenuListener           menuListener;
 
     private int lastMnemonic = 0;
+
+    /** Uses as the parent of the windowInputMap when selected. */
+    private InputMap selectedWindowInputMap;
+
+    /* diagnostic aids -- should be false for production builds. */
+    private static final boolean TRACE =   false; // trace creates and disposes
+    private static final boolean VERBOSE = false; // show reuse hits/misses
+    private static final boolean DEBUG =   false;  // show bad params, misc.
 
     public static ComponentUI createUI(JComponent x) {
 	return new BasicMenuUI();
@@ -59,27 +70,81 @@ public class BasicMenuUI extends BasicMenuItemUI
     }
 
     protected void installKeyboardActions() {
-        if(menuItem.getModel().getMnemonic() != lastMnemonic) {
-            menuItem.unregisterKeyboardAction(
-		     KeyStroke.getKeyStroke(lastMnemonic,
-					    ActionEvent.ALT_MASK,
-					    false));
-            lastMnemonic = menuItem.getModel().getMnemonic();
-            menuItem.registerKeyboardAction(
-		     new PostAction((JMenu)menuItem, true),            
-		     KeyStroke.getKeyStroke(lastMnemonic,
-					    ActionEvent.ALT_MASK,
-					    false),
-		     JComponent.WHEN_IN_FOCUSED_WINDOW);
-        } 
+	super.installKeyboardActions();
+	updateMnemonicBinding();
+    }
+
+    void updateMnemonicBinding() {
+	int mnemonic = menuItem.getModel().getMnemonic();
+	if (mnemonic == lastMnemonic) {
+	    return;
+	}
+	if (lastMnemonic != 0 && windowInputMap != null) {
+	    windowInputMap.remove(KeyStroke.getKeyStroke
+				(lastMnemonic, ActionEvent.ALT_MASK, false));
+	}
+	if (mnemonic != 0) {
+	    if (windowInputMap == null) {
+		windowInputMap = createInputMap(JComponent.
+					      WHEN_IN_FOCUSED_WINDOW);
+		SwingUtilities.replaceUIInputMap(menuItem, JComponent.
+				       WHEN_IN_FOCUSED_WINDOW, windowInputMap);
+	    }
+	    windowInputMap.put(KeyStroke.getKeyStroke(mnemonic,
+						    ActionEvent.ALT_MASK,
+						    false),
+			     "selectMenu");
+        }
+	lastMnemonic = mnemonic;
     }
 
     protected void uninstallKeyboardActions() {
-	menuItem.unregisterKeyboardAction(
-			  KeyStroke.getKeyStroke(lastMnemonic,
-						 ActionEvent.ALT_MASK,
-						 false));
-	lastMnemonic = 0;
+	super.uninstallKeyboardActions();
+    }
+
+    /**
+     * The ActionMap for BasicMenUI can not be shared, this is subclassed
+     * to create a new one for each invocation.
+     */
+    ActionMap getActionMap() {
+	return createActionMap();
+    }
+
+    /**
+     * Invoked to create the ActionMap.
+     */
+    ActionMap createActionMap() {
+	ActionMap am = super.createActionMap();
+	if (am != null) {
+	    am.put("selectMenu", new PostAction((JMenu)menuItem, true));
+	    // Get the ActionMap that can be shared.
+	    ActionMap parent = (ActionMap)UIManager.
+		               get("Menu.sharedActionMap");
+	    if (parent == null) {
+		parent = createSharedActionMap();
+		if (parent != null) {
+		    UIManager.put("MenuUI.sharedActionMap", parent);
+		}
+	    }
+	    if (parent != null) {
+		am.setParent(parent);
+	    }
+	}
+	return am;
+    }
+
+    /**
+     * Creates the ActionMap containing the actions that can be shared.
+     */
+    ActionMap createSharedActionMap() {
+	ActionMap am = new ActionMapUIResource();
+	am.put("cancel", new CancelAction());
+	am.put("selectNext", new SelectNextItemAction());
+	am.put("selectPrevious", new SelectPreviousItemAction());
+	am.put("selectParent", new SelectParentItemAction());
+	am.put("selectChild", new SelectChildItemAction());
+	am.put("return", new ReturnAction());
+	return am;
     }
 
     protected MouseInputListener createMouseInputListener(JComponent c) {
@@ -138,7 +203,7 @@ public class BasicMenuUI extends BasicMenuItemUI
         timer.start();
     }
 
-    private static class PostAction implements ActionListener {
+    private static class PostAction extends AbstractAction {
 	JMenu menu;
         boolean force=false;
 
@@ -148,13 +213,18 @@ public class BasicMenuUI extends BasicMenuItemUI
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-            MenuSelectionManager defaultManager = MenuSelectionManager.defaultManager();
+	    /* Must be commented out to work around compiler bug (4242000)
+	       if (DEBUG) {
+		System.out.println("In PostAction.actionPerformed");
+		Thread.dumpStack();
+	    } */
+	    final MenuSelectionManager defaultManager = MenuSelectionManager.defaultManager();
             if(force) {
                 Container cnt = menu.getParent();
                 if(cnt != null && cnt instanceof JMenuBar) {
-                    MenuElement me[];
+                    final MenuElement me[];
                     MenuElement subElements[];
-
+		    
                     subElements = menu.getPopupMenu().getSubElements();
                     if(subElements.length > 0) {
                         me = new MenuElement[4];
@@ -162,14 +232,24 @@ public class BasicMenuUI extends BasicMenuItemUI
                         me[1] = (MenuElement) menu;
                         me[2] = (MenuElement) menu.getPopupMenu();
                         me[3] = subElements[0];
-                        defaultManager.setSelectedPath(me);
                     } else {
-                        me = new MenuElement[2];
+                        me = new MenuElement[3];
                         me[0] = (MenuElement)cnt;
                         me[1] = menu;
-                        defaultManager.setSelectedPath(me);
+                        me[2] = (MenuElement) menu.getPopupMenu();
                     }
-                }
+		    // Clear the path now so that no menu items
+		    // of currently selected menus get a chance
+		    // at this KeyEvent
+		    defaultManager.clearSelectedPath();
+		    // Fixes bug 4213634 by delaying menu posting
+		    // until after the keyTyped is processed.
+		    SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+			    defaultManager.setSelectedPath(me);
+			}
+		    });
+		}
             } else {
                 MenuElement path[] = defaultManager.getSelectedPath();
                 if(path.length > 0 && path[path.length-1] == menu) {
@@ -191,7 +271,7 @@ public class BasicMenuUI extends BasicMenuItemUI
         public void propertyChange(PropertyChangeEvent e) {
 	    String prop = e.getPropertyName();
 	    if(prop.equals(AbstractButton.MNEMONIC_CHANGED_PROPERTY)) {
-		installKeyboardActions();
+		updateMnemonicBinding();
 	    }
 	}
     }
@@ -336,56 +416,37 @@ public class BasicMenuUI extends BasicMenuItemUI
                 if(isSelected) {
                     boolean isRequestFocusEnabled = menu.isRequestFocusEnabled();
                     wasFocused = findFocusedComponent(menu);
+		    if ((wasFocused instanceof JComponent) &&
+			((JComponent)wasFocused).getRootPane() != menu.getRootPane()) {
+		      wasFocused = null;
+		    }
                     if(!isRequestFocusEnabled)
                         menu.setRequestFocusEnabled(true);
                     menu.requestFocus();
                     if(!isRequestFocusEnabled)
                         menu.setRequestFocusEnabled(false);
-                    menu.registerKeyboardAction(new CancelAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectNextItemAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectNextItemAction(),
-                                                KeyStroke.getKeyStroke("KP_DOWN"),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectPreviousItemAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_UP,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectPreviousItemAction(),
-                                                KeyStroke.getKeyStroke("KP_UP"),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectParentItemAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectParentItemAction(),
-                                                KeyStroke.getKeyStroke("KP_LEFT"),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectChildItemAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new SelectChildItemAction(),
-                                                KeyStroke.getKeyStroke("KP_RIGHT"),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new ReturnAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    menu.registerKeyboardAction(new ReturnAction(),
-                                                KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0,false),
-                                                JComponent.WHEN_IN_FOCUSED_WINDOW);
+		    if (selectedWindowInputMap == null) {
+			Object[] bindings = (Object[])UIManager.get
+			          ("Menu.selectedWindowInputMapBindings");
+			if (bindings != null) {
+			    selectedWindowInputMap = LookAndFeel.
+				makeComponentInputMap(menuItem, bindings);
+			}
+		    }
+		    if (windowInputMap == null) {
+			windowInputMap = createInputMap(JComponent.
+						    WHEN_IN_FOCUSED_WINDOW);
+			SwingUtilities.replaceUIInputMap(menuItem, JComponent.
+						   WHEN_IN_FOCUSED_WINDOW,
+						   windowInputMap);
+		    }
+		    if (windowInputMap != null && selectedWindowInputMap != null) {
+			windowInputMap.setParent(selectedWindowInputMap);
+		    }
                 } else {
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0,false));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0,false));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_DOWN"));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,0,false));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_UP"));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0,false));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_LEFT"));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0,false));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_RIGHT"));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0,false));
-                    menu.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0,false));
+		    if (windowInputMap != null && selectedWindowInputMap != null) {
+			windowInputMap.setParent(null);
+		    }
                     if(wasFocused != null) {
                         if(wasFocused instanceof JComponent) {
                             JComponent jc = (JComponent) wasFocused;
@@ -402,278 +463,296 @@ public class BasicMenuUI extends BasicMenuItemUI
                 }
             }
         }
+    }
 
-        private class CancelAction implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-		JMenu menu = (JMenu)menuItem;
-		if (!menu.isEnabled())
-		    return;
+    private static class CancelAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    /* Must be commented out to work around compiler bug (4242000)
+	      if (DEBUG) {
+		System.out.println("In CancelAction.actionPerformed");
+		Thread.dumpStack();
+	    }
+	    */
+	    JMenu menu = (JMenu)e.getSource();
+	    if (!menu.isEnabled())
+		return;
 		
-                MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
-                if(path.length > 4) { /* PENDING(arnaud) Change this to 2 when a mouse grabber is available for MenuBar */
-                    MenuElement newPath[] = new MenuElement[path.length - 2];
-                    System.arraycopy(path,0,newPath,0,path.length-2);
-                    MenuSelectionManager.defaultManager().setSelectedPath(newPath);
-                } else
-                    MenuSelectionManager.defaultManager().clearSelectedPath();
-            }
-        }
+	    MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
+	    if(path.length > 4) { /* PENDING(arnaud) Change this to 2 when a mouse grabber is available for MenuBar */
+		MenuElement newPath[] = new MenuElement[path.length - 2];
+		System.arraycopy(path,0,newPath,0,path.length-2);
+		MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+	    } else
+		MenuSelectionManager.defaultManager().clearSelectedPath();
+	}
+    }
 
-        private class ReturnAction implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-		JMenu menu = (JMenu)menuItem;
-		if (!menu.isEnabled())
-		    return;
+    private class ReturnAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JMenu menu = (JMenu)e.getSource();
+	    if (!menu.isEnabled())
+		return;
 
-                MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
-                MenuElement lastElement;
-                if(path.length > 0) {
-                    lastElement = path[path.length-1];
-                    if(lastElement instanceof JMenu) {
-                        MenuElement newPath[] = new MenuElement[path.length+1];
-                        System.arraycopy(path,0,newPath,0,path.length);
-                        newPath[path.length] = ((JMenu)lastElement).getPopupMenu();
-                        MenuSelectionManager.defaultManager().setSelectedPath(newPath);
-                    } else if(lastElement instanceof JMenuItem) {
-                        MenuSelectionManager.defaultManager().clearSelectedPath();
-                        ((JMenuItem)lastElement).doClick(0);
-                        ((JMenuItem)lastElement).setArmed(false);
-                    }
-                }
-            }
-        }
-
-        private MenuElement nextEnabledChild(MenuElement e[],int fromIndex) {
-            int i,c;
-            for(i=fromIndex,c=e.length ; i < c ; i++) {
-		if (e[i]!=null) {
-		    Component comp = e[i].getComponent();
-		    if(comp != null && comp.isEnabled())
-			return e[i];
+	    MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
+	    MenuElement lastElement;
+	    if(path.length > 0) {
+		lastElement = path[path.length-1];
+		if(lastElement instanceof JMenu) {
+		    MenuElement newPath[] = new MenuElement[path.length+1];
+		    System.arraycopy(path,0,newPath,0,path.length);
+		    newPath[path.length] = ((JMenu)lastElement).getPopupMenu();
+		    MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+		} else if(lastElement instanceof JMenuItem) {
+		    MenuSelectionManager.defaultManager().clearSelectedPath();
+		    ((JMenuItem)lastElement).doClick(0);
+		    ((JMenuItem)lastElement).setArmed(false);
 		}
 	    }
-            return null;
-        }
+	}
+    }
 
-        private MenuElement previousEnabledChild(MenuElement e[],int fromIndex) {
-            int i;
-            for(i=fromIndex ; i >= 0 ; i--) {
-		if (e[i]!=null) {
-		    Component comp = e[i].getComponent();
-		    if(comp != null && comp.isEnabled())
-			return e[i];
+    private static MenuElement nextEnabledChild(MenuElement e[],int fromIndex) {
+	int i,c;
+	for(i=fromIndex,c=e.length ; i < c ; i++) {
+	    if (e[i]!=null) {
+		Component comp = e[i].getComponent();
+		if(comp != null && comp.isEnabled())
+		    return e[i];
+	    }
+	}
+	return null;
+    }
+
+    private static MenuElement previousEnabledChild(MenuElement e[],int fromIndex) {
+	int i;
+	for(i=fromIndex ; i >= 0 ; i--) {
+	    if (e[i]!=null) {
+		Component comp = e[i].getComponent();
+		if(comp != null && comp.isEnabled())
+		    return e[i];
+	    }
+	}
+	return null;
+    }
+
+    private static class SelectNextItemAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    /* Must be commented out to work around compiler bug (4242000)
+	      if (DEBUG) {
+		System.out.println("In SelectNextItemAction.actionPerformed");
+	    }
+	    */
+
+	    JMenu menu = (JMenu)e.getSource();
+	    if (!menu.isEnabled())
+		return;
+
+	    MenuElement currentSelection[] = MenuSelectionManager.defaultManager().getSelectedPath();
+	    if(currentSelection.length > 1) {
+		MenuElement parent = currentSelection[currentSelection.length-2];
+		if(parent.getComponent() instanceof JMenu) {
+		    MenuElement childs[];
+		    parent = currentSelection[currentSelection.length-1];
+		    childs = parent.getSubElements();
+		    if(childs.length > 0) {
+			MenuElement newPath[] = new MenuElement[currentSelection.length+1];
+			System.arraycopy(currentSelection,0,
+					 newPath,0,currentSelection.length);
+			newPath[currentSelection.length] = nextEnabledChild(childs,0);
+			if(newPath[currentSelection.length] != null) {
+			    MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+			}
+		    }
+		} else {
+		    MenuElement childs[] = parent.getSubElements();
+		    MenuElement nextChild;
+		    int i,c;
+		    for(i=0,c=childs.length;i<c;i++) {
+			if(childs[i] == currentSelection[currentSelection.length-1]) {
+			    nextChild = nextEnabledChild(childs,i+1);
+			    if(nextChild == null)
+				nextChild = nextEnabledChild(childs,0);
+			    if(nextChild != null) {
+				currentSelection[currentSelection.length-1] = nextChild;
+				MenuSelectionManager.defaultManager().setSelectedPath(currentSelection);
+			    }
+			    break;
+			}
+		    }
 		}
 	    }
-            return null;
-        }
+	}
+    }
 
-        private class SelectNextItemAction implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-		JMenu menu = (JMenu)menuItem;
-		if (!menu.isEnabled())
-		    return;
+    private static class SelectPreviousItemAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    /* Must be commented out to work around compiler bug (4242000)
+	      if (DEBUG) {
+		System.out.println("In SelectPreviousItemAction.actionPerformed");
+	    }
+	    */
+	    JMenu menu = (JMenu)e.getSource();
+	    if (!menu.isEnabled())
+		return;
 
-                MenuElement currentSelection[] = MenuSelectionManager.defaultManager().getSelectedPath();
-                if(currentSelection.length > 1) {
-                    MenuElement parent = currentSelection[currentSelection.length-2];
-                    if(parent.getComponent() instanceof JMenu) {
-                        MenuElement childs[];
-                        parent = currentSelection[currentSelection.length-1];
-                        childs = parent.getSubElements();
-                        if(childs.length > 0) {
-                            MenuElement newPath[] = new MenuElement[currentSelection.length+1];
-                            System.arraycopy(currentSelection,0,
-                                             newPath,0,currentSelection.length);
-                            newPath[currentSelection.length] = nextEnabledChild(childs,0);
-                            if(newPath[currentSelection.length] != null)
-                                MenuSelectionManager.defaultManager().setSelectedPath(newPath);
-                        }
-                    } else {
-                        MenuElement childs[] = parent.getSubElements();
-                        MenuElement nextChild;
-                        int i,c;
-                        for(i=0,c=childs.length;i<c;i++) {
-                            if(childs[i] == currentSelection[currentSelection.length-1]) {
-                                nextChild = nextEnabledChild(childs,i+1);
-                                if(nextChild == null)
-                                    nextChild = nextEnabledChild(childs,0);
-                                if(nextChild != null) {
-                                    currentSelection[currentSelection.length-1] = nextChild;
-                                    MenuSelectionManager.defaultManager().setSelectedPath(currentSelection);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+	    MenuElement currentSelection[] = MenuSelectionManager.defaultManager().getSelectedPath();
+	    if(currentSelection.length > 1) {
+		MenuElement parent = currentSelection[currentSelection.length-2];
+		if(parent.getComponent() instanceof JMenu) {
+		    MenuElement childs[];
+		    parent = currentSelection[currentSelection.length-1];
+		    childs = parent.getSubElements();
+		    if(childs.length > 0) {
+			MenuElement newPath[] = new MenuElement[currentSelection.length+1];
+			System.arraycopy(currentSelection,0,
+					 newPath,0,currentSelection.length);
+			newPath[currentSelection.length] = previousEnabledChild(childs,childs.length-1);
+			if(newPath[currentSelection.length] != null)
+			    MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+		    }
+		} else {
+		    MenuElement childs[] = parent.getSubElements();
+		    MenuElement nextChild;
+		    int i,c;
+		    for(i=0,c=childs.length;i<c;i++) {
+			if(childs[i] == currentSelection[currentSelection.length-1]) {
+			    nextChild = previousEnabledChild(childs,i-1);
+			    if(nextChild == null)
+				nextChild = previousEnabledChild(childs,childs.length-1);
+			    if(nextChild != null) {
+				currentSelection[currentSelection.length-1] = nextChild;
+				MenuSelectionManager.defaultManager().setSelectedPath(currentSelection);
+			    }
+			    break;
+			}
+		    }
+		}
+	    }
+	}
+    }
 
-        private class SelectPreviousItemAction implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-		JMenu menu = (JMenu)menuItem;
-		if (!menu.isEnabled())
-		    return;
+    private static class SelectParentItemAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JMenu menu = (JMenu)e.getSource();
+	    if (!menu.isEnabled())
+		return;
 
-                MenuElement currentSelection[] = MenuSelectionManager.defaultManager().getSelectedPath();
-                if(currentSelection.length > 1) {
-                    MenuElement parent = currentSelection[currentSelection.length-2];
-                    if(parent.getComponent() instanceof JMenu) {
-                        MenuElement childs[];
-                        parent = currentSelection[currentSelection.length-1];
-                        childs = parent.getSubElements();
-                        if(childs.length > 0) {
-                            MenuElement newPath[] = new MenuElement[currentSelection.length+1];
-                            System.arraycopy(currentSelection,0,
-                                             newPath,0,currentSelection.length);
-                            newPath[currentSelection.length] = previousEnabledChild(childs,childs.length-1);
-                            if(newPath[currentSelection.length] != null)
-                                MenuSelectionManager.defaultManager().setSelectedPath(newPath);
-                        }
-                    } else {
-                        MenuElement childs[] = parent.getSubElements();
-                        MenuElement nextChild;
-                        int i,c;
-                        for(i=0,c=childs.length;i<c;i++) {
-                            if(childs[i] == currentSelection[currentSelection.length-1]) {
-                                nextChild = previousEnabledChild(childs,i-1);
-                                if(nextChild == null)
-                                    nextChild = previousEnabledChild(childs,childs.length-1);
-                                if(nextChild != null) {
-                                    currentSelection[currentSelection.length-1] = nextChild;
-                                    MenuSelectionManager.defaultManager().setSelectedPath(currentSelection);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private class SelectParentItemAction implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-		JMenu menu = (JMenu)menuItem;
-		if (!menu.isEnabled())
-		    return;
-
-                MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
+	    MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
                 
-                if(path.length > 3 && path[path.length-3].getComponent() instanceof JMenu &&
-                   !((JMenu)path[path.length-3].getComponent()).isTopLevelMenu()) {
-                    MenuElement newPath[] = new MenuElement[path.length-2];
-                    System.arraycopy(path,0,newPath,0,path.length-2);
-                    MenuSelectionManager.defaultManager().setSelectedPath(newPath);
-                } else if(path.length > 0 && path[0].getComponent() instanceof JMenuBar) {
-                    MenuElement nextMenu=null,popup=null,firstItem=null;
-                    MenuElement tmp[];
-                    int i,c;
+	    if(path.length > 3 && path[path.length-3].getComponent() instanceof JMenu &&
+	       !((JMenu)path[path.length-3].getComponent()).isTopLevelMenu()) {
+		MenuElement newPath[] = new MenuElement[path.length-2];
+		System.arraycopy(path,0,newPath,0,path.length-2);
+		MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+	    } else if(path.length > 0 && path[0].getComponent() instanceof JMenuBar) {
+		MenuElement nextMenu=null,popup=null,firstItem=null;
+		MenuElement tmp[];
+		int i,c;
                     
-                    if(path.length > 1) {
-                        MenuElement previousElement;
-                        tmp = path[0].getSubElements();
-                        for(i=0,c=tmp.length;i<c;i++) {
-                            if(tmp[i] == path[1]) {
-                                nextMenu = previousEnabledChild(tmp,i-1);
-                                if(nextMenu == null)
-                                    nextMenu = previousEnabledChild(tmp,tmp.length-1);
-                            }
-                        }
-                    }
+		if(path.length > 1) {
+		    MenuElement previousElement;
+		    tmp = path[0].getSubElements();
+		    for(i=0,c=tmp.length;i<c;i++) {
+			if(tmp[i] == path[1]) {
+			    nextMenu = previousEnabledChild(tmp,i-1);
+			    if(nextMenu == null)
+				nextMenu = previousEnabledChild(tmp,tmp.length-1);
+			}
+		    }
+		}
                     
-                    if(nextMenu != null) {
-                        MenuElement newSelection[];
-                        popup = ((JMenu)nextMenu).getPopupMenu();
-                        if(((JMenu)nextMenu).isTopLevelMenu()) 
-                            firstItem = null;
-                        else {
-                            tmp = popup.getSubElements();
-                            if(tmp.length > 0) 
-                                firstItem = nextEnabledChild(tmp,0);
-                        }
+		if(nextMenu != null) {
+		    MenuElement newSelection[];
+		    popup = ((JMenu)nextMenu).getPopupMenu();
+		    if(((JMenu)nextMenu).isTopLevelMenu()) 
+			firstItem = null;
+		    else {
+			tmp = popup.getSubElements();
+			if(tmp.length > 0) 
+			    firstItem = nextEnabledChild(tmp,0);
+		    }
 
-                        if(firstItem != null) {
-                            newSelection = new MenuElement[4];
-                            newSelection[0] = path[0];
-                            newSelection[1] = nextMenu;
-                            newSelection[2] = popup;
-                            newSelection[3] = firstItem;
-                        } else {
-                            newSelection = new MenuElement[3];
-                            newSelection[0] = path[0];
-                            newSelection[1] = nextMenu;
-                            newSelection[2] = popup;
-                        }
-                        MenuSelectionManager.defaultManager().setSelectedPath(newSelection);
-                    }
-                }
-            }
-        }
+		    if(firstItem != null) {
+			newSelection = new MenuElement[4];
+			newSelection[0] = path[0];
+			newSelection[1] = nextMenu;
+			newSelection[2] = popup;
+			newSelection[3] = firstItem;
+		    } else {
+			newSelection = new MenuElement[3];
+			newSelection[0] = path[0];
+			newSelection[1] = nextMenu;
+			newSelection[2] = popup;
+		    }
+		    MenuSelectionManager.defaultManager().setSelectedPath(newSelection);
+		}
+	    }
+	}
+    }
 
-        private class SelectChildItemAction implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-		JMenu menu = (JMenu)menuItem;
-		if (!menu.isEnabled())
-		    return;
+    private static class SelectChildItemAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JMenu menu = (JMenu)e.getSource();
+	    if (!menu.isEnabled())
+		return;
 
-                MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
+	    MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
                 
-                if(path.length > 0 && path[path.length-1].getComponent().isEnabled() && 
-                   path[path.length-1].getComponent() instanceof JMenu &&
-                   !((JMenu)path[path.length-1].getComponent()).isTopLevelMenu()) {
-                    MenuElement newPath[] = new MenuElement[path.length+2];
-                    MenuElement subElements[];
-                    System.arraycopy(path,0,newPath,0,path.length);
-                    newPath[path.length] = ((JMenu)path[path.length-1].getComponent()).getPopupMenu();
-                    subElements = newPath[path.length].getSubElements();
-                    if(subElements.length > 0) {
-                        newPath[path.length+1] = nextEnabledChild(subElements,0);
-                        MenuSelectionManager.defaultManager().setSelectedPath(newPath);
-                    }
-                } else if(path.length > 0 && path[0].getComponent() instanceof JMenuBar) {
-                    MenuElement nextMenu=null,popup=null,firstItem=null;
-                    MenuElement tmp[];
-                    int i,c;
+	    if(path.length > 0 && path[path.length-1].getComponent().isEnabled() && 
+	       path[path.length-1].getComponent() instanceof JMenu &&
+	       !((JMenu)path[path.length-1].getComponent()).isTopLevelMenu()) {
+		MenuElement newPath[] = new MenuElement[path.length+2];
+		MenuElement subElements[];
+		System.arraycopy(path,0,newPath,0,path.length);
+		newPath[path.length] = ((JMenu)path[path.length-1].getComponent()).getPopupMenu();
+		subElements = newPath[path.length].getSubElements();
+		if(subElements.length > 0) {
+		    newPath[path.length+1] = nextEnabledChild(subElements,0);
+		    MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+		}
+	    } else if(path.length > 0 && path[0].getComponent() instanceof JMenuBar) {
+		MenuElement nextMenu=null,popup=null,firstItem=null;
+		MenuElement tmp[];
+		int i,c;
                     
-                    if(path.length > 1) {
-                        tmp = path[0].getSubElements();
-                        for(i=0,c=tmp.length;i<c;i++) {
-                            if(tmp[i] == path[1]) {
-                                nextMenu = nextEnabledChild(tmp,i+1);
-                                if(nextMenu == null)
-                                    nextMenu = nextEnabledChild(tmp,0);
-                            }
-                        }
-                    }
+		if(path.length > 1) {
+		    tmp = path[0].getSubElements();
+		    for(i=0,c=tmp.length;i<c;i++) {
+			if(tmp[i] == path[1]) {
+			    nextMenu = nextEnabledChild(tmp,i+1);
+			    if(nextMenu == null)
+				nextMenu = nextEnabledChild(tmp,0);
+			}
+		    }
+		}
                     
-                    if(nextMenu != null) {
-                        MenuElement newSelection[];
-                        popup = ((JMenu)nextMenu).getPopupMenu();
-                        if(((JMenu)nextMenu).isTopLevelMenu()) 
-                            firstItem = null;
-                        else {
-                            tmp = popup.getSubElements();
-                            if(tmp.length > 0) 
-                                firstItem = nextEnabledChild(tmp,0);
-                        }
+		if(nextMenu != null) {
+		    MenuElement newSelection[];
+		    popup = ((JMenu)nextMenu).getPopupMenu();
+		    if(((JMenu)nextMenu).isTopLevelMenu()) 
+			firstItem = null;
+		    else {
+			tmp = popup.getSubElements();
+			if(tmp.length > 0) 
+			    firstItem = nextEnabledChild(tmp,0);
+		    }
 
-                        if(firstItem != null) {
-                            newSelection = new MenuElement[4];
-                            newSelection[0] = path[0];
-                            newSelection[1] = nextMenu;
-                            newSelection[2] = popup;
-                            newSelection[3] = firstItem;
-                        } else {
-                            newSelection = new MenuElement[3];
-                            newSelection[0] = path[0];
-                            newSelection[1] = nextMenu;
-                            newSelection[2] = popup;
-                        }
-                        MenuSelectionManager.defaultManager().setSelectedPath(newSelection);
-                    }
-                }
-            }
-        }
+		    if(firstItem != null) {
+			newSelection = new MenuElement[4];
+			newSelection[0] = path[0];
+			newSelection[1] = nextMenu;
+			newSelection[2] = popup;
+			newSelection[3] = firstItem;
+		    } else {
+			newSelection = new MenuElement[3];
+			newSelection[0] = path[0];
+			newSelection[1] = nextMenu;
+			newSelection[2] = popup;
+		    }
+		    MenuSelectionManager.defaultManager().setSelectedPath(newSelection);
+		}
+	    }
+	}
     }
 
 
@@ -718,7 +797,25 @@ public class BasicMenuUI extends BasicMenuItemUI
     }
 
     private class MenuKeyHandler implements MenuKeyListener {
-	public void menuKeyTyped(MenuKeyEvent e) { }
+	public void menuKeyTyped(MenuKeyEvent e) { 
+        int key = menuItem.getMnemonic();
+        if(key == 0)
+            return;
+        MenuElement path[] = e.getPath();
+        if(lower(key) == lower((int)(e.getKeyChar()))) {
+            JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
+            MenuElement sub[] = popupMenu.getSubElements();
+            if(sub.length > 0) {
+                MenuSelectionManager manager = e.getMenuSelectionManager();
+                MenuElement newPath[] = new MenuElement[path.length + 2];
+                System.arraycopy(path,0,newPath,0,path.length);
+                newPath[path.length] = popupMenu;
+                newPath[path.length+1] = sub[0];
+                manager.setSelectedPath(newPath);
+            }
+            e.consume();
+        }
+	}
 	public void menuKeyPressed(MenuKeyEvent e) {}
 	public void menuKeyReleased(MenuKeyEvent e) {}
 

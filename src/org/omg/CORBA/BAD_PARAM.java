@@ -1,8 +1,11 @@
 /*
- * @(#)BAD_PARAM.java	1.24 01/11/29
+ * @(#)BAD_PARAM.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -26,7 +29,7 @@ public final class BAD_PARAM extends SystemException {
 
     /**
      * Constructs a <code>BAD_PARAM</code> exception with a default
-	 * minor code of 0 and a completion state of COMPLETED_NO.
+     * minor code of 0 and a completion state of COMPLETED_NO.
      */
     public BAD_PARAM() {
         this("");
@@ -34,10 +37,10 @@ public final class BAD_PARAM extends SystemException {
 
     /**
      * Constructs a <code>BAD_PARAM</code> exception with the specified detail
-	 * message, a minor code of 0, and a completion state of COMPLETED_NO.
-	 *
+     * message, a minor code of 0, and a completion state of COMPLETED_NO.
+     *
      * @param s the String containing a detail message describing this 
-	 *          exception
+     *          exception
      */
     public BAD_PARAM(String s) {
         this(s, 0, CompletionStatus.COMPLETED_NO);
@@ -57,8 +60,8 @@ public final class BAD_PARAM extends SystemException {
      * Constructs a <code>BAD_PARAM</code> exception with the specified detail
      * message, minor code, and completion status.
      * A detail message is a <code>String</code> that describes 
-	 * this particular exception.
-	 *
+     * this particular exception.
+     *
      * @param s the <code>String</code> containing a detail message
      * @param minor the minor code
      * @param completed the completion status

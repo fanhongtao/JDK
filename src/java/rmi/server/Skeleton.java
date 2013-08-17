@@ -1,8 +1,11 @@
 /*
- * @(#)Skeleton.java	1.10 01/11/29
+ * @(#)Skeleton.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi.server;
 
@@ -18,17 +21,21 @@ import java.rmi.Remote;
  * a server-side entity that dispatches calls to the actual remote object
  * implementation.
  *
- * @version 1.10, 11/29/01
+ * @version 1.15, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement.  Skeletons are no longer required for remote
- * method calls in JDK1.2 and greater.
+ * method calls in the Java 2 platform v1.2 and greater.
  */
 public interface Skeleton {
     /**
      * Unmarshals arguments, calls the actual remote object implementation,
      * and marshals the return value or any exception.
      *
+     * @param obj remote implementation to dispatch call to
+     * @param theCall object representing remote call
+     * @param opnum operation number
+     * @param hash stub/skeleton interface hash
      * @exception java.lang.Exception if a general exception occurs.
      * @since JDK1.1
      * @deprecated no replacement
@@ -38,6 +45,7 @@ public interface Skeleton {
 
     /**
      * Returns the operations supported by the skeleton.
+     * @return operations supported by skeleton
      * @since JDK1.1
      * @deprecated no replacement
      */

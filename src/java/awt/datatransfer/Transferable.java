@@ -1,8 +1,11 @@
 /*
- * @(#)Transferable.java	1.7 01/11/29
+ * @(#)Transferable.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.datatransfer;
@@ -13,7 +16,7 @@ import java.io.IOException;
  * Defines the interface for classes that can be used to provide data
  * for a transfer operation.
  *
- * @version 	1.7, 11/29/01
+ * @version 	1.8, 02/02/00
  * @author	Amy Fowler  
  */
 

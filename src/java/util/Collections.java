@@ -1,8 +1,11 @@
 /*
- * @(#)Collections.java	1.35 01/11/29
+ * @(#)Collections.java	1.46 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -23,12 +26,12 @@ import java.io.Serializable;
  * a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.35 11/29/01
+ * @version 1.46, 04/06/00
  * @see	    Collection
  * @see	    Set
  * @see	    List
  * @see	    Map
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class Collections {
@@ -104,7 +107,9 @@ public class Collections {
      * to sort a linked list in place.
      *
      * @param  list the list to be sorted.
-     * @param  c the comparator to determine the order of the array.
+     * @param  c the comparator to determine the order of the list.  A
+     *        <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      * @throws ClassCastException if the list contains elements that are not
      *	       <i>mutually comparable</i> using the specified comparator.
      * @throws UnsupportedOperationException if the specified list's
@@ -212,7 +217,9 @@ public class Collections {
      *
      * @param  list the list to be searched.
      * @param  key the key to be searched for.
-     * @param  c the comparator by which the list is ordered.
+     * @param  c the comparator by which the list is ordered.  A
+     *        <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      * @return index of the search key, if it is contained in the list;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
@@ -229,6 +236,9 @@ public class Collections {
      * @see #sort(List, Comparator)
      */
     public static int binarySearch(List list, Object key, Comparator c) {
+        if (c==null)
+            return binarySearch(list, key);
+
 	// Do a sequential search if appropriate
 	if (list instanceof AbstractSequentialList) {
 	    ListIterator i = list.listIterator();
@@ -266,7 +276,7 @@ public class Collections {
      *
      * This method runs in linear time.
      *
-     * @param  list the list whose elements are to be reversed.
+     * @param  l the list whose elements are to be reversed.
      * @throws UnsupportedOperationException if the specified list's
      *	       list-iterator does not support the <tt>set</tt> operation.
      */
@@ -325,7 +335,7 @@ public class Collections {
      * quadratic time for a "sequential access" list.
      *
      * @param  list the list to be shuffled.
-     * @param  r the source of randomness to use to shuffle the list.
+     * @param  rnd the source of randomness to use to shuffle the list.
      * @throws UnsupportedOperationException if the specified list's
      *         list-iterator does not support the <tt>set</tt> operation.
      */
@@ -433,6 +443,9 @@ public class Collections {
      * time proportional to the size of the collection.
      *
      * @param  coll the collection whose minimum element is to be determined.
+     * @param  comp the comparator with which to determine the minimum element.
+     *         A <tt>null</tt> value indicates that the elements' <i>natural
+     *         ordering</i> should be used.
      * @return the minimum element of the given collection, according
      *         to the specified comparator.
      * @throws ClassCastException if the collection contains elements that are
@@ -441,6 +454,9 @@ public class Collections {
      * @see Comparable
      */
     public static Object min(Collection coll, Comparator comp) {
+        if (comp==null)
+            return min(coll);
+
 	Iterator i = coll.iterator();
 	Object candidate = i.next();
 	while (i.hasNext()) {
@@ -495,6 +511,9 @@ public class Collections {
      * time proportional to the size of the collection.
      *
      * @param  coll the collection whose maximum element is to be determined.
+     * @param  comp the comparator with which to determine the maximum element.
+     *         A <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      * @return the maximum element of the given collection, according
      *         to the specified comparator.
      * @throws ClassCastException if the collection contains elements that are
@@ -503,6 +522,9 @@ public class Collections {
      * @see Comparable
      */
     public static Object max(Collection coll, Comparator comp) {
+        if (comp==null)
+            return max(coll);
+
 	Iterator i = coll.iterator();
 	Object candidate = i.next();
 	while (i.hasNext()) {
@@ -541,16 +563,27 @@ public class Collections {
 	return new UnmodifiableCollection(c);
     }
 
+    /**
+     * @serial include
+     */
     static class UnmodifiableCollection implements Collection, Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 1820017752578914078L;
+
 	Collection c;
 
-	UnmodifiableCollection(Collection c) {this.c = c;}
+	UnmodifiableCollection(Collection c) {
+            if (c==null)
+                throw new NullPointerException();
+            this.c = c;
+        }
 
 	public int size() 		    {return c.size();}
 	public boolean isEmpty() 	    {return c.isEmpty();}
 	public boolean contains(Object o)   {return c.contains(o);}
 	public Object[] toArray() 	    {return c.toArray();}
 	public Object[] toArray(Object[] a) {return c.toArray(a);}
+        public String toString()            {return c.toString();}
 
 	public Iterator iterator() {
 	    return new Iterator() {
@@ -606,6 +639,9 @@ public class Collections {
 	return new UnmodifiableSet(s);
     }
 
+    /**
+     * @serial include
+     */
     static class UnmodifiableSet extends UnmodifiableCollection
     				 implements Set, Serializable {
 	UnmodifiableSet(Set s) 		{super(s);}
@@ -634,6 +670,9 @@ public class Collections {
 	return new UnmodifiableSortedSet(s);
     }
 
+    /**
+     * @serial include
+     */
     static class UnmodifiableSortedSet extends UnmodifiableSet
     				 implements SortedSet, Serializable {
         private SortedSet ss;
@@ -674,8 +713,12 @@ public class Collections {
 	return new UnmodifiableList(list);
     }
 
+    /**
+     * @serial include
+     */
     static class UnmodifiableList extends UnmodifiableCollection
     				  implements List {
+        static final long serialVersionUID = -283967356065247728L;
 	private List list;
 
 	UnmodifiableList(List list) {
@@ -749,10 +792,20 @@ public class Collections {
 	return new UnmodifiableMap(m);
     }
 
+    /**
+     * @serial include
+     */
     private static class UnmodifiableMap implements Map, Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = -1034234728574286014L;
+
 	private final Map m;
 
-	UnmodifiableMap(Map m) 		         {this.m = m;}
+	UnmodifiableMap(Map m) {
+            if (m==null)
+                throw new NullPointerException();
+            this.m = m;
+        }
 
 	public int size() 		         {return m.size();}
 	public boolean isEmpty() 	         {return m.isEmpty();}
@@ -797,13 +850,15 @@ public class Collections {
 
 	public boolean equals(Object o) {return m.equals(o);}
 	public int hashCode()           {return m.hashCode();}
-
+        public String toString()        {return m.toString();}
 
         /**
          * We need this class in addition to UnmodifiableSet as
          * Map.Entries themselves permit modification of the backing Map
          * via their setValue operation.  This class is subtle: there are
          * many possible attacks that must be thwarted.
+         *
+         * @serial include
          */
         static class UnmodifiableEntrySet extends UnmodifiableSet {
             UnmodifiableEntrySet(Set s) {
@@ -938,6 +993,9 @@ public class Collections {
 	return new UnmodifiableSortedMap(m);
     }
 
+    /**
+     * @serial include
+     */
     static class UnmodifiableSortedMap extends UnmodifiableMap
     				 implements SortedMap, Serializable {
         private SortedMap sm;
@@ -1002,15 +1060,25 @@ public class Collections {
 	return new SynchronizedCollection(c, mutex);
     }
 
+    /**
+     * @serial include
+     */
     static class SynchronizedCollection implements Collection, Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 3053995032091335093L;
+
 	Collection c;	   // Backing Collection
 	Object	   mutex;  // Object on which to synchronize
 
 	SynchronizedCollection(Collection c) {
-	    this.c = c; mutex = this;
+            if (c==null)
+                throw new NullPointerException();
+	    this.c = c;
+            mutex = this;
         }
 	SynchronizedCollection(Collection c, Object mutex) {
-	    this.c = c; this.mutex = mutex;
+	    this.c = c;
+            this.mutex = mutex;
         }
 
 	public int size() {
@@ -1055,6 +1123,9 @@ public class Collections {
 	public void clear() {
 	    synchronized(mutex) {c.clear();}
         }
+	public String toString() {
+	    synchronized(mutex) {return c.toString();}
+        }
     }
 
     /**
@@ -1090,6 +1161,9 @@ public class Collections {
 	return new SynchronizedSet(s, mutex);
     }
 
+    /**
+     * @serial include
+     */
     static class SynchronizedSet extends SynchronizedCollection
 			         implements Set {
 	SynchronizedSet(Set s) {
@@ -1148,6 +1222,9 @@ public class Collections {
 	return new SynchronizedSortedSet(s);
     }
 
+    /**
+     * @serial include
+     */
     static class SynchronizedSortedSet extends SynchronizedSet
 			         implements SortedSet
     {
@@ -1224,6 +1301,9 @@ public class Collections {
 	return new SynchronizedList(list, mutex);
     }
 
+    /**
+     * @serial include
+     */
     static class SynchronizedList extends SynchronizedCollection
     			          implements List {
 	private List list;
@@ -1315,16 +1395,26 @@ public class Collections {
 	return new SynchronizedMap(m);
     }
 
+    /**
+     * @serial include
+     */
     private static class SynchronizedMap implements Map, Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 1978198479659022715L;
+
 	private Map m;	        // Backing Map
         Object      mutex;	// Object on which to synchronize
 
 	SynchronizedMap(Map m) {
-            this.m = m;	 mutex = this;
+            if (m==null)
+                throw new NullPointerException();
+            this.m = m;
+            mutex = this;
         }
 
 	SynchronizedMap(Map m, Object mutex) {
-            this.m = m;	 this.mutex = mutex;
+            this.m = m;
+            this.mutex = mutex;
         }
 
 	public int size() {
@@ -1363,7 +1453,7 @@ public class Collections {
 	public Set keySet() {
             synchronized(mutex) {
                 if (keySet==null)
-                    keySet = new SynchronizedSet(m.keySet(), this);
+                    keySet = new SynchronizedSet(m.keySet(), mutex);
                 return keySet;
             }
 	}
@@ -1371,7 +1461,7 @@ public class Collections {
 	public Set entrySet() {
             synchronized(mutex) {
                 if (entrySet==null)
-                    entrySet = new SynchronizedSet(m.entrySet(), this);
+                    entrySet = new SynchronizedSet(m.entrySet(), mutex);
                 return entrySet;
             }
 	}
@@ -1379,7 +1469,7 @@ public class Collections {
 	public Collection values() {
             synchronized(mutex) {
                 if (values==null)
-                    values = new SynchronizedCollection(m.values(), this);
+                    values = new SynchronizedCollection(m.values(), mutex);
                 return values;
             }
         }
@@ -1389,6 +1479,9 @@ public class Collections {
         }
 	public int hashCode() {
             synchronized(mutex) {return m.hashCode();}
+        }
+	public String toString() {
+	    synchronized(mutex) {return m.toString();}
         }
     }
 
@@ -1439,6 +1532,9 @@ public class Collections {
     }
 
 
+    /**
+     * @serial include
+     */
     static class SynchronizedSortedMap extends SynchronizedMap
 			         implements SortedMap
     {
@@ -1490,7 +1586,13 @@ public class Collections {
      */
     public static final Set EMPTY_SET = new EmptySet();
 
+    /**
+     * @serial include
+     */
     private static class EmptySet extends AbstractSet implements Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 1582296315990362920L;
+
         public Iterator iterator() {
             return new Iterator() {
                 public boolean hasNext() {
@@ -1515,8 +1617,14 @@ public class Collections {
      */
     public static final List EMPTY_LIST = new EmptyList();
 
+    /**
+     * @serial include
+     */
     private static class EmptyList extends AbstractList
                                    implements Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 8842843931221139166L;
+
         public int size() {return 0;}
 
         public boolean contains(Object obj) {return false;}
@@ -1527,18 +1635,56 @@ public class Collections {
     }
 
     /**
+     * The empty map (immutable).  This map is serializable.
+     *
+     * @since 1.3
+     */
+    public static final Map EMPTY_MAP = new EmptyMap();
+
+    private static class EmptyMap extends AbstractMap implements Serializable {
+        public int size()                          {return 0;}
+
+        public boolean isEmpty()                   {return true;}
+
+        public boolean containsKey(Object key)     {return false;}
+
+        public boolean containsValue(Object value) {return false;}
+
+        public Object get(Object key)              {return null;}
+
+        public Set keySet()                        {return EMPTY_SET;}
+
+        public Collection values()                 {return EMPTY_SET;}
+
+        public Set entrySet()                      {return EMPTY_SET;}
+
+        public boolean equals(Object o) {
+            return (o instanceof Map) && ((Map)o).size()==0;
+        }
+
+        public int hashCode()                      {return 0;}
+    }
+
+    /**
      * Returns an immutable set containing only the specified object.
      * The returned set is serializable.
      *
+     * @param o the sole object to be stored in the returned set.
      * @return an immutable set containing only the specified object.
      */
     public static Set singleton(Object o) {
 	return new SingletonSet(o);
     }
 
+    /**
+     * @serial include
+     */
     private static class SingletonSet extends AbstractSet
                                       implements Serializable
     {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 3193687207550431679L;
+
         private Object element;
 
         SingletonSet(Object o) {element = o;}
@@ -1568,6 +1714,125 @@ public class Collections {
     }
 
     /**
+     * Returns an immutable list containing only the specified object.
+     * The returned list is serializable.
+     *
+     * @param o the sole object to be stored in the returned list.
+     * @return an immutable list containing only the specified object.
+     * @since 1.3
+     */
+    public static List singletonList(Object o) {
+	return new SingletonList(o);
+    }
+
+    private static class SingletonList extends AbstractList
+                                       implements Serializable {
+        private final Object element;
+
+        SingletonList(Object obj)           {element = obj;}
+
+        public int size()                   {return 1;}
+
+        public boolean contains(Object obj) {return eq(obj, element);}
+
+        public Object get(int index) {
+            if (index != 0)
+              throw new IndexOutOfBoundsException("Index: "+index+", Size: 1");
+            return element;
+        }
+    }
+
+    /**
+     * Returns an immutable map, mapping only the specified key to the
+     * specified value.  The returned map is serializable.
+     *
+     * @param key the sole key to be stored in the returned map.
+     * @param value the value to which the returned map maps <tt>key</tt>.
+     * @return an immutable map containing only the specified key-value
+     *         mapping.
+     * @since 1.3
+     */
+    public static Map singletonMap(Object key, Object value) {
+	return new SingletonMap(key, value);
+    }
+
+    private static class SingletonMap extends    AbstractMap
+                                      implements Serializable {
+        private final Object k, v;
+
+        SingletonMap(Object key, Object value) {
+            k = key;
+            v = value;
+        }
+
+        public int size()                          {return 1;}
+
+        public boolean isEmpty()                   {return false;}
+
+        public boolean containsKey(Object key)     {return eq(key, k);}
+
+        public boolean containsValue(Object value) {return eq(value, v);}
+
+        public Object get(Object key)        {return (eq(key, k) ? v : null);}
+
+        private transient Set keySet = null;
+        private transient Set entrySet = null;
+        private transient Collection values = null;
+
+	public Set keySet() {
+	    if (keySet==null)
+		keySet = singleton(k);
+	    return keySet;
+	}
+
+	public Set entrySet() {
+	    if (entrySet==null)
+		entrySet = singleton(new ImmutableEntry(k, v));
+	    return entrySet;
+	}
+
+	public Collection values() {
+	    if (values==null)
+		values = singleton(v);
+	    return values;
+	}
+
+        private static class ImmutableEntry implements Map.Entry {
+            final Object k;
+            final Object v;
+
+            ImmutableEntry(Object key, Object value) {
+                k = key;
+                v = value;
+            }
+
+            public Object getKey()   {return k;}
+
+            public Object getValue() {return v;}
+
+            public Object setValue(Object value) {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean equals(Object o) {
+                if (!(o instanceof Map.Entry))
+                    return false;
+                Map.Entry e = (Map.Entry)o;
+                return eq(e.getKey(), k) && eq(e.getValue(), v);
+            }
+
+            public int hashCode() {
+                return ((k==null ? 0 : k.hashCode()) ^
+                        (v==null ? 0 : v.hashCode()));
+            }
+
+            public String toString() {
+                return k+"="+v;
+            }
+        }
+    }
+
+    /**
      * Returns an immutable list consisting of <tt>n</tt> copies of the
      * specified object.  The newly allocated data object is tiny (it contains
      * a single reference to the data object).  This method is useful in
@@ -1586,6 +1851,9 @@ public class Collections {
         return new CopiesList(n, o);
     }
 
+    /**
+     * @serial include
+     */
     private static class CopiesList extends AbstractList
                                     implements Serializable
     {
@@ -1640,7 +1908,13 @@ public class Collections {
 
     private static final Comparator REVERSE_ORDER = new ReverseComparator();
 
+    /**
+     * @serial include
+     */
     private static class ReverseComparator implements Comparator,Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 7207038068494060240L;
+
         public int compare(Object o1, Object o2) {
             Comparable c1 = (Comparable)o1;
             Comparable c2 = (Comparable)o2;

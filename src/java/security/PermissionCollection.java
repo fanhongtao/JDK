@@ -1,8 +1,11 @@
 /*
- * @(#)PermissionCollection.java	1.24 01/11/29
+ * @(#)PermissionCollection.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -62,7 +65,7 @@ import java.util.*;
  * @see Permission
  * @see Permissions
  *
- * @version 1.24 01/11/29
+ * @version 1.26 00/02/02
  *
  * @author Roland Schemers
  */
@@ -76,8 +79,10 @@ public abstract class PermissionCollection implements java.io.Serializable {
      * Adds a permission object to the current collection of permission objects.
      *
      * @param permission the Permission object to add.
+     *
+     * @exception SecurityException -  if this PermissionCollection object
+     *                                 has been marked readonly
      */
-
     public abstract void add(Permission permission);
 
     /**
@@ -102,7 +107,7 @@ public abstract class PermissionCollection implements java.io.Serializable {
      * Marks this PermissionCollection object as "readonly". After
      * a PermissionCollection object
      * is marked as readonly, no new Permission objects can be added to it
-     * using <code>addPermission</code>.
+     * using <code>add</code>.
      */
     public void setReadOnly() {
 	readOnly = true;
@@ -111,7 +116,7 @@ public abstract class PermissionCollection implements java.io.Serializable {
     /**
      * Returns true if this PermissionCollection object is marked as readonly. If it
      * is readonly, no new Permission objects can be added to it
-     * using <code>addPermission</code>.
+     * using <code>add</code>.
      *
      * <p>By default, the object is <i>not</i> readonly. It can be set to readonly
      * by a call to <code>setReadOnly</code>.

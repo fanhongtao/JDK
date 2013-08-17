@@ -1,8 +1,11 @@
 /*
- * @(#)System.java	1.102 01/11/29
+ * @(#)System.java	1.111 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -27,7 +30,7 @@ import sun.net.InetAddressCachePolicy;
  * copying a portion of an array. 
  *
  * @author  Arthur van Hoff 
- * @version 1.102, 11/29/01
+ * @version 1.111, 02/02/00
  * @since   JDK1.0
  */
 public final class System {
@@ -127,7 +130,7 @@ public final class System {
      * method is called with a <code>RuntimePermission("setIO")</code> permission
      *  to see if it's ok to reassign the "standard" output stream. 
      * 
-     * @param out the new standard output stream.
+     * @param out the new standard output stream
      * 
      * @throws SecurityException
      *        if a security manager exists and its 
@@ -151,7 +154,7 @@ public final class System {
      * method is called with a <code>RuntimePermission("setIO")</code> permission
      *  to see if it's ok to reassign the "standard" error output stream. 
      * 
-     * @param out the new standard error output stream.
+     * @param err the new standard error output stream.
      * 
      * @throws SecurityException
      *        if a security manager exists and its 
@@ -196,6 +199,7 @@ public final class System {
      * @exception  SecurityException  if the security manager has already
      *             been set and its <code>checkPermission</code> method
      *             doesn't allow it to be replaced.
+     * @see #getSecurityManager
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
      */
@@ -204,7 +208,7 @@ public final class System {
         try {
             s.checkPackageAccess("java.lang");
         } catch (Exception e) {
-            // no-op
+            // no-op 
         }
         setSecurityManager0(s);
     }
@@ -246,6 +250,7 @@ public final class System {
      * @return  if a security manager has already been established for the
      *          current application, then that security manager is returned;
      *          otherwise, <code>null</code> is returned.
+     * @see     #setSecurityManager
      */
     public static SecurityManager getSecurityManager() {
 	return security;
@@ -343,11 +348,11 @@ public final class System {
      * paragraph effectively applies only to the situation where both 
      * arrays have component types that are reference types.)
      *
-     * @param      src:      the source array.
-     * @param      srcpos    start position in the source array.
-     * @param      dest      the destination array.
-     * @param      destpos   start position in the destination data.
-     * @param      length    the number of array elements to be copied.
+     * @param      src          the source array.
+     * @param      src_position start position in the source array.
+     * @param      dst          the destination array.
+     * @param      dst_position pos   start position in the destination data.
+     * @param      length       the number of array elements to be copied.
      * @exception  IndexOutOfBoundsException  if copying would cause
      *               access of data outside array bounds.
      * @exception  ArrayStoreException  if an element in the <code>src</code>
@@ -367,6 +372,8 @@ public final class System {
      * hashCode().
      * The hashcode for the null reference is zero.
      *
+     * @param x object for which the hashCode is to be calculated
+     * @return  the hashCode
      * @since   JDK1.1
      */
     public static native int identityHashCode(Object x);
@@ -441,6 +448,8 @@ public final class System {
      *     <td>Java class format version number</td></tr>
      * <tr><td><code>java.class.path</code></td>
      *     <td>Java class path</td></tr>
+     * <tr><td><code>java.ext.dirs</code></td>
+     *     <td>Path of extension directory or directories</td></tr>
      * <tr><td><code>os.name</code></td>
      *     <td>Operating system name</td></tr>
      * <tr><td><code>os.arch</code></td>
@@ -465,9 +474,11 @@ public final class System {
      * <code>getProperties</code> operation, it may choose to permit the 
      * {@link #getProperty(String)} operation.
      *
+     * @return     the system properties
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkPropertiesAccess</code> method doesn't allow access 
      *              to the system properties.
+     * @see        #setProperties
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkPropertiesAccess()
      * @see        java.util.Properties
@@ -496,7 +507,8 @@ public final class System {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkPropertiesAccess</code> method doesn't allow access 
      *              to the system properties.
-     * @see        java.lang.Properties
+     * @see        #getProperties
+     * @see        java.util.Properties
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkPropertiesAccess()
      */
@@ -504,6 +516,10 @@ public final class System {
 	if (security != null) {
 	    security.checkPropertiesAccess();
 	}
+        if (props == null) {
+            props = new Properties();
+            initProperties(props);
+        }
 	System.props = props;
     }
     
@@ -521,14 +537,25 @@ public final class System {
      * @param      key   the name of the system property.
      * @return     the string value of the system property,
      *             or <code>null</code> if there is no property with that key.
+     *
      * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkPropertyAccess</code> method doesn't allow access 
-     *              to the specified system property.
+     *             <code>checkPropertyAccess</code> method doesn't allow
+     *              access to the specified system property.
+     * @exception  NullPointerException if <code>key</code> is
+     *             <code>null</code>.
+     * @exception  IllegalArgumentException if <code>key</code> is empty.
+     * @see        #setProperty
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
      * @see        java.lang.System#getProperties()
      */
-    public static String getProperty(String key) {
+    public static String getProperty(String key) {       
+	if (key == null) {
+	    throw new NullPointerException("key can't be null");
+	}
+	if (key.equals("")) {
+	    throw new IllegalArgumentException("key can't be empty");
+	}
 	if (security != null) {
 	    security.checkPropertyAccess(key);
 	}
@@ -550,13 +577,24 @@ public final class System {
      * @param      def   a default value.
      * @return     the string value of the system property,
      *             or the default value if there is no property with that key.
+     *
      * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkPropertyAccess</code> method doesn't allow access 
-     *              to the specified system property.
+     *             <code>checkPropertyAccess</code> method doesn't allow
+     *             access to the specified system property.
+     * @exception  NullPointerException if <code>key</code> is
+     *             <code>null</code>.
+     * @exception  IllegalArgumentException if <code>key</code> is empty.
+     * @see        #setProperty
      * @see        java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
      * @see        java.lang.System#getProperties()
      */
     public static String getProperty(String key, String def) {
+	if (key == null) {
+	    throw new NullPointerException("key can't be null");
+	}
+	if (key.equals("")) {
+	    throw new IllegalArgumentException("key can't be empty");
+	}
 	if (security != null) {
 	    security.checkPropertyAccess(key); 
 	}
@@ -578,19 +616,30 @@ public final class System {
      * @param      value the value of the system property.
      * @return     the previous value of the system property,
      *             or <code>null</code> if it did not have one.
+     *
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkPermission</code> method doesn't allow 
      *             setting of the specified property.
+     * @exception  NullPointerException if <code>key</code> is
+     *             <code>null</code>.
+     * @exception  IllegalArgumentException if <code>key</code> is empty.
+     * @see        #getProperty
      * @see        java.lang.System#getProperty(java.lang.String)
      * @see        java.lang.System#getProperty(java.lang.String, java.lang.String)
      * @see        java.util.PropertyPermission
      * @see        SecurityManager#checkPermission
-     * @since      JDK1.2
+     * @since      1.2
      */
     public static String setProperty(String key, String value) {
+	if (key == null) {
+	    throw new NullPointerException("key can't be null");
+	}
+	if (key.equals("")) {
+	    throw new IllegalArgumentException("key can't be empty");
+	}
 	if (security != null)
 	    security.checkPermission(new PropertyPermission(key, "write"));
-	return (String) props.put(key, value);
+	return (String) props.setProperty(key, value);
     }
     
     /**
@@ -610,7 +659,7 @@ public final class System {
      *         enableExpertCommands();
      * </pre></blockquote>
      * 
-     * @param  the name of the environment variable.
+     * @param  name of the environment variable
      * @return the value of the variable, or <code>null</code> if the variable
      *           is not defined.
      * @see    java.lang.Boolean#getBoolean(java.lang.String)
@@ -711,7 +760,7 @@ public final class System {
      * 	    finalizers being called on live objects while other threads are
      *      concurrently manipulating those objects, resulting in erratic
      *	    behavior or deadlock.
-     * 
+     * @param value indicating enabling or disabling of finalization
      * @throws  SecurityException
      *        if a security manager exists and its <code>checkExit</code> 
      *        method doesn't allow the exit.
@@ -779,7 +828,7 @@ public final class System {
      * @return     a platform-dependent native library name.
      * @see        java.lang.System#loadLibrary(java.lang.String)
      * @see        java.lang.ClassLoader#findLibrary(java.lang.String)
-     * @since      JDK1.2
+     * @since      1.2
      */
     public static native String mapLibraryName(String libname);
 
@@ -807,6 +856,7 @@ public final class System {
     private static void initializeSystemClass() {
 	props = new Properties();
 	initProperties(props);
+	sun.misc.Version.init();
 	FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
 	FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
 	FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);

@@ -1,8 +1,11 @@
 /*
- * @(#)FieldView.java	1.16 01/11/29
+ * @(#)FieldView.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -20,7 +23,7 @@ import javax.swing.event.*;
  * current visibility settings of the JTextField.
  *
  * @author  Timothy Prinzing
- * @version 1.16 11/29/01
+ * @version 1.18 02/02/00
  * @see     View
  */
 public class FieldView extends PlainView {
@@ -86,7 +89,26 @@ public class FieldView extends PlainView {
 		if (hspan < bounds.width) {
 		    // horizontally align the interior
 		    int slop = bounds.width - 1 - hspan;
-		    switch (((JTextField)c).getHorizontalAlignment()) {
+
+		    int align = ((JTextField)c).getHorizontalAlignment();
+		    if(Utilities.isLeftToRight(c)) {
+		        if(align==LEADING) {
+			    align = LEFT;
+			}
+			else if(align==TRAILING) {
+			    align = RIGHT;
+			}
+		    }
+		    else {
+		        if(align==LEADING) {
+			    align = RIGHT;
+			}
+			else if(align==TRAILING) {
+			    align = LEFT;
+			}
+		    }
+
+		    switch (align) {
 		    case SwingConstants.CENTER:
 			bounds.x += slop / 2;
 			bounds.width -= slop;

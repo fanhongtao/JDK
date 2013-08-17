@@ -1,8 +1,11 @@
 /*
- * @(#)AnyHolder.java	1.22 01/11/29
+ * @(#)AnyHolder.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -66,7 +69,7 @@ public final class AnyHolder implements  Streamable {
 
     /**
      * Marshals to <code>output</code> the value in
-	 * this <code>AnyHolder</code> object.
+     * this <code>AnyHolder</code> object.
      *
      * @param output the OutputStream which will contain the CDR formatted data.
      */
@@ -76,10 +79,10 @@ public final class AnyHolder implements  Streamable {
 
     /**
      * Returns the <code>TypeCode</code> object corresponding to the value 
-	 * held in this <code>AnyHolder</code> object.
+     * held in this <code>AnyHolder</code> object.
      *
      * @return    the TypeCode of the value held in 
-	 *              this <code>AnyHolder</code> object
+     *              this <code>AnyHolder</code> object
      */
     public TypeCode _type() {
 	return ORB.init().get_primitive_tc(TCKind.tk_any);

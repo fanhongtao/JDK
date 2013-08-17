@@ -1,8 +1,11 @@
 /*
- * @(#)KeyPairGeneratorSpi.java	1.6 01/11/29
+ * @(#)KeyPairGeneratorSpi.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -26,7 +29,7 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Benjamin Renaud
  *
- * @version 1.6 01/11/29
+ * @version 1.11, 02/02/00
  *
  * @see KeyPairGenerator
  * @see java.security.spec.AlgorithmParameterSpec
@@ -43,6 +46,9 @@ public abstract class KeyPairGeneratorSpi {
      * number of bits.
      *
      * @param random the source of randomness for this generator.
+     *
+     * @exception InvalidParameterException if the <code>keysize</code> is not
+     * supported by this KeyPairGeneratorSpi object.
      */
     public abstract void initialize(int keysize, SecureRandom random);
 
@@ -66,7 +72,7 @@ public abstract class KeyPairGeneratorSpi {
      * @exception InvalidAlgorithmParameterException if the given parameters
      * are inappropriate for this key pair generator.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public void initialize(AlgorithmParameterSpec params,
 		           SecureRandom random)
@@ -79,6 +85,8 @@ public abstract class KeyPairGeneratorSpi {
      * using a KeyPairGenerator interface, algorithm-specific defaults
      * will be used. This will generate a new key pair every time it
      * is called.
+     *
+     * @return the newly generated <tt>KeyPair</tt>
      */
     public abstract KeyPair generateKeyPair();
 }

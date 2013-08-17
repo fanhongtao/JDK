@@ -1,8 +1,11 @@
 /*
- * @(#)CommentView.java	1.6 01/11/29
+ * @(#)CommentView.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -24,7 +27,7 @@ import java.util.*;
  * not editable, the textarea will not be visible.
  *
  * @author  Scott Violet
- * @version 1.6, 11/29/01
+ * @version 1.8, 02/02/00
  */
 class CommentView extends HiddenTagView {
     CommentView(Element e) {
@@ -51,14 +54,20 @@ class CommentView extends HiddenTagView {
     void resetBorder() {
     }
 
-    void pushTextToModel() {
-	if (!isSettingAttributes) {
+    /**
+     * This is subclassed to put the text on the Comment attribute of
+     * the Element's AttributeSet.
+     */
+    void _updateModelFromText() {
+	JTextComponent textC = getTextComponent();
+	Document doc = getDocument();
+	if (textC != null && doc != null) {
+	    String text = textC.getText();
 	    SimpleAttributeSet sas = new SimpleAttributeSet();
-	    String text = getTextComponent().getText();
 	    isSettingAttributes = true;
 	    try {
 		sas.addAttribute(HTML.Attribute.COMMENT, text);
-		((StyledDocument)getDocument()).setCharacterAttributes
+		((StyledDocument)doc).setCharacterAttributes
 		    (getStartOffset(), getEndOffset() -
 		     getStartOffset(), sas, false);
 	    }

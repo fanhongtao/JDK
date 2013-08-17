@@ -1,8 +1,11 @@
 /*
- * @(#)SignedObject.java	1.35 01/11/29
+ * @(#)SignedObject.java	1.37 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -95,7 +98,7 @@ import java.io.*;
  *
  * @see Signature
  *
- * @version 	1.35, 11/29/01
+ * @version 	1.37, 02/02/00
  * @author Li Gong
  */
 
@@ -195,6 +198,9 @@ public final class SignedObject implements Serializable {
      *
      * @exception SignatureException if signature verification failed.
      * @exception InvalidKeyException if the verification key is invalid.
+     *
+     * @return <tt>true</tt> if the signature 
+     * is valid, <tt>false</tt> otherwise
      */
     public boolean verify(PublicKey verificationKey,
 			  Signature verificationEngine)

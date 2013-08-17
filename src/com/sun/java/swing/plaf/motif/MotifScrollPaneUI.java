@@ -1,8 +1,11 @@
 /*
- * @(#)MotifScrollPaneUI.java	1.11 01/11/29
+ * @(#)MotifScrollPaneUI.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -23,12 +26,13 @@ import javax.swing.plaf.basic.BasicScrollPaneUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.11 11/29/01
+ * @version 1.10 08/28/98
  * @author Hans Muller
  */
 public class MotifScrollPaneUI extends BasicScrollPaneUI
 {
-    private final static Border vsbMarginBorder = new EmptyBorder(0, 4, 0, 0);
+    private final static Border vsbMarginBorderR = new EmptyBorder(0, 4, 0, 0);
+    private final static Border vsbMarginBorderL = new EmptyBorder(0, 0, 0, 4);
     private final static Border hsbMarginBorder = new EmptyBorder(4, 0, 0, 0);
 
     private Border vsbBorder;
@@ -40,7 +44,14 @@ public class MotifScrollPaneUI extends BasicScrollPaneUI
 
 	JScrollBar vsb = scrollpane.getVerticalScrollBar();
 	if (vsb != null) {
-	    vsbBorder = new CompoundBorder(vsbMarginBorder, vsb.getBorder());
+	    if (MotifGraphicsUtils.isLeftToRight(scrollpane)) {
+	        vsbBorder = new CompoundBorder(vsbMarginBorderR, 
+					       vsb.getBorder());
+	    }
+	    else {
+	        vsbBorder = new CompoundBorder(vsbMarginBorderL, 
+					       vsb.getBorder());
+	    }
 	    vsb.setBorder(vsbBorder);
 	}
 

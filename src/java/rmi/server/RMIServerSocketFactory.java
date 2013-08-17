@@ -1,8 +1,11 @@
 /*
- * @(#)RMIServerSocketFactory.java	1.4 01/11/29
+ * @(#)RMIServerSocketFactory.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -26,10 +29,10 @@ import java.net.*;
  * with a remote object registry so that clients can use custom socket
  * communication with a remote object registry.
  *
- * @version 1.4, 11/29/01
+ * @version 1.7, 02/02/00
  * @author  Ann Wollrath
  * @author  Peter Jones
- * @since   JDK1.2
+ * @since   1.2
  * @see     java.rmi.server.UnicastRemoteObject
  * @see     java.rmi.activation.Activatable
  * @see     java.rmi.registry.LocateRegistry
@@ -43,7 +46,7 @@ public interface RMIServerSocketFactory {
      * @return the server socket on the specified port
      * @exception IOException if an I/O error occurs during server socket
      * creation
-     * @since JDK1.2
+     * @since 1.2
      */
     public ServerSocket createServerSocket(int port)
 	throws IOException;

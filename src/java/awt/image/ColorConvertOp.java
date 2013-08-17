@@ -1,8 +1,11 @@
 /*
- * @(#)ColorConvertOp.java	1.28 01/11/29
+ * @(#)ColorConvertOp.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /**********************************************************************
@@ -250,7 +253,11 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
 
         if (savdest != null) {
             Graphics2D big = savdest.createGraphics();
-            big.drawImage(dest, 0, 0, null);
+	    try {
+	        big.drawImage(dest, 0, 0, null);
+	    } finally {
+	        big.dispose();
+	    }
             return savdest;
         } else {
             return dest;

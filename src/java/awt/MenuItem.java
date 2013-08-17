@@ -1,16 +1,21 @@
 /*
- * @(#)MenuItem.java	1.60 01/11/29
+ * @(#)MenuItem.java	1.68 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.MenuItemPeer;
 import java.awt.event.*;
+import java.util.EventListener;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import javax.accessibility.*;
 
 
 /**
@@ -46,10 +51,10 @@ import java.io.IOException;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.60, 11/29/01
+ * @version 1.68, 04/06/00
  * @author Sami Shaio
  */
-public class MenuItem extends MenuComponent {
+public class MenuItem extends MenuComponent implements Accessible {
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -322,6 +327,18 @@ public class MenuItem extends MenuComponent {
     }
 
     /*
+     * The main goal of this method is to post an appropriate event
+     * to the event queue when menu shortcut is pressed. However,
+     * in subclasses this method may do more than just posting 
+     * an event.
+     */
+    void doMenuEvent() {
+        Toolkit.getEventQueue().postEvent(
+            new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+                            getActionCommand()));
+    }
+
+    /*
      * Post an ActionEvent to the target (on
      * keydown).  Returns true if there is an associated
      * shortcut.
@@ -332,9 +349,7 @@ public class MenuItem extends MenuComponent {
         if (s.equals(shortcut) && enabled) {
             // MenuShortcut match -- issue an event on keydown.
             if (e.getID() == KeyEvent.KEY_PRESSED) {
-                Toolkit.getEventQueue().postEvent(
-                          new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                          getActionCommand()));
+                doMenuEvent();
             } else {
                 // silently eat key release.
             }
@@ -440,6 +455,28 @@ public class MenuItem extends MenuComponent {
 	    return;
 	}
 	actionListener = AWTEventMulticaster.remove(actionListener, l);
+    }
+
+    /**
+     * Return an array of all the listeners that were added to the MenuItem
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the ActionListener(s) for the
+     * given MenuItem <code>m</code>, one would write:
+     * <pre>
+     * ActionListener[] als = (ActionListener[])(m.getListeners(ActionListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return   all of the listeners of the specified type supported by this menu item
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == ActionListener.class) { 
+	    l = actionListener;
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
     }
 
     /**
@@ -574,4 +611,174 @@ public class MenuItem extends MenuComponent {
      * Initialize JNI field and method IDs
      */
     private static native void initIDs();
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this MenuItem. 
+     * For menu items, the AccessibleContext takes the form of an 
+     * AccessibleAWTMenuItem. 
+     * A new AccessibleAWTMenuItem instance is created if necessary.
+     *
+     * @return an AccessibleAWTMenuItem that serves as the 
+     *         AccessibleContext of this MenuItem
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTMenuItem();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * Inner class of MenuItem used to provide default support for
+     * accessibility.  This class is not meant to be used directly by
+     * application developers, but is instead meant only to be
+     * subclassed by menu component developers.
+     * <p>
+     * This class implements accessibility support for the 
+     * <code>MenuItem</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to menu item user-interface elements.
+     */
+    protected class AccessibleAWTMenuItem extends AccessibleAWTMenuComponent
+        implements AccessibleAction, AccessibleValue  {
+
+        /**
+         * Get the accessible name of this object.  
+         *
+         * @return the localized name of the object -- can be null if this 
+         * object does not have a name
+         */
+        public String getAccessibleName() {
+            if (accessibleName != null) {
+                return accessibleName;
+            } else {
+                if (getLabel() == null) {
+                    return super.getAccessibleName();
+                } else {
+                    return getLabel();
+                }
+            }
+        }
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.MENU_ITEM;
+        }
+
+        /**
+         * Get the AccessibleAction associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleAction interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleAction getAccessibleAction() {
+            return this;
+        }
+
+        /**
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleValue getAccessibleValue() {
+            return this;
+        }
+
+        /**
+         * Returns the number of Actions available in this object.  The 
+         * default behavior of a menu item is to have one action.
+         *
+         * @return 1, the number of Actions in this object
+         */
+        public int getAccessibleActionCount() {
+            return 1;
+        }
+    
+        /**
+         * Return a description of the specified action of the object.
+         *
+         * @param i zero-based index of the actions
+         */
+        public String getAccessibleActionDescription(int i) {
+            if (i == 0) {
+                // [[[PENDING:  WDW -- need to provide a localized string]]]
+                return new String("click");
+            } else {
+                return null;
+            }
+        }
+    
+        /**
+         * Perform the specified Action on the object
+         *
+         * @param i zero-based index of actions
+         * @return true if the action was performed; otherwise false.
+         */
+        public boolean doAccessibleAction(int i) {
+            if (i == 0) {
+                // Simulate a button click
+                Toolkit.getEventQueue().postEvent(
+                        new ActionEvent(MenuItem.this,
+                                        ActionEvent.ACTION_PERFORMED,
+                                        MenuItem.this.getActionCommand()));
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /**
+         * Get the value of this object as a Number.
+         *
+         * @return An Integer of 0 if this isn't selected or an Integer of 1 if
+         * this is selected.
+         * @see AbstractButton#isSelected
+         */
+        public Number getCurrentAccessibleValue() {
+            return new Integer(0);
+        }
+
+        /**
+         * Set the value of this object as a Number.
+         *
+         * @return True if the value was set.
+         */
+        public boolean setCurrentAccessibleValue(Number n) {
+            return false;
+        }
+
+        /**
+         * Get the minimum value of this object as a Number.
+         *
+         * @return An Integer of 0.
+         */
+        public Number getMinimumAccessibleValue() {
+            return new Integer(0);
+        }
+
+        /**
+         * Get the maximum value of this object as a Number.
+         *
+         * @return An Integer of 0.
+         */
+        public Number getMaximumAccessibleValue() {
+            return new Integer(0);
+        }
+
+    } // class AccessibleAWTMenuItem
+
 }

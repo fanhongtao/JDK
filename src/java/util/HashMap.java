@@ -1,8 +1,11 @@
 /*
- * @(#)HashMap.java	1.30 01/11/29
+ * @(#)HashMap.java	1.38 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -36,7 +39,7 @@ import java.io.*;
  * current capacity, the capacity is roughly doubled by calling the
  * <tt>rehash</tt> method.<p>
  *
- * As a general rule, te default load factor (.75) offers a good tradeoff
+ * As a general rule, the default load factor (.75) offers a good tradeoff
  * between time and space costs.  Higher values decrease the space overhead
  * but increase the lookup cost (reflected in most of the operations of the
  * <tt>HashMap</tt> class, including <tt>get</tt> and <tt>put</tt>).  The
@@ -75,13 +78,13 @@ import java.io.*;
  *
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.30, 11/29/01
+ * @version 1.38, 02/02/00
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
  * @see	    TreeMap
  * @see	    Hashtable
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class HashMap extends AbstractMap implements Map, Cloneable,
@@ -133,7 +136,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	if (initialCapacity < 0)
 	    throw new IllegalArgumentException("Illegal Initial Capacity: "+
                                                initialCapacity);
-        if (loadFactor <= 0)
+        if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal Load factor: "+
                                                loadFactor);
         if (initialCapacity==0)
@@ -160,7 +163,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * factor, which is <tt>0.75</tt>.
      */
     public HashMap() {
-	this(101, 0.75f);
+	this(11, 0.75f);
     }
 
     /**
@@ -168,6 +171,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * map is created with a capacity of twice the number of mappings in
      * the given map or 11 (whichever is greater), and a default load factor,
      * which is <tt>0.75</tt>.
+     *
+     * @param t the map whose mappings are to be placed in this map.
      */
     public HashMap(Map t) {
 	this(Math.max(2*t.size(), 11), 0.75f);
@@ -479,7 +484,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	if (keySet == null) {
 	    keySet = new AbstractSet() {
 		public Iterator iterator() {
-		    return new HashIterator(KEYS);
+		    return getHashIterator(KEYS);
 		}
 		public int size() {
 		    return count;
@@ -488,7 +493,9 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
                     return containsKey(o);
                 }
 		public boolean remove(Object o) {
-		    return HashMap.this.remove(o) != null;
+                    int oldSize = count;
+                    HashMap.this.remove(o);
+		    return count != oldSize;
 		}
 		public void clear() {
 		    HashMap.this.clear();
@@ -513,7 +520,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	if (values==null) {
 	    values = new AbstractCollection() {
                 public Iterator iterator() {
-                    return new HashIterator(VALUES);
+		    return getHashIterator(VALUES);
                 }
                 public int size() {
                     return count;
@@ -546,7 +553,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	if (entrySet==null) {
 	    entrySet = new AbstractSet() {
                 public Iterator iterator() {
-                    return new HashIterator(ENTRIES);
+		    return getHashIterator(ENTRIES);
                 }
 
                 public boolean contains(Object o) {
@@ -601,6 +608,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
         }
 
 	return entrySet;
+    }
+
+    private Iterator getHashIterator(int type) {
+	if (count == 0) {
+	    return emptyHashIterator;
+	} else {
+	    return new HashIterator(type);
+	}
     }
 
     /**
@@ -663,6 +678,29 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     private static final int VALUES = 1;
     private static final int ENTRIES = 2;
 
+    private static EmptyHashIterator emptyHashIterator 
+	= new EmptyHashIterator();
+					     
+    private static class EmptyHashIterator implements Iterator {
+	
+	EmptyHashIterator() {
+	    
+	}
+
+	public boolean hasNext() {
+	    return false;
+	}
+
+	public Object next() {
+	    throw new NoSuchElementException();
+	}
+	
+	public void remove() {
+	    throw new IllegalStateException();
+	}
+
+    }			
+		    
     private class HashIterator implements Iterator {
 	Entry[] table = HashMap.this.table;
 	int index = table.length;
@@ -682,20 +720,32 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	}
 
 	public boolean hasNext() {
-	    while (entry==null && index>0)
-		entry = table[--index];
-
-	    return entry != null;
+	    Entry e = entry;
+	    int i = index;
+	    Entry t[] = table;
+	    /* Use locals for faster loop iteration */
+	    while (e == null && i > 0)
+		e = t[--i];
+	    entry = e;
+	    index = i;
+	    return e != null;
 	}
 
 	public Object next() {
 	    if (modCount != expectedModCount)
 		throw new ConcurrentModificationException();
 
-	    while (entry==null && index>0)
-		entry = table[--index];
+	    Entry et = entry;
+	    int i = index;
+	    Entry t[] = table;
 
-	    if (entry != null) {
+	    /* Use locals for faster loop iteration */
+	    while (et == null && i > 0) 
+		et = t[--i];
+
+	    entry = et;
+	    index = i;
+	    if (et != null) {
 		Entry e = lastReturned = entry;
 		entry = e.next;
 		return type == KEYS ? e.key : (type == VALUES ? e.value : e);

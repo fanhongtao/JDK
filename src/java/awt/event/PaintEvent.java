@@ -1,8 +1,11 @@
 /*
- * @(#)PaintEvent.java	1.12 01/11/29
+ * @(#)PaintEvent.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -20,8 +23,9 @@ import java.awt.Rectangle;
  * should continue to override paint/update methods in order
  * render themselves properly.
  *
- * @version 1.12 11/29/01
  * @author Amy Fowler
+ * @version 1.14, 02/02/00
+ * @since 1.1
  */
 public class PaintEvent extends ComponentEvent {
 

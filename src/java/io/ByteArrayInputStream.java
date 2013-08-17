@@ -1,8 +1,11 @@
 /*
- * @(#)ByteArrayInputStream.java	1.33 01/11/29
+ * @(#)ByteArrayInputStream.java	1.35 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -15,7 +18,7 @@ package java.io;
  * be supplied by the <code>read</code> method.
  *
  * @author  Arthur van Hoff
- * @version 1.33, 11/29/01
+ * @version 1.35, 02/02/00
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */
@@ -243,7 +246,7 @@ class ByteArrayInputStream extends InputStream {
     /**
      * Resets the buffer to the marked position.  The marked position
      * is the beginning unless another position was marked.
-     * The value of </code>pos</code> is set to 0.
+     * The value of <code>pos</code> is set to 0.
      */
     public synchronized void reset() {
 	ensureOpen();

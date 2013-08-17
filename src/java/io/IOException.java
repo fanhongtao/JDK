@@ -1,8 +1,11 @@
 /*
- * @(#)IOException.java	1.18 01/11/29
+ * @(#)IOException.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,7 +16,7 @@ package java.io;
  * interrupted I/O operations.
  *
  * @author  unascribed
- * @version 1.18, 11/29/01
+ * @version 1.19, 02/02/00
  * @see     java.io.InputStream
  * @see     java.io.OutputStream
  * @since   JDK1.0

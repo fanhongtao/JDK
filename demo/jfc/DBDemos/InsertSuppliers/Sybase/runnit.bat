@@ -1,14 +1,7 @@
-REM
-REM @(#)runnit.bat	1.2 01/11/29
-REM
-REM Copyright 2002 Sun Microsystems, Inc. All rights reserved.
-REM SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
-REM
-
 @echo off
 rem Run the InsertSuppliers demo
 rem
-rem @(#)runnit.bat      1.1 97/09/22
+rem @(#)runnit.bat	1.2 99/07/12
 
 if "%JDBCHOME%" == "" goto nohome
 

@@ -1,8 +1,11 @@
 /*
- * @(#)MouseMotionAdapter.java	1.9 01/11/29
+ * @(#)MouseMotionAdapter.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -27,13 +30,15 @@ package java.awt.event;
  * method. When the mouse is moved or dragged, the relevant method in the 
  * listener object is invoked and the <code>MouseEvent</code> is passed to it.
  *
+ * @author Amy Fowler
+ * @version 1.11 02/02/00
+ *
  * @see MouseEvent
  * @see MouseMotionListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/mousemotionlistener.html">Tutorial: Writing a Mouse Motion Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.9 11/29/01
- * @author Amy Fowler
+ * @since 1.1
  */
 public abstract class MouseMotionAdapter implements MouseMotionListener {
     /**

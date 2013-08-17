@@ -1,8 +1,11 @@
 /*
- * @(#)JarEntry.java	1.13 01/11/29
+ * @(#)JarEntry.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -23,7 +26,7 @@ class JarEntry extends ZipEntry {
      * Creates a new <code>JarEntry</code> for the specified JAR file
      * entry name.
      *
-     * @param the JAR file entry name
+     * @param name the JAR file entry name
      * @exception NullPointerException if the entry name is <code>null</code>
      * @exception IllegalArgumentException if the entry name is longer than
      *            0xFFFF bytes.
@@ -35,6 +38,8 @@ class JarEntry extends ZipEntry {
     /**
      * Creates a new <code>JarEntry</code> with fields taken from the
      * specified <code>ZipEntry</code> object.
+     * @param ze the <code>ZipEntry</code> object to create the 
+     *           <code>JarEntry</code> from
      */
     public JarEntry(ZipEntry ze) {
 	super(ze);
@@ -55,6 +60,9 @@ class JarEntry extends ZipEntry {
     /**
      * Returns the <code>Manifest</code> <code>Attributes</code> for this
      * entry, or <code>null</code> if none.
+     *
+     * @return the <code>Manifest</code> <code>Attributes</code> for this
+     * entry, or <code>null</code> if none
      */
     public Attributes getAttributes() throws IOException {
 	return attr;
@@ -73,6 +81,9 @@ class JarEntry extends ZipEntry {
      * Each signer certificate and its supporting certificate chain are ordered
      * bottom-to-top (i.e., with the signer certificate first and the (root)
      * certificate authority last).
+     *
+     * @return the <code>Certificate</code> objects for this entry, or
+     * <code>null</code> if none.
      */
     public Certificate[] getCertificates() {
 	return certs;

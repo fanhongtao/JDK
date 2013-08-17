@@ -1,8 +1,11 @@
 /*
- * @(#)Externalizable.java	1.13 01/11/29
+ * @(#)Externalizable.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -38,7 +41,7 @@ import java.io.ObjectInput;
  * interface.<br>
  *
  * @author  unascribed
- * @version 1.13, 11/29/01
+ * @version 1.15, 02/02/00
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput
@@ -59,6 +62,7 @@ public interface Externalizable extends java.io.Serializable {
      *             relate the element to a public/protected field and/or
      *             method of this Externalizable class.
      *
+     * @param out the stream to write the object to
      * @exception IOException Includes any I/O exceptions that may occur
      */
     void writeExternal(ObjectOutput out) throws IOException;
@@ -69,6 +73,9 @@ public interface Externalizable extends java.io.Serializable {
      * types and readObject for objects, strings and arrays.  The
      * readExternal method must read the values in the same sequence
      * and with the same types as were written by writeExternal.
+     *
+     * @param in the stream to read data from in order to restore the object
+     * @exception IOException if I/O errors occur
      * @exception ClassNotFoundException If the class for an object being
      *              restored cannot be found.
      */

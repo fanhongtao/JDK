@@ -1,8 +1,11 @@
 /*
- * @(#)ActivateFailedException.java	1.4 01/11/29
+ * @(#)ActivateFailedException.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -12,12 +15,12 @@ package java.rmi.activation;
  * fails during a remote call to an activatable object.
  *
  * @author 	Ann Wollrath
- * @version	1.4, 11/29/01
- * @since 	JDK1.2
+ * @version	1.7, 02/02/00
+ * @since 	1.2
  */
 public class ActivateFailedException extends java.rmi.RemoteException {
 
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = 4863550261346652506L;
 
     /**
@@ -25,7 +28,7 @@ public class ActivateFailedException extends java.rmi.RemoteException {
      * detail message.
      *
      * @param s the detail message
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivateFailedException(String s) {
 	super(s);
@@ -37,7 +40,7 @@ public class ActivateFailedException extends java.rmi.RemoteException {
      *
      * @param s the detail message
      * @param ex the nested exception
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivateFailedException(String s, Exception ex) {
 	super(s, ex);

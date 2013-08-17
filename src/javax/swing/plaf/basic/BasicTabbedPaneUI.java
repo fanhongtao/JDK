@@ -1,8 +1,11 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.80 01/11/29
+ * @(#)BasicTabbedPaneUI.java	1.93 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -20,7 +23,7 @@ import java.util.Vector;
 /**
  * A Basic L&F implementation of TabbedPaneUI.
  *
- * @version 1.80 11/29/01
+ * @version 1.87 06/08/99
  * @author Amy Fowler
  * @author Philip Milne
  * @author Steve Wilson
@@ -49,26 +52,49 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     protected Insets tabAreaInsets;
     protected Insets contentBorderInsets;
 
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke upKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke downKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke leftKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke rightKey;
 
-    // hania 10/29/98: if the above (upKey, etc) need to be
-    // protected fields (and I don't really understand why they do), then so
-    // do the ones below (kpUpKey, etc). I am making them private
-    // until we can make a release where API changes are allowed.
-  
-    private KeyStroke kpUpKey;
-    private KeyStroke kpDownKey;
-    private KeyStroke kpLeftKey;
-    private KeyStroke kpRightKey;
 
 // Transient variables (recalculated each time TabbedPane is layed out)
 
     protected int tabRuns[] = new int[10];
-    protected int runCount;
-    protected int selectedRun;
+    protected int runCount = 0;
+    protected int selectedRun = -1;
     protected Rectangle rects[] = new Rectangle[0]; 
     protected int maxTabHeight;
     protected int maxTabWidth;
@@ -106,9 +132,6 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         installDefaults(); 
         installListeners();
         installKeyboardActions();
-
-        runCount = 0;
-        selectedRun = -1;
     }
 
     public void uninstallUI(JComponent c) {
@@ -221,130 +244,62 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     protected void installKeyboardActions() {
+	InputMap km = getInputMap(JComponent.
+				  WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        // REMIND(aim,7/29/98): These actions should be broken
-        // out into protected inner classes in the next release where
-        // API changes are allowed
-        //
-        // hania, 10/29/98: I broke them out into private inner classes
-        // in the process of adding bindings for the VK_KP arrow keys.
-        // Those private classes should be changed to protected in the
-        // next release where API changes are allowed.
+	SwingUtilities.replaceUIInputMap(tabPane, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+					 km);
+	km = getInputMap(JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIInputMap(tabPane, JComponent.WHEN_FOCUSED, km);
+	ActionMap am = getActionMap();
 
-        ActionListener rightAction = new RightAction();
-	ActionListener leftAction = new LeftAction();
-	ActionListener upAction = new UpAction();
-	ActionListener downAction = new DownAction();
-	ActionListener pageUpAction = new PageUpAction();
-	ActionListener pageDownAction = new PageDownAction();
-	ActionListener requestFocusAction = new RequestFocusAction();
-	ActionListener requestFocusForVisibleAction = new RequestFocusForVisibleAction();
+	SwingUtilities.replaceUIActionMap(tabPane, am);
+    }
 
-        rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0);
-	kpRightKey = KeyStroke.getKeyStroke("KP_RIGHT");
-        tabPane.registerKeyboardAction(
-            rightAction,
-            rightKey, 
-            JComponent.WHEN_FOCUSED);
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+	    return (InputMap)UIManager.get("TabbedPane.ancestorInputMap");
+	}
+	else if (condition == JComponent.WHEN_FOCUSED) {
+	    return (InputMap)UIManager.get("TabbedPane.focusInputMap");
+	}
+	return null;
+    }
 
-        tabPane.registerKeyboardAction(
-            rightAction,
-            kpRightKey, 
-            JComponent.WHEN_FOCUSED);
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("TabbedPane.actionMap");
 
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("TabbedPane.actionMap", map);
+	    }
+	}
+	return map;
+    }
 
-        leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0);
-	kpLeftKey = KeyStroke.getKeyStroke("KP_LEFT");
-        tabPane.registerKeyboardAction(
-            leftAction,
-            leftKey, 
-            JComponent.WHEN_FOCUSED);
-
-        tabPane.registerKeyboardAction(
-            leftAction, 
-            kpLeftKey, 
-            JComponent.WHEN_FOCUSED);
-
-        upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP,0);
-	kpUpKey = KeyStroke.getKeyStroke("KP_UP");
-        tabPane.registerKeyboardAction(
-            upAction,
-            upKey, 
-            JComponent.WHEN_FOCUSED);
-
-        tabPane.registerKeyboardAction(
-            upAction,
-            kpUpKey, 
-            JComponent.WHEN_FOCUSED);
-
-        downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0);
-        kpDownKey = KeyStroke.getKeyStroke("KP_DOWN");
-        tabPane.registerKeyboardAction(
-            downAction,
-            downKey,
-            JComponent.WHEN_FOCUSED);
-
-        tabPane.registerKeyboardAction(
-            downAction,
-            kpDownKey,
-            JComponent.WHEN_FOCUSED);
-
-        tabPane.registerKeyboardAction(
-            pageDownAction,
-            KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK),
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        tabPane.registerKeyboardAction(
-            pageUpAction,
-            KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK),
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        tabPane.registerKeyboardAction(
-	    requestFocusAction,
-            KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK),
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        tabPane.registerKeyboardAction(
-	    requestFocusAction,
-            KeyStroke.getKeyStroke("control KP_UP"),
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        tabPane.registerKeyboardAction(
-            requestFocusForVisibleAction,
-            KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK),
-            JComponent.WHEN_FOCUSED);
-            
-        tabPane.registerKeyboardAction(
-            requestFocusForVisibleAction,
-            KeyStroke.getKeyStroke("control KP_DOWN"),
-            JComponent.WHEN_FOCUSED);
-            
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("navigateRight", new RightAction());
+	map.put("navigateLeft", new LeftAction());
+	map.put("navigateUp", new UpAction());
+	map.put("navigateDown", new DownAction());
+	map.put("navigatePageUp", new PageUpAction());
+	map.put("navigatePageDown", new PageDownAction());
+	map.put("requestFocus", new RequestFocusAction());
+	map.put("requestFocusForVisibleComponent",
+		new RequestFocusForVisibleAction());
+	return map;
     }
 
     protected void uninstallKeyboardActions() {
-        tabPane.unregisterKeyboardAction(upKey);
-        tabPane.unregisterKeyboardAction(downKey);
-        tabPane.unregisterKeyboardAction(leftKey);
-        tabPane.unregisterKeyboardAction(rightKey);
-
-        tabPane.unregisterKeyboardAction(kpUpKey);
-        tabPane.unregisterKeyboardAction(kpDownKey);
-        tabPane.unregisterKeyboardAction(kpLeftKey);
-        tabPane.unregisterKeyboardAction(kpRightKey);
-
-        upKey = downKey = rightKey = leftKey =
-	kpUpKey = kpDownKey = kpRightKey = kpLeftKey = null;
-
-        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 
-                                                                InputEvent.CTRL_MASK));
-        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 
-                                                                InputEvent.CTRL_MASK));
-        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 
-                                                                InputEvent.CTRL_MASK));
-        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 
-                                                                InputEvent.CTRL_MASK));
-        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke("control KP_DOWN"));
-        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke("control KP_UP"));
+	SwingUtilities.replaceUIActionMap(tabPane, null);
+	SwingUtilities.replaceUIInputMap(tabPane, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+					 null);
+	SwingUtilities.replaceUIInputMap(tabPane, JComponent.WHEN_FOCUSED,
+					 null);
     }
 
 // Geometry
@@ -444,7 +399,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                                            SwingUtilities.CENTER,
                                            SwingUtilities.CENTER,
                                            SwingUtilities.CENTER,
-                                           SwingUtilities.RIGHT,
+                                           SwingUtilities.TRAILING,
                                            tabRect,
                                            iconRect,
                                            textRect,
@@ -784,7 +739,14 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     private void ensureCurrentLayout() {
-        if (tabPane.getTabCount() != rects.length) {
+        if (!tabPane.isValid()) {
+            tabPane.validate();
+        } 
+	/* If tabPane doesn't have a peer yet, the validate() call will
+	 * silently fail.  We handle that by forcing a layout if tabPane
+	 * is still invalid.  See bug 4237677.
+	 */
+        if (!tabPane.isValid()) {
             TabbedPaneLayout layout = (TabbedPaneLayout)tabPane.getLayout();
             layout.calculateLayoutInfo();          
         }
@@ -803,8 +765,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     public int tabForCoordinate(JTabbedPane pane, int x, int y) {
+        ensureCurrentLayout();
         int tabCount = tabPane.getTabCount();
-
         for (int i = 0; i < tabCount; i++) {
             if (rects[i].contains(x, y)) {
                 return i;
@@ -1218,73 +1180,80 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         return false;
     }
   
-    // The private inner classes below should be changed to protected the
-    // next time API changes are allowed.
-  
-    private abstract class KeyAction implements ActionListener {
-        public boolean isEnabled() { 
-            return tabPane.isEnabled(); 
-        }
-    };
+   // REMIND(aim,7/29/98): These actions should be broken
+   // out into protected inner classes in the next release where
+   // API changes are allowed
 
-    private class RightAction extends KeyAction {
+    private static class RightAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            navigateSelectedTab(EAST);
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+            ui.navigateSelectedTab(EAST);
         }
     };
     
-    private class LeftAction extends KeyAction {
+    private static class LeftAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            navigateSelectedTab(WEST);
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+            ui.navigateSelectedTab(WEST);
         }
     };
 
-    private class UpAction extends KeyAction {
+    private static class UpAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            navigateSelectedTab(NORTH);
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+            ui.navigateSelectedTab(NORTH);
         }
     };
 
-    private class DownAction extends KeyAction {
+    private static class DownAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            navigateSelectedTab(SOUTH);
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+            ui.navigateSelectedTab(SOUTH);
         }
     };
 
-    private class PageUpAction extends KeyAction {
+    private static class PageUpAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-	    int tabPlacement = tabPane.getTabPlacement();
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+	    int tabPlacement = pane.getTabPlacement();
 	    if (tabPlacement == TOP|| tabPlacement == BOTTOM) {
-		navigateSelectedTab(WEST); 
+		ui.navigateSelectedTab(WEST); 
 	    } else {
-		navigateSelectedTab(NORTH);
+		ui.navigateSelectedTab(NORTH);
 	    }
         }
     };
 
-    private class PageDownAction extends KeyAction {
+    private static class PageDownAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-	    int tabPlacement = tabPane.getTabPlacement();
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+	    int tabPlacement = pane.getTabPlacement();
 	    if (tabPlacement == TOP || tabPlacement == BOTTOM) {
-		navigateSelectedTab(EAST); 
+		ui.navigateSelectedTab(EAST); 
 	    } else {
-		navigateSelectedTab(SOUTH);
+		ui.navigateSelectedTab(SOUTH);
 	    }
         }
     };
 
-    private class RequestFocusAction extends KeyAction {
+    private static class RequestFocusAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            tabPane.requestFocus();
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+            pane.requestFocus();
         }
     };
 
-    private class RequestFocusForVisibleAction implements ActionListener {
+    private static class RequestFocusForVisibleAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            requestFocusForVisibleComponent();
-        }
-        public boolean isEnabled() { 
-            return true; 
+	    JTabbedPane pane = (JTabbedPane)e.getSource();
+	    BasicTabbedPaneUI ui = (BasicTabbedPaneUI)pane.getUI();
+            ui.requestFocusForVisibleComponent();
         }
     };
 
@@ -1507,6 +1476,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             int x, y;
             int returnAt;
             boolean verticalTabRuns = (tabPlacement == LEFT || tabPlacement == RIGHT);
+	    boolean leftToRight = BasicGraphicsUtils.isLeftToRight(tabPane);
 
             //
             // Calculate bounds within which a tab run must fit
@@ -1536,6 +1506,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                   x = insets.left + tabAreaInsets.left;
                   y = insets.top + tabAreaInsets.top;
                   returnAt = size.width - (insets.right + tabAreaInsets.right);
+                  break;
             }
 
             tabRunOverlay = getTabRunOverlay(tabPlacement);
@@ -1667,6 +1638,15 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             // Pad the selected tab so that it appears raised in front
             padSelectedTab(tabPlacement, selectedIndex);
 
+	    // if right to left and tab placement on the top or
+	    // the bottom, flip x positions and adjust by widths
+	    if (!leftToRight && !verticalTabRuns) {
+	        int rightMargin = size.width 
+                                  - (insets.right + tabAreaInsets.right);
+		for (i = 0; i < tabCount; i++) {
+		    rects[i].x = rightMargin - rects[i].x - rects[i].width;
+		}
+	    }
         }
 
 

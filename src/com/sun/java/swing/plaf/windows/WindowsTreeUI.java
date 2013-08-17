@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsTreeUI.java	1.15 01/11/29
+ * @(#)WindowsTreeUI.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -28,7 +31,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.15 11/29/01
+ * @version 1.16 02/02/00
  * @author Scott Violet
  */
 public class WindowsTreeUI extends BasicTreeUI {

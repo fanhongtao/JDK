@@ -1,8 +1,11 @@
 /*
- * @(#)Authenticator.java	1.14 01/11/29
+ * @(#)Authenticator.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -23,12 +26,12 @@ package java.net;
  * All methods that request authentication have a default implementation
  * that fails.
  *
- * @see java.net.Authenticator.setDefault(java.net.ConnectionAuthenticator)
- * @see java.net.getPasswordAuthentication()
+ * @see java.net.Authenticator#setDefault(java.net.Authenticator)
+ * @see java.net.Authenticator#getPasswordAuthentication()
  *
  * @author  Bill Foote
- * @version 1.14, 11/29/01
- * @since   JDK1.2
+ * @version 1.20, 02/02/00
+ * @since   1.2
  */
 
 // There are no abstract methods, but to be useful the user must
@@ -104,7 +107,7 @@ class Authenticator {
      *             or null if not known.
      * @param port the port for the requested connection
      * @param protocol The protocol that's requesting the connection
-     *          (@see java.net.Authenticator.getProtocol())
+     *          ({@link java.net.Authenticator#getProtocol()})
      * @param prompt A prompt string for the user
      * @param scheme The authentication scheme
      *
@@ -147,6 +150,10 @@ class Authenticator {
     }
 
     /**
+     * Gets the <code>InetAddress</code> of the
+     * site requesting authorization, or <code>null</code>
+     * if not available.
+     * 
      * @return the InetAddress of the site requesting authorization, or null
      *		if it's not available.
      */
@@ -155,7 +162,9 @@ class Authenticator {
     }
 
     /**
-     * @return the port for the requested connection
+     * Gets the port number for the requested connection.
+     * @return an <code>int</code> indicating the 
+     * port for the requested connection.
      */
     protected final int getRequestingPort() {
 	return requestingPort;
@@ -163,19 +172,21 @@ class Authenticator {
 
     /**
      * Give the protocol that's requesting the connection.  Often this
-     * will be based on a URL, but in a future JDK it could be, for
+     * will be based on a URL, but in a future SDK it could be, for
      * example, "SOCKS" for a password-protected SOCKS5 firewall.
      *
      * @return the protcol, optionally followed by "/version", where
      *		version is a version number.
      *
-     * @see java.net.URL.getProtocol()
+     * @see java.net.URL#getProtocol()
      */
     protected final String getRequestingProtocol() {
 	return requestingProtocol;
     }
 
     /**
+     * Gets the prompt string given by the requestor.
+     *
      * @return the prompt string given by the requestor (realm for
      *		http requests)
      */
@@ -184,8 +195,11 @@ class Authenticator {
     }
 
     /**
-     * @return the scheme of the requestor (the HTTP scheme
-     *		for an HTTP firewall, for example)
+     * Gets the scheme of the requestor (the HTTP scheme
+     * for an HTTP firewall, for example).
+     *
+     * @return the scheme of the requestor
+     *	      
      */
     protected final String getRequestingScheme() {
 	return requestingScheme;
@@ -202,3 +216,9 @@ class Authenticator {
     }
 
 }
+
+
+
+
+
+

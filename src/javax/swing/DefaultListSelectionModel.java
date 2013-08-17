@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.53 01/11/29
+ * @(#)DefaultListSelectionModel.java	1.55 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -24,7 +27,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.53 11/29/01
+ * @version 1.55 02/02/00
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel
@@ -61,9 +64,32 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     public boolean getValueIsAdjusting() { return isAdjusting; }
 
     // implements javax.swing.ListSelectionModel
+    /**
+     * Returns the selection mode.
+     * @return  one of the these values:
+     * <ul>
+     * <li>SINGLE_SELECTION
+     * <li>SINGLE_INTERVAL_SELECTION
+     * <li>MULTIPLE_INTERVAL_SELECTION
+     * </ul>
+     * @see #getSelectionMode
+     */
     public int getSelectionMode() { return selectionMode; }
 
     // implements javax.swing.ListSelectionModel
+    /**
+     * Sets the selection mode.  The default is
+     * MULTIPLE_INTERVAL_SELECTION.
+     * @param selectionMode  one of three values:
+     * <ul>
+     * <li>SINGLE_SELECTION
+     * <li>SINGLE_INTERVAL_SELECTION
+     * <li>MULTIPLE_INTERVAL_SELECTION
+     * </ul>
+     * @exception IllegalArgumentException  if <code>selectionMode</code>
+     *		is not one of the legal values shown above
+     * @see #setSelectionMode
+     */
     public void setSelectionMode(int selectionMode) {
 	switch (selectionMode) {
 	case SINGLE_SELECTION:
@@ -97,7 +123,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     }
 
     /**
-     * Notify listeners that we have ended a series of adjustments. 
+     * Notifies listeners that we have ended a series of adjustments. 
      */
     protected void fireValueChanged(boolean isAdjusting) {  
         if (lastChangedIndex == MIN) {
@@ -116,17 +142,19 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 
 
     /**
-     * Notify ListSelectionListeners that the value of the selection,
-     * in the closed interval firstIndex,lastIndex, has changed.
+     * Notifies <code>ListSelectionListeners</code> that the value
+     * of the selection, in the closed interval <code>firstIndex</code>,
+     * <code>lastIndex</code>, has changed.
      */
     protected void fireValueChanged(int firstIndex, int lastIndex) {
 	fireValueChanged(firstIndex, lastIndex, getValueIsAdjusting());
     }
 
     /**
-     * @param firstIndex The first index in the interval.
-     * @param index1 The last index in the interval.
-     * @param isAdjusting True if this is the final change in a series of them.
+     * @param firstIndex the first index in the interval
+     * @param lastIndex the last index in the interval
+     * @param isAdjusting true if this is the final change in a series of
+     *		adjustments
      * @see EventListenerList
      */
     protected void fireValueChanged(int firstIndex, int lastIndex, boolean isAdjusting)
@@ -169,14 +197,26 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	fireValueChanged(oldFirstAdjustedIndex, oldLastAdjustedIndex);
     }
 
+    /**
+     * Returns an array of all the listeners of the given type that 
+     * were added to this model. 
+     *
+     * @return all of the objects receiving <em>listenerType</em>
+     *		notifications from this model
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
+    }
 
-    // Update first and last change indices
+    // Updates first and last change indices
     private void markAsDirty(int r) {
         firstAdjustedIndex = Math.min(firstAdjustedIndex, r);
 	lastAdjustedIndex =  Math.max(lastAdjustedIndex, r);
     }
 
-    // Set the state at this index and update all relevant state.
+    // Sets the state at this index and update all relevant state.
     private void set(int r) {
 	if (value.get(r)) {
 	    return;
@@ -189,7 +229,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
         maxIndex = Math.max(maxIndex, r);
     }
 
-    // Clear the state at this index and update all relevant state.
+    // Clears the state at this index and update all relevant state.
     private void clear(int r) {
 	if (!value.get(r)) {
 	    return;
@@ -254,15 +294,15 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     }
 
     /**
-     * Returns the value of the leadAnchorNotificationEnabled flag.
-     * When leadAnchorNotificationEnabled is true the model
+     * Returns the value of the <code>leadAnchorNotificationEnabled</code> flag.
+     * When <code>leadAnchorNotificationEnabled</code> is true the model
      * generates notification events with bounds that cover all the changes to
      * the selection plus the changes to the lead and anchor indices.
-     * Setting the flag to false causes a norrowing of the event's bounds to
+     * Setting the flag to false causes a narrowing of the event's bounds to
      * include only the elements that have been selected or deselected since
      * the last change. Either way, the model continues to maintain the lead
      * and anchor variables internally. The default is true.
-     * @return 		the value of the leadAnchorNotificationEnabled flag
+     * @return 	the value of the <code>leadAnchorNotificationEnabled</code> flag
      * @see		#setLeadAnchorNotificationEnabled(boolean)
      */
     public boolean isLeadAnchorNotificationEnabled() {
@@ -319,7 +359,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
         fireValueChanged();
     }
 
-   /*   Change the selection with the effect of first clearing the values
+   /**   Change the selection with the effect of first clearing the values
     *   in the inclusive range [clearMin, clearMax] then setting the values
     *   in the inclusive range [setMin, setMax]. Do this in one pass so
     *   that no values are cleared if they would later be set.
@@ -473,7 +513,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
      * Returns a string that displays and identifies this
      * object's properties.
      *
-     * @return a String representation of this object
+     * @return a <code>String</code> representation of this object
      */
     public String toString() {
 	String s =  ((getValueIsAdjusting()) ? "~" : "=") + value.toString();
@@ -481,10 +521,10 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     }
 
     /**
-     * Returns a clone of the reciever with the same selection.
-     * listenerLists are not duplicated.
+     * Returns a clone of this selection model with the same selection.
+     * <code>listenerLists</code> are not duplicated.
      *
-     * @exception CloneNotSupportedException if the receiver does not
+     * @exception CloneNotSupportedException if the selection model does not
      *    both (a) implement the Cloneable interface and (b) define a
      *    <code>clone</code> method.
      */
@@ -520,15 +560,16 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     }
 
     /**
-     * Set the lead selection index, ensuring that values between the 
+     * Sets the lead selection index, ensuring that values between the 
      * anchor and the new lead are either all selected or all deselected. 
      * If the value at the anchor index is selected, first clear all the 
      * values in the range [anchor, oldLeadIndex], then select all the values 
-     * values in the range [anchor, newLeadIndex], where oldLeadIndex is the old 
+     * values in the range [anchor, newLeadIndex], where oldLeadIndex is the old
      * leadIndex and newLeadIndex is the new one. 
      * <p> 
-     * If the value at the anchor index is not selected, do the same thing in reverse, 
-     * selecting values in the old range and deslecting values in the new one. 
+     * If the value at the anchor index is not selected, do the same thing in 
+     * reverse selecting values in the old range and deslecting values in the
+     * new one. 
      * <p>
      * Generate a single event for this change and notify all listeners. 
      * For the purposes of generating minimal bounds in this event, do the 
@@ -536,12 +577,12 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
      * ListSelectionEvent that is broadcast will refer to cells that actually 
      * changed value because of this method. If, instead, this operation were 
      * done in two steps the effect on the selection state would be the same 
-     * but two events would be generated and the bounds around the changed values 
-     * would be wider, including cells that had been first cleared only 
+     * but two events would be generated and the bounds around the changed 
+     * values would be wider, including cells that had been first cleared only 
      * to later be set. 
      * <p>
-     * This method can be used in the mouseDragged() method of a UI class 
-     * to extend a selection.  
+     * This method can be used in the <code>mouseDragged</code> method
+     * of a UI class to extend a selection.  
      *
      * @see #getLeadSelectionIndex     
      * @see #setAnchorSelectionIndex

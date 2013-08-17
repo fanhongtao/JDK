@@ -1,8 +1,11 @@
 /*
- * @(#)IsindexView.java	1.4 01/11/29
+ * @(#)IsindexView.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -17,11 +20,11 @@ import javax.swing.*;
 
 
 /**
- * A view that supports the <ISINDEX> tag.  This is implemented
+ * A view that supports the &lt;ISINDEX&lt; tag.  This is implemented
  * as a JPanel that contains 
  *
  * @author Sunita Mani
- * @version 1.4, 11/29/01
+ * @version 1.6, 02/02/00
  */
 
 class IsindexView extends ComponentView implements ActionListener {
@@ -64,11 +67,11 @@ class IsindexView extends ComponentView implements ActionListener {
     }
 
     /**
-     * Responsible for processeing the ActionEvent.
+     * Responsible for processing the ActionEvent.
      * In this case this is hitting enter/return
      * in the text field.  This will construct the
-     * url from the base url of the document.
-     * To the url is appended a '?' followed by the
+     * URL from the base URL of the document.
+     * To the URL is appended a '?' followed by the
      * contents of the JTextField.  The search 
      * contents are URLEncoded.
      */

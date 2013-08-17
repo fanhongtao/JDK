@@ -1,8 +1,11 @@
 /*
- * @(#)RMISocketFactory.java	1.16 02/05/29
+ * @(#)RMISocketFactory.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -25,7 +28,7 @@ import java.net.*;
  * communication, then HTTP to a cgi-bin script on the server is used
  * to POST the RMI call.<p>
  *
- * @version 1.16, 05/29/02
+ * @version 1.16, 02/02/00
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1
@@ -139,10 +142,6 @@ public abstract class RMISocketFactory
      */
     public synchronized static void setFailureHandler(RMIFailureHandler fh)
     {
- 	SecurityManager security = System.getSecurityManager();
- 	if (security != null) {
- 	    security.checkSetFactory();
- 	}
 	handler = fh;
     }
 

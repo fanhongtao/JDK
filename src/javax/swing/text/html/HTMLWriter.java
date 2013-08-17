@@ -1,8 +1,11 @@
 /*
- * @(#)HTMLWriter.java	1.24 01/11/29
+ * @(#)HTMLWriter.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -19,12 +22,11 @@ import java.util.NoSuchElementException;
  * This is a writer for HTMLDocuments.
  *
  * @author  Sunita Mani
- * @version 1.24, 11/29/01
+ * @version 1.26, 02/02/00
  */
 
 
 public class HTMLWriter extends AbstractWriter {
-
     /*
      * Stores all elements for which end tags have to
      * be emitted.
@@ -40,10 +42,10 @@ public class HTMLWriter extends AbstractWriter {
     private boolean completeDoc;
 
     /*
-     * Stores all embedded tags. i.e tags that are
-     * stored as attributes in other tags. For example,
-     * <b>, <i>, <font>, <a>.  Basically tags that
-     * are essentially character level attributes.
+     * Stores all embedded tags. Embedded tags are tags that are
+     * stored as attributes in other tags. Generally they're
+     * character level attributes.  Examples include
+     * &lt;b&gt;, &lt;i&gt;, &lt;font&gt;, and &lt;a&gt;. 
      */
     private Vector tags = new Vector(10);
 
@@ -51,16 +53,6 @@ public class HTMLWriter extends AbstractWriter {
      * Values for the tags.
      */
     private Vector tagValues = new Vector(10);
-
-    /**
-     * Used when writing out a string.
-     */
-    private char[] tempChars;
-
-    /**
-     * Used when indenting. Will contain the spaces.
-     */
-    private char[] indentChars;
 
     /**
      * Used when writing out content.
@@ -77,37 +69,22 @@ public class HTMLWriter extends AbstractWriter {
      */
     private boolean wroteHead;
 
-    //
-    // The following are temporary until new API can be added.
-    //
-    /** This class does its own writing. */
-    private Writer out;
-    /** If this is true when outputting a string and the length exceeds
-     * maxLineLength a newline will be output. */
-    private int maxLineLength = 80;
-    private int currLength;
-    private int indentLevel = 0;
-    private int indentSpace = 2;
-    // If (indentLevel * indentSpace) becomes >= maxLineLength, this will
-    // get incremened instead of indentLevel to avoid indenting going greater
-    // than line length.
-    private int offsetIndent = 0;
-    /** String used for end of line. If the Document has the property
-     * EndOfLineStringProperty, it will be used for newlines. Otherwise
-     * the System property line.separator will be used. */
-    private String newline;
-    /** If this is true, the line is empty. indent() does not make this
-     * true. */
-    private boolean isLineEmpty;
-    private int startOffset;
-    private int endOffset;
+    /**
+     * Set to true when entities (such as &lt;) should be replaced.
+     */
+    private boolean replaceEntities;
+
+    /**
+     * Temporary buffer.
+     */
+    private char[] tempChars;
 
 
     /**
      * Creates a new HTMLWriter.
      *
-     * @param a  Writer
-     * @param an HTMLDocument
+     * @param w   a Writer
+     * @param doc  an HTMLDocument
      *
      */
     public HTMLWriter(Writer w, HTMLDocument doc) {
@@ -117,38 +94,19 @@ public class HTMLWriter extends AbstractWriter {
     /**
      * Creates a new HTMLWriter.
      *
-     * @param a  Writer
-     * @param an HTMLDocument
-     * @param pos The location in the document to fetch the
-     *   content.
-     * @param len The amount to write out.
+     * @param w  a Writer
+     * @param doc an HTMLDocument
+     * @param pos the document location from which to fetch the content
+     * @param len the amount to write out
      */
     public HTMLWriter(Writer w, HTMLDocument doc, int pos, int len) {
 	super(w, doc, pos, len);
 	completeDoc = (pos == 0 && len == doc.getLength());
-	this.maxLineLength = 80;
-	this.out = w;
-	Object docNewline = doc.getProperty(DefaultEditorKit.
-				       EndOfLineStringProperty);
-	if (docNewline instanceof String) {
-	    newline = (String)docNewline;
-	}
-	else {
-	    try {
-		newline = System.getProperty("line.separator");
-	    } catch (SecurityException se) {}
-	    if (newline == null) {
-		// Should not get here, but if we do it means we could not
-		// find a newline string, use \n in this case.
-		newline = "\n";
-	    }
-	}
-	startOffset = pos;
-	endOffset = pos + len;
+	setLineLength(80);
     }
 
     /**
-     * This is method that iterates over the the
+     * Iterates over the 
      * Element tree and controls the writing out of
      * all the tags and its attributes.
      *
@@ -163,9 +121,9 @@ public class HTMLWriter extends AbstractWriter {
 	Element next = null;
 
 	wroteHead = false;
-	tempChars = null;
-	currLength = 0;
-	isLineEmpty = true;
+	setCurrentLineLength(0);
+	replaceEntities = false;
+	setCanWrapLines(false);
 	if (segment == null) {
 	    segment = new Segment();
 	}
@@ -258,7 +216,7 @@ public class HTMLWriter extends AbstractWriter {
      * and attributes with a key of type
      * HTML.Attribute.ENDTAG.
      *
-     * @param     an AttributeSet.
+     * @param attr   an AttributeSet
      * @exception IOException on any I/O error
      *
      */
@@ -280,10 +238,10 @@ public class HTMLWriter extends AbstractWriter {
     }
 
     /**
-     * Writes out all empty elements i.e tags that have no
-     * corresponding end tag.
+     * Writes out all empty elements (all tags that have no
+     * corresponding end tag).
      *
-     * @param     an Element.
+     * @param elem   an Element
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
@@ -306,7 +264,7 @@ public class HTMLWriter extends AbstractWriter {
 	}  else {
 	    boolean isBlock = isBlockTag(elem.getAttributes());
 	    if (inContent && isBlock ) {
-		writeNewline();
+		writeLineSeparator();
 		indent();
 	    }
 
@@ -345,7 +303,7 @@ public class HTMLWriter extends AbstractWriter {
 		String title = (String)doc.getProperty(Document.TitleProperty);
 		write(title);
 	    } else if (!inContent || isBlock) {
-		writeNewline();
+		writeLineSeparator();
 		if (isBlock && inContent) {
 		    indent();
 		}
@@ -357,7 +315,7 @@ public class HTMLWriter extends AbstractWriter {
      * Determines if the HTML.Tag associated with the
      * element is a block tag.
      *
-     * @param   AttributeSet.
+     * @param attr  an AttributeSet
      * @return  true if tag is block tag, false otherwise.
      */
     protected boolean isBlockTag(AttributeSet attr) {
@@ -374,7 +332,7 @@ public class HTMLWriter extends AbstractWriter {
      * Writes out a start tag for the element.
      * Ignores all synthesized elements.
      *
-     * @param     an Element.
+     * @param elem   an Element
      * @exception IOException on any I/O error
      */
     protected void startTag(Element elem) throws IOException, BadLocationException {
@@ -403,7 +361,7 @@ public class HTMLWriter extends AbstractWriter {
 	closeOutUnwantedEmbeddedTags(attr);
 
 	if (inContent) { 
-	    writeNewline();
+	    writeLineSeparator();
 	    inContent = false;
 	    newlineOutputed = false;
 	}
@@ -413,14 +371,14 @@ public class HTMLWriter extends AbstractWriter {
 	    wroteHead = true;
 	    indent();
 	    write("<head>");
-	    writeNewline();
+	    writeLineSeparator();
 	    incrIndent();
 	    writeStyles(((HTMLDocument)getDocument()).getStyleSheet());
 	    decrIndent();
-	    writeNewline();
+	    writeLineSeparator();
 	    indent();
 	    write("</head>");
-	    writeNewline();
+	    writeLineSeparator();
 	}
 
 	indent();
@@ -429,7 +387,7 @@ public class HTMLWriter extends AbstractWriter {
 	writeAttributes(attr);
 	write('>');
 	if (name != HTML.Tag.PRE) {
-	    writeNewline();
+	    writeLineSeparator();
 	}
 
 	if (name == HTML.Tag.TEXTAREA) {
@@ -451,7 +409,7 @@ public class HTMLWriter extends AbstractWriter {
      * Writes out text that is contained in a TEXTAREA form
      * element.
      *
-     * @param AttributeSet
+     * @param attr  an AttributeSet
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
@@ -467,9 +425,12 @@ public class HTMLWriter extends AbstractWriter {
 		inTextArea = true;
 		incrIndent();
 		indent();
-		write(segment.array, segment.offset, segment.count, true,
-		      true);
-		writeNewline();
+		setCanWrapLines(true);
+		replaceEntities = true;
+		write(segment.array, segment.offset, segment.count);
+		replaceEntities = false;
+		setCanWrapLines(false);
+		writeLineSeparator();
 		inTextArea = false;
 		decrIndent();
 	    }
@@ -482,14 +443,14 @@ public class HTMLWriter extends AbstractWriter {
      * is invoked, then only the appropriate range of text is written
      * out.
      *
-     * @param     an Element.
+     * @param elem   an Element
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
      */
     protected void text(Element elem) throws BadLocationException, IOException {
-	int start = Math.max(startOffset, elem.getStartOffset());
-	int end = Math.min(endOffset, elem.getEndOffset());
+	int start = Math.max(getStartOffset(), elem.getStartOffset());
+	int end = Math.min(getEndOffset(), elem.getEndOffset());
 	if (start < end) {
 	    if (segment == null) {
 		segment = new Segment();
@@ -508,8 +469,11 @@ public class HTMLWriter extends AbstractWriter {
 			return;
 		    }
 		}
-		write(segment.array, segment.offset, segment.count, !inPre,
-		      true);
+		replaceEntities = true;
+		setCanWrapLines(!inPre);
+		write(segment.array, segment.offset, segment.count);
+		setCanWrapLines(false);
+		replaceEntities = false;
 	    }
 	}
     }
@@ -517,7 +481,7 @@ public class HTMLWriter extends AbstractWriter {
     /**
      * Writes out the content of the SELECT form element.
      * 
-     * @param AttributeSet associcated with the form element.
+     * @param attr the AttributeSet associated with the form element
      * @exception IOException on any I/O error
      */
     protected void selectContent(AttributeSet attr) throws IOException {
@@ -544,7 +508,7 @@ public class HTMLWriter extends AbstractWriter {
 
     /**
      * Writes out the content of the Option form element.
-     * @param Option.
+     * @param option  an Option
      * @exception IOException on any I/O error
      * 
      */
@@ -563,13 +527,13 @@ public class HTMLWriter extends AbstractWriter {
 	if (option.getLabel() != null) {
 	    write(option.getLabel());
 	}
-	writeNewline();
+	writeLineSeparator();
     }
 
     /**
      * Writes out an end tag for the element.
      *
-     * @param     an Element.
+     * @param elem    an Element
      * @exception IOException on any I/O error
      */
     protected void endTag(Element elem) throws IOException {
@@ -584,7 +548,7 @@ public class HTMLWriter extends AbstractWriter {
 	closeOutUnwantedEmbeddedTags(elem.getAttributes());
 	if (inContent) { 
 	    if (!newlineOutputed) {
-		writeNewline();
+		writeLineSeparator();
 	    }
 	    newlineOutputed = false;
 	    inContent = false;
@@ -594,7 +558,7 @@ public class HTMLWriter extends AbstractWriter {
         write('/');
         write(elem.getName());
         write('>');
-	writeNewline();
+	writeLineSeparator();
     }
 
 
@@ -602,7 +566,7 @@ public class HTMLWriter extends AbstractWriter {
     /**
      * Writes out comments.
      *
-     * @param     an element.
+     * @param elem    an Element
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
@@ -624,7 +588,7 @@ public class HTMLWriter extends AbstractWriter {
     /**
      * Writes out comment string.
      *
-     * @param     string the comment.
+     * @param string   the comment
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
@@ -635,7 +599,7 @@ public class HTMLWriter extends AbstractWriter {
 	    write(string);
 	}
 	write("-->");
-	writeNewline();
+	writeLineSeparator();
     }
 
 
@@ -658,7 +622,7 @@ public class HTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method returns true, if the element is a
+     * Returns true if the element is a
      * synthesized element.  Currently we are only testing
      * for the p-implied tag.
      */
@@ -671,7 +635,7 @@ public class HTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method return true if the StyleConstants.NameAttribute is
+     * Returns true if the StyleConstants.NameAttribute is
      * equal to the tag that is passed in as a parameter.
      */
     protected boolean matchNameAttribute(AttributeSet attr, HTML.Tag tag) {
@@ -686,7 +650,7 @@ public class HTMLWriter extends AbstractWriter {
     }
 
     /**
-     * This method searches for embedded tags in the AttributeSet
+     * Searches for embedded tags in the AttributeSet
      * and writes them out.  It also stores these tags in a vector
      * so that when appropriate the corresponding end tags can be
      * written out.
@@ -721,7 +685,7 @@ public class HTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method searches the attribute set for a tag, both of which
+     * Searches the attribute set for a tag, both of which
      * are passed in as a parameter.  Returns true if no match is found
      * and false otherwise.
      */
@@ -740,7 +704,7 @@ public class HTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method searches the attribute set and for each tag
+     * Searches the attribute set and for each tag
      * that is stored in the tag vector.  If the tag isnt found,
      * then the tag is removed from the vector and a corresponding
      * end tag is written out.
@@ -813,14 +777,14 @@ public class HTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method determines whether a the indentation needs to be
+     * Determines whether a the indentation needs to be
      * incremented.  Basically, if next is a child of current, and
      * next is NOT a synthesized element, the indent level will be
      * incremented.  If there is a parent-child relationship and "next"
      * is a synthesized element, then its children must be indented.
      * This state is maintained by the indentNext boolean.
      *
-     * @return boolean that returns true if indent level
+     * @return boolean that's true if indent level
      *         needs incrementing.
      */
     private boolean indentNext = false;
@@ -859,7 +823,7 @@ public class HTMLWriter extends AbstractWriter {
 		else {
 		    write('>');
 		}
-		writeNewline();
+		writeLineSeparator();
 		incrIndent();
 
 		// Output the areas
@@ -871,13 +835,13 @@ public class HTMLWriter extends AbstractWriter {
 			write("<area");
 			writeAttributes(areas[counter]);
 			write("></area>");
-			writeNewline();
+			writeLineSeparator();
 		    }
 		}
 		decrIndent();
 		indent();
 		write("</map>");
-		writeNewline();
+		writeLineSeparator();
 		decrIndent();
 	    }
 	}
@@ -946,7 +910,7 @@ public class HTMLWriter extends AbstractWriter {
 	}
 	if (didOutputStyle) {
 	    write(" }");
-	    writeNewline();
+	    writeLineSeparator();
 	}
 	return didOutputStyle;
     }
@@ -955,22 +919,22 @@ public class HTMLWriter extends AbstractWriter {
 	indent();
 	write("<style type=\"text/css\">");
 	incrIndent();
-	writeNewline();
+	writeLineSeparator();
 	indent();
 	write("<!--");
 	incrIndent();
-	writeNewline();
+	writeLineSeparator();
     }
 
     void writeStyleEndTag() throws IOException {
 	decrIndent();
 	indent();
 	write("-->");
-	writeNewline();
+	writeLineSeparator();
 	decrIndent();
 	indent();
 	write("</style>");
-	writeNewline();
+	writeLineSeparator();
 	indent();
     }
 
@@ -1128,261 +1092,36 @@ public class HTMLWriter extends AbstractWriter {
 	}
     }
 
-    /**
-     * Enables subclasses to specify how many spaces an indent
-     * maps to. When indentation takes place, the indent level
-     * is multiplied by this mapping.  The default is 2.
-     *
-     * @param an int representing the space to indent mapping.
-     */
-    protected void setIndentSpace(int space) {
-	indentSpace = space;
-    }
-
-    /**
-     * Increments the indent level.
-     */
-    protected void incrIndent() {
-	// Only increment to a certain point.
-	if (offsetIndent > 0) {
-	    offsetIndent++;
-	}
-	else {
-	    if (++indentLevel * indentSpace >= maxLineLength) {
-		offsetIndent++;
-		--indentLevel;
-	    }
-	}
-    }
-
-    /**
-     * Decrements the indent level.
-     */
-    protected void decrIndent() {
-	if (offsetIndent > 0) {
-	    --offsetIndent;
-	}
-	else {
-	    indentLevel--;
-	}
-    }
-
-    /**
-     * Enables subclasses to set the number of characters they
-     * want written per line.   The default is 100.
-     *
-     * @param the maximum line length.
-     */
-    protected void setLineLength(int l) {
-	maxLineLength = l;
-    }
-
     //
-    // This subclasses the writing methods to only break a string when
+    // Overrides the writing methods to only break a string when
     // canBreakString is true.
     // In a future release it is likely AbstractWriter will get this
-    // functionality
+    // functionality.
     //
 
     /**
-     * Conveneice method for write(char, false).
+     * Writes the line separator. This is overriden to make sure we don't
+     * replace the newline content in case it is outside normal ascii.
      */
-    protected void write(char ch) throws IOException {
-	write(ch, false);
+    protected void writeLineSeparator() throws IOException {
+	boolean oldReplace = replaceEntities;
+	replaceEntities = false;
+	super.writeLineSeparator();
+	replaceEntities = oldReplace;
     }
 
     /**
-     * Convenience method for write(String, false).
+     * This method is overriden to map any character entities, such as
+     * &lt; to &amp;lt;. <code>super.output</code> will be invoked to
+     * write the content.
      */
-    protected void write(String content) throws IOException {
-	write(content, false);
-    }
-
-    /**
-     * Writes out a character.  If the character is
-     * a newline then it resets the current length to
-     * 0.  If the current length equals the maximum
-     * line length, then a newline is outputed and the
-     * current length is reset to 0.
-     *
-     * @param     a char.
-     * @exception IOException on any I/O error
-     */
-    private void write(char ch, boolean content) throws IOException {
-	if (ch == NEWLINE) {
-	    currLength = 0;
-	    out.write(newline);
-	    isLineEmpty = true;
-	} else {
-	    isLineEmpty = false;
-	    out.write(ch);
-	    ++currLength;
-	    if (content && currLength >= maxLineLength) {
-		writeNewline();
-	    }
+    protected void output(char[] chars, int start, int length)
+	           throws IOException {
+	if (!replaceEntities) {
+	    super.output(chars, start, length);
+	    return;
 	}
-    }
-
-    /**
-     * Writes out a string.
-     *
-     * @param String representing the content.
-     * @exception IOException on any I/O error
-     */
-    private void write(String content, boolean isContent) throws IOException {
-	int size = content.length();
-	if (tempChars == null || tempChars.length < size) {
-	    tempChars = new char[size];
-	}
-	content.getChars(0, size, tempChars, 0);
-	write(tempChars, 0, size, isContent, isContent);
-    }
-
-    /**
-     * Write a portion of an array of characters.
-     */
-    private void write(char[] chars, int startIndex, int length,
-		       boolean isContent,
-		       boolean replaceCharacterEntities) throws IOException {
-	if (!isContent) {
-	    // We can not break str, just track if a newline
-	    // is in it.
-	    int lastIndex = startIndex;
-	    int endIndex = startIndex + length;
-	    int newlineIndex = indexOf(chars, '\n', startIndex, endIndex);
-	    while (newlineIndex != -1) {
-		if (newlineIndex > lastIndex) {
-		    if (replaceCharacterEntities) {
-			write(chars, lastIndex, newlineIndex - lastIndex);
-		    }
-		    else {
-			out.write(chars, lastIndex, newlineIndex - lastIndex);
-		    }
-		}
-		writeNewline();
-		lastIndex = newlineIndex + 1;
-		newlineIndex = indexOf(chars, '\n', lastIndex, endIndex);
-	    }
-	    if (lastIndex < endIndex) {
-		currLength += (endIndex - lastIndex);
-		if (replaceCharacterEntities) {
-		    write(chars, lastIndex, endIndex - lastIndex);
-		}
-		else {
-		    out.write(chars, lastIndex, endIndex - lastIndex);
-		}
-	    }
-	}
-	else {
-	    // We can break chars if the length exceeds maxLineLength.
-	    int lastIndex = startIndex;
-	    int endIndex = startIndex + length;
-
-	    if (currLength >= maxLineLength && !isLineEmpty) {
-		// This can happen if some tags have been written out.
-		writeNewline();
-	    }
-	    while (lastIndex < endIndex) {
-		int newlineIndex = indexOf(chars, '\n', lastIndex, endIndex);
-		boolean needsNewline = false;
-
-		if (newlineIndex != -1 && (currLength +
-			      (newlineIndex - lastIndex)) < maxLineLength) {
-		    if (newlineIndex > lastIndex) {
-			write(chars, lastIndex, newlineIndex - lastIndex);
-		    }
-		    lastIndex = newlineIndex + 1;
-		    needsNewline = true;
-		}
-		else if (newlineIndex == -1 && (currLength +
-				(endIndex - lastIndex)) < maxLineLength) {
-		    if (endIndex > lastIndex) {
-			write(chars, lastIndex, endIndex - lastIndex);
-		    }
-		    currLength += (endIndex - lastIndex);
-		    lastIndex = endIndex;
-		}
-		else {
-		    // Need to break chars, find a place to split chars at,
-		    // from lastIndex to endIndex,
-		    // or maxLineLength - currLength whichever is smaller
-		    int breakPoint = -1;
-		    int maxBreak = Math.min(endIndex - lastIndex,
-					    maxLineLength - currLength - 1);
-		    int counter = 0;
-		    while (counter < maxBreak) {
-			if (Character.isWhitespace(chars[counter +
-							lastIndex])) {
-			    breakPoint = counter;
-			}
-			counter++;
-		    }
-		    if (breakPoint != -1) {
-			// Found a place to break at.
-			breakPoint += lastIndex + 1;
-			write(chars, lastIndex, breakPoint - lastIndex);
-			lastIndex = breakPoint;
-		    }
-		    else {
-			// No where good to break.
-			if (isLineEmpty) {
-			    // If the current output line is empty, find the
-			    // next whitespace, or write out the whole string.
-			    // maxBreak will be negative if current line too
-			    // long.
-			    counter = Math.max(0, maxBreak);
-			    maxBreak = endIndex - lastIndex;
-			    while (counter < maxBreak) {
-				if (Character.isWhitespace(chars[counter +
-								lastIndex])) {
-				    breakPoint = counter;
-				    break;
-				}
-				counter++;
-			    }
-			    if (breakPoint == -1) {
-				write(chars, lastIndex, endIndex - lastIndex);
-				breakPoint = endIndex;
-			    }
-			    else {
-				breakPoint += lastIndex;
-				if (chars[breakPoint] == NEWLINE) {
-				    write(chars, lastIndex, breakPoint++ -
-					  lastIndex);
-				}
-				else {
-				    write(chars, lastIndex, ++breakPoint -
-					      lastIndex);
-				}
-			    }
-			    lastIndex = breakPoint;
-			}
-			// else Iterate through again.
-		    }
-		    // Force a newline since line length too long.
-		    needsNewline = true;
-		}
-		if (needsNewline || lastIndex < endIndex) {
-		    writeNewline();
-		    if (lastIndex < endIndex) {
-			indent();
-		    }
-		}
-	    }
-	}
-    }
-
-    /**
-     * Writes a portion of an array of characters. This does no
-     * book keeping before writing out the characters. It will map
-     * any characters outside of ascii to character level entities. You
-     * should not normally call this, rather call write that takes
-     * a boolean, or write that takes a String.
-     */
-    private void write(char[] chars, int start, int length) throws
-	          IOException {
 	int last = start;
-	isLineEmpty = false;
 	length += start;
 	for (int counter = start; counter < length; counter++) {
 	    // This will change, we need better support character level
@@ -1391,31 +1130,31 @@ public class HTMLWriter extends AbstractWriter {
 		// Character level entities.
 	    case '<':
 		if (counter > last) {
-		    out.write(chars, last, counter - last);
+		    super.output(chars, last, counter - last);
 		}
 		last = counter + 1;
-		out.write("&lt;");
+		output("&lt;");
 		break;
 	    case '>':
 		if (counter > last) {
-		    out.write(chars, last, counter - last);
+		    super.output(chars, last, counter - last);
 		}
 		last = counter + 1;
-		out.write("&gt;");
+		output("&gt;");
 		break;
 	    case '&':
 		if (counter > last) {
-		    out.write(chars, last, counter - last);
+		    super.output(chars, last, counter - last);
 		}
 		last = counter + 1;
-		out.write("&amp;");
+		output("&amp;");
 		break;
 	    case '"':
 		if (counter > last) {
-		    out.write(chars, last, counter - last);
+		    super.output(chars, last, counter - last);
 		}
 		last = counter + 1;
-		out.write("&quot;");
+		output("&quot;");
 		break;
 		// Special characters
 	    case '\n':
@@ -1425,61 +1164,33 @@ public class HTMLWriter extends AbstractWriter {
 	    default:
 		if (chars[counter] < ' ' || chars[counter] > 127) {
 		    if (counter > last) {
-			out.write(chars, last, counter - last);
+			super.output(chars, last, counter - last);
 		    }
 		    last = counter + 1;
 		    // If the character is outside of ascii, write the
 		    // numeric value.
-		    out.write("&#");
-		    out.write(String.valueOf((int)chars[counter]));
-		    out.write(';');
+		    output("&#");
+		    output(String.valueOf((int)chars[counter]));
+		    output(";");
 		}
 		break;
 	    }
 	}
 	if (last < length) {
-	    out.write(chars, last, length - last);
+	    super.output(chars, last, length - last);
 	}
     }
 
     /**
-     * Writes a newline.
+     * This directly invokes super's <code>output</code> after converting
+     * <code>string</code> to a char[].
      */
-    private void writeNewline() throws IOException {
-	out.write(newline);
-	isLineEmpty = true;
-	currLength = 0;
-    }
-
-    /**
-     * Does indentation.  The number of spaces written
-     * out is indent level times the space to map mapping.
-     *
-     * @exception IOException on any I/O error
-     */
-    protected void indent() throws IOException {
-	int max = indentLevel * indentSpace;
-	if (indentChars == null || max > indentChars.length) {
-	    indentChars = new char[max];
-	    for (int counter = 0; counter < max; counter++) {
-		indentChars[counter] = ' ';
-	    }
+    private void output(String string) throws IOException {
+	int length = string.length();
+	if (tempChars == null || tempChars.length < length) {
+	    tempChars = new char[length];
 	}
-	out.write(indentChars, 0, max);
-	currLength += max;
-    }
-
-    /**
-     * Support method to locate an occurence of a particular character.
-     */
-    private int indexOf(char[] chars, char sChar, int startIndex,
-			int endIndex) {
-	while(startIndex < endIndex) {
-	    if (chars[startIndex] == sChar) {
-		return startIndex;
-	    }
-	    startIndex++;
-	}
-	return -1;
+	string.getChars(0, length, tempChars, 0);
+	super.output(tempChars, 0, length);
     }
 }

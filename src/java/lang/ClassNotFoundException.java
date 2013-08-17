@@ -1,8 +1,11 @@
 /*
- * @(#)ClassNotFoundException.java	1.9 01/11/29
+ * @(#)ClassNotFoundException.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -23,7 +26,7 @@ import java.io.PrintWriter;
  * but no definition for the class with the specifed name could be found. 
  *
  * @author  unascribed
- * @version 1.9, 11/29/01
+ * @version 1.13, 02/02/00
  * @see     java.lang.Class#forName(java.lang.String)
  * @see     java.lang.ClassLoader#findSystemClass(java.lang.String)
  * @see     java.lang.ClassLoader#loadClass(java.lang.String, boolean)
@@ -41,7 +44,7 @@ class ClassNotFoundException extends Exception {
      * ClassNotFoundException(String s, Throwable ex) constructor was
      * used to instantiate the object
      * @serial 
-     * @since JDK 1.2
+     * @since 1.2
      */
     private Throwable ex;
 
@@ -69,7 +72,7 @@ class ClassNotFoundException extends Exception {
      *
      * @param s the detail message
      * @param ex the exception that was raised while loading the class
-     * @since JDK1.2
+     * @since 1.2
      */
     public ClassNotFoundException(String s, Throwable ex) {
 	super(s);
@@ -80,7 +83,8 @@ class ClassNotFoundException extends Exception {
      * Returns the exception that was raised if an error occurred while
      * attempting to load the class. Otherwise, returns null.
      *
-     * @since JDK1.2
+     * @return the <code>Exception</code> that was raised while loading a class
+     * @since 1.2
      */
     public Throwable getException() {
 	return ex;

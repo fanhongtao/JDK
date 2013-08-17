@@ -1,8 +1,11 @@
 /*
- * @(#)jvm.h	1.71 01/11/29
+ * @(#)jvm.h	1.75 99/12/04
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_JVM_H_
@@ -101,6 +104,9 @@ JVM_OnExit(void (*func)(void));
  */
 JNIEXPORT void JNICALL
 JVM_Exit(jint code);
+
+JNIEXPORT void JNICALL
+JVM_Halt(jint code);
 
 JNIEXPORT void JNICALL
 JVM_GC(void);
@@ -265,6 +271,13 @@ JNIEXPORT jobject JNICALL
 JVM_AllocateNewArray(JNIEnv *env, jobject obj, jclass currClass,
                      jint length);
 
+JNIEXPORT jobject JNICALL
+JVM_LatestUserDefinedLoader(JNIEnv *env);
+
+/*
+ * This function has been deprecated and should not be considered
+ * part of the specified JVM interface.
+ */
 JNIEXPORT jclass JNICALL
 JVM_LoadClass0(JNIEnv *env, jobject obj, jclass currClass,
                jstring currClassName);
@@ -469,9 +482,11 @@ JNIEXPORT jobject JNICALL
 JVM_GetStackAccessControlContext(JNIEnv *env, jclass cls);
 
 /*
- * sun.misc.Signal stuff. Not a standard Java API. Don't need to implement
- * them on all VMs.
- */ 
+ * Signal support, used to implement the shutdown sequence.  Every VM must
+ * support JVM_SIGINT and JVM_SIGTERM, raising the former for user interrupts
+ * (^C) and the latter for external termination (kill, system shutdown, etc.).
+ * Other platform-dependent signal values may also be supported.
+ */
 
 JNIEXPORT void * JNICALL
 JVM_RegisterSignal(jint sig, void *handler);
@@ -914,6 +929,14 @@ typedef jint (*check_format_fn_t)(char *class_name,
 					 JVM_ACC_ABSTRACT | \
 					 JVM_ACC_STRICT)
 
+/* 
+ * This is the function defined in libjava.so to perform path 
+ * canonicalization. VM call this function before opening jar files
+ * to load system classes.
+ *
+ */
+
+typedef int (*canonicalize_fn_t)(JNIEnv *env, char *orig, char *out, int len);
 
 /*************************************************************************
  PART 3: I/O and Network Support
@@ -1061,6 +1084,9 @@ JNIEXPORT jint JNICALL
 JVM_SocketClose(jint fd);
 
 JNIEXPORT jint JNICALL
+JVM_SocketShutdown(jint fd, jint howto);
+
+JNIEXPORT jint JNICALL
 JVM_Recv(jint fd, char *buf, jint nBytes, jint flags);
 
 JNIEXPORT jint JNICALL
@@ -1076,6 +1102,9 @@ JNIEXPORT jint JNICALL
 JVM_Connect(jint fd, struct sockaddr *him, jint len);
 
 JNIEXPORT jint JNICALL
+JVM_Bind(jint fd, struct sockaddr *him, jint len);
+
+JNIEXPORT jint JNICALL
 JVM_Accept(jint fd, struct sockaddr *him, jint *len);
 
 JNIEXPORT jint JNICALL
@@ -1088,6 +1117,28 @@ JVM_SendTo(jint fd, char *buf, int len,
 
 JNIEXPORT jint JNICALL
 JVM_SocketAvailable(jint fd, jint *result);
+
+
+JNIEXPORT jint JNICALL
+JVM_GetSockName(jint fd, struct sockaddr *him, int *len);
+
+JNIEXPORT jint JNICALL
+JVM_GetSockOpt(jint fd, int level, int optname, char *optval, int *optlen);
+
+JNIEXPORT jint JNICALL
+JVM_SetSockOpt(jint fd, int level, int optname, const char *optval, int optlen);
+
+JNIEXPORT struct protoent * JNICALL
+JVM_GetProtoByName(char* name);
+
+JNIEXPORT int JNICALL
+JVM_GetHostName(char* name, int namelen);
+
+JNIEXPORT struct hostent* JNICALL
+JVM_GetHostByAddr(const char* name, int len, int type);
+
+JNIEXPORT struct hostent* JNICALL
+JVM_GetHostByName(char* name);
 
 /* 
  * The standard printing functions supported by the Java VM. (Should they

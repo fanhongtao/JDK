@@ -1,8 +1,11 @@
 /*
- * @(#)Environment.java	1.16 01/11/29
+ * @(#)Environment.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -19,26 +22,26 @@ package org.omg.CORBA;
 
 public abstract class Environment {
 
-  /**
-   * Retrieves the exception in this <code>Environment</code> object.
-   *
-   * @return			the exception in this <code>Environment</code> object
-   */
+    /**
+     * Retrieves the exception in this <code>Environment</code> object.
+     *
+     * @return			the exception in this <code>Environment</code> object
+     */
 
-  public abstract java.lang.Exception exception();
+    public abstract java.lang.Exception exception();
 
-  /**
-   * Inserts the given exception into this <code>Environment</code> object.
-   *
-   * @param except		the exception to be set
-   */
+    /**
+     * Inserts the given exception into this <code>Environment</code> object.
+     *
+     * @param except		the exception to be set
+     */
 
-  public abstract void exception(java.lang.Exception except);
+    public abstract void exception(java.lang.Exception except);
 
-  /**
-   * Clears this <code>Environment</code> object of its exception.
-   */
+    /**
+     * Clears this <code>Environment</code> object of its exception.
+     */
 
-  public abstract void clear();
+    public abstract void clear();
 
 }

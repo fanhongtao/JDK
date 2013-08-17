@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsDesktopManager.java	1.12 01/11/29
+ * @(#)WindowsDesktopManager.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -30,7 +33,7 @@ import java.util.Vector;
  * and another window is selected, that new window will be maximized.
  *
  * @see javax.swing.DefaultDesktopManager
- * @version 1.12 11/29/01
+ * @version 1.11 02/02/00
  * @author Thomas Ball
  */
 public class WindowsDesktopManager extends DefaultDesktopManager 
@@ -52,9 +55,7 @@ public class WindowsDesktopManager extends DefaultDesktopManager
     Vector childFrames = new Vector(1);
 
     public void closeFrame(JInternalFrame f) {
-        if(f == currentFrame){
-            activateNextFrame();
-        }
+        if (f == currentFrame) { activateNextFrame(); }
         childFrames.removeElement(f);
         super.closeFrame(f);
     }
@@ -128,8 +129,7 @@ public class WindowsDesktopManager extends DefaultDesktopManager
      * Activate the next child JInternalFrame, as determined by
      * the frames' Z-order.  If there is only one child frame, it
      * remains activated.  If there are no child frames, nothing 
-     * happens.
-     */
+     * happens.  */
     public void activateNextFrame() {
         switchFrame(true);
     }

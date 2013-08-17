@@ -1,8 +1,11 @@
 /*
- * @(#)InputEvent.java	1.20 01/11/29
+ * @(#)InputEvent.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -21,14 +24,16 @@ import java.awt.Component;
  * on a Button component will prevent the Button from being
  * activated.
  *
+ * @author Carl Quinn
+ * @version 1.22 02/02/00
+ *
  * @see KeyEvent
  * @see KeyAdapter
  * @see MouseEvent
  * @see MouseAdapter
  * @see MouseMotionAdapter
  *
- * @version 1.20 11/29/01
- * @author Carl Quinn
+ * @since 1.1
  */
 public abstract class InputEvent extends ComponentEvent {
 

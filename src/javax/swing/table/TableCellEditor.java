@@ -1,8 +1,11 @@
 /*
- * @(#)TableCellEditor.java	1.11 01/11/29
+ * @(#)TableCellEditor.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.table;
@@ -12,11 +15,12 @@ import javax.swing.CellEditor;
 import javax.swing.*;
 
 /**
- * This interface defines the methods any object that would like to be
- * an editor of values for components such as ListBox, ComboBox, Tree, or
- * Table, etc.
+ * This interface defines the method any object that would like to be
+ * an editor of values for components such as <code>JListBox</code>,
+ * <code>JComboBox</code>, <code>JTree</code>, or <code>JTable</code>
+ * needs to implement.
  *
- * @version 1.11 11/29/01
+ * @version 1.13 02/02/00
  * @author Alan Chung
  */
 
@@ -24,24 +28,26 @@ import javax.swing.*;
 public interface TableCellEditor extends CellEditor {
 
     /**
-     *  Sets an initial <I>value</I> for the editor.  This will cause
-     *  the editor to stopEditing and lose any partially edited value
-     *  if the editor is editing when this method is called. <p>
+     *  Sets an initial <code>value</code> for the editor.  This will cause
+     *  the editor to <code>stopEditing</code> and lose any partially
+     *  edited value if the editor is editing when this method is called. <p>
      *
      *  Returns the component that should be added to the client's
-     *  Component hierarchy.  Once installed in the client's hierarchy
-     *  this component will then be able to draw and receive user input.
+     *  <code>Component</code> hierarchy.  Once installed in the client's
+     *  hierarchy this component will then be able to draw and receive
+     *  user input.
      *
-     * @param	table		the JTable that is asking the editor to edit
-     *				This parameter can be null.
-     * @param	value		the value of the cell to be edited.  It is
+     * @param	table		the <code>JTable</code> that is asking the
+     *				editor to edit; can be <code>null</code>
+     * @param	value		the value of the cell to be edited; it is
      *				up to the specific editor to interpret
-     *				and draw the value.  eg. if value is the
-     *				String "true", it could be rendered as a
+     *				and draw the value.  For example, if value is
+     *				the string "true", it could be rendered as a
      *				string or it could be rendered as a check
-     *				box that is checked.  null is a valid value.
-     * @param	isSelected	true is the cell is to be renderer with
-     *				selection highlighting
+     *				box that is checked.  <code>null</code>
+     *				is a valid value
+     * @param	isSelected	true if the cell is to be rendered with
+     *				highlighting
      * @param	row     	the row of the cell being edited
      * @param	column  	the column of the cell being edited
      * @return	the component for editing

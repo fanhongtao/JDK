@@ -1,8 +1,11 @@
 /*
- * @(#)BasicRadioButtonUI.java	1.58 01/11/29
+ * @(#)BasicRadioButtonUI.java	1.61 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -12,12 +15,14 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
+import javax.swing.text.View;
+
 
 
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.58 11/29/01
+ * @version 1.61 02/02/00
  * @author Jeff Dinkins
  */
 public class BasicRadioButtonUI extends BasicToggleButtonUI 
@@ -115,7 +120,11 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         if(altIcon != null) { 
 
             if(!model.isEnabled()) {
-                altIcon = b.getDisabledIcon();
+	        if(model.isSelected()) {
+                   altIcon = b.getDisabledSelectedIcon();
+		} else {
+                   altIcon = b.getDisabledIcon();
+		}
             } else if(model.isPressed() && model.isArmed()) {
                 altIcon = b.getPressedIcon();
                 if(altIcon == null) {
@@ -128,8 +137,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
                         if (altIcon == null) {
                                 altIcon = (Icon) b.getSelectedIcon();
                         }
-                }
-                else {
+                } else {
                         altIcon = (Icon) b.getSelectedIcon();
                 }
             } else if(b.isRolloverEnabled() && model.isRollover()) {
@@ -149,27 +157,32 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
 
         // Draw the Text
         if(text != null) {
-            if(model.isEnabled()) {
-                // *** paint the text normally
-                g.setColor(b.getForeground());
-                BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                              textRect.x, 
-                                              textRect.y + fm.getAscent());
+            View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+            if (v != null) {
+               v.paint(g, textRect);
             } else {
-                // *** paint the text disabled
-                g.setColor(b.getBackground().brighter());
-                BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                              textRect.x + 1, 
-                                              textRect.y + fm.getAscent() + 1);
-                g.setColor(b.getBackground().darker());
-                BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                              textRect.x, 
-                                              textRect.y + fm.getAscent());
-            }
-            if(b.hasFocus() && b.isFocusPainted() && 
-               textRect.width > 0 && textRect.height > 0 ) {
-                paintFocus(g, textRect, size);
-            }
+               if(model.isEnabled()) {
+                   // *** paint the text normally
+                   g.setColor(b.getForeground());
+                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+                                                 textRect.x, 
+                                                 textRect.y + fm.getAscent());
+               } else {
+                   // *** paint the text disabled
+                   g.setColor(b.getBackground().brighter());
+                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+                                                 textRect.x + 1, 
+                                                 textRect.y + fm.getAscent() + 1);
+                   g.setColor(b.getBackground().darker());
+                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+                                                 textRect.x, 
+                                                 textRect.y + fm.getAscent());
+               }
+               if(b.hasFocus() && b.isFocusPainted() && 
+                  textRect.width > 0 && textRect.height > 0 ) {
+                   paintFocus(g, textRect, size);
+               }
+           }
         }
     }
 

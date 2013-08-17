@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.57 01/11/29
+ * @(#)WindowsLookAndFeel.java	1.71 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -42,7 +45,7 @@ import java.util.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.50 11/20/98
+ * @version 1.71 02/02/00
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -197,10 +200,13 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 
 	// *** Text
 
-	JTextComponent.KeyBinding[] fieldBindings = makeKeyBindings( new Object[]{
+	Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
 	              "control C", DefaultEditorKit.copyAction,
 	              "control V", DefaultEditorKit.pasteAction,
                       "control X", DefaultEditorKit.cutAction,
+			   "COPY", DefaultEditorKit.copyAction,
+			  "PASTE", DefaultEditorKit.pasteAction,
+			    "CUT", DefaultEditorKit.cutAction,
                  "control INSERT", DefaultEditorKit.copyAction,
                    "shift INSERT", DefaultEditorKit.pasteAction,
                    "shift DELETE", DefaultEditorKit.cutAction,	    
@@ -216,13 +222,23 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	                    "END", DefaultEditorKit.endLineAction,
 	             "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 	              "shift END", DefaultEditorKit.selectionEndLineAction,
+		     "typed \010", DefaultEditorKit.deletePrevCharAction,
+                         "DELETE", DefaultEditorKit.deleteNextCharAction,
+                          "RIGHT", DefaultEditorKit.forwardAction,
+                           "LEFT", DefaultEditorKit.backwardAction,
+                       "KP_RIGHT", DefaultEditorKit.forwardAction,
+                        "KP_LEFT", DefaultEditorKit.backwardAction,
 	                  "ENTER", JTextField.notifyAction,
+                "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
 	});
 
-	JTextComponent.KeyBinding[] multilineBindings = makeKeyBindings( new Object[]{
+	Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
 		      "control C", DefaultEditorKit.copyAction,
 		      "control V", DefaultEditorKit.pasteAction,
 		      "control X", DefaultEditorKit.cutAction,
+			   "COPY", DefaultEditorKit.copyAction,
+			  "PASTE", DefaultEditorKit.pasteAction,
+			    "CUT", DefaultEditorKit.cutAction,
                  "control INSERT", DefaultEditorKit.copyAction,
                    "shift INSERT", DefaultEditorKit.pasteAction,
                    "shift DELETE", DefaultEditorKit.cutAction,	    
@@ -244,12 +260,26 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	      "control shift END", DefaultEditorKit.selectionEndAction,
 			     "UP", DefaultEditorKit.upAction,
 			   "DOWN", DefaultEditorKit.downAction,
+		     "typed \010", DefaultEditorKit.deletePrevCharAction,
+                         "DELETE", DefaultEditorKit.deleteNextCharAction,
+                          "RIGHT", DefaultEditorKit.forwardAction,
+                           "LEFT", DefaultEditorKit.backwardAction,
+                       "KP_RIGHT", DefaultEditorKit.forwardAction,
+                        "KP_LEFT", DefaultEditorKit.backwardAction,
 			"PAGE_UP", DefaultEditorKit.pageUpAction,
 		      "PAGE_DOWN", DefaultEditorKit.pageDownAction,
+		  "shift PAGE_UP", "selection-page-up",
+ 	        "shift PAGE_DOWN", "selection-page-down",
+	     "ctrl shift PAGE_UP", "selection-page-left",
+ 	   "ctrl shift PAGE_DOWN", "selection-page-right",
 		       "shift UP", DefaultEditorKit.selectionUpAction,
 		     "shift DOWN", DefaultEditorKit.selectionDownAction,
 			  "ENTER", DefaultEditorKit.insertBreakAction,
-			    "TAB", DefaultEditorKit.insertTabAction
+			    "TAB", DefaultEditorKit.insertTabAction,
+                      "control T", "next-link-action",
+                "control shift T", "previous-link-action",
+                  "control SPACE", "activate-link-action",
+                "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
 	});
 
 
@@ -302,11 +332,11 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	Object menuItemAcceleratorDelimiter = new String("+");
 
         Object[] defaults = {
-	    "TextField.keyBindings", fieldBindings,
-	    "PasswordField.keyBindings", fieldBindings,
-	    "TextArea.keyBindings", multilineBindings,
-	    "TextPane.keyBindings", multilineBindings,
-	    "EditorPane.keyBindings", multilineBindings,
+	    "TextField.focusInputMap", fieldInputMap,
+	    "PasswordField.focusInputMap", fieldInputMap,
+	    "TextArea.focusInputMap", multilineInputMap,
+	    "TextPane.focusInputMap", multilineInputMap,
+	    "EditorPane.focusInputMap", multilineInputMap,
 
 	    // Buttons
 	    "Button.dashedRectGapX", new Integer(5),
@@ -315,22 +345,36 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "Button.dashedRectGapHeight", new Integer(8),
 	    "Button.textShiftOffset", new Integer(1),
             "Button.focus", black,
+	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+                         "SPACE", "pressed",
+                "released SPACE", "released"
+              }),
 
             "CheckBox.background", table.get("control"),
             "CheckBox.shadow", table.get("controlShadow"),
             "CheckBox.darkShadow", table.get("controlDkShadow"),
-            "CheckBox.highlight", table.get("controlLtHighlight"),
+            "CheckBox.highlight", table.get("window"),
             "CheckBox.icon", checkBoxIcon,
             "CheckBox.border", radioButtonBorder,
             "CheckBox.focus", black,
+	    "CheckBox.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		            "SPACE", "pressed",
+                   "released SPACE", "released"
+		 }),
 
             "RadioButton.background", table.get("control"),
             "RadioButton.shadow", table.get("controlShadow"),
             "RadioButton.darkShadow", table.get("controlDkShadow"),
-            "RadioButton.highlight", table.get("controlLtHighlight"),
+            "RadioButton.highlight", table.get("window"),
             "RadioButton.icon", radioButtonIcon,
             "RadioButton.border", radioButtonBorder,
             "RadioButton.focus", black,
+	    "RadioButton.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                          "SPACE", "pressed",
+                 "released SPACE", "released"
+	      }),
 
 	    "ToggleButton.textShiftOffset", new Integer(1),
             "ToggleButton.focus", black,
@@ -339,8 +383,73 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "ToggleButton.foreground", table.get("controlText"),
             "ToggleButton.focus", table.get("controlText"),
             "ToggleButton.font", dialogPlain12,
+	    "ToggleButton.focusInputMap",
+	      new UIDefaults.LazyInputMap(new Object[] {
+		            "SPACE", "pressed",
+                   "released SPACE", "released"
+	        }),
 
             "ComboBox.border", comboBoxBorder,
+	    "ComboBox.ancestorInputMap", new UIDefaults.LazyInputMap(new Object[] {
+		   "ESCAPE", "hidePopup",
+		  "PAGE_UP", "pageUpPassThrough",
+		"PAGE_DOWN", "pageDownPassThrough",
+		     "HOME", "homePassThrough",
+		      "END", "endPassThrough",
+		     "DOWN", "selectNext",
+		  "KP_DOWN", "selectNext",
+		       "UP", "selectPrevious",
+		    "KP_UP", "selectPrevious"
+	      }),
+
+	    // DeskTop.
+	    "Desktop.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		   "ctrl F5", "restore", 
+		   "ctrl F4", "close",
+		   "ctrl F7", "move", 
+		   "ctrl F8", "resize",
+		   "RIGHT", "right",
+		   "KP_RIGHT", "right",
+		   "LEFT", "left",
+		   "KP_LEFT", "left",
+		   "UP", "up",
+		   "KP_UP", "up",
+		   "DOWN", "down",
+		   "KP_DOWN", "down",
+		   "ESCAPE", "escape",
+		   "ctrl F9", "minimize", 
+		   "ctrl F10", "maximize",
+		   "ctrl F6", "selectNextFrame",
+		   "ctrl TAB", "selectNextFrame",
+		   "ctrl alt F6", "selectNextFrame",
+		   "shift ctrl alt F6", "selectPreviousFrame"	
+	       }),
+
+	    // List.
+	    "List.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		               "UP", "selectPreviousRow",
+		            "KP_UP", "selectPreviousRow",
+		         "shift UP", "selectPreviousRowExtendSelection",
+		      "shift KP_UP", "selectPreviousRowExtendSelection",
+		             "DOWN", "selectNextRow",
+		          "KP_DOWN", "selectNextRow",
+		       "shift DOWN", "selectNextRowExtendSelection",
+		    "shift KP_DOWN", "selectNextRowExtendSelection",
+		       "ctrl SPACE", "selectNextRowExtendSelection",
+		             "HOME", "selectFirstRow",
+		       "shift HOME", "selectFirstRowExtendSelection",
+		              "END", "selectLastRow",
+		        "shift END", "selectLastRowExtendSelection",
+		          "PAGE_UP", "scrollUp",
+		    "shift PAGE_UP", "scrollUpExtendSelection",
+		        "PAGE_DOWN", "scrollDown",
+		  "shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "ctrl A", "selectAll",
+		       "ctrl SLASH", "selectAll",
+		  "ctrl BACK_SLASH", "clearSelection"
+		 }),
 
 	    // Menus
             "Menu.border", marginBorder,
@@ -350,6 +459,25 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "Menu.selectionForeground", table.get("textHighlightText"),
             "Menu.selectionBackground", table.get("textHighlight"),
             "Menu.arrowIcon", menuArrowIcon,
+	    // These window InputMap bindings are used when the Menu is
+	    // selected.
+	    "Menu.selectedWindowInputMapBindings", new Object[] {
+		  "ESCAPE", "cancel",
+                    "DOWN", "selectNext",
+		 "KP_DOWN", "selectNext",
+		      "UP", "selectPrevious",
+		   "KP_UP", "selectPrevious",
+		    "LEFT", "selectParent",
+		 "KP_LEFT", "selectParent",
+		   "RIGHT", "selectChild",
+		"KP_RIGHT", "selectChild",
+		   "ENTER", "return",
+		   "SPACE", "return"
+	    },
+
+	    // MenuBar.
+	    "MenuBar.windowBindings", new Object[] {
+		"F10", "takeFocus" },
 
             "MenuItem.border", marginBorder,
             "MenuItem.font", dialogPlain12,
@@ -361,10 +489,163 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "MenuItem.checkIcon", menuItemCheckIcon,
             "MenuItem.arrowIcon", menuItemArrowIcon,
 
+	    // OptionPane.
+	    "OptionPane.windowBindings", new Object[] {
+		"ESCAPE", "close" },
+
+	    // ScrollBar.
+	    "ScrollBar.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "negativeUnitIncrement",
+		    "KP_RIGHT", "negativeUnitIncrement",
+		        "DOWN", "positiveUnitIncrement",
+		     "KP_DOWN", "positiveUnitIncrement",
+		   "PAGE_DOWN", "positiveBlockIncrement",
+	      "ctrl PAGE_DOWN", "positiveBlockIncrement",
+		        "LEFT", "positiveUnitIncrement",
+		     "KP_LEFT", "positiveUnitIncrement",
+		          "UP", "negativeUnitIncrement",
+		       "KP_UP", "negativeUnitIncrement",
+		     "PAGE_UP", "negativeBlockIncrement",
+	        "ctrl PAGE_UP", "negativeBlockIncrement",
+		        "HOME", "minScroll",
+		         "END", "maxScroll"
+		 }),
+
+	    // ScrollPane.
+	    "ScrollPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		           "RIGHT", "unitScrollRight",
+		        "KP_RIGHT", "unitScrollRight",
+		            "DOWN", "unitScrollDown",
+		         "KP_DOWN", "unitScrollDown",
+		            "LEFT", "unitScrollLeft",
+		         "KP_LEFT", "unitScrollLeft",
+		              "UP", "unitScrollUp",
+		           "KP_UP", "unitScrollUp",
+		         "PAGE_UP", "scrollUp",
+		       "PAGE_DOWN", "scrollDown",
+		    "ctrl PAGE_UP", "scrollLeft",
+		  "ctrl PAGE_DOWN", "scrollRight",
+		       "ctrl HOME", "scrollHome",
+		        "ctrl END", "scrollEnd"
+		 }),
+
+	    // Slider.
+	    "Slider.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "positiveUnitIncrement",
+		    "KP_RIGHT", "positiveUnitIncrement",
+		        "DOWN", "negativeUnitIncrement",
+		     "KP_DOWN", "negativeUnitIncrement",
+		   "PAGE_DOWN", "negativeBlockIncrement",
+		        "LEFT", "negativeUnitIncrement",
+		     "KP_LEFT", "negativeUnitIncrement",
+		          "UP", "positiveUnitIncrement",
+		       "KP_UP", "positiveUnitIncrement",
+		     "PAGE_UP", "positiveBlockIncrement",
+		        "HOME", "minScroll",
+		         "END", "maxScroll"
+		 }),
+
             "SplitPane.background", table.get("control"),
             "SplitPane.highlight", table.get("controllHighlight"),
             "SplitPane.shadow", table.get("controlShadow"),
-	    "SplitPane.dividerSize", new Integer(3),
+	    "SplitPane.dividerSize", new Integer(5),
+	    "SplitPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		        "UP", "negativeIncrement",
+		      "DOWN", "positiveIncrement",
+		      "LEFT", "negativeIncrement",
+		     "RIGHT", "positiveIncrement",
+		     "KP_UP", "negativeIncrement",
+		   "KP_DOWN", "positiveIncrement",
+		   "KP_LEFT", "negativeIncrement",
+		  "KP_RIGHT", "positiveIncrement",
+		      "HOME", "selectMin",
+		       "END", "selectMax",
+		        "F8", "startResize",
+		        "F6", "toggleFocus"
+		 }),
+
+	    // TabbedPane
+	    "TabbedPane.focusInputMap",
+	      new UIDefaults.LazyInputMap(new Object[] {
+		         "RIGHT", "navigateRight",
+	              "KP_RIGHT", "navigateRight",
+	                  "LEFT", "navigateLeft",
+	               "KP_LEFT", "navigateLeft",
+	                    "UP", "navigateUp",
+	                 "KP_UP", "navigateUp",
+	                  "DOWN", "navigateDown",
+	               "KP_DOWN", "navigateDown",
+	             "ctrl DOWN", "requestFocusForVisibleComponent",
+	          "ctrl KP_DOWN", "requestFocusForVisibleComponent",
+		}),
+	    "TabbedPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		   "ctrl PAGE_DOWN", "navigatePageDown",
+	             "ctrl PAGE_UP", "navigatePageUp",
+	                  "ctrl UP", "requestFocus",
+	               "ctrl KP_UP", "requestFocus",
+		 }),
+
+	    // Table.
+	    "Table.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                "RIGHT", "selectNextColumn",
+		             "KP_RIGHT", "selectNextColumn",
+		                 "LEFT", "selectPreviousColumn",
+		              "KP_LEFT", "selectPreviousColumn",
+		                 "DOWN", "selectNextRow",
+		              "KP_DOWN", "selectNextRow",
+		                   "UP", "selectPreviousRow",
+		                "KP_UP", "selectPreviousRow",
+		          "shift RIGHT", "selectNextColumnExtendSelection",
+		       "shift KP_RIGHT", "selectNextColumnExtendSelection",
+		           "shift LEFT", "selectPreviousColumnExtendSelection",
+		        "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+		           "shift DOWN", "selectNextRowExtendSelection",
+		        "shift KP_DOWN", "selectNextRowExtendSelection",
+		             "shift UP", "selectPreviousRowExtendSelection",
+		          "shift KP_UP", "selectPreviousRowExtendSelection",
+		              "PAGE_UP", "scrollUpChangeSelection",
+		            "PAGE_DOWN", "scrollDownChangeSelection",
+		                 "HOME", "selectFirstColumn",
+		                  "END", "selectLastColumn",
+		        "shift PAGE_UP", "scrollUpExtendSelection",
+		      "shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "shift HOME", "selectFirstColumnExtendSelection",
+		            "shift END", "selectLastColumnExtendSelection",
+		         "ctrl PAGE_UP", "scrollLeftChangeSelection",
+		       "ctrl PAGE_DOWN", "scrollRightChangeSelection",
+		            "ctrl HOME", "selectFirstRow",
+		             "ctrl END", "selectLastRow",
+		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
+		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
+		      "ctrl shift HOME", "selectFirstRowExtendSelection",
+		       "ctrl shift END", "selectLastRowExtendSelection",
+		                  "TAB", "selectNextColumnCell",
+		            "shift TAB", "selectPreviousColumnCell",
+		                "ENTER", "selectNextRowCell",
+		          "shift ENTER", "selectPreviousRowCell",
+		               "ctrl A", "selectAll",
+		               "ESCAPE", "cancel",
+		                   "F2", "startEditing"
+		 }),
+
+	    // ToolBar.
+	    "ToolBar.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		        "UP", "navigateUp",
+		     "KP_UP", "navigateUp",
+		      "DOWN", "navigateDown",
+		   "KP_DOWN", "navigateDown",
+		      "LEFT", "navigateLeft",
+		   "KP_LEFT", "navigateLeft",
+		     "RIGHT", "navigateRight",
+		  "KP_RIGHT", "navigateRight"
+		 }),
 
             "ToolTip.font", sansSerifPlain12,
             "ToolTip.border", toolTipBorder,
@@ -391,6 +672,55 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "Tree.selectionBorderColor", yellow,
             "Tree.expandedIcon", treeExpandedIcon,
             "Tree.collapsedIcon", treeCollapsedIcon,
+	    "Tree.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                     "UP", "selectPrevious",
+		                  "KP_UP", "selectPrevious",
+		               "shift UP", "selectPreviousExtendSelection",
+		            "shift KP_UP", "selectPreviousExtendSelection",
+		                   "DOWN", "selectNext",
+		                "KP_DOWN", "selectNext",
+		             "shift DOWN", "selectNextExtendSelection",
+		          "shift KP_DOWN", "selectNextExtendSelection",
+		                  "RIGHT", "selectChild",
+		               "KP_RIGHT", "selectChild",
+		                   "LEFT", "selectParent",
+		                "KP_LEFT", "selectParent",
+		                "PAGE_UP", "scrollUpChangeSelection",
+		          "shift PAGE_UP", "scrollUpExtendSelection",
+		              "PAGE_DOWN", "scrollDownChangeSelection",
+		        "shift PAGE_DOWN", "scrollDownExtendSelection",
+		                   "HOME", "selectFirst",
+		             "shift HOME", "selectFirstExtendSelection",
+		                    "END", "selectLast",
+		              "shift END", "selectLastExtendSelection",
+		                  "ENTER", "toggle",
+		                     "F2", "startEditing",
+		                 "ctrl A", "selectAll",
+		             "ctrl SLASH", "selectAll",
+		        "ctrl BACK_SLASH", "clearSelection",
+		             "ctrl SPACE", "toggleSelectionPreserveAnchor",
+		            "shift SPACE", "extendSelection",
+		              "ctrl HOME", "selectFirstChangeLead",
+		               "ctrl END", "selectLastChangeLead",
+		                "ctrl UP", "selectPreviousChangeLead",
+		             "ctrl KP_UP", "selectPreviousChangeLead",
+		              "ctrl DOWN", "selectNextChangeLead",
+		           "ctrl KP_DOWN", "selectNextChangeLead",
+		         "ctrl PAGE_DOWN", "scrollDownChangeLead",
+		   "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "ctrl PAGE_UP", "scrollUpChangeLead",
+		     "ctrl shift PAGE_UP", "scrollUpExtendSelection",
+		              "ctrl LEFT", "scrollLeft",
+		           "ctrl KP_LEFT", "scrollLeft",
+		             "ctrl RIGHT", "scrollRight",
+		          "ctrl KP_RIGHT", "scrollRight",
+		                  "SPACE", "toggleSelectionPreserveAnchor",
+		 }),
+	    "Tree.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		     "ESCAPE", "cancel"
+		 }),
 
 	    "FileChooser.newFolderIcon", LookAndFeel.makeIcon(getClass(), "icons/NewFolder.gif"),
 	    "FileChooser.upFolderIcon", LookAndFeel.makeIcon(getClass(), "icons/UpFolder.gif"),
@@ -401,6 +731,10 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "FileChooser.lookInLabelMnemonic", new Integer(KeyEvent.VK_I),
             "FileChooser.fileNameLabelMnemonic", new Integer(KeyEvent.VK_N),
             "FileChooser.filesOfTypeLabelMnemonic", new Integer(KeyEvent.VK_T),
+	    "FileChooser.ancestorInputMap", 
+	       new UIDefaults.LazyInputMap(new Object[] {
+		     "ESCAPE", "cancelSelection"
+		 }),
 
 	    "FileView.directoryIcon", LookAndFeel.makeIcon(getClass(), "icons/Directory.gif"),
 	    "FileView.fileIcon", LookAndFeel.makeIcon(getClass(), "icons/File.gif"),
@@ -421,6 +755,19 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "InternalFrame.closeIcon", 
                 WindowsIconFactory.createFrameCloseIcon(),
 
+	    "InternalFrame.windowBindings", new Object[] {
+		"shift ESCAPE", "showSystemMenu",
+		  "ctrl SPACE", "showSystemMenu",
+		      "ESCAPE", "hideSystemMenu"},
+
+	    // These bindings are only enabled when there is a default
+	    // button set on the rootpane.
+	    "RootPane.defaultButtonWindowKeyBindings", new Object[] {
+		             "ENTER", "press",
+		    "released ENTER", "release",
+		        "ctrl ENTER", "press",
+	       "ctrl released ENTER", "release"
+	      },
         };
 
         table.putDefaults(defaults);

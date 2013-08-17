@@ -1,8 +1,11 @@
 /*
- * @(#)TreeSelectionEvent.java	1.16 01/11/29
+ * @(#)TreeSelectionEvent.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -24,9 +27,10 @@ import javax.swing.tree.TreePath;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
+ * @see TreeSelectionListener
  * @see javax.swing.tree.TreeSelectionModel
  *
- * @version 1.16 11/29/01
+ * @version 1.22 02/02/00
  * @author Scott Violet
  */
 public class TreeSelectionEvent extends EventObject 
@@ -125,6 +129,21 @@ public class TreeSelectionEvent extends EventObject
 	    if(paths[counter].equals(path))
 		return areNew[counter];
 	throw new IllegalArgumentException("path is not a path identified by the TreeSelectionEvent");
+    }
+
+    /**
+     * Returns true if the path identified by <code>index</code> was added to
+     * the selection. A return value of false means the path was in the
+     * selection but is no longer in the selection. This will raise if
+     * index < 0 || >= <code>getPaths</code>.length.
+     *
+     * @since 1.3
+     */
+    public boolean isAddedPath(int index) {
+	if (paths == null || index < 0 || index >= paths.length) {
+	    throw new IllegalArgumentException("index is beyond range of added paths identified by TreeSelectionEvent");
+	}
+	return areNew[index];
     }
 
     /**

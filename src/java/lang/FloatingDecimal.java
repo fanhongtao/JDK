@@ -1,8 +1,11 @@
 /*
- * @(#)FloatingDecimal.java	1.15 01/11/29
+ * @(#)FloatingDecimal.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -1219,8 +1222,12 @@ class FloatingDecimal{
 	     * exactly. And if the exponent isn't too outrageous,
 	     * the whole thing can be done with one operation,
 	     * thus one rounding error.
+             * Note that all our constructors trim all leading and
+             * trailing zeros, so simple values (including zero)
+             * will always end up here
 	     */
-	    if ( exp == 0 ) return (isNegative)? -dValue : dValue; // small floating integer
+	    if (exp == 0 || dValue == 0.0)
+                return (isNegative)? -dValue : dValue; // small floating integer
 	    else if ( exp >= 0 ){
 		if ( exp <= maxSmallTen ){
 		    /*
@@ -1552,8 +1559,12 @@ class FloatingDecimal{
 	     * exactly. And if the exponent isn't too outrageous,
 	     * the whole thing can be done with one operation,
 	     * thus one rounding error.
+             * Note that all our constructors trim all leading and
+             * trailing zeros, so simple values (including zero)
+             * will always end up here.
 	     */
-	    if ( exp == 0 ) return (isNegative)? -fValue : fValue; // small floating integer
+	    if (exp == 0 || fValue == 0.0f)
+                return (isNegative)? -fValue : fValue; // small floating integer
 	    else if ( exp >= 0 ){
 		if ( exp <= singleMaxSmallTen ){
 		    /*

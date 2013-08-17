@@ -1,8 +1,11 @@
 /*
- * @(#)ButtonModel.java	1.21 01/11/29
+ * @(#)ButtonModel.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -13,16 +16,16 @@ import javax.swing.event.*;
 
 /**
  * State Model for buttons.
- * This model is used for checkboxes and radiobuttons, which are
+ * This model is used for check boxes and radio buttons, which are
  * special kinds of buttons, as well as for normal buttons.
- * For checkboxes and radiobuttons, pressing the mouse selects
+ * For check boxes and radio buttons, pressing the mouse selects
  * the button. For normal buttons, pressing the mouse "arms" the
  * button. Releasing the mouse over the button then initiates a
  * <i>button</i> press, firing its action event. Releasing the 
  * mouse elsewhere disarms the button.
  * <p>
- * In use, a UI will invoke {@link #setSelected()} when a mouse
- * click occurs over a checkbox or radiobutton. It will invoke
+ * In use, a UI will invoke {@link #setSelected} when a mouse
+ * click occurs over a check box or radio button. It will invoke
  * {@link #setArmed} when the mouse is pressed over a regular
  * button and invoke {@link #setPressed} when the mouse is released.
  * If the mouse travels outside the button in the meantime, 
@@ -34,7 +37,7 @@ import javax.swing.event.*;
  * A button is triggered when it is both "armed" and "pressed".
  * </blockquote>
  *
- * @version 1.21 11/29/01
+ * @version 1.23 02/02/00
  * @author Jeff Dinkins
  */
 public interface ButtonModel extends ItemSelectable {
@@ -50,7 +53,7 @@ public interface ButtonModel extends ItemSelectable {
         
     /**
      * Indicates if the button has been selected. Only needed for
-     * certain types of buttons - such as RadioButton or Checkbox.
+     * certain types of buttons - such as radio buttons and check boxes.
      *
      * @return true if the button is selected
      */
@@ -58,7 +61,7 @@ public interface ButtonModel extends ItemSelectable {
         
     /**
      * Indicates if the button can be selected or pressed by
-     * an input device (such as a mouse pointer). (Checkbox-buttons
+     * an input device (such as a mouse pointer). (Check boxes
      * are selected, regular buttons are "pressed".)
      *
      * @return true if the button is enabled, and therefore

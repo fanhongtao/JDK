@@ -1,8 +1,11 @@
 /*
- * @(#)PixelInterleavedSampleModel.java	1.12 01/11/29
+ * @(#)PixelInterleavedSampleModel.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -26,6 +29,13 @@ package java.awt.image;
  *  The bands are numbered from 0 to N-1.
  *  Bank indices denote the correspondence between a bank of the data buffer
  *  and a band of image data.
+ *  This class supports
+ *  {@link DataBuffer#TYPE_BYTE TYPE_BYTE},
+ *  {@link DataBuffer#TYPE_USHORT TYPE_USHORT},
+ *  {@link DataBuffer#TYPE_SHORT TYPE_SHORT},
+ *  {@link DataBuffer#TYPE_INT TYPE_INT},
+ *  {@link DataBuffer#TYPE_FLOAT TYPE_FLOAT} and
+ *  {@link DataBuffer#TYPE_DOUBLE TYPE_DOUBLE} datatypes.  
  */
 
 public class PixelInterleavedSampleModel extends ComponentSampleModel
@@ -42,6 +52,8 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
      * @param pixelStride The pixel stride of the image data.
      * @param scanlineStride The line stride of the image data.
      * @param bandOffsets The offsets of all bands.
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
      * @throws IllegalArgumentException if any offset between bands is
      *         greater than the scanline stride
      * @throws IllegalArgumentException if the product of 
@@ -49,6 +61,8 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
      *         than <code>scanlineStride</code>
      * @throws IllegalArgumentException if <code>pixelStride</code> is 
      *         less than any offset between bands
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types
      */
     public PixelInterleavedSampleModel(int dataType,
                                        int w, int h,
@@ -70,8 +84,9 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
         }
         if (pixelStride*w > scanlineStride) {
             throw new IllegalArgumentException("Pixel stride times width "+
-                                               "must be less "+
-                                               "than the scanline stride");
+                                               "must be less than or "+
+                                               "equal to the scanline "+
+                                               "stride");
         }
         if (pixelStride < maxBandOff) {
             throw new IllegalArgumentException("Pixel stride must be greater"+
@@ -86,6 +101,10 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
      * same number of bands, storage data type, and pixel stride
      * as this PixelInterleavedSampleModel.  The band offsets may be
      * compressed such that the minimum of all of the band offsets is zero.
+     * @param w the width of the resulting <code>SampleModel</code>
+     * @param h the height of the resulting <code>SampleModel</code>
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
      */
     public SampleModel createCompatibleSampleModel(int w, int h) {
         int minBandoff=bandOffsets[0];

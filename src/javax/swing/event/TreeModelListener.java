@@ -1,8 +1,11 @@
 /*
- * @(#)TreeModelListener.java	1.12 01/11/29
+ * @(#)TreeModelListener.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -10,10 +13,14 @@ package javax.swing.event;
 import java.util.EventListener;
 
 /**
- * TreeChangeListener defines the interface for an object that listens
+ * Defines the interface for an object that listens
  * to changes in a TreeModel.
+ * For further information and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/events/treemodellistener.html">How to Write a Tree Model Listener</a>,
+ * a section in <em>The Java Tutorial.</em>
  *
- * @version 1.12 11/29/01
+ * @version 1.14 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  */
@@ -29,18 +36,21 @@ public interface TreeModelListener extends EventListener {
      * <p>To indicate the root has changed, childIndices and children
      * will be null. </p>
      * 
-     * <p>e.path() returns the path the parent of the changed node(s).</p>
-     * 
-     * <p>e.childIndices() returns the index(es) of the changed node(s).</p>
+     * <p>Use <code>e.getPath()</code> 
+     * to get the parent of the changed node(s).
+     * <code>e.getChildIndices()</code>
+     * returns the index(es) of the changed node(s).</p>
      */
     void treeNodesChanged(TreeModelEvent e);
 
     /**
      * <p>Invoked after nodes have been inserted into the tree.</p>
      * 
-     * <p>e.path() returns the parent of the new nodes
-     * <p>e.childIndices() returns the indices of the new nodes in
-     * ascending order.
+     * <p>Use <code>e.getPath()</code> 
+     * to get the parent of the new node(s).
+     * <code>e.getChildIndices()</code>
+     * returns the index(es) of the new node(s)
+     * in ascending order.</p>
      */
     void treeNodesInserted(TreeModelEvent e);
 
@@ -50,9 +60,11 @@ public interface TreeModelListener extends EventListener {
      * invoked once for the root of the removed subtree, not once for
      * each individual set of siblings removed.</p>
      *
-     * <p>e.path() returns the former parent of the deleted nodes.</p>
-     * 
-     * <p>e.childIndices() returns the indices the nodes had before they were deleted in ascending order.</p>
+     * <p>Use <code>e.getPath()</code> 
+     * to get the former parent of the deleted node(s).
+     * <code>e.getChildIndices()</code>
+     * returns, in ascending order, the index(es) 
+     * the node(s) had before being deleted.</p>
      */
     void treeNodesRemoved(TreeModelEvent e);
 
@@ -62,8 +74,10 @@ public interface TreeModelListener extends EventListener {
      * one and the first element does not identify the current root node
      * the first element should become the new root of the tree.<p>
      * 
-     * <p>e.path() holds the path to the node.</p>
-     * <p>e.childIndices() returns null.</p>
+     * <p>Use <code>e.getPath()</code> 
+     * to get the path to the node.
+     * <code>e.getChildIndices()</code>
+     * returns null.</p>
      */
     void treeStructureChanged(TreeModelEvent e);
 

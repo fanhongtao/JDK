@@ -1,8 +1,11 @@
 /*
- * @(#)MultiPixelPackedSampleModel.java	1.24 01/11/29
+ * @(#)MultiPixelPackedSampleModel.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -77,6 +80,10 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @param h 	the height, in pixels, of the region of
      *                  image data described
      * @param numberOfBits the number of bits per pixel
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         either <code>DataBuffer.TYPE_BYTE</code>,
+     *         <code>DataBuffer.TYPE_USHORT</code>, or
+     *         <code>DataBuffer.TYPE_INT</code>
      */
     public MultiPixelPackedSampleModel(int dataType,
                                        int w,
@@ -87,6 +94,12 @@ public class MultiPixelPackedSampleModel extends SampleModel
             (w*numberOfBits+DataBuffer.getDataTypeSize(dataType)-1)/
                 DataBuffer.getDataTypeSize(dataType),
              0);
+        if (dataType != DataBuffer.TYPE_BYTE &&
+            dataType != DataBuffer.TYPE_USHORT &&
+            dataType != DataBuffer.TYPE_INT) {
+            throw new IllegalArgumentException("Unsupported data type "+
+                                               dataType);
+        }
     }
 
     /**
@@ -105,12 +118,24 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @exception RasterFormatException if the number of bits per pixel
      *                  is not a power of 2 or if a power of 2 number of
      *			pixels do not fit in one data element.
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         either <code>DataBuffer.TYPE_BYTE</code>,
+     *         <code>DataBuffer.TYPE_USHORT</code>, or
+     *         <code>DataBuffer.TYPE_INT</code>
      */
     public MultiPixelPackedSampleModel(int dataType, int w, int h,
                                        int numberOfBits,
                                        int scanlineStride,
                                        int dataBitOffset) {
         super(dataType, w, h, 1);
+        if (dataType != DataBuffer.TYPE_BYTE &&
+            dataType != DataBuffer.TYPE_USHORT &&
+            dataType != DataBuffer.TYPE_INT) {
+            throw new IllegalArgumentException("Unsupported data type "+
+                                               dataType);
+        }
         this.dataType = dataType;
         this.pixelBitStride = numberOfBits;
         this.scanlineStride = scanlineStride;
@@ -137,6 +162,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @return a {@link SampleModel} with the specified width and height
      * and with the same storage data type and number of bits per pixel
      * as this <code>MultiPixelPackedSampleModel</code>.
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
      */
     public SampleModel createCompatibleSampleModel(int w, int h) {
       SampleModel sampleModel =
@@ -280,6 +307,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * this <code>MultiPixelPackedSampleModel</code>.
      * @exception RasterFormatException if the number of bands requested
      * is not one.
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
      */
     public SampleModel createSubsetSampleModel(int bands[]) {
         if (bands != null) {

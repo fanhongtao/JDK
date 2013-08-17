@@ -1,8 +1,11 @@
 /*
- * @(#)Element.java	1.15 01/11/29
+ * @(#)Element.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -11,7 +14,7 @@ package javax.swing.text;
  * is intended to capture the spirit of an SGML element.
  *
  * @author  Timothy Prinzing
- * @version 1.15 11/29/01
+ * @version 1.17 02/02/00
  */
 public interface Element {
 
@@ -59,8 +62,14 @@ public interface Element {
      * Fetches the offset from the beginning of the document
      * that this element ends at.  If this element has
      * children, this will be the end offset of the last child.
+     * <p>
+     * All the default Document implementations descend from AbstractDocument.
+     * AbstractDocument models an implied break at the end of
+     * the document. As a result of this, it is possible for this to
+     * return a value greater than the length of the document.
      *
      * @return the ending offset >= 0
+     * @see AbstractDocument
      */
     public int getEndOffset();
 

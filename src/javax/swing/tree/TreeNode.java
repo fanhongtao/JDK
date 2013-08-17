@@ -1,8 +1,11 @@
 /*
- * @(#)TreeNode.java	1.15 01/11/29
+ * @(#)TreeNode.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -13,7 +16,14 @@ import java.util.Enumeration;
  * Defines the requirements for an object that can be used as a
  * tree node in a JTree.
  *
- * @version 1.15 11/29/01
+ * <p>
+ *
+ * For further information and examples of using tree nodes,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Tree Nodes</a>
+ * in <em>The Java Tutorial.</em>
+ *
+ * @version 1.17 02/02/00
  * @author Rob Davis
  * @author Scott Violet
  */

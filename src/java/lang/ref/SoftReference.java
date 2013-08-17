@@ -1,8 +1,11 @@
 /*
- * @(#)SoftReference.java	1.24 01/11/29
+ * @(#)SoftReference.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang.ref;
@@ -39,9 +42,9 @@ package java.lang.ref;
  * strong referents to those entries, leaving the remaining entries to be
  * discarded at the discretion of the garbage collector.
  *
- * @version  1.24, 01/11/29
+ * @version  1.27, 02/02/00
  * @author   Mark Reinhold
- * @since    JDK1.2
+ * @since    1.2
  */
 
 public class SoftReference extends Reference {

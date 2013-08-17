@@ -1,8 +1,11 @@
 /*
- * @(#)BasicPermission.java	1.19 01/11/29
+ * @(#)BasicPermission.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -46,10 +49,12 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.19 01/11/29
+ * @version 1.26 00/02/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers
+ *
+ * @serial exclude
  */
 
 public abstract class BasicPermission extends Permission
@@ -69,9 +74,12 @@ implements java.io.Serializable
 
     private void init(String name)
     {
-
 	if (name == null)
-		throw new NullPointerException("name can't be null");
+	    throw new NullPointerException("name can't be null");
+
+	if (name.equals("")) {
+	    throw new IllegalArgumentException("name can't be empty");
+	}
 
 	if (name.endsWith(".*") || name.equals("*")) {
 	    wildcard = true;
@@ -94,6 +102,9 @@ implements java.io.Serializable
      * signify a wildcard match.
      *
      * @param name the name of the BasicPermission.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
 
     public BasicPermission(String name)
@@ -112,6 +123,9 @@ implements java.io.Serializable
      *
      * @param name the name of the BasicPermission.
      * @param actions ignored.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
     public BasicPermission(String name, String actions)
     {
@@ -255,9 +269,11 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.19 03/09/04
+ * @version 1.26 02/02/00
  *
  * @author Roland Schemers
+ *
+ * @serial include
  */
 
 final class BasicPermissionCollection
@@ -283,6 +299,12 @@ implements java.io.Serializable
      * permission.path.
      *
      * @param permission the Permission object to add.
+     *
+     * @exception IllegalArgumentException - if the permission is not a
+     *                                       BasicPermission
+     *
+     * @exception SecurityException - if this BasicPermissionCollection object
+     *                                has been marked readonly
      */
 
     public void add(Permission permission)
@@ -290,6 +312,9 @@ implements java.io.Serializable
 	if (! (permission instanceof BasicPermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
+	if (isReadOnly())
+	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+
 	BasicPermission bp = (BasicPermission) permission;
 
 	permissions.put(bp.getName(), permission);

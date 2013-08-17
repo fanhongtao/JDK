@@ -1,8 +1,11 @@
 /*
- * @(#)MetalUtils.java	1.20 01/11/29
+ * @(#)MetalUtils.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package javax.swing.plaf.metal;
@@ -14,7 +17,7 @@ import java.awt.*;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.20 11/29/01
+ * @version 1.23 02/02/00
  * @author Steve Wilson
  */
 
@@ -136,27 +139,5 @@ class MetalUtils {
 
     }
     
-    static class TableHeaderBorder extends javax.swing.border.AbstractBorder {
-        protected Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
-
-        public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
-	    g.translate( x, y );
-	    
-	    g.setColor( MetalLookAndFeel.getControlDarkShadow() );
-	    g.drawLine( w-1, 0, w-1, h-2 );
-	    g.drawLine( 1, h-2, w-1, h-2 );
-	    g.setColor( MetalLookAndFeel.getControlHighlight() );
-	    g.drawLine( 0, 0, w-2, 0 );
-	    g.drawLine( 0, 0, 0, h-3 );
-	    g.setColor( MetalLookAndFeel.getControlShadow() );
-	    g.drawLine( 0, h-1, w-1, h-1 );
-
-
-	    g.translate( -x, -y );
-	}
-
-        public Insets getBorderInsets( Component c ) {
-	    return editorBorderInsets;
-	}
-    }
 }
+

@@ -1,8 +1,11 @@
 /*
- * @(#)FixedHeightLayoutCache.java	1.11 01/11/29
+ * @(#)FixedHeightLayoutCache.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -25,7 +28,7 @@ import java.util.Stack;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.11 11/29/01
+ * @version 1.13 02/02/00
  * @author Scott Violet
  */
 
@@ -61,6 +64,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	boundsBuffer = new Rectangle();
 	treePathMapping = new Hashtable();
 	info = new SearchInfo();
+	setRowHeight(1);
     }
 
     /**
@@ -210,7 +214,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	TreePath       parentPath = path.getParentPath();
 
 	node = getNodeForPath(parentPath, true, false);
-	if(node != null) {
+	if(node != null && node.isExpanded()) {
 	    return node.getRowToModelIndex(treeModel.getIndexOfChild
 					   (parentPath.getLastPathComponent(),
 					    path.getLastPathComponent()));
@@ -426,13 +430,6 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		for(int counter = maxCounter - 1; counter >= 0; counter--) {
 		    changedParentNode.removeChildAtModelIndex
 			             (changedIndexs[counter], isVisible);
-
-		    /* Clean up the selection. */
-		    if(treeSelectionModel != null && children != null &&
-			children[counter] != null) {
-			treeSelectionModel.removeSelectionPath(parentPath.
-				        pathByAddingChild(children[counter]));
-		    }
 		}
 		if(isVisible) {
 		    if(treeSelectionModel != null)
@@ -541,7 +538,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	placeIn.x = bounds.x;
 	placeIn.height = getRowHeight();
 	placeIn.y = row * placeIn.height;
-	placeIn.width = boundsBuffer.width;
+	placeIn.width = bounds.width;
 	return placeIn;
     }
 
@@ -1148,13 +1145,6 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	 */
 	protected void collapse(boolean adjustRows) {
 	    if(isExpanded) {
-		TreePath[]                selPaths;
-
-		if(treeSelectionModel != null)
-		    selPaths = treeSelectionModel.getSelectionPaths();
-		else
-		    selPaths = null;
-
 		if(isVisible() && adjustRows) {
 		    int              childCount = getTotalChildCount();
 
@@ -1167,23 +1157,6 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		else
 		    isExpanded = false;
 
-		/* update the selection */
-		if(selPaths != null) {
-		    boolean        shouldRemove = false;
-		    TreePath       ourPath = getTreePath();
-
-		    for(int counter = selPaths.length - 1; counter >= 0;
-			counter--) {
-			if(selPaths[counter] != null &&
-			   ourPath.isDescendant(selPaths[counter]) &&
-			   !ourPath.equals(selPaths[counter]))
-			    shouldRemove = true;
-			else
-			    selPaths[counter] = null;
-		    }
-		    if(shouldRemove)
-			treeSelectionModel.removeSelectionPaths(selPaths);
-		}
 		if(adjustRows && isVisible() && treeSelectionModel != null)
 		    treeSelectionModel.resetRowSelection();
 	    }

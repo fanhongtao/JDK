@@ -1,8 +1,11 @@
 /*
- * @(#)MotifFileChooserUI.java	1.20 01/11/29
+ * @(#)MotifFileChooserUI.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -22,7 +25,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.20 11/29/01
+ * @version 1.22 02/02/00
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -115,12 +118,6 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 		    File f = (File) e.getNewValue();
 		    if(f != null) {
 			setFileName(getFileChooser().getName(f));
-			/*
-			  if(model.contains(f)) {
-			  list.setSelectedIndex(model.indexOf(e.getNewValue()));
-			  list.ensureIndexIsVisible(list.getSelectedIndex());
-			  }
-			  */
 		    }
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    directoryList.clearSelection();
@@ -134,6 +131,14 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 		    }
 		} else if(prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
 		    directoryList.clearSelection();
+		} else if(prop == JFileChooser.MULTI_SELECTION_ENABLED_CHANGED_PROPERTY) {
+		    if(getFileChooser().isMultiSelectionEnabled()) {
+			fileList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		    } else {
+			fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			fileList.clearSelection();
+			getFileChooser().setSelectedFiles(null);
+		    }
 		} else if(prop == JFileChooser.ACCESSORY_CHANGED_PROPERTY) {
 		    if(getAccessoryPanel() != null) {
 			if(e.getOldValue() != null) {
@@ -398,6 +403,13 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
     protected JScrollPane createFilesList() {
 	fileList = new JList();
+
+	if(getFileChooser().isMultiSelectionEnabled()) {
+	    fileList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+	} else {
+	    fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	}
+	
 	fileList.setModel(new MotifFileListModel());
 	fileList.setCellRenderer(new FileCellRenderer());
 	fileList.addListSelectionListener(createListSelectionListener(getFileChooser()));

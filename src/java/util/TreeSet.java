@@ -1,8 +1,11 @@
 /*
- * @(#)TreeSet.java	1.14 01/11/29
+ * @(#)TreeSet.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -48,7 +51,7 @@ package java.util;
  * an undetermined time in the future.
  *
  * @author  Josh Bloch
- * @version 1.14, 11/29/01
+ * @version 1.20, 02/02/00
  * @see	    Collection
  * @see	    Set
  * @see	    HashSet
@@ -56,7 +59,7 @@ package java.util;
  * @see     Comparator
  * @see	    Collections#synchronizedSortedSet(SortedSet)
  * @see	    TreeMap
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class TreeSet extends AbstractSet
@@ -101,6 +104,10 @@ public class TreeSet extends AbstractSet
      * <tt>e2</tt> in the set.  If the user attempts to add an element to the
      * set that violates this constraint, the <tt>add(Object)</tt> call will
      * throw a <tt>ClassCastException</tt>.
+     *
+     * @param c the comparator that will be used to sort this set.  A
+     *        <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      */
     public TreeSet(Comparator c) {
 	this(new TreeMap(c));
@@ -273,12 +280,16 @@ public class TreeSet extends AbstractSet
      * @return a view of the portion of this set whose elements range from
      * 	       <tt>fromElement</tt>, inclusive, to <tt>toElement</tt>,
      * 	       exclusive.
+     * @throws ClassCastException if <tt>fromElement</tt> and
+     *         <tt>toElement</tt> cannot be compared to one another using
+     *         this set's comparator (or, if the set has no comparator,
+     *         using natural ordering).
+     * @throws IllegalArgumentException if <tt>fromElement</tt> is greater than
+     *         <tt>toElement</tt>.
      * @throws NullPointerException if <tt>fromElement</tt> or
-     *		  <tt>toElement</tt> is <tt>null</tt> and this set uses
-     *		  natural ordering, or its comparator does not tolerate
-     *		  <tt>null</tt> elements.
-     * @throws IllegalArgumentException if <tt>fromElement</tt> is greater
-     * than <tt>toElement</tt>.
+     *	       <tt>toElement</tt> is <tt>null</tt> and this set uses natural
+     *	       order, or its comparator does not tolerate <tt>null</tt>
+     *         elements.
      */
     public SortedSet subSet(Object fromElement, Object toElement) {
 	return new TreeSet(m.subMap(fromElement, toElement));
@@ -307,9 +318,15 @@ public class TreeSet extends AbstractSet
      * @param toElement high endpoint (exclusive) of the headSet.
      * @return a view of the portion of this set whose elements are strictly
      * 	       less than toElement.
-     * @throws    NullPointerException if toElement is <tt>null</tt> and this
-     *		  set uses natural ordering, or its comparator does
-     *            not tolerate <tt>null</tt> elements.
+     * @throws ClassCastException if <tt>toElement</tt> is not compatible
+     *         with this set's comparator (or, if the set has no comparator,
+     *         if <tt>toElement</tt> does not implement <tt>Comparable</tt>).
+     * @throws IllegalArgumentException if this set is itself a subSet,
+     *         headSet, or tailSet, and <tt>toElement</tt> is not within the
+     *         specified range of the subSet, headSet, or tailSet.
+     * @throws NullPointerException if <tt>toElement</tt> is <tt>null</tt> and
+     *	       this set uses natural ordering, or its comparator does
+     *         not tolerate <tt>null</tt> elements.
      */
     public SortedSet headSet(Object toElement) {
 	return new TreeSet(m.headMap(toElement));
@@ -339,10 +356,15 @@ public class TreeSet extends AbstractSet
      * @param fromElement low endpoint (inclusive) of the tailSet.
      * @return a view of the portion of this set whose elements are
      * 	       greater than or equal to <tt>fromElement</tt>.
-     * 
+     * @throws ClassCastException if <tt>fromElement</tt> is not compatible
+     *         with this set's comparator (or, if the set has no comparator,
+     *         if <tt>fromElement</tt> does not implement <tt>Comparable</tt>).
+     * @throws IllegalArgumentException if this set is itself a subSet,
+     *         headSet, or tailSet, and <tt>fromElement</tt> is not within the
+     *         specified range of the subSet, headSet, or tailSet.
      * @throws NullPointerException if <tt>fromElement</tt> is <tt>null</tt>
-     * 		  and this set uses natural ordering, or its comparator
-     * 		  does not tolerate <tt>null</tt> elements.
+     *	       and this set uses natural ordering, or its comparator does
+     *         not tolerate <tt>null</tt> elements.
      */
     public SortedSet tailSet(Object fromElement) {
 	return new TreeSet(m.tailMap(fromElement));
@@ -350,10 +372,10 @@ public class TreeSet extends AbstractSet
 
     /**
      * Returns the comparator used to order this sorted set, or <tt>null</tt>
-     * if this tree map uses its keys natural ordering.
+     * if this tree set uses its elements natural ordering.
      *
      * @return the comparator used to order this sorted set, or <tt>null</tt>
-     * if this tree map uses its keys natural ordering.
+     * if this tree set uses its elements natural ordering.
      */
     public Comparator comparator() {
         return m.comparator();
@@ -386,7 +408,17 @@ public class TreeSet extends AbstractSet
      * @return a shallow copy of this set.
      */
     public Object clone() {
-        return new TreeSet(this);
+        TreeSet clone = null;
+	try { 
+	    clone = (TreeSet)super.clone();
+	} catch (CloneNotSupportedException e) { 
+	    throw new InternalError();
+	}
+
+        clone.m = new TreeMap(m);
+        clone.keySet = clone.m.keySet();
+
+        return clone;
     }
 
     /**

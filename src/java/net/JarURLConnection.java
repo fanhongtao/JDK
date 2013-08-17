@@ -1,8 +1,11 @@
 /*
- * @(#)JarURLConnection.java	1.18 01/11/29
+ * @(#)JarURLConnection.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -30,9 +33,8 @@ import java.security.Permission;
  * jar:http://www.foo.com/bar/baz.jar!/COM/foo/Quux.class<br>
  * </code>
  *
- * <p>Jar URLs should be used to either refer to single JAR entries or
- * as base URLs, to refer to JAR files as codebases, or relative
- * URLs. The example above is a full JAR URL, which refers to a JAR
+ * <p>Jar URLs should be used to refer to a JAR file or entries in 
+ * a JAR file. The example above is a JAR URL which refers to a JAR
  * entry. If the entry name is omitted, the URL refers to the whole
  * JAR file:
  *
@@ -44,11 +46,11 @@ import java.security.Permission;
  * JarURLConnection when they know that the URL they created is a JAR
  * URL, and they need JAR-specific functionality. For example:
  *
- * <code>
+ * <pre>
  * URL url = new URL("jar:file:/home/duke/duke.jar!/");
  * JarURLConnection jarConnection = (JarURLConnection)url.openConnection();
  * Manifest manifest = jarConnection.getManifest();
- * </code>
+ * </pre>
  *
  * <p>Examples:
  * 
@@ -67,12 +69,13 @@ import java.security.Permission;
  *
  * <p><code>!/</code> is refered to as the <em>separator</em>.
  *
- * <p>When constructing a JAR url, the following rules apply:
+ * <p>When constructing a JAR url via <code>new URL(context, spec)</code>,
+ * the following rules apply:
  *
  * <ul>
  *
  * <li>if there is no context URL and the specification passed to the
- * URL constructor doesn't contains a separator, the URL is considered
+ * URL constructor doesn't contain a separator, the URL is considered
  * to refer to a JarFile.
  *
  * <li>if there is a context URL, the context URL is assumed to refer
@@ -85,19 +88,19 @@ import java.security.Permission;
  * <p>Examples:
  *
  * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/</b>, 
- * spec:<b>baz/entry.txt<b>
+ * spec:<b>baz/entry.txt</b>
  *
- * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/baz/entry.txt<b>
- *
- * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/baz</b>, 
- * spec:<b>entry.txt<b>
- *
- * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/baz/entry.txt<b>
+ * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/baz/entry.txt</b>
  *
  * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/baz</b>, 
- * spec:<b>/entry.txt<b>
+ * spec:<b>entry.txt</b>
  *
- * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/entry.txt<b>
+ * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/baz/entry.txt</b>
+ *
+ * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/baz</b>, 
+ * spec:<b>/entry.txt</b>
+ *
+ * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/entry.txt</b>
  *
  * </dl>
  *
@@ -112,7 +115,7 @@ import java.security.Permission;
  * @see java.util.zip.ZipEntry
  *
  * @author Benjamin Renaud
- * @since JDK1.2 
+ * @since 1.2 
  */
 public abstract class JarURLConnection extends URLConnection {
 
@@ -124,6 +127,14 @@ public abstract class JarURLConnection extends URLConnection {
      * initiated. This should be set by connect.
      */
     protected URLConnection jarFileURLConnection;
+
+    /**
+     * Creates the new JarURLConnection to the specified URL.
+     * @param url the URL 
+     * @throws MalformedURLException if no legal protocol 
+     * could be found in a specification string or the 
+     * string could not be parsed. 
+     */
 
     protected JarURLConnection(URL url) throws MalformedURLException {
 	super(url);
@@ -263,7 +274,6 @@ public abstract class JarURLConnection extends URLConnection {
 	return man != null ? man.getMainAttributes() : null;
     }
    
-    /**
     /**
      * Return the Certificate object for this connection if the URL
      * for it points to a JAR file entry, null otherwise. This method 

@@ -1,8 +1,11 @@
 /*
- * @(#)Permission.java	1.33 01/11/29
+ * @(#)Permission.java	1.35 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -39,7 +42,7 @@ package java.security;
  * @see Permissions
  * @see PermissionCollection
  *
- * @version 1.33 01/11/29
+ * @version 1.35 00/02/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -201,8 +204,13 @@ public abstract class Permission implements Guard, java.io.Serializable {
      */
 
     public String toString() {
-	return "(" + getClass().getName() + " " + 
-	                  name + " " + getActions() + ")";
+	String actions = getActions();
+	if ((actions == null) || (actions.length() == 0)) { // OPTIONAL
+	    return "(" + getClass().getName() + " " + name + ")";
+	} else {
+	    return "(" + getClass().getName() + " " + name + " " +
+		actions + ")";
+	}
     }
 }
 

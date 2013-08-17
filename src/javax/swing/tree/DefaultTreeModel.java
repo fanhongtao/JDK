@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultTreeModel.java	1.38 01/11/29
+ * @(#)DefaultTreeModel.java	1.41 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -14,6 +17,9 @@ import javax.swing.event.*;
 
 /**
  * A simple tree data model that uses TreeNodes.
+ * For further information and examples that use DefaultTreeModel,
+ * see <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
+ * in <em>The Java Tutorial.</em>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -22,7 +28,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.38 11/29/01
+ * @version 1.41 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -127,7 +133,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      */
     public int getIndexOfChild(Object parent, Object child) {
         if(parent == null || child == null)
-            return 0;
+            return -1;
         return ((TreeNode)parent).getIndex((TreeNode)child);
     }
 
@@ -512,6 +518,19 @@ public class DefaultTreeModel implements Serializable, TreeModel {
                 ((TreeModelListener)listeners[i+1]).treeStructureChanged(e);
             }          
         }
+    }
+
+    /**
+     * Return an array of all the listeners of the given type that 
+     * were added to this model. 
+     *
+     * @returns all of the objects recieving <em>listenerType</em> notifications 
+     *          from this model
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
     }
 
     // Serialization support.  

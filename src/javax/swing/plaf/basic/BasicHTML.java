@@ -1,13 +1,17 @@
 /*
- * @(#)BasicHTML.java	1.3 01/11/29
+ * @(#)BasicHTML.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.plaf.basic;
 
 import java.io.*;
 import java.awt.*;
+import java.net.URL;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -20,9 +24,9 @@ import javax.swing.text.html.*;
  * layout semantics.
  *
  * @author  Timothy Prinzing
- * @version 1.3 11/29/01
+ * @version 1.11 02/02/00
  */
-/*public*/ class BasicHTML {
+public class BasicHTML {
 
     /**
      * Create an html renderer for the given component and
@@ -31,6 +35,11 @@ import javax.swing.text.html.*;
     public static View createHTMLView(JComponent c, String html) {
 	HTMLEditorKit kit = getFactory();
 	Document doc = kit.createDefaultDocument();
+	Object base = c.getClientProperty(documentBaseKey);
+	((BasicDocument)doc).setHost(c);
+	if (base instanceof URL) {
+	    ((HTMLDocument)doc).setBase((URL)base);
+	}
 	Reader r = new StringReader(html);
 	try {
 	    kit.read(r, doc, 0);
@@ -44,11 +53,15 @@ import javax.swing.text.html.*;
 
     /**
      * Check the given string to see if it should trigger the
-     * html rendering logic.
+     * html rendering logic in a non-text component that supports 
+     * html rendering.
      */
     public static boolean isHTMLString(String s) {
 	if (s != null) {
-	    return s.startsWith("<html>");
+	    if ((s.length() >= 6) && (s.charAt(0) == '<') && (s.charAt(5) == '>')) {
+		String tag = s.substring(1,5);
+		return tag.equalsIgnoreCase(propertyKey);
+	    }
 	}
 	return false;
     }
@@ -78,27 +91,21 @@ import javax.swing.text.html.*;
      */
     public static final String propertyKey = "html";
 
+    /**
+     * Key stored as a client property to indicate the base that relative
+     * references are resolved against. For example, lets say you keep
+     * your images in the directory resources relative to the code path,
+     * you would use the following the set the base:
+     * <pre>
+     *   jComponent.putClientProperty(documentBaseKey,
+     *                                xxx.class.getResource("resources/"));
+     * </pre>
+     */
+    public static final String documentBaseKey = "html.base";
+
     static HTMLEditorKit getFactory() {
 	if (basicHTMLFactory == null) {
 	    basicHTMLFactory = new BasicEditorKit();
-
-	    // Ideally you would create a new StyleSheet and call
-	    // newSS.addStyleSheet(basicHTMLFactory.getStyleSheet()),
-	    // but addStyleSheet is package private:(
-	    // Also, we can't use the basic editor kit because it uses
-	    // the sharedStyles static we are trying to initialize!!
-	    // It might be better to create a StyleSheet directly, but
-	    // currently we still leverage the defaults.
-	    EditorKit tmpKit = new HTMLEditorKit();
-	    HTMLDocument doc = (HTMLDocument) tmpKit.createDefaultDocument();
-	    sharedStyles = doc.getStyleSheet();
-	    try {
-		StringReader r = new StringReader(styleChanges);
-		sharedStyles.loadRules(r, null);
-	    } catch (Throwable e) {
-		// don't want to die in static initialization... 
-		// just display things wrong.
-	    }
 	}
 	return basicHTMLFactory;
     }
@@ -107,8 +114,6 @@ import javax.swing.text.html.*;
      * The source of the html renderers
      */
     private static HTMLEditorKit basicHTMLFactory;
-
-    private static StyleSheet sharedStyles;
 
     /**
      * Overrides to the default stylesheet.  Should consider
@@ -124,47 +129,94 @@ import javax.swing.text.html.*;
      * alters the HTMLEditorKit to try and trim things down a bit.  
      * It does the following:
      * <ul>
-     * <li>It doesn't produce elements for things like comments, 
+     * <li>It doesn't produce Views for things like comments, 
      * head, title, unknown tags, etc.  
-     * <li>It shares the StyleSheet across all the documents.
      * <li>It installs a different set of css settings from the default
      * provided by HTMLEditorKit.
      * </ul>
      */
     static class BasicEditorKit extends HTMLEditorKit {
+	/** Shared base style for all documents created by us use. */
+	private static StyleSheet defaultStyles;
 
+	/**
+	 * Overriden to return our own slimmed down style sheet.
+	 */
+	public StyleSheet getStyleSheet() {
+	    if (defaultStyles == null) {
+		defaultStyles = new StyleSheet();
+		StringReader r = new StringReader(styleChanges);
+		try {
+		    defaultStyles.loadRules(r, null);
+		} catch (Throwable e) {
+		    // don't want to die in static initialization... 
+		    // just display things wrong.
+		}
+		Style bodyStyle = defaultStyles.getStyle("body");
+		if (bodyStyle != null) {
+		    StyleConstants.setForeground(bodyStyle,
+						 new TaggedColor(0, 0, 0));
+		}
+		r.close();
+		defaultStyles.addStyleSheet(super.getStyleSheet());
+	    }
+	    return defaultStyles;
+	}
+
+	/**
+	 * Sets the async policy to flush everything in one chunk, and
+	 * to not display unknown tags.
+	 */
         public Document createDefaultDocument() {
-	    Document doc = new BasicDocument(sharedStyles);
+	    StyleSheet styles = getStyleSheet();
+	    StyleSheet ss = new StyleSheet();
+	    ss.addStyleSheet(styles);
+	    BasicDocument doc = new BasicDocument(ss);
+	    doc.setAsynchronousLoadPriority(Integer.MAX_VALUE);
+	    doc.setPreservesUnknownTags(false);
 	    return doc;
 	}
-	
     }
 
+
     /**
-     * This must be subclassed to provide a different HTMLReader 
-     * implementation.
+     * A tagged color is used by BasicDocument to indicate the color should
+     * come from the foreground of the Component.
+     */
+    static class TaggedColor extends Color {
+	TaggedColor(int r, int g, int b) {
+	    super(r, g, b);
+	}
+    }
+
+
+    /**
+     * The subclass of HTMLDocument that is used as the model. getForeground
+     * is overriden to return the foreground property from the Component this
+     * was created for.
      */
     static class BasicDocument extends HTMLDocument {
+	/** The host, that is where we are rendering. */
+	private JComponent host;
 
 	BasicDocument(StyleSheet s) {
 	    super(s);
+	    setPreservesUnknownTags(false);
 	}
 
-        public HTMLEditorKit.ParserCallback getReader(int pos) {
-	    HTMLReader reader = new BasicReader(pos);
-	    return reader;
-	}
-
-	class BasicReader extends HTMLReader {
-
-	    public BasicReader(int offset) {
-		super(offset);
-		TagAction ignore = new TagAction();
-		registerTag(HTML.Tag.HEAD, ignore);
+	public Color getForeground(AttributeSet attr) {
+	    Color color = super.getForeground(attr);
+	    if (color instanceof TaggedColor && host != null) {
+		return host.getForeground();
 	    }
+	    return color;
 	}
 
+	void setHost(JComponent host) {
+	    this.host = host;
+	}
     }
+
 
     /**
      * Root text view that acts as an HTML renderer.
@@ -253,6 +305,7 @@ import javax.swing.text.html.*;
          */ 
         public void preferenceChanged(View child, boolean width, boolean height) {
             host.revalidate();
+	    host.repaint();
         }
 
         /**

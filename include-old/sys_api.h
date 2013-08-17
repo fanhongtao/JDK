@@ -1,8 +1,11 @@
 /*
- * @(#)sys_api.h	1.108 01/11/29
+ * @(#)sys_api.h	1.112 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_SYS_API_H_
@@ -57,6 +60,7 @@ extern HPI_SocketInterface  *hpi_socket_interface;
 #define sysThreadSetPriority(a,b)  hpi_thread_interface->ThreadSetPriority(a,b)
 #define sysThreadGetPriority(a,b)  hpi_thread_interface->ThreadGetPriority(a,b)
 #define sysThreadStackPointer(a)   hpi_thread_interface->ThreadStackPointer(a)
+#define sysThreadStackTop(a)       hpi_thread_interface->ThreadStackTop(a)
 #define sysThreadRegs(a,b)         hpi_thread_interface->ThreadRegs(a,b)
 #define sysThreadSingle()          hpi_thread_interface->ThreadSingle()
 #define sysThreadMulti()           hpi_thread_interface->ThreadMulti()
@@ -106,17 +110,25 @@ extern HPI_SocketInterface  *hpi_socket_interface;
 #define sysFileSizeFD(a,b)      hpi_file_interface->FileSizeFD(a,b)
 
 #define sysSocketClose(a)        hpi_socket_interface->Close(a)
+#define sysSocketShutdown(a,b)   hpi_socket_interface->SocketShutdown(a,b)
 #define sysSocketAvailable(a,b)  hpi_socket_interface->Available(a,b)
 #define sysConnect(a,b,c)        hpi_socket_interface->Connect(a,b,c)
+#define sysBind(a,b,c)           hpi_socket_interface->Bind(a,b,c)
 #define sysAccept(a,b,c)         hpi_socket_interface->Accept(a,b,c)
+#define sysGetSockName(a,b,c)  hpi_socket_interface->GetSocketName(a,b,c)
 #define sysSendTo(a,b,c,d,e,f)   hpi_socket_interface->SendTo(a,b,c,d,e,f)
 #define sysRecvFrom(a,b,c,d,e,f) hpi_socket_interface->RecvFrom(a,b,c,d,e,f)
 #define sysListen(a,b)           hpi_socket_interface->Listen(a,b)
 #define sysRecv(a,b,c,d)         hpi_socket_interface->Recv(a,b,c,d)
 #define sysSend(a,b,c,d)         hpi_socket_interface->Send(a,b,c,d)
 #define sysTimeout(a,b)          hpi_socket_interface->Timeout(a,b)
+#define sysGetHostName(a, b)     hpi_socket_interface->GetHostName(a, b)
+#define sysGetHostByAddr(a, b, c) hpi_socket_interface->GetHostByAddr(a, b, c)
 #define sysGetHostByName(a)      hpi_socket_interface->GetHostByName(a)
 #define sysSocket(a,b,c)         hpi_socket_interface->Socket(a,b,c)
+#define sysGetSockOpt(a, b, c, d, e) hpi_socket_interface->SocketGetOption(a, b, c, d, e)
+#define sysSetSockOpt(a, b, c, d, e) hpi_socket_interface->SocketSetOption(a, b, c, d, e)
+#define sysGetProtoByName(a) hpi_socket_interface->GetProtoByName(a)
 
 #define SYS_SIG_DFL HPI_SIG_DFL
 #define SYS_SIG_ERR HPI_SIG_ERR

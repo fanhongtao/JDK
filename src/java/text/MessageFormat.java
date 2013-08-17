@@ -1,18 +1,16 @@
 /*
- * @(#)MessageFormat.java	1.33 01/11/29
+ * @(#)MessageFormat.java	1.38 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)MessageFormat.java	1.33 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -20,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -42,6 +27,11 @@ import java.util.Date;
 import java.util.Locale;
 import java.text.DecimalFormat;
 import java.text.Utility;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+
+
 /**
  * <code>MessageFormat</code> provides a means to produce concatenated
  * messages in language-neutral way. Use this to construct messages
@@ -245,7 +235,7 @@ import java.text.Utility;
  * @see          NumberFormat
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.15 29 Jan 1997
+ * @version      1.38, 01/19/00
  * @author       Mark Davis
  */
 
@@ -487,10 +477,18 @@ public class MessageFormat extends Format {
     }
 
     // Overrides
+    /**
+     * Returns pattern with formatted objects.  If source is null, the
+     * original pattern is returned, if source contains null objects, the
+     * formatted result will substitute each argument with the string "null".
+     * @param source an array of objects to be formatted & substituted.
+     * @param result where text is appended.
+     * @param ignore no useful status is returned.
+     */
     public final StringBuffer format(Object source, StringBuffer result,
                                      FieldPosition ignore)
     {
-        return format((Object[])source,result,ignore, 0);
+        return format((Object[])source, result,ignore, 0);
     }
 
     /**
@@ -667,19 +665,22 @@ public class MessageFormat extends Format {
      */
     private String pattern = "";
 
+    /** The maximum number of arguments in the format */
+    private static final int MAX_ARGUMENTS = 10;
+
     /**
      * An array of ten formatters, which are used to format the first ten arguments.
      * @serial
      */
     // later, allow more than ten items
-    private Format[] formats = new Format[10];
+    private Format[] formats = new Format[MAX_ARGUMENTS];
 
     /**
      * The positions where the results of formatting each argument are to be inserted
      * into the pattern.
      * @serial
      */
-    private int[] offsets = new int[10];
+    private int[] offsets = new int[MAX_ARGUMENTS];
 
     /**
      * The argument numbers corresponding to each formatter.  (The formatters are stored
@@ -687,7 +688,7 @@ public class MessageFormat extends Format {
      * are specified.)
      * @serial
      */
-    private int[] argumentNumbers = new int[10];
+    private int[] argumentNumbers = new int[MAX_ARGUMENTS];
 
     /**
      * One less than the number of entries in <code>offsets</code>.  Can also be thought of
@@ -941,4 +942,31 @@ public class MessageFormat extends Format {
         }
     }
 
+    /**
+     * After reading an object from the input stream, do a simple verification
+     * to maintain class invariants.
+     * @throws InvalidObjectException if the objects read from the stream is invalid.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        boolean isValid = maxOffset >= -1
+                && maxOffset < MAX_ARGUMENTS
+                && formats.length == MAX_ARGUMENTS
+                && offsets.length == MAX_ARGUMENTS
+                && argumentNumbers.length == MAX_ARGUMENTS;
+        if (isValid) {
+            int lastOffset = pattern.length() + 1;
+            for (int i = maxOffset; i >= 0; --i) {
+                if ((offsets[i] < 0) || (offsets[i] > lastOffset)) {
+                    isValid = false;
+                    break;
+                } else {
+                    lastOffset = offsets[i];
+                }
+            }
+        }
+        if (!isValid) {
+            throw new InvalidObjectException("Could not reconstruct MessageFormat from corrupt stream.");
+        }
+    }
 }

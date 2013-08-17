@@ -1,8 +1,11 @@
 /*
- * @(#)JSlider.java	1.83 01/11/29
+ * @(#)JSlider.java	1.90 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -28,6 +31,10 @@ import java.beans.*;
  * values between the tick marks is controlled with 
  * <code>setMajorTickSpacing</code> and <code>setMinorTickSpacing</code>. 
  * <p>
+ * For further information and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/slider.html">How to Use Sliders</a>,
+ * a section in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
  * <a href="doc-files/Key-Index.html#JSlider">JSlider</a> key assignments.
@@ -43,7 +50,7 @@ import java.beans.*;
  *      attribute: isContainer false
  *    description: A component that supports selecting a integer value from a range.
  * 
- * @version 1.78 09/01/98
+ * @version 1.90 04/06/00
  * @author David Kloba
  */
 public class JSlider extends JComponent implements SwingConstants, Accessible {
@@ -80,7 +87,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
     /**
      * If true, the knob (and the data value it represents) 
      * resolve to the closest tick mark next to where the user
-     * positioned the knob.
+     * positioned the knob.  The default is false.
      * @see #setSnapToTicks
      */
     protected boolean snapToTicks = false;
@@ -89,7 +96,6 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      * If true, the knob (and the data value it represents) 
      * resolve to the closest slider value next to where the user
      * positioned the knob.
-     * @see #setSnapToValue
      */
     boolean snapToValue = true;
 
@@ -116,10 +122,12 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
 
     /**
-     * Only one ChangeEvent is needed per slider instance since the
+     * Only one <code>ChangeEvent</code> is needed per slider instance since the
      * event's only (read-only) state is the source property.  The source
      * of events generated here is always "this". The event is lazily
      * created the first time that an event notification is fired.
+     * @exception IllegalArgumentException if orientation is not either
+     *		HORIZONTAL or VERTICAL
      * 
      * @see #fireStateChanged
      */
@@ -263,9 +271,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      */
     private class ModelListener implements ChangeListener, Serializable {
         public void stateChanged(ChangeEvent e) {
-                fireStateChanged();
-            }
+            fireStateChanged();
         }
+    }
 
 
     /**
@@ -424,6 +432,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      * @see #getMinimum
      * @see BoundedRangeModel#setMinimum
      * @beaninfo
+     *       bound: true
      *   preferred: true
      * description: The sliders minimum value.
      */
@@ -451,6 +460,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      * @see #getMaximum
      * @see BoundedRangeModel#setMaximum
      * @beaninfo
+     *       bound: true
      *   preferred: true
      * description: The sliders maximum value.
      */
@@ -589,7 +599,8 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
     /**
      * Used to specify what label will be drawn at any given value.
-     * The key-value pairs are of this format: <B>{ Integer value, java.awt.Component label }</B>
+     * The key-value pairs are of this format:
+     * <code>{ Integer value, java.swing.JComponent label }</code>.
      *
      * @see #createStandardLabels
      * @see #getLabelTable
@@ -635,8 +646,10 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
 
     /**
-     * Creates a hashtable that will draw text labels starting at the slider minimum using the
-     * increment specified. If you call createStandardLabels( 10 ) and the slider minimum is
+     * Creates a hashtable that will draw text labels starting at the
+     * slider minimum using the increment specified.
+     * If you call <code>createStandardLabels( 10 )</code>
+     * and the slider minimum is
      * zero, then it will make labels for the values 0, 10, 20, 30, and so on.
      * @see #setLabelTable
      */
@@ -646,10 +659,15 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
 
     /**
-     * Creates a hashtable that will draw text labels starting at the start point
-     * specified using the increment specified. If you call createStandardLabels( 10, 2 ),
+     * Creates a hashtable that will draw text labels starting at the
+     * start point
+     * specified using the increment specified. If you call
+     * <code>createStandardLabels( 10, 2 )</code>,
      * then it will make labels for the values 2, 12, 22, 32, and so on.
      * @see #setLabelTable
+     * @exception IllegalArgumentException if slider label start point
+     * 		out of range or if label increment is less than or equal
+     *		to zero
      */
     public Hashtable createStandardLabels( int increment, int start ) {
         if ( start > getMaximum() || start < getMinimum() ) {
@@ -735,10 +753,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
     /**
      * Returns true if the value-range shown for the slider is reversed,
-     * with the maximum value at the left end of a horizontal slider or
-     * at the bottom of a vertical one.
      *
      * @return true if the slider values are reversed from their normal order
+     * @see #setInverted
      */
     public boolean getInverted() { 
         return isInverted; 
@@ -746,10 +763,15 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
 
     /**
-     * Specify true to reverse the value-range shown for the slider so that
-     * the maximum value is at the left end of a horizontal slider or
-     * at the bottom of a vertical one. Specify false to put the value range
-     * in the normal order.
+     * Specify true to reverse the value-range shown for the slider and false to
+     * put the value range in the normal order.  The order depends on the
+     * slider's <code>ComponentOrientation</code> property.  Normal (non-inverted)
+     * horizontal sliders with a <code>ComponentOrientation</code> value of 
+     * <code>LEFT_TO_RIGHT</code> have their maximum on the right.  
+     * Normal horizontal sliders with a <code>ComponentOrientation</code> value of
+     * <code>RIGHT_TO_LEFT</code> have their maximum on the left.  Normal vertical 
+     * sliders have their maximum on the top.  These labels are reversed when the 
+     * slider is inverted.
      *
      * @param b  true to reverse the slider values from their normal order
      * @beaninfo
@@ -868,7 +890,6 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      * positioned the knob.
      *
      * @return true if the value snaps to the nearest slider value, else false
-     * @see #setSnapToValue
      */
     boolean getSnapToValue() { 
         return snapToValue; 
@@ -1056,9 +1077,13 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JSlider. 
+     * For sliders, the AccessibleContext takes the form of an 
+     * AccessibleJSlider. 
+     * A new AccessibleJSlider instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJSlider that serves as the 
+     *         AccessibleContext of this JSlider
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1068,7 +1093,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JSlider</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to slider user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -1111,8 +1138,12 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
         }
 
         /**
-         * Get the AccessibleValue associated with this object if one
-         * exists.  Otherwise return null.
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
          */
         public AccessibleValue getAccessibleValue() {
             return this;

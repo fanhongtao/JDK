@@ -1,8 +1,11 @@
 /*
- * @(#)BasicBorders.java	1.16 01/11/29
+ * @(#)BasicBorders.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -23,14 +26,109 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the basic L & F.
- * @version 1.16 11/29/01
+ * @version 1.20 02/02/00
  * @author Georges Saab
  * @author Amy Fowler
  */
 
 public class BasicBorders {
 
-    public static class ButtonBorder extends AbstractBorder implements UIResource {
+    public static Border getButtonBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border buttonBorder = new BorderUIResource.CompoundBorderUIResource(
+			   new BasicBorders.ButtonBorder(
+					   table.getColor("controlShadow"),
+                                           table.getColor("controlDkShadow"),
+                                           table.getColor("controlHighlight"),
+                                           table.getColor("controlLtHighlight")),
+	       			     new MarginBorder());
+	return buttonBorder;
+    }
+
+    public static Border getRadioButtonBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border radioButtonBorder = new BorderUIResource.CompoundBorderUIResource(
+			   new BasicBorders.RadioButtonBorder(
+					   table.getColor("controlShadow"),
+                                           table.getColor("controlDkShadow"),
+                                           table.getColor("controlHighlight"),
+                                           table.getColor("controlLtHighlight")),
+	       			     new MarginBorder());
+	return radioButtonBorder;
+    }
+
+    public static Border getToggleButtonBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border toggleButtonBorder = new BorderUIResource.CompoundBorderUIResource(
+			             new BasicBorders.ToggleButtonBorder(
+                                           table.getColor("controlShadow"),
+                                           table.getColor("controlDkShadow"),
+                                           table.getColor("controlHighlight"),
+                                           table.getColor("controlLtHighlight")),
+				     new MarginBorder());
+	return toggleButtonBorder;
+    }
+
+    public static Border getMenuBarBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border menuBarBorder = new BasicBorders.MenuBarBorder(
+				        table.getColor("controlShadow"),
+                                        table.getColor("controlLtHighlight")
+                                   );
+	return menuBarBorder;
+    }
+
+    public static Border getSplitPaneBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border splitPaneBorder = new BasicBorders.SplitPaneBorder(
+				     table.getColor("controlLtHighlight"),
+				     table.getColor("controlDkShadow"));
+	return splitPaneBorder;
+    }
+
+    /**
+     * Returns a border instance for a JSplitPane divider
+     * @since 1.3
+     */
+    public static Border getSplitPaneDividerBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border splitPaneBorder = new BasicBorders.SplitPaneDividerBorder(
+				     table.getColor("controlLtHighlight"),
+				     table.getColor("controlDkShadow"));
+	return splitPaneBorder;
+    }
+
+    public static Border getTextFieldBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border textFieldBorder = new BasicBorders.FieldBorder(
+                                           table.getColor("controlShadow"),
+                                           table.getColor("controlDkShadow"),
+                                           table.getColor("controlHighlight"),
+                                           table.getColor("controlLtHighlight"));
+	return textFieldBorder;
+    }
+
+    public static Border getProgressBarBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border progressBarBorder = new BorderUIResource.LineBorderUIResource(Color.green, 2);
+	return progressBarBorder;
+    }
+
+    public static Border getInternalFrameBorder() {
+	UIDefaults table = UIManager.getLookAndFeelDefaults();
+	Border internalFrameBorder = new BorderUIResource.CompoundBorderUIResource(
+				new BevelBorder(BevelBorder.RAISED,
+					table.getColor("controlHighlight"),
+                                        table.getColor("controlLtHighlight"),
+                                        table.getColor("controlDkShadow"),
+                                        table.getColor("controlShadow")),
+				BorderFactory.createLineBorder(
+					table.getColor("control"), 1));
+
+	return internalFrameBorder;
+    }
+ 
+   public static class ButtonBorder extends AbstractBorder implements UIResource {
         protected Color shadow;
         protected Color darkShadow;
         protected Color highlight;
@@ -206,8 +304,82 @@ public class BasicBorders {
 
 
     /**
-     * This border draws the borders around both of the contained components in the
-     * the splitter.  It is a very odd border.
+     * Draws the border around the divider in a splitpane
+     * (when BasicSplitPaneUI is used). To get the appropriate effect, this
+     * needs to be used with a SplitPaneBorder.
+     */
+    static class SplitPaneDividerBorder implements Border, UIResource {
+        Color highlight;
+        Color shadow;
+
+        SplitPaneDividerBorder(Color highlight, Color shadow) {
+	    this.highlight = highlight;
+	    this.shadow = shadow;
+	}
+
+	public void paintBorder(Component c, Graphics g, int x, int y,
+				int width, int height) {
+	    Component          child;
+	    Rectangle          cBounds;
+	    JSplitPane         splitPane = ((BasicSplitPaneDivider)c).
+		                         getBasicSplitPaneUI().getSplitPane();
+	    Dimension          size = c.getSize();
+	    
+	    child = splitPane.getLeftComponent();
+	    // This is needed for the space between the divider and end of
+	    // splitpane.
+	    g.setColor(c.getBackground());
+	    g.drawRect(x, y, width - 1, height - 1);
+	    if(splitPane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+		if(child != null) {
+		    g.setColor(highlight);
+		    g.drawLine(0, 0, 0, size.height);
+		}
+		child = splitPane.getRightComponent();
+		if(child != null) {
+		    g.setColor(shadow);
+		    g.drawLine(size.width - 1, 0, size.width - 1, size.height);
+		}
+	    } else {
+		if(child != null) {
+		    g.setColor(highlight);
+		    g.drawLine(0, 0, size.width, 0);
+		}
+		child = splitPane.getRightComponent();
+		if(child != null) {
+		    g.setColor(shadow);
+		    g.drawLine(0, size.height - 1, size.width,
+			       size.height - 1);
+		}
+	    }
+	}
+	public Insets getBorderInsets(Component c) {
+	    if (c instanceof BasicSplitPaneDivider) {
+		BasicSplitPaneUI bspui = ((BasicSplitPaneDivider)c).
+		                         getBasicSplitPaneUI();
+
+		if (bspui != null) {
+		    JSplitPane splitPane = bspui.getSplitPane();
+
+		    if (splitPane != null) {
+			if (splitPane.getOrientation() ==
+			    JSplitPane.HORIZONTAL_SPLIT) {
+			    return new Insets(0, 1, 0, 1);
+			}
+			// VERTICAL_SPLIT
+			return new Insets(1, 0, 1, 0);
+		    }
+		}
+	    }
+	    return new Insets(1, 1, 1, 1);
+	}
+	public boolean isBorderOpaque() { return true; }
+    }
+
+
+    /**
+     * Draws the border around the splitpane. To work correctly you shoudl
+     * also install a border on the divider (property SplitPaneDivider.border).
      */
     public static class SplitPaneBorder implements Border, UIResource {
         protected Color highlight;
@@ -220,6 +392,22 @@ public class BasicBorders {
 
 	public void paintBorder(Component c, Graphics g, int x, int y,
 				int width, int height) {
+	    // The only tricky part with this border is that the divider is
+	    // not positioned at the top (for horizontal) or left (for vert),
+	    // so this border draws to where the divider is:
+	    // -----------------
+	    // |xxxxxxx xxxxxxx|
+	    // |x     ---     x|
+	    // |x     |	|     x|
+	    // |x     |D|     x|
+	    // |x     | |     x|
+	    // |x     ---     x|
+	    // |xxxxxxx xxxxxxx|
+	    // -----------------
+	    // The above shows (rather excessively) what this looks like for
+	    // a horizontal orientation. This border then draws the x's, with
+	    // the SplitPaneDividerBorder drawing its own border.
+
 	    Component          child;
 	    Rectangle          cBounds;
 
@@ -240,8 +428,6 @@ public class BasicBorders {
 		    g.setColor(highlight);
 		    g.drawLine(1, cBounds.height + 1, cBounds.width + 1,
 			       cBounds.height + 1);
-		    g.drawLine(cBounds.width + 1, 1,
-			       cBounds.width + 1, cBounds.height + 2);
 		}
 		child = splitPane.getRightComponent();
 		if(child != null) {
@@ -253,7 +439,6 @@ public class BasicBorders {
 		    g.setColor(shadow);
 		    g.drawLine(cBounds.x - 1, 0, maxX, 0);
 		    g.drawLine(cBounds.x - 1, maxY, cBounds.x, maxY);
-		    g.drawLine(cBounds.x - 1, 0, cBounds.x -1 , maxY);
 		    g.setColor(highlight);
 		    g.drawLine(cBounds.x, maxY, maxX, maxY);
 		    g.drawLine(maxX, 0, maxX, maxY + 1);
@@ -263,12 +448,11 @@ public class BasicBorders {
 		    cBounds = child.getBounds();
 		    g.setColor(shadow);
 		    g.drawLine(0, 0, cBounds.width + 1, 0);
-		    g.drawLine(0, 1, 0, cBounds.height + 1);
+		    g.drawLine(0, 1, 0, cBounds.height);
 		    g.setColor(highlight);
 		    g.drawLine(1 + cBounds.width, 0, 1 + cBounds.width,
 			       cBounds.height + 1);
-		    g.drawLine(0, cBounds.height + 1,
-			       cBounds.width, cBounds.height + 1);
+		    g.drawLine(0, cBounds.height + 1, 0, cBounds.height + 1);
 		}
 		child = splitPane.getRightComponent();
 		if(child != null) {
@@ -279,7 +463,7 @@ public class BasicBorders {
 		    
 		    g.setColor(shadow);
 		    g.drawLine(0, cBounds.y - 1, 0, maxY);
-		    g.drawLine(maxX, cBounds.y - 1, maxX, cBounds.y);
+		    g.drawLine(maxX, cBounds.y - 1, maxX, cBounds.y - 1);
 		    g.drawLine(0, cBounds.y - 1, cBounds.width, cBounds.y - 1);
 		    g.setColor(highlight);
 		    g.drawLine(0, maxY, cBounds.width + 1, maxY);

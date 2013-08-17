@@ -1,8 +1,11 @@
 /*
- * @(#)AWTEventListener.java	1.3 01/11/29
+ * @(#)AWTEventListener.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -28,11 +31,12 @@ import java.awt.AWTEvent;
  * <code>eventDispatcheded</code> method is invoked.
  *
  * @see java.awt.AWTEvent
- * @see java.awt.Toolkit#addEventListener
- * @see java.awt.Toolkit#removeEventListener
+ * @see java.awt.Toolkit#addAWTEventListener
+ * @see java.awt.Toolkit#removeAWTEventListener
  *
- * @version 1.3, 11/29/01
  * @author Fred Ecks
+ * @version 1.6, 02/02/00
+ * @since 1.2
  */
 public interface AWTEventListener extends EventListener {
 

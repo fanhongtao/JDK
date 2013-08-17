@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleObject.java	1.11 01/11/29
+ * @(#)AccessibleObject.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang.reflect;
@@ -27,7 +30,7 @@ package java.lang.reflect;
  * @see Constructor
  * @see ReflectPermission
  *
- * @since JDK1.2
+ * @since 1.2
  */
 public
 class AccessibleObject {
@@ -44,12 +47,23 @@ class AccessibleObject {
      * Convenience method to set the <tt>accessible</tt> flag for an
      * array of objects with a single security check (for efficiency).
      *
-     * <p>First, if there is a security manager, its <code>checkPermission</code> 
-     * method is called with a 
-     * <code>ReflectPermission("suppressAccessChecks")</code> permission. 
-     * 
+     * <p>First, if there is a security manager, its
+     * <code>checkPermission</code> method is called with a
+     * <code>ReflectPermission("suppressAccessChecks")</code> permission.
+     *
+     * <p>A <code>SecurityException</code> is raised if <code>flag</code> is
+     * <code>true</code> but accessibility of any of the elements of the input
+     * <code>array</code> may not be changed (for example, if the element
+     * object is a {@link Constructor} object for the class {@link
+     * java.lang.Class}).  In the event of such a SecurityException, the
+     * accessiblity of objects is set to <code>flag</code> for array elements
+     * upto (and excluding) the element for which the exception occurred; the
+     * accessiblity of elements beyond (and including) the element for which
+     * the exception occurred is unchanged.
+     *
      * @param array the array of AccessibleObjects
-     * @param flag the new value for the <tt>accessible</tt> flag in each object
+     * @param flag  the new value for the <tt>accessible</tt> flag
+     *              in each object
      * @throws SecurityException if the request is denied.
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
@@ -59,7 +73,7 @@ class AccessibleObject {
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) sm.checkPermission(ACCESS_PERMISSION);
 	for (int i = 0; i < array.length; i++) {
-	    array[i].override = flag;
+	    setAccessible0(array[i], flag);
 	}
     }
 
@@ -70,10 +84,19 @@ class AccessibleObject {
      * checking when it is used.  A value of <tt>false</tt> indicates 
      * that the reflected object should enforce Java language access checks.
      *
-     * <p>First, if there is a security manager, its <code>checkPermission</code> 
-     * method is called with a 
-     * <code>ReflectPermission("suppressAccessChecks")</code> permission. 
+     * <p>First, if there is a security manager, its
+     * <code>checkPermission</code> method is called with a
+     * <code>ReflectPermission("suppressAccessChecks")</code> permission.
      * 
+     * <p>A <code>SecurityException</code> is raised if <code>flag</code> is
+     * <code>true</code> but accessibility of this object may not be changed
+     * (for example, if this element object is a {@link Constructor} object for
+     * the class {@link java.lang.Class}).
+     *
+     * <p>A <code>SecurityException</code> is raised if this object is a {@link
+     * java.lang.reflect.Constructor} object for the class
+     * <code>java.lang.Class</code>, and <code>flag</code> is true.
+     *
      * @param flag the new value for the <tt>accessible</tt> flag
      * @throws SecurityException if the request is denied.
      * @see SecurityManager#checkPermission
@@ -82,7 +105,21 @@ class AccessibleObject {
     public void setAccessible(boolean flag) throws SecurityException {
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) sm.checkPermission(ACCESS_PERMISSION);
-	this.override = flag;
+	setAccessible0(this, flag);
+    }
+
+    /* Check that you aren't exposing java.lang.Class.<init>. */
+    private static void setAccessible0(AccessibleObject obj, boolean flag)
+	throws SecurityException
+    {
+	if (obj instanceof Constructor && flag == true) {
+	    Constructor c = (Constructor)obj;
+	    if (c.getDeclaringClass() == Class.class) {
+		throw new SecurityException("Can not make a java.lang.Class" +
+					    " constructor accessible");
+	    }
+	}
+	obj.override = flag;
     }
 
     /**

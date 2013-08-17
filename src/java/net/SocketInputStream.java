@@ -1,8 +1,11 @@
 /*
- * @(#)SocketInputStream.java	1.21 01/11/29
+ * @(#)SocketInputStream.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -15,7 +18,7 @@ import java.io.FileInputStream;
  * SocketInputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.21, 11/29/01
+ * @version     1.23, 02/02/00
  * @author	Jonathan Payne
  * @author	Arthur van Hoff
  */
@@ -27,7 +30,7 @@ class SocketInputStream extends FileInputStream
     
     private boolean eof;
     private SocketImpl impl;
-    private byte temp[] = new byte[1];
+    private byte temp[]; 
 
     /**
      * Creates a new SocketInputStream. Can only be called
@@ -95,7 +98,7 @@ class SocketInputStream extends FileInputStream
 	if (eof) {
 	    return -1;
 	}
-
+	temp = new byte[1];
  	int n = read(temp, 0, 1);
 	if (n <= 0) {
 	    return -1;
@@ -139,6 +142,10 @@ class SocketInputStream extends FileInputStream
      */
     public void close() throws IOException {
 	impl.close();
+    }
+
+    void setEOF(boolean eof) {
+	this.eof = eof;
     }
 
     /** 

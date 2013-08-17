@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.15 01/11/29
+ * @(#)DefaultTreeCellEditor.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -15,7 +18,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.*;
-import java.util.*;
+import java.util.EventObject;
+import java.util.Vector;
 
 /**
  * A TreeCellEditor. You need to supply an instance of DefaultTreeCellRenderer
@@ -31,7 +35,10 @@ import java.util.*;
  * for short term storage or RMI between applications running the same
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
- * @version 1.15 11/29/01
+ *
+ * @see javax.swing.JTree
+ *
+ * @version 1.17 02/02/00
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,

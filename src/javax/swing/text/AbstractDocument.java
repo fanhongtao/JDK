@@ -1,13 +1,17 @@
 /*
- * @(#)AbstractDocument.java	1.101 01/11/29
+ * @(#)AbstractDocument.java	1.112 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
 import java.util.*;
 import java.io.*;
+import java.awt.font.TextAttribute;
 
 import javax.swing.undo.*;
 import javax.swing.event.ChangeListener;
@@ -51,6 +55,17 @@ import javax.swing.tree.TreeNode;
  * The <code>repaint</code> and <code>revalidate</code> methods 
  * on JComponent are safe.
  * <p>
+ * AbstractDocument models an implied break at the end of the document.
+ * Among other things this allows you to position the caret after the last
+ * character. As a result of this, <code>getLength</code> returns one less
+ * than the length of the Content. If you create your own Content, be
+ * sure and initialize it to have an additional character. Refer to
+ * StringContent and GapContent for examples of this. Another implication
+ * of this is that Elements that model the implied end character will have
+ * an endOffset == (getLength() + 1). For example, in DefaultStyledDocument
+ * <code>getParagraphElement(getLength()).getEndOffset() == getLength() + 1
+ * </code>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
  * future Swing releases.  The current serialization support is appropriate
@@ -59,7 +74,7 @@ import javax.swing.tree.TreeNode;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.101 11/29/01
+ * @version 1.112 02/02/00
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -85,19 +100,30 @@ public abstract class AbstractDocument implements Document, Serializable {
 	this.context = context;
         bidiRoot = new BidiRootElement();
 
-	//if (Utilities.is1dot2) {
-	//putProperty( I18NProperty, Boolean.TRUE );
-	//} else {
-	putProperty( I18NProperty, Boolean.FALSE );
-	//}
+	if (defaultI18NProperty == null) {
+	    // determine default setting for i18n support
+	    Object o = java.security.AccessController.doPrivileged(
+		new java.security.PrivilegedAction() {
+                    public Object run() {
+			return System.getProperty(I18NProperty);
+		    }
+                }
+	    );
+	    if (o != null) {
+		defaultI18NProperty = Boolean.valueOf((String)o);
+	    } else {
+		defaultI18NProperty = Boolean.FALSE;
+	    }
+	}
+	putProperty( I18NProperty, defaultI18NProperty);
 
         //REMIND(bcb) This creates an initial bidi element to account for
         //the \n that exists by default in the content.  Doing it this way
         //seems to expose a little too much knowledge of the content given
         //to us by the sub-class.  Consider having the sub-class' constructor
         //make an initial call to insertUpdate.
+	writeLock();
         try {
-            writeLock();
             Element[] p = new Element[1];
             p[0] = new BidiElement( bidiRoot, 0, 1, 0 );
             bidiRoot.replace(0,0,p);
@@ -228,6 +254,19 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
+     * Return an array of all the listeners of the given type that 
+     * were added to this model. 
+     *
+     * @returns all of the objects recieving <em>listenerType</em> notifications 
+     *          from this model
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
+    }
+
+    /**
      * Get the asynchronous loading priority.  If less than zero,
      * the document should not be loaded asynchronously.
      */
@@ -281,8 +320,8 @@ public abstract class AbstractDocument implements Document, Serializable {
      * @param r the renderer to execute.
      */
     public void render(Runnable r) {
+	readLock();
 	try {
-	    readLock();
 	    r.run();
 	} finally {
 	    readUnlock();
@@ -374,8 +413,24 @@ public abstract class AbstractDocument implements Document, Serializable {
     public final void putProperty(Object key, Object value) {
 	if (value != null) {
 	    getDocumentProperties().put(key, value);
-	} else
+	} else {
             getDocumentProperties().remove(key);
+        }
+        if( key == TextAttribute.RUN_DIRECTION 
+            && Boolean.TRUE.equals(getProperty(I18NProperty)) )
+        {
+            //REMIND - this needs to flip on the i18n property if run dir
+            //is rtl and the i18n property is not already on.
+            writeLock();
+            try {
+                DefaultDocumentEvent e 
+                    = new DefaultDocumentEvent(0, getLength(),
+                                               DocumentEvent.EventType.INSERT);
+                updateBidi( e );
+            } finally {
+                writeUnlock();
+            }
+        }
     }
 
     /**
@@ -397,8 +452,8 @@ public abstract class AbstractDocument implements Document, Serializable {
      */
     public void remove(int offs, int len) throws BadLocationException {
 	if (len > 0) {
+	    writeLock();
 	    try {
-		writeLock();
 		DefaultDocumentEvent chng = 
 		    new DefaultDocumentEvent(offs, len, DocumentEvent.EventType.REMOVE);
 
@@ -454,14 +509,34 @@ public abstract class AbstractDocument implements Document, Serializable {
         if ((str == null) || (str.length() == 0)) {
 	    return;
 	}
+	writeLock();
 	try {
-	    writeLock();
 	    UndoableEdit u = data.insertString(offs, str);
 	    DefaultDocumentEvent e = 
 		new DefaultDocumentEvent(offs, str.length(), DocumentEvent.EventType.INSERT);
 	    if (u != null) {
 		e.addEdit(u);
 	    }
+	    
+	    // see if complex glyph layout support is needed
+	    if( getProperty(I18NProperty).equals( Boolean.FALSE ) ) {
+		// if a default direction of right-to-left has been specified,
+		// we want complex layout even if the text is all left to right.
+		Object d = getProperty(TextAttribute.RUN_DIRECTION);
+		if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
+		    putProperty( I18NProperty, Boolean.TRUE);
+		} else {
+		    int len = str.length();
+		    for (int i = 0; i < len; i++) {
+			char c = str.charAt(i);
+			if (Bidi.requiresBidi(c)) {
+			    putProperty( I18NProperty, Boolean.TRUE);
+			    break;
+			}
+		    }
+		}
+	    }
+
 	    insertUpdate(e, a);
 	    // Mark the edit as done.
 	    e.end();
@@ -488,6 +563,9 @@ public abstract class AbstractDocument implements Document, Serializable {
      * @see Document#getText
      */
     public String getText(int offset, int length) throws BadLocationException {
+	if (length < 0) {
+	    throw new BadLocationException("Length must be positive", length);
+	}
 	String str = data.getString(offset, length);
 	return str;
     }
@@ -509,6 +587,9 @@ public abstract class AbstractDocument implements Document, Serializable {
      *   that is not a valid position within the document
      */
     public void getText(int offset, int length, Segment txt) throws BadLocationException {
+	if (length < 0) {
+	    throw new BadLocationException("Length must be positive", length);
+	}
 	data.getChars(offset, length, txt);
     }
 
@@ -605,6 +686,9 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <code>p1</code> is left to right.
      */
     boolean isLeftToRight(int p0, int p1) {
+        if(!getProperty(I18NProperty).equals(Boolean.TRUE)) {
+	    return true;
+	}
 	Element bidiRoot = getBidiRootElement();
 	int index = bidiRoot.getElementIndex(p0);
 	Element bidiElem = bidiRoot.getElement(index);
@@ -687,12 +771,14 @@ public abstract class AbstractDocument implements Document, Serializable {
      * exactly one paragraph.  This method also assumes that it is called
      * after the change is made to the default element structure.
      */
-    private void updateBidi( DefaultDocumentEvent chng ) {
+    void updateBidi( DefaultDocumentEvent chng ) {
 
         // Calculate the range of paragraphs affected by the change.
         int firstPStart;
         int lastPEnd;
-        if( chng.type == DocumentEvent.EventType.INSERT ) {
+        if( chng.type == DocumentEvent.EventType.INSERT 
+            || chng.type == DocumentEvent.EventType.CHANGE )
+        {
             int chngStart = chng.getOffset();
             int chngEnd =  chngStart + chng.getLength();
             firstPStart = getParagraphElement(chngStart).getStartOffset();
@@ -840,14 +926,28 @@ public abstract class AbstractDocument implements Document, Serializable {
         
         byte levels[] = new byte[ lastPEnd - firstPStart ];
         int  levelsEnd = 0;
+	Boolean defaultDirection = null;  
+	Object d = getProperty(TextAttribute.RUN_DIRECTION);
+	if (d instanceof Boolean) {
+	    defaultDirection = (Boolean) d;
+	}
 
         // For each paragraph in the given range of paragraphs, get its
         // levels array and add it to the levels array for the entire span.
         for(int o=firstPStart; o<lastPEnd; ) {
-            
             Element p = getParagraphElement( o );
             int pStart = p.getStartOffset();
             int pEnd = p.getEndOffset();
+
+	    // default run direction for the paragraph.  This will be
+	    // null if there is no direction override specified (i.e. 
+	    // the direction will be determined from the content).
+            Boolean direction = defaultDirection;
+	    d = p.getAttributes().getAttribute(TextAttribute.RUN_DIRECTION);
+	    if (d instanceof Boolean) {
+		direction = (Boolean) d;
+	    }
+
             //System.out.println("updateBidi: paragraph start = " + pStart + " paragraph end = " + pEnd);
             
             // Create a Bidi over this paragraph then get the level
@@ -859,7 +959,13 @@ public abstract class AbstractDocument implements Document, Serializable {
                 throw new Error("Internal error: " + e.toString());
             }
             // REMIND(bcb) we should really be using a Segment here.
-            Bidi bidiAnalyzer = new Bidi( pText.toCharArray() );
+            Bidi bidiAnalyzer;
+	    if (direction != null) {
+		boolean ltr = direction.equals(TextAttribute.RUN_DIRECTION_LTR);
+		bidiAnalyzer = new Bidi(pText.toCharArray(), ltr);
+	    } else {
+		bidiAnalyzer = new Bidi( pText.toCharArray() );
+	    }
             byte[] pLevels = bidiAnalyzer.getLevels();
             System.arraycopy( pLevels, 0, levels, levelsEnd, pLevels.length );
             levelsEnd += pLevels.length;
@@ -967,8 +1073,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	    }
 	    currWriter = Thread.currentThread();
 	} catch (InterruptedException e) {
-	    // safe to let this pass... write lock not
-	    // held if the thread lands here.
+	    throw new Error("Interrupted attempt to aquire write lock");
 	}
     }
 
@@ -979,7 +1084,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      */
     protected synchronized final void writeUnlock() {
 	currWriter = null;
-	notify();
+	notifyAll();
     }
 
     /**
@@ -1005,8 +1110,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	    }
 	    numReaders += 1;
 	} catch (InterruptedException e) {
-	    // safe to let this pass... read lock not
-	    // held if the thread lands here.
+	    throw new Error("Interrupted attempt to aquire read lock");
 	}
     }
 
@@ -1018,12 +1122,12 @@ public abstract class AbstractDocument implements Document, Serializable {
      * so that the balance is guaranteed.  The following is an
      * example.
      * <pre><code>
-       try {
-         readLock();
-	 // do something
-       } finally {
-         readUnlock();
-       }
+     * &nbsp;   readLock();
+     * &nbsp;   try {
+     * &nbsp;       // do something
+     * &nbsp;   } finally {
+     * &nbsp;       readUnlock();
+     * &nbsp;   }
      * </code></pre>
      *
      * @see #readLock
@@ -1085,6 +1189,8 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     private transient int numReaders;
     private transient Thread currWriter;
+
+    private static Boolean defaultI18NProperty;
 
     /**
      * Storage for document-wide properties.

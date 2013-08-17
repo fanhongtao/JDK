@@ -1,8 +1,11 @@
 /*
- * @(#)MotifLookAndFeel.java	1.113 01/11/29
+ * @(#)MotifLookAndFeel.java	1.132 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -44,7 +47,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.113 11/29/01
+ * @version 1.132 02/02/00
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -239,6 +242,15 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                                       focusBevelBorder,
                                       marginBorder);
 
+	Border popupMenuBorder = new BorderUIResource.CompoundBorderUIResource(
+				      raisedBevelBorder,
+				      new MotifBorders.MotifPopupMenuBorder(
+                                        table.getFont("PopupMenu.font"),
+                                        table.getColor("PopupMenu.background"),
+                                        table.getColor("PopupMenu.foreground"),
+                                        table.getColor("controlShadow"),
+                                        table.getColor("controlLtHighlight")
+					));
 
         Object menuItemCheckIcon = new UIDefaults.LazyValue() {
             public Object createValue(UIDefaults table) {
@@ -310,159 +322,88 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
 	// *** Text
 
-	JTextComponent.KeyBinding[] fieldBindings = {
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.copyAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.pasteAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.cutAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_F, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.forwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_B, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.backwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_D, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.deleteNextCharAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionBackwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionForwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.previousWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.nextWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
-								 InputEvent.CTRL_MASK | 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionPreviousWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
-								 InputEvent.CTRL_MASK |
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionNextWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.selectAllAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-					  DefaultEditorKit.beginLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-					  DefaultEditorKit.endLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionBeginLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionEndLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-					  JTextField.notifyAction)
-	};
+	Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
+			   "COPY", DefaultEditorKit.copyAction,
+			  "PASTE", DefaultEditorKit.pasteAction,
+			    "CUT", DefaultEditorKit.cutAction,
+	         "control INSERT", DefaultEditorKit.copyAction,
+	           "shift INSERT", DefaultEditorKit.pasteAction,
+	           "shift DELETE", DefaultEditorKit.cutAction,
+	              "control F", DefaultEditorKit.forwardAction,
+	              "control B", DefaultEditorKit.backwardAction,
+	              "control D", DefaultEditorKit.deleteNextCharAction,
+		     "typed \010", DefaultEditorKit.deletePrevCharAction,
+                         "DELETE", DefaultEditorKit.deleteNextCharAction,
+                          "RIGHT", DefaultEditorKit.forwardAction,
+                           "LEFT", DefaultEditorKit.backwardAction,
+                       "KP_RIGHT", DefaultEditorKit.forwardAction,
+                        "KP_LEFT", DefaultEditorKit.backwardAction,
+	             "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+	            "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+	           "control LEFT", DefaultEditorKit.previousWordAction,
+	          "control RIGHT", DefaultEditorKit.nextWordAction,
+	     "control shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+	    "control shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+	          "control SLASH", DefaultEditorKit.selectAllAction,
+	                   "HOME", DefaultEditorKit.beginLineAction,
+	                    "END", DefaultEditorKit.endLineAction,
+	             "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+	              "shift END", DefaultEditorKit.selectionEndLineAction,
+	     "control BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
+	                  "ENTER", JTextField.notifyAction
+	});
 
-	JTextComponent.KeyBinding[] multilineBindings = {
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.copyAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.pasteAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.cutAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_F, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.forwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_B, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.backwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_D, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.deleteNextCharAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_N,
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.downAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_P,
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.upAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionBackwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionForwardAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.previousWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.nextWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
-								 InputEvent.CTRL_MASK | 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionPreviousWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
-								 InputEvent.CTRL_MASK |
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionNextWordAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.selectAllAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-					  DefaultEditorKit.beginLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-					  DefaultEditorKit.endLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionBeginLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionEndLineAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-					  DefaultEditorKit.upAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-					  DefaultEditorKit.downAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
-					  DefaultEditorKit.pageUpAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
-					  DefaultEditorKit.pageDownAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionUpAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionDownAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-					  DefaultEditorKit.insertBreakAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
-					  DefaultEditorKit.insertTabAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SLASH, 
-								 InputEvent.CTRL_MASK),
-					  "unselect"/*DefaultEditorKit.unselectAction*/),
+	Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
+			   "COPY", DefaultEditorKit.copyAction,
+			  "PASTE", DefaultEditorKit.pasteAction,
+			    "CUT", DefaultEditorKit.cutAction,
+	         "control INSERT", DefaultEditorKit.copyAction,
+	           "shift INSERT", DefaultEditorKit.pasteAction,
+	           "shift DELETE", DefaultEditorKit.cutAction,
+	              "control F", DefaultEditorKit.forwardAction,
+	              "control B", DefaultEditorKit.backwardAction,
+	              "control D", DefaultEditorKit.deleteNextCharAction,
+		     "typed \010", DefaultEditorKit.deletePrevCharAction,
+                         "DELETE", DefaultEditorKit.deleteNextCharAction,
+                          "RIGHT", DefaultEditorKit.forwardAction,
+                           "LEFT", DefaultEditorKit.backwardAction,
+                       "KP_RIGHT", DefaultEditorKit.forwardAction,
+                        "KP_LEFT", DefaultEditorKit.backwardAction,
+	             "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+	            "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+	           "control LEFT", DefaultEditorKit.previousWordAction,
+	          "control RIGHT", DefaultEditorKit.nextWordAction,
+	     "control shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+	    "control shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+	          "control SLASH", DefaultEditorKit.selectAllAction,
+	                   "HOME", DefaultEditorKit.beginLineAction,
+	                    "END", DefaultEditorKit.endLineAction,
+	             "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+	              "shift END", DefaultEditorKit.selectionEndLineAction,
 
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.beginAction),
-
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
-								 InputEvent.CTRL_MASK),
-					  DefaultEditorKit.endAction),
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
-								 InputEvent.CTRL_MASK |
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionBeginAction),
-
-	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
-								 InputEvent.CTRL_MASK |
-								 InputEvent.SHIFT_MASK),
-					  DefaultEditorKit.selectionEndAction)
-	};
+		      "control N", DefaultEditorKit.downAction,
+		      "control P", DefaultEditorKit.upAction,
+			     "UP", DefaultEditorKit.upAction,
+			   "DOWN", DefaultEditorKit.downAction,
+			"PAGE_UP", DefaultEditorKit.pageUpAction,
+		      "PAGE_DOWN", DefaultEditorKit.pageDownAction,
+		  "shift PAGE_UP", "selection-page-up",
+ 	        "shift PAGE_DOWN", "selection-page-down",
+	     "ctrl shift PAGE_UP", "selection-page-left",
+ 	   "ctrl shift PAGE_DOWN", "selection-page-right",
+		       "shift UP", DefaultEditorKit.selectionUpAction,
+		     "shift DOWN", DefaultEditorKit.selectionDownAction,
+			  "ENTER", DefaultEditorKit.insertBreakAction,
+			    "TAB", DefaultEditorKit.insertTabAction,
+	     "control BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
+		   "control HOME", DefaultEditorKit.beginAction,
+		    "control END", DefaultEditorKit.endAction,
+	     "control shift HOME", DefaultEditorKit.selectionBeginAction,
+	      "control shift END", DefaultEditorKit.selectionEndAction,
+                      "control T", "next-link-action", 
+                "control shift T", "previous-link-action", 
+                  "control SPACE", "activate-link-action" 
+	});
 
         // *** Tree
 
@@ -530,6 +471,28 @@ public class MotifLookAndFeel extends BasicLookAndFeel
         Object[] defaults = {
 
             "Desktop.background", table.get("desktop"),
+	    "Desktop.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		 "ctrl F5", "restore", 
+		 "ctrl F4", "close",
+		 "ctrl F7", "move", 
+		 "ctrl F8", "resize",
+		   "RIGHT", "right",
+		"KP_RIGHT", "right",
+		    "LEFT", "left",
+		 "KP_LEFT", "left",
+		      "UP", "up",
+		   "KP_UP", "up",
+		    "DOWN", "down",
+		 "KP_DOWN", "down",
+		  "ESCAPE", "escape",
+		 "ctrl F9", "minimize", 
+		"ctrl F10", "maximize",
+		 "ctrl F6", "selectNextFrame",
+		"ctrl TAB", "selectNextFrame",
+	     "ctrl alt F6", "selectNextFrame",
+       "shift ctrl alt F6", "selectPreviousFrame"	      
+	      }),
 
             "Panel.background", table.get("control"),
             "Panel.foreground", table.get("textText"),
@@ -551,11 +514,20 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Button.foreground", table.get("controlText"),
             "Button.select", table.get("controlLightShadow"),
             "Button.font", dialogPlain12,
+	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+                         "SPACE", "pressed",
+                "released SPACE", "released"
+              }),
 
 	    "CheckBox.textIconGap", new Integer(8),
 	    "CheckBox.margin", new InsetsUIResource(2, 2, 6, 2),
             "CheckBox.icon", checkBoxIcon,
             "CheckBox.focus", table.get("activeCaptionBorder"),
+	    "CheckBox.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		            "SPACE", "pressed",
+                   "released SPACE", "released"
+		 }),
 
 	    "RadioButton.margin", new InsetsUIResource(2, 2, 6, 2),
 	    "RadioButton.textIconGap", new Integer(8),
@@ -564,12 +536,22 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "RadioButton.icon", radioButtonIcon,
             "RadioButton.focus", table.get("activeCaptionBorder"),
             "RadioButton.icon", radioButtonIcon,
+	    "RadioButton.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                          "SPACE", "pressed",
+                 "released SPACE", "released"
+	      }),
 
             "ToggleButton.border", toggleButtonBorder,
             "ToggleButton.background", table.get("control"),
             "ToggleButton.foreground", table.get("controlText"),
             "ToggleButton.focus", table.get("controlText"),
             "ToggleButton.select", table.get("controlLightShadow"),
+	    "ToggleButton.focusInputMap",
+	      new UIDefaults.LazyInputMap(new Object[] {
+		            "SPACE", "pressed",
+                   "released SPACE", "released"
+	        }),
 
 	    // Menus
             "Menu.border", menuMarginBorder,
@@ -581,11 +563,28 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Menu.selectionBackground", menuItemPressedBackground,
             "Menu.checkIcon", menuItemCheckIcon,
             "Menu.arrowIcon", menuArrowIcon,
+	    // These window InputMap bindings are used when the Menu is
+	    // selected.
+	    "Menu.selectedWindowInputMapBindings", new Object[] {
+		  "ESCAPE", "cancel",
+                    "DOWN", "selectNext",
+		 "KP_DOWN", "selectNext",
+		      "UP", "selectPrevious",
+		   "KP_UP", "selectPrevious",
+		    "LEFT", "selectParent",
+		 "KP_LEFT", "selectParent",
+		   "RIGHT", "selectChild",
+		"KP_RIGHT", "selectChild",
+		   "ENTER", "return",
+		   "SPACE", "return"
+	    },
 
             "MenuBar.border", menuBarBorder,
             "MenuBar.background", table.get("menu"),
             "MenuBar.foreground", table.get("menuText"),
             "MenuBar.font", dialogPlain12,
+	    "MenuBar.windowBindings", new Object[] {
+		"F10", "takeFocus" },
 
             "MenuItem.border", menuMarginBorder,
             "MenuItem.font", dialogPlain12,
@@ -618,7 +617,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "CheckBoxMenuItem.arrowIcon", menuItemArrowIcon,
 
             "PopupMenu.background", table.get("menu"),
-            "PopupMenu.border", raisedBevelBorder,            
+            "PopupMenu.border", popupMenuBorder,            
             "PopupMenu.foreground", table.get("menuText"),
             "PopupMenu.font", dialogPlain12,
 
@@ -633,10 +632,42 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Separator.foreground", table.get("controlShadow"),
 
             "List.focusCellHighlightBorder", focusCellHighlightBorder,
+	    "List.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		               "UP", "selectPreviousRow",
+		            "KP_UP", "selectPreviousRow",
+		         "shift UP", "selectPreviousRowExtendSelection",
+		      "shift KP_UP", "selectPreviousRowExtendSelection",
+		             "DOWN", "selectNextRow",
+		          "KP_DOWN", "selectNextRow",
+		       "shift DOWN", "selectNextRowExtendSelection",
+		    "shift KP_DOWN", "selectNextRowExtendSelection",
+		       "ctrl SPACE", "selectNextRowExtendSelection",
+		             "HOME", "selectFirstRow",
+		       "shift HOME", "selectFirstRowExtendSelection",
+		              "END", "selectLastRow",
+		        "shift END", "selectLastRowExtendSelection",
+		          "PAGE_UP", "scrollUp",
+		    "shift PAGE_UP", "scrollUpExtendSelection",
+		        "PAGE_DOWN", "scrollDown",
+		  "shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "ctrl A", "selectAll",
+		       "ctrl SLASH", "selectAll",
+		  "ctrl BACK_SLASH", "clearSelection"
+		 }),
 
             "DesktopIcon.icon", LookAndFeel.makeIcon(getClass(), 
                                                              "icons/DesktopIcon.gif"),
 	    "DesktopIcon.border", null,
+	    // These are a little odd, MotifInternalFrameUI isntalls em!
+	    "DesktopIcon.windowBindings", new Object[]
+	      { "ESCAPE", "hideSystemMenu" },
+
+	    "InternalFrame.windowBindings", new Object[] {
+		"shift ESCAPE", "showSystemMenu",
+		  "ctrl SPACE", "showSystemMenu",
+	              "ESCAPE", "hideSystemMenu"
+	    },
 
             "ScrollBar.background", scrollBarTrack,
             "ScrollBar.foreground", table.get("control"),
@@ -647,12 +678,47 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "ScrollBar.thumbDarkShadow", table.get("controlDkShadow"),
             "ScrollBar.thumbLightShadow", table.get("controlShadow"),
             "ScrollBar.border", loweredBevelBorder,
+	    "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
+	    "ScrollBar.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "negativeUnitIncrement",
+		    "KP_RIGHT", "negativeUnitIncrement",
+		        "DOWN", "positiveUnitIncrement",
+		     "KP_DOWN", "positiveUnitIncrement",
+		   "PAGE_DOWN", "positiveBlockIncrement",
+	      "ctrl PAGE_DOWN", "positiveBlockIncrement",
+		        "LEFT", "positiveUnitIncrement",
+		     "KP_LEFT", "positiveUnitIncrement",
+		          "UP", "negativeUnitIncrement",
+		       "KP_UP", "negativeUnitIncrement",
+		     "PAGE_UP", "negativeBlockIncrement",
+	        "ctrl PAGE_UP", "negativeBlockIncrement",
+		        "HOME", "minScroll",
+		         "END", "maxScroll"
+		 }),
  
             "ScrollPane.font", dialogPlain12,
             "ScrollPane.background", table.get("control"),
             "ScrollPane.foreground", table.get("controlText"),
             "ScrollPane.border", null,
             "ScrollPane.viewportBorder", loweredBevelBorder,
+	    "ScrollPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		           "RIGHT", "unitScrollRight",
+		        "KP_RIGHT", "unitScrollRight",
+		            "DOWN", "unitScrollDown",
+		         "KP_DOWN", "unitScrollDown",
+		            "LEFT", "unitScrollLeft",
+		         "KP_LEFT", "unitScrollLeft",
+		              "UP", "unitScrollUp",
+		           "KP_UP", "unitScrollUp",
+		         "PAGE_UP", "scrollUp",
+		       "PAGE_DOWN", "scrollDown",
+		    "ctrl PAGE_UP", "scrollLeft",
+		  "ctrl PAGE_DOWN", "scrollRight",
+		       "ctrl HOME", "scrollHome",
+		        "ctrl END", "scrollEnd"
+		 }),
 
             "Slider.border", focusBevelBorder,
             "Slider.foreground", table.get("control"),
@@ -661,12 +727,41 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Slider.shadow", table.get("controlShadow"),
             "Slider.focus", table.get("controlDkShadow"),
 	    "Slider.focusInsets", sliderFocusInsets,
+	    "Slider.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+		         "RIGHT", "positiveUnitIncrement",
+		      "KP_RIGHT", "positiveUnitIncrement",
+		          "DOWN", "negativeUnitIncrement",
+		       "KP_DOWN", "negativeUnitIncrement",
+		"ctrl PAGE_DOWN", "negativeBlockIncrement",
+		          "LEFT", "negativeUnitIncrement",
+		       "KP_LEFT", "negativeUnitIncrement",
+		            "UP", "positiveUnitIncrement",
+		         "KP_UP", "positiveUnitIncrement",
+		  "ctrl PAGE_UP", "positiveBlockIncrement",
+		          "HOME", "minScroll",
+		           "END", "maxScroll"
+	    }),
 
             "SplitPane.background", table.get("control"),
             "SplitPane.highlight", table.get("controlHighlight"),
             "SplitPane.shadow", table.get("controlShadow"),
-            "SplitPane.dividerSize", new Integer(18),
+            "SplitPane.dividerSize", new Integer(20),
             "SplitPane.activeThumb", table.get("activeCaptionBorder"),
+	    "SplitPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		        "UP", "negativeIncrement",
+		      "DOWN", "positiveIncrement",
+		      "LEFT", "negativeIncrement",
+		     "RIGHT", "positiveIncrement",
+		     "KP_UP", "negativeIncrement",
+		   "KP_DOWN", "positiveIncrement",
+		   "KP_LEFT", "negativeIncrement",
+		  "KP_RIGHT", "positiveIncrement",
+		      "HOME", "selectMin",
+		       "END", "selectMax",
+		        "F8", "startResize",
+		        "F6", "toggleFocus"
+		 }),
 
             "TabbedPane.font", dialogPlain12,
             "TabbedPane.background", table.get("control"),
@@ -684,6 +779,26 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "TabbedPane.selectedTabPadInsets", tabbedPaneTabPadInsets,
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
             "TabbedPane.contentBorderInsets", tabbedPaneContentBorderInsets,
+	    "TabbedPane.focusInputMap",
+	      new UIDefaults.LazyInputMap(new Object[] {
+		         "RIGHT", "navigateRight",
+	              "KP_RIGHT", "navigateRight",
+	                  "LEFT", "navigateLeft",
+	               "KP_LEFT", "navigateLeft",
+	                    "UP", "navigateUp",
+	                 "KP_UP", "navigateUp",
+	                  "DOWN", "navigateDown",
+	               "KP_DOWN", "navigateDown",
+	             "ctrl DOWN", "requestFocusForVisibleComponent",
+	          "ctrl KP_DOWN", "requestFocusForVisibleComponent",
+		}),
+	    "TabbedPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		   "ctrl PAGE_DOWN", "navigatePageDown",
+	             "ctrl PAGE_UP", "navigatePageUp",
+	                  "ctrl UP", "requestFocus",
+	               "ctrl KP_UP", "requestFocus",
+		 }),
 
 
             "Tree.background", controlDarker,                              // default: dark slate blue
@@ -705,14 +820,105 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "Tree.editorBorder", focusBorder,
 	    "Tree.editorBorderSelectionColor", table.get("activeCaptionBorder"),
 	    "Tree.rowHeight", new Integer(18),
-	    "Tree.changeSelectionWithFocus", Boolean.FALSE,
 	    "Tree.drawsFocusBorderAroundIcon", Boolean.TRUE,
+	    "Tree.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+		                  "UP", "selectPreviousChangeLead",
+		               "KP_UP", "selectPreviousChangeLead",
+		            "shift UP", "selectPreviousExtendSelection",
+		         "shift KP_UP", "selectPreviousExtendSelection",
+		                "DOWN", "selectNextChangeLead",
+		             "KP_DOWN", "selectNextChangeLead",
+		          "shift DOWN", "selectNextExtendSelection",
+		       "shift KP_DOWN", "selectNextExtendSelection",
+		               "RIGHT", "selectChildChangeLead",
+		            "KP_RIGHT", "selectChildChangeLead",
+		                "LEFT", "selectParentChangeLead",
+		             "KP_LEFT", "selectParentChangeLead",
+		             "PAGE_UP", "scrollUpChangeLead",
+		       "shift PAGE_UP", "scrollUpExtendSelection",
+		           "PAGE_DOWN", "scrollDownChangeLead",
+		     "shift PAGE_DOWN", "scrollDownExtendSelection",
+		                "HOME", "selectFirstChangeLead",
+		          "shift HOME", "selectFirstExtendSelection",
+		                 "END", "selectLastChangeLead",
+		           "shift END", "selectLastExtendSelection",
+		               "ENTER", "toggle",
+		                  "F2", "startEditing",
+		              "ctrl A", "selectAll",
+		          "ctrl SLASH", "selectAll",
+		     "ctrl BACK_SLASH", "clearSelection",
+		          "ctrl SPACE", "selectItem",
+		         "shift SPACE", "extendSelection",
+		      "ctrl PAGE_DOWN", "scrollRightChangeLead",
+		        "ctrl PAGE_UP", "scrollLeftChangeLead",
+		"ctrl shift PAGE_DOWN", "scrollRightExtendSelection",
+		  "ctrl shift PAGE_UP", "scrollLeftExtendSelection",
+		               "SPACE", "toggleSelection",
+	      }),
+	    "Tree.ancestorInputMap", new UIDefaults.LazyInputMap(new Object[] {
+		"ESCAPE", "cancel" }),
 
             "Table.focusCellHighlightBorder", focusCellHighlightBorder,
             "Table.scrollPaneBorder", null,
 
             //      "Table.background", white,  // cell background color
             //      "Table.focusCellBackground", white,
+	    "Table.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                "RIGHT", "selectNextColumn",
+		             "KP_RIGHT", "selectNextColumn",
+		                 "LEFT", "selectPreviousColumn",
+		              "KP_LEFT", "selectPreviousColumn",
+		                 "DOWN", "selectNextRow",
+		              "KP_DOWN", "selectNextRow",
+		                   "UP", "selectPreviousRow",
+		                "KP_UP", "selectPreviousRow",
+		          "shift RIGHT", "selectNextColumnExtendSelection",
+		       "shift KP_RIGHT", "selectNextColumnExtendSelection",
+		           "shift LEFT", "selectPreviousColumnExtendSelection",
+		        "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+		           "shift DOWN", "selectNextRowExtendSelection",
+		        "shift KP_DOWN", "selectNextRowExtendSelection",
+		             "shift UP", "selectPreviousRowExtendSelection",
+		          "shift KP_UP", "selectPreviousRowExtendSelection",
+		              "PAGE_UP", "scrollUpChangeSelection",
+		            "PAGE_DOWN", "scrollDownChangeSelection",
+		                 "HOME", "selectFirstColumn",
+		                  "END", "selectLastColumn",
+		        "shift PAGE_UP", "scrollUpExtendSelection",
+		      "shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "shift HOME", "selectFirstColumnExtendSelection",
+		            "shift END", "selectLastColumnExtendSelection",
+		         "ctrl PAGE_UP", "scrollLeftChangeSelection",
+		       "ctrl PAGE_DOWN", "scrollRightChangeSelection",
+		            "ctrl HOME", "selectFirstRow",
+		             "ctrl END", "selectLastRow",
+		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
+		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
+		      "ctrl shift HOME", "selectFirstRowExtendSelection",
+		       "ctrl shift END", "selectLastRowExtendSelection",
+		                  "TAB", "selectNextColumnCell",
+		            "shift TAB", "selectPreviousColumnCell",
+		                "ENTER", "selectNextRowCell",
+		          "shift ENTER", "selectPreviousRowCell",
+		               "ctrl A", "selectAll",
+		               "ESCAPE", "cancel",
+		                   "F2", "startEditing"
+		 }),
+
+
+	    // ToolBar.
+	    "ToolBar.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		        "UP", "navigateUp",
+		     "KP_UP", "navigateUp",
+		      "DOWN", "navigateDown",
+		   "KP_DOWN", "navigateDown",
+		      "LEFT", "navigateLeft",
+		   "KP_LEFT", "navigateLeft",
+		     "RIGHT", "navigateRight",
+		  "KP_RIGHT", "navigateRight"
+		 }),
 
 
 
@@ -726,6 +932,17 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "ComboBox.disabledBackground", table.get("control"),
             "ComboBox.disabledForeground", table.get("textInactiveText"),
             "ComboBox.font", dialogPlain12,
+	    "ComboBox.ancestorInputMap", new UIDefaults.LazyInputMap(new Object[] {
+		   "ESCAPE", "hidePopup",
+		  "PAGE_UP", "pageUpPassThrough",
+		"PAGE_DOWN", "pageDownPassThrough",
+		     "HOME", "homePassThrough",
+		      "END", "endPassThrough",
+		     "DOWN", "selectNext",
+		  "KP_DOWN", "selectNext",
+		       "UP", "selectPrevious",
+		    "KP_UP", "selectPrevious"
+	      }),
 
             "TextField.caretForeground", black,
             "TextField.caretBlinkRate", new Integer(500),
@@ -736,7 +953,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "TextField.foreground", table.get("textText"),
             "TextField.font", sansSerifPlain12,
             "TextField.border", textFieldBorder,
-	    "TextField.keyBindings", fieldBindings,
+	    "TextField.focusInputMap", fieldInputMap,
             
             "PasswordField.caretForeground", black,
             "PasswordField.caretBlinkRate", new Integer(500),
@@ -747,7 +964,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "PasswordField.foreground", table.get("textText"),
             "PasswordField.font", monospacedPlain12,
             "PasswordField.border", textFieldBorder,
-	    "PasswordField.keyBindings", fieldBindings,
+	    "PasswordField.focusInputMap", fieldInputMap,
             
             "TextArea.caretForeground", black,
             "TextArea.caretBlinkRate", new Integer(500),
@@ -758,7 +975,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "TextArea.foreground", table.get("textText"),
             "TextArea.font", monospacedPlain12,
             "TextArea.border", marginBorder,
-	    "TextArea.keyBindings", multilineBindings,
+	    "TextArea.focusInputMap", multilineInputMap,
             
             "TextPane.caretForeground", black,
             "TextPane.caretBlinkRate", new Integer(500),
@@ -769,7 +986,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "TextPane.foreground", table.get("textText"),
             "TextPane.font", serifPlain12,
             "TextPane.border", marginBorder,
-	    "TextPane.keyBindings", multilineBindings,
+	    "TextPane.focusInputMap", multilineInputMap,
             
             "EditorPane.caretForeground", red,
             "EditorPane.caretBlinkRate", new Integer(500),
@@ -780,7 +997,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "EditorPane.foreground", table.get("textText"),
             "EditorPane.font", serifPlain12,
             "EditorPane.border", marginBorder,
-	    "EditorPane.keyBindings", multilineBindings,
+	    "EditorPane.focusInputMap", multilineInputMap,
 
 
 	    "FileChooser.pathLabelMnemonic", new Integer(KeyEvent.VK_P), // 'p'
@@ -788,6 +1005,10 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "FileChooser.foldersLabelMnemonic", new Integer (KeyEvent.VK_O), // 'o'
 	    "FileChooser.filesLabelMnemonic", new Integer (KeyEvent.VK_I), // 'i'
 	    "FileChooser.enterFileNameLabelMnemonic", new Integer (KeyEvent.VK_N), // 'n'
+	    "FileChooser.ancestorInputMap", 
+	       new UIDefaults.LazyInputMap(new Object[] {
+		     "ESCAPE", "cancelSelection"
+		 }),
 
 
             "ToolTip.border", raisedBevelBorder,
@@ -804,7 +1025,18 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "OptionPane.warningIcon", LookAndFeel.makeIcon(getClass(), 
                                                            "icons/Warn.gif"),
             "OptionPane.questionIcon", LookAndFeel.makeIcon(getClass(), 
-                                                            "icons/Question.gif")
+                                                            "icons/Question.gif"),
+	    "OptionPane.windowBindings", new Object[] {
+		"ESCAPE", "close" },
+
+	    // These bindings are only enabled when there is a default
+	    // button set on the rootpane.
+	    "RootPane.defaultButtonWindowKeyBindings", new Object[] {
+		             "ENTER", "press",
+		    "released ENTER", "release",
+		        "ctrl ENTER", "press",
+	       "ctrl released ENTER", "release"
+	      },
         };
 
         table.putDefaults(defaults);

@@ -1,8 +1,11 @@
 /*
- * @(#)InlineView.java	1.13 01/11/29
+ * @(#)InlineView.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -17,7 +20,7 @@ import javax.swing.text.*;
  * based upon css attributes.
  *
  * @author  Timothy Prinzing
- * @version 1.13 11/29/01
+ * @version 1.19 02/02/00
  */
 public class InlineView extends LabelView {
 
@@ -58,6 +61,51 @@ public class InlineView extends LabelView {
     }
 
     /**
+     * Determines how attractive a break opportunity in 
+     * this view is.  This can be used for determining which
+     * view is the most attractive to call <code>breakView</code>
+     * on in the process of formatting.  A view that represents
+     * text that has whitespace in it might be more attractive
+     * than a view that has no whitespace, for example.  The
+     * higher the weight, the more attractive the break.  A
+     * value equal to or lower than <code>BadBreakWeight</code>
+     * should not be considered for a break.  A value greater
+     * than or equal to <code>ForcedBreakWeight</code> should
+     * be broken.
+     * <p>
+     * This is implemented to provide the default behavior
+     * of returning <code>BadBreakWeight</code> unless the length
+     * is greater than the length of the view in which case the 
+     * entire view represents the fragment.  Unless a view has
+     * been written to support breaking behavior, it is not
+     * attractive to try and break the view.  An example of
+     * a view that does support breaking is <code>LabelView</code>.
+     * An example of a view that uses break weight is 
+     * <code>ParagraphView</code>.
+     *
+     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @param pos the potential location of the start of the 
+     *   broken view >= 0.  This may be useful for calculating tab
+     *   positions.
+     * @param len specifies the relative length from <em>pos</em>
+     *   where a potential break is desired >= 0.
+     * @return the weight, which should be a value between
+     *   ForcedBreakWeight and BadBreakWeight.
+     * @see LabelView
+     * @see ParagraphView
+     * @see javax.swing.text.View#BadBreakWeight
+     * @see javax.swing.text.View#GoodBreakWeight
+     * @see javax.swing.text.View#ExcellentBreakWeight
+     * @see javax.swing.text.View#ForcedBreakWeight
+     */
+    public int getBreakWeight(int axis, float pos, float len) {
+	if (nowrap) {
+	    return BadBreakWeight;
+	}
+	return super.getBreakWeight(axis, pos, len);
+    }
+
+    /**
      * Fetch the span of the longest word in the view.
      */
     float getLongestWordSpan() {
@@ -67,12 +115,13 @@ public class InlineView extends LabelView {
 	    Document doc = getDocument();
 	    int p0 = getStartOffset();
 	    int p1 = getEndOffset();
-	    String s = doc.getText(p0, p1 - p0);
-	    int word0 = p0;
-	    int word1 = p0;
-	    if(s != null && s.length() > 0) {
+	    if (p1 > p0) {
+		Segment segment = new Segment();
+		doc.getText(p0, p1 - p0, segment);
+		int word0 = p0;
+		int word1 = p0;
 		BreakIterator words = BreakIterator.getWordInstance();
-		words.setText(s);
+		words.setText(segment);
 		int start = words.first();
 		for (int end = words.next(); end != BreakIterator.DONE;
 		     start = end, end = words.next()) {
@@ -83,13 +132,12 @@ public class InlineView extends LabelView {
 			word1 = end;
 		    }
 		}
-	    }
-
-	    // calculate the minimum
-	    if ((word1 - word0) > 0) {
-		FontMetrics metrics = getFontMetrics();
-		String word = s.substring(word0, word1);
-		span = metrics.stringWidth(word);
+		// calculate the minimum
+		if ((word1 - word0) > 0) {
+		    FontMetrics metrics = getFontMetrics();
+		    int offs = segment.offset + word0 - segment.getBeginIndex();
+		    span = metrics.charsWidth(segment.array, offs, word1 - word0);
+		}
 	    }
 	} catch (BadLocationException ble) {
 	    // If the text can't be retrieved, it can't influence the size.
@@ -115,6 +163,13 @@ public class InlineView extends LabelView {
 	setSuperscript(s);
 	s = (vAlign != null) ? (vAlign.toString().indexOf("sub") >= 0) : false;
 	setSubscript(s);
+
+	Object whitespace = a.getAttribute(CSS.Attribute.WHITE_SPACE);
+	if ((whitespace != null) && whitespace.equals("nowrap")) {
+	    nowrap = true;
+	} else {
+	    nowrap = false;
+	}
     }
 
 
@@ -123,6 +178,7 @@ public class InlineView extends LabelView {
 	return doc.getStyleSheet();
     }
 
-    AttributeSet attr;
+    private boolean nowrap;
+    private AttributeSet attr;
 
 }

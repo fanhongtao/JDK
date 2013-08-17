@@ -1,8 +1,11 @@
 /*
- * @(#)JCheckBoxMenuItem.java	1.41 01/11/29
+ * @(#)JCheckBoxMenuItem.java	1.48 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -24,17 +27,21 @@ import javax.accessibility.*;
  * A menu item that can be selected or deselected. If selected, the menu
  * item typically appears with a checkmark next to it. If unselected or
  * deselected, the menu item appears without a checkmark. Like a regular
- * menu item, a checkbox menu item can have either text or a graphic
+ * menu item, a check box menu item can have either text or a graphic
  * icon associated with it, or both.
  * <p>
  * Either <code>isSelected</code>/<code>setSelected</code> or 
  * <code>getState</code>/<code>setState</code> can be used
- * to determine/specify the menu item's selection state. (The
- * Swing-standard methods are <code>isSelected</code> and
- * <code>setSelected</code>. These methods work for all menus and buttons.
+ * to determine/specify the menu item's selection state. The
+ * preferred methods are <code>isSelected</code> and
+ * <code>setSelected</code>, which work for all menus and buttons.
  * The <code>getState</code> and <code>setState</code> methods exist for
- * compatibility with other component sets.)
+ * compatibility with other component sets.
  * <p>
+ * For further information and examples of using check box menu items,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
+ * a section in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
  * <a href="doc-files/Key-Index.html#JCheckBoxMenuItem">JCheckBoxMenuItem</a> key assignments.
@@ -48,8 +55,9 @@ import javax.accessibility.*;
  *
  * @beaninfo
  *   attribute: isContainer false
+ * description: A menu item which can be selected or deselected.
  *
- * @version 1.41 11/29/01
+ * @version 1.48 04/06/00
  * @author Georges Saab
  * @author David Karlton
  */
@@ -63,14 +71,14 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
     private static final String uiClassID = "CheckBoxMenuItemUI";
 
     /**
-     * Creates an initially unselected checkboxMenuItem with no set text or icon.
+     * Creates an initially unselected check box menu item with no set text or icon.
      */
     public JCheckBoxMenuItem() {
         this(null, null, false);
     }
 
     /**
-     * Creates an initially unselected checkboxMenuItem with an icon.
+     * Creates an initially unselected check box menu item with an icon.
      *
      * @param icon the icon of the CheckBoxMenuItem.
      */
@@ -79,7 +87,7 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
     }
 
     /**
-     * Creates an initially unselected checkboxMenuItem with text.
+     * Creates an initially unselected check box menu item with text.
      *
      * @param text the text of the CheckBoxMenuItem
      */
@@ -88,7 +96,18 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
     }
     
     /**
-     * Creates an initially unselected checkboxMenuItem with the specified text and icon.
+     * Creates a menu item whose properties are taken from the 
+     * Action supplied.
+     *
+     * @since 1.3
+     */
+    public JCheckBoxMenuItem(Action a) {
+        this();
+	setAction(a);
+    }
+
+    /**
+     * Creates an initially unselected check box menu item with the specified text and icon.
      *
      * @param text the text of the CheckBoxMenuItem
      * @param icon the icon of the CheckBoxMenuItem
@@ -98,21 +117,21 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
     }
 
     /**
-     * Creates a checkboxMenuItem with the specified text and selection state.
+     * Creates a check box menu item with the specified text and selection state.
      *
-     * @param text the text of the CheckBoxMenuItem.
-     * @param b the selected state of the checkboxmenuitem
+     * @param text the text of the check box menu item.
+     * @param b the selected state of the check box menu item
      */
     public JCheckBoxMenuItem(String text, boolean b) {
         this(text, null, b);
     }
 
     /**
-     * Creates a checkboxMenuItem with the specified text, icon, and selection state.
+     * Creates a check box menu item with the specified text, icon, and selection state.
      *
-     * @param text the text of the CheckBoxMenuItem
-     * @param icon the icon of the CheckBoxMenuItem
-     * @param b the selected state of the checkboxmenuitem
+     * @param text the text of the check box menu item
+     * @param icon the icon of the check box menu item
+     * @param b the selected state of the check box menu item
      */
     public JCheckBoxMenuItem(String text, Icon icon, boolean b) {
 	super(text, icon);
@@ -151,7 +170,7 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
      * @param b  a boolean value indicating the item's
      *           selected-state, where true=selected
      * @beaninfo
-     * description: The selection state of the Checkbox menu item
+     * description: The selection state of the check box menu item
      *      hidden: true
      */
     public synchronized void setState(boolean b) {
@@ -160,13 +179,13 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
             
             
     /**
-     * Returns an array (length 1) containing the checkbox menu item 
-     * label or null if the checkbox is not selected.
+     * Returns an array (length 1) containing the check box menu item 
+     * label or null if the check box is not selected.
      *
-     * @return an array containing 1 Object -- the text of the menu item
-     *         -- if the item is selected, otherwise null 
+     * @return an array containing one Object -- the text of the menu item
+     *         -- if the item is selected; otherwise null 
      */
-    public synchronized Object[] getSelectedObjects() {
+    public Object[] getSelectedObjects() {
         if (isSelected() == false)
             return null;
         Object[] selectedObjects = new Object[1];
@@ -211,9 +230,13 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JCheckBoxMenuItem. 
+     * For JCheckBoxMenuItems, the AccessibleContext takes the form of an 
+     * AccessibleJCheckBoxMenuItem. 
+     * A new AccessibleJCheckBoxMenuItem instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJCheckBoxMenuItem that serves as the 
+     *         AccessibleContext of this AccessibleJCheckBoxMenuItem
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -223,7 +246,10 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JCheckBoxMenuItem</code> class.  It provides an implementation 
+     * of the Java Accessibility API appropriate to checkbox menu item 
+     * user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

@@ -1,17 +1,24 @@
 /*
- * @(#)TextComponent.java	1.52 01/11/29
+ * @(#)TextComponent.java	1.62 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.TextComponentPeer;
 import java.awt.event.*;
+import java.util.EventListener;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import sun.awt.SunToolkit;
+import java.text.BreakIterator;
+import javax.swing.text.AttributeSet;
+import javax.accessibility.*;
 
 
 /**
@@ -30,12 +37,12 @@ import sun.awt.SunToolkit;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.52, 11/29/01
+ * @version	1.62, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
-public class TextComponent extends Component {
+public class TextComponent extends Component implements Accessible {
 
     /**
      * The value of the text.
@@ -180,7 +187,7 @@ public class TextComponent extends Component {
      * @return     <code>true</code> if this text component is
      *                  editable; <code>false</code> otherwise.
      * @see        java.awt.TextComponent#setEditable
-     * @since      JDK1ble
+     * @since      JDK1.0
      */
     public boolean isEditable() {
 	return editable;
@@ -196,13 +203,51 @@ public class TextComponent extends Component {
      * @param     b   a flag indicating whether this text component 
      *                      is user editable.
      * @see       java.awt.TextComponent#isEditable
+     * @since      JDK1.0
      */
     public synchronized void setEditable(boolean b) {
+        if (editable == b) {
+            return;
+        }
+
 	editable = b;
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
 	if (peer != null) {
 	    peer.setEditable(b);
 	}
+    }
+
+    /**
+     * Gets the background color of this text component.
+     * @return This text component's background color.
+     * If this text component does not have a background color,
+     * the background color of its parent is returned.
+     * @see setBackground
+     * @since JDK1.0
+     */
+    public Color getBackground() {
+        if (!editable) {
+            return SystemColor.control;
+        }
+
+        return super.getBackground();
+    }
+
+    /**
+     * Sets the background color of this text component.
+     * @param c The color to become this text component's color.
+     *        If this parameter is null then this text component
+     *        will inherit the background color of its parent.
+     * @see #getBackground
+     * @since JDK1.0
+     */
+    public void setBackground(Color c) {
+        if (!editable) {
+            background = c;
+            return;
+        }
+
+        super.setBackground(c);
     }
 
     /**
@@ -335,7 +380,7 @@ public class TextComponent extends Component {
 
     /**
      * Selects all the text in this text component.
-     * @see        java.awt.TextComponent@select
+     * @see        java.awt.TextComponent#select
      */
     public synchronized void selectAll() {
 	String text = getText();
@@ -351,6 +396,17 @@ public class TextComponent extends Component {
     /**
      * Sets the position of the text insertion caret for 
      * this text component.
+     * The caret position is constrained to be at or before
+     * the current selection end.  If the caller 
+     * supplies a value for <code>position</code> that is 
+     * greater than the end of the component's text, 
+     * the caret position is set to the end
+     * of the component's text. 
+     * This happens silently and without failure.  
+     * The caret position also cannot be set to less than zero, 
+     * the beginning of the component's text.  If the caller supplies 
+     * a value for <code>position</code> that is less than zero, 
+     * an IllegalArgumentException is thrown.  
      * 
      * @param        position the position of the text insertion caret.
      * @exception    IllegalArgumentException if the value supplied
@@ -413,7 +469,7 @@ public class TextComponent extends Component {
      *
      * @param         	l     the text listener.
      * @see           	java.awt.event.TextListener
-     * @see           	java.awt.Button#addTextListener
+     * @see           	java.awt.TextComponent#addTextListener
      * @since         	JDK1.1
      */
     public synchronized void removeTextListener(TextListener l) {
@@ -421,6 +477,30 @@ public class TextComponent extends Component {
 	    return;
 	}
 	textListener = AWTEventMulticaster.remove(textListener, l);
+    }
+
+    /**
+     * Return an array of all the listeners that were added to the TextComponent
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the TextListeners for the
+     * given TextComponent <code>t</code>, one would write:
+     * <pre>
+     * TextListener[] tls = (TextListener[])(t.getListeners(TextListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return   all of the listeners of the specified type supported by this text component
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == TextListener.class) { 
+	    l = textListener;
+	} else {
+	    return super.getListeners(listenerType);
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
     }
 
     // REMIND: remove when filtering is done at lower level
@@ -453,7 +533,7 @@ public class TextComponent extends Component {
      * Processes text events occurring on this text component by
      * dispatching them to any registered TextListener objects.
      * NOTE: This method will not be called unless text events
-     * are enabled for this component; this happens when one of the
+     * are enabled for this component. This happens when one of the
      * following occurs:
      * a) A TextListener object is registered via addTextListener()
      * b) Text events are enabled via enableEvents()
@@ -577,4 +657,363 @@ public class TextComponent extends Component {
 	enableInputMethodsIfNecessary();
 	checkSystemClipboardAccess();
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+
+    /**
+     *
+     */
+    int getIndexAtPoint(Point p) {
+	return -1;
+/* To be fully implemented in a future release
+	if (peer == null) {
+	    return -1;
+	}
+	TextComponentPeer peer = (TextComponentPeer)this.peer;
+	return peer.getIndexAtPoint(p.x, p.y);
+*/
+    }
+
+
+    /**
+     *
+     */
+    Rectangle getCharacterBounds(int i) {
+        return null;
+/* To be fully implemented in a future release
+	if (peer == null) {
+	    return null;
+	}
+	TextComponentPeer peer = (TextComponentPeer)this.peer;
+	return peer.getCharacterBounds(i);
+*/
+    }
+
+
+    /**
+     * Gets the AccessibleContext associated with this TextComponent. 
+     * For text components, the AccessibleContext takes the form of an 
+     * AccessibleAWTTextComponent. 
+     * A new AccessibleAWTTextComponent instance is created if necessary.
+     *
+     * @return an AccessibleAWTTextComponent that serves as the 
+     *         AccessibleContext of this TextComponent
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTTextComponent();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>TextComponent</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to text component user-interface 
+     * elements.
+     */
+    protected class AccessibleAWTTextComponent extends AccessibleAWTComponent 
+    implements AccessibleText, TextListener {
+
+        /**
+         * Constructs an AccessibleAWTTextComponent.  Adds a listener to track
+         * caret change.
+         */
+        public AccessibleAWTTextComponent() {
+            TextComponent.this.addTextListener(this);
+        }
+
+        /**
+         * TextListener notification of a text value change.
+         */
+        public void textValueChanged(TextEvent textEvent)  {
+            Integer cpos = new Integer(TextComponent.this.getCaretPosition());
+            firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, cpos);
+        }
+
+        /**
+         * Gets the state set of the TextComponent.
+         * The AccessibleStateSet of an object is composed of a set of 
+         * unique AccessibleStates.  A change in the AccessibleStateSet 
+         * of an object will cause a PropertyChangeEvent to be fired
+         * for the AccessibleContext.ACCESSIBLE_STATE_PROPERTY property.
+         *
+         * @return an instance of AccessibleStateSet containing the
+         * current state set of the object
+         * @see AccessibleStateSet
+         * @see AccessibleState
+         * @see #addPropertyChangeListener
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (TextComponent.this.isEditable()) {
+                states.add(AccessibleState.EDITABLE);
+            }
+            return states;
+        }
+
+
+        /**
+         * Gets the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object (AccessibleRole.TEXT)
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.TEXT;
+        }
+
+        /**
+         * Get the AccessibleText associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleText interface on behalf of itself.
+	 * 
+	 * @return this object 
+         */
+        public AccessibleText getAccessibleText() {
+            return this;
+        }
+
+
+        // --- interface AccessibleText methods ------------------------
+
+        /**
+         * Many of these methods are just convenience methods; they
+         * just call the equivalent on the parent
+         */
+
+        /**
+         * Given a point in local coordinates, return the zero-based index
+         * of the character under that Point.  If the point is invalid,
+         * this method returns -1.
+         *
+         * @param p the Point in local coordinates
+         * @return the zero-based index of the character under Point p.
+         */
+        public int getIndexAtPoint(Point p) {
+	    return TextComponent.this.getIndexAtPoint(p);
+        }
+
+        /**
+         * Determines the bounding box of the character at the given
+         * index into the string.  The bounds are returned in local
+         * coordinates.  If the index is invalid a null rectangle
+         * is returned.
+         *
+         * @param i the index into the String >= 0
+         * @return the screen coordinates of the character's bounding box
+         */
+        public Rectangle getCharacterBounds(int i) {
+	    return TextComponent.this.getCharacterBounds(i);
+        }
+
+        /**
+         * Returns the number of characters (valid indicies)
+         *
+         * @return the number of characters >= 0
+         */
+        public int getCharCount() {
+            return TextComponent.this.getText().length();
+        }
+
+        /**
+         * Returns the zero-based offset of the caret.
+         *
+         * Note: The character to the right of the caret will have the
+         * same index value as the offset (the caret is between
+         * two characters).
+         *
+         * @return the zero-based offset of the caret.
+         */
+        public int getCaretPosition() {
+            return TextComponent.this.getCaretPosition();
+        }
+
+        /**
+         * Returns the AttributeSet for a given character (at a given index).
+         *
+         * @param i the zero-based index into the text
+         * @return the AttributeSet of the character
+         */
+        public AttributeSet getCharacterAttribute(int i) {
+            return null; // No attributes in TextComponent
+        }
+
+        /**
+         * Returns the start offset within the selected text.
+         * If there is no selection, but there is
+         * a caret, the start and end offsets will be the same.
+         * Return 0 if the text is empty, or the caret position
+         * if no selection.
+         *
+         * @return the index into the text of the start of the selection >= 0
+         */
+        public int getSelectionStart() {
+            return TextComponent.this.getSelectionStart();
+        }
+
+        /**
+         * Returns the end offset within the selected text.
+         * If there is no selection, but there is
+         * a caret, the start and end offsets will be the same.
+         * Return 0 if the text is empty, or the caret position
+         * if no selection.
+         *
+         * @return the index into teh text of the end of the selection >= 0
+         */
+        public int getSelectionEnd() {
+            return TextComponent.this.getSelectionEnd();
+        }
+
+        /**
+         * Returns the portion of the text that is selected.
+         *
+         * @return the text, null if no selection
+         */
+        public String getSelectedText() {
+            return TextComponent.this.getSelectedText();
+        }
+
+        /**
+         * Returns the String at a given index. 
+         *
+         * @param part the AccessibleText.CHARACTER, AccessibleText.WORD,
+         * or AccessibleText.SENTENCE to retrieve
+         * @param index an index within the text >= 0
+         * @return the letter, word, or sentence,
+         *   null for an invalid index or part
+         */
+        public String getAtIndex(int part, int index) {
+            if (index < 0 || index >= TextComponent.this.getText().length()) {
+                return null;
+            }
+            switch (part) {
+            case AccessibleText.CHARACTER:
+                return TextComponent.this.getText().substring(index, index+1);
+            case AccessibleText.WORD:  {
+                    String s = TextComponent.this.getText();
+                    BreakIterator words = BreakIterator.getWordInstance();
+                    words.setText(s);
+                    int end = words.following(index);
+                    return s.substring(words.previous(), end);
+                }
+            case AccessibleText.SENTENCE:  {
+                    String s = TextComponent.this.getText();
+                    BreakIterator sentence = BreakIterator.getSentenceInstance();
+                    sentence.setText(s);
+                    int end = sentence.following(index);
+                    return s.substring(sentence.previous(), end);
+                }
+            default:
+                return null;
+            }
+        }
+
+        /**
+         * Returns the String after a given index.
+         *
+         * @param part the AccessibleText.CHARACTER, AccessibleText.WORD,
+         * or AccessibleText.SENTENCE to retrieve
+         * @param index an index within the text >= 0
+         * @return the letter, word, or sentence, null for an invalid
+         *  index or part
+         */
+        public String getAfterIndex(int part, int index) {
+            if (index < 0 || index >= TextComponent.this.getText().length()) {
+                return null;
+            }
+            switch (part) {
+            case AccessibleText.CHARACTER:
+                if (index+1 >= TextComponent.this.getText().length()) {
+		   return null;
+		}
+                return TextComponent.this.getText().substring(index+1, index+2);
+            case AccessibleText.WORD:  {
+                    String s = TextComponent.this.getText();
+                    BreakIterator words = BreakIterator.getWordInstance();
+                    words.setText(s);
+                    int start = words.following(index);
+                    if (start == BreakIterator.DONE || start >= s.length()) {
+                        return null;
+                    }
+                    int end = words.following(start);
+                    if (end == BreakIterator.DONE || end >= s.length()) {
+                        return null;
+                    }
+                    return s.substring(start, end);
+                }
+            case AccessibleText.SENTENCE:  {
+                    String s = TextComponent.this.getText();
+                    BreakIterator sentence = BreakIterator.getSentenceInstance();
+                    sentence.setText(s);
+                    int start = sentence.following(index);
+                    if (start == BreakIterator.DONE || start >= s.length()) {
+                        return null;
+                    }
+                    int end = sentence.following(start);
+                    if (end == BreakIterator.DONE || end >= s.length()) {
+                        return null;
+                    }
+                    return s.substring(start, end);
+                }
+            default:
+                return null;
+            }
+        }
+
+
+        /**
+         * Returns the String before a given index.
+         *
+         * @param part the AccessibleText.CHARACTER, AccessibleText.WORD,
+         *   or AccessibleText.SENTENCE to retrieve
+         * @param index an index within the text >= 0
+         * @return the letter, word, or sentence, null for an invalid index
+         *  or part
+         */
+        public String getBeforeIndex(int part, int index) {
+            if (index < 0 || index > TextComponent.this.getText().length()-1) {
+                return null;
+            }
+            switch (part) {
+            case AccessibleText.CHARACTER:
+		if (index == 0) {
+		    return null;
+		}
+                return TextComponent.this.getText().substring(index-1, index);
+            case AccessibleText.WORD:  {
+                    String s = TextComponent.this.getText();
+                    BreakIterator words = BreakIterator.getWordInstance();
+                    words.setText(s);
+                    int end = words.following(index);
+                    end = words.previous();
+                    int start = words.previous();
+                    if (start == BreakIterator.DONE) {
+                        return null;
+                    }
+                    return s.substring(start, end);
+                }
+            case AccessibleText.SENTENCE:  {
+                    String s = TextComponent.this.getText();
+                    BreakIterator sentence = BreakIterator.getSentenceInstance();
+                    sentence.setText(s);
+                    int end = sentence.following(index);
+                    end = sentence.previous();
+                    int start = sentence.previous();
+                    if (start == BreakIterator.DONE) {
+                        return null;
+                    }
+                    return s.substring(start, end);
+                }
+            default:
+                return null;
+            }
+        }
+    }  // end of AccessibleAWTTextComponent
 }

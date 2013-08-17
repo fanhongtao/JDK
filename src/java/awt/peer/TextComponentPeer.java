@@ -1,10 +1,16 @@
 /*
- * @(#)TextComponentPeer.java	1.9 01/11/29
+ * @(#)TextComponentPeer.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt.peer;
+
+import java.awt.Point;
+import java.awt.Rectangle;
 
 /**
  * The peer interfaces are intended only for use in porting
@@ -22,4 +28,7 @@ public interface TextComponentPeer extends ComponentPeer {
     void select(int selStart, int selEnd);
     void setCaretPosition(int pos);
     int getCaretPosition();
+    int getIndexAtPoint(int x, int y);
+    Rectangle getCharacterBounds(int i);
+    long filterEvents(long mask);
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)RGBImageFilter.java	1.15 01/11/29
+ * @(#)RGBImageFilter.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -44,11 +47,23 @@ import java.awt.image.ColorModel;
  * @see ImageFilter
  * @see ColorModel#getRGBdefault
  *
- * @version	1.15 11/29/01
+ * @version	1.19 02/02/00
  * @author 	Jim Graham
  */
 public abstract class RGBImageFilter extends ImageFilter {
+
+    /**
+     * The <code>ColorModel</code> to be replaced by
+     * <code>newmodel</code> when the user calls 
+     * {@link #substituteColorModel(ColorModel, ColorModel) substituteColorModel}.
+     */
     protected ColorModel origmodel;
+
+    /**
+     * The <code>ColorModel</code> with which to
+     * replace <code>origmodel</code> when the user calls 
+     * <code>substituteColorModel</code>.
+     */
     protected ColorModel newmodel;
 
     /**
@@ -71,7 +86,13 @@ public abstract class RGBImageFilter extends ImageFilter {
      * that original ColorModel object appears in the setPixels methods. Otherwise
      * overrides the default ColorModel used by the ImageProducer and
      * specifies the default RGB ColorModel instead.
-
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ImageConsumer
      * @see ColorModel#getRGBdefault
      */
@@ -164,6 +185,13 @@ public abstract class RGBImageFilter extends ImageFilter {
      * converted ColorModel. Otherwise converts the buffer of byte
      * pixels to the default RGB ColorModel and passes the converted
      * buffer to the filterRGBPixels method to be converted one by one.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ColorModel#getRGBdefault
      * @see #filterRGBPixels
      */
@@ -194,6 +222,13 @@ public abstract class RGBImageFilter extends ImageFilter {
      * buffer to the filterRGBPixels method to be converted one by one.
      * Converts a buffer of integer pixels to the default RGB ColorModel
      * and passes the converted buffer to the filterRGBPixels method.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ColorModel#getRGBdefault
      * @see #filterRGBPixels
      */

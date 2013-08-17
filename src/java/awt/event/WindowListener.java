@@ -1,8 +1,11 @@
 /*
- * @(#)WindowListener.java	1.12 01/11/29
+ * @(#)WindowListener.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -16,19 +19,21 @@ import java.util.EventListener;
  * contains) or extends the abstract <code>WindowAdapter</code> class
  * (overriding only the methods of interest).
  * The listener object created from that class is then registered with a
- * Window using the winodw's <code>addWindowListener</code> 
+ * Window using the window's <code>addWindowListener</code> 
  * method. When the window's status changes by virtue of being opened,
  * closed, activated or deactivated, iconified or deiconified, 
- * the relevant method in the listener 
- * object s invoked, and the <code>WindowEvent</code> is passed to it.
+ * the relevant method in the listener object is invoked, and the 
+ * <code>WindowEvent</code> is passed to it.
+ *
+ * @author Carl Quinn
+ * @version 1.16, 02/02/00
  *
  * @see WindowAdapter
  * @see WindowEvent
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/windowlistener.html">Tutorial: Writing a Window Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.12 11/29/01
- * @author Carl Quinn
+ * @since 1.1
  */
 public interface WindowListener extends EventListener {
     /**
@@ -55,7 +60,7 @@ public interface WindowListener extends EventListener {
      * minimized state. For many platforms, a minimized window 
      * is displayed as the icon specified in the window's 
      * iconImage property.
-     * @see Frame#setIconImage
+     * @see java.awt.Frame#setIconImage
      */
     public void windowIconified(WindowEvent e);
 

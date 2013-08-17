@@ -1,8 +1,11 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.29 01/11/29
+ * @(#)BasicInternalFrameTitlePane.java	1.33 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -10,6 +13,7 @@ package javax.swing.plaf.basic;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.plaf.*;
 import javax.swing.border.*;
 import javax.swing.event.InternalFrameEvent;
 import java.util.EventListener;
@@ -28,7 +32,7 @@ import java.beans.PropertyVetoException;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.29 11/29/01
+ * @version 1.33 02/02/00
  * @author David Kloba
  * @author Steve Wilson
  */
@@ -75,10 +79,19 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void installTitlePane() {
 	installDefaults();
-	installListeners();
+        
+        // Installing listeners must be done in addNotify because they are
+        // uninstalled in removeNotify. Internal frames (and their title panes)
+        // get removed and re-added to their parent every time they are
+        // selected,  although this is an implementation detail that may
+        // eventually change.  Installing the defaults should not happen in
+        // addNotify however because changes in the default LAF would be picked
+        // up every time a frame was selected.
+
 
 	createActions();
 	enableActions();
+	createActionMap();
 
 	setLayout(createLayout());
 
@@ -105,9 +118,22 @@ public class BasicInternalFrameTitlePane extends JComponent
 	sizeAction = new SizeAction();
     }
 
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("showSystemMenu", new ShowSystemMenuAction(true));
+	map.put("hideSystemMenu", new ShowSystemMenuAction(false));
+	return map;
+    }
+
     protected void installListeners() {
-	propertyChangeListener = createPropertyChangeListener();
+        if( propertyChangeListener == null ) {
+            propertyChangeListener = createPropertyChangeListener();
+        }
 	frame.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    protected void uninstallListeners() {
+	frame.removePropertyChangeListener(propertyChangeListener);
     }
 
     protected void installDefaults() {
@@ -129,6 +155,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     public void addNotify() {
 	super.addNotify();
+	installListeners();
 	addSystemMenuItems(windowMenu);
 	enableActions();
     }
@@ -139,6 +166,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 	    windowMenu.removeAll();
 	}
 	uninstallDefaults();
+        uninstallListeners();
     }
 
     protected void createButtons() {
@@ -232,10 +260,17 @@ public class BasicInternalFrameTitlePane extends JComponent
             int fmHeight = fm.getHeight() - fm.getLeading();
             int baseline = (18 - fmHeight) / 2 + 
                 fm.getAscent() + fm.getLeading();
+
+            int titleX;
+            String title = frame.getTitle();
+            if( BasicGraphicsUtils.isLeftToRight(frame) ) {
+                titleX = menuBar.getX() + menuBar.getWidth() + 2;
+            } else {
+                titleX = menuBar.getX() - 2
+                         - SwingUtilities.computeStringWidth(fm,title);
+            }
             
-	    g.drawString(frame.getTitle(), 
-                         menuBar.getX() + menuBar.getWidth() + 2, 
-                         baseline);
+	    g.drawString(title, titleX, baseline);
 	    g.setFont(f);
 	}
     }
@@ -297,12 +332,31 @@ public class BasicInternalFrameTitlePane extends JComponent
 	    if(JInternalFrame.IS_ICON_PROPERTY.equals(prop) ||
 	       JInternalFrame.IS_MAXIMUM_PROPERTY.equals(prop)) {
 		setButtonIcons();
-
+		enableActions();
 		return;
-	    } 
-	    enableActions();
-	}
+	    }
 
+            if( prop.equals("closable") ) {
+                if( (Boolean)evt.getNewValue() == Boolean.TRUE )
+                    add(closeButton);
+                else
+                    remove(closeButton);
+            } else if( prop.equals("maximizable") ) {
+                if( (Boolean)evt.getNewValue() == Boolean.TRUE )
+                    add(maxButton);
+                else
+                    remove(maxButton);
+            } else if( prop.equals("iconifiable") ) {
+                if( (Boolean)evt.getNewValue() == Boolean.TRUE )
+                    add(iconButton);
+                else
+                    remove(iconButton);
+            }
+	    enableActions();
+            
+            revalidate();
+            repaint();
+	}
 
     }  // end PropertyHandler class
 
@@ -323,29 +377,29 @@ public class BasicInternalFrameTitlePane extends JComponent
 	}
     
         public void layoutContainer(Container c) {
+            boolean leftToRight = BasicGraphicsUtils.isLeftToRight(frame);
+            
 	    int w = getWidth();
-	    int x = w - 16 - 2;
-	    menuBar.setBounds(2, 1, 16, 16);
+            int x;
 
+            x = (leftToRight) ? 2 : w - 16 - 2;
+            menuBar.setBounds(x, 1, 16, 16);
+
+            x = (leftToRight) ? w - 16 - 2 : 2;
+            
 	    if(frame.isClosable()) {
-	        closeButton.setBounds(x, 2, 16, 14);
-		x -= 16;
-	    } else if(closeButton.getParent() != null) {
-	        closeButton.getParent().remove(closeButton);
-	    }
+                closeButton.setBounds(x, 2, 16, 14);
+                x += (leftToRight) ? -(16 + 2) : 16 + 2;
+	    } 
             
 	    if(frame.isMaximizable()) {
-	        maxButton.setBounds(x - 2, 2, 16, 14);
-		x -= 18;
-	    } else if(maxButton.getParent() != null) {
-	        maxButton.getParent().remove(maxButton);
+	        maxButton.setBounds(x, 2, 16, 14);
+		x += (leftToRight) ? -(16 + 2) : 16 + 2;
 	    }
         
 	    if(frame.isIconifiable()) {
 	        iconButton.setBounds(x, 2, 16, 14);
-	    } else if(iconButton.getParent() != null) {
-	        iconButton.getParent().remove(iconButton);
-	    }
+	    } 
 	}
     } // end TitlePaneLayout
 
@@ -361,9 +415,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 
         public void actionPerformed(ActionEvent e) {
 	    if(frame.isClosable()) {
-	      try {
-		frame.setClosed(true);
-	      } catch (PropertyVetoException e0) { }
+		frame.doDefaultCloseAction();
 	    }
 	}      
     } // end CloseAction
@@ -385,13 +437,10 @@ public class BasicInternalFrameTitlePane extends JComponent
 		} else {
 		    try { 
 		        frame.setMaximum(false); 
-			if (frame.isIconifiable() && frame.isIcon()) {
-			    frame.setIcon(false); 
-			}
 		    } catch (PropertyVetoException e6) { }
 		}
 	    }
-	}      
+	}
     } // MaximizeAction
 
     /**
@@ -406,18 +455,13 @@ public class BasicInternalFrameTitlePane extends JComponent
 
         public void actionPerformed(ActionEvent e) {
 	    if(frame.isIconifiable()) {
-	        if(!frame.isIcon())
-		    try { frame.setIcon(true); } catch (PropertyVetoException e1) { }
-		else {
-		    try { 
-		        frame.setIcon(false); 
-			if (frame.isMaximizable() && frame.isMaximum()) {
-			    frame.setMaximum(false);
-			}
-		    } catch (PropertyVetoException e1) { }
-		}
+	      if(!frame.isIcon()) {
+		try { frame.setIcon(true); } catch (PropertyVetoException e1) { }
+	      } else{
+		try { frame.setIcon(false); } catch (PropertyVetoException e1) { }
+	      }
 	    }
-	}      
+	}
     } // end IconifyAction
 
     /**
@@ -435,7 +479,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 	        try { frame.setMaximum(false); } catch (PropertyVetoException e4) { }
 	    } 
 	    else if ( frame.isIconifiable() && frame.isIcon() ) {
-		    try { frame.setIcon(false); } catch (PropertyVetoException e4) { }
+	      try { frame.setIcon(false); } catch (PropertyVetoException e4) { }
 	    }
 	}      
     } // end RestoreAction
@@ -454,6 +498,25 @@ public class BasicInternalFrameTitlePane extends JComponent
 	    // This action is currently undefined
 	}      
     } // end MoveAction
+
+    /*
+     * Handles showing and hiding the system menu.
+     */
+    private class ShowSystemMenuAction extends AbstractAction {
+	private boolean show;	// whether to show the menu
+	
+	public ShowSystemMenuAction(boolean show) {
+	    this.show = show;
+	}
+
+        public void actionPerformed(ActionEvent e) {
+	    if (show) {
+		windowMenu.doClick();
+	    } else {
+		windowMenu.setVisible(false);
+	    }
+	}      
+    }
 
     /**
      * This inner class is marked &quot;public&quot; due to a compiler bug.

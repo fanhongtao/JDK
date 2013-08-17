@@ -1,8 +1,11 @@
 /*
- * @(#)BevelBorder.java	1.12 01/11/29
+ * @(#)BevelBorder.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -23,7 +26,7 @@ import java.awt.Component;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.12 11/29/01
+ * @version 1.14 02/02/00
  * @author David Kloba
  */
 public class BevelBorder extends AbstractBorder
@@ -64,18 +67,19 @@ public class BevelBorder extends AbstractBorder
      * Creates a bevel border with the specified type, highlight
      * shadow colors.
      * @param bevelType the type of bevel for the border
-     * @param highlightOuter the color to use for the bevel outer highlight
-     * @param highlightInner the color to use for the bevel inner highlight
-     * @param shadowOuter the color to use for the bevel outer shadow
-     * @param shadowInner the color to use for the bevel inner shadow
+     * @param highlightOuterColor the color to use for the bevel outer highlight
+     * @param highlightInnerColor the color to use for the bevel inner highlight
+     * @param shadowOuterColor the color to use for the bevel outer shadow
+     * @param shadowInnerColor the color to use for the bevel inner shadow
      */
-    public BevelBorder(int bevelType, Color highlightOuter, Color highlightInner,
-                        Color shadowOuter, Color shadowInner) {
+    public BevelBorder(int bevelType, Color highlightOuterColor, 
+                       Color highlightInnerColor, Color shadowOuterColor, 
+                       Color shadowInnerColor) {
         this(bevelType);
-        this.highlightOuter = highlightOuter;
-        this.highlightInner = highlightInner;
-        this.shadowOuter = shadowOuter;
-        this.shadowInner = shadowInner;
+        this.highlightOuter = highlightOuterColor;
+        this.highlightInner = highlightInnerColor;
+        this.shadowOuter = shadowOuterColor;
+        this.shadowInner = shadowInnerColor;
     }
 
     /**
@@ -116,35 +120,91 @@ public class BevelBorder extends AbstractBorder
     }
 
     /**
-     * Returns the outer highlight color of the bevel border.
+     * Returns the outer highlight color of the bevel border
+     * when rendered on the specified component.  If no highlight
+     * color was specified at instantiation, the highlight color
+     * is derived from the specified component's background color.
+     * @param c the component for which the highlight may be derived
      */
     public Color getHighlightOuterColor(Component c)   {
-        return highlightOuter != null? highlightOuter : 
+        Color highlight = getHighlightOuterColor();
+        return highlight != null? highlight : 
                                        c.getBackground().brighter().brighter();
     }
 
     /**
-     * Returns the inner highlight color of the bevel border.
+     * Returns the inner highlight color of the bevel border
+     * when rendered on the specified component.  If no highlight
+     * color was specified at instantiation, the highlight color
+     * is derived from the specified component's background color.
+     * @param c the component for which the highlight may be derived
      */
     public Color getHighlightInnerColor(Component c)   {
-        return highlightInner != null? highlightInner :
+        Color highlight = getHighlightInnerColor();
+        return highlight != null? highlight :
                                        c.getBackground().brighter();
     }
 
     /**
-     * Returns the inner shadow color of the bevel border.
+     * Returns the inner shadow color of the bevel border
+     * when rendered on the specified component.  If no shadow
+     * color was specified at instantiation, the shadow color
+     * is derived from the specified component's background color.
+     * @param c the component for which the shadow may be derived
      */
     public Color getShadowInnerColor(Component c)      {
-        return shadowInner != null? shadowInner :
+        Color shadow = getShadowInnerColor();
+        return shadow != null? shadow :
                                     c.getBackground().darker();
     }
 
     /**
-     * Returns the outer shadow color of the bevel border.
+     * Returns the outer shadow color of the bevel border
+     * when rendered on the specified component.  If no shadow
+     * color was specified at instantiation, the shadow color
+     * is derived from the specified component's background color.
+     * @param c the component for which the shadow may be derived
      */
     public Color getShadowOuterColor(Component c)      {
-        return shadowOuter != null? shadowOuter :
+        Color shadow = getShadowOuterColor();
+        return shadow != null? shadow :
                                     c.getBackground().darker().darker();
+    }
+
+    /**
+     * Returns the outer highlight color of the bevel border.
+     * Will return null if no highlight color was specified
+     * at instantiation.
+     */
+    public Color getHighlightOuterColor()   {
+        return highlightOuter;
+    }
+
+    /**
+     * Returns the inner highlight color of the bevel border.
+     * Will return null if no highlight color was specified
+     * at instantiation.
+     */
+    public Color getHighlightInnerColor()   {
+        return highlightInner;
+    }
+
+    /**
+     * Returns the inner shadow color of the bevel border.
+     * Will return null if no shadow color was specified
+     * at instantiation.
+     */
+    public Color getShadowInnerColor()      {
+        return shadowInner;
+    }
+
+    /**
+     * Returns the outer shadow color of the bevel border.
+     * Will return null if no shadow color was specified
+     * at instantiation.
+     */
+    public Color getShadowOuterColor()      {
+        return shadowOuter;
     }
 
     /**

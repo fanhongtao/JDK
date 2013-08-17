@@ -1,14 +1,19 @@
 /*
- * @(#)Thread.java	1.99 02/04/18
+ * @(#)Thread.java	1.106 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
 
 import java.security.AccessController;
 import java.security.AccessControlContext;
+import java.util.Map;
+import java.util.Collections;
 
 /**
  * A <i>thread</i> is a thread of execution in a program. The Java 
@@ -95,7 +100,7 @@ import java.security.AccessControlContext;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.99, 04/18/02
+ * @version 1.106, 02/02/00
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -146,14 +151,14 @@ class Thread implements Runnable {
     private static RuntimePermission stopThreadPermission;
 
     /* ThreadLocal values pertaining to this thread. This map is maintained
-     * by the ThreadLocal class. */
-    ThreadLocal.ThreadLocalMap threadLocals = null;
+     * by the InheritableThreadLocal class. */
+    Map threadLocals;
 
-    /*
-     * InheritableThreadLocal values pertaining to this thread. This map is
-     * maintained by the InheritableThreadLocal class.
-     */
-    ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;
+    /* InheritableThreadLocal values pertaining to this thread. This map is
+     * maintained by the InheritableThreadLocal class.  We call
+     * InheritableThreadLocal.bequeath at thread creation time to pass our
+     * values on to our child. */ 
+    Map inheritableThreadLocals;
 
     /**
      * The minimum priority that a thread can have. 
@@ -266,11 +271,11 @@ class Thread implements Runnable {
 	this.contextClassLoader = parent.contextClassLoader;
 	this.inheritedAccessControlContext = AccessController.getContext();
 	this.target = target;
+        // DO NOT MOVE THESE TWO LINES TO DECLARATIONS.
+        this.threadLocals = Collections.EMPTY_MAP;
+        this.inheritableThreadLocals = Collections.EMPTY_MAP;
 	setPriority(priority);
-        if (parent.inheritableThreadLocals != null)
-          this.inheritableThreadLocals =
-            ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);
-
+        InheritableThreadLocal.bequeath(parent, this);
 	g.add(this);
     }
 
@@ -557,7 +562,7 @@ class Thread implements Runnable {
      *       for example), the <code>interrupt</code> method should be used to
      *       interrupt the wait. 
      *       For more information, see 
-     *       <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *       <a href="{@docRoot}/../guide/misc/threadPrimitiveDeprecation.html">Why 
      *       are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final void stop() {
@@ -622,7 +627,7 @@ class Thread implements Runnable {
      *        exceptions that the thread could not possibly throw, were it
      *        not for this method).
      *        For more information, see 
-     *        <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *        <a href="{@docRoot}/../guide/misc/threadPrimitiveDeprecation.html">Why 
      *        are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final synchronized void stop(Throwable obj) {
@@ -734,7 +739,7 @@ class Thread implements Runnable {
      *   monitor prior to calling <code>resume</code>, deadlock results.  Such
      *   deadlocks typically manifest themselves as "frozen" processes.
      *   For more information, see 
-     *   <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *   <a href="{@docRoot}/../guide/misc/threadPrimitiveDeprecation.html">Why 
      *   are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final void suspend() {
@@ -759,7 +764,7 @@ class Thread implements Runnable {
      * @deprecated This method exists solely for use with {@link #suspend},
      *     which has been deprecated because it is deadlock-prone.
      *     For more information, see 
-     *     <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *     <a href="{@docRoot}/../guide/misc/threadPrimitiveDeprecation.html">Why 
      *     are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final void resume() {
@@ -778,11 +783,13 @@ class Thread implements Runnable {
      * the specified <code>newPriority</code> and the maximum permitted 
      * priority of the thread's thread group. 
      *
+     * @param newPriority priority to set this thread to
      * @exception  IllegalArgumentException  If the priority is not in the
      *               range <code>MIN_PRIORITY</code> to
      *               <code>MAX_PRIORITY</code>.
      * @exception  SecurityException  if the current thread cannot modify
      *               this thread.
+     * @see        #getPriority
      * @see        java.lang.Thread#checkAccess()
      * @see        java.lang.Thread#getPriority()
      * @see        java.lang.Thread#getThreadGroup()
@@ -805,6 +812,7 @@ class Thread implements Runnable {
      * Returns this thread's priority.
      *
      * @return  this thread's name.
+     * @see     #setPriority
      * @see     java.lang.Thread#setPriority(int)
      */
     public final int getPriority() {
@@ -822,6 +830,7 @@ class Thread implements Runnable {
      * @param      name   the new name for this thread.
      * @exception  SecurityException  if the current thread cannot modify this
      *               thread.
+     * @see        #getName
      * @see        java.lang.Thread#checkAccess()
      * @see        java.lang.Thread#getName()
      */
@@ -834,6 +843,7 @@ class Thread implements Runnable {
      * Returns this thread's name.
      *
      * @return  this thread's name.
+     * @see     #setName
      * @see     java.lang.Thread#setName(java.lang.String)
      */
     public final String getName() {
@@ -873,8 +883,8 @@ class Thread implements Runnable {
      * with the thread group as its argument. This may result 
      * in throwing a <code>SecurityException</code>. 
      *
-     * @return  the number of threads put into the array.
-     *
+     * @param tarray an array of Thread objects to copy to
+     * @return  the number of threads put into the array
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkAccess</code> method doesn't allow the operation.
      * @see     java.lang.ThreadGroup#enumerate(java.lang.Thread[])
@@ -1031,7 +1041,7 @@ class Thread implements Runnable {
      * throwing a <code>SecurityException</code>. 
      * <p>
      * Note: This method was mistakenly non-final in JDK 1.1.
-     * It has been made final in JDK 1.2.
+     * It has been made final in the Java 2 Platform.
      *
      * @exception  SecurityException  if the current thread is not allowed to
      *               access this thread.
@@ -1083,11 +1093,11 @@ class Thread implements Runnable {
      *        if a security manager exists and its 
      *        <code>checkPermission</code> method doesn't allow 
      *        getting the context ClassLoader.
-     * 
+     * @see #setContextClassLoader
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
      * 
-     * @since JDK1.2
+     * @since 1.2
      */
     public ClassLoader getContextClassLoader() {
 	if (contextClassLoader == null)
@@ -1118,11 +1128,11 @@ class Thread implements Runnable {
      * 
      * @exception  SecurityException  if the current thread cannot set the 
      * context ClassLoader.
-     * 
+     * @see #getContextClassLoader
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
      * 
-     * @since JDK1.2 
+     * @since 1.2 
      */
     public void setContextClassLoader(ClassLoader cl) {
 	SecurityManager sm = System.getSecurityManager();

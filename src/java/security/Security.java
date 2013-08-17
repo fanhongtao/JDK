@@ -1,8 +1,11 @@
 /*
- * @(#)Security.java	1.90 01/11/29
+ * @(#)Security.java	1.100 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -10,13 +13,14 @@ package java.security;
 import java.lang.reflect.*;
 import java.util.*;
 import java.io.*;
+import java.security.InvalidParameterException;
 
 /**
  * <p>This class centralizes all security properties and common security
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.90, 01/11/29
+ * @version 1.100, 04/06/00
  */
 
 public final class Security {
@@ -42,6 +46,9 @@ public final class Security {
     // Where we cache engine provider properties
     private static Hashtable engineCache;
 
+    // Where we cache search results
+    private static Hashtable searchResultsCache;
+
     // An element in the cache
     private static class ProviderProperty {
 	String className;
@@ -66,6 +73,7 @@ public final class Security {
 	providers = new Vector();
 	providerPropertiesCache = new Hashtable();
 	engineCache = new Hashtable();
+	searchResultsCache = new Hashtable(5);
 
 	File propFile = securityPropFile("java.security");
 	if (!propFile.exists()) {
@@ -122,7 +130,7 @@ public final class Security {
 	    if (name == null) {
 		break;
 	    } else {
-		Provider prov = Provider.loadProvider(name);
+		Provider prov = Provider.loadProvider(name.trim());
 		if (prov != null) {
 		    /* This must manipulate the datastructure
 		       directly, because going through addProviders
@@ -160,7 +168,7 @@ public final class Security {
 			    (Provider)AccessController.doPrivileged(
    				            new PrivilegedAction() {
 				public Object run() { 
-				    return Provider.loadProvider(name);
+				    return Provider.loadProvider(name.trim());
 				}
 			    });
 			if (prov != null) {
@@ -171,6 +179,7 @@ public final class Security {
 		// empty provider-property cache
 		providerPropertiesCache.clear();
 		engineCache.clear();
+		searchResultsCache.clear();
 	    }
 	}
     }
@@ -283,7 +292,7 @@ public final class Security {
      * Provider in order to determine how to parse algorithm-specific
      * parameters. Use the new provider-based and algorithm-independent
      * <code>AlgorithmParameters</code> and <code>KeyFactory</code> engine
-     * classes (introduced in JDK 1.2) instead.
+     * classes (introduced in the Java 2 platform) instead.
      */
     public static String getAlgorithmProperty(String algName,
 					      String propName) {
@@ -334,7 +343,8 @@ public final class Security {
 	    }
 	}
 
-	throw new NoSuchAlgorithmException(engineType + " not available");
+	throw new NoSuchAlgorithmException(algName.toUpperCase() + " " +
+					   engineType + " not available");
     }
 
 
@@ -452,7 +462,8 @@ public final class Security {
 	// empty provider-property cache
 	providerPropertiesCache.clear();
 	engineCache.clear();
-	
+	searchResultsCache.clear();
+		
 	return position;
     }
 
@@ -533,6 +544,7 @@ public final class Security {
 	    // empty provider-property cache
 	    providerPropertiesCache.clear();
 	    engineCache.clear();
+	    searchResultsCache.clear();
 	}
     }
     
@@ -546,6 +558,7 @@ public final class Security {
 	reloadProviders();
 	Provider[] result = new Provider[providers.size()];
 	providers.copyInto(result);
+	
 	return result;
     }
 
@@ -571,6 +584,184 @@ public final class Security {
 	    }
 	}
 	return null;
+    }
+
+    /**
+    * Returns an array containing all installed providers that satisfy the
+    * specified selection criterion, or null if no such providers have been
+    * installed. The returned providers are ordered
+    * according to their <a href=
+    * "#insertProviderAt(java.security.Provider, int)">preference order</a>. 
+    * 
+    * <p> A cryptographic service is always associated with a particular
+    * algorithm or type. For example, a digital signature service is
+    * always associated with a particular algorithm (e.g., DSA),
+    * and a CertificateFactory service is always associated with
+    * a particular certificate type (e.g., X.509).
+    *
+    * <p>The selection criterion must be specified in one of the following two formats:
+    * <ul>
+    * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type></i> <p> The
+    * cryptographic service name must not contain any dots.
+    * <p> A 
+    * provider satisfies the specified selection criterion iff the provider implements the 
+    * specified algorithm or type for the specified cryptographic service.
+    * <p> For example, "CertificateFactory.X.509" 
+    * would be satisfied by any provider that supplied
+    * a CertificateFactory implementation for X.509 certificates.
+    * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type> &lt;attribute_name>:&lt attribute_value></i>
+    * <p> The cryptographic service name must not contain any dots. There
+     * must be one or more space charaters between the the <i>&lt;algorithm_or_type></i>
+     * and the <i>&lt;attribute_name></i>.
+    * <p> A provider satisfies this selection criterion iff the
+    * provider implements the specified algorithm or type for the specified 
+    * cryptographic service and its implementation meets the
+    * constraint expressed by the specified attribute name/value pair.
+    * <p> For example, "Signature.SHA1withDSA KeySize:1024" would be
+    * satisfied by any provider that implemented
+    * the SHA1withDSA signature algorithm with a keysize of 1024 (or larger).
+    *  
+    * </ul>
+    *
+    * <p> See Appendix A in the <a href=
+    * "../../../guide/security/CryptoSpec.html#AppA">
+    * Java Cryptogaphy Architecture API Specification &amp; Reference </a>
+    * for information about standard cryptographic service names, standard
+    * algorithm names and standard attribute names.
+    *
+    * @param filter the criterion for selecting
+    * providers. The filter is case-insensitive.
+    *
+    * @return all the installed providers that satisfy the selection
+    * criterion, or null if no such providers have been installed.
+    *
+    * @throws InvalidParameterException
+    *         if the filter is not in the required format
+    *
+    * @ see #getProviders(java.util.Map)
+    */
+    public static Provider[] getProviders(String filter) {
+	String key = null;
+	String value = null;
+	int index = filter.indexOf(':');
+
+	if (index == -1) {
+	    key = new String(filter);
+	    value = "";
+	} else {
+	    key = filter.substring(0, index);
+	    value = filter.substring(index + 1);
+	}
+
+	Hashtable hashtableFilter = new Hashtable(1);
+	hashtableFilter.put(key, value);
+
+	return (getProviders(hashtableFilter));
+    }
+
+    /**
+     * Returns an array containing all installed providers that satisfy the specified
+     * selection criteria, or null if no such providers have been installed. 
+     * The returned providers are ordered
+     * according to their <a href=
+     * "#insertProviderAt(java.security.Provider, int)">preference order</a>. 
+     * 
+     * <p>The selection criteria are represented by a map.
+     * Each map entry represents a selection criterion. 
+     * A provider is selected iff it satisfies all selection
+     * criteria. The key for any entry in such a map must be in one of the
+     * following two formats:
+     * <ul>
+     * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type></i>
+     * <p> The cryptographic service name must not contain any dots.
+     * <p> The value associated with the key must be an empty string.
+     * <p> A provider
+     * satisfies this selection criterion iff the provider implements the 
+     * specified algorithm or type for the specified cryptographic service.
+     * <li>  <i>&lt;crypto_service>.&lt;algorithm_or_type> &lt;attribute_name></i>
+     * <p> The cryptographic service name must not contain any dots. There
+     * must be one or more space charaters between the <i>&lt;algorithm_or_type></i>
+     * and the <i>&lt;attribute_name></i>.
+     * <p> The value associated with the key must be a non-empty string.
+     * A provider satisfies this selection criterion iff the
+     * provider implements the specified algorithm or type for the specified 
+     * cryptographic service and its implementation meets the
+     * constraint expressed by the specified attribute name/value pair. 
+     * </ul>
+     *
+     * <p> See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptogaphy Architecture API Specification &amp; Reference </a>
+     * for information about standard cryptographic service names, standard
+     * algorithm names and standard attribute names.
+     *
+     * @param filter the criteria for selecting
+     * providers. The filter is case-insensitive.
+     *
+     * @return all the installed providers that satisfy the selection
+     * criteria, or null if no such providers have been installed. 
+     *
+     * @throws InvalidParameterException
+     *         if the filter is not in the required format
+     *
+     * @ see #getProviders(java.lang.String)
+     */
+    public static Provider[] getProviders(Map filter) {
+	// Get all installed providers first.
+	// Then only return those providers who satisfy the selection criteria.
+	Provider[] allProviders = Security.getProviders();
+	Set keySet = filter.keySet();
+	HashSet candidates = new HashSet(5);
+
+	// Returns all installed providers
+	// if the selection criteria is null.
+	if ((keySet == null) || (allProviders == null)) {
+	    return allProviders;
+	}
+	
+	boolean firstSearch = true;
+
+	// For each selection criterion, remove providers
+	// which don't satisfy the criterion from the candidate set.
+	for (Iterator ite = keySet.iterator(); ite.hasNext(); ) {
+	    String key = (String)ite.next();
+	    String value = (String)filter.get(key);
+	    
+	    HashSet newCandidates = getAllQualifyingCandidates(key, value, 
+							       allProviders);
+	    if (firstSearch) {
+		candidates = newCandidates;
+		firstSearch = false;
+	    }
+
+	    if ((newCandidates != null) && !newCandidates.isEmpty()) {
+		// For each provider in the candidates set, if it
+		// isn't in the newCandidate set, we should remove
+		// it from the candidate set.
+		for (Iterator cansIte = candidates.iterator();
+		     cansIte.hasNext(); ) {
+		    Provider prov = (Provider)cansIte.next();
+		    if (!newCandidates.contains(prov)) {
+			cansIte.remove();
+		    }
+		}
+	    } else {
+		candidates = null;
+		break;
+	    }
+	}
+
+	if ((candidates == null) || (candidates.isEmpty()))
+	    return null;
+
+	Object[] candidatesArray = candidates.toArray();
+	Provider[] result = new Provider[candidatesArray.length];
+
+	for (int i = 0; i < result.length; i++) {
+	    result[i] = (Provider)candidatesArray[i];
+	}
+	
+	return result;
     }
 
     private static boolean checkSuperclass(Class subclass, Class superclass) {
@@ -688,7 +879,10 @@ public final class Security {
 	    sm.checkPermission(new SecurityPermission("getProperty."+
 						      key));
 	}
-	return props.getProperty(key);
+	String name = props.getProperty(key);
+	if (name != null)
+	    name = name.trim();	// could be a class name with trailing ws
+	return name;
     }
 
     /**
@@ -714,6 +908,61 @@ public final class Security {
     public static void setProperty(String key, String datum) {
 	check("setProperty."+key);
 	props.put(key, datum);
+	invalidateSMCache(key);  /* See below. */
+    }
+
+    /*
+     * Implementation detail:  If the property we just set in
+     * setProperty() was either "package.access" or
+     * "package.definition", we need to signal to the SecurityManager
+     * class that the value has just changed, and that it should
+     * invalidate it's local cache values.
+     *
+     * Rather than create a new API entry for this function,
+     * we use reflection to set a private variable.
+     */
+    private static void invalidateSMCache(String key) {
+	
+	final boolean pa = key.equals("package.access");
+	final boolean pd = key.equals("package.definition");
+
+	if (pa || pd) {
+	    AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
+		    try {
+			/* Get the class via the bootstrap class loader. */
+			Class cl = Class.forName(
+			    "java.lang.SecurityManager", false, null);
+			Field f = null;
+			boolean accessible = false;
+
+			if (pa) {
+			    f = cl.getDeclaredField("packageAccessValid");
+			    accessible = f.isAccessible();
+			    f.setAccessible(true);
+			} else {
+			    f = cl.getDeclaredField("packageDefinitionValid");
+			    accessible = f.isAccessible();
+			    f.setAccessible(true);
+			}
+			f.setBoolean(f, false);
+			f.setAccessible(accessible);
+		    }
+		    catch (Exception e1) {
+			/* If we couldn't get the class, it hasn't
+			 * been loaded yet.  If there is no such
+			 * field, we shouldn't try to set it.  There
+			 * shouldn't be a security execption, as we
+			 * are loaded by boot class loader, and we
+			 * are inside a doPrivileged() here.
+			 *
+			 * NOOP: don't do anything...
+			 */
+		    }
+		    return null;
+		}  /* run */
+	    });  /* PrivilegedAction */
+	}  /* if */
     }
 
     private static void check(String directive) {	
@@ -759,6 +1008,239 @@ public final class Security {
 	    t.printStackTrace();
 	    System.err.println(msg);
 	}
+    }
+
+    /*
+    * Returns all providers who satisfy the specified
+    * criterion.
+    */
+    private static HashSet getAllQualifyingCandidates(String filterKey,
+						 String filterValue,
+						 Provider[] allProviders) {
+	String[] filterComponents = getFilterComponents(filterKey,
+							filterValue);
+
+	// The first component is the service name.
+	// The second is the algorithm name.
+	// If the third isn't null, that is the attrinute name.
+	String serviceName = filterComponents[0];
+	String algName = filterComponents[1];
+	String attrName = filterComponents[2];
+
+	// Check whether we can find anything in the cache
+	String cacheKey = serviceName + '.' + algName;
+	HashSet candidates = (HashSet)searchResultsCache.get(cacheKey);
+
+	// If there is no entry for the cacheKey in the cache,
+	// let's build an entry for it first.
+	HashSet forCache = getProvidersNotUsingCache(serviceName,
+						     algName,
+						     null,
+						     null,
+						     null,
+						     allProviders);
+
+	if ((forCache == null) || (forCache.isEmpty())) {
+	    return null;
+	} else {
+	    searchResultsCache.put(cacheKey, forCache);
+	    if (attrName == null) {
+		return forCache;
+	    }
+	    return getProvidersNotUsingCache(serviceName, algName, attrName,
+					     filterValue, candidates, 
+					     allProviders);
+	}
+    }
+	
+    private static HashSet getProvidersNotUsingCache(String serviceName,
+						     String algName,
+						     String attrName,
+						     String filterValue,
+						     HashSet candidates,
+						     Provider[] allProviders) {
+	if ((attrName != null) && (candidates != null) &&
+	    (!candidates.isEmpty())) {
+	    for (Iterator cansIte = candidates.iterator();
+		 cansIte.hasNext(); ) {
+		Provider prov = (Provider)cansIte.next();
+		if (!isCriterionSatisfied(prov, serviceName, algName, 
+					  attrName, filterValue)) {
+		    cansIte.remove();
+		}
+	    }
+	}
+
+	if ((candidates == null) || (candidates.isEmpty())) {
+	    if (candidates == null)
+		candidates = new HashSet(5);
+	    for (int i = 0; i < allProviders.length; i++) {
+		if (isCriterionSatisfied(allProviders[i], serviceName, 
+					 algName,
+					 attrName, filterValue)) {
+		    candidates.add(allProviders[i]);
+		}
+	    }
+	}
+
+	return candidates;
+    }
+
+    /*
+     * Returns true if the given provider satisfies
+     * the selection criterion key:value.
+     */
+    private static boolean isCriterionSatisfied(Provider prov, 
+						String serviceName,
+						String algName,
+						String attrName,
+						String filterValue) {
+	String key = serviceName + '.' + algName;
+
+	if (attrName != null) {
+	    key += ' ' + attrName;
+	}
+      	// Check whether the provider has a property
+	// whose key is the same as the given key.
+	String propValue = getProviderProperty(key, prov);
+
+	if (propValue == null) {
+	    // Check whether we have an alias instead
+	    // of a standard name in the key.
+	    String standardName = getProviderProperty("Alg.Alias." + 
+						      serviceName + "." +
+						      algName,
+						      prov);
+	    if (standardName != null) {
+		key = serviceName + "." + standardName;
+
+		if (attrName != null) {
+		    key += ' ' + attrName;
+		}
+
+		propValue = getProviderProperty(key, prov);
+	    }
+	    
+	    if (propValue == null) {
+		// The provider doesn't have the given
+		// key in its property list.
+		return false;
+	    }
+	}
+
+	// If the key is in the format of:
+	// <crypto_service>.<algorithm_or_type>,
+        // there is no need to check the value.
+	
+	if (attrName == null) {
+	    return true;
+	}
+
+	// If we get here, the key must be in the
+	// format of <crypto_service>.<algorithm_or_provider> <attribute_name>.
+	if (isStandardAttr(attrName)) {
+	    return isConstraintSatisfied(attrName, filterValue, propValue);
+	} else {
+	    return filterValue.equalsIgnoreCase(propValue);
+	}
+    }
+	    
+    /*
+     * Returns true if the attribute is a standard attribute;
+     * otherwise, returns false.
+     */
+    private static boolean isStandardAttr(String attribute) {
+	// For now, we just have two standard attributes: KeySize and ImplementedIn.
+	if (attribute.equalsIgnoreCase("KeySize"))
+	    return true;
+	
+	if (attribute.equalsIgnoreCase("ImplementedIn"))
+	    return true;
+
+	return false;
+    }
+
+    /*
+     * Returns true if the requested attribute value is supported;
+     * otherwise, returns false.
+     */
+    private static boolean isConstraintSatisfied(String attribute,
+						 String value,
+						 String prop) {
+	// For KeySize, prop is the max key size the
+	// provider supports for a specific <crypto_service>.<algorithm>.
+	if (attribute.equalsIgnoreCase("KeySize")) {
+	    int requestedSize = (new Integer(value)).intValue();
+	    int maxSize = (new Integer(prop)).intValue();
+	    if (requestedSize <= maxSize) {
+		return true;
+	    } else {
+		return false;
+	    }
+	}
+
+	// For Type, prop is the type of the implementation
+	// for a specific <crypto service>.<algorithm>.
+	if (attribute.equalsIgnoreCase("ImplementedIn")) {
+	    return value.equalsIgnoreCase(prop);
+	}
+
+	return false;
+    }
+
+    static String[] getFilterComponents(String filterKey, String filterValue) {
+	int algIndex = filterKey.indexOf('.');
+
+	if (algIndex < 0) {
+	    // There must be a dot in the filter, and the dot
+	    // shouldn't be at the beginning of this string.
+	    throw new InvalidParameterException("Invalid filter");
+	}
+
+	String serviceName = filterKey.substring(0, algIndex);
+	String algName = null;
+	String attrName = null;
+
+	if (filterValue.length() == 0) {
+	    // The filterValue is an empty string. So the filterKey 
+	    // should be in the format of <crypto_service>.<algorithm_or_type>.
+	    algName = filterKey.substring(algIndex + 1).trim();
+	    if (algName.length() == 0) {
+		// There must be a algorithm or type name.
+		throw new InvalidParameterException("Invalid filter");
+	    }
+	} else {	
+	    // The filterValue is a non-empty string. So the filterKey must be
+	    // in the format of
+	    // <crypto_service>.<algorithm_or_type> <attribute_name>
+	    int attrIndex = filterKey.indexOf(' ');
+
+	    if (attrIndex == -1) {
+		// There is no attribute name in the filter.
+		throw new InvalidParameterException("Invalid filter");
+	    } else {
+		attrName = filterKey.substring(attrIndex + 1).trim();
+		if (attrName.length() == 0) {
+		    // There is no attribute name in the filter.
+		    throw new InvalidParameterException("Invalid filter");
+		}
+	    }
+	
+	    // There must be an algorithm name in the filter.
+	    if ((attrIndex < algIndex) ||
+		(algIndex == attrIndex - 1)) {
+		throw new InvalidParameterException("Invalid filter");
+	    } else {
+		algName = filterKey.substring(algIndex + 1, attrIndex);
+	    }
+	}
+
+	String[] result = new String[3];
+	result[0] = serviceName;
+	result[1] = algName;
+	result[2] = attrName;
+
+	return result;
     }
 }
 	

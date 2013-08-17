@@ -1,8 +1,11 @@
 /*
- * @(#)Line2D.java	1.18 01/11/29
+ * @(#)Line2D.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -19,7 +22,7 @@ import java.awt.Rectangle;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 10 Feb 1997
+ * @version 	1.21, 02/02/00
  * @author	Jim Graham
  */
 public abstract class Line2D implements Shape, Cloneable {
@@ -917,7 +920,7 @@ public abstract class Line2D implements Shape, Cloneable {
      * @return     a clone of this instance.
      * @exception  OutOfMemoryError            if there is not enough memory.
      * @see        java.lang.Cloneable
-     * @since      JDK1.2
+     * @since      1.2
      */
     public Object clone() {
 	try {

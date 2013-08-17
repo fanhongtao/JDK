@@ -1,8 +1,11 @@
 /*
- * @(#)InternalFrameAdapter.java	1.8 01/11/29
+ * @(#)InternalFrameAdapter.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -13,15 +16,15 @@ package javax.swing.event;
  * convenience for creating listener objects, and is functionally 
  * equivalent to the WindowAdapter class in the AWT.
  * <p>
- * See <a href="http://java.sun.com/docs/books/tutorial/ui/swingEvents/windowlistener.html">Writing a Window Listener</a>
- * in <a href="http://java.sun.com/Series/Tutorial/index.html"><em>The Java Tutorial</em></a> and
+ * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/events/internalframelistener.html">How to Write an Internal Frame Listener</a>
+ * in <em>The Java Tutorial</em> and
  * <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">The Java Class Libraries (update)</a>
  *
  * @see InternalFrameEvent
  * @see InternalFrameListener
  * @see java.awt.event.WindowListener
  *
- * @version 1.8 11/29/01
+ * @version 1.9 02/02/00
  * @author Thomas Ball
  */
 public abstract class InternalFrameAdapter implements InternalFrameListener {

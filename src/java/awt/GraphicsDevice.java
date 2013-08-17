@@ -1,8 +1,11 @@
 /*
- * @(#)GraphicsDevice.java	1.16 01/11/29
+ * @(#)GraphicsDevice.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -15,10 +18,37 @@ package java.awt;
  * and many printers in an instance of {@link GraphicsEnvironment}. Each
  * graphics device has one or more {@link GraphicsConfiguration} objects
  * associated with it.  These objects specify the different configurations
- * in which the <code>GraphicsDevice</code> can be used.  
+ * in which the <code>GraphicsDevice</code> can be used.
+ * <p>  
+ * In a multi-screen environment, the <code>GraphicsConfiguration</code>
+ * objects can be used to render components on multiple screens.  The 
+ * following code sample demonstrates how to create a <code>JFrame</code>
+ * object for each <code>GraphicsConfiguration</code> on each screen
+ * device in the <code>GraphicsEnvironment</code>:
+ * <pre>
+ *   GraphicsEnvironment ge = GraphicsEnvironment.
+ *   getLocalGraphicsEnvironment();
+ *   GraphicsDevice[] gs = ge.getScreenDevices();
+ *   for (int j = 0; j < gs.length; j++) { 
+ *      GraphicsDevice gd = gs[j];
+ *      GraphicsConfiguration[] gc =
+ * 	gd.getConfigurations();
+ *      for (int i=0; i < gc.length; i++) {
+ *         JFrame f = new
+ *         JFrame(gs[j].getDefaultConfiguration());
+ *         Canvas c = new Canvas(gc[i]); 
+ *         Rectangle gcBounds = gc[i].getBounds();
+ *         int xoffs = gcBounds.x;
+ *         int yoffs = gcBounds.y;
+ *	   f.getContentPane().add(c);
+ *	   f.setLocation((i*50)+xoffs, (i*60)+yoffs);
+ *         f.show();
+ *      }
+ *   }
+ * </pre>                           
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 10 Feb 1997
+ * @version 1.19, 02/02/00
  */
 public abstract class GraphicsDevice {
     /**

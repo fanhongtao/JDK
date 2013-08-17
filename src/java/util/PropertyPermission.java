@@ -1,8 +1,11 @@
 /*
- * @(#)PropertyPermission.java	1.18 01/11/29
+ * @(#)PropertyPermission.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -54,9 +57,12 @@ import java.security.*;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.18 01/11/29
+ * @version 1.24 00/02/02
  *
  * @author Roland Schemers
+ * @since 1.2
+ *
+ * @serial exclude
  */
 
 public final class PropertyPermission extends BasicPermission {
@@ -384,11 +390,12 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.43 97/09/09
+ * @version 1.24, 02/02/00
  *
  * @author Roland Schemers
+ *
+ * @serial include
  */
-
 final class PropertyPermissionCollection extends PermissionCollection
 implements Serializable
 {
@@ -422,6 +429,12 @@ implements Serializable
      * the name.
      *
      * @param permission the Permission object to add.
+     *
+     * @exception IllegalArgumentException - if the permission is not a
+     *                                       PropertyPermission
+     *
+     * @exception SecurityException - if this PropertyPermissionCollection
+     *                                object has been marked readonly
      */
 
     public void add(Permission permission)
@@ -429,6 +442,9 @@ implements Serializable
 	if (! (permission instanceof PropertyPermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
+	if (isReadOnly())
+	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+
 	PropertyPermission pp = (PropertyPermission) permission;
 
 	PropertyPermission existing =

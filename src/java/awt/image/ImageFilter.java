@@ -1,8 +1,11 @@
 /*
- * @(#)ImageFilter.java	1.21 01/11/29
+ * @(#)ImageFilter.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -22,7 +25,7 @@ import java.util.Hashtable;
  * @see FilteredImageSource
  * @see ImageConsumer
  *
- * @version	1.21 11/29/01
+ * @version	1.23 02/02/00
  * @author 	Jim Graham
  */
 public class ImageFilter implements ImageConsumer, Cloneable {
@@ -42,6 +45,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
      * Returns a unique instance of an ImageFilter object which will
      * actually perform the filtering for the specified ImageConsumer.
      * The default implementation just clones this object.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public ImageFilter getFilterInstance(ImageConsumer ic) {
 	ImageFilter instance = (ImageFilter) clone();
@@ -52,6 +61,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Filters the information provided in the setDimensions method
      * of the ImageConsumer interface.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#setDimensions
      */
     public void setDimensions(int width, int height) {
@@ -61,6 +76,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Passes the properties from the source object along after adding a
      * property indicating the stream of filters it has been run through.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      */
     public void setProperties(Hashtable props) {
 	props = (Hashtable) props.clone();
@@ -76,6 +97,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Filter the information provided in the setColorModel method
      * of the ImageConsumer interface.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#setColorModel
      */
     public void setColorModel(ColorModel model) {
@@ -85,6 +112,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Filters the information provided in the setHints method
      * of the ImageConsumer interface.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#setHints
      */
     public void setHints(int hints) {
@@ -94,6 +127,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Filters the information provided in the setPixels method of the
      * ImageConsumer interface which takes an array of bytes.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#setPixels
      */
     public void setPixels(int x, int y, int w, int h,
@@ -105,6 +144,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Filters the information provided in the setPixels method of the
      * ImageConsumer interface which takes an array of integers.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#setPixels
      */
     public void setPixels(int x, int y, int w, int h,
@@ -116,6 +161,12 @@ public class ImageFilter implements ImageConsumer, Cloneable {
     /**
      * Filters the information provided in the imageComplete method of
      * the ImageConsumer interface.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#imageComplete
      */
     public void imageComplete(int status) {

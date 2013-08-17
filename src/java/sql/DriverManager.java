@@ -1,16 +1,23 @@
 /*
- * @(#)DriverManager.java	1.23 01/11/29
+ * @(#)DriverManager.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
 
 /**
- * <P>The basic service for managing a set of JDBC drivers.
+ * <P>The basic service for managing a set of JDBC drivers.<br>
+ * <B>NOTE:</B> The {@link <code>DataSource</code>} interface, new in the
+ * JDBC 2.0 API, provides another way to connect to a data source.
+ * The use of a <code>DataSource</code> object is the preferred means of
+ * connecting to a data source. 
  *
- * <P>As part of its initialization, the DriverManager class will
+ * <P>As part of its initialization, the <code>DriverManager</code> class will
  * attempt to load the driver classes referenced in the "jdbc.drivers"
  * system property. This allows a user to customize the JDBC Drivers
  * used by their applications. For example in your
@@ -26,49 +33,89 @@ package java.sql;
  * </pre>
  *
  * <P>When the method <code>getConnection</code> is called,
- * the DriverManager will attempt to
+ * the <code>DriverManager</code> will attempt to
  * locate a suitable driver from amongst those loaded at
  * initialization and those loaded explicitly using the same classloader
  * as the current applet or application.
- *
+ * <P>
+ * Starting with the Java 2 SDK, Standard Edition, version 1.3, a
+ * logging stream can be set only if the proper
+ * permission has been granted.  Normally this will be done with
+ * the tool PolicyTool, which can be used to grant <code>permission
+ * java.sql.SQLPermission "setLog"</code>.
  * @see Driver
  * @see Connection 
+ * <P>
+ * Some methods in this class are new in the JDBC 2.0 API. They are marked
+ * with "since 1.2". API marked "since 1.3" is new in the JDBC 2.0 API and
+ * is included in the Java 2 SDK, Standard Edition, version 1.3.
  */
 public class DriverManager {
+
+
+    /**
+     * The <code>SQLPermission</code> constant that allows the 
+	 * setting of the logging stream.
+	 * @since 1.3
+     */
+    final static SQLPermission SET_LOG_PERMISSION = 
+        new SQLPermission("setLog");
 
     //--------------------------JDBC 2.0-----------------------------
 
     /**
-     * JDBC 2.0
-     *
      * Gets the log writer.  
      *
      * The <code>getLogWriter</code> and <code>setLogWriter</code> 
-	 * methods should be used instead
-     * of the old <code>get/setlogStream</code> methods.
+     * methods should be used instead
+     * of the <code>get/setlogStream</code> methods, which are deprecated.
+     * @return a <code>java.io.PrintWriter</code> object 
+     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
+     *      2.0 API</a>
+     * @since 1.2
      */
     public static java.io.PrintWriter getLogWriter() {
       return logWriter;
     }
 
     /**
-     * JDBC 2.0
-     *
-     * Sets the logging/tracing Writer that is used by the DriverManager
-     * and all drivers.
-     *
-     * There is a minor versioning problem introduced by the introduction
+     * Sets the logging/tracing <code>PrintWriter</code> object
+	 * that is used by the <code>DriverManager</code> and all drivers.
+     * <P>
+     * There is a minor versioning problem created by the introduction
      * of the method </code>setLogWriter</code>.  The 
-	 * method <code>setLogWriter</code> cannot create a PrintStream
+     * method <code>setLogWriter</code> cannot create a <code>PrintStream</code> object
      * that will be returned by <code>getLogStream</code>---the Java platform does
-     * not provide a backward conversion.  So, a new application
+     * not provide a backward conversion.  As a result, a new application
      * that uses <code>setLogWriter</code> and also uses a JDBC 1.0 driver that uses
      * <code>getLogStream</code> will likely not see debugging information written 
      * by that driver.
+	 *<P>
+	 * In the Java 2 SDK, Standard Edition, version 1.3 release, this method checks
+	 * to see that there is an <code>SQLPermission</code> object before setting
+	 * the logging stream.  If a <code>SecurityManager</code> exists and its
+	 * <code>checkPermission</code> method denies setting the log writer, this
+	 * method throws a <code>java.lang.SecurityException</code>.
      *
-     * @param out the new logging/tracing PrintStream; to disable, set to null
+     * @param out the new logging/tracing <code>PrintStream</code> object;
+     *      <code>null</code> to disable logging and tracing
+     * @throws SecurityException
+     *    if a security manager exists and its
+     *    <code>checkPermission</code> method denies
+     *    setting the log writer
+     *
+     * @see SecurityManager#checkPermission
+     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
+     *      2.0 API</a>
+     * @since 1.2
      */
     public static synchronized void setLogWriter(java.io.PrintWriter out) {
+
+      SecurityManager sec = System.getSecurityManager();
+      if (sec != null) {
+          sec.checkPermission(SET_LOG_PERMISSION);
+      }
+
       logStream = null;
       logWriter = out;
     }
@@ -78,7 +125,7 @@ public class DriverManager {
 
     /**
      * Attempts to establish a connection to the given database URL.
-     * The DriverManager attempts to select an appropriate driver from
+     * The <code>DriverManager</code> attempts to select an appropriate driver from
      * the set of registered JDBC drivers.
      *
      * @param url a database url of the form 
@@ -101,15 +148,15 @@ public class DriverManager {
 
     /**
      * Attempts to establish a connection to the given database URL.
-     * The DriverManager attempts to select an appropriate driver from
+     * The <code>DriverManager</code> attempts to select an appropriate driver from
      * the set of registered JDBC drivers.
      *
      * @param url a database url of the form 
      * <code>jdbc:<em>subprotocol</em>:<em>subname</em></code>
-     * @param user the database user on whose behalf the Connection is being
+     * @param user the database user on whose behalf the connection is being
      *   made
      * @param password the user's password
-     * @return a Connection to the URL 
+     * @return a connection to the URL 
      * @exception SQLException if a database access error occurs
      */
     public static synchronized Connection getConnection(String url, 
@@ -132,12 +179,12 @@ public class DriverManager {
 
     /**
      * Attempts to establish a connection to the given database URL.
-     * The DriverManager attempts to select an appropriate driver from
+     * The <code>DriverManager</code> attempts to select an appropriate driver from
      * the set of registered JDBC drivers.
      *
      * @param url a database url of the form 
      *  <code> jdbc:<em>subprotocol</em>:<em>subname</em></code>
-     * @return a Connection to the URL 
+     * @return a connection to the URL 
      * @exception SQLException if a database access error occurs
      */
     public static synchronized Connection getConnection(String url) 
@@ -154,12 +201,13 @@ public class DriverManager {
 
     /**
      * Attempts to locate a driver that understands the given URL.
-     * The DriverManager attempts to select an appropriate driver from
+     * The <code>DriverManager</code> attempts to select an appropriate driver from
      * the set of registered JDBC drivers. 
      *
-     * @param url a database url of the form 
-     *  jdbc:<em>subprotocol</em>:<em>subname</em>
-     * @return a Driver that can connect to the URL 
+     * @param url a database URL of the form 
+     *     <code>jdbc:<em>subprotocol</em>:<em>subname</em></code>
+     * @return a <code>Driver</code> object representing a driver
+	 * that can connect to the given URL 
      * @exception SQLException if a database access error occurs
      */
     public static synchronized Driver getDriver(String url) 
@@ -203,13 +251,13 @@ public class DriverManager {
 
 
   /**
-   * Registers the given driver with the DriverManager.
+   * Registers the given driver with the <code>DriverManager</code>.
    * A newly-loaded driver class should call
    * the method <code>registerDriver</code> to make itself
-   * known to the DriverManager.
+   * known to the <code>DriverManager</code>.
    *
    * @param driver the new JDBC Driver that is to be registered with the
-   *               DriverManager
+   *               <code>DriverManager</code>
    * @exception SQLException if a database access error occurs
    */
   public static synchronized void registerDriver(java.sql.Driver driver)
@@ -227,7 +275,7 @@ public class DriverManager {
   }
 
   /**
-   * Drops a Driver from the DriverManager's list.  Applets can only
+   * Drops a Driver from the <code>DriverManager</code>'s list.  Applets can only
    * deregister Drivers from their own classloaders.
    *
    * @param driver the JDBC Driver to drop 
@@ -323,13 +371,32 @@ public class DriverManager {
     }
 
     /**
-     * Sets the logging/tracing PrintStream that is used by the DriverManager
+     * Sets the logging/tracing PrintStream that is used
+	 * by the <code>DriverManager</code>
      * and all drivers.
+	 *<P>
+	 * In the Java 2 SDK, Standard Edition, version 1.3 release, this method checks
+	 * to see that there is an <code>SQLPermission</code> object before setting
+	 * the logging stream.  If a <code>SecurityManager</code> exists and its
+	 * <code>checkPermission</code> method denies setting the log writer, this
+	 * method throws a <code>java.lang.SecurityException</code>.
      *
-     * @param out the new logging/tracing PrintStream; to disable, set to null
+     * @param out the new logging/tracing PrintStream; to disable, set to <code>null</code>
      * @deprecated
+     * @throws SecurityException
+     *    if a security manager exists and its
+     *    <code>checkPermission</code> method denies
+     *    setting the log stream.
+     *
+     * @see SecurityManager#checkPermission
      */
     public static synchronized void setLogStream(java.io.PrintStream out) {
+        
+        SecurityManager sec = System.getSecurityManager();
+        if (sec != null) {
+            sec.checkPermission(SET_LOG_PERMISSION);
+        }
+
         logStream = out;
 	if ( out != null )
 	  logWriter = new java.io.PrintWriter(out);
@@ -338,10 +405,10 @@ public class DriverManager {
     }
 
     /**
-     * Gets the logging/tracing PrintStream that is used by the DriverManager
+     * Gets the logging/tracing PrintStream that is used by the <code>DriverManager</code>
      * and all drivers.
      *
-     * @return the logging/tracing PrintStream; if disabled, is null
+     * @return the logging/tracing PrintStream; if disabled, is <code>null</code>
      * @deprecated
      */
     public static java.io.PrintStream getLogStream() {

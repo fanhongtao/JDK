@@ -1,8 +1,11 @@
 /*
- * @(#)BasicCheckBoxUI.java	1.32 01/11/29
+ * @(#)BasicCheckBoxUI.java	1.33 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -25,7 +28,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.32 11/29/01
+ * @version 1.33 02/02/00
  * @author Jeff Dinkins
  */
 public class BasicCheckBoxUI extends BasicRadioButtonUI {

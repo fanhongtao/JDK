@@ -1,18 +1,16 @@
 /*
- * @(#)ChoiceFormat.java	1.23 01/11/29
+ * @(#)ChoiceFormat.java	1.26 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)ChoiceFormat.java	1.23 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -21,23 +19,13 @@
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
  *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
  */
 
 package java.text;
 import java.text.Utility;
+import java.io.ObjectInputStream;
+import java.io.InvalidObjectException;
+import java.io.IOException;
 
 /**
  * A <code>ChoiceFormat</code> allows you to attach a format to a range of numbers.
@@ -148,7 +136,7 @@ import java.text.Utility;
  * </blockquote>
  * @see          DecimalFormat
  * @see          MessageFormat
- * @version      1.23 11/29/01
+ * @version      1.22 09/21/98
  * @author       Mark Davis
  */
 public class ChoiceFormat extends NumberFormat {
@@ -285,6 +273,7 @@ public class ChoiceFormat extends NumberFormat {
     public ChoiceFormat(String newPattern)  {
         applyPattern(newPattern);
     }
+
     /**
      * Constructs with the limits and the corresponding formats.
      * @see #setChoices
@@ -292,6 +281,7 @@ public class ChoiceFormat extends NumberFormat {
     public ChoiceFormat(double[] limits, String[] formats) {
         setChoices(limits, formats);
     }
+
     /**
      * Set the choices to be used in formatting.
      * @param limits contains the top value that you want
@@ -314,6 +304,7 @@ public class ChoiceFormat extends NumberFormat {
         choiceLimits = limits;
         choiceFormats = formats;
     }
+
     /**
      * Get the limits passed in the constructor.
      * @return the limits.
@@ -321,6 +312,7 @@ public class ChoiceFormat extends NumberFormat {
     public double[] getLimits() {
         return choiceLimits;
     }
+
     /**
      * Get the formats passed in the constructor.
      * @return the formats.
@@ -343,7 +335,13 @@ public class ChoiceFormat extends NumberFormat {
         return format((double)number, toAppendTo, status);
     }
 
-    public StringBuffer format(double number, StringBuffer toAppendTo,
+    /**
+     * Returns pattern with formatted double.
+     * @param number number to be formatted & substituted.
+     * @param toAppendTo where text is appended.
+     * @param status ignore no useful status is returned.
+     */
+   public StringBuffer format(double number, StringBuffer toAppendTo,
                                FieldPosition status) {
         // find the number
         int i;
@@ -359,6 +357,18 @@ public class ChoiceFormat extends NumberFormat {
         return toAppendTo.append(choiceFormats[i]);
     }
 
+    /**
+     * Parses a Number from the input text.
+     * @param text the source text.
+     * @param status an input-output parameter.  On input, the
+     * status.index field indicates the first character of the
+     * source text that should be parsed.  On exit, if no error
+     * occured, status.index is set to the first unparsed character
+     * in the source text.  On exit, if an error did occur, 
+     * status.index is unchanged and status.errorIndex is set to the
+     * first index of the character that caused the parse to fail.
+     * @return A Number representing the value of the number parsed.
+     */
     public Number parse(String text, ParsePosition status) {
         // find the best number (defined as the one with the longest parse)
         int start = status.index;
@@ -440,6 +450,20 @@ public class ChoiceFormat extends NumberFormat {
         return (Utility.arrayEquals(choiceLimits,other.choiceLimits)
             && Utility.arrayEquals(choiceFormats,other.choiceFormats));
     }
+
+    /**
+     * After reading an object from the input stream, do a simple verification
+     * to maintain class invariants.
+     * @throws InvalidObjectException if the objects read from the stream is invalid.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (choiceLimits.length != choiceFormats.length) {
+            throw new InvalidObjectException(
+            	    "limits and format arrays of different length.");
+        }
+    }
+
     // ===============privates===========================
 
     /**
@@ -485,22 +509,21 @@ public class ChoiceFormat extends NumberFormat {
     }
     */
 
-    /*
+    static final long SIGN                = 0x8000000000000000L;
+    static final long EXPONENT            = 0x7FF0000000000000L;
+    static final long POSITIVEINFINITY    = 0x7FF0000000000000L;
+
+    /**
      * Finds the least double greater than d (if positive == true),
      * or the greatest double less than d (if positive == false).
      * If NaN, returns same value.
      *
      * Does not affect floating-point flags,
-     *  provided these member functions do not:
-     *          Double.longBitsToDouble ()
-     *          Double.doubleToLongBits ()
-     *          Double.IsNaN ()
+     * provided these member functions do not:
+     *          Double.longBitsToDouble(long)
+     *          Double.doubleToLongBits(double)
+     *          Double.isNaN(double)
      */
-
-    static final long SIGN                = 0x8000000000000000L;
-    static final long EXPONENT            = 0x7FF0000000000000L;
-    static final long POSITIVEINFINITY    = 0x7FF0000000000000L;
-
     public static double nextDouble (double d, boolean positive) {
 
         /* filter out NaN's */

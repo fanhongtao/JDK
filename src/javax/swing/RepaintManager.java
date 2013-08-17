@@ -1,8 +1,11 @@
 /*
- * @(#)RepaintManager.java	1.36 01/11/29
+ * @(#)RepaintManager.java	1.39 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -18,7 +21,7 @@ import java.applet.*;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.36 11/29/01
+ * @version 1.39 02/02/00
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -30,6 +33,10 @@ public class RepaintManager
     Image     doubleBuffer;
     Dimension doubleBufferSize;
     private Dimension doubleBufferMaxSize;
+    /** This is set to true from resetDoubleBuffer, if this is true, the
+     * next time the doubleBuffer is asked for (getOffscreenBuffer) the image
+     * will be recreated. */
+    private boolean resetDoubleBuffer;
 
     private static final Object repaintManagerKey = RepaintManager.class;
 
@@ -198,6 +205,15 @@ public class RepaintManager
 	    return;
 	}
 
+	Rectangle r = (Rectangle)dirtyComponents.get(c);
+	if (r != null) {
+	    // A non-null r implies c is already marked as dirty,
+	    // and that the parent is valid. Therefore we can
+	    // just union the rect and bail.
+	    SwingUtilities.computeUnion(x, y, w, h, r);
+	    return;
+	}
+
 	/* Make sure that c and all it ancestors (up to an Applet or
 	 * Window) are visible.  This loop has the same effect as 
 	 * checking c.isShowing() (and note that it's still possible 
@@ -216,13 +232,9 @@ public class RepaintManager
 	    }
 	}
 
-	Rectangle r = (Rectangle)dirtyComponents.get(c);
-	if (r == null) {
-	    dirtyComponents.put(c, new Rectangle(x, y, w, h));
-	}
-	else {
-	    SwingUtilities.computeUnion(x, y, w, h, r);
-	}
+	if (root == null) return;
+
+	dirtyComponents.put(c, new Rectangle(x, y, w, h));
 
 
 	/* Queues a Runnable that calls validateInvalidComponents() and
@@ -384,7 +396,7 @@ public class RepaintManager
 
         dx = rootDx = 0;
         dy = rootDy = 0;
-        tmp = new Rectangle((Rectangle) dirtyComponents.get(dirtyComponent));
+        tmp.setBounds((Rectangle) dirtyComponents.get(dirtyComponent));
 
         // System.out.println("Collect dirty component for bound " + tmp + 
         //                                   "component bounds is " + cBounds);;
@@ -472,6 +484,10 @@ public class RepaintManager
         int width,height;
 	Dimension maxSize = getDoubleBufferMaximumSize();
 
+	if (resetDoubleBuffer) {
+	    doubleBuffer = null;
+	    resetDoubleBuffer = false;
+	}
 	if (proposedWidth < 1) {
 	    width = 1;
 	}
@@ -512,12 +528,22 @@ public class RepaintManager
 	   }
         }
 
+	Image retValue = doubleBuffer;
+
 	if(doubleBuffer == null) {
-            doubleBuffer = c.createImage( go_width , go_height );
+            retValue = c.createImage( go_width , go_height );
             doubleBufferSize = new Dimension( go_width , go_height );
+	    if (c instanceof JComponent) {
+		((JComponent)c).setCreatedDoubleBuffer(true);
+		doubleBuffer = retValue;
+	    }
+	    // JComponent will inform us when it is no longer valid
+	    // (via removeNotify) we have no such hook to other components,
+	    // therefore we don't keep a ref to the Component
+	    // (indirectly through the Image) by stashing the image.
 	}
 
-        return doubleBuffer;
+        return retValue;
     }
 
     /** Set the maximum double buffer size. **/
@@ -558,5 +584,14 @@ public class RepaintManager
      */
     public boolean isDoubleBufferingEnabled() {
       return doubleBufferingEnabled;
+    }
+
+    /**
+     * This resets the double buffer. Actually, it marks the double buffer
+     * as invalid, the double buffer will then be recreated on the next
+     * invocation of getOffscreenBuffer.
+     */
+    void resetDoubleBuffer() {
+	resetDoubleBuffer = true;
     }
 }

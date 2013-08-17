@@ -1,8 +1,11 @@
 /*
- * @(#)InconsistentTypeCode.java	1.9 01/11/29
+ * @(#)InconsistentTypeCode.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -14,10 +17,10 @@ package org.omg.CORBA.ORBPackage;
  * subclass of <code>DynAny</code>.
  */
 public final class InconsistentTypeCode
-	extends org.omg.CORBA.UserException {
+    extends org.omg.CORBA.UserException {
     /**
-    * Constructs an <code>InconsistentTypeCode</code> user exception
-    * with no reason message.
+     * Constructs an <code>InconsistentTypeCode</code> user exception
+     * with no reason message.
     */
     public InconsistentTypeCode() {
 	super();

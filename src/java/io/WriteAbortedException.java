@@ -1,16 +1,21 @@
 /*
- * @(#)WriteAbortedException.java	1.9 01/11/29
+ * @(#)WriteAbortedException.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
 
-/*
+/**
+ * Signals that one of the ObjectStreamExceptions was thrown
+ * during a write operation.
  *
  * @author  unascribed
- * @version 1.9, 11/29/01
+ * @version 1.12, 02/02/00
  * @since   JDK1.1
  */
 public class WriteAbortedException extends ObjectStreamException {
@@ -26,6 +31,9 @@ public class WriteAbortedException extends ObjectStreamException {
      * The exception that terminated the write can be found in the detail
      * field. The stream is reset to it's initial state andd all references
      * to objects already deserialized are discarded.
+     *
+     * @param s   String describing the exception.
+     * @param ex  Exception causing the abort.
      */
     public WriteAbortedException(String s, Exception ex) {
 	super(s);

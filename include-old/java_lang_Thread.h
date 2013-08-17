@@ -9,7 +9,7 @@ struct Hjava_lang_Runnable;
 struct Hjava_lang_ThreadGroup;
 struct Hjava_lang_ClassLoader;
 struct Hjava_security_AccessControlContext;
-struct Hjava_lang_ThreadLocal_ThreadLocalMap;
+struct Hjava_util_Map;
 
 typedef struct Classjava_lang_Thread {
     struct HArrayOfChar *name;
@@ -25,8 +25,8 @@ typedef struct Classjava_lang_Thread {
     struct Hjava_security_AccessControlContext *inheritedAccessControlContext;
 /* Inaccessible static: threadInitNumber */
 /* Inaccessible static: stopThreadPermission */
-    struct Hjava_lang_ThreadLocal_ThreadLocalMap *threadLocals;
-    struct Hjava_lang_ThreadLocal_ThreadLocalMap *inheritableThreadLocals;
+    struct Hjava_util_Map *threadLocals;
+    struct Hjava_util_Map *inheritableThreadLocals;
 #undef java_lang_Thread_MIN_PRIORITY
 #define java_lang_Thread_MIN_PRIORITY 1L
 #undef java_lang_Thread_NORM_PRIORITY
@@ -39,20 +39,20 @@ HandleTo(java_lang_Thread);
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern int32_t java_lang_Thread_countStackFrames(struct Hjava_lang_Thread *);
-extern struct Hjava_lang_Thread *java_lang_Thread_currentThread(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_interrupt0(struct Hjava_lang_Thread *);
-extern /*boolean*/ int32_t java_lang_Thread_isAlive(struct Hjava_lang_Thread *);
-extern /*boolean*/ int32_t java_lang_Thread_isInterrupted(struct Hjava_lang_Thread *,/*boolean*/ int32_t);
 extern void java_lang_Thread_registerNatives(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_resume0(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_setPriority0(struct Hjava_lang_Thread *,int32_t);
+extern struct Hjava_lang_Thread *java_lang_Thread_currentThread(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_yield(struct Hjava_lang_Thread *);
 extern void java_lang_Thread_sleep(struct Hjava_lang_Thread *,int64_t);
 extern void java_lang_Thread_start(struct Hjava_lang_Thread *);
+extern /*boolean*/ int32_t java_lang_Thread_isInterrupted(struct Hjava_lang_Thread *,/*boolean*/ int32_t);
+extern /*boolean*/ int32_t java_lang_Thread_isAlive(struct Hjava_lang_Thread *);
+extern int32_t java_lang_Thread_countStackFrames(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_setPriority0(struct Hjava_lang_Thread *,int32_t);
 struct Hjava_lang_Object;
 extern void java_lang_Thread_stop0(struct Hjava_lang_Thread *,struct Hjava_lang_Object *);
 extern void java_lang_Thread_suspend0(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_yield(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_resume0(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_interrupt0(struct Hjava_lang_Thread *);
 #ifdef __cplusplus
 }
 #endif

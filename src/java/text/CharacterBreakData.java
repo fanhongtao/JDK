@@ -1,18 +1,16 @@
 /*
- * @(#)CharacterBreakData.java	1.13 01/11/29
+ * @(#)CharacterBreakData.java	1.14 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)CharacterBreakData.java	1.13 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  * The original version of this source code and documentation
  * is copyrighted and owned by Taligent, Inc., a wholly-owned
@@ -23,20 +21,8 @@
  * This notice and attribution to Taligent may not be removed.
  * Taligent is a registered trademark of Taligent, Inc.
  *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
  */
+
 
 package java.text;
 
@@ -47,15 +33,61 @@ package java.text;
  */
 final class CharacterBreakData extends TextBoundaryData
 {
-    private static final byte accent_diacritic = 0;
-    private static final byte baseForm = 1;
-    private static final byte baseCR = 2;
-    private static final byte baseLF = 3;
+    // THEORY OF OPERATION:  This class contains all the tables necessary to do
+    // character-break iteration.  This class descends from TextBoundaryData, which
+    // is abstract.  This class doesn't define any non-static members; it inherits the
+    // non-static members from TextBoundaryData and fills them in with pointers to
+    // the static members defined here.
+    //   There are two main parts to a TextBoundaryData object: the state-transition
+    // tables and the character-mapping tables.  The forward state table defines the
+    // transitions for a deterministic finite state machine that locates character
+    // boundaries.  The rows are the states and the columns are character categories.
+    // The cell values consist of two parts: The first is the row number of the next
+    // state to transition to, or a "stop" value (0).  (Because 0 is the stop value
+    // rather than a valid state number, row 0 of the array isn't ever looked at; we
+    // fill it with STOP values by convention.)  The second part is a flag indicating
+    // whether the iterator should update its break position on this transition.  When
+    // the flag is set, the sign bit of the value is turned on (SI is used to represent
+    // the flag bit being turned on-- we do it this way rather than just using negative
+    // numbers because we still need to see the SI flag when the value of the transition
+    // is STOP.  SI_STOP is used to denote this.)  The starting state in all state tables
+    // is 1.
+    //   The backward state table works the same way as the forward state table, but is
+    // usually simplified.  The iterator uses the backward state table only to find a
+    // "safe place" to start iterating forward.  It then seeks forward from the "safe
+    // place" to the actual break position using the forward table.  A "safe place" is
+    // a spot in the text that is guaranteed to be a break position.
+    //   The character-category mapping tables are split into several pieces, one for
+    // each stage of the category-mapping process: 1) kRawMapping maps generic Unicode
+    // character categories to the character categories used by this break iterator.
+    // The index of the array is the Unicode category number as returned by
+    // Character.getType().  2) The kExceptionFlags table is a table of Boolean values
+    // indicating whether all the characters in the Unicode category have the
+    // raw-mapping value.  The rows correspond to the rows of the raw-mapping table.  If
+    // an entry is true, then we find the right category using...  3) The kExceptionChar
+    // table.  This table is a sorted list of SpecialMapping objects.  Each entry defines
+    // a range of contiguous characters that share the same category and the category
+    // number.  This list is binary-searched to find an entry corresponding to the 
+    // charactre being mapped.  Only characters whose breaking category is different from
+    // the raw-mapping value (the breaking category for their Unicode category) are
+    // listed in this table.  4) The kAsciiValues table is a fast-path table for characters
+    // in the Latin1 range.  This table maps straight from a character value to a
+    // category number, bypassing all the other tables.  The programmer must take care
+    // that all of the different category-mapping tables are consistent.
+    //   In the current implementation, all of these tables are created and maintained
+    // by hand, not using a tool.
+    
+    // constant names for the category numbers
+    private static final byte accent_diacritic = 0; // all Unicode non-spacing marks
+    private static final byte baseForm = 1;   // everything that isn't accounted for elsewhere
+    private static final byte baseCR = 2;     // the ASCII carriage return
+    private static final byte baseLF = 3;     // all other line/paragraph separators
     private static final byte choseong = 4;   // Korean initial consonant
     private static final byte jungseong = 5;  // Korean vowel
     private static final byte jongseong = 6;  // Korean final consonant
-    private static final byte EOS = 7;
-    private static final int COL_COUNT = 8;
+    private static final byte EOS = 7;        // end of string
+    private static final int COL_COUNT = 8;   // the number of items in this list (and therefore,
+                                              // the number of columns in the state tables)
 
     private static final byte SI = (byte)0x80;
     private static final byte STOP = (byte) 0;
@@ -65,6 +97,20 @@ final class CharacterBreakData extends TextBoundaryData
         super(kCharacterForwardTable, kCharacterBackwardTable, kCharacterMap);
     }
 
+    // This table locates logical character ("grapheme") boundaries.  A logical
+    // character is a sequence of Unicode code-point values that are seen as a single
+    // character by the user.  This table implements the following logic:
+    //  1) Unless otherwise mentioned, each individual code point is a character.
+    //  2) A regular character followed by one or more Unicode non-spacing marks is
+    //     treated as a single character.
+    //  3) The CR-LF sequence is treated as a single character.
+    //  4) A Hangul syllable spelled out with individual jamos is treated as a single
+    //     character, according to the rules specified under "Conjoining Jamo Behavior"
+    //     in the Unicode standard.
+    // UTF-16 surrogate pairs are NOT trated as single characters in this version of the
+    // character-breaking tables.  Rule 1 is implemented by state 2, rule 2 is implemented
+    // by rules 3 and 7 (line/paragraph separators are NOT kept together with any non-
+    // spacing marks that follow them!).  Rule 4 is implemented with states 4, 5, and 6.
     private static final byte kCharacterForwardData[] =
     {
         // acct        base             cr              lf
@@ -72,36 +118,47 @@ final class CharacterBreakData extends TextBoundaryData
         STOP,          STOP,            STOP,           STOP,
         STOP,          STOP,            STOP,           STOP,
 
-        // 1
+        // 1 - main dispatch state
         (byte)(SI+2),  (byte)(SI+2),    (byte)(SI+3),   (byte)(SI+7),
         (byte)(SI+4),  (byte)(SI+5),    (byte)(SI+6),   SI_STOP,
 
-        // 2
+        // 2 - if the character is regular base or accent, we end up in this
+        // state, which eats accents until it sees something else
         (byte)(SI+2),  SI_STOP,         SI_STOP,        SI_STOP,
         SI_STOP,       SI_STOP,         SI_STOP,        SI_STOP,
 
-        // 3
+        // 3 - a CR character causes a transition.  If the next character is
+        // an LF, it transitions to state 7; otherwise, it does exactly
+        // the same thing as state 7
         SI_STOP,       SI_STOP,         SI_STOP,        (byte)(SI+7),
         SI_STOP,       SI_STOP,         SI_STOP,        SI_STOP,
 
-        // 4
+        // 4 - this state eats Korean initial consonants and uses
+        // states 5 and 6 to take care of the other parts of the syllable
         (byte)(SI+2),  SI_STOP,         SI_STOP,        SI_STOP,
         (byte)(SI+4),  (byte)(SI+5),    (byte)(SI+6),   SI_STOP,
 
-        // 5
+        // 5 - this state eats Korean vowels
         (byte)(SI+2),  SI_STOP,         SI_STOP,        SI_STOP,
         SI_STOP,      (byte)(SI+5),    (byte)(SI+6),    SI_STOP,
 
-        // 6
+        // 6 - this state eats Korean final consonants
         (byte)(SI+2),  SI_STOP,         SI_STOP,        SI_STOP,
         SI_STOP,       SI_STOP,         (byte)(SI+6),   SI_STOP,
 
-        // 7
+        // 7 - This state is reached when an LF or other line separator
+        // is seen.  It eats the LF and stops.
         SI_STOP,       SI_STOP,         SI_STOP,        SI_STOP,
         SI_STOP,       SI_STOP,         SI_STOP,        SI_STOP
     };
     private static final WordBreakTable kCharacterForwardTable =
     new WordBreakTable(COL_COUNT, kCharacterForwardData);
+    
+    // This table implements the backward-seeking logic.  Here, we merely
+    // eat characters until we see a Hangul syllable-initial consonant,
+    // an ASCII carriage return, a "base" character (most characters), or
+    // the end of the string.  These characters all represent unambiguous
+    // break positions.
     private static final byte kCharacterBackwardData[] =
     {
         // acct         base            cr              lf

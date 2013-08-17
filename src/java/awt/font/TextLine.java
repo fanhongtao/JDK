@@ -1,17 +1,16 @@
 /*
  * %W% %E%
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * %W% %E%
- *
  * (C) Copyright IBM Corp. 1998, All Rights Reserved
  *
- * Portions copyright (c) 1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  */
 
 package java.awt.font;
@@ -25,16 +24,14 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 
+import java.awt.im.InputMethodHighlight;
+
 import java.text.CharacterIterator;
 import java.text.AttributedCharacterIterator;
 import java.text.Annotation;
 
 import java.util.Map;
 import java.util.Hashtable;
-
-import sun.awt.SunToolkit;
-import java.awt.im.InputMethodHighlight;
-import sun.awt.im.InputMethodHighlightMapping;
 
 import sun.awt.font.Bidi;
 import sun.awt.font.ExtendedTextLabel;
@@ -49,7 +46,7 @@ import sun.java2d.SunGraphicsEnvironment;
 
 final class TextLine {
 
-    public static final class TextLineMetrics {
+    static final class TextLineMetrics {
         public final float ascent;
         public final float descent;
         public final float leading;
@@ -541,7 +538,7 @@ final class TextLine {
 
     public Shape getOutline(AffineTransform tx) {
 
-        GeneralPath dstShape = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
+        GeneralPath dstShape = new GeneralPath(GeneralPath.WIND_NON_ZERO);
 
         float x = 0;
         for (int i=0; i < fComponents.length; i++) {
@@ -796,12 +793,17 @@ final class TextLine {
 
                 InputMethodHighlight hl;
                 hl = (InputMethodHighlight) value;
-
-                SunToolkit stk = (SunToolkit) Toolkit.getDefaultToolkit();
-
-                InputMethodHighlightMapping mapper;
-                mapper = stk.getInputMethodHighlightMapping();
-                Map imStyles = mapper.mapHighlight(hl);
+                
+                Map imStyles = null;
+                try {
+                    imStyles = hl.getStyle();
+                } catch (NoSuchMethodError e) {
+                }
+                
+                if (imStyles == null) {
+                    Toolkit tk = Toolkit.getDefaultToolkit();
+                    imStyles = tk.mapInputMethodHighlight(hl);
+                }
 
                 if (imStyles != null) {
                     Hashtable newStyles = new Hashtable(5, (float)0.9);
@@ -1005,18 +1007,31 @@ final class TextLine {
         return componentOrder;
     }
 
-
-
     /**
-     * Create a TextLine from the text.  chars is just the text in the iterator.
+     * Create a Bidi for the paragraph in <tt>text</tt>.  If <tt>chars</tt>
+     * is not null it must be the characters in the paragraph.
      */
-    public static TextLine standardCreateTextLine(FontRenderContext frc,
-                                                  AttributedCharacterIterator text,
-                                                  char[] chars,
-                                                  float[] baselineOffsets) {
-
-        FontSource fontSource = new ACIFontSource(text);
-
+    // should this live in Bidi??
+    static Bidi createBidiOnParagraph(AttributedCharacterIterator text,
+                                      char[] chars) {
+    
+        final int begin = text.getBeginIndex();
+        final int end = text.getEndIndex();
+        final int length = end - begin;
+        
+        if (chars == null) {
+            int n = 0;
+            chars = new char[length];
+            for (char c = text.first(); c != text.DONE; c = text.next()) {
+                chars[n++] = c;
+            }
+        }
+        else {
+            if (chars.length != length) {
+                throw new IllegalArgumentException("chars length is not iter length");
+            }
+        }
+        
         boolean isDirectionLTR = true;
         Bidi bidi = null;
 
@@ -1025,29 +1040,23 @@ final class TextLine {
         byte[] embs = null;
 
         text.first();
-        Map attributes = text.getAttributes();
-        if (attributes != null) {
-          try {
-            Boolean runDirection = (Boolean)attributes.get(TextAttribute.RUN_DIRECTION);
-            if (runDirection != null) {
-              directionKnown = true;
-              isDirectionLTR = TextAttribute.RUN_DIRECTION_LTR.equals(runDirection);
-              requiresBidi = !isDirectionLTR;
-            }
-          }
-          catch (ClassCastException e) {
+        try {
+          Boolean runDirection = (Boolean)text.getAttribute(TextAttribute.RUN_DIRECTION);
+          if (runDirection != null) {
+            directionKnown = true;
+            isDirectionLTR = TextAttribute.RUN_DIRECTION_LTR.equals(runDirection);
+            requiresBidi = !isDirectionLTR;
           }
         }
+        catch (ClassCastException e) {
+        }
 
-        int begin = text.getBeginIndex();
-        int end = text.getEndIndex();
         int pos = begin;
         byte level = 0;
         byte baselevel = (byte)((directionKnown && !isDirectionLTR) ? 1 : 0);
         do {
           text.setIndex(pos);
-          attributes = text.getAttributes();
-          Object embeddingLevel = attributes.get(TextAttribute.BIDI_EMBEDDING);
+          Object embeddingLevel = text.getAttribute(TextAttribute.BIDI_EMBEDDING);
           int newpos = text.getRunLimit(TextAttribute.BIDI_EMBEDDING);
 
           if (embeddingLevel != null) {
@@ -1056,11 +1065,11 @@ final class TextLine {
               if (intLevel >= -15 && intLevel < 16) {
                 level = (byte)intLevel;
                 if (embs == null) {
-                  embs = new byte[chars.length];
+                  embs = new byte[length];
                   requiresBidi = true;
                   if (!directionKnown) {
                     directionKnown = true;
-                    isDirectionLTR = Bidi.defaultIsLTR(chars, 0, chars.length);
+                    isDirectionLTR = Bidi.defaultIsLTR(chars, 0, length);
                     baselevel = (byte)(isDirectionLTR ? 0 : 1);
                   }
                   if (!isDirectionLTR) {
@@ -1086,9 +1095,9 @@ final class TextLine {
 
           pos = newpos;
         } while (pos < end);
-        
+
         if (!requiresBidi) {
-          for (int i = 0; i < chars.length; i++) {
+          for (int i = 0; i < length; i++) {
             if (Bidi.requiresBidi(chars[i])) {
               requiresBidi = true;
               break;
@@ -1098,7 +1107,7 @@ final class TextLine {
 
         if (requiresBidi) {
           if (!directionKnown) {
-            isDirectionLTR = Bidi.defaultIsLTR(chars, 0, chars.length);
+            isDirectionLTR = Bidi.defaultIsLTR(chars, 0, length);
           }
           if (embs == null) {
             embs = Bidi.getEmbeddingArray(chars, isDirectionLTR);
@@ -1107,10 +1116,30 @@ final class TextLine {
           bidi = new Bidi(chars, embs, isDirectionLTR);
         }
 
+        return bidi;        
+    }
+
+    /**
+     * Create a TextLine from the text.  chars is just the text in the iterator.
+     */
+    public static TextLine standardCreateTextLine(FontRenderContext frc,
+                                                  AttributedCharacterIterator text,
+                                                  char[] chars,
+                                                  float[] baselineOffsets) {
+
+        FontSource fontSource = new ACIFontSource(text);
+        Bidi bidi = createBidiOnParagraph(text, chars);
+        
         TextLabelFactory factory = new TextLabelFactory(frc, chars, bidi);
 
+        boolean isDirectionLTR = true;
+        if (bidi != null) {
+            isDirectionLTR = bidi.isDirectionLTR();
+        }
         return createLineFromText(chars, 0, chars.length, fontSource, factory, isDirectionLTR, baselineOffsets);
     }
+
+
 
     /*
      * A utility to get a range of text that is both logically and visually

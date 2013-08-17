@@ -1,8 +1,11 @@
 /*
- * @(#)Any.java	1.25 01/11/29
+ * @(#)Any.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -32,11 +35,10 @@ import org.omg.CORBA.portable.IDLEntity;
  * the type of elements in the array. (Note that in	this case, the
  * second field of the <code>TypeCode</code> object is itself a
  * <code>TypeCode</code> object.)
- *
- *
  * </OL>
+ *
  * <P>
- * <a name="anyOps">
+ * <a name="anyOps"</a>
  * A large part of the <code>Any</code> class consists of pairs of methods
  * for inserting values into and extracting values from an
  * <code>Any</code> object.
@@ -85,7 +87,7 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object.
      *
      * @return		the <code>TypeCode</code> object containing type information
-     *                about the value contained in this <code>Any</code> object.
+     *                about the value contained in this <code>Any</code> object
      */
 
     abstract public TypeCode type();
@@ -116,6 +118,8 @@ abstract public class Any implements IDLEntity {
      * @param a	the <code>Any</code> object to test for equality
      * @return	<code>true</code> if the <code>Any</code> objects are equal;
      * <code>false</code> otherwise
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
      */
 
     abstract public boolean equal(Any a);
@@ -140,7 +144,7 @@ abstract public class Any implements IDLEntity {
      */
 
     abstract public void   read_value(InputStream is, TypeCode t)
-      throws MARSHAL;
+	throws MARSHAL;
 
     /**
      * Writes out to the given output stream the typecode and value
@@ -186,7 +190,7 @@ abstract public class Any implements IDLEntity {
      *
      * @param s		the <code>Streamable</code> object to insert into this
      *                <code>Any</code> object; may be a non-primitive
-	 *                IDL type
+     *                IDL type
      */
 
     abstract public void insert_Streamable(Streamable s);
@@ -200,9 +204,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>short</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>short</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>short</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public short    extract_short() throws BAD_OPERATION;
 
@@ -220,9 +224,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>int</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than an <code>int</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than an <code>int</code> or the
+     *              <code>value</code> field has not yet been set
      */
 
     abstract public int      extract_long() throws BAD_OPERATION;
@@ -242,9 +246,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>long</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>long</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>long</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public long     extract_longlong() throws BAD_OPERATION;
 
@@ -263,9 +267,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>short</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>short</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>short</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public short    extract_ushort() throws BAD_OPERATION;
 
@@ -284,9 +288,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>int</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than an <code>int</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than an <code>int</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public int      extract_ulong() throws BAD_OPERATION;
 
@@ -305,9 +309,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>long</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>long</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>long</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public long     extract_ulonglong() throws BAD_OPERATION;
 
@@ -326,9 +330,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>float</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>float</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>float</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public float    extract_float() throws BAD_OPERATION;
 
@@ -347,9 +351,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>double</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>double</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>double</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public double   extract_double() throws BAD_OPERATION;
 
@@ -368,9 +372,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>boolean</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>boolean</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>boolean</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public boolean  extract_boolean() throws BAD_OPERATION;
 
@@ -389,9 +393,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>char</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>char</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>char</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public char     extract_char() throws BAD_OPERATION;
 
@@ -401,7 +405,8 @@ abstract public class Any implements IDLEntity {
      *
      * @param c		the <code>char</code> to insert into this
      *                <code>Any</code> object
-	 * @exception <code>DATA_CONVERSION</code>
+     * @exception DATA_CONVERSION if there is a data conversion
+	 *            error
      */
     abstract public void     insert_char(char c) throws DATA_CONVERSION;
 
@@ -411,9 +416,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>byte</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>byte</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>byte</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public byte     extract_octet() throws BAD_OPERATION;
 
@@ -432,9 +437,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>char</code> stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>char</code> or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>char</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public char     extract_wchar() throws BAD_OPERATION;
 
@@ -453,9 +458,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>Any</code> object stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this <code>Any</code> object 
-	 *              contains something other than an <code>Any</code> object or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this <code>Any</code> object 
+     *              contains something other than an <code>Any</code> object or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public Any      extract_any() throws BAD_OPERATION;
 
@@ -474,9 +479,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>String</code> object stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>String</code> object or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>String</code> object or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public String   extract_string() throws BAD_OPERATION;
 
@@ -486,8 +491,9 @@ abstract public class Any implements IDLEntity {
      *
      * @param s		the <code>String</code> object to insert into this
      *                <code>Any</code> object
-	 * @exception <code>DATA_CONVERSION</code>
-	 * @exception <code>MARSHAL</code>
+     * @exception DATA_CONVERSION if there is a data conversion error
+     * @exception MARSHAL if the ORB has a problem marshalling or
+	 *             unmarshalling parameters
      */
     abstract public void     insert_string(String s) throws DATA_CONVERSION, MARSHAL;
 
@@ -497,9 +503,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>String</code> object stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>String</code> object or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>String</code> object or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public String   extract_wstring() throws BAD_OPERATION;
 
@@ -509,6 +515,8 @@ abstract public class Any implements IDLEntity {
      *
      * @param s		the <code>String</code> object to insert into this
      *                <code>Any</code> object
+     * @exception MARSHAL if the ORB has a problem marshalling or
+	 *             unmarshalling parameters
      */
     abstract public void     insert_wstring(String s) throws MARSHAL;
 
@@ -518,11 +526,11 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>org.omg.CORBA.Object</code> stored in 
-	 *         this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than an 
-	 *              <code>org.omg.CORBA.Object</code> or the
-	 *              <code>value</code> field has not yet been set
+     *         this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than an 
+     *              <code>org.omg.CORBA.Object</code> or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public org.omg.CORBA.Object extract_Object() throws BAD_OPERATION;
 
@@ -541,10 +549,12 @@ abstract public class Any implements IDLEntity {
      *
      * @param o		the <code>org.omg.CORBA.Object</code> instance to insert into this
      *                <code>Any</code> object
-	 * @param t     the <code>TypeCode</code> object that is to be inserted into
-	 *              this <code>Any</code> object and that describes
-	 *              the <code>Object</code> being inserted
-	 *              
+     * @param t     the <code>TypeCode</code> object that is to be inserted into
+     *              this <code>Any</code> object and that describes
+     *              the <code>Object</code> being inserted
+     * @exception BAD_OPERATION if this  method is invalid for this
+	 *            <code>Any</code> object
+     *              
      */
     abstract public void     insert_Object(org.omg.CORBA.Object o, 
 					   TypeCode t) 
@@ -555,9 +565,9 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>TypeCode</code> object stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>TypeCode</code> object or the
-	 *              <code>value</code> field has not yet been set
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>TypeCode</code> object or the
+     *              <code>value</code> field has not yet been set
      */
     abstract public TypeCode extract_TypeCode() throws BAD_OPERATION;
 
@@ -572,28 +582,28 @@ abstract public class Any implements IDLEntity {
 
 
     /**
-    * Extracts the <code>Principal</code> object in this
-    * <code>Any</code> object's <code>value</code> field.
-    * Note that the class <code>Principal</code> has been deprecated.
-    *
-    * @return the <code>Principal</code> object stored in this <code>Any</code> object
-    * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object
-    *              contains something other than a
-    *              <code>Principal</code> object or the
-    *              <code>value</code> field has not yet been set
-    * @deprecated Deprecated by CORBA 2.2.
-    */
+     * Extracts the <code>Principal</code> object in this
+     * <code>Any</code> object's <code>value</code> field.
+     * Note that the class <code>Principal</code> has been deprecated.
+     *
+     * @return the <code>Principal</code> object stored in this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object
+     *              contains something other than a
+     *              <code>Principal</code> object or the
+     *              <code>value</code> field has not yet been set
+     * @deprecated Deprecated by CORBA 2.2.
+     */
     abstract public Principal extract_Principal() throws BAD_OPERATION;
 
     /**
-    * Inserts the given <code>Principal</code> object
-    * into this <code>Any</code> object's <code>value</code> field.
-    * Note that the class <code>Principal</code> has been deprecated.
-    *
-    * @param p		the <code>Principal</code> object to insert into this
-    *                <code>Any</code> object
-    * @deprecated Deprecated by CORBA 2.2.
-    */
+     * Inserts the given <code>Principal</code> object
+     * into this <code>Any</code> object's <code>value</code> field.
+     * Note that the class <code>Principal</code> has been deprecated.
+     *
+     * @param p		the <code>Principal</code> object to insert into this
+     *                <code>Any</code> object
+     * @deprecated Deprecated by CORBA 2.2.
+     */
     abstract public void	   insert_Principal(Principal p);
 
 
@@ -602,11 +612,11 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>java.math.BigDecimal</code> object 
-	 *         stored in this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a
-	 *              <code>java.math.BigDecimal</code> object or the
-	 *              <code>value</code> field has not yet been set
+     *         stored in this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a
+     *              <code>java.math.BigDecimal</code> object or the
+     *              <code>value</code> field has not yet been set
      */
     public java.math.BigDecimal extract_fixed() {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -618,7 +628,7 @@ abstract public class Any implements IDLEntity {
      * into this <code>Any</code> object's <code>value</code> field.
      *
      * @param value		the <code>java.math.BigDecimal</code> object
-	 *                  to insert into this <code>Any</code> object
+     *                  to insert into this <code>Any</code> object
      */
     public void insert_fixed(java.math.BigDecimal value) {
 	throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -630,11 +640,11 @@ abstract public class Any implements IDLEntity {
      * into this <code>Any</code> object's <code>value</code> field.
      *
      * @param value		the <code>java.math.BigDecimal</code> object
-	 *                  to insert into this <code>Any</code> object
-	 * @param type     the <code>TypeCode</code> object that is to be inserted into
-	 *              this <code>Any</code> object's <code>type</code> field
-	 *              and that describes the <code>java.math.BigDecimal</code> 
-	 *              object being inserted
+     *                  to insert into this <code>Any</code> object
+     * @param type     the <code>TypeCode</code> object that is to be inserted into
+     *              this <code>Any</code> object's <code>type</code> field
+     *              and that describes the <code>java.math.BigDecimal</code> 
+     *              object being inserted
      */
     public void insert_fixed(java.math.BigDecimal value,
 			     org.omg.CORBA.TypeCode type) {
@@ -649,11 +659,11 @@ abstract public class Any implements IDLEntity {
      * <code>Any</code> object's <code>value</code> field.
      *
      * @return the <code>java.io.Serializable</code> object stored in
-	 *         this <code>Any</code> object
-	 * @exception <code>BAD_OPERATION</code> if this  <code>Any</code> object 
-	 *              contains something other than a <code>java.io.Serializable</code> 
-	 *              object or the
-	 *              <code>value</code> field has not yet been set
+     *         this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>java.io.Serializable</code> 
+     *              object or the
+     *              <code>value</code> field has not yet been set
      */
     public java.io.Serializable extract_Value() throws BAD_OPERATION {
 	throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -678,10 +688,12 @@ abstract public class Any implements IDLEntity {
      *
      * @param v		the <code>java.io.Serializable</code> object to insert into this
      *                <code>Any</code> object
-	 * @param t     the <code>TypeCode</code> object that is to be inserted into
-	 *              this <code>Any</code> object's <code>type</code> field
-	 *              and that describes the <code>java.io.Serializable</code> 
-	 *              object being inserted
+     * @param t     the <code>TypeCode</code> object that is to be inserted into
+     *              this <code>Any</code> object's <code>type</code> field
+     *              and that describes the <code>java.io.Serializable</code> 
+     *              object being inserted
+	 * @throws MARSHAL if the ORB has a problem marshalling or
+	 *          unmarshalling parameters
      */
     public void insert_Value(java.io.Serializable v, TypeCode t)
 	throws MARSHAL

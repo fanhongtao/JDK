@@ -1,8 +1,11 @@
 /*
- * @(#)MetalIconFactory.java	1.40 01/11/29
+ * @(#)MetalIconFactory.java	1.46 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -10,6 +13,7 @@ package javax.swing.plaf.metal;
 import javax.swing.*;
 import javax.swing.plaf.UIResource;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.Serializable;
 
 /**
@@ -25,7 +29,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.40 11/29/01
+ * @version 1.46 02/02/00
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {
@@ -52,6 +56,7 @@ public class MetalIconFactory implements Serializable {
     private static Icon menuItemArrowIcon;
     private static Icon checkBoxMenuItemIcon;
     private static Icon radioButtonMenuItemIcon;
+    private static Icon checkBoxIcon;
 
 
     // Constants
@@ -122,6 +127,17 @@ public class MetalIconFactory implements Serializable {
 	    radioButtonIcon = new RadioButtonIcon();
 	}
 	return radioButtonIcon;
+    }
+
+    /**
+     * Returns a checkbox icon
+     * @since 1.3
+     */
+    public static Icon getCheckBoxIcon() {
+	if (checkBoxIcon == null) {
+	    checkBoxIcon = new CheckBoxIcon();
+	}
+	return checkBoxIcon;
     }
 
     public static Icon getTreeComputerIcon() {
@@ -445,7 +461,11 @@ public class MetalIconFactory implements Serializable {
     }  // End class FileChooserUpFolderIcon
 
 
-    static class PaletteCloseIcon implements Icon, UIResource, Serializable{
+    /**
+     * Defines an icon for Palette close
+     * @since 1.3
+     */
+    public static class PaletteCloseIcon implements Icon, UIResource, Serializable{
         int iconSize = 7;
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
@@ -977,6 +997,54 @@ public class MetalIconFactory implements Serializable {
 	}
     }  // End class InternalFrameMinimizeIcon
 
+    private static class CheckBoxIcon implements Icon, UIResource, Serializable {
+	
+	protected int getControlSize() { return 13; }
+	
+	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    
+	    JCheckBox cb = (JCheckBox)c;
+	    ButtonModel model = cb.getModel();
+	    int controlSize = getControlSize();
+	    
+	    boolean drawCheck = model.isSelected();
+	    
+	    if ( model.isEnabled() ) {
+		if (model.isPressed() && model.isArmed()) {
+		    g.setColor( MetalLookAndFeel.getControlShadow() );
+		    g.fillRect( x, y, controlSize-1, controlSize-1);
+		    MetalUtils.drawPressed3DBorder(g, x, y, controlSize, controlSize);
+		} else {
+		    MetalUtils.drawFlush3DBorder(g, x, y, controlSize, controlSize);
+		}
+		g.setColor( MetalLookAndFeel.getControlInfo() );
+	    } else {
+	        g.setColor( MetalLookAndFeel.getControlShadow() );
+	        g.drawRect( x, y, controlSize-1, controlSize-1);
+	    }
+	    
+	    if (model.isSelected()) {
+		drawCheck(c,g,x,y);
+	    }
+	    
+	}
+	
+	protected void drawCheck(Component c, Graphics g, int x, int y) {
+	    int controlSize = getControlSize();
+	    g.fillRect( x+3, y+5, 2, controlSize-8 );
+	    g.drawLine( x+(controlSize-4), y+3, x+5, y+(controlSize-6) );
+	    g.drawLine( x+(controlSize-4), y+4, x+5, y+(controlSize-5) );
+	}
+	
+	public int getIconWidth() {
+	    return getControlSize();
+	}
+	
+	public int getIconHeight() {
+	    return getControlSize();
+	}
+    } // End class CheckBoxIcon
+
     // Radio button code
     private static class RadioButtonIcon implements Icon, UIResource, Serializable {
         public void paintIcon(Component c, Graphics g, int x, int y) {
@@ -1255,25 +1323,17 @@ public class MetalIconFactory implements Serializable {
 
 
         transient Image image;
-        transient Color cachedBackground;
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-
-	    Color background = c.getBackground();
-
-	    if (image == null ||(!cachedBackground.equals(background)) ) {
-
-	        cachedBackground = background;
-
-	        image = c.createImage(getIconWidth(), getIconHeight());
-
-                Graphics imageG = image.getGraphics();
-		
+	    if (image == null) {
+		image = new BufferedImage(getIconWidth(), getIconHeight(),
+					  BufferedImage.TYPE_INT_ARGB);
+                Graphics imageG = image.getGraphics();		
 		paintMe(c,imageG);
+		imageG.dispose();
 
 	    }
             g.drawImage(image, x, y+getShift(), null);
-
 	}
 
 
@@ -1281,10 +1341,6 @@ public class MetalIconFactory implements Serializable {
 
 	    int right = folderIcon16Size.width - 1;
 	    int bottom = folderIcon16Size.height - 1;
-
-	    g.setColor(cachedBackground);
-	    // g.setColor(Color.red);
-	    g.fillRect(0,0, right+1, bottom+3);
 
 	    // Draw tab top
 	    g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
@@ -1352,21 +1408,14 @@ public class MetalIconFactory implements Serializable {
     public static class FileIcon16 implements Icon, Serializable {
 
         transient Image image;
-        transient Color cachedBackground;
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-
-	    Color background = c.getBackground();
-
-	    if (image == null ||(!cachedBackground.equals(background)) ) {
-
-	        cachedBackground = background;
-
-	        image = c.createImage(getIconWidth(), getIconHeight());
-
-                Graphics imageG = image.getGraphics();
-		
+	    if (image == null) {
+		image = new BufferedImage(getIconWidth(), getIconHeight(),
+					  BufferedImage.TYPE_INT_ARGB);
+                Graphics imageG = image.getGraphics();		
 		paintMe(c,imageG);
+		imageG.dispose();
 
 	    }
             g.drawImage(image, x, y+getShift(), null);
@@ -1377,9 +1426,6 @@ public class MetalIconFactory implements Serializable {
 
 		int right = fileIcon16Size.width - 1;
 		int bottom = fileIcon16Size.height - 1;
-
-		g.setColor(cachedBackground);
-		g.fillRect(0,0, getIconWidth(), getIconHeight());
 
 		// Draw fill
 		g.setColor( MetalLookAndFeel.getWindowBackground() );
@@ -1443,89 +1489,103 @@ public class MetalIconFactory implements Serializable {
 	}
 
         transient Image image;
-        transient Color cachedBackground;
+        transient boolean cachedOrientation = true;
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
 
-	    Color background = c.getBackground();
-
-
-	    if (image == null ||(!cachedBackground.equals(background)) ) {
-
-	        cachedBackground = background;
-
-	        image = c.createImage(getIconWidth(), getIconHeight());
-
-                Graphics imageG = image.getGraphics();
-		
+	    if (image == null || cachedOrientation != MetalUtils.isLeftToRight(c)) {
+		cachedOrientation = MetalUtils.isLeftToRight(c);
+		image = new BufferedImage(getIconWidth(), getIconHeight(),
+					  BufferedImage.TYPE_INT_ARGB);
+                Graphics imageG = image.getGraphics();		
 		paintMe(c,imageG,x,y);
+		imageG.dispose();
 
 	    }
-	    if (isLight)
-	        g.drawImage(image, x+5, y+3, x+18, y+13, 4,3, 17, 13, null);
-	    else
-	        g.drawImage(image, x+5, y+3, x+18, y+17, 4,3, 17, 17, null);
+
+	    if (MetalUtils.isLeftToRight(c)) {
+	        if (isLight) {    // isCollapsed
+		    g.drawImage(image, x+5, y+3, x+18, y+13, 
+				       4,3, 17, 13, null);
+		}
+	        else {
+		    g.drawImage(image, x+5, y+3, x+18, y+17, 
+				       4,3, 17, 17, null);
+		}
+	    }
+	    else {
+	        if (isLight) {    // isCollapsed
+		    g.drawImage(image, x+3, y+3, x+16, y+13, 
+				       4, 3, 17, 13, null);
+		}
+		else {
+		    g.drawImage(image, x+3, y+3, x+16, y+17, 
+				       4, 3, 17, 17, null);
+		}
+	    }
 	}
 
 	public void paintMe(Component c, Graphics g, int x, int y) {
 
-	    g.setColor( cachedBackground );
-
-	    g.fillRect(0,0,treeControlSize.width, treeControlSize.height);
-	    
-
 	    g.setColor( MetalLookAndFeel.getPrimaryControlInfo() );
 
+	    int xoff = (MetalUtils.isLeftToRight(c)) ? 0 : 4;
+
 	    // Draw circle
-	    g.drawLine( 4, 6, 4, 9 );     // left
-	    g.drawLine( 5, 5, 5, 5 );     // top left dot
-	    g.drawLine( 6, 4, 9, 4 );     // top
-	    g.drawLine( 10, 5, 10, 5 );   // top right dot
-	    g.drawLine( 11, 6, 11, 9 );   // right
-	    g.drawLine( 10, 10, 10, 10 ); // botom right dot
-	    g.drawLine( 6, 11, 9, 11 );   // bottom
-	    g.drawLine( 5, 10, 5, 10 );   // bottom left dot
+	    g.drawLine( xoff + 4, 6, xoff + 4, 9 );     // left
+	    g.drawLine( xoff + 5, 5, xoff + 5, 5 );     // top left dot
+	    g.drawLine( xoff + 6, 4, xoff + 9, 4 );     // top
+	    g.drawLine( xoff + 10, 5, xoff + 10, 5 );   // top right dot
+	    g.drawLine( xoff + 11, 6, xoff + 11, 9 );   // right
+	    g.drawLine( xoff + 10, 10, xoff + 10, 10 ); // botom right dot
+	    g.drawLine( xoff + 6, 11, xoff + 9, 11 );   // bottom
+	    g.drawLine( xoff + 5, 10, xoff + 5, 10 );   // bottom left dot
 
 	    // Draw Center Dot
-	    g.drawLine( 7, 7, 8, 7 );
-	    g.drawLine( 7, 8, 8, 8 );
+	    g.drawLine( xoff + 7, 7, xoff + 8, 7 );
+	    g.drawLine( xoff + 7, 8, xoff + 8, 8 );
 
 	    // Draw Handle
-	    if ( isLight ) {
-	        g.drawLine( 12, 7, 15, 7 );
-		g.drawLine( 12, 8, 15, 8 );
-		//	g.setColor( c.getBackground() );
-		//	g.drawLine( 16, 7, 16, 8 );
+	    if ( isLight ) {    // isCollapsed
+	        if( MetalUtils.isLeftToRight(c) ) {
+	            g.drawLine( 12, 7, 15, 7 );
+		    g.drawLine( 12, 8, 15, 8 );
+		    //	g.setColor( c.getBackground() );
+		    //	g.drawLine( 16, 7, 16, 8 );
+		}
+		else {
+		    g.drawLine(4, 7, 7, 7);
+		    g.drawLine(4, 8, 7, 8);
+		}
 	    }
 	    else {
-	        g.drawLine( 7, 12, 7, 15 );
-		g.drawLine( 8, 12, 8, 15 );
+	        g.drawLine( xoff + 7, 12, xoff + 7, 15 );
+		g.drawLine( xoff + 8, 12, xoff + 8, 15 );
 		//	g.setColor( c.getBackground() );
-		//	g.drawLine( 7, 16, 8, 16 );
+		//	g.drawLine( xoff + 7, 16, xoff + 8, 16 );
 	    }
 
 	    // Draw Fill
 	    g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
-	    g.drawLine( 5, 6, 5, 9 );      // left shadow
-	    g.drawLine( 6, 5, 9, 5 );      // top shadow
+	    g.drawLine( xoff + 5, 6, xoff + 5, 9 );      // left shadow
+	    g.drawLine( xoff + 6, 5, xoff + 9, 5 );      // top shadow
 
 	    g.setColor( MetalLookAndFeel.getPrimaryControlShadow() );
-	    g.drawLine( 6, 6, 6, 6 );      // top left fill
-	    g.drawLine( 9, 6, 9, 6 );      // top right fill
-	    g.drawLine( 6, 9, 6, 9 );      // bottom left fill
-	    g.drawLine( 10, 6, 10, 9 );    // right fill
-	    g.drawLine( 6, 10, 9, 10 );    // bottom fill
+	    g.drawLine( xoff + 6, 6, xoff + 6, 6 );      // top left fill
+	    g.drawLine( xoff + 9, 6, xoff + 9, 6 );      // top right fill
+	    g.drawLine( xoff + 6, 9, xoff + 6, 9 );      // bottom left fill
+	    g.drawLine( xoff + 10, 6, xoff + 10, 9 );    // right fill
+	    g.drawLine( xoff + 6, 10, xoff + 9, 10 );    // bottom fill
 
 	    g.setColor( MetalLookAndFeel.getPrimaryControl() );
-	    g.drawLine( 6, 7, 6, 8 );      // left highlight
-	    g.drawLine( 7, 6, 8, 6 );      // top highlight
-	    g.drawLine( 9, 7, 9, 7 );      // right highlight
-	    g.drawLine( 7, 9, 7, 9 );      // bottom highlight
+	    g.drawLine( xoff + 6, 7, xoff + 6, 8 );      // left highlight
+	    g.drawLine( xoff + 7, 6, xoff + 8, 6 );      // top highlight
+	    g.drawLine( xoff + 9, 7, xoff + 9, 7 );      // right highlight
+	    g.drawLine( xoff + 7, 9, xoff + 7, 9 );      // bottom highlight
 
 	    g.setColor( MetalLookAndFeel.getPrimaryControlHighlight() );
-	    g.drawLine( 8, 9, 9, 9 );
-	    g.drawLine( 9, 8, 9, 8 );
-
+	    g.drawLine( xoff + 8, 9, xoff + 9, 9 );
+	    g.drawLine( xoff + 9, 8, xoff + 9, 8 );
 	}
 
 	public int getIconWidth() { return treeControlSize.width; }
@@ -1815,6 +1875,8 @@ private static class VerticalSliderThumbIcon implements Icon, Serializable, UIRe
     public void paintIcon( Component c, Graphics g, int x, int y ) {
         JSlider slider = (JSlider)c;
 
+	boolean leftToRight = MetalUtils.isLeftToRight(slider);
+
         g.translate( x, y );
 
 	// Draw the frame
@@ -1826,11 +1888,20 @@ private static class VerticalSliderThumbIcon implements Icon, Serializable, UIRe
 			                     MetalLookAndFeel.getControlDarkShadow() );
 	}
 
-	g.drawLine(  1,0  ,  8,0  ); // top
-	g.drawLine(  0,1  ,  0,13 ); // left
-	g.drawLine(  1,14 ,  8,14 ); // bottom
-	g.drawLine(  9,1  , 15,7  ); // top slant
-	g.drawLine(  9,13 , 15,7  ); // bottom slant
+	if (leftToRight) {
+	    g.drawLine(  1,0  ,  8,0  ); // top
+	    g.drawLine(  0,1  ,  0,13 ); // left
+	    g.drawLine(  1,14 ,  8,14 ); // bottom
+	    g.drawLine(  9,1  , 15,7  ); // top slant
+	    g.drawLine(  9,13 , 15,7  ); // bottom slant
+	}
+	else {
+	    g.drawLine(  7,0  , 14,0  ); // top
+	    g.drawLine( 15,1  , 15,13 ); // right
+	    g.drawLine(  7,14 , 14,14 ); // bottom
+	    g.drawLine(  0,7  ,  6,1  ); // top slant
+	    g.drawLine(  0,7  ,  6,13 ); // bottom slant
+	}
 
 	// Fill in the background
 	if ( slider.hasFocus() ) {
@@ -1840,22 +1911,34 @@ private static class VerticalSliderThumbIcon implements Icon, Serializable, UIRe
 	    g.setColor( MetalLookAndFeel.getControl() );
 	}
 
-	g.fillRect( 1,1, 8, 13 );
+	if (leftToRight) {
+	    g.fillRect(  1,1 ,  8,13 );
 
-	g.drawLine(  9,2 ,  9,12 );
-	g.drawLine( 10,3 , 10,11 );
-	g.drawLine( 11,4 , 11,10 );
-	g.drawLine( 12,5 , 12,9 );
-	g.drawLine( 13,6 , 13,8 );
-	g.drawLine( 14,7 , 14,7 );
+	    g.drawLine(  9,2 ,  9,12 );
+	    g.drawLine( 10,3 , 10,11 );
+	    g.drawLine( 11,4 , 11,10 );
+	    g.drawLine( 12,5 , 12,9 );
+	    g.drawLine( 13,6 , 13,8 );
+	    g.drawLine( 14,7 , 14,7 );
+	}
+	else {
+	    g.fillRect(  7,1,   8,13 );
+
+	    g.drawLine(  6,3 ,  6,12 );
+	    g.drawLine(  5,4 ,  5,11 );
+	    g.drawLine(  4,5 ,  4,10 );
+	    g.drawLine(  3,6 ,  3,9 );
+	    g.drawLine(  2,7 ,  2,8 );
+	}
 
 	// Draw the bumps
+	int offset = (leftToRight) ? 2 : 8;
 	if ( slider.isEnabled() ) {
 	    if ( slider.hasFocus() ) {
-	        primaryBumps.paintIcon( c, g, 2, 2 );
+	        primaryBumps.paintIcon( c, g, offset, 2 );
 	    }
 	    else {
-	        controlBumps.paintIcon( c, g, 2, 2 );
+	        controlBumps.paintIcon( c, g, offset, 2 );
 	    }
 	}
 
@@ -1863,8 +1946,14 @@ private static class VerticalSliderThumbIcon implements Icon, Serializable, UIRe
 	if ( slider.isEnabled() ) {
 	    g.setColor( slider.hasFocus() ? MetalLookAndFeel.getPrimaryControl()
 			: MetalLookAndFeel.getControlHighlight() );
-	    g.drawLine( 1, 1, 8, 1 );
-	    g.drawLine( 1, 1, 1, 13 );
+	    if (leftToRight) {
+	        g.drawLine( 1, 1, 8, 1 );
+		g.drawLine( 1, 1, 1, 13 );
+	    }
+	    else {
+	        g.drawLine(  8,1  , 14,1  ); // top
+		g.drawLine(  1,7  ,  7,1  ); // top slant
+	    }
 	}
 
         g.translate( -x, -y );

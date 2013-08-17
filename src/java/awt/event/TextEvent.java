@@ -1,8 +1,11 @@
 /*
- * @(#)TextEvent.java	1.9 01/11/29
+ * @(#)TextEvent.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -22,13 +25,15 @@ import java.awt.Event;
  * spared the details of processing individual mouse movements and key strokes
  * Instead, it can process a "meaningful" (semantic) event like "text changed". 
  *
+ * @author Georges Saab
+ * @version 1.11 02/02/00
+ *
  * @see java.awt.TextComponent
  * @see TextListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/textlistener.html">Tutorial: Writing a Text Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.9 11/29/01
- * @author Georges Saab
+ * @since 1.1
  */
 
 public class TextEvent extends AWTEvent {

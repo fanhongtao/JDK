@@ -1,8 +1,11 @@
 /*
- * @(#)TreeModel.java	1.14 01/11/29
+ * @(#)TreeModel.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.tree;
 
@@ -10,8 +13,13 @@ import javax.swing.event.*;
 
 /**
  * The interface that defines a suitable data model for a JTree. 
+ * For further information on tree models,
+ * including an example of a custom implementation,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
+ * in <em>The Java Tutorial.</em>
  * 
- * @version 1.14 11/29/01
+ * @version 1.16 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  */

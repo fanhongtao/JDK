@@ -1,8 +1,11 @@
 /*
- * @(#)ServiceInformationHolder.java	1.7 01/11/29
+ * @(#)ServiceInformationHolder.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -23,11 +26,11 @@ package org.omg.CORBA;
  * <code>myServiceInformationHolder.value</code>.
  */
 public final class ServiceInformationHolder
-     implements org.omg.CORBA.portable.Streamable {
+    implements org.omg.CORBA.portable.Streamable {
 
     /**
      * The <code>ServiceInformation</code> value held by this
-	 * <code>ServiceInformationHolder</code> object in its <code>value</code> field.
+     * <code>ServiceInformationHolder</code> object in its <code>value</code> field.
      */
     public ServiceInformation value;
 
@@ -43,7 +46,7 @@ public final class ServiceInformationHolder
      * Constructs a new <code>ServiceInformationHolder</code> object with its
      * <code>value</code> field initialized to the given
      * <code>ServiceInformation</code> object.
-	 *
+     *
      * @param arg the <code>ServiceInformation</code> object with which to initialize
      *                the <code>value</code> field of the newly-created
      *                <code>ServiceInformationHolder</code> object
@@ -55,10 +58,10 @@ public final class ServiceInformationHolder
 
     /**
      * Marshals the value in this <code>ServiceInformationHolder</code> object's
-	 * <code>value</code> field to the output stream <code>out</code>.
+     * <code>value</code> field to the output stream <code>out</code>.
      *
      * @param out the <code>OutputStream</code> object that will contain
-	 *               the CDR formatted data
+     *               the CDR formatted data
      */
     public void _write(org.omg.CORBA.portable.OutputStream out) {
         org.omg.CORBA.ServiceInformationHelper.write(out, value);
@@ -66,10 +69,10 @@ public final class ServiceInformationHolder
 
     /**
      * Reads unmarshalled data from the input stream <code>in</code> and assigns it to
-	 * the <code>value</code> field in this <code>ServiceInformationHolder</code> object.
+     * the <code>value</code> field in this <code>ServiceInformationHolder</code> object.
      *
      * @param in the <code>InputStream</code> object containing CDR 
-	 *              formatted data from the wire
+     *              formatted data from the wire
      */
     public void _read(org.omg.CORBA.portable.InputStream in) {
         value = org.omg.CORBA.ServiceInformationHelper.read(in);
@@ -77,11 +80,11 @@ public final class ServiceInformationHolder
 
     /**
      * Retrieves the <code>TypeCode</code> object that corresponds
-	 * to the value held in this <code>ServiceInformationHolder</code> object's
-	 * <code>value</code> field.
+     * to the value held in this <code>ServiceInformationHolder</code> object's
+     * <code>value</code> field.
      *
      * @return    the type code for the value held in this <code>ServiceInformationHolder</code>
-	 *            object
+     *            object
      */
     public org.omg.CORBA.TypeCode _type() {
         return org.omg.CORBA.ServiceInformationHelper.type();

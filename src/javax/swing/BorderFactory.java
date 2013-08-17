@@ -1,8 +1,11 @@
 /*
- * @(#)BorderFactory.java	1.16 01/11/29
+ * @(#)BorderFactory.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -12,11 +15,15 @@ import javax.swing.JComponent;
 import javax.swing.border.*;
 
 /**
- * Factory class for vending standard Border objects.  Whereever
+ * Factory class for vending standard <code>Border</code> objects.  Wherever
  * possible, this factory will hand out references to shared
- * Border instances.
+ * <code>Border</code> instances.
+ * For further information and examples see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/border.html">How
+ to Use Borders</a>,
+ * a section in <em>The Java Tutorial</em>.
  *
- * @version 1.16 11/29/01
+ * @version 1.23 02/02/00
  * @author David Kloba
  */
 public class BorderFactory 
@@ -31,23 +38,23 @@ public class BorderFactory
     /**
      * Creates a line border withe the specified color.
      *
-     * @param color  a Color to use for the line
-     * @return the Border object
+     * @param color  a <code>Color</code> to use for the line
+     * @return the <code>Border</code> object
      */
     public static Border createLineBorder(Color color) {
         return new LineBorder(color, 1);
     }
 
     /**
-     * Creates a line border withe the specified color
-     * and width. The width applies to all 4 sides of the
+     * Creates a line border with the specified color
+     * and width. The width applies to all four sides of the
      * border. To specify widths individually for the top,
      * bottom, left, and right, use 
      * {@link #createMatteBorder(int,int,int,int,Color)}.
      *
-     * @param color  a Color to use for the line
-     * @param thickness  an int specifying the width in pixels
-     * @return the Border object
+     * @param color  a <code>Color</code> to use for the line
+     * @param thickness  an integer specifying the width in pixels
+     * @return the <code>Border</code> object
      */
     public static Border createLineBorder(Color color, int thickness)  {
         return new LineBorder(color, thickness);
@@ -64,75 +71,82 @@ public class BorderFactory
     static final Border sharedLoweredBevel = new BevelBorder(BevelBorder.LOWERED);
 
     /**
-     * Created a border with a raised beveled edge, using
+     * Creates a border with a raised beveled edge, using
      * brighter shades of the component's current background color
      * for highlighting, and darker shading for shadows.
      * (In a raised border, highlights are on top and shadows
      *  are underneath.)
      *
-     * @return the Border object
+     * @return the <code>Border</code> object
      */
     public static Border createRaisedBevelBorder() {
         return createSharedBevel(BevelBorder.RAISED);
     }
 
     /**
-     * Created a border with a lowered beveled edge, using
+     * Creates a border with a lowered beveled edge, using
      * brighter shades of the component's current background color
      * for highlighting, and darker shading for shadows.
      * (In a lowered border, shadows are on top and highlights
      *  are underneath.)
      *
-     * @return the Border object
+     * @return the <code>Border</code> object
      */
     public static Border createLoweredBevelBorder() {
         return createSharedBevel(BevelBorder.LOWERED);
     }
 
     /**
-     * Create a beveled border of the specified type, using
+     * Creates a beveled border of the specified type, using
      * brighter shades of the component's current background color
      * for highlighting, and darker shading for shadows.
      * (In a lowered border, shadows are on top and highlights
-     *  are underneath.).
+     *  are underneath.)
      *
-     * @param type  an int specifying either BevelBorder.LOWERED
-     *              or BevelBorder.LOWERED
-     * @return the Border object
+     * @param type  an integer specifying either
+     *			<code>BevelBorder.LOWERED</code> or
+     *              	<code>BevelBorder.RAISED</code>
+     * @return the <code>Border</code> object
      */
     public static Border createBevelBorder(int type) {
 	return createSharedBevel(type);
     }
 	
     /**
-     * Create a beveled border of the specified type, using
+     * Creates a beveled border of the specified type, using
      * the specified highlighting and shadowing. The outer 
      * edge of the highlighted area uses a brighter shade of
      * the highlight color. The inner edge of the shadow area
-     * uses a brighter shade of the shadaw color.
+     * uses a brighter shade of the shadow color.
      * 
-     * @param type  an int specifying either BevelBorder.LOWERED
-     *              or BevelBorder.LOWERED
-     * @param highlight  a Color object for highlights
-     * @param shadow     a Color object for shadows
-     * @return the Border object
+     * @param type  an integer specifying either 
+     *			<code>BevelBorder.LOWERED</code> or
+     *              	<code>BevelBorder.RAISED</code>
+     * @param highlight  a <code>Color</code> object for highlights
+     * @param shadow     a <code>Color</code> object for shadows
+     * @return the <code>Border</code> object
      */
     public static Border createBevelBorder(int type, Color highlight, Color shadow) {
         return new BevelBorder(type, highlight, shadow);
     }
 
     /**
-     * Create a beveled border of the specified type, using
+     * Creates a beveled border of the specified type, using
      * the specified colors for the inner and outer highlight
      * and shadow areas. 
      * 
-     * @param type  an int specifying either BevelBorder.LOWERED
-     *              or BevelBorder.LOWERED
-     * @param highlightOuter  a Color object for the outer edge of the highlight area
-     * @param highlightInner  a Color object for the inner edge of the highlight area
-     * @param shadowOuter     a Color object for the outer edge of the shadow area
-     * @param shadowInner     a Color object for the inner edge of the shadow area
-     * @return the Border object
+     * @param type  an integer specifying either 
+     *		<code>BevelBorder.LOWERED</code> or
+     *          <code>BevelBorder.RAISED</code>
+     * @param highlightOuter  a <code>Color</code> object for the
+     *			outer edge of the highlight area
+     * @param highlightInner  a <code>Color</code> object for the
+     *			inner edge of the highlight area
+     * @param shadowOuter     a <code>Color</code> object for the
+     *			outer edge of the shadow area
+     * @param shadowInner     a <code>Color</code> object for the
+     *			inner edge of the shadow area
+     * @return the <code>Border</code> object
      */
     public static Border createBevelBorder(int type,
                         Color highlightOuter, Color highlightInner,
@@ -151,68 +165,114 @@ public class BorderFactory
     }
 //// EtchedBorder ///////////////////////////////////////////////////////////
     static final Border sharedEtchedBorder = new EtchedBorder();
+    private static Border sharedRaisedEtchedBorder;
 
     /**
-     * Create a border with an "etched" look using
+     * Creates a border with an "etched" look using
      * the component's current background color for 
      * highlighting and shading.
      *
-     * @return the Border object
+     * @return the <code>Border</code> object
      */
     public static Border createEtchedBorder()    {
 	return sharedEtchedBorder;
     }
 
     /**
-     * Create a border with an "etched" look using
+     * Creates a border with an "etched" look using
      * the specified highlighting and shading colors.
      *
-     * @param highlight  a Color object for the border highlights
-     * @param shadow     a Color object for the border shadows
-     * @return the Border object 
+     * @param highlight  a <code>Color</code> object for the border highlights
+     * @param shadow     a <code>Color</code> object for the border shadows
+     * @return the <code>Border</code> object 
      */
     public static Border createEtchedBorder(Color highlight, Color shadow)    {
         return new EtchedBorder(highlight, shadow);
     }
 
+    /**
+     * Creates a border with an "etched" look using
+     * the component's current background color for 
+     * highlighting and shading.
+     *
+     * @param type  	one of <code>EtchedBorder.RAISED</code>, or
+     *			<code>EtchedBorder.LOWERED</code>
+     * @return the <code>Border</code> object
+     * @exception IllegalArgumentException if type is not either
+     *			<code>EtchedBorder.RAISED</code> or 
+     *			<code>EtchedBorder.LOWERED</code>
+     * @since 1.3
+     */
+    public static Border createEtchedBorder(int type)    {
+	switch (type) {
+	case EtchedBorder.RAISED:
+	    if (sharedRaisedEtchedBorder == null) {
+		sharedRaisedEtchedBorder = new EtchedBorder
+		                           (EtchedBorder.RAISED);
+	    }
+	    return sharedRaisedEtchedBorder;
+	case EtchedBorder.LOWERED:
+	    return sharedEtchedBorder;
+	default:
+	    throw new IllegalArgumentException("type must be one of EtchedBorder.RAISED or EtchedBorder.LOWERED");
+	}
+    }
+
+    /**
+     * Creates a border with an "etched" look using
+     * the specified highlighting and shading colors.
+     *
+     * @param type    	one of <code>EtchedBorder.RAISED</code>, or
+     *			<code>EtchedBorder.LOWERED</code>
+     * @param highlight  a <code>Color</code> object for the border highlights
+     * @param shadow     a <code>Color</code> object for the border shadows
+     * @return the <code>Border</code> object 
+     * @since 1.3
+     */
+    public static Border createEtchedBorder(int type, Color highlight,
+					    Color shadow)    {
+        return new EtchedBorder(type, highlight, shadow);
+    }
+
 //// TitledBorder ////////////////////////////////////////////////////////////
     /**
-     * Create a new title border specifying the text of the title, using
-     * the default border (etched), using the default text position (sitting on the top
-     * line) and default justification (left) and using the default
+     * Creates a new title border specifying the text of the title, using
+     * the default border (etched), using the default text position
+     * (sitting on the top
+     * line) and default justification (leading) and using the default
      * font and text color determined by the current look and feel.
      *
-     * @param title               a String containing the text of the title
-     * @return the TitledBorder object
+     * @param title      a <code>String</code> containing the text of the title
+     * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(String title)     {
         return new TitledBorder(title);
     }
 
     /**
-     * Create a new title border with an empty title specifying the
+     * Creates a new title border with an empty title specifying the
      * border object, using the default text position (sitting on the top
-     * line) and default justification (left) and using the default
+     * line) and default justification (leading) and using the default
      * font, text color, and border determined by the current look and feel.
      * (The Motif and Windows look and feels use an etched border;
-     * The Java look and feel use a gray border.)
+     * The Java look and feel uses a gray border.)
      *
-     * @param border  the Border object to add the title to
-     * @return the TitledBorder object
+     * @param border  the <code>Border</code> object to add the title to
+     * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border)       {
         return new TitledBorder(border);
     }
 
     /**
-     * Add a title to an existing border, specifying the text of
+     * Adds a title to an existing border, specifying the text of
      * the title, using the default positioning (sitting on the top
-     * line) and default justification (left) and using the default
+     * line) and default justification (leading) and using the default
      * font and text color determined by the current look and feel.
      *
-     * @param border              the Border object to add the title to
-     * @param title               a String containing the text of the title
-     * @return the TitledBorder object
+     * @param border     the <code>Border</code> object to add the title to
+     * @param title      a <code>String</code> containing the text of the title
+     * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border, 
 						   String title) {
@@ -220,21 +280,34 @@ public class BorderFactory
     }
 
     /**
-     * Add a title to an existing border, specifying the text of
+     * Adds a title to an existing border, specifying the text of
      * the title along with its positioning, using the default
      * font and text color determined by the current look and feel.
      *
-     * @param border              the Border object to add the title to
-     * @param title               a String containing the text of the title
-     * @param titleJustification  an int specifying the left/right position
-     *        of the title -- one of TitledBorder.LEFT, TitledBorder.CENTER,
-     *        or TitledBorder.RIGHT, TitledBorder.DEFAULT_JUSTIFICATION (left).
-     * @param titlePosition       an int specifying the vertical position of
-     *        the text in relation to the border -- one of: TitledBorder.ABOVE_TOP, TitledBorder.TOP
-     *        (sitting on the top line), TitledBorder.BELOW_TOP, TitledBorder.ABOVE_BOTTOM, TitledBorder.BOTTOM
-     *        (sitting on the bottom line), TitledBorder.BELOW_BOTTOM, or 
-     *        TitledBorder.DEFAULT_POSITION (top).
-     * @return the TitledBorder object
+     * @param border      the <code>Border</code> object to add the title to
+     * @param title       a <code>String</code> containing the text of the title
+     * @param titleJustification  an integer specifying the justification 
+     *        of the title -- one of the following:
+     *<ul>
+     *<li><code>TitledBorder.LEFT</code>
+     *<li><code>TitledBorder.CENTER</code>
+     *<li><code>TitledBorder.RIGHT</code>
+     *<li><code>TitledBorder.LEADING</code>
+     *<li><code>TitledBorder.TRAILING<code>
+     *<li><code>TitledBorder.DEFAULT_JUSTIFICATION</code> (leading)
+     *</ul>
+     * @param titlePosition       an integer specifying the vertical position of
+     *        the text in relation to the border -- one of the following:
+     *<ul>
+     *<li><code> TitledBorder.ABOVE_TOP</code>
+     *<li>TitledBorder.TOP</code> (sitting on the top line)
+     *<li><code>TitledBorder.BELOW_TOP</code>
+     *<li><code>TitledBorder.ABOVE_BOTTOM</code>
+     *<li><code>TitledBorder.BOTTOM</code> (sitting on the bottom line)
+     *<li><code>TitledBorder.BELOW_BOTTOM</code>
+     *<li><code>TitledBorder.DEFAULT_POSITION</code> (top)
+     *</ul>
+     * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border, 
                         String title,
@@ -245,20 +318,33 @@ public class BorderFactory
     }
 
     /**
-     * Add a title to an existing border, specifying the text of
+     * Adds a title to an existing border, specifying the text of
      * the title along with its positioning and font, using the
      * default text color determined by the current look and feel.
      *
-     * @param border              the Border object to add the title to
-     * @param title               a String containing the text of the title
-     * @param titleJustification  an int specifying the left/right position
-     *        of the title -- one of TitledBorder.LEFT, TitledBorder.CENTER,
-     *        or TitledBorder.RIGHT, TitledBorder.DEFAULT_JUSTIFICATION (left).
-     * @param titlePosition       an int specifying the vertical position of
-     *        the text in relation to the border -- one of: TitledBorder.ABOVE_TOP, TitledBorder.TOP
-     *        (sitting on the top line), TitledBorder.BELOW_TOP, TitledBorder.ABOVE_BOTTOM, TitledBorder.BOTTOM
-     *        (sitting on the bottom line), TitledBorder.BELOW_BOTTOM, or 
-     *        TitledBorder.DEFAULT_POSITION (top).
+     * @param border      the <code>Border</code> object to add the title to
+     * @param title       a <code>String</code> containing the text of the title
+     * @param titleJustification  an integer specifying the justification
+     *        of the title -- one of the following:
+     *<ul>
+     *<li><code>TitledBorder.LEFT</code>
+     *<li><code>TitledBorder.CENTER</code>
+     *<li><code>TitledBorder.RIGHT</code>
+     *<li><code>TitledBorder.LEADING</code>
+     *<li><code>TitledBorder.TRAILING<code>
+     *<li><code>TitledBorder.DEFAULT_JUSTIFICATION</code> (leading)
+     *</ul>
+     * @param titlePosition       an integer specifying the vertical position of
+     *        the text in relation to the border -- one of the following:
+     *<ul>
+     *<li><code> TitledBorder.ABOVE_TOP</code>
+     *<li>TitledBorder.TOP</code> (sitting on the top line)
+     *<li><code>TitledBorder.BELOW_TOP</code>
+     *<li><code>TitledBorder.ABOVE_BOTTOM</code>
+     *<li><code>TitledBorder.BOTTOM</code> (sitting on the bottom line)
+     *<li><code>TitledBorder.BELOW_BOTTOM</code>
+     *<li><code>TitledBorder.DEFAULT_POSITION</code> (top)
+     *</ul>
      * @param titleFont           a Font object specifying the title font
      * @return the TitledBorder object
      */
@@ -272,22 +358,35 @@ public class BorderFactory
     }
 
     /**
-     * Add a title to an existing border, specifying the text of
+     * Adds a title to an existing border, specifying the text of
      * the title along with its positioning, font, and color.
      *
-     * @param border              the Border object to add the title to
-     * @param title               a String containing the text of the title
-     * @param titleJustification  an int specifying the left/right position
-     *        of the title -- one of TitledBorder.LEFT, TitledBorder.CENTER,
-     *        or TitledBorder.RIGHT, TitledBorder.DEFAULT_JUSTIFICATION (left).
-     * @param titlePosition       an int specifying the vertical position of
-     *        the text in relation to the border -- one of: TitledBorder.ABOVE_TOP, TitledBorder.TOP
-     *        (sitting on the top line), TitledBorder.BELOW_TOP, TitledBorder.ABOVE_BOTTOM, TitledBorder.BOTTOM
-     *        (sitting on the bottom line), TitledBorder.BELOW_BOTTOM, or 
-     *        TitledBorder.DEFAULT_POSITION (top).
-     * @param titleFont           a Font object specifying the title font
-     * @param titleColor          a Color object specifying the title color
-     * @return the TitledBorder object
+     * @param border      the <code>Border</code> object to add the title to
+     * @param title       a <code>String</code> containing the text of the title
+     * @param titleJustification  an integer specifying the justification
+     *        of the title -- one of the following:
+     *<ul>
+     *<li><code>TitledBorder.LEFT</code>
+     *<li><code>TitledBorder.CENTER</code>
+     *<li><code>TitledBorder.RIGHT</code>
+     *<li><code>TitledBorder.LEADING</code>
+     *<li><code>TitledBorder.TRAILING<code>
+     *<li><code>TitledBorder.DEFAULT_JUSTIFICATION</code> (leading)
+     *</ul>
+     * @param titlePosition       an integer specifying the vertical position of
+     *        the text in relation to the border -- one of the following:
+     *<ul>
+     *<li><code> TitledBorder.ABOVE_TOP</code>
+     *<li>TitledBorder.TOP</code> (sitting on the top line)
+     *<li><code>TitledBorder.BELOW_TOP</code>
+     *<li><code>TitledBorder.ABOVE_BOTTOM</code>
+     *<li><code>TitledBorder.BOTTOM</code> (sitting on the bottom line)
+     *<li><code>TitledBorder.BELOW_BOTTOM</code>
+     *<li><code>TitledBorder.DEFAULT_POSITION</code> (top)
+     *</ul>
+     * @param titleFont   a <code>Font</code> object specifying the title font
+     * @param titleColor  a <code>Color</code> object specifying the title color
+     * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border,                     
                         String title,
@@ -305,22 +404,26 @@ public class BorderFactory
      * Creates an empty border that takes up no space. (The width
      * of the top, bottom, left, and right sides are all zero.)
      *
-     * @return the Border object
+     * @return the <code>Border</code> object
      */
     public static Border createEmptyBorder() {
 	return emptyBorder;
     }
 
     /**
-     * Creates an empty border that takes up no space but which does
+     * Creates an empty border that takes up space but which does
      * no drawing, specifying the width of the top, left, bottom, and
      * right sides.
      *
-     * @param top     an int specifying the width of the top in pixels
-     * @param left    an int specifying the width of the left side in pixels
-     * @param bottom  an int specifying the width of the right side in pixels
-     * @param right   an int specifying the width of the bottom in pixels
-     * @return the Border object
+     * @param top     an integer specifying the width of the top,
+     *			in pixels
+     * @param left    an integer specifying the width of the left side,
+     *			in pixels
+     * @param bottom  an integer specifying the width of the right side,
+     *			in pixels
+     * @param right   an integer specifying the width of the bottom,
+     *			in pixels
+     * @return the <code>Border</code> object
      */
     public static Border createEmptyBorder(int top, int left, 
 						int bottom, int right) {
@@ -329,22 +432,24 @@ public class BorderFactory
 
 //// CompoundBorder ////////////////////////////////////////////////////////
     /**
-     * Create a compound border with a null inside edge and a null
-     * outside edge.
+     * Creates a compound border with a <code>null</code> inside edge and a
+     * <code>null</code> outside edge.
      *
-     * @return the CompoundBorder object
+     * @return the <code>CompoundBorder</code> object
      */
     public static CompoundBorder createCompoundBorder() { 
 	return new CompoundBorder(); 
     }
 
     /**
-     * Create a compound border specifying the border objects to use
+     * Creates a compound border specifying the border objects to use
      * for the outside and inside edges.
      *
-     * @param outsideBorder  a Border object for the outer edge of the compound border
-     * @param insideBorder   a Border object for the inner edge of the compound border
-     * @return the CompoundBorder object
+     * @param outsideBorder  a <code>Border</code> object for the outer
+     *				edge of the compound border
+     * @param insideBorder   a <code>Border</code> object for the inner
+     *				edge of the compound border
+     * @return the <code>CompoundBorder</code> object
      */
     public static CompoundBorder createCompoundBorder(Border outsideBorder, 
 						Border insideBorder) { 
@@ -353,16 +458,20 @@ public class BorderFactory
 
 //// MatteBorder ////////////////////////////////////////////////////////
     /**
-     * Create a matte-look border using a solid color. (The difference between
+     * Creates a matte-look border using a solid color. (The difference between
      * this border and a line border is that you can specify the individual
      * border dimensions.)
      *
-     * @param top     an int specifying the width of the top in pixels
-     * @param left    an int specifying the width of the left side in pixels
-     * @param bottom  an int specifying the width of the right side in pixels
-     * @param right   an int specifying the width of the bottom in pixels
-     * @param color   a Color to use for the border
-     * @return the MatteBorder object 
+     * @param top     an integer specifying the width of the top,
+     *				in pixels
+     * @param left    an integer specifying the width of the left side,
+     *				in pixels
+     * @param bottom  an integer specifying the width of the right side,
+     *				in pixels
+     * @param right   an integer specifying the width of the bottom,
+     *				in pixels
+     * @param color   a <code>Color</code> to use for the border
+     * @return the <code>MatteBorder</code> object 
      */
     public static MatteBorder createMatteBorder(int top, int left, int bottom, int right, 
                                                 Color color) {
@@ -370,19 +479,23 @@ public class BorderFactory
     }
 
     /**
-     * Create a matte-look border that consists of multiple tiles of a 
+     * Creates a matte-look border that consists of multiple tiles of a 
      * specified icon. Multiple copies of the icon are placed side-by-side
      * to fill up the border area.
      * <p>
      * Note:<br> 
      * If the icon doesn't load, the border area is painted gray.
      *
-     * @param top     an int specifying the width of the top in pixels
-     * @param left    an int specifying the width of the left side in pixels
-     * @param bottom  an int specifying the width of the right side in pixels
-     * @param right   an int specifying the width of the bottom in pixels
-     * @param tileIcon  the Icon object used for the border tiles
-     * @return the MatteBorder object
+     * @param top     an integer specifying the width of the top,
+     *				in pixels
+     * @param left    an integer specifying the width of the left side,
+     *				in pixels
+     * @param bottom  an integer specifying the width of the right side,
+     *				in pixels
+     * @param right   an integer specifying the width of the bottom,
+     *				in pixels
+     * @param tileIcon  the <code>Icon</code> object used for the border tiles
+     * @return the <code>MatteBorder</code> object
      */
     public static MatteBorder createMatteBorder(int top, int left, int bottom, int right, 
                                                 Icon tileIcon) {

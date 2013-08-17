@@ -1,8 +1,11 @@
 /*
- * @(#)InvocationEvent.java	1.5 01/11/29
+ * @(#)InvocationEvent.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -20,21 +23,23 @@ import java.awt.AWTEvent;
  * to <code>invokeLater</code> and <code>invokeAndWait</code>. Client code
  * can use this fact to write replacement functions for <code>invokeLater
  * </code> and <code>invokeAndWait</code> without writing special-case code
- * in any <code>EventQueueListener</code> objects.
+ * in any <code>AWTEventListener</code> objects.
+ *
+ * @author	Fred Ecks
+ * @author	David Mendenhall
+ * @version	1.9, 02/02/00
  *
  * @see		java.awt.ActiveEvent
  * @see		java.awt.EventQueue#invokeLater
  * @see		java.awt.EventQueue#invokeAndWait
- * @see		EventQueueListener
+ * @see		AWTEventListener
  *
- * @version	1.5, 11/29/01
- * @author	Fred Ecks
- * @author	David Mendenhall
+ * @since 	1.2
  */
 public class InvocationEvent extends AWTEvent implements ActiveEvent {
 
     /**
-     * Marks the first integer id for the range of invoke event ids.
+     * Marks the first integer id for the range of invocation event ids.
      */
     public static final int INVOCATION_FIRST = 1200;
 
@@ -44,7 +49,7 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
     public static final int INVOCATION_DEFAULT = INVOCATION_FIRST;
 
     /**
-     * Marks the last integer id for the range of invoke event ids.
+     * Marks the last integer id for the range of invocation event ids.
      */
     public static final int INVOCATION_LAST = INVOCATION_DEFAULT;
 

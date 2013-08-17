@@ -1,8 +1,11 @@
 /*
- * @(#)RenderingHints.java	1.13 01/11/29
+ * @(#)RenderingHints.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -297,6 +300,29 @@ public class RenderingHints implements Map, Cloneable {
     public static final Object VALUE_COLOR_RENDER_DEFAULT =
 	 SunHints.VALUE_COLOR_RENDER_DEFAULT;
 
+    /**
+     * Stroke normalization control hint key
+     */
+    public static final Key KEY_STROKE_CONTROL =
+	SunHints.KEY_STROKE_CONTROL;
+
+    /**
+     * Stroke normalization control hint value -- STROKE_DEFAULT
+     */
+    public static final Object VALUE_STROKE_DEFAULT =
+	SunHints.VALUE_STROKE_DEFAULT;
+
+    /**
+     * Stroke normalization control hint value -- STROKE_NORMALIZE
+     */
+    public static final Object VALUE_STROKE_NORMALIZE =
+	SunHints.VALUE_STROKE_NORMALIZE;
+
+    /**
+     * Stroke normalization control hint value -- STROKE_PURE
+     */
+    public static final Object VALUE_STROKE_PURE =
+	SunHints.VALUE_STROKE_PURE;
 
     /**
      * Constructs a new object with keys and values initialized

@@ -1,8 +1,11 @@
 /*
- * @(#)JInternalFrame.java	1.95 01/11/29
+ * @(#)JInternalFrame.java	1.113 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -29,24 +32,36 @@ import java.io.IOException;
 /**
  * A lightweight object that provides many of the features of
  * a native frame, including dragging, closing, becoming an icon,
- * resizing, title display, and support for a menu bar. Generally,
- * you create an instance and add it to a JDesktopPane. Look and
- * feel specific-actions are then (automatically??) delegated to the 
- * DesktopManager object maintained by the JDesktopPane (as set by
- * the UI).
+ * resizing, title display, and support for a menu bar.
+ * For task-oriented documentation and examples of using internal frames,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/internalframe.html">How to Use Internal Frames</a>,
+ * a section in <em>The Java Tutorial</em>.
+ *
  * <p>
- * The JInternalFrame <code>contentPane</code> is where you add child components.
- * So, to create a JInternalFrame that has a number of buttons arranged 
- * with a BorderLayout object, you might do something like this:
- * <PRE>
+ *
+ * Generally,
+ * you add <code>JInternalFrame</code>s to a <code>JDesktopPane</code>. The UI
+ * delegates the look-and-feel-specific actions to the
+ * <code>DesktopManager</code>
+ * object maintained by the <code>JDesktopPane</code>.
+ * <p>
+ * The <code>JInternalFrame</code> <code>contentPane</code>
+ * is where you add child components.
+ * So, to create a <code>JInternalFrame</code> that has a number of
+ * buttons arranged 
+ * with a <code>BorderLayout</code> object, you might do something like this:
+ * <pre>
  *    JComponent c = (JComponent) frame.getContentPane();
  *    c.setLayout(new BorderLayout());
  *    c.add(new JButton(), BorderLayout.NORTH);
  *    c.add(new JButton(), BorderLayout.CENTER);
- * </PRE>
- * The <code>contentPane</code> is actually managed by an instance of JRootPane,
+ * </pre>
+ * The <code>contentPane</code> is actually managed by an instance of
+ * <code>JRootPane</code>,
  * which also manages a <code>layoutPane</code>, <code>glassPane</code>, and 
- * optional <code>menuBar</code> for the frame. Please see the JRootPane 
+ * optional <code>menuBar</code> for the frame. Please see the
+ * <code>JRootPane</code> 
  * documentation for a complete description of these components.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
@@ -65,7 +80,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see JRootPane
  *
- * @version 1.95 11/29/01
+ * @version 1.113 04/06/00
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo
@@ -85,7 +100,8 @@ public class JInternalFrame extends JComponent implements
     private static final String uiClassID = "InternalFrameUI";
 
     /**
-     * The JRootPane instance that manages the <code>contentPane</code> 
+     * The <code>JRootPane</code> instance that manages the
+     * <code>contentPane</code> 
      * and optional <code>menuBar</code> for this frame, as well as the 
      * <code>glassPane</code>.
      *
@@ -137,8 +153,12 @@ public class JInternalFrame extends JComponent implements
     protected JDesktopIcon desktopIcon;
 
     private boolean opened;
+  
+    private Rectangle normalBounds = null;
 
-    private int defaultCloseOperation = HIDE_ON_CLOSE;
+    private int defaultCloseOperation = DISPOSE_ON_CLOSE;
+
+    private Component lastFocusOwner;
 
     /** Bound property name. */
     public final static String CONTENT_PANE_PROPERTY = "contentPane";
@@ -155,7 +175,10 @@ public class JInternalFrame extends JComponent implements
     /** Bound property name. */
     public final static String FRAME_ICON_PROPERTY = "frameIcon";
 
-    /** Constrained property name indicated that this frame has selected status. */
+    /**
+     * Constrained property name indicated that this frame has
+     * selected status.
+     */
     public final static String IS_SELECTED_PROPERTY = "selected";
     /** Constrained property name indicating that the frame is closed. */
     public final static String IS_CLOSED_PROPERTY = "closed";
@@ -167,7 +190,7 @@ public class JInternalFrame extends JComponent implements
 
     /** 
      * Creates a non-resizable, non-closable, non-maximizable,
-     * non-iconifiable JInternalFrame with no title.
+     * non-iconifiable <code>JInternalFrame</code> with no title.
      */
     public JInternalFrame() {
         this("", false, false, false, false);
@@ -175,9 +198,9 @@ public class JInternalFrame extends JComponent implements
 
     /** 
      * Creates a non-resizable, non-closable, non-maximizable,
-     * non-iconifiable JInternalFrame with the specified title.
+     * non-iconifiable <code>JInternalFrame</code> with the specified title.
      *
-     * @param title  the String to display in the title bar.
+     * @param title  the <code>String</code> to display in the title bar
      */
     public JInternalFrame(String title) {
         this(title, false, false, false, false);
@@ -185,10 +208,10 @@ public class JInternalFrame extends JComponent implements
 
     /** 
      * Creates a non-closable, non-maximizable, non-iconifiable 
-     * JInternalFrame with the specified title and with resizability 
-     * specified.
+     * <code>JInternalFrame</code> with the specified title
+     * and with resizability specified.
      *
-     * @param title      the String to display in the title bar.
+     * @param title      the <code>String</code> to display in the title bar
      * @param resizable  if true, the frame can be resized
      */
     public JInternalFrame(String title, boolean resizable) {
@@ -196,10 +219,11 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Creates a non-maximizable, non-iconifiable JInternalFrame with the
-     * specified title and with resizability and closability specified.
+     * Creates a non-maximizable, non-iconifiable <code>JInternalFrame</code>
+     * with the specified title and with resizability and
+     * closability specified.
      *
-     * @param title      the String to display in the title bar.
+     * @param title      the <code>String</code> to display in the title bar
      * @param resizable  if true, the frame can be resized
      * @param closable   if true, the frame can be closed
      */
@@ -208,10 +232,11 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Creates a non-iconifiable JInternalFrame with the specified title 
+     * Creates a non-iconifiable <code>JInternalFrame</code>
+     * with the specified title 
      * and with resizability, closability, and maximizability specified.
      *
-     * @param title       the String to display in the title bar.
+     * @param title       the <code>String</code> to display in the title bar
      * @param resizable   if true, the frame can be resized
      * @param closable    if true, the frame can be closed
      * @param maximizable if true, the frame can be maximized
@@ -222,11 +247,11 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Creates a JInternalFrame with the specified title and 
+     * Creates a <code>JInternalFrame</code> with the specified title and 
      * with resizability, closability, maximizability, and iconifiability
-     * specified.
+     * specified.  All constructors defer to this one.
      *
-     * @param title       the String to display in the title bar.
+     * @param title       the <code>String</code> to display in the title bar
      * @param resizable   if true, the frame can be resized
      * @param closable    if true, the frame can be closed
      * @param maximizable if true, the frame can be maximized
@@ -244,13 +269,15 @@ public class JInternalFrame extends JComponent implements
         isMaximum = false;
         this.iconable = iconifiable;                         
         isIcon = false;
+	setVisible(false);
         setRootPaneCheckingEnabled(true);
         desktopIcon = new JDesktopIcon(this);
 	updateUI();
     }
 
     /** 
-     * Called by the constructor to set up the JRootPane.
+     * Called by the constructor to set up the <code>JRootPane</code>.
+     * @return a new <code>JRootPane</code>
      * @see JRootPane
      */
     protected JRootPane createRootPane() {
@@ -260,14 +287,15 @@ public class JInternalFrame extends JComponent implements
     /**
      * Returns the L&F object that renders this component.
      *
-     * @return the InternalFrameUI object that renders this component
+     * @return the <code>InternalFrameUI</code> object that renders
+     *		this component
      */
     public InternalFrameUI getUI() {
         return (InternalFrameUI)ui;
     }
 
     /**
-     * Sets the UI delegate for this JInternalFrame.
+     * Sets the UI delegate for this <code>JInternalFrame</code>.
      * @beaninfo
      *     expert: true
      *     description: The InternalFrameUI implementation that 
@@ -285,9 +313,9 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * Notification from the UIManager that the L&F has changed. 
+     * Notification from the <code>UIManager</code> that the L&F has changed. 
      * Replaces the current UI object with the latest version from the 
-     * UIManager.
+     * <code>UIManager</code>.
      *
      * @see JComponent#updateUI
      */
@@ -315,9 +343,9 @@ public class JInternalFrame extends JComponent implements
 
 
     /**
-     * Returns the name of the L&F class that renders this component.
+     * Returns the name of the L&F class which renders this component.
      *
-     * @return "InternalFrameUI"
+     * @return the string "InternalFrameUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      * @beaninfo
@@ -364,8 +392,8 @@ public class JInternalFrame extends JComponent implements
      * "Do not use JFrame.add() use JFrame.getContentPane().add() instead"
      * </pre>
      *
-     * @param op  a String indicating the attempted operation. In the
-     *            example above, the operation string is "add"
+     * @param op  a <code>String</code> indicating the attempted operation;
+     *		in the example above, the operation string is "add"
      */
     private Error createRootPaneException(String op) {
         String type = getClass().getName();
@@ -377,7 +405,8 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * By default, children may not be added directly to a this component,
-     * they must be added to its contentPane instead.  For example:
+     * they must be added to its <code>contentPane</code> instead.
+     * For example:
      * <pre>
      * thisComponent.getContentPane().add(child)
      * </pre>
@@ -386,7 +415,7 @@ public class JInternalFrame extends JComponent implements
      * behavior.
      * 
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
+     * @exception Error if called with <code>isRootPaneChecking</code> true
      */
     protected void addImpl(Component comp, Object constraints, int index) 
     {
@@ -416,17 +445,18 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * By default the layout of this component may not be set,
-     * the layout of its contentPane should be set instead.  
+     * the layout of its <code>contentPane</code> should be set instead.  
      * For example:
      * <pre>
-     * thiComponent.getContentPane().setLayout(new BorderLayout())
+     * thisComponent.getContentPane().setLayout(new BorderLayout())
      * </pre>
      * An attempt to set the layout of this component will cause an
      * runtime exception to be thrown.  Subclasses can disable this
      * behavior.
      * 
+     * @param manager the <code>LayoutManager</code>
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
+     * @exception Error if called with <code>isRootPaneChecking</code> true
      */
     public void setLayout(LayoutManager manager) {
         if(isRootPaneCheckingEnabled()) {
@@ -443,8 +473,10 @@ public class JInternalFrame extends JComponent implements
 //////////////////////////////////////////////////////////////////////////
 
     /**
-     * Returns the current JMenuBar for this JInternalFrame, or null
+     * Returns the current <code>JMenuBar</code> for this
+     * <code>JInternalFrame</code>, or <code>null</code>
      * if no menu bar has been set.
+     * @return the current menubar or <code>null</code> if none has been set
      *
      * @deprecated As of Swing version 1.0.3,
      * replaced by <code>getJMenuBar()</code>.
@@ -454,10 +486,11 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * Returns the current JMenuBar for this JInternalFrame, or null
+     * Returns the current <code>JMenuBar</code> for this
+     * <code>JInternalFrame</code>, or <code>null</code>
      * if no menu bar has been set.
      *
-     * @return  the JMenuBar used by this frame
+     * @return  the <code>JMenuBar</code> used by this frame
      * @see #setJMenuBar
      */
     public JMenuBar getJMenuBar() {
@@ -465,9 +498,9 @@ public class JInternalFrame extends JComponent implements
     }
     
     /**
-     * Sets the JMenuBar for this JInternalFrame.
+     * Sets the <code>JMenuBar</code> for this <code>JInternalFrame</code>.
      *
-     * @param m  the JMenuBar to use in this frame
+     * @param m  the <code>JMenuBar</code> to use in this frame
      * @see #getJMenuBar
      * @deprecated As of Swing version 1.0.3
      *  replaced by <code>setJMenuBar(JMenuBar m)</code>.
@@ -479,11 +512,12 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * Sets the JMenuBar for this JInternalFrame.
+     * Sets the <code>JMenuBar</code> for this <code>JInternalFrame</code>.
      *
-     * @param m  the JMenuBar to use in this frame
+     * @param m  the <code>JMenuBar</code> to use in this frame
      * @see #getJMenuBar
      * @beaninfo
+     *     bound: true
      *     preferred: true
      *     description: The menubar for accessing pulldown menus 
      *                  from this frame.
@@ -501,12 +535,12 @@ public class JInternalFrame extends JComponent implements
 
 
     /**
-     * Sets this JInternalFrame's content pane.
+     * Sets this <code>JInternalFrame</code>'s content pane.
      * 
-     * @param contentPane the contentPane object for this frame
+     * @param c  the <code>contentPane</code> object for this frame
      *
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the content pane parameter is null
+     *           exception) if the content pane parameter is <code>null</code>
      * @see RootPaneContainer#getContentPane
      * @beaninfo
      *     bound: true
@@ -521,8 +555,9 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * Returns the layeredPane object for this frame.
+     * Returns the <code>layeredPane</code> object for this frame.
      *
+     * @return the <code>layeredPane</code> object
      * @see RootPaneContainer#setLayeredPane
      * @see RootPaneContainer#getLayeredPane
      */
@@ -532,11 +567,12 @@ public class JInternalFrame extends JComponent implements
 
 
     /**
-     * Sets this JInternalFrame's layeredPane property.
-     * @param layeredPane the layeredPane object for this frame
+     * Sets this <code>JInternalFrame</code>'s <code>layeredPane</code>
+     * property.
+     * @param layered the <code>layeredPane</code> object for this frame
      *
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the layered pane parameter is null
+     *           exception) if the layered pane parameter is <code>null</code>
      * @see RootPaneContainer#setLayeredPane
      * @beaninfo
      *     hidden: true
@@ -550,8 +586,9 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * Returns the glassPane object for this frame.
+     * Returns the <code>glassPane</code> object for this frame.
      *
+     * @return the <code>glassPane</code> object
      * @see RootPaneContainer#setGlassPane
      */
     public Component getGlassPane() { 
@@ -560,10 +597,12 @@ public class JInternalFrame extends JComponent implements
 
 
     /**
-     * Sets this JInternalFrame's glassPane property.
-     * @param glassPane the glassPane object for this frame
+     * Sets this <code>JInternalFrame</code>'s <code>glassPane</code>
+     * property.
+     * @param glassPane the <code>glassPane</code> object for this frame
      * @see RootPaneContainer#getGlassPane
      * @beaninfo
+     *     bound: true
      *     hidden: true
      *     description: A transparent pane used for menu rendering.
      */
@@ -574,8 +613,9 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * Returns the rootPane object for this frame.
+     * Returns the <code>rootPane</code> object for this frame.
      *
+     * @return the <code>rootPane</code> property
      * @see RootPaneContainer#getRootPane
      */
     public JRootPane getRootPane() { 
@@ -584,10 +624,14 @@ public class JInternalFrame extends JComponent implements
 
 
     /**
-     * Set the rootPane property.  This method is called by the constructor.
+     * Sets the <code>rootPane</code> property.
+     * This method is called by the constructor.
+     *
+     * @param root  the new <code>rootPane</code> object
      * @beaninfo
+     *     bound: true
      *     hidden: true
-     *     beaninfo: The rootPane used by this frame.
+     *     description: The rootPane used by this frame.
      */
     protected void setRootPane(JRootPane root) {
         if(rootPane != null) {
@@ -608,18 +652,9 @@ public class JInternalFrame extends JComponent implements
         firePropertyChange(ROOT_PANE_PROPERTY, oldValue, root); 
     }
 
-
-    /**
-     * Set the visible state of the object.
-     *
-     * @param b if true, shows this object; otherwise, hides it 
-     */
-    public void setVisible(boolean b) {
-        super.setVisible(b);
-    }
-
     /** 
-     * Set that this JInternalFrame can be closed by some user action.
+     * Sets that this <code>JInternalFrame</code> can be closed by
+     * some user action.
      * @param b a boolean value, where true means the frame can be closed 
      * @beaninfo
      *     preferred: true
@@ -634,7 +669,8 @@ public class JInternalFrame extends JComponent implements
     }
  
     /** 
-     * Returns whether this JInternalFrame be closed by some user action. 
+     * Returns whether this <code>JInternalFrame</code> be closed by
+     * some user action. 
      * @return true if the frame can be closed 
      */
     public boolean isClosable() {
@@ -642,7 +678,7 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Returns whether this JInternalFrame is currently closed. 
+     * Returns whether this <code>JInternalFrame</code> is currently closed. 
      * @return true if the frame is closed 
      */
     public boolean isClosed() {
@@ -655,7 +691,7 @@ public class JInternalFrame extends JComponent implements
      *
      * @param b a boolean, where true means "close the frame"
      * @exception PropertyVetoException when the attempt to set the 
-     *            property is vetoed by the receiver.
+     *            property is vetoed by the <code>JInternalFrame</code>
      * @beaninfo
      *           bound: true
      *     constrained: true
@@ -668,26 +704,25 @@ public class JInternalFrame extends JComponent implements
 
         Boolean oldValue = isClosed ? Boolean.TRUE : Boolean.FALSE; 
         Boolean newValue = b ? Boolean.TRUE : Boolean.FALSE;
+	if (b) {
+	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSING);
+	}
         fireVetoableChange(IS_CLOSED_PROPERTY, oldValue, newValue);
         isClosed = b;
+	firePropertyChange(IS_CLOSED_PROPERTY, oldValue, newValue);
         if (isClosed) {
-            /* Dispatch a closed event to any listeners.  We can't post
-             * an event since firing IS_CLOSED_PROPERTY causes this
-             * frame to be removed from its parent, which causes any
-             * of its events on the EventQueue to get purged.
-             */
-	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSING);
-	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSED);
-	  opened = false;
+	  dispose();
         } else if (!opened) {
-	    fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_OPENED);
-            opened = true;
+	  /* this bogus -- we haven't defined what
+	     setClosed(true) means. */
+	  //	    fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_OPENED);
+	  //            opened = true;
         }
-        firePropertyChange(IS_CLOSED_PROPERTY, oldValue, newValue);
     }
 
     /** 
-     * Set that the JInternalFrame can be resized by some user action.
+     * Sets that the <code>JInternalFrame</code> can be resized by some
+     * user action.
      *
      * @param b  a boolean, where true means the frame can be resized 
      * @beaninfo
@@ -704,7 +739,8 @@ public class JInternalFrame extends JComponent implements
     }
  
     /** 
-     * Returns whether the JInternalFrame can be resized by some user action.
+     * Returns whether the <code>JInternalFrame</code> can be resized
+     * by some user action.
      *
      * @return true if the frame can be resized
      */ 
@@ -714,12 +750,12 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Set that the JInternalFrame can be made an icon by some user action. 
+     * Sets that the <code>JInternalFrame</code> can be made an
+     * icon by some user action. 
      *
      * @param b  a boolean, where true means the frame can be iconified 
-     * @beaninfo:
+     * @beaninfo
      *     preferred: true
-     *     bound: true
      *     description: Determines whether this frame can be iconified.
      */
     public void setIconifiable(boolean b) {
@@ -727,7 +763,8 @@ public class JInternalFrame extends JComponent implements
     }
  
     /** 
-     * Returns whether the JInternalFrame can be iconified by some user action.
+     * Returns whether the <code>JInternalFrame</code> can be
+     * iconified by some user action.
      *
      * @return true if the frame can be iconified
      */ 
@@ -736,7 +773,7 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Returns whether the JInternalFrame is currently iconified.
+     * Returns whether the <code>JInternalFrame</code> is currently iconified.
      *
      * @return true if the frame is iconified
      */ 
@@ -745,12 +782,12 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Iconizes and deconizes the frame.
+     * Iconizes and de-iconizes the frame.
      *
      * @param b a boolean, where true means to iconify the frame and
-     *          false means to deiconify it
+     *          false means to de-iconify it
      * @exception PropertyVetoException when the attempt to set the 
-     *            property is vetoed by the receiver.
+     *            property is vetoed by the <code>JInternalFrame</code>
      * @beaninfo
      *           bound: true
      *     constrained: true
@@ -760,6 +797,20 @@ public class JInternalFrame extends JComponent implements
         if (isIcon == b) {
             return;
         }
+
+	/* If an internal frame is being iconified before it has a
+	   parent, (e.g., client wants it to start iconic), create the
+	   parent if possible so that we can place the icon in its
+	   proper place on the desktop. I am not sure the call to
+	   validate() is necessary, since we are not going to display
+	   this frame yet */
+
+	Container c = getParent();
+        if (c != null && c.getPeer() == null) {
+            c.addNotify();
+	    addNotify();
+        }
+	validate();
 
         Boolean oldValue = isIcon ? Boolean.TRUE : Boolean.FALSE; 
         Boolean newValue = b ? Boolean.TRUE : Boolean.FALSE;
@@ -773,7 +824,8 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Set that the JInternalFrame can be maximized by some user action.
+     * Sets that the <code>JInternalFrame</code> can be maximized by
+     * some user action.
      *
      * @param b a boolean  where true means the frame can be maximized 
      * @beaninfo
@@ -789,7 +841,8 @@ public class JInternalFrame extends JComponent implements
     }
  
     /** 
-     * Returns whether the JInternalFrame can be maximized by some user action.
+     * Returns whether the <code>JInternalFrame</code> can be maximized
+     * by some user action.
      *
      * @return true if the frame can be maximized 
      */
@@ -798,7 +851,7 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Returns whether the JInternalFrame is currently maximized.
+     * Returns whether the <code>JInternalFrame</code> is currently maximized.
      *
      * @return true if the frame is maximized 
      */
@@ -808,14 +861,17 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * Maximizes and restores the frame.  A maximized frame is resized to
-     * fully fit the JDesktopPane area associated with the JInternalFrame.
-     * A restored frame's size is set to the JInternalFrame's actual size.
+     * fully fit the <code>JDesktopPane</code> area associated with the
+     * <code>JInternalFrame</code>.
+     * A restored frame's size is set to the <code>JInternalFrame</code>'s
+     * actual size.
      *
      * @param b  a boolean, where true maximizes the frame and false
      *           restores it
      * @exception PropertyVetoException when the attempt to set the 
-     *            property is vetoed by the receiver.
+     *            property is vetoed by the <code>JInternalFrame</code>
      * @beaninfo
+     *     bound: true
      *     constrained: true
      *     description: Indicates whether the frame is maximized.
      */
@@ -827,14 +883,17 @@ public class JInternalFrame extends JComponent implements
         Boolean oldValue = isMaximum ? Boolean.TRUE : Boolean.FALSE;
         Boolean newValue = b ? Boolean.TRUE : Boolean.FALSE;
         fireVetoableChange(IS_MAXIMUM_PROPERTY, oldValue, newValue);
+	/* setting isMaximum above the event firing means that
+	   property listeners that, for some reason, test it will
+	   get it wrong... See, for example, getNormalBounds() */
         isMaximum = b;
         firePropertyChange(IS_MAXIMUM_PROPERTY, oldValue, newValue);
     }
 
     /**
-     * Returns the title of the JInternalFrame.
+     * Returns the title of the <code>JInternalFrame</code>.
      *
-     * @return a String containing the frame's title
+     * @return a <code>String</code> containing the frame's title
      * @see #setTitle
      */
     public String getTitle() {
@@ -842,11 +901,12 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Sets the JInternalFrame title. 
+     * Sets the <code>JInternalFrame</code> title. <code>title</code>
+     * may have a <code>null</code> value.
      * @see #getTitle
      *
-     * @param title  the String to display in the title bar
-     * @beaninfo:
+     * @param title  the <code>String</code> to display in the title bar
+     * @beaninfo
      *     preferred: true
      *     bound: true
      *     description: The text displayed in the title bar.
@@ -859,7 +919,7 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * Selects and deselects the JInternalFrame.
-     * A JInternalFrame normally draws it's title bar differently if it is
+     * A JInternalFrame normally draws its title bar differently if it is
      * the selected frame, which indicates to the user that this 
      * internalFrame has the focus.
      *
@@ -874,13 +934,34 @@ public class JInternalFrame extends JComponent implements
      *                  the active frame.
      */
     public void setSelected(boolean selected) throws PropertyVetoException {
-        if (isSelected == selected) {
+        if ((isSelected == selected) || (selected && !isShowing())) {
             return;
         }
 
         Boolean oldValue = isSelected ? Boolean.TRUE : Boolean.FALSE;
         Boolean newValue = selected ? Boolean.TRUE : Boolean.FALSE;
         fireVetoableChange(IS_SELECTED_PROPERTY, oldValue, newValue);
+
+	/* We don't want to leave focus in the previously selected
+	   frame, so we have to set it to *something* in case it
+	   doesn't get set in some other way (as if a user clicked on
+	   a component that doesn't request focus).  If this call is
+	   happening because the user clicked on a component that will
+	   want focus, then it will get transfered there later.
+
+	   We test for parent.isShowing() above, because AWT throws a
+	   NPE if you try to request focus on a lightweight before its
+	   parent has been made visible */
+
+	if(selected) {
+	  JRootPane r = getRootPane();
+	  if (r.getCurrentFocusOwner() != null) {/* do nothing */
+	  } else if (r.getPreviousFocusOwner() != null) {
+	    r.getPreviousFocusOwner().requestFocus();
+	  } else {
+	    getContentPane().requestFocus();
+	  }
+	}
         isSelected = selected;
         firePropertyChange(IS_SELECTED_PROPERTY, oldValue, newValue);
 	if (isSelected)
@@ -934,7 +1015,7 @@ public class JInternalFrame extends JComponent implements
         return frameIcon;
     }
 
-    /** Convenience method that moves this component to position 0 if it's 
+    /** Convenience method that moves this component to position 0 if its 
       * parent is a JLayeredPane.
       */
     public void moveToFront() {
@@ -944,7 +1025,7 @@ public class JInternalFrame extends JComponent implements
         }
     }
 
-    /** Convenience method that moves this component to position -1 if it's 
+    /** Convenience method that moves this component to position -1 if its 
       * parent is a JLayeredPane.
       */
     public void moveToBack() {
@@ -978,6 +1059,23 @@ public class JInternalFrame extends JComponent implements
         }
     }
 
+    /** 
+     * Convenience method for setting the layer attribute of this component.
+     * The method setLayer(Integer) should be used for layer values predefined
+     * in JLayeredPane. When using setLayer(int), care must be taken not to
+     * accidentally clash with those values.
+     *
+     * @param layer  an int specifying this frame's desktop layer
+     * @see #setLayer(Integer)
+     * @see JLayeredPane
+     * @beaninfo
+     *     expert: true
+     *     description: Specifies what desktop layer is used.
+     */
+    public void setLayer(int layer) {
+      this.setLayer(new Integer(layer));
+    }
+
     /** Convenience method for getting the layer attribute of this component.
      *
      * @return  an Integer object specifying this frame's desktop layer
@@ -1003,7 +1101,7 @@ public class JInternalFrame extends JComponent implements
             p = p.getParent();
         
         if(p == null) {
-           // search it's icon parent for desktop
+           // search its icon parent for desktop
            p = getDesktopIcon().getParent();
            while(p != null && !(p instanceof JDesktopPane))
                 p = p.getParent();
@@ -1037,6 +1135,78 @@ public class JInternalFrame extends JComponent implements
         return desktopIcon; 
     }
 
+    /**
+     * If the JInternalFrame is not in maximized state, return
+     * getBounds(); otherwise, return the bounds that the
+     * JInternalFrame would be restored to.
+     *
+     * @return the bounds of this frame when in the normal state
+     * @since 1.3
+     */
+    public Rectangle getNormalBounds() {
+
+      /* we used to test (!isMaximum) here, but since this
+	 method is used by the property listener for the
+	 IS_MAXIMUM_PROPERTY, it ended up getting the wrong
+	 answer... Since normalBounds get set to null when the
+	 frame is restored, this should work better */
+
+      if (normalBounds != null) {
+	return normalBounds;
+      } else {
+	return getBounds();
+      }
+    }
+
+    /**
+     * Sets the normal bounds for this frame, the bounds that
+     * the frame would be restored to from its maximized state.
+     * This method is intended for use only by desktop managers.
+     *
+     * @param r the bounds that the frame should be restored to
+     * @since 1.3
+     */
+    public void setNormalBounds(Rectangle r) {
+	normalBounds = r;
+    }
+
+    /**
+     * If this JInternalFrame is active, return the child which has focus.
+     * Otherwise, return null.
+     *<p>
+     * At present, this method works only for JComponent
+     * children.
+     *
+     * @return the component with focus, or null if no children have focus
+     * assigned to them.
+     * @since 1.3
+     */
+    public Component getFocusOwner() {
+      JRootPane r = getRootPane();
+      if (r != null) return r.getCurrentFocusOwner();
+      else return null;
+    }
+
+    /**
+     * This method directs the internal frame to restore focus to the
+     * last subcomponent that had focus. This is used by the UI when
+     * the user selected the frame, e.g., by clicking on the title bar.
+     *
+     * @since 1.3
+     */
+
+    public void restoreSubcomponentFocus() {
+
+      if (getRootPane() != null &&
+	  getRootPane().getPreviousFocusOwner() != null) {
+	getRootPane().getPreviousFocusOwner().requestFocus();
+      } else {
+	/* make sure this frame ends up with is somewhere, so that
+	   we don't leave a focused component in another frame while
+	   this frame is selected. */
+	this.getContentPane().requestFocus();
+      }
+    }
 
     /*
      * Creates a new EventDispatchThread to dispatch events from. This
@@ -1068,16 +1238,16 @@ public class JInternalFrame extends JComponent implements
                     // This is essentially the body of EventDispatchThread
                     AWTEvent event = theQueue.getNextEvent();
                     Object src = event.getSource();
-                    // can't call theQueue.dispatchEvent, so I pasted it's body here
-                    /*if (event instanceof ActiveEvent) {
-                      ((ActiveEvent) event).dispatch();
-                      } else */ if (src instanceof Component) {
-                          ((Component) src).dispatchEvent(event);
-                      } else if (src instanceof MenuComponent) {
-                          ((MenuComponent) src).dispatchEvent(event);
-                      } else {
-                          System.err.println("unable to dispatch event: " + event);
-                      }
+                    // can't call theQueue.dispatchEvent, so I pasted its body here
+                    if (event instanceof ActiveEvent) {
+                        ((ActiveEvent) event).dispatch();
+                    } else if (src instanceof Component) {
+                        ((Component) src).dispatchEvent(event);
+                    } else if (src instanceof MenuComponent) {
+                        ((MenuComponent) src).dispatchEvent(event);
+                    } else {
+                        System.err.println("unable to dispatch event: " + event);
+                    }
                 }
             } else
                 while (isVisible())
@@ -1172,28 +1342,38 @@ public class JInternalFrame extends JComponent implements
 	  }
 	}
       }
-      if (id == InternalFrameEvent.INTERNAL_FRAME_CLOSING) {
-	  doDefaultCloseAction();
-      }
+      /* we could do it off the event, but at the moment, that's not how
+	 I'm implementing it */
+      //      if (id == InternalFrameEvent.INTERNAL_FRAME_CLOSING) {
+      //	  doDefaultCloseAction();
+      //      }
     }
 
-    private void doDefaultCloseAction() {
+    public void doDefaultCloseAction() {
+        fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSING);
         switch(defaultCloseOperation) {
+          case DO_NOTHING_ON_CLOSE:
+	    break;
           case HIDE_ON_CLOSE:
-              try {
-                  setClosed(true);
-              } catch (PropertyVetoException pve) {}
-              break;
+            setVisible(false);
+	    if (isSelected())
+                try {
+                    setSelected(false);
+                } catch (PropertyVetoException pve) {}
+	      
+	    /* should this activate the next frame? that's really
+	       desktopmanager's policy... */
+            break;
           case DISPOSE_ON_CLOSE:
               try {
-                  setClosed(true);
-                  dispose();  // only executes if close wasn't vetoed.
-              } catch (PropertyVetoException pve) {}
+		fireVetoableChange(IS_CLOSED_PROPERTY, Boolean.FALSE,
+				   Boolean.TRUE);
+		isClosed = true;
+		firePropertyChange(IS_CLOSED_PROPERTY, Boolean.FALSE,
+				   Boolean.TRUE);
+		dispose();
+	      } catch (PropertyVetoException pve) {}
               break;
-	  case 3: // EXIT_ON_CLOSE:
-	    System.exit(0);
-	    break;
-          case DO_NOTHING_ON_CLOSE:
           default: 
               break;
         }
@@ -1212,11 +1392,9 @@ public class JInternalFrame extends JComponent implements
      * invoking any registered InternalFrameListener objects
      * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
      * window after invoking any registered InternalFrameListener objects
-     * <li>EXIT_ON_CLOSE - Exit the application by way of System.exit.
-     * Only use this in applications.
      * </ul>
      * <p>
-     * The value is set to HIDE_ON_CLOSE by default.
+     * The value is set to DISPOSE_ON_CLOSE by default.
      * @see #addInternalFrameListener
      * @see #getDefaultCloseOperation
      */
@@ -1271,12 +1449,18 @@ public class JInternalFrame extends JComponent implements
 	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_OPENED);
 	  opened = true;
 	}
+	
+        /* icon defualt visibility is false; set it to true so that it shows
+           up when user iconifies frame */
+        getDesktopIcon().setVisible(true);
 
-        if (isVisible()) {
-	    toFront();
-	} else {
-            super.show();
-        }
+	toFront();
+	if (!isVisible()) { super.show(); }
+
+	if (isIcon) {
+	  return;
+	}
+
         if (!isSelected()) {
             try {
                 setSelected(true);
@@ -1299,8 +1483,9 @@ public class JInternalFrame extends JComponent implements
         }
         if (!isClosed) {
 	  firePropertyChange(IS_CLOSED_PROPERTY, Boolean.FALSE, Boolean.TRUE);
-	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSED);
-        }
+	  isClosed = true;
+	}
+	fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSED);
     }
 
     /**
@@ -1356,6 +1541,24 @@ public class JInternalFrame extends JComponent implements
 	}
     }
 
+    /* Called from the JComponent's EnableSerializationFocusListener to 
+     * do any Swing-specific pre-serialization configuration.
+     */
+    void compWriteObjectNotify() {
+	// need to disable rootpane checking for InternalFrame: 4172083
+        if (ui != null) {
+	    boolean old = isRootPaneCheckingEnabled();
+            try {
+		setRootPaneCheckingEnabled(false);
+	        ui.uninstallUI(this);
+            } 
+            finally {
+		setRootPaneCheckingEnabled(old);
+	    }
+	}
+        super.compWriteObjectNotify();
+    }
+
 
     /**
      * Returns a string representation of this JInternalFrame. This method 
@@ -1393,8 +1596,6 @@ public class JInternalFrame extends JComponent implements
             defaultCloseOperationString = "DISPOSE_ON_CLOSE";
         } else if (defaultCloseOperation == DO_NOTHING_ON_CLOSE) {
             defaultCloseOperationString = "DO_NOTHING_ON_CLOSE";
-        } else if (defaultCloseOperation == 3) {
-            defaultCloseOperationString = "EXIT_ON_CLOSE";
         } else defaultCloseOperationString = "";
 
 	return super.paramString() +
@@ -1436,9 +1637,13 @@ public class JInternalFrame extends JComponent implements
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JInternalFrame. 
+     * For internal frames, the AccessibleContext takes the form of an 
+     * AccessibleJInternalFrame. 
+     * A new AccessibleJInternalFrame instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJInternalFrame that serves as the 
+     *         AccessibleContext of this JInternalFrame
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1448,7 +1653,10 @@ public class JInternalFrame extends JComponent implements
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JInternalFrame</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to internal frame user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -1461,13 +1669,7 @@ public class JInternalFrame extends JComponent implements
         implements AccessibleValue {
 
         /**
-         * Get the accessible name of this object.  This should almost never
-         * return java.awt.Component.getName(), as that generally isn't
-         * a localized name, and doesn't have meaning for the user.  If the
-         * object is fundamentally a text object (e.g. a menu item), the
-         * accessible name should be the text of the object (e.g. "save").
-         * If the object has a tooltip, the tooltip text may also be an
-         * appropriate String to return.
+         * Get the accessible name of this object.
          *
          * @return the localized name of the object -- can be null if this 
          * object does not have a name
@@ -1493,8 +1695,12 @@ public class JInternalFrame extends JComponent implements
         }
 
         /**
-         * Get the AccessibleValue associated with this object if one
-         * exists.  Otherwise return null.
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
          */
         public AccessibleValue getAccessibleValue() {
             return this;
@@ -1577,6 +1783,7 @@ public class JInternalFrame extends JComponent implements
          * @param f  the JInternalFrame for which the icon is created
          */
         public JDesktopIcon(JInternalFrame f) {
+	    setVisible(false);
             setInternalFrame(f);
             updateUI();
         }
@@ -1681,9 +1888,13 @@ public class JInternalFrame extends JComponent implements
        ////////////////
 
         /**
-         * Get the AccessibleContext associated with this JComponent
+         * Gets the AccessibleContext associated with this JDesktopIcon. 
+         * For desktop icons, the AccessibleContext takes the form of an 
+         * AccessibleJDesktopIcon. 
+         * A new AccessibleJDesktopIcon instance is created if necessary.
          *
-         * @return the AccessibleContext of this JComponent
+         * @return an AccessibleJDesktopIcon that serves as the 
+         *         AccessibleContext of this JDesktopIcon
          */
         public AccessibleContext getAccessibleContext() {
             if (accessibleContext == null) {
@@ -1693,7 +1904,10 @@ public class JInternalFrame extends JComponent implements
         }
 
         /**
-         * The class used to obtain the accessible role for this object.
+         * This class implements accessibility support for the 
+         * <code>JInternalFrame.JDesktopIcon</code> class.  It provides an
+	 * implementation of the Java Accessibility API appropriate to 
+	 * desktop icon user-interface elements.
          * <p>
          * <strong>Warning:</strong>
          * Serialized objects of this class will not be compatible with
@@ -1717,8 +1931,12 @@ public class JInternalFrame extends JComponent implements
             }
 
             /**
-             * Get the AccessibleValue associated with this object if one
-             * exists.  Otherwise return null.
+             * Get the AccessibleValue associated with this object.  In the
+             * implementation of the Java Accessibility API for this class, 
+	     * return this object, which is responsible for implementing the
+             * AccessibleValue interface on behalf of itself.
+	     * 
+	     * @return this object
              */
             public AccessibleValue getAccessibleValue() {
                 return this;

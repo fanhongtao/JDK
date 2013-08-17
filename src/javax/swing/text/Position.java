@@ -1,8 +1,11 @@
 /*
- * @(#)Position.java	1.13 01/11/29
+ * @(#)Position.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -13,7 +16,7 @@ package javax.swing.text;
  * the document is edited (i.e. offsets are fragile).
  *
  * @author  Timothy Prinzing
- * @version 1.13 11/29/01
+ * @version 1.15 02/02/00
  */
 public interface Position {
 
@@ -29,7 +32,7 @@ public interface Position {
      * in the model.  A position indicates a location between
      * two characters.  The bias can be used to indicate an
      * interest toward one of the two sides of the position
-     * in boundry conditions where a simple offset is
+     * in boundary conditions where a simple offset is
      * ambiguous.
      */
     public static final class Bias {

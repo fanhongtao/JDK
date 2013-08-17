@@ -1,8 +1,11 @@
 /*
- * @(#)SecureClassLoader.java	1.73 01/11/29
+ * @(#)SecureClassLoader.java	1.73 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -18,7 +21,7 @@ import sun.security.util.Debug;
  * classes with an associated code source and permissions which are
  * retrieved by the system policy by default.
  *
- * @version 1.73, 11/29/01
+ * @version 1.73, 02/02/00
  * @author  Li Gong 
  * @author  Roland Schemers
  */
@@ -42,7 +45,7 @@ public class SecureClassLoader extends ClassLoader {
      * <p>If there is a security manager, this method first
      * calls the security manager's <code>checkCreateClassLoader</code> 
      * method  to ensure creation of a class loader is allowed.
-     *
+     * <p>
      * @param parent the parent ClassLoader
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkCreateClassLoader</code> method doesn't allow 
@@ -86,6 +89,11 @@ public class SecureClassLoader extends ClassLoader {
      * Converts an array of bytes into an instance of class Class,
      * with an optional CodeSource. Before the
      * class can be used it must be resolved.
+     * <p>
+     * If a non-null CodeSource is supplied and a Policy provider is installed,
+     * Policy.getPermissions() is invoked in order to associate a
+     * ProtectionDomain with the class being defined.
+     * <p>
      * @param name the name of the class
      * @param b the class bytes
      * @param off the start offset of the class bytes
@@ -104,14 +112,20 @@ public class SecureClassLoader extends ClassLoader {
     }
 
     /**
-     * Returns the permissions for the given codesource object.
+     * Returns the permissions for the given CodeSource object.
      * The default implementation of this method invokes the
      * java.security.Policy.getPermissions method to get the permissions
-     * granted by the policy to the specified codesource.
+     * granted by the policy to the specified CodeSource.
      * <p>
-     * This method is invoked by the defineClass method that takes
+     * This method is invoked by the defineClass method which takes
      * a CodeSource as an argument when it is constructing the
      * ProtectionDomain for the class being defined.
+     * <p>
+     * The constructed ProtectionDomain is cached by the SecureClassLoader.
+     * The contents of the cache persist for the lifetime of the
+     * SecureClassLoader instance. This persistence inhibits Policy.refresh()
+     * from influencing the protection domains already in the cache for a 
+     * given CodeSource.
      * <p>
      * @param codesource the codesource.
      *

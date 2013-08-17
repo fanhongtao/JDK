@@ -1,8 +1,11 @@
 /*
- * @(#)UnknownUserException.java	1.13 01/11/29
+ * @(#)UnknownUserException.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -23,7 +26,7 @@ public final class UnknownUserException extends UserException {
 
     /** The <code>Any</code> instance that contains the actual user exception thrown
      *  by the server.
-	 * @serial
+     * @serial
      */
     public Any except;
 
@@ -36,7 +39,7 @@ public final class UnknownUserException extends UserException {
 
     /**
      * Constructs an <code>UnknownUserException</code> object that contains the given
-	 * <code>Any</code> object.
+     * <code>Any</code> object.
      */
     public UnknownUserException(Any a) {
         super();

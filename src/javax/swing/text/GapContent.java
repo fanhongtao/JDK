@@ -1,26 +1,10 @@
 /*
- * @(#)GapContent.java	1.12 01/11/29
+ * @(#)GapContent.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-/*
- * @(#)GapContent.java	1.12 01/11/29
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package javax.swing.text;
@@ -41,7 +25,7 @@ import javax.swing.SwingUtilities;
  * The underlying storage is a array of unicode characters with
  * a gap somewhere.  The gap is moved to the location of changes
  * to take advantage of common behavior where most changes are
- * in the same location.  Changes that occur at a gap boundry are
+ * in the same location.  Changes that occur at a gap boundary are
  * generally cheap and moving the gap is generally cheaper than
  * moving the array contents directly to accomodate the change.
  * <p>
@@ -49,14 +33,14 @@ import javax.swing.SwingUtilities;
  * maintain.  The Position implementations (marks) store the array
  * index and can easily calculate the sequential position from
  * the current gap location.  Changes only require update to the
- * the marks between the old and new gap boundries when the gap
+ * the marks between the old and new gap boundaries when the gap
  * is moved, so generally updating the marks is pretty cheap.
  * The marks are stored sorted so they can be located quickly
  * with a binary search.  This increases the cost of adding a
  * mark, and decreases the cost of keeping the mark updated.
  *
  * @author  Timothy Prinzing
- * @version 1.12 11/29/01
+ * @version 1.15 02/02/00
  */
 public class GapContent extends GapVector implements AbstractDocument.Content, Serializable {
 
@@ -180,10 +164,11 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
      * @see AbstractDocument.Content#getChars
      */
     public void getChars(int where, int len, Segment chars) throws BadLocationException {
-	if (where < 0) {
+	int end = where + len;
+	if (where < 0 || end < 0) {
 	    throw new BadLocationException("Invalid location", -1);
 	}
-	if ((where + len) > length()) {
+	if (end > length() || where > length()) {
 	    throw new BadLocationException("Invalid location", length() + 1);
 	}
 	int g0 = getGapStart();
@@ -302,7 +287,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
     /**
      * Record used for searching for the place to
      * start updating mark indexs when the gap 
-     * boundries are moved.
+     * boundaries are moved.
      */
     private transient MarkData search;
 
@@ -398,7 +383,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
     /**
      * Adjust the gap end downward.  This doesn't move
      * any data, but it does update any marks affected 
-     * by the boundry change.  All marks from the old
+     * by the boundary change.  All marks from the old
      * gap start down to the new gap start are squeezed
      * to the end of the gap (their location has been
      * removed).
@@ -427,7 +412,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
     /**
      * Adjust the gap end upward.  This doesn't move
      * any data, but it does update any marks affected 
-     * by the boundry change. All marks from the old
+     * by the boundary change. All marks from the old
      * gap end up to the new gap end are squeezed
      * to the end of the gap (their location has been
      * removed).

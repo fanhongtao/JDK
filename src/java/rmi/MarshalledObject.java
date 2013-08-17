@@ -1,8 +1,11 @@
 /*
- * @(#)MarshalledObject.java	1.25 01/11/29
+ * @(#)MarshalledObject.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi;
@@ -35,10 +38,10 @@ import sun.rmi.server.MarshalOutputStream;
  * <p><code>MarshalledObject</code> facilitates passing objects in RMI calls
  * that are not automatically deserialized immediately by the remote peer.
  *
- * @version 1.25, 11/29/01
+ * @version 1.28, 02/02/00
  * @author  Ann Wollrath
  * @author  Peter Jones
- * @since   JDK1.2
+ * @since   1.2
  */
 public final class MarshalledObject implements Serializable {
     /**
@@ -62,7 +65,7 @@ public final class MarshalledObject implements Serializable {
      */
     private int hash;
 
-    /** Indicate compatibility with JDK 1.2 version of class. */
+    /** Indicate compatibility with 1.2 version of class. */
     private static final long serialVersionUID = 8988374069173025854L;
 
     /**
@@ -75,7 +78,7 @@ public final class MarshalledObject implements Serializable {
      * @exception IOException if an <code>IOException</code> occurs; an
      * <code>IOException</code> may occur if <code>obj</code> is not
      * serializable.
-     * @since JDK1.2
+     * @since 1.2
      */
     public MarshalledObject(Object obj)
 	throws java.io.IOException
@@ -118,7 +121,7 @@ public final class MarshalledObject implements Serializable {
      * <code>ClassNotFoundException</code> occurs while deserializing the
      * object from its internal representation.
      * could not be found
-     * @since JDK1.2
+     * @since 1.2
      */
     public Object get()
 	throws java.io.IOException, java.lang.ClassNotFoundException
@@ -157,7 +160,7 @@ public final class MarshalledObject implements Serializable {
      * @param obj the object to compare with this <code>MarshalledObject</code>
      * @return <code>true</code> if the argument contains an equaivalent
      * serialized object; <code>false</code> otherwise
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean equals(Object obj) {
 	if (obj == this)
@@ -175,7 +178,7 @@ public final class MarshalledObject implements Serializable {
 		return false;
 
 	    //!! There is talk about adding an array comparision method
-	    //!! at JDK1.2 -- if so, this should be rewritten.  -arnold
+	    //!! at 1.2 -- if so, this should be rewritten.  -arnold
 	    for (int i = 0; i < objBytes.length; ++i) {
 		if (objBytes[i] != other.objBytes[i])
 		    return false;

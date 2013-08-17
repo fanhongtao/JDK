@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultButtonModel.java	1.27 01/11/29
+ * @(#)DefaultButtonModel.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -23,7 +26,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.27 11/29/01
+ * @version 1.32 02/02/00
  * @author Jeff Dinkins
  */
 public class DefaultButtonModel implements ButtonModel, Serializable {
@@ -189,7 +192,11 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
             stateMask |= ENABLED;
         } else {
             stateMask &= ~ENABLED;
+	    // unarm and unpress, just in case
+            stateMask &= ~ARMED;
+            stateMask &= ~PRESSED;
         }
+
             
         fireStateChanged();
     }
@@ -415,6 +422,19 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
         }
     }   
 
+    /**
+     * Return an array of all the listeners of the given type that 
+     * were added to this model. 
+     *
+     * @returns all of the objects recieving <em>listenerType</em> notifications 
+     *          from this model
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
+    }
+
     /** Overriden to return null */
     public Object[] getSelectedObjects() {
         return null; 
@@ -429,6 +449,17 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
      */
     public void setGroup(ButtonGroup group) {
         this.group = group;
+    }
+
+    /**
+     * Returns the group that this button belongs to.
+     * Normally used with radio buttons, which are mutually
+     * exclusive within their group.
+     *
+     * @return a ButtonGroup that this button belongs to
+     */
+    public ButtonGroup getGroup() {
+        return group;
     }
 
 }

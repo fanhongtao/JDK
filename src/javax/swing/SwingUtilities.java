@@ -1,8 +1,11 @@
 /*
- * @(#)SwingUtilities.java	1.81 01/11/29
+ * @(#)SwingUtilities.java	1.94 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -17,12 +20,13 @@ import java.util.Hashtable;
 import java.lang.reflect.*;
 
 import javax.accessibility.*;
+import javax.swing.plaf.UIResource;
 import javax.swing.text.View;
 
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.81 11/29/01
+ * @version 1.94 02/02/00
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -54,9 +58,9 @@ public class SwingUtilities implements SwingConstants
 
 
     /**
-     * @return the first Window ancestor of c
+     * @return the first Window ancestor of c, or null if component is not contained inside a window
      */
-    private static Window getWindowAncestor(Component c) {
+    public static Window getWindowAncestor(Component c) {
         for(Container p = c.getParent(); p != null; p = p.getParent()) {
             if (p instanceof Window) {
                 return (Window)p;
@@ -199,7 +203,7 @@ public class SwingUtilities implements SwingConstants
      * Returns a MouseEvent similar to <code>sourceEvent</code> except that its x
      * and y members have been converted to <code>destination</code>'s coordinate
      * system.  If <code>source</code> is null, <code>sourceEvent</code> x and y members
-     * are assumed to be into <code>destination<code>'s root component coordinate system.
+     * are assumed to be into <code>destination</code>'s root component coordinate system.
      * If <code>destination</code> is <code>null</code>, the
      * returned MouseEvent will be in <code>source</code>'s coordinate system.
      * <code>sourceEvent</code> will not be changed. A new event is returned.
@@ -323,8 +327,19 @@ public class SwingUtilities implements SwingConstants
 
 
     /**
-     * Convenience to calculate an intersection of two rectangles without allocating a new rectangle
-     * Return dest.
+     * Convenience to calculate the intersection of two rectangles
+     * without allocating a new rectangle.
+     * If the two rectangles don't intersect, 
+     * then the returned rectangle begins at (0,0)
+     * and has zero width and height.
+     *
+     * @param x       the X coordinate of the first rectangle's top-left point
+     * @param y       the Y coordinate of the first rectangle's top-left point
+     * @param width   the width of the first rectangle
+     * @param height  the height of the first rectangle
+     * @param dest    the second rectangle
+     *
+     * @return <code>dest</code>, modified to specify the intersection
      */
     public static Rectangle computeIntersection(int x,int y,int width,int height,Rectangle dest) {
         int x1 = (x > dest.x) ? x : dest.x;
@@ -1064,7 +1079,7 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * A simple minded look and feel change: ask each node in the tree
-     * to updateUI(), i.e. to initialize its UI property with the
+     * to updateUI() -- that is, to initialize its UI property with the
      * current look and feel.
      */
     public static void updateComponentTreeUI(Component c) {
@@ -1098,8 +1113,9 @@ public class SwingUtilities implements SwingConstants
      * AWT event dispatching thread.  This will happen after all
      * pending AWT events have been processed.  This method should
      * be used when an application thread needs to update the GUI.
-     * In the following example the invokeAndWait() calls queues
-     * the doHelloWorld Runnable for the event dispatching thread and
+     * In the following example the <code>invokeLater</code> call queues
+     * the <code>Runnable</code> object <code>doHelloWorld</code>
+     * on the event dispatching thread and
      * then prints a message.
      * <pre>
      * Runnable doHelloWorld = new Runnable() {
@@ -1108,22 +1124,32 @@ public class SwingUtilities implements SwingConstants
      *     }
      * };
      *
-     * SwingUtilities.invokeAndWait(doHelloWorld);
-     * System.out.println("Waiting ... ");
+     * SwingUtilities.invokeLater(doHelloWorld);
+     * System.out.println("This might well be displayed before the other message.");
      * </pre>
-     * If invokeAndWait is called from the event dispatching thread,
-     * e.g. from a JButtons ActionListener, the <i>doRun.run()</i> will
-     * still be deferred till all pending events have been processed.
+     * If invokeLater is called from the event dispatching thread --
+     * for example, from a JButton's ActionListener -- the <i>doRun.run()</i> will
+     * still be deferred until all pending events have been processed.
      * Note that if the <i>doRun.run()</i> throws an uncaught exception
      * the event dispatching thread will unwind (not the current thread).
      * <p>
      * Additional documentation and examples for this method can be
-     * found in <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">.
-     *
+     * found in
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How to Use Threads</a>,
+     * in <em>The Java Tutorial</em>.
+     * <p>
+     * As of 1.3 this method is just a cover for <code>java.awt.EventQueue.invokeLater()</code>.
+     * 
      * @see #invokeAndWait
      */
     public static void invokeLater(Runnable doRun) {
-        SystemEventQueueUtilities.postRunnable(doRun, null);
+        
+	EventQueue.invokeLater(doRun);
+        
+
+
+
+
     }
 
 
@@ -1163,36 +1189,44 @@ public class SwingUtilities implements SwingConstants
      * an InvocationTargetException, on the callers thread.
      * <p>
      * Additional documentation and examples for this method can be
-     * found in <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">.
+     * found in
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How to Use Threads</a>,
+     * in <em>The Java Tutorial</em>.
+     * <p>
+     * As of 1.3 this method is just a cover for <code>java.awt.EventQueue.invokeAndWait()</code>.
      *
-     * @exception  InterruptedException If we're interrupted while waiting for
+     * @exception  InterruptedException if we're interrupted while waiting for
      *             the event dispatching thread to finish excecuting <i>doRun.run()</i>
-     * @exception  InvocationTargetException  If <i>doRun.run()</i> throws
+     * @exception  InvocationTargetException  if <i>doRun.run()</i> throws
      *
      * @see #invokeLater
      */
     public static void invokeAndWait(final Runnable doRun)
         throws InterruptedException, InvocationTargetException
     {
-        if(isEventDispatchThread ()) {
-            throw new Error("Cannot call invokeAndWait from the event dispatcher thread");
-        }
+        
+	EventQueue.invokeAndWait(doRun);
+        
 
-        Object lock = new Object() {
-            public String toString() {
-                return "SwingUtilities.invokeAndWait() lock for " + doRun;
-            }
-        };
 
-        Exception exc = null;
-        synchronized(lock) {
-            exc = SystemEventQueueUtilities.postRunnable(doRun, lock);
-            lock.wait();
-        }
 
-        if (exc != null) {
-            throw new InvocationTargetException(exc);
-        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 
@@ -1200,6 +1234,10 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * Returns true if the current thread is an AWT event dispatching thread.
+     * <p>
+     * As of 1.3 this method is just a cover for 
+     * <code>java.awt.EventQueue.isEventDispatchThread()</code>.
+     * 
      * @return true if the current thread is an AWT event dispatching thread
      */
     public static boolean isEventDispatchThread()
@@ -1246,26 +1284,38 @@ public class SwingUtilities implements SwingConstants
      */
 
     /**
-     * Get the index of this object in its accessible parent.
+     * Get the index of this object in its accessible parent.<p>
+     *
+     * Note: as of the Java 2 platform v1.3, it is recommended that developers call
+     * Component.AccessibleAWTComponent.getAccessibleIndexInParent() instead
+     * of using this method.
      *
      * @return -1 of this object does not have an accessible parent.
      * Otherwise, the index of the child in its accessible parent.
      */
     public static int getAccessibleIndexInParent(Component c) {
-        int index = -1;
-        Container parent = c.getParent();
-        if (parent != null && parent instanceof Accessible) {
-            Component ca[] = parent.getComponents();
-            for (int i = 0; i < ca.length; i++) {
-                if (ca[i] instanceof Accessible) {
-                    index++;
-                }
-                if (c.equals(ca[i])) {
-                    return index;
-                }
-            }
-        }
-        return -1;
+
+  // really if JDK1.3...
+	return c.getAccessibleContext().getAccessibleIndexInParent();
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     /**
@@ -1275,7 +1325,11 @@ public class SwingUtilities implements SwingConstants
      * @return the Accessible at the specified location, if it exists
      */
     public static Accessible getAccessibleAt(Component c, Point p) {
-        if (c instanceof Accessible) {
+
+  // really if JDK1.3...
+        if (c instanceof Container) {
+	    return c.getAccessibleContext().getAccessibleComponent().getAccessibleAt(p);
+	} else if (c instanceof Accessible) {
             Accessible a = (Accessible) c;
             if (a != null) {
                 AccessibleContext ac = a.getAccessibleContext();
@@ -1303,130 +1357,230 @@ public class SwingUtilities implements SwingConstants
                 }
             }
             return (Accessible) c;
-        } else {
-            Component ret = c;
-            if (!c.contains(p.x,p.y)) {
-                ret = null;
-            } else if (c instanceof Container) {
-                Container cnt = (Container) c;
-                int ncomponents = cnt.getComponentCount();
-                for (int i=0; i < ncomponents; i++) {
-                    Component comp = cnt.getComponent(i);
-                    if ((comp != null) && comp.isShowing()) {
-                        Point location = comp.getLocation();
-                        if (comp.contains(p.x-location.x,p.y-location.y)) {
-                            ret = comp;
-                        }
-                    }
-                }
-            }
-            if (ret instanceof Accessible) {
-                return (Accessible) ret;
-            }
         }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         return null;
     }
 
     /**
-     * Get the state of this object.
+     * Get the state of this object. <p>
+     *
+     * Note: as of the Java 2 platform v1.3, it is recommended that developers call
+     * Component.AccessibleAWTComponent.getAccessibleIndexInParent() instead
+     * of using this method.
      *
      * @return an instance of AccessibleStateSet containing the current state
      * set of the object
      * @see AccessibleState
      */
     public static AccessibleStateSet getAccessibleStateSet(Component c) {
-        AccessibleStateSet states = new AccessibleStateSet();
-        if (c.isEnabled()) {
-            states.add(AccessibleState.ENABLED);
-        }
-        if (c.isFocusTraversable()) {
-            states.add(AccessibleState.FOCUSABLE);
-        }
-        if (c.isVisible()) {
-            states.add(AccessibleState.VISIBLE);
-        }
-        if (c.isShowing()) {
-            states.add(AccessibleState.SHOWING);
-        }
-        // [[[FIXME:  WDW - for JDK1.2 this code can be replaced with
-        //            c.hasFocus()]]]
-        for (Container p = c.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof Window) {
-                if (((Window)p).getFocusOwner() == c) {
-                    states.add(AccessibleState.FOCUSED);
-                }
-            }
-        }
-        if (c instanceof Accessible) {
-            AccessibleContext ac = ((Accessible) c).getAccessibleContext();
-            if (ac != null) {
-                Accessible ap = ac.getAccessibleParent();
-                if (ap != null) {
-                    AccessibleContext pac = ap.getAccessibleContext();
-                    if (pac != null) {
-                        AccessibleSelection as = pac.getAccessibleSelection();
-                        if (as != null) {
-                            states.add(AccessibleState.SELECTABLE);
-                            int i = ac.getAccessibleIndexInParent();
-                            if (i >= 0) {
-                                if (as.isAccessibleChildSelected(i)) {
-                                    states.add(AccessibleState.SELECTED);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (c instanceof JComponent) {
-            if (((JComponent) c).isOpaque()) {
-                states.add(AccessibleState.OPAQUE);
-            }
-        }
-        return states;
+
+  // really if JDK1.3...
+	return c.getAccessibleContext().getAccessibleStateSet();
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     /**
      * Returns the number of accessible children in the object.  If all
      * of the children of this object implement Accessible, than this
-     * method should return the number of children of this object.
+     * method should return the number of children of this object. <p>
+     *
+     * Note: as of the Java 2 platform v1.3, it is recommended that developers call
+     * Component.AccessibleAWTComponent.getAccessibleIndexInParent() instead
+     * of using this method.
      *
      * @return the number of accessible children in the object.
      */
     public static int getAccessibleChildrenCount(Component c) {
-        int count = 0;
-        if (c instanceof Container) {
-            Component[] children = ((Container) c).getComponents();
-            for (int i = 0; i < children.length; i++) {
-                if (children[i] instanceof Accessible) {
-                    count++;
-                }
-            }
-        }
-        return count;
+
+  // really if JDK1.3...
+	return c.getAccessibleContext().getAccessibleChildrenCount();
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     /**
-     * Return the nth Accessible child of the object.
+     * Return the nth Accessible child of the object. <p>
+     *
+     * Note: as of the Java 2 platform v1.3, it is recommended that developers call
+     * Component.AccessibleAWTComponent.getAccessibleIndexInParent() instead
+     * of using this method.
      *
      * @param i zero-based index of child
      * @return the nth Accessible child of the object
      */
     public static Accessible getAccessibleChild(Component c, int i) {
-        if (c instanceof Container) {
-            Component[] children = ((Container) c).getComponents();
-            int count = 0;
-            for (int j = 0; j < children.length; j++) {
-                if (children[j] instanceof Accessible) {
-                    if (count == i) {
-                        return (Accessible) children[j];
-                    } else {
-                        count++;
-                    }
-                }
-            }
-        }
-        return null;
+
+  // really if JDK1.3...
+	return c.getAccessibleContext().getAccessibleChild(i);
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     /**
@@ -1445,7 +1599,7 @@ public class SwingUtilities implements SwingConstants
             return c;
         }
         if (c instanceof Container) {
-            int n = ((Container)c).countComponents();
+            int n = ((Container)c).getComponentCount();
             for (int i = 0; i < n; i++) {
                 Component focusOwner =
                     findFocusOwner(((Container)c).getComponent(i));
@@ -1494,6 +1648,145 @@ public class SwingUtilities implements SwingConstants
         return applet;
     }
 
+    /**
+     * Invokes <code>actionPerformed</code> on <code>action</code> if
+     * <code>action</code> is enabled (and non null). The command for the
+     * ActionEvent is determined by:
+     * <ol>
+     *   <li>If the action was registered via
+     *       <code>registerKeyboardAction</code>, then the command string
+     *       passed in (null will be used if null was passed in).
+     *   <li>Action value with name Action.ACTION_COMMAND_KEY, unless null.
+     *   <li>String value of the KeyEvent, unless <code>getKeyChar</code>
+     *       returns KeyEvent.CHAR_UNDEFINED..
+     * </ol>
+     * This will return true if <code>action</code> is non-null and
+     * actionPerformed is invoked on it.
+     *
+     * @since 1.3
+     */
+    public static boolean notifyAction(Action action, KeyStroke ks,
+				       KeyEvent event, Object sender,
+				       int modifiers) {
+	if (action == null || !action.isEnabled()) {
+	    return false;
+	}
+	Object commandO;
+	boolean stayNull;
+
+	// Get the command object.
+	commandO = action.getValue(Action.ACTION_COMMAND_KEY);
+	if (commandO == null && (action instanceof JComponent.ActionStandin)) {
+	    // ActionStandin is used for historical reasons to support
+	    // registerKeyboardAction with a null value.
+	    stayNull = true;
+	}
+	else {
+	    stayNull = false;
+	}
+
+	// Convert it to a string.
+	String command;
+
+	if (commandO != null) {
+	    command = commandO.toString();
+	}
+	else if (!stayNull && event.getKeyChar() != KeyEvent.CHAR_UNDEFINED) {
+	    command = String.valueOf(event.getKeyChar());
+	}
+	else {
+	    // Do null for undefined chars, or if registerKeyboardAction
+	    // was called with a null.
+	    command = null;
+	}
+	action.actionPerformed(new ActionEvent(sender,
+			ActionEvent.ACTION_PERFORMED, command, modifiers));
+	return true;
+    }
+
+
+    /**
+     * Convenience method to change the UI InputMap for <code>component</code>
+     * to <code>uiInputMap</code>. If <code>uiInputMap</code> is null,
+     * this removes any previously installed UI InputMap.
+     *
+     * @since 1.3
+     */
+    public static void replaceUIInputMap(JComponent component, int type,
+					 InputMap uiInputMap) {
+	InputMap map = component.getInputMap(type);
+
+	while (map != null) {
+	    InputMap parent = map.getParent();
+	    if (parent == null || (parent instanceof UIResource)) {
+		map.setParent(uiInputMap);
+		return;
+	    }
+	    map = parent;
+	}
+    }
+
+
+    /**
+     * Convenience method to change the UI ActionMap for <code>component</code>
+     * to <code>uiActionMap</code>. If <code>uiActionMap</code> is null,
+     * this removes any previously installed UI ActionMap.
+     *
+     * @since 1.3
+     */
+    public static void replaceUIActionMap(JComponent component,
+					  ActionMap uiActionMap) {
+	ActionMap map = component.getActionMap();
+
+	while (map != null) {
+	    ActionMap parent = map.getParent();
+	    if (parent == null || (parent instanceof UIResource)) {
+		map.setParent(uiActionMap);
+		return;
+	    }
+	    map = parent;
+	}
+    }
+
+
+    /**
+     * Returns the InputMap provided by the UI for condition
+     * <code>condition</code> in component <code>component</code>.
+     * <p>This will return null if the UI has not installed a InputMap
+     * of the specified type.
+     *
+     * @since 1.3
+     */
+    public static InputMap getUIInputMap(JComponent component, int condition) {
+	InputMap map = component.getInputMap(condition, false);
+	while (map != null) {
+	    InputMap parent = map.getParent();
+	    if (parent instanceof UIResource) {
+		return parent;
+	    }
+	    map = parent;
+	}
+	return null;
+    }
+
+    /**
+     * Returns the ActionMap provided by the UI 
+     * in component <code>component</code>.
+     * <p>This will return null if the UI has not installed an ActionMap.
+     *
+     * @since 1.3
+     */
+    public static ActionMap getUIActionMap(JComponent component) {
+	ActionMap map = component.getActionMap(false);
+	while (map != null) {
+	    ActionMap parent = map.getParent();
+	    if (parent instanceof UIResource) {
+		return parent;
+	    }
+	    map = parent;
+	}
+	return null;
+    }
 
 
     // Don't use String, as it's not guaranteed to be unique in a Hashtable.
@@ -1528,44 +1821,55 @@ public class SwingUtilities implements SwingConstants
         return sharedOwnerFrame;
     }
 
-    // The following static var and methods are a temporary
-    // workaround for a Solaris bug where disposing modal dialogs
-    // can sometimes cause a segmentation violation. Once this
-    // AWT bug is fixed and available in browsers, we can remove
-    // this workaround.
-    private static final Object dialogsKey =
-        new StringBuffer("SwingUtilities.dialogs");
 
-    static JDialog getRecycledModalDialog(Frame frame, String title) {
-        Vector dialogs = (Vector)SwingUtilities.appContextGet(dialogsKey);
-        if (dialogs == null) {
-            dialogs = new Vector();
-            SwingUtilities.appContextPut(dialogsKey, dialogs);
-        }
-        JDialog dialog = null;
-        synchronized(dialogs) {
-            for(int i = 0; i < dialogs.size(); i++) {
-                dialog = (JDialog)dialogs.elementAt(i);
-                if (dialog.getParent() == frame) {
-                    //System.out.println("Found available dialog: "+dialog);
-                    dialogs.removeElement(dialog);
-                    dialog.setTitle(title);
-                    return dialog;
-                }
-            }
-            dialog = new JDialog(frame, title, true);
-            //System.out.println("Created new dialog: "+dialog);
-        }
-        return dialog;
-    }
 
-    static void recycleModalDialog(JDialog dialog) {
-        Vector dialogs = (Vector)SwingUtilities.appContextGet(dialogsKey);
-        synchronized(dialogs) {
-            dialog.getContentPane().removeAll();
-            dialogs.addElement(dialog);
-        }
-    }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /* Don't make these AppContext accessors public or protected --
@@ -1656,5 +1960,15 @@ public class SwingUtilities implements SwingConstants
     }
     private SwingUtilities() {
         throw new Error("SwingUtilities is just a container for static methods");
+    }
+
+    /**
+     * Returns true if the Icon <code>icon</code> is an instance of
+     * ImageIcon, and the image it contains is the same as <code>image</code>.
+     */
+    static boolean doesIconReferenceImage(Icon icon, Image image) {
+	Image iconImage = (icon != null && (icon instanceof ImageIcon)) ?
+	                   ((ImageIcon)icon).getImage() : null;
+	return (iconImage == image);
     }
 }

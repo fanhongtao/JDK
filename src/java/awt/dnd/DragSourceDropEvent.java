@@ -1,8 +1,11 @@
 /*
- * @(#)DragSourceDropEvent.java	1.9 01/11/29
+ * @(#)DragSourceDropEvent.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.dnd;
@@ -21,9 +24,9 @@ import java.awt.dnd.DnDConstants;
  * to provide appropriate feedback to the end user 
  * when the operation completes.
  * <P>
- * @version 1.9
+ * @version 	1.12, 02/02/00
  * <P>
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class DragSourceDropEvent extends DragSourceEvent {

@@ -1,8 +1,11 @@
 /*
- * @(#)Random.java	1.28 01/11/29
+ * @(#)Random.java	1.34 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -31,7 +34,7 @@ package java.util;
  * class <code>Math</code> simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.28, 11/29/01
+ * @version 1.34, 02/02/00
  * @see     java.lang.Math#random()
  * @since   JDK1.0
  */
@@ -225,12 +228,12 @@ class Random implements java.io.Serializable {
      * greatly increases the length of the sequence of values returned by
      * successive calls to this method if n is a small power of two.
      *
-     * @parameter n the bound on the random number to be returned.  Must be
-     *		  positive.
+     * @param n the bound on the random number to be returned.  Must be
+     *	      positive.
      * @return  a pseudorandom, uniformly distributed <tt>int</tt>
      *          value between 0 (inclusive) and n (exclusive).
      * @exception IllegalArgumentException n is not positive.
-     * @since JDK1.2
+     * @since 1.2
      */
 
     public int nextInt(int n) {
@@ -279,11 +282,11 @@ class Random implements java.io.Serializable {
      * implemented by class <tt>Random</tt> as follows:
      * <blockquote><pre>
      * public boolean nextBoolean() {return next(1) != 0;}
-     *
+     * </pre></blockquote>
      * @return  the next pseudorandom, uniformly distributed
      *          <code>boolean</code> value from this random number generator's
      *		sequence.
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean nextBoolean() {return next(1) != 0;}
 
@@ -395,7 +398,7 @@ class Random implements java.io.Serializable {
      *                    v1 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
      *                    v2 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
      *                    s = v1 * v1 + v2 * v2;
-     *            } while (s >= 1);
+     *            } while (s >= 1 || s == 0);
      *            double multiplier = Math.sqrt(-2 * Math.log(s)/s);
      *            nextNextGaussian = v2 * multiplier;
      *            haveNextNextGaussian = true;
@@ -425,7 +428,7 @@ class Random implements java.io.Serializable {
                 v1 = 2 * nextDouble() - 1; // between -1 and 1
             	v2 = 2 * nextDouble() - 1; // between -1 and 1 
                 s = v1 * v1 + v2 * v2;
-    	    } while (s >= 1);
+    	    } while (s >= 1 || s == 0);
     	    double multiplier = Math.sqrt(-2 * Math.log(s)/s);
     	    nextNextGaussian = v2 * multiplier;
     	    haveNextNextGaussian = true;

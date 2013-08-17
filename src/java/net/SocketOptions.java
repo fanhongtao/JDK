@@ -1,8 +1,11 @@
 /*
- * @(#)SocketOptions.java	1.13 01/11/29
+ * @(#)SocketOptions.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -20,10 +23,10 @@ package java.net;
  * DatagramSocket and MulticastSocket.
  * <P>
  * A subset of the standard BSD-style socket options are supported in the
- * JDK base classes, <B>PlainSocketImpl</B> and <B>PlainDatagramSocketImpl</B>.
+ * base classes, <B>PlainSocketImpl</B> and <B>PlainDatagramSocketImpl</B>.
  * A brief description of each and their use is provided.
  * <P>
- * @version 1.13, 11/29/01
+ * @version 1.20, 02/02/00
  * @author David Brown
  */
 
@@ -58,8 +61,8 @@ public interface SocketOptions {
      *    // OK - disables SO_LINGER
      * </PRE>
      * <BR>
-     * For an option that requires a particular parameter,
-     * setting its value to anything other than
+     * For an option that has a notion of on and off, and requires 
+     * a non-boolean parameter, setting its value to anything other than
      * <I>Boolean(false)</I> implicitly enables it.
      * <BR>
      * Throws SocketException if the option is unrecognized,
@@ -69,8 +72,8 @@ public interface SocketOptions {
      * @param value the parameter of the socket option
      * @throws SocketException if the option is unrecognized,
      * the socket is closed, or some low-level error occurred
+     * @see #getOption(int)
      */
-
     public void
 	setOption(int optID, Object value) throws SocketException;
 
@@ -100,11 +103,13 @@ public interface SocketOptions {
      * }
      * </PRE>
      *
+     * @param optID an <code>int</code> identifying the option to fetch
+     * @return the value of the option
      * @throws SocketException if the socket is closed
      * @throws SocketException if <I>optID</I> is unknown along the
      *         protocol stack (including the SocketImpl)
+     * @see #setOption(int, java.lang.Object)
      */
-
     public Object getOption(int optID) throws SocketException;
 
     /**
@@ -140,7 +145,6 @@ public interface SocketOptions {
      * Valid for: SocketImpl, DatagramSocketImpl
      * <P>
      * @see Socket#getLocalAddress
-     * @see Server#getLocalAddress
      * @see DatagramSocket#getLocalAddress
      */
 
@@ -215,9 +219,9 @@ public interface SocketOptions {
      *
      * Valid for all sockets: SocketImpl, DatagramSocketImpl
      *
-     * @see Socket#setSendSize
+     * @see Socket#setSendBufferSize
      * @see Socket#getSendBufferSize
-     * @see DatagramSocket#setSendSize
+     * @see DatagramSocket#setSendBufferSize
      * @see DatagramSocket#getSendBufferSize
      */
     public final static int SO_SNDBUF = 0x1001;
@@ -233,12 +237,35 @@ public interface SocketOptions {
      *
      * Valid for all sockets: SocketImpl, DatagramSocketImpl
      *
-     * @see Socket#setReceiveSize
+     * @see Socket#setReceiveBufferSize
      * @see Socket#getReceiveBufferSize
-     * @see DatagramSocket#setReceiveSize
+     * @see DatagramSocket#setReceiveBufferSize
      * @see DatagramSocket#getReceiveBufferSize
      */
     public final static int SO_RCVBUF = 0x1002;
+
+    /**
+     * When the keepalive option is set for a TCP socket and no data
+     * has been exchanged across the socket in either direction for 
+     * 2 hours (NOTE: the actual value is implementation dependent),
+     * TCP automatically sends a keepalive probe to the peer. This probe is a 
+     * TCP segment to which the peer must respond. 
+     * One of three responses is expected:
+     * 1. The peer responds with the expected ACK. The application is not 
+     *    notified (since everything is OK). TCP will send another probe 
+     *    following another 2 hours of inactivity.
+     * 2. The peer responds with an RST, which tells the local TCP that
+     *    the peer host has crashed and rebooted. The socket is closed.
+     * 3. There is no response from the peer. The socket is closed. 
+     *
+     * The purpose of this option is to detect if the peer host crashes. 
+     *
+     * Valid only for TCP socket: SocketImpl
+     *
+     * @see Socket#setKeepAlive
+     * @see Socket#getKeepAlive
+     */
+    public final static int SO_KEEPALIVE = 0x0008;
 }
 
 

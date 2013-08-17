@@ -1,8 +1,11 @@
 /*
- * @(#)DeflaterOutputStream.java	1.24 01/11/29
+ * @(#)DeflaterOutputStream.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -18,7 +21,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.24, 11/29/01
+ * @version 	1.27, 02/02/00
  * @author 	David Connelly
  */
 public
@@ -38,7 +41,7 @@ class DeflaterOutputStream extends FilterOutputStream {
      * buffer size.
      * @param out the output stream
      * @param def the compressor ("deflater")
-     * @param len the output buffer size
+     * @param size the output buffer size
      * @exception IllegalArgumentException if size is <= 0
      */
     public DeflaterOutputStream(OutputStream out, Deflater def, int size) {
@@ -64,6 +67,7 @@ class DeflaterOutputStream extends FilterOutputStream {
 
     /**
      * Creates a new output stream with a defaul compressor and buffer size.
+     * @param out the output stream
      */
     public DeflaterOutputStream(OutputStream out) {
 	this(out, new Deflater());
@@ -84,7 +88,7 @@ class DeflaterOutputStream extends FilterOutputStream {
     /**
      * Writes an array of bytes to the compressed output stream. This
      * method will block until all the bytes are written.
-     * @param buf the data to be written
+     * @param b the data to be written
      * @param off the start offset of the data
      * @param len the length of the data
      * @exception IOException if an I/O error has occurred
@@ -92,6 +96,11 @@ class DeflaterOutputStream extends FilterOutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
 	if (def.finished()) {
 	    throw new IOException("write beyond end of stream");
+	}
+        if ((off | len | (off + len) | (b.length - (off + len))) < 0) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return;
 	}
 	if (!def.finished()) {
 	    def.setInput(b, off, len);
@@ -128,6 +137,7 @@ class DeflaterOutputStream extends FilterOutputStream {
 
     /**
      * Writes next block of compressed data to the output stream.
+     * @throws IOException if an I/O error has occurred
      */
     protected void deflate() throws IOException {
 	int len = def.deflate(buf, 0, buf.length);

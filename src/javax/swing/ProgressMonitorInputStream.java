@@ -1,8 +1,11 @@
 /*
- * @(#)ProgressMonitorInputStream.java	1.14 01/11/29
+ * @(#)ProgressMonitorInputStream.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -32,10 +35,17 @@ import java.awt.Component;
  * an InterruptedIOException will be thrown on the next read.
  * All the right cleanup is done when the stream is closed.
  *
+ *
+ * <p>
+ *
+ * For further documentation and examples see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/progress.html">How to Monitor Progress</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
  * @see ProgressMonitor
  * @see JOptionPane
  * @author James Gosling
- * @version 1.14 11/29/01
+ * @version 1.16 02/02/00
  */
 public class ProgressMonitorInputStream extends FilterInputStream
 {

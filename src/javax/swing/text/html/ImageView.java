@@ -1,8 +1,11 @@
 /*
- * @(#)ImageView.java	1.37 01/11/29
+ * @(#)ImageView.java	1.40 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -17,11 +20,11 @@ import javax.swing.text.*;
 import javax.swing.event.*;
 
 /**
- * View of an Image, intended to support the HTML <IMG> tag.
+ * View of an Image, intended to support the HTML &lt;IMG&gt; tag.
  * Supports scaling via the HEIGHT and WIDTH parameters.
  *
  * @author  Jens Alfke
- * @version 1.37 11/29/01
+ * @version 1.40 02/02/00
  * @see IconView
  */
 class ImageView extends View implements ImageObserver, MouseListener, MouseMotionListener {
@@ -46,6 +49,7 @@ class ImageView extends View implements ImageObserver, MouseListener, MouseMotio
      */
     public ImageView(Element elem) {
     	super(elem);
+	fBounds = new Rectangle();
     	initialize(elem);
 	StyleSheet sheet = getStyleSheet();
 	attr = sheet.getViewAttributes(this);
@@ -63,9 +67,18 @@ class ImageView extends View implements ImageObserver, MouseListener, MouseMotio
 	boolean customHeight = false;
 	try {
 	    fElement = elem;
-        
-	    // Request image from document's cache:
 	    AttributeSet attr = elem.getAttributes();
+        
+	    AttributeSet anchorAttr = (AttributeSet)attr.
+		         getAttribute(HTML.Tag.A);
+	    isLink = (anchorAttr != null && anchorAttr.isDefined
+		      (HTML.Attribute.HREF));
+	    border = getIntAttr(HTML.Attribute.BORDER, isLink() ?
+				DEFAULT_BORDER : 0);
+	    xSpace = getIntAttr(HTML.Attribute.HSPACE, 0);
+	    ySpace = getIntAttr(HTML.Attribute.VSPACE, 0);
+
+	    // Request image from document's cache:
 	    URL src = getSourceURL();
 	    if( src != null ) {
 		Dictionary cache = (Dictionary) getDocument().getProperty(IMAGE_CACHE_PROPERTY);
@@ -135,45 +148,26 @@ class ImageView extends View implements ImageObserver, MouseListener, MouseMotio
 
     /** Is this image within a link? */
     boolean isLink( ) {
-        //! It would be nice to cache this but in an editor it can change
-        // See if I have an HREF attribute courtesy of the enclosing A tag:
-	AttributeSet anchorAttr = (AttributeSet)
-	    fElement.getAttributes().getAttribute(HTML.Tag.A);
-	if (anchorAttr != null) {
-	    return anchorAttr.isDefined(HTML.Attribute.HREF);
-	}
-	return false;
+	return isLink;
     }
     
     /** Returns the size of the border to use. */
     int getBorder( ) {
-        return getIntAttr(HTML.Attribute.BORDER, isLink() ?DEFAULT_BORDER :0);
+        return border;
     }
     
     /** Returns the amount of extra space to add along an axis. */
     int getSpace( int axis ) {
-    	return getIntAttr( axis==X_AXIS ?HTML.Attribute.HSPACE :HTML.Attribute.VSPACE,
-    			   0 );
+	if (axis == X_AXIS) {
+	    return xSpace;
+	}
+	return ySpace;
     }
     
     /** Returns the border's color, or null if this is not a link. */
     Color getBorderColor( ) {
     	StyledDocument doc = (StyledDocument) getDocument();
         return doc.getForeground(getAttributes());
-    }
-    
-    /** Returns the image's vertical alignment. */
-    float getVerticalAlignment( ) {
-	String align = (String) fElement.getAttributes().getAttribute(HTML.Attribute.ALIGN);
-	if( align != null ) {
-	    align = align.toLowerCase();
-	    if( align.equals(TOP) || align.equals(TEXTTOP) )
-	        return 0.0f;
-	    else if( align.equals(this.CENTER) || align.equals(MIDDLE)
-					       || align.equals(ABSMIDDLE) )
-	        return 0.5f;
-	}
-	return 1.0f;		// default alignment is bottom
     }
     
     boolean hasPixels( ImageObserver obs ) {
@@ -234,7 +228,6 @@ class ImageView extends View implements ImageObserver, MouseListener, MouseMotio
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
 if(DEBUG) System.out.println("ImageView: changedUpdate begin...");
     	super.changedUpdate(e,a,f);
-    	float align = getVerticalAlignment();
     	
     	int height = fHeight;
     	int width  = fWidth;
@@ -243,11 +236,10 @@ if(DEBUG) System.out.println("ImageView: changedUpdate begin...");
     	
     	boolean hChanged = fHeight!=height;
     	boolean wChanged = fWidth!=width;
-    	if( hChanged || wChanged || getVerticalAlignment()!=align ) {
+    	if( hChanged || wChanged) {
     	    if(DEBUG) System.out.println("ImageView: calling preferenceChanged");
-    	    getParent().preferenceChanged(this,hChanged,wChanged);
+	    preferenceChanged(null,hChanged,wChanged);
     	}
-if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVerticalAlignment());
     }
 
 
@@ -262,7 +254,9 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
      */
     public void paint(Graphics g, Shape a) {
 	Color oldColor = g.getColor();
-	fBounds = a.getBounds();
+	Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a :
+	                  a.getBounds();
+	fBounds.setBounds(alloc);
         int border = getBorder();
 	int x = fBounds.x + border + getSpace(X_AXIS);
 	int y = fBounds.y + border + getSpace(Y_AXIS);
@@ -429,7 +423,7 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
 	      if (doc instanceof AbstractDocument) {
 		((AbstractDocument)doc).readLock();
 	      }
-	      preferenceChanged(this,true,true);
+	      preferenceChanged(null,true,true);
 	    } finally {
 	      if (doc instanceof AbstractDocument) {
 		((AbstractDocument)doc).readUnlock();
@@ -498,7 +492,7 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
     public float getAlignment(int axis) {
 	switch (axis) {
 	case View.Y_AXIS:
-	    return getVerticalAlignment();
+	    return 1.0f;
 	default:
 	    return super.getAlignment(axis);
 	}
@@ -730,6 +724,10 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
     /** Set to true, while the receiver is locked, to indicate the reciever
      * is loading the image. This is used in imageUpdate. */
     private boolean   loading;
+    private boolean   isLink;
+    private int       border;
+    private int       xSpace;
+    private int       ySpace;
     
     // --- constants and static stuff --------------------------------
 

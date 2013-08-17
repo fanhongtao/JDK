@@ -1,8 +1,11 @@
 /*
- * @(#)InputStreamReader.java	1.21 01/11/29
+ * @(#)InputStreamReader.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,14 +16,19 @@ import sun.io.ConversionBufferFullException;
 
 /**
  * An InputStreamReader is a bridge from byte streams to character streams: It
- * reads bytes and translates them into characters according to a specified
- * character encoding.  The encoding that it uses may be specified by name, or
- * the platform's default encoding may be accepted.
+ * reads bytes and translates them into characters according to a specified <a
+ * href="../lang/package-summary.html#charenc">character encoding</a>.  The
+ * encoding that it uses may be specified by name, or the platform's default
+ * encoding may be accepted.
  *
  * <p> Each invocation of one of an InputStreamReader's read() methods may
  * cause one or more bytes to be read from the underlying byte-input stream.
- * For top efficiency, consider wrapping an InputStreamReader within a
- * BufferedReader; for example,
+ * To enable the efficient conversion of bytes to characters, more bytes may
+ * be read ahead from the underlying stream than are necessary to satisfy the
+ * current read operation.
+ *
+ * <p> For top efficiency, consider wrapping an InputStreamReader within a
+ * BufferedReader.  For example:
  *
  * <pre>
  * BufferedReader in
@@ -29,8 +37,9 @@ import sun.io.ConversionBufferFullException;
  *
  * @see BufferedReader
  * @see InputStream
+ * @see <a href="../lang/package-summary.html#charenc">Character encodings</a>
  *
- * @version 	1.21, 01/11/29
+ * @version 	1.25, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -56,7 +65,9 @@ public class InputStreamReader extends Reader {
      * Create an InputStreamReader that uses the named character encoding.
      *
      * @param  in   An InputStream
-     * @param  enc  Name of encoding to be used
+     * @param  enc  The name of a supported
+     *              <a href="../lang/package-summary.html#charenc">character
+     *              encoding</a>
      *
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
@@ -84,12 +95,18 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Returns the canonical name of the character encoding being used by 
-     * this stream.  If this <code>InputStreamReader</code> was created 
-     * with the {@link #InputStreamReader(InputStream, String)} constructor, 
-     * the returned encoding name, being canonical, may differ from the 
-     * encoding name passed to the constructor.  May return <code>null</code> 
-     * if the stream has been closed.
+     * Returns the canonical name of the character encoding being used by this
+     * stream.  If this <code>InputStreamReader</code> was created with the
+     * {@link #InputStreamReader(InputStream, String)} constructor then the
+     * returned encoding name, being canonical, may differ from the encoding
+     * name passed to the constructor.  May return <code>null</code> if the
+     * stream has been closed.
+     *
+     * @return a String representing the encoding name, or possibly
+     *         <code>null</code> if the stream has been closed
+     *
+     * @see <a href="../lang/package-summary.html#charenc">Character
+     *      encodings</a>
      */
     public String getEncoding() {
 	synchronized (lock) {

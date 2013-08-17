@@ -1,8 +1,11 @@
 /*
- * @(#)ListView.java	1.24 01/11/29
+ * @(#)ListView.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -14,7 +17,7 @@ import javax.swing.text.*;
  * A view implementation to display an html list
  *
  * @author  Timothy Prinzing
- * @version 1.24 11/29/01
+ * @version 1.25 02/02/00
  */
 public class ListView extends BlockView  {
 
@@ -25,8 +28,6 @@ public class ListView extends BlockView  {
      */
     public ListView(Element elem) {
 	super(elem, View.Y_AXIS);
-	StyleSheet sheet = getStyleSheet();
-	listPainter = sheet.getListPainter(getAttributes());
     }
 
     /**

@@ -1,9 +1,14 @@
 /*
- * @(#)Bounds.java	1.9 01/11/29
+ * @(#)Bounds.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
+
+package org.omg.CORBA;
 
 /**
  * A user exception thrown when a parameter is not within
@@ -13,8 +18,6 @@
  * @see <A href="../guide/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
  */
-
-package org.omg.CORBA;
 
 public final class Bounds extends org.omg.CORBA.UserException {
 

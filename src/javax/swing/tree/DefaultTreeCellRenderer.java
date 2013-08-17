@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultTreeCellRenderer.java	1.32 01/11/29
+ * @(#)DefaultTreeCellRenderer.java	1.40 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -18,6 +21,26 @@ import java.util.*;
 
 /**
  * Displays an entry in a tree.
+ * See <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a> 
+ * in <em>The Java Tutorial</em>
+ * for examples of customizing node display using this class.
+ * <p>                                                                        
+ * 
+ * <strong><a name="override">Implementation Note:</a></strong>
+ * This class overrides
+ * <code>validate</code>,
+ * <code>revalidate</code>,
+ * <code>repaint</code>,
+ * and
+ * <code>firePropertyChange</code>
+ * solely to improve performance.
+ * If not overridden, these frequently called methods would execute code paths
+ * that are unnecessary for the default tree cell renderer.
+ * If you write your own renderer,
+ * take care to weigh the benefits and
+ * drawbacks of overriding these methods.
+ *
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -25,7 +48,7 @@ import java.util.*;
  * for short term storage or RMI between applications running the same
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
- * @version 1.32 11/29/01
+ * @version 1.40 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -34,9 +57,8 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 {
     /** Is the value currently selected. */
     protected boolean selected;
-    // These two ivars will be made protected later.
     /** True if has focus. */
-    private boolean hasFocus;
+    protected boolean hasFocus;
     /** True if draws focus border around icon as well. */
     private boolean drawsFocusBorderAroundIcon;
 
@@ -228,7 +250,11 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     }
 
     /**
-     * Subclassed to only accept the font if it isn't a FontUIResource.
+     * Subclassed to map <code>FontUIResource</code>s to null. If 
+     * <code>font</code> is null, or a <code>FontUIResource</code>, this
+     * has the effect of letting the font of the JTree show
+     * through. On the other hand, if <code>font</code> is non-null, and not
+     * a <code>FontUIResource</code>, the font becomes <code>font</code>.
      */
     public void setFont(Font font) {
 	if(font instanceof FontUIResource)
@@ -237,7 +263,12 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     }
 
     /**
-     * Subclassed to only accept the color if it isn't a ColorUIResource.
+     * Subclassed to map <code>ColorUIResource</code>s to null. If 
+     * <code>color</code> is null, or a <code>ColorUIResource</code>, this
+     * has the effect of letting the background color of the JTree show
+     * through. On the other hand, if <code>color</code> is non-null, and not
+     * a <code>ColorUIResource</code>, the background becomes
+     * <code>color</code>.
      */
     public void setBackground(Color color) {
 	if(color instanceof ColorUIResource)
@@ -247,7 +278,9 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 
     /**
       * Configures the renderer based on the passed in components.
-      * The value is set from messaging value with toString().
+      * The value is set from messaging the tree with
+      * <code>convertValueToText</code>, which ultimately invokes
+      * <code>toString</code> on <code>value</code>.
       * The foreground color is set based on the selection and the icon
       * is set based on on leaf and expanded.
       */
@@ -286,6 +319,7 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 		setIcon(getClosedIcon());
 	    }
 	}
+        setComponentOrientation(tree.getComponentOrientation());
 	    
 	selected = sel;
 
@@ -311,9 +345,15 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 
 	    imageOffset = getLabelStart();
 	    g.setColor(bColor);
-	    g.fillRect(imageOffset, 0, getWidth() - 1 - imageOffset,
-		       getHeight());
+	    if(getComponentOrientation().isLeftToRight()) {
+	        g.fillRect(imageOffset, 0, getWidth() - 1 - imageOffset,
+			   getHeight());
+	    } else {
+	        g.fillRect(0, 0, getWidth() - 1 - imageOffset,
+			   getHeight());
+	    }
 	}
+
 	if (hasFocus) {
 	    if (drawsFocusBorderAroundIcon) {
 		imageOffset = 0;
@@ -325,8 +365,13 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 
 	    if (bsColor != null) {
 		g.setColor(bsColor);
-		g.drawRect(imageOffset, 0, getWidth() - 1 - imageOffset,
-			   getHeight() - 1);
+		if(getComponentOrientation().isLeftToRight()) {
+		    g.drawRect(imageOffset, 0, getWidth() - 1 - imageOffset,
+			       getHeight() - 1);
+		} else {
+		    g.drawRect(0, 0, getWidth() - 1 - imageOffset,
+			       getHeight() - 1);
+		}
 	    }
 	}
 	super.paint(g);
@@ -352,5 +397,100 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 					 retDimension.height);
 	return retDimension;
     }
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void validate() {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void revalidate() {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void repaint(long tm, int x, int y, int width, int height) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void repaint(Rectangle r) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {	
+	// Strings get interned...
+	if (propertyName=="text")
+	    super.firePropertyChange(propertyName, oldValue, newValue);
+    }
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
 
 }

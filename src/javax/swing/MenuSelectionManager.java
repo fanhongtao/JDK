@@ -1,8 +1,11 @@
 /*
- * @(#)MenuSelectionManager.java	1.21 01/11/29
+ * @(#)MenuSelectionManager.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -14,14 +17,19 @@ import javax.swing.event.*;
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
  * 
- * @version 1.21 11/29/01
+ * @version 1.23 02/02/00
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
     private static final MenuSelectionManager instance = 
         new MenuSelectionManager();
 
-    Vector selection = new Vector();
+    private Vector selection = new Vector();
+
+    /* diagnostic aids -- should be false for production builds. */
+    private static final boolean TRACE =   false; // trace creates and disposes
+    private static final boolean VERBOSE = false; // show reuse hits/misses
+    private static final boolean DEBUG =   false;  // show bad params, misc.
 
     /**
      * Returns the default menu selection manager.
@@ -54,8 +62,10 @@ public class MenuSelectionManager {
             path = new MenuElement[0];
         }
 
-	// System.out.print("Previous:  "); printMenuElementArray(getSelectedPath());
-	// System.out.print("New:  "); printMenuElementArray(path);
+	if (DEBUG) {
+	    System.out.print("Previous:  "); printMenuElementArray(getSelectedPath());
+	    System.out.print("New:  "); printMenuElementArray(path);
+	}
 
         for(i=0,c=path.length;i<c;i++) {
             if(i < currentSelectionCount && (MenuElement)selection.elementAt(i) == path[i]) 
@@ -366,6 +376,10 @@ public class MenuSelectionManager {
         MenuElement subElements[];
         MenuElement path[];
         Component mc;
+
+	if (DEBUG) {
+	    System.out.println("in MenuSelectionManager.processKeyEvent");
+	}
 
         tmp = (Vector)selection.clone();
         selectionSize = tmp.size();

@@ -1,8 +1,11 @@
 /*
- * @(#)File.java	1.84 01/11/29
+ * @(#)File.java	1.92 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -82,7 +85,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.79, 98/08/18
+ * @version 1.92, 02/02/00
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -330,7 +333,7 @@ public class File implements java.io.Serializable, Comparable {
      *          abstract pathname, or <code>null</code> if this pathname
      *          does not name a parent
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public File getParentFile() {
 	String p = this.getParent();
@@ -397,7 +400,7 @@ public class File implements java.io.Serializable, Comparable {
      * @return  The absolute abstract pathname denoting the same file or
      *          directory as this abstract pathname
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public File getAbsoluteFile() {
 	return new File(getAbsolutePath());
@@ -446,7 +449,7 @@ public class File implements java.io.Serializable, Comparable {
      *          construction of the canonical pathname may require
      *          filesystem queries
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public File getCanonicalFile() throws IOException {
 	return new File(getCanonicalPath());
@@ -458,8 +461,10 @@ public class File implements java.io.Serializable, Comparable {
      * the file denoted by this abstract pathname is a directory, then the
      * resulting URL will end with a slash.
      *
+     * @return a URL object representing the equivalent file URL.
+     * @throws MalformedURLException if the path cannot be parsed as a URL.
      * @see     java.net.URL
-     * @since   JDK1.2
+     * @since   1.2
      */
     public URL toURL() throws MalformedURLException {
 	String path = getAbsolutePath();
@@ -601,7 +606,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkRead}</code> method denies
      *          read access to the file
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean isHidden() {
 	SecurityManager security = System.getSecurityManager();
@@ -677,7 +682,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkWrite}</code> method denies
      *          write access to the file
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean createNewFile() throws IOException {
 	SecurityManager security = System.getSecurityManager();
@@ -722,7 +727,7 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @see #delete
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public void deleteOnExit() {
 	SecurityManager security = System.getSecurityManager();
@@ -838,7 +843,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkRead}</code> method denies
      *          read access to the directory
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public File[] listFiles() {
 	String[] ss = list();
@@ -877,7 +882,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkRead}</code> method denies
      *          read access to the directory
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public File[] listFiles(FilenameFilter filter) {
 	String ss[] = list();
@@ -916,7 +921,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkRead}</code> method denies
      *          read access to the directory
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public File[] listFiles(FileFilter filter) {
 	String ss[] = list();
@@ -988,7 +993,7 @@ public class File implements java.io.Serializable, Comparable {
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
      *          java.lang.SecurityManager#checkWrite}</code> method denies
-     *          write access to both the old and new pathnames
+     *          write access to either the old or new pathnames
      * 
      * @throws  NullPointerException  
      *          If parameter <code>dest</code> is <code>null</code>
@@ -1016,7 +1021,7 @@ public class File implements java.io.Serializable, Comparable {
      * @param  time  The new last-modified time, measured in milliseconds since
      *               the epoch (00:00:00 GMT, January 1, 1970)
      *
-     * @returns <code>true</code> if and only if the operation succeeded;
+     * @return <code>true</code> if and only if the operation succeeded;
      *          <code>false</code> otherwise
      *
      * @throws  IllegalArgumentException  If the argument is negative
@@ -1026,7 +1031,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkWrite}</code> method denies
      *          write access to the named file
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean setLastModified(long time) {
 	if (time < 0) throw new IllegalArgumentException("Negative time");
@@ -1044,7 +1049,7 @@ public class File implements java.io.Serializable, Comparable {
      * marked to allow write access.  Whether or not a read-only file or
      * directory may be deleted depends upon the underlying system.
      *
-     * @returns <code>true</code> if and only if the operation succeeded;
+     * @return <code>true</code> if and only if the operation succeeded;
      *          <code>false</code> otherwise
      *
      * @throws  SecurityException
@@ -1052,7 +1057,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkWrite}</code> method denies
      *          write access to the named file
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean setReadOnly() {
 	SecurityManager security = System.getSecurityManager();
@@ -1105,7 +1110,7 @@ public class File implements java.io.Serializable, Comparable {
      *          could not be determined.  The array will be empty if there are
      *          no filesystem roots.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static File[] listRoots() {
 	return fs.listRoots();
@@ -1218,7 +1223,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkWrite}</code> method does not
      *          allow a file to be created
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static File createTempFile(String prefix, String suffix,
 				      File directory)
@@ -1268,7 +1273,7 @@ public class File implements java.io.Serializable, Comparable {
      *          java.lang.SecurityManager#checkWrite}</code> method does not
      *          allow a file to be created
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static File createTempFile(String prefix, String suffix)
 	throws IOException
@@ -1294,7 +1299,7 @@ public class File implements java.io.Serializable, Comparable {
      *		than zero if this abstract pathname is lexicographically
      *		greater than the argument
      *
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(File pathname) {
 	return fs.compare(this, pathname);
@@ -1321,7 +1326,7 @@ public class File implements java.io.Serializable, Comparable {
      *		abstract pathname
      *
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((File)o);

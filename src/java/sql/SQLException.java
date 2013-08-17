@@ -1,15 +1,18 @@
 /*
- * @(#)SQLException.java	1.17 01/11/29
+ * @(#)SQLException.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
 
 /**
  * <P>An exception that provides information on a database access
- * error.
+ * error or other errors.
  *
  * <P>Each <code>SQLException</code> provides several kinds of information: 
  * <UL>
@@ -67,7 +70,7 @@ public class SQLException extends java.lang.Exception {
 
     /**
      * Constructs an <code>SQLException</code> object with a reason;
-     * SQLState defaults to null, and vendorCode defaults to 0.
+     * SQLState defaults to <code>null</code>, and vendorCode defaults to 0.
      *
      * @param reason a description of the exception 
      */
@@ -85,7 +88,7 @@ public class SQLException extends java.lang.Exception {
     /**
      * Constructs an <code>SQLException</code> object;
      * reason defaults to null, SQLState
-     * defaults to null, and vendorCode defaults to 0.
+     * defaults to <code>null</code>, and vendorCode defaults to 0.
      * */
     public SQLException() {
 	super();
@@ -121,7 +124,8 @@ public class SQLException extends java.lang.Exception {
      * Retrieves the exception chained to this 
 	 * <code>SQLException</code> object.
      *
-     * @return the next SQLException in the chain; null if none
+     * @return the next <code>SQLException</code> object in the chain; 
+	 * <code>null</code> if there are none
      */
     public SQLException getNextException() {
 	return (next);
@@ -131,7 +135,7 @@ public class SQLException extends java.lang.Exception {
      * Adds an <code>SQLException</code> object to the end of the chain.
      *
      * @param ex the new exception that will be added to the end of
-	 *            the SQLException chain
+	 *            the <code>SQLException</code> chain
      */
     public synchronized void setNextException(SQLException ex) {
 	SQLException theEnd = this;

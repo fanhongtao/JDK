@@ -1,8 +1,11 @@
 /*
- * @(#)Graphics.java	1.58 01/11/29
+ * @(#)Graphics.java	1.62 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -73,7 +76,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.58, 11/29/01
+ * @version 	1.62, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -145,6 +148,7 @@ public abstract class Graphics {
      */
     public Graphics create(int x, int y, int width, int height) {
 	Graphics g = create();
+	if (g == null) return null;
 	g.translate(x, y);
 	g.clipRect(0, 0, width, height);
 	return g;
@@ -221,9 +225,9 @@ public abstract class Graphics {
      * use this font. 
      * @param  font   the font.
      * @see     java.awt.Graphics#getFont
-     * @see     java.awt.Graphics#drawChars(java.lang.String, int, int)
-     * @see     java.awt.Graphics#drawString(byte[], int, int, int, int)
-     * @see     java.awt.Graphics#drawBytes(char[], int, int, int, int)
+     * @see     java.awt.Graphics#drawString(java.lang.String, int, int)
+     * @see     java.awt.Graphics#drawBytes(byte[], int, int, int, int)
+     * @see     java.awt.Graphics#drawChars(char[], int, int, int, int)
     */
     public abstract void setFont(Font font);
 
@@ -752,7 +756,7 @@ public abstract class Graphics {
     /** 
      * Draws the text given by the specified string, using this 
      * graphics context's current font and color. The baseline of the 
-     * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
+     * leftmost character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
      * graphics context's coordinate system. 
      * @param       str      the string to be drawn.
      * @param       x        the <i>x</i> coordinate.
@@ -766,7 +770,7 @@ public abstract class Graphics {
      * Draws the text given by the specified iterator, using this 
      * graphics context's current color. The iterator has to specify a font
      * for each character. The baseline of the 
-     * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
+     * leftmost character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
      * graphics context's coordinate system. 
      * @param       iterator the iterator whose text is to be drawn
      * @param       x        the <i>x</i> coordinate.
@@ -1129,21 +1133,15 @@ public abstract class Graphics {
      * @param height the height of the rectangle to test against the clip
      */
     public boolean hitClip(int x, int y, int width, int height) {
-        // Note, this implementation is not very efficient.
-        // Subclasses should override this method and calculate
-        // the results more directly.
-        Rectangle clipRect = getClipBounds();
-        if (clipRect == null) {
-            return true;
-        }
-        return clipRect.intersects(x, y, width, height);
+        // FIXME: 1.2 beta3 placeholder, replace for beta4
+        return new Rectangle(x,y,width,height).intersects(getClipBounds());
     }
 
     /**
      * Returns the bounding rectangle of the current clipping area.
      * The coordinates in the rectangle are relative to the coordinate
      * system origin of this graphics context.  This method differs
-     * from {@link getClipBounds() getClipBounds} in that an existing 
+     * from {@link #getClipBounds() getClipBounds} in that an existing 
      * rectangle is used instead of allocating a new one.  
      * This method refers to the user clip, which is independent of the
      * clipping associated with device bounds and window visibility.
@@ -1156,18 +1154,12 @@ public abstract class Graphics {
      * @return      the bounding rectangle of the current clipping area.
      */
     public Rectangle getClipBounds(Rectangle r) {
-        // Note, this implementation is not very efficient.
-        // Subclasses should override this method and avoid
-        // the allocation overhead of getClipBounds().
+        // FIXME: 1.2 beta3 placeholder, replace for beta4
         Rectangle clipRect = getClipBounds();
-        if (clipRect != null) {
-            r.x = clipRect.x;
-            r.y = clipRect.y;
-            r.width = clipRect.width;
-            r.height = clipRect.height;
-        } else if (r == null) {
-            throw new NullPointerException("null rectangle parameter");
-        }
+        r.x = clipRect.x;
+        r.y = clipRect.y;
+        r.width = clipRect.width;
+        r.height = clipRect.height;
         return r;
-    }   
+    }
 }

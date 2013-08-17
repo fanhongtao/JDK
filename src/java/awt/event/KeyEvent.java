@@ -1,8 +1,11 @@
 /*
- * @(#)KeyEvent.java	1.39 01/11/29
+ * @(#)KeyEvent.java	1.44 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -87,15 +90,17 @@ import java.awt.Toolkit;
  * constants.  Sun reserves the right to change these values as needed
  * to accomodate a wider range of keyboards in the future.  
  *
+ * @author Carl Quinn
+ * @author Amy Fowler
+ * @author Norbert Lindenberg
+ * @version 1.44 04/06/00
+ *
  * @see KeyAdapter
  * @see KeyListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/keylistener.html">Tutorial: Writing a Key Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.39 11/29/01
- * @author Carl Quinn
- * @author Amy Fowler
- * @author Norbert Lindenberg
+ * @since 1.1
  */
 public class KeyEvent extends InputEvent {
 
@@ -153,7 +158,13 @@ public class KeyEvent extends InputEvent {
     public static final int VK_RIGHT          = 0x27;
     public static final int VK_DOWN           = 0x28;
     public static final int VK_COMMA          = 0x2C;
+
+    /**
+     * Constant for the "-" key.
+     * @since 1.2
+     */
     public static final int VK_MINUS          = 0x2D;
+
     public static final int VK_PERIOD         = 0x2E;
     public static final int VK_SLASH          = 0x2F;
 
@@ -260,41 +271,77 @@ public class KeyEvent extends InputEvent {
     /** Constant for the F12 function key. */
     public static final int VK_F12            = 0x7B;
 
-    /** Constant for the F13 function key. */
+    /**
+     * Constant for the F13 function key.
+     * @since 1.2
+     */
     /* F13 - F24 are used on IBM 3270 keyboard; use random range for constants. */
     public static final int VK_F13            = 0xF000;
  
-    /** Constant for the F14 function key. */
+    /**
+     * Constant for the F14 function key.
+     * @since 1.2
+     */
     public static final int VK_F14            = 0xF001;
  
-    /** Constant for the F15 function key. */
+    /**
+     * Constant for the F15 function key.
+     * @since 1.2
+     */
     public static final int VK_F15            = 0xF002;
  
-    /** Constant for the F16 function key. */
+    /**
+     * Constant for the F16 function key.
+     * @since 1.2
+     */
     public static final int VK_F16            = 0xF003;
  
-    /** Constant for the F17 function key. */
+    /**
+     * Constant for the F17 function key.
+     * @since 1.2
+     */
     public static final int VK_F17            = 0xF004;
  
-    /** Constant for the F18 function key. */
+    /**
+     * Constant for the F18 function key.
+     * @since 1.2
+     */
     public static final int VK_F18            = 0xF005;
  
-    /** Constant for the F19 function key. */
+    /**
+     * Constant for the F19 function key.
+     * @since 1.2
+     */
     public static final int VK_F19            = 0xF006;
  
-    /** Constant for the F20 function key. */
+    /**
+     * Constant for the F20 function key.
+     * @since 1.2
+     */
     public static final int VK_F20            = 0xF007;
  
-    /** Constant for the F21 function key. */
+    /**
+     * Constant for the F21 function key.
+     * @since 1.2
+     */
     public static final int VK_F21            = 0xF008;
  
-    /** Constant for the F22 function key. */
+    /**
+     * Constant for the F22 function key.
+     * @since 1.2
+     */
     public static final int VK_F22            = 0xF009;
  
-    /** Constant for the F23 function key. */
+    /**
+     * Constant for the F23 function key.
+     * @since 1.2
+     */
     public static final int VK_F23            = 0xF00A;
  
-    /** Constant for the F24 function key. */
+    /**
+     * Constant for the F24 function key.
+     * @since 1.2
+     */
     public static final int VK_F24            = 0xF00B;
  
     public static final int VK_PRINTSCREEN    = 0x9A;
@@ -305,150 +352,308 @@ public class KeyEvent extends InputEvent {
     public static final int VK_BACK_QUOTE     = 0xC0;
     public static final int VK_QUOTE          = 0xDE;
 
-    /**  for KeyPad cursor arrow keys */
+    /**
+     * Constant for the key pad arrow up function key.
+     * @since 1.2
+     */
     public static final int VK_KP_UP          = 0xE0;
+
+    /**
+     * Constant for the key pad arrow down function key.
+     * @since 1.2
+     */
     public static final int VK_KP_DOWN        = 0xE1;
+
+    /**
+     * Constant for the key pad arrow left function key.
+     * @since 1.2
+     */
     public static final int VK_KP_LEFT        = 0xE2;
+
+    /**
+     * Constant for the key pad arrow right function key.
+     * @since 1.2
+     */
     public static final int VK_KP_RIGHT       = 0xE3;
     
     /* For European keyboards */
+    /** @since 1.2 */
     public static final int VK_DEAD_GRAVE               = 0x80;
+    /** @since 1.2 */
     public static final int VK_DEAD_ACUTE               = 0x81;
+    /** @since 1.2 */
     public static final int VK_DEAD_CIRCUMFLEX          = 0x82;
+    /** @since 1.2 */
     public static final int VK_DEAD_TILDE               = 0x83;
+    /** @since 1.2 */
     public static final int VK_DEAD_MACRON              = 0x84;
+    /** @since 1.2 */
     public static final int VK_DEAD_BREVE               = 0x85;
+    /** @since 1.2 */
     public static final int VK_DEAD_ABOVEDOT            = 0x86;
+    /** @since 1.2 */
     public static final int VK_DEAD_DIAERESIS           = 0x87;
+    /** @since 1.2 */
     public static final int VK_DEAD_ABOVERING           = 0x88;
+    /** @since 1.2 */
     public static final int VK_DEAD_DOUBLEACUTE         = 0x89;
+    /** @since 1.2 */
     public static final int VK_DEAD_CARON               = 0x8a;
+    /** @since 1.2 */
     public static final int VK_DEAD_CEDILLA             = 0x8b;
+    /** @since 1.2 */
     public static final int VK_DEAD_OGONEK              = 0x8c;
+    /** @since 1.2 */
     public static final int VK_DEAD_IOTA                = 0x8d;
+    /** @since 1.2 */
     public static final int VK_DEAD_VOICED_SOUND        = 0x8e;
+    /** @since 1.2 */
     public static final int VK_DEAD_SEMIVOICED_SOUND    = 0x8f;
 
+    /** @since 1.2 */
     public static final int VK_AMPERSAND                = 0x96;
+    /** @since 1.2 */
     public static final int VK_ASTERISK                 = 0x97;
+    /** @since 1.2 */
     public static final int VK_QUOTEDBL                 = 0x98;
+    /** @since 1.2 */
     public static final int VK_LESS                     = 0x99;
 
+    /** @since 1.2 */
     public static final int VK_GREATER                  = 0xa0;
+    /** @since 1.2 */
     public static final int VK_BRACELEFT                = 0xa1;
+    /** @since 1.2 */
     public static final int VK_BRACERIGHT               = 0xa2;
 
-    /** Constant for the "@" key. */
+    /**
+     * Constant for the "@" key.
+     * @since 1.2
+     */
     public static final int VK_AT                       = 0x0200;
  
-    /** Constant for the ":" key. */
+    /**
+     * Constant for the ":" key.
+     * @since 1.2
+     */
     public static final int VK_COLON                    = 0x0201;
  
-    /** Constant for the "^" key. */
+    /**
+     * Constant for the "^" key.
+     * @since 1.2
+     */
     public static final int VK_CIRCUMFLEX               = 0x0202;
  
-    /** Constant for the "$" key. */
+    /**
+     * Constant for the "$" key.
+     * @since 1.2
+     */
     public static final int VK_DOLLAR                   = 0x0203;
  
-    /** Constant for the Euro currency sign key. */
+    /**
+     * Constant for the Euro currency sign key.
+     * @since 1.2
+     */
     public static final int VK_EURO_SIGN                = 0x0204;
  
-    /** Constant for the "!" key. */
+    /**
+     * Constant for the "!" key.
+     * @since 1.2
+     */
     public static final int VK_EXCLAMATION_MARK         = 0x0205;
  
-    /** Constant for the inverted exclamation mark key. */
+    /**
+     * Constant for the inverted exclamation mark key.
+     * @since 1.2
+     */
     public static final int VK_INVERTED_EXCLAMATION_MARK = 0x0206;
  
-    /** Constant for the "(" key. */
+    /**
+     * Constant for the "(" key.
+     * @since 1.2
+     */
     public static final int VK_LEFT_PARENTHESIS         = 0x0207;
  
-    /** Constant for the "#" key. */
+    /**
+     * Constant for the "#" key.
+     * @since 1.2
+     */
     public static final int VK_NUMBER_SIGN              = 0x0208;
  
-    /** Constant for the "+" key. */
+    /**
+     * Constant for the "+" key.
+     * @since 1.2
+     */
     public static final int VK_PLUS                     = 0x0209;
  
-    /** Constant for the ")" key. */
+    /**
+     * Constant for the ")" key.
+     * @since 1.2
+     */
     public static final int VK_RIGHT_PARENTHESIS        = 0x020A;
  
-    /** Constant for the "_" key. */
+    /**
+     * Constant for the "_" key.
+     * @since 1.2
+     */
     public static final int VK_UNDERSCORE               = 0x020B;
  
     /* for input method support on Asian Keyboards */
+
+    /* not clear what this means - listed in Win32 API */
     public static final int VK_FINAL                    = 0x0018;
+    
+    /** Constant for the Convert function key. */
+    /* Japanese PC 106 keyboard, Japanese Solaris keyboard: henkan */
     public static final int VK_CONVERT                  = 0x001C;
+
+    /** Constant for the Don't Convert function key. */
+    /* Japanese PC 106 keyboard: muhenkan */
     public static final int VK_NONCONVERT               = 0x001D;
+    
+    /** Constant for the Accept or Commit function key. */
+    /* Japanese Solaris keyboard: kakutei */
     public static final int VK_ACCEPT                   = 0x001E;
+
+    /* not clear what this means - listed in Win32 API */
     public static final int VK_MODECHANGE               = 0x001F;
+
+    /* replaced by VK_KANA_LOCK for Win32 and Solaris; might still be used on other platforms */
     public static final int VK_KANA                     = 0x0015;
+
+    /* replaced by VK_INPUT_METHOD_ON_OFF for Win32 and Solaris; might still be used for other platforms */
     public static final int VK_KANJI                    = 0x0019;
 
-    /** Constant for the Alphanumeric function key. */
-    /* Japanese PC 106 keyboard */
+    /**
+     * Constant for the Alphanumeric function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard: eisuu */
     public static final int VK_ALPHANUMERIC             = 0x00F0;
  
-    /** Constant for the Katakana function key. */
-    /* Japanese PC 106 keyboard */
+    /**
+     * Constant for the Katakana function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard: katakana */
     public static final int VK_KATAKANA                 = 0x00F1;
  
-    /** Constant for the Hiragana function key. */
-    /* Japanese PC 106 keyboard */
+    /**
+     * Constant for the Hiragana function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard: hiragana */
     public static final int VK_HIRAGANA                 = 0x00F2;
  
-    /** Constant for the Full-Width Characters function key. */
-    /* Japanese PC 106 keyboard */
+    /**
+     * Constant for the Full-Width Characters function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard: zenkaku */
     public static final int VK_FULL_WIDTH               = 0x00F3;
  
-    /** Constant for the Half-Width Characters function key. */
-    /* Japanese PC 106 keyboard */
+    /**
+     * Constant for the Half-Width Characters function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard: hankaku */
     public static final int VK_HALF_WIDTH               = 0x00F4;
  
-    /** Constant for the Roman Characters function key. */
-    /* Japanese PC 106 keyboard */
+    /**
+     * Constant for the Roman Characters function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard: roumaji */
     public static final int VK_ROMAN_CHARACTERS         = 0x00F5;
  
-    /** Constant for the All Candidates function key. */
-    /* Japanese PC 106 keyboard - VK_CONVERT + ALT */
+    /**
+     * Constant for the All Candidates function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard - VK_CONVERT + ALT: zenkouho */
     public static final int VK_ALL_CANDIDATES           = 0x0100;
  
-    /** Constant for the Previous Candidate function key. */
-    /* Japanese PC 106 keyboard - VK_CONVERT + SHIFT */
+    /**
+     * Constant for the Previous Candidate function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard - VK_CONVERT + SHIFT: maekouho */
     public static final int VK_PREVIOUS_CANDIDATE       = 0x0101;
  
-    /** Constant for the Code Input function key. */
-    /* Japanese PC 106 keyboard - VK_ALPHANUMERIC + ALT */
+    /**
+     * Constant for the Code Input function key.
+     * @since 1.2
+     */
+    /* Japanese PC 106 keyboard - VK_ALPHANUMERIC + ALT: kanji bangou */
     public static final int VK_CODE_INPUT               = 0x0102;
  
-    /** Constant for the Japanese-Katakana function key.
-     *  This key switches to a Japanese input method and selects its Katakana input mode. */
+    /**
+     * Constant for the Japanese-Katakana function key.
+     * This key switches to a Japanese input method and selects its Katakana input mode.
+     * @since 1.2
+     */
     /* Japanese Macintosh keyboard - VK_JAPANESE_HIRAGANA + SHIFT */
     public static final int VK_JAPANESE_KATAKANA        = 0x0103;
  
-    /** Constant for the Japanese-Hiragana function key.
-     *  This key switches to a Japanese input method and selects its Hiragana input mode. */
+    /**
+     * Constant for the Japanese-Hiragana function key.
+     * This key switches to a Japanese input method and selects its Hiragana input mode.
+     * @since 1.2
+     */
     /* Japanese Macintosh keyboard */
     public static final int VK_JAPANESE_HIRAGANA        = 0x0104;
  
-    /** Constant for the Japanese-Roman function key.
-     *  This key switches to a Japanese input method and selects its Roman-Direct input mode. */
+    /**
+     * Constant for the Japanese-Roman function key.
+     * This key switches to a Japanese input method and selects its Roman-Direct input mode.
+     * @since 1.2
+     */
     /* Japanese Macintosh keyboard */
     public static final int VK_JAPANESE_ROMAN           = 0x0105;
- 
+
+    /**
+     * Constant for the locking Kana function key.
+     * This key locks the keyboard into a Kana layout.
+     * @since 1.3
+     */
+    /* Japanese PC 106 keyboard with special Windows driver - eisuu + Control; Japanese Solaris keyboard: kana */
+    public static final int VK_KANA_LOCK                = 0x0106;
+
+    /**
+     * Constant for the input method on/off key.
+     * @since 1.3
+     */
+    /* Japanese PC 106 keyboard: kanji. Japanese Solaris keyboard: nihongo */
+    public static final int VK_INPUT_METHOD_ON_OFF      = 0x0107;
 
     /* for Sun keyboards */
+    /** @since 1.2 */
     public static final int VK_CUT                      = 0xFFD1;
+    /** @since 1.2 */
     public static final int VK_COPY                     = 0xFFCD;
+    /** @since 1.2 */
     public static final int VK_PASTE                    = 0xFFCF;
+    /** @since 1.2 */
     public static final int VK_UNDO                     = 0xFFCB;
+    /** @since 1.2 */
     public static final int VK_AGAIN                    = 0xFFC9;
+    /** @since 1.2 */
     public static final int VK_FIND                     = 0xFFD0;
+    /** @since 1.2 */
     public static final int VK_PROPS                    = 0xFFCA;
+    /** @since 1.2 */
     public static final int VK_STOP                     = 0xFFC8;
     
-    /** Constant for the Compose function key. */
+    /**
+     * Constant for the Compose function key.
+     * @since 1.2
+     */
     public static final int VK_COMPOSE                  = 0xFF20;
  
-    /** Constant for the AltGraph modifier key. */
+    /**
+     * Constant for the AltGraph function key.
+     * @since 1.2
+     */
     public static final int VK_ALT_GRAPH                = 0xFF7E;
 
     /**
@@ -539,6 +744,16 @@ public class KeyEvent extends InputEvent {
     public KeyEvent(Component source, int id, long when, int modifiers,
                     int keyCode) {
         this(source, id, when, modifiers, keyCode, (char)keyCode);
+    }
+
+    /**
+     * Set the source of this KeyEvent. Dispatching this event subsequent
+     * to this operation will send this event to the new Object.
+     *
+     * @param newSource the KeyEvent's new source.
+     */
+    public void setSource(Object newSource) {
+        source = newSource;
     }
 
     /**
@@ -751,6 +966,8 @@ public class KeyEvent extends InputEvent {
 	  case VK_JAPANESE_KATAKANA: return Toolkit.getProperty("AWT.japaneseKatakana", "Japanese Katakana");
 	  case VK_JAPANESE_HIRAGANA: return Toolkit.getProperty("AWT.japaneseHiragana", "Japanese Hiragana");
 	  case VK_JAPANESE_ROMAN: return Toolkit.getProperty("AWT.japaneseRoman", "Japanese Roman");
+	  case VK_KANA_LOCK: return Toolkit.getProperty("AWT.kanaLock", "Kana Lock");
+	  case VK_INPUT_METHOD_ON_OFF: return Toolkit.getProperty("AWT.inputMethodOnOff", "Input Method On/Off");
 
           case VK_AGAIN: return Toolkit.getProperty("AWT.again", "Again");
           case VK_UNDO: return Toolkit.getProperty("AWT.undo", "Undo");
@@ -884,6 +1101,8 @@ public class KeyEvent extends InputEvent {
 	  case VK_JAPANESE_KATAKANA:
 	  case VK_JAPANESE_HIRAGANA:
 	  case VK_JAPANESE_ROMAN:
+	  case VK_KANA_LOCK:
+	  case VK_INPUT_METHOD_ON_OFF:
 
           case VK_AGAIN:
           case VK_UNDO:

@@ -1,17 +1,15 @@
 /*
- * @(#)ComponentOrientation.java	1.5 01/11/29
+ * @(#)ComponentOrientation.java	1.5 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)ComponentOrientation.java	1.5 01/11/29
- *
  * (C) Copyright IBM Corp. 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  * The original version of this source code and documentation is copyrighted
  * and owned by IBM, Inc. These materials are provided under terms of a

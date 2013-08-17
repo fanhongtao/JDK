@@ -1,8 +1,11 @@
 /*
- * @(#)JTextComponent.java	1.133 01/11/29
+ * @(#)JTextComponent.java	1.153 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -38,6 +41,12 @@ import java.util.Set;
  * where it can reasonably do so.  Also provided are other services
  * for additional flexibility (beyond the pluggable UI and bean
  * support).
+ * You can find information on how to use the functionality
+ * this class provides in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/generaltext.html">General Rules for Using Text Components</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
+ * <p>
  * <dl>
  * <dt><b><font size=+1>Caret Changes</font></b>
  * <dd>
@@ -47,9 +56,10 @@ import java.util.Set;
  * have been registered with the text component.  The UI will
  * install a default caret unless a customized caret has been 
  * set.
+ *
+ * <p>
  * <dt><b><font size=+1>Commands</font></b>
  * <dd>
- * <p>
  * Text components provide a number of commands that can be used
  * to manipulate the component.  This is essentially the way that
  * the component expresses its capabilities.  These are expressed
@@ -59,9 +69,9 @@ import java.util.Set;
  * {@link #getActions} method.  These actions
  * can be bound to key events, fired from buttons, etc.
  *
+ * <p>
  * <dt><b><font size=+1>Text Input</font></b>
  * <dd>
- * <p>
  * The text components support flexible and internationalized text input, using 
  * keymaps and the input method framework, while maintaining compatibility with 
  * the AWT listener model.
@@ -73,7 +83,7 @@ import java.util.Set;
  * the action (In the case that the ActionEvent sent to the action doesn't contain 
  * the target text component as its source). 
  * <p>
- * The <a href="../../../../guide/intl/spec.html">input method framework</a> lets 
+ * The <a href="../../../../guide/imf/spec.html">input method framework</a> lets 
  * text components interact with input methods, separate software components that 
  * preprocess events to let users enter thousands of different characters using 
  * keyboards with far fewer keys. JTextComponent is an <em>active client</em> of 
@@ -122,9 +132,9 @@ import java.util.Set;
  * <li>caret movement forward and backward
  * </ul>
  *
+ * <p>
  * <dt><b><font size=+1>Model/View Split</font></b>
  * <dd>
- * <p>
  * The text components have a model-view split.  A text component pulls 
  * together the objects used to represent the model, view, and controller. 
  * The text document model may be shared by other views which act as observers 
@@ -146,11 +156,14 @@ import java.util.Set;
  * {@link DocumentListener}
  * interface and registered interest with the model being observed.
  *
+ * <p>
  * <dt><b><font size=+1>Location Information</font></b>
  * <dd>
  * The capability of determining the location of text in
  * the view is provided.  There are two methods, {@link #modelToView}
  * and {@link #viewToModel} for determining this information.
+ *
+ * <p>
  * <dt><b><font size=+1>Undo/Redo support</font></b>
  * <dd>
  * Support for an edit history mechanism is provided to allow
@@ -161,6 +174,7 @@ import java.util.Set;
  * The support is provided by the Document model, which allows
  * one to attach UndoableEditListener implementations.
  *
+ * <p>
  * <dt><b><font size=+1>Thread Safety</font></b>
  * <dd>
  * The swing text components provide some support of thread
@@ -185,7 +199,7 @@ import java.util.Set;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.133 11/29/01
+ * @version 1.153 04/06/00
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -195,6 +209,28 @@ import java.util.Set;
  * @see TextUI
  * @see View
  * @see ViewFactory
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -512,9 +548,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     public JTextComponent() {
         super();
-	// Will cause the system clipboard state to be updated.
-	canAccessSystemClipboard = true;
-	canAccessSystemClipboard();
 	
 	// enable InputMethodEvent for on-the-spot pre-editing
 	enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
@@ -559,26 +592,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     public void updateUI() {
         setUI((TextUI)UIManager.getUI(this));
         invalidate();
-    }
-
-
-    /**
-     * Returns true if this component is completely opaque.  
-     * This is used in painting backgrounds.
-     * 
-     * @return true if this component is completely opaque.
-     */
-    public boolean isOpaque() {
-        return opaque;
-    }
-
-    /**
-     * Sets whether or not the UI should render a background.
-     *
-     * @param o true if should render a background
-     */
-    public void setOpaque(boolean o) {
-        opaque = o;
     }
 
     /**
@@ -799,6 +812,86 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         Keymap old = keymap;
         keymap = map;
         firePropertyChange("keymap", old, keymap);
+	updateInputMap(old, map);
+    }
+
+    /**
+     * Updates the InputMaps in response to a Keymap change.
+     */
+    void updateInputMap(Keymap oldKm, Keymap newKm) {
+	// Locate the current KeymapWrapper.
+	InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
+	InputMap last = km;
+	while (km != null && !(km instanceof KeymapWrapper)) {
+	    last = km;
+	    km = km.getParent();
+	}
+	if (km != null) {
+	    // Found it, tweak the InputMap that points to it, as well
+	    // as anything it points to.
+	    if (newKm == null) {
+		if (last != km) {
+		    last.setParent(km.getParent());
+		}
+		else {
+		    last.setParent(null);
+		}
+	    }
+	    else {
+		InputMap newKM = new KeymapWrapper(newKm);
+		last.setParent(newKM);
+		if (last != km) {
+		    newKM.setParent(km.getParent());
+		}
+	    }
+	}
+	else if (newKm != null) {
+	    km = getInputMap(JComponent.WHEN_FOCUSED);
+	    if (km != null) {
+		// Couldn't find it.
+		// Set the parent of WHEN_FOCUSED InputMap to be the new one.
+		InputMap newKM = new KeymapWrapper(newKm);
+		newKM.setParent(km.getParent());
+		km.setParent(newKM);
+	    }
+	}
+
+	// Do the same thing with the ActionMap
+	ActionMap am = getActionMap();
+	ActionMap lastAM = am;
+	while (am != null && !(am instanceof KeymapActionMap)) {
+	    lastAM = am;
+	    am = am.getParent();
+	}
+	if (am != null) {
+	    // Found it, tweak the Actionap that points to it, as well
+	    // as anything it points to.
+	    if (newKm == null) {
+		if (lastAM != am) {
+		    lastAM.setParent(am.getParent());
+		}
+		else {
+		    lastAM.setParent(null);
+		}
+	    }
+	    else {
+		ActionMap newAM = new KeymapActionMap(newKm);
+		lastAM.setParent(newAM);
+		if (lastAM != am) {
+		    newAM.setParent(am.getParent());
+		}
+	    }
+	}
+	else if (newKm != null) {
+	    am = getActionMap();
+	    if (am != null) {
+		// Couldn't find it.
+		// Set the parent of ActionMap to be the new one.
+		ActionMap newAM = new KeymapActionMap(newKm);
+		newAM.setParent(am.getParent());
+		am.setParent(newAM);
+	    }
+	}
     }
 
     /**
@@ -937,34 +1030,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
                 map.addActionForKeyStroke(bindings[i].key, a);
             }
         }
-    }
-
-    /**
-     * Maps an event to an action if one is defined in the 
-     * installed keymap, and perform the action.  If the action is 
-     * performed, the event is consumed.
-     *
-     * @returns true if an action was performed, false otherwise.
-     */
-    private final boolean mapEventToAction(KeyEvent e) {
-        Keymap binding = getKeymap();
-        if (binding != null) {
-            KeyStroke k = KeyStroke.getKeyStrokeForEvent(e);
-            Action a = binding.getAction(k);
-            if (a != null) {
-                String command = null;
-                if (e.getKeyChar() != KeyEvent.CHAR_UNDEFINED) {
-                    command = String.valueOf(e.getKeyChar());
-                }
-                ActionEvent ae =  new ActionEvent(this, 
-                                                  ActionEvent.ACTION_PERFORMED, 
-                                                  command, e.getModifiers());
-                a.actionPerformed(ae);
-                e.consume();
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -1134,10 +1199,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     /**
      * Converts the given location in the model to a place in
      * the view coordinate system.
+     * The component must have a positive size for 
+     * this translation to be computed (i.e. layout cannot
+     * be computed until the component has been sized).  The
+     * component does not have to be visible or painted.
      *
      * @param pos the position >= 0
      * @return the coordinates as a rectangle, with (r.x, r.y) as the location
-     *   in the coordinate system
+     *   in the coordinate system, or null if the component does
+     *   not yet have a positive size.
      * @exception BadLocationException if the given position does not 
      *   represent a valid location in the associated document
      * @see TextUI#modelToView
@@ -1149,9 +1219,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     /**
      * Converts the given place in the view coordinate system
      * to the nearest representative location in the model.
+     * The component must have a positive size for 
+     * this translation to be computed (i.e. layout cannot
+     * be computed until the component has been sized).  The
+     * component does not have to be visible or painted.
      *
      * @param pt the location in the view to translate
-     * @return the offset >= 0 from the start of the document
+     * @return the offset >= 0 from the start of the document, 
+     *   or -1 if the component does not yet have a positive
+     *   size.
      * @see TextUI#viewToModel
      */
     public int viewToModel(Point pt) {
@@ -1165,11 +1241,9 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * for null selections.
      */
     public void cut() {
-	Clipboard clipboard;
-
-	if (isEditable() && isEnabled() &&
-	                    (clipboard = getClipboard()) != null) {
+	if (isEditable() && isEnabled()) {
 	    try {
+		Clipboard clipboard = getToolkit().getSystemClipboard();
 		int p0 = Math.min(caret.getDot(), caret.getMark());
 		int p1 = Math.max(caret.getDot(), caret.getMark());
 		if (p0 != p1) {
@@ -1193,21 +1267,18 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * Does nothing for null selections.
      */
     public void copy() {
-	Clipboard clipboard;
-
-	if ((clipboard = getClipboard()) != null) {
-	    try {
-		int p0 = Math.min(caret.getDot(), caret.getMark());
-		int p1 = Math.max(caret.getDot(), caret.getMark());
-		if (p0 != p1) {
-		    Document doc = getDocument();
-		    String srcData = doc.getText(p0, p1 - p0);
-		    StringSelection contents = new StringSelection(srcData);
-		    clipboard.setContents(contents, defaultClipboardOwner);
-		}
-	    } catch (BadLocationException e) {
-	    }
-	}
+        try {
+            Clipboard clipboard = getToolkit().getSystemClipboard();
+            int p0 = Math.min(caret.getDot(), caret.getMark());
+            int p1 = Math.max(caret.getDot(), caret.getMark());
+            if (p0 != p1) {
+                Document doc = getDocument();
+                String srcData = doc.getText(p0, p1 - p0);
+                StringSelection contents = new StringSelection(srcData);
+                clipboard.setContents(contents, defaultClipboardOwner);
+            }
+        } catch (BadLocationException e) {
+        }
     }
     
     /**
@@ -1220,19 +1291,13 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @see #replaceSelection
      */ 
     public void paste() {
-	Clipboard clipboard;
-
-	if (isEditable() && isEnabled() &&
-	    (clipboard = getClipboard()) != null) {
-	    Transferable content = clipboard.getContents(this);
-	    if (content != null) {
-		try {
-		    String dstData = (String)(content.getTransferData(DataFlavor.stringFlavor));
-		    replaceSelection(dstData);
-		} catch (Exception e) {
-		    getToolkit().beep();
-		}
-	    } else {
+	Clipboard clipboard = getToolkit().getSystemClipboard();
+	Transferable content = clipboard.getContents(this);
+	if (content != null) {
+	    try {
+		String dstData = (String)(content.getTransferData(DataFlavor.stringFlavor));
+		replaceSelection(dstData);
+	    } catch (Exception e) {
 		getToolkit().beep();
 	    }
 	}
@@ -1273,21 +1338,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     public void setFocusAccelerator(char aKey) {
         aKey = Character.toUpperCase(aKey);
-        KeyStroke[] keyStrokes = getRegisteredKeyStrokes();
-        int i,c;
-        for(i=0,c=keyStrokes.length;i<c;i++) {
-            if(getActionForKeyStroke(keyStrokes[i]) == focusAction) {
-                if(keyStrokes[i].getKeyChar() == aKey)
-                    return;
-                else
-                    unregisterKeyboardAction(keyStrokes[i]);
-                break;
-            }
-        }
-        if(aKey != '\0') {
-            registerKeyboardAction(focusAction,KeyStroke.getKeyStroke(aKey,ActionEvent.ALT_MASK),
-                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
-        }
         char old = focusAccelerator;
         focusAccelerator = aKey;
         firePropertyChange(FOCUS_ACCELERATOR_KEY, old, focusAccelerator);
@@ -1370,22 +1420,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     /**
-     * Enables or disables this component, depending on the value of the 
-     * parameter <code>b</code>. An enabled component can respond to user 
-     * input and generate events. Components are enabled initially by default.
-     * A repaint() is done after setting the new state.
-     *
-     * @param     b   If <code>true</code>, this component is 
-     *            enabled; otherwise this component is disabled.
-     * @see #isEnabled
-     * @since JDK1.1
-     */
-    public void setEnabled(boolean b) {
-	super.setEnabled(b);
-	repaint();
-    }
-
-    /**
      * Returns true if the focus can be traversed.  This would be false
      * for components like a disabled button.
      *
@@ -1394,54 +1428,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     public boolean isFocusTraversable() {
         return isEnabled();
     }
-
-    /**
-     * Processes any key events that the component itself 
-     * recognizes.  This will be called after the focus
-     * manager and any interested listeners have been
-     * given a chance to steal away the event.  This 
-     * method will only be called is the event has not
-     * yet been consumed.  This method is called prior
-     * to the keyboard UI logic.
-     * <p>
-     * This is implemented to take a default action, typically
-     * inserting the character into the document as content.  Subclasses
-     * would normally override this method if they process some
-     * key events themselves.  If the event is processed,
-     * it should be consumed.
-     *
-     * @param e the event
-     */
-    protected void processComponentKeyEvent(KeyEvent e) {
-        int id = e.getID();
-        switch(id) {
-        case KeyEvent.KEY_TYPED:
-            if (mapEventToAction(e) == false) {
-                // default behavior is to input translated
-                // characters as content if the character
-                // hasn't been mapped in the keymap.
-                Keymap binding = getKeymap();
-                    if (binding != null) {
-                        Action a = binding.getDefaultAction();
-                        if (a != null) {
-                            ActionEvent ae = new ActionEvent(this, 
-                                                             ActionEvent.ACTION_PERFORMED, 
-                                                             String.valueOf(e.getKeyChar()),
-                                                             e.getModifiers());
-                            a.actionPerformed(ae);
-                            e.consume();
-                        }
-                    }
-            }
-            break;
-        case KeyEvent.KEY_PRESSED:
-            mapEventToAction(e);
-            break;
-        case KeyEvent.KEY_RELEASED:
-            mapEventToAction(e);
-            break;
-        }
-    } 
 
     // --- java.awt.TextComponent methods ------------------------
 
@@ -1562,11 +1548,17 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @see #isEditable
      * @beaninfo
      * description: specifies if the text can be edited
+     *       bound: true
      */
     public void setEditable(boolean b) {
 	if (b != editable) {
 	    boolean oldVal = editable;
 	    editable = b;
+	    if (editable) {
+		setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+	    } else {
+		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+	    }
 	    firePropertyChange("editable", new Boolean(oldVal), new Boolean(editable));
 	    repaint();
 	}
@@ -1636,40 +1628,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         select(getSelectionStart(), selectionEnd);
     }
     
-    /**
-     * Returns the selected text's start position.  Return 0 for an
-     * empty document, or the value of dot if no selection.
-     *
-     * @return the start position >= 0
-     */
-     int getSelectionStart(Position.Bias[] bias) {
-        DefaultCaret c = (DefaultCaret)caret;
-        if( c.getDot() < c.getMark() ) {
-            bias[0] = c.getDotBias();
-            return c.getDot();
-        } else {
-            bias[0] = c.getMarkBias();
-            return c.getMark();
-        }
-    }
-
-    /**
-     * Returns the selected text's end position.  Return 0 if the document
-     * is empty, or the value of dot if there is no selection.
-     *
-     * @return the end position >= 0
-     */
-    int getSelectionEnd(Position.Bias[] bias) {
-        DefaultCaret c = (DefaultCaret)caret;
-        if( c.getDot() > c.getMark() ) {
-            bias[0] = c.getDotBias();
-            return c.getDot();
-        } else {
-            bias[0] = c.getMarkBias();
-            return c.getMark();
-        }
-    }
-
     /**
      * Selects the text found between the specified start and end 
      * locations.  This call is provided for backward compatibility.
@@ -1831,54 +1789,19 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	return false;
     }
 
-    /**
-     * Returns the clipboard to use for cut/copy/paste.
-     */
-    private Clipboard getClipboard() {
-        if (canAccessSystemClipboard()) {
-            return getToolkit().getSystemClipboard();
-        }
-        Clipboard clipboard = (Clipboard)sun.awt.AppContext.getAppContext().
-                                             get(SandboxClipboardKey);
-        if (clipboard == null) {
-            clipboard = new Clipboard("Sandboxed Text Component Clipboard");
-            sun.awt.AppContext.getAppContext().put(SandboxClipboardKey,
-                                                   clipboard);
-        }
-        return clipboard;
-    }
-
-    /**
-     * Returns true if it is safe to access the system Clipboard.
-     */
-    private boolean canAccessSystemClipboard() {
-        if (canAccessSystemClipboard) {
-            SecurityManager sm = System.getSecurityManager();
-
-            if (sm != null) {
-                try {
-                    sm.checkSystemClipboardAccess();
-                    return true;
-                } catch (SecurityException se) {
-                    canAccessSystemClipboard = false;
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
 /////////////////
 // Accessibility support
 ////////////////
 
 
     /**
-     * Gets the AccessibleContext associated with this JComponent.
-     * A new context is created if necessary.
+     * Gets the AccessibleContext associated with this JTextComponent. 
+     * For text components, the AccessibleContext takes the form of an 
+     * AccessibleJTextComponent. 
+     * A new AccessibleJTextComponent instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJTextComponent that serves as the 
+     *         AccessibleContext of this JTextComponent
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1888,7 +1811,9 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     /**
-     * Accessibility implementation for JTextComponent.
+     * This class implements accessibility support for the 
+     * <code>JTextComponent</code> class.  It provides an implementation of 
+     * the Java Accessibility API appropriate to menu user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -1945,40 +1870,67 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         /**
          * Handles document insert (fire appropriate property change event
          * which is AccessibleContext.ACCESSIBLE_TEXT_PROPERTY).
-         * This tracks the dot via the event.
+         * This tracks the changed offset via the event.
          *
          * @param e the DocumentEvent
          */
         public void insertUpdate(DocumentEvent e) {
-            Caret c = JTextComponent.this.getCaret();
-            Integer dot = new Integer(c.getDot());
-            firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, dot);
+            final Integer pos = new Integer (e.getOffset());
+            if (SwingUtilities.isEventDispatchThread()) {
+                firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, pos);
+            } else {
+                Runnable doFire = new Runnable() {
+                    public void run() {
+                        firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, 
+                                           null, pos);
+                    }
+                };
+                SwingUtilities.invokeLater(doFire);
+            }
         }
 
         /**
          * Handles document remove (fire appropriate property change event,
          * which is AccessibleContext.ACCESSIBLE_TEXT_PROPERTY).
-         * This tracks the dot via the event.
+         * This tracks the changed offset via the event.
          *
          * @param e the DocumentEvent
          */
         public void removeUpdate(DocumentEvent e) {
-            Caret c = JTextComponent.this.getCaret();
-            Integer dot = new Integer(c.getDot());
-            firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, dot);
+            final Integer pos = new Integer (e.getOffset());
+            if (SwingUtilities.isEventDispatchThread()) {
+                firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, pos);
+            } else {
+                Runnable doFire = new Runnable() {
+                    public void run() {
+                        firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, 
+                                           null, pos);
+                    }
+                };
+                SwingUtilities.invokeLater(doFire);
+            }
         }
 
         /**
          * Handles document remove (fire appropriate property change event,
          * which is AccessibleContext.ACCESSIBLE_TEXT_PROPERTY).
-         * This tracks the dot via the event.
+         * This tracks the changed offset via the event.
          *
          * @param e the DocumentEvent
          */
         public void changedUpdate(DocumentEvent e) {
-            Caret c = JTextComponent.this.getCaret();
-            Integer dot = new Integer(c.getDot());
-            firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, dot);
+            final Integer pos = new Integer (e.getOffset());
+            if (SwingUtilities.isEventDispatchThread()) {
+                firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, pos);
+            } else {
+                Runnable doFire = new Runnable() {
+                    public void run() {
+                        firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, 
+                                           null, pos);
+                    }
+                };
+                SwingUtilities.invokeLater(doFire);
+            }
         }
 
         /**
@@ -2015,9 +1967,12 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         }
 
         /**
-         * Gets the AccessibleText interface associated with this object.
-         *
-         * @return an instance of AccessibleText 
+         * Get the AccessibleText associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+         * return this object, which is responsible for implementing the
+         * AccessibleText interface on behalf of itself.
+         * 
+         * @return this object
          */
         public AccessibleText getAccessibleText() {
             return this;
@@ -2046,11 +2001,37 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             return JTextComponent.this.viewToModel(p);
         }
 
+	    /**
+	     * Gets the editor's drawing rectangle.  Stolen
+	     * from the unfortunately named 
+	     * BasicTextUI.getVisibleEditorRect()
+	     *
+	     * @return the bounding box for the root view
+	     */
+	    Rectangle getRootEditorRect() {
+	        Rectangle alloc = JTextComponent.this.getBounds();
+	        if ((alloc.width > 0) && (alloc.height > 0)) {
+		        alloc.x = alloc.y = 0;
+		        Insets insets = JTextComponent.this.getInsets();
+		        alloc.x += insets.left;
+		        alloc.y += insets.top;
+		        alloc.width -= insets.left + insets.right;
+		        alloc.height -= insets.top + insets.bottom;
+		        return alloc;
+	        }
+	        return null;
+	    }
+
         /**
          * Determines the bounding box of the character at the given
          * index into the string.  The bounds are returned in local
          * coordinates.  If the index is invalid a null rectangle
          * is returned.
+	 *
+	 * Note: the JTextComponent must have a valid size (e.g. have
+	 * been added to a parent container whose ancestor container
+	 * is a valid top-level window) for this method to be able
+	 * to return a meaningful (non-null) value.
          *
          * @param i the index into the String >= 0
          * @return the screen coordinates of the character's bounding box
@@ -2059,13 +2040,37 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             if (i < 0 || i > model.getLength()-1) {
                 return null;
             }
-            Rectangle rect;
-            try {
-                rect = modelToView(i);
-            } catch (BadLocationException e) {
-                rect = null;
+	    TextUI ui = getUI();
+	    if (ui == null) {
+		return null;
+	    }
+	    Rectangle rect = null;
+	    Rectangle alloc = getRootEditorRect();
+	    if (alloc == null) {
+		return null;
+	    }
+            if (model instanceof AbstractDocument) {
+                ((AbstractDocument)model).readLock();
             }
-            return rect;
+            try {
+	        View rootView = ui.getRootView(JTextComponent.this);
+	        if (rootView != null) {
+	            rootView.setSize(alloc.width, alloc.height);
+	            Shape bounds = rootView.modelToView(i,
+			            Position.Bias.Forward, i+1, 
+			            Position.Bias.Backward, alloc);
+
+	            rect = (bounds instanceof Rectangle) ?
+	             (Rectangle)bounds : bounds.getBounds();
+
+		}
+            } catch (BadLocationException e) {
+            } finally {
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readUnlock();
+                }
+            }
+	    return rect;
         }
 
         /**
@@ -2098,12 +2103,22 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
          */
         public AttributeSet getCharacterAttribute(int i) {
             Element e = null;
-            for (e = model.getDefaultRootElement(); ! e.isLeaf(); ) {
-                int index = e.getElementIndex(i);
-                e = e.getElement(index);
+            if (model instanceof AbstractDocument) {
+                ((AbstractDocument)model).readLock();
+            }
+            try {
+                for (e = model.getDefaultRootElement(); ! e.isLeaf(); ) {
+                    int index = e.getElementIndex(i);
+                    e = e.getElement(index);
+                }
+            } finally {
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readUnlock();
+                }
             }
             return e.getAttributes();
         }
+
 
         /**
          * Returns the start offset within the selected text.
@@ -2153,37 +2168,46 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             if (index < 0 || index >= model.getLength()) {
                 return null;
             }
-            switch (part) {
-            case AccessibleText.CHARACTER:
-                try {
-                    return model.getText(index, 1);
-                } catch (BadLocationException e) {
-                    return null;
-                }
-            case AccessibleText.WORD:
-                try {
-                    String s = model.getText(0, model.getLength());
+            String str = null;
+            String s = null;
+            int end;
+            if (model instanceof AbstractDocument) {
+                ((AbstractDocument)model).readLock();
+            }
+            try {
+                switch (part) {
+                case AccessibleText.CHARACTER:
+                    str = model.getText(index, 1);
+                    break;
+
+                case AccessibleText.WORD:
+                    s = model.getText(0, model.getLength());
                     BreakIterator words = BreakIterator.getWordInstance();
                     words.setText(s);
-                    int end = words.following(index);
-                    return s.substring(words.previous(), end);
-                } catch (BadLocationException e) {
-                    return null;
-                }
-            case AccessibleText.SENTENCE:
-                try {
-                    String s = model.getText(0, model.getLength());
+                    end = words.following(index);
+                    str = s.substring(words.previous(), end);
+                    break;
+
+                case AccessibleText.SENTENCE:
+                    s = model.getText(0, model.getLength());
                     BreakIterator sentence = BreakIterator.getSentenceInstance();
                     sentence.setText(s);
-                    int end = sentence.following(index);
-                    return s.substring(sentence.previous(), end);
-                } catch (BadLocationException e) {
-                    return null;
+                    end = sentence.following(index);
+                    str = s.substring(sentence.previous(), end);
+                    break;
+
+                default:
                 }
-            default:
-                return null;
+            } catch (BadLocationException e) {
+            } finally {
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readUnlock();
+                }
             }
+            return str;
         }
+
+
 
         /**
          * Returns the String after a given index.
@@ -2198,53 +2222,61 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             if (index < 0 || index >= model.getLength()) {
                 return null;
             }
-            switch (part) {
-            case AccessibleText.CHARACTER:
-		if (index+1 >= model.getLength()) {
-		   return null;
-		}
-                try {
-                    return model.getText(index+1, 1);
-                } catch (BadLocationException e) {
-                    return null;
-                }
-            case AccessibleText.WORD:
-                try {
-                    String s = model.getText(0, model.getLength());
+            String str = null;
+            String s = null;
+            int start;
+            int end;
+            if (model instanceof AbstractDocument) {
+                ((AbstractDocument)model).readLock();
+            }
+            try {
+                switch (part) {
+                case AccessibleText.CHARACTER:
+	            if (index+1 < model.getLength()) {
+                        str = model.getText(index+1, 1);
+                    }
+                    break;
+
+                case AccessibleText.WORD:
+                    s = model.getText(0, model.getLength());
                     BreakIterator words = BreakIterator.getWordInstance();
                     words.setText(s);
-                    int start = words.following(index);
-		    if (start == BreakIterator.DONE || start >= s.length()) {
-			return null;
-		    }
-		    int end = words.following(start);
-		    if (end == BreakIterator.DONE || end >= s.length()) {
-			return null;
-		    }
-                    return s.substring(start, end);
-                } catch (BadLocationException e) {
-                    return null;
-                }
-            case AccessibleText.SENTENCE:
-                try {
-                    String s = model.getText(0, model.getLength());
+                    start = words.following(index);
+	            if (start == BreakIterator.DONE || start >= s.length()) {
+		            break;
+	            }
+	            end = words.following(start);
+	            if (end == BreakIterator.DONE || end >= s.length()) {
+		            break;
+	            }
+                    str = s.substring(start, end);
+                    break;
+
+                case AccessibleText.SENTENCE:
+                    s = model.getText(0, model.getLength());
                     BreakIterator sentence = BreakIterator.getSentenceInstance();
                     sentence.setText(s);
-                    int start = sentence.following(index);
-		    if (start == BreakIterator.DONE || start >= s.length()) {
-			return null;
-		    }
-		    int end = sentence.following(start);
-		    if (end == BreakIterator.DONE || end >= s.length()) {
-			return null;
-		    }
-                    return s.substring(start, end);
-                } catch (BadLocationException e) {
+                    start = sentence.following(index);
+	            if (start == BreakIterator.DONE || start >= s.length()) {
+		            break;
+	            }
+	            end = sentence.following(start);
+	            if (end == BreakIterator.DONE || end >= s.length()) {
+		            break;
+	            }
+                    str = s.substring(start, end);
+                    break;
+
+                default:
                     return null;
                 }
-            default:
-                return null;
+            } catch (BadLocationException e) {
+            } finally {
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readUnlock();
+                }
             }
+            return str;
         }
 
 
@@ -2261,51 +2293,55 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             if (index < 0 || index > model.getLength()-1) {
                 return null;
             }
-            switch (part) {
-            case AccessibleText.CHARACTER:
-		if (index == 0) {
-		    return null;
-		}
-                try {
-                    return model.getText(index-1, 1);
-                } catch (BadLocationException e) {
-                    return null;
-                }
-            case AccessibleText.WORD:
-                try {
-                    String s = model.getText(0, model.getLength());
+            String str = null;
+            String s = null;
+            int start;
+            int end;
+            if (model instanceof AbstractDocument) {
+                ((AbstractDocument)model).readLock();
+            }
+            try {
+                switch (part) {
+                case AccessibleText.CHARACTER:
+        	    if (index != 0) {
+                        str = model.getText(index-1, 1);
+                    }
+                    break;
+
+                case AccessibleText.WORD:
+                    s = model.getText(0, model.getLength());
                     BreakIterator words = BreakIterator.getWordInstance();
                     words.setText(s);
-//                    int end = words.next(index);
-                    int end = words.following(index);
+                    end = words.following(index);
                     end = words.previous();
-		    int start = words.previous();
-		    if (start == BreakIterator.DONE) {
-			return null;
-		    }
-                    return s.substring(start, end);
-                } catch (BadLocationException e) {
-                    return null;
-                }
-            case AccessibleText.SENTENCE:
-                try {
-                    String s = model.getText(0, model.getLength());
+	            start = words.previous();
+	            if (start != BreakIterator.DONE) {
+                        str = s.substring(start, end);
+                    }
+                    break;
+
+                case AccessibleText.SENTENCE:
+                    s = model.getText(0, model.getLength());
                     BreakIterator sentence = BreakIterator.getSentenceInstance();
                     sentence.setText(s);
-//                    int end = sentence.next(index);
-                    int end = sentence.following(index);
+                    end = sentence.following(index);
                     end = sentence.previous();
-		    int start = sentence.previous();
-		    if (start == BreakIterator.DONE) {
-			return null;
-		    }
-                    return s.substring(start, end);
-                } catch (BadLocationException e) {
+	            start = sentence.previous();
+	            if (start != BreakIterator.DONE) {
+	                str =s.substring(start, end);
+                    }
+                    break;
+
+                default:
                     return null;
                 }
-            default:
-                return null;
+            } catch (BadLocationException e) {
+            } finally {
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readUnlock();
+                }
             }
+            return str;
         }
 
     }
@@ -2357,11 +2393,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     private transient Keymap keymap;
 
-    /**
-     * is the component opaque?
-     */
-    private boolean opaque;
-
     private transient MutableCaretEvent caretEvent;
     private Color caretColor;
     private Color selectionColor;
@@ -2370,18 +2401,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     private boolean editable;
     private Insets margin;
     private char focusAccelerator;
-    private Action focusAction = new FocusAction();
-
-    /**
-     * Indicates if it is safe to access the system clipboard. Once false,
-     * access will never be checked again.
-     */
-    private boolean canAccessSystemClipboard;
-    /**
-     * Key used in app context to lookup Clipboard to use if access to
-     * System clipboard is denied.
-     */
-    private static Object SandboxClipboardKey = new Object();
 
     private static ClipboardOwner defaultClipboardOwner = new ClipboardObserver();
 
@@ -2399,8 +2418,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @return  a string representation of this JTextComponent.
      */
     protected String paramString() {
-        String opaqueString = (opaque ?
-			       "true" : "false");
         String editableString = (editable ?
 				 "true" : "false");
         String caretColorString = (caretColor != null ?
@@ -2419,7 +2436,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         ",disabledTextColor=" + disabledTextColorString +
         ",editable=" + editableString +
         ",margin=" + marginString +
-        ",opaque=" + opaqueString +
         ",selectedTextColor=" + selectedTextColorString +
         ",selectionColor=" + selectionColorString;
     }
@@ -2619,6 +2635,156 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         Action defaultAction;
     }
 
+
+    /**
+     * KeymapWrapper wraps a Keymap inside an InputMap. For KeymapWrapper
+     * to be useful it must be used with a KeymapActionMap.
+     * KeymapWrapper for the most part, is an InputMap with two parents.
+     * The first parent visited is ALWAYS the Keymap, with the second
+     * parent being the parent inherited from InputMap. If
+     * <code>keymap.getAction</code> returns null, implying the Keymap
+     * does not have a binding for the KeyStroke,
+     * the parent is then visited. If the Keymap has a binding, the 
+     * Action is returned, if not and the KeyStroke represents a
+     * KeyTyped event and the Keymap has a defaultAction,
+     * <code>DefaultActionKey</code> is returned.
+     * <p>KeymapActionMap is then able to transate the object passed in
+     * to either message the Keymap, or message its default implementation.
+     */
+    static class KeymapWrapper extends InputMap {
+	static final Object DefaultActionKey = new Object();
+
+	private Keymap keymap;
+
+	KeymapWrapper(Keymap keymap) {
+	    this.keymap = keymap;
+	}
+
+	public KeyStroke[] keys() {
+	    KeyStroke[] sKeys = super.keys();
+	    KeyStroke[] keymapKeys = keymap.getBoundKeyStrokes();
+	    int sCount = (sKeys == null) ? 0 : sKeys.length;
+	    int keymapCount = (keymapKeys == null) ? 0 : keymapKeys.length;
+	    if (sCount == 0) {
+		return keymapKeys;
+	    }
+	    if (keymapCount == 0) {
+		return sKeys;
+	    }
+	    KeyStroke[] retValue = new KeyStroke[sCount + keymapCount];
+	    // There may be some duplication here...
+	    System.arraycopy(sKeys, 0, retValue, 0, sCount);
+	    System.arraycopy(keymapKeys, 0, retValue, sCount, keymapCount);
+	    return retValue;
+	}
+
+	public int size() {
+	    // There may be some duplication here...
+	    KeyStroke[] keymapStrokes = keymap.getBoundKeyStrokes();
+	    int keymapCount = (keymapStrokes == null) ? 0:
+		               keymapStrokes.length;
+	    return super.size() + keymapCount;
+	}
+
+	public Object get(KeyStroke keyStroke) {
+	    Object retValue = keymap.getAction(keyStroke);
+            if (retValue == null) {
+		retValue = super.get(keyStroke);
+		if (retValue == null && keyStroke.getKeyChar() != 0 &&
+		    keymap.getDefaultAction() != null) {
+		    // Implies this is a KeyTyped event, use the default
+		    // action.
+		    retValue = DefaultActionKey;
+		}
+	    }
+	    return retValue;
+	}
+    }
+
+
+    /**
+     * Wraps a Keymap inside an ActionMap. This is used with
+     * a KeymapWrapper. If <code>get</code> is passed in
+     * <code>KeymapWrapper.DefaultActionKey</code>, the default action is
+     * returned, otherwise if the key is an Action, it is returned.
+     */
+    static class KeymapActionMap extends ActionMap {
+	private Keymap keymap;
+
+	KeymapActionMap(Keymap keymap) {
+	    this.keymap = keymap;
+	}
+
+	public Object[] keys() {
+	    Object[] sKeys = super.keys();
+	    Object[] keymapKeys = keymap.getBoundActions();
+	    int sCount = (sKeys == null) ? 0 : sKeys.length;
+	    int keymapCount = (keymapKeys == null) ? 0 : keymapKeys.length;
+	    boolean hasDefault = (keymap.getDefaultAction() != null);
+	    if (hasDefault) {
+		keymapCount++;
+	    }
+	    if (sCount == 0) {
+		if (hasDefault) {
+		    Object[] retValue = new Object[keymapCount];
+		    if (keymapCount > 1) {
+			System.arraycopy(keymapKeys, 0, retValue, 0,
+					 keymapCount - 1);
+		    }
+		    retValue[keymapCount - 1] = KeymapWrapper.DefaultActionKey;
+		    return retValue;
+		}
+		return keymapKeys;
+	    }
+	    if (keymapCount == 0) {
+		return sKeys;
+	    }
+	    Object[] retValue = new Object[sCount + keymapCount];
+	    // There may be some duplication here...
+	    System.arraycopy(sKeys, 0, retValue, 0, sCount);
+	    if (hasDefault) {
+		if (keymapCount > 1) {
+		    System.arraycopy(keymapKeys, 0, retValue, sCount,
+				     keymapCount - 1);
+		}
+		retValue[sCount + keymapCount - 1] = KeymapWrapper.
+		                                 DefaultActionKey;
+	    }
+	    else {
+		System.arraycopy(keymapKeys, 0, retValue, sCount, keymapCount);
+	    }
+	    return retValue;
+	}
+
+	public int size() {
+	    // There may be some duplication here...
+	    Object[] actions = keymap.getBoundActions();
+	    int keymapCount = (actions == null) ? 0 : actions.length;
+	    if (keymap.getDefaultAction() != null) {
+		keymapCount++;
+	    }
+	    return super.size() + keymapCount;
+	}
+
+	public Action get(Object key) {
+	    Action retValue = super.get(key);
+	    if (retValue == null) {
+		// Try the Keymap.
+		if (key == KeymapWrapper.DefaultActionKey) {
+		    retValue = keymap.getDefaultAction();
+		}
+		else if (key instanceof Action) {
+		    // This is a little iffy, technically an Action is
+		    // a valid Key. We're assuming the Action came from
+		    // the InputMap though.
+		    retValue = (Action)key;
+		}
+	    }
+	    return retValue;
+	}
+    }
+
+
     /**
      * This is the name of the default keymap that will be shared by all
      * JTextComponent instances unless they have had a different
@@ -2626,31 +2792,13 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     public static final String DEFAULT_KEYMAP = "default";
 
-    /**
-     * Default bindings for the default keymap if no other bindings
-     * are given.  
-     */
-    static final KeyBinding[] defaultBindings = {
-        new KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
-                       DefaultEditorKit.deletePrevCharAction),
-        new KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
-                       DefaultEditorKit.deleteNextCharAction),
-        new KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-                       DefaultEditorKit.forwardAction),
-        new KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-                       DefaultEditorKit.backwardAction)
-    };
-
     static {
         try {
             keymapTable = new Hashtable(17);
             Keymap binding = addKeymap(DEFAULT_KEYMAP, null);
             binding.setDefaultAction(new DefaultEditorKit.DefaultKeyTypedAction());
-            EditorKit kit = new DefaultEditorKit();
-            loadKeymap(binding, defaultBindings, kit.getActions());
         } catch (Throwable e) {
             e.printStackTrace();
-            keymapTable = new Hashtable(17);
         }
     }
 
@@ -2763,20 +2911,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         private int mark;
     }
 
-    class FocusAction extends AbstractAction {
-
-        public void actionPerformed(ActionEvent e) {
-            requestFocus();
-        }
-
-        public boolean isEnabled() {
-            if(isEditable())
-                return true;
-            else
-                return false;
-        }
-    }
-
     
     //
     // Process any input method events that the component itself 
@@ -2790,7 +2924,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 
 	if (!e.isConsumed()) {
             if (! isEditable()) {
-                getToolkit().beep();
+                return;
             } else {
   	        switch (e.getID()) {
 		case InputMethodEvent.INPUT_METHOD_TEXT_CHANGED:

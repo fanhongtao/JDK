@@ -1,8 +1,11 @@
 /*
- * @(#)PlainSocketImpl.java	1.35 01/11/29
+ * @(#)PlainSocketImpl.java	1.39 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -20,13 +23,10 @@ import java.io.ByteArrayOutputStream;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.35, 11/29/01
+ * @version 1.39, 02/02/00
  */
 class PlainSocketImpl extends SocketImpl
 {
-    /* timeout value for connection */
-    static int preferredConnectionTimeout = 0;
-
     /* instance variable for SO_TIMEOUT */
     int timeout;   // timeout in millisec
 
@@ -48,17 +48,16 @@ class PlainSocketImpl extends SocketImpl
 
     public static final String socksDefaultPortStr	= "1080";
 
+    private boolean shut_rd = false;
+    private boolean shut_wr = false;
+    
+    private SocketInputStream socketInputStream = null;
     /**
      * Load net library into runtime.
      */
     static {
 	java.security.AccessController.doPrivileged(
 		  new sun.security.action.LoadLibraryAction("net"));
-	String s = (String)java.security.AccessController.doPrivileged(
-		  new sun.security.action.GetPropertyAction("java.net.connectiontimeout"));
-	if (s != null) {
-	    preferredConnectionTimeout = Integer.parseInt(s);
-	}
 	initProto();
     }
 
@@ -165,6 +164,11 @@ class PlainSocketImpl extends SocketImpl
 					  "or SO_RCVBUF");
 	    }
 	    break;
+	case SO_KEEPALIVE:
+	    if (val == null || !(val instanceof Boolean))
+		throw new SocketException("bad parameter for SO_KEEPALIVE");
+	    on = ((Boolean)val).booleanValue();
+	    break;
 	default:
 	    throw new SocketException("unrecognized TCP option: " + opt);
 	}
@@ -196,6 +200,8 @@ class PlainSocketImpl extends SocketImpl
 	case SO_SNDBUF:
         case SO_RCVBUF:
 	    return new Integer(ret);
+	case SO_KEEPALIVE:
+  	    return (ret == -1) ? new Boolean(false): new Boolean(true);
 	// should never get here
 	default:
 	    return null;
@@ -220,7 +226,7 @@ class PlainSocketImpl extends SocketImpl
 
 	  case REQUEST_REJECTED:
 	  case REQUEST_REJECTED_NO_IDENTD:
-		throw new SocketException("SOCKS server cannot conect to identd");
+		throw new SocketException("SOCKS server cannot connect to identd");
 
 	  case REQUEST_REJECTED_DIFF_IDENTS:
 	    throw new SocketException("User name does not match identd name");
@@ -411,13 +417,28 @@ class PlainSocketImpl extends SocketImpl
      * Gets an InputStream for this socket.
      */
     protected synchronized InputStream getInputStream() throws IOException {
-	return new SocketInputStream(this);
+	if (fd == null) {
+	    throw new IOException("Socket Closed");
+	}
+	if (shut_rd) {
+	    throw new IOException("Socket input is shutdown");
+	}
+	if (socketInputStream == null) {
+	    socketInputStream = new SocketInputStream(this);
+	}
+	return socketInputStream;
     }
 
     /**
      * Gets an OutputStream for this socket.
      */
     protected synchronized OutputStream getOutputStream() throws IOException {
+	if (fd == null) {
+	    throw new IOException("Socket Closed");
+	}
+        if (shut_wr) {
+	    throw new IOException("Socket output is shutdown");
+	}
 	return new SocketOutputStream(this);
     }
 
@@ -441,6 +462,29 @@ class PlainSocketImpl extends SocketImpl
     }
 
     /**
+     * Shutdown read-half of the socket connection;
+     */
+    protected void shutdownInput() throws IOException {
+      if (fd != null) {
+	  socketShutdown(SHUT_RD);
+	  if (socketInputStream != null) {
+	      socketInputStream.setEOF(true);
+	  }
+	  shut_rd = true;
+      }
+    } 
+
+    /**
+     * Shutdown write-half of the socket connection;
+     */
+    protected void shutdownOutput() throws IOException {
+      if (fd != null) {
+	  socketShutdown(SHUT_WR);
+	  shut_wr = true;
+      }
+    } 
+
+    /**
      * Cleans up if the user forgets to close it.
      */
     protected void finalize() throws IOException {
@@ -460,8 +504,13 @@ class PlainSocketImpl extends SocketImpl
 	throws IOException;
     private native void socketClose()
 	throws IOException;
+    private native void socketShutdown(int howto)
+	throws IOException;
     private static native void initProto();
     private native void socketSetOption(int cmd, boolean on, Object value)
 	throws SocketException;
     private native int socketGetOption(int opt) throws SocketException;
+
+    public final static int SHUT_RD = 0;
+    public final static int SHUT_WR = 1;
 }

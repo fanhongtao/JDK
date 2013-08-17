@@ -1,8 +1,11 @@
 /*
- * @(#)BindingHelper.java	1.6 01/11/29
+ * @(#)BindingHelper.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 /*
  * File: ./org/omg/CosNaming/BindingHelper.java
@@ -13,8 +16,8 @@
 
 package org.omg.CosNaming;
 public class BindingHelper {
-     // It is useless to have instances of this class
-     private BindingHelper() { }
+    // It is useless to have instances of this class
+    private BindingHelper() { }
 
     public static void write(org.omg.CORBA.portable.OutputStream out, org.omg.CosNaming.Binding that) {
 	{
@@ -37,35 +40,35 @@ public class BindingHelper {
 	that.binding_type = org.omg.CosNaming.BindingTypeHelper.read(in);
         return that;
     }
-   public static org.omg.CosNaming.Binding extract(org.omg.CORBA.Any a) {
-     org.omg.CORBA.portable.InputStream in = a.create_input_stream();
-     return read(in);
-   }
-   public static void insert(org.omg.CORBA.Any a, org.omg.CosNaming.Binding that) {
-     org.omg.CORBA.portable.OutputStream out = a.create_output_stream();
-     write(out, that);
-     a.read_value(out.create_input_stream(), type());
-   }
-   private static org.omg.CORBA.TypeCode _tc;
-   synchronized public static org.omg.CORBA.TypeCode type() {
-       int _memberCount = 2;
-       org.omg.CORBA.StructMember[] _members = null;
-          if (_tc == null) {
-               _members= new org.omg.CORBA.StructMember[2];
-               _members[0] = new org.omg.CORBA.StructMember(
-                 "binding_name",
-                 org.omg.CORBA.ORB.init().create_sequence_tc(0, org.omg.CosNaming.NameComponentHelper.type()),
-                 null);
+    public static org.omg.CosNaming.Binding extract(org.omg.CORBA.Any a) {
+	org.omg.CORBA.portable.InputStream in = a.create_input_stream();
+	return read(in);
+    }
+    public static void insert(org.omg.CORBA.Any a, org.omg.CosNaming.Binding that) {
+	org.omg.CORBA.portable.OutputStream out = a.create_output_stream();
+	write(out, that);
+	a.read_value(out.create_input_stream(), type());
+    }
+    private static org.omg.CORBA.TypeCode _tc;
+    synchronized public static org.omg.CORBA.TypeCode type() {
+	int _memberCount = 2;
+	org.omg.CORBA.StructMember[] _members = null;
+	if (_tc == null) {
+	    _members= new org.omg.CORBA.StructMember[2];
+	    _members[0] = new org.omg.CORBA.StructMember(
+							 "binding_name",
+							 org.omg.CORBA.ORB.init().create_sequence_tc(0, org.omg.CosNaming.NameComponentHelper.type()),
+							 null);
 
-               _members[1] = new org.omg.CORBA.StructMember(
-                 "binding_type",
-                 org.omg.CosNaming.BindingTypeHelper.type(),
-                 null);
-             _tc = org.omg.CORBA.ORB.init().create_struct_tc(id(), "Binding", _members);
-          }
-      return _tc;
-   }
-   public static String id() {
-       return "IDL:omg.org/CosNaming/Binding:1.0";
-   }
+	    _members[1] = new org.omg.CORBA.StructMember(
+							 "binding_type",
+							 org.omg.CosNaming.BindingTypeHelper.type(),
+							 null);
+	    _tc = org.omg.CORBA.ORB.init().create_struct_tc(id(), "Binding", _members);
+	}
+	return _tc;
+    }
+    public static String id() {
+	return "IDL:omg.org/CosNaming/Binding:1.0";
+    }
 }

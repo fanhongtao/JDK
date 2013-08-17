@@ -1,28 +1,32 @@
 /*
- * @(#)JRootPane.java	1.48 01/11/29
+ * @(#)JRootPane.java	1.66 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.accessibility.*;
+import javax.swing.plaf.RootPaneUI;
 import java.util.Vector;
 import java.io.Serializable;
 
 
 /** 
- * The fundamental component in the container hierarchy. In the same way that
- * JComponent is fundamental to the JFC/Swing components, JRootPane is fundamental
- * to the JFC/Swing window, frame, and pane containers.
- * However, while other classes use inheritance to take advantage of JComponent's
- * capabilities, the container classes delegate operations to a JRootPane instance.
- * Those containers are the heavyweight containers: JFrame, JDialog, JWindow, and 
- * JApplet, as well as the lightweight container, JInternalFrame.
+ * A lightweight container used behind the scenes by
+ * JFrame, JDialog, JWindow, JApplet, and JInternalFrame.
+ * For task-oriented information on functionality provided by root panes
+ * see <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/rootpane.html">How to Use Root Panes</a>,
+ * a section in <em>The Java Tutorial</em>.
+ * 
  * <p>
- * The following image shows these relationships:
+ * The following image shows the relationships between
+ * the classes that use root panes.
  * <p align=center><img src="doc-files/JRootPane-1.gif" HEIGHT=484 WIDTH=629></p>
  * The &quot;heavyweight&quot; components (those that delegate to a peer, or native
  * component on the host system) are shown with a darker, heavier box. The four
@@ -133,11 +137,19 @@ import java.io.Serializable;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.48 11/29/01
+ * @version 1.66 04/06/00
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
 public class JRootPane extends JComponent implements Accessible {
+
+    private static final String uiClassID = "RootPaneUI";
+
+    /** The subcomponent that currently has focus, or null if no subcomponent
+     * currently has focus */
+    private JComponent focusOwner;
+
+    private JComponent previousFocusOwner;
 
     /** The menu bar. */
     protected JMenuBar menuBar;
@@ -158,11 +170,23 @@ public class JRootPane extends JComponent implements Accessible {
      * a UI-specific action like pressing the Enter key occurs.
      */
     protected JButton defaultButton;
-    /** The action to take when the defaultButton is pressed.
+    /**
+     * As of Java 2 platform v1.3 this unusable field is no longer used.
+     * To override the default button you should replace the Action
+     * in the JRootPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      *  @see #defaultButton
      */ 
     protected DefaultAction defaultPressAction;   
-    /** The action to take when the defaultButton is released.
+    /**
+     * As of Java 2 platform v1.3 this unusable field is no longer used.
+     * To override the default button you should replace the Action
+     * in the JRootPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      *  @see #defaultButton
      */ 
     protected DefaultAction defaultReleaseAction;
@@ -176,6 +200,56 @@ public class JRootPane extends JComponent implements Accessible {
         setContentPane(createContentPane());
         setLayout(createRootLayout());
         setDoubleBuffered(true);
+	updateUI();
+    }
+
+    /**
+     * Returns the L&F object that renders this component.
+     *
+     * @return LabelUI object
+     * @since 1.3
+     */
+    public RootPaneUI getUI() {
+        return (RootPaneUI)ui;
+    }
+
+    /**
+     * Sets the L&F object that renders this component.
+     *
+     * @since 1.3
+     * @param ui  the LabelUI L&F object
+     * @see UIDefaults#getUI
+     * @beaninfo
+     *      expert: true
+     *  description: The L&F object that renders this component.
+     */
+    public void setUI(RootPaneUI ui) {
+        super.setUI(ui);
+    }
+
+
+    /**
+     * Notification from the UIFactory that the L&F
+     * has changed. 
+     *
+     * @see JComponent#updateUI
+     */
+    public void updateUI() {
+        setUI((RootPaneUI)UIManager.getUI(this));
+    }
+
+
+    /**
+     * Returns a string that specifies the name of the l&f class
+     * that renders this component.
+     *
+     * @return String "RootPaneUI"
+     *
+     * @see JComponent#getUIClassID
+     * @see UIDefaults#getUI
+     */
+    public String getUIClassID() {
+        return uiClassID;
     }
 
     /** Called by the constructor methods to create the default layeredPane. 
@@ -388,6 +462,19 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
+     * The GlassPane and ContentPane have the same bounds, which means
+     * JRootPane does not tiles its children and this should return false.
+     * On the other hand, the GlassPane is normally not visible, and so
+     * this can return true if the GlassPane isn't visible. Therefore, the
+     * return value here depends upon the visiblity of the GlassPane.
+     *
+     * @return true if this component's children don't overlap
+     */
+    public boolean isOptimizedDrawingEnabled() {
+        return !glassPane.isVisible();
+    }
+
+    /**
      * Register ourselves with the SystemEventQueueUtils as a new
      * root pane. 
      */
@@ -404,6 +491,7 @@ public class JRootPane extends JComponent implements Accessible {
 
     /**
      * Unregister ourselves from SystemEventQueueUtils.
+     * @see #addNotify
      */
     public void removeNotify() {
 	SystemEventQueueUtilities.removeRunnableCanvas(this);
@@ -412,16 +500,16 @@ public class JRootPane extends JComponent implements Accessible {
 
 
     /**
-     * Sets the current default button for this JRootPane.
+     * Sets the current default button for this <code>JRootPane</code>.
      * The default button is the button which will be activated 
-     * when a UI-defined activation event (typically the Enter key) 
+     * when a UI-defined activation event (typically the <b>Enter</b> key) 
      * occurs in the RootPane regardless of whether or not the button 
      * has keyboard focus (unless there is another component within 
      * the RootPane which consumes the activation event, such as a JTextPane).
      * For default activation to work, the button must be an enabled
      * descendent of the RootPane when activation occurs.
      * To remove a default button from this RootPane, set this
-     * property to null.
+     * property to <code>null</code>.
      *
      * @see JButton#isDefaultButton 
      * @param default the JButton which is to be the default button
@@ -431,43 +519,6 @@ public class JRootPane extends JComponent implements Accessible {
 
         if (oldDefault != defaultButton) {
             this.defaultButton = defaultButton;
-
-            if (defaultButton != null) {
-                if (defaultPressAction == null) {
-                    defaultPressAction = new DefaultAction(this, true);
-                    defaultReleaseAction = new DefaultAction(this, false);
-                   // Eventually we should get the KeyStroke from the UI
-                   // but hardcode it for now....
-                    registerKeyboardAction(defaultPressAction, 
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), 
-                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-                    registerKeyboardAction(defaultReleaseAction, 
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), 
-                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-                    registerKeyboardAction(defaultPressAction, 
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 
-                                                          InputEvent.CTRL_MASK, false), 
-                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-                    registerKeyboardAction(defaultReleaseAction, 
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,            
-                                                          InputEvent.CTRL_MASK, true), 
-                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
-                }
-                defaultPressAction.setOwner(defaultButton);
-                defaultReleaseAction.setOwner(defaultButton);
-            } else {
-                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false));
-                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true));
-                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 
-                                                                InputEvent.CTRL_MASK, false));
-                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 
-                                                                InputEvent.CTRL_MASK, true));
-                defaultPressAction = null;
-                defaultReleaseAction = null;
-            }
 
             if (oldDefault != null) {
                 oldDefault.repaint();
@@ -527,57 +578,6 @@ public class JRootPane extends JComponent implements Accessible {
             add(glassPane, 0);
         }
     }
-
-    /**
-     * Locates the visible child component that contains the specified
-     * position.  The top-most child component is returned in the case 
-     * where there is overlap in the components.  If the containing child 
-     * component is a Container, this method will continue searching for 
-     * the deepest nested child component.  Components which are not
-     * visible are ignored during the search.<p>
-     *
-     * This method is similar to Container.findComponentAt, except that
-     * the JRootPane.glassPane is ignored during the search.  This
-     * is needed to to support drag&drop.  Since the glassPane is the
-     * same size as the JRootPane instance, if there's a need to
-     * test whether the mouse is over the glassPane, just test that it's
-     * over the JRootPane instead.
-     *
-     * @param x the <i>x</i> coordinate
-     * @param y the <i>y</i. coordinate
-     * @return null if the component does not contain the position.
-     * If there is no child component at the requested point and the 
-     * point is within the bounds of this instance, then this 
-     * JRootPane itself is returned.
-     * @see Container.findComponentAt
-     * @see Container.getComponentAt
-     */
-
-    public Component findComponentAt(int x, int y) {
-	if (!contains(x, y)) {
-	    return null;
-	}
-        int ncomponents = countComponents();
-        Component component[] = getComponents();
-        for (int i = 0 ; i < ncomponents ; i++) {
-            Component comp = component[i];
-            if (comp != null) {
-		if (comp == glassPane) {  // don't use equals()
-		    continue;
-                } else if (comp instanceof Container) {
-                    comp = ((Container)comp).findComponentAt(x - comp.getX(),
-							     y - comp.getY());
-                } else {
-                    comp = comp.locate(x - comp.getX(), y - comp.getY());
-                }
-                if (comp != null && comp.isVisible()) {
-                    return comp;
-                }
-            }
-        }
-	return this;
-    }
- 
 
 ///////////////////////////////////////////////////////////////////////////////
 //// Begin Inner Classes
@@ -708,6 +708,26 @@ public class JRootPane extends JComponent implements Accessible {
         public void invalidateLayout(Container target) {}
     }
 
+    /** set the current focus owner. Called with the event argument when
+     * processing FOCUS_GAINED event in a Swing component; called with null
+     * when processing FOCUS_LOST */
+    void setCurrentFocusOwner(JComponent focusOwner) {
+      this.focusOwner = focusOwner;
+    }
+
+    /** return the current focus owner */
+    JComponent getCurrentFocusOwner() {
+      return focusOwner;
+    }
+
+    void setPreviousFocusOwner(JComponent focusOwner) {
+      this.previousFocusOwner = focusOwner;
+    }
+
+    /** return the current focus owner */
+    JComponent getPreviousFocusOwner() {
+      return previousFocusOwner;
+    }
 
     /**
      * Returns a string representation of this JRootPane. This method 
@@ -727,9 +747,13 @@ public class JRootPane extends JComponent implements Accessible {
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JRootPane. 
+     * For root panes, the AccessibleContext takes the form of an 
+     * AccessibleJRootPane. 
+     * A new AccessibleJRootPane instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJRootPane that serves as the 
+     *         AccessibleContext of this JRootPane
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -739,7 +763,9 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JRootPane</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to root pane user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

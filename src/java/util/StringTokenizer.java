@@ -1,8 +1,11 @@
 /*
- * @(#)StringTokenizer.java	1.20 01/11/29
+ * @(#)StringTokenizer.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -22,7 +25,7 @@ import java.lang.*;
  * <p>
  * An instance of <code>StringTokenizer</code> behaves in one of two 
  * ways, depending on whether it was created with the 
- * <code>returnTokens</code> flag having the value <code>true</code> 
+ * <code>returnDelims</code> flag having the value <code>true</code> 
  * or <code>false</code>: 
  * <ul>
  * <li>If the flag is <code>false</code>, delimiter characters serve to 
@@ -56,24 +59,51 @@ import java.lang.*;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.20, 11/29/01
+ * @version 1.25, 02/02/00
  * @see     java.io.StreamTokenizer
  * @since   JDK1.0
  */
 public
 class StringTokenizer implements Enumeration {
     private int currentPosition;
+    private int newPosition;
     private int maxPosition;
     private String str;
     private String delimiters;
-    private boolean retTokens;
+    private boolean retDelims;
+    private boolean delimsChanged;
+
+    /**
+     * maxDelimChar stores the value of the delimiter character with the
+     * highest value. It is used to optimize the detection of delimiter
+     * characters.
+     */
+    private char maxDelimChar;
+
+    /**
+     * Set maxDelimChar to the highest char in the delimiter set.
+     */
+    private void setMaxDelimChar() {
+        if (delimiters == null) {
+            maxDelimChar = 0;
+            return;
+        }
+
+	char m = 0;
+	for (int i = 0; i < delimiters.length(); i++) {
+	    char c = delimiters.charAt(i);
+	    if (m < c)
+		m = c;
+	}
+	maxDelimChar = m;
+    }
 
     /**
      * Constructs a string tokenizer for the specified string. All  
      * characters in the <code>delim</code> argument are the delimiters 
      * for separating tokens. 
      * <p>
-     * If the <code>returnTokens</code> flag is <code>true</code>, then 
+     * If the <code>returnDelims</code> flag is <code>true</code>, then 
      * the delimiter characters are also returned as tokens. Each 
      * delimiter is returned as a string of length one. If the flag is 
      * <code>false</code>, the delimiter characters are skipped and only 
@@ -81,15 +111,18 @@ class StringTokenizer implements Enumeration {
      *
      * @param   str            a string to be parsed.
      * @param   delim          the delimiters.
-     * @param   returnTokens   flag indicating whether to return the delimiters
+     * @param   returnDelims   flag indicating whether to return the delimiters
      *                         as tokens.
      */
-    public StringTokenizer(String str, String delim, boolean returnTokens) {
+    public StringTokenizer(String str, String delim, boolean returnDelims) {
 	currentPosition = 0;
+	newPosition = -1;
+	delimsChanged = false;
 	this.str = str;
 	maxPosition = str.length();
 	delimiters = delim;
-	retTokens = returnTokens;
+	retDelims = returnDelims;
+        setMaxDelimChar();
     }
 
     /**
@@ -108,8 +141,8 @@ class StringTokenizer implements Enumeration {
     /**
      * Constructs a string tokenizer for the specified string. The 
      * tokenizer uses the default delimiter set, which is 
-     * <code>"&#92;t&#92;n&#92;r&#92;f"</code>: the space character, the tab
-     * character, the newline character, the carriage-return character,
+     * <code>"&nbsp;&#92;t&#92;n&#92;r&#92;f"</code>: the space character, 
+     * the tab character, the newline character, the carriage-return character,
      * and the form-feed character. Delimiter characters themselves will 
      * not be treated as tokens.
      *
@@ -120,14 +153,42 @@ class StringTokenizer implements Enumeration {
     }
 
     /**
-     * Skips delimiters.
+     * Skips delimiters starting from the specified position. If retDelims
+     * is false, returns the index of the first non-delimiter character at or
+     * after startPos. If retDelims is true, startPos is returned.
      */
-    private void skipDelimiters() {
-	while (!retTokens &&
-	       (currentPosition < maxPosition) &&
-	       (delimiters.indexOf(str.charAt(currentPosition)) >= 0)) {
-	    currentPosition++;
+    private int skipDelimiters(int startPos) {
+        if (delimiters == null)
+            throw new NullPointerException();
+
+        int position = startPos;
+	while (!retDelims && position < maxPosition) {
+            char c = str.charAt(position);
+            if ((c > maxDelimChar) || (delimiters.indexOf(c) < 0))
+                break;
+	    position++;
 	}
+        return position;
+    }
+
+    /**
+     * Skips ahead from startPos and returns the index of the next delimiter
+     * character encountered, or maxPosition if no such delimiter is found.
+     */
+    private int scanToken(int startPos) {
+        int position = startPos;
+        while (position < maxPosition) {
+            char c = str.charAt(position);
+            if ((c <= maxDelimChar) && (delimiters.indexOf(c) >= 0))
+                break;
+            position++;
+	}
+	if (retDelims && (startPos == position)) {
+            char c = str.charAt(position);
+	    if ((c <= maxDelimChar) && (delimiters.indexOf(c) >= 0))
+                position++;
+        }
+        return position;
     }
 
     /**
@@ -140,8 +201,13 @@ class StringTokenizer implements Enumeration {
      *          otherwise.
      */
     public boolean hasMoreTokens() {
-	skipDelimiters();
-	return (currentPosition < maxPosition);
+	/*
+	 * Temporary store this position and use it in the following
+	 * nextToken() method only if the delimiters have'nt been changed in
+	 * that nextToken() invocation.
+	 */
+	newPosition = skipDelimiters(currentPosition);
+	return (newPosition < maxPosition);
     }
 
     /**
@@ -152,21 +218,23 @@ class StringTokenizer implements Enumeration {
      *               tokenizer's string.
      */
     public String nextToken() {
-	skipDelimiters();
+	/* 
+	 * If next position already computed in hasMoreElements() and
+	 * delimiters have changed between the computation and this invocation,
+	 * then use the computed value.
+	 */
 
-	if (currentPosition >= maxPosition) {
+	currentPosition = (newPosition >= 0 && !delimsChanged) ?  
+	    newPosition : skipDelimiters(currentPosition);
+
+	/* Reset these anyway */
+	delimsChanged = false;
+	newPosition = -1;
+
+	if (currentPosition >= maxPosition)
 	    throw new NoSuchElementException();
-	}
-
 	int start = currentPosition;
-	while ((currentPosition < maxPosition) && 
-	       (delimiters.indexOf(str.charAt(currentPosition)) < 0)) {
-	    currentPosition++;
-	}
-	if (retTokens && (start == currentPosition) &&
-	    (delimiters.indexOf(str.charAt(currentPosition)) >= 0)) {
-	    currentPosition++;
-	}
+	currentPosition = scanToken(currentPosition);
 	return str.substring(start, currentPosition);
     }
 
@@ -186,6 +254,11 @@ class StringTokenizer implements Enumeration {
      */
     public String nextToken(String delim) {
 	delimiters = delim;
+
+	/* delimiter string specified, so set the appropriate flag. */
+	delimsChanged = true;
+
+        setMaxDelimChar();
 	return nextToken();
     }
 
@@ -231,33 +304,12 @@ class StringTokenizer implements Enumeration {
     public int countTokens() {
 	int count = 0;
 	int currpos = currentPosition;
-
 	while (currpos < maxPosition) {
-	    /*
-	     * This is just skipDelimiters(); but it does not affect
-	     * currentPosition.
-	     */
-	    while (!retTokens &&
-		   (currpos < maxPosition) &&
-		   (delimiters.indexOf(str.charAt(currpos)) >= 0)) {
-		currpos++;
-	    }
-
-	    if (currpos >= maxPosition) {
+            currpos = skipDelimiters(currpos);
+	    if (currpos >= maxPosition)
 		break;
-	    }
-
-	    int start = currpos;
-	    while ((currpos < maxPosition) && 
-		   (delimiters.indexOf(str.charAt(currpos)) < 0)) {
-		currpos++;
-	    }
-	    if (retTokens && (start == currpos) &&
-		(delimiters.indexOf(str.charAt(currpos)) >= 0)) {
-		currpos++;
-	    }
+            currpos = scanToken(currpos);
 	    count++;
-
 	}
 	return count;
     }

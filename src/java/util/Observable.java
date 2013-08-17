@@ -1,8 +1,11 @@
 /*
- * @(#)Observable.java	1.26 01/11/29
+ * @(#)Observable.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -35,7 +38,7 @@ package java.util;
  * <tt>equals</tt> method returns true for them.
  *
  * @author  Chris Warth
- * @version 1.26, 11/29/01
+ * @version 1.31, 02/02/00
  * @see     java.util.Observable#notifyObservers()
  * @see     java.util.Observable#notifyObservers(java.lang.Object)
  * @see     java.util.Observer
@@ -46,7 +49,7 @@ public class Observable {
     private boolean changed = false;
     private Vector obs;
    
-    /** Construct an Observable with zero Observers */
+    /** Construct an Observable with zero Observers. */
 
     public Observable() {
 	obs = new Vector();
@@ -84,8 +87,8 @@ public class Observable {
      * Each observer has its <code>update</code> method called with two
      * arguments: this observable object and <code>null</code>. In other 
      * words, this method is equivalent to:
-     * <blockquote><pre>
-     * notifyOvservers(null)</pre></blockquote>
+     * <blockquote><tt>
+     * notifyObservers(null)</tt></blockquote>
      *
      * @see     java.util.Observable#clearChanged()
      * @see     java.util.Observable#hasChanged()
@@ -132,7 +135,7 @@ public class Observable {
 	    if (!changed)
                 return;
             arrLocal = obs.toArray();
-            changed = false;
+            clearChanged();
         }
 
         for (int i = arrLocal.length-1; i>=0; i--)

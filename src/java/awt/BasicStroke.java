@@ -1,8 +1,11 @@
 /*
- * @(#)BasicStroke.java	1.29 01/11/29
+ * @(#)BasicStroke.java	1.35 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -36,7 +39,7 @@ import sun.dc.pr.Rasterizer;
  * between opaque and transparent sections.
  * </dl>
  *
- * @version 10 Feb 1997
+ * @version 1.35, 02/02/00
  * @author Jim Graham
  */
 public class BasicStroke implements Stroke {
@@ -97,6 +100,18 @@ public class BasicStroke implements Stroke {
      * @param miterlimit the limit to trim the miter join
      * @param dash the array representing the dashing pattern
      * @param dash_phase the offset to start the dashing pattern
+     * @throws IllegalArgumentException if <code>width</code> is negative
+     * @throws IllegalArgumentException if <code>cap</code> is not either
+     *         CAP_BUTT, CAP_ROUND or CAP_SQUARE
+     * @throws IllegalArgumentException if <code>miterlimit</code> is less
+     *         than 1 and <code>join</code> is JOIN_MITER
+     * @throws IllegalArgumentException if <code>join</code> is not
+     *         either JOIN_ROUND, JOIN_BEVEL, or JOIN_MITER
+     * @throws IllegalArgumentException if <code>dash_phase</code>
+     *         is negative and <code>dash</code> is not <code>null</code>
+     * @throws IllegalArgumentException if the length of
+     *         <code>dash</code> is zero
+     * @throws IllegalArgumentException if dash lengths are all zero.
      */
     public BasicStroke(float width, int cap, int join, float miterlimit,
 		       float dash[], float dash_phase) {
@@ -147,6 +162,13 @@ public class BasicStroke implements Stroke {
      * @param cap the decoration of the ends of a <code>BasicStroke</code>
      * @param join the decoration applied where path segments meet
      * @param miterlimit the limit to trim the miter join
+     * @throws IllegalArgumentException if <code>width</code> is negative
+     * @throws IllegalArgumentException if <code>cap</code> is not either
+     *         CAP_BUTT, CAP_ROUND or CAP_SQUARE
+     * @throws IllegalArgumentException if <code>miterlimit</code> is less
+     *         than 1 and <code>join</code> is JOIN_MITER
+     * @throws IllegalArgumentException if <code>join</code> is not
+     *         either JOIN_ROUND, JOIN_BEVEL, or JOIN_MITER
      */
     public BasicStroke(float width, int cap, int join, float miterlimit) {
 	this(width, cap, join, miterlimit, null, 0.0f);
@@ -160,6 +182,11 @@ public class BasicStroke implements Stroke {
      * @param width the width of the <code>BasicStroke</code>
      * @param cap the decoration of the ends of a <code>BasicStroke</code>
      * @param join the decoration applied where path segments meet
+     * @throws IllegalArgumentException if <code>width</code> is negative
+     * @throws IllegalArgumentException if <code>cap</code> is not either
+     *         CAP_BUTT, CAP_ROUND or CAP_SQUARE
+     * @throws IllegalArgumentException if <code>join</code> is not
+     *         either JOIN_ROUND, JOIN_BEVEL, or JOIN_MITER
      */
     public BasicStroke(float width, int cap, int join) {
 	this(width, cap, join, 10.0f, null, 0.0f);
@@ -170,6 +197,7 @@ public class BasicStroke implements Stroke {
      * line width and with default values for the cap and join 
      * styles.
      * @param width the width of the <code>BasicStroke</code>
+     * @throws IllegalArgumentException if <code>width</code> is negative
      */
     public BasicStroke(float width) {
 	this(width, CAP_SQUARE, JOIN_MITER, 10.0f, null, 0.0f);

@@ -1,8 +1,11 @@
 /*
- * @(#)BufferedImage.java	1.74 01/11/29
+ * @(#)BufferedImage.java	1.79 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -78,7 +81,7 @@ public class BufferedImage extends java.awt.Image
      * with alpha. The color data in this image is considered not to be
      * premultiplied with alpha.  When this type is used as the 
      * <code>imageType</code> argument to a <code>BufferedImage</code>
-     * constructor, the created image created is consistent with images
+     * constructor, the created image is consistent with images
      * created in the JDK1.1 and earlier releases.
      */
     public static final int TYPE_INT_ARGB = 2;
@@ -535,19 +538,26 @@ public class BufferedImage extends java.awt.Image
         // state in the color model
         coerceData(isRasterPremultiplied);
 
+        SampleModel sm = raster.getSampleModel();
         cs = cm.getColorSpace();
         int csType = cs.getType();
         if (csType != ColorSpace.TYPE_RGB) {
             if (csType == ColorSpace.TYPE_GRAY
                 && cm instanceof ComponentColorModel) {
-                if (raster instanceof ByteComponentRaster) {
+                // Check if this might be a child raster (fix for bug 4240596)
+                if (sm instanceof ComponentSampleModel &&
+                    ((ComponentSampleModel)sm).getPixelStride() != numBands) {
+                    imageType = TYPE_CUSTOM;
+                } else if (raster instanceof ByteComponentRaster &&
+                       raster.getNumBands() == 1 &&
+                       ((ByteComponentRaster)raster).getPixelStride() == 1) {
                     imageType = TYPE_BYTE_GRAY;
-                }
-                else if (raster instanceof ShortComponentRaster) {
+                } else if (raster instanceof ShortComponentRaster &&
+                       raster.getNumBands() == 1 &&
+                       ((ShortComponentRaster)raster).getPixelStride() == 1) {
                     imageType = TYPE_USHORT_GRAY;
                 }
-            }
-            else {
+            } else {
                 imageType = TYPE_CUSTOM;
             }
             return;
@@ -1326,6 +1336,18 @@ public class BufferedImage extends java.awt.Image
         int startY = r.getMinY();
  
         int[] tdata = null;
+
+        // Clip to the current Raster
+        Rectangle rclip = new Rectangle(startX, startY, width, height);
+        Rectangle bclip = new Rectangle(0, 0, raster.width, raster.height);
+        Rectangle intersect = rclip.intersection(bclip);
+        if (intersect.isEmpty()) {
+            return;
+        }
+        width = intersect.width;
+        height = intersect.height;
+        startX = intersect.x;
+        startY = intersect.y;
 
         // remind use get/setDataElements for speed if Rasters are
         // compatible

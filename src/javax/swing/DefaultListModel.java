@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultListModel.java	1.22 01/11/29
+ * @(#)DefaultListModel.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -26,7 +29,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 11/29/01
+ * @version 1.26 02/02/00
  * @author Hans Muller
  */
 public class DefaultListModel extends AbstractListModel
@@ -394,7 +397,7 @@ public class DefaultListModel extends AbstractListModel
 
 
     /* The remaining methods are included for compatibility with the
-     * JDK1.2 Vector class.
+     * Java 2 platform Vector class.
      */
 
     /**

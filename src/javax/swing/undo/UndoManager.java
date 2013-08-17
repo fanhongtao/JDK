@@ -1,8 +1,11 @@
 /*
- * @(#)UndoManager.java	1.24 01/11/29
+ * @(#)UndoManager.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.undo;
@@ -28,7 +31,7 @@ import java.util.*;
  * long term persistence.
  *
  * @author Ray Ryan
- * @version 1.24, 11/29/01
+ * @version 1.26, 02/02/00
  */ 
 public class UndoManager extends CompoundEdit implements UndoableEditListener {
     int indexOfNextAdd;
@@ -155,6 +158,7 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
      * @see #getLimit
      */
     public synchronized void setLimit(int l) {
+        if (!inProgress) throw new RuntimeException("Attempt to call UndoManager.setLimit() after UndoManager.end() has been called");
         limit = l;
         trimForLimit();
     }

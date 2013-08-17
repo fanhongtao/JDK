@@ -1,8 +1,11 @@
 /*
- * @(#)MotifIconFactory.java	1.18 01/11/29
+ * @(#)MotifIconFactory.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -29,7 +32,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * 1.18 11/29/01
+ * 1.20 04/27/99
  * @author Georges Saab
  */
 public class MotifIconFactory implements Serializable
@@ -84,20 +87,26 @@ public class MotifIconFactory implements Serializable
         private Color highlight = UIManager.getColor("controlHighlight");
 	private Color lightShadow = UIManager.getColor("controlLightShadow");
 
-	public void paintIcon(Component c, Graphics g, int x, int y){
+	public void paintIcon(Component c, Graphics g, int x, int y) {
 	    AbstractButton b = (AbstractButton) c;
 	    ButtonModel model = b.getModel();
+
+	    boolean flat = false;
+
+	    if(b instanceof JCheckBox) {
+		flat = ((JCheckBox)b).isBorderPaintedFlat();
+	    }
 
 	    boolean isPressed = model.isPressed();
 	    boolean isArmed = model.isArmed();
 	    boolean isEnabled = model.isEnabled();
 	    boolean isSelected = model.isSelected();
 	    
-	    // 4 -looks- to the Motif CheckBox
-	    // drawCheckBezelOut - default unchecked state
-	    // drawBezel - when we uncheck in toggled state
-	    // drawCheckBezel - when we check in toggle state
-	    // drawCheckBezelIn - selected, mouseReleased
+	    // There are 4 "looks" to the Motif CheckBox:
+	    //  drawCheckBezelOut  -  default unchecked state
+	    //  drawBezel          -  when we uncheck in toggled state
+	    //  drawCheckBezel     -  when we check in toggle state
+	    //  drawCheckBezelIn   -  selected, mouseReleased
 	    boolean checkToggleIn = ((isPressed && 
 				      !isArmed   &&
 				      isSelected) ||
@@ -118,29 +127,32 @@ public class MotifIconFactory implements Serializable
 				!isArmed  &&
 				isSelected));
 
+
+	    if(flat) {
+		g.setColor(shadow);
+		g.drawRect(x+2,y,csize-1,csize-1);
+		if(uncheckToggleOut || checkToggleIn) {
+		    g.setColor(control);
+		    g.fillRect(x+3,y+1,csize-2,csize-2);
+		}
+	    }
+
             // Padding required to keep focus highlight from intersecting icon.
             x += (MotifGraphicsUtils.isLeftToRight(c)) ? 2 : -3;
             
-	    if (checkToggleIn)
-		{
-		    // toggled from unchecked to checked
-		    drawCheckBezel(g,x,y,csize,true,false,false);
-		}
-	    else if (uncheckToggleOut)
-		{
-		    //	    MotifBorderFactory.drawBezel(g,x,y,csize,csize,false,false);
-		    drawCheckBezel(g,x,y,csize,true,true,false);
-		    
-		}	  
-	    else if (checkIn)
-		{ 
-		    // show checked, unpressed state
-		    drawCheckBezel(g,x,y,csize,false,false,true);
-		}
-	    else 
-		{ //  show unchecked state
-		    drawCheckBezelOut(g,x,y,csize);
-		}
+	    if (checkToggleIn) {
+		// toggled from unchecked to checked
+		drawCheckBezel(g,x,y,csize,true,false,false,flat);
+	    } else if (uncheckToggleOut) {
+		// MotifBorderFactory.drawBezel(g,x,y,csize,csize,false,false);
+		drawCheckBezel(g,x,y,csize,true,true,false,flat);
+	    } else if (checkIn) { 
+		// show checked, unpressed state
+		drawCheckBezel(g,x,y,csize,false,false,true,flat);
+	    } else if(!flat) {
+		//  show unchecked state
+		drawCheckBezelOut(g,x,y,csize);
+	    }
 	}
 	
 	public int getIconWidth() {
@@ -171,56 +183,59 @@ public class MotifIconFactory implements Serializable
 	}
 	
 	public void drawCheckBezel(Graphics g, int x, int y, int csize, 
-				   boolean shade, boolean out, boolean check)
+				   boolean shade, boolean out, boolean check, boolean flat)
 	    {
 
 		
 		Color oldColor = g.getColor();	
 		g.translate(x, y);
 		
-		if (out){
-		    g.setColor(control);
-		    g.fillRect(0,0,csize,csize);
-		}
-		else {
-		    g.setColor(lightShadow);
-		    g.fillRect(0,0,csize,csize);
-		}
-		
+
 		//bottom
-		if (out)
-		    g.setColor(shadow);
-		else
-		    g.setColor(highlight);
-		g.drawLine(1,csize-1,csize-2,csize-1); 
-		if (shade) {
-		    g.drawLine(2,csize-2,csize-3,csize-2);
-		    g.drawLine(csize-2,2,csize-2 ,csize-1);
-		    if (out)
-			g.setColor(highlight);
-		    else
+		if(!flat) {
+		    if (out) {
+			g.setColor(control);
+			g.fillRect(1,1,csize-2,csize-2);
 			g.setColor(shadow);
-		    g.drawLine(1,2,1,csize-2);
-		    g.drawLine(1,1,csize-3,1);
-		    if (out)
-			g.setColor(shadow);
-		    else
+		    } else {
+			g.setColor(lightShadow);
+			g.fillRect(0,0,csize,csize);
 			g.setColor(highlight);
+		    }
+
+		    g.drawLine(1,csize-1,csize-2,csize-1); 
+		    if (shade) {
+			g.drawLine(2,csize-2,csize-3,csize-2);
+			g.drawLine(csize-2,2,csize-2 ,csize-1);
+			if (out) {
+			    g.setColor(highlight);
+			} else {
+			    g.setColor(shadow);
+			}
+			g.drawLine(1,2,1,csize-2);
+			g.drawLine(1,1,csize-3,1);
+			if (out) {
+			    g.setColor(shadow);
+			} else {
+			    g.setColor(highlight);
+			}
+		    }
+		    //right
+		    g.drawLine(csize-1,1,csize-1,csize-1);
+		    
+		    //left
+		    if (out) {
+			g.setColor(highlight);
+		    } else {
+			g.setColor(shadow);
+		    }
+		    g.drawLine(0,1,0,csize-1);
+		    
+		    //top
+		    g.drawLine(0,0,csize-1,0); 
 		}
-		//right
-		g.drawLine(csize-1,1,csize-1,csize-1);
 		
-		//left
-		if (out)
-		    g.setColor(highlight);
-		else
-		    g.setColor(shadow);
-		g.drawLine(0,1,0,csize-1);
-		
-		//top
-		g.drawLine(0,0,csize-1,0); 
-		
-		if (check){
+		if (check) {
 		    // draw check 
 		    g.setColor(foreground);
 		    g.drawLine(csize-2,1,csize-2,2);
@@ -363,11 +378,12 @@ public class MotifIconFactory implements Serializable
             AbstractButton b = (AbstractButton) c;
             ButtonModel model = b.getModel();
 
+            // These variables are kind of pointless as the following code
+            // assumes the icon will be 10 x 10 regardless of their value.
             int w = getIconWidth();
             int h = getIconHeight();
 
             Color oldColor = g.getColor();
-            // REMIND: this is a mess
 
             if (model.isSelected()){
                 if( MotifGraphicsUtils.isLeftToRight(c) ){
@@ -386,20 +402,20 @@ public class MotifIconFactory implements Serializable
                     g.drawLine(x+6,y+h-2,x+6,y+h-2);
                     g.drawLine(x+8,y+h-4,x+8,y+h-3);
                 } else {
-                    g.setColor(shadow);
-                    g.fillRect(x+h-3,y+1,2,h);
-                    g.drawLine(x+h-5,y+2,x+h-5,y+2);
-                    g.drawLine(x+h-7,y+3,x+h-7,y+3);
-                    g.drawLine(x+h-9,y+4,x+h-9,y+5);
-                    g.setColor(focus);
-                    g.fillRect(x+h-4,y+2,2,h-2);
-                    g.fillRect(x+h-6,y+3,2,h-4);
-                    g.fillRect(x+h-8,y+4,2,h-6);
                     g.setColor(highlight);
-                    g.drawLine(x+h-3,y+h,x+h-3,y+h);
-                    g.drawLine(x+h-5,y+h-1,x+h-5,y+h-1);
-                    g.drawLine(x+h-7,y+h-2,x+h-7,y+h-2);
-                    g.drawLine(x+h-9,y+h-4,x+h-9,y+h-3);
+                    g.fillRect(x+7,y+1,2,10);
+                    g.drawLine(x+5,y+9,x+5,y+9);
+                    g.drawLine(x+3,y+8,x+3,y+8);
+                    g.drawLine(x+1,y+6,x+1,y+7);
+                    g.setColor(focus);
+                    g.fillRect(x+6,y+2,2,8);
+                    g.fillRect(x+4,y+3,2,6);
+                    g.fillRect(x+2,y+4,2,4);
+                    g.setColor(shadow);  
+                    g.drawLine(x+1,y+4,x+1,y+5);
+                    g.drawLine(x+3,y+3,x+3,y+3);
+                    g.drawLine(x+5,y+2,x+5,y+2);
+                    g.drawLine(x+7,y+1,x+7,y+1);
                 }
             } else {
                 if( MotifGraphicsUtils.isLeftToRight(c) ){
@@ -417,16 +433,16 @@ public class MotifIconFactory implements Serializable
                     g.setColor(oldColor);
                 } else {
                     g.setColor(highlight);
-                    g.drawLine(x+h-2,y+1,x+h-2,y+h);
-                    g.drawLine(x+h-3,y+1,x+h-3,y+h-2);
-                    g.fillRect(x+h-5,y+2,2,2);
-                    g.fillRect(x+h-7,y+3,2,2);
-                    g.fillRect(x+h-9,y+4,2,2);
+                    g.fillRect(x+1,y+4,2,2);
+                    g.fillRect(x+3,y+3,2,2);
+                    g.fillRect(x+5,y+2,2,2);
+                    g.drawLine(x+7,y+1,x+7,y+2);
                     g.setColor(shadow);
-                    g.drawLine(x+h-3,y+h-1,x+h-3,y+h);
-                    g.fillRect(x+h-5,y+h-2,2,2);
-                    g.fillRect(x+h-7,y+h-3,2,2);
-                    g.fillRect(x+h-9,y+h-4,2,2);
+                    g.fillRect(x+1,y+h-4,2,2);
+                    g.fillRect(x+3,y+h-3,2,2);
+                    g.fillRect(x+5,y+h-2,2,2);
+                    g.drawLine(x+7,y+3,x+7,y+h);
+                    g.drawLine(x+8,y+1,x+8,y+h);
                     g.setColor(oldColor);
                 }
             }

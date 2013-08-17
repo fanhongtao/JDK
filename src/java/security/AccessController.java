@@ -1,8 +1,11 @@
 /*
- * @(#)AccessController.java	1.46 01/11/29
+ * @(#)AccessController.java	1.47 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -217,7 +220,7 @@ import sun.security.util.Debug;
  * 
  * @see AccessControlContext
  *
- * @version 1.46 01/11/29
+ * @version 1.47 00/02/02
  * @author Li Gong 
  * @author Roland Schemers
  */

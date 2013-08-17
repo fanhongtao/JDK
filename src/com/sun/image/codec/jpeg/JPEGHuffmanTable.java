@@ -1,8 +1,11 @@
 /*
- * @(#)JPEGHuffmanTable.java	1.5 01/11/29
+ * @(#)JPEGHuffmanTable.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /**********************************************************************
@@ -152,13 +155,16 @@ public class JPEGHuffmanTable {
 	}
 
     /** 
-	 * Creates a Huffman Table and initializes it.
+     * Creates a Huffman Table and initializes it.
      * @param lengths lengths[k] = # of symbols with codes of length k
      * bits; lengths[0] is ignored
      * @param symbols symbols in order of increasing code length
-     * @exception IllegalArgumentException - thrown if the length of
-     * the tables is greater that the allowed table lengths. Or if the
-     * described huffman table is invalid.
+     * @exception IllegalArgumentException if the length of 
+     * <code>lengths</code> is greater than 17
+     * @exception IllegalArgumentException if the length of
+     * <code>symbols</code> is greater than 256
+     * @exception IllegalArgumentException if any of the values in 
+     * <code>lengths</code> or <code>symbols</code> is less than zero
      */
     public JPEGHuffmanTable( short lengths[], short symbols[] ) {
 		if ( lengths.length > HUFF_MAX_LEN )

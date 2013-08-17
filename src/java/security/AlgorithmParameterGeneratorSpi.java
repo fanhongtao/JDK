@@ -1,8 +1,11 @@
 /*
- * @(#)AlgorithmParameterGeneratorSpi.java	1.7 01/11/29
+ * @(#)AlgorithmParameterGeneratorSpi.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -26,13 +29,13 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Jan Luehe
  *
- * @version 1.7 01/11/29
+ * @version 1.11, 02/02/00
  *
  * @see AlgorithmParameterGenerator
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AlgorithmParameterGeneratorSpi {
@@ -50,7 +53,7 @@ public abstract class AlgorithmParameterGeneratorSpi {
      * Initializes this parameter generator with a set of
      * algorithm-specific parameter generation values.
      *
-     * @param params the set of algorithm-specific parameter generation values.
+     * @param genParamSpec the set of algorithm-specific parameter generation values.
      * @param random the source of randomness.
      *
      * @exception InvalidAlgorithmParameterException if the given parameter

@@ -1,8 +1,11 @@
 /*
- * @(#)Toolkit.java	1.126 01/11/29
+ * @(#)Toolkit.java	1.151 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -13,6 +16,7 @@ import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.awt.event.*;
 import java.awt.peer.*;
+import java.awt.im.InputMethodHighlight;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.awt.image.ColorModel;
@@ -52,7 +56,7 @@ import java.beans.PropertyChangeSupport;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.126, 11/29/01
+ * @version 	1.151, 02/02/00
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -290,14 +294,14 @@ public abstract class  Toolkit {
      */
     protected abstract FontPeer getFontPeer(String name, int style);
 
+    // The following method is called by the private method
+    // <code>updateSystemColors</code> in <code>SystemColor</code>.
+
     /**
      * Fills in the integer array that is supplied as an argument
      * with the current system color values.
-     * <p>
-     * This method is called by the method <code>updateSystemColors</code>
-     * in the <code>SystemColor</code> class.
+     *
      * @param     an integer array.
-     * @see       java.awt.SystemColor#updateSystemColors
      * @since     JDK1.1
      */
     protected void loadSystemColors(int[] systemColors) {
@@ -355,9 +359,9 @@ public abstract class  Toolkit {
      * @param     font   a font.
      * @return    the screen metrics of the specified font in this toolkit.
      * @deprecated  This returns integer metrics for the default screen.
-     * @see java.awt.Font#LineMetrics
-     * @see java.awt.Font#retreiveLineMetrics
-     * @see java.awt.GraphicsEnvironment#getScreenDevices;
+     * @see java.awt.font.LineMetrics
+     * @see java.awt.Font#getLineMetrics
+     * @see java.awt.GraphicsEnvironment#getScreenDevices
      */
     public abstract FontMetrics getFontMetrics(Font font);
 
@@ -486,12 +490,25 @@ public abstract class  Toolkit {
 			new java.security.PrivilegedAction() {
 		    public Object run() {
 		        String nm = null;
+			Class cls = null;
 		        try {
 			    nm = System.getProperty("awt.toolkit",
 						"sun.awt.motif.MToolkit");
-			    toolkit = (Toolkit)Class.forName(nm).newInstance();
-		        } catch (ClassNotFoundException e) {
-			    throw new AWTError("Toolkit not found: " + nm);
+			    try {
+			    	cls = Class.forName(nm);
+		            } catch (ClassNotFoundException e) {
+			    	ClassLoader cl = ClassLoader.getSystemClassLoader();
+                                if (cl != null) {
+			    	    try {
+                                        cls = cl.loadClass(nm);
+		            	    } catch (ClassNotFoundException ee) {
+			    		throw new AWTError("Toolkit not found: " + nm);
+				    }
+                                }
+	                    }
+                            if (cls != null) {
+				toolkit = (Toolkit)cls.newInstance();
+			    }
 		        } catch (InstantiationException e) {
 			    throw new AWTError("Could not instantiate Toolkit: " +
 					   nm);
@@ -512,7 +529,8 @@ public abstract class  Toolkit {
     }
 
     /**
-     * Returns an image which gets pixel data from the specified file.
+     * Returns an image which gets pixel data from the specified file,
+     * whose format can be either GIF, JPEG or PNG.
      * The underlying toolkit attempts to resolve multiple requests
      * with the same filename to the same returned Image.
      * Since the mechanism required to facilitate this sharing of
@@ -524,12 +542,14 @@ public abstract class  Toolkit {
      *                         in a recognized file format.
      * @return    an image which gets its pixel data from
      *                         the specified file.
-     * @see createImage(java.lang.String)
+     * @see #createImage(java.lang.String)
      */
     public abstract Image getImage(String filename);
 
     /**
      * Returns an image which gets pixel data from the specified URL.
+     * The pixel data referenced by the specified URL must be in one
+     * of the following formats: GIF, JPEG or PNG.
      * The underlying toolkit attempts to resolve multiple requests
      * with the same URL to the same returned Image.
      * Since the mechanism required to facilitate this sharing of
@@ -540,7 +560,7 @@ public abstract class  Toolkit {
      * @param     url   the URL to use in fetching the pixel data.
      * @return    an image which gets its pixel data from
      *                         the specified URL.
-     * @see createImage(java.net.URL)
+     * @see #createImage(java.net.URL)
      */
     public abstract Image getImage(URL url);
 
@@ -552,7 +572,7 @@ public abstract class  Toolkit {
      *                         in a recognized file format.
      * @return    an image which gets its pixel data from
      *                         the specified file.
-     * @see getImage(java.lang.String)
+     * @see #getImage(java.lang.String)
      */
     public abstract Image createImage(String filename);
 
@@ -563,7 +583,7 @@ public abstract class  Toolkit {
      * @param     url   the URL to use in fetching the pixel data.
      * @return    an image which gets its pixel data from
      *                         the specified URL.
-     * @see getImage(java.net.URL)
+     * @see #getImage(java.net.URL)
      */
     public abstract Image createImage(URL url);
 
@@ -689,26 +709,98 @@ public abstract class  Toolkit {
 				      int imagelength);
 
     /**
-     * Gets a <code>PrintJob</code> object which is the result
-     * of initiating a print operation on the toolkit's platform.
-     * 
-     * <p>Each actual implementation of this method should first check if there is a
-     * security manager installed. If there is, the method should call the security
-     * manager's <code>checkPrintJobAccess</code> method to ensure 
-     * initiation of a print operation is allowed.
-     * If  the default implementation of <code>checkPrintJobAccess</code> is used
-     * (that is, that method is not overriden), then this results in
-     * a call to the security manager's <code>checkPermission</code> method
-     * with a <code>RuntimePermission("queuePrintJob")</code> permission.
-     * 
-     * @return    a <code>PrintJob</code> object, or
-     *                  <code>null</code> if the user
-     *                  cancelled the print job.
-     * @see       java.awt.PrintJob
-     * @see       java.lang.RuntimePermission
-     * @since     JDK1.1
+     * Gets a <code>PrintJob</code> object which is the result of initiating
+     * a print operation on the toolkit's platform.
+     * <p>
+     * Each actual implementation of this method should first check if there 
+     * is a security manager installed. If there is, the method should call
+     * the security manager's <code>checkPrintJobAccess</code> method to
+     * ensure initiation of a print operation is allowed. If the default
+     * implementation of <code>checkPrintJobAccess</code> is used (that is,
+     * that method is not overriden), then this results in a call to the
+     * security manager's <code>checkPermission</code> method with a <code>
+     * RuntimePermission("queuePrintJob")</code> permission.
+     *
+     * @param	frame the parent of the print dialog. May not be null.
+     * @param	jobtitle the title of the PrintJob. A null title is equivalent
+     *		to "".
+     * @param	props a Properties object containing zero or more properties.
+     *		Properties are not standardized and are not consistent across
+     *		implementations. Because of this, PrintJobs which require job
+     *		and page control should use the version of this function which
+     *		takes JobAttributes and PageAttributes objects. This object
+     *		may be updated to reflect the user's job choices on exit. May
+     *		be null.
+     *
+     * @return	a <code>PrintJob</code> object, or <code>null</code> if the
+     *		user cancelled the print job.
+     * @throws	NullPointerException if frame is null
+     * @throws	SecurityException if this thread is not allowed to initiate a
+     *		print job request
+     * @see	java.awt.PrintJob
+     * @see	java.lang.RuntimePermission
+     * @since	JDK1.1
      */
-    public abstract PrintJob getPrintJob(Frame frame, String jobtitle, Properties props);
+    public abstract PrintJob getPrintJob(Frame frame, String jobtitle,
+					 Properties props);
+
+    /**
+     * Gets a <code>PrintJob</code> object which is the result of initiating
+     * a print operation on the toolkit's platform.
+     * <p>
+     * Each actual implementation of this method should first check if there 
+     * is a security manager installed. If there is, the method should call
+     * the security manager's <code>checkPrintJobAccess</code> method to
+     * ensure initiation of a print operation is allowed. If the default
+     * implementation of <code>checkPrintJobAccess</code> is used (that is,
+     * that method is not overriden), then this results in a call to the
+     * security manager's <code>checkPermission</code> method with a <code>
+     * RuntimePermission("queuePrintJob")</code> permission.
+     *
+     * @param	frame the parent of the print dialog. May be null if and only
+     *		if jobAttributes is not null and jobAttributes.getDialog()
+     *		returns	JobAttributes.DialogType.NONE or
+     *		JobAttributes.DialogType.COMMON.
+     * @param	jobtitle the title of the PrintJob. A null title is equivalent
+     *		to "".
+     * @param	jobAttributes a set of job attributes which will control the
+     *		PrintJob. The attributes will be updated to reflect the user's
+     *		choices as outlined in the JobAttributes documentation. May be
+     *		null.
+     * @param	pageAttributes a set of page attributes which will control the
+     *		PrintJob. The attributes will be applied to every page in the
+     *		job. The attributes will be updated to reflect the user's
+     *		choices as outlined in the PageAttributes documentation. May be
+     *		null.
+     *
+     * @return	a <code>PrintJob</code> object, or <code>null</code> if the
+     *		user cancelled the print job.
+     * @throws	NullPointerException if frame is null and either jobAttributes
+     *		is null or jobAttributes.getDialog() returns
+     *		JobAttributes.DialogType.NATIVE.
+     * @throws	IllegalArgumentException if pageAttributes specifies differing
+     *		cross feed and feed resolutions
+     * @throws	SecurityException if this thread is not allowed to initiate a
+     *		print job request, or if jobAttributes specifies print to file,
+     *		and this thread is not allowed to access the file system
+     * @see	java.awt.PrintJob
+     * @see	java.lang.RuntimePermission
+     * @see	java.awt.JobAttributes
+     * @see	java.awt.PageAttributes
+     * @since	1.3
+     */
+    public PrintJob getPrintJob(Frame frame, String jobtitle,
+				JobAttributes jobAttributes,
+				PageAttributes pageAttributes) {
+        // Override to add printing support with new job/page control classes
+	if (this != Toolkit.getDefaultToolkit()) {
+	    return Toolkit.getDefaultToolkit().getPrintJob(frame, jobtitle,
+							   jobAttributes,
+							   pageAttributes);
+	} else {
+	    return getPrintJob(frame, jobtitle, null);
+	}
+    }
 
     /**
      * Emits an audio beep.
@@ -761,6 +853,57 @@ public abstract class  Toolkit {
     }
 
     /**
+     * Returns whether the given locking key on the keyboard is currently in
+     * its "on" state.
+     * Valid key codes are
+     * {@link java.awt.event.KeyEvent#VK_CAPS_LOCK VK_CAPS_LOCK},
+     * {@link java.awt.event.KeyEvent#VK_NUM_LOCK VK_NUM_LOCK},
+     * {@link java.awt.event.KeyEvent#VK_SCROLL_LOCK VK_SCROLL_LOCK}, and
+     * {@link java.awt.event.KeyEvent#VK_KANA_LOCK VK_KANA_LOCK}.
+     *
+     * @exception java.lang.IllegalArgumentException if <code>keyCode</code>
+     * is not one of the valid key codes
+     * @exception java.lang.UnsupportedOperationException if the host system doesn't
+     * allow getting the state of this key programmatically, or if the keyboard
+     * doesn't have this key
+     * @since 1.3
+     */
+    public boolean getLockingKeyState(int keyCode) {
+        if (! (keyCode == KeyEvent.VK_CAPS_LOCK || keyCode == KeyEvent.VK_NUM_LOCK ||
+               keyCode == KeyEvent.VK_SCROLL_LOCK || keyCode == KeyEvent.VK_KANA_LOCK)) {
+            throw new IllegalArgumentException("invalid key for Toolkit.getLockingKeyState");
+        }
+        throw new UnsupportedOperationException("Toolkit.getLockingKeyState");
+    }
+
+    /**
+     * Sets the state of the given locking key on the keyboard.
+     * Valid key codes are
+     * {@link java.awt.event.KeyEvent#VK_CAPS_LOCK VK_CAPS_LOCK},
+     * {@link java.awt.event.KeyEvent#VK_NUM_LOCK VK_NUM_LOCK},
+     * {@link java.awt.event.KeyEvent#VK_SCROLL_LOCK VK_SCROLL_LOCK}, and
+     * {@link java.awt.event.KeyEvent#VK_KANA_LOCK VK_KANA_LOCK}.
+     * <p>
+     * Depending on the platform, setting the state of a locking key may
+     * involve event processing and therefore may not be immediately
+     * observable through getLockingKeyState.
+     *
+     * @exception java.lang.IllegalArgumentException if <code>keyCode</code>
+     * is not one of the valid key codes
+     * @exception java.lang.UnsupportedOperationException if the host system doesn't
+     * allow setting the state of this key programmatically, or if the keyboard
+     * doesn't have this key
+     * @since 1.3
+     */
+    public void setLockingKeyState(int keyCode, boolean on) {
+        if (! (keyCode == KeyEvent.VK_CAPS_LOCK || keyCode == KeyEvent.VK_NUM_LOCK ||
+               keyCode == KeyEvent.VK_SCROLL_LOCK || keyCode == KeyEvent.VK_KANA_LOCK)) {
+            throw new IllegalArgumentException("invalid key for Toolkit.setLockingKeyState");
+        }
+        throw new UnsupportedOperationException("Toolkit.setLockingKeyState");
+    }
+
+    /**
      * Give native peers the ability to query the native container
      * given a native component (eg the direct parent may be lightweight).
      */
@@ -770,6 +913,8 @@ public abstract class  Toolkit {
 
     /**
      * Creates a new custom cursor object.
+     * If the image to display is invalid, the cursor will be hidden (made
+     * completely transparent), and the hotspot will be set to (0, 0). 
      * @param image the image to display when the cursor is active.
      * @param hotSpot the X and Y of the large cursor's hot spot.  The
      * hotSpot values must be less than the Dimension returned by
@@ -777,12 +922,18 @@ public abstract class  Toolkit {
      * @param     name a localized description of the cursor, for Java Accessibility use.
      * @exception IndexOutOfBoundsException if the hotSpot values are outside
      * the bounds of the cursor.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public Cursor createCustomCursor(Image cursor, Point hotSpot, String name)
-        throws IndexOutOfBoundsException {
+        throws IndexOutOfBoundsException
+    {
         // Override to implement custom cursor support.
-        return new Cursor(Cursor.DEFAULT_CURSOR);
+        if (this != Toolkit.getDefaultToolkit()) {
+	    return Toolkit.getDefaultToolkit().
+	        createCustomCursor(cursor, hotSpot, name);
+	} else {
+	    return new Cursor(Cursor.DEFAULT_CURSOR);
+	}
     }
 
     /**
@@ -804,11 +955,16 @@ public abstract class  Toolkit {
      * to use.
      * @return    the closest matching supported cursor size, or a dimension of 0,0 if
      * the Toolkit implementation doesn't support custom cursors.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public Dimension getBestCursorSize(int preferredWidth, int preferredHeight) {
         // Override to implement custom cursor support.
-        return new Dimension(0, 0);
+        if (this != Toolkit.getDefaultToolkit()) {
+	    return Toolkit.getDefaultToolkit().
+	        getBestCursorSize(preferredWidth, preferredHeight);
+	} else {
+	    return new Dimension(0, 0);
+	}
     }
 
     /**
@@ -823,11 +979,15 @@ public abstract class  Toolkit {
      *
      * @return    the maximum number of colors, or zero if custom cursors are not
      * supported by this Toolkit implementation.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public int getMaximumCursorColors() {
         // Override to implement custom cursor support.
-        return 0;
+        if (this != Toolkit.getDefaultToolkit()) {
+	    return Toolkit.getDefaultToolkit().getMaximumCursorColors();
+	} else {
+	    return 0;
+	}
     }
 
     /**
@@ -958,7 +1118,6 @@ public abstract class  Toolkit {
     /**
      * create the peer for a DragSourceContext
      */
-
     public abstract DragSourceContextPeer createDragSourceContextPeer(DragGestureEvent dge) throws InvalidDnDOperationException;
 
     /**
@@ -976,7 +1135,6 @@ public abstract class  Toolkit {
      *
      * @Return the new object or null
      */
-
     public DragGestureRecognizer createDragGestureRecognizer(Class abstractRecognizerClass, DragSource ds, Component c, int srcActions, DragGestureListener dgl) {
 	return null;
     }
@@ -1012,13 +1170,15 @@ public abstract class  Toolkit {
      * set the named desktop property to the specified value and fire a
      * property change event to notify any listeners that the value has changed
      */
+    protected final void setDesktopProperty(String name, Object newValue) {
+        Object oldValue;
 
-    protected final synchronized void setDesktopProperty(String name, Object newValue) {
-	Object oldValue = desktopProperties.get(name);
+        synchronized (this) {
+            oldValue = desktopProperties.get(name);
+            desktopProperties.put(name, newValue);
+        }
 
-	desktopProperties.put(name, newValue);
-
-	desktopPropsSupport.firePropertyChange(name, oldValue, newValue);
+        desktopPropsSupport.firePropertyChange(name, oldValue, newValue);
     }
 
     /**
@@ -1098,31 +1258,39 @@ public abstract class  Toolkit {
      *        if a security manager exists and its 
      *        <code>checkPermission</code> method doesn't allow the operation.
      * @see      java.awt.event.AWTEventListener
-     * @see      java.awt.Toolkit#addEventListener
+     * @see      java.awt.Toolkit#addAWTEventListener
      * @see      java.awt.AWTEvent
      * @see      SecurityManager#checkPermission
      * @see      java.awt.AWTPermission
-     * @since    JDK1.2
+     * @since    1.2
      */
     public void addAWTEventListener(AWTEventListener listener, long eventMask) {
-	if (listener == null) {
-	    return;
-	}
+        if (listener == null) {
+            return;
+        }
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-	  if (listenToAllAWTEventsPermission == null) {
-	    listenToAllAWTEventsPermission =
-			new AWTPermission("listenToAllAWTEvents");
-	  }
-	  security.checkPermission(listenToAllAWTEventsPermission);
+          if (listenToAllAWTEventsPermission == null) {
+            listenToAllAWTEventsPermission =
+                        new AWTPermission("listenToAllAWTEvents");
+          }
+          security.checkPermission(listenToAllAWTEventsPermission);
         }
-	synchronized (this) {
-	    SelectiveAWTEventListener selectiveListener =
-		new SelectiveAWTEventListener(listener, eventMask);
-	    listener2SelectiveListener.put(listener, selectiveListener);
-	    eventListener = ToolkitEventMulticaster.add(eventListener,
-							selectiveListener);
-	}
+        synchronized (this) {
+            SelectiveAWTEventListener selectiveListener =
+                (SelectiveAWTEventListener)listener2SelectiveListener
+                .get(listener);
+            if (selectiveListener == null) {
+                // Create a new selectiveListener.
+                selectiveListener =
+                    new SelectiveAWTEventListener(listener, eventMask);
+                listener2SelectiveListener.put(listener, selectiveListener);
+                eventListener = ToolkitEventMulticaster.add(eventListener,
+                                                            selectiveListener);
+            }
+            // OR the eventMask into the selectiveListener's event mask.
+            selectiveListener.orEventMasks(eventMask);
+        }
     }
 
     /**
@@ -1145,11 +1313,11 @@ public abstract class  Toolkit {
      *        if a security manager exists and its 
      *        <code>checkPermission</code> method doesn't allow the operation.
      * @see      java.awt.event.AWTEventListener
-     * @see      java.awt.Toolkit#addEventListener
+     * @see      java.awt.Toolkit#addAWTEventListener
      * @see      java.awt.AWTEvent
      * @see      SecurityManager#checkPermission
      * @see      java.awt.AWTPermission
-     * @since    JDK1.2
+     * @since    1.2
      */
     public void removeAWTEventListener(AWTEventListener listener) {
 	if (listener == null) {
@@ -1234,6 +1402,25 @@ public abstract class  Toolkit {
     private class SelectiveAWTEventListener implements AWTEventListener {
 	AWTEventListener listener;
 	private long eventMask;
+        static final int LONG_BITS = 64;
+        // This array contains the number of times to call the eventlistener
+        // for each event type.
+        int[] calls = new int[LONG_BITS];
+
+        public void orEventMasks(long mask) {
+            eventMask |= mask;
+            // For each event bit set in mask, increment its call count.
+            for (int i=0; i<LONG_BITS; i++) {
+                // If no bits are set, break out of loop.
+                if (mask == 0) {
+                    break;
+                }
+                if ((mask & 1L) != 0) {  // Always test bit 0.
+                    calls[i]++;
+                }
+                mask >>>= 1;  // Right shift, fill with zeros on left.
+            }
+        }
 
 	SelectiveAWTEventListener(AWTEventListener l, long mask) {
 	    listener = l;
@@ -1241,48 +1428,77 @@ public abstract class  Toolkit {
 	}
 
         public void eventDispatched(AWTEvent event) {
-	    if (((eventMask & AWTEvent.COMPONENT_EVENT_MASK) != 0 &&
+            long eventBit = 0; // Used to save the bit of the event type.
+	    if (((eventBit = eventMask & AWTEvent.COMPONENT_EVENT_MASK) != 0 &&
 		 event.id >= ComponentEvent.COMPONENT_FIRST &&
 		 event.id <= ComponentEvent.COMPONENT_LAST)
-	     || ((eventMask & AWTEvent.CONTAINER_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.CONTAINER_EVENT_MASK) != 0 &&
 		 event.id >= ContainerEvent.CONTAINER_FIRST &&
 		 event.id <= ContainerEvent.CONTAINER_LAST)
-	     || ((eventMask & AWTEvent.FOCUS_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.FOCUS_EVENT_MASK) != 0 &&
 		 event.id >= FocusEvent.FOCUS_FIRST &&
 		 event.id <= FocusEvent.FOCUS_LAST)
-	     || ((eventMask & AWTEvent.KEY_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.KEY_EVENT_MASK) != 0 &&
 		 event.id >= KeyEvent.KEY_FIRST &&
 		 event.id <= KeyEvent.KEY_LAST)
-	     || ((eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0 &&
 	         (event.id == MouseEvent.MOUSE_MOVED ||
 	          event.id == MouseEvent.MOUSE_DRAGGED))
-	     || ((eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0 &&
 	         event.id != MouseEvent.MOUSE_MOVED &&
 	         event.id != MouseEvent.MOUSE_DRAGGED &&
 		 event.id >= MouseEvent.MOUSE_FIRST &&
 		 event.id <= MouseEvent.MOUSE_LAST)
-	     || ((eventMask & AWTEvent.WINDOW_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.WINDOW_EVENT_MASK) != 0 &&
 		 event.id >= WindowEvent.WINDOW_FIRST &&
 		 event.id <= WindowEvent.WINDOW_LAST)
-	     || ((eventMask & AWTEvent.ACTION_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.ACTION_EVENT_MASK) != 0 &&
 		 event.id >= ActionEvent.ACTION_FIRST &&
 		 event.id <= ActionEvent.ACTION_LAST)
-	     || ((eventMask & AWTEvent.ADJUSTMENT_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.ADJUSTMENT_EVENT_MASK) != 0 &&
 		 event.id >= AdjustmentEvent.ADJUSTMENT_FIRST &&
 		 event.id <= AdjustmentEvent.ADJUSTMENT_LAST)
-	     || ((eventMask & AWTEvent.ITEM_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.ITEM_EVENT_MASK) != 0 &&
 		 event.id >= ItemEvent.ITEM_FIRST &&
 		 event.id <= ItemEvent.ITEM_LAST)
-	     || ((eventMask & AWTEvent.TEXT_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.TEXT_EVENT_MASK) != 0 &&
 		 event.id >= TextEvent.TEXT_FIRST &&
 		 event.id <= TextEvent.TEXT_LAST)
-	     || ((eventMask & AWTEvent.INPUT_METHOD_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.INPUT_METHOD_EVENT_MASK) != 0 &&
 		 event.id >= InputMethodEvent.INPUT_METHOD_FIRST &&
-		 event.id <= InputMethodEvent.INPUT_METHOD_LAST)) {
-		listener.eventDispatched(event);
+		 event.id <= InputMethodEvent.INPUT_METHOD_LAST)
+	     || ((eventBit = eventMask & AWTEvent.PAINT_EVENT_MASK) != 0 &&
+		 event.id >= PaintEvent.PAINT_FIRST &&
+		 event.id <= PaintEvent.PAINT_LAST)
+	     || ((eventBit = eventMask & AWTEvent.INVOCATION_EVENT_MASK) != 0 &&
+		 event.id >= InvocationEvent.INVOCATION_FIRST &&
+		 event.id <= InvocationEvent.INVOCATION_LAST)
+	     || ((eventBit = eventMask & AWTEvent.HIERARCHY_EVENT_MASK) != 0 &&
+		 event.id == HierarchyEvent.HIERARCHY_CHANGED)
+	     || ((eventBit = eventMask & AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK) != 0 &&
+		 (event.id == HierarchyEvent.ANCESTOR_MOVED ||
+		  event.id == HierarchyEvent.ANCESTOR_RESIZED))) {
+                // Get the index of the call count for this event type.
+                int ci = (int) (Math.log(eventBit)/Math.log(2));
+                // Call the listener as many times as it was added for this
+                // event type.
+                for (int i=0; i<calls[ci]; i++) {
+		    listener.eventDispatched(event);
+                }
 	    }
         }
     }
+    
+    /**
+     * Returns a map of visual attributes for the abstract level description
+     * of the given input method highlight, or null if no mapping is found.
+     * The style field of the input method highlight is ignored. The map
+     * returned is unmodifiable.
+     * @param highlight input method highlight
+     * @return style attribute map, or null
+     * @since 1.3
+     */
+    public abstract Map mapInputMethodHighlight(InputMethodHighlight highlight);
 }
 
 
@@ -1344,6 +1560,9 @@ class LightweightPeer implements java.awt.peer.LightweightPeer {
     public void reshape(int x, int y, int width, int height) {
     }
 
+    public void coalescePaintEvent(PaintEvent e) {
+    }
+
     public boolean handleEvent(Event e) {
 	return false;
     }
@@ -1370,7 +1589,11 @@ class LightweightPeer implements java.awt.peer.LightweightPeer {
     public Graphics getGraphics() {
 	return null;
     }
-
+    
+    public GraphicsConfiguration getGraphicsConfiguration() {
+    return null;
+    }
+    
     public FontMetrics	getFontMetrics(Font font) {
 	return null;
     }

@@ -1,8 +1,11 @@
 /*
- * @(#)ServerRef.java	1.11 01/11/29
+ * @(#)ServerRef.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -13,13 +16,13 @@ import java.rmi.*;
  * A ServerRef represents the server-side handle for a remote object
  * implementation.
  *
- * @version 1.11, 11/29/01
+ * @version 1.13, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
 public interface ServerRef extends RemoteRef {
 
-    /** indicate compatibility with JDK 1.1.x version of class */
+    /** indicate compatibility with JDK 1.1.x version of class. */
     static final long serialVersionUID = -4557750989390278438L;
 
     /** 

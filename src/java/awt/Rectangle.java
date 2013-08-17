@@ -1,8 +1,11 @@
 /*
- * @(#)Rectangle.java	1.48 01/11/29
+ * @(#)Rectangle.java	1.52 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -34,7 +37,7 @@ import java.awt.geom.Rectangle2D;
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.39, 06/24/98
+ * @version 	1.52, 02/02/00
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -228,7 +231,7 @@ public class Rectangle extends Rectangle2D
 
     /**
      * Return the high precision bounding box of this rectangle.
-     * @since JDK1.2
+     * @since 1.2
      */
     public Rectangle2D getBounds2D() {
 	return new Rectangle(x, y, width, height);
@@ -668,7 +671,7 @@ public class Rectangle extends Rectangle2D
      * @see #OUT_TOP
      * @see #OUT_RIGHT
      * @see #OUT_BOTTOM
-     * @since JDK1.2
+     * @since 1.2
      */
     public int outcode(double x, double y) {
 	int out = 0;
@@ -698,7 +701,7 @@ public class Rectangle extends Rectangle2D
      * @return    the largest <code>Rectangle2D</code> contained in both the 
      *            specified <code>Rectangle2D</code> and in 
      *		  this <code>Rectangle</code>.
-     * @since JDK1.2
+     * @since 1.2
      */
     public Rectangle2D createIntersection(Rectangle2D r) {
 	if (r instanceof Rectangle) {
@@ -718,7 +721,7 @@ public class Rectangle extends Rectangle2D
      * @return    the smallest <code>Rectangle2D</code> containing 
      * 		  both the specified <code>Rectangle2D</code> and this 
      *            <code>Rectangle</code>.
-     * @since JDK1.2
+     * @since 1.2
      */
     public Rectangle2D createUnion(Rectangle2D r) {
 	if (r instanceof Rectangle) {

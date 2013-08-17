@@ -1,21 +1,25 @@
 /*
- * @(#)Struct.java	1.13 01/11/29
+ * @(#)Struct.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
  
 /**
- * JDBC 2.0
- *
- * <p>The standard mapping for an SQL
+ * <p>The standard mapping in the Java programming language for an SQL
  * structured type. A <code>Struct</code> object contains a
  * value for each attribute of the SQL structured type that
  * it represents.
  * By default, an instance of<code>Struct</code> is valid as long as the 
  * application has a reference to it.
+ * @since 1.2
+ * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
+ *      2.0 API</a>
  */
 
 public interface Struct {
@@ -59,7 +63,8 @@ public interface Struct {
    * If there is no
    * entry in the given type map that matches the structured
    * type that this <code>Struct</code> object represents,
-   * the driver uses the standard mapping.
+   * the driver uses the standard mapping. This method never
+   * uses the type map associated with the connection.
    * <p>
    * Conceptually, this method calls the method
    * <code>getObject</code> on each attribute

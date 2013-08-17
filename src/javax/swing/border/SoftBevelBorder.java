@@ -1,8 +1,11 @@
 /*
- * @(#)SoftBevelBorder.java	1.9 01/11/29
+ * @(#)SoftBevelBorder.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -24,7 +27,7 @@ import java.awt.Component;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.9 11/29/01
+ * @version 1.11 02/02/00
  * @author Amy Fowler
  * @author Chester Rose
  */
@@ -56,14 +59,16 @@ public class SoftBevelBorder extends BevelBorder
      * Creates a bevel border with the specified type, highlight
      * shadow colors.
      * @param bevelType the type of bevel for the border
-     * @param highlightOuter the color to use for the bevel outer highlight
-     * @param highlightInner the color to use for the bevel inner highlight
-     * @param shadowOuter the color to use for the bevel outer shadow
-     * @param shadowInner the color to use for the bevel inner shadow
+     * @param highlightOuterColor the color to use for the bevel outer highlight
+     * @param highlightInnerColor the color to use for the bevel inner highlight
+     * @param shadowOuterColor the color to use for the bevel outer shadow
+     * @param shadowInnerColor the color to use for the bevel inner shadow
      */
-    public SoftBevelBorder(int bevelType, Color highlightOuter, Color highlightInner,
-                        Color shadowOuter, Color shadowInner) {
-        super(bevelType, highlightOuter, highlightInner, shadowOuter, shadowInner);
+    public SoftBevelBorder(int bevelType, Color highlightOuterColor, 
+                        Color highlightInnerColor, Color shadowOuterColor, 
+                        Color shadowInnerColor) {
+        super(bevelType, highlightOuterColor, highlightInnerColor, 
+              shadowOuterColor, shadowInnerColor);
     }
 
     /**

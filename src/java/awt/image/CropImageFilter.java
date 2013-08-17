@@ -1,8 +1,11 @@
 /*
- * @(#)CropImageFilter.java	1.9 01/11/29
+ * @(#)CropImageFilter.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -23,7 +26,7 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.9 11/29/01
+ * @version	1.11 02/02/00
  * @author 	Jim Graham
  */
 public class CropImageFilter extends ImageFilter {
@@ -51,6 +54,13 @@ public class CropImageFilter extends ImageFilter {
     /**
      * Passes along  the properties from the source object after adding a
      * property indicating the cropped region.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public void setProperties(Hashtable props) {
 	props = (Hashtable) props.clone();
@@ -61,6 +71,13 @@ public class CropImageFilter extends ImageFilter {
     /**
      * Override the source image's dimensions and pass the dimensions
      * of the rectangular cropped region to the ImageConsumer.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose 
+     * pixels are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ImageConsumer
      */
     public void setDimensions(int w, int h) {
@@ -71,6 +88,13 @@ public class CropImageFilter extends ImageFilter {
      * Determine whether the delivered byte pixels intersect the region to
      * be extracted and passes through only that subset of pixels that
      * appear in the output region.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose 
+     * pixels are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public void setPixels(int x, int y, int w, int h,
 			  ColorModel model, byte pixels[], int off,
@@ -103,6 +127,13 @@ public class CropImageFilter extends ImageFilter {
      * Determine if the delivered int pixels intersect the region to
      * be extracted and pass through only that subset of pixels that
      * appear in the output region.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose 
+     * pixels are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public void setPixels(int x, int y, int w, int h,
 			  ColorModel model, int pixels[], int off,

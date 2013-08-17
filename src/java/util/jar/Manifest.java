@@ -1,8 +1,11 @@
 /*
- * @(#)Manifest.java	1.27 01/11/29
+ * @(#)Manifest.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -26,9 +29,9 @@ import java.util.Iterator;
  * </pre></blockquote>
  *
  * @author  David Connelly
- * @version 1.27, 11/29/01
+ * @version 1.32, 02/02/00
  * @see	    Attributes
- * @since   JDK1.2
+ * @since   1.2
  */
 public class Manifest implements Cloneable {
     // manifest main attributes
@@ -47,6 +50,7 @@ public class Manifest implements Cloneable {
      * Constructs a new Manifest from the specified input stream.
      *
      * @param is the input stream containing manifest data
+     * @throws IOException if an I/O error has occured
      */
     public Manifest(InputStream is) throws IOException {
 	read(is);
@@ -64,6 +68,7 @@ public class Manifest implements Cloneable {
 
     /**
      * Returns the main Attributes for the Manifest.
+     * @return the main Attributes for the Manifest
      */
     public Attributes getMainAttributes() {
 	return attr;
@@ -72,6 +77,8 @@ public class Manifest implements Cloneable {
     /**
      * Returns a Map of the entries contained in this Manifest. Each entry
      * is represented by a String name (key) and associated Attributes (value).
+     *
+     * @return a Map of the entries contained in this Manifest
      */
     public Map getEntries() {
 	return entries;
@@ -83,6 +90,7 @@ public class Manifest implements Cloneable {
      * <pre>
      *	    return (Attributes)getEntries().get(name)
      * </pre>
+     * @return the Attributes for the specified entry name
      */
     public Attributes getAttributes(String name) {
 	return (Attributes)getEntries().get(name);
@@ -130,6 +138,7 @@ public class Manifest implements Cloneable {
             while (index - 1 < length) {
                 line.insert(index, "\r\n ");
                 index += 72;
+                length += 3;
             }
         }
         return;
@@ -221,6 +230,8 @@ public class Manifest implements Cloneable {
      * the same main Attributes and entries.
      *
      * @param o the object to be compared
+     * @return true if the specified Object is also a Manifest and has
+     * the same main Attributes and entries
      */
     public boolean equals(Object o) {
 	if (o instanceof Manifest) {
@@ -244,6 +255,7 @@ public class Manifest implements Cloneable {
      * <pre>
      *     public Object clone() { return new Manifest(this); }
      * </pre>
+     * @return a shallow copy of this Manifest
      */
     public Object clone() {
 	return new Manifest(this);

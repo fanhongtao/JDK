@@ -1,8 +1,11 @@
 /*
- * @(#)Short.java	1.16 01/11/29
+ * @(#)Short.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -11,7 +14,7 @@ package java.lang;
  * The Short class is the standard wrapper for short values.
  *
  * @author  Nakul Saraiya
- * @version 1.16, 11/29/01
+ * @version 1.22, 02/02/00
  * @see     java.lang.Number
  * @since   JDK1.1
  */
@@ -38,6 +41,7 @@ class Short extends Number implements Comparable {
      * Short. The radix is assumed to be 10.
      *
      * @param s the short to be converted
+     * @return The String that represents the specified short in radix 10.
      */
     public static String toString(short s) {
 	return Integer.toString((int)s, 10);
@@ -49,6 +53,7 @@ class Short extends Number implements Comparable {
      * be parsed as a short.  The radix is assumed to be 10.
      *
      * @param s		the String containing the short
+     * @return short    the value represented by the specified string
      * @exception	NumberFormatException If the string does not
      *			contain a parsable short.
      */
@@ -63,6 +68,8 @@ class Short extends Number implements Comparable {
      *
      * @param s		the String containing the short
      * @param radix	the radix to be used
+     * @return          The short value represented by the specified string in
+     *                  the specified radix.
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
      */
@@ -81,6 +88,8 @@ class Short extends Number implements Comparable {
      *
      * @param s		the String containing the integer
      * @param radix 	the radix to be used
+     * @return          The Short value represented by the specified string in
+     *                  the specified radix.
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
      */
@@ -95,6 +104,8 @@ class Short extends Number implements Comparable {
      * exception if the String cannot be parsed as a short.
      *
      * @param s		the String containing the integer
+     * @return Short    of the value represented by the specified string in
+     *                  radix 10.
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
      */
@@ -106,10 +117,10 @@ class Short extends Number implements Comparable {
      * Decodes a <code>String</code> into a <code>Short</code>.  Accepts
      * decimal, hexadecimal, and octal numbers, in the following formats:
      * <pre>
-     *     [-]    <decimal constant>
-     *     [-] 0x     <hex constant>
-     *     [-] #      <hex constant>
-     *     [-] 0    <octal constant>
+     *     [-]        decimal constant
+     *     [-] 0x     hex constant
+     *     [-] #      hex constant
+     *     [-] 0      octal constant
      * </pre>
      *
      * The constant following an (optional) negative sign and/or "radix
@@ -260,7 +271,7 @@ class Short extends Number implements Comparable {
      * @return 		true if the objects are the same; false otherwise.
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof Short)) {
+	if (obj instanceof Short) {
 	    return value == ((Short)obj).shortValue();
 	}
 	return false;
@@ -276,7 +287,7 @@ class Short extends Number implements Comparable {
      *          value greater than <code>0</code> if this Short is
      *          numerically greater than the Short argument
      *		(signed comparison).
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Short anotherShort) {
 	return this.value - anotherShort.value;
@@ -298,7 +309,7 @@ class Short extends Number implements Comparable {
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Short</code>.
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((Short)o);

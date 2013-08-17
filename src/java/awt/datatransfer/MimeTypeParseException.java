@@ -1,8 +1,11 @@
 /*
- * @(#)MimeTypeParseException.java	1.5 01/11/29
+ * @(#)MimeTypeParseException.java	1.10 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.datatransfer;
@@ -10,8 +13,13 @@ package java.awt.datatransfer;
 
 /**
  *    A class to encapsulate MimeType parsing related exceptions
+ *
+ * @serial exclude
  */
-class MimeTypeParseException extends Exception {
+public class MimeTypeParseException extends Exception {
+
+    // use serialVersionUID from JDK 1.2.2 for interoperability
+    private static final long serialVersionUID = -5604407764691570741L;
 
     /**
      * Constructs a MimeTypeParseException with no specified detail message. 
@@ -28,5 +36,4 @@ class MimeTypeParseException extends Exception {
     public MimeTypeParseException(String s) {
         super(s);
     }
-
-}
+} // class MimeTypeParseException

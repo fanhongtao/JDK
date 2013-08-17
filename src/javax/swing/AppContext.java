@@ -1,8 +1,11 @@
 /*
- * @(#)AppContext.java	1.3 01/11/29
+ * @(#)AppContext.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -80,7 +83,7 @@ import java.util.Enumeration;
  * blocked.
  *
  * @author  Thomas Ball
- * @version 1.3 11/29/01
+ * @version 1.7 02/02/00
  */
 final class AppContext {
 
@@ -130,7 +133,7 @@ final class AppContext {
      *
      * @returns the AppContext for the caller.
      * @see     java.lang.SecurityManager#getSecurityContext
-     * @since   JDK1.2
+     * @since   1.2
      */
     public static AppContext getAppContext() {
         // Get security context, if any.
@@ -168,7 +171,7 @@ final class AppContext {
      * @return  the value to which the key is mapped in this AppContext;
      *          <code>null</code> if the key is not mapped to any value.
      * @see     #put(Object, Object)
-     * @since   JDK1.2
+     * @since   1.2
      */
     public synchronized Object get(Object key) {
         if (key != lastKey || lastValue == null) {
@@ -193,7 +196,7 @@ final class AppContext {
      * @exception  NullPointerException  if the key or value is
      *               <code>null</code>.
      * @see     #get(Object)
-     * @since   JDK1.2
+     * @since   1.2
      */
     public synchronized Object put(Object key, Object value) {
         return table.put(key, value);
@@ -207,7 +210,7 @@ final class AppContext {
      * @param   key   the key that needs to be removed.
      * @return  the value to which the key had been mapped in this AppContext,
      *          or <code>null</code> if the key did not have a mapping.
-     * @since   JDK1.2
+     * @since   1.2
      */
     public synchronized Object remove(Object key) {
         return table.remove(key);
@@ -215,7 +218,7 @@ final class AppContext {
 
     /**
      * Returns a string representation of this AppContext.
-     * @since   JDK1.2
+     * @since   1.2
      */
     public String toString() {
         Object securityContext = nullSecurityContext;

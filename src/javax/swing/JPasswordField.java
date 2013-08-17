@@ -1,8 +1,11 @@
 /*
- * @(#)JPasswordField.java	1.32 01/11/29
+ * @(#)JPasswordField.java	1.42 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -17,7 +20,12 @@ import java.io.IOException;
 /**
  * JPasswordField is a lightweight component that allows the editing 
  * of a single line of text where the view indicates something was
- * typed, but does not show the original characters. It is intended 
+ * typed, but does not show the original characters. 
+ * You can find further information and examples in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/textfield.html">How to Use Text Fields</a>,
+ * a section in <em>The Java Tutorial.</em>
+ * <p>
+ * JPasswordField is intended 
  * to be source-compatible with java.awt.TextField used with echoChar 
  * set.  It is provided seperately to make it easier to safely change 
  * the ui for the JTextField without affecting password entries.
@@ -36,9 +44,10 @@ import java.io.IOException;
  *
  * @beaninfo
  *  attribute: isContainer false
+ * description: Allows the editing of a line of text but doesn't show the characters.
  *
  * @author  Timothy Prinzing
- * @version 1.32, 11/29/01
+ * @version 1.42 04/06/00
  */
 public class JPasswordField extends JTextField {
 
@@ -182,7 +191,7 @@ public class JPasswordField extends JTextField {
      * <p>
      * For security reasons, this method is deprecated.  Use the
      * getPassword method instead.
-     * @deprecated As of JDK version 1.2,
+     * @deprecated As of Java 2 platform v1.2,
      * replaced by <code>getPassword()</code>.
      * @return the text
      */
@@ -196,7 +205,7 @@ public class JPasswordField extends JTextField {
      * <p>
      * For security reasons, this method is deprecated.  Use the
      * getPassword method instead.
-     * @deprecated As of JDK version 1.2,
+     * @deprecated As of Java 2 platform v1.2,
      * replaced by <code>getPassword()</code>.
      * @param offs the offset >= 0
      * @param len the length >= 0
@@ -270,10 +279,13 @@ public class JPasswordField extends JTextField {
 
 
     /**
-     * Gets the AccessibleContext associated with this JPasswordField.
-     * A new context is created as necessary.
+     * Gets the AccessibleContext associated with this JPasswordField. 
+     * For password fields, the AccessibleContext takes the form of an 
+     * AccessibleJPasswordField. 
+     * A new AccessibleJPasswordField instance is created if necessary.
      *
-     * @return the AccessibleContext of this JPasswordField
+     * @return an AccessibleJPasswordField that serves as the 
+     *         AccessibleContext of this JPasswordField
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -283,7 +295,10 @@ public class JPasswordField extends JTextField {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JPasswordField</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to password field user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

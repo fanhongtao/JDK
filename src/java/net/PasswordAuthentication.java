@@ -1,8 +1,11 @@
 /*
- * @(#)PasswordAuthentication.java	1.7 01/11/29
+ * @(#)PasswordAuthentication.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -16,8 +19,8 @@ package java.net;
  * @see java.net.Authenticator#getPasswordAuthentication()
  *
  * @author  Bill Foote
- * @version 1.7, 11/29/01
- * @since   JDK1.2
+ * @version 1.10, 02/02/00
+ * @since   1.2
  */
 
 public final class PasswordAuthentication {

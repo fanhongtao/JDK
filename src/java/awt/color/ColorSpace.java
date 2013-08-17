@@ -1,8 +1,11 @@
 /*
- * @(#)ColorSpace.java	1.24 01/11/29
+ * @(#)ColorSpace.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /**********************************************************************
@@ -65,9 +68,12 @@ package java.awt.color;
 
 
 
-public abstract class ColorSpace {
-    private int numComponents;
+public abstract class ColorSpace implements java.io.Serializable {
+
     private int type;
+    private int numComponents;
+
+    // Cache of singletons for the predefined color spaces.
     private static ColorSpace sRGBspace;
     private static ColorSpace XYZspace;
     private static ColorSpace PYCCspace;
@@ -320,6 +326,18 @@ public abstract class ColorSpace {
     /**
      * Transforms a color value assumed to be in this ColorSpace
      * into a value in the default CS_sRGB color space.
+     * <p>
+     * This method transforms color values using algorithms designed
+     * to produce the best perceptual match between input and output
+     * colors.  In order to do colorimetric conversion of color values,
+     * you should use the <code>toCIEXYZ</code>
+     * method of this color space to first convert from the input 
+     * color space to the CS_CIEXYZ color space, and then use the 
+     * <code>fromCIEXYZ</code> method of the CS_sRGB color space to 
+     * convert from CS_CIEXYZ to the output color space. 
+     * See {@link #toCIEXYZ(float[]) toCIEXYZ} and
+     * {@link #fromCIEXYZ(float[]) fromCIEXYZ} for further information.
+     * <p>
      * @param colorvalue a float array with length of at least the number
      *        of components in this ColorSpace
      * @return a float array of length 3
@@ -330,6 +348,18 @@ public abstract class ColorSpace {
     /**
      * Transforms a color value assumed to be in the default CS_sRGB
      * color space into this ColorSpace.
+     * <p>
+     * This method transforms color values using algorithms designed
+     * to produce the best perceptual match between input and output
+     * colors.  In order to do colorimetric conversion of color values,
+     * you should use the <code>toCIEXYZ</code>
+     * method of the CS_sRGB color space to first convert from the input
+     * color space to the CS_CIEXYZ color space, and then use the
+     * <code>fromCIEXYZ</code> method of this color space to
+     * convert from CS_CIEXYZ to the output color space.
+     * See {@link #toCIEXYZ(float[]) toCIEXYZ} and
+     * {@link #fromCIEXYZ(float[]) fromCIEXYZ} for further information.
+     * <p>
      * @param rgbvalue a float array with length of at least 3
      * @return a float array with length equal to the number of
      *         components in this ColorSpace
@@ -340,6 +370,21 @@ public abstract class ColorSpace {
     /**
      * Transforms a color value assumed to be in this ColorSpace
      * into the CS_CIEXYZ conversion color space.
+     * <p>
+     * This method transforms color values using relative colorimetry,
+     * as defined by the International Color Consortium standard.  This
+     * means that the XYZ values returned by this method are represented
+     * relative to the D50 white point of the CS_CIEXYZ color space.
+     * This representation is useful in a two-step color conversion
+     * process in which colors are transformed from an input color
+     * space to CS_CIEXYZ and then to an output color space.  This
+     * representation is not the same as the XYZ values that would
+     * be measured from the given color value by a colorimeter.
+     * A further transformation is necessary to compute the XYZ values
+     * that would be measured using current CIE recommended practices.
+     * See the {@link ICC_ColorSpace#toCIEXYZ(float[]) toCIEXYZ} method of
+     * <code>ICC_ColorSpace</code> for further information.
+     * <p>
      * @param colorvalue a float array with length of at least the number
      *        of components in this ColorSpace
      * @return a float array of length 3
@@ -350,6 +395,22 @@ public abstract class ColorSpace {
     /**
      * Transforms a color value assumed to be in the CS_CIEXYZ conversion
      * color space into this ColorSpace.
+     * <p>
+     * This method transforms color values using relative colorimetry,
+     * as defined by the International Color Consortium standard.  This
+     * means that the XYZ argument values taken by this method are represented
+     * relative to the D50 white point of the CS_CIEXYZ color space.
+     * This representation is useful in a two-step color conversion
+     * process in which colors are transformed from an input color
+     * space to CS_CIEXYZ and then to an output color space.  The color
+     * values returned by this method are not those that would produce
+     * the XYZ value passed to the method when measured by a colorimeter.
+     * If you have XYZ values corresponding to measurements made using
+     * current CIE recommended practices, they must be converted to D50
+     * relative values before being passed to this method.
+     * See the {@link ICC_ColorSpace#fromCIEXYZ(float[]) fromCIEXYZ} method of
+     * <code>ICC_ColorSpace</code> for further information.
+     * <p>
      * @param colorvalue a float array with length of at least 3
      * @return a float array with length equal to the number of
      *         components in this ColorSpace
@@ -382,5 +443,11 @@ public abstract class ColorSpace {
     public String getName (int idx) {
         /* REMIND - handle common cases here */
         return new String("Unnamed color component("+idx+")");
+    }
+
+    /* Returns true if cspace is the XYZspace.
+     */
+    static boolean isCS_CIEXYZ(ColorSpace cspace) {
+        return (cspace == XYZspace);
     }
 }

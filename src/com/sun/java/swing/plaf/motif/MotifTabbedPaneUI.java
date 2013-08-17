@@ -1,8 +1,11 @@
 /*
- * @(#)MotifTabbedPaneUI.java	1.42 01/11/29
+ * @(#)MotifTabbedPaneUI.java	1.43 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -25,7 +28,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.42 11/29/01
+ * @version 1.43 02/02/00
  * @author Amy Fowler
  * @author Philip Milne
  */

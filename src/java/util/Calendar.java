@@ -1,17 +1,16 @@
 /*
- * @(#)Calendar.java	1.46 01/11/29
+ * @(#)Calendar.java	1.49 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)Calendar.java	1.46 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996-1998 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -53,7 +39,7 @@ import java.text.DateFormat;
  *
  * <p>
  * Subclasses of <code>Calendar</code> interpret a <code>Date</code>
- * according to the rules of a specific calendar system. The JDK
+ * according to the rules of a specific calendar system. The platform
  * provides one concrete subclass of <code>Calendar</code>:
  * <code>GregorianCalendar</code>. Future subclasses could represent
  * the various types of lunar calendars in use in many parts of the world.
@@ -70,17 +56,49 @@ import java.text.DateFormat;
  * </pre>
  * </blockquote>
  *
- * <p>
- * A <code>Calendar</code> object can produce all the time field values
- * needed to implement the date-time formatting for a particular language
- * and calendar style (for example, Japanese-Gregorian, Japanese-Traditional).
+ * <p>A <code>Calendar</code> object can produce all the time field values
+ * needed to implement the date-time formatting for a particular language and
+ * calendar style (for example, Japanese-Gregorian, Japanese-Traditional).
+ * <code>Calendar</code> defines the range of values returned by certain fields,
+ * as well as their meaning.  For example, the first month of the year has value
+ * <code>MONTH</code> == <code>JANUARY</code> for all calendars.  Other values
+ * are defined by the concrete subclass, such as <code>ERA</code> and
+ * <code>YEAR</code>.  See individual field documentation and subclass
+ * documentation for details.
  *
- * <p>
- * When computing a <code>Date</code> from time fields, two special circumstances
- * may arise: there may be insufficient information to compute the
- * <code>Date</code> (such as only year and month but no day in the month),
- * or there may be inconsistent information (such as "Tuesday, July 15, 1996"
- * -- July 15, 1996 is actually a Monday).
+ * <p>When a <code>Calendar</code> is <em>lenient</em>, it accepts a wider range
+ * of field values than it produces.  For example, a lenient
+ * <code>GregorianCalendar</code> interprets <code>MONTH</code> ==
+ * <code>JANUARY</code>, <code>DAY_OF_MONTH</code> == 32 as February 1.  A
+ * non-lenient <code>GregorianCalendar</code> throws an exception when given
+ * out-of-range field settings.  When calendars recompute field values for
+ * return by <code>get()</code>, they normalize them.  For example, a
+ * <code>GregorianCalendar</code> always produces <code>DAY_OF_MONTH</code>
+ * values between 1 and the length of the month.
+ *
+ * <p><code>Calendar</code> defines a locale-specific seven day week using two
+ * parameters: the first day of the week and the minimal days in first week
+ * (from 1 to 7).  These numbers are taken from the locale resource data when a
+ * <code>Calendar</code> is constructed.  They may also be specified explicitly
+ * through the API.
+ *
+ * <p>When setting or getting the <code>WEEK_OF_MONTH</code> or
+ * <code>WEEK_OF_YEAR</code> fields, <code>Calendar</code> must determine the
+ * first week of the month or year as a reference point.  The first week of a
+ * month or year is defined as the earliest seven day period beginning on
+ * <code>getFirstDayOfWeek()</code> and containing at least
+ * <code>getMinimalDaysInFirstWeek()</code> days of that month or year.  Weeks
+ * numbered ..., -1, 0 precede the first week; weeks numbered 2, 3,... follow
+ * it.  Note that the normalized numbering returned by <code>get()</code> may be
+ * different.  For example, a specific <code>Calendar</code> subclass may
+ * designate the week before week 1 of a year as week <em>n</em> of the previous
+ * year.
+ *
+ * <p> When computing a <code>Date</code> from time fields, two special
+ * circumstances may arise: there may be insufficient information to compute the
+ * <code>Date</code> (such as only year and month but no day in the month), or
+ * there may be inconsistent information (such as "Tuesday, July 15, 1996" --
+ * July 15, 1996 is actually a Monday).
  *
  * <p>
  * <strong>Insufficient information.</strong> The calendar will use default
@@ -260,8 +278,9 @@ import java.text.DateFormat;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.46
+ * @version      1.49, 01/19/00
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
+ * @since JDK1.1
  */
 public abstract class Calendar implements Serializable, Cloneable {
 
@@ -318,60 +337,111 @@ public abstract class Calendar implements Serializable, Cloneable {
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
      * era, e.g., AD or BC in the Julian calendar. This is a calendar-specific
-     * value.
+     * value; see subclass documentation.
      * @see GregorianCalendar#AD
      * @see GregorianCalendar#BC
      */
     public final static int ERA = 0;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
-     * year. This is a calendar-specific value.
+     * year. This is a calendar-specific value; see subclass documentation.
      */
     public final static int YEAR = 1;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
-     * month. This is a calendar-specific value.
+     * month. This is a calendar-specific value. The first month of the year is
+     * <code>JANUARY</code>; the last depends on the number of months in a year.
+     * @see #JANUARY
+     * @see #FEBRUARY
+     * @see #MARCH
+     * @see #APRIL
+     * @see #MAY
+     * @see #JUNE
+     * @see #JULY
+     * @see #AUGUST
+     * @see #SEPTEMBER
+     * @see #OCTOBER
+     * @see #NOVEMBER
+     * @see #DECEMBER
+     * @see #UNDECIMBER
      */
     public final static int MONTH = 2;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
-     * week number within the current year.
+     * week number within the current year.  The first week of the year, as
+     * defined by <code>getFirstDayOfWeek()</code> and
+     * <code>getMinimalDaysInFirstWeek()</code>, has value 1.  Subclasses define
+     * the value of <code>WEEK_OF_YEAR</code> for days before the first week of
+     * the year.
+     * @see #getFirstDayOfWeek
+     * @see #getMinimalDaysInFirstWeek
      */
     public final static int WEEK_OF_YEAR = 3;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
-     * week number within the current month.
+     * week number within the current month.  The first week of the month, as
+     * defined by <code>getFirstDayOfWeek()</code> and
+     * <code>getMinimalDaysInFirstWeek()</code>, has value 1.  Subclasses define
+     * the value of <code>WEEK_OF_MONTH</code> for days before the first week of
+     * the month.
+     * @see #getFirstDayOfWeek
+     * @see #getMinimalDaysInFirstWeek
      */
     public final static int WEEK_OF_MONTH = 4;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
      * day of the month. This is a synonym for <code>DAY_OF_MONTH</code>.
+     * The first day of the month has value 1.
      * @see #DAY_OF_MONTH
      */
     public final static int DATE = 5;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
      * day of the month. This is a synonym for <code>DATE</code>.
+     * The first day of the month has value 1.
      * @see #DATE
      */
     public final static int DAY_OF_MONTH = 5;
     /**
-     * Field number for <code>get</code> and <code>set</code> indicating the
-     * day number within the current year.
+     * Field number for <code>get</code> and <code>set</code> indicating the day
+     * number within the current year.  The first day of the year has value 1.
      */
     public final static int DAY_OF_YEAR = 6;
     /**
-     * Field number for <code>get</code> and <code>set</code> indicating the
-     * day of the week.
+     * Field number for <code>get</code> and <code>set</code> indicating the day
+     * of the week.  This field takes values <code>SUNDAY</code>,
+     * <code>MONDAY</code>, <code>TUESDAY</code>, <code>WEDNESDAY</code>,
+     * <code>THURSDAY</code>, <code>FRIDAY</code>, and <code>SATURDAY</code>.
+     * @see #SUNDAY
+     * @see #MONDAY
+     * @see #TUESDAY
+     * @see #WEDNESDAY
+     * @see #THURSDAY
+     * @see #FRIDAY
+     * @see #SATURDAY
      */
     public final static int DAY_OF_WEEK = 7;
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
      * ordinal number of the day of the week within the current month. Together
      * with the <code>DAY_OF_WEEK</code> field, this uniquely specifies a day
-     * within a month.  Example: the last Sunday in October is specified as
-     * <code>DAY_OF_WEEK = Sunday, DAY_OF_WEEK_IN_MONTH = -1</code>.
+     * within a month.  Unlike <code>WEEK_OF_MONTH</code> and
+     * <code>WEEK_OF_YEAR</code>, this field's value does <em>not</em> depend on
+     * <code>getFirstDayOfWeek()</code> or
+     * <code>getMinimalDaysInFirstWeek()</code>.  <code>DAY_OF_MONTH 1</code>
+     * through <code>7</code> always correspond to <code>DAY_OF_WEEK_IN_MONTH
+     * 1</code>; <code>8</code> through <code>15</code> correspond to
+     * <code>DAY_OF_WEEK_IN_MONTH 2</code>, and so on.
+     * <code>DAY_OF_WEEK_IN_MONTH 0</code> indicates the week before
+     * <code>DAY_OF_WEEK_IN_MONTH 1</code>.  Negative values count back from the
+     * end of the month, so the last Sunday of a month is specified as
+     * <code>DAY_OF_WEEK = SUNDAY, DAY_OF_WEEK_IN_MONTH = -1</code>.  Because
+     * negative values count backward they will usually be aligned differently
+     * within the month than positive values.  For example, if a month has 31
+     * days, <code>DAY_OF_WEEK_IN_MONTH -1</code> will overlap
+     * <code>DAY_OF_WEEK_IN_MONTH 5</code> and the end of <code>4</code>.
      * @see #DAY_OF_WEEK
+     * @see #WEEK_OF_MONTH
      */
     public final static int DAY_OF_WEEK_IN_MONTH = 8;
     /**
@@ -1018,6 +1088,7 @@ public abstract class Calendar implements Serializable, Cloneable {
     /**
      * Returns a hash code for this calendar.
      * @return a hash code value for this object. 
+     * @since 1.2
      */
     public int hashCode() {
         /* Don't include the time because (a) we don't want the hash value to
@@ -1096,6 +1167,8 @@ public abstract class Calendar implements Serializable, Cloneable {
      * rolling through February will leave it set to 28.  The GregorianCalendar
      * version of this function takes care of this problem.  Other subclasses
      * should also provide overrides of this function that do the right thing.
+     * 
+     * @since 1.2
      */
     public void roll(int field, int amount)
     {
@@ -1116,6 +1189,16 @@ public abstract class Calendar implements Serializable, Cloneable {
     public void setTimeZone(TimeZone value)
     {
         zone = value;
+        /* Recompute the fields from the time using the new zone.  This also
+         * works if isTimeSet is false (after a call to set()).  In that case
+         * the time will be computed from the fields using the new zone, then
+         * the fields will get recomputed from that.  Consider the sequence of
+         * calls: cal.setTimeZone(EST); cal.set(HOUR, 1); cal.setTimeZone(PST).
+         * Is cal set to 1 o'clock EST or 1 o'clock PST?  Answer: PST.  More
+         * generally, a call to setTimeZone() affects calls to set() BEFORE AND
+         * AFTER it up to the next call to complete().
+         */
+        areFieldsSet = false;
     }
 
     /**
@@ -1238,6 +1321,7 @@ public abstract class Calendar implements Serializable, Cloneable {
      *
      * @param field the field to determine the minimum of
      * @return the minimum of the given field for the current date of this Calendar
+     * @since 1.2
      */
     public int getActualMinimum(int field) {
         int fieldValue = getGreatestMinimum(field);
@@ -1284,6 +1368,7 @@ public abstract class Calendar implements Serializable, Cloneable {
      *
      * @param field the field to determine the maximum of
      * @return the maximum of the given field for the current date of this Calendar
+     * @since 1.2
      */
     public int getActualMaximum(int field) {
         int fieldValue = getLeastMaximum(field);

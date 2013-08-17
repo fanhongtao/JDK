@@ -1,8 +1,11 @@
 /*
- * @(#)TreePath.java	1.21 01/11/29
+ * @(#)TreePath.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -11,9 +14,17 @@ import java.io.*;
 import java.util.Vector;
 
 /**
- * Represents a path to a node. TreePath is Serializable, but if any 
+ * Represents a path to a node. A TreePath is an array of Objects that are
+ * vended from a TreeModel. The elements of the array are ordered such
+ * that the root is always the first element (index 0) of the array.
+ * TreePath is Serializable, but if any 
  * components of the path are not serializable, it will not be written 
  * out.
+ * <p>
+ * For further information and examples of using tree paths,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
+ * in <em>The Java Tutorial.</em>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
@@ -22,7 +33,7 @@ import java.util.Vector;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 11/29/01
+ * @version 1.25 02/02/00
  * @author Scott Violet
  * @author Philip Milne
  */
@@ -54,7 +65,8 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Constructs a TreePath when there is only item in the path.
+     * Constructs a TreePath containing only a single element. This is
+     * usually used to construct a TreePath for the the root of the TreeModel.
      * <p>
      * @param singlePath  an Object representing the path to a node
      * @see #TreePath(Object[])
@@ -67,9 +79,8 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Constructs a TreePath this is the combination of all the path elements
-     * in <code>parent</code> with a last path component of
-     * <code>lastElement</code>.
+     * Constructs a new TreePath, which is the path identified by
+     * <code>parent</code> ending in <code>lastElement</code>.
      */
     protected TreePath(TreePath parent, Object lastElement) {
 	if(lastElement == null)
@@ -78,6 +89,10 @@ public class TreePath extends Object implements Serializable {
 	lastPathComponent = lastElement;
     }
 
+    /**
+     * Constructs a new TreePath with the identified path components of
+     * length <code>length</code>.
+     */
     protected TreePath(Object[] path, int length) {
 	lastPathComponent = path[length - 1];
 	if(length > 1)
@@ -85,16 +100,20 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Primarily provided for subclasses that don't wish to use the path ivar.
-     * If a subclass uses this, it should also subclass getPath(),
-     * getPathCount(), getPathComponent() and possibly equals.
+     * Primarily provided for subclasses 
+     * that represent paths in a different manner.
+     * If a subclass uses this constructor, it should also override 
+     * the <code>getPath</code>,
+     * <code>getPathCount</code>, and
+     * <code>getPathComponent</code> methods,
+     * and possibly the <code>equals</code> method.
      */
     protected TreePath() {
     }
 
     /**
-     * Returns an array of Objects containing the components of this
-     * TreePath.
+     * Returns an ordered array of Objects containing the components of this
+     * TreePath. The first element (index 0) is the root.
      *
      * @return an array of Objects representing the TreePath
      * @see #TreePath(Object[])
@@ -110,9 +129,8 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Returns the last component of this path. For a path
-     * returned by the DefaultTreeModel, that is the TreeNode object
-     * for the node specified by the path.
+     * Returns the last component of this path. For a path returned by
+     * DefaultTreeModel this will return an instance of TreeNode.
      *
      * @return the Object at the end of the path
      * @see #TreePath(Object[])
@@ -160,7 +178,9 @@ public class TreePath extends Object implements Serializable {
 
     /**
      * Tests two TreePaths for equality by checking each element of the
-     * paths for equality.
+     * paths for equality. Two paths are considered equal if they are of
+     * the same length, and contain
+     * the same elements (<code>.equals</code>).
      *
      * @param o the Object to compare
      */
@@ -195,12 +215,18 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Returns true if the specified node is a descendant of this
-     * TreePath. A TreePath, child, is a descendent of another TreePath,
-     * parent, if child contains all of the components that make up 
-     * parent's path.
+     * Returns true if <code>aTreePath</code> is a
+     * descendant of this
+     * TreePath. A TreePath P1 is a descendent of a TreePath P2
+     * if P1 contains all of the components that make up 
+     * P2's path.
+     * For example, if this object has the path [a, b],
+     * and <code>aTreePath</code> has the path [a, b, c], 
+     * then <code>aTreePath</code> is a descendant of this object.
+     * However, if <code>aTreePath</code> has the path [a],
+     * then it is not a descendant of this object.
      *
-     * @return true if aTreePath is a descendant of the receiver.
+     * @return true if <code>aTreePath</code> is a descendant of this path
      */
     public boolean isDescendant(TreePath aTreePath) {
 	if(aTreePath == this)
@@ -221,8 +247,10 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Returns a new path containing all the elements of this receiver
-     * plus <code>child</code>. This will throw a NullPointerException
+     * Returns a new path containing all the elements of this object
+     * plus <code>child</code>. <code>child</code> will be the last element
+     * of the newly created TreePath.
+     * This will throw a NullPointerException
      * if child is null.
      */
     public TreePath pathByAddingChild(Object child) {
@@ -233,7 +261,7 @@ public class TreePath extends Object implements Serializable {
     }
 
     /**
-     * Returns a path containing all the elements of the receiver, accept
+     * Returns a path containing all the elements of this object, except
      * the last path component.
      */
     public TreePath getParentPath() {

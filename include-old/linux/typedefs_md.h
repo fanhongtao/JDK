@@ -1,8 +1,11 @@
 /*
- * @(#)typedefs_md.h	1.51 01/11/29
+ * @(#)typedefs_md.h	1.54 00/03/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -12,18 +15,25 @@
 #ifndef _JAVASOFT_SOLARIS_TYPES_MD_H_
 #define _JAVASOFT_SOLARIS_TYPES_MD_H_
 
-#ifdef __linux__
-#include <features.h>
-#if __GLIBC__ == 2 && __GLIBC_MINOR__ == 1
-#include <stdint.h>
-#endif /* glibc */
-#endif /* linux */
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef __linux__
+#include <stdint.h>
+#define HAVE_INTPTR_T
+#define _UINT64_T
+#endif
+
 #define int8_t char
 
+/* Fix for varargs differences on PowerPC */
+#if defined(__powerpc__)
+#define VARGS(x) (x)
+#else
+#define VARGS(x) (&x)
+#endif /* __powerpc__ */
+
+ 
 /* temporary scaffolding, to allow for back and forth testing */
 #ifndef USE_REAL_INT32
 #define int32_t long
@@ -42,24 +52,22 @@
 
 #if !defined(_ILP32) && !defined(_LP64)
 
+#ifndef HAVE_INTPTR_T
 #ifdef LONG_IS_64
 typedef long intptr_t;
 typedef unsigned long uintptr_t;
 #else
-#ifndef intptr_t
 typedef int intptr_t;
 typedef unsigned int uintptr_t;
-#endif /* intptr_t */
 #endif	/* LONG_IS_64 */
+#endif /* don't HAVE_INTPTR_T */
 
 #ifndef	_UINT64_T
 #define	_UINT64_T
 #ifdef LONG_IS_64
 typedef unsigned long uint64_t;
 #else
-#ifndef intptr_t
 typedef unsigned long long uint64_t;
-#endif
 #endif
 #define _UINT32_T
 #ifndef uint32_t /* [sbb] scaffolding */

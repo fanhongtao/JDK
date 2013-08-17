@@ -1,8 +1,11 @@
 /*
- * @(#)PageFormat.java	1.12 01/11/29
+ * @(#)PageFormat.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.print;
@@ -245,7 +248,14 @@ public class PageFormat implements Cloneable
 
     /**
      * Returns a copy of the {@link Paper} object associated
-     * with this <code>PageFormat</code>.
+     * with this <code>PageFormat</code>.  Changes made to the
+     * <code>Paper</code> object returned from this method do not
+     * affect the <code>Paper</code> object of this 
+     * <code>PageFormat</code>.  To update the <code>Paper</code>
+     * object of this <code>PageFormat</code>, create a new
+     * <code>Paper</code> object and set it into this 
+     * <code>PageFormat</code> by using the {@link #setPaper(Paper)} 
+     * method.
      * @return a copy of the <code>Paper</code> object associated
      *		with this <code>PageFormat</code>.
      */
@@ -258,9 +268,11 @@ public class PageFormat implements Cloneable
      * <code>PageFormat</code>.
      * @param paper the <code>Paper</code> object to which to set
      * the <code>Paper</code> object for this <code>PageFormat</code>.
+     * @exception <code>NullPointerException</code>
+     *		    a null paper instance was passed as a parameter.
      */
      public void setPaper(Paper paper) {
-	 mPaper = paper;
+         mPaper = (Paper)paper.clone();
      }
 
     /**
@@ -318,9 +330,9 @@ public class PageFormat implements Cloneable
 	    break;
 
 	case REVERSE_LANDSCAPE:
-            matrix[0] =  0;     matrix[1] =  1;
-            matrix[2] = -1;     matrix[3] =  0;
-            matrix[4] =  0;     matrix[5] =  0;
+            matrix[0] =  0;			matrix[1] =  1;
+            matrix[2] = -1;			matrix[3] =  0;
+            matrix[4] =  mPaper.getWidth();     matrix[5] =  0;
 	    break;
 
 	default:

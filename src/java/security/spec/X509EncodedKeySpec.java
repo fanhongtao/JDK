@@ -1,19 +1,29 @@
 /*
- * @(#)X509EncodedKeySpec.java	1.10 01/11/29
+ * @(#)X509EncodedKeySpec.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.spec;
 
 /**
- * This class represents the DER encoding of a public or private key,
- * according to the format specified in the X.509 standard.
+ * This class represents the ASN.1 encoding of a public key,
+ * encoded according to the ASN.1 type <code>SubjectPublicKeyInfo</code>,
+ * whose syntax is defined in the X.509 standard, as follows:
+ *
+ * <pre>
+ * SubjectPublicKeyInfo ::= SEQUENCE {
+ *   algorithm AlgorithmIdentifier,
+ *   subjectPublicKey BIT STRING }
+ * </pre>
  *
  * @author Jan Luehe
  *
- * @version 1.10 01/11/29
+ * @version 1.14, 02/02/00
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -21,7 +31,7 @@ package java.security.spec;
  * @see EncodedKeySpec
  * @see PKCS8EncodedKeySpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class X509EncodedKeySpec extends EncodedKeySpec {

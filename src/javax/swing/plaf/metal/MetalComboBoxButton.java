@@ -1,8 +1,11 @@
 /*
- * @(#)MetalComboBoxButton.java	1.23 01/11/29
+ * @(#)MetalComboBoxButton.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -26,7 +29,7 @@ import java.io.Serializable;
  * long term persistence.
  *
  * @see MetalComboBoxButton
- * @version 1.19 05/25/98
+ * @version 1.27 02/02/00
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {
@@ -78,6 +81,9 @@ public class MetalComboBoxButton extends JButton {
     }
 
     public void paintComponent( Graphics g ) {
+
+        boolean leftToRight = MetalUtils.isLeftToRight(comboBox);
+
         // Paint the button as usual
         super.paintComponent( g );
 
@@ -96,7 +102,7 @@ public class MetalComboBoxButton extends JButton {
         int bottom = top + (height - 1);
 
         int iconWidth = 0;
-        int iconLeft = right;
+        int iconLeft = (leftToRight) ? right : left;
 
         // Paint the icon
         if ( comboIcon != null ) {
@@ -109,7 +115,12 @@ public class MetalComboBoxButton extends JButton {
                 iconTop = (getHeight() / 2) - (iconHeight / 2);
             }
             else {
-                iconLeft = (left + (width - 1)) - iconWidth;
+	        if (leftToRight) {
+		    iconLeft = (left + (width - 1)) - iconWidth;
+		}
+		else {
+		    iconLeft = left;
+		}
                 iconTop = (top + ((bottom - top) / 2)) - (iconHeight / 2);
             }
 
@@ -153,8 +164,14 @@ public class MetalComboBoxButton extends JButton {
 
 
             int cWidth = width - (insets.right + iconWidth);
-            rendererPane.paintComponent( g, c, this, left, top, cWidth, height );
+	    if (leftToRight) {
+	        rendererPane.paintComponent( g, c, this, 
+					     left, top, cWidth, height );
+	    }
+	    else {
+	        rendererPane.paintComponent( g, c, this, 
+					     left + iconWidth, top, cWidth, height );
+	    }
         }
     }
 }
-

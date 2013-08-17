@@ -1,18 +1,22 @@
 /*
- * @(#)Button.java	1.51 01/11/29
+ * @(#)Button.java	1.58 00/03/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
 
 import java.awt.peer.ButtonPeer;
+import java.util.EventListener;
 import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-
+import javax.accessibility.*;
 
 /**
  * This class creates a labeled button. The application can cause
@@ -58,7 +62,7 @@ import java.io.IOException;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.51 11/29/01
+ * @version 	1.58 03/14/00
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener
@@ -66,18 +70,18 @@ import java.io.IOException;
  * @see         java.awt.Component#addMouseListener
  * @since       JDK1.0
  */
-public class Button extends Component {
+public class Button extends Component implements Accessible {
 
     /*
     * The button's Label.
-    * If Label is not specified it will default to "".
+    * If the Label is not specified it will default to "".
 	* @serial
     * @see getLabel()
     * @see setLabel()
     */
 	String label;
     /*
-    * The action to be performaed once a button has been
+    * The action to be performed once a button has been
     * pressed.
     * actionCommand can be null. 
 	* @serial
@@ -247,6 +251,30 @@ public class Button extends Component {
 	actionListener = AWTEventMulticaster.remove(actionListener, l);
     }
 
+    /**
+     * Return an array of all the listeners that were added to the Button
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the ActionListener(s) for the
+     * given Button <code>b</code>, one would write:
+     * <pre>
+     * ActionListener[] als = (ActionListener[])(b.getListeners(ActionListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return	 all of the listeners of the specified type supported by this button
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == ActionListener.class) { 
+	    l = actionListener;
+	} else {
+	    return super.getListeners(listenerType);
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
+    }
+
     // REMIND: remove when filtering is done at lower level
     boolean eventEnabled(AWTEvent e) {
         if (e.id == ActionEvent.ACTION_PERFORMED) {
@@ -323,7 +351,7 @@ public class Button extends Component {
 	/**
 	* Writes default serializable fields to stream.  Writes
 	* a list of serializable ItemListener(s) as optional data.
-	* The non-serializable ItemListner(s) are detected and 
+	* The non-serializable ItemListener(s) are detected and 
 	* no attempt is made to serialize them.
 	*
 	* @serialData Null terminated sequence of 0 or more pairs.
@@ -370,5 +398,173 @@ public class Button extends Component {
 	  s.readObject();
       }
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this Button. 
+     * For buttons, the AccessibleContext takes the form of an 
+     * AccessibleAWTButton. 
+     * A new AccessibleAWTButton instance is created if necessary.
+     *
+     * @return an AccessibleAWTButton that serves as the 
+     *         AccessibleContext of this Button
+     * @beaninfo
+     *       expert: true
+     *  description: The AccessibleContext associated with this Button.
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTButton();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Button</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to button user-interface elements.
+     */
+    protected class AccessibleAWTButton extends AccessibleAWTComponent
+        implements AccessibleAction, AccessibleValue {
+
+        /**
+         * Get the accessible name of this object.  
+         *
+         * @return the localized name of the object -- can be null if this 
+         * object does not have a name
+         */
+        public String getAccessibleName() {
+            if (accessibleName != null) {
+                return accessibleName;
+            } else {
+                if (getLabel() == null) {
+                    return super.getAccessibleName();
+                } else {
+                    return getLabel();
+                }
+            }
+        }
+
+        /**
+         * Get the AccessibleAction associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleAction interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleAction getAccessibleAction() {
+            return this;
+        }
+
+        /**
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleValue getAccessibleValue() {
+            return this;
+        }
+
+        /**
+         * Returns the number of Actions available in this object.  The 
+         * default behavior of a button is to have one action - toggle 
+         * the button.
+         *
+         * @return 1, the number of Actions in this object
+         */
+        public int getAccessibleActionCount() {
+            return 1;
+        }
+    
+        /**
+         * Return a description of the specified action of the object.
+         *
+         * @param i zero-based index of the actions
+         */
+        public String getAccessibleActionDescription(int i) {
+            if (i == 0) {
+                // [[[PENDING:  WDW -- need to provide a localized string]]]
+                return new String("click");
+            } else {
+                return null;
+            }
+        }
+    
+        /**
+         * Perform the specified Action on the object
+         *
+         * @param i zero-based index of actions
+         * @return true if the the action was performed; else false.
+         */
+        public boolean doAccessibleAction(int i) {
+            if (i == 0) {
+                // Simulate a button click
+                Toolkit.getEventQueue().postEvent(
+                        new ActionEvent(Button.this,
+                                        ActionEvent.ACTION_PERFORMED,
+                                        Button.this.getActionCommand()));
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /**
+         * Get the value of this object as a Number.
+         *
+         * @return An Integer of 0 if this isn't selected or an Integer of 1 if
+         * this is selected.
+         * @see AbstractButton#isSelected
+         */
+        public Number getCurrentAccessibleValue() {
+            return new Integer(0);
+        }
+
+        /**
+         * Set the value of this object as a Number.
+         *
+         * @return True if the value was set.
+         */
+        public boolean setCurrentAccessibleValue(Number n) {
+            return false;
+        }
+
+        /**
+         * Get the minimum value of this object as a Number.
+         *
+         * @return An Integer of 0.
+         */
+        public Number getMinimumAccessibleValue() {
+            return new Integer(0);
+        }
+
+        /**
+         * Get the maximum value of this object as a Number.
+         *
+         * @return An Integer of 0.
+         */
+        public Number getMaximumAccessibleValue() {
+            return new Integer(0);
+        }
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.PUSH_BUTTON;
+        }
+    } // inner class AccessibleAWTButton
 
 }

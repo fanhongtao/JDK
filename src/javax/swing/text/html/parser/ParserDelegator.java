@@ -1,8 +1,11 @@
 /*
- * @(#)ParserDelegator.java	1.7 01/11/29
+ * @(#)ParserDelegator.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.text.html.parser;
@@ -11,7 +14,9 @@ import javax.swing.text.html.HTMLEditorKit;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.DataInputStream;
+import java.io.ObjectInputStream;
 import java.io.Reader;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 
 /**
@@ -20,10 +25,10 @@ import java.lang.reflect.Method;
  * reference to the dtd.
  *
  * @author  Sunita Mani
- * @version 1.7, 11/29/01
+ * @version 1.8, 02/02/00
  */
 
-public class ParserDelegator extends HTMLEditorKit.Parser {
+public class ParserDelegator extends HTMLEditorKit.Parser implements Serializable {
 
     private static DTD dtd = null;
 
@@ -99,6 +104,13 @@ public class ParserDelegator extends HTMLEditorKit.Parser {
 	}
     }
 
+    private void readObject(ObjectInputStream s)
+	throws ClassNotFoundException, IOException {
+	s.defaultReadObject();
+	if (dtd == null) {
+	    setDefaultDTD();
+	}
+    }
 }
 
 

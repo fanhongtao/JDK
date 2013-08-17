@@ -1,8 +1,11 @@
 /*
- * @(#)Constructor.java	1.21 01/11/29
+ * @(#)Constructor.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang.reflect;
@@ -19,7 +22,7 @@ package java.lang.reflect;
  * @see Member
  * @see java.lang.Class
  * @see java.lang.Class#getConstructors()
- * @see java.lang.Class#getConstructor()
+ * @see java.lang.Class#getConstructor(Class[])
  * @see java.lang.Class#getDeclaredConstructors()
  *
  * @author	Nakul Saraiya

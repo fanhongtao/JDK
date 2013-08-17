@@ -1,8 +1,11 @@
 /*
- * @(#)StringBuffer.java	1.46 01/11/29
+ * @(#)StringBuffer.java	1.61 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -62,7 +65,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.46, 11/29/01
+ * @version 	1.61, 02/02/00
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -128,6 +131,18 @@ public final class StringBuffer implements java.io.Serializable {
 	append(str);
     }
 
+    /** 
+     * This method is here to ensure that the serialization of a StringBuffer
+     * instance is synchronized.
+     */
+     
+    private synchronized void writeObject(java.io.ObjectOutputStream s)
+        throws java.io.IOException
+    {
+	// Write out the serializable fields to the stream.
+	s.defaultWriteObject();
+    }
+
     /**
      * Returns the length (character count) of this string buffer.
      *
@@ -190,7 +205,9 @@ public final class StringBuffer implements java.io.Serializable {
      */
     private void expandCapacity(int minimumCapacity) {
 	int newCapacity = (value.length + 1) * 2;
-	if (minimumCapacity > newCapacity) {
+        if (newCapacity < 0) {
+            newCapacity = Integer.MAX_VALUE;
+        } else if (minimumCapacity > newCapacity) {
 	    newCapacity = minimumCapacity;
 	}
 	
@@ -244,7 +261,16 @@ public final class StringBuffer implements java.io.Serializable {
 	    }
 	} else {
             count = newLength;
-            if (shared) copy();
+            if (shared) {
+                if (newLength > 0) {
+                    copy();
+                } else {
+                    // If newLength is zero, assume the StringBuffer is being
+                    // stripped for reuse; Make new buffer of default size
+                    value = new char[16];
+                    shared = false;
+                }
+            }
         }
     }
 
@@ -290,31 +316,29 @@ public final class StringBuffer implements java.io.Serializable {
      * @exception  NullPointerException if <code>dst</code> is 
      *             <code>null</code>.
      * @exception  IndexOutOfBoundsException  if any of the following is true:
-     *             <ul><li><code>srcBegin</code> is negative
-     *             <li>the <code>srcBeing</code> argument is greater than 
+     *             <ul>
+     *             <li><code>srcBegin</code> is negative
+     *             <li><code>dstBegin</code> is negative
+     *             <li>the <code>srcBegin</code> argument is greater than 
      *             the <code>srcEnd</code> argument.
      *             <li><code>srcEnd</code> is greater than 
      *             <code>this.length()</code>, the current length of this 
      *             string buffer.
      *             <li><code>dstBegin+srcEnd-srcBegin</code> is greater than 
-     *             <code>dst.length</code></ul>
+     *             <code>dst.length</code>
+     *             </ul>
      */
     public synchronized void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
-	if ((srcBegin < 0) || (srcBegin >= count)) {
+	if (srcBegin < 0) {
 	    throw new StringIndexOutOfBoundsException(srcBegin);
 	}
 	if ((srcEnd < 0) || (srcEnd > count)) {
 	    throw new StringIndexOutOfBoundsException(srcEnd);
 	}
-	if (srcBegin < srcEnd) {
-	    System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
-	} else {
-	    if (srcBegin > srcEnd) {
-		throw new StringIndexOutOfBoundsException
-		    ("StringBuffer.getChars(): begin > end");
-	    }
-	    /* We do nothing when srcBegin == srcEnd. */
-	}
+        if (srcBegin > srcEnd) {
+            throw new StringIndexOutOfBoundsException("srcBegin > srcEnd");
+        }
+	System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
     }
 
     /**
@@ -475,7 +499,7 @@ public final class StringBuffer implements java.io.Serializable {
      * in that string were then {@link #append(String) appended} to this 
      * <code>StringBuffer</code> object.
      *
-     * @param   ch   a <code>char</code>.
+     * @param   c   a <code>char</code>.
      * @return  a reference to this <code>StringBuffer</code> object.
      */
     public synchronized StringBuffer append(char c) {
@@ -567,7 +591,7 @@ public final class StringBuffer implements java.io.Serializable {
      * @exception  StringIndexOutOfBoundsException  if <code>start</code>
      *             is negative, greater than <code>length()</code>, or
      *		   greater than <code>end</code>.
-     * @since      JDK1.2
+     * @since      1.2
      */
     public synchronized StringBuffer delete(int start, int end) {
 	if (start < 0)
@@ -597,7 +621,7 @@ public final class StringBuffer implements java.io.Serializable {
      * @exception   StringIndexOutOfBoundsException  if the <code>index</code>
      *		    is negative or greater than or equal to
      *		    <code>length()</code>.
-     * @since       JDK1.2
+     * @since       1.2
      */
     public synchronized StringBuffer deleteCharAt(int index) {
         if ((index < 0) || (index >= count))
@@ -627,7 +651,7 @@ public final class StringBuffer implements java.io.Serializable {
      * @exception  StringIndexOutOfBoundsException  if <code>start</code>
      *             is negative, greater than <code>length()</code>, or
      *		   greater than <code>end</code>.
-     * @since      JDK1.2
+     * @since      1.2
      */ 
     public synchronized StringBuffer replace(int start, int end, String str) {
         if (start < 0)
@@ -661,7 +685,7 @@ public final class StringBuffer implements java.io.Serializable {
      * @exception  StringIndexOutOfBoundsException  if <code>start</code> is
      *             less than zero, or greater than the length of this
      *             <code>StringBuffer</code>.
-     * @since      JDK1.2
+     * @since      1.2
      */
     public String substring(int start) {
         return substring(start, count);
@@ -681,7 +705,7 @@ public final class StringBuffer implements java.io.Serializable {
      *             or <code>end</code> are negative or greater than
      *		   <code>length()</code>, or <code>start</code> is
      *		   greater than <code>end</code>.
-     * @since      JDK1.2 
+     * @since      1.2 
      */
     public synchronized String substring(int start, int end) {
 	if (start < 0)
@@ -713,13 +737,13 @@ public final class StringBuffer implements java.io.Serializable {
      *		   <code>offset</code> or <code>len</code> are negative, or
      *		   <code>(offset+len)</code> is greater than
      *		   <code>str.length</code>.
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized StringBuffer insert(int index, char str[], int offset,
                                                                    int len) {
         if ((index < 0) || (index > count))
 	    throw new StringIndexOutOfBoundsException();
-	if ((offset < 0) || (offset + len > str.length))
+	if ((offset < 0) || (offset + len < 0) || (offset + len > str.length))
 	    throw new StringIndexOutOfBoundsException(offset);
 	if (len < 0)
 	    throw new StringIndexOutOfBoundsException(len);
@@ -748,7 +772,7 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. 
      *
      * @param      offset   the offset.
-     * @param      b        an <code>Object</code>.
+     * @param      obj      an <code>Object</code>.
      * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(java.lang.Object)
@@ -828,7 +852,7 @@ public final class StringBuffer implements java.io.Serializable {
      * <code>offset</code>.
      *
      * @param      offset   the offset.
-     * @param      ch       a character array.
+     * @param      str      a character array.
      * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      */
@@ -892,9 +916,9 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. 
      *
      * @param      offset   the offset.
-     * @param      ch       a <code>char</code>.
+     * @param      c        a <code>char</code>.
      * @return     a reference to this <code>StringBuffer</code> object.
-     * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
+     * @exception  IndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.StringBuffer#length()
      */
     public synchronized StringBuffer insert(int offset, char c) {
@@ -923,7 +947,7 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. 
      *
      * @param      offset   the offset.
-     * @param      b        an <code>int</code>.
+     * @param      i        an <code>int</code>.
      * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(int)
@@ -948,7 +972,7 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. 
      *
      * @param      offset   the offset.
-     * @param      b        a <code>long</code>.
+     * @param      l        a <code>long</code>.
      * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(long)
@@ -973,7 +997,7 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. 
      *
      * @param      offset   the offset.
-     * @param      b        a <code>float</code>.
+     * @param      f        a <code>float</code>.
      * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(float)
@@ -998,7 +1022,7 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. 
      *
      * @param      offset   the offset.
-     * @param      b        a <code>double</code>.
+     * @param      d        a <code>double</code>.
      * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(double)
@@ -1067,7 +1091,7 @@ public final class StringBuffer implements java.io.Serializable {
      * readObject is called to restore the state of the StringBuffer from
      * a stream.
      */
-    private void readObject(java.io.ObjectInputStream s)
+    private synchronized void readObject(java.io.ObjectInputStream s)
          throws java.io.IOException, ClassNotFoundException {
 	s.defaultReadObject();
 	value = (char[]) value.clone();

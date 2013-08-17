@@ -1,8 +1,11 @@
 /*
- * @(#)TreeExpansionEvent.java	1.14 01/11/29
+ * @(#)TreeExpansionEvent.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -14,6 +17,11 @@ import javax.swing.tree.TreePath;
  * An event used to identify a single path in a tree.  The source
  * returned by <b>getSource</b> will be an instance of JTree.
  * <p>
+ * For further documentation and examples see 
+ * the following sections in <em>The Java Tutorial</em>:
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/events/treeexpansionlistener.html">How to Write a Tree Expansion Listener</a> and
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/events/treewillexpandlistener.html">How to Write a Tree-Will-Expand Listener</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases.  The current serialization support is appropriate
@@ -22,7 +30,7 @@ import javax.swing.tree.TreePath;
  * long term persistence.
  *
  * @author Scott Violet
- * @version 1.14 11/29/01
+ * @version 1.16 02/02/00
  */
 public class TreeExpansionEvent extends EventObject
 {

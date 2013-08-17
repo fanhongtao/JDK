@@ -1,12 +1,15 @@
 /*
- * @(#)HTML.java	1.27 01/11/29
+ * @(#)HTML.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.Hashtable;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.StyleContext;
@@ -18,7 +21,7 @@ import javax.swing.text.StyleContext;
  * @author  Timothy Prinzing
  * @author  Sunita Mani
  *
- * @version 1.27 11/29/01
+ * @version 1.31 02/02/00
  */
 public class HTML {
 
@@ -30,6 +33,8 @@ public class HTML {
      * reader.
      */
     public static class Tag {
+
+	public Tag() {}
 
         protected Tag(String id) {
 	    this(id, false, false);
@@ -69,10 +74,10 @@ public class HTML {
 	    return name;
 	}
 
-	private boolean blockTag;
-	private boolean breakTag;
-	private String name;
-	private boolean unknown;
+	boolean blockTag;
+	boolean breakTag;
+	String name;
+	boolean unknown;
 
     	// --- Tag Names -----------------------------------
 
@@ -121,6 +126,7 @@ public class HTML {
     	public static final Tag MAP = new Tag("map");
     	public static final Tag MENU = new Tag("menu", true, true);
     	public static final Tag META = new Tag("meta");
+	/*public*/ static final Tag NOBR = new Tag("nobr");
 	public static final Tag NOFRAMES = new Tag("noframes", true, true);
     	public static final Tag OBJECT = new Tag("object");
     	public static final Tag OL = new Tag("ol", true, true);
@@ -132,6 +138,7 @@ public class HTML {
     	public static final Tag SCRIPT = new Tag("script");
     	public static final Tag SELECT = new Tag("select");
     	public static final Tag SMALL = new Tag("small");
+    	public static final Tag SPAN = new Tag("span");
     	public static final Tag STRIKE = new Tag("strike");
     	public static final Tag S = new Tag("s");
     	public static final Tag STRONG = new Tag("strong");
@@ -187,12 +194,16 @@ public class HTML {
 	    DD, DFN, DIR, DIV, DL, DT, EM, FONT, FORM, FRAME,
 	    FRAMESET, H1, H2, H3, H4, H5, H6, HEAD, HR, HTML,
 	    I, IMG, INPUT, ISINDEX, KBD, LI, LINK, MAP, MENU,
-	    META, NOFRAMES, OBJECT, OL, OPTION, P, PARAM,
-	    PRE, SAMP, SCRIPT, SELECT, SMALL, STRIKE, S,
+	    META, NOBR, NOFRAMES, OBJECT, OL, OPTION, P, PARAM,
+	    PRE, SAMP, SCRIPT, SELECT, SMALL, SPAN, STRIKE, S,
 	    STRONG, STYLE, SUB, SUP, TABLE, TD, TEXTAREA,
 	    TH, TITLE, TR, TT, U, UL, VAR	
 	};
 
+	static {
+	    // Force HTMLs static initialize to be loaded.
+	    getTag("html");
+	}
     }
 
     // There is no unique instance of UnknownTag, so we allow it to be
@@ -221,6 +232,24 @@ public class HTML {
 		return toString().equals(obj.toString());
 	    }
 	    return false;
+	}
+
+	private void writeObject(java.io.ObjectOutputStream s)
+	             throws IOException {
+	    s.defaultWriteObject();
+	    s.writeBoolean(blockTag);
+	    s.writeBoolean(breakTag);
+	    s.writeBoolean(unknown);
+	    s.writeObject(name);
+	}
+
+	private void readObject(ObjectInputStream s)
+	    throws ClassNotFoundException, IOException {
+	    s.defaultReadObject();
+	    blockTag = s.readBoolean();
+	    breakTag = s.readBoolean();
+	    unknown = s.readBoolean();
+	    name = (String)s.readObject();
 	}
     }
 
@@ -407,12 +436,12 @@ public class HTML {
 	};
     }
 
-    // The secret to 71, is that, given that the Hashtable contents
+    // The secret to 73, is that, given that the Hashtable contents
     // never change once the static initialization happens, the initial size 
     // that the hashtable grew to was determined, and then that very size
     // is used.
     //
-    private static final Hashtable tagHashtable = new Hashtable(71);
+    private static final Hashtable tagHashtable = new Hashtable(73);
 
     static {
 

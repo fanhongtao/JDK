@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationDesc.java	1.20 01/11/29
+ * @(#)ActivationDesc.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -13,20 +16,22 @@ import java.rmi.MarshalledObject;
  * An activation descriptor contains the information necessary to
  * activate an object: <ul>
  * <li> the object's group identifier,
- * <li> the object's class name,
- * <li> the object's code location (the location of the class), and
+ * <li> the object's fully-qualified class name,
+ * <li> the object's code location (the location of the class), a codebase URL
+ * path,
+ * <li> the object's restart "mode", and,
  * <li> a "marshalled" object that can contain object specific
- * initialization data. </ul> <p>
+ * initialization data. </ul>
  *
- * A descriptor registered with the activation system can be used to
+ * <p>A descriptor registered with the activation system can be used to
  * recreate/activate the object specified by the descriptor. The
  * <code>MarshalledObject</code> in the object's descriptor is passed
  * as the second argument to the remote object's constructor for
  * object to use during reinitialization/activation.
  *
  * @author 	Ann Wollrath
- * @version	1.20, 11/29/01
- * @since 	JDK1.2
+ * @version	1.24, 02/02/00
+ * @since 	1.2
  * @see         java.rmi.activation.Activatable
  */
 public final class ActivationDesc implements java.io.Serializable
@@ -56,7 +61,7 @@ public final class ActivationDesc implements java.io.Serializable
      */
     private boolean restart;
 
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = 7455834104417690957L;
 
     /**
@@ -67,13 +72,15 @@ public final class ActivationDesc implements java.io.Serializable
      * is used, the <code>groupID</code> defaults to the current id for
      * <code>ActivationGroup</code> for this VM. All objects with the
      * same <code>ActivationGroupID</code> are activated in the same VM.
-     * Objects specified by a descriptor created by this constructor
-     * will not restart automatically when the RMI activation daemon
-     * starts, but will be activated on demand (via a method call to
-     * the activatable object).<p>
      *
-     * This constructor will throw <code>ActivationException</code> if there is
-     * no current activation group for this VM.  To create an
+     * <p>Note that objects specified by a descriptor created with this
+     * constructor will only be activated on demand (by default, the restart
+     * mode is <code>false</code>).  If an activatable object requires restart
+     * services, use one of the <code>ActivationDesc</code> constructors that
+     * takes a boolean parameter, <code>restart</code>.
+     *
+     * <p> This constructor will throw <code>ActivationException</code> if
+     * there is no current activation group for this VM.  To create an
      * <code>ActivationGroup</code> use the
      * <code>ActivationGroup.createGroup</code> method.
      *
@@ -83,7 +90,7 @@ public final class ActivationDesc implements java.io.Serializable
      * @param data the object's initialization (activation) data contained
      * in marshalled form.
      * @exception ActivationException if the current group is nonexistent
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationDesc(String className,
 			  String location, 
@@ -101,10 +108,10 @@ public final class ActivationDesc implements java.io.Serializable
      * information is <code>data</code>. If this form of the constructor
      * is used, the <code>groupID</code> defaults to the current id for
      * <code>ActivationGroup</code> for this VM. All objects with the
-     * same <code>ActivationGroupID</code> are activated in the same VM.<p>
+     * same <code>ActivationGroupID</code> are activated in the same VM.
      *
-     * This constructor will throw <code>ActivationException</code> if there is
-     * no current activation group for this VM.  To create an
+     * <p>This constructor will throw <code>ActivationException</code> if
+     * there is no current activation group for this VM.  To create an
      * <code>ActivationGroup</code> use the
      * <code>ActivationGroup.createGroup</code> method.
      *
@@ -113,10 +120,14 @@ public final class ActivationDesc implements java.io.Serializable
      * loaded)
      * @param data the object's initialization (activation) data contained
      * in marshalled form.
-     * @param restart if true, the object is restarted when the activator
-     * is restarted; if false, the object is activated on demand.
+     * @param restart if true, the object is restarted (reactivated) when
+     * either the activator is restarted or the object's activation group
+     * is restarted after an unexpected crash; if false, the object is only
+     * activated on demand.  Specifying <code>restart</code> to be
+     * <code>true</code> does not force an initial immediate activation of
+     * a newly registered object;  initial activation is lazy.
      * @exception ActivationException if the current group is nonexistent
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationDesc(String className,
 			  String location, 
@@ -135,6 +146,12 @@ public final class ActivationDesc implements java.io.Serializable
      * information is <code>data</code>. All objects with the same
      * <code>groupID</code> are activated in the same Java VM.
      *
+     * <p>Note that objects specified by a descriptor created with this
+     * constructor will only be activated on demand (by default, the restart
+     * mode is <code>false</code>).  If an activatable object requires restart
+     * services, use one of the <code>ActivationDesc</code> constructors that
+     * takes a boolean parameter, <code>restart</code>.
+     *
      * @param groupID the group's identifier (obtained from registering
      * <code>ActivationSystem.registerGroup</code> method). The group
      * indicates the VM in which the object should be activated.
@@ -144,7 +161,7 @@ public final class ActivationDesc implements java.io.Serializable
      * @param data  the object's initialization (activation) data contained
      * in marshalled form.
      * @exception IllegalArgumentException if <code>groupID</code> is null
-     * @since JDK1.2
+     * @since 1.2
      */
    public ActivationDesc(ActivationGroupID groupID,
 			 String className, 
@@ -169,10 +186,14 @@ public final class ActivationDesc implements java.io.Serializable
      * loaded)
      * @param data  the object's initialization (activation) data contained
      * in marshalled form.
-     * @param restart if true, the object is restarted when the activator
-     * is restarted; if false, the object is activated on demand.
+     * @param restart if true, the object is restarted (reactivated) when
+     * either the activator is restarted or the object's activation group
+     * is restarted after an unexpected crash; if false, the object is only
+     * activated on demand.  Specifying <code>restart</code> to be
+     * <code>true</code> does not force an initial immediate activation of
+     * a newly registered object;  initial activation is lazy.
      * @exception IllegalArgumentException if <code>groupID</code> is null
-     * @since JDK1.2
+     * @since 1.2
      */
    public ActivationDesc(ActivationGroupID groupID,
 			 String className, 
@@ -196,7 +217,7 @@ public final class ActivationDesc implements java.io.Serializable
      * the same <code>groupID</code> in the same virtual machine.
      *
      * @return the group identifier
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationGroupID getGroupID() {
 	return groupID;
@@ -206,7 +227,7 @@ public final class ActivationDesc implements java.io.Serializable
      * Returns the class name for the object specified by this
      * descriptor.
      * @return the class name
-     * @since JDK1.2
+     * @since 1.2
      */
     public String getClassName() {
 	return className;
@@ -216,7 +237,7 @@ public final class ActivationDesc implements java.io.Serializable
      * Returns the code location for the object specified by
      * this descriptor.
      * @return the code location
-     * @since JDK1.2
+     * @since 1.2
      */
     public String getLocation() {
 	return location;
@@ -226,7 +247,7 @@ public final class ActivationDesc implements java.io.Serializable
      * Returns a "marshalled object" containing intialization/activation
      * data for the object specified by this descriptor.
      * @return the object specific "initialization" data
-     * @since JDK1.2
+     * @since 1.2
      */
     public MarshalledObject getData() {
 	return data;
@@ -237,11 +258,14 @@ public final class ActivationDesc implements java.io.Serializable
      * this activation descriptor.
      *
      * @return true if the activatable object associated with this
-     * activation descriptor should be restarted via the activation
-     * daemon when the daemon comes up; otherwise it returns false
-     * (meaning that the object is only activated on demand via a
-     * method call). 
-     * @since JDK1.2
+     * activation descriptor is restarted via the activation
+     * daemon when either the daemon comes up or the object's group
+     * is restarted after an unexpected crash; otherwise it returns false,
+     * meaning that the object is only activated on demand via a
+     * method call.  Note that if the restart mode is <code>true</code>, the
+     * activator does not force an initial immediate activation of
+     * a newly registered object;  initial activation is lazy.
+     * @since 1.2
      */
     public boolean getRestartMode() {
 	return restart;
@@ -253,7 +277,7 @@ public final class ActivationDesc implements java.io.Serializable
      * @param	obj	the Object to compare with
      * @return	true if these Objects are equal; false otherwise.
      * @see		java.util.Hashtable
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean equals(Object obj) {
 	

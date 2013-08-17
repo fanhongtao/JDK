@@ -1,8 +1,11 @@
 /*
- * @(#)BasicLookAndFeel.java	1.145 01/11/29
+ * @(#)BasicLookAndFeel.java	1.159 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -16,6 +19,7 @@ import java.net.URL;
 import java.io.Serializable;
 import java.awt.Dimension;
 import java.util.*;
+import java.lang.reflect.*;
 
 import javax.swing.LookAndFeel;
 import javax.swing.BorderFactory;
@@ -44,7 +48,7 @@ import javax.swing.text.DefaultEditorKit;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.145 11/29/01
+ * @version 1.159 02/02/00
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -113,6 +117,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	       "OptionPaneUI", basicPackageName + "BasicOptionPaneUI",
 	            "PanelUI", basicPackageName + "BasicPanelUI",
 		 "ViewportUI", basicPackageName + "BasicViewportUI",
+		 "RootPaneUI", basicPackageName + "BasicRootPaneUI",
 	};
 
 	table.putDefaults(uiDefaults);
@@ -213,11 +218,30 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
         loadResourceBundle(table);
 	// *** Shared Fonts
-	FontUIResource dialogPlain12 = new FontUIResource("Dialog", Font.PLAIN, 12);
-	FontUIResource serifPlain12 = new FontUIResource("Serif", Font.PLAIN, 12);
-	FontUIResource sansSerifPlain12 = new FontUIResource("SansSerif", Font.PLAIN, 12);
-	FontUIResource monospacedPlain12 = new FontUIResource("Monospaced", Font.PLAIN, 12);
-	FontUIResource dialogBold12 = new FontUIResource("Dialog", Font.BOLD, 12);
+	Integer twelve = new Integer(12);
+	Integer fontPlain = new Integer(Font.PLAIN);
+	Integer fontBold = new Integer(Font.BOLD);
+	Object dialogPlain12 = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.FontUIResource",
+			  null,
+			  new Object[] {"Dialog", fontPlain, twelve});
+	Object serifPlain12 = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.FontUIResource",
+			  null,
+			  new Object[] {"Serif", fontPlain, twelve});
+	Object sansSerifPlain12 =  new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.FontUIResource",
+			  null,
+			  new Object[] {"SansSerif", fontPlain, twelve});
+	Object monospacedPlain12 = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.FontUIResource",
+			  null,
+			  new Object[] {"MonoSpaced", fontPlain, twelve});
+	Object dialogBold12 = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.FontUIResource",
+			  null,
+			  new Object[] {"Dialog", fontBold, twelve});
+
 
 	// *** Shared Colors
 	ColorUIResource red = new ColorUIResource(Color.red);
@@ -233,41 +257,54 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         InsetsUIResource zeroInsets = new InsetsUIResource(0,0,0,0);
 
         // *** Shared Borders
-        Border zeroBorder = new BorderUIResource.EmptyBorderUIResource(0,0,0,0);
-	Border marginBorder = new BasicBorders.MarginBorder();
-	Border etchedBorder = BorderUIResource.getEtchedBorderUIResource();
-        Border loweredBevelBorder = BorderUIResource.getLoweredBevelBorderUIResource();
-        Border raisedBevelBorder = BorderUIResource.getRaisedBevelBorderUIResource();
-        Border blackLineBorder = BorderUIResource.getBlackLineBorderUIResource();
-	Border focusCellHighlightBorder = new BorderUIResource.LineBorderUIResource(yellow);
+	Object marginBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.basic.BasicBorders$MarginBorder");
+	Object etchedBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource",
+			  "getEtchedBorderUIResource");
+        Object loweredBevelBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource",
+			  "getLoweredBevelBorderUIResource");
+
+        Object raisedBevelBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource",
+			  "getRaisedBevelBorderUIResource");
+
+        Object blackLineBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource",
+			  "getBlackLineBorderUIResource");
+	Object focusCellHighlightBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+			  null,
+			  new Object[] {yellow});
+
+
+	Object tableHeaderBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource$BevelBorderUIResource",
+			  null,
+			  new Object[] { new Integer(BevelBorder.RAISED),
+					 table.getColor("controlLtHighlight"),
+					 table.getColor("control"),
+					 table.getColor("controlDkShadow"),
+					 table.getColor("controlShadow") });
 
 
 	// *** Button value objects
 
-	Object buttonBorder = new BorderUIResource.CompoundBorderUIResource(
-       				     new BasicBorders.ButtonBorder(
-                                           table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight")),
-	       			     marginBorder);
+	Object buttonBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getButtonBorder");
 
-	Object buttonToggleBorder = new BorderUIResource.CompoundBorderUIResource(
-				     new BasicBorders.ToggleButtonBorder(
-                                           table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight")),
-				     marginBorder);
+	Object buttonToggleBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getToggleButtonBorder");
 
-	Object radioButtonBorder = new BorderUIResource.CompoundBorderUIResource(
-				     new BasicBorders.RadioButtonBorder(
-                                           table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight")),
-				     marginBorder);
-
+	Object radioButtonBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getRadioButtonBorder");
 
 	// *** FileChooser / FileView value objects
 
@@ -285,19 +322,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** InternalFrame value objects
 
-	Object internalFrameBorder = new UIDefaults.LazyValue() {
-	  public Object createValue(UIDefaults table) {
-	    return new BorderUIResource.CompoundBorderUIResource(
-				new BevelBorder(BevelBorder.RAISED,
-					table.getColor("controlHighlight"),
-                                        table.getColor("controlLtHighlight"),
-                                        table.getColor("controlDkShadow"),
-                                        table.getColor("controlShadow")),
-				BorderFactory.createLineBorder(
-					table.getColor("control"), 1));
-	  }
-	};
-
+	Object internalFrameBorder = new UIDefaults.ProxyLazyValue(
+                "javax.swing.plaf.basic.BasicBorders", 
+		"getInternalFrameBorder");
 
 	// *** List value objects
 
@@ -310,54 +337,47 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** Menus value objects
 
-	Object menuBarBorder = new BasicBorders.MenuBarBorder(
-                                        table.getColor("controlShadow"),
-                                        table.getColor("controlLtHighlight")
-                                   );
+	Object menuBarBorder = 
+	    new UIDefaults.ProxyLazyValue(
+                "javax.swing.plaf.basic.BasicBorders", 
+		"getMenuBarBorder");
+
+	Object menuItemCheckIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getMenuItemCheckIcon");
+
+	Object menuItemArrowIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getMenuItemArrowIcon");
 
 
-	Object menuItemCheckIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getMenuItemCheckIcon();
-	    }
-	};
+	Object menuArrowIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getMenuArrowIcon");
 
-	Object menuItemArrowIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getMenuItemArrowIcon();
-	    }
-	};
+	Object checkBoxIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getCheckBoxIcon");
 
-	Object menuArrowIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getMenuArrowIcon();
-	    }
-	};
-
-	Object checkBoxIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getCheckBoxIcon();
-	    }
-	};
-
-	Object radioButtonIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getRadioButtonIcon();
-	    }
-	};
+	Object radioButtonIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getRadioButtonIcon");
 
 
-	Object checkBoxMenuItemIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getCheckBoxMenuItemIcon();
-	    }
-	};
+	Object checkBoxMenuItemIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getCheckBoxMenuItemIcon");
 
-	Object radioButtonMenuItemIcon = new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		return BasicIconFactory.getRadioButtonMenuItemIcon();
-	    }
-	};
+	Object radioButtonMenuItemIcon = 
+	    new UIDefaults.ProxyLazyValue(
+		"javax.swing.plaf.basic.BasicIconFactory", 
+		"getRadioButtonMenuItemIcon");
 
 	Object menuItemAcceleratorDelimiter = new String("+");
 
@@ -365,30 +385,32 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
         Object optionPaneMinimumSize = new DimensionUIResource(262, 90);
 
-	Object optionPaneBorder = new BorderUIResource.EmptyBorderUIResource(10, 10, 12, 10);
+	Integer zero =  new Integer(0);
+        Object zeroBorder = new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.BorderUIResource$EmptyBorderUIResource",
+			   new Object[] {zero, zero, zero, zero});
 
-        Object optionPaneButtonAreaBorder = new BorderUIResource.EmptyBorderUIResource(6,0,0,0);
+	Integer ten = new Integer(10);
+        Object optionPaneBorder = new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.BorderUIResource$EmptyBorderUIResource",
+			   new Object[] {ten, ten, twelve, ten});
+	
+        Object optionPaneButtonAreaBorder = new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.BorderUIResource$EmptyBorderUIResource",
+			   new Object[] {new Integer(6), zero, zero, zero});
 
 
 	// *** ProgessBar value objects
 
-	Object progressBarBorder = new BorderUIResource.LineBorderUIResource(Color.green, 2);
-
+	Object progressBarBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getProgressBarBorder");
 
 	// ** ScrollBar value objects
 
-	Object minimumThumbSize = new UIDefaults.LazyValue() {
-	  public Object createValue(UIDefaults table) {
-	    return new DimensionUIResource(8,8);
-	  };
-	};
-
-	Object maximumThumbSize = new UIDefaults.LazyValue() {
-	  public Object createValue(UIDefaults table) {
-	    return new DimensionUIResource(4096,4096);
-	  };
-	};
-
+	Object minimumThumbSize = new DimensionUIResource(8,8);
+	Object maximumThumbSize = new DimensionUIResource(4096,4096);
 
 	// ** Slider value objects
 
@@ -399,10 +421,14 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** SplitPane value objects
 
-	Object splitPaneBorder = new BasicBorders.SplitPaneBorder(
-						       table.getColor("controlLtHighlight"),
-						       table.getColor("controlDkShadow"));
-
+	Object splitPaneBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getSplitPaneBorder");
+	Object splitPaneDividerBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getSplitPaneDividerBorder");
 
 	// ** TabbedBane value objects
 
@@ -417,11 +443,10 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** Text value objects
 
-	Object textFieldBorder = new BasicBorders.FieldBorder(
-                                           table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight"));
+	Object textFieldBorder = 
+	    new UIDefaults.ProxyLazyValue(
+			    "javax.swing.plaf.basic.BasicBorders",
+			    "getTextFieldBorder");
 
         Object editorMargin = new InsetsUIResource(3,3,3,3);
 
@@ -440,7 +465,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         });
 
 	Object caretBlinkRate = new Integer(500);
-
+	Integer four = new Integer(4);
 
         // *** Component Defaults
 
@@ -452,34 +477,54 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Button.foreground", table.get("controlText"),
 	    "Button.border", buttonBorder,
 	    "Button.margin", new InsetsUIResource(2, 14, 2, 14),
-	    "Button.textIconGap", new Integer(4),
-	    "Button.textShiftOffset", new Integer(0),
+	    "Button.textIconGap", four,
+	    "Button.textShiftOffset", zero,
+	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+                         "SPACE", "pressed",
+                "released SPACE", "released"
+              }),
 
 	    "ToggleButton.font", dialogPlain12,
 	    "ToggleButton.background", table.get("control"),
 	    "ToggleButton.foreground", table.get("controlText"),
 	    "ToggleButton.border", buttonToggleBorder,
 	    "ToggleButton.margin", new InsetsUIResource(2, 14, 2, 14),
-	    "ToggleButton.textIconGap", new Integer(4),
-	    "ToggleButton.textShiftOffset", new Integer(0),
+	    "ToggleButton.textIconGap", four,
+	    "ToggleButton.textShiftOffset", zero,
+	    "ToggleButton.focusInputMap",
+	      new UIDefaults.LazyInputMap(new Object[] {
+		            "SPACE", "pressed",
+                   "released SPACE", "released"
+	        }),
 
 	    "RadioButton.font", dialogPlain12,
 	    "RadioButton.background", table.get("control"),
 	    "RadioButton.foreground", table.get("controlText"),
 	    "RadioButton.border", radioButtonBorder,
 	    "RadioButton.margin", new InsetsUIResource(2, 2, 2, 2),
-	    "RadioButton.textIconGap", new Integer(4),
-	    "RadioButton.textShiftOffset", new Integer(0),
+	    "RadioButton.textIconGap", four,
+	    "RadioButton.textShiftOffset", zero,
 	    "RadioButton.icon", radioButtonIcon,
+	    "RadioButton.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                          "SPACE", "pressed",
+                 "released SPACE", "released",
+			 "RETURN", "pressed"
+	      }),
 
 	    "CheckBox.font", dialogPlain12,
 	    "CheckBox.background", table.get("control"),
 	    "CheckBox.foreground", table.get("controlText"),
 	    "CheckBox.border", radioButtonBorder,
 	    "CheckBox.margin", new InsetsUIResource(2, 2, 2, 2),
-	    "CheckBox.textIconGap", new Integer(4),
-	    "CheckBox.textShiftOffset", new Integer(0),
+	    "CheckBox.textIconGap", four,
+	    "CheckBox.textShiftOffset", zero,
 	    "CheckBox.icon", checkBoxIcon,
+	    "CheckBox.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		            "SPACE", "pressed",
+                   "released SPACE", "released"
+		 }),
 
 	    // *** ColorChooser
             "ColorChooser.font", dialogPlain12,
@@ -502,6 +547,14 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ComboBox.selectionForeground", table.get("textHighlightText"),
             "ComboBox.disabledBackground", table.get("control"),
             "ComboBox.disabledForeground", table.get("textInactiveText"),
+	    "ComboBox.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		      "ESCAPE", "hidePopup",
+		     "PAGE_UP", "pageUpPassThrough",
+		   "PAGE_DOWN", "pageDownPassThrough",
+		        "HOME", "homePassThrough",
+		         "END", "endPassThrough"
+		 }),
  
 	    // *** FileChooser 
 	 
@@ -517,6 +570,10 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "FileChooser.homeFolderIcon", homeFolderIcon,
             "FileChooser.detailsViewIcon", detailsViewIcon,
             "FileChooser.listViewIcon", listViewIcon,
+	    "FileChooser.ancestorInputMap", 
+	       new UIDefaults.LazyInputMap(new Object[] {
+		     "ESCAPE", "cancelSelection"
+		 }),
 
             "FileView.directoryIcon", directoryIcon,
             "FileView.fileIcon", fileIcon,
@@ -530,19 +587,57 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "InternalFrame.icon", LookAndFeel.makeIcon(getClass(), "icons/JavaCup.gif"),
 
             /* Default frame icons are undefined for Basic. */
-            "InternalFrame.maximizeIcon", BasicIconFactory.createEmptyFrameIcon(),
-            "InternalFrame.minimizeIcon", BasicIconFactory.createEmptyFrameIcon(),
-            "InternalFrame.iconifyIcon", BasicIconFactory.createEmptyFrameIcon(),
-            "InternalFrame.closeIcon", BasicIconFactory.createEmptyFrameIcon(),
+            "InternalFrame.maximizeIcon", 
+	    new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.basic.BasicIconFactory",
+			   "createEmptyFrameIcon"),
+            "InternalFrame.minimizeIcon", 
+	    new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.basic.BasicIconFactory",
+			   "createEmptyFrameIcon"),
+            "InternalFrame.iconifyIcon", 
+	    new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.basic.BasicIconFactory",
+			   "createEmptyFrameIcon"),
+            "InternalFrame.closeIcon", 
+	    new UIDefaults.ProxyLazyValue(
+			   "javax.swing.plaf.basic.BasicIconFactory",
+			   "createEmptyFrameIcon"),
 
 	    "InternalFrame.activeTitleBackground", table.get("activeCaption"),
 	    "InternalFrame.activeTitleForeground", table.get("activeCaptionText"),
 	    "InternalFrame.inactiveTitleBackground", table.get("inactiveCaption"),
 	    "InternalFrame.inactiveTitleForeground", table.get("inactiveCaptionText"),
+	    "InternalFrame.windowBindings", new Object[] {
+	      "shift ESCAPE", "showSystemMenu",
+		"ctrl SPACE", "showSystemMenu",
+	            "ESCAPE", "hideSystemMenu"},
 
 	    "DesktopIcon.border", internalFrameBorder,
 
 	    "Desktop.background", table.get("desktop"),
+	    "Desktop.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		 "ctrl F5", "restore", 
+		 "ctrl F4", "close",
+		 "ctrl F7", "move", 
+		 "ctrl F8", "resize",
+		   "RIGHT", "right",
+		"KP_RIGHT", "right",
+		    "LEFT", "left",
+		 "KP_LEFT", "left",
+		      "UP", "up",
+		   "KP_UP", "up",
+		    "DOWN", "down",
+		 "KP_DOWN", "down",
+		  "ESCAPE", "escape",
+		 "ctrl F9", "minimize", 
+		"ctrl F10", "maximize",
+		 "ctrl F6", "selectNextFrame",
+		"ctrl TAB", "selectNextFrame",
+	     "ctrl alt F6", "selectNextFrame",
+       "shift ctrl alt F6", "selectPreviousFrame"
+	      }),
 
 	    // *** Label
 	    "Label.font", dialogPlain12,
@@ -561,12 +656,37 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "List.focusCellHighlightBorder", focusCellHighlightBorder,
 	    "List.border", null,
 	    "List.cellRenderer", listCellRendererActiveValue,
+	    "List.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		               "UP", "selectPreviousRow",
+		            "KP_UP", "selectPreviousRow",
+		         "shift UP", "selectPreviousRowExtendSelection",
+		      "shift KP_UP", "selectPreviousRowExtendSelection",
+		             "DOWN", "selectNextRow",
+		          "KP_DOWN", "selectNextRow",
+		       "shift DOWN", "selectNextRowExtendSelection",
+		    "shift KP_DOWN", "selectNextRowExtendSelection",
+		       "ctrl SPACE", "selectNextRowExtendSelection",
+		             "HOME", "selectFirstRow",
+		       "shift HOME", "selectFirstRowExtendSelection",
+		              "END", "selectLastRow",
+		        "shift END", "selectLastRowExtendSelection",
+		          "PAGE_UP", "scrollUp",
+		    "shift PAGE_UP", "scrollUpExtendSelection",
+		        "PAGE_DOWN", "scrollDown",
+		  "shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "ctrl A", "selectAll",
+		       "ctrl SLASH", "selectAll",
+		  "ctrl BACK_SLASH", "clearSelection"
+		 }),
 
 	    // *** Menus
 	    "MenuBar.font", dialogPlain12,
 	    "MenuBar.background", table.get("menu"),
 	    "MenuBar.foreground", table.get("menuText"),
 	    "MenuBar.border", menuBarBorder,
+	    "MenuBar.windowBindings", new Object[] {
+		"F10", "takeFocus" },
 
 	    "MenuItem.font", dialogPlain12,
 	    "MenuItem.acceleratorFont", dialogPlain12,
@@ -629,6 +749,21 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Menu.checkIcon", menuItemCheckIcon,
 	    "Menu.arrowIcon", menuArrowIcon,
 	    "Menu.consumesTabs", Boolean.TRUE,
+	    // These window InputMap bindings are used when the Menu is
+	    // selected.
+	    "Menu.selectedWindowInputMapBindings", new Object[] {
+		  "ESCAPE", "cancel",
+                    "DOWN", "selectNext",
+		 "KP_DOWN", "selectNext",
+		      "UP", "selectPrevious",
+		   "KP_UP", "selectPrevious",
+		    "LEFT", "selectParent",
+		 "KP_LEFT", "selectParent",
+		   "RIGHT", "selectChild",
+		"KP_RIGHT", "selectChild",
+		   "ENTER", "return",
+		   "SPACE", "return"
+	    },
 
 	    "PopupMenu.font", dialogPlain12,
 	    "PopupMenu.background", table.get("menu"),
@@ -648,6 +783,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "OptionPane.informationIcon", LookAndFeel.makeIcon(getClass(), "icons/Inform.gif"),
 	    "OptionPane.warningIcon", LookAndFeel.makeIcon(getClass(), "icons/Warn.gif"),
 	    "OptionPane.questionIcon", LookAndFeel.makeIcon(getClass(), "icons/Question.gif"),
+	    "OptionPane.windowBindings", new Object[] {
+		"ESCAPE", "close" },
 
 
 	    // *** Panel
@@ -663,7 +800,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "ProgressBar.selectionBackground", table.get("textHighlight"),
 	    "ProgressBar.border", progressBarBorder,
             "ProgressBar.cellLength", new Integer(1),
-            "ProgressBar.cellSpacing", new Integer(0),
+            "ProgressBar.cellSpacing", zero,
 
            // *** Separator
             "Separator.shadow", table.get("controlShadow"),          // DEPRECATED - DO NOT USE!
@@ -684,12 +821,44 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "ScrollBar.border", null,
 	    "ScrollBar.minimumThumbSize", minimumThumbSize,
 	    "ScrollBar.maximumThumbSize", maximumThumbSize,
+	    "ScrollBar.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "negativeUnitIncrement",
+		    "KP_RIGHT", "negativeUnitIncrement",
+		        "DOWN", "positiveUnitIncrement",
+		     "KP_DOWN", "positiveUnitIncrement",
+		   "PAGE_DOWN", "positiveBlockIncrement",
+		        "LEFT", "positiveUnitIncrement",
+		     "KP_LEFT", "positiveUnitIncrement",
+		          "UP", "negativeUnitIncrement",
+		       "KP_UP", "negativeUnitIncrement",
+		     "PAGE_UP", "negativeBlockIncrement",
+		        "HOME", "minScroll",
+		         "END", "maxScroll"
+		 }),
 
 	    "ScrollPane.font", dialogPlain12,
 	    "ScrollPane.background", table.get("control"),
 	    "ScrollPane.foreground", table.get("controlText"),
 	    "ScrollPane.border", etchedBorder,
 	    "ScrollPane.viewportBorder", null,
+	    "ScrollPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		           "RIGHT", "unitScrollRight",
+		        "KP_RIGHT", "unitScrollRight",
+		            "DOWN", "unitScrollDown",
+		         "KP_DOWN", "unitScrollDown",
+		            "LEFT", "unitScrollLeft",
+		         "KP_LEFT", "unitScrollLeft",
+		              "UP", "unitScrollUp",
+		           "KP_UP", "unitScrollUp",
+		         "PAGE_UP", "scrollUp",
+		       "PAGE_DOWN", "scrollDown",
+		    "ctrl PAGE_UP", "scrollLeft",
+		  "ctrl PAGE_DOWN", "scrollRight",
+		       "ctrl HOME", "scrollHome",
+		        "ctrl END", "scrollEnd"
+		 }),
 
 	    "Viewport.font", dialogPlain12,
 	    "Viewport.background", table.get("control"),
@@ -703,13 +872,45 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Slider.focus", table.get("controlDkShadow"),
 	    "Slider.border", null,
 	    "Slider.focusInsets", sliderFocusInsets,
+	    "Slider.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "positiveUnitIncrement",
+		    "KP_RIGHT", "positiveUnitIncrement",
+		        "DOWN", "negativeUnitIncrement",
+		     "KP_DOWN", "negativeUnitIncrement",
+		   "PAGE_DOWN", "negativeBlockIncrement",
+		        "LEFT", "negativeUnitIncrement",
+		     "KP_LEFT", "negativeUnitIncrement",
+		          "UP", "positiveUnitIncrement",
+		       "KP_UP", "positiveUnitIncrement",
+		     "PAGE_UP", "positiveBlockIncrement",
+		        "HOME", "minScroll",
+		         "END", "maxScroll"
+		 }),
 
 	    // *** SplitPane
 	    "SplitPane.background", table.get("control"),
 	    "SplitPane.highlight", table.get("controlLtHighlight"),
 	    "SplitPane.shadow", table.get("controlShadow"),
 	    "SplitPane.border", splitPaneBorder,
-	    "SplitPane.dividerSize", new Integer(5),
+	    "SplitPane.dividerSize", new Integer(7),
+	    "SplitPaneDivider.border", splitPaneDividerBorder,
+	    "SplitPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		        "UP", "negativeIncrement",
+		      "DOWN", "positiveIncrement",
+		      "LEFT", "negativeIncrement",
+		     "RIGHT", "positiveIncrement",
+		     "KP_UP", "negativeIncrement",
+		   "KP_DOWN", "positiveIncrement",
+		   "KP_LEFT", "negativeIncrement",
+		  "KP_RIGHT", "positiveIncrement",
+		      "HOME", "selectMin",
+		       "END", "selectMax",
+		        "F8", "startResize",
+		        "F6", "toggleFocus"
+		 }),
+		
 
 	    // *** TabbedPane
             "TabbedPane.font", dialogPlain12,
@@ -720,12 +921,33 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "TabbedPane.shadow", table.get("controlShadow"),
             "TabbedPane.darkShadow", table.get("controlDkShadow"),
             "TabbedPane.focus", table.get("controlText"),
-            "TabbedPane.textIconGap", new Integer(4),
+            "TabbedPane.textIconGap", four,
             "TabbedPane.tabInsets", tabbedPaneTabInsets,
             "TabbedPane.selectedTabPadInsets", tabbedPaneTabPadInsets,
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
             "TabbedPane.contentBorderInsets", tabbedPaneContentBorderInsets,
             "TabbedPane.tabRunOverlay", new Integer(2),
+	    "TabbedPane.focusInputMap",
+	      new UIDefaults.LazyInputMap(new Object[] {
+		         "RIGHT", "navigateRight",
+	              "KP_RIGHT", "navigateRight",
+	                  "LEFT", "navigateLeft",
+	               "KP_LEFT", "navigateLeft",
+	                    "UP", "navigateUp",
+	                 "KP_UP", "navigateUp",
+	                  "DOWN", "navigateDown",
+	               "KP_DOWN", "navigateDown",
+	             "ctrl DOWN", "requestFocusForVisibleComponent",
+	          "ctrl KP_DOWN", "requestFocusForVisibleComponent",
+		}),
+	    "TabbedPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		   "ctrl PAGE_DOWN", "navigatePageDown",
+	             "ctrl PAGE_UP", "navigatePageUp",
+	                  "ctrl UP", "requestFocus",
+	               "ctrl KP_UP", "requestFocus",
+		 }),
+
 
 	    // *** Table
 	    "Table.font", dialogPlain12,
@@ -738,11 +960,53 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Table.focusCellForeground", table.get("controlText"),
 	    "Table.focusCellHighlightBorder", focusCellHighlightBorder,
 	    "Table.scrollPaneBorder", loweredBevelBorder,
+	    "Table.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                "RIGHT", "selectNextColumn",
+		             "KP_RIGHT", "selectNextColumn",
+		                 "LEFT", "selectPreviousColumn",
+		              "KP_LEFT", "selectPreviousColumn",
+		                 "DOWN", "selectNextRow",
+		              "KP_DOWN", "selectNextRow",
+		                   "UP", "selectPreviousRow",
+		                "KP_UP", "selectPreviousRow",
+		          "shift RIGHT", "selectNextColumnExtendSelection",
+		       "shift KP_RIGHT", "selectNextColumnExtendSelection",
+		           "shift LEFT", "selectPreviousColumnExtendSelection",
+		        "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+		           "shift DOWN", "selectNextRowExtendSelection",
+		        "shift KP_DOWN", "selectNextRowExtendSelection",
+		             "shift UP", "selectPreviousRowExtendSelection",
+		          "shift KP_UP", "selectPreviousRowExtendSelection",
+		              "PAGE_UP", "scrollUpChangeSelection",
+		            "PAGE_DOWN", "scrollDownChangeSelection",
+		                 "HOME", "selectFirstColumn",
+		                  "END", "selectLastColumn",
+		        "shift PAGE_UP", "scrollUpExtendSelection",
+		      "shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "shift HOME", "selectFirstColumnExtendSelection",
+		            "shift END", "selectLastColumnExtendSelection",
+		         "ctrl PAGE_UP", "scrollLeftChangeSelection",
+		       "ctrl PAGE_DOWN", "scrollRightChangeSelection",
+		            "ctrl HOME", "selectFirstRow",
+		             "ctrl END", "selectLastRow",
+		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
+		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
+		      "ctrl shift HOME", "selectFirstRowExtendSelection",
+		       "ctrl shift END", "selectLastRowExtendSelection",
+		                  "TAB", "selectNextColumnCell",
+		            "shift TAB", "selectPreviousColumnCell",
+		                "ENTER", "selectNextRowCell",
+		          "shift ENTER", "selectPreviousRowCell",
+		               "ctrl A", "selectAll",
+		               "ESCAPE", "cancel",
+		                   "F2", "startEditing"
+		 }),
 
 	    "TableHeader.font", dialogPlain12,
 	    "TableHeader.foreground", table.get("controlText"), // header text color
 	    "TableHeader.background", table.get("control"), // header background
-	    "TableHeader.cellBorder", raisedBevelBorder,
+	    "TableHeader.cellBorder", tableHeaderBorder,
 
 	    // *** Text
 	    "TextField.font", sansSerifPlain12,
@@ -820,6 +1084,17 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "ToolBar.floatingForeground", darkGray,
 	    "ToolBar.border", etchedBorder,
 	    "ToolBar.separatorSize", toolBarSeparatorSize,
+	    "ToolBar.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		        "UP", "navigateUp",
+		     "KP_UP", "navigateUp",
+		      "DOWN", "navigateDown",
+		   "KP_DOWN", "navigateDown",
+		      "LEFT", "navigateLeft",
+		   "KP_LEFT", "navigateLeft",
+		     "RIGHT", "navigateRight",
+		  "KP_RIGHT", "navigateRight"
+		 }),
 
 	    // *** ToolTips
             "ToolTip.font", sansSerifPlain12,
@@ -849,7 +1124,64 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Tree.collapsedIcon", null,
 	    "Tree.changeSelectionWithFocus", Boolean.TRUE,
 	    "Tree.drawsFocusBorderAroundIcon", Boolean.FALSE,
+	    "Tree.focusInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                     "UP", "selectPrevious",
+		                  "KP_UP", "selectPrevious",
+		               "shift UP", "selectPreviousExtendSelection",
+		            "shift KP_UP", "selectPreviousExtendSelection",
+		                   "DOWN", "selectNext",
+		                "KP_DOWN", "selectNext",
+		             "shift DOWN", "selectNextExtendSelection",
+		          "shift KP_DOWN", "selectNextExtendSelection",
+		                  "RIGHT", "selectChild",
+		               "KP_RIGHT", "selectChild",
+		                   "LEFT", "selectParent",
+		                "KP_LEFT", "selectParent",
+		                "PAGE_UP", "scrollUpChangeSelection",
+		          "shift PAGE_UP", "scrollUpExtendSelection",
+		              "PAGE_DOWN", "scrollDownChangeSelection",
+		        "shift PAGE_DOWN", "scrollDownExtendSelection",
+		                   "HOME", "selectFirst",
+		             "shift HOME", "selectFirstExtendSelection",
+		                    "END", "selectLast",
+		              "shift END", "selectLastExtendSelection",
+		                  "ENTER", "toggle",
+		                     "F2", "startEditing",
+		                 "ctrl A", "selectAll",
+		             "ctrl SLASH", "selectAll",
+		        "ctrl BACK_SLASH", "clearSelection",
+		             "ctrl SPACE", "toggleSelectionPreserveAnchor",
+		            "shift SPACE", "extendSelection",
+		              "ctrl HOME", "selectFirstChangeLead",
+		               "ctrl END", "selectLastChangeLead",
+		                "ctrl UP", "selectPreviousChangeLead",
+		             "ctrl KP_UP", "selectPreviousChangeLead",
+		              "ctrl DOWN", "selectNextChangeLead",
+		           "ctrl KP_DOWN", "selectNextChangeLead",
+		         "ctrl PAGE_DOWN", "scrollDownChangeLead",
+		   "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
+		           "ctrl PAGE_UP", "scrollUpChangeLead",
+		     "ctrl shift PAGE_UP", "scrollUpExtendSelection",
+		              "ctrl LEFT", "scrollLeft",
+		           "ctrl KP_LEFT", "scrollLeft",
+		             "ctrl RIGHT", "scrollRight",
+		          "ctrl KP_RIGHT", "scrollRight",
+		                  "SPACE", "toggleSelectionPreserveAnchor",
+		 }),
+	    "Tree.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		     "ESCAPE", "cancel"
+		 }),
 
+	    // These bindings are only enabled when there is a default
+	    // button set on the rootpane.
+	    "RootPane.defaultButtonWindowKeyBindings", new Object[] {
+		             "ENTER", "press",
+		    "released ENTER", "release",
+		        "ctrl ENTER", "press",
+	       "ctrl released ENTER", "release"
+	      },
 	};
 
 	table.putDefaults(defaults);

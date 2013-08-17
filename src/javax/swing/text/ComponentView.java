@@ -1,8 +1,11 @@
 /*
- * @(#)ComponentView.java	1.36 01/11/29
+ * @(#)ComponentView.java	1.40 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -19,7 +22,7 @@ import javax.swing.OverlayLayout;
  * to be embedded into the View hierarchy).
  *
  * @author Timothy Prinzing
- * @version 1.36 11/29/01
+ * @version 1.40 02/02/00
  */
 public class ComponentView extends View  {
 
@@ -56,25 +59,15 @@ public class ComponentView extends View  {
     // --- View methods ---------------------------------------------
 
     /**
-     * Paints a component view.
      * The real paint behavior occurs naturally from the association
      * that the component has with its parent container (the same
-     * container hosting this view), so this simply allows us to
-     * position the component properly relative to the view.  Since
-     * the coordinate system for the view is simply the parent
-     * containers, positioning the child component is easy.
+     * container hosting this view).  This is implemented to do nothing.
      *
      * @param g the graphics context
      * @param a the shape
      * @see View#paint
      */
     public void paint(Graphics g, Shape a) {
-	if (c != null) {
-	    c.setBounds(a.getBounds());
-	    if (! c.isVisible()) {
-		c.setVisible(true);
-	    }
-	}
     }
 
     /**
@@ -91,15 +84,15 @@ public class ComponentView extends View  {
      * @exception IllegalArgumentException for an invalid axis
      */
     public float getPreferredSpan(int axis) {
+	if ((axis != X_AXIS) && (axis != Y_AXIS)) {
+	    throw new IllegalArgumentException("Invalid axis: " + axis);
+	}
 	if (c != null) {
 	    Dimension size = c.getPreferredSize();
-	    switch (axis) {
-	    case View.X_AXIS:
+	    if (axis == View.X_AXIS) {
 		return size.width;
-	    case View.Y_AXIS:
+	    } else {
 		return size.height;
-	    default:
-		throw new IllegalArgumentException("Invalid axis: " + axis);
 	    }
 	}
 	return 0;
@@ -119,15 +112,15 @@ public class ComponentView extends View  {
      * @exception IllegalArgumentException for an invalid axis
      */
     public float getMinimumSpan(int axis) {
+	if ((axis != X_AXIS) && (axis != Y_AXIS)) {
+	    throw new IllegalArgumentException("Invalid axis: " + axis);
+	}
 	if (c != null) {
 	    Dimension size = c.getMinimumSize();
-	    switch (axis) {
-	    case View.X_AXIS:
+	    if (axis == View.X_AXIS) {
 		return size.width;
-	    case View.Y_AXIS:
+	    } else {
 		return size.height;
-	    default:
-		throw new IllegalArgumentException("Invalid axis: " + axis);
 	    }
 	}
 	return 0;
@@ -147,15 +140,15 @@ public class ComponentView extends View  {
      * @exception IllegalArgumentException for an invalid axis
      */
     public float getMaximumSpan(int axis) {
+	if ((axis != X_AXIS) && (axis != Y_AXIS)) {
+	    throw new IllegalArgumentException("Invalid axis: " + axis);
+	}
 	if (c != null) {
 	    Dimension size = c.getMaximumSize();
-	    switch (axis) {
-	    case View.X_AXIS:
+	    if (axis == View.X_AXIS) {
 		return size.width;
-	    case View.Y_AXIS:
+	    } else {
 		return size.height;
-	    default:
-		throw new IllegalArgumentException("Invalid axis: " + axis);
 	    }
 	}
 	return 0;
@@ -187,47 +180,14 @@ public class ComponentView extends View  {
 
     /**
      * Sets the size of the view.  This is implemented
-     * to set the size of the component to match the
-     * size of the view.
-     * <p>
-     * The changing of the component size will
-     * touch the component lock, which is the one thing 
-     * that is not safe from the View hierarchy.  Therefore,
-     * this functionality is executed immediately if on the
-     * event thread, or is queued on the event queue if
-     * called from another thread (notification of change
-     * from an asynchronous update).
+     * to do nothing since the component itself will get
+     * its size established by the LayoutManager installed
+     * on the hosting Container.
      *
      * @param width the width >= 0
      * @param height the height >= 0
      */
     public void setSize(float width, float height) {
-	if (c != null) {
-	    if (SwingUtilities.isEventDispatchThread()) {
-		c.setSize((int) width, (int) height);
-	    } else {
-		Runnable callSetComponentSize = 
-		    new SafeResizer((int) width, (int) height);
-		SwingUtilities.invokeLater(callSetComponentSize);
-	    }
-	}
-    }
-
-    class SafeResizer implements Runnable {
-	
-	SafeResizer(int width, int height) {
-	    this.width = width;
-	    this.height = height;
-	}
-
-        public void run() {
-	    if (c != null) {
-		c.setSize(width, height);
-	    }
-	}
-
-	private int width;
-	private int height;
     }
 
     /**
@@ -285,27 +245,23 @@ public class ComponentView extends View  {
      */
     void setComponentParent() {
 	View p = getParent();
-	if (p == null) {
-	    if (c != null) {
-		Container parent = c.getParent();
-		if (parent != null) {
-		    parent.remove(c);
+	if (p != null) {
+	    Container parent = getContainer();
+	    if (parent != null) {
+		if (c == null) {
+		    // try to build a component
+		    Component comp = createComponent();
+		    if (comp != null) {
+			createdC = comp;
+			c = new Invalidator(comp);
+		    }
 		}
-	    }
-	} else {
-	    if (c == null) {
-		// try to build a component
-		Component comp = createComponent();
-		if (comp != null) {
-		    createdC = comp;
-		    c = new Invalidator(comp);
-		    c.setVisible(false);
-		}
-	    }
-	    if (c != null) {
-		if (c.getParent() == null) {
-		    Container parent = getContainer();
-		    parent.add(c);
+		if (c != null) {
+		    if (c.getParent() == null) {
+			// components associated with the View tree are added
+			// to the hosting container with the View as a constraint.
+			parent.add(c, this);
+		    }
 		}
 	    }
 	}

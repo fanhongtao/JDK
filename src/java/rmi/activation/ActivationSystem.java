@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationSystem.java	1.9 01/11/29
+ * @(#)ActivationSystem.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -22,14 +25,14 @@ import java.rmi.activation.UnknownObjectException;
  * and inactive groups.
  *
  * @author 	Ann Wollrath
- * @version	1.9, 11/29/01
+ * @version	1.13, 02/02/00
  * @see		Activator
  * @see		ActivationMonitor
- * @since	JDK1.2
+ * @since	1.2
  */
 public interface ActivationSystem extends Remote {
 
-    /** The port to lookup the activation system */
+    /** The port to lookup the activation system. */
     public static final int SYSTEM_PORT = 1098;
     
     /**
@@ -53,7 +56,7 @@ public interface ActivationSystem extends Remote {
      * @exception UnknownGroupException if group referred to in
      * <code>desc</code> is not registered with this system
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationID registerObject(ActivationDesc desc)
 	throws ActivationException, UnknownGroupException, RemoteException;
@@ -68,7 +71,7 @@ public interface ActivationSystem extends Remote {
      * update failure, etc).
      * @exception UnknownObjectException if object is unknown (not registered)
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public void unregisterObject(ActivationID id)
 	throws ActivationException, UnknownObjectException, RemoteException;
@@ -82,7 +85,7 @@ public interface ActivationSystem extends Remote {
      * @return an identifier for the group
      * @exception ActivationException if group registration fails
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationGroupID registerGroup(ActivationGroupDesc desc)
 	throws ActivationException, RemoteException;
@@ -97,11 +100,11 @@ public interface ActivationSystem extends Remote {
      * @param id the activation group's identifier
      * @param group the group's instantiator
      * @param incarnation the group's incarnation number
-     *
+     * @return monitor for activation group
      * @exception UnknownGroupException if group is not registered
      * @exception ActivationException if group is already active
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationMonitor activeGroup(ActivationGroupID id,
 					 ActivationInstantiator group,
@@ -120,7 +123,7 @@ public interface ActivationSystem extends Remote {
      * update failure, etc).
      * @exception UnknownGroupException if group is not registered
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public void unregisterGroup(ActivationGroupID id)
 	throws ActivationException, UnknownGroupException, RemoteException;
@@ -128,7 +131,9 @@ public interface ActivationSystem extends Remote {
     /**
      * Shutdown the activation system. Destroys all groups spawned by
      * the activation daemon and exits the activation daemon.
-     * @since JDK1.2
+     * @exception RemoteException if failed to contact/shutdown the activation
+     * daemon
+     * @since 1.2
      */
     public void shutdown() throws RemoteException;
 
@@ -147,7 +152,7 @@ public interface ActivationSystem extends Remote {
      * to update log)
      * @exception RemoteException if remote call fails
      * @return the previous value of the activation descriptor
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationDesc setActivationDesc(ActivationID id,
 					    ActivationDesc desc)
@@ -167,7 +172,7 @@ public interface ActivationSystem extends Remote {
      * to update log)
      * @exception RemoteException if remote call fails
      * @return the previous value of the activation group descriptor
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationGroupDesc setActivationGroupDesc(ActivationGroupID id,
 						      ActivationGroupDesc desc)
@@ -182,7 +187,7 @@ public interface ActivationSystem extends Remote {
      * @exception ActivationException for general failure
      * @exception RemoteException if remote call fails
      * @return the activation descriptor
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationDesc getActivationDesc(ActivationID id)
        throws ActivationException, UnknownObjectException, RemoteException;
@@ -196,7 +201,7 @@ public interface ActivationSystem extends Remote {
      * @exception ActivationException for general failure
      * @exception RemoteException if remote call fails
      * @return the activation group descriptor
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationGroupDesc getActivationGroupDesc(ActivationGroupID id)
        throws ActivationException, UnknownGroupException, RemoteException;

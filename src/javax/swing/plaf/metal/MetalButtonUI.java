@@ -1,8 +1,11 @@
 /*
- * @(#)MetalButtonUI.java	1.21 01/11/29
+ * @(#)MetalButtonUI.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package javax.swing.plaf.metal;
@@ -24,7 +27,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 11/29/01
+ * @version 1.22 02/02/00
  * @author Tom Santos
  */
 public class MetalButtonUI extends BasicButtonUI {

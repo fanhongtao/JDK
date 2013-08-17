@@ -1,8 +1,11 @@
 /*
- * @(#)TreeSelectionListener.java	1.9 01/11/29
+ * @(#)TreeSelectionListener.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -12,11 +15,15 @@ import java.util.EventListener;
 /**
  * The listener that's notified when the selection in a TreeSelectionModel
  * changes.
+ * For more information and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/events/treeselectionlistener.html">How to Write a Tree Selection Listener</a>,
+ * a section in <em>The Java Tutorial.</em>
  *
  * @see javax.swing.tree.TreeSelectionModel
  * @see javax.swing.JTree
  *
- * @version 1.9 11/29/01
+ * @version 1.11 02/02/00
  * @author Scott Violet
  */
 public interface TreeSelectionListener extends EventListener

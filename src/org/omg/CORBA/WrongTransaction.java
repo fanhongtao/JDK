@@ -1,8 +1,11 @@
 /*
- * @(#)WrongTransaction.java	1.15 01/11/29
+ * @(#)WrongTransaction.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -22,16 +25,16 @@ package org.omg.CORBA;
 
 public class WrongTransaction extends UserException {
     /**
-    * Constructs a WrongTransaction object with an empty detail message.
-    */
+     * Constructs a WrongTransaction object with an empty detail message.
+     */
     public WrongTransaction() {
 	super();
     }
 
     /**
-    * Constructs a WrongTransaction object with the given detail message.
-    * @param reason The detail message explaining what caused this exception to be thrown.
-    */
+     * Constructs a WrongTransaction object with the given detail message.
+     * @param reason The detail message explaining what caused this exception to be thrown.
+     */
     public WrongTransaction(String reason) {
 	super(reason);
     }

@@ -1,8 +1,11 @@
 /*
- * @(#)Point.java	1.23 01/11/29
+ * @(#)Point.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -13,7 +16,7 @@ import java.awt.geom.Point2D;
  * A point representing a location in (x, y) coordinate space, specified
  * in integer precision.
  *
- * @version 	1.23, 11/29/01
+ * @version 	1.26, 02/02/00
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -23,8 +26,8 @@ public class Point extends Point2D implements java.io.Serializable {
      * If no <i>x</i> coordinate is set it will default to '0'.
      *
      * @serial
-     * @see getLocation()
-     * @see Move()
+     * @see #getLocation()
+     * @see #move(int, int)
      */
     public int x;
 
@@ -33,8 +36,8 @@ public class Point extends Point2D implements java.io.Serializable {
      * If no <i>y</i> coordinate is set it will default to '0'.
      *
      * @serial
-     * @see getLocation()
-     * @see Move()
+     * @see #getLocation()
+     * @see #move(int, int)
      */
     public int y;
 
@@ -158,9 +161,9 @@ public class Point extends Point2D implements java.io.Serializable {
      * along the <i>y</i> axis so that it now represents the point 
      * (<code>x</code>&nbsp;<code>+</code>&nbsp;<code>dx</code>, 
      * <code>y</code>&nbsp;<code>+</code>&nbsp;<code>dy</code>). 
-     * @param       dx   the distance to move this point 
+     * @param       x   the distance to move this point 
      *                            along the <i>x</i> axis.
-     * @param       dy    the distance to move this point 
+     * @param       y    the distance to move this point 
      *                            along the <i>y</i> axis.
      */
     public void translate(int x, int y) {

@@ -1,8 +1,11 @@
 /*
- * @(#)FilePermission.java	1.60 01/11/29
+ * @(#)FilePermission.java	1.67 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.io;
@@ -62,10 +65,13 @@ import java.util.StringTokenizer;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.60 01/11/29
+ * @version 1.67 00/02/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers
+ * @since 1.2
+ *
+ * @serial exclude
  */
 
 public final class FilePermission extends Permission implements Serializable {
@@ -140,6 +146,8 @@ public final class FilePermission extends Permission implements Serializable {
     }
 */
 
+    private static final long serialVersionUID = 7930732926638008763L;
+
     /**
      * initialize a FilePermission object. Common to all constructors.
      * Also called during de-serialization.
@@ -147,7 +155,6 @@ public final class FilePermission extends Permission implements Serializable {
      * @param mask the actions mask to use.
      *
      */
-
     private void init(int mask) 
     {
 
@@ -629,10 +636,13 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.60 03/09/04
+ * @version 1.67 02/02/00
  *
  * @author Marianne Mueller
  * @author Roland Schemers
+ *
+ * @serial include
+ *
  */
 
 final class FilePermissionCollection extends PermissionCollection
@@ -654,6 +664,12 @@ implements Serializable {
      * permission.path.
      *
      * @param permission the Permission object to add.
+     *
+     * @exception IllegalArgumentException - if the permission is not a
+     *                                       FilePermission 
+     *
+     * @exception SecurityException - if this FilePermissionCollection object
+     *                                has been marked readonly
      */
 
     public void add(Permission permission)
@@ -661,6 +677,9 @@ implements Serializable {
 	if (! (permission instanceof FilePermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
+	if (isReadOnly())
+	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+	    
 	permissions.addElement(permission);
     }
 

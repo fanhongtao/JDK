@@ -1,8 +1,11 @@
 /*
- * @(#)MotifComboBoxUI.java	1.28 01/11/29
+ * @(#)MotifComboBoxUI.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package com.sun.java.swing.plaf.motif;
 
@@ -23,7 +26,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.25 10/30/98
+ * @version 1.32, 02/02/00
  * @author Arnaud Weber
  */
 public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
@@ -157,7 +160,12 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
                 in = new Insets( 0, 0, 0, 0 );
             }
             // Draw the separation
-            r.x -= (HORIZ_MARGIN + 2);
+	    if(MotifGraphicsUtils.isLeftToRight(comboBox)) {
+	        r.x -= (HORIZ_MARGIN + 2);
+	    }
+	    else {
+	        r.x += r.width + HORIZ_MARGIN + 1;
+	    }
             r.y = in.top;
             r.width = 1;
             r.height = comboBox.getBounds().height - in.bottom - in.top;
@@ -203,7 +211,12 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         b.width -= (in.left + in.right);
         b.height -= (in.top + in.bottom);
 
-        b.x = b.x + b.width - HORIZ_MARGIN - arrowIcon.getIconWidth();
+	if(MotifGraphicsUtils.isLeftToRight(comboBox)) {
+	    b.x = b.x + b.width - HORIZ_MARGIN - arrowIcon.getIconWidth();
+	}
+	else {
+	    b.x += HORIZ_MARGIN;
+	}
         b.y = b.y + (b.height - arrowIcon.getIconHeight()) / 2;
         b.width = arrowIcon.getIconWidth();
         b.height = arrowIcon.getIconHeight();
@@ -214,9 +227,18 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         int width = comboBox.getWidth();
         int height = comboBox.getHeight();
         Insets insets = getInsets();
-        return new Rectangle(insets.left, insets.top,
-                             (width - (insets.left + insets.right)) - iconAreaWidth(),
-                             height - (insets.top + insets.bottom));
+	if(MotifGraphicsUtils.isLeftToRight(comboBox)) {
+	    return new Rectangle(insets.left, insets.top,
+				 (width - (insets.left + insets.right)) - 
+				                        iconAreaWidth(),
+				 height - (insets.top + insets.bottom));
+	}
+	else {
+	    return new Rectangle(insets.left + iconAreaWidth(), insets.top,
+				 (width - (insets.left + insets.right)) - 
+				                        iconAreaWidth(),
+				 height - (insets.top + insets.bottom));
+	}
     }
 
     public int iconAreaWidth() {
@@ -329,40 +351,6 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
      */
     MotifComboBoxUI motifGetUI() {
         return this;
-    }
-
-    protected void installKeyboardActions() {
-        super.installKeyboardActions();
-
-        ActionListener downAction = new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                if ( motifGetComboBox().isEnabled() && isPopupVisible(motifGetComboBox()) ) {
-                    motifGetUI().selectNextPossibleValue();
-                }
-            }
-        };
-
-        motifGetComboBox().registerKeyboardAction( downAction,
-						 KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ),
-						 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        ActionListener upAction = new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                if ( motifGetComboBox().isEnabled() && isPopupVisible(motifGetComboBox()) ) {
-                    motifGetUI().selectPreviousPossibleValue();
-                }
-            }
-        };
-
-        motifGetComboBox().registerKeyboardAction( upAction,
-						   KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 )
-						   ,JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    }
-
-    protected void uninstallKeyboardActions() {
-        super.uninstallKeyboardActions();
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0));
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,0));
     }
 }
 

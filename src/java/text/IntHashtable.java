@@ -1,12 +1,14 @@
 /*
- * @(#)IntHashtable.java	1.4 01/11/29
+ * @(#)IntHashtable.java	1.6 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
+
 /*
- * @(#)IntHashtable.java	1.4 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996,1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  */
@@ -87,6 +89,32 @@ final class IntHashtable {
                 return false;
         }
         return true;
+    }
+
+    public int hashCode() {
+        // NOTE:  This function isn't actually used anywhere in this package, but it's here
+        // in case this class is ever used to make sure we uphold the invariants about
+        // hashCode() and equals()
+
+        // WARNING:  This function hasn't undergone rigorous testing to make sure it actually
+        // gives good distribution.  We've eyeballed the results, and they appear okay, but
+        // you copy this algorithm (or these seed and multiplier values) at your own risk.
+        //                                        --rtg 8/17/99
+        
+        int result = 465;   // an arbitrary seed value
+        int scrambler = 1362796821; // an arbitrary multiplier.
+        for (int i = 0; i < keyList.length; ++i) {
+            // this line just scrambles the bits as each value is added into the
+            // has value.  This helps to make sure we affect all the bits and that
+            // the same values in a different order will produce a different hash value
+            result = (int)(result * scrambler + 1);
+            result += keyList[i];
+        }
+        for (int i = 0; i < values.length; ++i) {
+            result = (int)(result * scrambler + 1);
+            result += values[i];
+        }
+        return result;
     }
 
     public Object clone ()

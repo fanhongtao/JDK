@@ -1,8 +1,11 @@
 /*
- * @(#)MouseEvent.java	1.23 01/11/29
+ * @(#)MouseEvent.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -75,17 +78,19 @@ import java.awt.Point;
  * </PRE>
  * If button2 is released first, the MOUSE_RELEASED/MOUSE_CLICKED pair
  * for BUTTON2_MASK arrives first, followed by the pair for BUTTON1_MASK.
+ *
+ * @author Carl Quinn
+ * @version 1.26 02/02/00
  *   
  * @see MouseAdapter
  * @see MouseListener
  * @see MouseMotionAdapter
- * @see MouseMotionListner
+ * @see MouseMotionListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/mouselistener.html">Tutorial: Writing a Mouse Listener</a>
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/mousemotionlistener.html">Tutorial: Writing a Mouse Motion Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.23 11/29/01
- * @author Carl Quinn
+ * @since 1.1
  */
 public class MouseEvent extends InputEvent {
 

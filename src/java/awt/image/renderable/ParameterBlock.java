@@ -1,8 +1,11 @@
 /*
- * @(#)ParameterBlock.java	1.5 01/11/29
+ * @(#)ParameterBlock.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image.renderable;
@@ -11,17 +14,17 @@ import java.io.Serializable;
 import java.util.Vector;
 
 /**
- * A ParameterBlock encapsulates all the information about sources and
+ * A <code>ParameterBlock</code> encapsulates all the information about sources and
  * parameters (Objects) required by a RenderableImageOp, or other
  * classes that process images.
  *
  * <p> Although it is possible to place arbitrary objects in the
  * source Vector, users of this class may impose semantic constraints
  * such as requiring all sources to be RenderedImages or
- * RenderableImage.  ParameterBlock itself is merely a container and
+ * RenderableImage.  <code>ParameterBlock</code> itself is merely a container and
  * performs no checking on source or parameter types.
  *
- * <p> All parameters in a ParameterBlock are objects; convenience
+ * <p> All parameters in a <code>ParameterBlock</code> are objects; convenience
  * add and set methods are available that take arguments of base type and
  * construct the appropriate subclass of Number (such as
  * Integer or Float).  Corresponding get methods perform a
@@ -32,8 +35,8 @@ import java.util.Vector;
  *
  * <p> Note that the get and set methods operate on references.
  * Therefore, one must be careful not to share references between
- * ParameterBlocks when this is inappropriate.  For example, to create
- * a new ParameterBlock that is equal to an old one except for an
+ * <code>ParameterBlock</code>s when this is inappropriate.  For example, to create
+ * a new <code>ParameterBlock</code> that is equal to an old one except for an
  * added source, one might be tempted to write:
  *
  * <pre>
@@ -45,7 +48,7 @@ import java.util.Vector;
  * </pre>
  *
  * <p> This code will have the side effect of altering the original
- * ParameterBlock, since the getSources operation returned a reference
+ * <code>ParameterBlock</code>, since the getSources operation returned a reference
  * to its source Vector.  Both pb and pb1 share their source Vector,
  * and a change in either is visible to both.
  *
@@ -60,7 +63,7 @@ import java.util.Vector;
  * }
  * </pre>
  *
- * <p> The clone method of ParameterBlock has been defined to
+ * <p> The clone method of <code>ParameterBlock</code> has been defined to
  * perform a clone of both the source and parameter Vectors for
  * this reason.  A standard, shallow clone is available as
  * shallowClone.
@@ -84,13 +87,16 @@ public class ParameterBlock implements Cloneable, Serializable {
     /** A dummy constructor. */
     public ParameterBlock() {}
 
-    /** Constructs a ParameterBlock with a given Vector of sources. */
+    /** 
+     * Constructs a <code>ParameterBlock</code> with a given Vector 
+     * of sources. 
+     */
     public ParameterBlock(Vector sources) {
         setSources(sources);
     }
     
     /**
-     * Constructs a ParameterBlock with a given Vector of sources and
+     * Constructs a <code>ParameterBlock</code> with a given Vector of sources and
      * Vector of parameters.
      */
     public ParameterBlock(Vector sources, Vector parameters) {
@@ -99,11 +105,11 @@ public class ParameterBlock implements Cloneable, Serializable {
     }
     
     /**
-     * Creates a shallow copy of a ParameterBlock.  The source and
+     * Creates a shallow copy of a <code>ParameterBlock</code>.  The source and
      * parameter Vectors are copied by reference -- additions or
      * changes will be visible to both versions.
      *
-     * @return an Object clone of the ParameterBlock.
+     * @return an Object clone of the <code>ParameterBlock</code>.
      */
     public Object shallowClone() {
         try {
@@ -115,14 +121,14 @@ public class ParameterBlock implements Cloneable, Serializable {
     }
 
     /**
-     * Creates a copy of a ParameterBlock.  The source and parameter
+     * Creates a copy of a <code>ParameterBlock</code>.  The source and parameter
      * Vectors are cloned, but the actual sources and parameters are
      * copied by reference.  This allows modifications to the order
      * and number of sources and parameters in the clone to be invisible
-     * to the original ParameterBlock.  Changes to the shared sources or
+     * to the original <code>ParameterBlock</code>.  Changes to the shared sources or
      * parameters themselves will still be visible.
      *
-     * @return an Object clone of the ParameterBlock.
+     * @return an Object clone of the <code>ParameterBlock</code>.
      */
     public Object clone() {
         ParameterBlock theClone;
@@ -368,10 +374,19 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * A convenience method to return a parameter as a byte.  An
-     * exception will be thrown if the parameter is null or not a
-     * Byte.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not a <code>Byte</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index
+     *         as a <code>byte</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Byte</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public byte getByteParameter(int index) {
         return ((Byte)parameters.elementAt(index)).byteValue();
@@ -379,10 +394,19 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * A convenience method to return a parameter as a char.  An
-     * exception will be thrown if the parameter is null or not a
-     * Character.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not a <code>Character</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index       
+     *         as a <code>char</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Character</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public char getCharParameter(int index) {
         return ((Character)parameters.elementAt(index)).charValue();
@@ -390,10 +414,19 @@ public class ParameterBlock implements Cloneable, Serializable {
     
     /**
      * A convenience method to return a parameter as a short.  An
-     * exception will be thrown if the parameter is null or not a
-     * Short.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not a <code>Short</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index       
+     *         as a <code>short</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Short</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public short getShortParameter(int index) {
         return ((Short)parameters.elementAt(index)).shortValue();
@@ -401,10 +434,19 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * A convenience method to return a parameter as an int.  An
-     * exception will be thrown if the parameter is null or not an
-     * Integer.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not an <code>Integer</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index       
+     *         as a <code>int</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Integer</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public int getIntParameter(int index) {
         return ((Integer)parameters.elementAt(index)).intValue();
@@ -412,10 +454,19 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * A convenience method to return a parameter as a long.  An
-     * exception will be thrown if the parameter is null or not a
-     * Long.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not a <code>Long</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index       
+     *         as a <code>long</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Long</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public long getLongParameter(int index) {
         return ((Long)parameters.elementAt(index)).longValue();
@@ -423,10 +474,19 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * A convenience method to return a parameter as a float.  An
-     * exception will be thrown if the parameter is null or not a
-     * Float.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not a <code>Float</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index       
+     *         as a <code>float</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Float</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public float getFloatParameter(int index) {
         return ((Float)parameters.elementAt(index)).floatValue();
@@ -434,10 +494,19 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * A convenience method to return a parameter as a double.  An
-     * exception will be thrown if the parameter is null or not a
-     * Double.
+     * exception is thrown if the parameter is 
+     * <code>null</code> or not a <code>Double</code>.
      *
      * @param index the index of the parameter to be returned.
+     * @return the parameter at the specified index       
+     *         as a <code>double</code> value.
+     * @throws ClassCastException if the parameter at the
+     *         specified index is not a <code>Double</code>
+     * @throws NullPointerException if the parameter at the specified
+     *         index is <code>null</code>
+     * @throws ArrayIndexOutOfBoundsException if <code>index</code>
+     *         is negative or not less than the current size of this
+     *         <code>ParameterBlock</code> object
      */
     public double getDoubleParameter(int index) {
         return ((Double)parameters.elementAt(index)).doubleValue();

@@ -1,8 +1,11 @@
 /*
- * @(#)Socket.java	1.43 01/11/29
+ * @(#)Socket.java	1.53 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -26,7 +29,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.43, 11/29/01
+ * @version 1.53, 02/02/00
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @since   JDK1.0
@@ -53,9 +56,11 @@ class Socket {
      * Creates an unconnected Socket with a user-specified
      * SocketImpl.
      * <P>
-     * The <i>impl</i> parameter is an instance of a <B>SocketImpl</B>
+     * @param impl an instance of a <B>SocketImpl</B>
      * the subclass wishes to use on the Socket.
      *
+     * @exception SocketException if there is an error in the underlying protocol,     
+     * such as a TCP error. 
      * @since   JDK1.1
      */
     protected Socket(SocketImpl impl) throws SocketException {
@@ -77,6 +82,10 @@ class Socket {
      *
      * @param      host   the host name.
      * @param      port   the port number.
+     *
+     * @exception  UnknownHostException if the IP address of 
+     * the host could not be determined.
+     *
      * @exception  IOException  if an I/O error occurs when creating the socket.
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkConnect</code> method doesn't allow the operation.
@@ -132,6 +141,7 @@ class Socket {
      * @param port the remote port
      * @param localAddr the local address the socket is bound to
      * @param localPort the local port the socket is bound to
+     * @exception  IOException  if an I/O error occurs when creating the socket.
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkConnect</code> method doesn't allow the operation.
      * @see        SecurityManager#checkConnect
@@ -156,6 +166,7 @@ class Socket {
      * @param port the remote port
      * @param localAddr the local address the socket is bound to
      * @param localPort the local port the socket is bound to
+     * @exception  IOException  if an I/O error occurs when creating the socket.
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkConnect</code> method doesn't allow the operation.
      * @see        SecurityManager#checkConnect
@@ -278,6 +289,7 @@ class Socket {
     /**
      * Gets the local address to which the socket is bound.
      *
+     * @return the local address to which the socket is bound.
      * @since   JDK1.1
      */
     public InetAddress getLocalAddress() {
@@ -351,7 +363,15 @@ class Socket {
     /**
      * Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
      *
+     * @param on <code>true</code> to enable TCP_NODELAY, 
+     * <code>false</coder> to disable.
+     *
+     * @exception SocketException if there is an error 
+     * in the underlying protocol, such as a TCP error.
+     * 
      * @since   JDK1.1
+     *
+     * @see #getTcpNoDelay()
      */
     public void setTcpNoDelay(boolean on) throws SocketException {
 	impl.setOption(SocketOptions.TCP_NODELAY, new Boolean(on));
@@ -360,7 +380,11 @@ class Socket {
     /**
      * Tests if TCP_NODELAY is enabled.
      *
+     * @return a <code>boolean</code> indicating whether or not TCP_NODELAY is enabled.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
      * @since   JDK1.1
+     * @see #setTcpNoDelay(boolean)
      */
     public boolean getTcpNoDelay() throws SocketException {
 	return ((Boolean) impl.getOption(SocketOptions.TCP_NODELAY)).booleanValue();
@@ -368,13 +392,17 @@ class Socket {
 
     /**
      * Enable/disable SO_LINGER with the specified linger time in seconds. 
-     * If the specified timeout value exceeds 65,535 it will be reduced to
-     * 65,535.
+     * The maximum timeout value is platform specific.
+     *
+     * The setting only affects socket close.
      * 
      * @param on     whether or not to linger on.
      * @param linger how to linger for, if on is true.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
      * @exception IllegalArgumentException if the linger value is negative.
-     * @since JDK1.1 
+     * @since JDK1.1
+     * @see #getSoLinger()
      */
     public void setSoLinger(boolean on, int linger) throws SocketException {
 	if (!on) {
@@ -393,7 +421,13 @@ class Socket {
      * Returns setting for SO_LINGER. -1 returns implies that the
      * option is disabled.
      *
+     * The setting only affects socket close.
+     *
+     * @return the setting for SO_LINGER.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
      * @since   JDK1.1
+     * @see #setSoLinger(boolean, int)
      */
     public int getSoLinger() throws SocketException {
 	Object o = impl.getOption(SocketOptions.SO_LINGER);
@@ -414,8 +448,11 @@ class Socket {
      *  prior to entering the blocking operation to have effect. The
      *  timeout must be > 0.
      *  A timeout of zero is interpreted as an infinite timeout.
-     *
+     * @param timeout the specified timeout, in milliseconds.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
      * @since   JDK 1.1
+     * @see #getSoTimeout()
      */
     public synchronized void setSoTimeout(int timeout) throws SocketException {
 	impl.setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
@@ -424,8 +461,11 @@ class Socket {
     /**
      * Returns setting for SO_TIMEOUT.  0 returns implies that the
      * option is disabled (i.e., timeout of infinity).
-     *
+     * @return the setting for SO_TIMEOUT
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
      * @since   JDK1.1
+     * @see #setSoTimeout(int)
      */
     public synchronized int getSoTimeout() throws SocketException {
 	Object o = impl.getOption(SocketOptions.SO_TIMEOUT);
@@ -439,24 +479,29 @@ class Socket {
 
     /**
      * Sets the SO_SNDBUF option to the specified value for this
-     * DatagramSocket. The SO_SNDBUF option is used by the platform's
-     * networking code as a hint for the size to use to allocate set
+     * <tt>Socket</tt>. The SO_SNDBUF option is used by the platform's
+     * networking code as a hint for the size to set
      * the underlying network I/O buffers.
      *
      * <p>Increasing buffer size can increase the performance of
      * network I/O for high-volume connection, while decreasing it can
      * help reduce the backlog of incoming data. For UDP, this sets
-     * the maximum size of a packet that may be sent on this socket.
+     * the maximum size of a packet that may be sent on this <tt>Socket</tt>.
      *
      * <p>Because SO_SNDBUF is a hint, applications that want to
      * verify what size the buffers were set to should call
-     * <href="#getSendBufferSize>getSendBufferSize</a>.
+     * {@link #getSendBufferSize()}.
+     *
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
      *
      * @param size the size to which to set the send buffer
      * size. This value must be greater than 0.
      *
-     * @exception IllegalArgumentException if the value is 0 or is
-     * negative.
+     * @exception IllegalArgumentException if the 
+     * value is 0 or is negative.
+     *
+     * @see #getSendBufferSize()
      */
     public synchronized void setSendBufferSize(int size)
     throws SocketException{
@@ -467,10 +512,15 @@ class Socket {
     }
 
     /**
-     * Get value of the SO_SNDBUF option for this socket, that is the
-     * buffer size used by the platform for output on the this Socket.
+     * Get value of the SO_SNDBUF option for this <tt>Socket</tt>, 
+     * that is the buffer size used by the platform 
+     * for output on this <tt>Socket</tt>.
+     * @return the value of the SO_SNDBUF option for this <tt>Socket</tt>.
      *
-     * @see #setSendBufferSize
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     *
+     * @see #setSendBufferSize(int)
      */
     public synchronized int getSendBufferSize() throws SocketException {
 	int result = 0;
@@ -483,24 +533,29 @@ class Socket {
 
     /**
      * Sets the SO_RCVBUF option to the specified value for this
-     * DatagramSocket. The SO_RCVBUF option is used by the platform's
-     * networking code as a hint for the size to use to allocate set
+     * <tt>Socket</tt>. The SO_RCVBUF option is used by the platform's
+     * networking code as a hint for the size to set
      * the underlying network I/O buffers.
      *
      * <p>Increasing buffer size can increase the performance of
      * network I/O for high-volume connection, while decreasing it can
      * help reduce the backlog of incoming data. For UDP, this sets
-     * the maximum size of a packet that may be sent on this socket.
+     * the maximum size of a packet that may be sent on this <tt>Socket</tt>.
      *
      * <p>Because SO_RCVBUF is a hint, applications that want to
      * verify what size the buffers were set to should call
-     * <href="#getReceiveBufferSize>getReceiveBufferSize</a>.
+     * {@link #getReceiveBufferSize()}.
      *
      * @param size the size to which to set the receive buffer
      * size. This value must be greater than 0.
      *
      * @exception IllegalArgumentException if the value is 0 or is
      * negative.
+     *
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error.
+     * 
+     * @see #getReceiveBufferSize()
      */
     public synchronized void setReceiveBufferSize(int size)
     throws SocketException{
@@ -511,10 +566,14 @@ class Socket {
     }
 
     /**
-     * Get value of the SO_RCVBUF option for this socket, that is the
-     * buffer size used by the platform for input on the this Socket.
+     * Gets the value of the SO_RCVBUF option for this <tt>Socket</tt>, 
+     * that is the buffer size used by the platform for 
+     * input on this <tt>Socket</tt>.
      *
-     * @see #setReceiveBufferSize
+     * @return the value of the SO_RCVBUF option for this <tt>Socket</tt>.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     * @see #setReceiveBufferSize(int)
      */
     public synchronized int getReceiveBufferSize()
     throws SocketException{
@@ -527,12 +586,77 @@ class Socket {
     }
 
     /**
+     * Enable/disable SO_KEEPALIVE.
+     * 
+     * @param on     whether or not to have socket keep alive turned on.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     * @since 1.3 
+     * @see #getKeepAlive()
+     */
+    public void setKeepAlive(boolean on) throws SocketException {
+        impl.setOption(SocketOptions.SO_KEEPALIVE, new Boolean(on));
+    }
+
+    /**
+     * Tests if SO_KEEPALIVE is enabled.
+     *
+     * @return a <code>boolean</code> indicating whether or not SO_KEEPALIVE is enabled.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     * @since   1.3
+     * @see #setKeepAlive(boolean)
+     */
+    public boolean getKeepAlive() throws SocketException {
+	return ((Boolean) impl.getOption(SocketOptions.SO_KEEPALIVE)).booleanValue();
+    }
+
+    /**
      * Closes this socket.
      *
      * @exception  IOException  if an I/O error occurs when closing this socket.
      */
     public synchronized void close() throws IOException {
 	impl.close();
+    }
+
+    /**
+     * Places the input stream for this socket at "end of stream".
+     * Any data sent to the input stream side of the socket is acknowledged
+     * and then silently discarded.
+     *
+     * If you read from a socket input stream after invoking 
+     * shutdownInput() on the socket, the stream will return EOF.
+     *
+     * @exception IOException if an I/O error occurs when shutting down this
+     * socket.
+     * @see java.net.Socket#shutdownOutput()
+     * @see java.net.Socket#close()
+     * @see java.net.Socket#setSoLinger(boolean, int)
+     */
+    public void shutdownInput() throws IOException
+    {
+	impl.shutdownInput();
+    }
+    
+    /**
+     * Disables the output stream for this socket.
+     * For a TCP socket, any previously written data will be sent
+     * followed by TCP's normal connection termination sequence.
+     *
+     * If you write to a socket output stream after invoking 
+     * shutdownOutput() on the socket, the stream will throw 
+     * an IOException.
+     *
+     * @exception IOException if an I/O error occurs when shutting down this
+     * socket.
+     * @see java.net.Socket#shutdownInput()
+     * @see java.net.Socket#close()
+     * @see java.net.Socket#setSoLinger(boolean, int)
+     */
+    public void shutdownOutput() throws IOException
+    {
+	impl.shutdownOutput();
     }
 
     /**
@@ -571,8 +695,8 @@ class Socket {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkSetFactory</code> method doesn't allow the operation.
      * @see        java.net.SocketImplFactory#createSocketImpl()
-      * @see       SecurityManager#checkSetFactory
-    */
+     * @see        SecurityManager#checkSetFactory
+     */
     public static synchronized void setSocketImplFactory(SocketImplFactory fac)
 	throws IOException
     {

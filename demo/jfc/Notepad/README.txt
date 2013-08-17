@@ -1,15 +1,4 @@
 
-To run the Notepad demo on 1.2 <all platforms>:
+To run the Notepad demo on 1.3:
   java -jar Notepad.jar
-
-To run the Notepad demo on 1.1.x on Solaris:
-  setenv SWING_HOME <path to swing release>
-  setenv JAVA_HOME <path to jdk1.1.x release>
-  runnit
-
-
-To run the Notepad demo on 1.1.x on win32:
-  set CLASSPATH=<path to jdk1.1.x release>\lib\classes.zip
-  set SWING_HOME=<path to swing release>
-  runnit
 

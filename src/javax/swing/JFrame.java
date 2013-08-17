@@ -1,8 +1,11 @@
 /*
- * @(#)JFrame.java	1.67 02/05/01
+ * @(#)JFrame.java	1.78 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -17,45 +20,56 @@ import javax.accessibility.*;
 
 
 /**
- * An extended version of java.awt.Frame that adds support for 
- * interposing input and painting behavior in front of the frame's
- * children (see glassPane), support for special children that 
- * are managed by a LayeredPane (see rootPane) and for Swing MenuBars.
+ * An extended version of <code>java.awt.Frame</code> that adds support for 
+ * the JFC/Swing component architecture.
+ * You can find task-oriented documentation about using <code>JFrame</code>
+ * in <em>The Java Tutorial</em>, in the section
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/frame.html">How to Make Frames</a>.
+ * 
  * <p>
- * The JFrame class is slightly incompatible with java.awt.Frame.
- * JFrame contains a JRootPane as it's only child.
- * The <b>contentPane</b> should be the parent of any children of the JFrame.
- * This is different than java.awt.Frame, e.g. to add a child to 
- * an AWT Frame you'd write:
+ * The <code>JFrame</code> class is slightly incompatible with <code>Frame</code>.
+ * Like all other JFC/Swing top-level containers,
+ * a <code>JFrame</code> contains a <code>JRootPane</code> as its only child.
+ * The <b>content pane</b> provided by the root pane should,
+ * as a rule, contain
+ * all the non-menu components displayed by the <code>JFrame</code>.
+ * This is different from the AWT <code>Frame</code> case.  
+ * For example, to add a child to 
+ * an AWT frame you'd write:
  * <pre>
  *       frame.add(child);
  * </pre>
- * However using JFrame you need to add the child to the JFrames contentPane
+ * However using <code>JFrame</code> you need to add the child
+ * to the <code>JFrame's</code> content pane
  * instead:
  * <pre>
  *       frame.getContentPane().add(child);
  * </pre>
- * The same is true for setting LayoutManagers, removing components,
- * listing children, etc. All these methods should normally be sent to
- * the contentPane() instead of the JFrame itself. The contentPane() will
+ * The same is true for setting layout managers, removing components,
+ * listing children, and so on. All these methods should normally be sent to
+ * the content pane instead of the JFrame itself. The content pane will
  * always be non-null. Attempting to set it to null will cause the JFrame
- * to throw an exception. The default contentPane() will have a BorderLayout
+ * to throw an exception. The default content pane will have a BorderLayout
  * manager set on it. 
  * <p>
- * Please see the JRootPane documentation for a complete description of
- * the contentPane, glassPane, and layeredPane properties.
- * <p>
- * Unlike its parent class, java.awt.Frame, you can tell a JFrame how to 
+ * Unlike a <code>Frame</code>, a <code>JFrame</code> has some notion of how to 
  * respond when the user attempts to close the window. The default behavior
  * is to simply hide the JFrame when the user closes the window. To change the
- * default behavior, you invoke the method <code>setDefaultCloseOperation</code>.
- * To make the JFrame remain open unless you handle the window-closing event and 
- * explicitly invoke <code>dispose()</code> (or exit the app, which is also pretty
- * effective), use
+ * default behavior, you invoke the method
+ * {@link #setDefaultCloseOperation}.
+ * To make the <code>JFrame</code> behave the same as a <code>Frame</code>
+ * instance, use
  * <code>setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)</code>.
- * That makes the JFrame behave the same as java.awt.Frame. A third option
- * lets you completely dispose of the window when it closes, instead of merely 
- * hiding it. 
+ * <p>
+ * For more information on content panes
+ * and other features that root panes provide,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/toplevel.html">Using Top-Level Containers</a> in <em>The Java Tutorial</em>.
+ * <p>
+ * In a multi-screen environment, you can create a <code>JFrame</code>
+ * on a different screen device.  See {@link java.awt.Frame} for more
+ * information.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
@@ -77,17 +91,28 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.67 05/01/02
+ * @version 1.78 04/06/00
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
  */
 public class JFrame  extends Frame implements WindowConstants, Accessible, RootPaneContainer
 {
+    /**
+     * The exit application default window close operation. If a window
+     * has this set as the close operation and is closed in an applet,
+     * a <code>SecurityException</code> may be thrown.
+     * It is recommended you only use this in an application.
+     * <p>
+     * @since 1.3
+     */
+    public static final int EXIT_ON_CLOSE = 3;
+
     private int defaultCloseOperation = HIDE_ON_CLOSE;
 
     /**
-     * The JRootPane instance that manages the <code>contentPane</code> 
+     * The <code>JRootPane</code> instance that manages the
+     * <code>contentPane</code> 
      * and optional <code>menuBar</code> for this frame, as well as the 
      * <code>glassPane</code>.
      *
@@ -98,7 +123,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /**
      * If true then calls to <code>add</code> and <code>setLayout</code>
-     * cause an exception to be thrown.
+     * will cause an exception to be thrown. The default is false.
      *
      * @see #isRootPaneCheckingEnabled
      * @see #setRootPaneCheckingEnabled
@@ -107,7 +132,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Constructs a new Frame that is initially invisible.
+     * Constructs a new frame that is initially invisible.
      *
      * @see Component#setSize
      * @see Component#setVisible
@@ -118,8 +143,28 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /**
-     * Constructs a new, initially invisible Frame with the specified
-     * title.
+     * Creates a <code>Frame</code> in the specified
+     * <code>GraphicsConfiguration</code> of
+     * a screen device and a blank title.
+     *
+     * @param gc the <code>GraphicsConfiguration</code> that is used
+     * 		to construct the new <code>Frame</code>;
+     * 		if <code>gc</code> is <code>null</code>, the system
+     * 		default <code>GraphicsConfiguration</code> is assumed
+     * @exception IllegalArgumentException if <code>gc</code> is not from
+     * 		a screen device
+     * @since     1.3
+     */
+
+  public JFrame(GraphicsConfiguration gc) {
+        super(gc);
+        frameInit();
+    }
+  
+
+    /**
+     * Creates a new, initially invisible <code>Frame</code> with the 
+     * specified title.
      *
      * @param title the title for the frame
      * @see Component#setSize
@@ -129,20 +174,41 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         super(title);
         frameInit();
     }
+    
+    /**
+     * Creates a <code>JFrame</code> with the specified title and the
+     * specified <code>GraphicsConfiguration</code> of a screen device.
+     *
+     * @param title the title to be displayed in the
+     * 		frame's border. A <code>null</code> value is treated as
+     * 		an empty string, "".
+     * @param gc the <code>GraphicsConfiguration</code> that is used
+     * 		to construct the new <code>JFrame</code> with;
+     *		if <code>gc</code> is <code>null</code>, the system
+     * 		default <code>GraphicsConfiguration</code> is assumed
+     * @exception IllegalArgumentException if <code>gc</code> is not from
+     * 		a screen device
+     * @since     1.3
+     */
 
-    /** Called by the constructors to init the JFrame properly. */
+    public JFrame(String title, GraphicsConfiguration gc) {
+        super(title, gc);
+        frameInit();
+    }
+  
+
+    /** Called by the constructors to init the <code>JFrame</code> properly. */
     protected void frameInit() {
         enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
-        /*if[JDK1.2]
-          // workaround for bug 4170760
-          enableInputMethods(false);
-          end[JDK1.2]*/
         setRootPane(createRootPane());
         setBackground(UIManager.getColor("control"));
         setRootPaneCheckingEnabled(true);
     }
 
-    /** Called by the constructor methods to create the default rootPane. */
+    /**
+     * Called by the constructor methods to create the default
+     * <code>rootPane</code>.
+     */
     protected JRootPane createRootPane() {
         return new JRootPane();
     }
@@ -186,7 +252,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
               case DO_NOTHING_ON_CLOSE:
                  default: 
                  break;
-	      case 3: // EXIT_ON_CLOSE:
+	      case EXIT_ON_CLOSE:
 		System.exit(0);
 		break;
             }
@@ -198,51 +264,58 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 //    }
 
     /**                   
-     * Sets the operation which will happen by default when
+     * Sets the operation that will happen by default when
      * the user initiates a "close" on this frame.
-     * The possible choices are defined in the <code>WindowConstants</code>
-     * interface:
+     * You must specify one of the following choices:
      * <p>
      * <ul>
-     * <li>DO_NOTHING_ON_CLOSE - do not do anything - require the
-     * program to handle the operation in the windowClosing
-     * method of a registered WindowListener object.
-     * <li>HIDE_ON_CLOSE - automatically hide the frame after
-     * invoking any registered WindowListener objects
-     * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
-     * frame after invoking any registered WindowListener objects
-     * <li>EXIT_ON_CLOSE - Exit the application by way of System.exit.
-     * Only use this in applications.
+     * <li><code>DO_NOTHING_ON_CLOSE</code>
+     * (defined in <code>WindowConstants</code>):
+     * Don't do anything; require the
+     * program to handle the operation in the <code>windowClosing</code>
+     * method of a registered <code>WindowListener</code> object.
+     *
+     * <li><code>HIDE_ON_CLOSE</code>
+     * (defined in <code>WindowConstants</code>):
+     * Automatically hide the frame after
+     * invoking any registered <code>WindowListener</code>
+     * objects.
+     *
+     * <li><code>DISPOSE_ON_CLOSE</code>
+     * (defined in <code>WindowConstants</code>):
+     * Automatically hide and dispose the 
+     * frame after invoking any registered <code>WindowListener</code>
+     * objects.
+     *
+     * <li><code>EXIT_ON_CLOSE</code>
+     * (defined in <code>JFrame</code>):
+     * Exit the application using the <code>System</code> <code>exit</code> method.
+     * Use this only in applications.
      * </ul>
      * <p>
-     * The value is set to HIDE_ON_CLOSE by default.
+     * The value is set to <code>HIDE_ON_CLOSE</code> by default.
      * @see #addWindowListener
      * @see #getDefaultCloseOperation
+     * @see WindowConstants
      *
      * @beaninfo
      *   preferred: true
      *        enum: DO_NOTHING_ON_CLOSE WindowConstants.DO_NOTHING_ON_CLOSE
      *              HIDE_ON_CLOSE       WindowConstants.HIDE_ON_CLOSE
      *              DISPOSE_ON_CLOSE    WindowConstants.DISPOSE_ON_CLOSE
-     *              EXIT_ON_CLOSE       3
+     *              EXIT_ON_CLOSE       JFrame.EXIT_ON_CLOSE
      * description: The frame's default close operation.
      */
     public void setDefaultCloseOperation(int operation) {
-	if (operation == 3) {
-	    SecurityManager security = System.getSecurityManager();
-	    if (security != null) {
-		security.checkExit(0);
-	    }
-	}	
         this.defaultCloseOperation = operation;
     }
 
 
    /**
-    * Returns the operation which occurs when the user
+    * Returns the operation that occurs when the user
     * initiates a "close" on this frame.
     *
-    * @return an int indicating the window-close operation
+    * @return an integer indicating the window-close operation
     * @see #setDefaultCloseOperation
     */
     public int getDefaultCloseOperation() {
@@ -252,7 +325,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /** 
      * Just calls <code>paint(g)</code>.  This method was overridden to 
-     * prevent an unneccessary call to clear the background.
+     * prevent an unnecessary call to clear the background.
      *
      * @param g the Graphics context in which to paint
      */
@@ -276,6 +349,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
    /**
     * Returns the menubar set on this frame.
+    * @return the menubar for this frame
     *
     * @see #setJMenuBar
     */
@@ -288,7 +362,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * <code>setLayout</code> cause an exception to be thrown. 
      *
      * @return true if <code>add</code> and <code>setLayout</code> 
-     *         are checked
+     *         are checked; false otherwise
      *
      * @see #addImpl
      * @see #setLayout
@@ -301,10 +375,10 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /**
      * Determines whether calls to <code>add</code> and 
-     * <code>setLayout</code> cause an exception to be thrown. 
+     * <code>setLayout</code> will cause an exception to be thrown. 
      * 
-     * @param enabled  a boolean value, true if checking is to be
-     *        enabled, which cause the exceptions to be thrown
+     * @param enabled  true if checking is to be
+     *        enabled, which causes the exceptions to be thrown
      *
      * @see #addImpl
      * @see #setLayout
@@ -324,8 +398,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * "Do not use JFrame.add() use JFrame.getContentPane().add() instead"
      * </pre>
      *
-     * @param op  a String indicating the attempted operation. In the
-     *            example above, the operation string is "add"
+     * @param op  a <code>String</code> indicating the attempted operation;
+     *		in the example above, the operation string is "add"
      */
     private Error createRootPaneException(String op) {
         String type = getClass().getName();
@@ -336,7 +410,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * By default, children may not be added directly to a this component,
+     * By default, children may not be added directly to this component,
      * they must be added to its contentPane instead.  For example:
      * <pre>
      * thisComponent.getContentPane().add(child)
@@ -345,8 +419,12 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * runtime exception to be thrown.  Subclasses can disable this
      * behavior.
      * 
+     * @param comp the component to be enhanced
+     * @param constraints the constraints to be respected
+     * @param index the index
+     * @exception Error if called with <code>rootPaneChecking</code> true
+     * 
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
      */
     protected void addImpl(Component comp, Object constraints, int index) 
     {
@@ -376,7 +454,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /**
      * By default the layout of this component may not be set,
-     * the layout of its contentPane should be set instead.  
+     * the layout of its <code>contentPane</code> should be set instead.  
      * For example:
      * <pre>
      * thiComponent.getContentPane().setLayout(new BorderLayout())
@@ -384,9 +462,10 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * An attempt to set the layout of this component will cause an
      * runtime exception to be thrown.  Subclasses can disable this
      * behavior.
+     * @param manager the <code>LayoutManager</code>
+     * @exception Error if called with <code>rootPaneChecking</code> true
      * 
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
      */
     public void setLayout(LayoutManager manager) {
         if(isRootPaneCheckingEnabled()) {
@@ -399,7 +478,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Returns the rootPane object for this frame.
+     * Returns the <code>rootPane</code> object for this frame.
+     * @return the <code>rootPane</code> property
      *
      * @see #setRootPane
      * @see RootPaneContainer#getRootPane
@@ -410,8 +490,9 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Sets the rootPane property.  This method is called by the constructor.
-     * @param root the rootPane object for this frame
+     * Sets the <code>rootPane</code> property. 
+     * This method is called by the constructor.
+     * @param root the <code>rootPane</code> object for this frame
      *
      * @see #getRootPane
      *
@@ -439,7 +520,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Returns the contentPane object for this frame.
+     * Returns the <code>contentPane</code> object for this frame.
+     * @return the <code>contentPane</code> property
      *
      * @see #setContentPane
      * @see RootPaneContainer#getContentPane
@@ -449,11 +531,13 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /**
-     * Sets the contentPane property.  This method is called by the constructor.
-     * @param contentPane the contentPane object for this frame
+     * Sets the <code>contentPane</code> property. 
+     * This method is called by the constructor.
+     *
+     * @param contentPane the <code>contentPane</code> object for this frame
      *
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the content pane parameter is null
+     *            exception) if the content pane parameter is <code>null</code>
      * @see #getContentPane
      * @see RootPaneContainer#setContentPane
      *
@@ -467,7 +551,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /**
-     * Returns the layeredPane object for this frame.
+     * Returns the <code>layeredPane</code> object for this frame.
+     * @return the <code>layeredPane</code> property
      *
      * @see #setLayeredPane
      * @see RootPaneContainer#getLayeredPane
@@ -477,24 +562,26 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /**
-     * Sets the layeredPane property.  This method is called by the constructor.
-     * @param layeredPane the layeredPane object for this frame
+     * Sets the <code>layeredPane</code> property.
+     * This method is called by the constructor.
+     * @param layeredPane the <code>layeredPane</code> object for this frame
      *
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the layered pane parameter is null
+     *            exception) if the layered pane parameter is <code>null</code>
      * @see #getLayeredPane
      * @see RootPaneContainer#setLayeredPane
      *
      * @beaninfo
      *     hidden: true
-     *     description: The pane which holds the various frame layers.
+     *     description: The pane that holds the various frame layers.
      */
     public void setLayeredPane(JLayeredPane layeredPane) {
         getRootPane().setLayeredPane(layeredPane);
     }
 
     /**
-     * Returns the glassPane object for this frame.
+     * Returns the <code>glassPane</code> object for this frame.
+     * @return the <code>glassPane</code> property
      *
      * @see #setGlassPane
      * @see RootPaneContainer#getGlassPane
@@ -504,9 +591,9 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /**
-     * Sets the glassPane property. 
+     * Sets the <code>glassPane</code> property. 
      * This method is called by the constructor.
-     * @param glassPane the glassPane object for this frame
+     * @param glassPane the <code>glassPane</code> object for this frame
      *
      * @see #getGlassPane
      * @see RootPaneContainer#setGlassPane
@@ -521,13 +608,14 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Returns a string representation of this JFrame. This method 
+     * Returns a string representation of this <code>JFrame</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JFrame.
+     * @return  a string representation of this <code>JFrame</code>
      */
     protected String paramString() {
         String defaultCloseOperationString;
@@ -557,13 +645,17 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 // Accessibility support
 ////////////////
 
-    /** The accessible context property */
+    /** The accessible context property. */
     protected AccessibleContext accessibleContext = null;
 
     /**
-     * Get the AccessibleContext associated with this JFrame
+     * Gets the AccessibleContext associated with this JFrame. 
+     * For JFrames, the AccessibleContext takes the form of an 
+     * AccessibleJFrame. 
+     * A new AccessibleJFrame instance is created if necessary.
      *
-     * @return the AccessibleContext of this JFrame
+     * @return an AccessibleJFrame that serves as the 
+     *         AccessibleContext of this JFrame
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -573,10 +665,21 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /**
-     * The class used to obtain the AccessibleRole for this object.
+     * This class implements accessibility support for the 
+     * <code>JFrame</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to frame user-interface 
+     * elements.
      */
-    protected class AccessibleJFrame extends AccessibleContext
-        implements Serializable, AccessibleComponent {
+
+  // really if JDK1.3...
+    protected class AccessibleJFrame extends AccessibleAWTFrame {
+  
+
+
+
+
+
+
 
         // AccessibleContext methods
         /**
@@ -598,17 +701,6 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         }
 
         /**
-         * Get the role of this object.
-         *
-         * @return an instance of AccessibleRole describing the role of the 
-         * object
-         * @see AccessibleRole
-         */
-        public AccessibleRole getAccessibleRole() {
-            return AccessibleRole.FRAME;
-        }
-
-        /**
          * Get the state of this object.
          *
          * @return an instance of AccessibleStateSet containing the current 
@@ -616,7 +708,15 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
          * @see AccessibleState
          */
         public AccessibleStateSet getAccessibleStateSet() {
-            AccessibleStateSet states = SwingUtilities.getAccessibleStateSet(JFrame.this);
+
+  // really if JDK1.3...
+            AccessibleStateSet states = super.getAccessibleStateSet();
+  
+
+
+
+
+
             if (isResizable()) {
                 states.add(AccessibleState.RESIZABLE);
             }
@@ -628,373 +728,394 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
             return states;
         }
 
-        /**
-         * Get the Accessible parent of this object.  If the parent of this
-         * object implements Accessible, this method should simply return
-         * getParent().
-         *
-         * @return the Accessible parent of this object -- can be null if this
-         * object does not have an Accessible parent
-         */
-        public Accessible getAccessibleParent() {
-	    if (accessibleParent != null) {
-		return accessibleParent;
-	    } else {
-            	Container parent = getParent();
-            	if (parent instanceof Accessible) {
-                    return (Accessible) parent;
-		}
-            }
-            return null;
-        }
 
-        /**
-         * Get the index of this object in its accessible parent. 
-         *
-         * @return the index of this object in its parent; -1 if this 
-         * object does not have an accessible parent.
-         * @see #getAccessibleParent
-         */
-        public int getAccessibleIndexInParent() {
-            return SwingUtilities.getAccessibleIndexInParent(JFrame.this);
-        }
-
-        /**
-         * Returns the number of accessible children in the object.  If all
-         * of the children of this object implement Accessible, than this
-         * method should return the number of children of this object.
-         *
-         * @return the number of accessible children in the object.
-         */
-        public int getAccessibleChildrenCount() {
-            return SwingUtilities.getAccessibleChildrenCount(JFrame.this);
-        }
-
-        /**
-         * Return the nth Accessible child of the object.  
-         *
-         * @param i zero-based index of child
-         * @return the nth Accessible child of the object
-         */
-        public Accessible getAccessibleChild(int i) {
-            return SwingUtilities.getAccessibleChild(JFrame.this,i);
-        }
-
-        /**
-         * Return the locale of this object.
-         *
-         * @return the locale of this object
-         */
-        public Locale getLocale() {
-            return JFrame.this.getLocale();
-        }
-
-        /**
-         * Get the AccessibleComponent associated with this object if one
-         * exists.  Otherwise return null.
-         */
-        public AccessibleComponent getAccessibleComponent() {
-            return this;
-        }
+  // really if JDK1.3...
+  
 
 
-        // AccessibleComponent methods
-        //
-        /**
-         * Get the background color of this object.
-         *
-         * @return the background color, if supported, of the object; 
-         * otherwise, null
-         */
-        public Color getBackground() {
-            return JFrame.this.getBackground();
-        }
 
-        /**
-         * Set the background color of this object.
-         *
-         * @param c the new Color for the background
-         */
-        public void setBackground(Color c) {
-            JFrame.this.setBackground(c);
-        }
 
-        /**
-         * Get the foreground color of this object.
-         *
-         * @return the foreground color, if supported, of the object; 
-         * otherwise, null
-         */
-        public Color getForeground() {
-            return JFrame.this.getForeground();
-        }
 
-        /**
-         * Set the foreground color of this object.
-         *
-         * @param c the new Color for the foreground
-         */
-        public void setForeground(Color c) {
-            JFrame.this.setForeground(c);
-        }
 
-        /**
-         * Get the Cursor of this object.
-         *
-         * @return the Cursor, if supported, of the object; otherwise, null
-         */
-        public Cursor getCursor() {
-            return JFrame.this.getCursor();
-        }
 
-        /**
-         * Set the Cursor of this object.
-         *
-         * @param c the new Cursor for the object
-         */
-        public void setCursor(Cursor cursor) {
-            JFrame.this.setCursor(cursor);
-        }
 
-        /**
-         * Get the Font of this object.
-         *
-         * @return the Font,if supported, for the object; otherwise, null
-         */
-        public Font getFont() {
-            return JFrame.this.getFont();
-        }
 
-        /**
-         * Set the Font of this object.
-         *
-         * @param f the new Font for the object
-         */
-        public void setFont(Font f) {
-            JFrame.this.setFont(f);
-        }
 
-        /**
-         * Get the FontMetrics of this object.
-         *
-         * @param f the Font
-         * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see #getFont
-         */
-        public FontMetrics getFontMetrics(Font f) {
-            return JFrame.this.getFontMetrics(f);
-        }
 
-        /**
-         * Determine if the object is enabled.
-         *
-         * @return true if object is enabled; otherwise, false
-         */
-        public boolean isEnabled() {
-            return JFrame.this.isEnabled();
-        }
 
-        /**
-         * Set the enabled state of the object.
-         *
-         * @param b if true, enables this object; otherwise, disables it 
-         */
-        public void setEnabled(boolean b) {
-            JFrame.this.setEnabled(b);
-        }
-        
-        /**
-         * Determine if the object is visible.  Note: this means that the
-         * object intends to be visible; however, it may not in fact be
-         * showing on the screen because one of the objects that this object
-         * is contained by is not visible.  To determine if an object is
-         * showing on the screen, use isShowing().
-         *
-         * @return true if object is visible; otherwise, false
-         */
-        public boolean isVisible() {
-            return JFrame.this.isVisible();
-        }
 
-        /**
-         * Set the visible state of the object.
-         *
-         * @param b if true, shows this object; otherwise, hides it 
-         */
-        public void setVisible(boolean b) {
-            JFrame.this.setVisible(b);
-        }
 
-        /**
-         * Determine if the object is showing.  This is determined by checking
-         * the visibility of the object and ancestors of the object.  Note: 
-         * this will return true even if the object is obscured by another 
-         * (for example, it happens to be underneath a menu that was pulled 
-         * down).
-         *
-         * @return true if object is showing; otherwise, false
-         */
-        public boolean isShowing() {
-            return JFrame.this.isShowing();
-        }
 
-        /** 
-         * Checks whether the specified point is within this object's bounds,
-         * where the point's x and y coordinates are defined to be relative to 
-         * the coordinate system of the object. 
-         *
-         * @param p the Point relative to the coordinate system of the object
-         * @return true if object contains Point; otherwise false
-         */
-        public boolean contains(Point p) {
-            return JFrame.this.contains(p);
-        }
-    
-        /** 
-         * Returns the location of the object on the screen.
-         *
-         * @return location of object on screen -- can be null if this object
-         * is not on the screen
-         */
-        public Point getLocationOnScreen() {
-            return JFrame.this.getLocationOnScreen();
-        }
 
-        /** 
-         * Gets the location of the object relative to the parent in the form 
-         * of a point specifying the object's top-left corner in the screen's 
-         * coordinate space.
-         *
-         * @return An instance of Point representing the top-left corner of 
-         * the objects's bounds in the coordinate space of the screen; null if
-         * this object or its parent are not on the screen
-         */
-        public Point getLocation() {
-            return JFrame.this.getLocation();
-        }
 
-        /** 
-         * Sets the location of the object relative to the parent.
-         */
-        public void setLocation(Point p) {
-            JFrame.this.setLocation(p);
-        }
 
-        /** 
-         * Gets the bounds of this object in the form of a Rectangle object. 
-         * The bounds specify this object's width, height, and location
-         * relative to its parent. 
-         *
-         * @return A rectangle indicating this component's bounds; null if 
-         * this object is not on the screen.
-         */
-        public Rectangle getBounds() {
-            return JFrame.this.getBounds();
-        }
 
-        /** 
-         * Sets the bounds of this object in the form of a Rectangle object. 
-         * The bounds specify this object's width, height, and location
-         * relative to its parent.
-         *      
-         * @param A rectangle indicating this component's bounds
-         */
-        public void setBounds(Rectangle r) {
-            JFrame.this.setBounds(r);
-        }
 
-        /** 
-         * Returns the size of this object in the form of a Dimension object. 
-         * The height field of the Dimension object contains this objects's
-         * height, and the width field of the Dimension object contains this 
-         * object's width. 
-         *
-         * @return A Dimension object that indicates the size of this 
-         * component; null if this object is not on the screen
-         */
-        public Dimension getSize() {
-            return JFrame.this.getSize();
-        }
 
-        /** 
-         * Resizes this object so that it has width width and height. 
-         *      
-         * @param d - The dimension specifying the new size of the object. 
-         */
-        public void setSize(Dimension d) {
-            JFrame.this.setSize(d);
-        }
 
-        /**
-         * Returns the Accessible child, if one exists, contained at the local
-         * coordinate Point.
-         *
-         * @param p The point defining the top-left corner of the Accessible, 
-         * given in the coordinate space of the object's parent. 
-         * @return the Accessible, if it exists, at the specified location; 
-         * else null
-         */
-        public Accessible getAccessibleAt(Point p) {
-            Accessible a;
-            AccessibleContext ac;
-            AccessibleComponent acmp;
-            Point location;
-            int nchildren = getAccessibleChildrenCount();
-            for (int i=0; i < nchildren; i++) {
-                a = getAccessibleChild(i);
-                if ((a != null)) {
-                    ac = a.getAccessibleContext();
-                    if (ac != null) {
-                        acmp = ac.getAccessibleComponent();
-                        if ((acmp != null) && (acmp.isShowing())) {
-                            location = acmp.getLocation();
-                            Point np = new Point(p.x-location.x, p.y-location.y)
-;
-                            if (acmp.contains(np)){
-                                return a;
-                            }
-                        }
-                    }
-                }
-            }
-            return (Accessible) JFrame.this;
-//          return SwingUtilities.getAccessibleAt(JFrame.this,p);
-        }
 
-        /**
-         * Returns whether this object can accept focus or not.
-         *
-         * @return true if object can accept focus; otherwise false
-         */
-        public boolean isFocusTraversable() {
-            return JFrame.this.isFocusTraversable();
-        }
 
-        /**
-         * Requests focus for this object.
-         */
-        public void requestFocus() {
-            JFrame.this.requestFocus();
-        }
 
-        /**
-         * Adds the specified focus listener to receive focus events from this 
-         * component. 
-         *
-         * @param l the focus listener
-         */
-        public void addFocusListener(FocusListener l) {
-            JFrame.this.addFocusListener(l);
-        }
 
-        /**
-         * Removes the specified focus listener so it no longer receives focus 
-         * events from this component.
-         *
-         * @param l the focus listener
-         */
-        public void removeFocusListener(FocusListener l) {
-            JFrame.this.removeFocusListener(l);
-        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     } // inner class AccessibleJFrame
 }

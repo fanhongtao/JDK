@@ -1,8 +1,11 @@
 /*
- * @(#)ServerCloneException.java	1.11 01/11/29
+ * @(#)ServerCloneException.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -11,7 +14,7 @@ package java.rmi.server;
  * A <code>ServerCloneException</code> is thrown if a remote exception occurs
  * during the cloning of a <code>UnicastRemoteObject</code>.
  *
- * @version 1.11, 11/29/01
+ * @version 1.15, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.server.UnicastRemoteObject#clone()
@@ -19,7 +22,7 @@ package java.rmi.server;
 public class ServerCloneException extends CloneNotSupportedException {
 
     /**
-     * Nested exception for ServerCloneException
+     * Nested exception for ServerCloneException.
      *
      * @serial
      * @since JDK1.1
@@ -70,7 +73,7 @@ public class ServerCloneException extends CloneNotSupportedException {
      * Prints the composite message and the embedded stack trace to
      * the specified stream <code>ps</code>.
      * @param ps the print stream
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace(java.io.PrintStream ps)
     {
@@ -96,9 +99,9 @@ public class ServerCloneException extends CloneNotSupportedException {
 
     /**
      * Prints the composite message and the embedded stack trace to
-     * the specified stream <code>ps</code>.
-     * @param ps the print stream
-     * @since JDK1.2
+     * the specified writer <code>pw</code>.
+     * @param pw the print writer
+     * @since 1.2
      */
     public void printStackTrace(java.io.PrintWriter pw)
     {

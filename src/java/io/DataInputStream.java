@@ -1,8 +1,11 @@
 /*
- * @(#)DataInputStream.java	1.47 01/11/29
+ * @(#)DataInputStream.java	1.50 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -51,7 +54,7 @@ package java.io;
  * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.47, 11/29/01
+ * @version 1.50, 02/02/00
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -145,6 +148,8 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final void readFully(byte b[], int off, int len) throws IOException {
+	if (len < 0)
+	    throw new IndexOutOfBoundsException();
 	InputStream in = this.in;
 	int n = 0;
 	while (n < len) {
@@ -512,46 +517,50 @@ loop:	while (true) {
      */
     public final static String readUTF(DataInput in) throws IOException {
         int utflen = in.readUnsignedShort();
-        char str[] = new char[utflen];
+        StringBuffer str = new StringBuffer(utflen);
+        byte bytearr [] = new byte[utflen];
+        int c, char2, char3;
 	int count = 0;
-	int strlen = 0;
+
+ 	in.readFully(bytearr, 0, utflen);
+
 	while (count < utflen) {
-	    int c = in.readUnsignedByte();
-	    int char2, char3;
+     	    c = (int) bytearr[count] & 0xff;
 	    switch (c >> 4) {
 	        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-		    // 0xxxxxxx
+		    /* 0xxxxxxx*/
 		    count++;
-		    str[strlen++] = (char)c;
+                    str.append((char)c);
 		    break;
 	        case 12: case 13:
-		    // 110x xxxx   10xx xxxx
+		    /* 110x xxxx   10xx xxxx*/
 		    count += 2;
 		    if (count > utflen)
 			throw new UTFDataFormatException();
-		    char2 = in.readUnsignedByte();
+		    char2 = (int) bytearr[count-1];
 		    if ((char2 & 0xC0) != 0x80)
-			throw new UTFDataFormatException();
-		    str[strlen++] = (char)(((c & 0x1F) << 6) | (char2 & 0x3F));
+			throw new UTFDataFormatException(); 
+                    str.append((char)(((c & 0x1F) << 6) | (char2 & 0x3F)));
 		    break;
 	        case 14:
-		    // 1110 xxxx  10xx xxxx  10xx xxxx
+		    /* 1110 xxxx  10xx xxxx  10xx xxxx */
 		    count += 3;
 		    if (count > utflen)
 			throw new UTFDataFormatException();
-		    char2 = in.readUnsignedByte();
-		    char3 = in.readUnsignedByte();
+		    char2 = (int) bytearr[count-2];
+		    char3 = (int) bytearr[count-1];
 		    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
-			throw new UTFDataFormatException();
-		    str[strlen++] = (char)(((c & 0x0F) << 12) |
-					   ((char2 & 0x3F) << 6) |
-					   ((char3 & 0x3F) << 0));
+			throw new UTFDataFormatException();	  
+                    str.append((char)(((c     & 0x0F) << 12) |
+                    	              ((char2 & 0x3F) << 6)  |
+                    	              ((char3 & 0x3F) << 0)));
 		    break;
 	        default:
-		    // 10xx xxxx,  1111 xxxx
-		    throw new UTFDataFormatException();
+		    /* 10xx xxxx,  1111 xxxx */
+		    throw new UTFDataFormatException();		  
 		}
 	}
-        return new String(str, 0, strlen);
+        // The number of chars produced may be less than utflen
+        return new String(str);
     }
 }

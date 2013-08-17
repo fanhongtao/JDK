@@ -1,8 +1,11 @@
 /*
- * @(#)MetalSliderUI.java	1.25 01/11/29
+ * @(#)MetalSliderUI.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -38,7 +41,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.25 11/29/01
+ * @version 1.27 02/02/00
  * @author Tom Santos
  */
 public class MetalSliderUI extends BasicSliderUI {
@@ -123,6 +126,8 @@ public class MetalSliderUI extends BasicSliderUI {
         Color trackColor = !slider.isEnabled() ? MetalLookAndFeel.getControlShadow() :
                            slider.getForeground();
 
+	boolean leftToRight = MetalUtils.isLeftToRight(slider);
+
         g.translate( trackRect.x, trackRect.y );
 
         int trackLeft = 0;
@@ -137,8 +142,15 @@ public class MetalSliderUI extends BasicSliderUI {
             trackRight = trackRect.width - 1;
 	}
 	else {
-            trackLeft = (trackRect.width - getThumbOverhang()) - getTrackWidth();
-            trackRight = (trackRect.width - getThumbOverhang()) - 1;
+	    if (leftToRight) {
+	        trackLeft = (trackRect.width - getThumbOverhang()) - 
+		                                         getTrackWidth();
+		trackRight = (trackRect.width - getThumbOverhang()) - 1;
+	    }
+	    else {
+	        trackLeft = getThumbOverhang();
+		trackRight = getThumbOverhang() + getTrackWidth() - 1;
+	    }
             trackBottom = trackRect.height - 1;
 	}
 
@@ -175,7 +187,7 @@ public class MetalSliderUI extends BasicSliderUI {
 		fillTop = !slider.isEnabled() ? trackTop : trackTop + 1;
 		fillBottom = !slider.isEnabled() ? trackBottom - 1 : trackBottom - 2;
 		
-		if ( !slider.getInverted() ) {
+		if ( !drawInverted() ) {
 		    fillLeft = !slider.isEnabled() ? trackLeft : trackLeft + 1;
 		    fillRight = middleOfThumb;
 		}
@@ -190,7 +202,7 @@ public class MetalSliderUI extends BasicSliderUI {
 		fillLeft = !slider.isEnabled() ? trackLeft : trackLeft + 1;
 		fillRight = !slider.isEnabled() ? trackRight - 1 : trackRight - 2;
 		
-		if ( !slider.getInverted() ) {
+		if ( !drawInverted() ) {
 		    fillTop = middleOfThumb;
 		    fillBottom = !slider.isEnabled() ? trackBottom - 1 : trackBottom - 2;
 		}
@@ -299,11 +311,23 @@ public class MetalSliderUI extends BasicSliderUI {
 
     protected void paintMinorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
         g.setColor( slider.isEnabled() ? slider.getForeground() : MetalLookAndFeel.getControlShadow() );
-        g.drawLine( TICK_BUFFER, y, TICK_BUFFER + (tickLength / 2), y );
+
+	if (MetalUtils.isLeftToRight(slider)) {
+	    g.drawLine( TICK_BUFFER, y, TICK_BUFFER + (tickLength / 2), y );
+	}
+	else {
+	    g.drawLine( 0, y, tickLength/2, y );
+	}
     }
 
     protected void paintMajorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
         g.setColor( slider.isEnabled() ? slider.getForeground() : MetalLookAndFeel.getControlShadow() );
-        g.drawLine( TICK_BUFFER, y, TICK_BUFFER + tickLength, y );
+
+	if (MetalUtils.isLeftToRight(slider)) {
+	    g.drawLine( TICK_BUFFER, y, TICK_BUFFER + tickLength, y );
+	}
+	else {
+	    g.drawLine( 0, y, tickLength, y );
+	}
     }
 }

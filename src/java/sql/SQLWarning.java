@@ -1,8 +1,11 @@
 /*
- * @(#)SQLWarning.java	1.16 01/11/29
+ * @(#)SQLWarning.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
@@ -51,7 +54,7 @@ public class SQLWarning extends SQLException {
     /**
      * Constructs an <code>SQLWarning</code> object
      * with the given value for a reason; SQLState defaults to
-     * null, and vendorCode defaults to 0.
+     * <code>null</code>, and vendorCode defaults to 0.
      *
      * @param reason a description of the warning 
      */
@@ -62,8 +65,8 @@ public class SQLWarning extends SQLException {
 
     /**
      * Constructs a default <code>SQLWarning</code> object.
-     * The reason defaults to null, SQLState
-     * defaults to null, and vendorCode defaults to 0.
+     * The reason defaults to <code>null</code>, SQLState
+     * defaults to <code>null</code>, and vendorCode defaults to 0.
      *
      */
     public SQLWarning() {
@@ -75,7 +78,7 @@ public class SQLWarning extends SQLException {
     /**
      * Retrieves the warning chained to this <code>SQLWarning</code> object.
      *
-     * @return the next SQLException in the chain, null if none
+     * @return the next <code>SQLException</code> in the chain; <code>null</code> if none
      */
     public SQLWarning getNextWarning() {
 	try {

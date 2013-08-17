@@ -1,52 +1,49 @@
 /*
- * @(#)JViewport.java	1.64 01/11/29
+ * @(#)JViewport.java	1.85 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.applet.Applet;
+import javax.swing.plaf.ViewportUI;
 
 import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.accessibility.*;
 
-import java.applet.Applet;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.LayoutManager;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Point;
-import java.awt.Insets;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 
 import java.io.Serializable;
 
 
 /**
  * The "viewport" or "porthole" through which you see the underlying
- * information. When you scroll, what moves is the viewport. Its like
+ * information. When you scroll, what moves is the viewport. It is like
  * peering through a camera's viewfinder. Moving the viewfinder upwards
  * brings new things into view at the top of the picture and loses
  * things that were at the bottom.
- * <p><b>NOTE:</b>We have implemented a faster scrolling algorithm that
+ * <p>
+ * By default, <code>JViewport</code> is opaque. To change this, use the
+ * <code>setOpaque</code> method.
+ * <p>
+ * <b>NOTE:</b>We have implemented a faster scrolling algorithm that
  * does not require a buffer to draw in. The algorithm works as follows:
- * <ol><li>The view and parent view and checked to see if they are JComponents,
+ * <ol><li>The view and parent view and checked to see if they are
+ * <code>JComponents</code>,
  * if they aren't, stop and repaint the whole viewport.
  * <li>If the viewport is obscured by an ancestor, stop and repaint the whole
  * viewport.
  * <li>Compute the region that will become visible, if it is as big as
  * the viewport, stop and repaint the whole view region.
- * <li>Obtain the ancestor Windows graphics and do a copyArea on the scrolled
- * region.
+ * <li>Obtain the ancestor Windows graphics and do a <code>copyArea</code>
+ * on the scrolled region.
  * <li>Message the view to repaint the newly visible region.
  * <li>The next time paint is invoked on the viewport, if the clip region
  * is smaller than the viewport size a timer is kicked off to repaint the
@@ -54,9 +51,11 @@ import java.io.Serializable;
  * </ol>
  * In general this approach is much faster. Compared to the backing store
  * approach this avoids the overhead of maintaining an offscreen buffer and
- * having to do two copyAreas. Compared to the non backing store case this
+ * having to do two <code>copyArea</code>s.
+ * Compared to the non backing store case this
  * approach will greatly reduce the painted region.
- * <p>This approach can cause slower times than the backing store approach
+ * <p>
+ * This approach can cause slower times than the backing store approach
  * when the viewport is obscured by another window, or partially offscreen.
  * When another window
  * obscures the viewport the copyArea will copy garbage and a
@@ -66,10 +65,6 @@ import java.io.Serializable;
  * backing store case. In most applications very rarely will the user be
  * scrolling while the viewport is obscured by another window or offscreen,
  * so this optimization is usually worth the performance hit when obscured.
- * <p>To turn this behavior on, put the client property
- * "EnableWindowBlit" (a method will added to enable/disable this in the
- * future).
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases.  The current serialization support is appropriate
@@ -77,22 +72,31 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.64 11/29/01
+ * @version 1.85 04/06/00
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
  */
 public class JViewport extends JComponent implements Accessible
 {
+    /**
+     * @see #getUIClassID
+     * @see #readObject
+     */
+    private static final String uiClassID = "ViewportUI";
+
     /** Property used to indicate window blitting should not be done.
      */
     static final Object EnableWindowBlit = "EnableWindowBlit";
 
-    /** True when the viewport dimensions have been determined. */
+    /**
+     * True when the viewport dimensions have been determined. 
+     * The default is false.
+     */
     protected boolean isViewSizeSet = false;
 
     /**
-     * The last viewPosition that we've painted, so we know how
+     * The last <code>viewPosition</code> that we've painted, so we know how
      * much of the backing store image is valid.
      */
     protected Point lastPaintPosition = null;
@@ -101,24 +105,30 @@ public class JViewport extends JComponent implements Accessible
      * True when this viewport is maintaining an offscreen image of its
      * contents, so that some scrolling can take place using fast "bit-blit"
      * operations instead of by accessing the view object to construct the
-     * display.
+     * display.  The default is false.
+     *
+     * @deprecated As of Java 2 platform v1.3
+     * @see #setScrollMode
      */
     protected boolean backingStore = false;
+
     /** The view image used for a backing store. */
     transient protected Image backingStoreImage = null;
 
     /**
-     * The scrollUnderway flag is used for components like JList.
-     * When the downarrow key is pressed on a JList and the selected
-     * cell is the last in the list, the scrollpane autoscrolls.
+     * The <code>scrollUnderway</code> flag is used for components like
+     * <code>JList</code>.  When the downarrow key is pressed on a
+     * <code>JList</code> and the selected
+     * cell is the last in the list, the <code>scrollpane</code> autoscrolls.
      * Here, the old selected cell needs repainting and so we need
-     * a flag to make the viewport do the optimised painting
-     * only when there is an explicit call to setViewPosition(Point).
-     * When setBounds() is called through other routes,
-     * the flag is off and the view repaints normally.
-     * Another approach would be to remove this from the Viewport
-     * class and have the JList manage this case by using
-     * setBackingStoreEnabled().
+     * a flag to make the viewport do the optimized painting
+     * only when there is an explicit call to
+     * <code>setViewPosition(Point)</code>.
+     * When <code>setBounds</code> is called through other routes,
+     * the flag is off and the view repaints normally.  Another approach
+     * would be to remove this from the <code>JViewport</code>
+     * class and have the <code>JList</code> manage this case by using
+     * <code>setBackingStoreEnabled</code>.  The default is false.
      */
     protected boolean scrollUnderway = false;
 
@@ -127,19 +137,50 @@ public class JViewport extends JComponent implements Accessible
      */
     private ComponentListener viewListener = null;
 
-    /* Only one ChangeEvent is needed per JViewport instance since the
+    /* Only one <code>ChangeEvent</code> is needed per
+     * <code>JViewport</code> instance since the
      * event's only (read-only) state is the source property.  The source
      * of events generated here is always "this".
      */
     private transient ChangeEvent changeEvent = null;
 
     /**
-     * Whether or not to use the Window's Graphics to blit. This is only
-     * used if the client property "EnableWindowBlit" is set
-     * (the existance of this property indicates it should be enabled,
-     * therefore the value does not matter).
-     */
-    private transient boolean windowBlit;
+      * Use <code>graphics.copyArea()</code> to implement scrolling.
+      * This is the fastest for most applications.
+      *
+      * @see #setScrollMode
+      * @since 1.3
+      */
+    public static final int BLIT_SCROLL_MODE = 1;
+
+    /**
+      * Draws viewport contents into an offscreen image.
+      * This was previously the default mode for <code>JTable</code>.
+      * This mode may offer advantages over "blit mode"
+      * in some cases, but it requires a large chunk of extra RAM.
+      *
+      * @see #setScrollMode
+      * @since 1.3
+      */
+    public static final int BACKINGSTORE_SCROLL_MODE = 2;
+
+    /**
+      * This mode uses the very simple method of redrawing the entire
+      * contents of the scrollpane each time it is scrolled.
+      * This was the default behavior in Swing 1.0 and Swing 1.1.
+      * Either of the other two options will provide better performance 
+      * in most cases.
+      *
+      * @see #setScrollMode
+      * @since 1.3
+      */
+    public static final int SIMPLE_SCROLL_MODE = 0;
+
+    /**
+      * @see #setScrollMode
+      * @since 1.3
+      */
+    private int scrollMode = BLIT_SCROLL_MODE;
 
     //
     // Window blitting:
@@ -165,38 +206,94 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * This is set to true in setViewPosition if doing a window blit.
+     * This is set to true in <code>setViewPosition</code>
+     * if doing a window blit.
      */
     private transient boolean repaintAll;
 
     /**
-     * This is set to true in paint, if repaintAll is true and the clip
-     * rect does not match the bounds. If true, and scrolling happens the
+     * This is set to true in paint, if <code>repaintAll</code>
+     * is true and the clip rectangle does not match the bounds.
+     * If true, and scrolling happens the
      * repaint manager is not cleared which then allows for the repaint
      * previously invoked to succeed.
      */
     private transient boolean waitingForRepaint;
 
     /**
-     * Instead of directly invoking repaint, a Timer is started and when
-     * it fires, repaint is invoked.
+     * Instead of directly invoking repaint, a <code>Timer</code>
+     * is started and when it fires, repaint is invoked.
      */
     private transient Timer repaintTimer;
 
-    /** Create a JViewport */
+    /** Creates a <code>JViewport</code>. */
     public JViewport() {
         super();
+        updateUI();
         setLayout(createLayoutManager());
+	setOpaque(true);
     }
 
+
+
     /**
-     * Sets the Viewport's one lightweight child, which can be null.
+     * Returns the L&F object that renders this component.
+     *
+     * @return ViewportUI object
+     */
+    public ViewportUI getUI() {
+        return (ViewportUI)ui;
+    }
+
+
+    /**
+     * Sets the L&F object that renders this component.
+     *
+     * @param ui  the <code>ViewportUI</code> L&F object
+     * @see UIDefaults#getUI
+     * @beaninfo
+     *      expert: true
+     *  description: The L&F object that renders this component.
+     */
+    public void setUI(ViewportUI ui) {
+        super.setUI(ui);
+    }
+
+
+    /**
+     * Notification from the <code>UIFactory</code> that the L&F
+     * has changed. 
+     *
+     * @see JComponent#updateUI
+     */
+    public void updateUI() {
+        setUI((ViewportUI)UIManager.getUI(this));
+    }
+
+
+    /**
+     * Returns a string that specifies the name of the L&F class
+     * that renders this component.
+     *
+     * @return the string "ViewportUI"
+     *
+     * @see JComponent#getUIClassID
+     * @see UIDefaults#getUI
+     */
+    public String getUIClassID() {
+        return uiClassID;
+    }
+
+
+    /**
+     * Sets the <code>JViewport</code>s one lightweight child,
+     * which can be <code>null</code>.
      * (Since there is only one child which occupies the entire viewport,
      * the constraints and index arguments are ignored.)
      *
-     * @param child       the Component ______________
-     * @param constraints the Object ______________
-     * @param index       the int ______________
+     * @param child       the lightweight <code>child</code> of the viewport
+     * @param constraints the <code>constraints</code> to be respected
+     * @param index       the index
      * @see #setView
      */
     protected void addImpl(Component child, Object constraints, int index) {
@@ -205,7 +302,7 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Removes the Viewport's one lightweight child.
+     * Removes the <code>Viewport</code>s one lightweight child.
      *
      * @see #setView
      */
@@ -216,10 +313,10 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Overridden to scroll the view so that Rectangle within the
-     * view becomes visible.
+     * Overridden to scroll the view so that <code>Rectangle</code>
+     * within the view becomes visible.
      *
-     * @param contentRect the Rectangle to display
+     * @param contentRect the <code>Rectangle</code> to display
      */
     public void scrollRectToVisible(Rectangle contentRect) {
         Component view = getView();
@@ -234,42 +331,70 @@ public class JViewport extends JComponent implements Accessible
 		validateView();
 	    }
             int     dx = 0, dy = 0;
-            Rectangle bounds = getBounds();
 
-            dx = positionAdjustment(bounds.width, contentRect.width, contentRect.x);
-            dy = positionAdjustment(bounds.height, contentRect.height, contentRect.y);
+            dx = positionAdjustment(getWidth(), contentRect.width, contentRect.x);
+            dy = positionAdjustment(getHeight(), contentRect.height, contentRect.y);
 
             if (dx != 0 || dy != 0) {
                 Point viewPosition = getViewPosition();
-                setViewPosition(new Point(viewPosition.x - dx, viewPosition.y - dy));
-		// NOTE: How JViewport currently works with the backing store
-		// is not foolproof. The sequence of events when
-		// setViewPosition (scrollRectToVisible) is called is to reset
-		// the views bounds, which causes a repaint on the visible
-		// region and sets an ivar indicating scrolling
-		// (scrollUnderway). When JViewport.paint is invoked if
-		// scrollUnderway is true, the backing store is blitted.
-		// This fails if between the time setViewPosition is invoked
-		// and paint is received another repaint is queued indicating
-		// part of the view is invalid. There is no way for JViewport
-		// to notice another repaint has occured and it ends up
-		// blitting what is now a dirty region and the repaint is
-		// never delivered.
-		// It just so happens JTable encounters this behavior by way
-		// of scrollRectToVisible, for this reason scrollUnderway
-		// is set to false here, which effectively disables the
-		// backing store.
-		scrollUnderway = false;
+		Dimension viewSize = view.getSize();
+		int startX = viewPosition.x;
+		int startY = viewPosition.y;
+		Dimension extent = getExtentSize();
+
+		viewPosition.x -= dx;
+		if (viewPosition.x + extent.width > viewSize.width) {
+		    viewPosition.x = Math.max(0,viewSize.width - extent.width);
+		}
+		else if (viewPosition.x < 0) {
+		    viewPosition.x = 0;
+		}
+		viewPosition.y -= dy;
+		if (viewPosition.y + extent.height > viewSize.height) {
+		    viewPosition.y = Math.max(0, viewSize.height -
+					      extent.height);
+		}
+		else if (viewPosition.y < 0) {
+		    viewPosition.y = 0;
+		}
+		if (viewPosition.x != startX || viewPosition.y != startY) {
+		    setViewPosition(viewPosition);
+		    // NOTE: How JViewport currently works with the
+		    // backing store is not foolproof. The sequence of
+		    // events when setViewPosition
+		    // (scrollRectToVisible) is called is to reset the
+		    // views bounds, which causes a repaint on the
+		    // visible region and sets an ivar indicating
+		    // scrolling (scrollUnderway). When
+		    // JViewport.paint is invoked if scrollUnderway is
+		    // true, the backing store is blitted.  This fails
+		    // if between the time setViewPosition is invoked
+		    // and paint is received another repaint is queued
+		    // indicating part of the view is invalid. There
+		    // is no way for JViewport to notice another
+		    // repaint has occured and it ends up blitting
+		    // what is now a dirty region and the repaint is
+		    // never delivered.
+		    // It just so happens JTable encounters this
+		    // behavior by way of scrollRectToVisible, for
+		    // this reason scrollUnderway is set to false
+		    // here, which effectively disables the backing
+		    // store.
+		    scrollUnderway = false;
+		}
             }
         }
     }
 
     /**
-     * This will ascend the receivers parents stopping when a component that
-     * found that returns true to isValidateRoot. If all that Components 
-     * parents are visible, validate will then be invoked on it. The
-     * RepaintManager is then invoked with removeInvalidComponent. This
-     * is the synchronous version of a revalidate.
+     * This will ascend the <code>Viewport</code>s parents stopping when
+     * a component is
+     * found that returns true to <code>isValidateRoot</code>.
+     * If all the <code>Component</code>s  parents are visible,
+     * <code>validate</code> will then be invoked on it. The
+     * <code>RepaintManager</code> is then invoked with 
+     * <code>removeInvalidComponent</code>. This
+     * is the synchronous version of a <code>revalidate</code>.
      */
     private void validateView() {
         Component validateRoot = null;
@@ -379,13 +504,17 @@ public class JViewport extends JComponent implements Accessible
     /**
      * The viewport "scrolls" it's child (called the "view") by the
      * normal parent/child clipping (typically the view is moved in
-     * the opposite direction of the scroll).  A non-null border,
+     * the opposite direction of the scroll).  A non-<code>null</code> border,
      * or non-zero insets, isn't supported, to prevent the geometry
      * of this component from becoming complex enough to inhibit
-     * subclassing.  To create a JViewport with a border, add it to a
-     * JPanel that has a border.
+     * subclassing.  To create a <code>JViewport</code> with a border,
+     * add it to a <code>JPanel</code> that has a border.
+     * <p>Note:  If <code>border</code> is non-<code>null</code>, this
+     * method will throw an exception as borders are not supported on
+     * a <code>JViewPort</code>.
      *
-     * @param border the Border to set
+     * @param border the <code>Border</code> to set
+     * @exception IllegalArgumentException this method is not implemented
      */
     public final void setBorder(Border border) {
         if (border != null) {
@@ -396,9 +525,9 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Returns the insets (border) dimensions as (0,0,0,0), since borders
-     * are not supported on a JViewport.
+     * are not supported on a <code>JViewport</code>.
      *
-     * @return new Insets(0, 0, 0, 0)
+     * @return a <code>Rectange</code> of zero dimension and zero origin
      * @see #setBorder
      */
     public final Insets getInsets() {
@@ -406,11 +535,13 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * Returns an Insets object containing this JViewport's inset
-     * values.  The passed-in Insets object will be reinitialized, and
+     * Returns an <code>Insets</code> object containing this
+     * <code>JViewport</code>s inset values.  The passed-in
+     * <code>Insets</code> object will be reinitialized, and
      * all existing values within this object are overwritten.
      *
-     * @param insets the Insets object which can be reused.
+     * @param insets the <code>Insets</code> object which can be reused
+     * @return this viewports inset values
      * @see #getInsets
      * @beaninfo
      *   expert: true
@@ -432,22 +563,32 @@ public class JViewport extends JComponent implements Accessible
 
     private void paintViaBackingStore(Graphics g) {
         Graphics bsg = getBackingStoreGraphics(g);
-        super.paint(bsg);
-        g.drawImage(backingStoreImage, 0, 0, this);
+	try {
+	    super.paint(bsg);
+	    g.drawImage(backingStoreImage, 0, 0, this);
+	} finally {
+	    bsg.dispose();
+	}
     }
 
     private void paintViaBackingStore(Graphics g, Rectangle oClip) {
         Graphics bsg = getBackingStoreGraphics(g);
-        super.paint(bsg);
-	g.setClip(oClip);
-        g.drawImage(backingStoreImage, 0, 0, this);
+	try {
+	    super.paint(bsg);
+	    g.setClip(oClip);
+	    g.drawImage(backingStoreImage, 0, 0, this);
+	} finally {
+	    bsg.dispose();
+	}
     }
 
     /**
-     * The JViewport overrides the default implementation of
-     * this method (in JComponent) to return false. This ensures
-     * that the drawing machinery will call the Viewport's paint()
-     * implementation rather than messaging the JViewport's
+     * The <code>JViewport</code> overrides the default implementation of
+     * this method (in <code>JComponent</code>) to return false.
+     * This ensures
+     * that the drawing machinery will call the <code>Viewport</code>s
+     * <code>paint</code>
+     * implementation rather than messaging the <code>JViewport</code>s
      * children directly.
      *
      * @return false
@@ -471,7 +612,7 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * Depending on whether the backingStore is enabled,
+     * Depending on whether the <code>backingStore</code> is enabled,
      * either paint the image through the backing store or paint
      * just the recently exposed part, using the backing store
      * to "blit" the remainder.
@@ -481,7 +622,7 @@ public class JViewport extends JComponent implements Accessible
      * bits. (In case you were curious.)
      * </blockquote>
      *
-     * @param g the Graphics context within which to paint
+     * @param g the <code>Graphics</code> context within which to paint
      */
     public void paint(Graphics g)
     {
@@ -523,17 +664,20 @@ public class JViewport extends JComponent implements Accessible
 	    }
 	}
 
-        if (!backingStore || windowBlit) {
+        if (!backingStore || isBlitting() || getView() == null) {
             super.paint(g);
             lastPaintPosition = getViewLocation();
             return;
         }
 
-        // If the view is smaller than the viewport, we should set the
+        // If the view is smaller than the viewport and we are not opaque
+	// (that is, we won't paint our background), we should set the
         // clip. Otherwise, as the bounds of the view vary, we will
         // blit garbage into the exposed areas.
         Rectangle viewBounds = getView().getBounds();
-        g.clipRect(0, 0, viewBounds.width, viewBounds.height);
+	if (!isOpaque()) {
+	    g.clipRect(0, 0, viewBounds.width, viewBounds.height);
+	}
 
         if (backingStoreImage == null) {
             // Backing store is enabled but this is the first call to paint.
@@ -546,8 +690,13 @@ public class JViewport extends JComponent implements Accessible
 	    backingStoreImage = createImage(width, height);
 	    Rectangle clip = g.getClipBounds();
 	    if (clip.width != width || clip.height != height) {
-		g.setClip(0, 0, Math.min(viewBounds.width, width),
-			  Math.min(viewBounds.height, height));
+		if (!isOpaque()) {
+		    g.setClip(0, 0, Math.min(viewBounds.width, width),
+			      Math.min(viewBounds.height, height));
+		}
+		else {
+		    g.setClip(0, 0, width, height);
+		}
 		paintViaBackingStore(g, clip);
 	    }
 	    else {
@@ -585,16 +734,20 @@ public class JViewport extends JComponent implements Accessible
 		    // the screen.
 		    g.setClip(0, 0, width, height);
                     Graphics bsg = getBackingStoreGraphics(g);
-                    bsg.copyArea(blitFrom.x, blitFrom.y, blitSize.width, blitSize.height, bdx, bdy);
+		    try {
+		        bsg.copyArea(blitFrom.x, blitFrom.y, blitSize.width, blitSize.height, bdx, bdy);
 
-		    g.setClip(clip.x, clip.y, clip.width, clip.height);
-                    // Paint the rest of the view; the part that has just been exposed.
-                    Rectangle r = viewBounds.intersection(blitPaint);
-                    bsg.setClip(r);
-                    super.paint(bsg);
+			g.setClip(clip.x, clip.y, clip.width, clip.height);
+			// Paint the rest of the view; the part that has just been exposed.
+			Rectangle r = viewBounds.intersection(blitPaint);
+			bsg.setClip(r);
+			super.paint(bsg);
 
-                    // Copy whole of the backing store to g.
-                    g.drawImage(backingStoreImage, 0, 0, this);
+			// Copy whole of the backing store to g.
+			g.drawImage(backingStoreImage, 0, 0, this);
+		    } finally {
+		        bsg.dispose();
+		    }
                 }
             }
         }
@@ -605,7 +758,7 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Sets the bounds of this viewport.  If the viewports width
-     * or height has changed, fire a StateChanged event.
+     * or height has changed, fire a <code>StateChanged</code> event.
      *
      * @param x left edge of the origin
      * @param y top edge of the origin
@@ -627,38 +780,107 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
+      * Used to control the method of scrolling the viewport contents.
+      * You may want to change this mode to get maximum performance for your
+      * use case.
+      *
+      * @param mode one of the following values:
+      * <ul>
+      * <li> JViewport.BLIT_SCROLL_MODE
+      * <li> JViewport.BACKINGSTORE_SCROLL_MODE
+      * <li> JViewport.SIMPLE_SCROLL_MODE
+      * </ul>
+      *
+      * @see #BLIT_SCROLL_MODE
+      * @see #BACKINGSTORE_SCROLL_MODE
+      * @see #SIMPLE_SCROLL_MODE
+      *
+      * @beaninfo
+      *        bound: false
+      *  description: Method of moving contents for incremental scrolls.
+      *         enum: BLIT_SCROLL_MODE JViewport.BLIT_SCROLL_MODE
+      *               BACKINGSTORE_SCROLL_MODE JViewport.BACKINGSTORE_SCROLL_MODE
+      *               SIMPLE_SCROLL_MODE JViewport.SIMPLE_SCROLL_MODE
+      *
+      * @since 1.3
+      */
+    public void setScrollMode(int mode) {
+        scrollMode = mode;
+	if (mode == BACKINGSTORE_SCROLL_MODE) {
+	    backingStore = true;
+	} else {
+	    backingStore = false;
+	}
+    }
+
+    /**
+      * Returns the current scrolling mode.
+      *
+      * @return the <code>scrollMode</code> property
+      * @see #setScrollMode
+      * @since 1.3
+      */
+    public int getScrollMode() {
+        return scrollMode;
+    }
+
+    /**
      * Returns true if this viewport is maintaining an offscreen
      * image of its contents.
+     * @return true if <code>scrollMode</code> is BACKINGSTORE_SCROLL_MODE
+     *
+     * @deprecated As of Java 2 platform v1.3, replaced by
+     *             <code>getScrollMode()</code>.
      */
     public boolean isBackingStoreEnabled() {
-        return backingStore;
+        return scrollMode == BACKINGSTORE_SCROLL_MODE;
     }
 
 
     /**
      * If true if this viewport will maintain an offscreen
      * image of its contents.  The image is used to reduce the cost
-     * of small one dimensional changes to the viewPosition.
+     * of small one dimensional changes to the <code>viewPosition</code>.
      * Rather than repainting the entire viewport we use
-     * Graphics.copyArea() to effect some of the scroll.
+     * <code>Graphics.copyArea()</code> to effect some of the scroll.
+     * @param enabled if true, maintain an offscreen backing store
+     *
+     * @deprecated As of Java 2 platform v1.3, replaced by
+     *             <code>setScrollMode()</code>.
      */
-    public void setBackingStoreEnabled(boolean x) {
-        backingStore = x;
+    public void setBackingStoreEnabled(boolean enabled) {
+        if (enabled) {
+	    setScrollMode(BACKINGSTORE_SCROLL_MODE);
+	} else {
+	    setScrollMode(BLIT_SCROLL_MODE);
+	}
+    }
+
+    private final boolean isBlitting() {
+        Component view = getView();
+        return (scrollMode == BLIT_SCROLL_MODE) && 
+	       (view instanceof JComponent) && ((JComponent)view).isOpaque();
     }
 
 
     /**
-     * Returns the Viewport's one child or null.
+     * Returns the <code>JViewport</code>s one child or <code>null</code>.
+     * @return the viewports child, or <code>null</code> if none exists
      *
      * @see #setView
      */
     public Component getView() {
-        return (getComponentCount() > 0) ? getComponent(0) : null;
+        try {
+	    return getComponent(0);
+	} catch (ArrayIndexOutOfBoundsException e) {
+	    return null;
+	}
     }
 
     /**
-     * Sets the Viewport's one lightweight child (<code>view</code>),
-     * which can be null.
+     * Sets the <code>JViewport</code>s one lightweight child
+     * (<code>view</code>), which can be <code>null</code>.
+     * @param view the viewports new lightweight child
      *
      * @see #getView
      */
@@ -691,7 +913,7 @@ public class JViewport extends JComponent implements Accessible
      * preferred size, otherwise return the view's current size.
      * If there is no view, return 0,0.
      *
-     * @return a Dimension object specifying the size of the view
+     * @return a <code>Dimension</code> object specifying the size of the view
      */
     public Dimension getViewSize() {
         Component view = getView();
@@ -712,9 +934,10 @@ public class JViewport extends JComponent implements Accessible
      * Sets the view coordinates that appear in the upper left
      * hand corner of the viewport, and the size of the view.
      *
-     * @param newSize a Dimension object specifying the size and
-     *        location of the new view coordinates, or null if there
-     *        is no view
+     * @param newSize a <code>Dimension</code> object specifying the size and
+     *        	location of the new view coordinates,
+     *		or <code>null</code> if there
+     *        	is no view
      */
     public void setViewSize(Dimension newSize) {
         Component view = getView();
@@ -734,9 +957,9 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Returns the view coordinates that appear in the upper left
-     * hand corner of the viewport, 0,0 if there's no view.
+     * hand corner of the viewport, or 0,0 if there's no view.
      *
-     * @return a Point object giving the upper left coordinates
+     * @return a <code>Point</code> object giving the upper left coordinates
      */
     public Point getViewPosition() {
         Component view = getView();
@@ -756,7 +979,7 @@ public class JViewport extends JComponent implements Accessible
      * Sets the view coordinates that appear in the upper left
      * hand corner of the viewport, does nothing if there's no view.
      *
-     * @param p  a Point object giving the upper left coordinates
+     * @param p  a <code>Point</code> object giving the upper left coordinates
      */
     public void setViewPosition(Point p) 
     {
@@ -789,12 +1012,15 @@ public class JViewport extends JComponent implements Accessible
 	int newY = -y;
 	
 	if ((oldX != newX) || (oldY != newY)) {
-	    if (!waitingForRepaint && windowBlit && canUseWindowBlitter()) {
+	    if (!waitingForRepaint && isBlitting() && canUseWindowBlitter()) {
 		Graphics g = getGraphics();
 		flushViewDirtyRegion(g);
 		// This calls setBounds(), and then repaint().
                 view.setLocation(newX, newY);
-		g.clipRect(0,0,getWidth(),getHeight());
+		// The cast to JComponent here is valid, if view is not 
+		// a JComponent, isBlitting will return false.
+		g.setClip(0,0,getWidth(), Math.min(getHeight(),
+				 ((JComponent)view).getHeight()));
 		// Forces a repaint of the whole component on the next
 		// call to paint.
 		repaintAll = windowBlitPaint(g);
@@ -808,6 +1034,7 @@ public class JViewport extends JComponent implements Accessible
 		scrollUnderway = true;
 		// This calls setBounds(), and then repaint().
 		view.setLocation(newX, newY);
+		repaintAll = false;
 	    }
 	    fireStateChanged();
 	}
@@ -815,11 +1042,12 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Return a rectangle whose origin is getViewPosition and size is
-     * getExtentSize(). This is the visible part of the view, in view
-     * coordinates.
+     * Returns a rectangle whose origin is <code>getViewPosition</code>
+     * and size is <code>getExtentSize</code>.
+     * This is the visible part of the view, in view coordinates.
      *
-     * @return a Rectangle giving the visible part of the view using view coordinates.
+     * @return a <code>Rectangle</code> giving the visible part of
+     *		the view using view coordinates.
      */
     public Rectangle getViewRect() {
         return new Rectangle(getViewPosition(), getExtentSize());
@@ -828,9 +1056,18 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Computes the parameters for a blit where the backing store image
-     * currently contains oldLoc in the upper left hand corner
-     * and we're scrolling to newLoc.  The parameters are modified
+     * currently contains <code>oldLoc</code> in the upper left hand corner
+     * and we're scrolling to <code>newLoc</code>.
+     * The parameters are modified
      * to return the values required for the blit.
+     * @param dx  the horizontal delta
+     * @param dy  the vertical delta
+     * @param blitFrom the <code>Point</code> we're blitting from
+     * @param blitTo the <code>Point</code> we're blitting to
+     * @param blitSize the <code>Dimension</code> of the area to blit
+     * @param blitPaint the area to blit
+     * @return  true if the parameters are modified and we're ready to blit;
+     *		false otherwise
      */
     protected boolean computeBlit(
         int dx,
@@ -900,7 +1137,7 @@ public class JViewport extends JComponent implements Accessible
     /**
      * Returns the size of the visible part of the view in view coordinates.
      *
-     * @return a Dimension object giving the size of the view
+     * @return a <code>Dimension</code> object giving the size of the view
      */
     public Dimension getExtentSize() {
         return getSize();
@@ -908,24 +1145,24 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Convert a size in pixel coordinates to view coordinates.
+     * Converts a size in pixel coordinates to view coordinates.
      * Subclasses of viewport that support "logical coordinates"
      * will override this method.
      *
-     * @param size  a Dimension object using pixel coordinates
-     * @return a Dimension object converted to view coordinates
+     * @param size  a <code>Dimension</code> object using pixel coordinates
+     * @return a <code>Dimension</code> object converted to view coordinates
      */
     public Dimension toViewCoordinates(Dimension size) {
         return new Dimension(size);
     }
 
     /**
-     * Convert a point in pixel coordinates to view coordinates.
+     * Converts a point in pixel coordinates to view coordinates.
      * Subclasses of viewport that support "logical coordinates"
      * will override this method.
      *
-     * @param p  a Point object using pixel coordinates
-     * @return a Point object converted to view coordinates
+     * @param p  a <code>Point</code> object using pixel coordinates
+     * @return a <code>Point</code> object converted to view coordinates
      */
     public Point toViewCoordinates(Point p) {
         return new Point(p);
@@ -933,9 +1170,10 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Set the size of the visible part of the view using view coordinates.
+     * Sets the size of the visible part of the view using view coordinates.
      *
-     * @param newExtent  a Dimension object specifying the size of the view
+     * @param newExtent  a <code>Dimension</code> object specifying
+     *		the size of the view
      */
     public void setExtentSize(Dimension newExtent) {
         Dimension oldExtent = getExtentSize();
@@ -963,8 +1201,8 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * Create a listener for the view.
-     * @return a ViewListener
+     * Creates a listener for the view.
+     * @return a <code>ViewListener</code>
      */
     protected ViewListener createViewListener() {
         return new ViewListener();
@@ -973,10 +1211,10 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Subclassers can override this to install a different
-     * layout manager (or null) in the constructor.  Returns
-     * a new JViewportLayout object.
+     * layout manager (or <code>null</code>) in the constructor.  Returns
+     * a new <code>ViewportLayout</code> object.
      *
-     * @return a LayoutManager
+     * @return a <code>LayoutManager</code>
      */
     protected LayoutManager createLayoutManager() {
         return new ViewportLayout();
@@ -984,10 +1222,11 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Add a ChangeListener to the list that's notified each time the view's
+     * Adds a <code>ChangeListener</code> to the list that is
+     * notified each time the view's
      * size, position, or the viewport's extent size has changed.
      *
-     * @param l the ChangeListener to add
+     * @param l the <code>ChangeListener</code> to add
      * @see #removeChangeListener
      * @see #setViewPosition
      * @see #setViewSize
@@ -998,11 +1237,11 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * Remove a ChangeListener from the list that's notified each
+     * Removes a <code>ChangeListener</code> from the list that's notified each
      * time the views size, position, or the viewports extent size
      * has changed.
      *
-     * @param l the ChangeListener to remove
+     * @param l the <code>ChangeListener</code> to remove
      * @see #addChangeListener
      */
     public void removeChangeListener(ChangeListener l) {
@@ -1010,8 +1249,8 @@ public class JViewport extends JComponent implements Accessible
     }
 
 
-    /*
-     * Notify all ChangeListeners when the views
+    /**
+     * Notifies all <code>ChangeListeners</code> when the views
      * size, position, or the viewports extent size has changed.
      *
      * @see #addChangeListener
@@ -1032,12 +1271,12 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * We always repaint in our parent coordinate system to make sure
-     * only one paint is performed by the RepaintManager.
+     * Always repaint in the parents coordinate system to make sure
+     * only one paint is performed by the <code>RepaintManager</code>.
      *
      * @param     tm   maximum time in milliseconds before update
-     * @param     x    the <i>x</i> coordinate (pixels over from left)
-     * @param     y    the <i>y</i> coordinate (pixels down from top)
+     * @param     x    the <code>x</code> coordinate (pixels over from left)
+     * @param     y    the <code>y</code> coordinate (pixels down from top)
      * @param     width    the width
      * @param     height   the height
      * @see       java.awt.Component#update(java.awt.Graphics)
@@ -1052,29 +1291,24 @@ public class JViewport extends JComponent implements Accessible
 
 
     /**
-     * Returns a string representation of this JViewport. This method 
+     * Returns a string representation of this <code>JViewport</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JViewport.
+     * @return  a string representation of this <code>JViewport</code>
      */
     protected String paramString() {
         String isViewSizeSetString = (isViewSizeSet ?
 				      "true" : "false");
         String lastPaintPositionString = (lastPaintPosition != null ?
 					  lastPaintPosition.toString() : "");
-        String backingStoreString = (backingStore ?
-                                    "true" : "false");
-        String backingStoreImageString = (backingStoreImage != null ?
-					  backingStoreImage.toString() : "");
         String scrollUnderwayString = (scrollUnderway ?
 				       "true" : "false");
 
         return super.paramString() +
-        ",backingStore=" + backingStoreString +
-        ",backingStoreImage=" + backingStoreImageString +
         ",isViewSizeSet=" + isViewSizeSetString +
         ",lastPaintPosition=" + lastPaintPositionString +
         ",scrollUnderway=" + scrollUnderwayString;
@@ -1086,13 +1320,22 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Notifies listeners of a property change. This is subclassed to update
-     * the <code>windowBlit</code> ivar (putClientProperty is final).
+     * the <code>windowBlit</code> property.
+     * (The <code>putClientProperty</code> property is final).
+     *
+     * @param propertyName a string containing the property name
+     * @param oldValue the old value of the property
+     * @param newValue  the new value of the property
      */
     protected void firePropertyChange(String propertyName, Object oldValue,
 				      Object newValue) {
 	super.firePropertyChange(propertyName, oldValue, newValue);
 	if (propertyName.equals(EnableWindowBlit)) {
-	    windowBlit = (newValue != null);
+	    if (newValue != null) {
+	        setScrollMode(BLIT_SCROLL_MODE);
+	    } else {
+	        setScrollMode(SIMPLE_SCROLL_MODE);
+	    }
 	}
     }
 
@@ -1114,13 +1357,15 @@ public class JViewport extends JComponent implements Accessible
     /**
      * If the repaint manager has a dirty region for the view, the view is
      * asked to paint.
+     *
+     * @param g  the <code>Graphics</code> context within which to paint
      */
     private void flushViewDirtyRegion(Graphics g) {
 	RepaintManager rm = RepaintManager.currentManager(this);
 	JComponent view = (JComponent) getView();
 	Rectangle dirty;
 
-	dirty = rm.getDirtyRegion((JComponent) getView());
+	dirty = rm.getDirtyRegion(view);
 	if(dirty != null && dirty.width > 0 && dirty.height > 0) {
 	    dirty.x += view.getX();
 	    dirty.y += view.getY();
@@ -1136,7 +1381,9 @@ public class JViewport extends JComponent implements Accessible
 
     /**
      * Used when blitting.
-     * @return true if blitting succeeded.
+     *
+     * @param g  the <code>Graphics</code> context within which to paint
+     * @return true if blitting succeeded; otherwise false
      */
     private boolean windowBlitPaint(Graphics g) {
 	int width = getWidth();
@@ -1205,7 +1452,10 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * Called to paint the view, usually when blitPaint can not blit.
+     * Called to paint the view, usually when <code>blitPaint</code>
+     * can not blit.
+     *
+     * @param g the <code>Graphics</code> context within which to paint
      */
     private void paintView(Graphics g) {
 	Rectangle r = g.getClipBounds();
@@ -1233,21 +1483,25 @@ public class JViewport extends JComponent implements Accessible
     private void blitWindowGraphics(int x, int y, int w, int h, int ox,
 				    int oy) {
 	Container parent;
-	for(parent = getParent() ; !(parent instanceof Window) ;
+	for(parent = getParent() ; isLightweightComponent(parent) ;
 	    parent = parent.getParent());
 	Graphics wg = parent.getGraphics();
 	Rectangle r = new Rectangle(x,y,w,h);
 	r = SwingUtilities.convertRectangle(this, r, parent);
 	wg.copyArea(r.x,r.y,r.width,r.height, ox, oy);
+	wg.dispose();
     }
 
     /**
-     * Returns true if the receiver is not obscured by one of its ancestors,
-     * or its ancestors children.
+     * Returns true if the viewport is not obscured by one of its ancestors,
+     * or its ancestors children and if the viewport is showing. Blitting
+     * when the view isn't showing will work,
+     * or rather <code>copyArea</code> will work,
+     * but will not produce the expected behavior.
      */
     private boolean canUseWindowBlitter() {
-	if (!(getParent() instanceof JComponent) &&
-	    !(getView() instanceof JComponent)) {
+	if (!isShowing() || (!(getParent() instanceof JComponent) &&
+			     !(getView() instanceof JComponent))) {
 	    return false;
 	}
 	Rectangle clip = new Rectangle(0,0,getWidth(),getHeight());
@@ -1257,8 +1511,7 @@ public class JViewport extends JComponent implements Accessible
 	Container parent;
 	Component lastParent = null;
 		
-	for(parent = this ; !(parent instanceof java.awt.Window) &&
-		parent != null; parent = parent.getParent()) {
+	for(parent = this; parent != null && isLightweightComponent(parent); parent = parent.getParent()) {
 	    if(parent instanceof JComponent) {
 		b = ((JComponent)parent)._bounds;
 	    } else {
@@ -1311,9 +1564,13 @@ public class JViewport extends JComponent implements Accessible
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JViewport. 
+     * For viewports, the AccessibleContext takes the form of an 
+     * AccessibleJViewport. 
+     * A new AccessibleJViewport instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJViewport that serves as the 
+     *         AccessibleContext of this JViewport
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1323,7 +1580,9 @@ public class JViewport extends JComponent implements Accessible
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JViewport</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to viewport user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

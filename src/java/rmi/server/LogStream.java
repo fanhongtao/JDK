@@ -1,8 +1,11 @@
 /*
- * @(#)LogStream.java	1.12 01/11/29
+ * @(#)LogStream.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi.server;
 
@@ -13,7 +16,7 @@ import java.util.*;
  * <code>LogStream</code> provides a mechanism for logging errors that are
  * of possible interest to those monitoring a system.  
  *
- * @version 1.12, 11/29/01
+ * @version 1.15, 02/02/00
  * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
  * @since   JDK1.1
  * @deprecated no replacement
@@ -62,6 +65,8 @@ public class LogStream extends PrintStream {
      * Return the LogStream identified by the given name.  If
      * a log corresponding to "name" does not exist, a log using
      * the default stream is created.
+     * @param name name identifying the desired LogStream
+     * @return log associated with given name
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -79,6 +84,7 @@ public class LogStream extends PrintStream {
 
     /**
      * Return the current default stream for new logs.
+     * @return default log stream
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -88,6 +94,7 @@ public class LogStream extends PrintStream {
 
     /**
      * Set the default stream for new logs.
+     * @param newDefault new default log stream
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -97,6 +104,7 @@ public class LogStream extends PrintStream {
 
     /**
      * Return the current stream to which output from this log is sent.
+     * @return output stream for this log
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -107,6 +115,7 @@ public class LogStream extends PrintStream {
     
     /**
      * Set the stream to which output from this log is sent.
+     * @param out new output stream for this log
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -178,7 +187,8 @@ public class LogStream extends PrintStream {
     }
 
     /**
-     * Return log name as string representation
+     * Return log name as string representation.
+     * @return log name
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -187,16 +197,18 @@ public class LogStream extends PrintStream {
 	return name;
     }
 
-    /** log level constant (no logging) */
+    /** log level constant (no logging). */
     public static final int SILENT  = 0;
-    /** log level constant (brief logging) */
+    /** log level constant (brief logging). */
     public static final int BRIEF   = 10;
-    /** log level constant (verbose logging) */
+    /** log level constant (verbose logging). */
     public static final int VERBOSE = 20;
 
     /**
      * Convert a string name of a logging level to its internal
      * integer representation.
+     * @param s name of logging level (e.g., 'SILENT', 'BRIEF', 'VERBOSE')
+     * @return corresponding integer log level
      * @since JDK1.1
      * @deprecated no replacement
      */

@@ -1,8 +1,11 @@
 /*
- * @(#)BasicScrollPaneUI.java	1.44 01/11/29
+ * @(#)BasicScrollPaneUI.java	1.52 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -30,7 +33,7 @@ import java.io.Serializable;
 /**
  * A default L&F implementation of ScrollPaneUI.
  *
- * @version 1.44 11/29/01
+ * @version 1.52 02/02/00
  * @author Hans Muller
  */
 public class BasicScrollPaneUI
@@ -126,36 +129,58 @@ public class BasicScrollPaneUI
 
 
     protected void installKeyboardActions(JScrollPane c) {
-	// up
-	c.registerKeyboardAction(new ScrollAction("ScrollUp", SwingConstants.
-		VERTICAL, -1), KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
-	        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-	// down
-	c.registerKeyboardAction(new ScrollAction("ScrollDown", SwingConstants.
-		VERTICAL, 1), KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
-	        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-	// left
-	c.registerKeyboardAction(new ScrollAction("ScrollLeft", SwingConstants.
-	      HORIZONTAL, -1), KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,
-	      InputEvent.CTRL_MASK),
-	      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-	// right
-	c.registerKeyboardAction(new ScrollAction("ScrollDown", SwingConstants.
-	      HORIZONTAL, 1), KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 
-              InputEvent.CTRL_MASK),
-	      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-	// home
-	c.registerKeyboardAction(new ScrollHomeAction("ScrollHome"),
-		KeyStroke.getKeyStroke(KeyEvent.VK_HOME,
-                InputEvent.CTRL_MASK),
-	        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-	// down
-	c.registerKeyboardAction(new ScrollEndAction("ScrollEnd"),
-		KeyStroke.getKeyStroke(KeyEvent.VK_END,
-                InputEvent.CTRL_MASK),
-	        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	InputMap inputMap = getInputMap(JComponent.
+				  WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+	SwingUtilities.replaceUIInputMap(c, JComponent.
+			       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
+	ActionMap actionMap = getActionMap();
+
+	SwingUtilities.replaceUIActionMap(c, actionMap);
     }
 
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+	    return (InputMap)UIManager.get("ScrollPane.ancestorInputMap");
+	}
+	return null;
+    }
+
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("ScrollPane.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("ScrollPane.actionMap", map);
+	    }
+	}
+	return map;
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("scrollUp", new ScrollAction("scrollUp", SwingConstants.
+						 VERTICAL, -1, true));
+	map.put("scrollDown", new ScrollAction("scrollDown",
+				     SwingConstants.VERTICAL, 1, true));
+	map.put("scrollLeft", new ScrollAction("scrollLeft",
+				  SwingConstants.HORIZONTAL, -1, true));
+
+	map.put("scrollRight", new ScrollAction("ScrollRight",
+					SwingConstants.HORIZONTAL, 1, true));
+	map.put("scrollHome", new ScrollHomeAction("ScrollHome"));
+	map.put("scrollEnd", new ScrollEndAction("ScrollEnd"));
+	map.put("unitScrollRight", new ScrollAction
+	       ("UnitScrollRight", SwingConstants.HORIZONTAL, 1, false));
+	map.put("unitScrollLeft", new ScrollAction
+	       ("UnitScrollLeft", SwingConstants.HORIZONTAL, -1, false));
+	map.put("unitScrollUp", new ScrollAction
+	       ("UnitScrollUp", SwingConstants.VERTICAL, -1,false));
+	map.put("unitScrollDown", new ScrollAction
+	       ("UnitScrollDown", SwingConstants.VERTICAL, 1, false));
+	return map;
+    }
 
     public void installUI(JComponent x) {
 	scrollpane = (JScrollPane)x;
@@ -199,24 +224,9 @@ public class BasicScrollPaneUI
 
 
     protected void uninstallKeyboardActions(JScrollPane c) {
-	// up
-        c.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      (KeyEvent.VK_PAGE_UP, 0));
-	// down
-        c.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      (KeyEvent.VK_PAGE_DOWN, 0));
-	// left
-        c.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				 (KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK));
-	// right
-        c.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			       (KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK));
-	// home
-        c.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			       (KeyEvent.VK_HOME, InputEvent.CTRL_MASK));
-	// end
-        c.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			       (KeyEvent.VK_END, InputEvent.CTRL_MASK));
+	SwingUtilities.replaceUIActionMap(c, null);
+	SwingUtilities.replaceUIInputMap(c, JComponent.
+			   WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, null);
     }
 
 
@@ -378,6 +388,26 @@ public class BasicScrollPaneUI
 	}
     }
 
+    private void updateHorizontalScrollBar(PropertyChangeEvent pce) {
+	updateScrollBar(pce, hsbChangeListener);
+    }
+
+    private void updateVerticalScrollBar(PropertyChangeEvent pce) {
+	updateScrollBar(pce, vsbChangeListener);
+    }
+
+    private void updateScrollBar(PropertyChangeEvent pce, ChangeListener cl) {
+	if (cl != null) {
+	    JScrollBar sb = (JScrollBar)pce.getOldValue();
+	    if (sb != null) {
+		sb.getModel().removeChangeListener(cl);
+	    }
+	    sb = (JScrollBar)pce.getNewValue();
+	    if (sb != null) {
+		sb.getModel().addChangeListener(cl);
+	    }
+	}
+    }
 
     public class PropertyChangeHandler implements PropertyChangeListener
     {
@@ -399,6 +429,12 @@ public class BasicScrollPaneUI
 	    }
 	    else if (propertyName.equals("columnHeader")) {
 		updateColumnHeader(e);
+	    }
+	    else if (propertyName.equals("verticalScrollBar")) {
+		updateVerticalScrollBar(e);
+	    }
+	    else if (propertyName.equals("horizontalScrollBar")) {
+		updateHorizontalScrollBar(e);
 	    }
 	}
     }
@@ -434,33 +470,26 @@ public class BasicScrollPaneUI
 
 
     /**
-     * A generaic action this is only enabled when the JList is enabled.
-     */
-    private abstract class ScrollPaneAction implements ActionListener {
-	protected ScrollPaneAction(String name) {
-	}
-
-	public boolean isEnabled() { return (scrollpane != null &&
-					     scrollpane.isEnabled()); }
-    }
-
-
-    /**
      * Action to scroll left/right/up/down.
      */
-    private class ScrollAction extends ScrollPaneAction {
+    private static class ScrollAction extends AbstractAction {
 	/** Direction to scroll. */
 	protected int orientation;
 	/** 1 indicates scroll down, -1 up. */
 	protected int direction;
+	/** True indicates a block scroll, otherwise a unit scroll. */
+	private boolean block;
 
-	protected ScrollAction(String name, int orientation, int direction) {
+	protected ScrollAction(String name, int orientation, int direction,
+			       boolean block) {
 	    super(name);
 	    this.orientation = orientation;
 	    this.direction = direction;
+	    this.block = block;
 	}
 
 	public void actionPerformed(ActionEvent e) {
+	    JScrollPane scrollpane = (JScrollPane)e.getSource();
 	    JViewport vp = scrollpane.getViewport();
 	    Component view;
 	    if (vp != null && (view = vp.getView()) != null) {
@@ -469,15 +498,26 @@ public class BasicScrollPaneUI
 		int amount;
 
 		if (view instanceof Scrollable) {
-		    amount = ((Scrollable)view).getScrollableBlockIncrement
+		    if (block) {
+			amount = ((Scrollable)view).getScrollableBlockIncrement
 			         (visRect, orientation, direction);
-		}
-		else {
-		    if (orientation == SwingConstants.VERTICAL) {
-			amount = visRect.height;
 		    }
 		    else {
-			amount = visRect.width;
+			amount = ((Scrollable)view).getScrollableUnitIncrement
+			         (visRect, orientation, direction);
+		    }
+		}
+		else {
+		    if (block) {
+			if (orientation == SwingConstants.VERTICAL) {
+			    amount = visRect.height;
+			}
+			else {
+			    amount = visRect.width;
+			}
+		    }
+		    else {
+			amount = 10;
 		    }
 		}
 		if (orientation == SwingConstants.VERTICAL) {
@@ -485,11 +525,17 @@ public class BasicScrollPaneUI
 		    if ((visRect.y + visRect.height) > vSize.height) {
 			visRect.y = Math.max(0, vSize.height - visRect.height);
 		    }
+		    else if (visRect.y < 0) {
+			visRect.y = 0;
+		    }
 		}
 		else {
 		    visRect.x += (amount * direction);
 		    if ((visRect.x + visRect.width) > vSize.width) {
 			visRect.x = Math.max(0, vSize.width - visRect.width);
+		    }
+		    else if (visRect.x < 0) {
+			visRect.x = 0;
 		    }
 		}
 		vp.setViewPosition(visRect.getLocation());
@@ -501,12 +547,13 @@ public class BasicScrollPaneUI
     /**
      * Action to scroll to x,y location of 0,0.
      */
-    private class ScrollHomeAction extends ScrollPaneAction {
+    private static class ScrollHomeAction extends AbstractAction {
 	protected ScrollHomeAction(String name) {
 	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent e) {
+	    JScrollPane scrollpane = (JScrollPane)e.getSource();
 	    JViewport vp = scrollpane.getViewport();
 	    Component view;
 	    if (vp != null && (view = vp.getView()) != null) {
@@ -519,12 +566,13 @@ public class BasicScrollPaneUI
     /**
      * Action to scroll to last visible location.
      */
-    private class ScrollEndAction extends ScrollPaneAction {
+    private static class ScrollEndAction extends AbstractAction {
 	protected ScrollEndAction(String name) {
 	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent e) {
+	    JScrollPane scrollpane = (JScrollPane)e.getSource();
 	    JViewport vp = scrollpane.getViewport();
 	    Component view;
 	    if (vp != null && (view = vp.getView()) != null) {

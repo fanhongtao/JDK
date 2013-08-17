@@ -1,8 +1,11 @@
 /*
- * @(#)HashSet.java	1.15 01/11/29
+ * @(#)HashSet.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -45,13 +48,13 @@ package java.util;
  * an undetermined time in the future.
  * 
  * @author  Josh Bloch
- * @version 1.15 11/29/01
+ * @version 1.19, 02/02/00
  * @see	    Collection
  * @see	    Set
  * @see	    TreeSet
  * @see	    Collections#synchronizedSet(Set)
  * @see	    HashMap
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class HashSet extends AbstractSet
@@ -75,6 +78,8 @@ public class HashSet extends AbstractSet
      * collection.  The capacity of the backing <tt>HashMap</tt> instance is
      * twice the size of the specified collection or eleven (whichever is
      * greater), and the default load factor (which is <tt>0.75</tt>) is used.
+     *
+     * @param c the collection whose elements are to be placed into this set.
      */
     public HashSet(Collection c) {
 	map = new HashMap(Math.max(2*c.size(), 11));
@@ -139,6 +144,7 @@ public class HashSet extends AbstractSet
     /**
      * Returns <tt>true</tt> if this set contains the specified element.
      *
+     * @param o element whose presence in this set is to be tested.
      * @return <tt>true</tt> if this set contains the specified element.
      */
     public boolean contains(Object o) {

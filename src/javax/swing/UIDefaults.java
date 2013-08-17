@@ -1,17 +1,21 @@
 /*
- * @(#)UIDefaults.java	1.32 01/11/29
+ * @(#)UIDefaults.java	1.37 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
 
 
 import javax.swing.plaf.ComponentUI;
-import javax.swing.border.Border;
+import javax.swing.border.*;
 import javax.swing.event.SwingPropertyChangeSupport;
 
+import java.lang.reflect.*;
 import java.util.Hashtable;
 import java.awt.Font;
 import java.awt.Color;
@@ -24,7 +28,7 @@ import java.beans.PropertyChangeEvent;
 
 /**
  * A table of defaults for Swing components.  Applications can set/get
- * default values via the UIManager.
+ * default values via the <code>UIManager</code>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -34,7 +38,7 @@ import java.beans.PropertyChangeEvent;
  * long term persistence.
  *
  * @see UIManager
- * @version 1.32 11/29/01
+ * @version 1.37 02/02/00
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -63,6 +67,8 @@ public class UIDefaults extends Hashtable
         }
         UIDefaults myDefaults = new UIDefaults(uiDefaults);
      * </pre>
+     * @param keyValueList  an array of objects containing the key/value
+     *		pairs
      */
     public UIDefaults(Object[] keyValueList) {
         super(keyValueList.length / 2);
@@ -79,8 +85,11 @@ public class UIDefaults extends Hashtable
      * the table entry is replaced, and the real value is returned.
      * If the value is an <code>UIDefaults.ActiveValue</code>
      * the table entry is not replaced - the value is computed
-     * with ActiveValue.createValue() for each get() call.
+     * with <code>ActiveValue.createValue()</code> for each
+     * <code>get()</code> call.
      *
+     * @param key the desired key
+     * @return the value for <code>key</code>
      * @see LazyValue
      * @see ActiveValue
      * @see java.util.Hashtable#get
@@ -156,15 +165,16 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * Set the value of <code>key</code> to <code>value</code>.
+     * Sets the value of <code>key</code> to <code>value</code>.
      * If <code>key</code> is a string and the new value isn't
-     * equal to the old one, fire a PropertyChangeEvent.  If value
-     * is null, the key is removed from the table.
+     * equal to the old one, fire a <code>PropertyChangeEvent</code>.
+     * If value is <code>null</code>, the key is removed from the table.
      *
-     * @param key    the unique Object who's value will be used to 
-     *               retreive the data value associated with it
-     * @param value  the new Object to store as data under that key
-     * @return the previous Object value, or null
+     * @param key    the unique <code>Object</code> who's value will be used
+     *          to retrieve the data value associated with it
+     * @param value  the new <code>Object</code> to store as data under
+     *		that key
+     * @return the previous <code>Object</code> value, or <code>null</code>
      * @see #putDefaults
      * @see java.util.Hashtable#put
      */
@@ -178,11 +188,12 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * Put all of the key/value pairs in the database and
-     * unconditionally generate one PropertyChangeEvent.
-     * The events oldValue and newValue will be null and its
-     * propertyName will be "UIDefaults".
+     * Puts all of the key/value pairs in the database and
+     * unconditionally generates one <code>PropertyChangeEvent</code>.
+     * The events oldValue and newValue will be <code>null</code> and its
+     * <code>propertyName</code> will be "UIDefaults".
      *
+     * @param keyValueList  an array of key/value pairs
      * @see #put
      * @see java.util.Hashtable#put
      */
@@ -201,8 +212,12 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * If the value of <code>key</code> is a Font return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is a <code>Font</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is a <code>Font</code>,
+     * 		return the <code>Font</code> object; otherwise return
+     *		<code>null</code>
      */
     public Font getFont(Object key) {
         Object value = get(key);
@@ -210,8 +225,12 @@ public class UIDefaults extends Hashtable
     }
 
     /**
-     * If the value of <code>key</code> is a Color return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is a <code>Color</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is a <code>Color</code>,
+     *		return the <code>Color</code> object; otherwise return
+     *		<code>null</code>
      */
     public Color getColor(Object key) {
         Object value = get(key);
@@ -220,8 +239,12 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * If the value of <code>key</code> is an Icon return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is an <code>Icon</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is an <code>Icon</code>,
+     *		return the <code>Icon</code> object; otherwise return
+     *		<code>null</code>
      */
     public Icon getIcon(Object key) {
         Object value = get(key);
@@ -230,8 +253,12 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * If the value of <code>key</code> is a Border return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is a <code>Border</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is a <code>Border</code>,
+     *		return the <code>Border</code> object; otherwise return
+     *		<code>null</code>
      */
     public Border getBorder(Object key) {
         Object value = get(key);
@@ -240,8 +267,12 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * If the value of <code>key</code> is a String return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is a <code>String</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is a <code>String</code>,
+     *		return the <code>String</code> object; otherwise return
+     *		<code>null</code>
      */
     public String getString(Object key) {
         Object value = get(key);
@@ -249,8 +280,11 @@ public class UIDefaults extends Hashtable
     }
 
     /**
-     * If the value of <code>key</code> is a Integer return its
+     * If the value of <code>key</code> is an <code>Integer</code> return its
      * integer value, otherwise return 0.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is an <code>Integer</code>,
+     *		return its value, otherwise return 0
      */
     public int getInt(Object key) {
         Object value = get(key);
@@ -258,8 +292,12 @@ public class UIDefaults extends Hashtable
     }
 
     /**
-     * If the value of <code>key</code> is a Insets return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is an <code>Insets</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is an <code>Insets</code>,
+     *		return the <code>Insets</code> object; otherwise return
+     *		<code>null</code>
      */
     public Insets getInsets(Object key) {
         Object value = get(key);
@@ -267,8 +305,12 @@ public class UIDefaults extends Hashtable
     }
 
     /**
-     * If the value of <code>key</code> is a Dimension return it, otherwise
-     * return null.
+     * If the value of <code>key</code> is a <code>Dimension</code> return it,
+     * otherwise return <code>null</code>.
+     * @param key the desired key
+     * @return if the value for <code>key</code> is a <code>Dimension</code>,
+     *		return the <code>Dimension</code> object; otherwise return
+     *		<code>null</code>
      */
     public Dimension getDimension(Object key) {
         Object value = get(key);
@@ -277,19 +319,23 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * The value of get(uidClassID) must be the String name of a
-     * class that implements the corresponding ComponentUI
+     * The value of <code>get(uidClassID)</code> must be the
+     * <code>String</code> name of a
+     * class that implements the corresponding <code>ComponentUI</code>
      * class.  If the class hasn't been loaded before, this method looks 
-     * up the class with <code>uiClassLoader.loadClass()</code> if a non null
+     * up the class with <code>uiClassLoader.loadClass()</code> if a non 
+     * <code>null</code>
      * class loader is provided, <code>classForName()</code> otherwise.
      * <p>
-     * If a mapping for uiClassID exists or if the specified
-     * class can't be found, return null.
+     * If a mapping for <code>uiClassID</code> exists or if the specified
+     * class can't be found, return <code>null</code>.
      * <p>
      * This method is used by <code>getUI</code>, it's usually
      * not neccessary to call it directly.
      *
-     * @return The value of <code>Class.forName(get(uidClassID))</code>.
+     * @param uiClassID  a string containing the class ID
+     * @param uiClassLoader the object which will load the class
+     * @return the value of <code>Class.forName(get(uidClassID))</code>
      * @see #getUI
      */
     public Class getUIClass(String uiClassID, ClassLoader uiClassLoader)
@@ -323,7 +369,9 @@ public class UIDefaults extends Hashtable
     /**
      * Returns the L&F class that renders this component.
      *
-     * @return the Class object returned by getUIClass(uiClassID, null)
+     * @param uiClassID a string containing the class ID
+     * @return the Class object returned by
+     *		<code>getUIClass(uiClassID, null)</code>
      */
     public Class getUIClass(String uiClassID) {
 	return getUIClass(uiClassID, null);
@@ -331,11 +379,11 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * If getUI() fails for any reason, it calls this method before
-     * returning null.  Subclasses may choose to do more or
-     * less here.
+     * If <code>getUI()</code> fails for any reason,
+     * it calls this method before returning <code>null</code>.
+     * Subclasses may choose to do more or less here.
      *
-     * @param msg Message string to print.
+     * @param msg message string to print
      * @see #getUI
      */
     protected void getUIError(String msg) {
@@ -349,16 +397,18 @@ public class UIDefaults extends Hashtable
     }
 
     /**
-     * Create an ComponentUI implementation for the
+     * Creates an <code>ComponentUI</code> implementation for the
      * specified component.  In other words create the look
      * and feel specific delegate object for <code>target</code>.
      * This is done in two steps:
      * <ul>
-     * <li> Lookup the name of the ComponentUI implementation
-     * class under the value returned by target.getUIClassID().
+     * <li> Look up the name of the <code>ComponentUI</code> implementation
+     * class under the value returned by <code>target.getUIClassID()</code>.
      * <li> Use the implementation classes static <code>createUI()</code>
      * method to construct a look and feel delegate.
      * </ul>
+     * @param target  the <code>JComponent</code> which needs a UI
+     * @return the <code>ComponentUI</code> object
      */
     public ComponentUI getUI(JComponent target)
     {
@@ -393,13 +443,13 @@ public class UIDefaults extends Hashtable
     }
 
     /**
-     * Add a PropertyChangeListener to the listener list.
+     * Adds a <code>PropertyChangeListener</code> to the listener list.
      * The listener is registered for all properties.
      * <p>
-     * A PropertyChangeEvent will get fired whenever a default
+     * A <code>PropertyChangeEvent</code> will get fired whenever a default
      * is changed.
      *
-     * @param listener  The PropertyChangeListener to be added
+     * @param listener  the <code>PropertyChangeListener</code> to be added
      * @see java.beans.PropertyChangeSupport
      */
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -411,11 +461,11 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * Remove a PropertyChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
+     * Removes a <code>PropertyChangeListener</code> from the listener list.
+     * This removes a <code>PropertyChangeListener</code> that was registered
      * for all properties.
      *
-     * @param listener  The PropertyChangeListener to be removed
+     * @param listener  the <code>PropertyChangeListener</code> to be removed
      * @see java.beans.PropertyChangeSupport
      */
     public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
@@ -427,12 +477,14 @@ public class UIDefaults extends Hashtable
 
     /**
      * Support for reporting bound property changes.  If oldValue and
-     * newValue are not equal and the PropertyChangeEvent listener list
-     * isn't empty, then fire a PropertyChange event to each listener.
+     * newValue are not equal and the <code>PropertyChangeEvent</code>x
+     * listener list isn't empty, then fire a 
+     * <code>PropertyChange</code> event to each listener.
      *
-     * @param propertyName  The programmatic name of the property that was changed.
-     * @param oldValue  The old value of the property.
-     * @param newValue  The new value of the property.
+     * @param propertyName  the programmatic name of the property
+     *		that was changed
+     * @param oldValue  the old value of the property
+     * @param newValue  the new value of the property
      * @see java.beans.PropertyChangeSupport
      */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
@@ -448,12 +500,13 @@ public class UIDefaults extends Hashtable
      * looked up with one of the <code>getXXX(key)</code> methods.
      * Lazy values are useful for defaults that are expensive
      * to construct or are seldom retrieved.  The first time
-     * a LazyValue is retrieved its "real value" is computed
+     * a <code>LazyValue</code> is retrieved its "real value" is computed
      * by calling <code>LazyValue.createValue()</code> and the real
-     * value is used to replace the LazyValue in the UIDefaults
+     * value is used to replace the <code>LazyValue</code> in the
+     * <code>UIDefaults</code>
      * table.  Subsequent lookups for the same key return
-     * the real value.  Here's an example of a LazyValue that
-     * constructs a Border:
+     * the real value.  Here's an example of a <code>LazyValue</code>
+     * that constructs a <code>Border</code>:
      * <pre>
      *  Object borderLazyValue = new UIDefaults.LazyValue() {
      *      public Object createValue(UIDefaults table) {
@@ -468,14 +521,14 @@ public class UIDefaults extends Hashtable
      */
     public interface LazyValue {
         /**
-         * Creates the actual value retrieved from the UIDefaults
+         * Creates the actual value retrieved from the <code>UIDefaults</code>
          * table. When an object that implements this interface is
          * retrieved from the table, this method is used to create
          * the real value, which is then stored in the table and
          * returned to the calling method.
          *
-         * @param table  a UIDefaults table
-         * @return the created Object 
+         * @param table  a <code>UIDefaults</code> table
+         * @return the created <code>Object</code>
          */
         Object createValue(UIDefaults table);
     }
@@ -485,7 +538,8 @@ public class UIDefaults extends Hashtable
      * This class enables one to store an entry in the defaults
      * table that's constructed each time it's looked up with one of
      * the <code>getXXX(key)</code> methods. Here's an example of
-     * an ActiveValue that constructs a DefaultListCellRenderer
+     * an <code>ActiveValue</code> that constructs a
+     * <code>DefaultListCellRenderer</code>:
      * <pre>
      *  Object cellRendererActiveValue = new UIDefaults.ActiveValue() {
      *      public Object createValue(UIDefaults table) {
@@ -500,13 +554,207 @@ public class UIDefaults extends Hashtable
      */
     public interface ActiveValue {
         /**
-         * Creates the value retrieved from the UIDefaults table.
+         * Creates the value retrieved from the <code>UIDefaults</code> table.
          * The object is created each time it is accessed.
          *
-         * @param table  a UIDefaults table
-         * @return the created Object 
+         * @param table  a <code>UIDefaults</code> table
+         * @return the created <code>Object</code> 
          */
         Object createValue(UIDefaults table);
     }
-}
 
+    /**
+     * This class provides an implementation of <code>LazyValue</code>
+     * which can be
+     * used to delay loading of the Class for the instance to be created.
+     * It also avoids creation of an anonymous inner class for the
+     * <code>LazyValue</code>
+     * subclass.  Both of these improve performance at the time that a
+     * a Look and Feel is loaded, at the cost of a slight performance
+     * reduction the first time <code>createValue</code> is called
+     * (since Reflection APIs are used).
+     */
+    public static class ProxyLazyValue implements LazyValue {
+	private String className;
+	private String methodName;
+	private Object[] args;
+
+	/**
+	 * Creates a <code>LazyValue</code> which will construct an instance
+	 * when asked.
+	 * 
+	 * @param c    a <code>String</code> specifying the classname 
+	 *             of the instance to be created on demand
+	 */
+	public ProxyLazyValue(String c) {
+	    className = c;
+	}
+	/**
+	 * Creates a <code>LazyValue</code> which will construct an instance
+	 * when asked.
+	 * 
+	 * @param c    a <code>String</code> specifying the classname of
+         *		the class
+	 *             	containing a static method to be called for
+	 *             	instance creation
+	 * @param m    a <code>String</code> specifying the static 
+         *		method to be called on class c
+	 */
+	public ProxyLazyValue(String c, String m) {
+	    className = c;
+	    methodName = m;
+	}
+	/**
+	 * Creates a <code>LazyValue</code> which will construct an instance
+	 * when asked.
+	 * 
+	 * @param c    a <code>String</code> specifying the classname
+         *		of the instance to be created on demand
+	 * @param o    an array of <code>Objects</code> to be passed as
+         *		paramaters to the constructor in class c
+	 */
+	public ProxyLazyValue(String c, Object[] o) {
+	    className = c;
+	    args = o;
+	}
+	/**
+	 * Creates a <code>LazyValue</code> which will construct an instance
+	 * when asked.
+	 * 
+	 * @param c    a <code>String</code> specifying the classname
+         *		of the class
+	 *              containing a static method to be called for
+	 *              instance creation.
+	 * @param m    a <code>String</code> specifying the static method
+         *		to be called on class c
+	 * @param o    an array of <code>Objects</code> to be passed as
+         *		paramaters to the static method in class c
+	 */
+	public ProxyLazyValue(String c, String m, Object[] o) {
+	    className = c;
+	    methodName = m;
+	    args = o;
+	}
+
+        /**
+         * Creates the value retrieved from the <code>UIDefaults</code> table.
+         * The object is created each time it is accessed.
+         *
+         * @param table  a <code>UIDefaults</code> table
+         * @return the created <code>Object</code>
+         */
+	public Object createValue(UIDefaults table) {
+	    Object instance = null;
+	    try {
+		Class c = Class.forName(className);
+		if (methodName !=null) {
+		    Class[] types = getClassArray(args);
+		    Method m = c.getMethod(methodName, types);
+		    instance = m.invoke(c, args);
+		} else {
+		    Class[] types = getClassArray(args);
+		    try {
+			Constructor constructor = c.getConstructor(types);
+			instance = constructor.newInstance(args);
+		    } catch(Exception e) {
+			System.out.println("Problem with constructor " + className + 
+					   " and args " + printArgs(args) + " : " + 
+					   " and types " + printArgs(types) + " : " + e);
+			Thread.dumpStack();
+		    }
+		}
+	    } catch(Exception e) {
+		System.out.println("Problem creating " + className + 
+				   " with method " + methodName + 
+				   " and args " + printArgs(args) + " : " + e);
+		Thread.dumpStack();
+	    }	    
+	    return instance;
+	}
+
+	/* 
+	 * Coerce the array of class types provided into one which
+	 * looks the way the Reflection APIs expect.  This is done
+	 * by substituting primitive types for their Object counterparts,
+	 * and superclasses for subclasses used to add the 
+         * <code>UIResource</code> tag.
+	 */
+	private Class[] getClassArray(Object[] args) {
+	    Class[] types = null;
+	    if (args!=null) {
+		types = new Class[args.length];
+		for (int i = 0; i< args.length; i++) {
+		    /* PENDING(ges): At present only the primitive types 
+		       used are handled correctly; this should eventually
+		       handle all primitive types */
+		    if (args[i] instanceof java.lang.Integer) {
+			types[i]=Integer.TYPE;
+		    } else if (args[i] instanceof java.lang.Boolean) {
+			types[i]=Boolean.TYPE;			
+		    } else if (args[i] instanceof javax.swing.plaf.ColorUIResource) {
+			/* PENDING(ges) Currently the Reflection APIs do not 
+			   search superclasses of parameters supplied for
+			   constructor/method lookup.  Since we only have
+			   one case where this is needed, we substitute
+			   directly instead of adding a massive amount
+			   of mechanism for this.  Eventually this will
+			   probably need to handle the general case as well.
+			   */
+			types[i]=java.awt.Color.class;
+		    } else {
+			types[i]=args[i].getClass();
+		    }
+		}
+	    }
+	    return types;
+	}
+
+	private String printArgs(Object[] array) {
+	    String s = "{";	    
+	    if (array !=null) {
+		for (int i = 0 ; i < array.length-1; i++) {
+		    s = s.concat(array[i] + ",");
+		}
+		s = s.concat(array[array.length-1] + "}");
+	    } else {
+		s.concat("}");
+	    }
+	    return s;
+	}
+    }
+
+
+    /**
+     * <code>LazyInputMap</code> will create a <code>InputMap</code>
+     * in its <code>createValue</code>
+     * method. The bindings are passed in in the constructor.
+     * The bindings are an array with
+     * the even number entries being string <code>KeyStrokes</code>
+     * (eg "alt SPACE") and
+     * the odd number entries being the value to use in the
+     * <code>InputMap</code> (and the key in the <code>ActionMap</code>).
+     */
+    public static class LazyInputMap implements LazyValue {
+	/** Key bindings are registered under. */
+	private Object[] bindings;
+
+	public LazyInputMap(Object[] bindings) {
+	    this.bindings = bindings;
+	}
+
+        /**
+         * Creates an <code>InputMap</code> with the bindings that are
+         * passed in.
+         *
+         * @param table a <code>UIDefaults</code> table
+         * @return the <code>InputMap</code>
+         */
+        public Object createValue(UIDefaults table) {
+	    if (bindings != null) {
+		InputMap km = LookAndFeel.makeInputMap(bindings);
+		return km;
+	    }
+	    return null;
+	}
+    }
+}

@@ -1,8 +1,11 @@
 /*
- * @(#)AccessControlContext.java	1.25 01/11/29
+ * @(#)AccessControlContext.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -62,6 +65,7 @@ public final class AccessControlContext {
     private ProtectionDomain context[];
     private boolean isPrivileged;
     private AccessControlContext privilegedContext;
+    private DomainCombiner combiner;
 
     private static boolean debugInit = false;
     private static Debug debug = null;
@@ -103,6 +107,59 @@ public final class AccessControlContext {
     }
 
     /**
+     * Create a new <code>AccessControlContext</code> with the given
+     * <code>AccessControlContext</code> and <code>DomainCombiner</code>.
+     * This constructor associates the provided
+     * <code>DomainCombiner</code> with the provided
+     * <code>AccessControlContext</code>.
+     *
+     * <p>
+     *
+     * @param acc the <code>AccessControlContext</code> associated
+     *		with the provided <code>DomainCombiner</code>. <p>
+     *
+     * @param combiner the <code>DomainCombiner</code> to be associated
+     *		with the provided <code>AccessControlContext</code>.
+     *
+     * @exception NullPointerException if either the provided
+     *		<code>context</code> or the provided
+     *		<code>combiner</code> are <code>null</code>. <p>
+     *
+     * @exception SecurityException if the caller does not have permission
+     *		to invoke this constructor.
+     */
+    public AccessControlContext(AccessControlContext acc,
+				DomainCombiner combiner) {
+
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPermission(new SecurityPermission
+			("createAccessControlContext"));
+	}
+
+	if (acc == null || combiner == null) {
+	    throw new NullPointerException
+		("null AccessControlContext or DomainCombiner was provided");
+	}
+
+	this.context = acc.context;
+
+	// we do not need to run the combine method on the
+	// provided ACC.  it was already "combined" when the
+	// context was originally retrieved.
+	//
+	// at this point in time, we simply throw away the old
+	// combiner and use the newly provided one.
+	this.combiner = combiner;
+    }
+
+    private AccessControlContext(ProtectionDomain context[], 
+				DomainCombiner combiner) {
+	this.context = (ProtectionDomain[])context.clone();
+	this.combiner = combiner;
+    }
+
+    /**
      * package private constructor for AccessController.getContext()
      */
 
@@ -122,6 +179,30 @@ public final class AccessControlContext {
 
     }
 
+    /**
+     * Get the <code>DomainCombiner</code> associated with this
+     * <code>AccessControlContext</code>.
+     *
+     * <p>
+     *
+     * @return the <code>DomainCombiner</code> associated with this
+     *		<code>AccessControlContext</code>, or <code>null</code>
+     *		if there is none.
+     *
+     * @exception SecurityException if the caller does not have permission
+     *		to get the <code>DomainCombiner</code> associated with this
+     *		<code>AccessControlContext</code>.
+     */
+    public DomainCombiner getDomainCombiner() {
+
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPermission(new SecurityPermission
+			("getDomainCombiner"));
+	}
+	return combiner;
+    }
+
     /** 
      * Determines whether the access request indicated by the
      * specified permission should be allowed or denied, based on
@@ -136,11 +217,14 @@ public final class AccessControlContext {
      * @exception AccessControlException if the specified permission
      * is not permitted, based on the current security policy and the
      * context encapsulated by this object.
+     * @exception NullPointerException if the permission to check for is null.
      */
-
     public void checkPermission(Permission perm)
-		 throws AccessControlException 
+	throws AccessControlException 
     {
+	if (perm == null) {
+	    throw new NullPointerException("permission can't be null");
+	}
 	if (getDebug() != null) {
 	    if (Debug.isOn("stack"))
 			Thread.currentThread().dumpStack();
@@ -210,80 +294,90 @@ public final class AccessControlContext {
 	AccessControlContext pacc = privilegedContext;
 	boolean skipPrivileged = (pacc.context == null);
 
-	if (skipPrivileged && skipStack) {
+	if (skipPrivileged && skipStack && pacc.combiner == null) {
 	    return this;
 	}
 
-	int slen = (skipStack) ? 0 : context.length;
+	if (pacc.combiner != null) {
 
-	// optimization: if the length is less then or equal to two,
-	// there is no reason to compress the stack context, it already is
-	if (skipPrivileged && slen <= 2)
-	    return this;
+	    // the Privileged AccessControlContext's combiner is not null --
+	    // let the combiner do its thing
+	    return goCombiner(context, pacc, true);
 
-	int plen = (skipPrivileged) ? 0 : pacc.context.length;
+	} else {
 
-	// optimization: if the length is less then or equal to two,
-	// there is no reason to compress the priv context, it already is
-	if (skipStack && plen <= 2)
-	    return pacc;
+	    int slen = (skipStack) ? 0 : context.length;
 
-	// optimization: case where we have a length of 1 and
-	// protection domains for priv context and stack are equal
-	if ((slen == 1) && (plen == 1) && (context[0] == pacc.context[0]))
-	    return this;
+	    // optimization: if the length is less then or equal to two,
+	    // there is no reason to compress the stack context, it already is
+	    if (skipPrivileged && slen <= 2)
+		return this;
 
-	// now we combine both of them, and create a new context.
-	ProtectionDomain pd[] = new ProtectionDomain[slen + plen];
+	    int plen = (skipPrivileged) ? 0 : pacc.context.length;
 
-	int i, j, n;
 
-	n = 0;
+	    // optimization: if the length is less then or equal to two,
+	    // there is no reason to compress the priv context, it already is
+	    if (skipStack && plen <= 2)
+		return pacc;
 
-	// first add all the protection domains from the stack context,
-	// throwing out nulls and duplicates
+	    // optimization: case where we have a length of 1 and
+	    // protection domains for priv context and stack are equal
+	    if ((slen == 1) && (plen == 1) && (context[0] == pacc.context[0]))
+		return this;
 
-	if (!skipStack) {
-	    for (i = 0; i < context.length; i++) {
-		boolean add = true;
-		for (j= 0; (j < n) && add; j++) {
-		    add = (context[i] != null) && (context[i] != pd[j]);
-		}
-		if (add) {
-		    pd[n++] = context[i];
-		}
-	    }
-	}
+	    // now we combine both of them, and create a new context.
+	    ProtectionDomain pd[] = new ProtectionDomain[slen + plen];
 
-	// now add all the protection domains from the priv context,
-	// throwing out nulls and duplicates
+	    int i, j, n;
 
-	if (!skipPrivileged) {
-	    for (i = 0; i < pacc.context.length; i++) {
-		boolean add = true;
-		for (j= 0; (j < n) && add; j++) {
-		    add = (pacc.context[i] != null) &&
-			(pacc.context[i] != pd[j]);
-		}
-		if (add) {
-		    pd[n++] = pacc.context[i];
+	    n = 0;
+
+	    // first add all the protection domains from the stack context,
+	    // throwing out nulls and duplicates
+
+	    if (!skipStack) {
+		for (i = 0; i < context.length; i++) {
+		    boolean add = true;
+		    for (j= 0; (j < n) && add; j++) {
+			add = (context[i] != null) && (context[i] != pd[j]);
+		    }
+		    if (add) {
+			pd[n++] = context[i];
+		    }
 		}
 	    }
-	}
 
-	// if length isn't equal, we need to shorten the array
-	if (n != pd.length) {
-	    // if all we had were system domains, context is null
-	    if (n == 0) {
-		pd = null;
-	    } else {
-		ProtectionDomain tmp[] = new ProtectionDomain[n];
-		System.arraycopy(pd, 0, tmp, 0, n);
-		pd = tmp;
+	    // now add all the protection domains from the priv context,
+	    // throwing out nulls and duplicates
+
+	    if (!skipPrivileged) {
+		for (i = 0; i < pacc.context.length; i++) {
+		    boolean add = true;
+		    for (j= 0; (j < n) && add; j++) {
+			add = (pacc.context[i] != null) &&
+				(pacc.context[i] != pd[j]);
+		    }
+		    if (add) {
+			pd[n++] = pacc.context[i];
+		    }
+		}
 	    }
-	}
 
-	return new AccessControlContext(pd, true);
+	    // if length isn't equal, we need to shorten the array
+	    if (n != pd.length) {
+		// if all we had were system domains, context is null
+		if (n == 0) {
+		    pd = null;
+		} else {
+		    ProtectionDomain tmp[] = new ProtectionDomain[n];
+		    System.arraycopy(pd, 0, tmp, 0, n);
+		    pd = tmp;
+		}
+	    }
+
+	    return new AccessControlContext(pd, true);
+	}
     }
 
 
@@ -314,86 +408,121 @@ public final class AccessControlContext {
 	    }
 	} else {
 	    tacc = AccessController.getInheritedAccessControlContext();
-	    skipThread = (tacc == null) || (tacc.context == null);
+	    skipThread = (tacc == null) ||
+			(tacc.context == null && tacc.combiner == null);
 	}
 
 	if (skipThread && skipStack) {
 	    return this;
 	}
 
-	int slen = (skipStack) ? 0 : context.length;
+	if (tacc != null && tacc.combiner != null) {
 
-	// optimization: if the length is less then or equal to two,
-	// there is no reason to compress the stack context, it already is
-	if (skipThread && slen <= 2)
-	    return this;
+	    // the inherited Thread AccessControlContext's combiner
+	    // is not null -- let the combiner do its thing
+	    return goCombiner(context, tacc, false);
 
-	int tlen = (skipThread) ? 0 : tacc.context.length;
+	} else {
 
-	// optimization: if the length is less then or equal to two,
-	// there is no reason to compress the thread context, it already is
-	if (skipStack && tlen <= 2)
-	    return tacc;
+	    int slen = (skipStack) ? 0 : context.length;
 
-	// optimization: case where we have a length of 1 and
-	// protection domains for thread and stack are equal
-	if ((slen == 1) && (tlen == 1) && (context[0] == tacc.context[0]))
-	    return this;
+	    // optimization: if the length is less then or equal to two,
+	    // there is no reason to compress the stack context, it already is
+	    if (skipThread && slen <= 2)
+		return this;
 
-	// now we combine both of them, and create a new context.
-	ProtectionDomain pd[] = new ProtectionDomain[slen + tlen];
+	    int tlen = (skipThread) ? 0 : tacc.context.length;
 
-	int i, j, n;
+	    // optimization: if the length is less then or equal to two,
+	    // there is no reason to compress the thread context, it already is
+	    if (skipStack && tlen <= 2)
+		return tacc;
 
-	n = 0;
+	    // optimization: case where we have a length of 1 and
+	    // protection domains for thread and stack are equal
+	    if ((slen == 1) && (tlen == 1) && (context[0] == tacc.context[0]))
+		return this;
 
-	// first add all the protection domains from the stack context,
-	// throwing out nulls and duplicates
+	    // now we combine both of them, and create a new context.
+	    ProtectionDomain pd[] = new ProtectionDomain[slen + tlen];
 
-	if (!skipStack) {
-	    for (i = 0; i < context.length; i++) {
-		boolean add = true;
-		for (j= 0; (j < n) && add; j++) {
-		    add = (context[i] != null) && (context[i] != pd[j]);
-		}
-		if (add) {
-		    pd[n++] = context[i];
-		}
-	    }
-	}
+	    int i, j, n;
 
-	// now add all the protection domains from the inherited context,
-	// throwing out nulls and duplicates
+	    n = 0;
 
-	// only do if stack context is not privileged, and the thread context
-	// is not null.
+	    // first add all the protection domains from the stack context,
+	    // throwing out nulls and duplicates
 
-	if (!skipThread) {
-	    for (i = 0; i < tacc.context.length; i++) {
-		boolean add = true;
-		for (j= 0; (j < n) && add; j++) {
-		    add = (tacc.context[i] != null) &&
-			(tacc.context[i] != pd[j]);
-		}
-		if (add) {
-		    pd[n++] = tacc.context[i];
+	    if (!skipStack) {
+		for (i = 0; i < context.length; i++) {
+		    boolean add = true;
+		    for (j= 0; (j < n) && add; j++) {
+			add = (context[i] != null) && (context[i] != pd[j]);
+		    }
+		    if (add) {
+			pd[n++] = context[i];
+		    }
 		}
 	    }
-	}
 
-	// if length isn't equal, we need to shorten the array
-	if (n != pd.length) {
-	    // if all we had were system domains, context is null
-	    if (n == 0) {
-		pd = null;
-	    } else {
-		ProtectionDomain tmp[] = new ProtectionDomain[n];
-		System.arraycopy(pd, 0, tmp, 0, n);
-		pd = tmp;
+	    // now add all the protection domains from the inherited context,
+	    // throwing out nulls and duplicates
+
+	    // only do if stack context is not privileged, and the thread
+	    // context is not null.
+
+	    if (!skipThread) {
+		for (i = 0; i < tacc.context.length; i++) {
+		    boolean add = true;
+		    for (j= 0; (j < n) && add; j++) {
+			add = (tacc.context[i] != null) &&
+				(tacc.context[i] != pd[j]);
+		    }
+		    if (add) {
+			pd[n++] = tacc.context[i];
+		    }
+		}
 	    }
+
+	    // if length isn't equal, we need to shorten the array
+	    if (n != pd.length) {
+		// if all we had were system domains, context is null
+		if (n == 0) {
+		    pd = null;
+		} else {
+		    ProtectionDomain tmp[] = new ProtectionDomain[n];
+		    System.arraycopy(pd, 0, tmp, 0, n);
+		    pd = tmp;
+		}
+	    }
+
+	    return new AccessControlContext(pd, isPrivileged);
+	}
+    }
+
+    private AccessControlContext goCombiner(ProtectionDomain[] current,
+					AccessControlContext assigned,
+					boolean doPriv) {
+
+	// the assigned ACC's combiner is not null --
+	// let the combiner do its thing
+
+	// XXX we could add optimizations to 'current' here ...
+
+	if (getDebug() != null) {
+	    debug.println("AccessControlContext invoking the Combiner");
 	}
 
-	return new AccessControlContext(pd, isPrivileged);
+	ProtectionDomain[] combinedPds = assigned.combiner.combine
+		(current == null ?
+			null :
+			(ProtectionDomain[])current.clone(),
+		assigned.context == null ?
+			null :
+			(ProtectionDomain[])assigned.context.clone());
+
+	// return the new ACC
+	return new AccessControlContext(combinedPds, assigned.combiner);
     }
 
     /**
@@ -423,31 +552,49 @@ public final class AccessControlContext {
 	if (that.context == null)
 	    return false;
 
-	boolean match;
-	for (int i = 0; i < this.context.length; i++) {
-	    match = false;
-	    for (int j = 0; (j < that.context.length) && !match; j++) {
-		match = 
-		    ((this.context[i] == null) && (that.context[j] == null)) ||
-		    (this.context[i].equals(that.context[j]));
-	    }
-	    if (!match) return false;
-	}
+	if (!(this.containsAllPDs(that) && that.containsAllPDs(this)))
+	    return false;
 
-	match = false;
-	for (int i = 0; i < that.context.length; i++) {
-	    match = false;
-	    for (int j = 0; (j < this.context.length) && !match; j++) {
-		match = 
-		    ((that.context[i] == null) && (this.context[j] == null)) ||
-		    (that.context[i].equals(this.context[j]));
-	    }
-	    if (!match) return false;
-	}
+	if (this.combiner == null)
+	    return (that.combiner == null);
+
+	if (that.combiner == null)
+	    return false;
+
+	if (!this.combiner.equals(that.combiner))
+	    return false;
+
 	return true;
 
     }
 
+    private boolean containsAllPDs(AccessControlContext that) {
+	boolean match = false;
+	//
+	// ProtectionDomains within an ACC currently cannot be null
+	// and this is enforced by the contructor and the various
+	// optimize methods. However, historically this logic made attempts
+	// to support the notion of a null PD and therefore this logic continues
+	// to support that notion.
+	for (int i = 0; i < context.length; i++) {
+	    match = false;
+	    if (context[i] == null) {
+		for (int j = 0; (j < that.context.length) && !match; j++) {
+		    match = (that.context[j] == null);
+		}
+	    } else {
+		for (int j = 0; (j < that.context.length) && !match; j++) {
+		    if (that.context[j] != null) {
+			match =
+			    ((context[i].getClass()==that.context[j].getClass()) &&
+			     (context[i].equals(that.context[j])));
+		    }
+		}
+	    }
+	    if (!match) return false;
+	}
+	return match;
+    }
     /**
      * Returns the hash code value for this context. The hash code
      * is computed by exclusive or-ing the hash code of all the protection

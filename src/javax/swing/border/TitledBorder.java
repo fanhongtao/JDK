@@ -1,8 +1,11 @@
 /*
- * @(#)TitledBorder.java	1.29 01/11/29
+ * @(#)TitledBorder.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -34,9 +37,6 @@ import javax.swing.UIManager;
  * <li>&quot;TitledBorder.font&quot;
  * <li>&quot;TitledBorder.titleColor&quot;
  * </ul>
- * @see UIManager#setBorder
- * @see UIManager#setFont
- * @see UIManager#setColor
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -45,7 +45,7 @@ import javax.swing.UIManager;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.29 11/29/01 
+ * @version 1.32 02/02/00 
  * @author David Kloba
  */
 public class TitledBorder extends AbstractBorder
@@ -86,6 +86,16 @@ public class TitledBorder extends AbstractBorder
     static public final int     CENTER  = 2;
     /** Position title text at the right side of the border line. */
     static public final int     RIGHT   = 3;
+    /** Position title text at the left side of the border line
+     *  for left to right orientation, at the right side of the 
+     *  border line for right to left orientation.
+     */
+    static public final int     LEADING = 4;
+    /** Position title text at the right side of the border line
+     *  for left to right orientation, at the left side of the 
+     *  border line for right to left orientation.
+     */
+    static public final int     TRAILING = 5;
 
     // Space between the border and the component's edge
     static protected final int EDGE_SPACING = 2;
@@ -102,7 +112,7 @@ public class TitledBorder extends AbstractBorder
      * @param title  the title the border should display
      */
     public TitledBorder(String title)     {
-        this(null, title, LEFT, TOP, null, null);
+        this(null, title, LEADING, TOP, null, null);
     }
 
     /**
@@ -112,7 +122,7 @@ public class TitledBorder extends AbstractBorder
      * @param border  the border
      */
     public TitledBorder(Border border)       {
-        this(border, "", LEFT, TOP, null, null);
+        this(border, "", LEADING, TOP, null, null);
     }
 
     /**
@@ -123,7 +133,7 @@ public class TitledBorder extends AbstractBorder
      * @param title  the title the border should display
      */
     public TitledBorder(Border border, String title) {
-        this(border, title, LEFT, TOP, null, null);
+        this(border, title, LEADING, TOP, null, null);
     }
 
     /**
@@ -268,9 +278,28 @@ public class TitledBorder extends AbstractBorder
                 break;
         }
 
-        switch (getTitleJustification()) {
+	int justification = getTitleJustification();
+	if(isLeftToRight(c)) {
+	    if(justification==LEADING || 
+	       justification==DEFAULT_JUSTIFICATION) {
+	        justification = LEFT;
+	    }
+	    else if(justification==TRAILING) {
+	        justification = RIGHT;
+	    }
+	}
+	else {
+	    if(justification==LEADING ||
+	       justification==DEFAULT_JUSTIFICATION) {
+	        justification = RIGHT;
+	    }
+	    else if(justification==TRAILING) {
+	        justification = LEFT;
+	    }
+	}
+
+        switch (justification) {
             case LEFT:
-            case DEFAULT_JUSTIFICATION:
                 textLoc.x = grooveRect.x + TEXT_INSET_H + insets.left;
                 break;
             case RIGHT:
@@ -289,7 +318,8 @@ public class TitledBorder extends AbstractBorder
         // through the title.
         //
         if (border != null) {
-            if (titlePos == TOP || titlePos == BOTTOM) {
+            if (titlePos == TOP || titlePos == BOTTOM ||
+		titlePos == DEFAULT_POSITION) {
                 Rectangle clipRect = new Rectangle();
                 
                 // save original clip
@@ -314,7 +344,7 @@ public class TitledBorder extends AbstractBorder
 
                 // paint strip below or above text
                 clipRect.setBounds(saveClip);
-                if (titlePos == TOP) {
+                if (titlePos == TOP || titlePos == DEFAULT_POSITION) {
                     if (computeIntersection(clipRect, textLoc.x, grooveRect.y+insets.top, 
                                         stringWidth, height-grooveRect.y-insets.top)) {
                         g.setClip(clipRect);
@@ -518,10 +548,12 @@ public class TitledBorder extends AbstractBorder
      */
     public void setTitleJustification(int titleJustification)       {
         switch (titleJustification) {
+          case DEFAULT_JUSTIFICATION:
           case LEFT:
           case CENTER:
           case RIGHT:
-          case DEFAULT_JUSTIFICATION:
+	  case LEADING:
+	  case TRAILING:
             this.titleJustification = titleJustification;
             break;
           default:

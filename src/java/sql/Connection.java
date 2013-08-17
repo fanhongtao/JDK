@@ -1,8 +1,11 @@
 /*
- * @(#)Connection.java	1.20 01/11/29
+ * @(#)Connection.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
@@ -19,13 +22,15 @@ package java.sql;
  *
  * <P><B>Note:</B> By default the Connection automatically commits
  * changes after executing each statement. If auto commit has been
- * disabled, an explicit commit must be done or database changes will
- * not be saved.
+ * disabled, the method <code>commit</code> must be called explicitly;
+ * otherwise, database changes will not be saved.
  *
  * @see DriverManager#getConnection
  * @see Statement 
  * @see ResultSet
  * @see DatabaseMetaData
+ <P>
+ * Methods that are new in the JDBC 2.0 API are tagged @since 1.2. 
  */
 public interface Connection {
 
@@ -35,12 +40,11 @@ public interface Connection {
      * SQL statements without parameters are normally
      * executed using Statement objects. If the same SQL statement 
      * is executed many times, it is more efficient to use a 
-     * PreparedStatement
+     * <code>PreparedStatement</code> object.
+	 *<P>
      *
-     * JDBC 2.0
-     *
-     * Result sets created using the returned Statement will have
-     * forward-only type, and read-only concurrency, by default.
+     * Result sets created using the returned <code>Statement</code>
+	 * object will by default have forward-only type and read-only concurrency.
      *
      * @return a new Statement object 
      * @exception SQLException if a database access error occurs
@@ -66,7 +70,6 @@ public interface Connection {
      * executed.  This has no direct effect on users; however, it does
      * affect which method throws certain SQLExceptions.
      *
-     * JDBC 2.0
      *
      * Result sets created using the returned PreparedStatement will have
      * forward-only type and read-only concurrency, by default.
@@ -83,7 +86,7 @@ public interface Connection {
     /**
 	 * Creates a <code>CallableStatement</code> object for calling
 	 * database stored procedures.
-     * The CallableStatement provides
+     * The <code>CallableStatement</code> object provides
      * methods for setting up its IN and OUT parameters, and
      * methods for executing the call to a stored procedure.
      *
@@ -91,11 +94,11 @@ public interface Connection {
      * procedure call statements. Some drivers may send the call
      * statement to the database when the method <code>prepareCall</code>
 	 * is done; others
-     * may wait until the CallableStatement is executed. This has no
+     * may wait until the <code>CallableStatement</code> object
+	 * is executed. This has no
      * direct effect on users; however, it does affect which method
      * throws certain SQLExceptions.
      *
-     * JDBC 2.0
      *
      * Result sets created using the returned CallableStatement will have
      * forward-only type and read-only concurrency, by default.
@@ -348,7 +351,6 @@ public interface Connection {
     //--------------------------JDBC 2.0-----------------------------
 
     /**
-     * JDBC 2.0
      *
 	 * Creates a <code>Statement</code> object that will generate
 	 * <code>ResultSet</code> objects with the given type and concurrency.
@@ -360,12 +362,13 @@ public interface Connection {
      * @param resultSetConcurrency a concurrency type; see ResultSet.CONCUR_XXX
      * @return a new Statement object 
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     Statement createStatement(int resultSetType, int resultSetConcurrency) 
       throws SQLException;
 
     /**
-     * JDBC 2.0
      *
 	 * Creates a <code>PreparedStatement</code> object that will generate
 	 * <code>ResultSet</code> objects with the given type and concurrency.
@@ -378,13 +381,14 @@ public interface Connection {
      * @return a new PreparedStatement object containing the
      * pre-compiled SQL statement 
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
      PreparedStatement prepareStatement(String sql, int resultSetType, 
 					int resultSetConcurrency)
        throws SQLException;
 
     /**
-     * JDBC 2.0
      *
 	 * Creates a <code>CallableStatement</code> object that will generate
 	 * <code>ResultSet</code> objects with the given type and concurrency.
@@ -397,12 +401,13 @@ public interface Connection {
      * @return a new CallableStatement object containing the
      * pre-compiled SQL statement 
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     CallableStatement prepareCall(String sql, int resultSetType, 
 				 int resultSetConcurrency) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Gets the type map object associated with this connection.
      * Unless the application has added an entry to the type map,
@@ -410,12 +415,12 @@ public interface Connection {
 	 *
 	 * @return the <code>java.util.Map</code> object associated 
 	 *         with this <code>Connection</code> object
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     java.util.Map getTypeMap() throws SQLException;
 
     /**
-     * JDBC 2.0
-     *
      * Installs the given type map as the type map for
      * this connection.  The type map will be used for the
 	 * custom mapping of SQL structured types and distinct types.
@@ -423,6 +428,8 @@ public interface Connection {
 	 * @param the <code>java.util.Map</code> object to install
 	 *        as the replacement for this <code>Connection</code>
 	 *        object's default type map
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     void setTypeMap(java.util.Map map) throws SQLException;
 }

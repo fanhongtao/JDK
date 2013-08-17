@@ -1,8 +1,11 @@
 /*
- * @(#)HyperlinkEvent.java	1.10 01/11/29
+ * @(#)HyperlinkEvent.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.event;
 
@@ -21,13 +24,16 @@ import java.net.URL;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.10 11/29/01
+ * @version 1.12 02/02/00
  * @author  Timothy Prinzing
  */
 public class HyperlinkEvent extends EventObject {
 
     /**
      * Creates a new object representing a hypertext link event.
+     * The other constructor is preferred, as it provides more
+     * information if a URL could not be formed.  This constructor
+     * is primarily for backward compatibility.
      *
      * @param source the object responsible for the event
      * @param type the event type
@@ -44,7 +50,12 @@ public class HyperlinkEvent extends EventObject {
      *
      * @param source the object responsible for the event
      * @param type the event type
-     * @param u the affected URL
+     * @param u the affected URL.  This may be null if a valid URL
+     *   could not be created.
+     * @param desc the description of the link.  This may be useful
+     *   when attempting to form a URL resulted in a MalformedURLException.
+     *   The description provides the text used when attempting to form the
+     *   URL.
      */
     public HyperlinkEvent(Object source, EventType type, URL u, String desc) {
         super(source);

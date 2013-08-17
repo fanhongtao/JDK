@@ -1,8 +1,11 @@
 /*
- * @(#)AWTPermission.java	1.13 01/11/29
+ * @(#)AWTPermission.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -78,11 +81,19 @@ import java.security.BasicPermission;
  * <tr>
  *   <td>readDisplayPixels</td>
  *   <td>Readback of pixels from the display screen</td>
- *   <td>Interfaces such as the java.awt.Composite interface which
- * allow arbitrary code to examine pixels on the display enable
- * malicious code to snoop on the activities of the user.</td>
+ *   <td>Interfaces such as the java.awt.Composite interface or the 
+ * java.awt.Robot class allow arbitrary code to examine pixels on the 
+ * display enable malicious code to snoop on the activities of the user.</td>
  * </tr>
  *
+ * <tr>
+ *   <td>createRobot</td>
+ *   <td>Create java.awt.Robot objects</td>
+ *   <td>The java.awt.Robot object allows code to generate native-level
+ * mouse and keyboard events as well as read the screen. It could allow
+ * malicious code to control the system, run other programs, read the
+ * display, and deny mouse and keyboard access to the user.</td>
+ * </tr>
  * </table>
  *
  * @see java.security.BasicPermission
@@ -91,7 +102,7 @@ import java.security.BasicPermission;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.13 01/11/29
+ * @version 	1.18, 02/02/00
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -99,7 +110,7 @@ import java.security.BasicPermission;
 
 public final class AWTPermission extends BasicPermission {
 
-    /** use serialVersionUID from JDK 1.2 for interoperability */
+    /** use serialVersionUID from the Java 2 platform for interoperability */
     private static final long serialVersionUID = 8890392402588814465L;
 
     /**

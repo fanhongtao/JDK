@@ -1,14 +1,18 @@
 /*
- * @(#)AbstractListModel.java	1.20 01/11/29
+ * @(#)AbstractListModel.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
 
 import javax.swing.event.*;
 import java.io.Serializable;
+import java.util.EventListener;
 
 /**
  * The Abstract definition for the data model the provides
@@ -21,7 +25,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.20 11/29/01
+ * @version 1.22 02/02/00
  * @author Hans Muller
  */
 public abstract class AbstractListModel implements ListModel, Serializable
@@ -133,5 +137,18 @@ public abstract class AbstractListModel implements ListModel, Serializable
 		((ListDataListener)listeners[i+1]).intervalRemoved(e);
 	    }	       
 	}
+    }
+
+    /**
+     * Return an array of all the listeners of the given type that 
+     * were added to this model. 
+     *
+     * @returns all of the objects recieving <em>listenerType</em> notifications 
+     *          from this model
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
     }
 }

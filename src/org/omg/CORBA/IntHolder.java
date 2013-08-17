@@ -1,8 +1,11 @@
 /*
- * @(#)IntHolder.java	1.16 01/11/29
+ * @(#)IntHolder.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -58,10 +61,10 @@ public final class IntHolder implements Streamable {
 
     /**
      * Reads unmarshalled data from <code>input</code> and assigns it to
-	 * the <code>value</code> field in this <code>IntHolder</code> object.
+     * the <code>value</code> field in this <code>IntHolder</code> object.
      *
      * @param input the <code>InputStream</code> object containing CDR 
-	 *              formatted data from the wire
+     *              formatted data from the wire
      */
     public void _read(InputStream input) {
 	value = input.read_long();
@@ -69,10 +72,10 @@ public final class IntHolder implements Streamable {
 
     /**
      * Marshals the value in this <code>IntHolder</code> object's
-	 * <code>value</code> field to the output stream <code>output</code>.
+     * <code>value</code> field to the output stream <code>output</code>.
      *
      * @param output the <code>OutputStream</code> object that will contain
-	 *               the CDR formatted data
+     *               the CDR formatted data
      */
     public void _write(OutputStream output) {
 	output.write_long(value);
@@ -80,11 +83,11 @@ public final class IntHolder implements Streamable {
     
     /**
      * Retrieves the <code>TypeCode</code> object that corresponds
-	 * to the value held in this <code>IntHolder</code> object's
-	 * <code>value</code> field.
+     * to the value held in this <code>IntHolder</code> object's
+     * <code>value</code> field.
      *
      * @return    the type code for the value held in this <code>IntHolder</code>
-	 *            object
+     *            object
      */
     public org.omg.CORBA.TypeCode _type() {
 	return ORB.init().get_primitive_tc(TCKind.tk_long);

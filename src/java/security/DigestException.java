@@ -1,8 +1,11 @@
 /*
- * @(#)DigestException.java	1.11 01/11/29
+ * @(#)DigestException.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -10,7 +13,7 @@ package java.security;
 /**
  * This is the generic Message Digest exception. 
  * 
- * @version 1.11, 01/11/29
+ * @version 1.12, 00/02/02
  * @author Benjamin Renaud 
  */
 public class DigestException extends GeneralSecurityException {

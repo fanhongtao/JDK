@@ -1,8 +1,11 @@
 /*
- * @(#)LineBreakMeasurer.java	1.13 01/11/29
+ * @(#)LineBreakMeasurer.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -226,8 +229,8 @@ import java.awt.font.FontRenderContext;
  */
 
 public final class LineBreakMeasurer {
-    private AttributedCharacterIterator text;
     private BreakIterator breakIter;
+    private int start;  
     private int pos;
     private int limit;
     private TextMeasurer measurer;
@@ -241,8 +244,12 @@ public final class LineBreakMeasurer {
      * <code>LineBreakMeasurer</code> instance are undefined (except,
      * in some cases, when <code>insertChar</code> or 
      * <code>deleteChar</code> are invoked afterward - see below).
-     * @param frc the {@link FontRenderContext} in which the text is
-     * measured
+     * @param frc contains information about a graphics device which is needed 
+     *       to measure the text correctly.
+     *       Text measurements can vary slightly depending on the
+     *       device resolution, and attributes such as antialiasing.  This
+     *       parameter does not specify a translation between the
+     *       <code>LineBreakMeasurer</code> and user space.
      * @see LineBreakMeasurer#insertChar
      * @see LineBreakMeasurer#deleteChar
      */
@@ -261,33 +268,35 @@ public final class LineBreakMeasurer {
      * <code>deleteChar</code> are invoked afterward - see below).
      * @param breakIter the {@link BreakIterator} which defines line
      * breaks
-     * @param frc the <code>FontRenderContext</code> in which the text is
-     * measured
+     * @param frc contains information about a graphics device which is needed 
+     *       to measure the text correctly.
+     *       Text measurements can vary slightly depending on the
+     *       device resolution, and attributes such as antialiasing.  This
+     *       parameter does not specify a translation between the
+     *       <code>LineBreakMeasurer</code> and user space.
      * @see LineBreakMeasurer#insertChar
      * @see LineBreakMeasurer#deleteChar
      */
     public LineBreakMeasurer(AttributedCharacterIterator text,
                              BreakIterator breakIter,
                              FontRenderContext frc) {
-        this.text = text;
         this.breakIter = breakIter;
         this.breakIter.setText((CharacterIterator)text.clone());
         this.measurer = new TextMeasurer(text, frc);
         this.limit = text.getEndIndex();
-        this.pos = text.getBeginIndex();
-        text.setIndex(pos);
+        this.pos = this.start = text.getBeginIndex();
     }
 
     /**
      * Returns the position at the end of the next layout.  Does NOT
      * update the current position of this <code>LineBreakMeasurer</code>.
-     * @param maxAdvance the maximum visible advance permitted for
+     * @param wrappingWidth the maximum visible advance permitted for
      * the text in the next layout
      * @return an offset in the text representing the limit of the
      * next <code>TextLayout</code>.
      */
-    public int nextOffset(float maxAdvance) {
-        return nextOffset(maxAdvance, limit, false);
+    public int nextOffset(float wrappingWidth) {
+        return nextOffset(wrappingWidth, limit, false);
     }
 
     /**
@@ -318,19 +327,29 @@ public final class LineBreakMeasurer {
 
             int charAtMaxAdvance =
                             measurer.getLineBreakIndex(pos, wrappingWidth);
-            text.setIndex(charAtMaxAdvance);
 
             if (charAtMaxAdvance == limit) {
                 nextOffset = limit;
             }
-            else if (Character.isWhitespace(text.current())) {
+            else if (Character.isWhitespace(measurer.getChars()[charAtMaxAdvance-start])) {
                 nextOffset = breakIter.following(charAtMaxAdvance);
             }
             else {
             // Break is in a word;  back up to previous break.
 
-                breakIter.following(charAtMaxAdvance);
-                nextOffset = breakIter.previous();
+                // NOTE:  I think that breakIter.preceding(limit) should be
+                // equivalent to breakIter.last(), breakIter.previous() but
+                // the authors of BreakIterator thought otherwise...
+                // If they were equivalent then the first branch would be
+                // unnecessary.
+                int testPos = charAtMaxAdvance + 1;
+                if (testPos == limit) {
+                    breakIter.last();
+                    nextOffset = breakIter.previous();
+                }
+                else {
+                    nextOffset = breakIter.preceding(testPos);
+                }
 
                 if (nextOffset <= pos) {
                     // first word doesn't fit on line
@@ -353,14 +372,14 @@ public final class LineBreakMeasurer {
 
     /**
      * Returns the next layout, and updates the current position.
-     * @param maxAdvance the maximum visible advance permitted for
+     * @param wrappingWidth the maximum visible advance permitted for
      * the text in the next layout
      * @return a <code>TextLayout</code>, beginning at the current
      * position, which represents the next line fitting within 
-     * <code>maxAdvance</code>.
+     * <code>wrappingWidth</code>.
      */
-    public TextLayout nextLayout(float maxAdvance) {
-        return nextLayout(maxAdvance, limit, false);
+    public TextLayout nextLayout(float wrappingWidth) {
+        return nextLayout(wrappingWidth, limit, false);
     }
 
     /**
@@ -378,14 +397,14 @@ public final class LineBreakMeasurer {
      * current position.
      * @return a <code>TextLayout</code>, beginning at the current
      * position, that represents the next line fitting within 
-     * <code>maxAdvance</code>.  If the current position is at the end of
+     * <code>wrappingWidth</code>.  If the current position is at the end of
      * the text used by this <code>LineBreakMeasurer</code>,
      * <code>null</code> is returned.
      */
     public TextLayout nextLayout(float wrappingWidth, int offsetLimit,
                                  boolean requireNextWord) {
 
-        if (pos < text.getEndIndex()) {
+        if (pos < limit) {
             int layoutLimit = nextOffset(wrappingWidth, offsetLimit, requireNextWord);
             if (layoutLimit == pos) {
                 return null;
@@ -421,7 +440,7 @@ public final class LineBreakMeasurer {
      * @see #getPosition
      */
     public void setPosition(int newPosition) {
-        if (newPosition < text.getBeginIndex() || newPosition > limit) {
+        if (newPosition < start || newPosition > limit) {
             throw new IllegalArgumentException("position is out of range");
         }
         pos = newPosition;
@@ -429,7 +448,8 @@ public final class LineBreakMeasurer {
 
     /**
      * Updates this <code>LineBreakMeasurer</code> after a single
-     * character is inserted into the text.
+     * character is inserted into the text, and sets the current
+     * position to the beginning of the paragraph.
      * @param newParagraph the text after the insertion
      * @param insertPos the position in the text at which the character
      * is inserted
@@ -438,18 +458,17 @@ public final class LineBreakMeasurer {
     public void insertChar(AttributedCharacterIterator newParagraph,
                            int insertPos) {
 
-        text = newParagraph;
-        breakIter.setText((CharacterIterator)text.clone());
-
-        limit = text.getEndIndex();
-        pos = text.getBeginIndex();
-
         measurer.insertChar(newParagraph, insertPos);
+        breakIter.setText((CharacterIterator)newParagraph.clone());
+
+        limit = newParagraph.getEndIndex();
+        pos = start = newParagraph.getBeginIndex();
     }
 
     /**
      * Updates this <code>LineBreakMeasurer</code> after a single
-     * character is deleted from the text.
+     * character is deleted from the text, and sets the current
+     * position to the beginning of the paragraph.
      * @param newParagraph the text after the deletion
      * @param deletePos the position in the text at which the character
      * is deleted
@@ -458,13 +477,12 @@ public final class LineBreakMeasurer {
     public void deleteChar(AttributedCharacterIterator newParagraph,
                            int deletePos) {
 
-        text = newParagraph;
-        breakIter.setText((CharacterIterator)text.clone());
-
-        limit = text.getEndIndex();
-        pos = text.getBeginIndex();
-
         measurer.deleteChar(newParagraph, deletePos);
+        breakIter.setText((CharacterIterator)newParagraph.clone());
+
+        limit = newParagraph.getEndIndex();
+        pos = start = newParagraph.getBeginIndex();
+
     }
 }
 

@@ -1,8 +1,11 @@
 /*
- * @(#)PipedWriter.java	1.11 01/11/29
+ * @(#)PipedWriter.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -11,7 +14,7 @@ package java.io;
 /**
  * Piped character-output streams.
  *
- * @version 	1.11, 01/11/29
+ * @version 	1.13, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -23,6 +26,12 @@ public class PipedWriter extends Writer {
        pipes within a thread?) or using finalization (but it may be a
        long time until the next GC). */
     private PipedReader sink;
+
+    /* This flag records the open status of this particular writer. It
+     * is independent of the status flags defined in PipedReader. It is
+     * used to do a sanity check on connect.
+     */
+    private boolean closed = false;
 
     /**
      * Creates a piped writer connected to the specified piped 
@@ -70,7 +79,10 @@ public class PipedWriter extends Writer {
             throw new NullPointerException();
         } else if (sink != null || snk.connected) {
 	    throw new IOException("Already connected");
-	}
+	} else if (snk.closedByReader || closed) {
+            throw new IOException("Pipe closed");
+        }
+        
 	sink = snk;
 	snk.in = -1;
 	snk.out = 0;
@@ -110,8 +122,7 @@ public class PipedWriter extends Writer {
     public void write(char cbuf[], int off, int len) throws IOException {
         if (sink == null) {
             throw new IOException("Pipe not connected");
-        } else if ((off < 0) || (off > cbuf.length) || (len < 0) ||
-		   ((off + len) > cbuf.length) || ((off + len) < 0)) {
+        } else if ((off | len | (off + len) | (cbuf.length - (off + len))) < 0) {
 	    throw new IndexOutOfBoundsException();
 	}
 	sink.receive(cbuf, off, len);
@@ -126,6 +137,9 @@ public class PipedWriter extends Writer {
      */
     public synchronized void flush() throws IOException {
 	if (sink != null) {
+            if (sink.closedByReader || closed) {
+                throw new IOException("Pipe closed");
+            }            
             synchronized (sink) {
                 sink.notifyAll();
             }
@@ -140,6 +154,7 @@ public class PipedWriter extends Writer {
      * @exception  IOException  if an I/O error occurs.
      */
     public void close()  throws IOException {
+        closed = true;
 	if (sink != null) {
 	    sink.receivedLast();
 	}

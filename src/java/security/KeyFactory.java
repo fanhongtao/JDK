@@ -1,8 +1,11 @@
 /*
- * @(#)KeyFactory.java	1.20 01/11/29
+ * @(#)KeyFactory.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -44,7 +47,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.20 01/11/29
+ * @version 1.24, 02/02/00
  *
  * @see Key
  * @see PublicKey
@@ -53,7 +56,7 @@ import java.security.spec.InvalidKeySpecException;
  * @see java.security.spec.DSAPublicKeySpec
  * @see java.security.spec.X509EncodedKeySpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class KeyFactory {
@@ -72,6 +75,8 @@ public class KeyFactory {
      *
      * @param keyFacSpi the delegate
      * @param provider the provider
+     * @param algorithm the name of the algorithm
+     * to associate with this <tt>KeyFactory</tt>
      */
     protected KeyFactory(KeyFactorySpi keyFacSpi, Provider provider,
 			 String algorithm) {
@@ -155,7 +160,11 @@ public class KeyFactory {
     }
 
     /**
-     * Returns the name of the algorithm associated with this key factory.
+     * Gets the name of the algorithm 
+     * associated with this <tt>KeyFactory</tt>.
+     *
+     * @return the name of the algorithm associated with this
+     * <tt>KeyFactory</tt>
      */
     public final String getAlgorithm() {
 	return this.algorithm;

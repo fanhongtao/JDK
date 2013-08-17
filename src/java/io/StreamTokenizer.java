@@ -1,8 +1,11 @@
 /*
- * @(#)StreamTokenizer.java	1.32 01/11/29
+ * @(#)StreamTokenizer.java	1.36 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -38,7 +41,7 @@ package java.io;
  * it returns the value <code>TT_EOF</code>.
  *
  * @author  James Gosling
- * @version 1.32, 11/29/01
+ * @version 1.36, 02/02/00
  * @see     java.io.StreamTokenizer#nextToken()
  * @see     java.io.StreamTokenizer#TT_EOF
  * @since   JDK1.0
@@ -96,6 +99,8 @@ public class StreamTokenizer {
      * <li><code>TT_EOF</code> indicates that the end of the input stream
      *     has been reached.
      * </ul>
+     * <p>
+     * The initial value of this field is -4.
      *
      * @see     java.io.StreamTokenizer#eolIsSignificant(boolean)
      * @see     java.io.StreamTokenizer#nextToken()
@@ -143,6 +148,8 @@ public class StreamTokenizer {
      * <code>ttype</code> field is <code>TT_WORD</code>. The current token is
      * a quoted string token when the value of the <code>ttype</code> field is
      * a quote character.
+     * <p>
+     * The initial value of this field is null.
      *
      * @see     java.io.StreamTokenizer#quoteChar(int)
      * @see     java.io.StreamTokenizer#TT_WORD
@@ -154,6 +161,8 @@ public class StreamTokenizer {
      * If the current token is a number, this field contains the value
      * of that number. The current token is a number when the value of
      * the <code>ttype</code> field is <code>TT_NUMBER</code>.
+     * <p>
+     * The initial value of this field is 0.0.
      *
      * @see     java.io.StreamTokenizer#TT_NUMBER
      * @see     java.io.StreamTokenizer#ttype
@@ -213,6 +222,8 @@ public class StreamTokenizer {
 
     /**
      * Create a tokenizer that parses the given character stream.
+     *
+     * @param r  a Reader object providing the input stream.
      * @since   JDK1.1
      */
     public StreamTokenizer(Reader r) {
@@ -769,7 +780,19 @@ public class StreamTokenizer {
    	  case TT_NOTHING:
 	    ret = "NOTHING";
 	    break;
-	  default:{
+	  default: {
+		/* 
+		 * ttype is the first character of either a quoted string or
+		 * is an ordinary character. ttype can definitely not be less
+		 * than 0, since those are reserved values used in the previous
+		 * case statements
+		 */
+		if (ttype < 256 && 
+		    ((ctype[ttype] & CT_QUOTE) != 0)) {
+		    ret = sval;
+		    break;
+		}
+
 		char s[] = new char[3];
 		s[0] = s[2] = '\'';
 		s[1] = (char) ttype;

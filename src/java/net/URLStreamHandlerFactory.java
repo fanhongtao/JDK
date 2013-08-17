@@ -1,8 +1,11 @@
 /*
- * @(#)URLStreamHandlerFactory.java	1.13 01/11/29
+ * @(#)URLStreamHandlerFactory.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -15,7 +18,7 @@ package java.net;
  * <code>URLStreamHandler</code> for a specific protocol.
  *
  * @author  Arthur van Hoff
- * @version 1.13, 11/29/01
+ * @version 1.15, 02/02/00
  * @see     java.net.URL
  * @see     java.net.URLStreamHandler
  * @since   JDK1.0
@@ -28,7 +31,7 @@ public interface URLStreamHandlerFactory {
      * @param   protocol   the protocol ("<code>ftp</code>",
      *                     "<code>http</code>", "<code>nntp</code>", etc.).
      * @return  a <code>URLStreamHandler</code> for the specific protocol.
-     * @see     java.io.URLStreamHandler
+     * @see     java.net.URLStreamHandler
      */
     URLStreamHandler createURLStreamHandler(String protocol);
 }

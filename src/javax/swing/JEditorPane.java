@@ -1,8 +1,11 @@
 /*
- * @(#)JEditorPane.java	1.77 01/11/29
+ * @(#)JEditorPane.java	1.97 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -21,24 +24,30 @@ import javax.accessibility.*;
 
 /**
  * A text component to edit various kinds of content.
- * This component uses implementations of the 
- * EditorKit to accomplish its behavior. It effectively
+ * You can find how-to information and examples of using editor panes in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/text.html">Using Text Components</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
+ * <p>
+ * This component uses implementations of the
+ * <code>EditorKit</code> to accomplish its behavior. It effectively
  * morphs into the proper kind of text editor for the kind
- * of content it is given.  The content type that editor is bound 
- * to at any given time is determined by the EditorKit currently 
+ * of content it is given.  The content type that editor is bound
+ * to at any given time is determined by the <code>EditorKit</code> currently
  * installed.  If the content is set to a new URL, its type is used
- * to determine the EditorKit that should be used to load the content.
+ * to determine the <code>EditorKit</code> that should be used to
+ * load the content.
  * <p>
  * By default, the following types of content are known:
  * <dl>
  * <dt><b>text/plain</b>
  * <dd>Plain text, which is the default the type given isn't
  * recognized.  The kit used in this case is an extension of
- * DefaultEditorKit that produces a wrapped plain text view.
+ * <code>DefaultEditorKit</code> that produces a wrapped plain text view.
  * <dt><b>text/html</b>
  * <dd>HTML text.  The kit used in this case is the class
  * <code>javax.swing.text.html.HTMLEditorKit</code>
- * which provides html 3.2 support.
+ * which provides HTML 3.2 support.
  * <dt><b>text/rtf</b>
  * <dd>RTF text.  The kit used in this case is the class
  * <code>javax.swing.text.rtf.RTFEditorKit</code>
@@ -49,22 +58,22 @@ import javax.accessibility.*;
  * <ol>
  * <li>
  * The <a href="#setText">setText</a> method can be used to initialize
- * the component from a string.  In this case the current EditorKit
- * will be used, and the content type will be expected to be of this
- * type.
+ * the component from a string.  In this case the current
+ * <code>EditorKit</code> will be used, and the content type will be
+ * expected to be of this type.
  * <li>
  * The <a href="#read">read</a> method can be used to initialize the 
- * component from a Reader.  Note that if the content type is html,
+ * component from a Reader.  Note that if the content type is HTML,
  * relative references (e.g. for things like images) can't be resolved 
  * unless the &lt;base&gt; tag is used or the <em>Base</em> property
- * on HTMLDocument is set.  In this case the current EditorKit
+ * on HTMLDocument is set.  In this case the current <code>EditorKit</code>
  * will be used, and the content type will be expected to be of this
  * type.
  * <li>
  * The <a href="#setPage">setPage</a> method can be used to initialize
  * the component from a URL.  In this case, the content type will be
- * determined from the URL, and the registered EditorKit for that content
- * type will be set.
+ * determined from the URL, and the registered <code>EditorKit</code>
+ * for that content type will be set.
  * </ol>
  * <p>
  * For the keyboard keys used by this component in the standard Look and
@@ -72,35 +81,35 @@ import javax.accessibility.*;
  * <a href="doc-files/Key-Index.html#JEditorPane">JEditorPane</a> key assignments.
  * <p>
  * Some kinds of content may provide hyperlink support by generating
- * hyperlink events.  The html EditorKit will generate hyperlink events
- * if the JEditorPane is <em>not editable</em> 
- * (i.e. <code>JEditorPane.setEditable(false);</code> has been called).
- * If html frames are embedded in the document, the typical response would be
+ * hyperlink events.  The HTML <code>EditorKit</code> will generate
+ * hyperlink events if the <code>JEditorPane</code> is <em>not editable</em> 
+ * (<code>JEditorPane.setEditable(false);</code> has been called).
+ * If HTML frames are embedded in the document, the typical response would be
  * to change a portion of the current document.  The following code
  * fragment is a possible hyperlink listener implementation, that treats 
- * html frame events specially, and simply displays any other activated
+ * HTML frame events specially, and simply displays any other activated
  * hyperlinks.
  * <code><pre>
 
-    class Hyperactive implements HyperlinkListener {
-
-        public void hyperlinkUpdate(HyperlinkEvent e) {
-	    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-		JEditorPane pane = (JEditorPane) e.getSource();
-		if (e instanceof HTMLFrameHyperlinkEvent) {
-		    HTMLFrameHyperlinkEvent  evt = (HTMLFrameHyperlinkEvent)e;
-		    HTMLDocument doc = (HTMLDocument)pane.getDocument();
-		    doc.processHTMLFrameHyperlinkEvent(evt);
-		} else {
-		    try {
-			pane.setPage(e.getURL());
-		    } catch (Throwable t) {
-			t.printStackTrace();
-		    }
-		}
-	    }
-	}
-    }
+&nbsp;    class Hyperactive implements HyperlinkListener {
+&nbsp;
+&nbsp;        public void hyperlinkUpdate(HyperlinkEvent e) {
+&nbsp;	          if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+&nbsp;		      JEditorPane pane = (JEditorPane) e.getSource();
+&nbsp;		      if (e instanceof HTMLFrameHyperlinkEvent) {
+&nbsp;		          HTMLFrameHyperlinkEvent  evt = (HTMLFrameHyperlinkEvent)e;
+&nbsp;		          HTMLDocument doc = (HTMLDocument)pane.getDocument();
+&nbsp;		          doc.processHTMLFrameHyperlinkEvent(evt);
+&nbsp;		      } else {
+&nbsp;		          try {
+&nbsp;			      pane.setPage(e.getURL());
+&nbsp;		          } catch (Throwable t) {
+&nbsp;			      t.printStackTrace();
+&nbsp;		          }
+&nbsp;		      }
+&nbsp;	          }
+&nbsp;	      }
+&nbsp;    }
 
  * </pre></code>
  * <p>
@@ -110,11 +119,11 @@ import javax.accessibility.*;
  * digits, symbols, or control functions) to specific numeric code values. It
  * represents the way the file is stored. Example character encodings are
  * ISO-8859-1, ISO-8859-5, Shift-jis, Euc-jp, and UTF-8. When the file is 
- * passed to an user agent (JEditorPane) it is converted to the document 
- * character set (ISO-10646 aka Unicode).
+ * passed to an user agent (<code>JEditorPane</code>) it is converted to
+ * the document character set (ISO-10646 aka Unicode).
  * <p>
  * There are multiple ways to get a character set mapping to happen 
- * with JEditorPane.  
+ * with <code>JEditorPane</code>.  
  * <ol>
  * <li>
  * One way is to specify the character set as a parameter of the MIME 
@@ -128,10 +137,11 @@ import javax.accessibility.*;
  * Another way the character set can be specified is in the document itself.
  * This requires reading the document prior to determining the character set
  * that is desired.  To handle this, it is expected that the 
- * EditorKit.read operation throw a ChangedCharSetException which will
+ * <code>EditorKit</code>.read operation throw a
+ * <code>ChangedCharSetException</code> which will
  * be caught.  The read is then restarted with a new Reader that uses
- * the character set specified in the ChangedCharSetException (which is an
- * IOException).
+ * the character set specified in the <code>ChangedCharSetException</code>
+ * (which is an <code>IOException</code>).
  * </ol>
  * <p>
  * <strong>Warning:</strong>
@@ -143,24 +153,27 @@ import javax.accessibility.*;
  *
  * @beaninfo
  *   attribute: isContainer false
+ * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.77 11/29/01
+ * @version 1.97 04/06/00
  */
 public class JEditorPane extends JTextComponent {
 
     /**
-     * Constructs a new JEditorPane.  The document model is set to null.
+     * Creates a new <code>JEditorPane</code>.
+     * The document model is set to <code>null</code>.
      */
     public JEditorPane() {
         super();
     }
 
     /**
-     * Creates a JEditorPane based on a specified URL for input.
+     * Creates a <code>JEditorPane</code> based on a specified URL for input.
      *
      * @param initialPage the URL
-     * @exception IOException if the URL is null or cannot be accessed
+     * @exception IOException if the URL is <code>null</code>
+     *		or cannot be accessed
      */
     public JEditorPane(URL initialPage) throws IOException {
         this();
@@ -168,10 +181,12 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Creates a JEditorPane based on a string containing a URL specification.
+     * Creates a <code>JEditorPane</code> based on a string containing
+     * a URL specification.
      *
      * @param url the URL
-     * @exception IOException if the URL is null or cannot be accessed
+     * @exception IOException if the URL is <code>null</code> or
+     *		cannot be accessed
      */
     public JEditorPane(String url) throws IOException {
         this();
@@ -179,12 +194,12 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Creates a JEditorPane that has been initialized to the given
-     * text.  This is a convenience constructor that calls the
+     * Creates a <code>JEditorPane</code> that has been initialized
+     * to the given text.  This is a convenience constructor that calls the
      * <code>setContentType</code> and <code>setText</code> methods.
      *
-     * @param type mime type of the given text.
-     * @param text the text to initialize with.
+     * @param type mime type of the given text
+     * @param text the text to initialize with
      */
     public JEditorPane(String type, String text) {
 	this();
@@ -214,7 +229,7 @@ public class JEditorPane extends JTextComponent {
     /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  This is normally called
-     * by the currently installed EditorKit if a content type
+     * by the currently installed <code>EditorKit</code> if a content type
      * that supports hyperlinks is currently active and there
      * was activity with a link.  The listener list is processed
      * last to first.
@@ -236,28 +251,30 @@ public class JEditorPane extends JTextComponent {
 
 
     /**
-     * Sets the current url being displayed.  The content type of the
-     * pane is set, and if the editor kit for the pane is non-null, then
+     * Sets the current URL being displayed.  The content type of the
+     * pane is set, and if the editor kit for the pane is
+     * non-<code>null</code>, then
      * a new default document is created and the URL is read into it.
-     * If the url contains and reference location, the location will
+     * If the URL contains and reference location, the location will
      * be scrolled to by calling the <code>scrollToReference</code> 
      * method.  If the desired URL is not the one currently being
      * displayed, the <code>getStream</code> method is called to
      * give subclasses control over the stream provided.
      * <p>
      * This may load either synchronously or asynchronously
-     * depending upon the document returned by the EditorKit.
-     * If the Document is of type AbstractDocument and has
-     * a value returned by 
+     * depending upon the document returned by the <code>EditorKit</code>.
+     * If the <code>Document</code> is of type
+     * <code>AbstractDocument</code> and has a value returned by 
      * <code>AbstractDocument.getAsynchronousLoadPriority</code>
      * that is greater than or equal to zero, the page will be
-     * loaded on a seperate thread using that priority.
+     * loaded on a separate thread using that priority.
      * <p>
      * If the document is loaded synchronously, it will be
      * filled in with the stream prior to being installed into
      * the editor with a call to <code>setDocument</code>, which
      * is bound and will fire a property change event.  If an
-     * IOException is thrown the partially loaded document will
+     * <code>IOException</code> is thrown the partially loaded
+     * document will
      * be discarded and neither the document or page property
      * change events will be fired.  If the document is 
      * successfully loaded and installed, a view will be
@@ -273,14 +290,14 @@ public class JEditorPane extends JTextComponent {
      * In this case, the page property change event will not be 
      * fired by the call to this method directly, but rather will be 
      * fired when the thread doing the loading has finished.
-     * Since the calling thread can not throw an IOException in
-     * the event of failure on the other thread, the page 
+     * Since the calling thread can not throw an <code>IOException</code>
+     * in the event of failure on the other thread, the page 
      * property change event will be fired when the other 
      * thread is done whether the load was successful or not.
      * 
      * @param page the URL of the page
-     * @exception IOException for a null or invalid page specification,
-     *  or exception from the stream being read.
+     * @exception IOException for a <code>null</code> or invalid
+     *		page specification, or exception from the stream being read
      * @see #getPage
      * @beaninfo
      *  description: the URL used to set content
@@ -326,7 +343,7 @@ public class JEditorPane extends JTextComponent {
 		    if (p >= 0) {
 			// load asynchronously
 			setDocument(doc);
-			Thread pl = new PageLoader(in, p, loaded, page);
+			Thread pl = new PageLoader(doc, in, p, loaded, page);
 			pl.start();
 			return;
 		    }
@@ -355,17 +372,17 @@ public class JEditorPane extends JTextComponent {
 
 
     /**
-     * This method initializes from a stream.  If
-     * the kit is set to be of type HTMLEditorKit,
-     * and the desc parameter is an HTMLDocument,
-     * then it invokes the HTMLEditorKit to initiate
+     * This method initializes from a stream.  If the kit is
+     * set to be of type <code>HTMLEditorKit</code>, and the
+     * <code>desc</code> parameter is an <code>HTMLDocument</code>,
+     * then it invokes the <code>HTMLEditorKit</code> to initiate
      * the read. Otherwise it calls the superclass
      * method which loads the model as plain text.
      *
-     * @param in The stream to read from
-     * @param desc An object describing the stream. 
+     * @param in the stream from which to read
+     * @param desc an object describing the stream
      * @exception IOException as thrown by the stream being
-     *  used to initialize.
+     * 		used to initialize
      * @see JTextComponent#read
      * @see #setDocument
      */
@@ -377,30 +394,37 @@ public class JEditorPane extends JTextComponent {
 	    setDocument(hdoc);
 	    read(in, hdoc);
 	} else {
-	    super.read(new InputStreamReader(in, charSetName), desc);
+	    String charset = (String) getClientProperty("charset");
+	    Reader r = (charset != null) ? new InputStreamReader(in, charset) :
+		new InputStreamReader(in);
+	    super.read(r, desc);
 	}
     }
 
 
     /**
-     * This method invokes the editorKit to initiate a read.  In the 
-     * case where a ChangedCharSetException is thrown this exception
-     * will contain the new CharSet.  Therefore the read() operation
+     * This method invokes the <code>EditorKit</code> to initiate a
+     * read.  In the case where a <code>ChangedCharSetException</code>
+     * is thrown this exception will contain the new CharSet.
+     * Therefore the <code>read</code> operation
      * is then restarted after building a new Reader with the new charset.
      *
-     * @param the inputstream to use.
-     * @param the document to load.
+     * @param in the inputstream to use
+     * @param doc the document to load
      *
      */
     void read(InputStream in, Document doc) throws IOException {
 	try {
-	    kit.read(new InputStreamReader(in, charSetName), doc, 0);
+	    String charset = (String) getClientProperty("charset");
+	    Reader r = (charset != null) ? new InputStreamReader(in, charset) :
+		new InputStreamReader(in);
+	    kit.read(r, doc, 0);
 	} catch (BadLocationException e) {
 	    throw new IOException(e.getMessage());
 	} catch (ChangedCharSetException e1) {
 	    String charSetSpec = e1.getCharSetSpec();
 	    if (e1.keyEqualsCharSet()) {
-		charSetName = charSetSpec;
+		putClientProperty("charset", charSetSpec);
 	    } else {
 		setCharsetFromContentTypeParameters(charSetSpec);
 	    }
@@ -425,11 +449,13 @@ public class JEditorPane extends JTextComponent {
 	/**
 	 * Construct an asynchronous page loader.
 	 */
-	PageLoader(InputStream in, int priority, URL old, URL page) {
+	PageLoader(Document doc, InputStream in, int priority, URL old,
+		   URL page) {
 	    setPriority(priority);
 	    this.in = in;
 	    this.old = old;
 	    this.page = page;
+	    this.doc = doc;
 	}
 
 	/**
@@ -438,7 +464,6 @@ public class JEditorPane extends JTextComponent {
 	 * a page property change event.
 	 */
         public void run() {
-	    Document doc = getDocument();
 	    try {
 		read(in, doc);
 		URL page = (URL) doc.getProperty(Document.StreamDescriptionProperty);
@@ -478,25 +503,39 @@ public class JEditorPane extends JTextComponent {
 	 * URL of the page being loaded (for the property change event)
 	 */
 	URL page;
+
+	/**
+	 * The Document instance to load into. This is cached in case a
+	 * new Document is created between the time the thread this is created
+	 * and run.
+	 */
+	Document doc;
     }
 
     /**
-     * Fetch a stream for the given url, which is about to 
+     * Fetches a stream for the given URL, which is about to 
      * be loaded by the <code>setPage</code> method.  By
-     * default, this simply opens the url and returns the
+     * default, this simply opens the URL and returns the
      * stream.  This can be reimplemented to do useful things
      * like fetch the stream from a cache, monitor the progress
      * of the stream, etc.
      * <p>
      * This method is expected to have the the side effect of
-     * establising the content type, and therefore setting the
-     * appropriate EditorKit to use for loading the stream.
+     * establishing the content type, and therefore setting the
+     * appropriate <code>EditorKit</code> to use for loading the stream.
+     * <p>
+     * If this the stream was an http connection, redirects
+     * will be followed and the resulting URL will be set as
+     * the <code>Document.StreamDescriptionProperty</code> so that relative
+     * URL's can be properly resolved.
+     *
+     * @param page  the URL of the page
      */
     protected InputStream getStream(URL page) throws IOException {
 	URLConnection conn = page.openConnection();
 	if (conn instanceof HttpURLConnection) {
 	    HttpURLConnection hconn = (HttpURLConnection) conn;
-	    hconn.setFollowRedirects(false);
+	    hconn.setInstanceFollowRedirects(false);
 	    int response = hconn.getResponseCode();
 	    boolean redirect = (response >= 300 && response <= 399);
 
@@ -532,19 +571,19 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Scroll the view to the given reference location
-     * (i.e. the value returned by the <code>UL.getRef</code>
-     * method for the url being displayed).  By default, this
+     * Scrolls the view to the given reference location
+     * (that is, the value returned by the <code>UL.getRef</code>
+     * method for the URL being displayed).  By default, this
      * method only knows how to locate a reference in an
      * HTMLDocument.  The implementation calls the
      * <code>scrollRectToVisible</code> method to
      * accomplish the actual scrolling.  If scrolling to a
      * reference location is needed for document types other
-     * than html, this method should be reimplemented.
+     * than HTML, this method should be reimplemented.
      * This method will have no effect if the component
      * is not visible.
      * 
-     * @param reference the named location to scroll to.
+     * @param reference the named location to scroll to
      */
     protected void scrollToReference(String reference) {
 	Document d = getDocument();
@@ -562,7 +601,7 @@ public class JEditorPane extends JTextComponent {
 			    // the view is visible, scroll it to the 
 			    // center of the current visible area.
 			    Rectangle vis = getVisibleRect();
-			    r.y -= (vis.height / 2);
+			    //r.y -= (vis.height / 2);
 			    r.height = vis.height;
 			    scrollRectToVisible(r);
 			}
@@ -575,22 +614,23 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Gets the current url being displayed.  If a URL was 
+     * Gets the current URL being displayed.  If a URL was 
      * not specified in the creation of the document, this
-     * will return null, and relative URL's will not be 
+     * will return <code>null</code>, and relative URL's will not be 
      * resolved.
      *
-     * @return the URL
+     * @return the URL, or <code>null</code> if none
      */
     public URL getPage() {
         return (URL) getDocument().getProperty(Document.StreamDescriptionProperty);
     }
 
     /**
-     * Sets the current url being displayed.
+     * Sets the current URL being displayed.
      *
      * @param url the URL for display
-     * @exception IOException for a null or invalid URL specification
+     * @exception IOException for a <code>null</code> or invalid URL
+     *		specification
      */
     public void setPage(String url) throws IOException {
         if (url == null) {
@@ -603,7 +643,7 @@ public class JEditorPane extends JTextComponent {
     /**
      * Gets the class ID for the UI.
      *
-     * @return the ID ("EditorPaneUI")
+     * @return the string "EditorPaneUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      */
@@ -612,7 +652,7 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Creates the default editor kit (PlainEditorKit) for when
+     * Creates the default editor kit (<code>PlainEditorKit</code>) for when
      * the component is first created.
      *
      * @return the editor kit
@@ -622,13 +662,13 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Fetches the currently installed kit for handling
-     * content.  createDefaultEditorKit() is called to set up a default
+     * Fetches the currently installed kit for handling content.
+     * <code>createDefaultEditorKit</code> is called to set up a default
      * if necessary.
      *
      * @return the editor kit
      */
-    public final EditorKit getEditorKit() {
+    public EditorKit getEditorKit() {
         if (kit == null) {
             kit = createDefaultEditorKit();
         }
@@ -639,9 +679,9 @@ public class JEditorPane extends JTextComponent {
      * Gets the type of content that this editor 
      * is currently set to deal with.  This is 
      * defined to be the type associated with the
-     * currently installed EditorKit.
+     * currently installed <code>EditorKit</code>.
      *
-     * @return the content type, null if no editor kit set
+     * @return the content type, <code>null</code> if no editor kit set
      */
     public final String getContentType() {
         return (kit != null) ? kit.getContentType() : null;
@@ -657,17 +697,17 @@ public class JEditorPane extends JTextComponent {
      * <p>
      * If there is a charset definition specified as a parameter
      * of the content type specification, it will be used when
-     * loading input streams using the associated EditorKit.
+     * loading input streams using the associated <code>EditorKit</code>.
      * For example if the type is specified as 
      * <code>text/html; charset=EUC-JP</code> the content
-     * will be loaded using the EditorKit registered for
+     * will be loaded using the <code>EditorKit</code> registered for
      * <code>text/html</code> and the Reader provided to
-     * the EditorKit to load unicode into the document will
+     * the <code>EditorKit</code> to load unicode into the document will
      * use the <code>EUC-JP</code> charset for translating
      * to unicode.
      * 
-     * @param type the non-null mime type for the content editing
-     *   support.
+     * @param type the non-<code>null</code> mime type for the content editing
+     *   support
      * @see #getContentType
      * @beaninfo
      *  description: the type of content
@@ -695,7 +735,7 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * This method get's the charset information specified as part
+     * This method gets the charset information specified as part
      * of the content type in the http header information.
      */
     private void setCharsetFromContentTypeParameters(String paramlist) {
@@ -712,7 +752,9 @@ public class JEditorPane extends JTextComponent {
 		// charset pair's value
 		HeaderParser hdrParser = new HeaderParser(paramlist);
 		charset = hdrParser.findValue("charset");
-		charSetName = charset;
+		if (charset != null) {
+		    putClientProperty("charset", charset);
+		}
 	    }
 	}
 	catch (IndexOutOfBoundsException e) {
@@ -733,18 +775,20 @@ public class JEditorPane extends JTextComponent {
      * Sets the currently installed kit for handling
      * content.  This is the bound property that
      * establishes the content type of the editor.
-     * Any old kit is first deinstalled, then if kit is non-null,
+     * Any old kit is first deinstalled, then if kit is
+     * non-<code>null</code>,
      * the new kit is installed, and a default document created for it.
-     * A PropertyChange event ("editorKit") is always fired when
-     * setEditorKit() is called.
+     * A <code>PropertyChange</code> event ("editorKit") is always fired when
+     * <code>setEditorKit</code> is called.
      * <p>
      * <em>NOTE: This has the side effect of changing the model,
-     * because the EditorKit is the source of how a particular type
-     * of content is modeled.  This method will cause setDocument
-     * to be called on behalf of the caller to insure integrity
+     * because the <code>EditorKit</code> is the source of how a
+     * particular type
+     * of content is modeled.  This method will cause <code>setDocument</code>
+     * to be called on behalf of the caller to ensure integrity
      * of the internal state.</em>
      * 
-     * @param kit the desired editor behavior.
+     * @param kit the desired editor behavior
      * @see #getEditorKit
      * @beaninfo
      *  description: the currently installed kit for handling content
@@ -768,19 +812,19 @@ public class JEditorPane extends JTextComponent {
      * Fetches the editor kit to use for the given type
      * of content.  This is called when a type is requested
      * that doesn't match the currently installed type.
-     * If the component doesn't have an EditorKit registered
+     * If the component doesn't have an <code>EditorKit</code> registered
      * for the given type, it will try to create an 
-     * EditorKit from the default EditorKit registry.
-     * If that fails, a PlainEditorKit is used on the
+     * <code>EditorKit</code> from the default <code>EditorKit</code> registry.
+     * If that fails, a <code>PlainEditorKit</code> is used on the
      * assumption that all text documents can be represented
      * as plain text.
      * <p>
      * This method can be reimplemented to use some
      * other kind of type registry.  This can
      * be reimplemented to use the Java Activation
-     * Framework for example.
+     * Framework, for example.
      *
-     * @param type the non-null content type
+     * @param type the non-</code>null</code> content type
      * @return the editor kit
      */  
     public EditorKit getEditorKitForContentType(String type) {
@@ -801,12 +845,12 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Directly set the editor kit to use for the given type.  A 
+     * Directly sets the editor kit to use for the given type.  A 
      * look-and-feel implementation might use this in conjunction
-     * with createEditorKitForContentType to install handlers for
+     * with <code>createEditorKitForContentType</code> to install handlers for
      * content types with a look-and-feel bias.
      *
-     * @param type the non-null content type
+     * @param type the non-<code>null</code> content type
      * @param k the editor kit to be set
      */
     public void setEditorKitForContentType(String type, EditorKit k) {
@@ -820,18 +864,19 @@ public class JEditorPane extends JTextComponent {
      * Replaces the currently selected content with new content
      * represented by the given string.  If there is no selection
      * this amounts to an insert of the given text.  If there
-     * is no replacement text this amounts to a removal of the
+     * is no replacement text (i.e. the content string is empty
+     * or <code>null</code>) this amounts to a removal of the
      * current selection.  The replacement text will have the
-     * attributes currently defined for input.  If the document is not
-     * editable, beep and return.  Then if the document is null, do nothing.
-     * If the content to insert is null or empty, ignore it.
+     * attributes currently defined for input.  If the component is not
+     * editable, beep and return.  
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.     
      *
-     * @param content  the content to replace the selection with
+     * @param content  the content to replace the selection with.  This
+     *   value can be <code>null</code>
      */
     public void replaceSelection(String content) {
         if (! isEditable()) {
@@ -862,33 +907,26 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Create a handler for the given type from the default registry
+     * Creates a handler for the given type from the default registry
      * of editor kits.  The registry is created if necessary.  If the
      * registered class has not yet been loaded, an attempt
      * is made to dynamically load the prototype of the kit for the
-     * given type.  If the type was registered with a ClassLoader,
-     * that ClassLoader will be used to load the prototype.  If there
-     * was no registered ClassLoader, Class.forName will be used to
-     * load the prototype.
+     * given type.  If the type was registered with a <code>ClassLoader</code>,
+     * that <code>ClassLoader</code> will be used to load the prototype.
+     * If there was no registered <code>ClassLoader</code>,
+     * <code>Class.forName</code> will be used to load the prototype.
      * <p>
-     * Once a prototype EditorKit instance is successfully located,
-     * it is cloned and the clone is returned.  
+     * Once a prototype <code>EditorKit</code> instance is successfully
+     * located, it is cloned and the clone is returned.  
      *
      * @param type the content type
-     * @return the editor kit, or null if there is nothing
-     *   registered for the given type.
+     * @return the editor kit, or <code>null</code> if there is nothing
+     *   registered for the given type
      */
     public static EditorKit createEditorKitForContentType(String type) {
         EditorKit k = null;
-        Hashtable kitRegistry = 
-            (Hashtable)SwingUtilities.appContextGet(kitRegistryKey);
-        if (kitRegistry == null) {
-            // nothing has been loaded yet.
-            kitRegistry = new Hashtable();
-            SwingUtilities.appContextPut(kitRegistryKey, kitRegistry);
-        } else {
-            k = (EditorKit) kitRegistry.get(type);
-        }
+        Hashtable kitRegistry = getKitRegisty();
+	k = (EditorKit) kitRegistry.get(type);
         if (k == null) {
             // try to dynamically load the support 
             String classname = (String) getKitTypeRegistry().get(type);
@@ -916,70 +954,112 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Establishes the default bindings of type to name.  
+     * Establishes the default bindings of <code>type</code> to
+     * <code>classname</code>.  
      * The class will be dynamically loaded later when actually
      * needed, and can be safely changed before attempted uses
      * to avoid loading unwanted classes.  The prototype 
-     * EditorKit will be loaded with Class.forName when
-     * registered with this method.
+     * <code>EditorKit</code> will be loaded with <code>Class.forName</code>
+     * when registered with this method.
      *
-     * @param type the non-null content type
+     * @param type the non-<code>null</code> content type
      * @param classname the class to load later
      */
     public static void registerEditorKitForContentType(String type, String classname) {
 	getKitLoaderRegistry().remove(type);
         getKitTypeRegistry().put(type, classname);
+	getKitRegisty().remove(type);
     }
 
     /**
-     * Establishes the default bindings of type to name.  
+     * Establishes the default bindings of <code>type</code> to
+     * <code>classname</code>.  
      * The class will be dynamically loaded later when actually
-     * needed using the given ClassLoader, and can be safely changed 
+     * needed using the given <code>ClassLoader</code>,
+     * and can be safely changed 
      * before attempted uses to avoid loading unwanted classes.
      *
-     * @param type the non-null content type
+     * @param type the non-</code>null</code> content type
      * @param classname the class to load later
-     * @param loader the ClassLoader to use to load the name
+     * @param loader the <code>ClassLoader</code> to use to load the name
      */
     public static void registerEditorKitForContentType(String type, String classname, ClassLoader loader) {
         getKitTypeRegistry().put(type, classname);
 	getKitLoaderRegistry().put(type, loader);
+	getKitRegisty().remove(type);
+    }
+
+    /**
+     * Returns the currently registered <code>EditorKit</code>
+     * class name for the type <code>type</code>.
+     *
+     * @param type  the non-<code>null</code> content type
+     *
+     * @since 1.3
+     */
+    public static String getEditorKitClassNameForContentType(String type) {
+	return (String)getKitTypeRegistry().get(type);
     }
 
     private static Hashtable getKitTypeRegistry() {
-	Hashtable kitTypeRegistry = 
-	    (Hashtable)SwingUtilities.appContextGet(kitTypeRegistryKey);
-	if (kitTypeRegistry == null) {
-	    kitTypeRegistry = new Hashtable();
-	    SwingUtilities.appContextPut(kitTypeRegistryKey, kitTypeRegistry);
-	}
-	return kitTypeRegistry;
+	loadDefaultKitsIfNecessary();
+	return (Hashtable)SwingUtilities.appContextGet(kitTypeRegistryKey);
     }
 
     private static Hashtable getKitLoaderRegistry() {
-	Hashtable kitLoaderRegistry = 
-	    (Hashtable)SwingUtilities.appContextGet(kitLoaderRegistryKey);
-	if (kitLoaderRegistry == null) {
-	    kitLoaderRegistry = new Hashtable();
-	    SwingUtilities.appContextPut(kitLoaderRegistryKey, kitLoaderRegistry);
+	loadDefaultKitsIfNecessary();
+	return (Hashtable)SwingUtilities.appContextGet(kitLoaderRegistryKey);
+    }
+
+    private static Hashtable getKitRegisty() {
+	Hashtable ht = (Hashtable)SwingUtilities.appContextGet(kitRegistryKey);
+	if (ht == null) {
+	    ht = new Hashtable(3);
+	    SwingUtilities.appContextPut(kitRegistryKey, ht);
 	}
-	return kitLoaderRegistry;
+	return ht;
+    }
+
+    /**
+     * This is invoked every time the registries are accessed. Loading
+     * is done this way instead of via a static as the static is only
+     * called once when running in plugin resulting in the entries only
+     * appearing in the first applet.
+     */
+    private static void loadDefaultKitsIfNecessary() {
+	if (SwingUtilities.appContextGet(kitTypeRegistryKey) == null) {
+	    Hashtable ht = new Hashtable();
+	    SwingUtilities.appContextPut(kitTypeRegistryKey, ht);
+	    ht = new Hashtable();
+	    SwingUtilities.appContextPut(kitLoaderRegistryKey, ht);
+	    registerEditorKitForContentType("text/plain",
+				  "javax.swing.JEditorPane$PlainEditorKit");
+	    registerEditorKitForContentType("text/html",
+				  "javax.swing.text.html.HTMLEditorKit");
+	    registerEditorKitForContentType("text/rtf",
+				  "javax.swing.text.rtf.RTFEditorKit");
+	    registerEditorKitForContentType("application/rtf",
+				  "javax.swing.text.rtf.RTFEditorKit");
+	}
     }
 
     // --- java.awt.Component methods --------------------------
 
     /**
-     * The preferred size for JEditorPane is slightly altered
+     * Returns the preferred size for the <code>JEditorPane</code>.
+     * The preferred size for <code>JEditorPane</code> is slightly altered
      * from the preferred size of the superclass.  If the size
      * of the viewport has become smaller than the minimum size
-     * of the component, the Scrollable definition for tracking
+     * of the component, the scrollable definition for tracking
      * width or height will turn to false.  The default viewport
      * layout will give the preferred size, and that is not desired
      * in the case where the scrollable is tracking.  In that case
      * the <em>normal</em> preferred size is adjusted to the
-     * minimum size.  This allows things like html tables to
+     * minimum size.  This allows things like HTML tables to
      * shrink down to their minimum size and then be laid out at
      * their minimum size, refusing to shrink any further.
+     *
+     * @return a <code>Dimension</code> containing the preferred size
      */
     public Dimension getPreferredSize() {
 	Dimension d = super.getPreferredSize();
@@ -989,7 +1069,6 @@ public class JEditorPane extends JTextComponent {
 	    if (! getScrollableTracksViewportWidth()) {
 		int w = port.getWidth();
 		Dimension min = ui.getMinimumSize(this);
-		Dimension max = ui.getMaximumSize(this);
 		if (w < min.width) {
 		    d.width = min.width;
 		}
@@ -997,7 +1076,6 @@ public class JEditorPane extends JTextComponent {
 	    if (! getScrollableTracksViewportHeight()) {
 		int h = port.getHeight();
 		Dimension min = ui.getMinimumSize(this);
-		Dimension max = ui.getMaximumSize(this);
 		if (h < min.height) {
 		    d.height = min.height;
 		}
@@ -1009,22 +1087,76 @@ public class JEditorPane extends JTextComponent {
     // --- JComponent methods ---------------------------------
 
     /**
-     * Turns off tab traversal once focus gained.
+     * Turns off tab traversal once focus is gained.
      *
-     * @return true, to indicate that the focus is being managed
+     * @return true, to indicate that the focus is being managed;
+     *		or false otherwise
      */
     public boolean isManagingFocus() {
+        return managingFocus;
+    }
+
+    /**
+     * Makes <code>JEditorPane</code> be the root of a focus cycle.
+     * This means that, by default, tabbing within the editor
+     * pane will move between components of the pane, such as
+     * form controls, but not out of the pane.
+     * <p>Note that this method always returns true.
+     *
+     * @see JComponent#isFocusCycleRoot
+     * @return true
+     */
+    public boolean isFocusCycleRoot() {
         return true;
+    }
+
+    /**
+     * Overridden to handle processing of tab/shift tab. If <code>e</code>
+     * identifies a tab, the editor pane is not editable and has components,
+     * then the <code>FocusManager</code> is asked to pass focus to the
+     * next/previous component.
+     *
+     * @param e  the current key event
+     */
+    protected void processComponentKeyEvent(KeyEvent e)  {
+        super.processComponentKeyEvent(e);
+	if (isManagingFocus()) {
+	  if ((e.getKeyCode() == KeyEvent.VK_TAB || e.getKeyChar() == '\t')) {
+	      if (e.getID() == KeyEvent.KEY_PRESSED && !isEditable() &&
+		  getComponentCount() > 0) {
+		  // We aren't editable, and have child components, which
+		  // are likely form elements. By setting managingFocus to
+		  // false the FocusManager will look at our children and
+		  // give one of them focus.
+		  managingFocus = false;
+		  try {
+		      if ((e.getModifiers() & ActionEvent.SHIFT_MASK) == 
+			  ActionEvent.SHIFT_MASK) {
+			  FocusManager.getCurrentManager().
+			               focusPreviousComponent(this);
+		      }
+		      else {
+			  FocusManager.getCurrentManager().
+			               focusNextComponent(this);
+		      }
+		      e.consume();
+		  }
+		  finally {
+		      managingFocus = true;
+		  }
+	      }
+	  }
+	}
     }
 
     /**
      * Make sure that TAB and Shift-TAB events get consumed, so that
      * awt doesn't attempt focus traversal.
      *
+     * @param e the current key event
      */
-
-    protected void processComponentKeyEvent(KeyEvent e)  {
-        super.processComponentKeyEvent(e);
+    protected void processKeyEvent(KeyEvent e) {
+        super.processKeyEvent(e);
         // tab consumption
 	// We are actually consuming any TABs modified in any way, because
 	// we don't want awt to get anything it can use for focus traversal.
@@ -1035,36 +1167,43 @@ public class JEditorPane extends JTextComponent {
 	}
     }
 
-
     // --- JTextComponent methods -----------------------------
 
     /**
-     * Sets the text of this TextComponent to the specified content,
+     * Sets the text of this <code>TextComponent</code> to the specified
+     * content,
      * which is expected to be in the format of the content type of
      * this editor.  For example, if the type is set to <code>text/html</code>
-     * the string should be specified in terms of html.  
+     * the string should be specified in terms of HTML.  
      * <p>
      * This is implemented to remove the contents of the current document,
      * and replace them by parsing the given string using the current
-     * EditorKit.  This gives the semantics of the superclass by not changing
+     * <code>EditorKit</code>.  This gives the semantics of the
+     * superclass by not changing
      * out the model, while supporting the content type currently set on
-     * this component.  The assumption is that the previous content is relatively
+     * this component.  The assumption is that the previous content is
+     * relatively
      * small, and that the previous content doesn't have side effects.
      * Both of those assumptions can be violated and cause undesirable results.
+     * To avoid this, create a new document,
+     * <code>getEditorKit().createDefaultDocument()</code>, and replace the
+     * existing <code>Document</code> with the new one. You are then assured the
+     * previous <code>Document</code> won't have any lingering state.
      * <ol>
      * <li>
      * Leaving the existing model in place means that the old view will be
      * torn down, and a new view created, where replacing the document would
      * avoid the tear down of the old view.
      * <li>
-     * Some formats (such as html) can install things into the document that
+     * Some formats (such as HTML) can install things into the document that
      * can influence future contents.  HTML can have style information embedded
      * that would influence the next content installed unexpectedly.
      * </ol>
      * <p>
      * An alternative way to load this component with a string would be to
      * create a StringReader and call the read method.  In this case the model
-     * would be replaced after it was initialized with the contents of the string.
+     * would be replaced after it was initialized with the contents of the
+     * string.
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
@@ -1091,10 +1230,11 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * Returns the text contained in this TextComponent in terms of the
+     * Returns the text contained in this <code>TextComponent</code>
+     * in terms of the
      * content type of this editor.  If an exception is thrown while
-     * attempting to retrieve the text, null will be returned.  This
-     * is implemented to call <code>JTextComponent.write</code> with
+     * attempting to retrieve the text, <code>null</code> will be returned.
+     * This is implemented to call <code>JTextComponent.write</code> with
      * a <code>StringWriter</code>.
      *
      * @return the text
@@ -1116,10 +1256,10 @@ public class JEditorPane extends JTextComponent {
 
     /**
      * Returns true if a viewport should always force the width of this 
-     * Scrollable to match the width of the viewport.  
+     * <code>Scrollable</code> to match the width of the viewport.  
      * 
      * @return true if a viewport should force the Scrollables width to
-     * match its own.
+     * match its own, false otherwise
      */
     public boolean getScrollableTracksViewportWidth() {
 	if (getParent() instanceof JViewport) {
@@ -1137,10 +1277,11 @@ public class JEditorPane extends JTextComponent {
 
     /**
      * Returns true if a viewport should always force the height of this 
-     * Scrollable to match the height of the viewport.  
+     * <code>Scrollable</code> to match the height of the viewport.  
      * 
-     * @return true if a viewport should force the Scrollables height to
-     * match its own.
+     * @return true if a viewport should force the
+     *		<code>Scrollable</code>'s height to match its own,
+     *		false otherwise
      */
     public boolean getScrollableTracksViewportHeight() {
 	if (getParent() instanceof JViewport) {
@@ -1148,9 +1289,11 @@ public class JEditorPane extends JTextComponent {
 	    TextUI ui = getUI();
 	    int h = port.getHeight();
 	    Dimension min = ui.getMinimumSize(this);
-	    Dimension max = ui.getMaximumSize(this);
-	    if ((h >= min.height) && (h <= max.height)) {
-		return true;
+	    if (h >= min.height) {
+		Dimension max = ui.getMaximumSize(this);
+		if (h <= max.height) {
+		    return true;
+		}
 	    }
 	}
 	return false;
@@ -1159,7 +1302,8 @@ public class JEditorPane extends JTextComponent {
     // --- Serialization ------------------------------------
 
     /** 
-     * See readObject() and writeObject() in JComponent for more 
+     * See <code>readObject</code> and <code>writeObject</code> in
+     * <code>JComponent</code> for more 
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -1183,7 +1327,12 @@ public class JEditorPane extends JTextComponent {
      */
     private Hashtable typeHandlers;
 
-    private String charSetName = "8859_1";
+    /**
+     * Indicates whether we are managing focus.
+     * @see #processComponentKeyEvent
+     * @see #isManagingFocus
+     */
+    private boolean managingFocus = true;
 
     /*
      * Private AppContext keys for this class's static variables.
@@ -1201,34 +1350,24 @@ public class JEditorPane extends JTextComponent {
      */
     private static final String uiClassID = "EditorPaneUI";
 
-    static {
-        // set the default bindings
-        registerEditorKitForContentType("text/plain", "javax.swing.JEditorPane$PlainEditorKit");
-        registerEditorKitForContentType("text/html", "javax.swing.text.html.HTMLEditorKit");
-        registerEditorKitForContentType("text/rtf", "javax.swing.text.rtf.RTFEditorKit");
-        registerEditorKitForContentType("application/rtf", "javax.swing.text.rtf.RTFEditorKit");
-    }
-
 
     /**
-     * Returns a string representation of this JEditorPane. This method 
+     * Returns a string representation of this <code>JEditorPane</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JEditorPane.
+     * @return  a string representation of this <code>JEditorPane</code>
      */
     protected String paramString() {
-        String charSetNameString = (charSetName != null ?
-				    charSetName: "");
         String kitString = (kit != null ?
 			    kit.toString() : "");
         String typeHandlersString = (typeHandlers != null ?
 				     typeHandlers.toString() : "");
 
         return super.paramString() +
-        ",charSetName=" + charSetNameString +
         ",kit=" + kitString +
         ",typeHandlers=" + typeHandlersString;
     }
@@ -1240,10 +1379,13 @@ public class JEditorPane extends JTextComponent {
 
 
     /**
-     * Get the AccessibleContext associated with this JEditorPane.  A new
-     * context is created if necessary.
+     * Gets the AccessibleContext associated with this JEditorPane. 
+     * For editor panes, the AccessibleContext takes the form of an 
+     * AccessibleJEditorPane. 
+     * A new AccessibleJEditorPane instance is created if necessary.
      *
-     * @return the AccessibleContext of this JEditorPane
+     * @return an AccessibleJEditorPane that serves as the 
+     *         AccessibleContext of this JEditorPane
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1257,7 +1399,10 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JEditorPane</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to editor pane user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -1301,9 +1446,10 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * This class provides support for AccessibleHypertext, and is used
-     * in instances where the EditorKit installed in this JEditorPane is
-     * an instance of HTMLEditorKit.
+     * This class provides support for <code>AccessibleHypertext</code>,
+     * and is used in instances where the <code>EditorKit</code>
+     * installed in this <code>JEditorPane</code> is an instance of
+     * <code>HTMLEditorKit</code>.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -1319,10 +1465,12 @@ public class JEditorPane extends JTextComponent {
     }
 
     /**
-     * What's returned by AccessibleJEditorPaneHTML.getAccessibleText()
+     * What's returned by
+     * <code>AccessibleJEditorPaneHTML.getAccessibleText</code>.
      *
-     * Provides support for AccessibleHypertext in case there is an
-     * HTML document being displayed in this JEditorPane.
+     * Provides support for <code>AccessibleHypertext</code> in case
+     * there is an HTML document being displayed in this
+     * <code>JEditorPane</code>.
      * 
      */
     protected class JEditorPaneAccessibleHypertextSupport
@@ -1655,13 +1803,175 @@ public class JEditorPane extends JTextComponent {
 	 * @see View
 	 */
         public View create(Element elem) {
-	    return new WrappedPlainView(elem);
-	}
+            Document doc = elem.getDocument();
+            Object i18nFlag
+                = doc.getProperty("i18n"/*AbstractDocument.I18NProperty*/);
+            if ((i18nFlag != null) && i18nFlag.equals(Boolean.TRUE)) {
+                // build a view that support bidi
+                return createI18N(elem);
+            } else {
+                return new WrappedPlainView(elem);
+            }
+        }
 
+        View createI18N(Element elem) {
+            String kind = elem.getName();
+            if (kind != null) {
+                if (kind.equals(AbstractDocument.ContentElementName)) {
+                    return new PlainParagraph(elem);
+                } else if (kind.equals(AbstractDocument.ParagraphElementName)){
+                    return new BoxView(elem, View.Y_AXIS);
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Paragraph for representing plain-text lines that support
+         * bidirectional text.
+         */
+        static class PlainParagraph extends javax.swing.text.ParagraphView {
+
+            PlainParagraph(Element elem) {
+                super(elem);
+                layoutPool = new LogicalView(elem);
+                layoutPool.setParent(this);
+            }
+
+            protected void setPropertiesFromAttributes() {
+                Component c = getContainer();
+                if ((c != null) 
+                    && (! c.getComponentOrientation().isLeftToRight()))
+                {
+                    setJustification(StyleConstants.ALIGN_RIGHT);
+                } else {
+                    setJustification(StyleConstants.ALIGN_LEFT);
+                }
+            }
+
+            /**
+             * Fetch the constraining span to flow against for
+             * the given child index.
+             */
+            public int getFlowSpan(int index) {
+                Component c = getContainer();
+                if (c instanceof JTextArea) {
+                    JTextArea area = (JTextArea) c;
+                    if (! area.getLineWrap()) {
+                        // no limit if unwrapped
+                        return Integer.MAX_VALUE;
+                    }
+                }
+                return super.getFlowSpan(index);
+            }
+
+            protected SizeRequirements calculateMinorAxisRequirements(int axis,
+                                                            SizeRequirements r)
+            {
+                SizeRequirements req 
+                    = super.calculateMinorAxisRequirements(axis, r);
+                Component c = getContainer();
+                if (c instanceof JTextArea) {
+                    JTextArea area = (JTextArea) c;
+                    if (! area.getLineWrap()) {
+                        // min is pref if unwrapped
+                        req.minimum = req.preferred;
+                    }
+                }
+                return req;
+            }
+
+            /**
+             * This class can be used to represent a logical view for 
+             * a flow.  It keeps the children updated to reflect the state
+             * of the model, gives the logical child views access to the
+             * view hierarchy, and calculates a preferred span.  It doesn't
+             * do any rendering, layout, or model/view translation.
+             */
+            static class LogicalView extends CompositeView {
+	    
+                LogicalView(Element elem) {
+                    super(elem);
+                }
+
+                protected int getViewIndexAtPosition(int pos) {
+                    Element elem = getElement();
+                    if (elem.getElementCount() > 0) {
+                        return elem.getElementIndex(pos);
+                    }
+                    return 0;
+                }
+
+                protected boolean 
+                updateChildren(DocumentEvent.ElementChange ec, 
+                               DocumentEvent e, ViewFactory f)
+                {
+                    return false;
+                }
+
+                protected void loadChildren(ViewFactory f) {
+                    Element elem = getElement();
+                    if (elem.getElementCount() > 0) {
+                        super.loadChildren(f);
+                    } else {
+                        View v = new GlyphView(elem);
+                        append(v);
+                    }
+                }
+
+                public float getPreferredSpan(int axis) {
+                    if( getViewCount() != 1 )
+                        throw new Error("One child view is assumed.");
+                
+                    View v = getView(0);
+                    //((GlyphView)v).setGlyphPainter(null);
+                    return v.getPreferredSpan(axis);
+                }
+
+                /**
+                 * Forward the DocumentEvent to the given child view.  This
+                 * is implemented to reparent the child to the logical view
+                 * (the children may have been parented by a row in the flow
+                 * if they fit without breaking) and then execute the 
+                 * superclass behavior.
+                 *
+                 * @param v the child view to forward the event to.
+                 * @param e the change information from the associated document
+                 * @param a the current allocation of the view
+                 * @param f the factory to use to rebuild if the view has 
+                 *          children
+                 * @see #forwardUpdate
+                 * @since 1.3
+                 */
+                protected void forwardUpdateToView(View v, DocumentEvent e, 
+                                                   Shape a, ViewFactory f) {
+                    v.setParent(this);
+                    super.forwardUpdateToView(v, e, a, f);
+                }
+
+                // The following methods don't do anything useful, they
+                // simply keep the class from being abstract.
+
+                public void paint(Graphics g, Shape allocation) {
+                }
+
+                protected boolean isBefore(int x, int y, Rectangle alloc) {
+                    return false;
+                }
+
+                protected boolean isAfter(int x, int y, Rectangle alloc) {
+                    return false;
+                }
+
+                protected View getViewAtPoint(int x, int y, Rectangle alloc) {
+                    return null;
+                }
+
+                protected void childAllocation(int index, Rectangle a) {
+                }
+            }
+        }
     }
-
-}
-
 
 /* This is useful for the nightmare of parsing multi-part HTTP/RFC822 headers
  * sensibly:
@@ -1682,7 +1992,7 @@ public class JEditorPane extends JTextComponent {
  */ 
 
 
-class HeaderParser {
+static class HeaderParser {
 
     /* table of key/val pairs - maxes out at 10!!!!*/
     String raw;
@@ -1806,3 +2116,6 @@ class HeaderParser {
 	}
     }
  }
+
+}
+

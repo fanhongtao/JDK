@@ -1,8 +1,11 @@
 /*
- * @(#)StringSelection.java	1.8 01/11/29
+ * @(#)StringSelection.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.datatransfer;
@@ -10,51 +13,87 @@ package java.awt.datatransfer;
 import java.io.*;
 
 /**
- * A class which implements the capability required to transfer a
- * simple java String in plain text format.
+ * A Transferable which implements the capability required to transfer a
+ * String.
+ *
+ * This Transferable properly supports <code>DataFlavor.stringFlavor</code>
+ * and all equivalent flavors. Support for <code>DataFlavor.plainTextFlavor
+ * </code> and all equivalent flavors is <b>deprecated</b>. No other
+ * DataFlavors are supported.
+ *
+ * @see java.awt.datatransfer.DataFlavor.stringFlavor
+ * @see java.awt.datatransfer.DataFlavor.plainTextFlavor
  */
 public class StringSelection implements Transferable, ClipboardOwner {
 
-    final static int STRING = 0;
-    final static int PLAIN_TEXT = 1;
+    private static final int STRING = 0;
+    private static final int PLAIN_TEXT = 1;
 
-    DataFlavor flavors[] = {DataFlavor.stringFlavor, DataFlavor.plainTextFlavor};
+    private static final DataFlavor[] flavors = {
+        DataFlavor.stringFlavor,
+	DataFlavor.plainTextFlavor // deprecated
+    };
 
     private String data;
 						   
     /**
-     * Creates a transferable object capable of transferring the
-     * specified string in plain text format.
+     * Creates a Transferable capable of transferring the specified String.
      */
     public StringSelection(String data) {
         this.data = data;
     }
 
     /**
-     * Returns the array of flavors in which it can provide the data.
+     * Returns an array of flavors in which this Transferable can provide
+     * the data. <code>DataFlavor.stringFlavor</code> is properly supported.
+     * Support for <code>DataFlavor.plainTextFlavor</code> is
+     * <b>deprecated</b>.
+     *
+     * @return an array of length two, whose elements are <code>DataFlavor.
+     *         stringFlavor</code> and <code>DataFlavor.plainTextFlavor</code>.
      */
-    public synchronized DataFlavor[] getTransferDataFlavors() {
-	return flavors;
+    public DataFlavor[] getTransferDataFlavors() {
+        // returning flavors itself would allow client code to modify
+        // our internal behavior
+	return (DataFlavor[])flavors.clone();
     }
 
     /**
-     * Returns whether the requested flavor is supported by this object.
-     * @param flavor the requested flavor for the data
-     */
-    public boolean isDataFlavorSupported(DataFlavor flavor) {
-	return (flavor.equals(flavors[STRING]) || flavor.equals(flavors[PLAIN_TEXT]));
-    }
-
-    /**
-     * If the data was requested in the "java.lang.String" flavor, return the
-     * String representing the selection.
+     * Returns whether the requested flavor is supported by this Transferable.
      *
      * @param flavor the requested flavor for the data
-     * @exception UnsupportedFlavorException if the requested data flavor is
-     *              not supported in the "<code>java.lang.String</code>" flavor.
+     * @return true if flavor is equal to <code>DataFlavor.stringFlavor</code>
+     *         or <code>DataFlavor.plainTextFlavor</code>, false otherwise.
      */
-    public synchronized Object getTransferData(DataFlavor flavor) 
-			throws UnsupportedFlavorException, IOException {
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        for (int i = 0; i < flavors.length; i++) {
+	    if (flavors[i].equals(flavor)) {
+	        return true;
+	    }
+	}
+	return false;
+    }
+
+    /**
+     * Returns the Transferable's data in the requested DataFlavor if
+     * possible. If the desired flavor is <code>DataFlavor.stringFlavor</code>,
+     * or an equivalent flavor, the String representing the selection is
+     * returned. If the desired flavor is </code>DataFlavor.plainTextFlavor
+     * </code>, or an equivalent flavor, a Reader is returned. <b>Note:<b>
+     * The behavior of this method for </code>DataFlavor.plainTextFlavor</code>
+     * and equivalent DataFlavors is inconsistent with the definition of
+     * <code>DataFlavor.plainTextFlavor</code>.
+     *
+     * @param flavor the requested flavor for the data
+     * @return the data in the requested flavor, as outlined above.
+     * @throws UnsupportedFlavorException if the requested data flavor is
+     *         not equivalent to either <code>DataFlavor.stringFlavor</code>
+     *         or <code>DataFlavor.plainTextFlavor</code>.
+     * @see java.io.Reader
+     */
+    public Object getTransferData(DataFlavor flavor)
+        throws UnsupportedFlavorException, IOException
+    {
 	if (flavor.equals(flavors[STRING])) {
 	    return (Object)data;
 	} else if (flavor.equals(flavors[PLAIN_TEXT])) {
@@ -67,4 +106,3 @@ public class StringSelection implements Transferable, ClipboardOwner {
     public void lostOwnership(Clipboard clipboard, Transferable contents) {
     }
 }
-	

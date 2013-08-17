@@ -1,8 +1,11 @@
 /*
- * @(#)DataOutput.java	1.11 01/11/29
+ * @(#)DataOutput.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -23,7 +26,7 @@ package java.io;
  * an <code>IOException</code> is thrown.
  *
  * @author  Frank Yellin
- * @version 1.11, 11/29/01
+ * @version 1.13, 02/02/00
  * @see     java.io.DataInput
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
@@ -307,7 +310,7 @@ interface DataOutput {
      * through <code>uffff</code>, then it is
      * represented by three bytes, to be written
      * in the order shown:<p> <pre><code>
-     * (byte)(0xc0 | (0x0f &amp; (c &gt;&gt; 12)))
+     * (byte)(0xe0 | (0x0f &amp; (c &gt;&gt; 12)))
      * (byte)(0x80 | (0x3f &amp; (c &gt;&gt;  6)))
      * (byte)(0x80 | (0x3f &amp; c))
      *  </code></pre>  <p> First,

@@ -1,19 +1,39 @@
 /*
- * @(#)PKCS8EncodedKeySpec.java	1.10 01/11/29
+ * @(#)PKCS8EncodedKeySpec.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.spec;
 
 /**
- * This class represents the DER encoding of a private key, according to the
- * format specified in the PKCS #8 standard.
+ * This class represents the ASN.1 encoding of a private key,
+ * encoded according to the ASN.1 type <code>PrivateKeyInfo</code>,
+ * whose syntax is defined in the PKCS#8 standard, as follows:
+ *
+ * <pre>
+ * PrivateKeyInfo ::= SEQUENCE {
+ *   version Version,
+ *   privateKeyAlgorithm PrivateKeyAlgorithmIdentifier,
+ *   privateKey PrivateKey,
+ *   attributes [0] IMPLICIT Attributes OPTIONAL }
+ *
+ * Version ::= INTEGER
+ *
+ * PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+ *
+ * PrivateKey ::= OCTET STRING
+ *
+ * Attributes ::= SET OF Attribute
+ * </pre>
  *
  * @author Jan Luehe
  *
- * @version 1.10 01/11/29
+ * @version 1.14, 02/02/00
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -21,7 +41,7 @@ package java.security.spec;
  * @see EncodedKeySpec
  * @see X509EncodedKeySpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class PKCS8EncodedKeySpec extends EncodedKeySpec {

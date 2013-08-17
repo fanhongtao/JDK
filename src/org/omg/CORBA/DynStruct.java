@@ -1,37 +1,43 @@
 /*
- * @(#)DynStruct.java	1.5 01/11/29
+ * @(#)DynStruct.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
 package org.omg.CORBA;
 
-/** The DynStruct interface represents a DynAny object which is associated
+/**
+ * The representation of a <code>DynAny</code> object that is associated
  *  with an IDL struct.
  */
 
 public interface DynStruct extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**
-     * During a traversal, return the name of the current member.
+     * During a traversal, returns the name of the current member.
      *
-     * @return the string name of the current member.
+     * @return the string name of the current member
      */
     public String current_member_name();
 
     /**
-     * Return the <code>TypeCode</code> kind of the current member.
+     * Returns the <code>TCKind</code> object that describes the kind of
+	 * the current member.
      *
-     * @return the TCKind.
+     * @return the <code>TCKind</code> object that describes the current member
      */
     public org.omg.CORBA.TCKind current_member_kind();
 
     /**
-     * Return an array of all members of the stored struct.
+     * Returns an array containing all the members of the stored struct.
      *
-     * @return the array of name-value pairs.
+     * @return the array of name-value pairs
+	 * @see #set_members
      */
     public org.omg.CORBA.NameValuePair[] get_members();
 
@@ -39,6 +45,9 @@ public interface DynStruct extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
      * Set the members of the struct.
      *
      * @param value the array of name-value pairs.
+	 * @throws org.omg.CORBA.DynAnyPackage.InvalidSeq if the given argument
+	 *         is invalid
+	 * @see #get_members
      */
     public void set_members(org.omg.CORBA.NameValuePair[] value)
         throws org.omg.CORBA.DynAnyPackage.InvalidSeq;

@@ -1,8 +1,11 @@
 /*
- * @(#)DataBufferUShort.java	1.6 01/11/29
+ * @(#)DataBufferUShort.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -73,6 +76,9 @@ public final class DataBufferUShort extends DataBuffer
      */
     public DataBufferUShort(short dataArray[], int size) {
         super(TYPE_USHORT,size);
+        if (dataArray == null) {
+            throw new NullPointerException("dataArray is null");
+        }
         data = dataArray;
         bankdata = new short[1][];
         bankdata[0] = data;
@@ -91,6 +97,13 @@ public final class DataBufferUShort extends DataBuffer
      */
     public DataBufferUShort(short dataArray[], int size, int offset) {
         super(TYPE_USHORT,size,1,offset);
+        if (dataArray == null) {
+            throw new NullPointerException("dataArray is null");
+        }
+        if ((size+offset) > dataArray.length) {
+            throw new IllegalArgumentException("Length of dataArray is less "+
+                                               " than size+offset.");
+        }
         data = dataArray;
         bankdata = new short[1][];
         bankdata[0] = data;
@@ -107,6 +120,15 @@ public final class DataBufferUShort extends DataBuffer
      */
     public DataBufferUShort(short dataArray[][], int size) {
         super(TYPE_USHORT,size,dataArray.length);
+        if (dataArray == null) {
+            throw new NullPointerException("dataArray is null");
+        }
+        for (int i=0; i < dataArray.length; i++) {
+            if (dataArray[i] == null) {
+                throw new NullPointerException("dataArray["+i+"] is null");
+            }
+        }
+                
         bankdata = dataArray;
         data = bankdata[0];
     }
@@ -127,6 +149,20 @@ public final class DataBufferUShort extends DataBuffer
      */
     public DataBufferUShort(short dataArray[][], int size, int offsets[]) {
         super(TYPE_USHORT,size,dataArray.length,offsets);
+        if (dataArray == null) {
+            throw new NullPointerException("dataArray is null");
+        }
+        for (int i=0; i < dataArray.length; i++) {
+            if (dataArray[i] == null) {
+                throw new NullPointerException("dataArray["+i+"] is null");
+            }
+            if ((size+offsets[i]) > dataArray[i].length) {
+                throw new IllegalArgumentException("Length of dataArray["+i+
+                                                   "] is less than size+"+
+                                                   "offsets["+i+"].");
+            }
+                                                  
+        }
         bankdata = dataArray;
         data = bankdata[0];
     }

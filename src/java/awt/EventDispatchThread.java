@@ -1,8 +1,11 @@
 /*
- * @(#)EventDispatchThread.java	1.34 01/11/29
+ * @(#)EventDispatchThread.java	1.34 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -10,7 +13,8 @@ package java.awt;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
-import java.awt.event.InputEvent;
+import sun.awt.DebugHelper;
+
 
 /**
  * EventDispatchThread is a package-private AWT class which takes
@@ -24,13 +28,17 @@ import java.awt.event.InputEvent;
  * secondary event pump will exit automatically as soon as the Condtional
  * evaluate()s to false and an additional Event is pumped and dispatched.
  *
- * @version 1.34 11/29/01
  * @author Tom Ball
  * @author Amy Fowler
  * @author Fred Ecks
  * @author David Mendenhall
+ * 
+ * @version 1.34, 02/02/00
+ * @since 1.1
  */
 class EventDispatchThread extends Thread {
+    private static final DebugHelper dbg = DebugHelper.create(EventDispatchThread.class);
+
     private EventQueue theQueue;
     private boolean doDispatch = true;
 
@@ -81,36 +89,17 @@ class EventDispatchThread extends Thread {
     }
 
     void pumpEvents(Conditional cond) {
-        pumpEventsForComponent(cond, null);
-    }
-
-    void pumpEventsForComponent(Conditional cond, Component modalComponent) {
         while (doDispatch && cond.evaluate()) {
-            if (isInterrupted() || !pumpOneEventForComponent(modalComponent)) {
+            if (isInterrupted() || !pumpOneEvent()) {
                 doDispatch = false;
             }
         }
     }
 
     boolean pumpOneEvent() {
-        return pumpOneEventForComponent(null);
-    }
-
-    boolean pumpOneEventForComponent(Component modalComponent) {
         try {
             AWTEvent event = theQueue.getNextEvent();
-            if (modalComponent != null) {
-        	while  (event instanceof InputEvent) { 
-		    Component c = (Component)event.getSource();
-		    // check if c's modalComponent's child
-		    while (c != modalComponent && c != null)
-			c = c.getParent();
-		    if (c != modalComponent)
-			event = theQueue.getNextEvent();
-		    else
-			break;
-		} 
-            } 
+	    if ( dbg.on ) dbg.println("Dispatching: "+event);
             theQueue.dispatchEvent(event);
             return true;
         } catch (ThreadDeath death) {

@@ -1,8 +1,11 @@
 /*
- * @(#)Date.java	1.65 01/11/29
+ * @(#)Date.java	1.67 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -62,12 +65,12 @@ import java.lang.ref.SoftReference;
  * further information is the U.S. Naval Observatory, particularly 
  * the Directorate of Time at:
  * <blockquote><pre>
- *     http://tycho.usno.navy.mil
+ *     <a href=http://tycho.usno.navy.mil>http://tycho.usno.navy.mil</a>
  * </pre></blockquote>
  * <p>
  * and their definitions of "Systems of Time" at:
  * <blockquote><pre>
- *     http://tycho.usno.navy.mil/systime.html
+ *     <a href=http://tycho.usno.navy.mil/systime.html>http://tycho.usno.navy.mil/systime.html</a>
  * </pre></blockquote>
  * <p>
  * In all methods of class <code>Date</code> that accept or return 
@@ -100,7 +103,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.65 11/29/01
+ * @version 1.67, 02/02/00
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -369,7 +372,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *     the range 19 to 99 are assumed to mean 1919 to 1999, while
      *     years from 0 to 18 are assumed to mean 2000 to 2018.  Note
      *     that this is slightly different from the interpretation of
-     *     years less than 100 that is used in {@link java.text.SimpleDateFomat}.
+     *     years less than 100 that is used in {@link java.text.SimpleDateFormat}.
      * <li>If the number is followed by a colon, it is regarded as an hour, 
      *     unless an hour has already been recognized, in which case it is 
      *     regarded as a minute.
@@ -883,7 +886,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @see     java.util.Date#getTime()
      */
     public boolean equals(Object obj) {
-        return obj != null && obj instanceof Date && getTime() == ((Date) obj).getTime();
+        return obj instanceof Date && getTime() == ((Date) obj).getTime();
     }
 
     /**
@@ -894,7 +897,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *          this Date; a value less than <code>0</code> if this Date
      *          is before the Date argument; and a value greater than
      *      <code>0</code> if this Date is after the Date argument.
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Date anotherDate) {
     long thisTime = this.getTime();
@@ -916,7 +919,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @exception ClassCastException if the argument is not a
      *        <code>Date</code>. 
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
     return compareTo((Date)o);
@@ -985,7 +988,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
     }
 
     /**
-     * Creates a string representation of this <ttt>Date</tt> object in an 
+     * Creates a string representation of this <tt>Date</tt> object in an 
      * implementation-dependent form. The intent is that the form should 
      * be familiar to the user of the Java application, wherever it may 
      * happen to be running. The intent is comparable to that of the 
@@ -1173,12 +1176,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
         cal.set(field, value);
     }
 
-    private synchronized static void makeStaticCalendars() {
-	if (staticCal == null) {
-	    GregorianCalendar calendar = new GregorianCalendar();
-	    utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-	    defaultCenturyStart = calendar.get(Calendar.YEAR) - 80;
-	    staticCal = calendar;
-	}
+    private static void makeStaticCalendars() {
+	staticCal = new GregorianCalendar();
+        utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        defaultCenturyStart = staticCal.get(Calendar.YEAR) - 80;
     }
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)Comparator.java	1.11 01/11/29
+ * @(#)Comparator.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -61,7 +64,7 @@ package java.util;
  * </pre>
  *
  * @author  Josh Bloch
- * @version 1.11 11/29/01
+ * @version 1.15, 02/02/00
  * @see Comparable
  * @see Arrays#sort(Object[], Comparator)
  * @see TreeMap
@@ -69,7 +72,7 @@ package java.util;
  * @see SortedMap
  * @see SortedSet
  * @see java.io.Serializable
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface Comparator {
@@ -97,6 +100,8 @@ public interface Comparator {
      * this fact.  The recommended language is "Note: this comparator
      * imposes orderings that are inconsistent with equals."
      * 
+     * @param o1 the first object to be compared.
+     * @param o2 the second object to be compared.
      * @return a negative integer, zero, or a positive integer as the
      * 	       first argument is less than, equal to, or greater than the
      *	       second. 

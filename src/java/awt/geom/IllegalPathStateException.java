@@ -1,8 +1,11 @@
 /*
- * @(#)IllegalPathStateException.java	1.6 01/11/29
+ * @(#)IllegalPathStateException.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -14,7 +17,7 @@ package java.awt.geom;
  * operation being performed, such as appending a path segment 
  * to a {@link GeneralPath} without an initial moveto.
  *
- * @version 13 Oct 1997
+ * @version 	1.9, 02/02/00
  */
 
 public class IllegalPathStateException extends RuntimeException {
@@ -22,7 +25,7 @@ public class IllegalPathStateException extends RuntimeException {
      * Constructs an <code>IllegalPathStateException</code> with no
      * detail message.
      *
-     * @since   JDK1.2
+     * @since   1.2
      */
     public IllegalPathStateException() {
     }
@@ -31,7 +34,7 @@ public class IllegalPathStateException extends RuntimeException {
      * Constructs an <code>IllegalPathStateException</code> with the
      * specified detail message. 
      * @param   s   the detail message
-     * @since   JDK1.2
+     * @since   1.2
      */
     public IllegalPathStateException(String s) {
         super (s);

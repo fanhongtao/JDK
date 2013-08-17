@@ -1,8 +1,11 @@
 /*
- * @(#)BasicToggleButtonUI.java	1.47 01/11/29
+ * @(#)BasicToggleButtonUI.java	1.53 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package javax.swing.plaf.basic;
@@ -13,13 +16,15 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
+import javax.swing.text.View;
+
 
 
 /**
  * BasicToggleButton implementation
  * <p>
  *
- * @version 1.47 11/29/01
+ * @version 1.53 04/06/00
  * @author Jeff Dinkins
  */
 public class BasicToggleButtonUI extends BasicButtonUI {
@@ -46,7 +51,7 @@ public class BasicToggleButtonUI extends BasicButtonUI {
     public void paint(Graphics g, JComponent c) {
         AbstractButton b = (AbstractButton) c;
         ButtonModel model = b.getModel();
-
+	
         Dimension size = b.getSize();
         FontMetrics fm = g.getFontMetrics();
 
@@ -76,24 +81,36 @@ public class BasicToggleButtonUI extends BasicButtonUI {
 
         g.setColor(b.getBackground());
 
-        if (model.isArmed() && model.isPressed() || model.isSelected())
-          {
+        if (model.isArmed() && model.isPressed() || model.isSelected()) {
             paintButtonPressed(g,b);
-          }
-
+	} else if (b.isOpaque()) {
+	    Insets insets = b.getInsets();
+	    Insets margin = b.getMargin();
+	    
+	    g.fillRect(insets.left - margin.left,
+		       insets.top - margin.top, 
+		       size.width - (insets.left-margin.left) - (insets.right - margin.right),
+		       size.height - (insets.top-margin.top) - (insets.bottom - margin.bottom));
+	}
+	
         // Paint the Icon
         if(b.getIcon() != null) { 
             paintIcon(g, b, iconRect);
         }
-
+	
         // Draw the Text
         if(text != null && !text.equals("")) {
-            paintText(g, b, textRect, text);
+            View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+            if (v != null) {
+               v.paint(g, textRect);
+            } else {
+               paintText(g, b, textRect, text);
+            }
         }
-          
+	
         // draw the dashed focus line.
         if (b.isFocusPainted() && b.hasFocus()) {
-          paintFocus(g, b, viewRect, textRect, iconRect);
+	    paintFocus(g, b, viewRect, textRect, iconRect);
         }
     }
 
@@ -102,22 +119,25 @@ public class BasicToggleButtonUI extends BasicButtonUI {
         Icon icon = null;
         
         if(!model.isEnabled()) {
-            icon = (Icon) b.getDisabledIcon();
+	    if(model.isSelected()) {
+               icon = (Icon) b.getDisabledSelectedIcon();
+	    } else {
+               icon = (Icon) b.getDisabledIcon();
+	    }
         } else if(model.isPressed() && model.isArmed()) {
             icon = (Icon) b.getPressedIcon();
             if(icon == null) {
                 // Use selected icon
-                       icon = (Icon) b.getSelectedIcon();
+		icon = (Icon) b.getSelectedIcon();
             } 
         } else if(model.isSelected()) {
             if(b.isRolloverEnabled() && model.isRollover()) {
-                    icon = (Icon) b.getRolloverSelectedIcon();
-                    if (icon == null) {
-                            icon = (Icon) b.getSelectedIcon();
-                    }
-            }
-            else {
-                    icon = (Icon) b.getSelectedIcon();
+		icon = (Icon) b.getRolloverSelectedIcon();
+		if (icon == null) {
+		    icon = (Icon) b.getSelectedIcon();
+		}
+            } else {
+		icon = (Icon) b.getSelectedIcon();
             }
         } else if(b.isRolloverEnabled() && model.isRollover()) {
             icon = (Icon) b.getRolloverIcon();
@@ -129,21 +149,21 @@ public class BasicToggleButtonUI extends BasicButtonUI {
         
         icon.paintIcon(b, g, iconRect.x, iconRect.y);
     }
-
+    
     protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text){
         ButtonModel model = b.getModel();
-
+	
         FontMetrics fm = g.getFontMetrics();
-
+	
         if(model.isEnabled()) {
             // *** paint the text normally
-                       g.setColor(b.getForeground());
+	    g.setColor(b.getForeground());
             BasicGraphicsUtils.drawString(g,text, model.getMnemonic(),
                                           textRect.x,
                                           textRect.y + fm.getAscent());
         } else {
             // *** paint the text disabled
-                       g.setColor(b.getBackground().brighter());
+	    g.setColor(b.getBackground().brighter());
             BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
                                           textRect.x, textRect.y + fm.getAscent());
             g.setColor(b.getBackground().darker());
@@ -151,12 +171,12 @@ public class BasicToggleButtonUI extends BasicButtonUI {
                                           textRect.x - 1, textRect.y + fm.getAscent() - 1);
         }
     }
-
+    
     // Basic does nothing - L&F like Motif paint the button's focus
     protected void paintFocus(Graphics g, AbstractButton b,
                               Rectangle viewRect, Rectangle textRect, Rectangle iconRect) {
     }
-
+    
     // Basic does nothing - L&F like Motif shade the button
     protected void paintButtonPressed(Graphics g, AbstractButton b){
     }

@@ -1,8 +1,11 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.51 01/11/29
+ * @(#)BasicSplitPaneUI.java	1.59 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -17,14 +20,16 @@ import java.awt.event.*;
 import java.awt.peer.ComponentPeer;
 import java.beans.*;
 import java.util.*;
+import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.UIResource;
 
 
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.51 11/29/01
+ * @version 1.59 02/02/00
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -104,33 +109,113 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
-     * The keystrokes that the JSplitPane is supposed to handle.
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected KeyStroke upKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke downKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke leftKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke rightKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke homeKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke endKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke dividerResizeToggleKey;
 
-    // hania 10/29/98: if the above (upKey, etc) need to be
-    // protected fields (and I don't really understand why they do), then so
-    // do the ones below (kpUpKey, etc). I am making them private
-    // until we can make a release where API changes are allowed.
-  
-    private KeyStroke kpUpKey;
-    private KeyStroke kpDownKey;
-    private KeyStroke kpLeftKey;
-    private KeyStroke kpRightKey;
-
     /**
-     * The handlers that are handling the keystrokes for keyboard navigation.
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected ActionListener keyboardUpLeftListener;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected ActionListener keyboardDownRightListener;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected ActionListener keyboardHomeListener;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected ActionListener keyboardEndListener;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected ActionListener keyboardResizeToggleListener;
 
 
@@ -142,6 +227,13 @@ public class BasicSplitPaneUI extends SplitPaneUI
     private boolean     dividerLocationIsSet;  // needed for tracking
                                                // the first occurence of
                                                // setDividerLocation()
+    /** Indicates that we have painted once. */
+    // This is used by the LayoutManger to determine when it should use
+    // the divider location provided by the JSplitPane. This is used as there
+    // is no way to determine when the layout process has completed.
+    boolean             painted;
+    /** If true, setDividerLocation does nothing. */
+    boolean             ignoreDividerLocationChange;
 
 
     /**
@@ -175,13 +267,24 @@ public class BasicSplitPaneUI extends SplitPaneUI
         if (divider == null) divider = createDefaultDivider();
         divider.setBasicSplitPaneUI(this);
 
+	Border    b = divider.getBorder();
+
+	if (b == null || !(b instanceof UIResource)) {
+	    divider.setBorder(UIManager.getBorder("SplitPaneDivider.border"));
+	}
+
+        setOrientation(splitPane.getOrientation());
+
+	// This plus 2 here is to provide backwards consistancy. Previously,
+	// the old size did not include the 2 pixel border around the divider,
+	// it now does.
         splitPane.setDividerSize(((Integer) (UIManager.get(
             "SplitPane.dividerSize"))).intValue());
 
         divider.setDividerSize(splitPane.getDividerSize());
+	dividerSize = divider.getDividerSize();
         splitPane.add(divider, JSplitPane.DIVIDER);
 
-        setOrientation(splitPane.getOrientation());
         setContinuousLayout(splitPane.isContinuousLayout());
 
         resetLayoutManager();
@@ -210,12 +313,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
         if ((focusListener = createFocusListener()) != null) {
             splitPane.addFocusListener(focusListener);
         }
-
-        keyboardUpLeftListener = createKeyboardUpLeftListener();
-        keyboardDownRightListener = createKeyboardDownRightListener();
-        keyboardHomeListener = createKeyboardHomeListener();
-        keyboardEndListener = createKeyboardEndListener();
-        keyboardResizeToggleListener = createKeyboardResizeToggleListener();
     }
 
 
@@ -223,77 +320,46 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Installs the keyboard actions for the UI.
      */
     protected void installKeyboardActions() {
-        upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardUpLeftListener,
-                        upKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	InputMap km = getInputMap(JComponent.
+				  WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardDownRightListener,
-                        downKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	SwingUtilities.replaceUIInputMap(splitPane, JComponent.
+				       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+				       km);
+	ActionMap am = getActionMap();
 
-        leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardUpLeftListener,
-                        leftKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardDownRightListener,
-                        rightKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        kpUpKey    = KeyStroke.getKeyStroke( "KP_UP" );
-        splitPane.registerKeyboardAction(
-                        keyboardUpLeftListener,
-                        kpUpKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        kpDownKey = KeyStroke.getKeyStroke("KP_DOWN");
-        splitPane.registerKeyboardAction(
-                        keyboardDownRightListener,
-                        kpDownKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        kpLeftKey = KeyStroke.getKeyStroke("KP_LEFT");
-        splitPane.registerKeyboardAction(
-                        keyboardUpLeftListener,
-                        kpLeftKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        kpRightKey = KeyStroke.getKeyStroke("KP_RIGHT");
-        splitPane.registerKeyboardAction(
-                        keyboardDownRightListener,
-                        kpRightKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        homeKey = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardHomeListener,
-                        homeKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        endKey = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardEndListener,
-                        endKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        dividerResizeToggleKey = KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0);
-        splitPane.registerKeyboardAction(
-                        keyboardResizeToggleListener,
-                        dividerResizeToggleKey,
-                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-	splitPane.registerKeyboardAction(new ToggleSideFocusHandler(),
-			  KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
-			  JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	SwingUtilities.replaceUIActionMap(splitPane, am);
     }
 
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+	    return (InputMap)UIManager.get("SplitPane.ancestorInputMap");
+	}
+	return null;
+    }
+
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("SplitPane.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("SplitPane.actionMap", map);
+	    }
+	}
+	return map;
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+        map.put("negativeIncrement", new KeyboardUpLeftAction());
+	map.put("positiveIncrement", new KeyboardDownRightAction());
+	map.put("selectMin", new KeyboardHomeAction());
+	map.put("selectMax", new KeyboardEndAction());
+	map.put("startResize", new KeyboardResizeToggleAction());
+	map.put("toggleFocus", new ToggleSideFocusAction());
+	return map;
+    }
 
     /**
      * Uninstalls the UI.
@@ -321,6 +387,12 @@ public class BasicSplitPaneUI extends SplitPaneUI
         }
 
         LookAndFeel.uninstallBorder(splitPane);
+
+	Border    b = divider.getBorder();
+
+	if (b instanceof UIResource) {
+	    divider.setBorder(null);
+	}
 
         splitPane.remove(divider);
         divider.setBasicSplitPaneUI(null);
@@ -357,27 +429,10 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Uninstalls the keyboard actions for the UI.
      */
     protected void uninstallKeyboardActions() {
-        splitPane.unregisterKeyboardAction(upKey);
-        splitPane.unregisterKeyboardAction(downKey);
-        splitPane.unregisterKeyboardAction(leftKey);
-        splitPane.unregisterKeyboardAction(rightKey);
-        splitPane.unregisterKeyboardAction(homeKey);
-        splitPane.unregisterKeyboardAction(endKey);
-        splitPane.unregisterKeyboardAction(dividerResizeToggleKey);
-	splitPane.unregisterKeyboardAction
-	             (KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
-	splitPane.unregisterKeyboardAction(kpUpKey);
-	splitPane.unregisterKeyboardAction(kpDownKey);
-	splitPane.unregisterKeyboardAction(kpLeftKey);
-	splitPane.unregisterKeyboardAction(kpRightKey);
-	kpUpKey = kpDownKey = kpLeftKey = kpRightKey = null;
-        upKey = null;
-        downKey = null;
-        leftKey = null;
-        rightKey = null;
-        homeKey = null;
-        endKey = null;
-        dividerResizeToggleKey = null;
+	SwingUtilities.replaceUIActionMap(splitPane, null);
+	SwingUtilities.replaceUIInputMap(splitPane, JComponent.
+				      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+				      null);
     }
 
 
@@ -398,8 +453,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
+     * As of Java 2 platform v1.3 this method is no
+     * longer used. Subclassers previously using this method should
+     * instead create an Action wrapping the ActionListener, and register
+     * that Action by overriding <code>installKeyboardActions</code> and
+     * placing the Action in the SplitPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     * <p>
      * Creates a ActionListener for the JSplitPane UI that listens for
      * specific key presses.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected ActionListener createKeyboardUpLeftListener() {
         return new KeyboardUpLeftHandler();
@@ -407,8 +471,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
+     * As of Java 2 platform v1.3 this method is no
+     * longer used. Subclassers previously using this method should
+     * instead create an Action wrapping the ActionListener, and register
+     * that Action by overriding <code>installKeyboardActions</code> and
+     * placing the Action in the SplitPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     * <p>
      * Creates a ActionListener for the JSplitPane UI that listens for
      * specific key presses.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected ActionListener createKeyboardDownRightListener() {
         return new KeyboardDownRightHandler();
@@ -416,8 +489,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
+     * As of Java 2 platform v1.3 this method is no
+     * longer used. Subclassers previously using this method should
+     * instead create an Action wrapping the ActionListener, and register
+     * that Action by overriding <code>installKeyboardActions</code> and
+     * placing the Action in the SplitPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     * <p>
      * Creates a ActionListener for the JSplitPane UI that listens for
      * specific key presses.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected ActionListener createKeyboardHomeListener() {
         return new KeyboardHomeHandler();
@@ -425,8 +507,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
+     * As of Java 2 platform v1.3 this method is no
+     * longer used. Subclassers previously using this method should
+     * instead create an Action wrapping the ActionListener, and register
+     * that Action by overriding <code>installKeyboardActions</code> and
+     * placing the Action in the SplitPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     * <p>
      * Creates a ActionListener for the JSplitPane UI that listens for
      * specific key presses.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected ActionListener createKeyboardEndListener() {
         return new KeyboardEndHandler();
@@ -434,8 +525,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
+     * As of Java 2 platform v1.3 this method is no
+     * longer used. Subclassers previously using this method should
+     * instead create an Action wrapping the ActionListener, and register
+     * that Action by overriding <code>installKeyboardActions</code> and
+     * placing the Action in the SplitPane's ActionMap. Please refer to
+     * the key bindings specification for further details.
+     * <p>
      * Creates a ActionListener for the JSplitPane UI that listens for
      * specific key presses.
+     *
+     * @deprecated As of Java 2 platform v1.3.
      */
     protected ActionListener createKeyboardResizeToggleListener() {
         return new KeyboardResizeToggleHandler();
@@ -489,6 +589,12 @@ public class BasicSplitPaneUI extends SplitPaneUI
         lastDragLocation = l;
     }
 
+    /**
+     * @return increment via keyboard methods.
+     */
+    int getKeyboardMoveIncrement() {
+	return KEYBOARD_DIVIDER_MOVE_OFFSET;
+    }
 
     /**
      * Implementation of the PropertyChangeListener
@@ -529,8 +635,9 @@ public class BasicSplitPaneUI extends SplitPaneUI
                     }
                 } else if(changeName.equals(JSplitPane.DIVIDER_SIZE_PROPERTY)){
                     divider.setDividerSize(splitPane.getDividerSize());
-                    layoutManager.resetSizeAt(2);
+		    dividerSize = divider.getDividerSize();
                     splitPane.revalidate();
+		    splitPane.repaint();
                 }
             }
         }
@@ -565,13 +672,22 @@ public class BasicSplitPaneUI extends SplitPaneUI
     {
         public void actionPerformed(ActionEvent ev) {
             if (dividerKeyboardResize) {
-                setDividerLocation(splitPane,
-                                   getDividerLocation(splitPane) -
-                                   KEYBOARD_DIVIDER_MOVE_OFFSET);
+		splitPane.setDividerLocation(Math.max(0,getDividerLocation
+				  (splitPane) - getKeyboardMoveIncrement()));
             }
         }
     }
-    
+
+    static class KeyboardUpLeftAction extends AbstractAction {
+        public void actionPerformed(ActionEvent ev) {
+	    JSplitPane splitPane = (JSplitPane)ev.getSource();
+	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
+            if (ui.dividerKeyboardResize) {
+		splitPane.setDividerLocation(Math.max(0,ui.getDividerLocation
+				  (splitPane) - ui.getKeyboardMoveIncrement()));
+            }
+        }
+    }
 
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
@@ -585,9 +701,20 @@ public class BasicSplitPaneUI extends SplitPaneUI
     {
         public void actionPerformed(ActionEvent ev) {
             if (dividerKeyboardResize) {
-                setDividerLocation(splitPane,
-                                   getDividerLocation(splitPane) +
-                                   KEYBOARD_DIVIDER_MOVE_OFFSET);
+                splitPane.setDividerLocation(getDividerLocation(splitPane) +
+					     getKeyboardMoveIncrement());
+            }
+        }
+    }
+
+
+    static class KeyboardDownRightAction extends AbstractAction {
+        public void actionPerformed(ActionEvent ev) {
+	    JSplitPane splitPane = (JSplitPane)ev.getSource();
+	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
+            if (ui.dividerKeyboardResize) {
+                splitPane.setDividerLocation(ui.getDividerLocation(splitPane) +
+					     ui.getKeyboardMoveIncrement());
             }
         }
     }
@@ -605,7 +732,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
     {
         public void actionPerformed(ActionEvent ev) {
             if (dividerKeyboardResize) {
-                setDividerLocation(splitPane, 0);
+                splitPane.setDividerLocation(0);
+            }
+        }
+    }
+
+    static class KeyboardHomeAction extends AbstractAction {
+        public void actionPerformed(ActionEvent ev) {
+	    JSplitPane splitPane = (JSplitPane)ev.getSource();
+	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
+            if (ui.dividerKeyboardResize) {
+                splitPane.setDividerLocation(0);
             }
         }
     }
@@ -623,18 +760,43 @@ public class BasicSplitPaneUI extends SplitPaneUI
     {
         public void actionPerformed(ActionEvent ev) {
             if (dividerKeyboardResize) {
+		Insets   insets = splitPane.getInsets();
+		int      bottomI = (insets != null) ? insets.bottom : 0;
+		int      rightI = (insets != null) ? insets.right : 0;
+
                 if (orientation == JSplitPane.VERTICAL_SPLIT) {
-                    setDividerLocation(splitPane, splitPane.getHeight() -
-                                       splitPane.getInsets().bottom);
+                    splitPane.setDividerLocation(splitPane.getHeight() -
+                                       bottomI);
                 }
                 else {
-                    setDividerLocation(splitPane, splitPane.getWidth() -
-                                       splitPane.getInsets().right);
+                    splitPane.setDividerLocation(splitPane.getWidth() -
+						 rightI);
                 }
             }
         }
     }
 
+
+    static class KeyboardEndAction extends AbstractAction {
+        public void actionPerformed(ActionEvent ev) {
+	    JSplitPane splitPane = (JSplitPane)ev.getSource();
+	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
+            if (ui.dividerKeyboardResize) {
+		Insets   insets = splitPane.getInsets();
+		int      bottomI = (insets != null) ? insets.bottom : 0;
+		int      rightI = (insets != null) ? insets.right : 0;
+
+                if (ui.orientation == JSplitPane.VERTICAL_SPLIT) {
+                    splitPane.setDividerLocation(splitPane.getHeight() -
+                                       bottomI);
+                }
+                else {
+                    splitPane.setDividerLocation(splitPane.getWidth() -
+						 rightI);
+                }
+            }
+        }
+    }
 
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
@@ -656,13 +818,27 @@ public class BasicSplitPaneUI extends SplitPaneUI
     }
 
 
+    static class KeyboardResizeToggleAction extends AbstractAction {
+        public void actionPerformed(ActionEvent ev) {
+	    JSplitPane splitPane = (JSplitPane)ev.getSource();
+	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
+            if (!ui.dividerKeyboardResize) {
+                splitPane.requestFocus();
+                ui.dividerKeyboardResize = true;
+                splitPane.repaint();
+            }
+        }
+    }
+
+
     /**
      * ActionListener that will focus on the opposite component that
      * has focus. EG if the left side has focus, this will transfer focus
      * to the right component.
      */
-    class ToggleSideFocusHandler implements ActionListener {
+    static class ToggleSideFocusAction extends AbstractAction {
 	public void actionPerformed(ActionEvent ae) {
+	    JSplitPane splitPane = (JSplitPane)ae.getSource();
 	    // Determine which side currently has focus. If there is only
 	    // one component, don't change the focus.
 	    Component        left = splitPane.getLeftComponent();
@@ -763,9 +939,13 @@ public class BasicSplitPaneUI extends SplitPaneUI
             nonContinuousLayoutDivider.setLocation(-1000, -1000);
 
             /* Needs to remove all the components and readd them! YECK! */
+	    // This is all done so that the nonContinuousLayoutDivider will
+	    // be drawn on top of the other components, without this, one
+	    // of the heavyweights will draw over the divider!
             Component             leftC = splitPane.getLeftComponent();
             Component             rightC = splitPane.getRightComponent();
-            int[]                 sizes = layoutManager.getSizes();
+	    int                   lastLocation = splitPane.
+		                              getDividerLocation();
 
             if(leftC != null)
                 splitPane.setLeftComponent(null);
@@ -779,7 +959,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             splitPane.setRightComponent(rightC);
             splitPane.add(divider, JSplitPane.DIVIDER);
             if(rememberSizes)
-                layoutManager.setSizes(sizes);
+		splitPane.setDividerLocation(lastLocation);
             splitPane.revalidate();
             splitPane.paintImmediately(splitPane.getX(),
                                        splitPane.getY(),
@@ -824,6 +1004,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             layoutManager.resetToPreferredSizes();
             splitPane.revalidate();
             layoutManager.layoutContainer(splitPane);
+	    splitPane.repaint();
         }
     }
 
@@ -832,47 +1013,20 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Sets the location of the divider to location.
      */
     public void setDividerLocation(JSplitPane jc, int location) {
-        Component leftC = splitPane.getLeftComponent();
-        Component rightC = splitPane.getRightComponent();
-
-        if(leftC != null && rightC != null) {
-            Insets                insets = splitPane.getInsets();
-
-            // Since location describes the size of the left/top component
-            // and not really the divider location the actual divider location
-            // that can be retrieved via JSplitPane.getDividerLocation() ends
-            // up to be location + getDividerborderSize().
-            // That's why we subtract getDividerBorderSize() in the
-            // calculations with location so that getDividerLocation()
-            // returns the correct value.
-            if(insets != null) {
-                if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
-                    leftC.setSize(Math.max(0, location -
-                                           getDividerBorderSize() -
-                                           insets.left), 10);
-                } else {
-                    leftC.setSize(10, Math.max(0, location -
-                                               getDividerBorderSize() -
-                                               insets.top));
-                }
-            } else {
-                if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
-                    leftC.setSize(Math.max(0, location -
-                                           getDividerBorderSize()), 10);
-                } else {
-                    leftC.setSize(10, Math.max(0, location -
-                                               getDividerBorderSize()));
-                }
-            }
-            if (!dividerLocationIsSet) dividerLocationIsSet = true;
-            splitPane.revalidate();
-            splitPane.repaint();
-        }
+	if (!ignoreDividerLocationChange) {
+	    dividerLocationIsSet = true;
+	    splitPane.revalidate();
+	    splitPane.repaint();
+	}
+	else {
+	    ignoreDividerLocationChange = false;
+	}
     }
 
 
     /**
-     * Returns the location of the divider.
+     * Returns the location of the divider, which may differ from what
+     * the splitpane thinks the location of the divider is.
      */
     public int getDividerLocation(JSplitPane jc) {
         if(orientation == JSplitPane.HORIZONTAL_SPLIT)
@@ -896,7 +1050,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
             } else {
                 minLoc = minSize.height;
             }
-            minLoc += getDividerBorderSize();
             if(insets != null) {
                 if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
                     minLoc += insets.left;
@@ -928,12 +1081,12 @@ public class BasicSplitPaneUI extends SplitPaneUI
             } else {
                 maxLoc = splitPaneSize.height - minSize.height; 
             }
-            maxLoc -= (dividerSize + getDividerBorderSize());
+            maxLoc -= dividerSize;
             if(insets != null) {
                 if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
-                    maxLoc += insets.left;
+                    maxLoc -= insets.right;
                 } else {
-                    maxLoc += insets.top;
+                    maxLoc -= insets.top;
                 }
             }
         }
@@ -966,6 +1119,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Messaged to paint the look and feel.
      */
     public void paint(Graphics g, JComponent jc) {
+	painted = true;
     }
 
 
@@ -1048,7 +1202,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
         }
         if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
             setLastDragLocation(divider.getBounds().x);
-            dividerSize = divider.getSize().width + 2 * getDividerBorderSize();
+            dividerSize = divider.getSize().width;
             if(!isContinuousLayout() && draggingHW) {
                 nonContinuousLayoutDivider.setBounds
                         (getLastDragLocation(), 0, dividerSize,
@@ -1056,8 +1210,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             }
         } else {
             setLastDragLocation(divider.getBounds().y);
-            dividerSize = divider.getSize().height + 2 *
-                          getDividerBorderSize();
+            dividerSize = divider.getSize().height;
             if(!isContinuousLayout() && draggingHW) {
                 nonContinuousLayoutDivider.setBounds
                         (0, getLastDragLocation(), splitPane.getWidth(),
@@ -1075,31 +1228,30 @@ public class BasicSplitPaneUI extends SplitPaneUI
     protected void dragDividerTo(int location) {
         if(getLastDragLocation() != location) {
             if(isContinuousLayout()) {
-		setDividerLocation(splitPane, location);
+		splitPane.setDividerLocation(location);
                 setLastDragLocation(location);
             } else {
                 int lastLoc = getLastDragLocation();
 
                 setLastDragLocation(location);
                 if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
-                    int splitHeight = splitPane.getSize().height;
-
                     if(draggingHW) {
                         nonContinuousLayoutDivider.setLocation(
                             getLastDragLocation(), 0);
                     } else {
+			int   splitHeight = splitPane.getHeight();
                         splitPane.repaint(lastLoc, 0, dividerSize,
                                           splitHeight);
                         splitPane.repaint(location, 0, dividerSize,
                                           splitHeight);
                     }
                 } else {
-                    int splitWidth = splitPane.getSize().width;
-
                     if(draggingHW) {
                         nonContinuousLayoutDivider.setLocation(0,
                             getLastDragLocation());
                     } else {
+			int    splitWidth = splitPane.getWidth();
+
                         splitPane.repaint(0, lastLoc, splitWidth,
                                           dividerSize);
                         splitPane.repaint(0, location, splitWidth,
@@ -1122,28 +1274,15 @@ public class BasicSplitPaneUI extends SplitPaneUI
             Component   leftC = splitPane.getLeftComponent();
             Rectangle   leftBounds = leftC.getBounds();
 
-            if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
-                int splitHeight = splitPane.getSize().height;
-
-                leftC.setSize(location - leftBounds.x - getDividerBorderSize(),
-                              leftBounds.height);
-                if(draggingHW)
+	    if (draggingHW) {
+		if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
                     nonContinuousLayoutDivider.setLocation(-dividerSize, 0);
-                splitPane.paintImmediately(location, 0, dividerSize,
-                                           splitHeight);
-            } else {
-                int      splitWidth = splitPane.getSize().width;
-
-                leftC.setSize(leftBounds.width,
-                              location - leftBounds.y -
-                              getDividerBorderSize());
-                if(draggingHW)
+		}
+		else {
                     nonContinuousLayoutDivider.setLocation(0, -dividerSize);
-                splitPane.paintImmediately(0, location, splitWidth,
-                                           dividerSize);
-            }
-            /* Do the layout. */
-            splitPane.revalidate();
+		}
+	    }
+	    splitPane.setDividerLocation(location);
 	    // Note: The following is only necessary because of a bug in
 	    // the LightweightDispatcher, refer to bug 4201465 for more info,
 	    // when it is fixed this will be removed.
@@ -1151,12 +1290,17 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		           validateInvalidComponents();
             splitPane.repaint();
         }
-        splitPane.setLastDividerLocation(beginDragDividerLocation);
     }
 
 
     /**
+     * As of Java 2 platform v1.3 this method is no longer used. Instead
+     * you should set the border on the divider.
+     * <p>
      * Returns the width of one side of the divider border.
+     *
+     * @deprecated As of Java 2 platform v1.3, instead set the border on the
+     * divider.
      */
     protected int getDividerBorderSize() {
         return 1;
@@ -1176,233 +1320,83 @@ public class BasicSplitPaneUI extends SplitPaneUI
         /* left, right, divider. (in this exact order) */
         protected int[]         sizes;
         protected Component[]   components;
+	/** Size of the splitpane the last time layed out. */
+	private int             lastSplitPaneSize;
+	/** True if resetToPreferredSizes has been invoked. */
+	private boolean         doReset;
+	/** Axis, 0 for horizontal, or 1 for veritcal. */
+	private int             axis;
 
 
-        BasicHorizontalLayoutManager() {
+	BasicHorizontalLayoutManager() {
+	    this(0);
+	}
+
+        BasicHorizontalLayoutManager(int axis) {
+	    this.axis = axis;
             components = new Component[3];
             components[0] = components[1] = components[2] = null;
             sizes = new int[3];
         }
 
+	//
+	// LayoutManager
+	//
 
-        /**
-         * Resets the size of the Component at the passed in location.
-         */
-        protected void resetSizeAt(int index) {
-            sizes[index] = -1;
-        }
-
-
-        /**
-         * Sets the sizes to <code>newSizes</code>.
-         */
-        protected void setSizes(int[] newSizes) {
-            System.arraycopy(newSizes, 0, sizes, 0, 3);
-        }
-
-
-        /**
-         * Returns the sizes of the components.
-         */
-        protected int[] getSizes() {
-            int[]         retSizes = new int[3];
-
-            System.arraycopy(sizes, 0, retSizes, 0, 3);
-            return retSizes;
-        }
-
-
-        /**
-         * Returns the width of the passed in Components preferred size.
-         */
-        protected int getPreferredSizeOfComponent(Component c) {
-            return c.getPreferredSize().width;
-        }
-
-
-        /**
-         * Returns the width of the passed in Components minimum size.
-         */
-        int getMinimumSizeOfComponent(Component c) {
-            return c.getMinimumSize().width;
-        }
-
-
-        /**
-         * Returns the width of the passed in component.
-         */
-        protected int getSizeOfComponent(Component c) {
-            return c.getSize().width;
-        }
-
-
-        /**
-         * Returns the available width based on the container size and
-         * Insets.
-         */
-        protected int getAvailableSize(Dimension containerSize,
-                                       Insets insets) {
-            if(insets == null)
-                return containerSize.width;
-            return (containerSize.width - (insets.left + insets.right + 2 *
-                                           getDividerBorderSize()));
-        }
-
-
-        /**
-         * Returns the left inset, unless the Insets or null in which case
-         * 0 is returned.
-         */
-        protected int getInitialLocation(Insets insets) {
-            if(insets != null)
-                return insets.left;
-            return 0;
-        }
-
-
-        /**
-         * Sets the width of the component c to be size, placing its
-         * x location at location, y to the insets.top and height
-         * to the containersize.height less the top and bottom insets.
-         */
-        protected void setComponentToSize(Component c, int size,
-                                          int location, Insets insets,
-                                          Dimension containerSize) {
-            if(insets != null) {
-                c.setBounds(location, insets.top, size, containerSize.height -
-                            (insets.top + insets.bottom));
-            } else {
-                c.setBounds(location, 0, size, containerSize.height);
-            }
-        }
-
-
-        /**
-         * Calculates the actual layout.
+	/**
+         * Does the actual layout.
          */
         public void layoutContainer(Container container) {
-            Dimension containerSize = container.getSize();
+            Dimension   containerSize = container.getSize();
+
             // If the splitpane has a zero size then no op out of here.
             // If we execute this function now, we're going to cause ourselves
             // much grief.
             if (containerSize.height <= 0 || containerSize.width <= 0 ) {
+		lastSplitPaneSize = 0;
                 return;
             }
 
-            Insets  insets = splitPane.getInsets();
-            int     counter;
-            int     newSize;
-            int     totalSize = 0;
-            int     availableSize = getAvailableSize(containerSize, insets);
-            int     beginLocation;
+	    int         spDividerLocation = splitPane.getDividerLocation();
+            Insets      insets = splitPane.getInsets();
+	    int         availableSize = getAvailableSize(containerSize,
+							 insets);
+	    int         newSize = getSizeForPrimaryAxis(containerSize);
+	    int         beginLocation = getDividerLocation(splitPane);
+	    int         dOffset = getSizeForPrimaryAxis(insets, true);
+	    Dimension   dSize = (components[2] == null) ? null :
+		                 components[2].getPreferredSize();
 
-            // Set the last location
-            beginLocation = splitPane.getDividerLocation();
-
-            // Check to see if the size of something has changed and
-            // adjust the other Component if it has
-            for (counter=0; counter<3; counter++) {
-                if (components[counter] != null) {
-                    // -1 signifies this is the first time this component
-                    // is being layed out and that the preferred size (if
-                    // possible) should be asked for
-                    if (sizes[counter] == -1) {
-                        if ((dividerLocationIsSet) && (counter == 0)) {
-                            // If setDividerLocation() was already called
-			    // before validation, then the actually set size
-			    // has to be used for the upper/left component
-			    // instead of the preferred size
-                            sizes[counter] = Math.min(availableSize,
-                                                      getSizeOfComponent(
-                                                      components[counter]));
-                        }
-                        else {
-                            // Retrieve the preferred size of each component
-                            sizes[counter] = Math.min(availableSize,
-                                                getPreferredSizeOfComponent(
-                                                    components[counter]));
-
-                            if (counter == 2) {
-                                // Is the size of the top/left component plus
-                                // the size of the divider bigger than the
-                                // minimum size of the bottom/right component?
-                                // If so set the top/left component to its
-                                // minimum size, but only if the minimum size
-                                // is greater than 0 (zero).
-                                if ((components[0] != null) &&
-                                    (components[1] != null)) {
-                                    if ((sizes[0] + sizes[counter] +
-                                         getMinimumSizeOfComponent(
-                                            components[1])) > availableSize) {
-                                        sizes[0] =
-                                            (getMinimumSizeOfComponent(
-                                                components[0]) > 0) ?
-                                            getMinimumSizeOfComponent(
-                                                components[0]) :
-                                            getPreferredSizeOfComponent(
-                                                components[0]);
-                                    }
-                                }
-                            }
-
-                            // Set the size of the components to 0 if it is
-                            // not visible.
-                            if (!((components[counter]).isVisible())) {
-                                sizes[counter] = 0;
-                            }
-                        }
-                    } else {
-                        newSize = getSizeOfComponent(components[counter]);
-                        if (sizes[counter] != newSize) {
-                            if (counter == 0) {
-                                if (components[1] != null) {
-                                    sizes[1] = Math.max(0, sizes[1] +
-                                        (sizes[counter] - newSize));
-                                }
-                            } else if (counter == 1) {
-                                if (components[0] != null) {
-                                    sizes[0] = Math.max(0, sizes[0] +
-                                        (sizes[counter] - newSize));
-                                }
-                            }
-                            sizes[counter] = newSize;
-                            // Do this to not adjust the next one, but adjust
-                            // the divider
-                            if (counter == 0) counter = 1;
-                        }
-                    }
-                }
-            }
-
-            for (counter=0; counter<3; counter++) totalSize += sizes[counter];
-
-            // If the width has changed, adjust the right, and then left
-            // component (if necessary)
-            if (totalSize != availableSize) {
-                int toDiff = (availableSize - totalSize);
-
-                if (components[1] != null) {
-                    newSize = Math.max(0, sizes[1] + toDiff);
-                    if (newSize == 0) {
-                        toDiff += sizes[1];
-                        sizes[1] = 0;
-                        if (components[0] != null)
-                            sizes[0] = Math.max(0, sizes[0] + toDiff);
-                    } else {
-                        sizes[1] = newSize;
-                    }
-                } else if (components[0] != null) {
-                    sizes[0] = Math.max(0, sizes[0] + toDiff);
-                }
-            }
+	    if ((doReset && !dividerLocationIsSet) || spDividerLocation < 0) {
+		resetToPreferredSizes(availableSize);
+	    }
+	    else if (lastSplitPaneSize <= 0 ||
+		     availableSize == lastSplitPaneSize || !painted ||
+		     (dSize != null &&
+		      getSizeForPrimaryAxis(dSize) != sizes[2])) {
+		if (dSize != null) {
+		    sizes[2] = getSizeForPrimaryAxis(dSize);
+		}
+		else {
+		    sizes[2] = 0;
+		}
+		setDividerLocation(spDividerLocation - dOffset, availableSize);
+		dividerLocationIsSet = false;
+	    }
+	    else if (availableSize != lastSplitPaneSize) {
+		distributeSpace(availableSize - lastSplitPaneSize);
+	    }
+	    doReset = false;
+	    dividerLocationIsSet = false;
+	    lastSplitPaneSize = availableSize;
 
             // Reset the bounds of each component
             int nextLocation = getInitialLocation(insets);
-            int bdSize = getDividerBorderSize();
+	    int counter = 0;
 
-            counter = 0;
             while (counter < 3) {
-                if (components[counter] != null) {
+                if (components[counter] != null &&
+		    components[counter].isVisible()) {
                     setComponentToSize(components[counter], sizes[counter],
                                        nextLocation, insets, containerSize);
                     nextLocation += sizes[counter];
@@ -1410,21 +1404,42 @@ public class BasicSplitPaneUI extends SplitPaneUI
                 switch (counter) {
                 case 0:
                     counter = 2;
-                    nextLocation += bdSize;
                     break;
                 case 2:
                     counter = 1;
-                    nextLocation += bdSize;
                     break;
                 case 1:
                     counter = 3;
                     break;
                 }
             }
+	    if (painted) {
+		// This is tricky, there is never a good time for us
+		// to push the value to the splitpane, painted appears to
+		// the best time to do it. What is really needed is
+		// notification that layout has completed.
+		int      newLocation = getDividerLocation(splitPane);
 
-            if (beginLocation != splitPane.getDividerLocation()) {
-                splitPane.setLastDividerLocation(beginLocation);
-            }
+		if (newLocation != (spDividerLocation - dOffset)) {
+		    int  lastLocation = splitPane.getLastDividerLocation();
+
+		    ignoreDividerLocationChange = true;
+		    try {
+			splitPane.setDividerLocation(newLocation);
+			// This is not always needed, but is rather tricky
+			// to determine when... The case this is needed for
+			// is if the user sets the divider location to some
+			// bogus value, say 0, and the actual value is 1, the
+			// call to setDividerLocation(1) will preserve the
+			// old value of 0, when we really want the divider
+			// location value  before the call. This is needed for
+			// the one touch buttons.
+			splitPane.setLastDividerLocation(lastLocation);
+		    } finally {
+			ignoreDividerLocationChange = false;
+		    }
+		}
+	    }
         }
 
 
@@ -1440,15 +1455,16 @@ public class BasicSplitPaneUI extends SplitPaneUI
                 if(place.equals(JSplitPane.DIVIDER)) {
                     /* Divider. */
                     components[2] = component;
-                    sizes[2] = -1;
+                    sizes[2] = getSizeForPrimaryAxis(component.
+						     getPreferredSize());
                 } else if(place.equals(JSplitPane.LEFT) ||
                           place.equals(JSplitPane.TOP)) {
                     components[0] = component;
-                    sizes[0] = -1;
+                    sizes[0] = 0;
                 } else if(place.equals(JSplitPane.RIGHT) ||
                           place.equals(JSplitPane.BOTTOM)) {
                     components[1] = component;
-                    sizes[1] = -1;
+                    sizes[1] = 0;
                 } else if(!place.equals(
                                     BasicSplitPaneUI.NON_CONTINUOUS_DIVIDER))
                     isValid = false;
@@ -1459,6 +1475,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
                 throw new IllegalArgumentException("cannot add to layout: " +
                     "unknown constraint: " +
                     place);
+	    doReset = true;
         }
 
 
@@ -1468,27 +1485,30 @@ public class BasicSplitPaneUI extends SplitPaneUI
          * the height is the largest of the childrens minimum heights.
          */
         public Dimension minimumLayoutSize(Container container) {
-            Dimension   minSize;
-            int         minX = 0;
-            int         minY = 0;
+            int         minPrimary = 0;
+            int         minSecondary = 0;
             Insets      insets = splitPane.getInsets();
 
             for (int counter=0; counter<3; counter++) {
                 if(components[counter] != null) {
-                    minSize = components[counter].getMinimumSize();
-                    minX += minSize.width;
-                    if(minSize.height > minY)
-                        minY = minSize.height;
+                    Dimension   minSize = components[counter].getMinimumSize();
+		    int         secSize = getSizeForSecondaryAxis(minSize);
+
+                    minPrimary += getSizeForPrimaryAxis(minSize);
+                    if(secSize > minSecondary)
+                        minSecondary = secSize;
                 }
             }
             if(insets != null) {
-                minX += insets.left + insets.right;
-                minY += insets.bottom + insets.top;
+                minPrimary += getSizeForPrimaryAxis(insets, true) +
+		              getSizeForPrimaryAxis(insets, false);
+		minSecondary += getSizeForSecondaryAxis(insets, true) +
+		              getSizeForSecondaryAxis(insets, false);
             }
-	    if (components[0] != null && components[1] != null) {
-		minX += (2 * getDividerBorderSize());
+	    if (axis == 0) {
+		return new Dimension(minPrimary, minSecondary);
 	    }
-            return new Dimension(minX, minY);
+	    return new Dimension(minSecondary, minPrimary);
         }
 
 
@@ -1498,27 +1518,31 @@ public class BasicSplitPaneUI extends SplitPaneUI
          * the height is the largest of the childrens preferred heights.
          */
         public Dimension preferredLayoutSize(Container container) {
-            Dimension   preSize;
-            int         preX = 0;
-            int         preY = 0;
+            int         prePrimary = 0;
+            int         preSecondary = 0;
             Insets      insets = splitPane.getInsets();
 
             for(int counter = 0; counter < 3; counter++) {
                 if(components[counter] != null) {
-                    preSize = components[counter].getPreferredSize();
-                    preX += preSize.width;
-                    if(preSize.height > preY)
-                        preY = preSize.height;
+		    Dimension   preSize = components[counter].
+			                  getPreferredSize();
+		    int         secSize = getSizeForSecondaryAxis(preSize);
+
+                    prePrimary += getSizeForPrimaryAxis(preSize);
+                    if(secSize > preSecondary)
+                        preSecondary = secSize;
                 }
             }
             if(insets != null) {
-                preX += insets.left + insets.right;
-                preY += insets.bottom + insets.top;
+                prePrimary += getSizeForPrimaryAxis(insets, true) +
+		              getSizeForPrimaryAxis(insets, false);
+		preSecondary += getSizeForSecondaryAxis(insets, true) +
+		              getSizeForSecondaryAxis(insets, false);
             }
-	    if (components[0] != null && components[1] != null) {
-		preX += (2 * getDividerBorderSize());
+	    if (axis == 0) {
+		return new Dimension(prePrimary, preSecondary);
 	    }
-            return new Dimension(preX, preY);
+	    return new Dimension(preSecondary, prePrimary);
         }
 
 
@@ -1530,6 +1554,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
                 if(components[counter] == component) {
                     components[counter] = null;
                     sizes[counter] = 0;
+		    doReset = true;
                 }
             }
         }
@@ -1599,15 +1624,187 @@ public class BasicSplitPaneUI extends SplitPaneUI
         }
 
 
+	//
+	// New methods.
+	//
+
         /**
-         * Resets the cached sizes so that next time this instance is
+         * Marks the receiver so that the next time this instance is
          * layed out it'll ask for the preferred sizes.
          */
         public void resetToPreferredSizes() {
-            for(int counter = 0; counter < 3; counter++)
-                sizes[counter] = -1;
+	    doReset = true;
         }
 
+        /**
+         * Resets the size of the Component at the passed in location.
+         */
+        protected void resetSizeAt(int index) {
+            sizes[index] = 0;
+	    doReset = true;
+        }
+
+
+        /**
+         * Sets the sizes to <code>newSizes</code>.
+         */
+        protected void setSizes(int[] newSizes) {
+            System.arraycopy(newSizes, 0, sizes, 0, 3);
+        }
+
+
+        /**
+         * Returns the sizes of the components.
+         */
+        protected int[] getSizes() {
+            int[]         retSizes = new int[3];
+
+            System.arraycopy(sizes, 0, retSizes, 0, 3);
+            return retSizes;
+        }
+
+
+        /**
+         * Returns the width of the passed in Components preferred size.
+         */
+        protected int getPreferredSizeOfComponent(Component c) {
+	    return getSizeForPrimaryAxis(c.getPreferredSize());
+        }
+
+
+        /**
+         * Returns the width of the passed in Components minimum size.
+         */
+        int getMinimumSizeOfComponent(Component c) {
+	    return getSizeForPrimaryAxis(c.getMinimumSize());
+        }
+
+
+        /**
+         * Returns the width of the passed in component.
+         */
+        protected int getSizeOfComponent(Component c) {
+	    return getSizeForPrimaryAxis(c.getSize());
+        }
+
+
+        /**
+         * Returns the available width based on the container size and
+         * Insets.
+         */
+        protected int getAvailableSize(Dimension containerSize,
+                                       Insets insets) {
+            if(insets == null)
+                return getSizeForPrimaryAxis(containerSize);
+            return (getSizeForPrimaryAxis(containerSize) - 
+		    (getSizeForPrimaryAxis(insets, true) +
+		     getSizeForPrimaryAxis(insets, false)));
+        }
+
+
+        /**
+         * Returns the left inset, unless the Insets are null in which case
+         * 0 is returned.
+         */
+        protected int getInitialLocation(Insets insets) {
+            if(insets != null)
+                return getSizeForPrimaryAxis(insets, true);
+            return 0;
+        }
+
+
+        /**
+         * Sets the width of the component c to be size, placing its
+         * x location at location, y to the insets.top and height
+         * to the containersize.height less the top and bottom insets.
+         */
+        protected void setComponentToSize(Component c, int size,
+                                          int location, Insets insets,
+                                          Dimension containerSize) {
+            if(insets != null) {
+		if (axis == 0) {
+		    c.setBounds(location, insets.top, size,
+				containerSize.height -
+				(insets.top + insets.bottom));
+		}
+		else {
+		    c.setBounds(insets.left, location, containerSize.width -
+				(insets.left + insets.right), size);
+		}
+            }
+	    else {
+                if (axis == 0) {
+		    c.setBounds(location, 0, size, containerSize.height);
+		}
+		else {
+		    c.setBounds(0, location, containerSize.width, size);
+		}
+            }
+        }
+
+	/**
+	 * If the axis == 0, the width is returned, otherwise the height.
+	 */
+	int getSizeForPrimaryAxis(Dimension size) {
+	    if (axis == 0) {
+		return size.width;
+	    }
+	    return size.height;
+	}
+
+	/**
+	 * If the axis == 0, the width is returned, otherwise the height.
+	 */
+	int getSizeForSecondaryAxis(Dimension size) {
+	    if (axis == 0) {
+		return size.height;
+	    }
+	    return size.width;
+	}
+
+	/**
+	 * Returns a particular value of the inset identified by the
+	 * axis and <code>isTop</code><p>
+	 *   axis isTop
+	 *    0    true    - left
+	 *    0    false   - right
+	 *    1    true    - top
+	 *    1    false   - bottom
+	 */
+	int getSizeForPrimaryAxis(Insets insets, boolean isTop) {
+	    if (axis == 0) {
+		if (isTop) {
+		    return insets.left;
+		}
+		return insets.right;
+	    }
+	    if (isTop) {
+		return insets.top;
+	    }
+	    return insets.bottom;
+	} 
+
+	/**
+	 * Returns a particular value of the inset identified by the
+	 * axis and <code>isTop</code><p>
+	 *   axis isTop
+	 *    0    true    - left
+	 *    0    false   - right
+	 *    1    true    - top
+	 *    1    false   - bottom
+	 */
+	int getSizeForSecondaryAxis(Insets insets, boolean isTop) {
+	    if (axis == 0) {
+		if (isTop) {
+		    return insets.top;
+		}
+		return insets.bottom;
+	    }
+	    if (isTop) {
+		return insets.left;
+	    }
+	    return insets.right;
+	} 
 
         /**
          * Determines the components. This should be called whenever
@@ -1648,19 +1845,194 @@ public class BasicSplitPaneUI extends SplitPaneUI
                    children[counter] != nonContinuousLayoutDivider) {
                     if(oldDivider != children[counter]) {
                         components[2] = children[counter];
-                        if(children[counter] == null) {
-                            sizes[2] = 0;
-                        } else {
-                            sizes[2] = -1;
-                        }
                     } else {
                         components[2] = oldDivider;
                     }
                     break;
                 }
             }
-            if(components[2] == null) sizes[2] = 0;
+            if(components[2] == null) {
+		sizes[2] = 0;
+	    }
+	    else {
+		sizes[2] = getSizeForPrimaryAxis(splitPane.getPreferredSize());
+	    }
         }
+
+	/**
+	 * Resets the size of the first component to <code>leftSize</code>,
+	 * and the right component to the remainder of the space.
+	 */
+	void setDividerLocation(int leftSize, int availableSize) {
+	    boolean          lValid = (components[0] != null &&
+				       components[0].isVisible());
+	    boolean          rValid = (components[1] != null &&
+				       components[1].isVisible());
+	    boolean          dValid = (components[2] != null && 
+				       components[2].isVisible());
+	    int              max = availableSize;
+
+	    if (dValid) {
+		max -= sizes[2];
+	    }
+	    leftSize = Math.max(0, Math.min(leftSize, max));
+	    if (lValid) {
+		if (rValid) {
+		    sizes[0] = leftSize;
+		    sizes[1] = max - leftSize;
+		}
+		else {
+		    sizes[0] = max;
+		    sizes[1] = 0;
+		}
+	    }
+	    else if (rValid) {
+		sizes[1] = max;
+		sizes[0] = 0;
+	    }
+	}
+
+	/**
+	 * Returns an array of the minimum sizes of the components.
+	 */
+	int[] getPreferredSizes() {
+	    int[]         retValue = new int[3];
+
+	    for (int counter = 0; counter < 3; counter++) {
+		if (components[counter] != null &&
+		    components[counter].isVisible()) {
+		    retValue[counter] = getPreferredSizeOfComponent
+			                (components[counter]);
+		}
+		else {
+		    retValue[counter] = -1;
+		}
+	    }
+	    return retValue;
+	}
+
+	/**
+	 * Returns an array of the minimum sizes of the components.
+	 */
+	int[] getMinimumSizes() {
+	    int[]         retValue = new int[3];
+
+	    for (int counter = 0; counter < 2; counter++) {
+		if (components[counter] != null &&
+		    components[counter].isVisible()) {
+		    retValue[counter] = getMinimumSizeOfComponent
+			                (components[counter]);
+		}
+		else {
+		    retValue[counter] = -1;
+		}
+	    }
+	    retValue[2] = (components[2] != null) ? sizes[2] : -1;
+	    return retValue;
+	}
+
+	/**
+	 * Resets the components to their preferred sizes.
+	 */
+	void resetToPreferredSizes(int availableSize) {
+	    // Set the sizes to the preferred sizes (if fits), otherwise
+	    // set to min sizes and distribute any extra space.
+	    int[]       testSizes = getPreferredSizes();
+	    int         totalSize = 0;
+
+	    for (int counter = 0; counter < 3; counter++) {
+		if (testSizes[counter] != -1) {
+		    totalSize += testSizes[counter];
+		}
+	    }
+	    if (totalSize > availableSize) {
+		testSizes = getMinimumSizes();
+
+		totalSize = 0;
+		for (int counter = 0; counter < 3; counter++) {
+		    if (testSizes[counter] != -1) {
+			totalSize += testSizes[counter];
+		    }
+		}
+	    }
+	    setSizes(testSizes);
+	    distributeSpace(availableSize - totalSize);
+	}
+
+	/**
+	 * Distributes <code>space</code> between the two components 
+	 * (divider won't get any extra space) based on the weighting. This
+	 * attempts to honor the min size of the components.
+	 */
+	void distributeSpace(int space) {
+	    boolean          lValid = (components[0] != null &&
+				       components[0].isVisible());
+	    boolean          rValid = (components[1] != null &&
+				       components[1].isVisible());
+
+	    if (lValid && rValid) {
+		double        weight = splitPane.getResizeWeight();
+		int           lExtra = (int)(weight * (double)space);
+		int           rExtra = (space - lExtra);
+
+		sizes[0] += lExtra;
+		sizes[1] += rExtra;
+
+		int           lMin = getMinimumSizeOfComponent(components[0]);
+		int           rMin = getMinimumSizeOfComponent(components[1]);
+		boolean       lMinValid = (sizes[0] >= lMin);
+		boolean       rMinValid = (sizes[1] >= rMin);
+
+		if (!lMinValid && !rMinValid) {
+		    if (sizes[0] < 0) {
+			sizes[1] += sizes[0];
+			sizes[0] = 0;
+		    }
+		    else if (sizes[1] < 0) {
+			sizes[0] += sizes[1];
+			sizes[1] = 0;
+		    }
+		}
+		else if (!lMinValid) {
+		    if (sizes[1] - (lMin - sizes[0]) < rMin) {
+			// both below min, just make sure > 0
+			if (sizes[0] < 0) {
+			    sizes[1] += sizes[0];
+			    sizes[0] = 0;
+			}
+		    }
+		    else {
+			sizes[1] -= (lMin - sizes[0]);
+			sizes[0] = lMin;
+		    }
+		}
+		else if (!rMinValid) {
+		    if (sizes[0] - (rMin - sizes[1]) < lMin) {
+			// both below min, just make sure > 0
+			if (sizes[1] < 0) {
+			    sizes[0] += sizes[1];
+			    sizes[1] = 0;
+			}
+		    }
+		    else {
+			sizes[0] -= (rMin - sizes[1]);
+			sizes[1] = rMin;
+		    }
+		}
+		if (sizes[0] < 0) {
+		    sizes[0] = 0;
+		}
+		if (sizes[1] < 0) {
+		    sizes[1] = 0;
+		}
+	    }
+	    else if (lValid) {
+		sizes[0] = Math.max(0, sizes[0] + space);
+	    }
+	    else if (rValid) {
+		sizes[1] = Math.max(0, sizes[1] + space);
+	    }
+	}
     }
 
 
@@ -1675,127 +2047,8 @@ public class BasicSplitPaneUI extends SplitPaneUI
     public class BasicVerticalLayoutManager extends
             BasicHorizontalLayoutManager
     {
-        /**
-         * Returns the height of the passed in Components preferred size.
-         */
-        protected int getPreferredSizeOfComponent(Component c) {
-            return c.getPreferredSize().height;
-        }
-
-        /**
-         * Returns the height of the passed in Components minimum size.
-         */
-        int getMinimumSizeOfComponent(Component c) {
-            return c.getMinimumSize().height;
-        }
-
-
-        /**
-         * Returns the height of the passed in component.
-         */
-        protected int getSizeOfComponent(Component c) {
-            return c.getSize().height;
-        }
-
-
-        /**
-         * Returns the available height based on the container size and
-         * Insets.
-         */
-        protected int getAvailableSize(Dimension containerSize,
-                                       Insets insets) {
-            if(insets == null)
-                return containerSize.height;
-            return (containerSize.height - (insets.bottom + insets.top + 2 *
-                                            getDividerBorderSize()));
-        }
-
-
-        /**
-         * Returns the top inset, unless the Insets or null in which case
-         * 0 is returned.
-         */
-        protected int getInitialLocation(Insets insets) {
-            if(insets != null)
-                return insets.top;
-            return 0;
-        }
-
-
-        /**
-         * Sets the height of the component c to be size, placing its
-         * x location to insets.left, y to location and width
-         * to the containersize.width less the left and right insets.
-         */
-        protected void setComponentToSize(Component c, int size,
-                                          int location, Insets insets,
-                                          Dimension containerSize) {
-            if(insets != null) {
-                c.setBounds(insets.left, location, containerSize.width -
-                            (insets.left + insets.right), size);
-            } else {
-                c.setBounds(0, location, containerSize.width, size);
-            }
-        }
-
-
-        /**
-         * Returns the minimum size needed to contain the children.
-         * The height is the sum of all the childrens min heights and
-         * the width is the largest of the childrens minimum widths.
-         */
-        public Dimension minimumLayoutSize(Container container) {
-            Dimension   minSize;
-            int         minX = 0;
-            int         minY = 0;
-            Insets      insets = splitPane.getInsets();
-
-            for(int counter = 0; counter < 3; counter++) {
-                if(components[counter] != null) {
-                    minSize = components[counter].getMinimumSize();
-                    minY += minSize.height;
-                    if(minSize.width > minX)
-                        minX = minSize.width;
-                }
-            }
-            if(insets != null) {
-                minX += insets.left + insets.right;
-                minY += insets.bottom + insets.top;
-            }
-	    if (components[0] != null && components[1] != null) {
-		minY += (2 * getDividerBorderSize());
-	    }
-            return new Dimension(minX, minY);
-        }
-
-
-        /**
-         * Returns the preferred size needed to contain the children.
-         * The height is the sum of all the childrens preferred heights and
-         * the width is the largest of the childrens preferred widths.
-         */
-        public Dimension preferredLayoutSize(Container container) {
-            Dimension   preSize;
-            int         preX = 0;
-            int         preY = 0;
-            Insets      insets = splitPane.getInsets();
-
-            for(int counter = 0; counter < 3; counter++) {
-                if(components[counter] != null) {
-                    preSize = components[counter].getPreferredSize();
-                    preY += preSize.height;
-                    if(preSize.width > preX)
-                        preX = preSize.width;
-                }
-            }
-            if(insets != null) {
-                preX += insets.left + insets.right;
-                preY += insets.bottom + insets.top;
-            }
-	    if (components[0] != null && components[1] != null) {
-		preY += (2 * getDividerBorderSize());
-	    }
-            return new Dimension(preX, preY);
-        }
+	public BasicVerticalLayoutManager() {
+	    super(1);
+	}
     }
 }

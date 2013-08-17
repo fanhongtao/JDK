@@ -1,16 +1,21 @@
 /*
- * @(#)ComponentPeer.java	1.28 01/11/29
+ * @(#)ComponentPeer.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.peer;
 
 import java.awt.*;
+import java.awt.event.PaintEvent;
 import java.awt.image.ImageProducer;
 import java.awt.image.ImageObserver;
 import java.awt.image.ColorModel;
+import java.awt.GraphicsConfiguration;
 
 import java.awt.dnd.peer.DropTargetPeer;
 
@@ -29,6 +34,7 @@ public interface ComponentPeer {
     void		print(Graphics g);
     void		setBounds(int x, int y, int width, int height);
     void                handleEvent(AWTEvent e);
+    void                coalescePaintEvent(PaintEvent e);
     Point		getLocationOnScreen();
     Dimension		getPreferredSize();
     Dimension		getMinimumSize();
@@ -48,6 +54,7 @@ public interface ComponentPeer {
     Image 		createImage(int width, int height);
     boolean		prepareImage(Image img, int w, int h, ImageObserver o);
     int			checkImage(Image img, int w, int h, ImageObserver o);
+    GraphicsConfiguration getGraphicsConfiguration();
 
     /**
      * DEPRECATED:  Replaced by getPreferredSize().

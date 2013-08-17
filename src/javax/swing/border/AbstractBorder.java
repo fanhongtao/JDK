@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractBorder.java	1.22 01/11/29
+ * @(#)AbstractBorder.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -13,7 +16,7 @@ import java.awt.Component;
 import java.io.Serializable;
 
 /**
- * A class which implements an empty border with no size.  
+ * A class that implements an empty border with no size.  
  * This provides a convenient base class from which other border 
  * classes can be easily derived.
  * <p>
@@ -24,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 11/29/01
+ * @version 1.25 02/02/00
  * @author David Kloba
  */
 public abstract class AbstractBorder implements Border, Serializable
@@ -40,7 +43,7 @@ public abstract class AbstractBorder implements Border, Serializable
     }
 
     /** 
-     * Reinitialize the insets parameter with this Border's current Insets. 
+     * Reinitializes the insets parameter with this Border's current Insets. 
      * @param c the component for which this border insets value applies
      * @param insets the object to be reinitialized
      */
@@ -52,12 +55,12 @@ public abstract class AbstractBorder implements Border, Serializable
     /** This default implementation returns false. */
     public boolean isBorderOpaque() { return false; }
 
-    /** This is a convience method that calls the static method. */
+    /** This convenience method calls the static method. */
     public Rectangle getInteriorRectangle(Component c, int x, int y, int width, int height) {
 	return getInteriorRectangle(c, this, x, y, width, height);
     } 
 
-    /** This method returns a rectangle using the arguements minus the
+    /** Returns a rectangle using the arguments minus the
       * insets of the border. This is useful for determining the area
       * that components should draw in that will not intersect the border.
       */
@@ -73,4 +76,18 @@ public abstract class AbstractBorder implements Border, Serializable
 	                            height - insets.top - insets.bottom);
     }
 
+    /*
+     * Convenience function for determining ComponentOrientation.  
+     * Helps us avoid having Munge directives throughout the code.
+     */
+    static boolean isLeftToRight( Component c ) {
+        
+        return c.getComponentOrientation().isLeftToRight();
+        
+
+
+
+
+    }
+    
 }

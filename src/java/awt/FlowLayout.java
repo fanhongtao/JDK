@@ -1,8 +1,11 @@
 /*
- * @(#)FlowLayout.java	1.32 01/11/29
+ * @(#)FlowLayout.java	1.39 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -44,7 +47,7 @@ import java.io.IOException;
  * <p>
  * A flow layout lets each component assume its natural (preferred) size.
  *
- * @version 	1.32, 11/29/01
+ * @version 	1.39, 02/02/00
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @since       JDK1.0
@@ -76,7 +79,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      *
      * @see     java.awt.Component#getComponentOrientation
      * @see     java.awt.ComponentOrientation
-     * @since   JDK1.2
+     * @since   1.2
      * Package-private pending API change approval
      */
     public static final int LEADING	= 3;
@@ -88,7 +91,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      *
      * @see     java.awt.Component#getComponentOrientation
      * @see     java.awt.ComponentOrientation
-     * @since   JDK1.2
+     * @since   1.2
      * Package-private pending API change approval
      */
     public static final int TRAILING = 4;
@@ -102,22 +105,22 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * <code>CENTER</code>
      *
      * @serial
-     * @see getAlignment()
-     * @see setAlignment()
+     * @see #getAlignment
+     * @see #setAlignment
      */
     int align;          // This is for 1.1 serialization compatibilitys
     /**
      * <code>newAlign</code> is the property that determines
-     * how each row distributes empty space for JDK's >= JDK1.2.
+     * how each row distributes empty space for the Java 2 platform, v1.2 and greater.
      * It can be one of the following three values :
      * <code>LEFT</code>
      * <code>RIGHT</code>
      * <code>CENTER</code>
      *
      * @serial
-     * @since JDK 1.2
-     * @see getAlignment()
-     * @see setAlignment()
+     * @since 1.2
+     * @see #getAlignment
+     * @see #setAlignment
      */
     int newAlign;       // This is the one we actually use
     /**
@@ -126,8 +129,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * specify the space between components.
      *
      * @serial
-     * @see getHgap()
-     * @see setHgap()
+     * @see getHgap
+     * @see setHgap
      */
     int hgap;
     /**
@@ -136,8 +139,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * specify the space between rows.
      *
      * @serial
-     * @see getVgap()
-     * @see setVgap()
+     * @see getVgap
+     * @see setVgap
      */
     int vgap;
 
@@ -188,7 +191,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * Possible values are <code>FlowLayout.LEFT</code>,
      * <code>FlowLayout.RIGHT</code>, or <code>FlowLayout.CENTER</code>.
      * @return     the alignment value for this layout.
-     * @see    * @see        java.awt.FlowLayout#setAlignment
+     * @see        java.awt.FlowLayout#setAlignment
      * @since      JDK1.1
      */
     public int getAlignment() {
@@ -200,7 +203,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * Possible values are <code>FlowLayout.LEFT</code>,
      * <code>FlowLayout.RIGHT</code>, and <code>FlowLayout.CENTER</code>.
      * @param      align the alignment value.
-     * @see        java.awt.FlowLayout#getAlignment
+     * @see        #getAlignment()
      * @since      JDK1.1
      */
     public void setAlignment(int align) {
@@ -294,15 +297,18 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
       synchronized (target.getTreeLock()) {
 	Dimension dim = new Dimension(0, 0);
 	int nmembers = target.getComponentCount();
+        boolean firstVisibleComponent = true;
 
 	for (int i = 0 ; i < nmembers ; i++) {
 	    Component m = target.getComponent(i);
 	    if (m.visible) {
 		Dimension d = m.getPreferredSize();
 		dim.height = Math.max(dim.height, d.height);
-		if (i > 0) {
-		    dim.width += hgap;
-		}
+                if (firstVisibleComponent) {
+                    firstVisibleComponent = false;
+                } else {
+                    dim.width += hgap;
+                }
 		dim.width += d.width;
 	    }
 	}
@@ -435,18 +441,18 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
 
     //
     // the internal serial version which says which version was written
-    // - 0 (default) for versions before JDK 1.2
-    // - 1 for version >= JDK 1.2, which includes "newAlign" field
+    // - 0 (default) for versions before the Java 2 platform, v1.2
+    // - 1 for version >= Java 2 platform v1.2, which includes "newAlign" field
     //
     private static final int currentSerialVersion = 1;
     /**
      * This represent the <code>currentSerialVersion</code>
      * which is bein used.  It will be one of two values :
-     * <code>0</code> versions before JDK 1.2.
-     * <code>1</code> versions after  JDK 1.2.
+     * <code>0</code> versions before Java 2 platform v1.2..
+     * <code>1</code> versions after  Java 2 platform v1.2..
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      */
     private int serialVersionOnStream = currentSerialVersion;
 

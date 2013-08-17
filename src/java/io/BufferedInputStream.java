@@ -1,8 +1,11 @@
 /*
- * @(#)BufferedInputStream.java	1.37 01/11/29
+ * @(#)BufferedInputStream.java	1.41 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -26,7 +29,7 @@ package java.io;
  * the contained input stream.
  *
  * @author  Arthur van Hoff
- * @version 1.36, 08/18/98
+ * @version 1.41, 02/02/00
  * @since   JDK1.0
  */
 public
@@ -268,8 +271,7 @@ class BufferedInputStream extends FilterInputStream {
 	throws IOException
     {
         ensureOpen();
-	if ((off < 0) || (off > b.length) || (len < 0) ||
-            ((off + len) > b.length) || ((off + len) < 0)) {
+        if ((off | len | (off + len) | (b.length - (off + len))) < 0) {
 	    throw new IndexOutOfBoundsException();
 	} else if (len == 0) {
 	    return 0;
@@ -393,7 +395,7 @@ class BufferedInputStream extends FilterInputStream {
      *
      * @exception  IOException  if an I/O error occurs.
      */
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
         if (in == null)
             return;
         in.close();

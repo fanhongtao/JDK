@@ -1,8 +1,11 @@
 /*
- * @(#)RTFReader.java	1.14 01/11/29
+ * @(#)RTFReader.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.rtf;
 
@@ -535,25 +538,21 @@ defineCharacterSet(String name, char[] table)
  *  @returns the character set
  */
 public static Object
-getCharacterSet(String name)
+getCharacterSet(final String name)
     throws IOException
 {
     char[] set;
 
     set = (char [])characterSets.get(name);
     if (set == null) {
-      InputStream charsetStream = null;
-      /* TODO: when class names are allowed as literal Class objects, 
-	 change this to use the nicer syntax */
-      Class This;
-      try {
-	  This = Class.forName("javax.swing.text.rtf.RTFReader");
-      } catch (ClassNotFoundException e) {
-	  throw new InternalError("Help, I do not exist (" + e + ")");
-      }
-      //PENDING(prinz): Use new security modelf
-      charsetStream = This.getResourceAsStream("charsets/" + name + ".txt");
-
+      InputStream charsetStream;
+      charsetStream = (InputStream)java.security.AccessController.
+	              doPrivileged(new java.security.PrivilegedAction() {
+	  public Object run() {
+	      return RTFReader.class.getResourceAsStream
+		                     ("charsets/" + name + ".txt");
+	  }
+      });
       set = readCharset(charsetStream);
       defineCharacterSet(name, set);
     }

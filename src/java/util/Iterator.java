@@ -1,8 +1,11 @@
 /*
- * @(#)Iterator.java	1.10 01/11/29
+ * @(#)Iterator.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -18,11 +21,11 @@ package java.util;
  * </ul>
  *
  * @author  Josh Bloch
- * @version 1.10 11/29/01
+ * @version 1.14, 02/02/00
  * @see Collection
  * @see ListIterator
  * @see Enumeration
- * @since JDK1.2
+ * @since 1.2
  */
 public interface Iterator {
     /**
@@ -37,7 +40,7 @@ public interface Iterator {
     /**
      * Returns the next element in the interation.
      *
-     * @returns the next element in the interation.
+     * @return the next element in the iteration.
      * @exception NoSuchElementException iteration has no more elements.
      */
     Object next();

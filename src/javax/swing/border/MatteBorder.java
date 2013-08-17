@@ -1,8 +1,11 @@
 /*
- * @(#)MatteBorder.java	1.15 01/11/29
+ * @(#)MatteBorder.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -25,7 +28,7 @@ import javax.swing.Icon;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.15 11/29/01
+ * @version 1.18 02/02/00
  * @author Amy Fowler
  */
 public class MatteBorder extends EmptyBorder
@@ -39,10 +42,21 @@ public class MatteBorder extends EmptyBorder
      * @param left the left inset of the border
      * @param bottom the bottom inset of the border
      * @param right the right inset of the border
+     * @param matteColor the color rendered for the border
      */
-    public MatteBorder(int top, int left, int bottom, int right, Color color)   {
+    public MatteBorder(int top, int left, int bottom, int right, Color matteColor)   {
         super(top, left, bottom, right);
-        this.color = color;
+        this.color = matteColor;
+    }
+
+    /**
+     * Creates a matte border with the specified insets and color.
+     * @param borderInsets the insets of the border
+     * @param matteColor the color rendered for the border
+     */
+    public MatteBorder(Insets borderInsets, Color matteColor)   {
+        super(borderInsets);
+        this.color = matteColor;
     }
 
     /**
@@ -55,6 +69,16 @@ public class MatteBorder extends EmptyBorder
      */
     public MatteBorder(int top, int left, int bottom, int right, Icon tileIcon)   {
         super(top, left, bottom, right);
+        this.tileIcon = tileIcon;
+    }
+
+    /**
+     * Creates a matte border with the specified insets and tile icon.
+     * @param borderInsets the insets of the border
+     * @param tileIcon the icon to be used for tiling the border
+     */
+    public MatteBorder(Insets borderInsets, Icon tileIcon)   {
+        super(borderInsets);
         this.tileIcon = tileIcon;
     }
 
@@ -153,8 +177,7 @@ public class MatteBorder extends EmptyBorder
      * @param c the component for which this border insets value applies
      */
     public Insets getBorderInsets(Component c) {
-        Insets i = new Insets(0,0,0,0);
-        return getBorderInsets(c, i);
+        return getBorderInsets();
     }
 
     /** 
@@ -163,7 +186,20 @@ public class MatteBorder extends EmptyBorder
      * @param insets the object to be reinitialized
      */
     public Insets getBorderInsets(Component c, Insets insets) {
-        if (tileIcon != null && top == -1 && bottom == -1 && left == -1 && right == -1) {
+        return computeInsets(insets);
+    }
+
+    /**
+     * Returns the insets of the border.
+     */
+    public Insets getBorderInsets() {
+        return computeInsets(new Insets(0,0,0,0));
+    }
+
+    /* should be protected once api changes area allowed */
+    private Insets computeInsets(Insets insets) {
+        if (tileIcon != null && top == -1 && bottom == -1 && 
+            left == -1 && right == -1) {
             int w = tileIcon.getIconWidth();
             int h = tileIcon.getIconHeight();
             insets.top = h;
@@ -177,6 +213,22 @@ public class MatteBorder extends EmptyBorder
             insets.bottom = bottom;
         }
         return insets;
+    }
+
+    /**
+     * Returns the color used for tiling the border or null
+     * if a tile icon is being used.
+     */
+    public Color getMatteColor() {
+        return color;
+    }
+
+   /**
+     * Returns the icon used for tiling the border or null
+     * if a solid color is being used.
+     */
+    public Icon getTileIcon() {
+        return tileIcon;
     }
 
     /**

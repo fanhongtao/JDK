@@ -1,12 +1,16 @@
 /*
- * @(#)Label.java	1.42 01/11/29
+ * @(#)Label.java	1.47 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.LabelPeer;
+import javax.accessibility.*;
 
 /**
  * A <code>Label</code> object is a component for placing text in a
@@ -27,11 +31,11 @@ import java.awt.peer.LabelPeer;
  * <img src="doc-files/Label-1.gif"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.42, 11/29/01
+ * @version	1.47, 04/06/00
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
-public class Label extends Component {
+public class Label extends Component implements Accessible {
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -235,4 +239,69 @@ public class Label extends Component {
      * Initialize JNI field and method IDs
      */
     private static native void initIDs();
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+
+    /**
+     * Gets the AccessibleContext associated with this Label. 
+     * For labels, the AccessibleContext takes the form of an 
+     * AccessibleAWTLabel. 
+     * A new AccessibleAWTLabel instance is created if necessary.
+     *
+     * @return an AccessibleAWTLabel that serves as the 
+     *         AccessibleContext of this Label
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTLabel();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Label</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to label user-interface elements.
+     */
+    protected class AccessibleAWTLabel extends AccessibleAWTComponent {
+
+	public AccessibleAWTLabel() {
+	    super();
+	}
+
+        /**
+         * Get the accessible name of this object.  
+         * 
+         * @return the localized name of the object -- can be null if this 
+         * object does not have a name
+         * @see AccessibleContext#setAccessibleName
+         */
+        public String getAccessibleName() {
+            if (accessibleName != null) {
+                return accessibleName;
+            } else {
+                if (getText() == null) {
+                    return super.getAccessibleName();
+                } else {
+                    return getText();
+                }
+            }
+        }
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.LABEL;
+        }
+
+    } // inner class AccessibleAWTLabel
+
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)MetalScrollButton.java	1.16 01/11/29
+ * @(#)MetalScrollButton.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -27,7 +30,7 @@ import javax.swing.plaf.basic.BasicArrowButton;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.16 11/29/01
+ * @version 1.15 08/28/98
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -57,6 +60,7 @@ public class MetalScrollButton extends BasicArrowButton
 
 	public void paint( Graphics g )
         {
+            boolean leftToRight = MetalUtils.isLeftToRight(this);
 	    boolean isEnabled = getParent().isEnabled();
 
 	    Color arrowColor = isEnabled ? MetalLookAndFeel.getControlInfo() : MetalLookAndFeel.getControlDisabled();
@@ -82,7 +86,14 @@ public class MetalScrollButton extends BasicArrowButton
 	    if ( getDirection() == NORTH )
 	    {
 	        if ( !isFreeStanding ) {
-		    width += 2;
+                    height +=1;
+                    g.translate( 0, -1 );
+                    if ( !leftToRight ) {
+                        width += 1;
+                        g.translate( -1, 0 );
+		    } else {
+                        width += 2;
+                    }
 		}
 
 	        // Draw the arrow
@@ -117,14 +128,26 @@ public class MetalScrollButton extends BasicArrowButton
 		    MetalUtils.drawDisabledBorder(g, 0, 0, width, height+1);
 		}
 	        if ( !isFreeStanding ) {
-		    width -= 2;
+                    height -= 1;
+                    g.translate( 0, 1 );
+                    if ( !leftToRight ) {
+                        width -= 1;
+                        g.translate( 1, 0 );
+		    } else {
+                        width -= 2;
+                    }
 		}
 	    }
 	    else if ( getDirection() == SOUTH )
 	    {
 	        if ( !isFreeStanding ) {
-		    width += 2;
 		    height += 1;
+                    if ( !leftToRight ) {
+                        width += 1;
+                        g.translate( -1, 0 );
+		    } else {
+                        width += 2;
+                    }
 		}
 
 	        // Draw the arrow
@@ -165,8 +188,13 @@ public class MetalScrollButton extends BasicArrowButton
 		}
 
 	        if ( !isFreeStanding ) {
-		    width -= 2;
 		    height -= 1;
+                    if ( !leftToRight ) {
+                        width -= 1;
+                        g.translate( 1, 0 );
+		    } else {
+                        width -= 2;
+                    }
 		}
 	    }
 	    else if ( getDirection() == EAST )

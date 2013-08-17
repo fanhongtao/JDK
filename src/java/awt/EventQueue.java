@@ -1,8 +1,11 @@
 /*
- * @(#)EventQueue.java	1.55 01/11/29
+ * @(#)EventQueue.java	1.69 00/07/26
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -14,20 +17,24 @@ import java.awt.event.MouseEvent;
 import java.awt.ActiveEvent;
 import java.util.EmptyStackException;
 import java.lang.reflect.InvocationTargetException;
-import sun.awt.MagicEvent;
+import sun.awt.PeerEvent;
 import sun.awt.SunToolkit;
+import sun.awt.DebugHelper;
 
 /**
  * EventQueue is a platform-independent class that queues events, both
  * from the underlying peer classes and from trusted application classes.
  * There is only one EventQueue for each AppContext.
  *
- * @version 1.55 11/29/01
  * @author Thomas Ball
  * @author Fred Ecks
  * @author David Mendenhall
+ *
+ * @version 	1.69, 07/26/00
+ * @since 	1.1
  */
 public class EventQueue {
+    private static final DebugHelper dbg = DebugHelper.create(EventQueue.class);
 
     // From Thread.java
     private static int threadInitNumber;
@@ -90,7 +97,10 @@ public class EventQueue {
      * subclass of it.
      */
     public void postEvent(AWTEvent theEvent) {
-        ((SunToolkit)Toolkit.getDefaultToolkit()).flushPendingEvents();
+	Toolkit toolkit = Toolkit.getDefaultToolkit();
+        if (toolkit instanceof SunToolkit) {
+	    ((SunToolkit)toolkit).flushPendingEvents();
+	}
         postEventPrivate(theEvent);
     }
 
@@ -104,15 +114,16 @@ public class EventQueue {
      */
     final void postEventPrivate(AWTEvent theEvent) {
         synchronized(this) {
+            int id = theEvent.getID();
             if (nextQueue != null) {
                 // Forward event to top of EventQueue stack.
                 nextQueue.postEventPrivate(theEvent);
-            } else if (theEvent instanceof MagicEvent &&
-                       (((MagicEvent)theEvent).getFlags() & 
-                                       MagicEvent.PRIORITY_EVENT) != 0) {
+            } else if (theEvent instanceof PeerEvent &&
+                       (((PeerEvent)theEvent).getFlags() & 
+                                       PeerEvent.PRIORITY_EVENT) != 0) {
                 postEvent(theEvent, HIGH_PRIORITY);
-            } else if (theEvent.getID() == PaintEvent.PAINT ||
-                       theEvent.getID() == PaintEvent.UPDATE) {
+            } else if (id == PaintEvent.PAINT ||
+                       id == PaintEvent.UPDATE) {
                 postEvent(theEvent, LOW_PRIORITY);
             } else {
                 postEvent(theEvent, NORM_PRIORITY);
@@ -126,17 +137,25 @@ public class EventQueue {
      */
     private void postEvent(AWTEvent theEvent, int priority) {
         EventQueueItem newItem = new EventQueueItem(theEvent);
-
 	if (queues[priority].head == null) {
 	    boolean shouldNotify = noEvents();
 
 	    queues[priority].head = queues[priority].tail = newItem;
+
+            // This component doesn't have any events of this type on the 
+            // queue, so we have to initialize the RepaintArea with theEvent
+	    if (theEvent.getID() == PaintEvent.PAINT ||
+                theEvent.getID() == PaintEvent.UPDATE) {
+                Object source = theEvent.getSource();
+                ((Component)source).coalesceEvents(theEvent, theEvent);
+	    }
 
 	    if (shouldNotify) {
 	        notifyAll();
 	    }
 	} else {
 	    Object source = theEvent.getSource();
+	    boolean isPeerEvent = theEvent instanceof PeerEvent;
 
 	    // For Component source events, traverse the entire list,
 	    // trying to coalesce events
@@ -157,11 +176,23 @@ public class EventQueue {
 		}
 
 		for (;;) {
-		    if (q.id == newItem.id && q.source == source) {
-		        AWTEvent coalescedEvent = 
-			    ((Component)source).coalesceEvents(q.event, 
-							       theEvent);
+		    if (q.id == newItem.id && q.event.getSource() == source) {
+		        AWTEvent coalescedEvent;
+			coalescedEvent = ((Component)source).coalesceEvents(q.event, theEvent);
+			if (isPeerEvent) {
+			    if( coalescedEvent == null && q.event instanceof PeerEvent) {
+				coalescedEvent = ((PeerEvent)q.event).coalesceEvents((PeerEvent)theEvent);
+			    }
+			}
 			if (coalescedEvent != null) {
+			    // Remove debugging statement because
+			    // calling AWTEvent.toString here causes a
+			    // deadlock.
+			    //
+			    // if (dbg.on) {
+			    //     dbg.println("EventQueue coalesced event: " +
+			    //                 coalescedEvent);
+			    // }
 			    q.event = coalescedEvent;
 			    return;
 			}
@@ -176,6 +207,13 @@ public class EventQueue {
 
             // The event was not coalesced or has non-Component source.
             // Insert it at the end of the appropriate Queue.
+	    if (theEvent.getID() == PaintEvent.PAINT ||
+                theEvent.getID() == PaintEvent.UPDATE) {
+		// This component doesn't have any events of this type on the 
+                // queue, so we have to initialize the RepaintArea with theEvent
+	        ((Component)source).coalesceEvents(theEvent, theEvent);
+	    }
+
 	    queues[priority].tail.next = newItem;
 	    queues[priority].tail = newItem;
 	}
@@ -416,7 +454,7 @@ public class EventQueue {
 	    EventQueueItem q = queues[i].head;
 	    for (; q != null; q = q.next) {
 	        if (q.event instanceof KeyEvent) {
-		    q.event.setSource(newSource);
+		    ((KeyEvent)q.event).setSource(newSource);
 		}
 	    }
 	}
@@ -426,23 +464,30 @@ public class EventQueue {
      * Remove any pending events for the specified source object.
      * This method is normally called by the source's removeNotify method.
      */
-    final synchronized void removeSourceEvents(Object source) {
-        for (int i = 0; i < NUM_PRIORITIES; i++) {
-	    EventQueueItem entry = queues[i].head;
-	    EventQueueItem prev = null;
-	    while (entry != null) {
-	        if (entry.source == source) {
-		    if (prev == null) {
-		        queues[i].head = entry.next;
+    final void removeSourceEvents(Object source) {
+	Toolkit toolkit = Toolkit.getDefaultToolkit();
+        if (toolkit instanceof SunToolkit) {
+	    ((SunToolkit)toolkit).flushPendingEvents();
+	}
+
+        synchronized (this) {
+	    for (int i = 0; i < NUM_PRIORITIES; i++) {
+	        EventQueueItem entry = queues[i].head;
+		EventQueueItem prev = null;
+		while (entry != null) {
+		    if (entry.event.getSource() == source) {
+		        if (prev == null) {
+			    queues[i].head = entry.next;
+			} else {
+			    prev.next = entry.next;
+			}
 		    } else {
-		        prev.next = entry.next;
+		        prev = entry;
 		    }
-		} else {
-		    prev = entry;
+		    entry = entry.next;
 		}
-		entry = entry.next;
+		queues[i].tail = prev;
 	    }
-	    queues[i].tail = prev;
 	}
     }
 
@@ -454,7 +499,7 @@ public class EventQueue {
      * @param runnable  the Runnable whose run() method should be executed
      *                  synchronously on the EventQueue
      * @see             #invokeAndWait
-     * @since           JDK1.2
+     * @since           1.2
      */
     public static void invokeLater(Runnable runnable) {
         Toolkit.getEventQueue().postEvent(
@@ -474,7 +519,7 @@ public class EventQueue {
      * @exception       InvocationTargetException  if an exception is thrown
      *                  when running <i>runnable</i>
      * @see             #invokeLater
-     * @since           JDK1.2
+     * @since           1.2
      */
     public static void invokeAndWait(Runnable runnable)
              throws InterruptedException, InvocationTargetException {
@@ -517,12 +562,10 @@ class Queue {
 class EventQueueItem {
     AWTEvent event;
     int      id;
-    Object   source;
     EventQueueItem next;
 
     EventQueueItem(AWTEvent evt) {
         event = evt;
         id = evt.getID();
-        source = evt.getSource();
     }
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.13 01/11/29
+ * @(#)DefaultListCellRenderer.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -13,6 +16,7 @@ import javax.swing.border.*;
 
 import java.awt.Component;
 import java.awt.Color;
+import java.awt.Rectangle;
 
 import java.io.Serializable;
 
@@ -20,6 +24,22 @@ import java.io.Serializable;
 /**
  * Renders an item in a list.
  * <p>
+ * <strong><a name="override">Implementation Note:</a></strong>
+ * This class overrides
+ * <code>validate</code>,
+ * <code>revalidate</code>,
+ * <code>repaint</code>,
+ * and
+ * <code>firePropertyChange</code>
+ * solely to improve performance.
+ * If not overridden, these frequently called methods would execute code paths
+ * that are unnecessary for the default list cell renderer.
+ * If you write your own renderer,
+ * take care to weigh the benefits and
+ * drawbacks of overriding these methods.
+ *
+ * <p>
+ * 
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases.  The current serialization support is appropriate
@@ -27,7 +47,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.13 11/29/01
+ * @version 1.17 02/02/00
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -70,8 +90,10 @@ public class DefaultListCellRenderer extends JLabel
 
 	if (value instanceof Icon) {
 	    setIcon((Icon)value);
+	    setText("");
 	}
 	else {
+	    setIcon(null);
 	    setText((value == null) ? "" : value.toString());
 	}
 
@@ -82,6 +104,100 @@ public class DefaultListCellRenderer extends JLabel
 	return this;
     }
 
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void validate() {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void revalidate() {}
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void repaint(long tm, int x, int y, int width, int height) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void repaint(Rectangle r) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+	// Strings get interned...
+	if (propertyName=="text")
+	    super.firePropertyChange(propertyName, oldValue, newValue);
+    }
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    */
+    public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
 
     /**
      * A subclass of DefaultListCellRenderer that implements UIResource.

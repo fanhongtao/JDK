@@ -1,8 +1,11 @@
 /*
- * @(#)ByteArrayOutputStream.java	1.40 01/11/29
+ * @(#)ByteArrayOutputStream.java	1.43 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -16,7 +19,7 @@ package java.io;
  * <code>toString()</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.27, 10/20/97
+ * @version 1.43, 02/02/00
  * @since   JDK1.0
  */
 
@@ -164,6 +167,9 @@ public class ByteArrayOutputStream extends OutputStream {
     /**
      * Converts the buffer's contents into a string, translating bytes into
      * characters according to the platform's default character encoding.
+     *
+     * @return String translated from the buffer's contents.
+     * @since   JDK1.1
      */
     public String toString() {
 	return new String(buf, 0, count);
@@ -174,6 +180,9 @@ public class ByteArrayOutputStream extends OutputStream {
      * characters according to the specified character encoding.
      *
      * @param   enc  a character-encoding name.
+     * @return String translated from the buffer's contents.
+     * @throws UnsupportedEncodingException
+     *         If the named encoding is not supported.
      * @since   JDK1.1
      */
     public String toString(String enc) throws UnsupportedEncodingException {

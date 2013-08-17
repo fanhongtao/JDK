@@ -1,8 +1,11 @@
 /*
- * @(#)Reader.java	1.17 01/11/29
+ * @(#)Reader.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -26,7 +29,7 @@ package java.io;
  * @see StringReader
  * @see Writer
  *
- * @version 	1.17, 01/11/29
+ * @version 	1.21, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -53,6 +56,8 @@ public abstract class Reader {
     /**
      * Create a new character-stream reader whose critical sections will
      * synchronize on the given object.
+     *
+     * @param lock  The Object to synchronize on.
      */
     protected Reader(Object lock) {
 	if (lock == null) {
@@ -68,7 +73,7 @@ public abstract class Reader {
      * <p> Subclasses that intend to support efficient single-character input
      * should override this method.
      *
-     * @return     The character read, as an integer in the range 0 to 16383
+     * @return     The character read, as an integer in the range 0 to 65535
      *             (<tt>0x00-0xffff</tt>), or -1 if the end of the stream has
      *             been reached
      *
@@ -127,6 +132,7 @@ public abstract class Reader {
      *
      * @return    The number of characters actually skipped
      *
+     * @exception  IllegalArgumentException  If <code>n</code> is negative.
      * @exception  IOException  If an I/O error occurs
      */
     public long skip(long n) throws IOException {
@@ -161,7 +167,11 @@ public abstract class Reader {
     }
 
     /**
-     * Tell whether this stream supports the mark() operation.
+     * Tell whether this stream supports the mark() operation. The default
+     * implementation always returns false. Subclasses should override this
+     * method.
+     *
+     * @return true if and only if this stream supports the mark operation.
      */
     public boolean markSupported() {
 	return false;

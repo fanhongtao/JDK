@@ -1,8 +1,11 @@
 /*
- * @(#)PixelGrabber.java	1.14 01/11/29
+ * @(#)PixelGrabber.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -51,7 +54,7 @@ import java.awt.Image;
  *
  * @see ColorModel#getRGBdefault
  *
- * @version 	1.14, 11/29/01
+ * @version 	1.19, 02/02/00
  * @author 	Jim Graham
  */
 public class PixelGrabber implements ImageConsumer {
@@ -146,7 +149,7 @@ public class PixelGrabber implements ImageConsumer {
      * is used for every call to setPixels, otherwise the pixels are
      * accumulated in the default RGB ColorModel.  If the forceRGB
      * parameter is true, then the pixels will be accumulated in the
-     * default RGB ColorModel anywya.  A buffer is allocated by the
+     * default RGB ColorModel anyway.  A buffer is allocated by the
      * PixelGrabber to hold the pixels in either case.  If (w < 0) or
      * (h < 0), then they will default to the remaining width and
      * height of the source data when that information is delivered.
@@ -211,7 +214,16 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * Request the Image or ImageProducer to start delivering pixels and
      * wait for all of the pixels in the rectangle of interest to be
-     * delivered or until the specified timeout has elapsed.
+     * delivered or until the specified timeout has elapsed.  This method
+     * behaves in the following ways, depending on the value of 
+     * <code>ms</code>:
+     * <ul>
+     * <li> If <code>ms</code> == 0, waits until all pixels are delivered
+     * <li> If <code>ms</code> > 0, waits until all pixels are delivered 
+     * as timeout expires.
+     * <li> If <code>ms</code> < 0, returns <code>true</code> if all pixels 
+     * are grabbed, <code>false</code> otherwise and does not wait.
+     * </ul>
      * @param ms the number of milliseconds to wait for the image pixels
      * to arrive before timing out
      * @return true if the pixels were successfully grabbed, false on
@@ -594,8 +606,17 @@ public class PixelGrabber implements ImageConsumer {
     }
 
     /**
-     * DEPRECATED:  Replaced by getStatus().
-     */
+     * Returns the status of the pixels.  The ImageObserver flags
+     * representing the available pixel information are returned.
+     * This method and {@link #getStatus() getStatus} have the
+     * same implementation, but <code>getStatus</code> is the
+     * preferred method because it conforms to the convention of
+     * naming information-retrieval methods with the form
+     * "getXXX".
+     * @return the bitwise OR of all relevant ImageObserver flags
+     * @see ImageObserver
+     * @see #getStatus()
+     */  
     public synchronized int status() {
 	return flags;
     }

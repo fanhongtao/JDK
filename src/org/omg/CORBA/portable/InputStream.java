@@ -1,8 +1,11 @@
 /*
- * @(#)InputStream.java	1.21 01/11/29
+ * @(#)InputStream.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package org.omg.CORBA.portable;
 
@@ -23,64 +26,193 @@ import org.omg.CORBA.Any;
 
 public abstract class InputStream extends java.io.InputStream
 {
+    /**
+     * Reads a boolean value from this input stream.
+     */
     public abstract boolean	read_boolean();
+    /**
+     * Reads a char value from this input stream.
+     */
     public abstract char	read_char();
+    /**
+     * Reads a wide char value from this input stream.
+     */
     public abstract char	read_wchar();
+    /**
+     * Reads an octet (i.e. a byte) value from this input stream.
+     */
     public abstract byte	read_octet();
+    /**
+     * Reads a short value from this input stream.
+     */
     public abstract short	read_short();
+    /**
+     * Reads a unsigned short value from this input stream.
+     */
     public abstract short	read_ushort();
+    /**
+     * Reads a CORBA long (i.e. Java int) value from this input stream.
+     */
     public abstract int		read_long();
+    /**
+     * Reads an unsigned CORBA long (i.e. Java int) value from this input stream.
+     */
     public abstract int		read_ulong();
+    /**
+     * Reads a CORBA longlong (i.e. Java long) value from this input stream.
+     */
     public abstract long	read_longlong();
+    /**
+     * Reads a CORBA unsigned longlong (i.e. Java long) value from this input stream.
+     */
     public abstract long	read_ulonglong();
+    /**
+     * Reads a float value from this input stream.
+     */
     public abstract float	read_float();
+    /**
+     * Reads a double value from this input stream.
+     */
     public abstract double	read_double();
+    /**
+     * Reads a string value from this input stream.
+     */
     public abstract String	read_string();
+    /**
+     * Reads a wide string value from this input stream.
+     */
     public abstract String	read_wstring();
 
+    /**
+     * Reads an array of booleans from this input stream.
+     * @param value returned array of booleans.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_boolean_array(boolean[] value, int offset, int length);
+    /**
+     * Reads an array of chars from this input stream.
+     * @param value returned array of chars.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_char_array(char[] value, int offset, int length);
+    /**
+     * Reads an array of wide chars from this input stream.
+     * @param value returned array of wide chars.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_wchar_array(char[] value, int offset, int length);
+    /**
+     * Reads an array of octets (i.e. bytes) from this input stream.
+     * @param value returned array of octets (i.e. bytes).
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_octet_array(byte[] value, int offset, int length);
+    /**
+     * Reads an array of shorts from this input stream.
+     * @param value returned array of shorts.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_short_array(short[] value, int offset, int length);
+    /**
+     * Reads an array of unsigned shorts from this input stream.
+     * @param value returned array of shorts.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_ushort_array(short[] value, int offset, int length);
+    /**
+     * Reads an array of CORBA longs (i.e. Java ints) from this input stream.
+     * @param value returned array of CORBA longs (i.e. Java ints).
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_long_array(int[] value, int offset, int length);
+    /**
+     * Reads an array of unsigned CORBA longs (i.e. Java ints) from this input stream.
+     * @param value returned array of CORBA longs (i.e. Java ints).
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_ulong_array(int[] value, int offset, int length);
+    /**
+     * Reads an array of CORBA longlongs (i.e. Java longs) from this input stream.
+     * @param value returned array of CORBA longs (i.e. Java longs).
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_longlong_array(long[] value, int offset, int length);
+    /**
+     * Reads an array of unsigned CORBA longlongs (i.e. Java longs) from this input stream.
+     * @param value returned array of CORBA longs (i.e. Java longs).
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_ulonglong_array(long[] value, int offset, int length);
+    /**
+     * Reads an array of floats from this input stream.
+     * @param value returned array of floats.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_float_array(float[] value, int offset, int length);
+    /**
+     * Reads an array of boubles from this input stream.
+     * @param value returned array of doubles.
+     * @param offset offset on the stream.
+     * @param length length of buffer to read
+     */
     public abstract void	read_double_array(double[] value, int offset, int length);
 
+    /**
+     * Reads a CORBA object from this input stream.
+     */
     public abstract org.omg.CORBA.Object read_Object();
+    /**
+     * Reads a TypeCode from this input stream.
+     */
     public abstract TypeCode	read_TypeCode();
+    /**
+     * Reads an Any from this input stream.
+     */
     public abstract Any		read_any();
 
     /**
+     * Returns principle for invocation.
+     * @return Principle for invocation.
      * @deprecated Deprecated by CORBA 2.2.
      */
     public abstract Principal	read_Principal();
 
 
-	/**
-	 * @see <a href="package-summary.html#unimpl"><code>portable</code>
-	 * package comments for unimplemented features</a>
-	 */
+    /**
+     * @see <a href="package-summary.html#unimpl"><code>portable</code>
+     * package comments for unimplemented features</a>
+     */
     public int read() throws java.io.IOException {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 
-	/**
-	 * @see <a href="package-summary.html#unimpl"><code>portable</code>
-	 * package comments for unimplemented features</a>
-	 */
+    /**
+     * Reads a BigDecimal number.
+     * @return a java.math.BigDecimal number.
+     * @see <a href="package-summary.html#unimpl"><code>portable</code>
+     * package comments for unimplemented features</a>
+     */
     public java.math.BigDecimal read_fixed() {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 
-	/**
-	 * @see <a href="package-summary.html#unimpl"><code>portable</code>
-	 * package comments for unimplemented features</a>
-	 */
+    /**
+     * Reads a CORBA context from the stream.
+     * @return a CORBA context.
+     * @see <a href="package-summary.html#unimpl"><code>portable</code>
+     * package comments for unimplemented features</a>
+     */
     public org.omg.CORBA.Context read_Context() {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
@@ -93,20 +225,26 @@ public abstract class InputStream extends java.io.InputStream
      * read_Object unmarshals an object and returns a CORBA Object
      * which is an instance of the class passed as its argument.
      * This class is the stub class of the expected type.
-	 *
-	 * @see <a href="package-summary.html#unimpl"><code>portable</code>
-	 * package comments for unimplemented features</a>
+     *
+     * @param clz  a Class object, one of whose instances this method will read
+     * and return from the stream.
+     * @return an Object instance of clz read from this stream.
+     *
+     * @see <a href="package-summary.html#unimpl"><code>portable</code>
+     * package comments for unimplemented features</a>
      */
     public  org.omg.CORBA.Object read_Object(java.lang.Class
-						     clz) {
+					     clz) {
 	throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 
     /**
-     * Return the ORB that created this InputStream
-	 *
-	 * @see <a href="package-summary.html#unimpl"><code>portable</code>
-	 * package comments for unimplemented features</a>
+     * Returns the ORB that created this InputStream.
+     *
+     * @return an ORB object.
+     *
+     * @see <a href="package-summary.html#unimpl"><code>portable</code>
+     * package comments for unimplemented features</a>
      */
     public org.omg.CORBA.ORB orb() {
 	throw new org.omg.CORBA.NO_IMPLEMENT();

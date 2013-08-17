@@ -1,8 +1,11 @@
 /*
- * @(#)MotifDesktopIconUI.java	1.16 01/11/29
+ * @(#)MotifDesktopIconUI.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -21,7 +24,7 @@ import java.io.Serializable;
 /**
  * Motif rendition of the component.
  *
- * @version 1.16 11/29/01
+ * @version 1.18 02/02/00
  * @author Thomas Ball
  * @author Rich Schiavi
  */
@@ -319,6 +322,11 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
 		    getFrame().setIcon(false);
 		} catch (PropertyVetoException e2){ }
 		systemMenu.setVisible(false);
+		/* the mouse release will not get reported correctly,
+		   because the icon will no longer be in the hierarchy;
+		   maybe that should be fixed, but until it is, we need
+		   to do the required cleanup here. */
+	        getFrame().getDesktopPane().getDesktopManager().endDraggingFrame((JComponent)e.getSource());
 	    }
 	}
     }

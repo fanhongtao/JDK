@@ -1,8 +1,11 @@
 /*
- * @(#)SocketPermission.java	1.30 01/11/29
+ * @(#)SocketPermission.java	1.36 00/07/12
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.net;
@@ -74,13 +77,15 @@ import java.io.IOException;
  * transfer and share confidential data among parties who may not
  * otherwise have access to the data.
  * 
- * @see Permissions
- * @see SocketPermissions
+ * @see java.security.Permissions
+ * @see SocketPermission
  *
- * @version 1.30 01/11/29
+ * @version 1.36 00/07/12
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
+ *
+ * @serial exclude
  */
 
 public final class SocketPermission extends Permission 
@@ -306,8 +311,8 @@ implements java.io.Serializable
      */
     private void init(String host, int mask) {
 
-	if (host == null)
-	    throw new NullPointerException("host can't be null");
+	if (host == null) 
+		throw new NullPointerException("host can't be null");
 
 	host = getHost(host);
 
@@ -629,7 +634,7 @@ implements java.io.Serializable
 
 	// return if either one of these NetPerm objects are invalid...
 	if (this.invalid || that.invalid) {
-		return (trustProxy ? inProxyWeTrust(that) : false);
+	    return (trustProxy ? inProxyWeTrust(that) : false);
 	}
 
 
@@ -703,8 +708,8 @@ implements java.io.Serializable
 	    return (this.cname.equalsIgnoreCase(that.cname));
 
 	} catch (UnknownHostException uhe) {
-		if (trustProxy)
-			return inProxyWeTrust(that);
+	    if (trustProxy)
+		return inProxyWeTrust(that);
 	}
 
 	// make sure the first thing that is done here is to return
@@ -713,27 +718,27 @@ implements java.io.Serializable
 	return false; 
     }
 
-	private boolean inProxyWeTrust(SocketPermission that) {
-    // if we trust the proxy, we see if the original names/IPs passed
-    // in were equal.
+    private boolean inProxyWeTrust(SocketPermission that) {
+	// if we trust the proxy, we see if the original names/IPs passed
+	// in were equal.
 
-    String thisHost = getName();
-    String thatHost = that.getName();
+	String thisHost = getName();
+	String thatHost = that.getName();
 
-    int sep = thisHost.indexOf(':');
-    if (sep != -1)
-            thisHost = thisHost.substring(0, sep);
+	int sep = thisHost.indexOf(':');
+	if (sep != -1)
+	    thisHost = thisHost.substring(0, sep);
 
-    sep = thatHost.indexOf(':');
-    if (sep != -1)
-            thatHost = thatHost.substring(0, sep);
+	sep = thatHost.indexOf(':');
+	if (sep != -1)
+	    thatHost = thatHost.substring(0, sep);
 
-    if (thisHost == null)
-            return false;
-    else
-            return thisHost.equalsIgnoreCase(thatHost);
+	if (thisHost == null) 
+	    return false;
+	else 
+	    return thisHost.equalsIgnoreCase(thatHost);
+
     }
-
     /**
      * Checks two SocketPermission objects for equality. 
      * <P>
@@ -984,9 +989,11 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.30 03/09/04
+ * @version 1.36 07/12/00
  *
  * @author Roland Schemers
+ *
+ * @serial include
  */
 
 final class SocketPermissionCollection extends PermissionCollection 
@@ -1012,6 +1019,12 @@ implements Serializable
      * the name in the case of wildcards, or all the IP addresses.
      *
      * @param permission the Permission object to add.
+     *
+     * @exception IllegalArgumentException - if the permission is not a
+     *                                       SocketPermission
+     *
+     * @exception SecurityException - if this SocketPermissionCollection object
+     *                                has been marked readonly
      */
 
     public void add(Permission permission)
@@ -1019,7 +1032,6 @@ implements Serializable
 	if (! (permission instanceof SocketPermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
-
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 

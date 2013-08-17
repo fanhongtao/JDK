@@ -1,18 +1,16 @@
 /*
- * @(#)NumberFormat.java	1.42 01/11/29
+ * @(#)NumberFormat.java	1.47 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)NumberFormat.java	1.42 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -20,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -43,6 +28,7 @@ import java.text.resources.*;
 import java.util.Hashtable;
 import java.math.BigInteger;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -156,7 +142,7 @@ import java.io.ObjectOutputStream;
  *
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.22 29 Jan 1997
+ * @version      1.47, 01/19/00
  * @author       Mark Davis
  * @author       Helena Shih
  */
@@ -176,6 +162,20 @@ public abstract class NumberFormat extends Format{
      */
     public static final int FRACTION_FIELD = 1;
 
+    /**
+     * Formats an object to produce a string.
+     * This general routines allows polymorphic parsing and
+     * formatting for objectst.
+     * @param obj    The object to format
+     * @param toAppendTo    where the text is to be appended
+     * @param pos    On input: an alignment field, if desired.
+     * On output: the offsets of the alignment field.
+     * @return       the value passed in as toAppendTo (this allows chaining,
+     * as with StringBuffer.append())
+     * @exception IllegalArgumentException when the Format cannot format the
+     * given object.
+     * @see java.text.FieldPosition
+     */
     public final StringBuffer format(Object number,
                                      StringBuffer toAppendTo,
                                      FieldPosition pos)
@@ -210,6 +210,14 @@ public abstract class NumberFormat extends Format{
         }
     }
 
+    /**
+     * Parses a string to produce an object.
+     * @param source the string to parse.
+     * @param parsePosition Input-Output parameter.  On input, the position
+     * to begin parsing.  On output, the position of the first unparse character.
+     * @return Object parsed from string. In case of error, returns null.
+     * @see java.text.ParsePosition
+     */
     public final Object parseObject(String source,
                                     ParsePosition parsePosition)
     {
@@ -574,7 +582,14 @@ public abstract class NumberFormat extends Format{
      * Finally, set serialVersionOnStream back to the maximum allowed value so that
      * default serialization will work properly if this object is streamed out again.
      *
-     * @since JDK 1.2
+     * <p>If <code>minimumIntegerDigits</code> is greater than
+     * <code>maximumIntegerDigits</code> or <code>minimumFractionDigits</code>
+     * is greater than <code>maximumFractionDigits</code>, then the stream data
+     * is invalid and this method throws an <code>InvalidObjectException</code>.
+     * In addition, if any of these values is negative, then this method throws
+     * an <code>InvalidObjectException</code>.
+     *
+     * @since 1.2
      */
     private void readObject(ObjectInputStream stream)
          throws IOException, ClassNotFoundException
@@ -587,6 +602,11 @@ public abstract class NumberFormat extends Format{
             maximumFractionDigits = maxFractionDigits;
             minimumFractionDigits = minFractionDigits;
         }
+        if (minimumIntegerDigits > maximumIntegerDigits ||
+            minimumFractionDigits > maximumFractionDigits ||
+            minimumIntegerDigits < 0 || minimumFractionDigits < 0) {
+            throw new InvalidObjectException("Digit count range invalid");
+        }
         serialVersionOnStream = currentSerialVersion;
     }
 
@@ -597,7 +617,7 @@ public abstract class NumberFormat extends Format{
      * (or to <code>Byte.MAX_VALUE</code>, whichever is smaller), for compatibility
      * with the JDK 1.1 version of the stream format.
      *
-     * @since JDK 1.2
+     * @since 1.2
      */
     private void writeObject(ObjectOutputStream stream)
          throws IOException
@@ -638,7 +658,7 @@ public abstract class NumberFormat extends Format{
      * <code>minIntegerDigits</code>.
      * <p>
      * <strong>Note:</strong> This field exists only for serialization
-     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * compatibility with JDK 1.1.  In Java platform 2 v1.2 and higher, the new
      * <code>int</code> field <code>maximumIntegerDigits</code> is used instead.
      * When writing to a stream, <code>maxIntegerDigits</code> is set to
      * <code>maximumIntegerDigits</code> or <code>Byte.MAX_VALUE</code>,
@@ -656,7 +676,7 @@ public abstract class NumberFormat extends Format{
      * <code>maximumIntegerDigits</code>.
      * <p>
      * <strong>Note:</strong> This field exists only for serialization
-     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * compatibility with JDK 1.1.  In Java platform 2 v1.2 and higher, the new
      * <code>int</code> field <code>minimumIntegerDigits</code> is used instead.
      * When writing to a stream, <code>minIntegerDigits</code> is set to
      * <code>minimumIntegerDigits</code> or <code>Byte.MAX_VALUE</code>,
@@ -674,7 +694,7 @@ public abstract class NumberFormat extends Format{
      * <code>minimumFractionDigits</code>.
      * <p>
      * <strong>Note:</strong> This field exists only for serialization
-     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * compatibility with JDK 1.1.  In Java platform 2 v1.2 and higher, the new
      * <code>int</code> field <code>maximumFractionDigits</code> is used instead.
      * When writing to a stream, <code>maxFractionDigits</code> is set to
      * <code>maximumFractionDigits</code> or <code>Byte.MAX_VALUE</code>,
@@ -692,7 +712,7 @@ public abstract class NumberFormat extends Format{
      * <code>maximumFractionDigits</code>.
      * <p>
      * <strong>Note:</strong> This field exists only for serialization
-     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * compatibility with JDK 1.1.  In Java platform 2 v1.2 and higher, the new
      * <code>int</code> field <code>minimumFractionDigits</code> is used instead.
      * When writing to a stream, <code>minFractionDigits</code> is set to
      * <code>minimumFractionDigits</code> or <code>Byte.MAX_VALUE</code>,
@@ -720,7 +740,7 @@ public abstract class NumberFormat extends Format{
      * <code>minimumIntegerDigits</code>.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      * @see #getMaximumIntegerDigits
      */
     private int    maximumIntegerDigits = 40;
@@ -731,7 +751,7 @@ public abstract class NumberFormat extends Format{
      * <code>maximumIntegerDigits</code>.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      * @see #getMinimumIntegerDigits
      */
     private int    minimumIntegerDigits = 1;
@@ -742,7 +762,7 @@ public abstract class NumberFormat extends Format{
      * <code>minimumFractionDigits</code>.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      * @see #getMaximumFractionDigits
      */
     private int    maximumFractionDigits = 3;    // invariant, >= minFractionDigits
@@ -753,7 +773,7 @@ public abstract class NumberFormat extends Format{
      * <code>maximumFractionDigits</code>.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      * @see #getMinimumFractionDigits
      */
     private int    minimumFractionDigits = 0;
@@ -769,7 +789,7 @@ public abstract class NumberFormat extends Format{
      *     <code>maximumIntegerDigits</code> were not present, and the <code>byte</code>
      *     fields such as <code>maxIntegerDigits</code> are used instead.
      *
-     * <li><b>1</b>: the JDK 1.2 version of the stream format.  The values of the
+     * <li><b>1</b>: the 1.2 version of the stream format.  The values of the
      *     <code>byte</code> fields such as <code>maxIntegerDigits</code> are ignored,
      *     and the <code>int</code> fields such as <code>maximumIntegerDigits</code>
      *     are used instead.
@@ -779,7 +799,7 @@ public abstract class NumberFormat extends Format{
      * is always written.
      *
      * @serial
-     * @since JDK 1.2
+     * @since 1.2
      */
     private int serialVersionOnStream = currentSerialVersion;
 

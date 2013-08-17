@@ -1,8 +1,11 @@
 /*
- * @(#)PropertyDescriptor.java	1.47 01/11/29
+ * @(#)PropertyDescriptor.java	1.52 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans;
@@ -20,7 +23,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * Constructs a PropertyDescriptor for a property that follows
      * the standard Java convention by having getFoo and setFoo 
      * accessor methods.  Thus if the argument name is "fred", it will
-     * assume that the writer method is "setFred" and the writer method 
+     * assume that the writer method is "setFred" and the reader method 
      * is "getFred" (or "isFred" for a boolean property).  Note that the
      * property name should start with a lower case character, which will
      * be capitalized in the method names.
@@ -38,17 +41,21 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	}
 	setName(propertyName);
 	String base = capitalize(propertyName);
-	writeMethod = Introspector.findMethod(beanClass, "set" + base, 1);
-	// If it's a boolean property check for an "isFoo" first.
-	if (writeMethod.getParameterTypes()[0] == Boolean.TYPE) {
-	    try {
-		readMethod = Introspector.findMethod(beanClass, "is" + base, 0);
-	    } catch (Exception ex) {
-	    }
-	}
-	if (readMethod == null) {
+
+	// Since there can be multiple setter methods but only one getter
+        // method, find the getter method first so that you know what the
+        // property type is.  For booleans, there can be "is" and "get"
+        // methods.  If an "is" method exists, this is the official 
+	// reader method so look for this one first.
+        try {
+	    readMethod = Introspector.findMethod(beanClass, "is" + base, 0);
+	} catch (Exception getterExc) {
+            // no "is" method, so look for a "get" method.
 	    readMethod = Introspector.findMethod(beanClass, "get" + base, 0);
 	}
+        Class params[] = { readMethod.getReturnType() };
+        writeMethod = Introspector.findMethod(beanClass, "set" + base, 1, 
+                                              params);
 	findPropertyType();
     }
 
@@ -74,7 +81,13 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	}
 	setName(propertyName);
 	readMethod = Introspector.findMethod(beanClass, getterName, 0);
-	writeMethod = Introspector.findMethod(beanClass, setterName, 1);
+	if (readMethod != null) {
+	    Class params[] = { readMethod.getReturnType() };
+	    writeMethod = Introspector.findMethod(beanClass, setterName, 1,
+                                                  params);
+	} else {
+	    writeMethod = Introspector.findMethod(beanClass, setterName, 1);
+	}
 	findPropertyType();
     }
 

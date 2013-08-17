@@ -1,8 +1,11 @@
 /*
- * @(#)FileInputStream.java	1.43 01/11/29
+ * @(#)FileInputStream.java	1.45 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,7 +16,7 @@ package java.io;
  * are  available depends on the host environment.
  *
  * @author  Arthur van Hoff
- * @version 1.43, 11/29/01
+ * @version 1.45, 02/02/00
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream
@@ -93,20 +96,22 @@ class FileInputStream extends InputStream
     }
 
     /**
-     * Creates a <code>FileInputStream</code> by
-     * using the file  descriptor <code>fdObj</code>,
-     * which represents an existing connection
-     * to an actual file in the  file system.
+     * Creates a <code>FileInputStream</code> by using the file descriptor
+     * <code>fdObj</code>, which represents an existing connection to an
+     * actual file in the file system.
      * <p>
-     * First, if there is a security manager, its
-     * <code>checkRead</code> method  is called
-     * with the file descriptor <code>fdObj</code>
-     * as its argument to see if it's ok to read the file descriptor.
+     * If there is a security manager, its <code>checkRead</code> method is
+     * called with the file descriptor <code>fdObj</code> as its argument to
+     * see if it's ok to read the file descriptor. If read access is denied
+     * to the file descriptor a <code>SecurityException</code> is thrown.
+     * <p>
+     * If <code>fdObj</code> is null then a <code>NullPointerException</code>
+     * is thrown.
      *
      * @param      fdObj   the file descriptor to be opened for reading.
-     * @throws  SecurityException
-     *          if a security manager exists and its <code>checkRead</code> method denies
-     *          read access to the file descriptor.
+     * @throws     SecurityException      if a security manager exists and its
+     *                 <code>checkRead</code> method denies read access to the
+     *                 file descriptor.
      * @see        SecurityManager#checkRead(java.io.FileDescriptor)
      */
     public FileInputStream(FileDescriptor fdObj) {

@@ -1,8 +1,11 @@
 /*
- * @(#)AWTEvent.java	1.34 01/11/29
+ * @(#)AWTEvent.java	1.38 00/02/11
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -17,27 +20,39 @@ import java.awt.event.*;
  * Subclasses of this root AWTEvent class defined outside of the
  * java.awt.event package should define event ID values greater than
  * the value defined by RESERVED_ID_MAX.
- *
- * The event masks defined in this class are needed ONLY by
- * component subclasses which are using Component.enableEvents()
- * to select for event types not selected by registered listeners.
- * If a listener is registered on a component, the appropriate event
- * mask is already set internally by the component.
+ * <p>
+ * The event masks defined in this class are needed by Component subclasses
+ * which are using Component.enableEvents() to select for event types not
+ * selected by registered listeners. If a listener is registered on a
+ * component, the appropriate event mask is already set internally by the
+ * component.
+ * <p>
+ * The masks are also used to specify to which types of events an
+ * AWTEventListener should listen. The masks are bitwise-ORed together
+ * and passed to Toolkit.addAWTEventListener.
+ * 
  * @see Component#enableEvents
+ * @see Toolkit#addAWTEventListener
  *
- * @see java.awt.event.ComponentEvent
- * @see java.awt.event.FocusEvent
- * @see java.awt.event.KeyEvent
- * @see java.awt.event.MouseEvent
- * @see java.awt.event.WindowEvent
  * @see java.awt.event.ActionEvent
  * @see java.awt.event.AdjustmentEvent
+ * @see java.awt.event.ComponentEvent
+ * @see java.awt.event.ContainerEvent
+ * @see java.awt.event.FocusEvent
+ * @see java.awt.event.InputMethodEvent
+ * @see java.awt.event.InvocationEvent
  * @see java.awt.event.ItemEvent
+ * @see java.awt.event.HierarchyEvent
+ * @see java.awt.event.KeyEvent
+ * @see java.awt.event.MouseEvent
+ * @see java.awt.event.PaintEvent
  * @see java.awt.event.TextEvent
+ * @see java.awt.event.WindowEvent
  *
- * @version 1.34 11/29/01
  * @author Carl Quinn
  * @author Amy Fowler
+ * @version 1.38 02/11/00
+ * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {
     private transient long data;
@@ -128,6 +143,26 @@ public abstract class AWTEvent extends EventObject {
      * a separate field inputMethodsEnabled.
      */
     final static long INPUT_METHODS_ENABLED_MASK = 0x1000;
+
+    /**
+     * The event mask for selecting paint events.
+     */
+    public final static long PAINT_EVENT_MASK = 0x2000;
+
+    /**
+     * The event mask for selecting invocation events.
+     */
+    public final static long INVOCATION_EVENT_MASK = 0x4000;
+
+    /**
+     * The event mask for selecting hierarchy events.
+     */
+    public final static long HIERARCHY_EVENT_MASK = 0x8000;
+
+    /**
+     * The event mask for selecting hierarchy bounds events.
+     */
+    public final static long HIERARCHY_BOUNDS_EVENT_MASK = 0x10000;
 
     /**
      * The maximum value for reserved AWT event IDs. Programs defining
@@ -352,17 +387,6 @@ public abstract class AWTEvent extends EventObject {
           default:
         }
         return null;
-    }
-
-    /* Package-private method to change a KeyEvent's source to the new
-     * focus owner.  This method needs to be here instead of in KeyEvent
-     * because it should only be called from by the EventQueue.
-     */
-    void setSource(Object newSource) {
-        if (!(this instanceof KeyEvent)) {
-            throw new ClassCastException();
-        }
-        source = newSource;
     }
 
     /**

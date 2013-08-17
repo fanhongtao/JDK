@@ -1,20 +1,19 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.30 01/11/29
+ * @(#)SystemEventQueueUtilities.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
-import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 
-import java.util.Hashtable;
-import java.util.WeakHashMap;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -25,33 +24,44 @@ import java.lang.reflect.InvocationTargetException;
  * for more information: addRunnableCanvas(), removeRunnableCanvas(),
  * postRunnable(), queueComponentWorkRequest().
  *
+ * Note: most of the code in this class is no longer needed since
+ * we're no longer supporting Swing in 1.1.x VM's and in 1.2 we're
+ * guaranteed access to the AWT event queue.  However all of the entry 
+ * points, save postRunnable(), are still used.
+ * 
  * @see RepaintManager
  * @see JRootPane
  */
-// NOTE: For 1.2 the EventQueue should always be accessible and a
-// SecurityException should never be thrown (so that all the RunnableCanvas
-// code isn't necessary).
 class SystemEventQueueUtilities
 {
+    private static final Object classLock = new Object();
 
-    /* Key into AppContext table for root mapping. 
-     */
-    private static Object rootTableKey = new Object() {
-        public String toString() {
-            return "SystemEventQueueUtilities key into AppContext table for root mapping";
-        }
+
+    private static final Object rootTableKey = new Object() {
+	public String toString() {
+	   return "SystemEventQueueUtilties.rootTableKey";
+	}
     };
 
-    /* Lock object used in place of class object for synchronization. 
-     * (4187686)
-     */
-    private static final Object classLock = new Object();
+    private static Map getRootTable() {
+	Map rt = (Map)sun.awt.AppContext.getAppContext().get(rootTableKey);
+	if (rt == null) {
+	    synchronized (rootTableKey) {
+		rt = (Map)sun.awt.AppContext.getAppContext().get(rootTableKey);
+		if (rt == null) {
+		    rt = new WeakHashMap(4);
+		    sun.awt.AppContext.getAppContext().put(rootTableKey, rt);
+		}
+	    }
+	}
+	return rt;
+    }
 
 
     /**
      * SystemEventQueue class.  This private class just exists to 
      * encapsulate the details of getting at the System Event queue 
-     * in JDK1.2 and JDK1.1.  The rest of the SystemEventQueueUtilities 
+     * in the Java 2 platform and JDK1.1.  The rest of the SystemEventQueueUtilities 
      * class just uses SystemEventQueue.get() to access the event queue.
      */
 
@@ -169,17 +179,20 @@ class SystemEventQueueUtilities
      * runnable to the AWT system event queue, we'll find it's
      * JRootPane ancestor and use that as the key to the table
      * of RunnableCanvas's.
-     * <p>
-     * Extended by RepaintManager.WorkRequest()
      *
      * @see RunnableCanvas
      */
     private static class ComponentWorkRequest implements Runnable
     {
 	boolean isPending;
-	Component component = null;
-	
-	ComponentWorkRequest() {
+	Component component;
+
+	ComponentWorkRequest(Component c) {
+	    /* As of 1.2, the component field is no longer used.  It was 
+	     * used by the RunnableCanvas class to find the JRootPane 
+	     * associated with a ComponentWorkRequest for JDK1.1.x.
+	     */
+	    // component = c;
 	}
 
 	public void run() {
@@ -197,26 +210,17 @@ class SystemEventQueueUtilities
     /**
      * This method is used by RepaintManager to queue a ComponentWorkRequest
      * with invokeLater().  It assumes that the root argument is either
-     * and Applet or a Window, see SwingUtilities.getRoot().
+     * and Applet or a Window, the root passed in obtained in a
+     * slightly different manner than see SwingUtilities.getRoot(). If this
+     * called with the root obtained in a different way than RepaintManager
+     * currently uses, be sure to also tweak removeRunnableCanvas.
      */
     static void queueComponentWorkRequest(Component root)
     {
-        WeakHashMap rootTable = 
-            (WeakHashMap) SwingUtilities.appContextGet(rootTableKey);
-        if (rootTable == null)  {
-            synchronized(rootTableKey)  {
-                rootTable = 
-		    (WeakHashMap) SwingUtilities.appContextGet(rootTableKey);
-	        if (rootTable == null)  {
-	            rootTable = new WeakHashMap();
-	            SwingUtilities.appContextPut(rootTableKey, rootTable);
-		}
-	    }
-	}
-	ComponentWorkRequest req = (ComponentWorkRequest)(rootTable.get(root));
+	ComponentWorkRequest req = (ComponentWorkRequest)(getRootTable().get(root));
 	boolean newWorkRequest = (req == null);
 	if (newWorkRequest) {
-	    req = new ComponentWorkRequest();
+	    req = new ComponentWorkRequest(root);
 	}
 
 	/* At this point the ComponentWorkRequest may be accessible from
@@ -225,7 +229,7 @@ class SystemEventQueueUtilities
 	 */
 	synchronized(req) {
 	    if (newWorkRequest) {
-		rootTable.put(root, req);
+		getRootTable().put(root, req);
 	    }
 	    if (!req.isPending) {
 		SwingUtilities.invokeLater(req);
@@ -273,20 +277,19 @@ class SystemEventQueueUtilities
      * @see RunnableCanvas
      */
     static void removeRunnableCanvas(JRootPane rootPane) {
-	Component root = null;
-	for (Component c = rootPane; c != null; c = c.getParent()) {
-	    if ((c instanceof Window) || (c instanceof Applet)) {
-		root = c;
-		break;
-	    }
-	}
 	synchronized (classLock) {
-	    if (root != null)  {
-                WeakHashMap rootTable = 
-                    (WeakHashMap) SwingUtilities.appContextGet(rootTableKey);
-		if (rootTable != null)  {
-	            rootTable.remove(root);
+	    // We don't use SwingUtilities.getRoot, as it has different
+	    // behavior then the RepaintManager call to add the initial root.
+	    Component root = null;
+	    for (Component c = rootPane; c != null; c = c.getParent()) {
+		if ((c instanceof Window) ||
+		    (c instanceof  java.applet.Applet)) {
+		    root = c;
+		    break;
 		}
+	    }
+	    if (root != null) {
+		getRootTable().remove(root);
 	    }
 	    RunnableCanvas.remove(rootPane);
 	}

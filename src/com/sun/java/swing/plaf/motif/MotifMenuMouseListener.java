@@ -1,8 +1,11 @@
 /*
- * @(#)MotifMenuMouseListener.java	1.5 01/11/29
+ * @(#)MotifMenuMouseListener.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package com.sun.java.swing.plaf.motif;
 
@@ -12,7 +15,7 @@ import javax.swing.MenuSelectionManager;
 /**
  * A default MouseListener for menu elements
  *
- * @version 1.5 11/29/01
+ * @version 1.6 02/02/00
  * @author Arnaud Weber
  */
 class MotifMenuMouseListener extends MouseAdapter {

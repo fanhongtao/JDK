@@ -1,8 +1,11 @@
 /*
- * @(#)Graphics2D.java	1.63 01/11/29
+ * @(#)Graphics2D.java	1.70 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -240,14 +243,18 @@ import java.util.Map;
  * renderers that need  to resolve integer coordinates to a 
  * discrete pen that must fall completely on a specified number of pixels.  
  * <p>
- * The Java(tm) 2D (JDK(tm) 1.2) API supports antialiasing renderers. 
+ * The Java 2D(tm) (Java(tm) 2 platform) API supports antialiasing renderers. 
  * A pen with a width of one pixel does not need to fall 
  * completely on pixel N as opposed to pixel N+1.  The pen can fall 
  * partially on both pixels. It is not necessary to choose a bias 
  * direction for a wide pen since the blending that occurs along the 
  * pen traversal edges makes the sub-pixel position of the pen 
  * visible to the user.  On the other hand, when antialiasing is 
- * turned off with the ANTIALIAS_OFF hint, the renderer might need 
+ * turned off by setting the
+ * {@link RenderingHints#KEY_ANTIALIASING KEY_ANTIALIASING} hint key
+ * to the
+ * {@link RenderingHints#VALUE_ANTIALIAS_OFF VALUE_ANTIALIAS_OFF} 
+ * hint value, the renderer might need 
  * to apply a bias to determine which pixel to modify when the pen 
  * is straddling a pixel boundary, such as when it is drawn
  * along an integer coordinate in device space.  While the capabilities
@@ -255,7 +262,11 @@ import java.util.Map;
  * rendering model to specify a bias for the pen, it is desirable for the
  * antialiasing and non-antialiasing renderers to perform similarly for
  * the common cases of drawing one-pixel wide horizontal and vertical 
- * lines on the screen.  To ensure that turning on the ANTIALIAS hint
+ * lines on the screen.  To ensure that turning on antialiasing by 
+ * setting the 
+ * {@link RenderingHints#KEY_ANTIALIASING KEY_ANTIALIASING} hint
+ * key to
+ * {@link RenderingHints#VALUE_ANTIALIAS_ON VALUE_ANTIALIAS_ON}
  * does not cause such lines to suddenly become twice as wide and half
  * as opaque, it is desirable to have the model specify a path for such
  * lines so that they completely cover a particular set of pixels to help
@@ -288,17 +299,25 @@ import java.util.Map;
  * covered.  On the other hand, since coordinates are defined to be
  * between pixels, a shape like a rectangle would have no half covered
  * pixels, whether or not it is rendered using antialiasing. 
- * <li> The <code>BasicStroke</code> object always applies a
- * (0.5,&nbsp;0.5) user space translation to its pen before stroking a
- * path.  The result of this translation is that for the default
- * <code>BasicStroke</code> with a width of 1 user space unit, the
- * line is offset entirely below and to the right of the path.
- * This rule also maintains similar visual results when the same path is
- * stroked in a scaled coordinate system, such as when rendered to a
- * printer, and also when antialiasing is turned on.  In all 3 cases, the
- * bias that was required when the line was drawn in a 1:1 coordinate
- * system and discrete pixels had to be chosen are consistent 
- * regardless of coordinate scaling or choice of antialiasing hint.
+ * <li> Lines and paths stroked using the <code>BasicStroke</code>
+ * object may be "normalized" to provide consistent rendering of the
+ * outlines when positioned at various points on the drawable and
+ * whether drawn with aliased or antialiased rendering.  This
+ * normalization process is controlled by the 
+ * {@link RenderingHints#KEY_STROKE_CONTROL KEY_STROKE_CONTROL} hint.
+ * The exact normalization algorithm is not specified, but the goals
+ * of this normalization are to ensure that lines are rendered with
+ * consistent visual appearance regardless of how they fall on the
+ * pixel grid and to promote more solid horizontal and vertical
+ * lines in antialiased mode so that they resemble their non-antialiased
+ * counterparts more closely.  A typical normalization step might
+ * promote antialiased line endpoints to pixel centers to reduce the
+ * amount of blending or adjust the subpixel positioning of
+ * non-antialiased lines so that the floating point line widths
+ * round to even or odd pixel counts with equal likelihood.  This
+ * process can move endpoints by up to half a pixel (usually towards
+ * positive infinity along both axes) to promote these consistent
+ * results.
  * </ul>
  * <p>
  * The following definitions of general legacy methods 
@@ -366,8 +385,9 @@ import java.util.Map;
  * </pre>
  * </ol>
  *
- * @version 10-Feb-97
+ * @version 	1.70, 02/02/00
  * @author Jim Graham
+ * @see java.awt.RenderingHints
  */
 public abstract class Graphics2D extends Graphics {
 
@@ -614,6 +634,8 @@ public abstract class Graphics2D extends Graphics {
      * @param str the string to be rendered
      * @param x,&nbsp;y the coordinates where the <code>String</code>
      * should be rendered
+     * @throws NullPointerException if <code>str</code> is 
+     *         <code>null</code>
      * @see         java.awt.Graphics#drawBytes
      * @see         java.awt.Graphics#drawChars
      * @since       JDK1.0
@@ -635,6 +657,8 @@ public abstract class Graphics2D extends Graphics {
      * @param s the <code>String</code> to be rendered
      * @param x,&nbsp;y the coordinates where the <code>String</code>
      * should be rendered
+     * @throws NullPointerException if <code>str</code> is
+     *         <code>null</code>
      * @see #setPaint
      * @see java.awt.Graphics#setColor
      * @see java.awt.Graphics#setFont
@@ -1141,7 +1165,7 @@ public abstract class Graphics2D extends Graphics {
      * @see java.awt.font.FontRenderContext
      * @see java.awt.Font#createGlyphVector
      * @see java.awt.font.TextLayout
-     * @since     JDK1.2
+     * @since     1.2
      */
 
     public abstract FontRenderContext getFontRenderContext();

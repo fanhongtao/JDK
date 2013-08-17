@@ -1,34 +1,105 @@
 /*
- * @(#)CSS.java	1.14 01/11/29
+ * @(#)CSS.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.io.*;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import javax.swing.SizeRequirements;
 import javax.swing.text.*;
 
 /**
  * Defines a set of
  * <a href="http://www.w3.org/TR/REC-CSS1">CSS attributes</a>
- * as a typesafe enumeration.  The html View implementations use
- * css attributes to determine how they will render. This also defines
- * methods to map between CSS<->HTML<->StyleConstants.
+ * as a typesafe enumeration.  The HTML View implementations use
+ * CSS attributes to determine how they will render. This also defines
+ * methods to map between CSS/HTML/StyleConstants. Any shorthand
+ * properties, such as font, are mapped to the intrinsic properties.
+ * <p>The following describes the CSS properties that are suppored by the
+ * rendering engine:
+ * <ul><li>font-family
+ *   <li>font-style
+ *   <li>font-size (supports relative units)
+ *   <li>font-weight
+ *   <li>font
+ *   <li>color
+ *   <li>background-color (with the exception of transparent)
+ *   <li>background-image
+ *   <li>background-repeat
+ *   <li>background-position
+ *   <li>background
+ *   <li>background-repeat
+ *   <li>text-decoration (with the exception of blink and overline)
+ *   <li>vertical-align (only sup and super)
+ *   <li>text-align (justify is treated as center)
+ *   <li>margin-top
+ *   <li>margin-right
+ *   <li>margin-bottom
+ *   <li>margin-left
+ *   <li>margin
+ *   <li>padding-top
+ *   <li>padding-right
+ *   <li>padding-bottom
+ *   <li>padding-left
+ *   <li>border-style (only supports inset, outset and none)
+ *   <li>list-style-type
+ *   <li>list-style-position
+ * </ul>
+ * The following are modeled, but currently not rendered.
+ * <ul><li>font-variant
+ *   <li>background-attachment (background always treated as scroll)
+ *   <li>word-spacing
+ *   <li>letter-spacing
+ *   <li>text-indent
+ *   <li>text-transform
+ *   <li>line-height
+ *   <li>border-top-width (this is used to indicate if a border should be used)
+ *   <li>border-right-width
+ *   <li>border-bottom-width
+ *   <li>border-left-width
+ *   <li>border-width
+ *   <li>border-top
+ *   <li>border-right
+ *   <li>border-bottom
+ *   <li>border-left
+ *   <li>border
+ *   <li>width
+ *   <li>height
+ *   <li>float
+ *   <li>clear
+ *   <li>display
+ *   <li>white-space
+ *   <li>list-style
+ * </ul>
+ * <p><b>Note: for the time being we do not fully support relative units,
+ * unless noted, so that
+ * p { margin-top: 10% } will be treated as if no margin-top was specified.
  *
  * @author  Timothy Prinzing
- * @version 1.14 11/29/01
+ * @author  Scott Violet
+ * @version 1.30 02/02/00
  * @see StyleSheet
  */
-public class CSS {
+public class CSS implements Serializable {
 
     /**
      * Definitions to be used as a key on AttributeSet's
-     * that might hold css attributes.  Since this is a
+     * that might hold CSS attributes.  Since this is a
      * closed set (i.e. defined exactly by the specification),
      * it is final and cannot be extended.
      */
@@ -43,7 +114,7 @@ public class CSS {
 	/**
 	 * The string representation of the attribute.  This
 	 * should exactly match the string specified in the
-	 * css specification.
+	 * CSS specification.
 	 */
 	public String toString() {
 	    return name;
@@ -225,12 +296,18 @@ public class CSS {
 	    new Attribute("word-spacing", "normal", true);
 
 	public static final Attribute WHITE_SPACE =
-	    new Attribute("whitespace", "normal", true);
+	    new Attribute("white-space", "normal", true);
 
 	public static final Attribute WIDTH =
 	    new Attribute("width", "auto", false);
 
-	// All possible css attribute keys.
+	/*public*/ static final Attribute BORDER_SPACING = 
+	    new Attribute("border-spacing", "0", true);
+
+	/*public*/ static final Attribute CAPTION_SIDE = 
+	    new Attribute("caption-side", "left", true);
+
+	// All possible CSS attribute keys.
 	static final Attribute[] allAttributes = {
 	    BACKGROUND, BACKGROUND_ATTACHMENT, BACKGROUND_COLOR,
 	    BACKGROUND_IMAGE, BACKGROUND_POSITION, BACKGROUND_REPEAT,
@@ -243,8 +320,17 @@ public class CSS {
 	    LIST_STYLE_TYPE, MARGIN, MARGIN_BOTTOM, MARGIN_LEFT, MARGIN_RIGHT,
 	    MARGIN_TOP, PADDING, PADDING_BOTTOM, PADDING_LEFT, PADDING_RIGHT,
 	    PADDING_TOP, TEXT_ALIGN, TEXT_DECORATION, TEXT_INDENT, TEXT_TRANSFORM,
-	    VERTICAL_ALIGN, WORD_SPACING, WHITE_SPACE, WIDTH
+	    VERTICAL_ALIGN, WORD_SPACING, WHITE_SPACE, WIDTH, 
+	    BORDER_SPACING, CAPTION_SIDE
 	};
+
+	private static final Attribute[] ALL_MARGINS =
+	        { MARGIN_TOP, MARGIN_RIGHT, MARGIN_BOTTOM, MARGIN_LEFT };
+	private static final Attribute[] ALL_PADDING =
+	        { PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT };
+	private static final Attribute[] ALL_BORDER_WIDTHS =
+	        { BORDER_TOP_WIDTH, BORDER_RIGHT_WIDTH, BORDER_BOTTOM_WIDTH,
+		  BORDER_LEFT_WIDTH };
 
     }
 
@@ -257,7 +343,7 @@ public class CSS {
 	/**
 	 * The string representation of the attribute.  This
 	 * should exactly match the string specified in the
-	 * css specification.
+	 * CSS specification.
 	 */
 	public String toString() {
 	    return name;
@@ -283,6 +369,14 @@ public class CSS {
 	static final Value UPPER_ROMAN = new Value("upper-roman");
 	static final Value LOWER_ALPHA = new Value("lower-alpha");
 	static final Value UPPER_ALPHA = new Value("upper-alpha");
+	// background-repeat
+	static final Value BACKGROUND_NO_REPEAT = new Value("no-repeat");
+	static final Value BACKGROUND_REPEAT = new Value("repeat");
+	static final Value BACKGROUND_REPEAT_X = new Value("repeat-x");
+	static final Value BACKGROUND_REPEAT_Y = new Value("repeat-y");
+	// background-attachment
+	static final Value BACKGROUND_SCROLL = new Value("scroll");
+	static final Value BACKGROUND_FIXED = new Value("fixed");
 
 	private String name;
 
@@ -290,7 +384,9 @@ public class CSS {
 	    INHERITED, NONE, DOTTED, DASHED, SOLID, DOUBLE, GROOVE,
 	    RIDGE, INSET, OUTSET, DISC, CIRCLE, SQUARE, DECIMAL,
 	    LOWER_ROMAN, UPPER_ROMAN, LOWER_ALPHA, UPPER_ALPHA,
-	    BLANK_LIST_ITEM
+	    BLANK_LIST_ITEM, BACKGROUND_NO_REPEAT, BACKGROUND_REPEAT,
+	    BACKGROUND_REPEAT_X, BACKGROUND_REPEAT_Y,
+	    BACKGROUND_FIXED, BACKGROUND_FIXED
 	};
     }
 
@@ -315,20 +411,32 @@ public class CSS {
 	valueConvertor.put(CSS.Attribute.PADDING_BOTTOM, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_LEFT, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_RIGHT, lv);
+	Object bv = new BorderWidthValue(null, 0);
 	valueConvertor.put(CSS.Attribute.BORDER_WIDTH, lv);
-	valueConvertor.put(CSS.Attribute.BORDER_TOP_WIDTH, lv);
-	valueConvertor.put(CSS.Attribute.BORDER_BOTTOM_WIDTH, lv);
-	valueConvertor.put(CSS.Attribute.BORDER_LEFT_WIDTH, lv);
-	valueConvertor.put(CSS.Attribute.BORDER_RIGHT_WIDTH, lv);
+	valueConvertor.put(CSS.Attribute.BORDER_TOP_WIDTH, bv);
+	valueConvertor.put(CSS.Attribute.BORDER_BOTTOM_WIDTH, bv);
+	valueConvertor.put(CSS.Attribute.BORDER_LEFT_WIDTH, bv);
+	valueConvertor.put(CSS.Attribute.BORDER_RIGHT_WIDTH, bv);
 	valueConvertor.put(CSS.Attribute.TEXT_INDENT, lv);
 	valueConvertor.put(CSS.Attribute.WIDTH, lv);
 	valueConvertor.put(CSS.Attribute.HEIGHT, lv);
+	valueConvertor.put(CSS.Attribute.BORDER_SPACING, lv);
 	Object sv = new StringValue();
 	valueConvertor.put(CSS.Attribute.FONT_STYLE, sv);
 	valueConvertor.put(CSS.Attribute.TEXT_DECORATION, sv);
 	valueConvertor.put(CSS.Attribute.TEXT_ALIGN, sv);
 	valueConvertor.put(CSS.Attribute.VERTICAL_ALIGN, sv);
-	valueConvertor.put(CSS.Attribute.LIST_STYLE_TYPE, new ListType());
+	Object valueMapper = new CssValueMapper();
+	valueConvertor.put(CSS.Attribute.LIST_STYLE_TYPE,
+			   valueMapper);
+	valueConvertor.put(CSS.Attribute.BACKGROUND_IMAGE,
+			   new BackgroundImage());
+	valueConvertor.put(CSS.Attribute.BACKGROUND_POSITION,
+			   new BackgroundPosition());
+	valueConvertor.put(CSS.Attribute.BACKGROUND_REPEAT,
+			   valueMapper);
+	valueConvertor.put(CSS.Attribute.BACKGROUND_ATTACHMENT,
+			   valueMapper);
 	Object generic = new CssValue();
 	int n = CSS.Attribute.allAttributes.length;
 	for (int i = 0; i < n; i++) {
@@ -380,8 +488,43 @@ public class CSS {
     }
 
     /**
+     * Parses the CSS property <code>key</code> with value
+     * <code>value</code> placing the result in <code>att</code>.
+     */
+    void addInternalCSSValue(MutableAttributeSet attr,
+			     CSS.Attribute key, String value) {
+	if (key == CSS.Attribute.FONT) {
+	    ShorthandFontParser.parseShorthandFont(this, value, attr);
+	}
+	else if (key == CSS.Attribute.BACKGROUND) {
+	    ShorthandBackgroundParser.parseShorthandBackground
+		               (this, value, attr);
+	}
+	else if (key == CSS.Attribute.MARGIN) {
+	    ShorthandMarginParser.parseShorthandMargin(this, value, attr,
+					   CSS.Attribute.ALL_MARGINS);
+	}
+	else if (key == CSS.Attribute.PADDING) {
+	    ShorthandMarginParser.parseShorthandMargin(this, value, attr,
+					   CSS.Attribute.ALL_PADDING);
+	}
+	else if (key == CSS.Attribute.BORDER_WIDTH) {
+	    ShorthandMarginParser.parseShorthandMargin(this, value, attr,
+					   CSS.Attribute.ALL_BORDER_WIDTHS);
+	}
+	else {
+	    Object iValue = getInternalCSSValue(key, value);
+	    if (iValue != null) {
+		attr.addAttribute(key, iValue);
+	    }
+	}
+    }
+
+    /**
      * Gets the internal CSS representation of <code>value</code> which is
-     * a CSS value of the CSS attribute named <code>key</code>.
+     * a CSS value of the CSS attribute named <code>key</code>. The receiver
+     * should not modify <code>value</code>, and the first <code>count</code>
+     * strings are valid.
      */
     Object getInternalCSSValue(CSS.Attribute key, String value) {
 	CssValue conv = (CssValue) valueConvertor.get(key);
@@ -414,7 +557,8 @@ public class CSS {
      */
     Object cssValueToStyleConstantsValue(StyleConstants key, Object value) {
 	if (value instanceof CssValue) {
-	    return ((CssValue)value).toStyleConstants((StyleConstants)key);
+	    return ((CssValue)value).toStyleConstants((StyleConstants)key,
+						      null);
 	}
 	return null;
     }
@@ -426,12 +570,7 @@ public class CSS {
      * the font once the size, name and style have been determined.
      */
     Font getFont(StyleContext sc, AttributeSet a, int defaultSize) {
-	// PENDING(prinz) this is a 1.1 based implementation, need to also
-	// have a 1.2 version.
-	FontSize sizeValue = (FontSize)a.getAttribute(CSS.Attribute.FONT_SIZE);
-
-	int size = (sizeValue != null) ? (int) sizeValue.getValue(a) :
-	                                 defaultSize;
+	int size = getFontSize(a, defaultSize);
 
 	/*
 	 * If the vertical alignment is set to either superscirpt or
@@ -465,13 +604,23 @@ public class CSS {
 	return f;
     }
 
+    static int getFontSize(AttributeSet attr, int defaultSize) {
+	// PENDING(prinz) this is a 1.1 based implementation, need to also
+	// have a 1.2 version.
+	FontSize sizeValue = (FontSize)attr.getAttribute(CSS.Attribute.
+							 FONT_SIZE);
+
+	return (sizeValue != null) ? (int)sizeValue.getValue(attr) :
+	                             defaultSize;
+    }
+
     /**
      * Takes a set of attributes and turn it into a color
      * specification.  This might be used to specify things
      * like brighter, more hue, etc.
      * This will return null if there is no value for <code>key</code>.
      *
-     * @parram key CSS.Attribute identifying where color is stored.
+     * @param key CSS.Attribute identifying where color is stored.
      * @param a the set of attributes
      * @return the color
      */
@@ -517,8 +666,8 @@ public class CSS {
     }
 
     /**
-     * Convert a set of html attributes to an equivalent
-     * set of css attributes.
+     * Convert a set of HTML attributes to an equivalent
+     * set of CSS attributes.
      *
      * @param AttributeSet containing the HTML attributes.
      * @return AttributeSet containing the corresponding CSS attributes.
@@ -548,14 +697,28 @@ public class CSS {
 	} else {
 	    translateAttributes(tag, htmlAttrSet, cssAttrSet);
 	}
+	if (tag == HTML.Tag.CAPTION) {
+	    /* 
+	     * Navigator uses ALIGN for caption placement and IE uses VALIGN.
+	     */
+	    Object v = htmlAttrSet.getAttribute(HTML.Attribute.ALIGN);
+	    if ((v != null) && (v.equals("top") || v.equals("bottom"))) {
+		cssAttrSet.addAttribute(CSS.Attribute.CAPTION_SIDE, v);
+		cssAttrSet.removeAttribute(CSS.Attribute.TEXT_ALIGN);
+	    } else {
+		v = htmlAttrSet.getAttribute(HTML.Attribute.VALIGN);
+		if (v != null) {
+		    cssAttrSet.addAttribute(CSS.Attribute.CAPTION_SIDE, v);
+		}
+	    }
+	}
 	return cssAttrSet;
     }
-
 
     private static final Hashtable attributeMap = new Hashtable();
     private static final Hashtable valueMap = new Hashtable();
     /**
-     * The html/css size model has seven slots
+     * The HTML/CSS size model has seven slots
      * that one can assign sizes to.
      */
     static int sizeMap[] = { 8, 10, 12, 14, 18, 24, 36 };
@@ -581,7 +744,11 @@ public class CSS {
     /** Maps from HTML value to a CSS value. Used in internal mapping. */
     private static final Hashtable htmlValueToCssValueMap = new Hashtable(8);
     /** Maps from CSS value (string) to internal value. */
-    private static final Hashtable cssValueToInternalValueMap = new Hashtable(8);
+    private static final Hashtable cssValueToInternalValueMap = new Hashtable(13);
+
+    /** Used to indicate if a font family name is valid. */
+    private static Hashtable fontMapping;
+    private static final Object fontMappingLock = new Object();
 
     static {
 	// load the attribute map
@@ -610,11 +777,11 @@ public class CSS {
 	htmlAttrToCssAttrMap.put(HTML.Attribute.HEIGHT,
 				 new CSS.Attribute[]{CSS.Attribute.HEIGHT});
 	htmlAttrToCssAttrMap.put(HTML.Attribute.BORDER,
-				 new CSS.Attribute[]{CSS.Attribute.BORDER_WIDTH});
+				 new CSS.Attribute[]{CSS.Attribute.BORDER_TOP_WIDTH, CSS.Attribute.BORDER_RIGHT_WIDTH, CSS.Attribute.BORDER_BOTTOM_WIDTH, CSS.Attribute.BORDER_LEFT_WIDTH});
 	htmlAttrToCssAttrMap.put(HTML.Attribute.CELLPADDING,
 				 new CSS.Attribute[]{CSS.Attribute.PADDING});
 	htmlAttrToCssAttrMap.put(HTML.Attribute.CELLSPACING,
-				 new CSS.Attribute[]{CSS.Attribute.MARGIN});
+				 new CSS.Attribute[]{CSS.Attribute.BORDER_SPACING});
 	htmlAttrToCssAttrMap.put(HTML.Attribute.MARGINWIDTH,
 				 new CSS.Attribute[]{CSS.Attribute.MARGIN_LEFT,
 						     CSS.Attribute.MARGIN_RIGHT});
@@ -639,6 +806,8 @@ public class CSS {
 						     CSS.Attribute.FLOAT});
 	htmlAttrToCssAttrMap.put(HTML.Attribute.TYPE,
 				 new CSS.Attribute[]{CSS.Attribute.LIST_STYLE_TYPE});
+	htmlAttrToCssAttrMap.put(HTML.Attribute.NOWRAP,
+				 new CSS.Attribute[]{CSS.Attribute.WHITE_SPACE});
 
 	// initialize StyleConstants mapping 
 	styleConstantToCssMap.put(StyleConstants.FontFamily, 
@@ -693,6 +862,17 @@ public class CSS {
 	cssValueToInternalValueMap.put("upper-roman", CSS.Value.UPPER_ROMAN);
 	cssValueToInternalValueMap.put("lower-alpha", CSS.Value.LOWER_ALPHA);
 	cssValueToInternalValueMap.put("upper-alpha", CSS.Value.UPPER_ALPHA);
+	cssValueToInternalValueMap.put("repeat", CSS.Value.BACKGROUND_REPEAT);
+	cssValueToInternalValueMap.put("no-repeat",
+				       CSS.Value.BACKGROUND_NO_REPEAT);
+	cssValueToInternalValueMap.put("repeat-x",
+				       CSS.Value.BACKGROUND_REPEAT_X);
+	cssValueToInternalValueMap.put("repeat-y",
+				       CSS.Value.BACKGROUND_REPEAT_Y);
+	cssValueToInternalValueMap.put("scroll",
+				       CSS.Value.BACKGROUND_SCROLL);
+	cssValueToInternalValueMap.put("fixed",
+				       CSS.Value.BACKGROUND_FIXED);
 
         // Register all the CSS attribute keys for archival/unarchival
 	Object[] keys = CSS.Attribute.allAttributes;
@@ -703,6 +883,71 @@ public class CSS {
 	} catch (Throwable e) {
 	    e.printStackTrace();
 	}
+
+        // Register all the CSS Values for archival/unarchival
+	keys = CSS.Value.allValues;
+	try {
+	    for (int i = 0; i < keys.length; i++) {
+		StyleContext.registerStaticAttributeKey(keys[i]);
+	    }
+	} catch (Throwable e) {
+	    e.printStackTrace();
+	}
+    }
+
+    /**
+     * Returns a hashtable whose contents are used to indicate the valid
+     * fonts.
+     */
+    static Hashtable getValidFontNameMapping() {
+	if (fontMapping == null) {
+	    // This can get called from multiple threads, lock before setting
+	    synchronized(fontMappingLock) {
+		if (fontMapping == null) {
+		    String[]      names = null;
+
+		    // Use the 1.2 GraphicsEnvironment for getting font names,
+		    // if we can.
+		    try {
+			Class ge = Class.forName("java.awt.GraphicsEnvironment");
+			if (ge != null) {
+			    Method method = ge.getDeclaredMethod
+				("getLocalGraphicsEnvironment", null);
+			    if (method != null) {
+				Object instance = method.invoke(ge, null);
+				if (instance != null) {
+				    method = ge.getMethod
+					("getAvailableFontFamilyNames", null);
+				    if (method != null) {
+					names = (String[])method.invoke
+					    (instance, null);
+				    }
+				}
+			    }
+			}
+		    }
+		    catch (Throwable th) { }
+		    if (names == null) {
+			// We can't, use the Toolkit method.
+			names = Toolkit.getDefaultToolkit().getFontList();
+		    }
+		    if (names != null) {
+			fontMapping = new Hashtable(names.length * 2);
+			for (int counter = names.length - 1; counter >= 0;
+			     counter--) {
+			    // Put both lowercase and case value in table.
+			    fontMapping.put(names[counter].toLowerCase(),
+					    names[counter]);
+			    fontMapping.put(names[counter], names[counter]);
+			}
+		    }
+		    else {
+			fontMapping = new Hashtable(1);
+		    }
+		}
+	    }
+	}
+	return fontMapping;
     }
 
     /**
@@ -718,7 +963,7 @@ public class CSS {
      * Translate a string to a CSS.Attribute object.  This
      * will return null if there is no attribute by the given
      * name.
-     * @param name the name of the css attribute to fetch the
+     * @param name the name of the CSS attribute to fetch the
      *  typesafe enumeration for.
      * @returns the CSS.Attribute object, or null if the string
      *  doesn't represent a valid attribute key.
@@ -731,11 +976,11 @@ public class CSS {
      * Translate a string to a CSS.Value object.  This
      * will return null if there is no value by the given
      * name.
-     * @param name the name of the css value to fetch the
+     * @param name the name of the CSS value to fetch the
      *  typesafe enumeration for.
      * @returns the CSS.Value object, or null if the string
-     *  doesn't represent a valid css value name.  This does
-     *  not mean it doesn't represent a valid css value.
+     *  doesn't represent a valid CSS value name.  This does
+     *  not mean it doesn't represent a valid CSS value.
      */
     static final Value getValue(String name) {
 	return (Value) valueMap.get(name);
@@ -745,6 +990,41 @@ public class CSS {
     //
     // Conversion related methods/classes
     //
+
+    /**
+     * Returns a URL for the given CSS url string. If relative,
+     * <code>base</code> is used as the parent. If a valid URL can not
+     * be found, this will not throw a MalformedURLException, instead 
+     * null will be returned.
+     */
+    static URL getURL(URL base, String cssString) {
+	if (cssString == null) {
+	    return null;
+	}
+	if (cssString.startsWith("url(") &&
+	    cssString.endsWith(")")) {
+	    cssString = cssString.substring(4, cssString.length() - 1);
+	}
+	// Absolute first
+	try {
+	    URL url = new URL(cssString);
+	    if (url != null) {
+		return url;
+	    }
+	} catch (MalformedURLException mue) {
+	}
+	// Then relative
+	if (base != null) {
+	    // Relative URL, try from base
+	    try {
+		URL url = new URL(base, cssString);
+		return url;
+	    }
+	    catch (MalformedURLException muee) {
+	    }
+	}
+	return null;
+    }
 
     /**
      * Converts a type Color to a hex string
@@ -790,19 +1070,27 @@ public class CSS {
       * will be made to fix it up.
       */
     static final Color hexToColor(String value) {
-	 if (value.startsWith("#")) {
-	     String digits = value.substring(1, Math.min(value.length(), 7));
-	     String hstr = "0x" + digits;
-	     Color c = Color.decode(hstr);
-	     return c;
-	 }
-	 return null;
+	String digits;
+	int n = value.length();
+	if (value.startsWith("#")) {
+	    digits = value.substring(1, Math.min(value.length(), 7));
+	} else {
+	    digits = value;
+	}
+	String hstr = "0x" + digits;
+	Color c;
+	try {
+	    c = Color.decode(hstr);
+	} catch (NumberFormatException nfe) {
+	    c = null;
+	}
+	 return c;
      }
 
     /**
-     * Convert a color string "RED" or "#NNNNNN" to a Color.
-     * Note: This will only convert the HTML3.2 colors strings
-     *       or string of length 7
+     * Convert a color string such as "RED" or "#NNNNNN" to a Color.
+     * Note: This will only convert the HTML3.2 color strings
+     *       or a string of length 7;
      *       otherwise, it will return null.
      */
     static Color stringToColor(String str) {
@@ -842,6 +1130,8 @@ public class CSS {
         color = hexToColor("#008080");
       else if(str.equalsIgnoreCase("Aqua"))
         color = hexToColor("#00FFFF");
+      else
+	  color = hexToColor(str); // sometimes get specified without leading #
       return color;
     }
 
@@ -850,6 +1140,37 @@ public class CSS {
                 if (pt <= sizeMap[i])
                         return i;
         return sizeMap.length - 1;
+    }
+
+    /**
+     * @return an array of all the strings in <code>value</code>
+     *         that are separated by whitespace.
+     */
+    static String[] parseStrings(String value) {
+	int         current, last;
+	int         length = (value == null) ? 0 : value.length();
+	Vector      temp = new Vector(4);
+
+	current = 0;
+	while (current < length) {
+	    // Skip ws
+	    while (current < length && Character.isWhitespace
+		   (value.charAt(current))) {
+		current++;
+	    }
+	    last = current;
+	    while (current < length && !Character.isWhitespace
+		   (value.charAt(current))) {
+		current++;
+	    }
+	    if (last != current) {
+		temp.addElement(value.substring(last, current));
+	    }
+	    current++;
+	}
+	String[] retValue = new String[temp.size()];
+	temp.copyInto(retValue);
+	return retValue;
     }
 
     /**
@@ -868,6 +1189,11 @@ public class CSS {
     private void translateEmbeddedAttributes(AttributeSet htmlAttrSet,
 					     MutableAttributeSet cssAttrSet) {
 	Enumeration keys = htmlAttrSet.getAttributeNames();
+	if (htmlAttrSet.getAttribute(StyleConstants.NameAttribute) ==
+	    HTML.Tag.HR) {
+	    // HR needs special handling due to us treating it as a leaf.
+	    translateAttributes(HTML.Tag.HR, htmlAttrSet, cssAttrSet);
+	}
 	while (keys.hasMoreElements()) {
 	    Object key = keys.nextElement();
 	    if (key instanceof HTML.Tag) {
@@ -982,7 +1308,7 @@ public class CSS {
      * based on the tag associated with the attribute and the
      * value of the attribute.
      *
-     * @param AttributeSet containing html attributes.
+     * @param AttributeSet containing HTML attributes.
      * @return CSS.Attribute mapping for HTML.Attribute.ALIGN.
      */
     private CSS.Attribute getCssAlignAttribute(HTML.Tag tag,
@@ -1008,7 +1334,7 @@ public class CSS {
     /**
      * Fetches the tag associated with the HTML AttributeSet.
      *
-     * @param  AttributeSet containing the html attributes.
+     * @param  AttributeSet containing the HTML attributes.
      * @return HTML.Tag
      */
     private HTML.Tag getHTMLTag(AttributeSet htmlAttrSet) {
@@ -1039,15 +1365,15 @@ public class CSS {
      * is intended to act as a convertor to/from other attribute
      * formats.
      * <p>
-     * The css parser uses the parseCssValue method to convert
+     * The CSS parser uses the parseCssValue method to convert
      * a string to whatever format is appropriate a given key
      * (i.e. these convertors are stored in a map using the
      * CSS.Attribute as a key and the CssValue as the value).
      * <p>
-     * The html to css conversion process first converts the
+     * The HTML to CSS conversion process first converts the
      * HTML.Attribute to a CSS.Attribute, and then calls
-     * the parseHtmlValue method on the value of the html
-     * attribute to produce the corresponding css value.
+     * the parseHtmlValue method on the value of the HTML
+     * attribute to produce the corresponding CSS value.
      * <p>
      * The StyleConstants to CSS conversion process first 
      * converts the StyleConstants attribute to a 
@@ -1064,22 +1390,22 @@ public class CSS {
     static class CssValue implements Serializable {
 
 	/**
-	 * Convert a css value string to the internal format
+	 * Convert a CSS value string to the internal format
 	 * (for fast processing) used in the attribute sets.
 	 * The fallback storage for any value that we don't
-	 * have a special binary format for is a String.
+	 * have a special binary format for is a String. 
 	 */
 	Object parseCssValue(String value) {
 	    return value;
 	}
 
 	/**
-	 * Convert an html attribute value to a css attribute
+	 * Convert an HTML attribute value to a CSS attribute
 	 * value.  If there is no conversion, return null.
-	 * This is implemented to simply forward to the css
+	 * This is implemented to simply forward to the CSS
 	 * parsing by default (since some of the attribute
 	 * values are the same).  If the attribute value
-	 * isn't recognized as a css value it is generally
+	 * isn't recognized as a CSS value it is generally
 	 * returned as null.
 	 */
 	Object parseHtmlValue(String value) {
@@ -1088,7 +1414,7 @@ public class CSS {
 
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null.  By default, there is no conversion.
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1107,15 +1433,16 @@ public class CSS {
 	 * By default, there is no conversion.
 	 *
 	 * @param key the StyleConstants attribute.
+	 * @param v View containing AttributeSet
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
+	Object toStyleConstants(StyleConstants key, View v) {
 	    return null;
 	}
 
 	/**
-	 * Return the css format of the value
+	 * Return the CSS format of the value
 	 */
         public String toString() {
 	    return svalue;
@@ -1139,7 +1466,7 @@ public class CSS {
     static class StringValue extends CssValue {
 
 	/**
-	 * Convert a css value string to the internal format
+	 * Convert a CSS value string to the internal format
 	 * (for fast processing) used in the attribute sets.
 	 * This produces a StringValue, so that it can be
 	 * used to convert from CSS to StyleConstants values.
@@ -1152,7 +1479,7 @@ public class CSS {
 
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null. 
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1220,7 +1547,7 @@ public class CSS {
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
+	Object toStyleConstants(StyleConstants key, View v) {
 	    if (key == StyleConstants.Italic) {
 		if (svalue.indexOf("italic") >= 0) {
 		    return Boolean.TRUE;
@@ -1259,6 +1586,26 @@ public class CSS {
 	    return null;
 	}
 
+	// Used by ViewAttributeSet
+	boolean isItalic() {
+	    return (svalue.indexOf("italic") != -1);
+	}
+
+	boolean isStrike() {
+	    return (svalue.indexOf("line-through") != -1);
+	}
+
+	boolean isUnderline() {
+	    return (svalue.indexOf("underline") != -1);
+	}
+
+	boolean isSub() {
+	    return (svalue.indexOf("sub") != -1);
+	}
+
+	boolean isSup() {
+	    return (svalue.indexOf("sup") != -1);
+	}
     }
 
     /**
@@ -1283,18 +1630,36 @@ public class CSS {
 	 *  resolve hierarchy if it's relative.
 	 */
 	float getValue(AttributeSet a) {
-	    // PENDING(prinz) need to add support for relative
-	    // and percentage.
 	    if (index) {
 		// it's an index, translate from size table
 		return getPointSize((int) value);
-	    } else {
+	    }
+	    else if (lu == null) {
 		return value;
 	    }
-	}
+	    else {
+		if (lu.type == 0) {
+		    return lu.value;
+		}
+		if (a != null) {
+		    AttributeSet resolveParent = a.getResolveParent();
 
-	boolean isRelative() {
-	    return relative;
+		    if (resolveParent != null) {
+			int pValue = StyleConstants.getFontSize(resolveParent);
+
+			float retValue;
+			if (lu.type == 1 || lu.type == 3) {
+			    retValue = lu.value * (float)pValue;
+			}
+			else {
+			    retValue = lu.value + (float)pValue;
+			}
+			return retValue;
+		    }
+		}
+		// a is null, or no resolve parent.
+		return 12;
+	    }
 	}
 
 	Object parseCssValue(String value) {
@@ -1322,21 +1687,17 @@ public class CSS {
 		} else if (value.equals("xx-large")) {
 		    fs.value = 6;
 		    fs.index = true;
-		} else if (value.equals("bigger")) {
-		    fs.value = 1;
-		    fs.index = true;
-		    fs.relative = true;
-		} else if (value.equals("smaller")) {
-		    fs.value = -1;
-		    fs.index = true;
-		    fs.relative = true;
-		} else if (value.endsWith("pt")) {
-		    String sz = value.substring(0, value.length() - 2);
-		    fs.value = Float.valueOf(sz).floatValue();
 		} else {
-		    // TBD - further processing
-		    fs.value = Float.valueOf(value).floatValue();
+		    fs.lu = new LengthUnit(value, (short)1, 1f);
 		}
+		// relative sizes, larger | smaller (adjust from parent by
+		// 1.5 pixels)
+		// em, ex refer to parent sizes
+		// lengths: pt, mm, cm, pc, in, px
+		//          em (font height 3em would be 3 times font height)
+		//          ex (height of X)
+		// lengths are (+/-) followed by a number and two letter
+		// unit identifier
 	    } catch (NumberFormatException nfe) {
 		fs = null;
 	    }
@@ -1379,7 +1740,7 @@ public class CSS {
 
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null.  By default, there is no conversion.
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1401,14 +1762,16 @@ public class CSS {
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
+	Object toStyleConstants(StyleConstants key, View v) {
+	    if (v != null) {
+		return new Integer((int) getValue(v.getAttributes()));
+	    }
 	    return new Integer((int) getValue(null));
 	}
 
 	float value;
-	boolean relative;
 	boolean index;
-	boolean percentage;
+	LengthUnit lu;
     }
 
     static class FontFamily extends CssValue {
@@ -1422,16 +1785,67 @@ public class CSS {
 	}
 
 	Object parseCssValue(String value) {
+	    int cIndex = value.indexOf(',');
+	    Hashtable validNames = getValidFontNameMapping();
 	    FontFamily ff = new FontFamily();
-	    // TBD - a real implementation
-	    if (value.equals("monospace")) {
-		ff.family = "Monospaced";
+	    ff.svalue = value;
+	    ff.family = null;
+
+	    if (cIndex == -1) {
+		setFontName(validNames, ff, value);
 	    }
 	    else {
-		ff.family = value;
+		boolean done = false;
+		int lastIndex;
+		int length = value.length();
+		cIndex = 0;
+		while (!done) {
+		    // skip ws.
+		    while (cIndex < length &&
+			   Character.isWhitespace(value.charAt(cIndex)))
+			cIndex++;
+		    // Find next ','
+		    lastIndex = cIndex;
+		    cIndex = value.indexOf(',', cIndex);
+		    if (cIndex == -1) {
+			cIndex = length;
+		    }
+		    if (lastIndex < length) {
+			if (lastIndex != cIndex) {
+			    int lastCharIndex = cIndex;
+			    if (cIndex > 0 && value.charAt(cIndex - 1) == ' '){
+				lastCharIndex--;
+			    }
+			    setFontName(validNames, ff, value.substring
+					(lastIndex, lastCharIndex));
+			    done = (ff.family != null);
+			}
+			cIndex++;
+		    }
+		    else {
+			done = true;
+		    }
+		}
 	    }
-	    ff.svalue = value;
+	    if (ff.family == null) {
+		ff.family = "SansSerif";
+	    }
 	    return ff;
+	}
+
+	private void setFontName(Hashtable validNames, FontFamily ff,
+				 String fontName) {
+	    ff.family = (String)validNames.get(mapFontName(fontName));
+	    if (ff.family == null) {
+		ff.family = (String)validNames.get(fontName.toLowerCase());
+	    }
+	}
+
+	private String mapFontName(String name) {
+	    if (name.equals("monospace")) {
+		return "monospaced";
+	    }
+	    return name;
 	}
 
 	Object parseHtmlValue(String value) {
@@ -1441,7 +1855,7 @@ public class CSS {
 
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null.  By default, there is no conversion.
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1463,7 +1877,7 @@ public class CSS {
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
+	Object toStyleConstants(StyleConstants key, View v) {
 	    return family;
 	}
 
@@ -1496,7 +1910,7 @@ public class CSS {
 
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null.  By default, there is no conversion.
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1521,8 +1935,12 @@ public class CSS {
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
+	Object toStyleConstants(StyleConstants key, View v) {
 	    return (weight > 500) ? Boolean.TRUE : Boolean.FALSE;
+	}
+
+	boolean isBold() {
+	    return (weight > 500);
 	}
 
 	int weight;
@@ -1555,7 +1973,7 @@ public class CSS {
 
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null.  By default, there is no conversion.
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1565,7 +1983,10 @@ public class CSS {
 	 *   value.
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
-	    return parseCssValue(colorToHex((Color) value));
+	    ColorValue colorValue = new ColorValue();
+	    colorValue.c = (Color)value;
+	    colorValue.svalue = colorToHex(colorValue.c);
+	    return colorValue;
 	}
 
 	/**
@@ -1577,7 +1998,7 @@ public class CSS {
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
+	Object toStyleConstants(StyleConstants key, View v) {
 	    return c;
 	}
 
@@ -1642,23 +2063,60 @@ public class CSS {
 	 * Returns the length (span) to use.
 	 */
 	float getValue() {
+	    return getValue(0);
+	}
+
+	/**
+	 * Returns the length (span) to use. If the value represents
+	 * a percentage, it is scaled based on <code>currentValue</code>.
+	 */
+	float getValue(float currentValue) {
+	    if (percentage) {
+		return span * currentValue;
+	    }
 	    return span;
 	}
 
+	/**
+	 * Returns true if the length represents a percentage of the
+	 * containing box.
+	 */
+	boolean isPercentage() {
+	    return percentage;
+	}
+
 	Object parseCssValue(String value) {
-	    LengthValue lv = new LengthValue();
-	    lv.svalue = value;
+	    LengthValue lv;
 	    try {
-		if (value.endsWith("pt")) {
-		    String sz = value.substring(0, value.length() - 2);
-		    lv.span = Float.valueOf(sz).floatValue();
-		} else {
-		    // TBD - further processing
-		    lv.span = Float.valueOf(value).floatValue();
-		}
+		// Assume pixels
+		float absolute = Float.valueOf(value).floatValue();
+		lv = new LengthValue();
+		lv.span = absolute;
 	    } catch (NumberFormatException nfe) {
-		lv = null;
+		// Not pixels, use LengthUnit
+		LengthUnit lu = new LengthUnit(value,
+					       LengthUnit.UNINITALIZED_LENGTH,
+					       0);
+
+		// PENDING: currently, we only support absolute values and
+		// percentages.
+		switch (lu.type) {
+		case 0:
+		    // Absolute
+		    lv = new LengthValue();
+		    lv.span = Math.max(0, lu.value);
+		    break;
+		case 1:
+		    // %
+		    lv = new LengthValue();
+		    lv.span = Math.max(0, Math.min(1, lu.value));
+		    lv.percentage = true;
+		    break;
+		default:
+		    return null;
+		}
 	    }
+	    lv.svalue = value;
 	    return lv;
 	}
 
@@ -1670,7 +2128,7 @@ public class CSS {
 	}
 	/**
 	 * Convert a StyleConstants attribute value to
-	 * a css attribute value.  If there is no conversion
+	 * a CSS attribute value.  If there is no conversion
 	 * return null.  By default, there is no conversion.
 	 * 
 	 * @param key the StyleConstants attribute.
@@ -1680,7 +2138,6 @@ public class CSS {
 	 *   value.
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
-	    
 	    LengthValue v = new LengthValue();
 	    v.svalue = value.toString();
 	    v.span = ((Float)value).floatValue();
@@ -1696,18 +2153,72 @@ public class CSS {
 	 * @returns the StyleConstants attribute value that 
 	 *   represents the CSS attribute value.
 	 */
-	Object toStyleConstants(StyleConstants key) {
-	    return new Float(span);
+	Object toStyleConstants(StyleConstants key, View v) {
+ 	    return new Float(getValue());
 	}
 
+	/** If true, span is a percentage value, and that to determine
+	 * the length another value needs to be passed in. */
+	boolean percentage;
+	/** Either the absolute value (percentage == false) or 
+	 * a percentage value. */
 	float span;
     }
 
 
     /**
-     * Handles conversion of list types.
+     * BorderWidthValue is used to model BORDER_XXX_WIDTH and adds support
+     * for the thin/medium/thick values.
      */
-    static class ListType extends CssValue {
+    static class BorderWidthValue extends LengthValue { 
+	BorderWidthValue(String svalue, int index) {
+	    this.svalue = svalue;
+	    this.index = index;
+	}
+
+	float getValue() {
+	    return values[index];
+	}
+
+	float getValue(float currentValue) {
+	    return values[index];
+	}
+
+	Object parseCssValue(String value) {
+	    if (value != null) {
+		if (value.equals("thick")) {
+		    return new BorderWidthValue(value, 2);
+		}
+		else if (value.equals("medium")) {
+		    return new BorderWidthValue(value, 1);
+		}
+		else if (value.equals("thin")) {
+		    return new BorderWidthValue(value, 0);
+		}
+	    }
+	    // Assume its a length.
+	    return super.parseCssValue(value);
+	}
+
+	Object parseHtmlValue(String value) {
+	    if (value == HTML.NULL_ATTRIBUTE_VALUE) {
+		return parseCssValue("medium");
+	    }
+	    return parseCssValue(value);
+	}
+
+	/** Index into values. */
+	private int index;
+	/** Values used to represent border width. */
+	private static final float[] values = { 1, 2, 4 };
+   }
+
+
+    /**
+     * Handles uniquing of CSS values, like lists, and background image
+     * repeating.
+     */
+    static class CssValueMapper extends CssValue {
 	Object parseCssValue(String value) {
 	    Object retValue = cssValueToInternalValueMap.get(value);
 	    if (retValue == null) {
@@ -1726,6 +2237,713 @@ public class CSS {
 	}
     }
 
+
+    /**
+     * Used for background images, to represent the position.
+     */
+    static class BackgroundPosition extends CssValue {
+	float horizontalPosition;
+	float verticalPosition;
+	// bitmask: bit 0, horizontal relative, bit 1 horizontal relative to
+	// font size, 2 vertical relative to size, 3 vertical relative to
+	// font size.
+	// 
+	short relative;
+
+	Object parseCssValue(String value) {
+	    // 'top left' and 'left top' both mean the same as '0% 0%'. 
+	    // 'top', 'top center' and 'center top' mean the same as '50% 0%'. 
+	    // 'right top' and 'top right' mean the same as '100% 0%'. 
+	    // 'left', 'left center' and 'center left' mean the same as
+	    //        '0% 50%'. 
+	    // 'center' and 'center center' mean the same as '50% 50%'. 
+	    // 'right', 'right center' and 'center right' mean the same as 
+	    //        '100% 50%'. 
+	    // 'bottom left' and 'left bottom' mean the same as '0% 100%'. 
+	    // 'bottom', 'bottom center' and 'center bottom' mean the same as
+	    //        '50% 100%'. 
+	    // 'bottom right' and 'right bottom' mean the same as '100% 100%'. 
+	    String[]  strings = CSS.parseStrings(value);
+	    int count = strings.length;
+	    BackgroundPosition bp = new BackgroundPosition();
+	    bp.relative = 5;
+	    bp.svalue = value;
+
+	    if (count > 0) {
+		// bit 0 for vert, 1 hor, 2 for center
+		short found = 0;
+		int index = 0;
+		while (index < count) {
+		    // First, check for keywords
+		    String string = strings[index++];
+		    if (string.equals("center")) {
+			found |= 4;
+			continue;
+		    }
+		    else {
+			if ((found & 1) == 0) {
+			    if (string.equals("top")) {
+				found |= 1;
+			    }
+			    else if (string.equals("bottom")) {
+				found |= 1;
+				bp.verticalPosition = 1;
+				continue;
+			    }
+			}
+			if ((found & 2) == 0) {
+			    if (string.equals("left")) {
+				found |= 2;
+				bp.horizontalPosition = 0;
+			    }
+			    else if (string.equals("right")) {
+				found |= 2;
+				bp.horizontalPosition = 1;
+			    }
+			}
+		    }
+		}
+		if (found != 0) {
+		    if ((found & 1) == 1) {
+			if ((found & 2) == 0) {
+			    // vert and no horiz.
+			    bp.horizontalPosition = .5f;
+			}
+		    }
+		    else if ((found & 2) == 2) {
+			// horiz and no vert.
+			bp.verticalPosition = .5f;
+		    }
+		    else {
+			// no horiz, no vert, but center
+			bp.horizontalPosition = bp.verticalPosition = .5f;
+		    }
+		}
+		else {
+		    // Assume lengths
+		    LengthUnit lu = new LengthUnit(strings[0], (short)0, 0f);
+
+		    if (lu.type == 0) {
+			bp.horizontalPosition = lu.value;
+			bp.relative = (short)(1 ^ bp.relative);
+		    }
+		    else if (lu.type == 1) {
+			bp.horizontalPosition = lu.value;
+		    }
+		    else if (lu.type == 3) {
+			bp.horizontalPosition = lu.value;
+			bp.relative = (short)((1 ^ bp.relative) | 2);
+		    }
+		    if (count > 1) {
+			lu = new LengthUnit(strings[1], (short)0, 0f);
+
+			if (lu.type == 0) {
+			    bp.verticalPosition = lu.value;
+			    bp.relative = (short)(4 ^ bp.relative);
+			}
+			else if (lu.type == 1) {
+			    bp.verticalPosition = lu.value;
+			}
+			else if (lu.type == 3) {
+			    bp.verticalPosition = lu.value;
+			    bp.relative = (short)((4 ^ bp.relative) | 8);
+			}
+		    }
+		    else {
+			bp.verticalPosition = .5f;
+		    }
+		}
+	    }
+	    return bp;
+	}
+
+	boolean isHorizontalPositionRelativeToSize() {
+	    return ((relative & 1) == 1);
+	}
+
+	boolean isHorizontalPositionRelativeToFontSize() {
+	    return ((relative & 2) == 2);
+	}
+
+	float getHorizontalPosition() {
+	    return horizontalPosition;
+	}
+
+	boolean isVerticalPositionRelativeToSize() {
+	    return ((relative & 4) == 4);
+	}
+
+	boolean isVerticalPositionRelativeToFontSize() {
+	    return ((relative & 8) == 8);
+	}
+
+	float getVerticalPosition() {
+	    return verticalPosition;
+	}
+    }
+
+
+    /**
+     * Used for BackgroundImages.
+     */
+    static class BackgroundImage extends CssValue {
+	private boolean    loadedImage;
+	private ImageIcon  image;
+
+	Object parseCssValue(String value) {
+	    BackgroundImage retValue = new BackgroundImage();
+	    retValue.svalue = value;
+	    return retValue;
+	}
+
+	Object parseHtmlValue(String value) {
+	    return parseCssValue(value);
+	}
+
+	// PENDING: this base is wrong for linked style sheets.
+	ImageIcon getImage(URL base) {
+	    if (!loadedImage) {
+		synchronized(this) {
+		    if (!loadedImage) {
+			URL url = CSS.getURL(base, svalue);
+			loadedImage = true;
+			if (url != null) {
+			    image = new ImageIcon(url);
+			}
+		    }
+		}
+	    }
+	    return image;
+	}
+    }
+
+    /**
+     * Parses a length value, this is used internally, and never added
+     * to an AttributeSet or returned to the developer.
+     */
+    static class LengthUnit implements Serializable {
+	static Hashtable lengthMapping = new Hashtable(6);
+
+	static {
+	    lengthMapping.put("pt", new Float(1f));
+	    // Not sure about 1.3, determined by experiementation.
+	    lengthMapping.put("px", new Float(1.3f));
+	    lengthMapping.put("mm", new Float(2.83464f));
+	    lengthMapping.put("cm", new Float(28.3464f));
+	    lengthMapping.put("pc", new Float(12f));
+	    lengthMapping.put("in", new Float(72f));
+	}
+
+	LengthUnit(String value, short defaultType, float defaultValue) {
+	    parse(value, defaultType, defaultValue);
+	}
+
+	void parse(String value, short defaultType, float defaultValue) {
+	    type = defaultType;
+	    this.value = defaultValue;
+
+	    int length = value.length();
+	    if (length > 0 && value.charAt(length - 1) == '%') {
+		try {
+		    this.value = Float.valueOf(value.substring(0, length - 1)).
+			                       floatValue() / 100.0f;
+		    type = 1;
+		}
+		catch (NumberFormatException nfe) { }
+	    }
+	    if (length >= 2) {
+		String units = value.substring(length - 2, length);
+		Float scale = (Float)lengthMapping.get(units);
+
+		if (scale != null) {
+		    try {
+			this.value = Float.valueOf(value.substring(0,
+			       length - 2)).floatValue() * scale.floatValue();
+			type = 0;
+		    }
+		    catch (NumberFormatException nfe) { }
+		}
+		else if (units.equals("em") ||
+			 units.equals("ex")) {
+		    try {
+			this.value = Float.valueOf(value.substring(0,
+				      length - 2)).floatValue();
+			type = 3;
+		    }
+		    catch (NumberFormatException nfe) { }
+		}
+		else if (value.equals("larger")) {
+		    this.value = 2f;
+		    type = 2;
+		}
+		else if (value.equals("smaller")) {
+		    this.value = -2;
+		    type = 2;
+		}
+		else {
+		    // treat like points.
+		    try {
+			this.value = Float.valueOf(value).floatValue();
+			type = 0;
+		    } catch (NumberFormatException nfe) {}
+		}
+	    }
+	}
+
+	public String toString() {
+	    return type + " " + value;
+	}
+
+	// 0 - value indicates real value
+	// 1 - % value, value relative to depends upon key.
+	//     50% will have a value = .5
+	// 2 - add value to parent value.
+	// 3 - em/ex relative to font size of element (except for
+	//     font-size, which is relative to parent).
+	short type;
+	float value;
+
+	static final short UNINITALIZED_LENGTH = (short)10;
+    }
+
+
+    /**
+     * Class used to parse font property. The font property is shorthand
+     * for the other font properties. This expands the properties, placing
+     * them in the attributeset.
+     */
+    static class ShorthandFontParser {
+	/**
+	 * Parses the shorthand font string <code>value</code>, placing the
+	 * result in <code>attr</code>.
+	 */
+	static void parseShorthandFont(CSS css, String value,
+				       MutableAttributeSet attr) {
+	    // font is of the form:
+	    // [ <font-style> || <font-variant> || <font-weight> ]? <font-size>
+	    //   [ / <line-height> ]? <font-family>
+	    String[]   strings = CSS.parseStrings(value);
+	    int        count = strings.length;
+	    int        index = 0;
+	    // bitmask, 1 for style, 2 for variant, 3 for weight
+	    short      found = 0;
+	    int        maxC = Math.min(3, count);
+
+	    // Check for font-style font-variant font-weight
+	    while (index < maxC) {
+		if ((found & 1) == 0 && isFontStyle(strings[index])) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.FONT_STYLE,
+					    strings[index++]);
+		    found |= 1;
+		}
+		else if ((found & 2) == 0 && isFontVariant(strings[index])) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.FONT_VARIANT,
+					    strings[index++]);
+		    found |= 2;
+		}
+		else if ((found & 4) == 0 && isFontWeight(strings[index])) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.FONT_WEIGHT,
+					    strings[index++]);
+		    found |= 4;
+		}
+		else if (strings[index].equals("normal")) {
+		    index++;
+		}
+		else {
+		    break;
+		}
+	    }
+	    if ((found & 1) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_STYLE,
+					"normal");
+	    }
+	    if ((found & 2) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_VARIANT,
+					"normal");
+	    }
+	    if ((found & 4) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_WEIGHT,
+					"normal");
+	    }
+
+	    // string at index should be the font-size
+	    if (index < count) {
+		String fontSize = strings[index];
+		int slashIndex = fontSize.indexOf('/');
+
+		if (slashIndex != -1) {
+		    fontSize = fontSize.substring(0, slashIndex);
+		    strings[index] = strings[index].substring(slashIndex);
+		}
+		else {
+		    index++;
+		}
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_SIZE,
+					fontSize);
+	    }
+	    else {
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_SIZE,
+					"medium");
+	    }
+
+	    // Check for line height
+	    if (index < count && strings[index].startsWith("/")) {
+		String lineHeight = null;
+		if (strings[index].equals("/")) {
+		    if (++index < count) {
+			lineHeight = strings[index++];
+		    }
+		}
+		else {
+		    lineHeight = strings[index++].substring(1);
+		}
+		// line height
+		if (lineHeight != null) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.LINE_HEIGHT,
+					    lineHeight);
+		}
+		else {
+		    css.addInternalCSSValue(attr, CSS.Attribute.LINE_HEIGHT,
+					    "normal");
+		}
+	    }
+	    else {
+		css.addInternalCSSValue(attr, CSS.Attribute.LINE_HEIGHT,
+					"normal");
+	    }
+
+	    // remainder of strings are font-family
+	    if (index < count) {
+		String family = strings[index++];
+
+		while (index < count) {
+		    family += " " + strings[index++];
+		}
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_FAMILY,
+					family);
+	    }
+	    else {
+		css.addInternalCSSValue(attr, CSS.Attribute.FONT_FAMILY,
+					"SansSerif");
+	    }
+	}
+
+	private static boolean isFontStyle(String string) {
+	    return (string.equals("italic") ||
+		    string.equals("oblique"));
+	}
+
+	private static boolean isFontVariant(String string) {
+	    return (string.equals("small-caps"));
+	}
+
+	private static boolean isFontWeight(String string) {
+	    if (string.equals("bold") || string.equals("bolder") ||
+		string.equals("italic") || string.equals("lighter")) {
+		return true;
+	    }
+	    // test for 100-900
+	    return (string.length() == 3 &&
+		    string.charAt(0) >= '1' && string.charAt(0) <= '9' &&
+		    string.charAt(1) == '0' && string.charAt(2) == '0');
+	}
+
+    }
+
+
+    /**
+     * Parses the background property into its intrinsic values.
+     */
+    static class ShorthandBackgroundParser {
+	/**
+	 * Parses the shorthand font string <code>value</code>, placing the
+	 * result in <code>attr</code>.
+	 */
+	static void parseShorthandBackground(CSS css, String value,
+					     MutableAttributeSet attr) {
+	    String[] strings = parseStrings(value);
+	    int count = strings.length;
+	    int index = 0;
+	    // bitmask: 0 for image, 1 repeat, 2 attachment, 3 position,
+	    //          4 color
+	    short found = 0;
+
+	    while (index < count) {
+		String string = strings[index++];
+		if ((found & 1) == 0 && isImage(string)) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.
+					    BACKGROUND_IMAGE, string);
+		    found |= 1;
+		}
+		else if ((found & 2) == 0 && isRepeat(string)) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.
+					    BACKGROUND_REPEAT, string);
+		    found |= 2;
+		}
+		else if ((found & 4) == 0 && isAttachment(string)) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.
+					    BACKGROUND_ATTACHMENT, string);
+		    found |= 4;
+		}
+		else if ((found & 8) == 0 && isPosition(string)) {
+		    if (index < count && isPosition(strings[index])) {
+			css.addInternalCSSValue(attr, CSS.Attribute.
+						BACKGROUND_POSITION,
+						string + " " +
+						strings[index++]);
+		    }
+		    else {
+			css.addInternalCSSValue(attr, CSS.Attribute.
+						BACKGROUND_POSITION, string);
+		    }
+		    found |= 8;
+		}
+		else if ((found & 16) == 0 && isColor(string)) {
+		    css.addInternalCSSValue(attr, CSS.Attribute.
+					    BACKGROUND_COLOR, string);
+		    found |= 16;
+		}
+	    }
+	    if ((found & 1) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.BACKGROUND_IMAGE,
+					null);
+	    }
+	    if ((found & 2) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.BACKGROUND_REPEAT,
+					"repeat");
+	    }
+	    if ((found & 4) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.
+					BACKGROUND_ATTACHMENT, "scroll");
+	    }
+	    if ((found & 8) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.
+					BACKGROUND_POSITION, null);
+	    }
+	    // Currently, there is no good way to express this.
+	    /*
+	    if ((found & 16) == 0) {
+		css.addInternalCSSValue(attr, CSS.Attribute.BACKGROUND_COLOR,
+					null);
+	    }
+	    */
+	}
+
+	static boolean isImage(String string) {
+	    return (string.startsWith("url(") && string.endsWith(")"));
+	}
+
+	static boolean isRepeat(String string) {
+	    return (string.equals("repeat-x") || string.equals("repeat-y") ||
+		    string.equals("repeat") || string.equals("no-repeat"));
+	}
+
+	static boolean isAttachment(String string) {
+	    return (string.equals("fixed") || string.equals("scroll"));
+	}
+
+	static boolean isPosition(String string) {
+	    return (string.equals("top") || string.equals("bottom") ||
+		    string.equals("left") || string.equals("right") ||
+		    string.equals("center") ||
+		    (string.length() > 0 &&
+		     Character.isDigit(string.charAt(0))));
+	}
+
+	static boolean isColor(String string) {
+	    return (CSS.stringToColor(string) != null);
+	}
+    }
+
+
+    /**
+     * Used to parser margin and padding.
+     */
+    static class ShorthandMarginParser {
+	/**
+	 * Parses the shorthand margin/padding/border string
+	 * <code>value</code>, placing the result in <code>attr</code>.
+	 * <code>names</code> give the 4 instrinsic property names.
+	 */
+	static void parseShorthandMargin(CSS css, String value,
+					 MutableAttributeSet attr,
+					 CSS.Attribute[] names) {
+	    String[] strings = parseStrings(value);
+	    int count = strings.length;
+	    int index = 0;
+	    switch (count) {
+	    case 0:
+		// empty string
+		return;
+	    case 1:
+		// Identifies all values.
+		for (int counter = 0; counter < 4; counter++) {
+		    css.addInternalCSSValue(attr, names[counter], strings[0]);
+		}
+		break;
+	    case 2:
+		// 0 & 2 = strings[0], 1 & 3 = strings[1]
+		css.addInternalCSSValue(attr, names[0], strings[0]);
+		css.addInternalCSSValue(attr, names[2], strings[0]);
+		css.addInternalCSSValue(attr, names[1], strings[1]);
+		css.addInternalCSSValue(attr, names[3], strings[1]);
+		break;
+	    case 3:
+		css.addInternalCSSValue(attr, names[0], strings[0]);
+		css.addInternalCSSValue(attr, names[1], strings[1]);
+		css.addInternalCSSValue(attr, names[2], strings[2]);
+		css.addInternalCSSValue(attr, names[3], strings[1]);
+		break;
+	    default:
+		for (int counter = 0; counter < 4; counter++) {
+		    css.addInternalCSSValue(attr, names[counter],
+					    strings[counter]);
+		}
+		break;
+	    }
+	}
+    }
+
+    /**
+     * Calculate the requirements needed to tile the requirements 
+     * given by the iterator that would be tiled.  The calculation
+     * takes into consideration margin collapsing.
+     */
+    static SizeRequirements calculateTiledRequirements(LayoutIterator iter, SizeRequirements r) {
+	long minimum = 0;
+	long maximum = 0;
+	long preferred = 0;
+	int lastMargin = 0;
+	int collapsed = 0;
+	int n = iter.getCount();
+	for (int i = 0; i < n; i++) {
+	    iter.setIndex(i);
+	    int margin0 = lastMargin;
+	    int margin1 = (int) iter.getLeadingCollapseSpan();
+	    int offset = Math.max(margin0, margin1);
+	    if (offset != 0) {
+		// There is a collapse area
+		collapsed += offset - margin0;
+	    }
+	    preferred += (int) iter.getPreferredSpan(0);
+	    minimum += iter.getMinimumSpan(0);
+	    maximum += iter.getMaximumSpan(0);
+
+	    lastMargin = (int) iter.getTrailingCollapseSpan();
+	}
+	// adjust for the collapsed area
+	minimum -= collapsed;
+	preferred -= collapsed;
+	maximum -= collapsed;
+
+	// set return value
+	if (r == null) {
+	    r = new SizeRequirements();
+	}
+	r.minimum = (minimum > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int)minimum;
+	r.preferred = (preferred > Integer.MAX_VALUE) ? Integer.MAX_VALUE :(int) preferred;
+	r.maximum = (maximum > Integer.MAX_VALUE) ? Integer.MAX_VALUE :(int) maximum;
+	return r;
+    }
+
+    /**
+     * Calculate a tiled layout for the given iterator.
+     * This should be done collapsing the neighboring
+     * margins to be a total of the maximum of the two 
+     * neighboring margin areas as described in the CSS spec.
+     */
+    static void calculateTiledLayout(LayoutIterator iter, int targetSpan) {
+	
+	/*
+	 * first pass, calculate the preferred sizes, adjustments needed because
+	 * of margin collapsing, and the flexibility to adjust the sizes.
+	 */
+	long minimum = 0;
+	long maximum = 0;
+	long preferred = 0;
+	int lastMargin = 0;
+	int collapsed = 0;
+	int n = iter.getCount();
+	for (int i = 0; i < n; i++) {
+	    iter.setIndex(i);
+	    int margin0 = lastMargin;
+	    int margin1 = (int) iter.getLeadingCollapseSpan();
+	    iter.setOffset(Math.max(margin0, margin1));
+	    if (iter.getOffset() != 0) {
+		// There is a collapse area
+		iter.setOffset(iter.getOffset() - margin0);
+		collapsed += iter.getOffset();
+	    }
+	    iter.setSpan( (int) iter.getPreferredSpan(targetSpan));
+	    preferred += iter.getSpan();
+	    minimum += iter.getMinimumSpan(targetSpan);
+	    maximum += iter.getMaximumSpan(targetSpan);
+
+	    lastMargin = (int) iter.getTrailingCollapseSpan();
+	}
+
+	/*
+	 * Second pass, expand or contract by as much as possible to reach
+	 * the target span.  This takes the margin collapsing into account
+	 * prior to adjusting the span.
+	 */
+
+	// determine the adjustment to be made
+	int allocated = targetSpan - collapsed;
+	long desiredAdjustment = allocated - preferred;
+	float adjustmentFactor = 0.0f;
+	if (desiredAdjustment != 0) {
+	    float maximumAdjustment = (desiredAdjustment > 0) ? 
+		maximum - preferred : preferred - minimum;
+	    adjustmentFactor = desiredAdjustment / maximumAdjustment;
+	    adjustmentFactor = Math.min(adjustmentFactor, 1.0f);
+	    adjustmentFactor = Math.max(adjustmentFactor, -1.0f);
+	}
+
+	// make the adjustments
+	int totalOffset = 0;
+	for (int i = 0; i < n; i++) {
+	    iter.setIndex(i);
+	    iter.setOffset( iter.getOffset() + totalOffset);
+	    int availableSpan = (adjustmentFactor > 0.0f) ? 
+		(int) iter.getMaximumSpan(targetSpan) - iter.getSpan() : 
+		iter.getSpan() - (int) iter.getMinimumSpan(targetSpan);
+	    int adj = (int) (adjustmentFactor * availableSpan + 0.5f);
+	    iter.setSpan( iter.getSpan() + adj);
+	    totalOffset = (int) Math.min((long) totalOffset + (long) iter.getSpan(), Integer.MAX_VALUE);
+	}
+    }
+
+    /**
+     * An iterator to express the requirements to use when computing
+     * layout.
+     */
+    interface LayoutIterator {
+
+	void setOffset(int offs);
+
+	int getOffset();
+
+	void setSpan(int span);
+
+	int getSpan();
+
+	int getCount();
+
+	void setIndex(int i);
+
+	float getMinimumSpan(float parentSpan);
+
+	float getPreferredSpan(float parentSpan);
+
+	float getMaximumSpan(float parentSpan);
+
+	//float getAlignment();
+
+	float getLeadingCollapseSpan();
+
+	float getTrailingCollapseSpan();
+    }
 
     //
     // Serialization support

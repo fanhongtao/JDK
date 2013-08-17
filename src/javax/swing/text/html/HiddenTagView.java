@@ -1,8 +1,11 @@
 /*
- * @(#)HiddenTagView.java	1.6 01/11/29
+ * @(#)HiddenTagView.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -24,7 +27,7 @@ import java.util.*;
  * not editable, the textfield will not be visible.
  *
  * @author  Scott Violet
- * @version 1.6, 11/29/01
+ * @version 1.9, 02/02/00
  */
 class HiddenTagView extends EditableView implements DocumentListener {
     HiddenTagView(Element e) {
@@ -92,30 +95,21 @@ class HiddenTagView extends EditableView implements DocumentListener {
 
     // DocumentListener methods
     public void insertUpdate(DocumentEvent e) {
-	pushTextToModel();
+	updateModelFromText();
     }
 
     public void removeUpdate(DocumentEvent e) {
-	pushTextToModel();
+	updateModelFromText();
     }
 
     public void changedUpdate(DocumentEvent e) {
-	pushTextToModel();
+	updateModelFromText();
     }
 
     // View method
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
 	if (!isSettingAttributes) {
-	    isSettingAttributes = true;
-	    try {
-		getTextComponent().setText(getRepresentedText());
-		resetBorder();
-	    }
-	    finally {
-		isSettingAttributes = false;
-	    }
-	    preferenceChanged(this, true, true);
-	    getContainer().repaint();
+	    setTextFromModel();
 	}
     }
 
@@ -129,23 +123,106 @@ class HiddenTagView extends EditableView implements DocumentListener {
     }
 
     void resetBorder() {
-	if (isEndTag()) {
-	    ((JPanel)getComponent()).setBorder(EndBorder);
-	}
-	else {
-	    ((JPanel)getComponent()).setBorder(StartBorder);
+	Component comp = getComponent();
+
+	if (comp != null) {
+	    if (isEndTag()) {
+		((JPanel)comp).setBorder(EndBorder);
+	    }
+	    else {
+		((JPanel)comp).setBorder(StartBorder);
+	    }
 	}
     }
 
-    void pushTextToModel() {
+    /**
+     * This resets the text on the text component we created to match
+     * that of the AttributeSet for the Element we represent.
+     * <p>If this is invoked on the event dispatching thread, this
+     * directly invokes <code>_setTextFromModel</code>, otherwise
+     * <code>SwingUtilities.invokeLater</code> is used to schedule execution
+     * of <code>_setTextFromModel</code>.
+     */
+    void setTextFromModel() {
+	if (SwingUtilities.isEventDispatchThread()) {
+	    _setTextFromModel();
+	}
+	else {
+	    SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    _setTextFromModel();
+		}
+	    });
+	}
+    }
+
+    /**
+     * This resets the text on the text component we created to match
+     * that of the AttributeSet for the Element we represent.
+     */
+    void _setTextFromModel() {
+	Document doc = getDocument();
+	try {
+	    isSettingAttributes = true;
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
+	    JTextComponent text = getTextComponent();
+	    if (text != null) {
+		text.setText(getRepresentedText());
+		resetBorder();
+		Container host = getContainer();
+		if (host != null) {
+		    preferenceChanged(this, true, true);
+		    host.repaint();
+		}
+	    }
+	}
+	finally {
+	    isSettingAttributes = false;
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readUnlock();
+	    }
+	}
+    }
+
+    /**
+     * This copies the text from the text component we've created
+     * to the Element's AttributeSet we represent.
+     * <p>If this is invoked on the event dispatching thread, this
+     * directly invokes <code>_updateModelFromText</code>, otherwise
+     * <code>SwingUtilities.invokeLater</code> is used to schedule execution
+     * of <code>_updateModelFromText</code>.
+     */
+    void updateModelFromText() {
 	if (!isSettingAttributes) {
-	    Object name = getElement().getAttributes().getAttribute
-		(StyleConstants.NameAttribute);
-	    Document doc = getDocument();
-	    if ((name instanceof HTML.UnknownTag) &&
-		(doc instanceof StyledDocument)) {
-		SimpleAttributeSet sas = new SimpleAttributeSet();
-		String text = getTextComponent().getText();
+	    if (SwingUtilities.isEventDispatchThread()) {
+		_updateModelFromText();
+	    }
+	    else {
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+			_updateModelFromText();
+		    }
+		});
+	    }
+	}
+    }
+
+    /**
+     * This copies the text from the text component we've created
+     * to the Element's AttributeSet we represent.
+     */
+    void _updateModelFromText() {
+	Document doc = getDocument();
+	Object name = getElement().getAttributes().getAttribute
+	    (StyleConstants.NameAttribute);
+	if ((name instanceof HTML.UnknownTag) &&
+	    (doc instanceof StyledDocument)) {
+	    SimpleAttributeSet sas = new SimpleAttributeSet();
+	    JTextComponent textComponent = getTextComponent();
+	    if (textComponent != null) {
+		String text = textComponent.getText();
 		isSettingAttributes = true;
 		try {
 		    sas.addAttribute(StyleConstants.NameAttribute,
@@ -162,7 +239,10 @@ class HiddenTagView extends EditableView implements DocumentListener {
     }
 
     JTextComponent getTextComponent() {
-	return (JTextComponent)((Container)getComponent()).getComponent(0);
+	Component comp = getComponent();
+
+	return (comp == null) ? null : (JTextComponent)((Container)comp).
+	                               getComponent(0);
     }
 
     String getRepresentedText() {

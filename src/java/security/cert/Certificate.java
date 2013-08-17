@@ -1,8 +1,11 @@
 /*
- * @(#)Certificate.java	1.15 01/11/29
+ * @(#)Certificate.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.cert;
@@ -34,10 +37,10 @@ import java.security.SignatureException;
  * @see CertificateFactory
  *
  * @author Hemma Prafullchandra
- * @version 1.15 01/11/29
+ * @version 1.18 00/02/02
  */
 
-public abstract class Certificate {
+public abstract class Certificate implements java.io.Serializable {
 
     // the certificate type
     private String type;
@@ -120,6 +123,8 @@ public abstract class Certificate {
      * form of encoding; for example, X.509 certificates would
      * be encoded as ASN.1 DER.
      *
+     * @return the encoded form of this certificate
+     *
      * @exception CertificateEncodingException if an encoding error occurs.
      */
     public abstract byte[] getEncoded()
@@ -178,4 +183,71 @@ public abstract class Certificate {
      * @return the public key.
      */
     public abstract PublicKey getPublicKey();
+
+    /**
+     * Alternate Certificate class for serialization.
+     */
+    protected static class CertificateRep implements java.io.Serializable {
+	private String type;
+	private byte[] data;
+
+	/**
+	 * Construct the alternate Certificate class with the Certificate
+	 * type and Certificate encoding bytes.
+	 *
+	 * <p>
+	 *
+	 * @param type the standard name of the Certificate type. <p>
+	 *
+	 * @param data the Certificate data.
+	 */
+	protected CertificateRep(String type, byte[] data) {
+	    this.type = type;
+	    this.data = data;
+	}
+
+	/**
+	 * Resolve the Certificate Object.
+ 	 *
+ 	 * <p>
+ 	 *
+	 * @return the resolved Certificate Object.
+	 *
+	 * @throws ObjectStreamException if the Certificate could not
+	 *	be resolved.
+	 */
+	protected Object readResolve() throws java.io.ObjectStreamException {
+	    try {
+		CertificateFactory cf = CertificateFactory.getInstance(type);
+		return cf.generateCertificate
+			(new java.io.ByteArrayInputStream(data));
+	    } catch (CertificateException e) {
+		throw new java.io.NotSerializableException
+				("java.security.cert.Certificate: " +
+				type +
+				": " +
+				e.getMessage());
+	    }
+	}
+    }
+
+    /**
+     * Replace the Certificate to be serialized.
+     *
+     * @return the alternate Certificate object to be serialized.
+     *
+     * @throws ObjectStreamException if a new object representing this
+     * certificate could not be created
+     */
+    protected Object writeReplace() throws java.io.ObjectStreamException {
+	try {
+	    return new CertificateRep(type, getEncoded());
+	} catch (CertificateException e) {
+	    throw new java.io.NotSerializableException
+				("java.security.cert.Certificate: " +
+				type +
+				": " +
+				e.getMessage());
+	}
+    }
 }

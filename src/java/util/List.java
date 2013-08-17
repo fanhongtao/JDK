@@ -1,8 +1,11 @@
 /*
- * @(#)List.java	1.27 01/11/29
+ * @(#)List.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -54,7 +57,7 @@ package java.util;
  * methods are no longer well defined on a such a list.
  *
  * @author  Josh Bloch
- * @version 1.15 10/13/97
+ * @version 1.32, 02/02/00
  * @see Collection
  * @see Set
  * @see ArrayList
@@ -65,7 +68,7 @@ package java.util;
  * @see Collections#EMPTY_LIST
  * @see AbstractList
  * @see AbstractSequentialList
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface List extends Collection {
@@ -95,7 +98,7 @@ public interface List extends Collection {
      * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
      *
      * @param o element whose presence in this list is to be tested.
-     * @returns <tt>true</tt> if this list contains the specified element.
+     * @return <tt>true</tt> if this list contains the specified element.
      */
     boolean contains(Object o);
 
@@ -462,7 +465,6 @@ public interface List extends Collection {
     // View
 
     /**
-     *
      * Returns a view of the portion of this list between the specified
      * <tt>fromIndex</tt>, inclusive, and <tt>toIndex</tt>, exclusive.  (If
      * <tt>fromIndex</tt> and <tt>toIndex</tt> are equal, the returned list is
@@ -479,7 +481,6 @@ public interface List extends Collection {
      * <pre>
      *	    list.subList(from, to).clear();
      * </pre>
-     * 
      * Similar idioms may be constructed for <tt>indexOf</tt> and
      * <tt>lastIndexOf</tt>, and all of the algorithms in the
      * <tt>Collections</tt> class can be applied to a subList.<p>
@@ -491,7 +492,7 @@ public interface List extends Collection {
      * a fashion that iterations in progress may yield incorrect results.)
      *
      * @param fromIndex low endpoint (inclusive) of the subList.
-     * @param toKey high endpoint (exclusive) of the subList.
+     * @param toIndex high endpoint (exclusive) of the subList.
      * @return a view of the specified range within this list.
      * 
      * @throws IndexOutOfBoundsException for an illegal endpoint index value

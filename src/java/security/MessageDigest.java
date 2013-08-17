@@ -1,8 +1,11 @@
 /*
- * @(#)MessageDigest.java	1.64 01/11/29
+ * @(#)MessageDigest.java	1.71 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -22,10 +25,10 @@ import java.io.ByteArrayInputStream;
  * data and output a fixed-length hash value.
  *
  * <p>A MessageDigest object starts out initialized. The data is 
- * processed through it using the {@link update(byte) update}
- * methods. At any point {@link reset() reset} can be called
+ * processed through it using the {@link #update(byte) update}
+ * methods. At any point {@link #reset() reset} can be called
  * to reset the digest. Once all the data to be updated has been
- * updated, one of the {@link digest() digest} methods should 
+ * updated, one of the {@link #digest() digest} methods should 
  * be called to complete the hash computation.
  *
  * <p>The <code>digest</code> method can be called once for a given number 
@@ -42,7 +45,7 @@ import java.io.ByteArrayInputStream;
 * try {
 *     md.update(toChapter1);
 *     MessageDigest tc1 = md.clone();
-*     byte[] toChapter1Digest = tc1.digest;
+*     byte[] toChapter1Digest = tc1.digest();
 *     md.update(toChapter2);
 *     ...etc.
 * } catch (CloneNotSupportedException cnse) {
@@ -63,7 +66,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.64 01/11/29
+ * @version 1.71, 02/02/00
  *
  * @see DigestInputStream
  * @see DigestOutputStream
@@ -270,9 +273,9 @@ public abstract class MessageDigest extends MessageDigestSpi {
     /**
      * Performs a final update on the digest using the specified array 
      * of bytes, then completes the digest computation. That is, this
-     * method first calls <a href = "#update(byte[])">update(input)</a>,
+     * method first calls {@link #update(byte[]) update(input)},
      * passing the <i>input</i> array to the <code>update</code> method,
-     * then calls {@link digest() digest()}.
+     * then calls {@link #digest() digest()}.
      *
      * @param input the input to be updated before the digest is
      * completed.
@@ -340,6 +343,8 @@ public abstract class MessageDigest extends MessageDigestSpi {
      * "../../../guide/security/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
+     *
+     * @return the name of the algorithm
      */
     public final String getAlgorithm() {
 	return this.algorithm;
@@ -352,7 +357,7 @@ public abstract class MessageDigest extends MessageDigestSpi {
      * @return the digest length in bytes, or 0 if this operation is not
      * supported by the provider and the implementation is not cloneable.
      * 
-     * @since JDK1.2
+     * @since 1.2
      */
     public final int getDigestLength() {
 	int digestLen = engineGetDigestLength();

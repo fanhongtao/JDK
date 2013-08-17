@@ -1,8 +1,11 @@
 /*
- * @(#)PlainView.java	1.59 01/11/29
+ * @(#)PlainView.java	1.63 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -17,7 +20,7 @@ import javax.swing.event.*;
  * child element as a line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.59 11/29/01
+ * @version 1.63 02/02/00
  * @see     View
  */
 public class PlainView extends View implements TabExpander {
@@ -286,19 +289,6 @@ public class PlainView extends View implements TabExpander {
     }
 
     /**
-     * Signals that the desired span has changed. 
-     *
-     * @param child the child view
-     * @param width true if the width preference has changed
-     * @param height true if the height preference has changed
-     * @see javax.swing.JComponent#revalidate
-     */
-    public void preferenceChanged(View child, boolean width, boolean height) {
-	getDocument().putProperty(PlainDocument.lineLimitAttribute, null);       
-	super.preferenceChanged(child, width, height);
-    }
-
-    /**
      * Provides a mapping from the document model coordinate space
      * to the coordinate space of the view mapped to it.
      *
@@ -463,60 +453,58 @@ public class PlainView extends View implements TabExpander {
      */
     void updateDamage(DocumentEvent changes, Shape a, ViewFactory f) {
 	Component host = getContainer();
-        if (host.isShowing()) {
-	    updateMetrics();
-            Element elem = getElement();
-            DocumentEvent.ElementChange ec = changes.getChange(elem);
-            
-            Element[] added = (ec != null) ? ec.getChildrenAdded() : null;
-            Element[] removed = (ec != null) ? ec.getChildrenRemoved() : null;
-            if (((added != null) && (added.length > 0)) || 
-                ((removed != null) && (removed.length > 0))) {
-		// lines were added or removed...
-		if (added != null) {
-		    int currWide = getLineWidth(longLine);
-		    for (int i = 0; i < added.length; i++) {
-			int w = getLineWidth(added[i]);
-			if (w > currWide) {
-			    currWide = w;
-			    longLine = added[i];
-			}
+	updateMetrics();
+	Element elem = getElement();
+	DocumentEvent.ElementChange ec = changes.getChange(elem);
+	
+	Element[] added = (ec != null) ? ec.getChildrenAdded() : null;
+	Element[] removed = (ec != null) ? ec.getChildrenRemoved() : null;
+	if (((added != null) && (added.length > 0)) || 
+	    ((removed != null) && (removed.length > 0))) {
+	    // lines were added or removed...
+	    if (added != null) {
+		int currWide = getLineWidth(longLine);
+		for (int i = 0; i < added.length; i++) {
+		    int w = getLineWidth(added[i]);
+		    if (w > currWide) {
+			currWide = w;
+			longLine = added[i];
 		    }
 		}
-		if (removed != null) {
-		    for (int i = 0; i < removed.length; i++) {
-			if (removed[i] == longLine) {
-			    calculateLongestLine();
-			    break;
-			}
-		    }
-		}
-                preferenceChanged(null, true, true);
-                host.repaint();
-            } else {
-                Element map = getElement();
-                int line = map.getElementIndex(changes.getOffset());
-                damageLineRange(line, line, a, host);
-		if (changes.getType() == DocumentEvent.EventType.INSERT) {
-		    // check to see if the line is longer than current
-		    // longest line.
-		    int w = getLineWidth(longLine);
-		    Element e = map.getElement(line);
-		    if (e == longLine) {
-			preferenceChanged(null, true, false);
-		    } else if (getLineWidth(e) > w) {
-			longLine = e;
-			preferenceChanged(null, true, false);
-		    }
-		} else if (changes.getType() == DocumentEvent.EventType.REMOVE) {
-		    if (map.getElement(line) == longLine) {
-			// removed from longest line... recalc
+	    }
+	    if (removed != null) {
+		for (int i = 0; i < removed.length; i++) {
+		    if (removed[i] == longLine) {
 			calculateLongestLine();
-			preferenceChanged(null, true, false);
-		    }			
+			break;
+		    }
 		}
-            }
-        }
+	    }
+	    preferenceChanged(null, true, true);
+	    host.repaint();
+	} else {
+	    Element map = getElement();
+	    int line = map.getElementIndex(changes.getOffset());
+	    damageLineRange(line, line, a, host);
+	    if (changes.getType() == DocumentEvent.EventType.INSERT) {
+		// check to see if the line is longer than current
+		// longest line.
+		int w = getLineWidth(longLine);
+		Element e = map.getElement(line);
+		if (e == longLine) {
+		    preferenceChanged(null, true, false);
+		} else if (getLineWidth(e) > w) {
+		    longLine = e;
+		    preferenceChanged(null, true, false);
+		}
+	    } else if (changes.getType() == DocumentEvent.EventType.REMOVE) {
+		if (map.getElement(line) == longLine) {
+		    // removed from longest line... recalc
+		    calculateLongestLine();
+		    preferenceChanged(null, true, false);
+		}			
+	    }
+	}
     }
 
     private void damageLineRange(int line0, int line1, Shape a, Component host) {
@@ -534,6 +522,7 @@ public class PlainView extends View implements TabExpander {
 
     private Rectangle lineToRect(Shape a, int line) {
         Rectangle r = null;
+	updateMetrics();
         if (metrics != null) {
             Rectangle alloc = a.getBounds();
             r = new Rectangle(alloc.x, alloc.y + (line * metrics.getHeight()),

@@ -1,18 +1,16 @@
 /*
- * @(#)Locale.java	1.48 01/11/29
+ * @(#)Locale.java	1.55 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)Locale.java	1.48 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  * The original version of this source code and documentation
  * is copyrighted and owned by Taligent, Inc., a wholly-owned
@@ -22,19 +20,6 @@
  *
  * This notice and attribution to Taligent may not be removed.
  * Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -124,7 +109,7 @@ import java.text.MessageFormat;
  * that uses the locale specified as an argument.
  *
  * <P>
- * The JDK provides a number of classes that perform locale-sensitive
+ * The Java 2 platform provides a number of classes that perform locale-sensitive
  * operations. For example, the <code>NumberFormat</code> class formats
  * numbers, currency, or percentages in a locale-sensitive manner. Classes
  * such as <code>NumberFormat</code> have a number of convenience methods
@@ -175,8 +160,9 @@ import java.text.MessageFormat;
  * @see         java.text.Format
  * @see         java.text.NumberFormat
  * @see         java.text.Collator
- * @version     1.21 29 Jan 1997
+ * @version     1.55, 01/19/00
  * @author      Mark Davis
+ * @since       JDK1.1
  */
 
 public final class Locale implements Cloneable, Serializable {
@@ -280,23 +266,14 @@ public final class Locale implements Cloneable, Serializable {
      * @param variant vendor and browser specific code. See class description.
      */
     public Locale(String language, String country, String variant) {
-        // we accept both the old and the new ISO codes for the languages whose ISO
-        // codes have changed, but we always store the OLD code, for backward compatibility
-        language = toLowerCase(language).intern();
-        if (language == "he")
-            language = "iw";
-        else if (language == "yi")
-            language = "ji";
-        else if (language == "id")
-            language = "in";
-
-        this.language = language;
+        this.language = convertOldISOCodes(language);
         this.country = toUpperCase(country).intern();
         this.variant = toUpperCase(variant).intern();
     }
 
     /**
-     * Construct a locale from language, country.
+     * Construct a locale from language, country. To create a locale that only
+     * identifies a language, use "" for the <code>country</code>.
      * NOTE:  ISO 639 is not a stable standard; some of the language codes it defines
      * (specifically iw, ji, and in) have changed.  This constructor accepts both the
      * old codes (iw, ji, and in) and the new codes (he, yi, and id), but all other
@@ -309,33 +286,43 @@ public final class Locale implements Cloneable, Serializable {
     }
 
     /**
-     * Common method of getting the current default Locale.
-     * Used for the presentation: menus, dialogs, etc.
-     * Generally set once when your applet or application is initialized,
-     * then never reset. (If you do reset the default locale, you
-     * probably want to reload your GUI, so that the change is reflected
-     * in your interface.)
-     * <p>More advanced programs will allow users to use different locales
-     * for different fields, e.g. in a spreadsheet.
-     * <BR>Note that the initial setting will match the host system.
+     * Gets the current value of the default locale for this instance
+     * of the Java Virtual Machine.
+     * <p>
+     * The Java Virtual Machine sets the default locale during startup
+     * based on the host environment. It is used by many locale-sensitive
+     * methods if no locale is explicitly specified.
+     * It can be changed using the
+     * {@link #setDefault(java.util.Locale) setDefault} method.
+     *
+     * @return the default locale for this instance of the Java Virtual Machine
      */
     public static Locale getDefault() {
         return defaultLocale;   // this variable is now initialized at static init time
     }
 
     /**
-     * Sets the default locale for the whole JVM.
-     * Normally set once at the beginning of an application,
-     * then never reset. <code>setDefault</code> does not reset the host locale.
-     * 
-     * <p>If there is a security manager, its <code>checkPermission</code> 
-     * method is called with a <code>PropertyPermission("user.language", "write")</code> 
-     * permission. 
-     * 
+     * Sets the default locale for this instance of the Java Virtual Machine.
+     * This does not affect the host locale.
+     * <p>
+     * If there is a security manager, its <code>checkPermission</code>
+     * method is called with a <code>PropertyPermission("user.language", "write")</code>
+     * permission before the default locale is changed.
+     * <p>
+     * The Java Virtual Machine sets the default locale during startup
+     * based on the host environment. It is used by many locale-sensitive
+     * methods if no locale is explicitly specified.
+     * <p>
+     * Since changing the default locale may affect many different areas
+     * of functionality, this method should only be used if the caller
+     * is prepared to reinitialize locale-sensitive code running
+     * within the same Java Virtual Machine, such as the user interface.
+     *
      * @throws SecurityException
-     *        if a security manager exists and its 
+     *        if a security manager exists and its
      *        <code>checkPermission</code> method doesn't allow the operation.
-     * @param newLocale The new default Locale.
+     * @throws NullPointerException if <code>newLocale</code> is null
+     * @param newLocale the new default locale
      * @see SecurityManager#checkPermission
      * @see java.util.PropertyPermission
      */
@@ -495,6 +482,9 @@ public final class Locale implements Cloneable, Serializable {
      * Returns a three-letter abbreviation for this locale's language.  If the locale
      * doesn't specify a language, this will be the empty string.  Otherwise, this will
      * be a lowercase ISO 639-2/T language code.
+     * The ISO 639-2 language codes can be found on-line at
+     *   <a href="http://www.triacom.com/archive/iso639-2.en.html><code>http://www.triacom.com/archive/iso639-2.en.html</code></a> and
+     *   <a href="ftp://dkuug.dk/i18n/iso-639-2.txt"><code>ftp://dkuug.dk/i18n/iso-639-2.txt</code></a>
      * @exception MissingResourceException Throws MissingResourceException if the
      * three-letter language abbreviation is not available for this locale.
      */
@@ -1081,14 +1071,14 @@ public final class Locale implements Cloneable, Serializable {
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         // hashcode is semantically transient.  We couldn't define it as transient
-        // because versions of this class that DIDN'T deslcare is as transient have
+        // because versions of this class that DIDN'T declare is as transient have
         // already shipped.  This code makes sure that whatever value for hashcode
         // was written on the stream, we ignore it and recalculate it on demand.  This
         // is necessary because String.hashCode() calculates is hash code differently
         // in version 1.2 than it did in 1.1.
         in.defaultReadObject();
         hashcode = -1;
-        language = language.intern();
+        language = convertOldISOCodes(language);
         country = country.intern();
         variant = variant.intern();
     }
@@ -1114,8 +1104,8 @@ public final class Locale implements Cloneable, Serializable {
         + "kykir,lalat,lnlin,lolao,ltlit,lvlav,mgmlg,mimri,mkmkd,mlmal,mnmon,momol,mrmar,"
         + "msmsa,mtmlt,mymya,nanau,nenep,nlnld,nonor,ococi,omorm,orori,papan,plpol,pspus,"
         + "ptpor,quque,rmroh,rnrun,roron,rurus,rwkin,sasan,sdsnd,sgsag,shsrp,sisin,skslk,"
-        + "slslv,smsmo,snsna,sosom,sqsqi,srsrp,ssssw,stsot,susun,svswe,swswa,tatat,tetel,"
-        + "tgtgk,ththa,titir,tktuk,tltgl,tntsn,toton,trtur,tstsn,tttat,twtwi,uguig,ukukr,"
+        + "slslv,smsmo,snsna,sosom,sqsqi,srsrp,ssssw,stsot,susun,svswe,swswa,tatam,tetel,"
+        + "tgtgk,ththa,titir,tktuk,tltgl,tntsn,toton,trtur,tstso,tttat,twtwi,uguig,ukukr,"
         + "ururd,uzuzb,vivie,vovol,wowol,xhxho,yiyid,yoyor,zazha,zhzho,zuzul";
 
     /**
@@ -1153,7 +1143,8 @@ public final class Locale implements Cloneable, Serializable {
 
     /**
      * Table mapping ISO country codes to the ISO language codes of the languages spoken
-     * in those countries.
+     * in those countries.  Each entry consists of a two letter uppercase country code
+     * followed by one or more lowercase two letter language codes.
      * (Because the Java VM specification for building arrays and hashtables causes
      * code that builds the tables element by element to be produces, we compress the data
      * into a single encoded String, and lazy evaluate the table from it.)
@@ -1220,5 +1211,20 @@ public final class Locale implements Cloneable, Serializable {
                 if ("EN".equals(languages[i][0]))
                     return languages[i][1];
         return "";
+    }
+
+    private String convertOldISOCodes(String language) {
+        // we accept both the old and the new ISO codes for the languages whose ISO
+        // codes have changed, but we always store the OLD code, for backward compatibility
+        language = toLowerCase(language).intern();
+        if (language == "he") {
+            return "iw";
+        } else if (language == "yi") {
+            return "ji";
+        } else if (language == "id") {
+            return "in";
+        } else {
+            return language;
+        }
     }
 }

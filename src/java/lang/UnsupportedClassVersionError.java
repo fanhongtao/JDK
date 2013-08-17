@@ -1,8 +1,11 @@
 /*
- * @(#)UnsupportedClassVersionError.java	1.4 01/11/29
+ * @(#)UnsupportedClassVersionError.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -12,7 +15,7 @@ package java.lang;
  * file and determines that the major and minor version numbers
  * in the file are not supported.
  *
- * @since   JDK1.2
+ * @since   1.2
  */
 public
 class UnsupportedClassVersionError extends ClassFormatError {

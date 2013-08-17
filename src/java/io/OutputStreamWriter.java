@@ -1,8 +1,11 @@
 /*
- * @(#)OutputStreamWriter.java	1.23 01/11/29
+ * @(#)OutputStreamWriter.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -12,23 +15,21 @@ import sun.io.ConversionBufferFullException;
 
 
 /**
- * Write characters to an output stream, translating characters into bytes
- * according to a specified character encoding.  Each OutputStreamWriter
- * incorporates its own CharToByteConverter, and is thus a bridge from
- * character streams to byte streams.
- *
- * <p> The encoding used by an OutputStreamWriter may be specified by name, by
- * providing a CharToByteConverter, or by accepting the default encoding, which
- * is defined by the system property <tt>file.encoding</tt>.
+ * An OutputStreamWriter is a bridge from character streams to byte streams:
+ * Characters written to it are translated into bytes according to a specified
+ * <a href="../lang/package-summary.html#charenc">character encoding</a>.  The
+ * encoding that it uses may be specified by name, or the platform's default
+ * encoding may be accepted.
  *
  * <p> Each invocation of a write() method causes the encoding converter to be
  * invoked on the given character(s).  The resulting bytes are accumulated in a
  * buffer before being written to the underlying output stream.  The size of
  * this buffer may be specified, but by default it is large enough for most
  * purposes.  Note that the characters passed to the write() methods are not
- * buffered.  For top efficiency, consider wrapping an OutputStreamWriter
- * within a BufferedWriter so as to avoid frequent converter invocations.  For
- * example,
+ * buffered.
+ *
+ * <p> For top efficiency, consider wrapping an OutputStreamWriter within a
+ * BufferedWriter so as to avoid frequent converter invocations.  For example:
  *
  * <pre>
  * Writer out
@@ -37,8 +38,9 @@ import sun.io.ConversionBufferFullException;
  *
  * @see BufferedWriter
  * @see OutputStream
+ * @see <a href="../lang/package-summary.html#charenc">Character encodings</a>
  *
- * @version 	1.10, 97/01/27
+ * @version 	1.28, 02/02/00
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -60,7 +62,9 @@ public class OutputStreamWriter extends Writer {
      * Create an OutputStreamWriter that uses the named character encoding.
      *
      * @param  out  An OutputStream
-     * @param  enc  Name of the encoding to be used
+     * @param  enc  The name of a supported
+     *              <a href="../lang/package-summary.html#charenc">character
+     *              encoding</a>
      *
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
@@ -98,12 +102,18 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Returns the canonical name of the character encoding being used by 
-     * this stream.  If this <code>OutputStreamWriter</code> was created 
-     * with the {@link #OutputStreamWriter(OutputStream, String)} constructor, 
-     * the returned encoding name, being canonical, may differ from the 
-     * encoding name passed to the constructor.  May return <code>null</code> 
-     * if the stream has been closed.
+     * Returns the canonical name of the character encoding being used by this
+     * stream.  If this <code>OutputStreamWriter</code> was created with the
+     * {@link #OutputStreamWriter(OutputStream, String)} constructor then the
+     * returned encoding name, being canonical, may differ from the encoding
+     * name passed to the constructor.  May return <code>null</code> if the
+     * stream has been closed.
+     *
+     * @return a String representing the encoding name, or possibly
+     *         <code>null</code> if the stream has been closed
+     *
+     * @see <a href="../lang/package-summary.html#charenc">Character
+     *      encodings</a>
      */
     public String getEncoding() {
 	synchronized (lock) {
@@ -189,6 +199,10 @@ public class OutputStreamWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(String str, int off, int len) throws IOException {
+	/* Check the len before creating a char buffer */
+	if (len < 0)
+	    throw new IndexOutOfBoundsException();
+
 	char cbuf[] = new char[len];
 	str.getChars(off, off + len, cbuf, 0);
 	write(cbuf, 0, len);

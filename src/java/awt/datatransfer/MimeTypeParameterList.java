@@ -1,19 +1,28 @@
 /*
- * @(#)MimeTypeParameterList.java	1.5 01/11/29
+ * @(#)MimeTypeParameterList.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.datatransfer;
 
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
  * An object that encapsualtes the parameter list of a MimeType
  * as defined in RFC 2045 and 2046.
+ *
+ * @version 1.9, 02/02/00
+ * @author jeff.dunn@eng.sun.com
  */
 class MimeTypeParameterList implements Cloneable {
 
@@ -34,6 +43,55 @@ class MimeTypeParameterList implements Cloneable {
     private MimeTypeParameterList(Hashtable ht) throws CloneNotSupportedException {
 	parameters = (Hashtable)ht.clone();
     }
+
+    public int hashCode() {
+	int code = Integer.MAX_VALUE/45; // "random" value for empty lists
+	String paramName = null;
+	for (Enumeration enum = this.getNames();
+	     (enum.hasMoreElements()); paramName = (String)enum.nextElement()){
+	    code += paramName.hashCode();
+	    code += this.get(paramName).hashCode();
+        }
+	return code;
+    } // hashCode()
+
+    /**
+     * Two parameter lists are considered equal if they have exactly
+     * the same set of parameter names and associated values. The
+     * order of the parameters is not considered.
+     */
+    public boolean equals(Object thatObject) {
+	//System.out.println("MimeTypeParameterList.equals("+this+","+thatObject+")");
+	if (!(thatObject instanceof MimeTypeParameterList)) {
+	    return false;
+	}
+	MimeTypeParameterList that = (MimeTypeParameterList)thatObject;
+	if (this.size() != that.size()) {
+	    return false;
+	}
+	String name = null;
+	String thisValue = null;
+	String thatValue = null;
+	Set entries = parameters.entrySet();
+	Iterator iterator = entries.iterator();
+	Map.Entry entry = null;
+	while (iterator.hasNext()) {
+	    entry = (Map.Entry)iterator.next();
+	    name = (String)entry.getKey();
+	    thisValue = (String)entry.getValue();
+	    thatValue = (String)that.parameters.get(name);
+	    if ((thisValue == null) || (thatValue == null)) {
+		// both null -> equal, only one null -> not equal
+		if (thisValue != thatValue) {
+		    return false;
+		}
+	    } else if (!thisValue.equals(thatValue)) {
+	        return false;
+	    }
+	} // while iterator
+
+	return true;
+    } // equals()
 
     /**
      * A routine for parsing the parameter list out of a String.

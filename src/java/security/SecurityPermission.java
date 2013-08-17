@@ -1,8 +1,11 @@
 /*
- * @(#)SecurityPermission.java	1.19 01/11/29
+ * @(#)SecurityPermission.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -33,6 +36,24 @@ import java.util.StringTokenizer;
  * <th>Permission Target Name</th>
  * <th>What the Permission Allows</th>
  * <th>Risks of Allowing this Permission</th>
+ * </tr>
+ *
+ * <tr>
+ *   <td>createAccessControlContext</td>
+ *   <td>Creation of an AccessControlContext</td>
+ *   <td>This allows someone to instantiate an AccessControlContext
+ * with a <code>DomainCombiner</code>.  Since DomainCombiners are given
+ * a reference to the ProtectionDomains currently on the stack,
+ * this could potentially lead to a privacy leak if the DomainCombiner
+ * is malicious.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>getDomainCombiner</td>
+ *   <td>Retrieval of an AccessControlContext's DomainCombiner</td>
+ *   <td>This allows someone to retrieve an AccessControlContext's
+ * <code>DomainCombiner</code>.  Since DomainCombiners may contain
+ * sensitive information, this could potentially lead to a privacy leak.</td>
  * </tr>
  *
  * <tr>
@@ -227,7 +248,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.19 01/11/29
+ * @version 1.21 00/02/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers

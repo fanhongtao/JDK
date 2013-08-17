@@ -1,8 +1,11 @@
 /*
- * @(#)Map.java	1.28 01/11/29
+ * @(#)Map.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -37,17 +40,17 @@ package java.util;
  * In effect, the latter constructor allows the user to copy any map,
  * producing an equivalent map of the desired class.  There is no way to
  * enforce this recommendation (as interfaces cannot contain constructors) but
- * all of the general-purpose map implementations in the JDK comply.
+ * all of the general-purpose map implementations in the SDK comply.
  *
  * @author  Josh Bloch
- * @version 1.28 11/29/01
+ * @version 1.32, 02/02/00
  * @see HashMap
  * @see TreeMap
  * @see Hashtable
  * @see SortedMap
  * @see Collection
  * @see Set
- * @since JDK1.2
+ * @since 1.2
  */
 public interface Map {
     // Query Operations
@@ -252,6 +255,7 @@ public interface Map {
      * <tt>setValue</tt> operation on a map entry returned by the iterator.
      *
      * @see Map#entrySet()
+     * @since 1.2
      */
     public interface Entry {
     	/**

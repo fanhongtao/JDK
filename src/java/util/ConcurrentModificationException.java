@@ -1,8 +1,11 @@
 /*
- * @(#)ConcurrentModificationException.java	1.7 01/11/29
+ * @(#)ConcurrentModificationException.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -15,13 +18,13 @@ package java.util;
  * while another thread is iterating over it.  In general, the results of the
  * iteration are undefined under these circumstances.  Some Iterator
  * implementations (including those of all the collection implementations
- * provided by the JDK) may choose to throw this exception if this behavior is
+ * provided by the SDK) may choose to throw this exception if this behavior is
  * detected.  Iterators that do this are known as <i>fail-fast</i> iterators,
  * as they fail quickly and cleanly, rather that risking arbitrary,
  * non-deterministic behavior at an undetermined time in the future.
  *
  * @author  Josh Bloch
- * @version 1.7, 11/29/01
+ * @version 1.11, 02/02/00
  * @see	    Collection
  * @see     Iterator
  * @see     ListIterator
@@ -31,7 +34,7 @@ package java.util;
  * @see	    Hashtable
  * @see	    TreeMap
  * @see	    AbstractList
- * @since   JDK1.2
+ * @since   1.2
  */
 public class ConcurrentModificationException extends RuntimeException {
     /**
@@ -44,6 +47,8 @@ public class ConcurrentModificationException extends RuntimeException {
     /**
      * Constructs a <tt>ConcurrentModificationException</tt> with the
      * specified detail message.
+     *
+     * @param message the detail message pertaining to this exception.
      */
     public ConcurrentModificationException(String message) {
 	super(message);

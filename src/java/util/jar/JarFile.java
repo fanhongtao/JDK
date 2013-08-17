@@ -1,8 +1,11 @@
 /*
- * @(#)JarFile.java	1.31 01/11/29
+ * @(#)JarFile.java	1.38 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -22,11 +25,11 @@ import sun.security.util.ManifestEntryVerifier;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.31, 11/29/01
+ * @version 1.38, 02/02/00
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
- * @since   JDK1.2
+ * @since   1.2
  */
 public
 class JarFile extends ZipFile {
@@ -37,6 +40,9 @@ class JarFile extends ZipFile {
     private boolean jvInitialized;
     private boolean verify;
 
+    /**
+     * The JAR manifest file name.
+     */
     public static final String MANIFEST_NAME = "META-INF/MANIFEST.MF";
 
     /**
@@ -48,7 +54,7 @@ class JarFile extends ZipFile {
      * @exception IOException if an I/O error has occurred
      */
     public JarFile(String name) throws IOException {
-	this(name, true);
+	this(new File(name), true, ZipFile.OPEN_READ);
     }
 
     /**
@@ -61,8 +67,7 @@ class JarFile extends ZipFile {
      * @exception IOException if an I/O error has occurred
      */
     public JarFile(String name, boolean verify) throws IOException {
-	super(name);
-	this.verify = verify;
+        this(new File(name), verify, ZipFile.OPEN_READ);
     }
 
     /**
@@ -74,7 +79,7 @@ class JarFile extends ZipFile {
      * @exception IOException if an I/O error has occurred
      */
     public JarFile(File file) throws IOException {
-	this(file.getPath(), true);
+	this(file, true, ZipFile.OPEN_READ);
     }
 
 
@@ -88,11 +93,33 @@ class JarFile extends ZipFile {
      * @exception IOException if an I/O error has occurred
      */
     public JarFile(File file, boolean verify) throws IOException {
-	this(file.getPath(), verify);
+	this(file, verify, ZipFile.OPEN_READ);
+    }
+
+
+    /**
+     * Creates a new <code>JarFile</code> to read from the specified
+     * <code>File</code> object in the specified mode.  The mode argument
+     * must be either <tt>OPEN_READ</tt> or <tt>OPEN_READ | OPEN_DELETE</tt>.
+     *
+     * @param file the JAR file to be opened for reading
+     * @param verify whether or not to verify the JarFile if
+     * it is signed.
+     * @param mode the mode in which the file is to be opened
+     * @exception FileNotFoundException if the file could not be found
+     * @exception IOException if an I/O error has occurred
+     * @exception IllegalArgumentException
+     *            If the <tt>mode</tt> argument is invalid
+     */
+    public JarFile(File file, boolean verify, int mode) throws IOException {
+	super(file, mode);
+	this.verify = verify;
     }
 
     /**
      * Returns the JAR file manifest, or <code>null</code> if none.
+     *
+     * @return the JAR file manifest, or <code>null</code> if none
      */
     public Manifest getManifest() throws IOException {
 	if (!manLoaded) {
@@ -133,12 +160,23 @@ class JarFile extends ZipFile {
      * <code>null</code> if not found.
      *
      * @param name the JAR file entry name
+     * @return the <code>JarEntry</code> for the given entry name or
+     *         <code>null</code> if not found.
      * @see java.util.jar.JarEntry
      */
     public JarEntry getJarEntry(String name) {
 	return (JarEntry)getEntry(name);
     }
 
+    /**
+     * Returns the <code>ZipEntry</code> for the given entry name or
+     * <code>null</code> if not found.
+     *
+     * @param name the JAR file entry name
+     * @return the <code>ZipEntry</code> for the given entry name or
+     *         <code>null</code> if not found
+     * @see java.util.zip.ZipEntry
+     */
     public ZipEntry getEntry(String name) {
 	ZipEntry ze = super.getEntry(name);
 	if (ze != null) {
@@ -147,6 +185,9 @@ class JarFile extends ZipFile {
 	return null;
     }
 
+    /**
+     * Returns an enumeration of the ZIP file entries.
+     */
     public Enumeration entries() {
 	final Enumeration enum = super.entries();
 	return new Enumeration() {
@@ -250,8 +291,11 @@ class JarFile extends ZipFile {
      * Returns an input stream for reading the contents of the specified
      * ZIP file entry.
      * @param ze the zip file entry
+     * @return an input stream for reading the contents of the specified
+     *         ZIP file entry
      * @exception ZipException if a ZIP format error has occurred
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if any of the JarFile entries are incorrectly signed.
      */
     public synchronized InputStream getInputStream(ZipEntry ze) 
 	throws IOException 

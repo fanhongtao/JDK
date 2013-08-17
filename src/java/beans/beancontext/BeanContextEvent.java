@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextEvent.java	1.5 01/11/29
+ * @(#)BeanContextEvent.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -13,13 +16,20 @@ import java.beans.beancontext.BeanContext;
 
 /**
  * <p>
- * BeanContextEvent is the abstract root event class for all events emitted
- * from, and pertaining to the semantics of, a BeanContext.
+ * <code>BeanContextEvent</code> is the abstract root event class 
+ * for all events emitted
+ * from, and pertaining to the semantics of, a <code>BeanContext</code>.
+ * This class introduces a mechanism to allow the propagation of 
+ * <code>BeanContextEvent</code> subclasses through a heirarchy of 
+ * <code>BeanContext</code>s. The <code>setPropagatedFrom()</code> 
+ * and <code>getPropagatedFrom()</code> methods allow a 
+ * <code>BeanContext</code> to identify itself as the source 
+ * of a propagated event. 
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.2
- * @since	JDK1.2
+ * @version	1.9, 02/02/00
+ * @since	1.2
  * @see		java.beans.beancontext.BeanContext
  */
 
@@ -30,37 +40,42 @@ public abstract class BeanContextEvent extends EventObject {
      *
      * @param bc	The BeanContext source
      */
-
     protected BeanContextEvent(BeanContext bc) {
 	super(bc);
     }
 
     /**
-     *
+     * Gets the <code>BeanContext</code> associated with this event.
+     * @return the <code>BeanContext</code> associated with this event.
      */
-
     public BeanContext getBeanContext() { return (BeanContext)getSource(); }
 
     /**
-     * @param bc Set the BeanContext that last propagated this BeanContextEvent
+     * Sets the <code>BeanContext</code> from which this event was propagated.
+     * @param bc the <code>BeanContext</code> from which this event 
+     * was propagated
      */
-
     public synchronized void setPropagatedFrom(BeanContext bc) {
 	propagatedFrom = bc;
     }
 
     /**
-     * @param bc The BeanContext that last propagated this BeanContextEvent
+     * Gets the <code>BeanContext</code> from which this event was propagated.
+     * @param bc The <code>BeanContext</code> that last 
+     * propagated this <code>BeanContextEvent</code>
+     * @return the <code>BeanContext</code> from which this 
+     * event was propagated
      */
-
     public synchronized BeanContext getPropagatedFrom() {
 	return propagatedFrom;
     }
 
     /**
-     * @return is the BeanContextEvent propagated?
+     * Reports whether or not this event is 
+     * propagated from some other <code>BeanContext</code>.
+     * @return <code>true</code> if propagated, <code>false</code> 
+     * if not
      */
-
     public synchronized boolean isPropagated() {
 	return propagatedFrom != null;
     }
@@ -69,5 +84,15 @@ public abstract class BeanContextEvent extends EventObject {
      * fields
      */
 
+    /** 
+     * The <code>BeanContext</code> from which this event was propagated
+     */
     protected BeanContext propagatedFrom;
 }
+
+
+
+
+
+
+

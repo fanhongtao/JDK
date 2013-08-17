@@ -1,8 +1,11 @@
 /*
- * @(#)BufferedReader.java	1.20 01/11/29
+ * @(#)BufferedReader.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -37,7 +40,7 @@ package java.io;
  * @see FileReader
  * @see InputStreamReader
  *
- * @version 	1.20, 01/11/29
+ * @version 	1.25, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -53,6 +56,12 @@ public class BufferedReader extends Reader {
     private static final int UNMARKED = -1;
     private int markedChar = UNMARKED;
     private int readAheadLimit = 0; /* Valid only when markedChar > 0 */
+
+    /** If the next character is a line feed, skip it */
+    private boolean skipLF = false;
+
+    /** The skipLF flag when the mark was set */
+    private boolean markedSkipLF = false;
 
     private static int defaultCharBufferSize = 8192;
     private static int defaultExpectedLineLength = 80;
@@ -143,31 +152,51 @@ public class BufferedReader extends Reader {
     public int read() throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
-	    if (nextChar >= nChars) {
-		fill();
-		if (nextChar >= nChars)
-		    return -1;
+	    for (;;) {
+		if (nextChar >= nChars) {
+		    fill();
+		    if (nextChar >= nChars)
+			return -1;
+		}
+		if (skipLF) {
+		    skipLF = false;
+		    if (cb[nextChar] == '\n') {
+			nextChar++;
+			continue;
+		    }
+		}
+		return cb[nextChar++];
 	    }
-	    return cb[nextChar++];
 	}
     }
 
     /**
      * Read characters into a portion of an array, reading from the underlying
-     * stream at most once if necessary.
+     * stream if necessary.
      */
     private int read1(char[] cbuf, int off, int len) throws IOException {
 	if (nextChar >= nChars) {
 	    /* If the requested length is at least as large as the buffer, and
-	       if there is no mark/reset activity, do not bother to copy the
-	       characters into the local buffer.  In this way buffered streams
-	       will cascade harmlessly. */
-	    if (len >= cb.length && markedChar <= UNMARKED) {
+	       if there is no mark/reset activity, and if line feeds are not
+	       being skipped, do not bother to copy the characters into the
+	       local buffer.  In this way buffered streams will cascade
+	       harmlessly. */
+	    if (len >= cb.length && markedChar <= UNMARKED && !skipLF) {
 		return in.read(cbuf, off, len);
 	    }
 	    fill();
 	}
 	if (nextChar >= nChars) return -1;
+	if (skipLF) {
+	    skipLF = false;
+	    if (cb[nextChar] == '\n') {
+		nextChar++;
+		if (nextChar >= nChars)
+		    fill();
+		if (nextChar >= nChars)
+		    return -1;
+	    }
+	}
 	int n = Math.min(len, nChars - nextChar);
 	System.arraycopy(cb, nextChar, cbuf, off, n);
 	nextChar += n;
@@ -245,7 +274,7 @@ public class BufferedReader extends Reader {
      * of a line feed ('\n'), a carriage return ('\r'), or a carriage return
      * followed immediately by a linefeed.
      *
-     * @param      skipLF  If true, the next '\n' will be skipped
+     * @param      ignoreLF  If true, the next '\n' will be skipped
      *
      * @return     A String containing the contents of the line, not including
      *             any line-termination characters, or null if the end of the
@@ -255,10 +284,13 @@ public class BufferedReader extends Reader {
      *
      * @exception  IOException  If an I/O error occurs
      */
-    String readLine(boolean skipLF) throws IOException {
-	StringBuffer s = new StringBuffer(defaultExpectedLineLength);
-	synchronized (lock) {
-	    ensureOpen();
+    String readLine(boolean ignoreLF) throws IOException {
+	StringBuffer s = null;
+	int startChar;
+	boolean omitLF = ignoreLF || skipLF;
+
+        synchronized (lock) {
+            ensureOpen();
 
 	bufferLoop:
 	    for (;;) {
@@ -266,7 +298,7 @@ public class BufferedReader extends Reader {
 		if (nextChar >= nChars)
 		    fill();
 		if (nextChar >= nChars) { /* EOF */
-		    if (s.length() > 0)
+		    if (s != null && s.length() > 0)
 			return s.toString();
 		    else
 			return null;
@@ -275,9 +307,11 @@ public class BufferedReader extends Reader {
 		char c = 0;
 		int i;
 
-                /* Skip a leftover '\n' */
-		if (skipLF && (cb[nextChar] == '\n'))
+                /* Skip a leftover '\n', if necessary */
+		if (omitLF && (cb[nextChar] == '\n')) 
                     nextChar++;
+		skipLF = false;
+		omitLF = false;
 
 	    charLoop:
 		for (i = nextChar; i < nChars; i++) {
@@ -287,24 +321,30 @@ public class BufferedReader extends Reader {
 			break charLoop;
 		    }
 		}
-		s.append(cb, nextChar, i - nextChar);
+
+		startChar = nextChar;
 		nextChar = i;
 
 		if (eol) {
+		    String str;
+		    if (s == null) {
+			str = new String(cb, startChar, i - startChar);
+		    } else {
+			s.append(cb, startChar, i - startChar);
+			str = s.toString();
+		    }
 		    nextChar++;
 		    if (c == '\r') {
-			if (nextChar >= nChars)
-			    fill();
-			if ((nextChar < nChars) && (cb[nextChar] == '\n'))
-			    nextChar++;
+			skipLF = true;
 		    }
-		    break bufferLoop;
+		    return str;
 		}
-                skipLF = false;
-            }
-	}
-
-	return s.toString();
+		
+		if (s == null) 
+		    s = new StringBuffer(defaultExpectedLineLength);
+		s.append(cb, startChar, i - startChar);
+	    }
+        }
     }
 
     /**
@@ -329,6 +369,7 @@ public class BufferedReader extends Reader {
      *
      * @return    The number of characters actually skipped
      *
+     * @exception  IllegalArgumentException  If <code>n</code> is negative.
      * @exception  IOException  If an I/O error occurs
      */
     public long skip(long n) throws IOException {
@@ -343,6 +384,12 @@ public class BufferedReader extends Reader {
 		    fill();
 		if (nextChar >= nChars)	/* EOF */
 		    break;
+		if (skipLF) {
+		    skipLF = false;
+		    if (cb[nextChar] == '\n') {
+			nextChar++;
+		    }
+		}
 		long d = nChars - nextChar;
 		if (r <= d) {
 		    nextChar += r;
@@ -403,6 +450,7 @@ public class BufferedReader extends Reader {
 	    ensureOpen();
 	    this.readAheadLimit = readAheadLimit;
 	    markedChar = nextChar;
+	    markedSkipLF = skipLF;
 	}
     }
 
@@ -420,6 +468,7 @@ public class BufferedReader extends Reader {
 				      ? "Mark invalid"
 				      : "Stream not marked");
 	    nextChar = markedChar;
+	    skipLF = markedSkipLF;
 	}
     }
 

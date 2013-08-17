@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultStyledDocument.java	1.101 01/11/29
+ * @(#)DefaultStyledDocument.java	1.111 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -10,6 +13,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.font.TextAttribute;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Stack;
@@ -24,6 +28,7 @@ import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
+import javax.swing.SwingUtilities;
 
 /**
  * A document that can be marked up with character and paragraph 
@@ -31,8 +36,8 @@ import javax.swing.undo.UndoableEdit;
  * structure for this document represents style crossings for
  * style runs.  These style runs are mapped into a paragraph element 
  * structure (which may reside in some other structure).  The 
- * style runs break at paragraph boundries since logical styles are 
- * assigned to paragraph boundries.
+ * style runs break at paragraph boundaries since logical styles are 
+ * assigned to paragraph boundaries.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -42,7 +47,7 @@ import javax.swing.undo.UndoableEdit;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.101 11/29/01
+ * @version 1.111 02/02/00
  * @see     Document
  * @see     AbstractDocument
  */
@@ -175,6 +180,10 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		    sb.append(es.getArray(), es.getOffset(),  es.getLength());
 		}
 	    }
+	    if (sb.length() == 0) {
+		// Nothing to insert, bail.
+		return;
+	    }
 	    UndoableEdit cEdit = c.insertString(offset, sb.toString());
 
 	    // create event and build the element structure
@@ -299,7 +308,10 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	Element paragraph = getParagraphElement(p);
 	if (paragraph != null) {
 	    AttributeSet a = paragraph.getAttributes();
-	    s = (Style) a.getResolveParent();
+	    AttributeSet parent = a.getResolveParent();
+	    if (parent instanceof Style) {
+		s = (Style) parent;
+	    }
 	}
 	return s;
     }
@@ -379,6 +391,8 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    Element section = getDefaultRootElement();
 	    int index0 = section.getElementIndex(offset);
 	    int index1 = section.getElementIndex(offset + ((length > 0) ? length - 1 : 0));
+            boolean isI18N = Boolean.TRUE.equals(getProperty(I18NProperty));
+            boolean hasRuns = false;
 	    for (int i = index0; i <= index1; i++) {
 		Element paragraph = section.getElement(i);
 		MutableAttributeSet attr = (MutableAttributeSet) paragraph.getAttributes();
@@ -387,7 +401,15 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		    attr.removeAttributes(attr);
 		}
 		attr.addAttributes(s);
+                if (isI18N && !hasRuns) {
+                    hasRuns = (attr.getAttribute(TextAttribute.RUN_DIRECTION) != null);
+                }
 	    }
+
+            if (hasRuns) {
+                updateBidi( changes );
+            }
+
 	    changes.end();
 	    fireChangedUpdate(changes);
 	    fireUndoableEditUpdate(new UndoableEditEvent(this, changes));
@@ -397,8 +419,9 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
     }
 
     /**
-     * Gets a paragraph element. The paragraph element is
-     * the parent of the deepest leaf.
+     * Gets the paragraph element at the offset <code>pos</code>.
+     * A paragraph consists of at least one child Element, which is usually
+     * a leaf.
      *
      * @param pos the starting offset >= 0
      * @return the element
@@ -449,7 +472,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 
 	// Paragraph attributes should come from point after insertion.
 	// You really only notice this when inserting at a paragraph
-	// boundry.
+	// boundary.
 	Element paragraph = getParagraphElement(offset + length);
 	AttributeSet pattr = paragraph.getAttributes();
 	// Character attributes should come from actual insertion point.
@@ -573,7 +596,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		    }
 		}
 	    }
-	    // If not inserting at boundry and there is going to be a
+	    // If not inserting at boundary and there is going to be a
 	    // fracture, then can join next on last content if cattr
 	    // matches the new attributes.
 	    else if(!insertingAtBoundry && lastStartSpec != null &&
@@ -755,10 +778,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      * @param style The Style that has changed.
      */
     protected void styleChanged(Style style) {
-	DefaultDocumentEvent e = new DefaultDocumentEvent(0, getLength(),
-					      DocumentEvent.EventType.CHANGE);
-	e.end();
-	fireChangedUpdate(e);
+	SwingUtilities.invokeLater(new ChangeUpdateRunnable());
     }
 
     /**
@@ -1199,6 +1219,10 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
          */
 	public void insert(int offset, int length, ElementSpec[] data,
 				 DefaultDocumentEvent de) {
+	    if (length == 0) {
+		// Nothing was inserted, no structure change.
+		return;
+	    }
 	    insertOp = true;
 	    beginEdits(offset, length);
 	    insertUpdate(data);
@@ -1235,8 +1259,23 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		pop();
 	    }
 
-	    // fold in the specified subtree
 	    int n = data.length;
+
+	    // Reset the root elements attributes.
+	    AttributeSet newAttrs = null;
+	    if (n > 0 && data[0].getType() == ElementSpec.StartTagType) {
+		newAttrs = data[0].getAttributes();
+	    }
+	    if (newAttrs == null) {
+		newAttrs = SimpleAttributeSet.EMPTY;
+	    }
+	    MutableAttributeSet attr = (MutableAttributeSet)root.
+		                       getAttributes();
+	    de.addEdit(new AttributeUndoableEdit(root, newAttrs, true));
+	    attr.removeAttributes(attr);
+	    attr.addAttributes(newAttrs);
+
+	    // fold in the specified subtree
 	    for (int i = 1; i < n; i++) {
 		insertElement(data[i]);
 	    }
@@ -1405,7 +1444,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    ElemChanges ec = (ElemChanges) path.peek();
 	    Element child = ec.parent.getElement(ec.index);
 	    // make sure there is something to do... if the
-	    // offset is already at a boundry then there is 
+	    // offset is already at a boundary then there is 
 	    // nothing to do.
 	    if (child.getStartOffset() != offs) {
 		// we need to split, now see if the other end is within
@@ -1431,7 +1470,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		    } else {
 			child = ec.parent.getElement(index1);
 			if ((offs + len) == child.getStartOffset()) {
-			    // end is already on a boundry
+			    // end is already on a boundary
 			    index1 = index0;
 			}
 		    }
@@ -1490,6 +1529,9 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		de.addEdit(ee);
 	    }
 	    
+	    changes.removeAllElements();
+	    path.removeAllElements();
+
 	    /*
 	    for (int i = 0; i < n; i++) {
 		ElemChanges ec = (ElemChanges) changes.elementAt(i);
@@ -1799,7 +1841,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		int ljIndex = left.getElementIndex(rmOffs0);
 		int rjIndex = right.getElementIndex(rmOffs1);
 		Element lj = left.getElement(ljIndex);
-		if (lj.getStartOffset() == rmOffs0) {
+		if (lj.getStartOffset() >= rmOffs0) {
 		    lj = null; 
 		}
 		Element rj = right.getElement(rjIndex);
@@ -2341,6 +2383,27 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
     class StyleContextChangeHandler implements ChangeListener {
         public void stateChanged(ChangeEvent e) {
 	    updateStylesListeningTo();
+	    SwingUtilities.invokeLater(new ChangeUpdateRunnable());
+	}
+    }
+
+
+    /**
+     * When run this creates a change event for the complete document
+     * and fires it.
+     */
+    class ChangeUpdateRunnable implements Runnable {
+	public void run() {
+	    try {
+		writeLock();
+		DefaultDocumentEvent dde = new DefaultDocumentEvent(0,
+					      getLength(),
+					      DocumentEvent.EventType.CHANGE);
+		dde.end();
+		fireChangedUpdate(dde);
+	    } finally {
+		writeUnlock();
+	    }
 	}
     }
 }

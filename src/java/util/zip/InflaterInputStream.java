@@ -1,8 +1,11 @@
 /*
- * @(#)InflaterInputStream.java	1.24 01/11/29
+ * @(#)InflaterInputStream.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -18,7 +21,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.24, 11/29/01
+ * @version 	1.28, 02/02/00
  * @author 	David Connelly
  */
 public
@@ -83,6 +86,7 @@ class InflaterInputStream extends FilterInputStream {
 
     /**
      * Creates a new input stream with a default decompressor and buffer size.
+     * @param in the input stream
      */
     public InflaterInputStream(InputStream in) {
 	this(in, new Inflater());
@@ -113,7 +117,9 @@ class InflaterInputStream extends FilterInputStream {
      */
     public int read(byte[] b, int off, int len) throws IOException {
 	ensureOpen();
-	if (len <= 0) {
+        if ((off | len | (off + len) | (b.length - (off + len))) < 0) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
 	    return 0;
 	}
 	try {
@@ -188,6 +194,7 @@ class InflaterInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
+        inf.end();
 	in.close();
         closed = true;
     }

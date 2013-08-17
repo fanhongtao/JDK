@@ -1,8 +1,11 @@
 /*
- * @(#)GlyphVector.java	1.19 01/11/29
+ * @(#)GlyphVector.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -161,8 +164,7 @@ public abstract class GlyphVector implements Cloneable {
     *   @param beginGlyphIndex the index into this
     *   <code>GlyphVector</code> at which to start retrieving glyphcodes
     *   for the corresponding glyphs
-    *   @param numEntries the offset from <code>beginGlyphIndex</code> at
-    *   which to stop retrieving glyphcodes
+    *   @param numEntries the number of glyphs to retrieve
     *   @param codeReturn the array that receives the glyphcodes and is
     *		then returned
     *   @return an array of glyphcodes for the specified glyphs.
@@ -317,8 +319,7 @@ public abstract class GlyphVector implements Cloneable {
     *   the entire <code>GlyphVector</code>.
     *   @param beginGlyphIndex the index at which to begin retrieving
     *        glyph positions
-    *   @param numEntries the offset from <code>beginGlyphIndex</code> at
-    *   which to stop retrieving glyph positions 
+    *   @param numEntries the number of glyphs to retrieve
     *   @param positionReturn the array that receives the glyph positions
     *     and is then returned.
     *   @return an array of glyph positions specified by

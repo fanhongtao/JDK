@@ -1,8 +1,11 @@
 /*
- * @(#)SampleModel.java	1.24 01/11/29
+ * @(#)SampleModel.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -21,9 +24,18 @@ package java.awt.image;
  *  This abstract class defines an interface for extracting samples of pixels
  *  in an image.  All image data is expressed as a collection of pixels.
  *  Each pixel consists of a number of samples. A sample is a datum
- *  for one band of an image.  In the Java 2D API, all built-in image
- *  processing and display operators process samples which represent
- *  unsigned integral values.
+ *  for one band of an image and a band consists of all samples of a 
+ *  particular type in an image.  For example, a pixel might contain 
+ *  three samples representing its red, green and blue components.
+ *  There are three bands in the image containing this pixel.  One band
+ *  consists of all the red samples from all pixels in the
+ *  image.  The second band consists of all the green samples and 
+ *  the remaining band consists of all of the blue samples.  The pixel
+ *  can be stored in various formats.  For example, all samples from
+ *  a particular band can be stored contiguously or all samples from a
+ *  single pixel can be stored contiguously.
+ *  In the Java 2D(tm) API, all built-in image processing and display
+ *  operators process samples which represent unsigned integral values.
  *  <p>
  *  A collection of pixels is represented as a Raster, which consists of
  *  a DataBuffer and a SampleModel.  The SampleModel allows access to
@@ -105,6 +117,11 @@ public abstract class SampleModel
             throw new IllegalArgumentException("Unsupported dataType: "+
                                                dataType);
         }
+
+        if (numBands <= 0) {
+            throw new IllegalArgumentException("Number of bands must be > 0");
+        }
+        
 	this.dataType = dataType;
 	this.width = w;
 	this.height = h;
@@ -642,8 +659,9 @@ public abstract class SampleModel
 	else
 	    pixels = new double[numBands * w * h];
 
-	for (int i=0; i<(h+y); i++) {
-	    for (int j=0; j<(w+x); j++) {
+        // Fix 4217412
+	for (int i=y; i<(h+y); i++) {
+	    for (int j=x; j<(w+x); j++) {
 		for (int k=0; k<numBands; k++) {
 		    pixels[Offset++] = getSampleDouble(j, i, k, data);
 		}

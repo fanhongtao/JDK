@@ -1,8 +1,11 @@
 /*
- * @(#)ZipInputStream.java	1.27 03/05/15
+ * @(#)ZipInputStream.java	1.28 00/02/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -18,7 +21,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.27, 05/15/03
+ * @version	1.28, 02/02/00
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -58,6 +61,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
     /**
      * Reads the next ZIP file entry and positions stream at the beginning
      * of the entry data.
+     * @return the ZipEntry just read
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
      */
@@ -123,11 +127,12 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      */
     public int read(byte[] b, int off, int len) throws IOException {
         ensureOpen();
-        if (off < 0 || len < 0 || off > b.length - len) {
-            throw new IndexOutOfBoundsException();
-        } else if (len == 0) {
-            return 0;
-        }
+	if ((off < 0) || (off > b.length) || (len < 0) ||
+            ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return 0;
+	}
 
 	if (entry == null) {
 	    return -1;
@@ -199,7 +204,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-	in.close();
+	super.close();
         closed = true;
     }
 
@@ -321,6 +326,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * entry name.
      *
      * @param name the ZIP file entry name
+     * @return the ZipEntry just created
      */
     protected ZipEntry createZipEntry(String name) {
 	return new ZipEntry(name);

@@ -1,8 +1,11 @@
 /*
- * @(#)JarOutputStream.java	1.15 01/11/29
+ * @(#)JarOutputStream.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -19,10 +22,10 @@ import java.io.*;
  * the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.15, 11/29/01
+ * @version 1.19, 02/02/00
  * @see	    Manifest
  * @see	    java.util.zip.ZipOutputStream
- * @since   JDK1.2
+ * @since   1.2
  */
 public
 class JarOutputStream extends ZipOutputStream {
@@ -65,7 +68,7 @@ class JarOutputStream extends ZipOutputStream {
      * The current time will be used if the entry has no set modification
      * time.
      *
-     * @param e the ZIP/JAR entry to be written
+     * @param ze the ZIP/JAR entry to be written
      * @exception ZipException if a ZIP error has occurred
      * @exception IOException if an I/O error has occurred
      */

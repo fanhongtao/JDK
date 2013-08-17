@@ -1,8 +1,11 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.67 01/11/29
+ * @(#)BasicPopupMenuUI.java	1.69 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -31,7 +34,7 @@ import java.util.*;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.67 11/29/01
+ * @version 1.69 02/02/00
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -101,6 +104,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
     public Dimension getMaximumSize(JComponent c) {
         return getPreferredSize(c);
     }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //// Grab Code
@@ -341,6 +345,11 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                  */
         }
     }
+
+    public boolean isPopupTrigger(MouseEvent e) {
+	return ((e.getID()==MouseEvent.MOUSE_RELEASED) 
+		&& ((e.getModifiers() & MouseEvent.BUTTON3_MASK)!=0));
+    }	    
 
 }
 

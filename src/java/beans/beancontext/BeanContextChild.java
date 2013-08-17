@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextChild.java	1.12 01/11/29
+ * @(#)BeanContextChild.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -38,8 +41,8 @@ import java.beans.beancontext.BeanContext;
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.12
- * @since	JDK1.2
+ * @version	1.16, 02/02/00
+ * @since	1.2
  * 
  * @seealso	java.beans.beancontext.BeanContext
  * @seealso	java.beans.PropertyChangeEvent
@@ -56,47 +59,66 @@ public interface BeanContextChild {
      * Objects that implement this interface, 
      * shall fire a java.beans.PropertyChangeEvent, with parameters:
      *
-     * @param propertyName	"beanContext"
-     * @param oldValue		the previous nesting BeanContext instance, or null
-     * @param newValue		the current nesting BeanContext instance, or null
-     * </p>
+     * propertyName "beanContext", oldValue (the previous nesting 
+     * <code>BeanContext</code> instance, or <code>null</code>), 
+     * newValue (the current nesting 
+     * <code>BeanContext</code> instance, or <code>null</code>).
      * <p>
      * A change in the value of the nesting BeanContext property of this
      * BeanContextChild may be vetoed by throwing the appropriate exception.
      * </p>
+     * @param bc The <code>BeanContext</code> with which 
+     * to associate this <code>BeanContextChild</code>.
+     * @throws <code>PropertyVetoException</code> if the 
+     * addition of the specified <code>BeanContext</code> is refused.
      */
-
-
     void setBeanContext(BeanContext bc) throws PropertyVetoException;
 
     /**
-     * @returns the current BeanContext associated with the JavaBean
+     * Gets the <code>BeanContext</code> associated 
+     * with this <code>BeanContextChild</code>.
+     * @return the <code>BeanContext</code> associated 
+     * with this <code>BeanContextChild</code>.
      */
-
     BeanContext getBeanContext();
 
     /**
-     * add a property change listener to this bean child
+     * Adds a <code>PropertyChangeListener</code> 
+     * to this <code>BeanContextChild</code> 
+     * in order to receive a <code>PropertyChangeEvent</code> 
+     * whenever the specified property has changed.
+     * @param name the name of the property to listen on
+     * @param pcl the <code>PropertyChangeListener</code> to add
      */
-
     void addPropertyChangeListener(String name, PropertyChangeListener pcl);
 
     /**
-     * remove a property change listener to this bean child
+     * Removes a <code>PropertyChangeListener</code> from this 
+     * <code>BeanContextChild</code>  so that it no longer 
+     * receives <code>PropertyChangeEvents</code> when the 
+     * specified property is changed.
+     * 
+     * @param name the name of the property that was listened on
+     * @param pcl the <code>PropertyChangeListener</code> to remove
      */
-
     void removePropertyChangeListener(String name, PropertyChangeListener pcl);
 
     /**
-     * add a vetoable change listener to this child
+     * Adds a <code>VetoableChangeListener</code> to 
+     * this <code>BeanContextChild</code>  
+     * to receive events whenever the specified property changes.
+     * @param name the name of the property to listen on
+     * @param vcl the <code>VetoableChangeListener</code> to add
      */
-
     void addVetoableChangeListener(String name, VetoableChangeListener vcl);
 
     /**
-     * remove a vetoable change listener to this child
+     * Removes a <code>VetoableChangeListener</code> from this 
+     * <code>BeanContextChild</code> so that it no longer receives 
+     * events when the specified property changes.
+     * @param name the name of the property that was listened on.
+     * @param vcl the <code>VetoableChangeListener</code> to remove.
      */
-
     void removeVetoableChangeListener(String name, VetoableChangeListener vcl);
 
 }

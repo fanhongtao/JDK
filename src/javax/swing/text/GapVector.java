@@ -1,26 +1,10 @@
 /*
- * @(#)GapVector.java	1.5 01/11/29
+ * @(#)GapVector.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-/*
- * @(#)GapVector.java	1.5 01/11/29
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package javax.swing.text;
@@ -35,12 +19,12 @@ import javax.swing.undo.UndoableEdit;
  * which is known only by the subclass of this class.  The array
  * has a gap somewhere.  The gap is moved to the location of changes
  * to take advantage of common behavior where most changes occur
- * in the same location.  Changes that occur at a gap boundry are
+ * in the same location.  Changes that occur at a gap boundary are
  * generally cheap and moving the gap is generally cheaper than
  * moving the array contents directly to accomodate the change.
  *
  * @author  Timothy Prinzing
- * @version 1.5 11/29/01
+ * @version 1.7 02/02/00
  * @see GapContent
  */
 abstract class GapVector implements Serializable {
@@ -267,7 +251,7 @@ abstract class GapVector implements Serializable {
     /**
      * Adjust the gap end downward.  This doesn't move
      * any data, but it does update any marks affected 
-     * by the boundry change.  All marks from the old
+     * by the boundary change.  All marks from the old
      * gap start down to the new gap start are squeezed
      * to the end of the gap (their location has been
      * removed).
@@ -279,7 +263,7 @@ abstract class GapVector implements Serializable {
     /**
      * Adjust the gap end upward.  This doesn't move
      * any data, but it does update any marks affected 
-     * by the boundry change. All marks from the old
+     * by the boundary change. All marks from the old
      * gap end up to the new gap end are squeezed
      * to the end of the gap (their location has been
      * removed).

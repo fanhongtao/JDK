@@ -1,8 +1,11 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.46 01/11/29
+ * @(#)BasicGraphicsUtils.java	1.49 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.plaf.basic;
 
@@ -20,7 +23,7 @@ import java.awt.event.KeyEvent;
 
 
 /*
- * @version 1.46 11/29/01
+ * @version 1.44 02/11/99
  * @author Hans Muller
  */
 

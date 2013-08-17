@@ -1,8 +1,11 @@
 /*
- * @(#)Date.java	1.19 01/11/29
+ * @(#)Date.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
@@ -94,8 +97,19 @@ public class Date extends java.util.Date {
     }
 
     /**
-     * Formats a date in JDBC date escape format.  
+     * Formats a date in the date escape format yyyy-mm-dd.  
+	 * <P>
+	 * NOTE:  To specify a date format for the class
+	 * <code>SimpleDateFormat</code>, use "yyyy.MM.dd" rather than
+	 * "yyyy-mm-dd".  In the context of <code>SimpleDateFormat</code>,
+	 * "mm" indicates minutes rather than the month.  
+	 * For example:
+	 * <PRE>
      *
+	 * Format Pattern                         Result
+	 *  --------------                         -------
+	 *	"yyyy.MM.dd G 'at' hh:mm:ss z"    ->>  1996.07.10 AD at 15:08:56 PDT
+     * </PRE>
      * @return a String in yyyy-mm-dd format
      */
     public String toString () {

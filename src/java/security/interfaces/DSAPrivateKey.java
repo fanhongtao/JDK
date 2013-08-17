@@ -1,8 +1,11 @@
 /*
- * @(#)DSAPrivateKey.java	1.14 01/11/29
+ * @(#)DSAPrivateKey.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.interfaces;
@@ -18,12 +21,18 @@ import java.math.BigInteger;
  * @see DSAKey
  * @see DSAPublicKey
  *
- * @version 1.14 01/11/29
+ * @version 1.16 00/02/02
  * @author Benjamin Renaud
  */
 public interface DSAPrivateKey extends DSAKey, java.security.PrivateKey {
 
     // Declare serialVersionUID to be compatible with JDK1.1
+
+   /**
+    * The class fingerprint that is set to indicate 
+    * serialization compatibility with a previous 
+    * version of the class.
+    */
     static final long serialVersionUID = 7776497482533790279L;
 
     /**

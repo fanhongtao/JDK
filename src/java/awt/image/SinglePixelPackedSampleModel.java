@@ -1,8 +1,11 @@
 /*
- * @(#)SinglePixelPackedSampleModel.java	1.26 01/11/29
+ * @(#)SinglePixelPackedSampleModel.java	1.33 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -21,6 +24,10 @@ package java.awt.image;
  *  This class represents pixel data packed such that the N samples which make
  *  up a single pixel are stored in a single data array element, and each data
  *  data array element holds samples for only one pixel.
+ *  This class supports
+ *  {@link DataBuffer#TYPE_BYTE TYPE_BYTE},
+ *  {@link DataBuffer#TYPE_USHORT TYPE_USHORT},
+ *  {@link DataBuffer#TYPE_INT TYPE_INT} data types.
  *  All data array elements reside
  *  in the first bank of a DataBuffer.  Accessor methods are provided so
  *  that the image data can be manipulated directly. Scanline stride is the
@@ -75,10 +82,20 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param h 	The height (in pixels) of the region of the
      *                  image data described.
      * @param bitMasks  The bit masks for all bands.
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         either <code>DataBuffer.TYPE_BYTE</code>,
+     *         <code>DataBuffer.TYPE_USHORT</code>, or
+     *         <code>DataBuffer.TYPE_INT</code>
      */
     public SinglePixelPackedSampleModel(int dataType, int w, int h,
 				   int bitMasks[]) {
         this(dataType, w, h, w, bitMasks);
+        if (dataType != DataBuffer.TYPE_BYTE &&
+            dataType != DataBuffer.TYPE_USHORT &&
+            dataType != DataBuffer.TYPE_INT) {
+            throw new IllegalArgumentException("Unsupported data type "+
+                                               dataType);
+        }
     }
 
     /**
@@ -94,12 +111,24 @@ public class SinglePixelPackedSampleModel extends SampleModel
      *                  image data described.
      * @param scanlineStride The line stride of the image data.
      * @param bitMasks The bit masks for all bands.
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
      * @throws IllegalArgumentException if any mask in 
      *         <code>bitMask</code> is not contiguous
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         either <code>DataBuffer.TYPE_BYTE</code>,
+     *         <code>DataBuffer.TYPE_USHORT</code>, or
+     *         <code>DataBuffer.TYPE_INT</code>
      */
     public SinglePixelPackedSampleModel(int dataType, int w, int h,
                                    int scanlineStride, int bitMasks[]) {
         super(dataType, w, h, bitMasks.length);
+        if (dataType != DataBuffer.TYPE_BYTE &&
+            dataType != DataBuffer.TYPE_USHORT &&
+            dataType != DataBuffer.TYPE_INT) {
+            throw new IllegalArgumentException("Unsupported data type "+
+                                               dataType);
+        }
         this.dataType = dataType;
         this.bitMasks = (int[]) bitMasks.clone();
         this.scanlineStride = scanlineStride;
@@ -158,6 +187,10 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * width and height.  The new SinglePixelPackedSampleModel will have the
      * same storage data type and bit masks as this
      * SinglePixelPackedSampleModel.  
+     * @param w the width of the resulting <code>SampleModel</code>
+     * @param h the height of the resulting <code>SampleModel</code>
+     * @throws IllegalArgumentException if <code>w</code> or
+     *         <code>h</code> is not greater than 0
      */
     public SampleModel createCompatibleSampleModel(int w, int h) {
       SampleModel sampleModel = new SinglePixelPackedSampleModel(dataType, w, h,
@@ -569,12 +602,13 @@ public class SinglePixelPackedSampleModel extends SampleModel
 
         for (int i = 0; i < h; i++) {
            for (int j = 0; j < w; j++) {
-              int value = 0;
-              for (int k=0; k < numBands; k++) {
-                 value |= ((iArray[srcOffset++] << bitOffsets[k])
-			   & bitMasks[k]);
-              }
-              data.setElem(lineOffset+j,value);
+               int value = 0;
+               for (int k=0; k < numBands; k++) {
+                   int srcValue = iArray[srcOffset++];
+                   value |= ((srcValue << bitOffsets[k])
+                             & bitMasks[k]);
+               }
+               data.setElem(lineOffset+j,value);
            }
            lineOffset += scanlineStride;
         }

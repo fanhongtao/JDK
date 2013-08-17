@@ -1,8 +1,11 @@
 /*
- * @(#)ListIterator.java	1.12 01/11/29
+ * @(#)ListIterator.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -12,12 +15,12 @@ package java.util;
  * list in either direction and modify the list during iteration.
  *
  * @author  Josh Bloch
- * @version 1.12 11/29/01
+ * @version 1.16, 02/02/00
  * @see Collection
  * @see List
  * @see Iterator
  * @see Enumeration
- * @since   JDK1.2
+ * @since   1.2
  */
 public interface ListIterator extends Iterator {
     // Query Operations
@@ -118,6 +121,8 @@ public interface ListIterator extends Iterator {
      * <tt>ListIterator.add</tt> have been called after the last call to
      * <tt>next</tt> or <tt>previous</tt>.
      *
+     * @param o the element with which to replace the last element returned by
+     *          <tt>next</tt> or <tt>previous</tt>.
      * @exception UnsupportedOperationException if the <tt>set</tt> operation
      * 		  is not supported by this list iterator.
      * @exception ClassCastException if the class of the specified element
@@ -143,6 +148,7 @@ public interface ListIterator extends Iterator {
      * by one the value that would be returned by a call to <tt>nextIndex</tt>
      * or <tt>previousIndex</tt>.)
      *
+     * @param o the element to insert.
      * @exception UnsupportedOperationException if the <tt>add</tt> method is
      * 		  not supported by this list iterator.
      * 

@@ -1,8 +1,11 @@
 /*
- * @(#)SwingPropertyChangeSupport.java	1.7 01/11/29
+ * @(#)SwingPropertyChangeSupport.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -21,7 +24,7 @@ import java.io.IOException;
  * only necessary because all of PropertyChangeSupport's instance
  * data is private, without accessor methods.
  *
- * @version 1.7 11/29/01
+ * @version 1.12 02/02/00
  * @author unattributed
  */
 
@@ -47,7 +50,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
     public synchronized void addPropertyChangeListener(
 				PropertyChangeListener listener) {
 	if (listeners == null) {
-	    listeners = new java.util.Vector();
+	    listeners = new java.util.Vector(3);
 	}
 	listeners.addElement(listener);
     }
@@ -124,14 +127,17 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
      */
     public void firePropertyChange(String propertyName,
                                    Object oldValue, Object newValue) {
-	if (oldValue != null && newValue != null && oldValue.equals(newValue)) {
+	if (oldValue != null && newValue != null &&
+	    oldValue.equals(newValue)) {
 	    return;
 	}
 
 	SwingPropertyChangeSupport child = null;
-	synchronized (this) {
-	    if (children != null && propertyName != null) {
-		child = (SwingPropertyChangeSupport)children.get(propertyName);
+	if (children != null) {
+	    synchronized (this) {
+		if (children != null && propertyName != null) {
+		    child = (SwingPropertyChangeSupport)children.get(propertyName);
+		}
 	    }
 	}
 
@@ -169,9 +175,11 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 	}
 
 	SwingPropertyChangeSupport child = null;
-	synchronized (this) {
-	    if (children != null && propertyName != null) {
-		child = (SwingPropertyChangeSupport)children.get(propertyName);
+	if (children != null) {
+	    synchronized (this) {
+		if (children != null && propertyName != null) {
+		    child = (SwingPropertyChangeSupport)children.get(propertyName);
+		}
 	    }
 	}
 

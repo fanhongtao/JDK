@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultCellEditor.java	1.38 01/11/29
+ * @(#)DefaultCellEditor.java	1.38 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -27,20 +30,17 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.38 11/29/01
- * @author Philip Milne
+ * @version 1.38 02/02/00
  * @author Alan Chung
+ * @author Philip Milne
  */
 
-public class DefaultCellEditor implements TableCellEditor, TreeCellEditor,
-					  Serializable {
+public class DefaultCellEditor extends AbstractCellEditor 
+    implements TableCellEditor, TreeCellEditor { 
+
 //
 //  Instance Variables
 //
-
-    /** Event listeners */
-    protected EventListenerList listenerList = new EventListenerList();
-    transient protected ChangeEvent changeEvent = null;
 
     protected JComponent editorComponent;
     protected EditorDelegate delegate;
@@ -103,7 +103,7 @@ public class DefaultCellEditor implements TableCellEditor, TreeCellEditor,
      */
     public DefaultCellEditor(final JComboBox comboBox) {
         editorComponent = comboBox;
-        comboBox.putClientProperty("JComboBox.lightweightKeyboardNavigation", "Lightweight");
+	comboBox.putClientProperty("JComboBox.lightweightKeyboardNavigation", "Lightweight");
         delegate = new EditorDelegate() {
             public void setValue(Object value) {
 		comboBox.setSelectedItem(value);
@@ -113,7 +113,7 @@ public class DefaultCellEditor implements TableCellEditor, TreeCellEditor,
 		return comboBox.getSelectedItem();
 	    }
                 
-            boolean shouldSelectCell(EventObject anEvent) { 
+            public boolean shouldSelectCell(EventObject anEvent) { 
                 if (anEvent instanceof MouseEvent) { 
                     MouseEvent e = (MouseEvent)anEvent;
                     return e.getID() != MouseEvent.MOUSE_DRAGGED;
@@ -156,100 +156,34 @@ public class DefaultCellEditor implements TableCellEditor, TreeCellEditor,
     }
 
 //
-//  Implementing the CellEditor Interface
+//  Override the implementations of the superclass, forwarding all methods 
+//  from the CellEditor interface to our delegate. 
 //
 
-    // implements javax.swing.CellEditor
     public Object getCellEditorValue() {
         return delegate.getCellEditorValue();
     }
 
-    // implements javax.swing.CellEditor
-    public boolean isCellEditable(EventObject anEvent) {
-        if (anEvent instanceof MouseEvent) { 
-            return ((MouseEvent)anEvent).getClickCount() >= clickCountToStart;
-        }
-    	return true;
+    public boolean isCellEditable(EventObject anEvent) { 
+	return delegate.isCellEditable(anEvent); 
     }
     
-    // implements javax.swing.CellEditor
     public boolean shouldSelectCell(EventObject anEvent) { 
 	return delegate.shouldSelectCell(anEvent); 
     }
 
-    // implements javax.swing.CellEditor
     public boolean stopCellEditing() {
-	fireEditingStopped();
-    	return true;
+	return delegate.stopCellEditing();
     }
 
-    // implements javax.swing.CellEditor
     public void cancelCellEditing() {
-	fireEditingCanceled();
-    }
-
-//
-//  Handle the event listener bookkeeping
-//
-    // implements javax.swing.CellEditor
-    public void addCellEditorListener(CellEditorListener l) {
-	listenerList.add(CellEditorListener.class, l);
-    }
-
-    // implements javax.swing.CellEditor
-    public void removeCellEditorListener(CellEditorListener l) {
-	listenerList.remove(CellEditorListener.class, l);
-    }
-
-    /*
-     * Notify all listeners that have registered interest for
-     * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
-     * @see EventListenerList
-     */
-    protected void fireEditingStopped() {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==CellEditorListener.class) {
-		// Lazily create the event:
-		if (changeEvent == null)
-		    changeEvent = new ChangeEvent(this);
-		((CellEditorListener)listeners[i+1]).editingStopped(changeEvent);
-	    }	       
-	}
-    }
-
-    /*
-     * Notify all listeners that have registered interest for
-     * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
-     * @see EventListenerList
-     */
-    protected void fireEditingCanceled() {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==CellEditorListener.class) {
-		// Lazily create the event:
-		if (changeEvent == null)
-		    changeEvent = new ChangeEvent(this);
-		((CellEditorListener)listeners[i+1]).editingCanceled(changeEvent);
-	    }	       
-	}
+	delegate.cancelCellEditing();
     }
 
 //
 //  Implementing the TreeCellEditor Interface
 //
 
-    // implements javax.swing.tree.TreeCellEditor
     public Component getTreeCellEditorComponent(JTree tree, Object value,
 						boolean isSelected,
 						boolean expanded,
@@ -265,7 +199,6 @@ public class DefaultCellEditor implements TableCellEditor, TreeCellEditor,
 //  Implementing the CellEditor Interface
 //
 
-    // implements javax.swing.table.TableCellEditor
     public Component getTableCellEditorComponent(JTable table, Object value,
 						 boolean isSelected,
 						 int row, int column) {
@@ -280,52 +213,46 @@ public class DefaultCellEditor implements TableCellEditor, TreeCellEditor,
 
     protected class EditorDelegate implements ActionListener, ItemListener, Serializable {
 
-        /** Not implemented. */
         protected Object value;
 
-        /** Not implemented. */
         public Object getCellEditorValue() {
-            return null;
+            return value;
         }
 
-        /** Not implemented. */
-    	public void setValue(Object x) {}
+    	public void setValue(Object value) { 
+	    this.value = value; 
+	}
 
-        /** Not implemented. */
         public boolean isCellEditable(EventObject anEvent) {
+	    if (anEvent instanceof MouseEvent) { 
+		return ((MouseEvent)anEvent).getClickCount() >= clickCountToStart;
+	    }
 	    return true;
 	}
     	
-        /** Unfortunately, restrictions on API changes force us to 
-          * declare this method package private. 
-          */
-        boolean shouldSelectCell(EventObject anEvent) { 
+        public boolean shouldSelectCell(EventObject anEvent) { 
             return true; 
         }
 
-
-        /** Not implemented. */
         public boolean startCellEditing(EventObject anEvent) {
 	    return true;
 	}
 
-        /** Not implemented. */
-        public boolean stopCellEditing() {
+        public boolean stopCellEditing() { 
+	    fireEditingStopped(); 
 	    return true;
 	}
 
-        /** Not implemented. */
-       public void cancelCellEditing() {
+       public void cancelCellEditing() { 
+	   fireEditingCanceled(); 
        }
 
-	// Implementing ActionListener interface
         public void actionPerformed(ActionEvent e) {
-            fireEditingStopped();
+            DefaultCellEditor.this.stopCellEditing();
 	}
 
-        // Implementing ItemListener interface
         public void itemStateChanged(ItemEvent e) {
-	    fireEditingStopped();
+	    DefaultCellEditor.this.stopCellEditing();
 	}
     }
 

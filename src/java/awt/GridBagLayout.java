@@ -1,8 +1,11 @@
 /*
- * @(#)GridBagLayout.java	1.35 01/11/29
+ * @(#)GridBagLayout.java	1.37 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -258,9 +261,9 @@ public class GridBagLayout implements LayoutManager2,
      * copy of the <code>defaultConstraints</code>.
      *
      * @serial
-     * @see getConstraints()
-     * @see setConstraints()
-     * @see lookupConstraints()
+     * @see #getConstraints(Component)
+     * @see #setConstraints(Component, GridBagConstraints)
+     * @see #lookupConstraints(Component)
      */
   protected GridBagConstraints defaultConstraints;
 
@@ -275,7 +278,7 @@ public class GridBagLayout implements LayoutManager2,
      * not yet been validated.
      *
      * @serial
-     * @see GetLayoutInfo()
+     * @see #GetLayoutInfo(Container, int)
      */
   protected GridBagLayoutInfo layoutInfo;
 
@@ -289,7 +292,7 @@ public class GridBagLayout implements LayoutManager2,
      * the number of elements in columnWidth.
      *
      * @serial
-     * @see getLayoutDimensions()
+     * @see #getLayoutDimensions()
      */
   public int columnWidths[];
   
@@ -303,7 +306,7 @@ public class GridBagLayout implements LayoutManager2,
      * the number of elements in rowHeights.
      *
      * @serial
-     * @see getLayoutDimensions()
+     * @see #getLayoutDimensions()
      */
   public int rowHeights[];
 
@@ -312,14 +315,13 @@ public class GridBagLayout implements LayoutManager2,
      * If this field is non-null the values are
      * applied to the gridbag after all of the columns
      * weights have been calculated.
-     * If columnWeights[i] > then weight for column i, then
+     * If columnWeights[i] &gt; weight for column i, then
      * column i is assigned the weight in columnWeights[i].
      * If columnWeights has more elements than the number
      * of columns, the excess elements are ignored - they do
      * not cause more columns to be created.
      *
      * @serial
-     * @see
      */
   public double columnWeights[];
 
@@ -328,14 +330,13 @@ public class GridBagLayout implements LayoutManager2,
      * If this field is non-null the values are
      * applied to the gridbag after all of the rows
      * weights have been calculated.
-     * If rowWeights[i] > then weight for row i, then
+     * If rowWeights[i] &gt; weight for row i, then
      * row i is assigned the weight in rowWeights[i].
      * If rowWeights has more elements than the number
      * of rows, the excess elements are ignored - they do
      * not cause more rows to be created.
      *
      * @serial
-     * @see
      */
   public double rowWeights[];
 
@@ -576,8 +577,8 @@ public class GridBagLayout implements LayoutManager2,
      * in the specified target container.
      * @param target the component which needs to be laid out
      * @see Container
-     * @see #minimumLayoutSize
-     * @see #preferredLayoutSize
+     * @see #minimumLayoutSize(Container)
+     * @see #preferredLayoutSize(Container)
      */
     public Dimension maximumLayoutSize(Container target) {
 	return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);

@@ -1,8 +1,11 @@
 /*
- * @(#)MotifInternalFrameTitlePane.java	1.13 01/11/29
+ * @(#)MotifInternalFrameTitlePane.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -19,10 +22,12 @@ import java.beans.VetoableChangeListener;
 import java.beans.PropertyVetoException;
 
 /**
- * Package private class that manages a Motif title bar
- * @version 1.13 11/29/01
+ * Class that manages a Motif title bar
+ * @version 1.18 02/02/00
+ *
+ * @since 1.3
  */
-class MotifInternalFrameTitlePane 
+public class MotifInternalFrameTitlePane 
     extends JComponent implements LayoutManager, ActionListener, PropertyChangeListener 
 {
     SystemButton systemButton;
@@ -140,20 +145,17 @@ class MotifInternalFrameTitlePane
     public void actionPerformed(ActionEvent e) {
         try {
             if ("Close".equals(e.getActionCommand()) && iFrame.isClosable()) {
-	        iFrame.setClosed(true);
+	        iFrame.doDefaultCloseAction();
+	    } else if ((("Iconify".equals(e.getActionCommand())) ||
+		      ("Minimize".equals(e.getActionCommand()))) && 
 			// 4118140 
-			}
-			else if ((("Iconify".equals(e.getActionCommand())) ||
-						("Minimize".equals(e.getActionCommand())))
-						&& 
-						iFrame.isIconifiable()) {
+		     iFrame.isIconifiable()) {
                 if (!iFrame.isIcon()) {
                     iFrame.setIcon(true); 
                 } else {
-                    iFrame.setIcon(false); 
-				}
-			}
-			else if ("Maximize".equals(e.getActionCommand()) && 
+		  iFrame.setIcon(false); 
+		}
+	    } else if ("Maximize".equals(e.getActionCommand()) && 
                        iFrame.isMaximizable()) {
                 if(!iFrame.isMaximum()) {
                     iFrame.setMaximum(true);
@@ -187,8 +189,11 @@ class MotifInternalFrameTitlePane
 	    systemMenu.getComponentAtIndex(MAXIMIZE_MENU_ITEM).setEnabled(!value); 
 	} else if(JInternalFrame.IS_ICON_PROPERTY.equals(prop)) {
 	    value = ((Boolean)evt.getNewValue()).booleanValue();
-	    systemMenu.getComponentAtIndex(RESTORE_MENU_ITEM).setEnabled(value); 
-	    systemMenu.getComponentAtIndex(MAXIMIZE_MENU_ITEM).setEnabled(!value); 
+	    systemMenu.getComponentAtIndex(RESTORE_MENU_ITEM).setEnabled(value);
+	    if (f.isMaximizable())
+	      systemMenu.getComponentAtIndex(MAXIMIZE_MENU_ITEM).setEnabled(true);
+	    else
+	      systemMenu.getComponentAtIndex(MAXIMIZE_MENU_ITEM).setEnabled(false); 
 	    systemMenu.getComponentAtIndex(MINIMIZE_MENU_ITEM).setEnabled(!value); 
 	} 
     }

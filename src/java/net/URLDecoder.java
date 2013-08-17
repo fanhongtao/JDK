@@ -1,8 +1,11 @@
 /*
- * @(#)URLDecoder.java	1.3 01/11/29
+ * @(#)URLDecoder.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -29,13 +32,19 @@ import java.io.*;
  *
  * @author  Mark Chamness
  * @author  Michael McCloskey
- * @version 1.3 11/29/01
- * @since   JDK1.2
+ * @version 1.9, 02/02/00
+ * @since   1.2
  */
 
 public class URLDecoder {
 
-    public static String decode(String s) throws Exception {
+/**
+ * Decodes a &quot;x-www-form-urlencoded&quot; 
+ * to a <tt>String</tt>.
+ * @param s the <code>String</code> to decode
+ * @return the newly decoded <code>String</code>
+ */
+    public static String decode(String s) {
         StringBuffer sb = new StringBuffer();
         for(int i=0; i<s.length(); i++) {
             char c = s.charAt(i);
@@ -47,8 +56,7 @@ public class URLDecoder {
                     try {
                         sb.append((char)Integer.parseInt(
                                         s.substring(i+1,i+3),16));
-                    }
-                    catch (NumberFormatException e) {
+                    } catch (NumberFormatException e) {
                         throw new IllegalArgumentException();
                     }
                     i += 2;
@@ -60,8 +68,13 @@ public class URLDecoder {
         }
         // Undo conversion to external encoding
         String result = sb.toString();
-        byte[] inputBytes = result.getBytes("8859_1");
-        return new String(inputBytes);
+        try {
+            byte[] inputBytes = result.getBytes("8859_1");
+            result = new String(inputBytes);
+        } catch (UnsupportedEncodingException e) {
+            // The system should always have 8859_1
+        }
+        return result;
     }
 }
 

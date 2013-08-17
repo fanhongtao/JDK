@@ -1,8 +1,11 @@
 /*
- * @(#)WeakHashMap.java	1.6 01/11/29
+ * @(#)WeakHashMap.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -82,9 +85,9 @@ import java.lang.ref.ReferenceQueue;
  * turn, strongly refers to the key of the first value object.  This problem
  * may be fixed in a future release.
  *
- * @version	1.6, 01/11/29
+ * @version	1.12, 02/02/00
  * @author	Mark Reinhold
- * @since	JDK1.2
+ * @since	1.2
  * @see		java.util.HashMap
  * @see		java.lang.ref.WeakReference
  */
@@ -197,12 +200,27 @@ public class WeakHashMap extends AbstractMap implements Map {
 
     /**
      * Constructs a new, empty <code>WeakHashMap</code> with the default
-     * capacity and the default load factor, which is <code>0.75</code>.
+     * initial capacity and the default load factor, which is
+     * <code>0.75</code>.
      */
     public WeakHashMap() {
 	hash = new HashMap();
     }
 
+    /**
+     * Constructs a new <code>WeakHashMap</code> with the same mappings as the
+     * specified <tt>Map</tt>.  The <code>WeakHashMap</code> is created with an
+     * initial capacity of twice the number of mappings in the specified map
+     * or 11 (whichever is greater), and a default load factor, which is
+     * <tt>0.75</tt>.
+     *
+     * @param   t the map whose mappings are to be placed in this map.
+     * @since	1.3
+     */
+    public WeakHashMap(Map t) {
+	this(Math.max(2*t.size(), 11), 0.75f);
+	putAll(t);
+    }
 
     /* -- Simple queries -- */
 

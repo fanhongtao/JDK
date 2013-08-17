@@ -1,8 +1,11 @@
 /*
- * @(#)Event.java	1.65 01/11/29
+ * @(#)Event.java	1.68 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -34,7 +37,7 @@ import java.io.*;
  * <code>Event</code> class (<code>PGUP</code>,
  * <code>PGDN</code>, <code>F1</code>, <code>F2</code>, etc).
  *
- * @version 1.65 11/29/01
+ * @version 1.68 02/02/00
  * @author     Sami Shaio
  * @since      JDK1.0
  */
@@ -439,7 +442,7 @@ public class Event implements java.io.Serializable {
      * Replaced by InputEvent.getWhen().
      *
      * @serial
-     * @see java.awt.InputEvent#getWhen()
+     * @see java.awt.event.InputEvent#getWhen()
      */
     public long when;
 
@@ -449,7 +452,7 @@ public class Event implements java.io.Serializable {
      * This has been replaced by AWTEvent.getID()
      *
      * @serial
-     * @see java.awt.AWTEvent.getID()
+     * @see java.awt.AWTEvent#getID()
      */
     public int id;
 
@@ -458,7 +461,7 @@ public class Event implements java.io.Serializable {
      * Replaced by MouseEvent.getX()
      *
      * @serial
-     * @see java.awt.MouseEvent#getX()
+     * @see java.awt.event.MouseEvent#getX()
      */
     public int x;
 
@@ -467,7 +470,7 @@ public class Event implements java.io.Serializable {
      * Replaced by MouseEvent.getY()
      *
      * @serial
-     * @see java.awt.MouseEvent#getY()
+     * @see java.awt.event.MouseEvent#getY()
      */
     public int y;
 
@@ -476,7 +479,7 @@ public class Event implements java.io.Serializable {
      * This has been replaced by KeyEvent.getKeyCode()
      *
      * @serial
-     * @see java.awt.KeyEvent#getKeyCode()
+     * @see java.awt.event.KeyEvent#getKeyCode()
      */
     public int key;
 
@@ -492,7 +495,7 @@ public class Event implements java.io.Serializable {
      * of InputEvent.
      *
      * @serial
-     * @see java.awt.InputEvent#getModifiers()
+     * @see java.awt.event.InputEvent#getModifiers()
      */
     public int modifiers;
 
@@ -503,7 +506,7 @@ public class Event implements java.io.Serializable {
      * This field has been replaced by MouseEvent.getClickCount().
      *
      * @serial
-     * @see java.awt.MouseEvent.getClickCount().
+     * @see java.awt.event.MouseEvent#getClickCount().
      */
     public int clickCount;
 

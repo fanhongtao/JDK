@@ -1,8 +1,11 @@
 /*
- * @(#)Beans.java	1.50 01/11/29
+ * @(#)Beans.java	1.54 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans;
@@ -104,7 +107,7 @@ public class Beans {
      * particular, bean applets have no access to "parameters", so they may
      * wish to provide property get/set methods to set parameter values.  We
      * advise bean-applet developers to test their bean-applets against both
-     * the JDK appletviewer (for a reference browser environment) and the
+     * the SDK appletviewer (for a reference browser environment) and the
      * BDK BeanBox (for a reference bean container).
      *
      * @param     classLoader the class-loader from which we should create
@@ -377,7 +380,7 @@ public class Beans {
      *	   false in a server environment or if an application is
      *	   running as part of a batch job.
      *
-     * @see java.beans.VisibilityState
+     * @see java.beans.Visibility
      *
      */
     public static boolean isGuiAvailable() {

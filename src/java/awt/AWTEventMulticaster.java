@@ -1,16 +1,21 @@
 /*
- * @(#)AWTEventMulticaster.java	1.21 01/11/29
+ * @(#)AWTEventMulticaster.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.event.*;
+import java.lang.reflect.Array;
 import java.util.EventListener;
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.util.EventListener;
 
 
 /**
@@ -42,16 +47,18 @@ import java.io.IOException;
  * }
  * </code></pre>
  *
- * @version 	1.21, 11/29/01
  * @author      John Rose
  * @author 	Amy Fowler
+ * @version 	1.25, 02/02/00
+ * @since 	1.1
  */
 
 public class AWTEventMulticaster implements 
     ComponentListener, ContainerListener, FocusListener, KeyListener,
     MouseListener, MouseMotionListener, WindowListener,
     ActionListener, ItemListener, AdjustmentListener,
-    TextListener, InputMethodListener {
+    TextListener, InputMethodListener, HierarchyListener,
+    HierarchyBoundsListener {
 
     protected final EventListener a, b;
 
@@ -387,7 +394,37 @@ public class AWTEventMulticaster implements
        ((InputMethodListener)a).caretPositionChanged(e);
        ((InputMethodListener)b).caretPositionChanged(e);
     }
- 
+
+    /**
+     * Handles the hierarchyChanged event by invoking the
+     * hierarchyChanged methods on listener-a and listener-b.
+     * @param e the item event
+     */
+    public void hierarchyChanged(HierarchyEvent e) {
+        ((HierarchyListener)a).hierarchyChanged(e);
+        ((HierarchyListener)b).hierarchyChanged(e);
+    }
+
+    /**
+     * Handles the ancestorMoved event by invoking the
+     * ancestorMoved methods on listener-a and listener-b.
+     * @param e the item event
+     */
+    public void ancestorMoved(HierarchyEvent e) {
+        ((HierarchyBoundsListener)a).ancestorMoved(e);
+        ((HierarchyBoundsListener)b).ancestorMoved(e);
+    }
+
+    /**
+     * Handles the ancestorResized event by invoking the
+     * ancestorResized methods on listener-a and listener-b.
+     * @param e the item event
+     */
+    public void ancestorResized(HierarchyEvent e) {
+        ((HierarchyBoundsListener)a).ancestorResized(e);
+        ((HierarchyBoundsListener)b).ancestorResized(e);
+    }
+
     /**
      * Adds component-listener-a with component-listener-b and
      * returns the resulting multicast listener.
@@ -499,6 +536,26 @@ public class AWTEventMulticaster implements
      */
      public static InputMethodListener add(InputMethodListener a, InputMethodListener b) {
         return (InputMethodListener)addInternal(a, b);
+     }
+
+    /**
+     * Adds hierarchy-listener-a with hierarchy-listener-b and
+     * returns the resulting multicast listener.
+     * @param a hierarchy-listener-a
+     * @param b hierarchy-listener-b
+     */
+     public static HierarchyListener add(HierarchyListener a, HierarchyListener b) {
+        return (HierarchyListener)addInternal(a, b);
+     }
+
+    /**
+     * Adds hierarchy-bounds-listener-a with hierarchy-bounds-listener-b and
+     * returns the resulting multicast listener.
+     * @param a hierarchy-bounds-listener-a
+     * @param b hierarchy-bounds-listener-b
+     */
+     public static HierarchyBoundsListener add(HierarchyBoundsListener a, HierarchyBoundsListener b) {
+        return (HierarchyBoundsListener)addInternal(a, b);
      }
 
     /**
@@ -614,6 +671,27 @@ public class AWTEventMulticaster implements
         return (InputMethodListener) removeInternal(l, oldl);
     }
 
+    /**
+     * Removes the old hierarchy-listener from hierarchy-listener-l and
+     * returns the resulting multicast listener.
+     * @param l hierarchy-listener-l
+     * @param oldl the hierarchy-listener being removed
+     */
+    public static HierarchyListener remove(HierarchyListener l, HierarchyListener oldl) {
+        return (HierarchyListener) removeInternal(l, oldl);
+    }
+
+    /**
+     * Removes the old hierarchy-bounds-listener from
+     * hierarchy-bounds-listener-l and returns the resulting multicast
+     * listener.
+     * @param l hierarchy-bounds-listener-l
+     * @param oldl the hierarchy-bounds-listener being removed
+     */
+    public static HierarchyBoundsListener remove(HierarchyBoundsListener l, HierarchyBoundsListener oldl) {
+        return (HierarchyBoundsListener) removeInternal(l, oldl);
+    }
+
     /** 
      * Returns the resulting multicast listener from adding listener-a
      * and listener-b together.  
@@ -684,5 +762,39 @@ public class AWTEventMulticaster implements
            s.writeObject(k);
            s.writeObject(l);
       }
+    }
+    
+    private static int getListenerCount(EventListener l) { 
+        if (l instanceof AWTEventMulticaster) { 
+            AWTEventMulticaster mc = (AWTEventMulticaster)l; 
+            return getListenerCount(mc.a) + getListenerCount(mc.b); 
+        }
+        // Delete nulls. 
+        else { 
+            return (l == null) ? 0 : 1; 
+        } 
+    }
+    
+    private static int populateListenerArray(EventListener[] a, EventListener l, int index) { 
+        if (l instanceof AWTEventMulticaster) { 
+            AWTEventMulticaster mc = (AWTEventMulticaster)l; 
+            int lhs = populateListenerArray(a, mc.a, index); 
+            return populateListenerArray(a, mc.b, lhs); 
+        }
+        else if (l != null) { 
+            a[index] = l; 
+            return index + 1; 
+        } 
+        // Delete nulls. 
+        else { 
+            return index; 
+        }
+    }
+    
+    static EventListener[] getListeners(EventListener l, Class listenerType) { 
+        int n = getListenerCount(l); 
+        EventListener[] result = (EventListener[])Array.newInstance(listenerType, n); 
+        populateListenerArray(result, l, 0); 
+        return result; 
     }
 }

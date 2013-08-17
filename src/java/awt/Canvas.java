@@ -1,12 +1,16 @@
 /*
- * @(#)Canvas.java	1.22 01/11/29
+ * @(#)Canvas.java	1.28 00/03/15
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.CanvasPeer;
+import javax.accessibility.*;
 
 /**
  * A <code>Canvas</code> component represents a blank rectangular 
@@ -18,24 +22,14 @@ import java.awt.peer.CanvasPeer;
  * component. The <code>paint</code> method must be overridden 
  * in order to perform custom graphics on the canvas.
  *
- * @version 	1.22 11/29/01
+ * @version 	1.28 03/15/00
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
-public class Canvas extends Component {
+public class Canvas extends Component implements Accessible {
 
     private static final String base = "canvas";
     private static int nameCounter = 0;
-    
-	/*
-    * A reference to a GraphicsConfiguration object
-    * used to describe the characteristics of a graphics
-    * destination.
-    * 
-    * @serial
-    * @see java.awt.GraphicsConfiguration
-    */
-	private GraphicsConfiguration graphicsConfig = null;
 
     /*
      * JDK 1.1 serialVersionUID 
@@ -105,4 +99,45 @@ public class Canvas extends Component {
     boolean postsOldMouseEvents() {
         return true;
     }
+
+    /*
+     * --- Accessibility Support ---
+     *
+     */
+
+    /**
+     * Gets the AccessibleContext associated with this Canvas. 
+     * For canvases, the AccessibleContext takes the form of an 
+     * AccessibleAWTCanvas. 
+     * A new AccessibleAWTCanvas instance is created if necessary.
+     *
+     * @return an AccessibleAWTCanvas that serves as the 
+     *         AccessibleContext of this Canvas
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTCanvas();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Canvas</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to canvas user-interface elements.
+     */
+    protected class AccessibleAWTCanvas extends AccessibleAWTComponent {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.CANVAS;
+        }
+
+    } // inner class AccessibleAWTCanvas
 }

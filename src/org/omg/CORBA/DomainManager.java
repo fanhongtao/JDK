@@ -1,10 +1,12 @@
 /*
- * @(#)DomainManager.java	1.3 01/11/29
+ * @(#)DomainManager.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
-
 
 package org.omg.CORBA;
 
@@ -17,11 +19,8 @@ package org.omg.CORBA;
  *  creating and accessing policies.
  */
 
-public interface DomainManager extends org.omg.CORBA.Object
+public interface DomainManager extends DomainManagerOperations, 
+    org.omg.CORBA.Object, org.omg.CORBA.portable.IDLEntity
 {
-    /** This returns the policy of the specified type for objects in
-     *  this domain.
-     */
-    public org.omg.CORBA.Policy get_domain_policy(int policy_type);
 }
 

@@ -1,8 +1,11 @@
 /*
- * @(#)ReferenceQueue.java	1.11 01/11/29
+ * @(#)ReferenceQueue.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang.ref;
@@ -12,9 +15,9 @@ package java.lang.ref;
  * Reference queues, to which registered reference objects are appended by the
  * garbage collector after the appropriate reachability changes are detected.
  *
- * @version  1.11, 01/11/29
+ * @version  1.14, 02/02/00
  * @author   Mark Reinhold
- * @since    JDK1.2
+ * @since    1.2
  */
 
 public class ReferenceQueue {

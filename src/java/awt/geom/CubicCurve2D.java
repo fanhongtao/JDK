@@ -1,8 +1,11 @@
 /*
- * @(#)CubicCurve2D.java	1.20 01/11/29
+ * @(#)CubicCurve2D.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -20,7 +23,7 @@ import java.util.Arrays;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 10 Feb 1997
+ * @version 	1.25, 02/02/00
  * @author	Jim Graham
  */
 public abstract class CubicCurve2D implements Shape, Cloneable {
@@ -954,7 +957,7 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 
     /**
      * Solves the cubic whose coefficients are in the <code>eqn</code> 
-     * array and places the non-complex roots back into the array, 
+     * array and places the non-complex roots back into the same array, 
      * returning the number of roots.  The solved cubic is represented 
      * by the equation:
      * <pre>
@@ -971,11 +974,11 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 	return solveCubic(eqn, eqn);
     }
 
-    /*
-     * Solve the cubic whose coefficients are in the eqn array and
-     * place the non-complex roots into the result array, returning the
-     * number of roots.  The cubic solved is represented by the
-     * equation:
+    /**
+     * Solve the cubic whose coefficients are in the <code>eqn</code>
+     * array and place the non-complex roots into the <code>res</code>
+     * array, returning the number of roots.
+     * The cubic solved is represented by the equation:
      *     eqn = {c, b, a, d}
      *     dx^3 + ax^2 + bx + c = 0
      * A return value of -1 is used to distinguish a constant equation,
@@ -983,7 +986,7 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
      * zeroes.
      * @return the number of roots, or -1 if the equation is a constant
      */
-    static int solveCubic(double eqn[], double res[]) {
+    public static int solveCubic(double eqn[], double res[]) {
 	// From Numerical Recipes, 5.6, Quadratic and Cubic Equations
 	double d = eqn[3];
 	if (d == 0.0) {
@@ -1085,10 +1088,11 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 
     private static double findZero(double t, double target, double eqn[]) {
 	double slopeqn[] = {eqn[1], 2*eqn[2], 3*eqn[3]};
-	double slope = solveEqn(slopeqn, 2, t);
-	double origslope = slope;
+	double slope;
+	double origdelta = 0;
 	double origt = t;
 	while (true) {
+	    slope = solveEqn(slopeqn, 2, t);
 	    if (slope == 0) {
 		// At a local minima - must return
 		return t;
@@ -1101,6 +1105,9 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 	    // assert(slope != 0 && y != 0);
 	    double delta = - (y / slope);
 	    // assert(delta != 0);
+	    if (origdelta == 0) {
+		origdelta = delta;
+	    }
 	    if (t < target) {
 		if (delta < 0) return t;
 	    } else if (t > target) {
@@ -1115,9 +1122,7 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 		// The deltas are so small that we aren't moving...
 		return t;
 	    }
-	    t = newt;
-	    slope = solveEqn(slopeqn, 2, t);
-	    if (slope * origslope < 0) {
+	    if (delta * origdelta < 0) {
 		// We have reversed our path.
 		int tag = (origt < t
 			   ? getTag(target, origt, t)
@@ -1129,7 +1134,8 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 		// Local minima somewhere near target - move to target
 		// and let the slope determine the resulting t.
 		t = target;
-		slope = solveEqn(slopeqn, 2, t);
+	    } else {
+		t = newt;
 	    }
 	}
     }
@@ -1621,7 +1627,7 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
      * @return     a clone of this instance.
      * @exception  OutOfMemoryError            if there is not enough memory.
      * @see        java.lang.Cloneable
-     * @since      JDK1.2
+     * @since      1.2
      */
     public Object clone() {
 	try {

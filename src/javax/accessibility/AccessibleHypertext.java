@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleHypertext.java	1.5 01/11/29
+ * @(#)AccessibleHypertext.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -38,7 +41,7 @@ import javax.swing.text.*;
 public interface AccessibleHypertext extends AccessibleText {
 
     /**
-     * Returns the number of links within this hypertext doc.
+     * Returns the number of links within this hypertext document.
      *
      * @return number of links in this hypertext doc.
      */

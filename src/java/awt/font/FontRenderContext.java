@@ -1,8 +1,11 @@
 /*
- * @(#)FontRenderContext.java	1.17 01/11/29
+ * @(#)FontRenderContext.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -31,6 +34,12 @@ import java.awt.geom.AffineTransform;
 *   Anti-aliasing and Fractional-metrics specified by an application can also
 *   affect the size of a character because of rounding to pixel
 *   boundaries.
+*   <p>
+*   Typically, instances of <code>FontRenderContext</code> are obtained from
+*   a {@link Graphics2D} object.  A <code>FontRenderContext</code> 
+*   which is directly constructed will most likely not represent any actual
+*   graphics device, and may lead to unexpected or incorrect results.
+*   <p>
 *   @see java.awt.RenderingHints#KEY_TEXT_ANTIALIASING
 *   @see java.awt.RenderingHints#KEY_FRACTIONALMETRICS
 *   @see java.awt.Graphics2D#getFontRenderContext
@@ -58,7 +67,9 @@ public class FontRenderContext {
      * optional {@link AffineTransform} and two <code>boolean</code>
      * values that determine if the newly constructed object has
      * anti-aliasing or fractional metrics.
-     * @param tx the optional <code>AffineTransform</code>
+     * @param tx the transform which is used to scale typographical points
+     *  to pixels in this <code>FontRenderContext</code>.  If null, an
+     *  identity tranform is used.
      * @param isAntiAliased determines if the newly contructed object has
      * anti-aliasing
      * @param usesFractionalMetrics determines if the newly constructed
@@ -68,9 +79,11 @@ public class FontRenderContext {
                             boolean isAntiAliased,
                             boolean usesFractionalMetrics) {
         if (tx == null) {
-            tx = new AffineTransform();
+            this.tx = new AffineTransform();
         }
-        this.tx = tx;
+        else {
+            this.tx = new AffineTransform(tx);
+        }
         this.bIsAntiAliased = isAntiAliased;
         this.bUsesFractionalMetrics = usesFractionalMetrics;
     }

@@ -1,8 +1,11 @@
 /*
- * @(#)BufferedImageFilter.java	1.22 01/11/29
+ * @(#)BufferedImageFilter.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -12,12 +15,13 @@ import java.awt.image.ImageConsumer;
 import java.awt.image.ImageFilter;
 
 /**
- * This class subclasses an ImageFilter to provide a simple means of
+ * The <code>BufferedImageFilter</code> class subclasses an 
+ * <code>ImageFilter</code> to provide a simple means of
  * using a single-source/single-destination image operator
- * (BufferedImageOp) to filter
- * a BufferedImage in the Image Producer/Consumer/Observer
- * paradigm. Examples of these image operators are: ConvolveOp,
- * AffineTransformOp and LookupOp.
+ * ({@link BufferedImageOp}) to filter a <code>BufferedImage</code>
+ * in the Image Producer/Consumer/Observer
+ * paradigm. Examples of these image operators are: {@link ConvolveOp},
+ * {@link AffineTransformOp} and {@link LookupOp}.
  *
  * @see ImageFilter
  * @see BufferedImage
@@ -34,8 +38,10 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
     int[] intPixels;
 
     /**
-     * Constructs a BufferedImageFilter with the
+     * Constructs a <code>BufferedImageFilter</code> with the
      * specified single-source/single-destination operator.
+     * @param op the specified <code>BufferedImageOp</code> to
+     *           use to filter a <code>BufferedImage</code>
      */
     public BufferedImageFilter (BufferedImageOp op) {
         super();
@@ -43,21 +49,29 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
     }
 
     /**
-     * Returns the BufferedImageOp.
+     * Returns the <code>BufferedImageOp</code>.
+     * @return the operator of this <code>BufferedImageFilter</code>.
      */
     public BufferedImageOp getBufferedImageOp() {
         return bufferedImageOp;
     }
 
     /**
-     * Filters the information provided in the setDimensions method
-     * of the ImageConsumer interface.
+     * Filters the information provided in the 
+     * {@link ImageConsumer#setDimensions(int, int) setDimensions } method
+     * of the {@link ImageConsumer} interface.
      * <p>
-     * Note: This method is intended to be called by the ImageProducer
-     * of the Image whose pixels are being filtered.  Developers using
-     * this class to retrieve pixels from an image should avoid calling
-     * this method directly since that operation could result in problems
-     * with retrieving the requested pixels.
+     * Note: This method is intended to be called by the 
+     * {@link ImageProducer} of the <code>Image</code> whose pixels are
+     * being filtered. Developers using this class to retrieve pixels from
+     * an image should avoid calling this method directly since that
+     * operation could result in problems with retrieving the requested
+     * pixels.
+     * <p>
+     * @param width the width to which to set the width of this
+     *        <code>BufferedImageFilter</code>
+     * @param height the height to which to set the height of this
+     *        <code>BufferedImageFilter</code>
      * @see ImageConsumer#setDimensions
      */
     public void setDimensions(int width, int height) {
@@ -70,14 +84,23 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
     }
 
     /**
-     * Filters the information provided in the setColorModel method
-     * of the ImageConsumer interface.
+     * Filters the information provided in the 
+     * {@link ImageConsumer#setColorModel(ColorModel) setColorModel} method
+     * of the <code>ImageConsumer</code> interface.
      * <p>
-     * Note: This method is intended to be called by the ImageProducer
-     * of the Image whose pixels are being filtered.  Developers using
-     * this class to retrieve pixels from an image should avoid calling
-     * this method directly since that operation could result in problems
-     * with retrieving the requested pixels.
+     * If <code>model</code> is <code>null</code>, this
+     * method clears the current <code>ColorModel</code> of this
+     * <code>BufferedImageFilter</code>.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> 
+     * whose pixels are being filtered.  Developers using this 
+     * class to retrieve pixels from an image
+     * should avoid calling this method directly since that 
+     * operation could result in problems with retrieving the 
+     * requested pixels.
+     * @param model the {@link ColorModel} to which to set the 
+     *        <code>ColorModel</code> of this <code>BufferedImageFilter</code>
      * @see ImageConsumer#setColorModel
      */
     public void setColorModel(ColorModel model) {
@@ -102,20 +125,34 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
     }
 
     /**
-     * Filters the information provided in the setPixels method of the
-     * ImageConsumer interface which takes an array of bytes.
+     * Filters the information provided in the <code>setPixels</code>
+     * method of the <code>ImageConsumer</code> interface which takes
+     * an array of bytes.
      * <p>
-     * Note: This method is intended to be called by the ImageProducer
-     * of the Image whose pixels are being filtered.  Developers using
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered.  Developers using
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @throws IllegalArgumentException if width or height are less than 
+     * zero.
      * @see ImageConsumer#setPixels(int, int, int, int, ColorModel, byte[],
                                     int, int)
      */
     public void setPixels(int x, int y, int w, int h,
 			  ColorModel model, byte pixels[], int off,
 			  int scansize) {
+        // Fix 4184230
+        if (w < 0 || h < 0) {
+            throw new IllegalArgumentException("Width ("+w+
+                                                ") and height ("+h+
+                                                ") must be > 0");
+        }            
+        // Nothing to do
+        if (w == 0 || h == 0) {
+            return;
+        }
 	if (y < 0) {
 	    int diff = -y;
 	    if (diff >= h) {
@@ -175,20 +212,34 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
 	}
     }
     /**
-     * Filters the information provided in the setPixels method of the
-     * ImageConsumer interface which takes an array of integers.
+     * Filters the information provided in the <code>setPixels</code> 
+     * method of the <code>ImageConsumer</code> interface which takes
+     * an array of integers.
      * <p>
-     * Note: This method is intended to be called by the ImageProducer
-     * of the Image whose pixels are being filtered.  Developers using
-     * this class to retrieve pixels from an image should avoid calling
-     * this method directly since that operation could result in problems
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose 
+     * pixels are being filtered.  Developers using this class to 
+     * retrieve pixels from an image should avoid calling this method 
+     * directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @throws IllegalArgumentException if width or height are less than 
+     * zero.
      * @see ImageConsumer#setPixels(int, int, int, int, ColorModel, int[],
                                     int, int)
      */
     public void setPixels(int x, int y, int w, int h,
 			  ColorModel model, int pixels[], int off,
 			  int scansize) {
+        // Fix 4184230
+        if (w < 0 || h < 0) {
+            throw new IllegalArgumentException("Width ("+w+
+                                                ") and height ("+h+
+                                                ") must be > 0");
+        }
+        // Nothing to do
+        if (w == 0 || h == 0) {
+            return;
+        }
 	if (y < 0) {
 	    int diff = -y;
 	    if (diff >= h) {
@@ -252,17 +303,20 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
     }
 
     /**
-     * Filters the information provided in the imageComplete method of
-     * the ImageConsumer interface.
+     * Filters the information provided in the <code>imageComplete</code>
+     * method of the <code>ImageConsumer</code> interface.
      * <p>
-     * Note: This method is intended to be called by the ImageProducer
-     * of the Image whose pixels are being filtered.  Developers using
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered.  Developers using
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
-     * @see ImageConsumer#imageComplete
+     * @param status the status of image loading
      * @throws ImagingOpException if there was a problem calling the filter
-     * method of the BufferedImageOp associated with this instance.
+     * method of the <code>BufferedImageOp</code> associated with this 
+     * instance.
+     * @see ImageConsumer#imageComplete
      */
     public void imageComplete(int status) {
         WritableRaster wr;

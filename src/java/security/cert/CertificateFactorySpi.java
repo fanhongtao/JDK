@@ -1,8 +1,11 @@
 /*
- * @(#)CertificateFactorySpi.java	1.5 01/11/29
+ * @(#)CertificateFactorySpi.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.cert;
@@ -30,7 +33,7 @@ import java.security.NoSuchProviderException;
  * @author Hemma Prafullchandra
  * @author Jan Luehe
  *
- * @version 1.5
+ * @version 1.9, 02/02/00
  *
  * @see CertificateFactory
  * @see Certificate
@@ -38,7 +41,7 @@ import java.security.NoSuchProviderException;
  * @see CRL
  * @see X509CRL
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class CertificateFactorySpi {
@@ -93,7 +96,8 @@ public abstract class CertificateFactorySpi {
      * <p>In the case of a certificate factory for X.509 certificates,
      * <code>inStream</code> may contain a single DER-encoded certificate
      * in the formats described for 
-     * {@link #generateCertificate(java.io.InputStream) generateCertificate}.
+     * {@link CertificateFactory#generateCertificate(java.io.InputStream) 
+     * generateCertificate}.
      * In addition, <code>inStream</code> may contain a PKCS#7 certificate
      * chain. This is a PKCS#7 <i>SignedData</i> object, with the only
      * significant field being <i>certificates</i>. In particular, the

@@ -1,8 +1,11 @@
 /*
- * @(#)JDialog.java	1.44 01/11/29
+ * @(#)JDialog.java	1.52 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -17,42 +20,39 @@ import java.applet.Applet;
 
 /** 
  * The main class for creating a dialog window. You can use this class
- * to create a custom dialog, or invoke the many static methods
- * in JOptionPane to create a variety of standard dialogs.
+ * to create a custom dialog, or invoke the many class methods
+ * in {@link JOptionPane} to create a variety of standard dialogs.
+ * For information about creating dialogs, see
+ * <em>The Java Tutorial</em> section
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/dialog.html">How
+ * to Make Dialogs</a>.
  *
- * The JDialog component contains a JRootPane as it's only 
- * child.
- * The <code>contentPane</code> should be the parent of any children of 
- * the JDialog. From the older <code>java.awt.Window</code> object you 
- * would normally do something like this:
+ * <p>
+ *
+ * The <code>JDialog</code> component contains a <code>JRootPane</code>
+ * as its only child.
+ * The <code>contentPane</code> should be the parent of any children of the
+ * <code>JDialog</code>. From the older <code>java.awt.Window</code> object
+ * you would normally do something like this:
  * <PRE>
  *       dialog.add(child);
  * </PRE>
- * Using JDialog the proper semantic is:
+ * Using <code>JDialog</code> the proper semantic is:
  * <PRE>
  *       dialog.getContentPane().add(child);
  * </PRE>
  * The same priniciple holds true for setting layout managers, removing 
- * components, listing children, etc. All these methods should normally 
- * be sent to the <code>contentPane</code> instead of to the JDialog.
- * The <code>contentPane</code> is always non-null. Attempting to set it 
- * to null generates an exception. The default <code>contentPane</code> 
- * has a BorderLayout manager set on it. 
+ * components, listing children, etc. All these methods should normally be
+ * sent to the <code>contentPane</code> instead of to the <code>JDialog</code>.
+ * The <code>contentPane</code> is always non-<code>null</code>.
+ * Attempting to set it to <code>null</code> generates an exception.
+ * The default <code>contentPane</code> has a <code>BorderLayout</code>
+ * manager set on it. 
  * <p>
- * Please see the JRootPane documentation for a complete 
+ * Please see the <code>JRootPane</code> documentation for a complete 
  * description of the <code>contentPane</code>, <code>glassPane</code>, 
  * and <code>layeredPane</code> components.
- * <p>
- * NOTE: For 1.1, Modal dialogs are currently constrained to only allow
- * lightweight popup menus (JPopupMenu, JComboBox, JMenuBar) because
- * of window ownership limitations in AWT1.1.   This creates the further
- * limitation of not being able to mix Swing popup components with
- * AWT heavyweight components in a modal dialog since the heavyweight
- * components would always overlap the lightweights, potentially
- * obscuring the popup menu.
- * (A heavyweight component uses a native-platform component (peer)
- * component for its implementation -- AWT components are heavyweight
- * components.)
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
@@ -73,7 +73,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.44 11/29/01
+ * @version 1.52 04/06/00
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
@@ -96,9 +96,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * Creates a non-modal dialog without a title and without
-     * a specified Frame owner.  A shared, hidden frame will be
-     * set as the owner of the Dialog.
+     * Creates a non-modal dialog without a title and without a specified
+     * <code>Frame</code> owner.  A shared, hidden frame will be
+     * set as the owner of the dialog.
      */
     public JDialog() {
         this((Frame)null, false);
@@ -106,9 +106,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * Creates a non-modal dialog without a title with the
-     * specifed Frame as its owner.
+     * specifed <code>Frame</code> as its owner.
      *
-     * @param owner the Frame from which the dialog is displayed
+     * @param owner the <code>Frame</code> from which the dialog is displayed
      */
     public JDialog(Frame owner) {
         this(owner, false);
@@ -116,9 +116,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * Creates a modal or non-modal dialog without a title and
-     * with the specified owner frame.
+     * with the specified owner <code>Frame</code>.
      *
-     * @param owner the Frame from which the dialog is displayed
+     * @param owner the <code>Frame</code> from which the dialog is displayed
      * @param modal  true for a modal dialog, false for one that allows
      *               others windows to be active at the same time
      */
@@ -130,8 +130,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * Creates a non-modal dialog with the specified title and
      * with the specified owner frame.
      *
-     * @param owner the Frame from which the dialog is displayed
-     * @param title  the String to display in the dialog's title bar
+     * @param owner the <code>Frame</code> from which the dialog is displayed
+     * @param title  the <code>String</code> to display in the dialog's
+     *			title bar
      */
     public JDialog(Frame owner, String title) {
         this(owner, title, false);     
@@ -139,15 +140,18 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * Creates a modal or non-modal dialog with the specified title 
-     * and the specified owner frame.
+     * and the specified owner <code>Frame</code>.  All constructors
+     * defer to this one.
      * <p>
-     * NOTE: Any popup components (JComboBox, JPopupMenu, JMenuBar)
+     * NOTE: Any popup components (<code>JComboBox</code>,
+     * <code>JPopupMenu</code>, <code>JMenuBar</code>)
      * created within a modal dialog will be forced to be lightweight.
      *
-     * @param owner the frame from which the dialog is displayed
-     * @param title  the String to display in the dialog's title bar
+     * @param owner the <code>Frame</code> from which the dialog is displayed
+     * @param title  the <code>String</code> to display in the dialog's
+     *			title bar
      * @param modal  true for a modal dialog, false for one that allows
-     *               others windows to be active at the same time
+     *               other windows to be active at the same time
      */
     public JDialog(Frame owner, String title, boolean modal) {
         super(owner == null? SwingUtilities.getSharedOwnerFrame() : owner, 
@@ -157,9 +161,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * Creates a non-modal dialog without a title with the
-     * specifed Dialog as its owner.
+     * specifed <code>Dialog</code> as its owner.
      *
-     * @param owner the Dialog from which the dialog is displayed
+     * @param owner the <code>Dialog</code> from which the dialog is displayed
      */
 
     public JDialog(Dialog owner) {
@@ -172,9 +176,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * with the specified owner dialog.
      * <p>
      *
-     * @param owner the Dialog from which the dialog is displayed
+     * @param owner the <code>Dialog</code> from which the dialog is displayed
      * @param modal  true for a modal dialog, false for one that allows
-     *               others windows to be active at the same time
+     *               other windows to be active at the same time
      */
 
     public JDialog(Dialog owner, boolean modal) {
@@ -186,8 +190,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * Creates a non-modal dialog with the specified title and
      * with the specified owner dialog.
      *
-     * @param owner the Dialog from which the dialog is displayed
-     * @param title  the String to display in the dialog's title bar
+     * @param owner the <code>Dialog</code> from which the dialog is displayed
+     * @param title  the <code>String</code> to display in the dialog's
+     *			title bar
      */
 
     public JDialog(Dialog owner, String title) {
@@ -199,10 +204,11 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * Creates a modal or non-modal dialog with the specified title 
      * and the specified owner frame.
      *
-     * @param owner the dialog from which the dialog is displayed
-     * @param title  the String to display in the dialog's title bar
+     * @param owner the <code>Dialog</code> from which the dialog is displayed
+     * @param title  the <code>String</code> to display in the dialog's
+     *			title bar
      * @param modal  true for a modal dialog, false for one that allows
-     *               others windows to be active at the same time
+     *               other windows to be active at the same time
      */
 
     public JDialog(Dialog owner, String title, boolean modal) {
@@ -212,14 +218,17 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
   
 
 
-    /** Called by the constructors to init the JDialog properly. */
+    /** Called by the constructors to init the <code>JDialog</code> properly. */
     protected void dialogInit() {
         enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
     }
 
-    /** Called by the constructor methods to create the default rootPane. */
+    /**
+     * Called by the constructor methods to create the default
+     * <code>rootPane</code>.
+     */
     protected JRootPane createRootPane() {
         return new JRootPane();
     }
@@ -257,9 +266,6 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
                  setVisible(false);
                  dispose();
                  break;
-              case 3:
-                 System.exit(0);
-                 break;
               case DO_NOTHING_ON_CLOSE:
                  default: 
                  break;
@@ -274,14 +280,12 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * The possible choices are:
      * <ul>
      * <li>DO_NOTHING_ON_CLOSE - do not do anything - require the
-     * program to handle the operation in the windowClosing
-     * method of a registered WindowListener object.
+     * program to handle the operation in the <code>windowClosing</code>
+     * method of a registered <code>WindowListener</code> object.
      * <li>HIDE_ON_CLOSE - automatically hide the dialog after
-     * invoking any registered WindowListener objects
+     * invoking any registered <code>WindowListener</code> objects
      * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
-     * dialog after invoking any registered WindowListener objects
-     * <li>EXIT_ON_CLOSE - Exit the application by way of System.exit.
-     * Only use this in applications.
+     * dialog after invoking any registered <code>WindowListener</code> objects
      * </ul>
      * <p>
      * The value is set to HIDE_ON_CLOSE by default.
@@ -300,7 +304,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     * Returns the operation which occurs when the user
     * initiates a "close" on this dialog.
     *
-    * @return an int indicating the window-close operation
+    * @return an integer indicating the window-close operation
     * @see #setDefaultCloseOperation
     */
     public int getDefaultCloseOperation() {
@@ -309,7 +313,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /** 
-     * Just calls <code>paint(g)</code>.  This method was overridden to 
+     * Calls <code>paint(g)</code>.  This method was overridden to 
      * prevent an unneccessary call to clear the background.
      */
     public void update(Graphics g) {
@@ -341,7 +345,11 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * @return true if add and setLayout should be checked
+     * Returns true if the methods <code>add</code> and <code>setLayout</code>
+     * should be checked.
+     *
+     * @return true if <code>add</code> and <code>setLayout</code> should
+     *		be checked
      * @see #addImpl
      * @see #setLayout
      * @see #setRootPaneCheckingEnabled
@@ -352,8 +360,8 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * If true then calls to add() and setLayout() will cause an exception
-     * to be thrown.  
+     * If true then calls to <code>add</code> and <code>setLayout</code>
+     * will cause an exception to be thrown.  
      *
      * @see #addImpl
      * @see #setLayout
@@ -367,10 +375,13 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Create an runtime exception with a message like:
+     * Creates a message that can be used as a runtime exception.  The
+     * message will look like the following:
      * <pre>
      * "Do not use JDialog.add() use JDialog.getContentPane().add() instead"
      * </pre>
+     * @param op a <code>String</code> containing the attempted operation
+     * @return an <code>Error</code> containing the constructed string
      */
     private Error createRootPaneException(String op) {
         String type = getClass().getName();
@@ -382,16 +393,20 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * By default, children may not be added directly to a this component,
-     * they must be added to its contentPane instead.  For example:
+     * they must be added to its <code>contentPane</code> instead.
+     * For example:
      * <pre>
      * thisComponent.getContentPane().add(child)
      * </pre>
      * An attempt to add to directly to this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * runtime exception to be thrown if rootPaneCheckingEnabled is true. 
+     * Subclasses can disable this behavior.
      * 
+     * @param comp  the <code>Component</code> to be enhanced
+     * @param constraints the constraints to be respected
+     * @param index the index (an integer)
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
+     * @exception Error if called with rootPaneCheckingEnabled true
      */
     protected void addImpl(Component comp, Object constraints, int index) 
     {
@@ -421,16 +436,17 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * By default the layout of this component may not be set,
-     * the layout of its contentPane should be set instead.  
+     * the layout of its <code>contentPane</code> should be set instead.  
      * For example:
      * <pre>
      * thisComponent.getContentPane().setLayout(new BorderLayout())
      * </pre>
      * An attempt to set the layout of this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * runtime exception to be thrown if rootPaneCheckingEnabled is true.  
+     * Subclasses can disable this behavior.
      * 
      * @see #setRootPaneCheckingEnabled
+     * @param manager the <code>LayoutManager</code>
      * @exception Error if called with rootPaneChecking true
      */
     public void setLayout(LayoutManager manager) {
@@ -444,7 +460,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * Returns the rootPane object for this dialog.
+     * Returns the <code>rootPane</code> object for this dialog.
      *
      * @see #setRootPane
      * @see RootPaneContainer#getRootPane
@@ -455,8 +471,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * Sets the rootPane property.  This method is called by the constructor.
-     * @param root the rootPane object for this dialog
+     * Sets the <code>rootPane</code> property. 
+     * This method is called by the constructor.
+     * @param root the <code>rootPane</code> object for this dialog
      *
      * @see #getRootPane
      *
@@ -483,7 +500,8 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * Returns the contentPane object for this dialog.
+     * Returns the <code>contentPane</code> object for this dialog.
+     * @return the <code>contentPane</code> property
      *
      * @see #setContentPane
      * @see RootPaneContainer#getContentPane
@@ -494,11 +512,13 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
    /**
-     * Sets the contentPane property.  This method is called by the constructor.
-     * @param contentPane the contentPane object for this dialog
+     * Sets the <code>contentPane</code> property. 
+     * This method is called by the constructor.
+     *
+     * @param contentPane the <code>contentPane</code> object for this dialog
      *
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the content pane parameter is null
+     *            exception) if the content pane parameter is <code>null</code>
      * @see #getContentPane
      * @see RootPaneContainer#setContentPane
      *
@@ -512,7 +532,8 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Returns the layeredPane object for this dialog.
+     * Returns the <code>layeredPane</code> object for this dialog.
+     * @return the <code>layeredPane</code> property
      *
      * @see #setLayeredPane
      * @see RootPaneContainer#getLayeredPane
@@ -522,8 +543,10 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Sets the layeredPane property.  This method is called by the constructor.
-     * @param layeredPane the layeredPane object for this dialog
+     * Sets the <code>layeredPane</code> property.  
+     * This method is called by the constructor.
+     *
+     * @param layeredPane the new <code>layeredPane</code> property
      *
      * @exception java.awt.IllegalComponentStateException (a runtime
      *            exception) if the layered pane parameter is null
@@ -539,7 +562,8 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Returns the glassPane object for this dialog.
+     * Returns the <code>glassPane</code> object for this dialog.
+     * @return the <code>glassPane</code> property
      *
      * @see #setGlassPane
      * @see RootPaneContainer#getGlassPane
@@ -549,9 +573,10 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Sets the glassPane property. 
+     * Sets the <code>glassPane</code> property. 
      * This method is called by the constructor.
-     * @param glassPane the glassPane object for this dialog
+     *
+     * @param glassPane the <code>glassPane</code> object for this dialog
      * @see #getGlassPane
      * @see RootPaneContainer#setGlassPane
      *
@@ -643,13 +668,14 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
 
     /**
-     * Returns a string representation of this JDialog. This method 
+     * Returns a string representation of this <code>JDialog</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JDialog.
+     * @return  a string representation of this <code>JDialog</code>.
      */
     protected String paramString() {
         String defaultCloseOperationString;
@@ -659,8 +685,6 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
             defaultCloseOperationString = "DISPOSE_ON_CLOSE";
         } else if (defaultCloseOperation == DO_NOTHING_ON_CLOSE) {
             defaultCloseOperationString = "DO_NOTHING_ON_CLOSE";
-        } else if (defaultCloseOperation == 3) {
-            defaultCloseOperationString = "EXIT_ON_CLOSE";
         } else defaultCloseOperationString = "";
 	String rootPaneString = (rootPane != null ?
 				 rootPane.toString() : "");
@@ -681,9 +705,13 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     protected AccessibleContext accessibleContext = null;
 
     /**
-     * Get the AccessibleContext associated with this JDialog
+     * Gets the AccessibleContext associated with this JDialog. 
+     * For JDialogs, the AccessibleContext takes the form of an 
+     * AccessibleJDialog. 
+     * A new AccessibleJDialog instance is created if necessary.
      *
-     * @return the AccessibleContext of this JDialog
+     * @return an AccessibleJDialog that serves as the 
+     *         AccessibleContext of this JDialog
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -693,10 +721,20 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * The class used to obtain the AccessibleRole for this object.
+     * This class implements accessibility support for the 
+     * <code>JDialog</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to dialog user-interface 
+     * elements.
      */
-    protected class AccessibleJDialog extends AccessibleContext 
-        implements Serializable, AccessibleComponent {
+
+  // really if JDK1.3...
+    protected class AccessibleJDialog extends AccessibleAWTDialog { 
+  
+
+
+
+
+
 
         
         // AccessibleContext methods
@@ -720,17 +758,6 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
         }
 
         /**
-         * Get the role of this object.
-         *
-         * @return an instance of AccessibleRole describing the role of the 
-         * object
-         * @see AccessibleRole
-         */
-        public AccessibleRole getAccessibleRole() {
-            return AccessibleRole.DIALOG;
-        }
-
-        /**
          * Get the state of this object.
          *
          * @return an instance of AccessibleStateSet containing the current 
@@ -738,7 +765,15 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
          * @see AccessibleState
          */
         public AccessibleStateSet getAccessibleStateSet() {
-            AccessibleStateSet states = SwingUtilities.getAccessibleStateSet(JDialog.this);
+
+  // really if JDK1.3...
+            AccessibleStateSet states = super.getAccessibleStateSet();
+  
+
+
+
+
+
             if (isResizable()) {
                 states.add(AccessibleState.RESIZABLE);
             }
@@ -751,350 +786,373 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
             return states;
         }
 
-        /**
-         * Get the Accessible parent of this object.  If the parent of this
-         * object implements Accessible, this method should simply return
-         * getParent().
-         *
-         * @return the Accessible parent of this object -- can be null if this
-         * object does not have an Accessible parent
-         */
-        public Accessible getAccessibleParent() {
-	    if (accessibleParent != null) {
-		return accessibleParent;
-	    } else {
-            	Container parent = getParent();
-            	if (parent instanceof Accessible) {
-                    return (Accessible) parent;
-		}
-            }
-            return null;
-        }
 
-        /**
-         * Get the index of this object in its accessible parent. 
-         *
-         * @return the index of this object in its parent; -1 if this 
-         * object does not have an accessible parent.
-         * @see #getAccessibleParent
-         */
-        public int getAccessibleIndexInParent() {
-            return SwingUtilities.getAccessibleIndexInParent(JDialog.this);
-        }
-
-        /**
-         * Returns the number of accessible children in the object.  If all
-         * of the children of this object implement Accessible, than this
-         * method should return the number of children of this object.
-         *
-         * @return the number of accessible children in the object.
-         */
-        public int getAccessibleChildrenCount() {
-            return SwingUtilities.getAccessibleChildrenCount(JDialog.this);
-        }
-
-        /**
-         * Return the nth Accessible child of the object.  
-         *
-         * @param i zero-based index of child
-         * @return the nth Accessible child of the object
-         */
-        public Accessible getAccessibleChild(int i) {
-            return SwingUtilities.getAccessibleChild(JDialog.this,i);
-        }
-
-        /**
-         * Return the locale of this object.
-         *
-         * @return the locale of this object
-         */
-        public Locale getLocale() {
-            return JDialog.this.getLocale();
-        }
-
-        /**
-         * Get the AccessibleComponent associated with this object if one
-         * exists.  Otherwise return null.
-         */
-        public AccessibleComponent getAccessibleComponent() {
-            return this;
-        }
+  // really if JDK1.3...
+  
 
 
-        // AccessibleComponent methods
-        //
-        /**
-         * Get the background color of this object.
-         *
-         * @return the background color, if supported, of the object; 
-         * otherwise, null
-         */
-        public Color getBackground() {
-            return JDialog.this.getBackground();
-        }
 
-        /**
-         * Set the background color of this object.
-         *
-         * @param c the new Color for the background
-         */
-        public void setBackground(Color c) {
-            JDialog.this.setBackground(c);
-        }
 
-        /**
-         * Get the foreground color of this object.
-         *
-         * @return the foreground color, if supported, of the object; 
-         * otherwise, null
-         */
-        public Color getForeground() {
-            return JDialog.this.getForeground();
-        }
 
-        /**
-         * Set the foreground color of this object.
-         *
-         * @param c the new Color for the foreground
-         */
-        public void setForeground(Color c) {
-            JDialog.this.setForeground(c);
-        }
 
-        /**
-         * Get the Cursor of this object.
-         *
-         * @return the Cursor, if supported, of the object; otherwise, null
-         */
-        public Cursor getCursor() {
-            return JDialog.this.getCursor();
-        }
 
-        /**
-         * Set the Cursor of this object.
-         *
-         * @param c the new Cursor for the object
-         */
-        public void setCursor(Cursor cursor) {
-            JDialog.this.setCursor(cursor);
-        }
 
-        /**
-         * Get the Font of this object.
-         *
-         * @return the Font,if supported, for the object; otherwise, null
-         */
-        public Font getFont() {
-            return JDialog.this.getFont();
-        }
 
-        /**
-         * Set the Font of this object.
-         *
-         * @param f the new Font for the object
-         */
-        public void setFont(Font f) {
-            JDialog.this.setFont(f);
-        }
 
-        /**
-         * Get the FontMetrics of this object.
-         *
-         * @param f the Font
-         * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see #getFont
-         */
-        public FontMetrics getFontMetrics(Font f) {
-            return JDialog.this.getFontMetrics(f);
-        }
 
-        /**
-         * Determine if the object is enabled.
-         *
-         * @return true if object is enabled; otherwise, false
-         */
-        public boolean isEnabled() {
-            return JDialog.this.isEnabled();
-        }
 
-        /**
-         * Set the enabled state of the object.
-         *
-         * @param b if true, enables this object; otherwise, disables it 
-         */
-        public void setEnabled(boolean b) {
-            JDialog.this.setEnabled(b);
-        }
-        
-        /**
-         * Determine if the object is visible.  Note: this means that the
-         * object intends to be visible; however, it may not in fact be
-         * showing on the screen because one of the objects that this object
-         * is contained by is not visible.  To determine if an object is
-         * showing on the screen, use isShowing().
-         *
-         * @return true if object is visible; otherwise, false
-         */
-        public boolean isVisible() {
-            return JDialog.this.isVisible();
-        }
 
-        /**
-         * Set the visible state of the object.
-         *
-         * @param b if true, shows this object; otherwise, hides it 
-         */
-        public void setVisible(boolean b) {
-            JDialog.this.setVisible(b);
-        }
 
-        /**
-         * Determine if the object is showing. This is determined by checking
-         * the visibility of the object and ancestors of the object.  Note: 
-         * this will return true even if the object is obscured by another 
-         * (for example, it happens to be underneath a menu that was pulled 
-         * down).
-         *
-         * @return true if object is showing; otherwise, false
-         */
-        public boolean isShowing() {
-            return JDialog.this.isShowing();
-        }
 
-        /** 
-         * Checks whether the specified point is within this object's bounds,
-         * where the point's x and y coordinates are defined to be relative to 
-         * the coordinate system of the object. 
-         *
-         * @param p the Point relative to the coordinate system of the object
-         * @return true if object contains Point; otherwise false
-         */
-        public boolean contains(Point p) {
-            return JDialog.this.contains(p);
-        }
-    
-        /** 
-         * Returns the location of the object on the screen.
-         *
-         * @return location of object on screen -- can be null if this object
-         * is not on the screen
-         */
-        public Point getLocationOnScreen() {
-            return JDialog.this.getLocationOnScreen();
-        }
 
-        /** 
-         * Gets the location of the object relative to the parent in the form 
-         * of a point specifying the object's top-left corner in the screen's 
-         * coordinate space.
-         *
-         * @return An instance of Point representing the top-left corner of 
-         * the objects's bounds in the coordinate space of the screen; null if
-         * this object or its parent are not on the screen
-         */
-        public Point getLocation() {
-            return JDialog.this.getLocation();
-        }
 
-        /** 
-         * Sets the location of the object relative to the parent.
-         */
-        public void setLocation(Point p) {
-            JDialog.this.setLocation(p);
-        }
 
-        /** 
-         * Gets the bounds of this object in the form of a Rectangle object. 
-         * The bounds specify this object's width, height, and location
-         * relative to its parent. 
-         *
-         * @return A rectangle indicating this component's bounds; null if 
-         * this object is not on the screen.
-         */
-        public Rectangle getBounds() {
-            return JDialog.this.getBounds();
-        }
 
-        /** 
-         * Sets the bounds of this object in the form of a Rectangle object. 
-         * The bounds specify this object's width, height, and location
-         * relative to its parent.
-         *      
-         * @param A rectangle indicating this component's bounds
-         */
-        public void setBounds(Rectangle r) {
-            JDialog.this.setBounds(r);
-        }
 
-        /** 
-         * Returns the size of this object in the form of a Dimension object. 
-         * The height field of the Dimension object contains this objects's
-         * height, and the width field of the Dimension object contains this 
-         * object's width. 
-         *
-         * @return A Dimension object that indicates the size of this 
-         * component; null if this object is not on the screen
-         */
-        public Dimension getSize() {
-            return JDialog.this.getSize();
-        }
 
-        /** 
-         * Resizes this object so that it has width width and height. 
-         *      
-         * @param d - The dimension specifying the new size of the object. 
-         */
-        public void setSize(Dimension d) {
-            JDialog.this.setSize(d);
-        }
 
-        /**
-         * Returns the Accessible child, if one exists, contained at the local
-         * coordinate Point.
-         *
-         * @param p The point defining the top-left corner of the Accessible, 
-         * given in the coordinate space of the object's parent. 
-         * @return the Accessible, if it exists, at the specified location; 
-         * else null
-         */
-        public Accessible getAccessibleAt(Point p) {
-            return SwingUtilities.getAccessibleAt(JDialog.this,p);
-        }
 
-        /**
-         * Returns whether this object can accept focus or not.
-         *
-         * @return true if object can accept focus; otherwise false
-         */
-        public boolean isFocusTraversable() {
-            return JDialog.this.isFocusTraversable();
-        }
 
-        /**
-         * Requests focus for this object.
-         */
-        public void requestFocus() {
-            JDialog.this.requestFocus();
-        }
 
-        /**
-         * Adds the specified focus listener to receive focus events from this 
-         * component. 
-         *
-         * @param l the focus listener
-         */
-        public void addFocusListener(FocusListener l) {
-            JDialog.this.addFocusListener(l);
-        }
 
-        /**
-         * Removes the specified focus listener so it no longer receives focus 
-         * events from this component.
-         *
-         * @param l the focus listener
-         */
-        public void removeFocusListener(FocusListener l) {
-            JDialog.this.removeFocusListener(l);
-        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     } // inner class AccessibleJDialog
 }

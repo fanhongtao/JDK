@@ -1,8 +1,11 @@
 /*
- * @(#)InputMethodEvent.java	1.13 01/11/29
+ * @(#)InputMethodEvent.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -32,8 +35,9 @@ import java.text.CharacterIterator;
  * with changes to reflect the user's editing operations. Committed text
  * always precedes composed text.
  *
- * @version 1.13 11/29/01
  * @author JavaSoft Asia/Pacific
+ * @version 1.16 02/02/00
+ * @since 1.2
  */
 
 public class InputMethodEvent extends AWTEvent {
@@ -80,7 +84,8 @@ public class InputMethodEvent extends AWTEvent {
      * @param source The object where the event originated.
      * @param id The event type.
      * @param text The combined committed and composed text, committed text first.
-     * Always null for <code>CARET_POSITION_CHANGED</code>;
+     * Must be <code>null</code> when the event type is 
+     * <code>CARET_POSITION_CHANGED</code>;
      * may be null for <code>INPUT_METHOD_TEXT_CHANGED</code> if there's no committed or composed text.
      * @param committedCharacterCount The number of committed characters in the text.
      * @param caret the caret (a.k.a. insertion point).

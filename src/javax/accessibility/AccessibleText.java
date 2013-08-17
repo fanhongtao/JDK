@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleText.java	1.21 01/11/29
+ * @(#)AccessibleText.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -36,7 +39,7 @@ import javax.swing.text.*;
 public interface AccessibleText {
 
     /**
-     * Constant used to indicate that the part of text that should be
+     * Constant used to indicate that the part of the text that should be
      * retrieved is a character.
      * 
      * @see #getAtIndex
@@ -46,7 +49,7 @@ public interface AccessibleText {
     public static final int CHARACTER = 1;
 
     /**
-     * Constant used to indicate that the part of text that should be 
+     * Constant used to indicate that the part of the text that should be 
      * retrieved is a word.
      * 
      * @see #getAtIndex
@@ -56,7 +59,7 @@ public interface AccessibleText {
     public static final int WORD = 2;
 
     /**
-     * Constant used to indicate that the part of text that should be 
+     * Constant used to indicate that the part of the text that should be 
      * retrieved is a sentence.
      * 
      * @see #getAtIndex
@@ -72,30 +75,30 @@ public interface AccessibleText {
      *
      * @param p the Point in local coordinates
      * @return the zero-based index of the character under Point p; if 
-     * Point is invalid returns -1.
+     * Point is invalid return -1.
      */
     public int getIndexAtPoint(Point p);
 
     /**
-     * Determine the bounding box of the character at the given 
+     * Determines the bounding box of the character at the given 
      * index into the string.  The bounds are returned in local
      * coordinates.  If the index is invalid an empty rectangle is returned.
      *
      * @param i the index into the String
-     * @return the screen coordinates of the character's the bounding box,
-     * if index is invalid returns an empty rectangle.
+     * @return the screen coordinates of the character's bounding box,
+     * if index is invalid return an empty rectangle.
      */
     public Rectangle getCharacterBounds(int i);
 
     /**
-     * Return the number of characters (valid indicies) 
+     * Returns the number of characters (valid indicies) 
      *
      * @return the number of characters
      */
     public int getCharCount();
 
     /**
-     * Return the zero-based offset of the caret.
+     * Returns the zero-based offset of the caret.
      *
      * Note: That to the right of the caret will have the same index
      * value as the offset (the caret is between two characters).
@@ -104,7 +107,7 @@ public interface AccessibleText {
     public int getCaretPosition();
 
     /**
-     * Return the String at a given index. 
+     * Returns the String at a given index. 
      *
      * @param part the CHARACTER, WORD, or SENTENCE to retrieve
      * @param index an index within the text
@@ -113,7 +116,7 @@ public interface AccessibleText {
     public String getAtIndex(int part, int index);
 
     /**
-     * Return the String after a given index.
+     * Returns the String after a given index.
      *
      * @param part the CHARACTER, WORD, or SENTENCE to retrieve
      * @param index an index within the text
@@ -122,7 +125,7 @@ public interface AccessibleText {
     public String getAfterIndex(int part, int index);
 
     /**
-     * Return the String before a given index.
+     * Returns the String before a given index.
      *
      * @param part the CHARACTER, WORD, or SENTENCE to retrieve
      * @param index an index within the text
@@ -131,7 +134,7 @@ public interface AccessibleText {
     public String getBeforeIndex(int part, int index);
 
     /**
-     * Return the AttributeSet for a given character at a given index
+     * Returns the AttributeSet for a given character at a given index
      *
      * @param i the zero-based index into the text 
      * @return the AttributeSet of the character

@@ -1,14 +1,18 @@
 /*
- * @(#)ScrollPane.java	1.68 01/11/29
+ * @(#)ScrollPane.java	1.75 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.ScrollPanePeer;
 import java.awt.event.*;
 import java.io.Serializable;
+import javax.accessibility.*;
 
 
 /**
@@ -51,12 +55,12 @@ import java.io.Serializable;
  * will change dynamically depending on whether the scrollbars are
  * currently visible or not.
  *
- * @version     1.68 11/29/01
+ * @version     1.75 04/06/00
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
  */
-public class ScrollPane extends Container {
+public class ScrollPane extends Container implements Accessible {
 
 
     /**
@@ -543,6 +547,49 @@ public class ScrollPane extends Container {
 
         private ScrollPane scroller;
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this ScrollPane. 
+     * For scroll panes, the AccessibleContext takes the form of an 
+     * AccessibleAWTScrollPane. 
+     * A new AccessibleAWTScrollPane instance is created if necessary.
+     *
+     * @return an AccessibleAWTScrollPane that serves as the 
+     *         AccessibleContext of this ScrollPane
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTScrollPane();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>ScrollPane</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to scroll pane user-interface 
+     * elements.
+     */
+    protected class AccessibleAWTScrollPane extends AccessibleAWTContainer {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.SCROLL_PANE;
+        }
+
+    } // class AccessibleAWTScrollPane
+
 }
 
 /*
@@ -553,7 +600,7 @@ public class ScrollPane extends Container {
  * releases, we keep PeerFixer in both places. Because of the scoping rules,
  * the PeerFixer that is used in ScrollPane will be the one that is the
  * inner class. This pkg private PeerFixer class below will only be used
- * if JDK1.2 is used to deserialize ScrollPane objects that were serialized
+ * if the Java 2 platform is used to deserialize ScrollPane objects that were serialized
  * using JDK1.1
  */
 class PeerFixer implements AdjustmentListener, java.io.Serializable {
@@ -756,5 +803,5 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
 	      "[0.."+maximum+"],"+"val="+value+",vis="+visibleAmount+
                 ",unit="+unitIncrement+",block="+blockIncrement);
     }
-}
 
+}

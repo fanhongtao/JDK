@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsButtonListener.java	1.9 01/11/29
+ * @(#)WindowsButtonListener.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 
@@ -33,6 +36,7 @@ public class WindowsButtonListener extends BasicButtonListener
 	super(b);
     }
     
+/*
     // Here for rollover purposes
     public void mouseEntered(MouseEvent e) {
 	AbstractButton button = (AbstractButton)e.getSource();
@@ -44,6 +48,8 @@ public class WindowsButtonListener extends BasicButtonListener
 	AbstractButton button = (AbstractButton)e.getSource();
 	button.getModel().setRollover(false);
     }
+*/
+
 }
 
 

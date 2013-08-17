@@ -1,8 +1,11 @@
 /*
- * @(#)JMenuItem.java	1.79 01/11/29
+ * @(#)JMenuItem.java	1.92 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -10,6 +13,9 @@ import java.util.EventListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
@@ -22,11 +28,15 @@ import javax.swing.event.*;
 import javax.accessibility.*;
 
 /**
- * An implementation of a MenuItem. A menu item is essentially a button
+ * An implementation of an item in a menu. A menu item is essentially a button
  * sitting in a list. When the user selects the "button", the action
  * associated with the menu item is performed. A JMenuItem contained
  * in a JPopupMenu performs exactly that function.
  * <p>
+ * For further documentation and for examples, see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>
+ * in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
  * <a href="doc-files/Key-Index.html#JMenuItem">JMenuItem</a> key assignments.
@@ -38,7 +48,11 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.79 11/29/01
+ * @beaninfo
+ *   attribute: isContainer false
+ * description: An item which can be selected in a menu.
+ *
+ * @version 1.92 04/06/00
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -53,6 +67,11 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * @see #readObject
      */
     private static final String uiClassID = "MenuItemUI";
+
+    /* diagnostic aids -- should be false for production builds. */
+    private static final boolean TRACE =   false; // trace creates and disposes
+    private static final boolean VERBOSE = false; // show reuse hits/misses
+    private static final boolean DEBUG =   false;  // show bad params, misc.
 
     /**
      * Creates a menuItem with no set text or icon.
@@ -82,7 +101,18 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     }
     
     /**
-     * Creates a menuItem with the supplied text and icon.
+     * Creates a menu item whose properties are taken from the 
+     * Action supplied.
+     *
+     * @since 1.3
+     */
+    public JMenuItem(Action a) {
+        this();
+	setAction(a);
+    }
+
+    /**
+     * Creates a menu item with the supplied text and icon.
      *
      * @param text the text of the MenuItem.
      * @param icon the icon of the MenuItem.
@@ -159,9 +189,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     }
     
     /**
-     * Notification from the UIFactory that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * UIFactory.
+     * Resets the UI property with a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -259,7 +287,8 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 
     /**
      * Set the key combination which invokes the Menu Item's
-     * action listeners without navigating the menu hierarchy.
+     * action listeners without navigating the menu hierarchy. It is the
+     * UIs responsibility to do install the correct action.
      *
      * @param keyStroke the KeyStroke which will serve as an accelerator
      * @beaninfo
@@ -270,18 +299,6 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      */
     public void setAccelerator(KeyStroke keyStroke) {
 	KeyStroke oldAccelerator = accelerator;
-        if (oldAccelerator != null)
-            unregisterKeyboardAction(oldAccelerator);
-
-        // PENDING(ges) Make this implement Serializable
-	if (keyStroke != null) {
-	    registerKeyboardAction(new ActionListener(){
-		public void actionPerformed(ActionEvent e) {
-		    MenuSelectionManager.defaultManager().clearSelectedPath();
-		    doClick();
-		}
-	    } , keyStroke, WHEN_IN_FOCUSED_WINDOW);
-	}
         this.accelerator = keyStroke;
 	firePropertyChange("accelerator", oldAccelerator, accelerator);
     }
@@ -293,6 +310,79 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      */
     public KeyStroke getAccelerator() {
         return this.accelerator;
+    }
+
+    /**
+     * Factory method which sets the ActionEvent source's properties
+     * according to values from the Action instance.  The properties 
+     * which are set may differ for subclasses.
+     * By default, the properties which get set are Text, Icon
+
+     *
+     * @param a the Action from which to get the properties, or null
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    protected void configurePropertiesFromAction(Action a) {
+        setText((a!=null?(String)a.getValue(Action.NAME):null));
+        setIcon((a!=null?(Icon)a.getValue(Action.SMALL_ICON):null));
+        setEnabled((a!=null?a.isEnabled():true));
+        if (a != null)  {
+            Integer i = (Integer)a.getValue(Action.MNEMONIC_KEY);
+            if (i != null)
+                setMnemonic(i.intValue());
+        }
+    }
+
+    /**
+     * Factory method which creates the PropertyChangeListener
+     * used to update the ActionEvent source as properties change on
+     * its Action instance.  Subclasses may override this in order 
+     * to provide their own PropertyChangeListener if the set of
+     * properties which should be kept up to date differs from the
+
+     *
+     * Note that PropertyChangeListeners should avoid holding
+     * strong references to the ActionEvent source, as this may hinder
+     * garbage collection of the ActionEvent source and all components
+     * in its containment hierarchy.  
+     *
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
+        return new AbstractActionPropertyChangeListener(this, a){
+	    public void propertyChange(PropertyChangeEvent e) {	    
+		String propertyName = e.getPropertyName();
+		JMenuItem mi = (JMenuItem)getTarget();
+		if (mi == null) {   //WeakRef GC'ed in 1.2
+		    Action action = (Action)e.getSource();
+		    action.removePropertyChangeListener(this);
+		} else {
+		    if (e.getPropertyName().equals(Action.NAME)) {
+			String text = (String) e.getNewValue();
+			mi.setText(text);
+			mi.repaint();
+		    } else if (propertyName.equals("enabled")) {
+			Boolean enabledState = (Boolean) e.getNewValue();
+			mi.setEnabled(enabledState.booleanValue());
+			mi.repaint();
+		    } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
+			Icon icon = (Icon) e.getNewValue();
+			mi.setIcon(icon);
+			mi.invalidate();
+			mi.repaint();
+		    } else if (e.getPropertyName().equals(Action.MNEMONIC_KEY)) {
+			Integer mn = (Integer) e.getNewValue();
+			mi.setMnemonic(mn.intValue());
+			mi.invalidate();
+			mi.repaint();
+		    } 
+		}
+	    }
+	};
     }
 
     /**
@@ -328,17 +418,19 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * by the MenuSelectionManager
      */
     public void processKeyEvent(KeyEvent e,MenuElement path[],MenuSelectionManager manager) {
-     
+	if (DEBUG) {
+	    System.out.println("in JMenuItem.processKeyEvent/3 for " + getText() + 
+				   "  " + KeyStroke.getKeyStrokeForEvent(e));
+	}
         MenuKeyEvent mke = new MenuKeyEvent(e.getComponent(), e.getID(),
 					     e.getWhen(), e.getModifiers(),
 					     e.getKeyCode(), e.getKeyChar(),
 					     path, manager);
-
-	processMenuKeyEvent(mke);
-	
-	if (mke.isConsumed()) 
-	  e.consume();
-	  
+        processMenuKeyEvent(mke);	
+    
+        if (mke.isConsumed())  {
+            e.consume();
+        }
     }
 
 
@@ -369,6 +461,10 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * @param e  a MenuKeyEvent object
      */
     public void processMenuKeyEvent(MenuKeyEvent e) {
+	if (DEBUG) {
+	    System.out.println("in JMenuItem.processMenuKeyEvent for " + getText()+ 
+				   "  " + KeyStroke.getKeyStrokeForEvent(e));
+	}
 	switch (e.getID()) {
 	case KeyEvent.KEY_PRESSED:
 	    fireMenuKeyPressed(e); break;
@@ -459,6 +555,10 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * @see EventListenerList
      */
     protected void fireMenuKeyPressed(MenuKeyEvent event) {
+	if (DEBUG) {
+	    System.out.println("in JMenuItem.fireMenuKeyPressed for " + getText()+ 
+				   "  " + KeyStroke.getKeyStrokeForEvent(event));
+	}
         // Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         // Process the listeners last to first, notifying
@@ -477,6 +577,10 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * @see EventListenerList
      */
     protected void fireMenuKeyReleased(MenuKeyEvent event) {
+	if (DEBUG) {
+	    System.out.println("in JMenuItem.fireMenuKeyReleased for " + getText()+ 
+				   "  " + KeyStroke.getKeyStrokeForEvent(event));
+	}
         // Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         // Process the listeners last to first, notifying
@@ -495,13 +599,17 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * @see EventListenerList
      */
     protected void fireMenuKeyTyped(MenuKeyEvent event) {
+	if (DEBUG) {
+	    System.out.println("in JMenuItem.fireMenuKeyTyped for " + getText()+ 
+				   "  " + KeyStroke.getKeyStrokeForEvent(event));
+	}
         // Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==MenuKeyListener.class) {
-                // Lazily create the event:				 
+                // Lazily create the event:
                 ((MenuKeyListener)listeners[i+1]).menuKeyTyped(event);
             }          
         }
@@ -608,9 +716,13 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JMenuItem. 
+     * For JMenuItems, the AccessibleContext takes the form of an 
+     * AccessibleJMenuItem. 
+     * A new AccessibleJMenuItme instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJMenuItem that serves as the 
+     *         AccessibleContext of this JMenuItem
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -621,7 +733,10 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JMenuItem</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to menu item user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

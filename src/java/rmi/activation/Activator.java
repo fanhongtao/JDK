@@ -1,8 +1,11 @@
 /*
- * @(#)Activator.java	1.12 01/11/29
+ * @(#)Activator.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -38,11 +41,11 @@ import java.rmi.activation.UnknownObjectException;
  * to groups and active object's within those groups.<p>
  *
  * @author 	Ann Wollrath
- * @version	1.12, 11/29/01
+ * @version	1.15, 02/02/00
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
- * @since 	JDK1.2
+ * @since 	1.2
  */
 public interface Activator extends Remote {
     /**
@@ -88,7 +91,7 @@ public interface Activator extends Remote {
      * @exception ActivationException if object activation fails
      * @exception UnknownObjectException if object is unknown (not registered)
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public MarshalledObject activate(ActivationID id, boolean force)
 	throws ActivationException, UnknownObjectException, RemoteException;

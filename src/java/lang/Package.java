@@ -1,8 +1,11 @@
 /*
- * @(#)Package.java	1.29 01/11/29
+ * @(#)Package.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -152,6 +155,7 @@ public class Package {
      * code source url.
      *
      * @param url the code source url
+     * @return true if this package is sealed with respect to url
      */
     public boolean isSealed(URL url) {
 	return url.equals(sealBase);
@@ -231,7 +235,7 @@ public class Package {
      * attributes are defined in the manifests that accompany
      * the classes.
      *
-     * @param packageName a package name, for example, java.lang.
+     * @param name a package name, for example, java.lang.
      * @return the package of the requested name. It may be null if no package
      * 		information is available from the archive or codebase.
      */

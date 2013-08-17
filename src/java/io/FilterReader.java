@@ -1,8 +1,11 @@
 /*
- * @(#)FilterReader.java	1.9 01/11/29
+ * @(#)FilterReader.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -11,7 +14,7 @@ package java.io;
 /**
  * Abstract class for reading filtered character streams.
  *
- * @version 	1.9, 01/11/29
+ * @version 	1.11, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -20,12 +23,14 @@ public abstract class FilterReader extends Reader {
 
     /**
      * The underlying character-input stream, or null if the stream has been
-     * closed
+     * closed.
      */
     protected Reader in;
 
     /**
      * Create a new filtered reader.
+     *
+     * @param in  a Reader object providing the underlying stream.
      */
     protected FilterReader(Reader in) {
 	super(in);

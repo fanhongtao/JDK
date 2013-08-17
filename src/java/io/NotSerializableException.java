@@ -1,8 +1,11 @@
 /*
- * @(#)NotSerializableException.java	1.9 01/11/29
+ * @(#)NotSerializableException.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,11 +16,13 @@ package java.io;
  * this exception. The argument should be the name of the class.
  *
  * @author  unascribed
- * @version 1.9, 11/29/01
+ * @version 1.11, 02/02/00
  * @since   JDK1.1
  */
 public class NotSerializableException extends ObjectStreamException {
-    /**
+    /** 
+     * Constructs a NotSerializableException object with message string. 
+     *
      * @param classname Class of the instance being serialized/deserialized.
      */
     public NotSerializableException(String classname) {
@@ -25,6 +30,7 @@ public class NotSerializableException extends ObjectStreamException {
     }
 
     /**
+     *  Constructs a NotSerializableException object.
      */
     public NotSerializableException() {
 	super();

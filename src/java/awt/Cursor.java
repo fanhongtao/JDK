@@ -1,8 +1,11 @@
 /*
- * @(#)Cursor.java	1.23 01/11/29
+ * @(#)Cursor.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -24,7 +27,7 @@ import java.security.AccessController;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.23, 11/29/01
+ * @version 	1.30, 02/02/00
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -175,10 +178,15 @@ public class Cursor implements java.io.Serializable {
     private static native void initIDs();
 
     /**
+     * Hook into native data.
+     */
+    private transient long pData;
+
+    /**
      * The user-visible name of the cursor.
      *
      * @serial
-     * @see getName()
+     * @see #getName()
      */
     protected String name;
 
@@ -323,7 +331,7 @@ public class Cursor implements java.io.Serializable {
     /**
      * Returns the name of this cursor.
      * @return    a localized description of this cursor.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public String getName() {
 	return name;
@@ -332,7 +340,7 @@ public class Cursor implements java.io.Serializable {
     /**
      * Returns a string representation of this cursor.
      * @return    a string representation of this cursor.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public String toString() {
 	return getClass().getName() + "[" + getName() + "]";
@@ -370,4 +378,8 @@ public class Cursor implements java.io.Serializable {
 	    }
     	}
     }
+
+    // This won't really throw an exception, but it must match the 
+    // signature of Object.finalize
+    protected native void finalize() throws Throwable;
 }

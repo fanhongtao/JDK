@@ -1,8 +1,11 @@
 /*
- * @(#)NVList.java	1.18 01/11/29
+ * @(#)NVList.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -75,88 +78,88 @@ package org.omg.CORBA;
 
 public abstract class NVList {
 
-  /**
-   * Returns the number of <code>NamedValue</code> objects that have
-   * been added to this <code>NVList</code> object.
-   *
-   * @return			an <code>int</code> indicating the number of
-   * <code>NamedValue</code> objects in this <code>NVList</code>.
-   */
+    /**
+     * Returns the number of <code>NamedValue</code> objects that have
+     * been added to this <code>NVList</code> object.
+     *
+     * @return			an <code>int</code> indicating the number of
+     * <code>NamedValue</code> objects in this <code>NVList</code>.
+     */
 
-  public abstract int count();
+    public abstract int count();
 
-  /**
-   * Creates a new <code>NamedValue</code> object initialized with the given flag
-   * and adds it to the end of this <code>NVList</code> object.
-   * The flag can be any one of the argument passing modes:
-   * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
-   * <code>ARG_INOUT.value</code>.
-   *
-   * @param flags		one of the argument mode flags
-   * @return			the newly-created <code>NamedValue</code> object
-   */
+    /**
+     * Creates a new <code>NamedValue</code> object initialized with the given flag
+     * and adds it to the end of this <code>NVList</code> object.
+     * The flag can be any one of the argument passing modes:
+     * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
+     * <code>ARG_INOUT.value</code>.
+     *
+     * @param flags		one of the argument mode flags
+     * @return			the newly-created <code>NamedValue</code> object
+     */
 
-  public abstract NamedValue add(int flags);
+    public abstract NamedValue add(int flags);
 
-  /**
-   * Creates a new <code>NamedValue</code> object initialized with the
-   * given name and flag,
-   * and adds it to the end of this <code>NVList</code> object.
-   * The flag can be any one of the argument passing modes:
-   * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
-   * <code>ARG_INOUT.value</code>.
-   *
-   * @param item_name	the name for the new <code>NamedValue</code> object
-   * @param flags		one of the argument mode flags
-   * @return			the newly-created <code>NamedValue</code> object
-   */
+    /**
+     * Creates a new <code>NamedValue</code> object initialized with the
+     * given name and flag,
+     * and adds it to the end of this <code>NVList</code> object.
+     * The flag can be any one of the argument passing modes:
+     * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
+     * <code>ARG_INOUT.value</code>.
+     *
+     * @param item_name	the name for the new <code>NamedValue</code> object
+     * @param flags		one of the argument mode flags
+     * @return			the newly-created <code>NamedValue</code> object
+     */
 
-  public abstract NamedValue add_item(String item_name, int flags);
+    public abstract NamedValue add_item(String item_name, int flags);
 
-  /**
-   * Creates a new <code>NamedValue</code> object initialized with the
-   * given name, value, and flag,
-   * and adds it to the end of this <code>NVList</code> object.
-   * The flag can be any one of the argument passing modes:
-   * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
-   * <code>ARG_INOUT.value</code>.
-   *
-   * @param item_name	the name for the new <code>NamedValue</code> object
-   * @param value		an <code>Any</code> object containing the  value
-   *                    for the new <code>NamedValue</code> object
-   * @param flags		one of the argument mode flags
-   * @return			the newly-created <code>NamedValue</code> object
-   */
+    /**
+     * Creates a new <code>NamedValue</code> object initialized with the
+     * given name, value, and flag,
+     * and adds it to the end of this <code>NVList</code> object.
+     * The flag can be any one of the argument passing modes:
+     * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
+     * <code>ARG_INOUT.value</code>.
+     *
+     * @param item_name	the name for the new <code>NamedValue</code> object
+     * @param value		an <code>Any</code> object containing the  value
+     *                    for the new <code>NamedValue</code> object
+     * @param flags		one of the argument mode flags
+     * @return			the newly-created <code>NamedValue</code> object
+     */
 
-  public abstract NamedValue add_value(String item_name, Any val, int flags);
+    public abstract NamedValue add_value(String item_name, Any val, int flags);
 
-  /**
-   * Retrieves the <code>NamedValue</code> object at the given index.
-   *
-   * @param index		the index of the desired <code>NamedValue</code> object,
-   *                    which must be between zero and the length of the list
-   *                    minus one, inclusive.  The first item is at index zero.
-   * @return			the <code>NamedValue</code> object at the given index
-   * @exception org.omg.CORBA.Bounds  if the index is greater than
-   *				or equal to number of <code>NamedValue</code> objects
-   */
+    /**
+     * Retrieves the <code>NamedValue</code> object at the given index.
+     *
+     * @param index		the index of the desired <code>NamedValue</code> object,
+     *                    which must be between zero and the length of the list
+     *                    minus one, inclusive.  The first item is at index zero.
+     * @return			the <code>NamedValue</code> object at the given index
+     * @exception org.omg.CORBA.Bounds  if the index is greater than
+     *				or equal to number of <code>NamedValue</code> objects
+     */
 
-  public abstract NamedValue item(int index) throws org.omg.CORBA.Bounds;
+    public abstract NamedValue item(int index) throws org.omg.CORBA.Bounds;
 
-  /**
-   * Removes the <code>NamedValue</code> object at the given index.
-   * Note that the indices of all <code>NamedValue</code> objects following
-   * the one removed are shifted down by one.
-   *
-   * @param index		the index of the <code>NamedValue</code> object to be
-   *                    removed, which must be between zero and the length
-   *                    of the list minus one, inclusive.
-   *                    The first item is at index zero.
-   * @exception org.omg.CORBA.Bounds  if the index is greater than
-   *				or equal to number of <code>NamedValue</code> objects in
-   *                the list
-   */
+    /**
+     * Removes the <code>NamedValue</code> object at the given index.
+     * Note that the indices of all <code>NamedValue</code> objects following
+     * the one removed are shifted down by one.
+     *
+     * @param index		the index of the <code>NamedValue</code> object to be
+     *                    removed, which must be between zero and the length
+     *                    of the list minus one, inclusive.
+     *                    The first item is at index zero.
+     * @exception org.omg.CORBA.Bounds  if the index is greater than
+     *				or equal to number of <code>NamedValue</code> objects in
+     *                the list
+     */
 
-  public abstract void remove(int index) throws org.omg.CORBA.Bounds;
+    public abstract void remove(int index) throws org.omg.CORBA.Bounds;
 
 }

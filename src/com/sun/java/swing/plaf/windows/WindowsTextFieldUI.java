@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsTextFieldUI.java	1.13 01/11/29
+ * @(#)WindowsTextFieldUI.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -42,7 +45,7 @@ import javax.swing.plaf.UIResource;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.13 11/29/01
+ * @version 1.15 02/02/00
  */
 public class WindowsTextFieldUI extends BasicTextFieldUI
 {
@@ -67,67 +70,12 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 
     /**
      * WindowsFieldCaret has different scrolling behavior than
-     * DefaultCaret, selects the field when focus enters it, and
-     * deselects the field when focus leaves.
+     * DefaultCaret.
      */
     static class WindowsFieldCaret extends DefaultCaret implements UIResource {
 
-	/** Set to true in focusLost if the FocusEvent is temporary. */
-	transient boolean temporaryLoss;
-	/** Set if the focus is lost temporarily, is used to properly
-	 * restore after a temporary loss. */
-	transient int tempDot, tempMark;
-
 	public WindowsFieldCaret() {
 	    super();
-	}
-
-	/**
-	 * Called when the component containing the caret gains
-	 * focus.  This is implemented to set the caret to visible
-	 * if the component is editable, and sets the selection
-	 * to visible.
-	 *
-	 * @param e the focus event
-	 * @see FocusListener#focusGained
-	 */
-        public void focusGained(FocusEvent e) {
-	    super.focusGained(e);
-	    JTextComponent c = getComponent();
-	    Document doc = c.getDocument();
-	    int length = doc.getLength();
-	    if (!temporaryLoss) {
-		setDot(0);
-		moveDot(length);
-	    }
-	    else {
-		setDot(Math.min(tempMark, length));
-		moveDot(Math.min(tempDot, length));
-		temporaryLoss = false;
-	    }
-	}
-
-	/**
-	 * Called when the component containing the caret loses
-	 * focus.  This is implemented to set the caret to visibility
-	 * to false, and to set the selection visibility to false.
-	 *
-	 * @param e the focus event
-	 * @see FocusListener#focusLost
-	 */
-        public void focusLost(FocusEvent e) {
-	    if (e != null) {
-		temporaryLoss = e.isTemporary();
-		if (temporaryLoss) {
-		    tempDot = getDot();
-		    tempMark = getMark();
-		}
-	    }
-	    else {
-		temporaryLoss = false;
-	    }
-	    setDot(getDot());
-	    setVisible(false);
 	}
 
 	/**

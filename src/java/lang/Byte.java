@@ -1,8 +1,11 @@
 /*
- * @(#)Byte.java	1.14 01/11/29
+ * @(#)Byte.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -12,7 +15,7 @@ package java.lang;
  * The Byte class is the standard wrapper for byte values.
  *
  * @author  Nakul Saraiya
- * @version 1.14, 11/29/01
+ * @version 1.20, 02/02/00
  * @see     java.lang.Number
  * @since   JDK1.1
  */
@@ -38,6 +41,7 @@ public final class Byte extends Number implements Comparable {
      * is assumed to be 10.
      *
      * @param b	the byte to be converted
+     * @return the string representation of the specified <code>byte</code>
      */
     public static String toString(byte b) {
 	return Integer.toString((int)b, 10);
@@ -49,6 +53,7 @@ public final class Byte extends Number implements Comparable {
      * be parsed as a byte.  The radix is assumed to be 10.
      *
      * @param s		the String containing the byte
+     * @return 		the parsed value of the byte
      * @exception	NumberFormatException If the string does not
      *			contain a parsable byte.
      */
@@ -63,6 +68,7 @@ public final class Byte extends Number implements Comparable {
      *
      * @param s		the String containing the byte
      * @param radix	the radix to be used
+     * @return 		the parsed value of the byte
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
      */
@@ -81,6 +87,8 @@ public final class Byte extends Number implements Comparable {
      *
      * @param s		the String containing the integer
      * @param radix 	the radix to be used
+     * @return 		the <code>Byte</code> instance representing the parsed
+     * 			<code>byte</code> value
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
      */
@@ -96,6 +104,8 @@ public final class Byte extends Number implements Comparable {
      * The radix is assumed to be 10.
      *
      * @param s		the String containing the integer
+     * @return 		the <code>Byte</code> instance representing the parsed
+     * 			<code>byte</code> value
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
      */
@@ -104,23 +114,67 @@ public final class Byte extends Number implements Comparable {
     }
 
     /**
-     * Decodes a String into a Byte.  The String may represent
-     * decimal, hexadecimal, and octal numbers.
+     * Decodes a <code>String</code> into a <code>Byte</code>.  Accepts
+     * decimal, hexadecimal, and octal numbers, in the following formats:
+     * <pre>
+     *     [-]       decimal constant
+     *     [-] 0x    hex constant
+     *     [-] #     hex constant
+     *     [-] 0     octal constant
+     * </pre>
      *
-     * @param nm the string to decode
+     * The constant following an (optional) negative sign and/or "radix
+     * specifier" is parsed as by the <code>Byte.parseByte</code> method
+     * with the specified radix (10, 8 or 16).  This constant must be positive
+     * or a NumberFormatException will result.  The result is made negative if
+     * first character of the specified <code>String</code> is the negative
+     * sign.  No whitespace characters are permitted in the
+     * <code>String</code>.
+     *
+     * @param     nm the <code>String</code> to decode.
+     * @return    the <code>Byte</code> represented by the specified string.
+     * @exception NumberFormatException  if the <code>String</code> does not
+     *            contain a parsable byte.
+     * @see java.lang.Byte#parseByte(String, int)
      */
     public static Byte decode(String nm) throws NumberFormatException {
-	if (nm.startsWith("0x")) {
-	    return Byte.valueOf(nm.substring(2), 16);
-	}
-	if (nm.startsWith("#")) {
-	    return Byte.valueOf(nm.substring(1), 16);
-	}
-	if (nm.startsWith("0") && nm.length() > 1) {
-	    return Byte.valueOf(nm.substring(1), 8);
+        int radix = 10;
+        int index = 0;
+        boolean negative = false;
+        Byte result;
+
+        // Handle minus sign, if present
+        if (nm.startsWith("-")) {
+            negative = true;
+            index++;
+        }
+
+	if (nm.startsWith("0x", index) || nm.startsWith("0X", index)) {
+            index += 2;
+            radix = 16;
+	} else if (nm.startsWith("#", index)) {
+	    index++;
+            radix = 16;
+	} else if (nm.startsWith("0", index) && nm.length() > 1 + index) {
+	    index++;
+            radix = 8;
 	}
 
-	return Byte.valueOf(nm);
+        if (nm.startsWith("-", index))
+            throw new NumberFormatException("Negative sign in wrong position");
+
+        try {
+            result = Byte.valueOf(nm.substring(index), radix);
+            result = negative ? new Byte((byte)-result.byteValue()) : result;
+        } catch (NumberFormatException e) {
+            // If number is Byte.MIN_VALUE, we'll end up here. The next line
+            // handles this case, and causes any genuine format error to be
+            // rethrown.
+            String constant = negative ? new String("-" + nm.substring(index))
+                                       : nm.substring(index);
+            result = Byte.valueOf(constant, radix);
+        }
+        return result;
     }
 
     /**
@@ -214,7 +268,7 @@ public final class Byte extends Number implements Comparable {
      * @return 		true if the objects are the same; false otherwise.
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof Byte)) {
+	if (obj instanceof Byte) {
 	    return value == ((Byte)obj).byteValue();
 	}
 	return false;
@@ -229,7 +283,7 @@ public final class Byte extends Number implements Comparable {
      *          is numerically less than the Byte argument; and a
      *          value greater than <code>0</code> if this Byte is
      *          numerically greater than the Byte argument (signed comparison).
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Byte anotherByte) {
 	return this.value - anotherByte.value;
@@ -251,7 +305,7 @@ public final class Byte extends Number implements Comparable {
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Byte</code>. 
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((Byte)o);

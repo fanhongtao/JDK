@@ -1,8 +1,11 @@
 /*
- * @(#)WindowEvent.java	1.18 01/11/29
+ * @(#)WindowEvent.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -22,14 +25,16 @@ import java.awt.Window;
  * <code>WindowListener</code> interface.) Each such listener object
  * gets this <code>WindowEvent</code> when the event occurs.
  *
+ * @author Carl Quinn
+ * @author Amy Fowler
+ * @version 1.21, 02/02/00
+ *
  * @see WindowAdapter
  * @see WindowListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/windowlistener.html">Tutorial: Writing a Window Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.18 11/29/01
- * @author Carl Quinn
- * @author Amy Fowler
+ * @since 1.1
  */
 public class WindowEvent extends ComponentEvent {
 
@@ -69,7 +74,7 @@ public class WindowEvent extends ComponentEvent {
      * the window has been changed from a normal to a minimized state.
      * For many platforms, a minimized window is displayed as
      * the icon specified in the window's iconImage property.
-     * @see Frame#setIconImage
+     * @see java.awt.Frame#setIconImage
      */
     public static final int WINDOW_ICONIFIED	= 3 + WINDOW_FIRST; //Event.WINDOW_ICONIFY
 

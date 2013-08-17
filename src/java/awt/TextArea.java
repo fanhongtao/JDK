@@ -1,8 +1,11 @@
 /*
- * @(#)TextArea.java	1.53 01/11/29
+ * @(#)TextArea.java	1.57 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -10,6 +13,7 @@ import java.awt.peer.TextAreaPeer;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import javax.accessibility.*;
 
 /**
  * A <code>TextArea</code> object is a multi-line region
@@ -27,7 +31,7 @@ import java.io.IOException;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.53, 11/29/01
+ * @version	1.57, 04/06/00
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -549,6 +553,50 @@ public class TextArea extends TextComponent {
             this.scrollbarVisibility = SCROLLBARS_BOTH;
         }
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+
+    /**
+     * Gets the AccessibleContext associated with this TextArea. 
+     * For text areas, the AccessibleContext takes the form of an 
+     * AccessibleAWTTextArea. 
+     * A new AccessibleAWTTextArea instance is created if necessary.
+     *
+     * @return an AccessibleAWTTextArea that serves as the 
+     *         AccessibleContext of this TextArea
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTTextArea();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>TextArea</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to text area user-interface elements.
+     */
+    protected class AccessibleAWTTextArea extends AccessibleAWTTextComponent {
+
+        /**
+         * Gets the state set of this object.
+         *
+         * @return an instance of AccessibleStateSet describing the states
+         * of the object
+         * @see AccessibleStateSet
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            states.add(AccessibleState.MULTI_LINE);
+            return states;
+        }
+    }
+
 
 }
 

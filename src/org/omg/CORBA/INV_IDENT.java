@@ -1,8 +1,11 @@
 /*
- * @(#)INV_IDENT.java	1.22 01/11/29
+ * @(#)INV_IDENT.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -23,7 +26,7 @@ package org.omg.CORBA;
 public final class INV_IDENT extends SystemException {
     /**
      * Constructs an <code>INV_IDENT</code> exception with a default
-	 * minor code of 0 and a completion state of COMPLETED_NO.
+     * minor code of 0 and a completion state of COMPLETED_NO.
      */
     public INV_IDENT() {
         this("");
@@ -31,7 +34,7 @@ public final class INV_IDENT extends SystemException {
 
     /**
      * Constructs an <code>INV_IDENT</code> exception with the specified detail
-	 * message, a minor code of 0, and a completion state of COMPLETED_NO.
+     * message, a minor code of 0, and a completion state of COMPLETED_NO.
      * @param s the String containing a detail message
      */
     public INV_IDENT(String s) {
@@ -43,7 +46,7 @@ public final class INV_IDENT extends SystemException {
      * minor code and completion status.
      * @param minor the minor code
      * @param completed a <code>CompletionStatus</code> object indicating 
-	 *                  the completion status
+     *                  the completion status
      */
     public INV_IDENT(int minor, CompletionStatus completed) {
         this("", minor, completed);
@@ -56,7 +59,7 @@ public final class INV_IDENT extends SystemException {
      * @param s the String containing a detail message
      * @param minor the minor code
      * @param completed a <code>CompletionStatus</code> object indicating 
-	 *                  the completion status
+     *                  the completion status
      */
     public INV_IDENT(String s, int minor, CompletionStatus completed) {
         super(s, minor, completed);

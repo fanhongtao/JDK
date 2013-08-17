@@ -1,8 +1,11 @@
 /*
- * @(#)TreeModelEvent.java	1.23 01/11/29
+ * @(#)TreeModelEvent.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -14,6 +17,10 @@ import javax.swing.tree.TreePath;
 /**
  * Encapsulates information describing changes to a tree model, and
  * used to notify tree model listeners of the change.
+ * For more information and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/events/treemodellistener.html">How to Write a Tree Model Listener</a>,
+ * a section in <em>The Java Tutorial.</em>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -22,7 +29,7 @@ import javax.swing.tree.TreePath;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 11/29/01
+ * @version 1.26 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -188,11 +195,18 @@ public class TreeModelEvent extends EventObject {
     }
 
     /**
-     * Returns the TreePath object identifying the changed node.
-     * Use <code>getLastPathComponent</code> on that object to
-     * get the data stored at that node.
+     * For all events, except treeStructureChanged,
+     * returns the parent of the changed nodes.
+     * For treeStructureChanged events, returns the ancestor of the
+     * structure that has changed. This and
+     * <code>getChildIndices</code> are used to get a list of the effected
+     * nodes.
+     * <p>
+     * The one exception to this is a treeNodesChanged event that is to
+     * identify the root, in which case this will return the root
+     * and <code>getChildIndices</code> will return null.
      *
-     * @return the TreePath object identifying the changed node
+     * @return the TreePath used in identifying the changed nodes.
      * @see TreePath#getLastPathComponent
      */
     public TreePath getTreePath() { return path; }

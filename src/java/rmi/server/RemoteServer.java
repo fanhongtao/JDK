@@ -1,8 +1,11 @@
 /*
- * @(#)RemoteServer.java	1.19 01/11/29
+ * @(#)RemoteServer.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi.server;
 
@@ -16,7 +19,7 @@ import java.rmi.*;
  * available) are provided abstractly by <code>RemoteServer</code> and
  * concretely by its subclass(es).
  *
- * @version 1.19, 11/29/01
+ * @version 1.22, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -52,19 +55,11 @@ public abstract class RemoteServer extends RemoteObject
      * hostname of the client is returned.
      * @exception ServerNotActiveException If called outside of servicing
      * a remote method invocation.
+     * @return client hostname
      * @since JDK1.1
      */
     public static String getClientHost() throws ServerNotActiveException {
-	try {
-	    Class refClass = Class.forName(RemoteRef.packagePrefix +
-					   ".UnicastServerRef");
-	    ServerRef ref = (ServerRef)refClass.newInstance();
-	    return ref.getClientHost();
-	} catch (ServerNotActiveException e) {
-	    throw e;
-	} catch (Exception e) {
-	    throw new ServerNotActiveException("Client host unobtainable");
-	}
+	return sun.rmi.transport.tcp.TCPTransport.getClientHost();
     }
 
     /**

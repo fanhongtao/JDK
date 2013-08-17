@@ -1,8 +1,11 @@
 /*
- * @(#)ImageObserver.java	1.22 01/11/29
+ * @(#)ImageObserver.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -13,7 +16,7 @@ import java.awt.Image;
  * An asynchronous update interface for receiving notifications about
  * Image information as the Image is constructed.
  *
- * @version 	1.22 11/29/01
+ * @version 	1.24 02/02/00
  * @author 	Jim Graham
  */
 public interface ImageObserver {
@@ -37,11 +40,25 @@ public interface ImageObserver {
      * of the x, y, width, and height arguments depends on the contents
      * of the infoflags argument.
      * <p>
-     * The <code>infoflags</code> argument should be bitwise inclusive 
+     * The <code>infoflags</code> argument should be the bitwise inclusive 
      * <b>OR</b> of the following flags: <code>WIDTH</code>, 
      * <code>HEIGHT</code>, <code>PROPERTIES</code>, <code>SOMEBITS</code>, 
      * <code>FRAMEBITS</code>, <code>ALLBITS</code>, <code>ERROR</code>, 
      * <code>ABORT</code>.
+     *
+     * @param     img   the image being observed.
+     * @param     infoflags   the bitwise inclusive OR of the following 
+     *               flags:  <code>WIDTH</code>, <code>HEIGHT</code>, 
+     *               <code>PROPERTIES</code>, <code>SOMEBITS</code>,
+     *               <code>FRAMEBITS</code>, <code>ALLBITS</code>, 
+     *               <code>ERROR</code>, <code>ABORT</code>. 
+     * @param     x   the <i>x</i> coordinate.
+     * @param     y   the <i>y</i> coordinate.
+     * @param     width    the width.
+     * @param     height   the height.
+     * @return    <code>false</code> if the infoflags indicate that the
+     *            image is completely loaded; <code>true</code> otherwise.
+     * 
      * @see #WIDTH
      * @see #HEIGHT
      * @see #PROPERTIES

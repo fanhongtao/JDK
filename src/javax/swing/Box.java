@@ -1,8 +1,11 @@
 /*
- * @(#)Box.java	1.31 01/11/29
+ * @(#)Box.java	1.35 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -50,7 +53,7 @@ import javax.accessibility.*;
  * @see BoxLayout
  *
  * @author  Timothy Prinzing
- * @version 1.31 11/29/01
+ * @version 1.35 04/06/00
  */
 public class Box extends Container implements Accessible {
 
@@ -328,10 +331,13 @@ public class Box extends Container implements Accessible {
         protected AccessibleContext accessibleContext = null;
 
         /**
-         * Gets the AccessibleContext associated with this Component.
-         * Creates a new context if necessary.
+         * Gets the AccessibleContext associated with this Box.Filler. 
+         * For box fillers, the AccessibleContext takes the form of an 
+         * AccessibleBoxFiller. 
+         * A new AccessibleAWTBoxFiller instance is created if necessary.
          *
-         * @return the AccessibleContext of this Component
+         * @return an AccessibleBoxFiller that serves as the 
+         *         AccessibleContext of this Box.Filler.
          */
         public AccessibleContext getAccessibleContext() {
 	    if (accessibleContext == null) {
@@ -340,8 +346,20 @@ public class Box extends Container implements Accessible {
 	    return accessibleContext;
         }
 
-	protected class AccessibleBoxFiller extends AccessibleContext
-	    implements Serializable, AccessibleComponent {
+        /**
+         * This class implements accessibility support for the 
+         * <code>Box.Filler</code> class.
+         */
+
+  // really if JDK1.3...
+	protected class AccessibleBoxFiller extends AccessibleAWTComponent {
+  
+
+
+
+
+
+
 
             // AccessibleContext methods
             //
@@ -356,405 +374,413 @@ public class Box extends Container implements Accessible {
                 return AccessibleRole.FILLER;
             }
 
-            /**
-             * Gets the state of this object.
-             *
-             * @return an instance of AccessibleStateSet containing the current 
-             *   state set of the object
-             * @see AccessibleState
-             */
-            public AccessibleStateSet getAccessibleStateSet() {
-                return SwingUtilities.getAccessibleStateSet(Filler.this);
-            }
-    
-            /**
-             * Get the Accessible parent of this object.  If the parent of this
-             * object implements Accessible, this method should simply return
-             * getParent().
-             *
-             * @return the Accessible parent of this object; null if this
-             *   object does not have an Accessible parent
-             */
-            public Accessible getAccessibleParent() {
-		if (accessibleParent != null) {
-		    return accessibleParent;
-		} else {
-		    Container parent = getParent();
-		    if (parent instanceof Accessible) {
-			return (Accessible) parent;
-		    }
-		}
-                return null;
-            }
-    
-            /**
-             * Gets the index of this object in its accessible parent. 
-             *
-             * @return the index of this object in its parent >= 0; -1 if this 
-             *   object does not have an accessible parent.
-             * @see #getAccessibleParent
-             */
-            public int getAccessibleIndexInParent() {
-                return SwingUtilities.getAccessibleIndexInParent(Filler.this);
-            }
-    
-            /**
-             * Returns the number of accessible children in the object.  If all
-             * of the children of this object implement Accessible, then this
-             * method should return the number of children of this object.
-             *
-             * @return the number of accessible children in the object >= 0
-             */
-            public int getAccessibleChildrenCount() {
-                return SwingUtilities.getAccessibleChildrenCount(Filler.this);
-            }
-    
-            /**
-             * Returns the nth Accessible child of the object.  
-             *
-             * @param i zero-based index of child
-             * @return the nth Accessible child of the object, null if none
-             */
-            public Accessible getAccessibleChild(int i) {
-                return SwingUtilities.getAccessibleChild(Filler.this,i);
-            }
-        
-            /**
-             * Returns the locale of this object.
-             *
-             * @return the locale of this object
-             */
-            public Locale getLocale() {
-                return Filler.this.getLocale();
-            }
-    
-            /**
-             * Gets the AccessibleComponent associated with this object if one
-             * exists.  Otherwise return null.
-             *
-             * @return the component
-             */
-	    public AccessibleComponent getAccessibleComponent() {
-		return this;
-	    }
-    
-    
-            // AccessibleComponent methods
-            //
-            /**
-             * Gets the background color of this object.
-             *
-             * @return the background color, if supported, of the object; 
-             * otherwise, null
-             */
-            public Color getBackground() {
-                return Filler.this.getBackground();
-            }
-    
-	    // NOTE: IN THE NEXT MAJOR RELEASE, isOpaque WILL MIGRATE
-	    //       TO java.awt.Component -- ADJUST @SEE LINK BELOW.
-            /**
-             * Sets the background color of this object.
-	     * (For transparency, see <code>isOpaque</code>.)
-             *
-             * @param c the new Color for the background, null if none
-	     * @s JComponent#isOpaque
-             */
-            public void setBackground(Color c) {
-                Filler.this.setBackground(c);
-            }
-    
-            /**
-             * Gets the foreground color of this object.
-             *
-             * @return the foreground color, if supported, of the object; 
-             * otherwise, null
-             */
-            public Color getForeground() {
-                return Filler.this.getForeground();
-            }
-    
-            /**
-             * Sets the foreground color of this object.
-             *
-             * @param c the new Color for the foreground, null if none
-             */
-            public void setForeground(Color c) {
-                Filler.this.setForeground(c);
-            }
-    
-            /**
-             * Gets the Cursor of this object.
-             *
-             * @return the Cursor, if supported, of the object; otherwise, null
-             */
-            public Cursor getCursor() {
-                return Filler.this.getCursor();
-            }
-    
-            /**
-             * Set the Cursor of this object.
-             *
-             * @param cursor the new Cursor for the object, null if none
-             */
-            public void setCursor(Cursor cursor) {
-                Filler.this.setCursor(cursor);
-            }
-    
-            /**
-             * Gets the Font of this object.
-             *
-             * @return the Font,if supported, for the object; otherwise, null
-             */
-            public Font getFont() {
-                return Filler.this.getFont();
-            }
-    
-            /**
-             * Sets the Font of this object.
-             *
-             * @param f the new Font for the object, null if none
-             */
-            public void setFont(Font f) {
-                Filler.this.setFont(f);
-            }
-    
-            /**
-             * Gets the FontMetrics of this object.
-             *
-             * @param f the Font, null if none
-             * @return the FontMetrics, if supported, the object;
-             *   otherwise, null
-             * @see #getFont
-             */
-            public FontMetrics getFontMetrics(Font f) {
-                return Filler.this.getFontMetrics(f);
-            }
-    
-            /**
-             * Determines if the object is enabled.
-             *
-             * @return true if object is enabled; otherwise, false
-             */
-            public boolean isEnabled() {
-                return Filler.this.isEnabled();
-            }
-    
-            /**
-             * Sets the enabled state of the object.
-             *
-             * @param b if true, enables this object; otherwise, disables it 
-             */
-            public void setEnabled(boolean b) {
-		boolean old = Filler.this.isEnabled();
-		Filler.this.setEnabled(b);
-		if (b != old) {
-		    if (accessibleContext != null) {
-			if (b) {
-			    accessibleContext.firePropertyChange(
-				    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-				    null, AccessibleState.ENABLED);
-			} else {
-			    accessibleContext.firePropertyChange(
-				    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-				    AccessibleState.ENABLED, null);
-			}
-		    }
-		}
-            }
-            
-            /**
-             * Determines if the object is visible.  Note: this means that the
-             * object intends to be visible; however, it may not in fact be
-             * showing on the screen because one of the objects that this object
-             * is contained by is not visible.  To determine if an object is
-             * showing on the screen, use isShowing().
-             *
-             * @return true if object is visible; otherwise, false
-             */
-            public boolean isVisible() {
-                return Filler.this.isVisible();
-            }
-    
-            /**
-             * Sets the visible state of the object.
-             *
-             * @param b if true, shows this object; otherwise, hides it 
-             */
-            public void setVisible(boolean b) {
-		boolean old = Filler.this.isVisible();
-		Filler.this.setVisible(b);
-		if (b != old) {
-		    if (accessibleContext != null) {
-			if (b) {
-			    accessibleContext.firePropertyChange(
-				    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-				    null, AccessibleState.VISIBLE);
-			} else {
-			    accessibleContext.firePropertyChange(
-                                AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                                AccessibleState.VISIBLE, null);
-			}
-		    }
-		}
-            }
-    
-            /**
-             * Determines if the object is showing.  This is determined by
-             * checking the visibility of the object and ancestors of the
-             * object.  Note: this will return true even if the object is
-             * obscured by another (for example, it happens to be
-             * underneath a menu that was pulled down).
-             *
-             * @return true if object is showing; otherwise, false
-             */
-            public boolean isShowing() {
-                return Filler.this.isShowing();
-            }
-    
-            /** 
-             * Checks whether the specified point is within this object's
-             * bounds, where the point's x and y coordinates are defined to
-             * be relative to the coordinate system of the object. 
-             *
-             * @param p the Point relative to the coordinate system of
-             *   the object
-             * @return true if object contains Point; otherwise false
-             */
-            public boolean contains(Point p) {
-                return Filler.this.contains(p);
-            }
-        
-            /** 
-             * Returns the location of the object on the screen.
-             *
-             * @return location of object on screen; can be null if this object
-             * is not on the screen
-             */
-            public Point getLocationOnScreen() {
-		if (Filler.this.isShowing()) {
-		    return Filler.this.getLocationOnScreen();
-		} else {
-		    return null;
-		}
-            }
-    
-            /** 
-             * Gets the location of the object relative to the parent in the
-             * form of a point specifying the object's top-left corner in
-             * the screen's coordinate space.
-             *
-             * @return An instance of Point representing the top-left corner of 
-             * the objects's bounds in the coordinate space of the screen;
-             * null if this object or its parent are not on the screen
-             */
-            public Point getLocation() {
-                return Filler.this.getLocation();
-            }
-    
-            /** 
-             * Sets the location of the object relative to the parent.
-             *
-             * @param p the location to be set
-             */
-            public void setLocation(Point p) {
-                Filler.this.setLocation(p);
-            }
-    
-            /** 
-             * Gets the bounds of this object in the form of a Rectangle
-             * object.  The bounds specify this object's width, height,
-             * and location relative to its parent. 
-             *
-             * @return A rectangle indicating this component's bounds; null if 
-             * this object is not on the screen.
-             */
-            public Rectangle getBounds() {
-                return Filler.this.getBounds();
-            }
-    
-            /** 
-             * Sets the bounds of this object in the form of a Rectangle
-             * object.  The bounds specify this object's width, height,
-             * and location relative to its parent.
-             *      
-             * @param r a rectangle indicating this component's bounds
-             */
-            public void setBounds(Rectangle r) {
-                Filler.this.setBounds(r);
-            }
-    
-            /** 
-             * Returns the size of this object in the form of a Dimension
-             * object.  The height field of the Dimension object contains
-             * this objects's height, and the width field of the Dimension
-             * object contains this object's width. 
-             *
-             * @return A Dimension object that indicates the size of this 
-             * component; null if this object is not on the screen
-             */
-            public Dimension getSize() {
-                return Filler.this.getSize();
-            }
-    
-            /** 
-             * Resizes this object.
-             *      
-             * @param d - The dimension specifying the new size of the object. 
-             */
-            public void setSize(Dimension d) {
-                Filler.this.setSize(d);
-            }
-    
-            /**
-             * Returns the Accessible child, if one exists, contained at the
-             * local coordinate Point.
-             *
-             * @param p The point defining the top-left corner of the
-             * Accessible, given in the coordinate space of the object's 
-	     * parent. 
-             * @return the Accessible, if it exists, at the specified location; 
-             *   else null
-             */
-            public Accessible getAccessibleAt(Point p) {
-                return SwingUtilities.getAccessibleAt(Filler.this,p);
-            }
-    
-            /**
-             * Returns whether this object can accept focus or not.
-             *
-             * @return true if object can accept focus; otherwise false
-             */
-            public boolean isFocusTraversable() {
-                return Filler.this.isFocusTraversable();
-            }
-    
-            /**
-             * Requests focus for this object.
-             */
-            public void requestFocus() {
-                Filler.this.requestFocus();
-            }
-    
-            /**
-             * Adds the specified listener to receive focus events from this 
-             * component. 
-             *
-             * @param l the focus listener
-             */
-            public void addFocusListener(FocusListener l) {
-                Filler.this.addFocusListener(l);
-            }
-    
-            /**
-             * Removes the specified listener so it no longer receives focus 
-             * events from this component.
-             *
-             * @param l the focus listener
-             */
-            public void removeFocusListener(FocusListener l) {
-                Filler.this.removeFocusListener(l);
-            }
+
+  // really if JDK1.3...
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
     }
 
@@ -768,10 +794,13 @@ public class Box extends Container implements Accessible {
     protected AccessibleContext accessibleContext = null;
 
     /**
-     * Get the AccessibleContext associated with this JComponent.
-     * Creates a new context if necessary.
+     * Gets the AccessibleContext associated with this Box. 
+     * For boxes, the AccessibleContext takes the form of an 
+     * AccessibleBox. 
+     * A new AccessibleAWTBox instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleBox that serves as the 
+     *         AccessibleContext of this Box
      */
     public AccessibleContext getAccessibleContext() {
 	if (accessibleContext == null) {
@@ -780,8 +809,20 @@ public class Box extends Container implements Accessible {
 	return accessibleContext;
     }
 
-    protected class AccessibleBox extends AccessibleContext
-	implements Serializable, AccessibleComponent {
+    /**
+     * This class implements accessibility support for the 
+     * <code>Box</code> class.
+     */
+
+  // really if JDK1.3...
+    protected class AccessibleBox extends AccessibleAWTContainer {
+  
+
+
+
+
+
+
 
         // AccessibleContext methods
         //
@@ -796,362 +837,370 @@ public class Box extends Container implements Accessible {
             return AccessibleRole.FILLER;
         }
 
-        /**
-         * Gets the state of this object.
-         *
-         * @return an instance of AccessibleStateSet containing the current 
-	 * state set of the object
-         * @see AccessibleState
-         */
-        public AccessibleStateSet getAccessibleStateSet() {
-	    return SwingUtilities.getAccessibleStateSet(Box.this);
-        }
 
-        /**
-         * Gets the Accessible parent of this object.  If the parent of this
-         * object implements Accessible, this method should simply return
-         * getParent().
-         *
-         * @return the Accessible parent of this object -- can be null if this
-         *   object does not have an Accessible parent
-         */
-        public Accessible getAccessibleParent() {
-            Container parent = getParent();
-            if (parent instanceof Accessible) {
-                return (Accessible) parent;
-            } else {
-                return null;
-            }
-        }
-
-        /**
-         * Gets the index of this object in its accessible parent. 
-         *
-         * @return the index of this object in its parent >= 0; -1 if this 
-         *   object does not have an accessible parent.
-         * @see #getAccessibleParent
-         */
-        public int getAccessibleIndexInParent() {
-	    return SwingUtilities.getAccessibleIndexInParent(Box.this);
-        }
-
-        /**
-         * Returns the number of accessible children in the object.  If all
-         * of the children of this object implement Accessible, then this
-         * method should return the number of children of this object.
-         *
-         * @return the number of accessible children in the object >= 0.
-         */
-        public int getAccessibleChildrenCount() {
-	    return SwingUtilities.getAccessibleChildrenCount(Box.this);
-        }
-
-        /**
-         * Return the nth Accessible child of the object.  
-         *
-         * @param i zero-based index of child
-         * @return the nth Accessible child of the object, or null
-         */
-        public Accessible getAccessibleChild(int i) {
-    	    return SwingUtilities.getAccessibleChild(Box.this,i);
-        }
-
-        /**
-         * Returns the locale of this object.
-	 *
-         * @return the locale of this object
-         */
-        public Locale getLocale() {
-    	    return Box.this.getLocale();
-        }
-
-        /**
-         * Gets the AccessibleComponent associated with this object if one
-         * exists.  Otherwise return null.
-         *
-         * @return the component
-         */
-	public AccessibleComponent getAccessibleComponent() {
-	    return this;
-	}
+  // really if JDK1.3...
+  
 
 
-        // AccessibleComponent methods
-        //
-        /**
-         * Gets the background color of this object.
-         *
-         * @return the background color, if supported, of the object; 
-         * otherwise, null
-         */
-        public Color getBackground() {
-	    return Box.this.getBackground();
-	}
 
-        /**
-         * Sets the background color of this object.
-         *
-         * @param c the new Color for the background, null if none
-         */
-        public void setBackground(Color c) {
-	    Box.this.setBackground(c);
-	}
 
-        /**
-         * Gets the foreground color of this object.
-         *
-         * @return the foreground color, if supported, of the object; 
-         *   otherwise, null
-         */
-        public Color getForeground() {
-	    return Box.this.getForeground();
-	}
 
-        /**
-         * Sets the foreground color of this object.
-         *
-         * @param c the new Color for the foreground, null if none
-         */
-        public void setForeground(Color c) {
-	    Box.this.setForeground(c);
-	}
 
-        /**
-         * Gets the Cursor of this object.
-         *
-         * @return the Cursor, if supported, of the object; otherwise, null
-         */
-        public Cursor getCursor() {
-	    return Box.this.getCursor();
-	}
 
-        /**
-         * Sets the Cursor of this object.
-         *
-         * @param cursor the new Cursor for the object, null if none
-         */
-        public void setCursor(Cursor cursor) {
-	    Box.this.setCursor(cursor);
-	}
 
-        /**
-         * Gets the Font of this object.
-         *
-         * @return the Font,if supported, for the object; otherwise, null
-         */
-        public Font getFont() {
-	    return Box.this.getFont();
-	}
 
-        /**
-         * Sets the Font of this object.
-         *
-         * @param f the new Font for the object, null if none
-         */
-        public void setFont(Font f) {
-	    Box.this.setFont(f);
-	}
 
-        /**
-         * Gets the FontMetrics of this object.
-         *
-         * @param f the Font
-         * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see #getFont
-         */
-        public FontMetrics getFontMetrics(Font f) {
-	    return Box.this.getFontMetrics(f);
-	}
 
-        /**
-         * Determines if the object is enabled.
-         *
-         * @return true if object is enabled; otherwise, false
-         */
-        public boolean isEnabled() {
-	    return Box.this.isEnabled();
-	}
 
-        /**
-         * Sets the enabled state of the object.
-         *
-         * @param b if true, enables this object; otherwise, disables it 
-         */
-        public void setEnabled(boolean b) {
-	    Box.this.setEnabled(b);
-	}
-	
-        /**
-         * Determines if the object is visible.  Note: this means that the
-         * object intends to be visible; however, it may not in fact be
-         * showing on the screen because one of the objects that this object
-         * is contained by is not visible.  To determine if an object is
-         * showing on the screen, use isShowing().
-         *
-         * @return true if object is visible; otherwise, false
-         */
-        public boolean isVisible() {
-	    return Box.this.isVisible();
-	}
 
-        /**
-         * Sets the visible state of the object.
-         *
-         * @param b if true, shows this object; otherwise, hides it 
-         */
-        public void setVisible(boolean b) {
-	    Box.this.setVisible(b);
-	}
 
-        /**
-         * Determines if the object is showing.  This is determined by checking
-         * the visibility of the object and ancestors of the object.  Note: 
-	 * this will return true even if the object is obscured by another 
-	 * (for example, it happens to be underneath a menu that was pulled 
-	 * down).
-         *
-         * @return true if object is showing; otherwise, false
-         */
-        public boolean isShowing() {
-	    return Box.this.isShowing();
-	}
 
-        /** 
-         * Checks whether the specified point is within this object's bounds,
-         * where the point's x and y coordinates are defined to be relative to 
-	 * the coordinate system of the object. 
-         *
-         * @param p the Point relative to the coordinate system of the object
-         * @return true if object contains Point; otherwise false
-         */
-        public boolean contains(Point p) {
-	    return Box.this.contains(p);
-	}
-    
-        /** 
-         * Returns the location of the object on the screen.
-         *
-         * @return location of object on screen -- can be null if this object
-         * is not on the screen
-         */
-        public Point getLocationOnScreen() {
-	    return Box.this.getLocationOnScreen();
-	}
 
-        /** 
-         * Gets the location of the object relative to the parent in the form 
-         * of a point specifying the object's top-left corner in the screen's 
-         * coordinate space.
-         *
-         * @return An instance of Point representing the top-left corner of 
-	 *   the objects's bounds in the coordinate space of the screen; null if
-         *   this object or its parent are not on the screen
-         */
-	public Point getLocation() {
-	    return Box.this.getLocation();
-	}
 
-        /** 
-         * Sets the location of the object relative to the parent.
-         *
-         * @param p the location to be set
-         */
-        public void setLocation(Point p) {
-	    Box.this.setLocation(p);
-	}
 
-        /** 
-         * Gets the bounds of this object in the form of a Rectangle object. 
-         * The bounds specify this object's width, height, and location
-         * relative to its parent. 
-         *
-         * @return A rectangle indicating this component's bounds; null if 
-	 * this object is not on the screen.
-         */
-        public Rectangle getBounds() {
-	    return Box.this.getBounds();
-	}
 
-        /** 
-         * Sets the bounds of this object in the form of a Rectangle object. 
-         * The bounds specify this object's width, height, and location
-         * relative to its parent.
-         *	
-         * @param r a rectangle indicating this component's bounds
-         */
-        public void setBounds(Rectangle r) {
-	    Box.this.setBounds(r);
-	}
 
-        /** 
-         * Returns the size of this object in the form of a Dimension object. 
-         * The height field of the Dimension object contains this objects's
-         * height, and the width field of the Dimension object contains this 
-	 * object's width. 
-         *
-         * @return A Dimension object that indicates the size of this 
-	 *   component; null if this object is not on the screen
-         */
-        public Dimension getSize() {
-	    return Box.this.getSize();
-	}
 
-        /** 
-         * Resizes this object.
-         *	
-         * @param d - The dimension specifying the new size of the object. 
-         */
-        public void setSize(Dimension d) {
-	    Box.this.setSize(d);
-	}
 
-        /**
-         * Returns the Accessible child, if one exists, contained at the local
-	 * coordinate Point.
-         *
-         * @param p The point defining the top-left corner of the Accessible, 
-	 *   given in the coordinate space of the object's parent. 
-         * @return the Accessible, if it exists, at the specified location; 
-	 *   else null
-         */
-        public Accessible getAccessibleAt(Point p) {
-	    return SwingUtilities.getAccessibleAt(Box.this,p);
-	}
 
-        /**
-         * Determines whether this object can accept focus or not.
-         *
-         * @return true if object can accept focus; otherwise false
-         */
-        public boolean isFocusTraversable() {
-	    return Box.this.isFocusTraversable();
-	}
 
-        /**
-         * Requests focus for this object.
-         */
-        public void requestFocus() {
-	    Box.this.requestFocus();
-    	}
 
-        /**
-         * Adds the specified focus listener to receive focus events from this 
-         * component. 
-         *
-         * @param l the focus listener
-         */
-        public void addFocusListener(FocusListener l) {
-	    Box.this.addFocusListener(l);
-	}
 
-        /**
-         * Removes the specified focus listener so it no longer receives focus 
-         * events from this component.
-         *
-         * @param l the focus listener
-         */
-        public void removeFocusListener(FocusListener l) {
-	    Box.this.removeFocusListener(l);
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     } // inner class AccessibleBox
 }

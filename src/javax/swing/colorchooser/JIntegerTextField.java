@@ -1,8 +1,11 @@
 /*
- * @(#)JIntegerTextField.java	1.7 01/11/29
+ * @(#)JIntegerTextField.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.colorchooser; 
@@ -16,7 +19,7 @@ import javax.swing.text.*;
 /**
   * A text field which takes integer values
   *
-  * @version 1.7 11/29/01
+  * @version 1.9 02/02/00
   * @author Steve Wilson
   */
 class JIntegerTextField extends JTextField {
@@ -28,16 +31,22 @@ class JIntegerTextField extends JTextField {
     }
 
     protected void installKeyboardActions() {
-        KeyStroke upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
-        KeyStroke downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
-
-        KeyStroke numUpKey = KeyStroke.getKeyStroke("KP_UP");
-        KeyStroke numDownKey = KeyStroke.getKeyStroke("KP_DOWN");
-	registerKeyboardAction(new ValueDelta(1), numUpKey, JComponent.WHEN_FOCUSED);
-	registerKeyboardAction(new ValueDelta(-1), numDownKey, JComponent.WHEN_FOCUSED);
-
-	registerKeyboardAction(new ValueDelta(1), upKey, JComponent.WHEN_FOCUSED);
-	registerKeyboardAction(new ValueDelta(-1), downKey, JComponent.WHEN_FOCUSED);
+	InputMap keyMap = getInputMap(JComponent.WHEN_FOCUSED);
+	ActionMap actionMap = getActionMap();
+	if (keyMap != null && actionMap != null) {
+	    KeyStroke upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+	    KeyStroke downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+	    KeyStroke numUpKey = KeyStroke.getKeyStroke("KP_UP");
+	    KeyStroke numDownKey = KeyStroke.getKeyStroke("KP_DOWN");
+	    keyMap.put(upKey, "incrementValue");
+	    keyMap.put(downKey, "decrementValue");
+	    if (upKey != numUpKey) {
+		keyMap.put(numUpKey, "incrementValue");
+		keyMap.put(numDownKey, "decrementValue");
+	    }
+	    actionMap.put("incrementValue", new ValueDelta(1));
+	    actionMap.put("decrementValue", new ValueDelta(-1));
+	}
     }
 
     public int getIntegerValue() {
@@ -63,7 +72,7 @@ class JIntegerTextField extends JTextField {
     }
 
 
-    class ValueDelta implements ActionListener {
+    class ValueDelta extends AbstractAction {
 
       int delta;
 

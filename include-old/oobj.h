@@ -1,8 +1,11 @@
 /*
- * @(#)oobj.h	1.115 01/11/29
+ * @(#)oobj.h	1.119 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 /*
  * Java object header format
@@ -28,7 +31,7 @@
 #define JAVAOBJEXT "class"
 #define JAVAOBJEXTLEN 5
 
-#define JAVA_VERSION     46
+#define JAVA_VERSION     47
 #define JAVA_MINOR_VERSION 0
 
 #define HandleTo(T) typedef struct H##T { Class##T *obj; struct methodtable *methods;} H##T
@@ -108,9 +111,9 @@ struct methodblock {
     void                *CompiledCodeInfo; /* it's type is machine dependent */
     long                 CompiledCodeFlags; /* machine dependent bits */
     unsigned long        inlining;      /* possible inlining of code */
-#ifdef JCOV 
-    struct covtable      *coverage_table;
-    unsigned long        coverage_table_length;
+#ifdef DEBUG
+    void                *UNUSED1;
+    unsigned long        UNUSED2;
 #endif
 };
 
@@ -265,9 +268,9 @@ struct Classjava_lang_Class {
 
     void                    *UNUSED2;
 
-#ifdef JCOV
-    char                    *absolute_source_name;
-    int64_t       	     timestamp;
+#ifdef DEBUG
+    char                    *UNUSED3;
+    int64_t       	     UNUSED4;
 #endif
 
 };
@@ -316,12 +319,6 @@ extern void MakeClassSticky(ClassClass *cb);
 #define cbMirandaMethodsCount(cb)  ((unhand(cb))->n_miranda_methods)
 #define cbInnerClassesCount(cb)    ((unhand(cb))->innerclass_count)
 #define cbInnerClasses(cb)         ((unhand(cb))->innerclasses)
-
-#ifdef JCOV
-#define cbAbsoluteSourceName(cb) ((unhand(cb))->absolute_source_name)
-#define cbTimestamp(cb)       ((unhand(cb))->timestamp)
-#endif
-
 #define cbIsInterface(cb)     ((cbAccess(cb) & ACC_INTERFACE) != 0)
 
 /* These are currently only valid for primitive types */
@@ -374,18 +371,6 @@ struct lineno {
     unsigned short pc; 
     unsigned short line_number;
 };
-
-#ifdef JCOV
-/* Jcov table entry for profiled item. 
- */
-struct covtable {
-    unsigned short pc; 		/* starting pc for this item */
-    unsigned long type;		/* item type */
-    unsigned long where_line;	/* line in source file */
-    unsigned long where_pos;	/* position in source file */
-    unsigned long count;	/* execution counter */
-};
-#endif
 
 /* Symbol table entry for local variables and parameters.
    pc0/length defines the range that the variable is valid, slot

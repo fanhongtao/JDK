@@ -1,8 +1,11 @@
 /*
- * @(#)DynUnion.java	1.6 01/11/29
+ * @(#)DynUnion.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -20,11 +23,11 @@ package org.omg.CORBA;
 public interface DynUnion extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**
-    * Determines whether the discriminator associated with this union has been assigned
-    * a valid default value.
-    * @return <code>true</code> if the discriminator has a default value;
-    * <code>false</code> otherwise
-    */
+     * Determines whether the discriminator associated with this union has been assigned
+     * a valid default value.
+     * @return <code>true</code> if the discriminator has a default value;
+     * <code>false</code> otherwise
+     */
     public boolean set_as_default();
 
     /**

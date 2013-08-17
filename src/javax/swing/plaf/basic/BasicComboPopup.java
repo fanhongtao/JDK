@@ -1,8 +1,11 @@
 /*
- * @(#)BasicComboPopup.java	1.27 01/11/29
+ * @(#)BasicComboPopup.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -47,10 +50,19 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 10/30/98
+ * @version 1.32 02/02/00
  * @author Tom Santos
  */
 public class BasicComboPopup extends JPopupMenu implements ComboPopup {
+    // An empty ListMode, this is used when the UI changes to allow
+    // the JList to be gc'ed.
+    static final ListModel EmptyListModel = new ListModel() {
+	public int getSize() { return 0; }
+	public Object getElementAt(int index) { return null; }
+	public void addListDataListener(ListDataListener l) {}
+	public void removeListDataListener(ListDataListener l) {}
+    };
+
     protected JComboBox                comboBox;
     protected JList                    list;
     protected JScrollPane              scroller;
@@ -164,6 +176,11 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         comboBox.removeItemListener( itemListener );
         uninstallComboBoxModelListeners( comboBox.getModel() );
         uninstallKeyboardActions();
+	uninstallListListeners();
+	// We do this, otherwise the listener the ui installs on
+	// the model (the combobox model in this case) will keep a
+	// reference to the list, causing the list (and us) to never get gced.
+	list.setModel(EmptyListModel);
     }
 
     protected void uninstallComboBoxModelListeners( ComboBoxModel model ) {
@@ -173,7 +190,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     }
 
     protected void uninstallKeyboardActions() {
-        //comboBox.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ) );
+        comboBox.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ) );
     }
 
     //
@@ -332,6 +349,12 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     }
 
 
+    void uninstallListListeners() {
+        list.removeListSelectionListener( listSelectionListener );
+        list.removeMouseMotionListener( listMouseMotionListener );
+        list.removeMouseListener( listMouseListener );
+    }
+
     /**
      * Creates the JScrollPane that is used in the popup to hold the list.
      */
@@ -378,7 +401,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     }
 
     protected void installKeyboardActions() {
-
+        
         ActionListener action = new ActionListener() {
             public void actionPerformed(ActionEvent e){
             }
@@ -387,7 +410,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         comboBox.registerKeyboardAction( action,
                                          KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ),
                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT );
-
+        
     }
 
     //
@@ -541,7 +564,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         public void intervalAdded( ListDataEvent e ) {
             valueIsAdjusting = true;
             syncListSelectionWithComboBoxSelection();
-            list.ensureIndexIsVisible( list.getSelectedIndex() );
+            //list.ensureIndexIsVisible( list.getSelectedIndex() );
             valueIsAdjusting = false;
         }
 
@@ -630,11 +653,30 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                     lightNav = false;
                 }
             }
+	    else if (propertyName.equals("componentOrientation")) {
+                // Pass along the new component orientation
+                // to the list and the scroller
+
+                ComponentOrientation o =(ComponentOrientation)e.getNewValue();
+
+                JList list = getList();
+                if (list!=null && list.getComponentOrientation()!=o) {
+                    list.setComponentOrientation(o);
+                }
+
+                if (scroller!=null && scroller.getComponentOrientation()!=o) {
+                    scroller.setComponentOrientation(o);
+                }
+
+                if (o!=getComponentOrientation()) {
+                    setComponentOrientation(o);
+                }
+            }
         }
     }
 
     //
-    // end Event Listenters
+    // end Event Listeners
     //=================================================================
 
 
@@ -818,74 +860,29 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             */
     }
 
+    /* REMIND: All this menu placement logic is now handled by 
+     * javax.swing.DefaultPopupFactory
+     * so this code should eventually be migrated to take advantage of it.
+     */
     protected Rectangle computePopupBounds(int px,int py,int pw,int ph) {
-        Rectangle absBounds;
+        Rectangle absBounds = new Rectangle();
         Rectangle r = new Rectangle(px,py,pw,ph);
-        boolean inModalDialog = inModalDialog();
-        /** Workaround for modal dialogs. See also JPopupMenu.java **/
-        if ( inModalDialog ) {
-            Dialog dlg = getDialog();
-            Point p;
-            if ( dlg instanceof JDialog ) {
-                JRootPane rp = ((JDialog)dlg).getRootPane();
-                p = rp.getLocationOnScreen();
-                absBounds = rp.getBounds();
-                absBounds.x = p.x;
-                absBounds.y = p.y;
-            }
-            else
-                absBounds = dlg.getBounds();
-            p = new Point(absBounds.x,absBounds.y);
-            SwingUtilities.convertPointFromScreen(p,comboBox);
-            absBounds.x = p.x;
-            absBounds.y = p.y;
-        }
-        else {
-            Point p;
-            Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
-            absBounds = new Rectangle();
-            p = new Point(0,0);
-            SwingUtilities.convertPointFromScreen(p,comboBox);
-            absBounds.x = p.x;
-            absBounds.y = p.y;
-            absBounds.width = scrSize.width;
-            absBounds.height= scrSize.height;
-        }
-
+        Point p = new Point(0,0);
+        Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
+        
+        SwingUtilities.convertPointFromScreen(p,comboBox);
+        absBounds.x = p.x;
+        absBounds.y = p.y;
+        absBounds.width = scrSize.width;
+        absBounds.height= scrSize.height;
+        
         if ( SwingUtilities.isRectangleContainingRectangle(absBounds,r) )
             return r;
         else {
-            Rectangle r2      = new Rectangle(0,-r.height,r.width,r.height);
-
-            if ( SwingUtilities.isRectangleContainingRectangle(absBounds,r2) )
-                return r2;
-
-            if ( inModalDialog ) {
-                SwingUtilities.computeIntersection(absBounds.x,absBounds.y,absBounds.width,absBounds.height,r);
-                SwingUtilities.computeIntersection(absBounds.x,absBounds.y,absBounds.width,absBounds.height,r2);
-                if ( r.height > r2.height )
-                    return r;
-                else
-                    return r2;
-            }
-            else
-                return r2;
+            return new Rectangle(0,-r.height,r.width,r.height);
         }
     }
 
-    private Dialog getDialog() {
-        Container parent;
-        for ( parent = comboBox.getParent() ; parent != null && !(parent instanceof Dialog)
-            && !(parent instanceof Window) ; parent = parent.getParent() );
-        if ( parent instanceof Dialog )
-            return(Dialog) parent;
-        else
-            return null;
-    }
-
-    private boolean inModalDialog() {
-        return(getDialog() != null);
-    }
 
     /**
      * A utility method used by the event listeners.  Given a mouse event, it changes

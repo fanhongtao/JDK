@@ -1,8 +1,11 @@
 /*
- * @(#)IncompatibleClassChangeError.java	1.14 01/11/29
+ * @(#)IncompatibleClassChangeError.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -13,7 +16,7 @@ package java.lang;
  * executing method depends, has since changed. 
  *
  * @author  unascribed
- * @version 1.14, 11/29/01
+ * @version 1.15, 02/02/00
  * @since   JDK1.0
  */
 public

@@ -1,8 +1,31 @@
 /*
- * @(#)MetalworksFrame.java	1.13 01/11/29
+ * @(#)MetalworksFrame.java	1.14 99/07/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
+ * modify and redistribute this software in source and binary code form,
+ * provided that i) this copyright notice and license appear on all copies of
+ * the software; and ii) Licensee does not utilize the software in a manner
+ * which is disparaging to Sun.
+ * 
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY
+ * IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR
+ * NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT BE
+ * LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING
+ * OR DISTRIBUTING THE SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR ITS
+ * LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT,
+ * INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER
+ * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF THE USE OF
+ * OR INABILITY TO USE SOFTWARE, EVEN IF SUN HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * This software is not designed or intended for use in on-line control of
+ * aircraft, air traffic, aircraft navigation or aircraft communications; or in
+ * the design, construction, operation or maintenance of any nuclear
+ * facility. Licensee represents and warrants that it will not use or
+ * redistribute the Software for such purposes.
  */
 
 import java.awt.*;
@@ -18,7 +41,7 @@ import javax.swing.plaf.metal.*;
 /**
   * This is the main container frame for the Metalworks demo app
   *
-  * @version 1.13 11/29/01
+  * @version 1.14 07/21/99
   * @author Steve Wilson
   */
 public class MetalworksFrame extends JFrame {
@@ -161,32 +184,40 @@ public class MetalworksFrame extends JFrame {
 
      protected JMenu buildSpeedMenu() {
         JMenu speed = new JMenu("Drag");
-        JRadioButtonMenuItem normal = new JRadioButtonMenuItem("Normal");
-        JRadioButtonMenuItem fast = new JRadioButtonMenuItem("Fast");
+
+        JRadioButtonMenuItem live = new JRadioButtonMenuItem("Live");
         JRadioButtonMenuItem outline = new JRadioButtonMenuItem("Outline");
 
+        JRadioButtonMenuItem slow = new JRadioButtonMenuItem("Old and Slow");
+
 	ButtonGroup group = new ButtonGroup();
-	group.add(normal);
-	group.add(fast);
+
+	group.add(live);
 	group.add(outline);
+	group.add(slow);
 
-	normal.setSelected(true);
+	live.setSelected(true);
 
-        normal.addActionListener(new ActionListener(){
+        slow.addActionListener(new ActionListener(){
                                public void actionPerformed(ActionEvent e){
-                               desktop.putClientProperty("JDesktopPane.dragMode", null);}});
+				// for right now I'm saying if you set the mode
+				 // to something other than a specified mode
+				 // it will revert to the old way
+				 // This is mostly for comparison's sake
+                               desktop.setDragMode(-1);}});
 
-        fast.addActionListener(new ActionListener(){
+        live.addActionListener(new ActionListener(){
                          public void actionPerformed(ActionEvent e){
-                         desktop.putClientProperty("JDesktopPane.dragMode", "faster");}});
+                         desktop.setDragMode(JDesktopPane.LIVE_DRAG_MODE);}});
       
         outline.addActionListener(new ActionListener(){
                          public void actionPerformed(ActionEvent e){
-                         desktop.putClientProperty("JDesktopPane.dragMode", "outline");}});
+                         desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);}});
       
-        speed.add(normal);
-        speed.add(fast);
+
+        speed.add(live);
         speed.add(outline);
+        speed.add(slow);
         return speed;
      }
 
@@ -225,6 +256,7 @@ public class MetalworksFrame extends JFrame {
 	JInternalFrame doc = new MetalworksDocumentFrame();
 	desktop.add(doc, DOCLAYER);
 	try { 
+	    doc.setVisible(true);
 	    doc.setSelected(true); 
 	} catch (java.beans.PropertyVetoException e2) {}
     }
@@ -238,6 +270,7 @@ public class MetalworksFrame extends JFrame {
 	JInternalFrame help = new MetalworksHelp();
 	desktop.add(help, HELPLAYER);
 	try { 
+	    help.setVisible(true);
 	    help.setSelected(true); 
 	} catch (java.beans.PropertyVetoException e2) {}
     }
@@ -256,6 +289,7 @@ public class MetalworksFrame extends JFrame {
 	JInternalFrame doc = new MetalworksInBox();
 	desktop.add(doc, DOCLAYER);
 	try { 
+	    doc.setVisible(true);
 	    doc.setSelected(true); 
 	} catch (java.beans.PropertyVetoException e2) {}
     }

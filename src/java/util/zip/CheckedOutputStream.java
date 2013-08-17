@@ -1,8 +1,11 @@
 /*
- * @(#)CheckedOutputStream.java	1.13 01/11/29
+ * @(#)CheckedOutputStream.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -17,7 +20,7 @@ import java.io.IOException;
  * the output data.
  *
  * @see		Checksum
- * @version 	1.13, 11/29/01
+ * @version 	1.15, 02/02/00
  * @author 	David Connelly
  */
 public
@@ -47,7 +50,7 @@ class CheckedOutputStream extends FilterOutputStream {
     /**
      * Writes an array of bytes. Will block until the bytes are
      * actually written.
-     * @param buf the data to be written
+     * @param b the data to be written
      * @param off the start offset of the data
      * @param len the number of bytes to be written
      * @exception IOException if an I/O error has occurred
@@ -59,6 +62,7 @@ class CheckedOutputStream extends FilterOutputStream {
 
     /**
      * Returns the Checksum for this output stream.
+     * @return the Checksum
      */
     public Checksum getChecksum() {
 	return cksum;

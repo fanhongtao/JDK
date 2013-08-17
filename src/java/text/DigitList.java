@@ -1,18 +1,16 @@
 /*
- * @(#)DigitList.java	1.24 01/11/29
+ * @(#)DigitList.java	1.24 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)DigitList.java	1.22 00/09/05
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -20,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -64,7 +49,7 @@ package java.text;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.22 09/05/00
+ * @version      1.24 01/19/00
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {
@@ -315,22 +300,16 @@ final class DigitList implements Cloneable {
         while (count > 1 && digits[count - 1] == '0')
             --count;
 
-        if (DEBUG)
-        {
-            System.out.print("Before rounding 0.");
-            for (int i=0; i<count; ++i) System.out.print((char)digits[i]);
-            System.out.println("x10^" + decimalAt);
+        if (DEBUG) {
+            System.out.println("Before rounding " + this);
         }
 
         // Eliminate digits beyond maximum digits to be displayed.
         // Round up if appropriate.
         round(fixedPoint ? (maximumDigits + decimalAt) : maximumDigits);
 
-        if (DEBUG)
-        {
-            System.out.print("After rounding 0.");
-            for (int i=0; i<count; ++i) System.out.print((char)digits[i]);
-            System.out.println("x10^" + decimalAt);
+        if (DEBUG) {
+            System.out.println("After rounding " + this);
         }
 
         // The following method also works, and does not rely on the specific
@@ -420,6 +399,11 @@ final class DigitList implements Cloneable {
                 ++maximumDigits; // Increment for use as count
             }
             count = maximumDigits;
+
+            // Eliminate trailing zeros.
+            while (count > 1 && digits[count-1] == '0') {
+                --count;
+            }
         }
     }
 
@@ -439,16 +423,16 @@ final class DigitList implements Cloneable {
     private boolean shouldRoundUp(int maximumDigits) {
         boolean increment = false;
         // Implement IEEE half-even rounding
-	if (maximumDigits < count) {
-           if (digits[maximumDigits] > '5') {
-              return true;
+        if (maximumDigits < count) {
+            if (digits[maximumDigits] > '5') {
+                return true;
             } else if (digits[maximumDigits] == '5' ) {
-            for (int i=maximumDigits+1; i<count; ++i) {
-                if (digits[i] != '0') {
-                    return true;
+                for (int i=maximumDigits+1; i<count; ++i) {
+                    if (digits[i] != '0') {
+                        return true;
+                    }
                 }
-            }
-            return maximumDigits > 0 && (digits[maximumDigits-1] % 2 != 0);
+                return maximumDigits > 0 && (digits[maximumDigits-1] % 2 != 0);
             }
 	}
         return false;
@@ -472,26 +456,35 @@ final class DigitList implements Cloneable {
      */
     public final void set(long source, int maximumDigits)
     {
-        // for now, simple implementation; later, do proper IEEE stuff
-        //        String stringDigits = Long.toString(source);
-        String stringDigits = Long.toString(source);
-
         // This method does not expect a negative number. However,
         // "source" can be a Long.MIN_VALUE (-9223372036854775808),
         // if the number being formatted is a Long.MIN_VALUE.  In that
         // case, it will be formatted as -Long.MIN_VALUE, a number
         // which is outside the legal range of a long, but which can
         // be represented by DigitList.
-        if (stringDigits.charAt(0) == '-') stringDigits = stringDigits.substring(1);
-
-        count = decimalAt = stringDigits.length();
-
-        // Don't copy trailing zeros
-        while (count > 1 && stringDigits.charAt(count - 1) == '0') --count;
-
-            for (int i = 0; i < count; ++i)
-                digits[i] = (byte) stringDigits.charAt(i);
-
+        if (source <= 0) {
+            if (source == Long.MIN_VALUE) {
+                decimalAt = count = MAX_COUNT;
+                System.arraycopy(LONG_MIN_REP, 0, digits, 0, count);
+            } else {
+                decimalAt = count = 0; // Values <= 0 format as zero
+            }
+        } else {
+            // Rewritten to improve performance.  I used to call
+            // Long.toString(), which was about 4x slower than this code.
+            int left = MAX_COUNT;
+            int right;
+            while (source > 0) {
+                digits[--left] = (byte) ('0' + (source % 10));
+                source /= 10;
+            }
+            decimalAt = MAX_COUNT - left;
+            // Don't copy trailing zeros.  We are guaranteed that there is at
+            // least one non-zero digit, so we don't have to check lower bounds.
+            for (right = MAX_COUNT - 1; digits[right] == '0'; --right) {}
+            count = right - left + 1;
+            System.arraycopy(digits, left, digits, 0, count);
+        }        
         if (maximumDigits > 0) round(maximumDigits);
     }
 

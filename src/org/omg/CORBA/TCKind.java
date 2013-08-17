@@ -1,8 +1,11 @@
 /*
- * @(#)TCKind.java	1.16 01/11/29
+ * @(#)TCKind.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -51,398 +54,398 @@ package org.omg.CORBA;
 
 public class TCKind {
 
-/**
- * The <code>int</code> constant for a <code>null</code> IDL data type.
- */
+    /**
+     * The <code>int</code> constant for a <code>null</code> IDL data type.
+     */
     public static final int _tk_null = 0;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>void</code>.
- */
+    /**
+     * The <code>int</code> constant for the IDL data type <code>void</code>.
+     */
     public static final int _tk_void = 1;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>short</code>.
- */
-	public static final int _tk_short = 2;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>short</code>.
+     */
+    public static final int _tk_short = 2;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>long</code>.
- */
-	public static final int _tk_long = 3;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>long</code>.
+     */
+    public static final int _tk_long = 3;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>ushort</code>.
- */
-	public static final int _tk_ushort = 4;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>ushort</code>.
+     */
+    public static final int _tk_ushort = 4;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>ulong</code>.
- */
-	public static final int _tk_ulong = 5;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>ulong</code>.
+     */
+    public static final int _tk_ulong = 5;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>float</code>.
- */
-	public static final int _tk_float = 6;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>float</code>.
+     */
+    public static final int _tk_float = 6;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>double</code>.
- */
-	public static final int _tk_double = 7;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>double</code>.
+     */
+    public static final int _tk_double = 7;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>boolean</code>.
- */
-	public static final int _tk_boolean = 8;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>boolean</code>.
+     */
+    public static final int _tk_boolean = 8;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>char</code>.
- */
-	public static final int _tk_char = 9;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>char</code>.
+     */
+    public static final int _tk_char = 9;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>octet</code>.
- */
-	public static final int _tk_octet = 10;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>octet</code>.
+     */
+    public static final int _tk_octet = 10;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>any</code>.
- */
-	public static final int _tk_any = 11;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>any</code>.
+     */
+    public static final int _tk_any = 11;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>TypeCode</code>.
- */
-	public static final int _tk_TypeCode = 12;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>TypeCode</code>.
+     */
+    public static final int _tk_TypeCode = 12;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>Principal</code>.
- */
-	public static final int _tk_Principal = 13;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>Principal</code>.
+     */
+    public static final int _tk_Principal = 13;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>objref</code>.
- */
-	public static final int _tk_objref = 14;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>objref</code>.
+     */
+    public static final int _tk_objref = 14;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>struct</code>.
- */
-	public static final int _tk_struct = 15;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>struct</code>.
+     */
+    public static final int _tk_struct = 15;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>union</code>.
- */
-	public static final int _tk_union = 16;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>union</code>.
+     */
+    public static final int _tk_union = 16;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>enum</code>.
- */
-	public static final int _tk_enum = 17;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>enum</code>.
+     */
+    public static final int _tk_enum = 17;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>string</code>.
- */
-	public static final int _tk_string = 18;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>string</code>.
+     */
+    public static final int _tk_string = 18;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>sequence</code>.
- */
-	public static final int _tk_sequence = 19;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>sequence</code>.
+     */
+    public static final int _tk_sequence = 19;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>array</code>.
- */
-	public static final int _tk_array = 20;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>array</code>.
+     */
+    public static final int _tk_array = 20;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>alias</code>.
- */
-	public static final int _tk_alias = 21;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>alias</code>.
+     */
+    public static final int _tk_alias = 21;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>except</code>.
- */
-	public static final int _tk_except = 22;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>except</code>.
+     */
+    public static final int _tk_except = 22;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>longlong</code>.
- */
-	public static final int _tk_longlong = 23;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>longlong</code>.
+     */
+    public static final int _tk_longlong = 23;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>ulonglong</code>.
- */
-	public static final int _tk_ulonglong = 24;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>ulonglong</code>.
+     */
+    public static final int _tk_ulonglong = 24;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>longdouble</code>.
- */
-	public static final int _tk_longdouble = 25;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>longdouble</code>.
+     */
+    public static final int _tk_longdouble = 25;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>wchar</code>.
- */
-	public static final int _tk_wchar = 26;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>wchar</code>.
+     */
+    public static final int _tk_wchar = 26;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>wstring</code>.
- */
-	public static final int _tk_wstring = 27;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>wstring</code>.
+     */
+    public static final int _tk_wstring = 27;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>fixed</code>.
- */
-	public static final int _tk_fixed = 28;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>fixed</code>.
+     */
+    public static final int _tk_fixed = 28;
 
-/**
- * The <code>int</code> constant for the IDL data type <code>value</code>.
- */
-	public static final int _tk_value = 29;		// orbos 98-01-18: Objects By Value
+    /**
+     * The <code>int</code> constant for the IDL data type <code>value</code>.
+     */
+    public static final int _tk_value = 29;		// orbos 98-01-18: Objects By Value
 
-/**
- * The <code>int</code> constant for the IDL data type <code>value_box</code>.
- */
-	public static final int _tk_value_box = 30;	// orbos 98-01-18: Objects By Value
+    /**
+     * The <code>int</code> constant for the IDL data type <code>value_box</code>.
+     */
+    public static final int _tk_value_box = 30;	// orbos 98-01-18: Objects By Value
 
-/**
- * The <code>int</code> constant for the IDL data type <code>native</code>.
- */
-        public static final int _tk_native = 31;        // Verify
+    /**
+     * The <code>int</code> constant for the IDL data type <code>native</code>.
+     */
+    public static final int _tk_native = 31;        // Verify
 
-/**
- * The <code>int</code> constant for the IDL data type <code>abstract interface</code>.
- */
-        public static final int _tk_abstract_interface = 32;
+    /**
+     * The <code>int</code> constant for the IDL data type <code>abstract interface</code>.
+     */
+    public static final int _tk_abstract_interface = 32;
 
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_null</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_null</code>.
+     */
     public static final TCKind tk_null = new TCKind(_tk_null);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_void</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_void</code>.
+     */
     public static final TCKind tk_void = new TCKind(_tk_void);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_short</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_short</code>.
+     */
     public static final TCKind tk_short = new TCKind(_tk_short);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_long</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_long</code>.
+     */
     public static final TCKind tk_long = new TCKind(_tk_long);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_ushort</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_ushort</code>.
+     */
     public static final TCKind tk_ushort = new TCKind(_tk_ushort);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_ulong</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_ulong</code>.
+     */
     public static final TCKind tk_ulong = new TCKind(_tk_ulong);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_float</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_float</code>.
+     */
     public static final TCKind tk_float = new TCKind(_tk_float);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_double</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_double</code>.
+     */
     public static final TCKind tk_double = new TCKind(_tk_double);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_boolean</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_boolean</code>.
+     */
     public static final TCKind tk_boolean = new TCKind(_tk_boolean);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_char</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_char</code>.
+     */
     public static final TCKind tk_char = new TCKind(_tk_char);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_octet</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_octet</code>.
+     */
     public static final TCKind tk_octet = new TCKind(_tk_octet);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_any</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_any</code>.
+     */
     public static final TCKind tk_any = new TCKind(_tk_any);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_TypeCode</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_TypeCode</code>.
+     */
     public static final TCKind tk_TypeCode = new TCKind(_tk_TypeCode);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_Principal</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_Principal</code>.
+     */
     public static final TCKind tk_Principal = new TCKind(_tk_Principal);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_objref</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_objref</code>.
+     */
     public static final TCKind tk_objref = new TCKind(_tk_objref);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_struct</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_struct</code>.
+     */
     public static final TCKind tk_struct = new TCKind(_tk_struct);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_union</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_union</code>.
+     */
     public static final TCKind tk_union = new TCKind(_tk_union);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_enum</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_enum</code>.
+     */
     public static final TCKind tk_enum = new TCKind(_tk_enum);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_string</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_string</code>.
+     */
     public static final TCKind tk_string = new TCKind(_tk_string);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_sequence</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_sequence</code>.
+     */
     public static final TCKind tk_sequence = new TCKind(_tk_sequence);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_array</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_array</code>.
+     */
     public static final TCKind tk_array = new TCKind(_tk_array);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_alias</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_alias</code>.
+     */
     public static final TCKind tk_alias = new TCKind(_tk_alias);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_except</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_except</code>.
+     */
     public static final TCKind tk_except = new TCKind(_tk_except);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_longlong</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_longlong</code>.
+     */
     public static final TCKind tk_longlong = new TCKind(_tk_longlong);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_ulonglong</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_ulonglong</code>.
+     */
     public static final TCKind tk_ulonglong = new TCKind(_tk_ulonglong);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_longdouble</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_longdouble</code>.
+     */
     public static final TCKind tk_longdouble = new TCKind(_tk_longdouble);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_wchar</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_wchar</code>.
+     */
     public static final TCKind tk_wchar = new TCKind(_tk_wchar);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_wstring</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_wstring</code>.
+     */
     public static final TCKind tk_wstring = new TCKind(_tk_wstring);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_fixed</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_fixed</code>.
+     */
     public static final TCKind tk_fixed = new TCKind(_tk_fixed);
 
     // orbos 98-01-18: Objects By Value -- begin
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_value</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_value</code>.
+     */
     public static final TCKind tk_value = new TCKind(_tk_value);
 
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_value_box</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_value_box</code>.
+     */
     public static final TCKind tk_value_box = new TCKind(_tk_value_box);
     // orbos 98-01-18: Objects By Value -- end
     
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_native</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_native</code>.
+     */
     public static final TCKind tk_native = new TCKind(_tk_native);
     
-/**
- * The <code>TCKind</code> constant whose <code>value</code> field is
- * initialized with <code>TCKind._tk_abstract_interface</code>.
- */
+    /**
+     * The <code>TCKind</code> constant whose <code>value</code> field is
+     * initialized with <code>TCKind._tk_abstract_interface</code>.
+     */
     public static final TCKind tk_abstract_interface = new TCKind(_tk_abstract_interface);
 
 
 
 
     /**
-	 * Retrieves the value of this <code>TCKind</code> instance.
-	 *
-	 * @return  the <code>int</code> that represents the kind of
-	 * IDL data type for this <code>TCKind</code> instance
-	 */
+     * Retrieves the value of this <code>TCKind</code> instance.
+     *
+     * @return  the <code>int</code> that represents the kind of
+     * IDL data type for this <code>TCKind</code> instance
+     */
     public int value() {
 	return _value;
     }
 
     /**
-	 * Converts the given <code>int</code> to the corresponding
-	 * <code>TCKind</code> instance.
-	 *
-	 * @param  the <code>int</code> to convert.  It must be one of
-	 *         the <code>int</code> constants in the class
-	 *         <code>TCKind</code>.
-	 * @return  the <code>TCKind</code> instance whose <code>value</code>
-	 * field matches the given <code>int</code>
+     * Converts the given <code>int</code> to the corresponding
+     * <code>TCKind</code> instance.
+     *
+     * @param  the <code>int</code> to convert.  It must be one of
+     *         the <code>int</code> constants in the class
+     *         <code>TCKind</code>.
+     * @return  the <code>TCKind</code> instance whose <code>value</code>
+     * field matches the given <code>int</code>
      * @exception  BAD_PARAM  if the given <code>int</code> does not
-	 * match the <code>_value</code> field of
-	 * any <code>TCKind</code> instance
+     * match the <code>_value</code> field of
+     * any <code>TCKind</code> instance
      */
     public static TCKind from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
 	switch (i) {
@@ -518,6 +521,18 @@ public class TCKind {
     }
 
 
+    /**
+    * Creates a new <code>TCKind</code> instance initialized with the given
+    * <code>int</code>.
+    * @deprecated Do not use this constructor as this method should be private
+    * according to the OMG specification. Use {@link #from_int(int)} instead.
+    *
+    * @param  the <code>int</code> to convert.  It must be one of
+    *         the <code>int</code> constants in the class
+    *         <code>TCKind</code>.
+    * @return  a new <code>TCKind</code> instance whose <code>value</code>
+    * field matches the given <code>int</code>
+    */
     protected TCKind(int _value){
 	this._value = _value;
     }

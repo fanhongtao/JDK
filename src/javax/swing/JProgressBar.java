@@ -1,8 +1,11 @@
 /*
- * @(#)JProgressBar.java	1.72 01/11/29
+ * @(#)JProgressBar.java	1.77 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -27,6 +30,13 @@ import javax.swing.plaf.ProgressBarUI;
  * display of this percentage.
  *
  * <p>
+ *
+ * For further documentation and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/progress.html">How to Monitor Progress</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases.  The current serialization support is appropriate
@@ -38,7 +48,7 @@ import javax.swing.plaf.ProgressBarUI;
  *      attribute: isContainer false
  *    description: A component that displays an integer value.
  *
- * @version 1.72 11/29/01
+ * @version 1.77 04/06/00
  * @author Michael C. Albers
  */
 public class JProgressBar extends JComponent implements SwingConstants, Accessible
@@ -704,9 +714,13 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JProgressBar. 
+     * For progress bars, the AccessibleContext takes the form of an 
+     * AccessibleJProgressBar. 
+     * A new AccessibleJProgressBar instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJProgressBar that serves as the 
+     *         AccessibleContext of this JProgressBar
      * @beaninfo
      *       expert: true
      *  description: The AccessibleContext associated with this ProgressBar.
@@ -719,7 +733,10 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JProgressBar</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to progress bar user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -762,8 +779,12 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
         }
 
         /**
-         * Get the AccessibleValue associated with this object if one
-         * exists.  Otherwise return null.
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
          */
         public AccessibleValue getAccessibleValue() {
             return this;

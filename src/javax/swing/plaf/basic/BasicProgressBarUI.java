@@ -1,8 +1,11 @@
 /*
- * @(#)BasicProgressBarUI.java	1.42 01/11/29
+ * @(#)BasicProgressBarUI.java	1.45 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -17,7 +20,7 @@ import java.io.Serializable;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.42 11/29/01
+ * @version 1.45 02/02/00
  * @author Michael C. Albers
  */
 public class BasicProgressBarUI extends ProgressBarUI {
@@ -126,7 +129,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      *
      * @return the value representing the spacing between cells
      * @see    #setCellLength
-     * @see    JProgressBar.isStringPainted
+     * @see    JProgressBar#isStringPainted
      */
     protected int getCellLength() {
 	if (progressBar.isStringPainted()) {
@@ -148,7 +151,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      *
      * @return the value representing the spacing between cells
      * @see    #setCellSpacing
-     * @see    JProgressBar.isStringPainted
+     * @see    JProgressBar#isStringPainted
      */
     protected int getCellSpacing() {
 	if (progressBar.isStringPainted()) {
@@ -204,49 +207,66 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	barRectY += b.top;
 	barRectWidth -= (b.right + barRectX);
 	barRectHeight -= (b.bottom + barRectY);
-	
+
 	int current;
+        int cellLength = getCellLength();
+        int cellSpacing = getCellSpacing();
 	// a cell and its spacing
-	int increment = getCellLength() + getCellSpacing();
+	int increment = cellLength + cellSpacing;
 	// amount of progress to draw
 	int amountFull = getAmountFull(b, barRectWidth, barRectHeight);
 	
 	g.setColor(progressBar.getForeground());
 	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+            // fillX is the left edge of the region to be filled. 
+            int fillX = barRectX;
+            boolean leftToRight = BasicGraphicsUtils.isLeftToRight(c);
+            if( !leftToRight ) {
+                // If the bar fills from the right, adjust fillX
+                fillX += barRectWidth - amountFull;
+            }
 	    // draw the cells
-	    if (getCellSpacing() == 0 && amountFull > 0) {
+	    if (cellSpacing == 0 && amountFull > 0) {
                 // draw one big Rect because there is no space between cells
-		g.fillRect(barRectX, barRectY,
-			   barRectX-b.left+amountFull, barRectHeight);
-	    } else { // draw each individual cells
-		// the largest number to draw a cell at
-		int max = barRectX + amountFull;
-		
-		for (current = barRectX;
-		     current < max;
-		     current += increment) {
-		    g.fillRect(current, barRectY,
-			       getCellLength(), barRectHeight);
-		}
-	    }
+                g.fillRect(fillX, barRectY, amountFull, barRectHeight);
+	    } else {
+                // draw each individual cell
+                Rectangle oldClip = g.getClipBounds();
+                g.setClip(barRectX, barRectY, barRectWidth, barRectHeight);
+                
+                int numCells = (int)Math.ceil( (double)amountFull/increment );
+                if( !leftToRight ) {
+                    // Adjust so that filled region is flush to right side.
+                    fillX += cellSpacing - (numCells*increment - amountFull);
+                }
+
+                for( current=fillX; numCells-->0; current+=increment ) {
+                    g.fillRect(current, barRectY, cellLength, barRectHeight);
+                }
+                g.setClip(oldClip);
+            }
 	} else { // VERTICAL
+            // fillY is the top edge of the region to be filled.
+            int fillY = barRectY + barRectHeight - amountFull;
+            
 	    // draw the cells
-	    if (getCellSpacing() == 0 && amountFull > 0) {
+	    if (cellSpacing == 0 && amountFull > 0) {
                 // draw one big Rect because there is no space between cells
-		g.fillRect(barRectX, barRectHeight-amountFull+b.top,
-			   barRectWidth, amountFull);
-	    } else { // draw each individual cells
-		// the smallest number to draw a cell at
-		//  that is, the number at the top
-		int min = barRectHeight - amountFull;
-		
-		for (current = barRectHeight-getCellLength()+getCellSpacing();
-		     current >= min;
-		     current -= increment)
-		{
-		    g.fillRect(barRectX, current,
-			       barRectWidth, getCellLength());
-		}
+		g.fillRect(barRectX, fillY, barRectWidth, amountFull);
+	    } else {
+                // draw each individual cell
+                Rectangle oldClip = g.getClipBounds();
+                g.setClip(barRectX, barRectY, barRectWidth, barRectHeight);
+
+                int numCells = (int)Math.ceil( (double)amountFull/increment );
+
+                // Adjust so that filled region is flush to bottom edge.
+                fillY += cellSpacing - (numCells*increment - amountFull);
+
+                for( current=fillY; numCells-->0; current+=increment ) {
+                    g.fillRect(barRectX, current, barRectWidth, cellLength);
+                }
+                g.setClip(oldClip);
 	    }
 	}
 	
@@ -272,7 +292,11 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	    g.setColor(getSelectionForeground());
 	    g.drawString(progressString, renderLocation.x, renderLocation.y);
 	    g.setColor(getSelectionBackground());
-	    g.setClip(amountFull+b.left, y, width, height);
+            if( BasicGraphicsUtils.isLeftToRight(progressBar) ) {
+                g.setClip(x+amountFull, y, width-amountFull, height);
+            } else {
+                g.setClip(x, y, width-amountFull, height);
+            }
 	    g.drawString(progressString, renderLocation.x, renderLocation.y);
 	} else { // VERTICAL
 	    // do this from the top of the bar to the bottom
@@ -282,7 +306,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	    g.setClip(x, height-amountFull+b.top, width, height);
 	    g.drawString(progressString, renderLocation.x, renderLocation.y);
 	}
-	g.setClip(oldClip.x, oldClip.y, oldClip.width, oldClip.height);
+	g.setClip(oldClip);
     }
     
     

@@ -1,17 +1,16 @@
 /*
- * @(#)DateFormat.java	1.33 01/11/29
+ * @(#)DateFormat.java	1.38 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)DateFormat.java	1.33 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -87,11 +73,11 @@ import java.text.resources.*;
  * <pre>
  *  myDate = df.parse(myString);
  * </pre>
- * <p>Use getDate to get the normal date format for that country.
+ * <p>Use getDateInstance to get the normal date format for that country.
  * There are other static factory methods available.
- * Use getTime to get the time format for that country.
- * Use getDateTime to get a date and time format. You can pass in different
- * options to these factory methods to control the length of the
+ * Use getTimeInstance to get the time format for that country.
+ * Use getDateTimeInstance to get a date and time format. You can pass in 
+ * different options to these factory methods to control the length of the
  * result; from SHORT to MEDIUM to LONG to FULL. The exact result depends
  * on the locale, but generally:
  * <ul><li>SHORT is completely numeric, such as 12.13.52 or 3:30pm
@@ -123,7 +109,7 @@ import java.text.resources.*;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.33 11/29/01
+ * @version      1.38 01/19/00
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {
@@ -390,7 +376,7 @@ public abstract class DateFormat extends Format {
      */
     public static final int SHORT = 3;
     /**
-     * Constant for default style pattern.
+     * Constant for default style pattern.  Its value is MEDIUM.
      */
     public static final int DEFAULT = MEDIUM;
 
@@ -401,7 +387,7 @@ public abstract class DateFormat extends Format {
      */
     public final static DateFormat getTimeInstance()
     {
-        return get(DEFAULT, -1, Locale.getDefault());
+        return get(DEFAULT, 0, 1, Locale.getDefault());
     }
 
     /**
@@ -413,7 +399,7 @@ public abstract class DateFormat extends Format {
      */
     public final static DateFormat getTimeInstance(int style)
     {
-        return get(style, -1, Locale.getDefault());
+        return get(style, 0, 1, Locale.getDefault());
     }
 
     /**
@@ -427,7 +413,7 @@ public abstract class DateFormat extends Format {
     public final static DateFormat getTimeInstance(int style,
                                                  Locale aLocale)
     {
-        return get(style, -1, aLocale);
+        return get(style, 0, 1, aLocale);
     }
 
     /**
@@ -437,9 +423,7 @@ public abstract class DateFormat extends Format {
      */
     public final static DateFormat getDateInstance()
     {
-        // +4 to set the correct index for getting data out of
-        // LocaleElements.
-        return get(-1, DEFAULT + 4, Locale.getDefault());
+        return get(0, DEFAULT, 2, Locale.getDefault());
     }
 
     /**
@@ -451,7 +435,7 @@ public abstract class DateFormat extends Format {
      */
     public final static DateFormat getDateInstance(int style)
     {
-        return get(-1, style + 4, Locale.getDefault());
+        return get(0, style, 2, Locale.getDefault());
     }
 
     /**
@@ -465,7 +449,7 @@ public abstract class DateFormat extends Format {
     public final static DateFormat getDateInstance(int style,
                                                  Locale aLocale)
     {
-        return get(-1, style + 4, aLocale);
+        return get(0, style, 2, aLocale);
     }
 
     /**
@@ -475,7 +459,7 @@ public abstract class DateFormat extends Format {
      */
     public final static DateFormat getDateTimeInstance()
     {
-        return get(DEFAULT, DEFAULT + 4, Locale.getDefault());
+        return get(DEFAULT, DEFAULT, 3, Locale.getDefault());
     }
 
     /**
@@ -490,7 +474,7 @@ public abstract class DateFormat extends Format {
     public final static DateFormat getDateTimeInstance(int dateStyle,
                                                        int timeStyle)
     {
-        return get(timeStyle, dateStyle + 4, Locale.getDefault());
+        return get(timeStyle, dateStyle, 3, Locale.getDefault());
     }
 
     /**
@@ -504,7 +488,7 @@ public abstract class DateFormat extends Format {
     public final static DateFormat
         getDateTimeInstance(int dateStyle, int timeStyle, Locale aLocale)
     {
-        return get(timeStyle, dateStyle + 4, aLocale);
+        return get(timeStyle, dateStyle, 3, aLocale);
     }
 
     /**
@@ -635,9 +619,33 @@ public abstract class DateFormat extends Format {
         return other;
     }
 
-    private static DateFormat get(int timeStyle, /* -1 for no time */
-                                  int dateStyle, /* -1 for no date */
-                                  Locale loc) {
+    /**
+     * Creates a DateFormat with the given time and/or date style in the given
+     * locale.
+     * @param timeStyle a value from 0 to 3 indicating the time format,
+     * ignored if flags is 2
+     * @param dateStyle a value from 0 to 3 indicating the time format,
+     * ignored if flags is 1
+     * @param flags either 1 for a time format, 2 for a date format,
+     * or 3 for a date/time format
+     * @param loc the locale for the format
+     */
+    private static DateFormat get(int timeStyle, int dateStyle,
+                                  int flags, Locale loc) {
+        if ((flags & 1) != 0) {
+            if (timeStyle < 0 || timeStyle > 3) {
+                throw new IllegalArgumentException("Illegal time style " + timeStyle);
+            }
+        } else {
+            timeStyle = -1;
+        }
+        if ((flags & 2) != 0) {
+            if (dateStyle < 0 || dateStyle > 3) {
+                throw new IllegalArgumentException("Illegal date style " + dateStyle);
+            }
+        } else {
+            dateStyle = -1;
+        }
         try {
             return new SimpleDateFormat(timeStyle, dateStyle, loc);
 

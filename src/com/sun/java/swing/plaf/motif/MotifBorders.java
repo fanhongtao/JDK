@@ -1,8 +1,11 @@
 /*
- * @(#)MotifBorders.java	1.26 01/11/29
+ * @(#)MotifBorders.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -11,12 +14,16 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 
-import java.awt.Component;
-import java.awt.Insets;
-import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+
 import java.io.Serializable;
 
 /**
@@ -29,7 +36,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.26 11/29/01
+ * @version 1.29 02/02/00
  * @author Amy Fowler
  */
 public class MotifBorders { 
@@ -425,7 +432,7 @@ public class MotifBorders {
           * <b>aFrame</b>.
           */
         public InternalFrameBorder(JInternalFrame aFrame) {
-            FrameBorder.super(aFrame);
+            super(aFrame);
             frame = aFrame;
         }
 
@@ -596,6 +603,119 @@ public class MotifBorders {
             g.translate(-x, -y);
         }
         g.setColor(oldColor);
+    }
+
+    public static class MotifPopupMenuBorder extends AbstractBorder implements UIResource {
+	protected Font   font;
+	protected Color  background;
+	protected Color  foreground;
+	protected Color  shadowColor;
+	protected Color  highlightColor;
+
+	// Space between the border and text
+	static protected final int TEXT_SPACING = 2;
+
+	// Space for the separator under the title
+	static protected final int GROOVE_HEIGHT = 2;
+
+	/**
+	 * Creates a MotifPopupMenuBorder instance 
+	 * 
+	 */
+	public MotifPopupMenuBorder(
+				    Font titleFont,
+				    Color bgColor,
+				    Color fgColor,
+				    Color shadow,
+				    Color highlight)       {
+	    this.font = titleFont;
+	    this.background = bgColor;
+	    this.foreground = fgColor;
+	    this.shadowColor = shadow;
+	    this.highlightColor = highlight;
+	}
+	
+	/**
+	 * Paints the border for the specified component with the 
+	 * specified position and size.
+	 * @param c the component for which this border is being painted
+	 * @param g the paint graphics
+	 * @param x the x position of the painted border
+	 * @param y the y position of the painted border
+	 * @param width the width of the painted border
+	 * @param height the height of the painted border
+	 */
+	public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+	    
+	    Font origFont = g.getFont();
+	    Color origColor = g.getColor();
+
+	    String title = ((JPopupMenu)c).getLabel();
+	    if (title == null) {
+		return;
+	    }
+
+	    g.setFont(font);
+	    
+	    FontMetrics fm = g.getFontMetrics();
+	    int         fontHeight = fm.getHeight();
+	    int         descent = fm.getDescent();
+	    int         ascent = fm.getAscent();
+	    Point       textLoc = new Point();
+	    int         stringWidth = fm.stringWidth(title);
+	    
+	    textLoc.y = y + ascent + TEXT_SPACING;
+	    textLoc.x = x + ((width - stringWidth) / 2);
+	    
+	    g.setColor(background);
+	    g.fillRect(textLoc.x - TEXT_SPACING, textLoc.y - (fontHeight-descent),
+		       stringWidth + (2 * TEXT_SPACING), fontHeight - descent);
+	    g.setColor(foreground);
+	    g.drawString(title, textLoc.x, textLoc.y);
+	    
+	    MotifGraphicsUtils.drawGroove(g, x, textLoc.y + TEXT_SPACING, 
+					  width, GROOVE_HEIGHT,
+                                          shadowColor, highlightColor);
+
+	    g.setFont(origFont);
+	    g.setColor(origColor);
+	}
+	
+	/**
+	 * Returns the insets of the border.
+	 * @param c the component for which this border insets value applies
+	 */
+	public Insets getBorderInsets(Component c) {
+	    return getBorderInsets(c, new Insets(0, 0, 0, 0));
+	}
+	
+	/** 
+	 * Reinitialize the insets parameter with this Border's current Insets. 
+	 * @param c the component for which this border insets value applies
+	 * @param insets the object to be reinitialized
+	 */
+	public Insets getBorderInsets(Component c, Insets insets) {
+	    FontMetrics fm;
+	    int         descent = 0;
+	    int         ascent = 16;
+
+	    String title = ((JPopupMenu)c).getLabel();
+	    if (title == null) {
+		insets.left = insets.top = insets.right = insets.bottom = 0;
+		return insets;
+	    }
+
+	    fm = c.getFontMetrics(font);
+	    
+	    if(fm != null) {
+		descent = fm.getDescent();
+		ascent = fm.getAscent();
+	    }
+	    
+	    insets.top += ascent + descent + TEXT_SPACING + GROOVE_HEIGHT;
+	    return insets;
+	}
+			
     }
 
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)KeyboardManager.java	1.8 01/11/29
+ * @(#)KeyboardManager.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -40,7 +43,7 @@ import javax.swing.event.*;
   * then we move up to the InternalFrame's creator and see if anyone wants the event (and so on and so on).
   * 
   *
-  * @see JComponent#registerKeyboardAction
+  * @see InputMap
   */
 class KeyboardManager {
 
@@ -199,7 +202,7 @@ class KeyboardManager {
 	     } else if ( tmp instanceof JComponent) {
 	         JComponent c = (JComponent)tmp;
 		 if ( c.isShowing() && c.isEnabled() ) { // only give it out if enabled and visible
-		     fireBinding(c, ks, e);
+		     fireBinding(c, ks, e, pressed);
 		 }
 	     } else if ( tmp instanceof Vector) { //more than one comp registered for this
 	         Vector v = (Vector)tmp;
@@ -208,7 +211,7 @@ class KeyboardManager {
 		     JComponent c = (JComponent)iter.nextElement();
 		     //System.out.println("Trying collision: " + c + " vector = "+ v.size());
 		     if ( c.isShowing() && c.isEnabled() ) { // don't want to give these out
-		         fireBinding(c, ks, e);
+		         fireBinding(c, ks, e, pressed);
 			 if (e.isConsumed())
 			     return true;
 		     }
@@ -233,7 +236,7 @@ class KeyboardManager {
 		 while (iter.hasMoreElements()) {
 		     JMenuBar mb = (JMenuBar)iter.nextElement();
 		     if ( mb.isShowing() && mb.isEnabled() ) { // don't want to give these out
-		         fireBinding(mb, ks, e);
+		         fireBinding(mb, ks, e, pressed);
 			 if (e.isConsumed()) {
 			     return true;
 			 }
@@ -242,39 +245,14 @@ class KeyboardManager {
 	     }
 	 }
 
-	 // if no one has handled it yet, and the container we're working in is
-	 // an internal frame, then move on up to it's top container.
-	 if (topAncestor instanceof JInternalFrame) {
-	     Container newTopContainer = getTopAncestor((JInternalFrame)topAncestor);
-	     if (newTopContainer == null) {  
-	       return false; // this case can occur in rare cases where a key action removes
-	                     // the internal frame from the heirarchy.
-	     }
-	     fireKeyboardAction( e, pressed, newTopContainer );
-	 }
-	
 	 return e.isConsumed();
     }
 
-    void fireBinding(JComponent c, KeyStroke ks, KeyEvent e) {
-      //System.out.println("Firing on: " + c);
-	 JComponent.KeyboardBinding binding = c.bindingForKeyStroke(ks, JComponent.WHEN_IN_FOCUSED_WINDOW);
-	 if(binding != null) {  // this block of code stolen from JComponent.processKeyBinding
-	     ActionListener listener = binding.getAction();
-	     if(listener != null) {
-	       
-	         if (listener instanceof Action && ((Action)listener).isEnabled() == false) {
-		   // this case handles when we try to dispatch to a disbled action
-		   // instead of sending the event we return, thus giving a chance to
-		   // other components registered for this stroke.
-		     return;
-		 }
-	         listener.actionPerformed(new ActionEvent(c,ActionEvent.ACTION_PERFORMED,binding.getCommand()));
-		 e.consume();
-	     }
-	 } else {
-	   // System.out.println("Binding NULL");
-	 }
+    void fireBinding(JComponent c, KeyStroke ks, KeyEvent e, boolean pressed) {
+	if (c.processKeyBinding(ks, e, JComponent.WHEN_IN_FOCUSED_WINDOW,
+				pressed)) {
+	    e.consume();
+	}
     }
 
     public void registerMenuBar(JMenuBar mb) {

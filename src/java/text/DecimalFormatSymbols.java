@@ -1,18 +1,16 @@
 /*
- * @(#)DecimalFormatSymbols.java	1.27 01/11/29
+ * @(#)DecimalFormatSymbols.java	1.30 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)DecimalFormatSymbols.java	1.27 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -20,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -54,7 +39,7 @@ import java.util.Hashtable;
  *
  * @see          java.util.Locale
  * @see          DecimalFormat
- * @version      1.12 29 Jan 1997
+ * @version      1.30, 01/19/00
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -76,110 +61,139 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * character used for zero. Different for Arabic, etc.
+     * Gets the character used for zero. Different for Arabic, etc.
      */
     public char getZeroDigit() {
         return zeroDigit;
     }
 
+    /**
+     * Set the character used for zero. Different for Arabic, etc.
+     */
     public void setZeroDigit(char zeroDigit) {
         this.zeroDigit = zeroDigit;
     }
 
     /**
-     * character used for thousands separator. Different for French, etc.
+     * Gets the character used for thousands separator. Different for French, etc.
      */
     public char getGroupingSeparator() {
         return groupingSeparator;
     }
 
+    /**
+     * Set the character used for thousands separator. Different for French, etc.
+     */
     public void setGroupingSeparator(char groupingSeparator) {
         this.groupingSeparator = groupingSeparator;
     }
 
     /**
-     * character used for decimal sign. Different for French, etc.
+     * Gets the character used for decimal sign. Different for French, etc.
      */
     public char getDecimalSeparator() {
         return decimalSeparator;
     }
 
+    /**
+     * Set the character used for decimal sign. Different for French, etc.
+     */
     public void setDecimalSeparator(char decimalSeparator) {
         this.decimalSeparator = decimalSeparator;
     }
 
     /**
-     * character used for mille percent sign. Different for Arabic, etc.
+     * Gets the character used for mille percent sign. Different for Arabic, etc.
      */
     public char getPerMill() {
         return perMill;
     }
 
+    /**
+     * Set the character used for mille percent sign. Different for Arabic, etc.
+     */
     public void setPerMill(char perMill) {
         this.perMill = perMill;
     }
 
     /**
-     * character used for percent sign. Different for Arabic, etc.
+     * Gets the character used for percent sign. Different for Arabic, etc.
      */
     public char getPercent() {
         return percent;
     }
 
+    /**
+     * Set the character used for percent sign. Different for Arabic, etc.
+     */
     public void setPercent(char percent) {
         this.percent = percent;
     }
 
     /**
-     * character used for a digit in a pattern.
+     * Gets the character used for a digit in a pattern.
      */
     public char getDigit() {
         return digit;
     }
 
+    /**
+     * Set the character used for a digit in a pattern.
+     */
     public void setDigit(char digit) {
         this.digit = digit;
     }
 
     /**
-     * character used to separate positive and negative subpatterns
+     * Gets the character used to separate positive and negative subpatterns
      * in a pattern.
      */
     public char getPatternSeparator() {
         return patternSeparator;
     }
 
+    /**
+     * Set the character used to separate positive and negative subpatterns
+     * in a pattern.
+     */
     public void setPatternSeparator(char patternSeparator) {
         this.patternSeparator = patternSeparator;
     }
 
     /**
-     * character used to represent infinity. Almost always left
+     * Gets the character used to represent infinity. Almost always left
      * unchanged.
      */
-
     public String getInfinity() {
         return infinity;
     }
 
+    /**
+     * Set the character used to represent infinity. Almost always left
+     * unchanged.
+     */
     public void setInfinity(String infinity) {
         this.infinity = infinity;
     }
 
     /**
-     * character used to represent NaN. Almost always left
+     * Gets the character used to represent NaN. Almost always left
      * unchanged.
      */
     public String getNaN() {
         return NaN;
     }
 
+    /**
+     * Set the character used to represent NaN. Almost always left
+     * unchanged.
+     */
     public void setNaN(String NaN) {
         this.NaN = NaN;
     }
 
     /**
-     * character used to represent minus sign. If no explicit
+     * Gets the character used to represent minus sign. If no explicit
      * negative format is specified, one is formed by prefixing
      * minusSign to the positive format.
      */
@@ -187,6 +201,11 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
         return minusSign;
     }
 
+    /**
+     * Set the character used to represent minus sign. If no explicit
+     * negative format is specified, one is formed by prefixing
+     * minusSign to the positive format.
+     */
     public void setMinusSign(char minusSign) {
         this.minusSign = minusSign;
     }
@@ -277,7 +296,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Override equals
+     * Override equals.
      */
     public boolean equals(Object obj) {
         if (obj == null) return false;
@@ -300,7 +319,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Override hashCode
+     * Override hashCode.
      */
     public int hashCode() {
             int result = zeroDigit;

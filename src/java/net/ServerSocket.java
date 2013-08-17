@@ -1,8 +1,11 @@
 /*
- * @(#)ServerSocket.java	1.37 01/11/29
+ * @(#)ServerSocket.java	1.42 00/08/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -22,7 +25,7 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.37, 11/29/01
+ * @version 1.42, 08/17/00
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @since   JDK1.0
@@ -81,7 +84,8 @@ class ServerSocket {
 
     /**
      * Creates a server socket and binds it to the specified local port 
-     * number. A port number of <code>0</code> creates a socket on any 
+     * number, with the specified backlog. 
+     * A port number of <code>0</code> creates a socket on any 
      * free port. 
      * <p>
      * The maximum queue length for incoming connection indications (a 
@@ -137,12 +141,12 @@ class ServerSocket {
      * @param backlog the listen backlog
      * @param bindAddr the local InetAddress the server will bind to
      * 
-     * @throws  SecurityException
-     *        if a security manager exists and its <code>checkListen</code> 
-     *        method doesn't allow the operation.
+     * @throws  SecurityException if a security manager exists and 
+     * its <code>checkListen</code> method doesn't allow the operation.
      * 
-     * @see SocketConstants
-     * @see SocketOption
+     * @throws  IOException if an I/O error occurs when opening the socket.
+     *
+     * @see SocketOptions
      * @see SocketImpl
      * @see SecurityManager#checkListen
      * @since   JDK1.1
@@ -198,7 +202,8 @@ class ServerSocket {
      * Listens for a connection to be made to this socket and accepts 
      * it. The method blocks until a connection is made. 
      *
-     * <p>A new Socket <code>s</code> is created and, if there is a security manager, 
+     * <p>A new Socket <code>s</code> is created and, if there 
+     * is a security manager, 
      * the security manager's <code>checkAccept</code> method is called
      * with <code>s.getInetAddress().getHostAddress()</code> and
      * <code>s.getPort()</code>
@@ -209,7 +214,7 @@ class ServerSocket {
      *               connection.
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkListen</code> method doesn't allow the operation.
-     * 
+     * @return the new Socket
      * @see SecurityManager#checkAccept
      */
     public Socket accept() throws IOException {
@@ -221,31 +226,34 @@ class ServerSocket {
     /**
      * Subclasses of ServerSocket use this method to override accept()
      * to return their own subclass of socket.  So a FooServerSocket
-     * will typically hand this method an <i>empty</i> FooSocket().  On
+     * will typically hand this method an <i>empty</i> FooSocket.  On
      * return from implAccept the FooSocket will be connected to a client.
      *
+     * @param s the Socket
+     * @throws IOException if an I/O error occurs when waiting 
+     * for a connection.
      * @since   JDK1.1
      */
     protected final void implAccept(Socket s) throws IOException {
 	SocketImpl si = s.impl;
 	try {
-	    s.impl = null;
-	    si.address = new InetAddress();
-	    si.fd = new FileDescriptor();
-	    impl.accept(si);
+        s.impl = null;
+        si.address = new InetAddress();
+        si.fd = new FileDescriptor();
+        impl.accept(si);
 	    
 	    SecurityManager security = System.getSecurityManager();
 	    if (security != null) {
 		security.checkAccept(si.getInetAddress().getHostAddress(),
-				     si.getPort());
+                     si.getPort());
 	    }
 	} catch (IOException e) {
-	    si.reset();
-	    s.impl = si;
+		si.reset();
+        s.impl = si;
 	    throw e;
 	} catch (SecurityException e) {
-	    si.reset();
-	    s.impl = si;
+		si.reset();
+        s.impl = si;
 	    throw e;
 	}
 	s.impl = si;
@@ -260,26 +268,33 @@ class ServerSocket {
 	impl.close();
     }
 
-    /** Enable/disable SO_TIMEOUT with the specified timeout, in
-     *  milliseconds.  With this option set to a non-zero timeout,
-     *  a call to accept() for this ServerSocket
-     *  will block for only this amount of time.  If the timeout expires,
-     *  a <B>java.io.InterruptedIOException</B> is raised, though the
-     *  ServerSocket is still valid.  The option <B>must</B> be enabled
-     *  prior to entering the blocking operation to have effect.  The 
-     *  timeout must be > 0.
-     *  A timeout of zero is interpreted as an infinite timeout.  
-     *
+    /**
+     * Enable/disable SO_TIMEOUT with the specified timeout, in
+     * milliseconds.  With this option set to a non-zero timeout,
+     * a call to accept() for this ServerSocket
+     * will block for only this amount of time.  If the timeout expires,
+     * a <B>java.io.InterruptedIOException</B> is raised, though the
+     * ServerSocket is still valid.  The option <B>must</B> be enabled
+     * prior to entering the blocking operation to have effect.  The 
+     * timeout must be > 0.
+     * A timeout of zero is interpreted as an infinite timeout.  
+     * @param timeout the specified timeout, in milliseconds
+     * @exception SocketException if there is an error in 
+     * the underlying protocol, such as a TCP error. 
      * @since   JDK1.1
+     * @see #getSoTimeout()
      */
     public synchronized void setSoTimeout(int timeout) throws SocketException {
 	impl.setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
     }
 
-    /** Retrive setting for SO_TIMEOUT.  0 returns implies that the
-     *  option is disabled (i.e., timeout of infinity).
-     *
+    /** 
+     * Retrive setting for SO_TIMEOUT.  0 returns implies that the
+     * option is disabled (i.e., timeout of infinity).
+     * @return the SO_TIMEOUT value
+     * @exception IOException if an I/O error occurs
      * @since   JDK1.1
+     * @see #setSoTimeout(int)
      */
     public synchronized int getSoTimeout() throws IOException {
 	Object o = impl.getOption(SocketOptions.SO_TIMEOUT);

@@ -1,15 +1,18 @@
 /*
- * @(#)Time.java	1.18 01/11/29
+ * @(#)Time.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.sql;
 
 /**
  * <P>A thin wrapper around <code>java.util.Date</code> that allows
- * JDBC to identify this as a SQL TIME value. The <code>Time</code>
+ * JDBC to identify this as a SQL <code>TIME</code> value. The <code>Time</code>
  * class adds formatting and
  * parsing operations to support the JDBC escape syntax for time
  * values. 
@@ -29,6 +32,9 @@ public class Time extends java.util.Date {
      * @param hour 0 to 23
      * @param minute 0 to 59
      * @param second 0 to 59
+	 *
+	 * @deprecated Use the constructor that takes a milliseconds value
+	 *             in place of this constructor
      */
     public Time(int hour, int minute, int second) {
 	super(70, 0, 1, hour, minute, second);
@@ -87,9 +93,9 @@ public class Time extends java.util.Date {
     }
    
     /**
-     * Format a time in JDBC date escape format  
+     * Formats a time in JDBC date escape format  
      *
-     * @return a String in hh:mm:ss format
+     * @return a <code>String</code> in hh:mm:ss format
      */
     public String toString () {
 	int hour = super.getHours();
@@ -120,77 +126,84 @@ public class Time extends java.util.Date {
     // Override all the date operations inherited from java.util.Date;
 
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a year component.
     *
     * @deprecated
-    * @exception <code>java.lang.IllegalArgumentException</code> if this
+    * @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public int getYear() {
 	throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a month component.
     *
     * @deprecated
-	* @exception <code>java.lang.IllegalArgumentException</code> if this
+	* @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public int getMonth() {
 	throw new java.lang.IllegalArgumentException();
     }
     
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a day component.
     *
     * @deprecated
-	* @exception <code>java.lang.IllegalArgumentException</code> if this
+	* @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public int getDay() {
 	throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a date component.
     *
     * @deprecated
-	* @exception <code>java.lang.IllegalArgumentException</code> if this
+	* @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public int getDate() {
 	throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a year component.
     *
     * @deprecated
-	* @exception <code>java.lang.IllegalArgumentException</code> if this
+	* @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public void setYear(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a month component.
     *
     * @deprecated
-	* @exception <code>java.lang.IllegalArgumentException</code> if this
+	* @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public void setMonth(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Time 
+    * This method is deprecated and should not be used because SQL <code>TIME</code> 
     * values do not have a date component.
     *
     * @deprecated
-	* @exception <code>java.lang.IllegalArgumentException</code> if this
+	* @exception java.lang.IllegalArgumentException if this
+	*           method is invoked
     */
     public void setDate(int i) {
 	throw new java.lang.IllegalArgumentException();

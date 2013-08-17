@@ -1,8 +1,11 @@
 /*
- * @(#)ObjectOutput.java	1.11 01/11/29
+ * @(#)ObjectOutput.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,7 +16,7 @@ package java.io;
  * extends that interface to include objects, arrays, and Strings.
  *
  * @author  unascribed
- * @version 1.11, 11/29/01
+ * @version 1.13, 02/02/00
  * @see java.io.InputStream
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
@@ -25,6 +28,7 @@ public interface ObjectOutput extends DataOutput {
      * class that implements this interface defines how the object is
      * written.
      *
+     * @param obj the object to be written
      * @exception IOException Any of the usual Input/Output related exceptions.
      */
     public void writeObject(Object obj)

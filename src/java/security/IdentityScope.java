@@ -1,8 +1,11 @@
 /*
- * @(#)IdentityScope.java	1.45 01/11/29
+ * @(#)IdentityScope.java	1.46 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -36,7 +39,7 @@ import java.util.Properties;
  * @see Principal
  * @see Key
  *
- * @version 1.45 01/11/29
+ * @version 1.46 00/02/02
  * @author Benjamin Renaud
  *
  * @deprecated This class is no longer used. Its functionality has been

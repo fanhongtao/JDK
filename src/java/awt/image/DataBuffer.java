@@ -1,8 +1,11 @@
 /*
- * @(#)DataBuffer.java	1.18 01/11/29
+ * @(#)DataBuffer.java	1.24 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ****************************************************************
@@ -35,9 +38,9 @@ package java.awt.image;
  * or one of the types defined below.  Other types may be added in
  * the future.  Generally, an object of class DataBuffer will be cast down
  * to one of its data type specific subclasses to access data type specific
- * methods for improved performance.  Currently, the Java 2D API image classes
- * use only TYPE_BYTE, TYPE_USHORT, and TYPE_INT DataBuffers to store image
- * data.
+ * methods for improved performance.  Currently, the Java 2D(tm) API 
+ * image classes use only TYPE_BYTE, TYPE_USHORT, and TYPE_INT DataBuffers 
+ * to store image data.
  * @see java.awt.image.Raster
  * @see java.awt.image.SampleModel
  */
@@ -313,7 +316,7 @@ public abstract class DataBuffer
             short sdata[] = (short[])obj;
             int idata[] = new int[sdata.length];
             for (int i = 0; i < sdata.length; i++) {
-                idata[i] = (int)sdata[i];
+                idata[i] = (int)sdata[i] & 0xffff;
             }
             return idata;
         } else if (obj instanceof byte[]) {

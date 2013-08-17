@@ -1,8 +1,11 @@
 /*
- * @(#)Printable.java	1.10 01/11/29
+ * @(#)Printable.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.print;
@@ -13,7 +16,7 @@ import java.awt.Graphics;
  * The <code>Printable</code> interface is implemented 
  * by the <code>print</code> methods of the current
  * page painter, which is called by the printing
- * systemto render a page.  When building a 
+ * system to render a page.  When building a 
  * {@link Pageable}, pairs of {@link PageFormat}
  * instances and instances that implement
  * this interface are used to describe each page. The 

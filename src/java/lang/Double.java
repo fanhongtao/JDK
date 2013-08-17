@@ -1,8 +1,11 @@
 /*
- * @(#)Double.java	1.56 01/11/29
+ * @(#)Double.java	1.63 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -21,7 +24,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.54, 09/11/98
+ * @version 1.63, 02/02/00
  * @since   JDK1.0
  */
 public final class Double extends Number implements Comparable {
@@ -105,7 +108,7 @@ public final class Double extends Number implements Comparable {
      * <code>'E'</code> (<code>\u0045</code>), followed by a representation 
      * of <i>n</i> as a decimal integer, as produced by the method
      * {@link Integer#toString(int)}.
-     * <p>
+     * </ul><p>
      * How many digits must be printed for the fractional part of 
      * <i>m</i> or <i>a</i>? There must be at least one digit to represent 
      * the fractional part, and beyond that as many, but only as many, more 
@@ -175,7 +178,7 @@ public final class Double extends Number implements Comparable {
      * @exception  NumberFormatException  if the string does not contain a
      *               parsable double.
      * @see        java.lang.Double#valueOf(String)
-     * @since      JDK1.2
+     * @since      1.2
      */
     public static double parseDouble(String s) throws NumberFormatException {
 	return FloatingDecimal.readJavaFormatString(s).doubleValue();
@@ -345,14 +348,14 @@ public final class Double extends Number implements Comparable {
      * </pre></blockquote>
      * where <code>v</code> is defined by: 
      * <blockquote><pre>
-     * long v = Double.doubleToLongBits(this.longValue());
+     * long v = Double.doubleToLongBits(this.doubleValue());
      * </pre></blockquote>
      *
      * @return  a <code>hash code</code> value for this object.
      */
     public int hashCode() {
 	long bits = doubleToLongBits(value);
-	return (int)(bits ^ (bits >> 32));
+	return (int)(bits ^ (bits >>> 32));
     }
 
     /**
@@ -393,8 +396,7 @@ public final class Double extends Number implements Comparable {
      *          <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
-	return (obj != null)
-	       && (obj instanceof Double)
+	return (obj instanceof Double)
 	       && (doubleToLongBits(((Double)obj).value) ==
 		      doubleToLongBits(value));
     }
@@ -433,6 +435,40 @@ public final class Double extends Number implements Comparable {
     public static native long doubleToLongBits(double value);
 
     /**
+     * Returns a representation of the specified floating-point value
+     * according to the IEEE 754 floating-point "double
+     * format" bit layout.
+     * <p>
+     * Bit 63 (the bit that is selected by the mask 
+     * <code>0x8000000000000000L</code>) represents the sign of the 
+     * floating-point number. Bits 
+     * 62-52 (the bits that are selected by the mask 
+     * <code>0x7ff0000000000000L</code>) represent the exponent. Bits 51-0 
+     * (the bits that are selected by the mask 
+     * <code>0x000fffffffffffffL</code>) represent the significand 
+     * (sometimes called the mantissa) of the floating-point number. 
+     * <p>
+     * If the argument is positive infinity, the result is
+     * <code>0x7ff0000000000000L</code>.
+     * <p>
+     * If the argument is negative infinity, the result is
+     * <code>0xfff0000000000000L</code>.
+     * <p>
+     * If the argument is NaN, the result is the <code>long</code> integer
+     * representing the actual NaN value.  Unlike the <code>doubleToLongBits</code>
+     * method, <code>doubleToRawLongBits</code> does not collapse NaN values.
+     * <p>
+     * In all cases, the result is a <code>long</code> integer that, when 
+     * given to the {@link #longBitsToDouble(long)} method, will produce a 
+     * floating-point value equal to the argument to 
+     * <code>doubleToRawLongBits</code>.
+     *
+     * @param   value   a double precision floating-point number.
+     * @return  the bits that represent the floating-point number.
+     */
+    public static native long doubleToRawLongBits(double value);
+
+    /**
      * Returns the double-float corresponding to a given bit represention.
      * The argument is considered to be a representation of a
      * floating-point value according to the IEEE 754 floating-point
@@ -450,8 +486,10 @@ public final class Double extends Number implements Comparable {
      * <code>0x7fffffffffffffffL</code> or in the range 
      * <code>0xfff0000000000001L</code> through 
      * <code>0xffffffffffffffffL</code>, the result is NaN. All IEEE 754 
-     * NaN values are, in effect, lumped together by the Java programming 
-     * language into a single value called NaN. 
+     * NaN values of type <code>double</code> are, in effect, lumped together
+     * by the Java programming language into a single value called NaN.
+     * Distinct values of NaN are only accessible by use of the
+     * <code>Double.doubleToRawLongBits</code> method. 
      * <p>
      * In all other cases, let <i>s</i>, <i>e</i>, and <i>m</i> be three 
      * values that can be computed from the argument: 
@@ -496,7 +534,7 @@ public final class Double extends Number implements Comparable {
      *		<code>0</code> if this Double is numerically greater than
      *		<code>anotherDouble</code>.
      *		
-     * @since   JDK1.2
+     * @since   1.2
      * @see     Comparable#compareTo(Object)
      */
     public int compareTo(Double anotherDouble) {
@@ -532,7 +570,7 @@ public final class Double extends Number implements Comparable {
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Double</code>.
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((Double)o);

@@ -1,17 +1,16 @@
 /*
- * @(#)CompactShortArray.java	1.16 01/11/29
+ * @(#)CompactShortArray.java	1.18 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)CompactShortArray.java	1.16 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
+ * (C) Copyright IBM Corp. 1996-1999 - All Rights Reserved
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -57,7 +43,7 @@ package java.text;
  * @see                CompactIntArray
  * @see                CompactCharArray
  * @see                CompactStringArray
- * @version            1.16 11/29/01
+ * @version            1.18 01/19/00
  * @author             Helena Shih
  */
 final class CompactShortArray implements Cloneable {
@@ -321,12 +307,15 @@ final class CompactShortArray implements Cloneable {
      * a value in the array, and the shortValue() method returns each
      * corresponding value.
      */ 
-    public class Iterator {
+    class Iterator {
         Iterator() {
             compact();
         }
         
         // Find the next character in the array
+        /**
+         * Return true if the next call to next() will succeed.
+         */
         public boolean hasNext() {
             nextIndex = index;
             boolean done = true;
@@ -375,6 +364,12 @@ final class CompactShortArray implements Cloneable {
             return nextIndex < Character.MAX_VALUE; 
         }
         
+        /**
+         * Return the index (for use with <code>elementAt</code>) of the next character in 
+         * the <code>CompactShortArray</code>.
+         * @exception <code>ArrayIndexOutOfBoundsException</code> if all indexes have
+         * already been returned.
+         */
         public char next() {
             if (index == nextIndex && !hasNext()) {
                 throw new ArrayIndexOutOfBoundsException();
@@ -385,6 +380,10 @@ final class CompactShortArray implements Cloneable {
             return (char)index;
         }
         
+        /**
+         * Return the value of the character at the last index returned by
+         * next().
+         */
         public short shortValue() {
             return value;
         }

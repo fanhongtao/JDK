@@ -1,8 +1,11 @@
 /*
- * @(#)Arrays.java	1.30 01/11/29
+ * @(#)Arrays.java	1.37 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -21,10 +24,10 @@ package java.util;
  * have to be a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.30 11/29/01
+ * @version 1.37, 02/02/00
  * @see Comparable
  * @see Comparator
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class Arrays {
@@ -50,12 +53,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of longs into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)
+     *
+     * <p>The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -63,7 +69,7 @@ public class Arrays {
      * @param toIndex the index of the last element (exclusive) to be sorted.
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
-     *	       <tt>toIndex &gt; a.length</tt>
+     * <tt>toIndex &gt; a.length</tt>
      */
     public static void sort(long[] a, int fromIndex, int toIndex) {
         rangeCheck(a.length, fromIndex, toIndex);
@@ -86,12 +92,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of ints into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
+     *
+     * The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -122,12 +131,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of shorts into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
+     *
+     * The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -158,12 +170,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of chars into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
+     *
+     * The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -194,12 +209,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of bytes into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
+     *
+     * The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -230,12 +248,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of doubles into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
+     *
+     * The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -266,12 +287,15 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of floats into
-     * ascending numerical order.  The sorting algorithm is a tuned quicksort,
-     * adapted from Jon L. Bentley and M. Douglas McIlroy's "Engineering a
-     * Sort Function", Software-Practice and Experience, Vol. 23(11)
-     * P. 1249-1265 (November 1993).  This algorithm offers n*log(n)
-     * performance on many data sets that cause other quicksorts to degrade to
-     * quadratic performance.
+     * ascending numerical order.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
+     *
+     * The sorting algorithm is a tuned quicksort, adapted from Jon
+     * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
+     * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
+     * 1993).  This algorithm offers n*log(n) performance on many data sets
+     * that cause other quicksorts to degrade to quadratic performance.
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -993,11 +1017,14 @@ public class Arrays {
     /**
      * Sorts the specified range of the specified array of objects into
      * ascending order, according to the <i>natural ordering</i> of its
-     * elements.  All elements in this range must implement the
-     * <tt>Comparable</tt> interface.  Furthermore, all elements in this range
-     * must be <i>mutually comparable</i> (that is, <tt>e1.compareTo(e2)</tt>
-     * must not throw a <tt>ClassCastException</tt> for any elements
-     * <tt>e1</tt> and <tt>e2</tt> in the array).<p>
+     * elements.  The range to be sorted extends from index
+     * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)  All
+     * elements in this range must implement the <tt>Comparable</tt>
+     * interface.  Furthermore, all elements in this range must be <i>mutually
+     * comparable</i> (that is, <tt>e1.compareTo(e2)</tt> must not throw a
+     * <tt>ClassCastException</tt> for any elements <tt>e1</tt> and
+     * <tt>e2</tt> in the array).<p>
      *
      * This sort is guaranteed to be <i>stable</i>:  equal elements will
      * not be reordered as a result of the sort.<p>
@@ -1086,23 +1113,30 @@ public class Arrays {
      * sorted lists.
      *
      * @param a the array to be sorted.
-     * @param c the comparator to determine the order of the array.
+     * @param c the comparator to determine the order of the array.  A
+     *        <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      * @throws  ClassCastException if the array contains elements that are
      *		not <i>mutually comparable</i> using the specified comparator.
      * @see Comparator
      */
     public static void sort(Object[] a, Comparator c) {
         Object aux[] = (Object[])a.clone();
-        mergeSort(aux, a, 0, a.length, c);
+        if (c==null)
+            mergeSort(aux, a, 0, a.length);
+        else
+            mergeSort(aux, a, 0, a.length, c);
     }
 
     /**
      * Sorts the specified range of the specified array of objects according
-     * to the order induced by the specified comparator.  All elements in the
-     * range must be <i>mutually comparable</i> by the specified comparator
-     * (that is, <tt>c.compare(e1, e2)</tt> must not throw a
-     * <tt>ClassCastException</tt> for any elements <tt>e1</tt> and
-     * <tt>e2</tt> in the range).<p>
+     * to the order induced by the specified comparator.  The range to be
+     * sorted extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
+     * range to be sorted is empty.)  All elements in the range must be
+     * <i>mutually comparable</i> by the specified comparator (that is,
+     * <tt>c.compare(e1, e2)</tt> must not throw a <tt>ClassCastException</tt>
+     * for any elements <tt>e1</tt> and <tt>e2</tt> in the range).<p>
      *
      * This sort is guaranteed to be <i>stable</i>:  equal elements will
      * not be reordered as a result of the sort.<p>
@@ -1117,7 +1151,9 @@ public class Arrays {
      * @param fromIndex the index of the first element (inclusive) to be
      *        sorted.
      * @param toIndex the index of the last element (exclusive) to be sorted.
-     * @param c the comparator to determine the order of the array.
+     * @param c the comparator to determine the order of the array.  A
+     *        <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      * @throws ClassCastException if the array contains elements that are not
      *	       <i>mutually comparable</i> using the specified comparator.
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
@@ -1129,7 +1165,10 @@ public class Arrays {
                             Comparator c) {
         rangeCheck(a.length, fromIndex, toIndex);
         Object aux[] = (Object[])a.clone();
-        mergeSort(aux, a, fromIndex, toIndex, c);
+        if (c==null)
+            mergeSort(aux, a, fromIndex, toIndex);
+        else
+            mergeSort(aux, a, fromIndex, toIndex, c);
     }
 
     private static void mergeSort(Object src[], Object dest[],
@@ -1533,7 +1572,9 @@ public class Arrays {
      *
      * @param a the array to be searched.
      * @param key the value to be searched for.
-     * @param c the comparator by which the array is ordered.
+     * @param c the comparator by which the array is ordered.  A
+     *        <tt>null</tt> value indicates that the elements' <i>natural
+     *        ordering</i> should be used.
      * @return index of the search key, if it is contained in the list;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
@@ -1550,6 +1591,9 @@ public class Arrays {
      * @see #sort(Object[], Comparator)
      */
     public static int binarySearch(Object[] a, Object key, Comparator c) {
+        if (c==null)
+            return binarySearch(a, key);
+
 	int low = 0;
 	int high = a.length-1;
 
@@ -1761,7 +1805,7 @@ public class Arrays {
      * @param a one array to be tested for equality.
      * @param a2 the other array to be tested for equality.
      * @return <tt>true</tt> if the two arrays are equal.
-     * @see Double#equals(Double)
+     * @see Double#equals(Object)
      */
     public static boolean equals(double[] a, double[] a2) {
         if (a==a2)
@@ -1788,15 +1832,15 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * Two doubles <tt>d1</tt> and <tt>d2</tt> are considered equal if:
-     * <pre>    <tt>new Double(d1).equals(new Double(d2))</tt></pre>
+     * Two floats <tt>f1</tt> and <tt>f2</tt> are considered equal if:
+     * <pre>    <tt>new Float(f1).equals(new Float(f2))</tt></pre>
      * (Unlike the <tt>==</tt> operator, this method considers
-     * <tt>NaN</tt> equals to itself, and 0.0d unequal to -0.0d.)
+     * <tt>NaN</tt> equals to itself, and 0.0f unequal to -0.0f.)
      *
      * @param a one array to be tested for equality.
      * @param a2 the other array to be tested for equality.
      * @return <tt>true</tt> if the two arrays are equal.
-     * @see Double#equals(Double)
+     * @see Float#equals(Object)
      */
     public static boolean equals(float[] a, float[] a2) {
         if (a==a2)
@@ -1866,7 +1910,10 @@ public class Arrays {
 
     /**
      * Assigns the specified long value to each element of the specified 
-     * range of the specified array of longs.
+     * range of the specified array of longs.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -1897,7 +1944,10 @@ public class Arrays {
 
     /**
      * Assigns the specified int value to each element of the specified 
-     * range of the specified array of ints.
+     * range of the specified array of ints.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -1928,7 +1978,10 @@ public class Arrays {
 
     /**
      * Assigns the specified short value to each element of the specified 
-     * range of the specified array of shorts.
+     * range of the specified array of shorts.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -1959,7 +2012,10 @@ public class Arrays {
 
     /**
      * Assigns the specified char value to each element of the specified 
-     * range of the specified array of chars.
+     * range of the specified array of chars.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -1990,7 +2046,10 @@ public class Arrays {
 
     /**
      * Assigns the specified byte value to each element of the specified 
-     * range of the specified array of bytes.
+     * range of the specified array of bytes.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -2021,7 +2080,10 @@ public class Arrays {
 
     /**
      * Assigns the specified boolean value to each element of the specified 
-     * range of the specified array of booleans.
+     * range of the specified array of booleans.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -2053,7 +2115,10 @@ public class Arrays {
 
     /**
      * Assigns the specified double value to each element of the specified 
-     * range of the specified array of doubles.
+     * range of the specified array of doubles.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -2084,7 +2149,10 @@ public class Arrays {
 
     /**
      * Assigns the specified float value to each element of the specified 
-     * range of the specified array of floats.
+     * range of the specified array of floats.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -2115,7 +2183,10 @@ public class Arrays {
 
     /**
      * Assigns the specified Object reference to each element of the specified 
-     * range of the specified array of Objects.
+     * range of the specified array of Objects.  The range to be filled
+     * extends from index <tt>fromIndex</tt>, inclusive, to index
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * range to be filled is empty.)
      *
      * @param a the array to be filled.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -2151,6 +2222,9 @@ public class Arrays {
 	return new ArrayList(a);
     }
 
+    /**
+     * @serial include
+     */
     private static class ArrayList extends AbstractList
     				   implements java.io.Serializable
     {
@@ -2158,6 +2232,8 @@ public class Arrays {
 	private Object[] a;
 
 	ArrayList(Object[] array) {
+            if (array==null)
+                throw new NullPointerException();
 	    a = array;
 	}
 

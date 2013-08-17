@@ -1,8 +1,11 @@
 /*
- * @(#)MotifPopupMenuUI.java	1.17 01/11/29
+ * @(#)MotifPopupMenuUI.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -37,7 +40,7 @@ import javax.swing.plaf.basic.BasicPopupMenuUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 11/29/01
+ * @version 1.21 02/02/00
  * @author Georges Saab
  * @author Rich Schiavi
  */
@@ -83,159 +86,16 @@ public class MotifPopupMenuUI extends BasicPopupMenuUI {
 	return null;
     }
 
-    public void installDefaults() {
-	// This should all go in the table, but can't until we can
-	// have API Change to add the borders to the factory...
-	UIDefaults table = UIManager.getLookAndFeelDefaults();
-	if (border == null) {
-	    border = new CompoundUIResourceBorder(
-                         new MotifBorders.BevelBorder(true,
-					table.getColor("controlShadow"),
-					table.getColor("controlLtHighlight")),
-			 new MotifPopupMenuBorder(
-                                        table.getFont("PopupMenu.font"),
-                                        table.getColor("PopupMenu.background"),
-                                        table.getColor("PopupMenu.foreground"),
-                                        table.getColor("controlShadow"),
-                                        table.getColor("controlLtHighlight")
-					      ));
-	}
-	table.put("PopupMenu.border", border);
-	super.installDefaults();
-    }
     protected ChangeListener createChangeListener(JPopupMenu m) {
 	return new ChangeListener() {
 	    public void stateChanged(ChangeEvent e) {}
 	};
     }
 
-
-    private static class CompoundUIResourceBorder extends CompoundBorder implements UIResource {
-	public CompoundUIResourceBorder(Border a, Border b) {
-	    super(a,b);
-	}
-    }
-
-    /*
-     *  Fix to 4187004:
-     * This class is currently private since API changes are not allowed.
-     * When they are, it should be moved to MotifBorderFactory and made
-     * public.  At that time, the installDefaults method above can
-     * be removed and the defaults table in MotifLookAndFeel updated.
-     */
-    private static class MotifPopupMenuBorder extends AbstractBorder implements UIResource {
-	protected Font   font;
-	protected Color  background;
-	protected Color  foreground;
-	protected Color  shadowColor;
-	protected Color  highlightColor;
-
-	// Space between the border and text
-	static protected final int TEXT_SPACING = 2;
-
-	// Space for the separator under the title
-	static protected final int GROOVE_HEIGHT = 2;
-
-	/**
-	 * Creates a MotifPopupMenuBorder instance 
-	 * 
-	 */
-	public MotifPopupMenuBorder(
-				    Font titleFont,
-				    Color bgColor,
-				    Color fgColor,
-				    Color shadow,
-				    Color highlight)       {
-	    this.font = titleFont;
-	    this.background = bgColor;
-	    this.foreground = fgColor;
-	    this.shadowColor = shadow;
-	    this.highlightColor = highlight;
-	}
-	
-	/**
-	 * Paints the border for the specified component with the 
-	 * specified position and size.
-	 * @param c the component for which this border is being painted
-	 * @param g the paint graphics
-	 * @param x the x position of the painted border
-	 * @param y the y position of the painted border
-	 * @param width the width of the painted border
-	 * @param height the height of the painted border
-	 */
-	public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-	    
-	    Font origFont = g.getFont();
-	    Color origColor = g.getColor();
-
-	    String title = ((JPopupMenu)c).getLabel();
-	    if (title == null) {
-		return;
-	    }
-
-	    g.setFont(font);
-	    
-	    FontMetrics fm = g.getFontMetrics();
-	    int         fontHeight = fm.getHeight();
-	    int         descent = fm.getDescent();
-	    int         ascent = fm.getAscent();
-	    Point       textLoc = new Point();
-	    int         stringWidth = fm.stringWidth(title);
-	    
-	    textLoc.y = y + ascent + TEXT_SPACING;
-	    textLoc.x = x + ((width - stringWidth) / 2);
-	    
-	    g.setColor(background);
-	    g.fillRect(textLoc.x - TEXT_SPACING, textLoc.y - (fontHeight-descent),
-		       stringWidth + (2 * TEXT_SPACING), fontHeight - descent);
-	    g.setColor(foreground);
-	    g.drawString(title, textLoc.x, textLoc.y);
-	    
-	    MotifGraphicsUtils.drawGroove(g, x, textLoc.y + TEXT_SPACING, 
-					  width, GROOVE_HEIGHT,
-                                          shadowColor, highlightColor);
-
-	    g.setFont(origFont);
-	    g.setColor(origColor);
-	}
-	
-	/**
-	 * Returns the insets of the border.
-	 * @param c the component for which this border insets value applies
-	 */
-	public Insets getBorderInsets(Component c) {
-	    return getBorderInsets(c, new Insets(0, 0, 0, 0));
-	}
-	
-	/** 
-	 * Reinitialize the insets parameter with this Border's current Insets. 
-	 * @param c the component for which this border insets value applies
-	 * @param insets the object to be reinitialized
-	 */
-	public Insets getBorderInsets(Component c, Insets insets) {
-	    FontMetrics fm;
-	    int         descent = 0;
-	    int         ascent = 16;
-
-	    String title = ((JPopupMenu)c).getLabel();
-	    if (title == null) {
-		insets.left = insets.top = insets.right = insets.bottom = 0;
-		return insets;
-	    }
-
-	    fm = c.getFontMetrics(font);
-	    
-	    if(fm != null) {
-		descent = fm.getDescent();
-		ascent = fm.getAscent();
-	    }
-	    
-	    insets.top += ascent + descent + TEXT_SPACING + GROOVE_HEIGHT;
-	    return insets;
-	}
-			
-    }
-
+    public boolean isPopupTrigger(MouseEvent e) {
+	return ((e.getID()==MouseEvent.MOUSE_PRESSED) 
+		&& ((e.getModifiers() & MouseEvent.BUTTON3_MASK)!=0));
+    }	    
 }
 
 

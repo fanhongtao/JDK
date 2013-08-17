@@ -1,8 +1,11 @@
 /*
- * @(#)ItemEvent.java	1.19 01/11/29
+ * @(#)ItemEvent.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -25,13 +28,15 @@ import java.awt.ItemSelectable;
  * clicks, and can instead process a "meaningful" (semantic) event like
  * "item selected" or "item deselected". 
  *
+ * @version 1.21 02/02/00
+ * @author Carl Quinn
+ *
  * @see java.awt.ItemSelectable
  * @see ItemListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/itemlistener.html">Tutorial: Writing an Item Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.19 11/29/01
- * @author Carl Quinn
+ * @since 1.1
  */
 public class ItemEvent extends AWTEvent {
 

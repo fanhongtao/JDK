@@ -1,8 +1,11 @@
 /*
- * @(#)Paper.java	1.11 01/11/29
+ * @(#)Paper.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.print;
@@ -12,6 +15,15 @@ import java.awt.geom.Rectangle2D;
 /**
  * The <code>Paper</code> class describes the physical characteristics of
  * a piece of paper.
+ * <p>
+ * When creating a <code>Paper</code> object, it is the application's 
+ * responsibility to ensure that the paper size and the imageable area
+ * are compatible.  For example, if the paper size is changed from 
+ * 11 x 17 to 8.5 x 11, the application might need to reduce the 
+ * imageable area so that whatever is printed fits on the page.
+ * <p>
+ * @see #setSize(double, double)
+ * @see #setImageableArea(double, double, double, double)
  */
 public class Paper implements Cloneable {
 
@@ -101,9 +113,11 @@ public class Paper implements Cloneable {
     }
 
     /**
-     * Sets the width and height of this <code>Paper</code>.
+     * Sets the width and height of this <code>Paper</code>
+     * object, which represents the properties of the page onto
+     * which printing occurs.
      * The dimensions are supplied in 1/72nds of
-     * and inch.
+     * an inch.
      * @param width the value to which to set this <code>Paper</code>
      * object's width
      * @param height the value to which to set this <code>Paper</code>
@@ -125,7 +139,9 @@ public class Paper implements Cloneable {
     }
 
     /**
-     * Sets the imageable area of this <code>Paper</code>. 
+     * Sets the imageable area of this <code>Paper</code>.  The 
+     * imageable area is the area on the page in which printing
+     * occurs. 
      * @param x,&nbsp;y the coordinates to which to set the
      * upper-left corner of the imageable area of this <code>Paper</code>
      * @param width the value to which to set the width of the 

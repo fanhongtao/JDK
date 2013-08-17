@@ -1,8 +1,11 @@
 /*
- * @(#)ZipOutputStream.java	1.21 03/05/15
+ * @(#)ZipOutputStream.java	1.21 00/02/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -19,7 +22,7 @@ import java.util.Enumeration;
  * entries.
  *
  * @author	David Connelly
- * @version	1.21, 05/15/03
+ * @version	1.21, 02/02/00
  */
 public
 class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
@@ -219,7 +222,7 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 		if (e.crc != crc.getValue()) {
 		    throw new ZipException(
 			 "invalid entry crc-32 (expected 0x" +
-			 Long.toHexString(e.size) + " but got 0x" +
+			 Long.toHexString(e.crc) + " but got 0x" +
 			 Long.toHexString(crc.getValue()) + ")");
 		}
 		break;
@@ -244,11 +247,12 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 	throws IOException
     {
 	ensureOpen();
-        if (off < 0 || len < 0 || off > b.length - len) {
-            throw new IndexOutOfBoundsException();
-        } else if (len == 0) {
-            return;
-        }
+	if ((off < 0) || (off > b.length) || (len < 0) ||
+            ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return;
+	}
 
 	if (entry == null) {
 	    throw new ZipException("no current ZIP entry");

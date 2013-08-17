@@ -1,8 +1,11 @@
 /*
- * @(#)DigestInputStream.java	1.31 01/11/29
+ * @(#)DigestInputStream.java	1.34 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -21,10 +24,10 @@ import java.io.ByteArrayInputStream;
  * <p>To complete the message digest computation, call one of the
  * <code>digest</code> methods on the associated message
  * digest after your calls to one of this digest input stream's
- * {@link read() read} methods.
+ * {@link #read() read} methods.
  *
  * <p>It is possible to turn this stream on or off (see
- * {@link on(boolean) on}). When it is on, a call to one of the
+ * {@link #on(boolean) on}). When it is on, a call to one of the
  * <code>read</code> methods
  * results in an update on the message digest.  But when it is off,
  * the message digest is not updated. The default is for the stream
@@ -40,7 +43,7 @@ import java.io.ByteArrayInputStream;
  *
  * @see DigestOutputStream
  *
- * @version 1.31 01/11/29
+ * @version 1.34 00/02/02
  * @author Benjamin Renaud
  */
 
@@ -73,6 +76,7 @@ public class DigestInputStream extends FilterInputStream {
      * Returns the message digest associated with this stream.
      *
      * @return the message digest associated with this stream.
+     * @see #setMessageDigest(java.security.MessageDigest)
      */
     public MessageDigest getMessageDigest() {
 	return digest;
@@ -82,6 +86,7 @@ public class DigestInputStream extends FilterInputStream {
      * Associates the specified message digest with this stream.
      *
      * @param digest the message digest to be associated with this stream.
+     * @see #getMessageDigest()
      */
     public void setMessageDigest(MessageDigest digest) {
 	this.digest = digest;
@@ -91,7 +96,7 @@ public class DigestInputStream extends FilterInputStream {
      * Reads a byte, and updates the message digest (if the digest
      * function is on).  That is, this method reads a byte from the
      * input stream, blocking until the byte is actually read. If the
-     * digest function is on (see {@link on(boolean) on}), this method
+     * digest function is on (see {@link #on(boolean) on}), this method
      * will then call <code>update</code> on the message digest associated
      * with this stream, passing it the byte read.
      *
@@ -116,7 +121,7 @@ public class DigestInputStream extends FilterInputStream {
      * <code>b</code>, starting at offset <code>off</code>. This method
      * blocks until the data is actually
      * read. If the digest function is on (see
-     * {@link on(boolean) on}), this method will then call <code>update</code>
+     * {@link #on(boolean) on}), this method will then call <code>update</code>
      * on the message digest associated with this stream, passing it
      * the data.
      *

@@ -1,8 +1,11 @@
 /*
- * @(#)RSAPublicKey.java	1.4 01/11/29
+ * @(#)RSAPublicKey.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.interfaces;
@@ -14,18 +17,11 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.4 01/11/29
+ * @version 1.6 00/02/02
  */
 
-public interface RSAPublicKey extends java.security.PublicKey {
-
-    /**
-     * Returns the modulus.
-     *
-     * @return the modulus
-     */
-    public BigInteger getModulus();
-
+public interface RSAPublicKey extends java.security.PublicKey, RSAKey
+{
     /**
      * Returns the public exponent.
      *

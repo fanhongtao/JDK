@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationMonitor.java	1.9 01/11/29
+ * @(#)ActivationMonitor.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -23,11 +26,11 @@ import java.rmi.RemoteException;
  * inactive, or the group as a whole becomes inactive.
  *
  * @author 	Ann Wollrath
- * @version	1.9, 11/29/01
+ * @version	1.12, 02/02/00
  * @see		Activator
  * @see		ActivationSystem
  * @see 	ActivationGroup
- * @since	JDK1.2
+ * @since	1.2
  */
 public interface ActivationMonitor extends Remote {
 
@@ -51,7 +54,7 @@ public interface ActivationMonitor extends Remote {
      * @param id the object's activation identifier
      * @exception UnknownObjectException if object is unknown
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public void inactiveObject(ActivationID id)
  	throws UnknownObjectException, RemoteException;
@@ -66,7 +69,7 @@ public interface ActivationMonitor extends Remote {
      * @param obj the marshalled form of the object's stub
      * @exception UnknownObjectException if object is unknown
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public void activeObject(ActivationID id, MarshalledObject obj)
 	throws UnknownObjectException, RemoteException;
@@ -81,7 +84,7 @@ public interface ActivationMonitor extends Remote {
      * @param incarnation the group's incarnation number
      * @exception UnknownGroupException if group is unknown
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public void inactiveGroup(ActivationGroupID id,
 			      long incarnation)

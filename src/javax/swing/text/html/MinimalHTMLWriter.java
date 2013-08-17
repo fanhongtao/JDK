@@ -1,15 +1,18 @@
 /*
- * @(#)MinimalHTMLWriter.java	1.9 01/11/29
+ * @(#)MinimalHTMLWriter.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.text.html;
 
 import java.io.Writer;
 import java.io.IOException;
-import java.util.Enumeration;
+import java.util.*;
 import java.awt.Color;
 import javax.swing.text.*;
 
@@ -19,39 +22,41 @@ import javax.swing.text.*;
  * is a not produced by the EditorKit.
  *
  * The format for the document is:
- * <html>
- *   <head>
- *     <style>
- *        <!-- list of named styles
+ * <pre>
+ * &lt;html&gt;
+ *   &lt;head&gt;
+ *     &lt;style&gt;
+ *        &lt;!-- list of named styles
  *         p.normal {
  *            font-family: SansSerif;
  *	      margin-height: 0;
  *	      font-size: 14
  *	   }
- *        -->
- *      </style>
- *   </head>
- *   <body>
- *    <p style=normal>
- *     <b>bold, italic and underline attributes
- *        of the run are emitted as html tags.
+ *        --&gt;
+ *      &lt;/style&gt;
+ *   &lt;/head&gt;
+ *   &lt;body&gt;
+ *    &lt;p style=normal&gt;
+ *        <b>Bold, italic, and underline attributes
+ *        of the run are emitted as HTML tags.
  *        The remaining attributes are emitted as
- *        part  style attribute of a <font> tag.
+ *        part of the style attribute of a &lt;span&gt; tag.
  *        The syntax is similar to inline styles.</b>
- *    </p>
- *   </body>
- * </html>
+ *    &lt;/p&gt;
+ *   &lt;/body&gt;
+ * &lt;/html&gt;
+ * </pre>
  *
  * @author Sunita Mani
- * @version 1.9, 11/29/01
+ * @version 1.11, 02/02/00
  */
 
 public class MinimalHTMLWriter extends AbstractWriter {
 
     /**
      * These static finals are used to
-     * tweak & query the fontMask about which
-     * of these tags need to be generated, or
+     * tweak and query the fontMask about which
+     * of these tags need to be generated or
      * terminated.
      */
     private static final int BOLD = 0x01;
@@ -67,18 +72,24 @@ public class MinimalHTMLWriter extends AbstractWriter {
     int endOffset = 0;
 
     /**
-     * stores the attributes of the previous run.
+     * Stores the attributes of the previous run.
      * Used to compare with the current run's
      * attributeset.  If identical, then a
-     * <font> tag is not emitted.
+     * &lt;span&gt; tag is not emitted.
      */
     private AttributeSet fontAttributes;
 
     /**
+     * Maps from style name as held by the Document, to the archived
+     * style name (style name written out). These may differ.
+     */
+    private Hashtable styleNameMapping;
+
+    /**
      * Creates a new MinimalHTMLWriter.
      *
-     * @param a  Writer
-     * @param an StyledDocument
+     * @param w  Writer
+     * @param doc StyledDocument
      *
      */
     public MinimalHTMLWriter(Writer w, StyledDocument doc) {
@@ -88,8 +99,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
     /**
      * Creates a new MinimalHTMLWriter.
      *
-     * @param a  Writer
-     * @param an StyledDocument
+     * @param w  Writer
+     * @param doc StyledDocument
      * @param pos The location in the document to fetch the
      *   content.
      * @param len The amount to write out.
@@ -100,7 +111,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
     }
 
     /**
-     * This method is responsible for generating html output
+     * Generates HTML output
      * from a StyledDocument.
      *
      * @exception IOException on any I/O error
@@ -109,6 +120,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
      *
      */
     public void write() throws IOException, BadLocationException {
+	styleNameMapping = new Hashtable();
 	writeStartTag("<html>");
 	writeHeader();
 	writeBody();
@@ -117,14 +129,14 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method writes out all the attributes that are for the
+     * Writes out all the attributes for the
      * following types:
-     *  StyleConstants.ParagraphConstants
-     *  StyleConstants.CharacterConstants
-     *  StyleConstants.FontConstants
+     *  StyleConstants.ParagraphConstants,
+     *  StyleConstants.CharacterConstants,
+     *  StyleConstants.FontConstants,
      *  StyleConstants.ColorConstants.
-     * The attribute name and value are separated by a colon
-     * And each pair is separatd by a semicolon.
+     * The attribute name and value are separated by a colon.
+     * Each pair is separated by a semicolon.
      *
      * @exception IOException on any I/O error
      */
@@ -150,7 +162,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method is responsible for writing text out.
+     * Writes out text.
      *
      * @exception IOException on any I/O error
      */
@@ -166,8 +178,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
     }
 
     /**
-     * This method writes out a start tag approrirately
-     * indented.  It also increments the indent level.
+     * Writes out a start tag appropriately
+     * indented.  Also increments the indent level.
      *
      * @exception IOException on any I/O error
      */
@@ -180,8 +192,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method writes out a end tag approrirately
-     * indented.  It also decrements the indent level.
+     * Writes out an end tag appropriately
+     * indented.  Also decrements the indent level.
      *
      * @exception IOException on any I/O error
      */
@@ -194,11 +206,11 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method writes out the <head> and <style>
-     * tags.  It Then invokes writeStyles() to write
+     * Writes out the &lt;head&gt; and &lt;style&gt;
+     * tags, and then invokes writeStyles() to write
      * out all the named styles as the content of the
-     * <style> tag.  The content is surrounded by
-     * valid html comment markers to ensure that the
+     * &lt;style&gt; tag.  The content is surrounded by
+     * valid HTML comment markers to ensure that the
      * document is viewable in applications/browsers
      * that do not support the tag.
      *
@@ -217,8 +229,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method writes out all the named styles as the
-     * content of the <style> tag.
+     * Writes out all the named styles as the
+     * content of the &lt;style&gt; tag.
      *
      * @exception IOException on any I/O error
      */
@@ -241,7 +253,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
 		continue;
 	    }
 	    indent();
-	    write("p." + s.getName());
+	    write("p." + addStyleName(s.getName()));
 	    write(" {\n");
 	    incrIndent();
 	    writeAttributes(s);
@@ -253,9 +265,9 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method iterates over the elements in the document
+     * Iterates over the elements in the document
      * and processes elements based on whether they are
-     * branch elements or leaf elements.  It specially handles
+     * branch elements or leaf elements.  This method specially handles
      * leaf elements that are text.
      *
      * @exception IOException on any I/O error
@@ -265,7 +277,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 	/*
 	  This will be a section element for a styled document.
-	  We represent this element in html as the body tags.
+	  We represent this element in HTML as the body tags.
 	  Therefore we ignore it.
 	 */
 	it.current();
@@ -303,8 +315,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method handles emiting an end tag for a <p>
-     * tag.  Prior to writing out the tag, it ensures
+     * Emits an end tag for a &lt;p&gt;
+     * tag.  Before writing out the tag, this method ensures
      * that all other tags that have been opened are
      * appropriately closed off.
      *
@@ -313,7 +325,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
     protected void writeEndParagraph() throws IOException {
 	writeEndMask(fontMask);
 	if (inFontTag()) {
-	    endFontTag();
+	    endSpanTag();
 	} else {
 	    write(NEWLINE);
 	}
@@ -322,10 +334,10 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method emits the start tag for a paragraph. If
+     * Emits the start tag for a paragraph. If
      * the paragraph has a named style associated with it,
-     * then it also generates a class attribute for the
-     * <p> tag and set's its value to be the name of the
+     * then this method also generates a class attribute for the
+     * &lt;p&gt; tag and sets its value to be the name of the
      * style.
      *
      * @exception IOException on any I/O error
@@ -334,7 +346,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
 	AttributeSet attr = elem.getAttributes();
 	Object resolveAttr = attr.getAttribute(StyleConstants.ResolveAttribute);
 	if (resolveAttr instanceof StyleContext.NamedStyle) {
-	    writeStartTag("<p class=" + ((StyleContext.NamedStyle)resolveAttr).getName() + ">");
+	    writeStartTag("<p class=" + mapStyleName(((StyleContext.NamedStyle)resolveAttr).getName()) + ">");
 	} else {
 	    writeStartTag("<p>");
 	}
@@ -342,7 +354,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * Responsible for writing out other non text leaf
+     * Responsible for writing out other non-text leaf
      * elements.
      *
      * @exception IOException on any I/O error
@@ -358,24 +370,24 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * Responsible for handling Icon Elements.  This method is
-     * deliberatly unimplemented.  How to implement it is more
-     * an issue of policy -- for example, if one was to generate
-     * an <img> tag, the question does arise about how one would
-     * represent the src attribute, i.e location of the image.
-     * In certain cases it could be a url, in others it could
+     * Responsible for handling Icon Elements;
+     * deliberately unimplemented.  How to implement this method is 
+     * an issue of policy.  For example, if you're generating
+     * an &lt;img&gt; tag, how should you 
+     * represent the src attribute (the location of the image)?
+     * In certain cases it could be a URL, in others it could
      * be read from a stream.
      *
-     * @param an element fo type StyleConstants.IconElementName
+     * @param elem element of type StyleConstants.IconElementName
      */
     protected void writeImage(Element elem) throws IOException {
     }
 
 
     /**
-     * Responsible for handling Component Elements.  How this
-     * method is implemented is a matter of policy.  Hence left
-     * unimplemented.
+     * Responsible for handling Component Elements;  
+     * deliberately unimplemented.
+     * How this method is implemented is a matter of policy.
      */
     protected void writeComponent(Element elem) throws IOException {
     }
@@ -391,9 +403,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method handles writing out text. It invokes methods
-     * that are responsible for writing out its attribute set
-     * in a manner that is html compliant.
+     * Writes out the attribute set
+     * in an HTML-compliant manner.
      *
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
@@ -413,8 +424,8 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method is responsible for generating
-     * bold <b>, italics <i> and <u> tags for the
+     * Generates
+     * bold &lt;b&gt;, italic &lt;i&gt;, and &lt;u&gt; tags for the
      * text based on its attribute settings.
      *
      * @exception IOException on any I/O error
@@ -456,9 +467,9 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method tweaks the appropriate bits of fontMask
+     * Tweaks the appropriate bits of fontMask
      * to reflect whether the text is to be displayed in
-     * bold, italics and/or with an underline.
+     * bold, italic, and/or with an underline.
      *
      */
     private void setFontMask(AttributeSet attr) {
@@ -479,7 +490,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * Writes out start tags <u>, <i> and <b> based on
+     * Writes out start tags &lt;u&gt;, &lt;i&gt;, and &lt;b&gt; based on
      * the mask settings.
      *
      * @exception IOException on any I/O error
@@ -499,7 +510,7 @@ public class MinimalHTMLWriter extends AbstractWriter {
     }
 
     /**
-     * Writes out end tags for <u>, <i> and <b> based on
+     * Writes out end tags for &lt;u&gt;, &lt;i&gt;, and &lt;b&gt; based on
      * the mask settings.
      *
      * @exception IOException on any I/O error
@@ -520,11 +531,11 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * This method is responsible for writing out the remaining
-     * character level attributes (i,e attributes other than bold
-     * italics and underlie) in an html compliant way.  Given that
-     * attributes like font family, font size etc.. have no direct
-     * mapping to html tags, a <font> tag is generated and its
+     * Writes out the remaining
+     * character-level attributes (attributes other than bold,
+     * italic, and underline) in an HTML-compliant way.  Given that
+     * attributes such as font family and font size have no direct
+     * mapping to HTML tags, a &lt;span&gt; tag is generated and its
      * style attribute is set to contain the list of remaining
      * attributes just like inline styles.
      *
@@ -539,38 +550,60 @@ public class MinimalHTMLWriter extends AbstractWriter {
 	    return;
 	}
 
+	boolean first = true;
 	Color color = (Color)attr.getAttribute(StyleConstants.Foreground);
 	if (color != null) {
 	    style += "color: " + css.styleConstantsValueToCSSValue
 		                    ((StyleConstants)StyleConstants.Foreground,
-				     color) + separator;
+				     color);
+	    first = false;
 	}
 	Integer size = (Integer)attr.getAttribute(StyleConstants.FontSize);
 	if (size != null) {
-	    style += "font-size: " + size.intValue() + separator;
+	    if (!first) {
+		style += separator;
+	    }
+	    style += "font-size: " + size.intValue() + "pt";
+	    first = false;
 	}
 
 	String family = (String)attr.getAttribute(StyleConstants.FontFamily);
 	if (family != null) {
-	    style += "font-family: " + family + separator;
+	    if (!first) {
+		style += separator;
+	    }
+	    style += "font-family: " + family;
+	    first = false;
 	}
 
 	if (style.length() > 0) {
-	    startFontTag(style);
+	    if (fontMask != 0) {
+		writeEndMask(fontMask);
+		fontMask = 0;
+	    }
+	    startSpanTag(style);
 	    fontAttributes = attr;
+	}
+	else if (fontAttributes != null) {
+	    writeEndMask(fontMask);
+	    fontMask = 0;
+	    endSpanTag();
 	}
     }
 
 
     /**
-     * Returns true if we are currently in a <font> tag.
+     * Returns true if we are currently in a &lt;font&gt; tag.
      */
     protected boolean inFontTag() {
 	return (fontAttributes != null);
     }
 
     /**
-     * Writes out an end tag for the <font> tag.
+     * This is no longer used, instead &lt;span&gt; will be written out.
+     * <p>
+     * Writes out an end tag for the &lt;font&gt; tag.
+     *
      * @exception IOException on any I/O error
      */
     protected void endFontTag() throws IOException {
@@ -581,10 +614,12 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 
     /**
-     * Writes out a start tag for the <font> tag.
-     * Given that font tags cannot be nested, if
-     * we are already in a font tag, it closes out
-     * the enclosing tag, before writing out a
+     * This is no longer used, instead &lt;span&gt; will be written out.
+     * <p>
+     * Writes out a start tag for the &lt;font&gt; tag.
+     * Because font tags cannot be nested, 
+     * this method closes out
+     * any enclosing font tag before writing out a
      * new start tag.
      *
      * @exception IOException on any I/O error
@@ -599,5 +634,79 @@ public class MinimalHTMLWriter extends AbstractWriter {
 	if (callIndent) {
 	    indent();
 	}
+    }
+
+    /**
+     * Writes out a start tag for the &lt;font&gt; tag.
+     * Because font tags cannot be nested, 
+     * this method closes out
+     * any enclosing font tag before writing out a
+     * new start tag.
+     *
+     * @exception IOException on any I/O error
+     */
+    private void startSpanTag(String style) throws IOException {
+	boolean callIndent = false;
+	if (inFontTag()) {
+	    endSpanTag();
+	    callIndent = true;
+	}
+	writeStartTag("<span style=\"" + style + "\">");
+	if (callIndent) {
+	    indent();
+	}
+    }
+
+    /**
+     * Writes out an end tag for the &lt;span&gt; tag.
+     *
+     * @exception IOException on any I/O error
+     */
+    private void endSpanTag() throws IOException {
+	write(NEWLINE);
+	writeEndTag("</span>");
+	fontAttributes = null;
+    }
+
+    /**
+     * Adds the style named <code>style</code> to the style mapping. This
+     * returns the name that should be used when outputting. CSS does not
+     * allow the full Unicode set to be used as a style name.
+     */
+    private String addStyleName(String style) {
+	if (styleNameMapping == null) {
+	    return style;
+	}
+	StringBuffer sb = null;
+	for (int counter = style.length() - 1; counter >= 0; counter--) {
+	    if (!isValidCharacter(style.charAt(counter))) {
+		if (sb == null) {
+		    sb = new StringBuffer(style);
+		}
+		sb.setCharAt(counter, 'a');
+	    }
+	}
+	String mappedName = (sb != null) ? sb.toString() : style;
+	while (styleNameMapping.get(mappedName) != null) {
+	    mappedName = mappedName + 'x';
+	}
+	styleNameMapping.put(style, mappedName);
+	return mappedName;
+    }
+
+    /**
+     * Returns the mapped style name corresponding to <code>style</code>.
+     */
+    private String mapStyleName(String style) {
+	if (styleNameMapping == null) {
+	    return style;
+	}
+	String retValue = (String)styleNameMapping.get(style);
+	return (retValue == null) ? style : retValue;
+    }
+
+    private boolean isValidCharacter(char character) {
+	return ((character >= 'a' && character <= 'z') ||
+		(character >= 'A' && character <= 'Z'));
     }
 }

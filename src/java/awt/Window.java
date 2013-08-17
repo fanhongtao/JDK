@@ -1,8 +1,11 @@
 /*
- * @(#)Window.java	1.120 02/02/28
+ * @(#)Window.java	1.135 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -10,6 +13,7 @@ import java.awt.peer.WindowPeer;
 import java.awt.event.*;
 import java.util.Vector;
 import java.util.Locale;
+import java.util.EventListener;
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -20,7 +24,9 @@ import java.util.ResourceBundle;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
+import javax.accessibility.*;
 import sun.security.action.GetPropertyAction;
+import sun.awt.DebugHelper;
 
 /**
  * A <code>Window</code> object is a top-level window with no borders and no
@@ -30,10 +36,50 @@ import sun.security.action.GetPropertyAction;
  * A window must have either a frame, dialog, or another window defined as its
  * owner when it's constructed. 
  * <p>
+ * In a multi-screen environment, you can create a <code>Window</code>
+ * on a different screen device by constructing the <code>Window</code>
+ * with {@link Window(Window, GraphicsConfiguration)}.  The 
+ * <code>GraphicsConfiguration</code> object is one of the 
+ * <code>GraphicsConfiguration</code> objects of the target screen device.  
+ * <p>
+ * In a virtual device multi-screen environment in which the desktop 
+ * area could span multiple physical screen devices, the bounds of all
+ * configurations are relative to the virtual device coordinate system.  
+ * The origin of the virtual-coordinate system is at the upper left-hand 
+ * corner of the primary physical screen.  Depending on the location of
+ * the primary screen in the virtual device, negative coordinates are 
+ * possible, as shown in the following figure.
+ * <p>
+ * <img src="doc-files/MultiScreen.gif"
+ * ALIGN=center HSPACE=10 VSPACE=7>
+ * <p>  
+ * In such an environment, when calling <code>setLocation</code>, 
+ * you must pass a virtual coordinate to this method.  Similarly,
+ * calling <code>getLocationOnScreen</code> on a <code>Window</code> returns 
+ * virtual device coordinates.  Call the <code>getBounds</code> method 
+ * of a <code>GraphicsConfiguration</code> to find its origin in the virtual
+ * coordinate system.
+ * <p>
+ * The following code sets the location of a <code>Window</code> 
+ * at (10, 10) relative to the origin of the physical screen
+ * of the corresponding <code>GraphicsConfiguration</code>.  If the 
+ * bounds of the <code>GraphicsConfiguration</code> is not taken 
+ * into account, the <code>Window</code> location would be set 
+ * at (10, 10) relative to the virtual-coordinate system and would appear
+ * on the primary physical screen, which might be different from the
+ * physical screen of the specified <code>GraphicsConfiguration</code>.
+ *
+ * <pre>
+ *	Window w = new Window(Window owner, GraphicsConfiguration gc);
+ *	Rectangle bounds = gc.getBounds();
+ *	w.setLocation(10 + bounds.x, 10 + bounds.y);
+ * </pre>
+ *
+ * <p>
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.110, 12/15/98
+ * @version 	1.135, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -41,7 +87,7 @@ import sun.security.action.GetPropertyAction;
  * @see java.awt.BorderLayout
  * @since       JDK1.0
  */
-public class Window extends Container {
+public class Window extends Container implements Accessible {
 
     /**
      * This represents the warning message that is
@@ -55,7 +101,6 @@ public class Window extends Container {
      * @see getWarningString()
      */
     String      warningString;
-	boolean		nativeActive;
 
     static final int OPENED = 0x01;
 
@@ -63,7 +108,7 @@ public class Window extends Container {
      * An Integer value representing the Window State.
      *
      * @serial
-     * @since JDK1.2
+     * @since 1.2
      * @see show()
      */
     int state;
@@ -71,25 +116,24 @@ public class Window extends Container {
     /**
      * A vector containing all the windows this
      * window currently owns.
-     * @since JDK1.2
+     * @since 1.2
      * @see getOwnedWindows()
      */
     transient Vector ownedWindowList = new Vector();
     private transient WeakReference weakThis;
 
-    private transient boolean showWithParent = false;
-    
     transient WindowListener windowListener;
     private transient boolean active = false;   // == true when Window receives WINDOW_ACTIVATED event
                                                 // == false when Window receives WINDOW_DEACTIVATED event
     
     transient InputContext inputContext;
+    private transient Object inputContextLock = new Object();
 
     /**
      * The Focus for the Window in question, and its components.
      *
      * @serial
-     * @since JDK1.2
+     * @since 1.2
      * @See java.awt.FocusManager
      */
     private FocusManager focusMgr;
@@ -102,6 +146,7 @@ public class Window extends Container {
      */
     private static final long serialVersionUID = 4497834738069338734L;
 
+    private static final DebugHelper dbg = DebugHelper.create(Container.class);
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -116,7 +161,49 @@ public class Window extends Container {
     private static native void initIDs();
 
     /**
-     * Constructs a new window.
+     * Constructs a new window in default size with the 
+     * specified <code>GraphicsConfiguration</code>.
+     * <p>
+     * If there is a security manager, this method first calls 
+     * the security manager's <code>checkTopLevelWindow</code> 
+     * method with <code>this</code> 
+     * as its argument to determine whether or not the window 
+     * must be displayed with a warning banner. 
+     * @param gc the <code>GraphicsConfiguration</code>
+     * of the target screen device.  If <code>gc</code> is
+     * <code>null</code>, the system default
+     * <code>GraphicsConfiguration</code> is assumed.
+     * @exception IllegalArgumentException if <code>gc</code>
+     * is not from a screen device.
+     * @see java.lang.SecurityManager#checkTopLevelWindow 
+     */
+    Window(GraphicsConfiguration gc) {
+	setWarningString();
+	this.cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+	this.focusMgr = new FocusManager(this);
+	this.visible = false;
+        if (gc == null) {
+            this.graphicsConfig =
+                GraphicsEnvironment.getLocalGraphicsEnvironment().
+             getDefaultScreenDevice().getDefaultConfiguration();
+        } else {
+            this.graphicsConfig = gc;
+        }
+        if (graphicsConfig.getDevice().getType() !=
+            GraphicsDevice.TYPE_RASTER_SCREEN) {
+            throw new IllegalArgumentException("not a screen device");
+        }
+	setLayout(new BorderLayout());
+
+        /* offset the initial location with the original of the screen */
+        Rectangle screenBounds = graphicsConfig.getBounds();
+        int x = getX() + screenBounds.x;
+        int y = getY() + screenBounds.y;
+        setLocation(x, y);
+    }
+    
+    /**
+     * Constructs a new window in the default size.
      * 
      * <p>First, if there is a security manager, its 
      * <code>checkTopLevelWindow</code> 
@@ -126,7 +213,7 @@ public class Window extends Container {
      * If the default implementation of <code>checkTopLevelWindow</code> 
      * is used (that is, that method is not overriden), then this results in
      * a call to the security manager's <code>checkPermission</code> method with an
-     * <code>AWTPermission("showWindowWithoutWarningBanner")<code>
+     * <code>AWTPermission("showWindowWithoutWarningBanner")</code>
      * permission. It that method raises a SecurityException, 
      * <code>checkTopLevelWindow</code> returns false, otherwise it
      * returns true. If it returns false, a warning banner is created.
@@ -134,18 +221,12 @@ public class Window extends Container {
      * @see java.lang.SecurityManager#checkTopLevelWindow
      */
     Window() {
-	setWarningString();
-	this.cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-	this.focusMgr = new FocusManager(this);
-	this.visible = false;
-	this.inputContext = InputContext.getInstance();
+        this((GraphicsConfiguration)null);
     }
-
+    
     /**
-     * Constructs a new invisible window.
-     * <p>
-     * The window is not initially visible. Call the <code>show</code> 
-     * method to cause the window to become visible.
+     * Constructs a new invisible window with the specified
+     * Frame as its owner.
      * <p>
      * If there is a security manager, this method first calls 
      * the security manager's <code>checkTopLevelWindow</code> 
@@ -153,21 +234,21 @@ public class Window extends Container {
      * as its argument to determine whether or not the window 
      * must be displayed with a warning banner. 
      * 
-     * @param     owner   the main application frame.
-     * @exception java.lang.IllegalArgumentException if <code>owner</code> 
-     *            is <code>null</code>
-     * @see       java.awt.Window#show
-     * @see       java.awt.Component#setSize
+     * @param owner the <code>Frame</code> to act as owner
+     * @exception IllegalArgumentException if <code>gc</code> 
+     * is not from a screen device.
+     * @exception java.lang.IllegalArgumentException if 
+     *		<code>owner</code> is <code>null</code>
      * @see       java.lang.SecurityManager#checkTopLevelWindow
      */
     public Window(Frame owner) {
-	this();
+        this((GraphicsConfiguration)null);
 	ownedInit(owner);
     }
 
     /**
      * Constructs a new invisible window with the specified
-     * window as its owner.
+     * Window as its owner.
      * <p>
      * If there is a security manager, this method first calls 
      * the security manager's <code>checkTopLevelWindow</code> 
@@ -175,14 +256,42 @@ public class Window extends Container {
      * as its argument to determine whether or not the window 
      * must be displayed with a warning banner. 
      * 
-     * @param     owner   the window to act as owner
+     * @param     owner   the Window to act as owner
      * @exception java.lang.IllegalArgumentException if <code>owner</code> 
      *            is <code>null</code>
      * @see       java.lang.SecurityManager#checkTopLevelWindow
-     * @since     JDK1.2
+     * @since     1.2
      */
     public Window(Window owner) {
-	this();
+        this((GraphicsConfiguration)null);
+	ownedInit(owner);
+    }
+
+    /**
+     * Constructs a new invisible window with the specified
+     * window as its owner and a 
+     * <code>GraphicsConfiguration</code> of a screen device.
+     * <p>
+     * If there is a security manager, this method first calls 
+     * the security manager's <code>checkTopLevelWindow</code> 
+     * method with <code>this</code> 
+     * as its argument to determine whether or not the window 
+     * must be displayed with a warning banner.
+     * @param     owner   the window to act as owner
+     * @param gc the <code>GraphicsConfiguration</code>
+     * of the target screen device.  If <code>gc</code> is 
+     * <code>null</code>, the system default 
+     * <code>GraphicsConfiguration</code> is assumed.
+     * @throws IllegalArgumentException if
+     *            <code>owner</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>gc</code> is not from
+     * a screen device.
+     * @see       java.lang.SecurityManager#checkTopLevelWindow
+     * @see       java.awt.GraphicsConfiguration#getBounds
+     * @since     1.3
+     */
+    public Window(Window owner, GraphicsConfiguration gc) {
+        this(gc);
 	ownedInit(owner);
     }
 
@@ -193,7 +302,6 @@ public class Window extends Container {
 	this.parent = owner;
 	this.weakThis = new WeakReference(this);
 	owner.addOwnedWindow(weakThis);
-	setLayout(new BorderLayout());
     }
 
     /**
@@ -202,7 +310,6 @@ public class Window extends Container {
      * list.
      */
     protected void finalize() throws Throwable {
-        inputContext.dispose();
 	if (parent != null) {
 	    ((Window)parent).removeOwnedWindow(weakThis);
 	}
@@ -252,22 +359,17 @@ public class Window extends Container {
     public void pack() {
 	Container parent = this.parent;
 	if (parent != null && parent.getPeer() == null) {
-            parent.addNotify();
-        }
-	
-	/*fix for #4429511, avoid race condition with awt-eventqueue about
-	 *setting dialog size
-	 */
-	synchronized (getTreeLock()) {
-            if (peer == null) {
-    	        addNotify();
-	    }
-       	    setSize(getPreferredSize());
-	}	
+	    parent.addNotify();
+	}
+	if (peer == null) {
+	    addNotify();
+	}
+	setSize(getPreferredSize());
 	isPacked = true;
+
 	validate();
     }
-    
+
     /**
      * Makes the Window visible. If the Window and/or its owner
      * are not yet displayable, both are made displayable.  The 
@@ -288,14 +390,6 @@ public class Window extends Container {
 	    toFront();
 	} else {
 	    super.show();
-            for (int i = 0; i < ownedWindowList.size(); i++) {
-                Window child = (Window) (((WeakReference)
-                    (ownedWindowList.elementAt(i))).get());
-                        if ((child != null) && child.showWithParent) {
-                            child.show();
-                            child.showWithParent = false;
-                        }       // endif
-            }   // endfor
 	}
         
         // If first time shown, generate WindowOpened event
@@ -306,13 +400,16 @@ public class Window extends Container {
     }
 
     synchronized void postWindowEvent(int id) {
-        if (windowListener != null || 
-            (eventMask & AWTEvent.WINDOW_EVENT_MASK) != 0) {
+	// Fix for 4253157: accessibility adds AWTEventListener to
+	// Toolkit to look for WINDOW_OPENED events, so post them
+	// unconditionally for now.
+//	if (windowListener != null
+//	        || (eventMask & AWTEvent.WINDOW_EVENT_MASK) != 0) {
             WindowEvent e = new WindowEvent(this, id);
             Toolkit.getEventQueue().postEvent(e);
-        }
+//	}
     }
-        
+
     /**
      * Hide this Window, its subcomponents, and all of its owned children. 
      * The Window and its subcomponents can be made visible again
@@ -325,13 +422,11 @@ public class Window extends Container {
         synchronized(ownedWindowList) {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
 	        Window child = (Window) (((WeakReference)
-		 	(ownedWindowList.elementAt(i))).get());
-                if ((child != null) && child.visible) {
-                    child.hide();
-                    child.showWithParent = true;
-                }
+		    (ownedWindowList.elementAt(i))).get());
+		if (child != null) {
+		    child.hide();
+		}
 	    }
-
 	}
 	super.hide();
     }
@@ -368,6 +463,12 @@ public class Window extends Container {
 		}
 		hide();
 		removeNotify();
+                synchronized (inputContextLock) {
+                    if (inputContext != null) {
+                        inputContext.dispose();
+                        inputContext = null;
+                    }
+                }
 	    }
 	}
 	
@@ -392,6 +493,26 @@ public class Window extends Container {
 	// synchronized on (this). We don't need to synchronize the call
 	// on the EventQueue anyways.
 	postWindowEvent(WindowEvent.WINDOW_CLOSED);
+    }
+
+    // Should only be called while holding tree lock
+    void adjustListeningChildren(long mask, int num) {
+        if (dbg.on) {
+	    dbg.assert(mask == AWTEvent.HIERARCHY_EVENT_MASK ||
+		       mask == AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK ||
+		       mask == (AWTEvent.HIERARCHY_EVENT_MASK |
+				AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK));
+	}
+
+        if (num == 0)
+	    return;
+
+	if ((mask & AWTEvent.HIERARCHY_EVENT_MASK) != 0) {
+	    listeningChildren += num;
+	}
+	if ((mask & AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK) != 0) {
+	    listeningBoundsChildren += num;
+	}
     }
 
     /**
@@ -462,7 +583,7 @@ public class Window extends Container {
 		// above checkTopLevelWindow call to always succeed!
 		warningString = (String) AccessController.doPrivileged(
 		      new GetPropertyAction("awt.appletWarning",
-					    "Warning: Applet Window"));
+					    "Java Applet Window"));
 	    }
 	}
     }
@@ -488,10 +609,17 @@ public class Window extends Container {
      * Gets the input context for this window. A window always has an input context,
      * which is shared by subcomponents unless they create and set their own.
      * @see Component#getInputContext
-     * @since JDK1.2
+     * @since 1.2
      */
 
     public InputContext getInputContext() {
+        if (inputContext == null) {
+            synchronized (inputContextLock) {
+                if (inputContext == null) {
+                    inputContext = InputContext.getInstance();
+                }
+            }
+        }
         return inputContext;
     }
 
@@ -505,7 +633,7 @@ public class Window extends Container {
      * @see       java.awt.Cursor
      * @since     JDK1.1
      */
-    public synchronized void setCursor(Cursor cursor) {
+    public void setCursor(Cursor cursor) {
         if (cursor == null) {
             cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
         }
@@ -522,7 +650,7 @@ public class Window extends Container {
     /**
      * Return an array containing all the windows this
      * window currently owns.
-     * @since JDK1.2
+     * @since 1.2
      */
     public Window[] getOwnedWindows() {
         Window realCopy[];
@@ -547,7 +675,7 @@ public class Window extends Container {
 	    }
 
 	    if (fullSize != realSize) {
-	        realCopy = new Frame[realSize];
+	        realCopy = new Window[realSize];
 		System.arraycopy(fullCopy, 0, realCopy, 0, realSize);
 	    } else {
 	        realCopy = fullCopy;
@@ -584,6 +712,30 @@ public class Window extends Container {
 	    return;
 	}
         windowListener = AWTEventMulticaster.remove(windowListener, l);
+    }
+
+    /**
+     * Return an array of all the listeners that were added to the Window
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the WindowListener(s) for the
+     * given Window <code>w</code>, one would write:
+     * <pre>
+     * WindowListener[] wls = (WindowListener[])(w.getListeners(WindowListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return   all of the listeners of the specified type supported by this text field
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == WindowListener.class) { 
+	    l = windowListener;
+	} else {
+	    return super.getListeners(listenerType);
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
     }
 
     // REMIND: remove when filtering is handled at lower level
@@ -715,7 +867,7 @@ public class Window extends Container {
      * assigned to them.
      */
     public Component getFocusOwner() {
-        if (active || nativeActive)
+        if (active)
             return focusMgr.getFocusOwner();
         else
             return null;
@@ -786,7 +938,7 @@ public class Window extends Container {
      * to this Window and all components contained within it.
      *
      * @see java.awt.ComponentOrientation
-     * @since JDK1.2
+     * @since 1.2
      */
     public void applyResourceBundle(ResourceBundle rb) {
         // A package-visible utility on Container does all the work
@@ -800,7 +952,7 @@ public class Window extends Container {
      * to this Window and all components contained within it.
      *
      * @see java.awt.ComponentOrientation
-     * @since JDK1.2
+     * @since 1.2
      */
     public void applyResourceBundle(String rbName) {
         applyResourceBundle(ResourceBundle.getBundle(rbName));
@@ -815,7 +967,7 @@ public class Window extends Container {
 	        // this if statement should really be an assert, but we don't
 	        // have asserts...
 	        if (!ownedWindowList.contains(weakWindow)) {
-		    	ownedWindowList.addElement(weakWindow);
+		    ownedWindowList.addElement(weakWindow);
 		}
 	    }
 	}
@@ -825,7 +977,7 @@ public class Window extends Container {
         if (weakWindow != null) {
 	    // synchronized block not required since removeElement is
 	    // already synchronized
-	    	ownedWindowList.removeElement(weakWindow);
+	    ownedWindowList.removeElement(weakWindow);
 	}
     }
 
@@ -929,9 +1081,96 @@ public class Window extends Container {
       }
 
       setWarningString();
-      this.inputContext = InputContext.getInstance();
+      inputContextLock = new Object();
     }
 
+    /*
+     * --- Accessibility Support ---
+     *
+     */
+
+    /**
+     * Gets the AccessibleContext associated with this Window. 
+     * For windows, the AccessibleContext takes the form of an 
+     * AccessibleAWTWindow. 
+     * A new AccessibleAWTWindow instance is created if necessary.
+     *
+     * @return an AccessibleAWTWindow that serves as the 
+     *         AccessibleContext of this Window
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTWindow();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Window</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to window user-interface elements.
+     */
+    protected class AccessibleAWTWindow extends AccessibleAWTContainer {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.WINDOW;
+        }
+
+        /**
+         * Get the state of this object.
+         *
+         * @return an instance of AccessibleStateSet containing the current 
+         * state set of the object
+         * @see AccessibleState
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (getFocusOwner() != null) {
+                states.add(AccessibleState.ACTIVE);
+            }
+            return states;
+        }
+
+    } // inner class AccessibleAWTWindow
+
+    /**
+     * This method returns the GraphicsConfiguration used by this Window.
+     */
+    public GraphicsConfiguration getGraphicsConfiguration() {
+		//NOTE: for multiscreen, this will need to take into account
+		//which screen the window is on/mostly on instead of returning the
+		//default or constructor argument config.
+        synchronized(getTreeLock()) {
+            if (graphicsConfig == null) {
+                graphicsConfig =
+                    GraphicsEnvironment. getLocalGraphicsEnvironment().
+                    getDefaultScreenDevice().
+                    getDefaultConfiguration();
+            }
+            return graphicsConfig;
+	    }
+    }
+
+    /**
+     * Reset this Window's GraphicsConfiguration to the default.
+     * Called from the Toolkit thread, so NO CLIENT CODE.
+     */
+    void resetGC() {
+        synchronized(getTreeLock()) {
+            graphicsConfig = GraphicsEnvironment.
+                  getLocalGraphicsEnvironment().
+                getDefaultScreenDevice().
+                getDefaultConfiguration();
+        }        
+    }
+    
 } // class Window
 
 

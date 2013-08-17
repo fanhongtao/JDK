@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultColorSelectionModel.java	1.6 01/11/29
+ * @(#)DefaultColorSelectionModel.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.colorchooser;
@@ -15,7 +18,7 @@ import java.io.Serializable;
 /**
  * A generic implementation of ColorSelectionModel.
  *
- * @version 1.6 11/29/01
+ * @version 1.10 02/02/00
  * @author Steve Wilson
  *
  * @see java.awt.Color
@@ -52,9 +55,9 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
     }
 
     public void setSelectedColor(Color color) {
-        if ( !selectedColor.equals(color) ) {
-	    selectedColor = color;
-	    fireStateChanged();
+        if (color != null && !selectedColor.equals(color)) {
+            selectedColor = color;
+            fireStateChanged();
         }
     }
 
@@ -76,7 +79,7 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
     /**
      * Run each ChangeListeners stateChanged() method.
      *
-     * @see #setRangeProperties
+     * <!-- @see #setRangeProperties    //bad link-->
      * @see EventListenerList
      */
     protected void fireStateChanged()

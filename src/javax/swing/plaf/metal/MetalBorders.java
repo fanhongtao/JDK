@@ -1,8 +1,11 @@
 /*
- * @(#)MetalBorders.java	1.13 01/11/29
+ * @(#)MetalBorders.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -10,6 +13,7 @@ package javax.swing.plaf.metal;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
+import javax.swing.plaf.basic.BasicBorders;
 import javax.swing.text.JTextComponent;
 
 import java.awt.Component;
@@ -24,7 +28,7 @@ import java.io.Serializable;
 /**
  * Factory object that can vend Borders appropriate for the metal L & F.
  * @author Steve Wilson
- * @version 1.13 11/29/01
+ * @version 1.18 02/02/00
  */
 
 public class MetalBorders {
@@ -132,7 +136,11 @@ public class MetalBorders {
           }
     }
 
-    static class PaletteBorder extends AbstractBorder implements UIResource {
+    /**
+     * Border for a Palatte.
+     * @since 1.3
+     */
+    public static class PaletteBorder extends AbstractBorder implements UIResource {
         private static final Insets insets = new Insets(1, 1, 1, 1);
         int titleHeight = 0;
 
@@ -159,6 +167,36 @@ public class MetalBorders {
 	    g.drawLine(0, 1, 0, titleHeight-1);
 	    g.drawLine(w-1, 1, w-1, titleHeight-1);
 */
+
+	    g.translate(-x,-y);
+      
+	}
+
+        public Insets getBorderInsets(Component c)       {
+            return insets;
+        }
+    }
+
+    public static class OptionDialogBorder extends AbstractBorder implements UIResource {
+        private static final Insets insets = new Insets(3, 3, 3, 3);
+        int titleHeight = 0;
+
+        public void paintBorder( Component c, Graphics g, int x, int y, int w, int h ) {  
+
+	    g.translate(x,y);  
+
+	    g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+
+              // Draw outermost lines
+              g.drawLine( 1, 0, w-2, 0);
+              g.drawLine( 0, 1, 0, h-2);
+              g.drawLine( w-1, 1, w-1, h-2);
+              g.drawLine( 1, h-1, w-2, h-1);
+
+              // Draw the bulk of the border
+              for (int i = 1; i < 3; i++) {
+	          g.drawRect(i, i, w-(i*2)-1, h-(i*2)-1);
+              }
 
 	    g.translate(-x,-y);
       
@@ -255,7 +293,7 @@ public class MetalBorders {
     }
 
 
-    public static class RolloverButtonBorder extends MetalBorders.ButtonBorder {
+    public static class RolloverButtonBorder extends ButtonBorder {
 
         public void paintBorder( Component c, Graphics g, int x, int y, int w, int h ) {
             AbstractButton b = (AbstractButton) c;
@@ -334,6 +372,51 @@ public class MetalBorders {
         }
     }
 
+    private static Border buttonBorder;
+
+    /**
+     * Returns a border instance for a JButton
+     * @since 1.3
+     */
+    public static Border getButtonBorder() {
+	if (buttonBorder == null) {
+	    buttonBorder = new BorderUIResource.CompoundBorderUIResource(
+						   new MetalBorders.ButtonBorder(),
+						   new BasicBorders.MarginBorder());
+	}
+	return buttonBorder;
+    }
+
+    private static Border textBorder;
+
+    /**
+     * Returns a border instance for a text component
+     * @since 1.3
+     */
+    public static Border getTextBorder() {
+	if (textBorder == null) {
+	    textBorder = new BorderUIResource.CompoundBorderUIResource(
+						   new MetalBorders.Flush3DBorder(),
+						   new BasicBorders.MarginBorder());
+	}
+	return textBorder;
+    }
+
+    private static Border textFieldBorder;
+
+    /**
+     * Returns a border instance for a JTextField
+     * @since 1.3
+     */
+    public static Border getTextFieldBorder() {
+	if (textFieldBorder == null) {
+	    textFieldBorder = new BorderUIResource.CompoundBorderUIResource(
+						   new MetalBorders.TextFieldBorder(),
+						   new BasicBorders.MarginBorder());
+	}
+	return textFieldBorder;
+    }
+
     public static class TextFieldBorder extends Flush3DBorder {
 
         public void paintBorder(Component c, Graphics g, int x, int y,
@@ -399,13 +482,27 @@ public class MetalBorders {
         }
     }
 
-    static class ToggleButtonBorder extends ButtonBorder {
+    private static Border toggleButtonBorder;
+
+    /**
+     * Returns a border instance for a JToggleButton
+     * @since 1.3
+     */
+    public static Border getToggleButtonBorder() {
+	if (toggleButtonBorder == null) {
+	    toggleButtonBorder = new BorderUIResource.CompoundBorderUIResource(
+						   new MetalBorders.ToggleButtonBorder(),
+						   new BasicBorders.MarginBorder());
+	}
+	return toggleButtonBorder;
+    }
+    public static class ToggleButtonBorder extends ButtonBorder {
         public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
 	    JToggleButton button = (JToggleButton)c;
 	    ButtonModel model = button.getModel();
 
 	    if (! c.isEnabled() ) {
-	        MetalUtils.drawDisabledBorder(g, x, y, w, h);
+	        MetalUtils.drawDisabledBorder( g, x, y, w-1, h-1 );
 	    } else {
 	        if ( model.isPressed() && model.isArmed() ) {
 		    MetalUtils.drawPressed3DBorder( g, x, y, w, h );
@@ -418,4 +515,40 @@ public class MetalBorders {
 	}
     }
 
+    /**
+     * Border for a Table Header
+     * @since 1.3
+     */
+    public static class TableHeaderBorder extends javax.swing.border.AbstractBorder {
+        protected Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
+	    g.translate( x, y );
+	    
+	    g.setColor( MetalLookAndFeel.getControlDarkShadow() );
+	    g.drawLine( w-1, 0, w-1, h-1 );
+	    g.drawLine( 1, h-1, w-1, h-1 );
+	    g.setColor( MetalLookAndFeel.getControlHighlight() );
+	    g.drawLine( 0, 0, w-2, 0 );
+	    g.drawLine( 0, 0, 0, h-2 );
+
+	    g.translate( -x, -y );
+	}
+
+        public Insets getBorderInsets( Component c ) {
+	    return editorBorderInsets;
+	}
+    }
+
+    /**
+     * Returns a border instance for a Desktop Icon
+     * @since 1.3
+     */
+    public static Border getDesktopIconBorder() {
+	return new BorderUIResource.CompoundBorderUIResource(
+                                          new LineBorder(MetalLookAndFeel.getControlDarkShadow(), 1),
+                                          new MatteBorder (2,2,1,2, MetalLookAndFeel.getControl()));
+    }
+     
 }
+

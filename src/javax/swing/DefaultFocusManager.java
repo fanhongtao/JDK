@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultFocusManager.java	1.15 01/11/29
+ * @(#)DefaultFocusManager.java	1.18 00/07/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -14,11 +17,12 @@ import java.awt.Window;
 import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.util.Stack;
+import java.util.HashSet;
 
 /**
  * Default swing focus manager implementation.
  *
- * @version 1.15 11/29/01
+ * @version 1.15 07/13/99
  * @author Arnaud Weber
  */
 public class DefaultFocusManager extends FocusManager {
@@ -62,10 +66,10 @@ public class DefaultFocusManager extends FocusManager {
             }
 
 //	    System.out.println("\n\n******TAB pressed in processKeyEvent");
-            if((anEvent.getModifiers() & ActionEvent.SHIFT_MASK) == ActionEvent.SHIFT_MASK) 
-                focusPreviousComponent(focusedComponent);
-            else
-                focusNextComponent(focusedComponent);
+	    if((anEvent.getModifiers() & ActionEvent.SHIFT_MASK) == ActionEvent.SHIFT_MASK) {
+	      focusPreviousComponent(focusedComponent);
+	    } else { focusNextComponent(focusedComponent); }
+
             anEvent.consume();
         }
     }
@@ -141,25 +145,37 @@ public class DefaultFocusManager extends FocusManager {
     private Component getFocusableComponentAfter(Component focusedComponent,
                                                  Container rootContainer,
                                                  boolean moveForward) {
-        Component nextComponent;
-        Component initialComponent;
 
-        nextComponent = initialComponent = focusedComponent;
+        Component nextComponent = focusedComponent;
+        HashSet visitedComps = new HashSet();
+
+        if (focusedComponent != null) {
+            visitedComps.add(focusedComponent);
+        }
+
         do {
-	    if(moveForward) {
-	      
-                nextComponent = getNextComponent(nextComponent,rootContainer,true);
-	    } else
-                nextComponent = getPreviousComponent(nextComponent,rootContainer);
-            if(nextComponent == null)
+
+            nextComponent
+                = moveForward
+                  ? getNextComponent(nextComponent, rootContainer, true)
+                  : getPreviousComponent(nextComponent, rootContainer);
+            if (nextComponent == null)
+            {
                 break;
-            if(nextComponent == initialComponent)
+            }
+            if (!visitedComps.add(nextComponent))
+            {
+                // cycle detected, get out
+                nextComponent = null;
                 break;
-        } while(!(nextComponent.isVisible() && 
-                  nextComponent.isFocusTraversable() && 
+            }
+
+        } while(!(nextComponent.isVisible() &&
+                  nextComponent.isFocusTraversable() &&
                   nextComponent.isEnabled()));
 
         return nextComponent;
+
     }
 
    private Component getNextComponent(Component component,

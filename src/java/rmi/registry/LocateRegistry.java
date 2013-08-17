@@ -1,8 +1,11 @@
 /*
- * @(#)LocateRegistry.java	1.16 01/11/29
+ * @(#)LocateRegistry.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.registry;
@@ -23,7 +26,7 @@ import java.rmi.server.RMIServerSocketFactory;
  * the remote host.  Therefore, a subsequent method invocation to a remote
  * registry returned as a result of this method may fail.
  *
- * @version 1.16, 11/29/01
+ * @version 1.22, 02/02/00
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1
@@ -112,9 +115,9 @@ public final class LocateRegistry {
      *      make connections to the registry.  If <code>csf</code>
      *      is null, then the default client-side <code>Socket</code>
      *      factory will be used in the registry stub.
-     * @returns reference (a stub) to the remote registry
+     * @return reference (a stub) to the remote registry
      * @exception RemoteException if the reference could not be created
-     * @since JDK1.2
+     * @since 1.2
      */
     public static Registry getRegistry(String host, int port,
 				       RMIClientSocketFactory csf)
@@ -130,7 +133,7 @@ public final class LocateRegistry {
 	    // java.rmi.Naming), try to convert to real local host name so
 	    // that the RegistryImpl's checkAccess will not fail.
 	    try {
-		host = java.net.InetAddress.getLocalHost().getHostName();
+		host = java.net.InetAddress.getLocalHost().getHostAddress();
 	    } catch (Exception e) {
 		// If that failed, at least try "" (localhost) anyway...
 		host = "";
@@ -181,7 +184,7 @@ public final class LocateRegistry {
      *      used to accept connections to the registry
      * @return the registry
      * @exception RemoteException if the registry could not be exported
-     * @since JDK1.2
+     * @since 1.2
      */
     public static Registry createRegistry(int port, 
 					  RMIClientSocketFactory csf, 

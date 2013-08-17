@@ -1,8 +1,11 @@
 /*
- * @(#)Properties.java	1.52 01/11/29
+ * @(#)Properties.java	1.60 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -27,7 +30,7 @@ import java.util.Hashtable;
  * A property list can contain another property list as its
  * "defaults"; this second property list is searched if
  * the property key is not found in the original property list.
- *
+ * <p>
  * Because <code>Properties</code> inherits from <code>Hashtable</code>, the
  * <code>put</code> and <code>putAll</code> methods can be applied to a
  * <code>Properties</code> object.  Their use is strongly discouraged as they
@@ -36,10 +39,22 @@ import java.util.Hashtable;
  * instead.  If the <code>store</code> or <code>save</code> method is called
  * on a "compromised" <code>Properties</code> object that contains a
  * non-<code>String</code> key or value, the call will fail.
+ * <p>
+ * <a name="encoding"></a>
+ * When saving properties to a stream or loading them from a stream, the
+ * ISO 8859-1 character encoding is used. For characters that cannot be directly
+ * represented in this encoding,
+ * <a href="http://java.sun.com/docs/books/jls/html/3.doc.html#100850">Unicode escapes</a>
+ * are used; however, only a single 'u' character is allowed in an escape sequence.
+ * The native2ascii tool can be used to convert property files to and from
+ * other character encodings.
+ * 
+ * @see <a href="../../../tooldocs/solaris/native2ascii.html">native2ascii tool for Solaris</a>
+ * @see <a href="../../../tooldocs/win32/native2ascii.html">native2ascii tool for Windows</a>
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.52, 01/11/29
+ * @version 1.60, 02/02/00
  * @since   JDK1.0
  */
 public
@@ -75,9 +90,13 @@ class Properties extends Hashtable {
 
     /**
      * Calls the hashtable method <code>put</code>. Provided for
-     * parallelism with the getProperties method. Enforces use of
+     * parallelism with the <tt>getProperty</tt> method. Enforces use of
      * strings for property keys and values.
-     * @since    JDK1.2
+     *
+     * @param key the key to be placed into this property list.
+     * @param value the value corresponding to <tt>key</tt>.
+     * @see #getProperty
+     * @since    1.2
      */
     public synchronized Object setProperty(String key, String value) {
         return put(key, value);
@@ -93,6 +112,7 @@ class Properties extends Hashtable {
 
     /**
      * Reads a property list (key and element pairs) from the input stream.
+     * The stream is assumed to be using the ISO 8859-1 character encoding.
      * <p>
      * Every property occupies one line of the input stream. Each line
      * is terminated by a line terminator (<code>\n</code> or <code>\r</code>
@@ -120,7 +140,7 @@ class Properties extends Hashtable {
      * escape sequences <code>\t</code>, <code>\n</code>,
      * <code>\r</code>, <code>\\</code>, <code>\"</code>, <code>\'</code>,
      * <code>\ &#32;</code> &#32;(a backslash and a space), and
-     * <code>\\u</code><i>xxxx</i> are recognized and converted to single
+     * <code>&#92;u</code><i>xxxx</i> are recognized and converted to single
      * characters. Moreover, if the last character on the line is
      * <code>\</code>, then the next line is treated as a continuation of the
      * current line; the <code>\</code> and line terminator are simply
@@ -160,7 +180,7 @@ class Properties extends Hashtable {
      * specifies that the key is <code>"cheeses"</code> and the associated
      * element is the empty string.<p>
      *
-     * @param      in   the input stream.
+     * @param      inStream   the input stream.
      * @exception  IOException  if an error occurred when reading from the
      *               input stream.
      */
@@ -170,7 +190,7 @@ class Properties extends Hashtable {
 	while (true) {
             // Get next line
             String line = in.readLine();
-            if(line == null)
+            if (line == null)
                 return;
 
             if (line.length() > 0) {
@@ -190,6 +210,7 @@ class Properties extends Hashtable {
                         nextLine = nextLine.substring(startIndex,nextLine.length());
                         line = new String(loppedLine+nextLine);
                     }
+
                     // Find start of key
                     int len = line.length();
                     int keyStart;
@@ -197,6 +218,11 @@ class Properties extends Hashtable {
                         if(whiteSpaceChars.indexOf(line.charAt(keyStart)) == -1)
                             break;
                     }
+
+                    // Blank lines are ignored
+                    if (keyStart == len)
+                        continue;
+
                     // Find separation between key and value
                     int separatorIndex;
                     for(separatorIndex=keyStart; separatorIndex<len; separatorIndex++) {
@@ -249,7 +275,7 @@ class Properties extends Hashtable {
     }
 
     /*
-     * Converts encoded \\uxxxx to unicode chars
+     * Converts encoded &#92;uxxxx to unicode chars
      * and changes special saved chars to their original forms
      */
     private String loadConvert (String theString) {
@@ -299,38 +325,42 @@ class Properties extends Hashtable {
     }
 
     /*
-     * Converts unicodes to encoded \\uxxxx
+     * Converts unicodes to encoded &#92;uxxxx
      * and writes out any of the characters in specialSaveChars
      * with a preceding slash
      */
-    private String saveConvert(String theString) {
-        char aChar;
+    private String saveConvert(String theString, boolean escapeSpace) {
         int len = theString.length();
         StringBuffer outBuffer = new StringBuffer(len*2);
 
-        for(int x=0; x<len; ) {
-            aChar = theString.charAt(x++);
+        for(int x=0; x<len; x++) {
+            char aChar = theString.charAt(x);
             switch(aChar) {
+		case ' ':
+		    if (x == 0 || escapeSpace) 
+			outBuffer.append('\\');
+
+		    outBuffer.append(' ');
+		    break;
                 case '\\':outBuffer.append('\\'); outBuffer.append('\\');
-                          continue;
+                          break;
                 case '\t':outBuffer.append('\\'); outBuffer.append('t');
-                          continue;
+                          break;
                 case '\n':outBuffer.append('\\'); outBuffer.append('n');
-                          continue;
+                          break;
                 case '\r':outBuffer.append('\\'); outBuffer.append('r');
-                          continue;
+                          break;
                 case '\f':outBuffer.append('\\'); outBuffer.append('f');
-                          continue;
+                          break;
                 default:
-                    if ((aChar < 20) || (aChar > 127)) {
+                    if ((aChar < 0x0020) || (aChar > 0x007e)) {
                         outBuffer.append('\\');
                         outBuffer.append('u');
                         outBuffer.append(toHex((aChar >> 12) & 0xF));
-                        outBuffer.append(toHex((aChar >> 8) & 0xF));
-                        outBuffer.append(toHex((aChar >> 4) & 0xF));
-                        outBuffer.append(toHex((aChar >> 0) & 0xF));
-                    }
-                    else {
+                        outBuffer.append(toHex((aChar >>  8) & 0xF));
+                        outBuffer.append(toHex((aChar >>  4) & 0xF));
+                        outBuffer.append(toHex( aChar        & 0xF));
+                    } else {
                         if (specialSaveChars.indexOf(aChar) != -1)
                             outBuffer.append('\\');
                         outBuffer.append(aChar);
@@ -345,7 +375,7 @@ class Properties extends Hashtable {
      * and suppresses IOExceptions that were thrown.
      *
      * @deprecated This method does not throw an IOException if an I/O error
-     * occurs while saving the property list.  As of JDK 1.2, the preferred
+     * occurs while saving the property list.  As of the Java 2 platform v1.2, the preferred
      * way to save a properties list is via the <code>store(OutputStream out,
      * String header)</code> method.
      *
@@ -366,6 +396,7 @@ class Properties extends Hashtable {
      * <code>Properties</code> table to the output stream in a format suitable
      * for loading into a <code>Properties</code> table using the
      * <code>load</code> method.
+     * The stream is written using the ISO 8859-1 character encoding.
      * <p>
      * Properties from the defaults table of this <code>Properties</code>
      * table (if any) are <i>not</i> written out by this method.
@@ -387,11 +418,11 @@ class Properties extends Hashtable {
      * an escape sequence. The ASCII characters <code>\</code>, tab, newline,
      * and carriage return are written as <code>\\</code>, <code>\t</code>,
      * <code>\n</code>, and <code>\r</code>, respectively. Characters less
-     * than <code>\u0020</code> and characters greater than
-     * <code>\u007E</code> are written as <code>\\u</code><i>xxxx</i> for
-     * the appropriate hexadecimal value <i>xxxx</i>. Space characters, but
-     * not embedded or trailing space characters, are written with a preceding
-     * <code>\</code>. The key and value characters <code>#</code>,
+     * than <code>&#92;u0020</code> and characters greater than
+     * <code>&#92;u007E</code> are written as <code>&#92;u</code><i>xxxx</i> for
+     * the appropriate hexadecimal value <i>xxxx</i>. Leading space characters,
+     * but not embedded or trailing space characters, are written with a
+     * preceding <code>\</code>. The key and value characters <code>#</code>,
      * <code>!</code>, <code>=</code>, and <code>:</code> are written with a
      * preceding slash to ensure that they are properly loaded.
      * <p>
@@ -400,6 +431,8 @@ class Properties extends Hashtable {
      *
      * @param   out      an output stream.
      * @param   header   a description of the property list.
+     * @exception  IOException if writing this property list to the specified
+     *             output stream throws an <tt>IOException</tt>.
      * @exception  ClassCastException  if this <code>Properties</code> object
      *             contains any keys or values that are not <code>Strings</code>.
      */
@@ -414,8 +447,12 @@ class Properties extends Hashtable {
         for (Enumeration e = keys(); e.hasMoreElements();) {
             String key = (String)e.nextElement();
             String val = (String)get(key);
-            key = saveConvert(key);
-            val = saveConvert(val);
+            key = saveConvert(key, true);
+
+	    /* No need to escape embedded and trailing spaces for value, hence
+	     * pass false to flag.
+	     */
+            val = saveConvert(val, false);
             writeln(awriter, key + "=" + val);
         }
         awriter.flush();
@@ -434,7 +471,8 @@ class Properties extends Hashtable {
      *
      * @param   key   the property key.
      * @return  the value in this property list with the specified key value.
-     * @see     java.util.Properties#defaults
+     * @see     #setProperty
+     * @see     #defaults
      */
     public String getProperty(String key) {
 	Object oval = super.get(key);
@@ -452,7 +490,8 @@ class Properties extends Hashtable {
      * @param   defaultValue   a default value.
      *
      * @return  the value in this property list with the specified key value.
-     * @see     java.util.Properties#defaults
+     * @see     #setProperty
+     * @see     #defaults
      */
     public String getProperty(String key, String defaultValue) {
 	String val = getProperty(key);

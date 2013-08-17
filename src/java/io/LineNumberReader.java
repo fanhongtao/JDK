@@ -1,8 +1,11 @@
 /*
- * @(#)LineNumberReader.java	1.10 01/11/29
+ * @(#)LineNumberReader.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,7 +16,7 @@ package java.io;
  * is considered to be terminated by any one of a line feed ('\n'), a carriage
  * return ('\r'), or a carriage return followed immediately by a linefeed.
  *
- * @version 	1.10, 01/11/29
+ * @version 	1.13, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -35,6 +38,8 @@ public class LineNumberReader extends BufferedReader {
     /**
      * Create a new line-numbering reader, using the default input-buffer
      * size.
+     *
+     * @param in  a Reader object to provide the underlying stream.
      */
     public LineNumberReader(Reader in) {
 	super(in);
@@ -43,6 +48,9 @@ public class LineNumberReader extends BufferedReader {
     /**
      * Create a new line-numbering reader, reading characters into a buffer of
      * the given size.
+     *
+     * @param in  a Reader object to provide the underlying stream.
+     * @param sz  an int specifying the size of the buffer.
      */
     public LineNumberReader(Reader in, int sz) {
 	super(in, sz);
@@ -50,6 +58,9 @@ public class LineNumberReader extends BufferedReader {
 
     /**
      * Set the current line number.
+     *
+     * @param lineNumber  an int specifying the line number.
+     * @see #getLineNumber
      */
     public void setLineNumber(int lineNumber) {
 	this.lineNumber = lineNumber;
@@ -57,6 +68,9 @@ public class LineNumberReader extends BufferedReader {
 
     /**
      * Get the current line number.
+     *
+     * @return The current line number.
+     * @see #setLineNumber
      */
     public int getLineNumber() {
 	return lineNumber;
@@ -163,6 +177,8 @@ public class LineNumberReader extends BufferedReader {
      * @exception  IOException  If an I/O error occurs
      */
     public long skip(long n) throws IOException {
+	if (n < 0) 
+	    throw new IllegalArgumentException("skip() value is negative");
 	int nn = (int) Math.min(n, maxSkipBufferSize);
 	synchronized (lock) {
 	    if ((skipBuffer == null) || (skipBuffer.length < nn))

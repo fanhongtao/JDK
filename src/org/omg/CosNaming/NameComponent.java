@@ -1,8 +1,11 @@
 /*
- * @(#)NameComponent.java	1.6 01/11/29
+ * @(#)NameComponent.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 /*
  * File: ./org/omg/CosNaming/NameComponent.java

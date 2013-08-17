@@ -1,8 +1,11 @@
 /*
- * @(#)SocketImpl.java	1.28 01/11/29
+ * @(#)SocketImpl.java	1.30 00/08/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -21,7 +24,7 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.28, 11/29/01
+ * @version 1.30, 08/17/00
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {
@@ -141,6 +144,43 @@ public abstract class SocketImpl implements SocketOptions {
     protected abstract void close() throws IOException;
 
     /**
+     * Places the input stream for this socket at "end of stream".
+     * Any data sent to this socket is acknowledged and then
+     * silently discarded.
+     *
+     * If you read from a socket input stream after invoking 
+     * shutdownInput() on the socket, the stream will return EOF.
+     *
+     * @exception IOException if an I/O error occurs when shutting down this
+     * socket.
+     * @see java.net.Socket#shutdownOutput()
+     * @see java.net.Socket#close()
+     * @see java.net.Socket#setSoLinger(boolean, int)
+     */
+    protected void shutdownInput() throws IOException {
+      throw new IOException("Method not implemented!");
+    }
+    
+    /**
+     * Disables the output stream for this socket.
+     * For a TCP socket, any previously written data will be sent
+     * followed by TCP's normal connection termination sequence.
+     *
+     * If you write to a socket output stream after invoking 
+     * shutdownOutput() on the socket, the stream will throw 
+     * an IOException.
+     *
+     * @exception IOException if an I/O error occurs when shutting down this
+     * socket.
+     * @see java.net.Socket#shutdownInput()
+     * @see java.net.Socket#close()
+     * @see java.net.Socket#setSoLinger(boolean, int)
+     */
+    protected void shutdownOutput() throws IOException {
+      throw new IOException("Method not implemented!");
+    }  
+
+    /**
      * Returns the value of this socket's <code>fd</code> field.
      *
      * @return  the value of this socket's <code>fd</code> field.
@@ -190,10 +230,10 @@ public abstract class SocketImpl implements SocketOptions {
 	    ",port=" + getPort() + ",localport=" + getLocalPort()  + "]";
     }
 
-    void reset() throws IOException {
-	address = null;
-	port = 0;
-	localport = 0;
-	close();
+	void reset() throws IOException {
+    address = null;
+    port = 0;
+    localport = 0;
+    close();
     }
 }

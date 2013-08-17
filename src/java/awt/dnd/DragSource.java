@@ -1,8 +1,11 @@
 /*
- * @(#)DragSource.java	1.27 01/11/29
+ * @(#)DragSource.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.dnd;
@@ -95,8 +98,8 @@ import java.security.AccessController;
  * duration of the operation with respect to the 
  * <code>DragSource</code>. 
  *
- * @version 1.27
- * @since JDK1.2
+ * @version 	1.30, 02/02/00
+ * @since 1.2
  */
 
 public class DragSource {

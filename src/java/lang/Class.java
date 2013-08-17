@@ -1,8 +1,11 @@
 /*
- * @(#)Class.java	1.101 01/11/29
+ * @(#)Class.java	1.107 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -43,7 +46,7 @@ import java.io.ObjectStreamField;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.101, 11/29/01
+ * @version 1.107, 02/02/00
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
@@ -174,7 +177,7 @@ class Class implements java.io.Serializable {
      *
      * @see 	  java.lang.Class#forName(String) 
      * @see 	  java.lang.ClassLoader
-     * @since 	  JDK1.2
+     * @since 	  1.2
      */
     public static Class forName(String name, boolean initialize,
 				ClassLoader loader)
@@ -264,6 +267,7 @@ class Class implements java.io.Serializable {
      * returns <code>false</code>.
      *
      * @param   obj the object to check
+     * @return  true if <code>obj</code> is an instance of this class
      *
      * @since JDK1.1
      */
@@ -286,7 +290,10 @@ class Class implements java.io.Serializable {
      * represented by this <code>Class</code> object via an identity conversion
      * or via a widening reference conversion. See <em>The Java Language
      * Specification</em>, sections 5.1.1 and 5.1.4 , for details.
-     *
+     * 
+     * @param cls the <code>Class</code> object to be checked
+     * @return the <code>boolean</code> value indicating whether objects of the
+     * type <code>cls</code> can be assigned to objects of this class
      * @exception NullPointerException if the specified Class parameter is
      *            null.
      * @since JDK1.1
@@ -328,6 +335,8 @@ class Class implements java.io.Serializable {
      * <p> These objects may only be accessed via the following public static
      * final variables, and are the only <code>Class</code> objects for which
      * this method returns <code>true</code>.
+     *
+     * @return true if and only if this class represents a primitive type
      *
      * @see     java.lang.Boolean#TYPE
      * @see     java.lang.Character#TYPE
@@ -513,6 +522,8 @@ class Class implements java.io.Serializable {
      * array.  If this class does not represent an array class this method
      * returns null.
      *
+     * @return the <code>Class</code> representing the component type of this
+     * class if this class is an array
      * @see     java.lang.reflect.Array
      * @since JDK1.1
      */
@@ -542,6 +553,7 @@ class Class implements java.io.Serializable {
      * <p> The modifier encodings are defined in <em>The Java Virtual Machine
      * Specification</em>, table 4.1.
      *
+     * @return the <code>int</code> representing the modifiers for this class
      * @see     java.lang.reflect.Modifier
      * @since JDK1.1
      */
@@ -573,6 +585,7 @@ class Class implements java.io.Serializable {
      * this <code>Class</code> object represents an array class, a primitive
      * type, or void,then this method returns null.
      *
+     * @return the declaring class for this class
      * @since JDK1.1
      */
     public native Class getDeclaringClass();
@@ -591,15 +604,17 @@ class Class implements java.io.Serializable {
      * 
      * <p>For this class and each of its superclasses, the following
      * security checks are performed:
-     * If there is a security manager, the security manager's 
-     * <code>checkMemberAccess</code> method is called
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments, where <code>this</code> is this class or the superclass
-     * whose members are being determined. If the class is in a package, then 
-     * the security manager's <code>checkPackageAccess</code> 
-     * method is also called with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * If there is a security manager, the security manager's
+     * <code>checkMemberAccess</code> method is called with <code>this</code>
+     * and <code>Member.PUBLIC</code> as its arguments, where <code>this</code>
+     * is this class or the superclass whose members are being determined. If
+     * the class is in a package, then the security manager's
+     * <code>checkPackageAccess</code> method is also called with the package
+     * name as its argument. Either of these calls could result in a
+     * SecurityException.
      *
+     * @return the array of <code>Class</code> objects representing the public
+     * members of this class
      * @exception SecurityException    if access to the information is denied.
      * @see       SecurityManager#checkMemberAccess(Class, int)
      * @see       SecurityManager#checkPackageAccess(String)
@@ -607,24 +622,36 @@ class Class implements java.io.Serializable {
      * @since JDK1.1
      */
     public Class[] getClasses() {
-        /* simplest implementation. */
-        java.util.Vector v = new java.util.Vector();
-        Class currentClass = this;
-        while (currentClass != null) {
-            Class[] members = currentClass.getDeclaredClasses();
-            for (int i = 0; i < members.length; i++) {
-                if (Modifier.isPublic(members[i].getModifiers())) {
-                    v.add(members[i]);
-                }
-            }
-            currentClass = currentClass.getSuperclass();
-        }
-        Class[] ret = new Class[v.size()];
-        int i = 0;
-        for (java.util.Enumeration e = v.elements(); e.hasMoreElements();) {
-            ret[i++] = (Class)e.nextElement();
-        }
-        return ret;
+	// be very careful not to change the stack depth of this
+	// checkMemberAccess call for security reasons 
+	// see java.lang.SecurityManager.checkMemberAccess
+        checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
+
+	// Privileged so this implementation can look at DECLARED classes,
+	// something the caller might not have privilege to do.  The code here
+	// is allowed to look at DECLARED classes because (1) it does not hand
+	// out anything other than public members and (2) public member access
+	// has already been ok'd by the SecurityManager.
+
+	Class[] result = (Class[]) java.security.AccessController.doPrivileged
+	    (new java.security.PrivilegedAction() {
+	        public Object run() {
+		    java.util.List list = new java.util.ArrayList();
+		    Class currentClass = Class.this;
+		    while (currentClass != null) {
+			Class[] members = currentClass.getDeclaredClasses();
+			for (int i = 0; i < members.length; i++) {
+			    if (Modifier.isPublic(members[i].getModifiers())) {
+				list.add(members[i]);
+			    }
+			}
+			currentClass = currentClass.getSuperclass();
+		    }
+		    return list.toArray(new Class[0]);
+		}
+	    });
+
+        return result;
     }
 
 
@@ -647,8 +674,8 @@ class Class implements java.io.Serializable {
      * with <code>this</code> and <code>Member.PUBLIC</code> 
      * as its arguments. If the class is in a package, then this method
      * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * method with the package name as its argument. Either of these calls
+     * could result in a SecurityException.
      * 
      * <p> The implicit length field for array classs is not reflected by this
      * method. User code should use the methods of class <code>Array</code> to
@@ -656,6 +683,8 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.3.
      *
+     * @return the array of <code>Field</code> objects representing the
+     * public fields
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Field
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -697,6 +726,8 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.4.
      *
+     * @return the array of <code>Method</code> objects representing the
+     * public methods of this class
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Method
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -727,6 +758,9 @@ class Class implements java.io.Serializable {
      * method with the package name 
      * as its argument. Either of these calls could result in a SecurityException.
      * 
+     * @return the array containing <code>Method</code> objects for all the
+     * declared public constructors of this class matches the specified
+     * <code>parameterTypes</code>
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Constructor
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -772,6 +806,9 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.3.
      * 
+     * @param name the field name
+     * @return  the <code>Field</code> object of this class specified by 
+     * <code>name</code>
      * @exception NoSuchFieldException if a field with the specified name is
      *              not found.
      * @exception SecurityException    if access to the information is denied.
@@ -830,6 +867,10 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.4.
      *
+     * @param name the name of the method
+     * @param parameterTypes the list of parameters
+     * @return the <code>Method</code> object that matches the specified
+     * <code>name</code> and <code>parameterTypes</code>
      * @exception NoSuchMethodException if a matching method is not found
      *            or if then name is "&lt;init>"or "&lt;clinit>".
      * @exception SecurityException    if access to the information is denied.
@@ -863,10 +904,13 @@ class Class implements java.io.Serializable {
      * calls the security manager's <code>checkMemberAccess</code> method
      * with <code>this</code> and <code>Member.PUBLIC</code> 
      * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * also calls the security manager's <code>checkPackageAccess</code> method
+     * with the package name as its argument. Either of these calls could
+     * result in a SecurityException.
      *
+     * @param parameterTypes the parameter array
+     * @return the <code>Method</code> object of the public constructor that
+     * matches the specified <code>parameterTypes</code>
      * @exception NoSuchMethodException if a matching method is not found.
      * @exception SecurityException     if access to the information is denied.
      * @see       java.lang.reflect.Constructor
@@ -897,11 +941,13 @@ class Class implements java.io.Serializable {
      * <p>If there is a security manager, this method first
      * calls the security manager's <code>checkMemberAccess</code> method
      * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * as its arguments. If the class is in a package, then this method also
+     * calls the security manager's <code>checkPackageAccess</code> method with
+     * the package name as its argument. Either of these calls could result in
+     * a SecurityException.
      *
+     * @return the array of <code>Class</code> objects representing all the 
+     * declared members of this class
      * @exception SecurityException    if access to the information is denied.
      * @see       SecurityManager#checkMemberAccess(Class, int)
      * @see       SecurityManager#checkPackageAccess(String)
@@ -929,13 +975,15 @@ class Class implements java.io.Serializable {
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.3.
      *
      * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * calls the security manager's <code>checkMemberAccess</code> method with
+     * <code>this</code> and <code>Member.DECLARED</code> as its arguments. If
+     * the class is in a package, then this method also calls the security
+     * manager's <code>checkPackageAccess</code> method with the package name
+     * as its argument. Either of these calls could result in a
+     * SecurityException.
      *
+     * @return    the array of <code>Field</code> objects representing all the
+     * declared fields of this class
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Field
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -971,10 +1019,12 @@ class Class implements java.io.Serializable {
      * calls the security manager's <code>checkMemberAccess</code> method
      * with <code>this</code> and <code>Member.DECLARED</code> 
      * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * also calls the security manager's <code>checkPackageAccess</code> method
+     * with the package name as its argument. Either of these calls could
+     * result in a SecurityException.
      *
+     * @return    the array of <code>Method</code> objects representing all the
+     * declared methods of this class
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Method
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -1007,10 +1057,12 @@ class Class implements java.io.Serializable {
      * calls the security manager's <code>checkMemberAccess</code> method
      * with <code>this</code> and <code>Member.DECLARED</code> 
      * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * also calls the security manager's <code>checkPackageAccess</code> method
+     * with the package name as its argument. Either of these calls could
+     * result in a SecurityException.
      *
+     * @return    the array of <code>Method</code> objects representing all the
+     * declared constructors of this class
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Constructor
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -1037,10 +1089,13 @@ class Class implements java.io.Serializable {
      * calls the security manager's <code>checkMemberAccess</code> method
      * with <code>this</code> and <code>Member.DECLARED</code> 
      * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * also calls the security manager's <code>checkPackageAccess</code> method
+     * with the package name as its argument. Either of these calls could
+     * result in a SecurityException.
      *
+     * @param name the name of the field
+     * @return the <code>Field</code> object for the specified field in this
+     * class
      * @exception NoSuchFieldException if a field with the specified name is
      *              not found.
      * @exception SecurityException    if access to the information is denied.
@@ -1076,11 +1131,15 @@ class Class implements java.io.Serializable {
      * <p>If there is a security manager, this method first
      * calls the security manager's <code>checkMemberAccess</code> method
      * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
+     * as its arguments. If the class is in a package, then this method also
+     * calls the security manager's <code>checkPackageAccess</code> method with
+     * the package name as its argument. Either of these calls could result in
+     * a SecurityException.
      *
+     * @param name the name of the method
+     * @param parameterTypes the parameter array
+     * @return    the <code>Method</code> object for the method of this class
+     * matching the specified name and parameters
      * @exception NoSuchMethodException if a matching method is not found.
      * @exception SecurityException     if access to the information is denied.
      * @see       java.lang.reflect.Method
@@ -1113,6 +1172,9 @@ class Class implements java.io.Serializable {
      * method with the package name 
      * as its argument. Either of these calls could result in a SecurityException.
      *
+     * @param parameterTypes the parameter array
+     * @return    The <code>Method</code> object for the constructor with the
+     * specified parameter list
      * @exception NoSuchMethodException if a matching method is not found.
      * @exception SecurityException     if access to the information is denied.
      * @see       java.lang.reflect.Constructor
@@ -1214,7 +1276,7 @@ class Class implements java.io.Serializable {
      * @see java.security.ProtectionDomain
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
-     * @since JDK1.2
+     * @since 1.2
      */
     public java.security.ProtectionDomain getProtectionDomain() {
         SecurityManager sm = System.getSecurityManager();

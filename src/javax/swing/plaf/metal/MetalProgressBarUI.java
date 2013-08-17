@@ -1,8 +1,11 @@
 /*
- * @(#)MetalProgressBarUI.java	1.15 01/11/29
+ * @(#)MetalProgressBarUI.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -22,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.15 11/29/01
+ * @version 1.17 02/02/00
  * @author Michael C. Albers
  */
 public class MetalProgressBarUI extends BasicProgressBarUI {
@@ -54,43 +57,53 @@ public class MetalProgressBarUI extends BasicProgressBarUI {
 	    int amountFull = getAmountFull(b, barRectWidth, barRectHeight);
 	    
 	    if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+                int fillX = barRectX;
+                if( !MetalUtils.isLeftToRight(c) ) {
+                    fillX += barRectWidth - amountFull;
+                }
 		// Highlighting
 		//     over the unfilled portion
 		//     well, draw all the way across; let others draw over it
 		g.setColor(MetalLookAndFeel.getControlShadow());
-		g.drawLine(barRectX,barRectY, barRectWidth,barRectY);
+		g.drawLine(barRectX,barRectY,barRectX+barRectWidth-1,barRectY);
 		
 		//     line on left
-		if (model.getValue() == model.getMinimum()) { // haven't begun
-		    g.setColor(MetalLookAndFeel.getControlShadow());
-		} else { // Some portion of bar is filled
+		if (fillX == barRectX && amountFull > 0) {
+                    // filled area is touching left edge of bar
 		    g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+		} else {
+                    // filled area is not touching left edge of bar
+		    g.setColor(MetalLookAndFeel.getControlShadow());
 		}
-		g.drawLine(barRectX,barRectY, barRectX,barRectHeight);
+		g.drawLine(barRectX, barRectY,
+                           barRectX, barRectY+barRectHeight-1);
 		
-		//     over the filled portion
-		//     get color from "line on left" above
-		g.drawLine(barRectX,barRectY, amountFull,barRectY);
+		//     highlight over the filled portion
+                if( amountFull > 0 ) {
+                    g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+                    g.drawLine(fillX, barRectY, fillX+amountFull-1, barRectY);
+                }
 	    } else { // VERTICAL
 		// Highlighting
 		//     left of the unfilled portion
 		//     well, draw all the way down; let others draw over it
 		g.setColor(MetalLookAndFeel.getControlShadow());
-		g.drawLine(barRectX,barRectY, barRectX,barRectHeight);
+		g.drawLine(barRectX, barRectY,
+                           barRectX, barRectY+barRectHeight-1);
 		
 		//     line on bottom
-		if (model.getValue() == model.getMinimum()) { // haven't begun
+		if ( amountFull <= 0 ) { // haven't begun
 		    g.setColor(MetalLookAndFeel.getControlShadow());
 		} else { // Some portion of bar is filled
 		    g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
 		}
-		g.drawLine(barRectX,     barRectHeight,
-			   barRectWidth, barRectHeight);
+		g.drawLine(barRectX, barRectY+barRectHeight-1,
+			   barRectX+barRectWidth-1, barRectY+barRectHeight-1);
 		
 		//     left of the filled portion
 		//     pick up color from the "line on bottom" above
-		g.drawLine(barRectX, barRectHeight,
-			   barRectX, barRectHeight-amountFull+b.top);
+		g.drawLine(barRectX, barRectY+barRectHeight-1,
+			   barRectX, barRectY+barRectHeight-amountFull);
 	    }
 	}
     }

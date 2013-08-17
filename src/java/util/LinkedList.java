@@ -1,8 +1,11 @@
 /*
- * @(#)LinkedList.java	1.27 01/11/29
+ * @(#)LinkedList.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -48,12 +51,12 @@ package java.util;
  * undetermined time in the future.
  *
  * @author  Josh Bloch
- * @version 1.27 11/29/01
+ * @version 1.32, 02/02/00
  * @see	    List
  * @see	    ArrayList
  * @see	    Vector
  * @see	    Collections#synchronizedList(List)
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class LinkedList extends AbstractSequentialList
@@ -73,6 +76,8 @@ public class LinkedList extends AbstractSequentialList
      * Constructs a list containing the elements of the specified
      * collection, in the order they are returned by the collection's
      * iterator.
+     *
+     * @param c the collection whose elements are to be placed into this list.
      */
      public LinkedList(Collection c) {
 	 this();
@@ -130,6 +135,8 @@ public class LinkedList extends AbstractSequentialList
 
     /**
      * Inserts the given element at the beginning of this list.
+     * 
+     * @param o the element to be inserted at the beginning of this list.
      */
     public void addFirst(Object o) {
 	addBefore(o, header.next);
@@ -138,6 +145,8 @@ public class LinkedList extends AbstractSequentialList
     /**
      * Appends the given element to the end of this list.  (Identical in
      * function to the <tt>add</tt> method; included only for consistency.)
+     * 
+     * @param o the element to be inserted at the end of this list.
      */
     public void addLast(Object o) {
 	addBefore(o, header);
@@ -214,9 +223,7 @@ public class LinkedList extends AbstractSequentialList
      * progress.  (This implies that the behavior of this call is undefined if
      * the specified Collection is this list, and this list is nonempty.)
      *
-     * @param index index at which to insert first element
-     *			  from the specified collection.
-     * @param c elements to be inserted into this list.
+     * @param c the elements to be inserted into this list.
      * 
      * @throws IndexOutOfBoundsException if the specified index is out of
      *         range (<tt>index &lt; 0 || index &gt; size()</tt>).
@@ -567,7 +574,24 @@ public class LinkedList extends AbstractSequentialList
      * @return a shallow copy of this <tt>LinkedList</tt> instance.
      */
     public Object clone() {
-	return new LinkedList(this);
+        LinkedList clone = null;
+	try { 
+	    clone = (LinkedList)super.clone();
+	} catch (CloneNotSupportedException e) { 
+	    throw new InternalError();
+	}
+
+        // Put clone into "virgin" state
+        clone.header = new Entry(null, null, null);
+        clone.header.next = clone.header.previous = clone.header;
+        clone.size = 0;
+        clone.modCount = 0;
+
+        // Initialize clone with our elements
+        for (Entry e = header.next; e != header; e = e.next)
+            clone.add(e.element);
+
+        return clone;
     }
 
     /**

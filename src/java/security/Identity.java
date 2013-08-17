@@ -1,8 +1,11 @@
 /*
- * @(#)Identity.java	1.52 01/11/29
+ * @(#)Identity.java	1.56 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -32,7 +35,7 @@ import java.util.*;
  * @see Signer
  * @see Principal
  *
- * @version 1.52
+ * @version 1.56
  * @author Benjamin Renaud
  * @deprecated This class is no longer used. Its functionality has been
  * replaced by <code>java.security.KeyStore</code>, the
@@ -99,6 +102,9 @@ public abstract class Identity implements Principal, Serializable {
     public Identity(String name, IdentityScope scope) throws
     KeyManagementException {
 	this(name);
+	if (scope != null) {
+	    scope.addIdentity(this);
+	}
 	this.scope = scope;
     }
 
@@ -238,13 +244,16 @@ public abstract class Identity implements Principal, Serializable {
 	certificates.addElement(certificate);
     }
 
-   private boolean keyEquals(Key aKey, Key anotherKey) {
-	if (aKey.getFormat().equalsIgnoreCase(anotherKey.getFormat())) {
-	    return MessageDigest.isEqual(aKey.getEncoded(), 
-					 anotherKey.getEncoded());
-	} else {
+    private boolean keyEquals(Key aKey, Key anotherKey) {
+        String aKeyFormat = aKey.getFormat();
+        String anotherKeyFormat = anotherKey.getFormat();
+	if ((aKeyFormat == null) ^ (anotherKeyFormat == null))
 	    return false;
-	}
+	if (aKeyFormat != null && anotherKeyFormat != null)
+	    if (!aKeyFormat.equalsIgnoreCase(anotherKeyFormat))
+		return false;
+	return java.util.Arrays.equals(aKey.getEncoded(),
+				     anotherKey.getEncoded());
     }
 
 
@@ -312,9 +321,7 @@ public abstract class Identity implements Principal, Serializable {
 
 	if (identity instanceof Identity) {
 	    Identity i = (Identity)identity;
-	    if ((scope != null) && 
-		(i.getScope() == scope) && 
-		i.getName().equals(name)) {
+	    if (this.fullName().equals(i.fullName())) {
 		return true;
 	    } else {
 		return identityEquals(i);	    
@@ -337,8 +344,18 @@ public abstract class Identity implements Principal, Serializable {
      * @see #equals 
      */
     protected boolean identityEquals(Identity identity) {
-	return (name.equals(identity.name) && 
-		publicKey.equals(identity.publicKey));
+	if (!name.equalsIgnoreCase(identity.name))
+	    return false;
+	
+	if ((publicKey == null) ^ (identity.publicKey == null))
+	    return false;
+
+	if (publicKey != null && identity.publicKey != null)
+	    if (!publicKey.equals(identity.publicKey))
+		return false;
+
+	return true;
+
     }
 
     /**
@@ -450,11 +467,7 @@ public abstract class Identity implements Principal, Serializable {
      * @return a hashcode for this identity.
      */
     public int hashCode() {
-	String scopedName = name;
-	if (scope != null) {
-	    scopedName += scope.getName();
-	}
-	return scopedName.hashCode();
+	return name.hashCode();
     }
 
     private static void check(String directive) {
@@ -464,4 +477,3 @@ public abstract class Identity implements Principal, Serializable {
 	}
     }
 }
-

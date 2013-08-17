@@ -1,18 +1,23 @@
 /*
- * @(#)Choice.java	1.54 01/11/29
+ * @(#)Choice.java	1.64 00/03/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.util.*;
 import java.awt.peer.ChoicePeer;
 import java.awt.event.*;
+import java.util.EventListener;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 
+import javax.accessibility.*;
 
 /**
  * The <code>Choice</code> class presents a pop-up menu of choices.
@@ -37,12 +42,19 @@ import java.io.IOException;
  * Pushing the mouse button down on the object causes a menu to
  * appear with the current choice highlighted.
  * <p>
- * @version	1.54 11/29/01
+ * Some native platforms do not support arbitrary resizing of Choice
+ * components and the behavior of setSize()/getSize() is bound by 
+ * such limitations.
+ * Native GUI Choice components' size are often bound by such
+ * attributes as font size and length of items contained within 
+ * the Choice.
+ * <p>
+ * @version	1.64 03/14/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
-public class Choice extends Component implements ItemSelectable {
+public class Choice extends Component implements ItemSelectable, Accessible {
     /**
      * The items for the Choice.
 	 * This can be a null value.
@@ -307,10 +319,11 @@ public class Choice extends Component implements ItemSelectable {
      */
     public void removeAll() {
         synchronized (this) {
-	    int nitems = getItemCount();
-	    for (int i = 0 ; i < nitems ; i++) {
-	        removeNoInvalidate(0);
-	    }
+            if (peer != null) {
+                ((ChoicePeer)peer).removeAll();
+            }
+            pItems.removeAllElements();
+            selectedIndex = -1;
 	}
 
 	// This could change the preferred size of the Component.
@@ -422,6 +435,30 @@ public class Choice extends Component implements ItemSelectable {
 	    return;
 	}
         itemListener = AWTEventMulticaster.remove(itemListener, l);
+    }
+
+    /**
+     * Return an array of all the listeners that were added to the Choice
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the ItemListener(s) for the
+     * given Choice <code>c</code>, one would write:
+     * <pre>
+     * ItemListener[] ils = (ItemListener[])(c.getListeners(ItemListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return	 all of the listeners of the specified type supported by this choice
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == ItemListener.class) { 
+	    l = itemListener;
+	} else {
+	    return super.getListeners(listenerType);
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
     }
 
     // REMIND: remove when filtering is done at lower level
@@ -548,5 +585,98 @@ public class Choice extends Component implements ItemSelectable {
 	  s.readObject();
       }
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+
+    /**
+     * Gets the AccessibleContext associated with this Choice. 
+     * For Choice components, the AccessibleContext takes the form of an 
+     * AccessibleAWTChoice. 
+     * A new AccessibleAWTChoice instance is created if necessary.
+     *
+     * @return an AccessibleAWTChoice that serves as the 
+     *         AccessibleContext of this Choice
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTChoice();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Choice</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to choice user-interface elements.
+     */
+    protected class AccessibleAWTChoice extends AccessibleAWTComponent
+    implements AccessibleAction {
+
+	public AccessibleAWTChoice() {
+	    super();
+	}
+
+	/**
+         * Get the AccessibleAction associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleAction interface on behalf of itself.
+	 * 
+	 * @return this object
+	 * @see AccessibleAction
+	 */
+	public AccessibleAction getAccessibleAction() {
+	    return this;
+	}
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+	 * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.COMBO_BOX;
+        }
+
+	/**
+	 * Returns the number of accessible actions available in this object
+	 * If there are more than one, the first one is considered the "default"
+	 * action of the object.
+	 *
+	 * @return the zero-based number of Actions in this object
+	 */
+	public int getAccessibleActionCount() {
+	    return 0;  //  To be fully implemented in a future release
+	}
+
+	/**
+	 * Returns a description of the specified action of the object.
+	 *
+	 * @param i zero-based index of the actions
+	 * @return a String description of the action
+	 * @see #getAccessibleActionCount
+	 */
+	public String getAccessibleActionDescription(int i) {
+	    return null;  //  To be fully implemented in a future release
+	}
+
+	/**
+	 * Perform the specified Action on the object
+	 *
+	 * @param i zero-based index of actions
+	 * @return true if the action was performed; otherwise false.
+	 * @see #getAccessibleActionCount
+	 */
+	public boolean doAccessibleAction(int i) {
+	    return false;  //  To be fully implemented in a future release
+	}
+
+    } // inner class AccessibleAWTChoice
 
 }

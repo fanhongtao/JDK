@@ -1,17 +1,16 @@
 /*
- * @(#)MergeCollation.java	1.13 01/11/29
+ * @(#)MergeCollation.java	1.14 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)MergeCollation.java	1.13 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -20,20 +19,8 @@
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
  *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
  */
+
 package java.text;
 
 import java.util.ArrayList;
@@ -55,7 +42,7 @@ import java.util.ArrayList;
  * "a < b < d & b < c"
  * XXX: make '' be a single quote.
  * @see PatternEntry
- * @version    1.13 11/29/01
+ * @version    1.14 01/19/00
  * @author             Mark Davis, Helena Shih
  */
 
@@ -233,6 +220,24 @@ final class MergeCollation {
       */
     private final void fixEntry(PatternEntry newEntry) throws ParseException
     {
+        // check to see whether the new entry has the same characters as the previous
+        // entry did (this can happen when a pattern declaring a difference between two
+        // strings that are canonically equivalent is normalized).  If so, and the strength
+        // is anything other than IDENTICAL or RESET, throw an exception (you can't
+        // declare a string to be unequal to itself).       --rtg 5/24/99
+        if (lastEntry != null && newEntry.chars.equals(lastEntry.chars)
+                && newEntry.extension.equals(lastEntry.extension)) {
+            if (newEntry.strength != Collator.IDENTICAL
+                && newEntry.strength != PatternEntry.RESET) {
+                    throw new ParseException("The entries " + lastEntry + " and "
+                            + newEntry + " are adjacent in the rules, but have conflicting "
+                            + "strengths: A character can't be unequal to itself.", -1);
+            } else {
+                // otherwise, just skip this entry and behave as though you never saw it
+                return;
+            }
+        }
+        
         boolean changeLastEntry = true;
         if (newEntry.strength != PatternEntry.RESET) {
             int oldIndex = -1;

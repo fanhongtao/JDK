@@ -1,8 +1,11 @@
 /*
- * @(#)SystemColor.java	1.16 01/11/29
+ * @(#)SystemColor.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -19,7 +22,7 @@ import java.awt.image.ColorModel;
  * object with a non-symbolic Color object, getRGB() should be used
  * rather than equals().
  *
- * @version 	1.16, 11/29/01
+ * @version 	1.18, 02/02/00
  * @author 	Carl Quinn
  * @author      Amy Fowler
  */
@@ -352,9 +355,9 @@ public final class SystemColor extends Color implements java.io.Serializable {
      * Gets the "current" RGB value representing the symbolic color.
      * (Bits 24-31 are 0xff, 16-23 are red, 8-15 are green, 0-7 are blue).
      * @see java.awt.image.ColorModel#getRGBdefault
-     * @see java.awt.Color#getBlue(int)
-     * @see java.awt.Color#getGreen(int)
-     * @see java.awt.Color#getRed(int)
+     * @see java.awt.Color#getBlue()
+     * @see java.awt.Color#getGreen()
+     * @see java.awt.Color#getRed()
      */
     // NOTE: This method may be called by privileged threads.
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!

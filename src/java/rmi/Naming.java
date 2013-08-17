@@ -1,20 +1,22 @@
 /*
- * @(#)Naming.java	1.11 01/11/29
+ * @(#)Naming.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi;
 
 import java.rmi.registry.*;
-import java.net.URL;
 import java.net.MalformedURLException;
 
 /**
  * The <code>Naming</code> class provides methods for storing and obtaining
  * references to remote objects in the remote object registry. The
  * <code>Naming</code> class's methods take, as one of their arguments, a name
- * that is URL formatted <code>java.lang.String</code> of the form:
+ * that is a URL formatted <code>java.lang.String</code> of the form:
  *
  * <PRE>
  *    //host:port/name
@@ -42,7 +44,7 @@ import java.net.MalformedURLException;
  * (see <code>java.rmi.registry.LocateRegistry.createRegistry</code> method
  * for details).
  *
- * @version 1.11, 11/29/01
+ * @version 1.13, 09/05/99
  * @author  Ann Wollrath
  * @author  Roger Riggs
  * @since   JDK1.1
@@ -64,8 +66,9 @@ public final class Naming {
      * @return a reference for a remote object
      * @exception NotBoundException if name is not currently bound
      * @exception RemoteException if registry could not be contacted
-     * @exception AccessException if this operation is not permitted (if
-     * originating from a non-local host, for example)
+     * @exception AccessException if this operation is not permitted
+     * @exception MalformedURLException if the name is not an appropriately
+     *  formatted URL
      * @since JDK1.1
      */
     public static Remote lookup(String name)
@@ -73,13 +76,12 @@ public final class Naming {
 	    java.net.MalformedURLException,
 	    RemoteException
     {
-	URL url = cleanURL(name);
-	Registry registry = getRegistry(url);
+	ParsedNamingURL parsed = parseURL(name);
+	Registry registry = getRegistry(parsed);
 
-	String file = getName(url);
-	if (file == null)
+	if (parsed.name == null)
 	    return registry;
-	return registry.lookup(file);
+	return registry.lookup(parsed.name);
     }
 
     /**
@@ -100,13 +102,13 @@ public final class Naming {
 	    java.net.MalformedURLException,
 	    RemoteException
     {
-	URL url = cleanURL(name);
-	Registry registry = getRegistry(url);
+	ParsedNamingURL parsed = parseURL(name);
+	Registry registry = getRegistry(parsed);
 
 	if (obj == null)
 	    throw new NullPointerException("cannot bind to null");
 
-	registry.bind(getName(url), obj);
+	registry.bind(parsed.name, obj);
     }
 
     /**
@@ -127,10 +129,10 @@ public final class Naming {
 	    NotBoundException,
 	    java.net.MalformedURLException
     {
-	URL url = cleanURL(name);
-	Registry registry = getRegistry(url);
+	ParsedNamingURL parsed = parseURL(name);
+	Registry registry = getRegistry(parsed);
 
-	registry.unbind(getName(url));
+	registry.unbind(parsed.name);
     }
 
     /** 
@@ -149,13 +151,13 @@ public final class Naming {
     public static void rebind(String name, Remote obj)
 	throws RemoteException, java.net.MalformedURLException
     {
-	URL url = cleanURL(name);
-	Registry registry = getRegistry(url);
+	ParsedNamingURL parsed = parseURL(name);
+	Registry registry = getRegistry(parsed);
 
 	if (obj == null)
 	    throw new NullPointerException("cannot bind to null");
 
-	registry.rebind(getName(url), obj);
+	registry.rebind(parsed.name, obj);
     }
 
     /**
@@ -174,17 +176,14 @@ public final class Naming {
     public static String[] list(String name)
 	throws RemoteException, java.net.MalformedURLException
     {
-	URL url = cleanURL(name);
-	Registry registry = getRegistry(url);
-
-	String host = url.getHost();
-	int port = url.getPort();
+	ParsedNamingURL parsed = parseURL(name);
+	Registry registry = getRegistry(parsed);
 
 	String prefix = "rmi:";
- 	if (port > 0 || !host.equals(""))
-	    prefix += "//" + host;
-	if (port > 0)
-	    prefix += ":" + port;
+ 	if (parsed.port > 0 || !parsed.host.equals(""))
+	    prefix += "//" + parsed.host;
+	if (parsed.port > 0)
+	    prefix += ":" + parsed.port;
 	prefix += "/";
 
 	String[] names = registry.list();
@@ -197,55 +196,101 @@ public final class Naming {
     /**
      * Returns a registry reference obtained from information in the URL.
      */
-    private static Registry getRegistry(URL url)
+    private static Registry getRegistry(ParsedNamingURL parsed)
 	throws RemoteException
     {
-	String host = url.getHost();
-	int port = url.getPort();
-
-	return LocateRegistry.getRegistry(host, port);
+	return LocateRegistry.getRegistry(parsed.host, parsed.port);
     }
 
     /**
-     * Extracts only the name portion from the specified URL.
-     */
-    private static String getName(URL url)
-    {
-	String name = url.getFile();
-	if (name == null || name.equals("/"))
-	    return null;
-	return name.substring(1);
-    }
-
-    /**
-     * Creates an HTTP URL from the specified "name" URL to be used in
-     * obtaining a registry reference. It checks for and removes the
-     * "rmi:" protocol if it was specified as part of the "name".
+     * Fix for: 4251878 java.rmi.Naming shouldn't rely upon the
+     * parsing functionality of java.net.URL
+     *
+     * Dissect Naming URL strings to obtain referenced host, port and
+     * object name.
+     *
+     * @return an object which contains each of the above
+     * components.
      *
      * @exception MalformedURLException if hostname in url contains '#' or
      *            if incorrect protocol specified
      */
-    private static URL cleanURL(String name)
-	throws java.net.MalformedURLException
+    private static ParsedNamingURL parseURL(String url) 
+	throws MalformedURLException 
     {
-	URL url = new URL("http:");
-
-	// Anchors (i.e. '#') are meaningless in rmi URLs - disallow them
-	if (name.indexOf('#') >= 0) {
-	    throw new MalformedURLException
-		("Invalid character, '#', in URL: " + name);
-	}
+	ParsedNamingURL parsed = new ParsedNamingURL();
+	int startFile = -1;
 
 	// remove the approved protocol
-	if (name.startsWith("rmi:"))
-	    name = name.substring(4);
+	if (url.startsWith("rmi:")) {
+	    url = url.substring(4);
+	}
+
+	// Anchors (i.e. '#') are meaningless in rmi URLs - disallow them
+	if (url.indexOf('#') >= 0) {
+	    throw new MalformedURLException
+		("Invalid character, '#', in URL: " + url);
+	}
 
 	// No protocol must remain
-	int colon = name.indexOf(':');
-	if (colon >= 0 && colon < name.indexOf('/') )
-	    throw new java.net.MalformedURLException("No protocol needed");
+	int checkProtocol = url.indexOf(':');
+	if (checkProtocol >= 0 && (checkProtocol < url.indexOf('/')))
+	    throw new java.net.MalformedURLException("invalid protocol: " +
+	        url.substring(0, checkProtocol));
 
-	url = new URL(url, name);
-	return url;
+	if (url.startsWith("//")) {
+	    final int startHost = 2;
+	    int nextSlash = url.indexOf("/", startHost);
+	    if (nextSlash >= 0) {
+		startFile = nextSlash + 1;
+	    } else {
+		// no trailing slash implies no name
+		nextSlash = url.length();
+		startFile = nextSlash;
+	    }
+
+	    int colon = url.indexOf(":", startHost);
+	    if ((colon > 1) && (colon < nextSlash)) {
+		// explicit port supplied
+		try {
+		    parsed.port = 
+			Integer.parseInt(url.substring(colon + 1,
+						       nextSlash));
+		} catch (NumberFormatException e) {
+		    throw new MalformedURLException(
+		        "invalid port number: " + url);
+		}
+	    }
+
+	    // if have colon then endhost, else end with slash
+	    int endHost;
+	    if (colon >= startHost) {
+		endHost = colon;
+	    } else {
+		endHost = nextSlash;
+	    }
+	    parsed.host = url.substring(startHost, endHost);
+	    
+	} else if (url.startsWith("/")) {
+	    startFile = 1;
+	} else {
+	    startFile = 0;
+	}
+	// set the bind name
+	parsed.name = url.substring(startFile);
+	if (parsed.name.equals("") || parsed.name.equals("/")) {
+	    parsed.name = null;
+	}
+
+	return parsed;
+    }
+
+    /**
+     * Simple class to enable multiple URL return values.
+     */
+    private static class ParsedNamingURL {
+	String host = "";
+	int port = Registry.REGISTRY_PORT;
+	String name = null;
     }
 }

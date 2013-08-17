@@ -1,8 +1,11 @@
 /*
- * @(#)Utilities.java	1.22 01/11/29
+ * @(#)Utilities.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -26,7 +29,7 @@ import java.text.AttributedString;
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.22 11/29/01
+ * @version 1.30 02/02/00
  */
 public class Utilities {
 
@@ -50,10 +53,11 @@ public class Utilities {
 	FontMetrics metrics = g.getFontMetrics();
 	int nextX = x;
 	char[] txt = s.array;
+	int txtOffset = s.offset;
 	int flushLen = 0;
 	int flushIndex = s.offset;
 	int n = s.offset + s.count;
-	for (int i = s.offset; i < n; i++) {
+	for (int i = txtOffset; i < n; i++) {
 	    if (txt[i] == '\t') {
 		if (flushLen > 0) {
 		    g.drawChars(txt, flushIndex, flushLen, x, y);
@@ -61,7 +65,7 @@ public class Utilities {
 		}
 		flushIndex = i + 1;
 		if (e != null) {
-		    nextX = (int) e.nextTabStop((float) nextX, startOffset + i - s.offset);
+		    nextX = (int) e.nextTabStop((float) nextX, startOffset + i - txtOffset);
 		} else {
 		    nextX += metrics.charWidth(' ');
 		}
@@ -101,12 +105,13 @@ public class Utilities {
 					       TabExpander e, int startOffset) {
 	int nextX = x;
 	char[] txt = s.array;
+	int txtOffset = s.offset;
 	int n = s.offset + s.count;
-	for (int i = s.offset; i < n; i++) {
+	for (int i = txtOffset; i < n; i++) {
 	    if (txt[i] == '\t') {
 		if (e != null) {
 		    nextX = (int) e.nextTabStop((float) nextX,
-						startOffset + i - s.offset);
+						startOffset + i - txtOffset);
 		} else {
 		    nextX += metrics.charWidth(' ');
 		}
@@ -149,13 +154,17 @@ public class Utilities {
 						boolean round) {
 	int currX = x0;
 	int nextX = currX;
+	// s may be a shared segment, so it is copied prior to calling
+	// the tab expander
 	char[] txt = s.array;
+	int txtOffset = s.offset;
+	int txtCount = s.count;
 	int n = s.offset + s.count;
 	for (int i = s.offset; i < n; i++) {
 	    if (txt[i] == '\t') {
 		if (e != null) {
 		    nextX = (int) e.nextTabStop((float) nextX,
-						startOffset + i - s.offset);
+						startOffset + i - txtOffset);
 		} else {
 		    nextX += metrics.charWidth(' ');
 		}
@@ -165,22 +174,22 @@ public class Utilities {
 	    if ((x >= currX) && (x < nextX)) {
 		// found the hit position... return the appropriate side
 		if ((round == false) || ((x - currX) < (nextX - x))) {
-		    return i - s.offset;
+		    return i - txtOffset;
 		} else {
-		    return i + 1 - s.offset;
+		    return i + 1 - txtOffset;
 		}
 	    }
 	    currX = nextX;
 	}
 
 	// didn't find, return end offset
-	return s.count;
+	return txtCount;
     }
 
     /**
      * Determine where to break the given text to fit
-     * within the the given span.  This trys to find a
-     * whitespace boundry.
+     * within the the given span.  This tries to find a
+     * whitespace boundary.
      * @param s  the source of the text
      * @param metrics the font metrics to use for the calculation
      * @param x0 the starting view location representing the start
@@ -195,16 +204,18 @@ public class Utilities {
     public static final int getBreakLocation(Segment s, FontMetrics metrics,
 					     int x0, int x, TabExpander e,
 					     int startOffset) {
-
+	char[] txt = s.array;
+	int txtOffset = s.offset;
+	int txtCount = s.count;
 	int index = Utilities.getTabbedTextOffset(s, metrics, x0, x, 
 						  e, startOffset, false);
-	for (int i = s.offset + Math.min(index, s.count - 1); 
-	     i >= s.offset; i--) {
+	for (int i = txtOffset + Math.min(index, txtCount - 1); 
+	     i >= txtOffset; i--) {
 	    
-	    char ch = s.array[i];
+	    char ch = txt[i];
 	    if (Character.isWhitespace(ch)) {
 		// found whitespace, break here
-		index = i - s.offset + 1;
+		index = i - txtOffset + 1;
 		break;
 	    }
 	}
@@ -213,16 +224,21 @@ public class Utilities {
 
     /**
      * Determines the starting row model position of the row that contains
-     * the specified model position.  Assumes the row(s) are currently
-     * displayed in a view.
+     * the specified model position.  The component given must have a
+     * size to compute the result.  If the component doesn't have a size
+     * a value of -1 will be returned.
      *
      * @param c the editor
      * @param offs the offset in the document >= 0
-     * @return the position >= 0
+     * @return the position >= 0 if the request can be computed, otherwise
+     *  a value of -1 will be returned.
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getRowStart(JTextComponent c, int offs) throws BadLocationException {
 	Rectangle r = c.modelToView(offs);
+	if (r == null) {
+	    return -1;
+	}
 	int lastOffs = offs;
 	int y = r.y;
 	while ((r != null) && (y == r.y)) {
@@ -235,16 +251,21 @@ public class Utilities {
 
     /**
      * Determines the ending row model position of the row that contains
-     * the specified model position.  Assumes the row(s) are currently
-     * displayed in a view.
+     * the specified model position.  The component given must have a
+     * size to compute the result.  If the component doesn't have a size
+     * a value of -1 will be returned.
      *
      * @param c the editor
      * @param offs the offset in the document >= 0
-     * @return the position >= 0
+     * @return the position >= 0 if the request can be computed, otherwise
+     *  a value of -1 will be returned.
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getRowEnd(JTextComponent c, int offs) throws BadLocationException {
 	Rectangle r = c.modelToView(offs);
+	if (r == null) {
+	    return -1;
+	}
 	int n = c.getDocument().getLength();
 	int lastOffs = offs;
 	int y = r.y;
@@ -258,16 +279,22 @@ public class Utilities {
 
     /**
      * Determines the position in the model that is closest to the given 
-     * view location in the row above.
+     * view location in the row above.  The component given must have a
+     * size to compute the result.  If the component doesn't have a size
+     * a value of -1 will be returned.
      *
      * @param c the editor
      * @param offs the offset in the document >= 0
      * @param x the X coordinate >= 0
-     * @return the model position >= 0
+     * @return the position >= 0 if the request can be computed, otherwise
+     *  a value of -1 will be returned.
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getPositionAbove(JTextComponent c, int offs, int x) throws BadLocationException {
 	int lastOffs = getRowStart(c, offs) - 1;
+	if (lastOffs < 0) {
+	    return -1;
+	}
 	int bestSpan = Short.MAX_VALUE;
 	int y = 0;
 	Rectangle r = null;
@@ -289,16 +316,22 @@ public class Utilities {
 
     /**
      * Determines the position in the model that is closest to the given 
-     * view location in the row below.
+     * view location in the row below.  The component given must have a
+     * size to compute the result.  If the component doesn't have a size
+     * a value of -1 will be returned.
      *
      * @param c the editor
      * @param offs the offset in the document >= 0
      * @param x the X coordinate >= 0
-     * @return the model position >= 0
+     * @return the position >= 0 if the request can be computed, otherwise
+     *  a value of -1 will be returned.
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getPositionBelow(JTextComponent c, int offs, int x) throws BadLocationException {
 	int lastOffs = getRowEnd(c, offs) + 1;
+	if (lastOffs <= 0) {
+	    return -1;
+	}
 	int bestSpan = Short.MAX_VALUE;
 	int n = c.getDocument().getLength();
 	int y = 0;
@@ -331,6 +364,9 @@ public class Utilities {
     public static final int getWordStart(JTextComponent c, int offs) throws BadLocationException {
 	Document doc = c.getDocument();
 	Element line = getParagraphElement(c, offs);
+	if (line == null) {
+	    throw new BadLocationException("No word at " + offs, offs);
+	}
 	int lineStart = line.getStartOffset();
 	int lineEnd = Math.min(line.getEndOffset(), doc.getLength());
 	
@@ -360,6 +396,9 @@ public class Utilities {
     public static final int getWordEnd(JTextComponent c, int offs) throws BadLocationException {
 	Document doc = c.getDocument();
 	Element line = getParagraphElement(c, offs);
+	if (line == null) {
+	    throw new BadLocationException("No word at " + offs, offs);
+	}
 	int lineStart = line.getStartOffset();
 	int lineEnd = Math.min(line.getEndOffset(), doc.getLength());
 	
@@ -604,6 +643,66 @@ public class Utilities {
 
 
 
+
+
+
+
+    }
+
+    /**
+     * Paints the composed text in a GlyphView
+     */
+    static void paintComposedText(Graphics g, Rectangle alloc, GlyphView v) {
+
+	if (g instanceof Graphics2D) {
+	    Graphics2D g2d = (Graphics2D) g;
+	    int p0 = v.getStartOffset();
+	    int p1 = v.getEndOffset();
+	    AttributeSet attrSet = v.getElement().getAttributes();
+	    AttributedString as = 
+		(AttributedString)attrSet.getAttribute(StyleConstants.ComposedTextAttribute);
+	    int start = v.getElement().getStartOffset();
+	    int y = alloc.y + (int) v.getGlyphPainter().getAscent(v);
+	    int x = alloc.x;
+	    
+	    //Add text attributes
+	    as.addAttribute(TextAttribute.FONT, v.getFont());
+	    as.addAttribute(TextAttribute.FOREGROUND, v.getForeground());
+	    if (StyleConstants.isBold(v.getAttributes())) {
+		as.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+	    }
+	    if (StyleConstants.isItalic(v.getAttributes())) {
+		as.addAttribute(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);
+	    }
+	    if (v.isUnderline()) {
+		as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+	    }
+	    if (v.isStrikeThrough()) {
+		as.addAttribute(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+	    }
+	    if (v.isSuperscript()) {
+		as.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER);
+	    }
+	    if (v.isSubscript()) {
+		as.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUB);
+	    }
+	
+	    // draw
+	    AttributedCharacterIterator aci = as.getIterator(null, p0 - start, p1 - start);
+	    TextLayout layout = new TextLayout(aci, g2d.getFontRenderContext());
+	    layout.draw(g2d, x, y);
+	}
+
+    }
+
+    /*
+     * Convenience function for determining ComponentOrientation.  Helps us
+     * avoid having Munge directives throughout the code.
+     */
+    static boolean isLeftToRight( java.awt.Component c ) {
+        
+        return c.getComponentOrientation().isLeftToRight();
+        
 
 
 

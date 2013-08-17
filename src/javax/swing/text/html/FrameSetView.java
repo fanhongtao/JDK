@@ -1,8 +1,11 @@
 /*
- * @(#)FrameSetView.java	1.11 01/11/29
+ * @(#)FrameSetView.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -14,7 +17,7 @@ import javax.swing.event.*;
 
 /**
  * Implements a FrameSetView, intended to support the HTML 
- * <FRAMESET> tag.  Supports the ROWS and COLS attributes.
+ * &lt;FRAMESET&gt; tag.  Supports the ROWS and COLS attributes.
  *
  * @author  Sunita Mani
  *
@@ -23,7 +26,7 @@ import javax.swing.event.*;
  *          conform to the HTML 4.0 standard and also be netscape
  *          compatible.
  *
- * @version 1.11 11/29/01
+ * @version 1.13 02/02/00
  */
 
 class FrameSetView extends javax.swing.text.BoxView {

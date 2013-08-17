@@ -1,8 +1,11 @@
 /*
- * @(#)Key.java	1.44 01/11/29
+ * @(#)Key.java	1.47 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -21,7 +24,7 @@ package java.security;
  * RSA), which will work with those algorithms and with related
  * algorithms (such as MD5 with RSA, SHA-1 with RSA, Raw DSA, etc.)
  * The name of the algorithm of a key is obtained using the
- * {@link getAlgorithm() getAlgorithm} method.<P>
+ * {@link #getAlgorithm() getAlgorithm} method.<P>
  *
  * <LI>An Encoded Form
  *
@@ -29,12 +32,12 @@ package java.security;
  * representation of the key is needed outside the Java Virtual Machine,
  * as when transmitting the key to some other party. The key
  * is encoded according to a standard format (such as X.509 or PKCS#8), and
- * is returned using the {@link getEncoded() getEncoded} method.<P>
+ * is returned using the {@link #getEncoded() getEncoded} method.<P>
  *
  * <LI>A Format
  *
  * <P>This is the name of the format of the encoded key. It is returned
- * by the {@link getFormat() getFormat} method.<P>
+ * by the {@link #getFormat() getFormat} method.<P>
  *
  * </UL>
  *
@@ -53,13 +56,19 @@ package java.security;
  * @see Identity
  * @see Signer
  *
- * @version 1.44 01/11/29
+ * @version 1.47 00/02/02
  * @author Benjamin Renaud
  */
 
 public interface Key extends java.io.Serializable {
 
     // Declare serialVersionUID to be compatible with JDK1.1
+
+   /**
+    * The class fingerprint that is set to indicate 
+    * serialization compatibility with a previous 
+    * version of the class.
+    */
     static final long serialVersionUID = 6603384152749567654L;
 
     /**

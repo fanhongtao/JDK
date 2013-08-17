@@ -1,8 +1,11 @@
 /*
- * @(#)AdjustmentEvent.java	1.18 01/11/29
+ * @(#)AdjustmentEvent.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -16,8 +19,9 @@ import java.awt.Event;
  * @see java.awt.Adjustable
  * @see AdjustmentListener
  *
- * @version 1.18 11/29/01
  * @author Amy Fowler
+ * @version 1.21 02/02/00
+ * @since 1.1
  */
 public class AdjustmentEvent extends AWTEvent {
 
@@ -129,11 +133,11 @@ public class AdjustmentEvent extends AWTEvent {
     /**
      * Returns the type of adjustment which caused the value changed
      * event.
-     * @see UNIT_INCREMENT
-     * @see UNIT_DECREMENT
-     * @see BLOCK_INCREMENT
-     * @see BLOCK_DECREMENT
-     * @see TRACK
+     * @see #UNIT_INCREMENT
+     * @see #UNIT_DECREMENT
+     * @see #BLOCK_INCREMENT
+     * @see #BLOCK_DECREMENT
+     * @see #TRACK
      */
     public int getAdjustmentType() {
         return adjustmentType;

@@ -1,8 +1,11 @@
 /*
- * @(#)JTextArea.java	1.59 01/11/29
+ * @(#)JTextArea.java	1.69 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -20,23 +23,41 @@ import java.io.IOException;
  * A TextArea is a multi-line area that displays plain text. 
  * It is intended to be a lightweight component that provides source 
  * compatibility with the java.awt.TextArea class where it can
- * reasonably do so.  This component has capabilities not found in 
+ * reasonably do so.
+ * You can find information and examples of using all the text components in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/text.html">Using Text Components</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
+ * <p>
+ * This component has capabilities not found in 
  * the java.awt.TextArea class.  The superclass should be consulted for 
  * additional capabilities.  Alternative multi-line text classes with
  * more capabilitites are JTextPane and JEditorPane.
  * <p>
- * The java.awt.TextArea internally handles scrolling.  JTextArea
- * is different in that it doesn't manage scrolling, but implements
- * the swing Scrollable interface.  This allows it to be placed 
- * inside a JScrollPane if scrolling behavior is desired, and used
- * directly if scrolling is not desired.
+ * The <code>java.awt.TextArea</code> internally handles scrolling.  
+ * <code>JTextArea</code> is different in that it doesn't manage scrolling, 
+ * but implements the swing <code>Scrollable</code> interface.  This allows it 
+ * to be placed inside a <code>JScrollPane</code> if scrolling behavior is desired, 
+ * and used directly if scrolling is not desired.
  * <p>
- * The java.awt.TextArea has the ability to do line wrapping. 
+ * The <code>java.awt.TextArea</code> has the ability to do line wrapping. 
  * This was controlled by the horizontal scrolling policy.  Since
- * scrolling is not done by JTextArea directly, backward 
- * compatibility must be provided another way.  JTextArea has
+ * scrolling is not done by <code>JTextArea</code> directly, backward 
+ * compatibility must be provided another way.  <code>JTextArea</code> has
  * a bound property for line wrapping that controls whether or
- * not it will wrap lines.
+ * not it will wrap lines.  By default, the line wrapping property
+ * is set to false (not wrapped).
+ * <p>
+ * <code>java.awt.TextArea</code> has two properties <em>rows</em>
+ * and <em>columns</em> that are used to determine the preferred size.
+ * <code>JTextArea</code> uses these properties to indicate the
+ * preferred size of the viewport when placed inside a JScrollPane to
+ * match the functionality provided by <code>java.awt.TextArea</code>.
+ * <code>JTextArea</code> has a preferred size of what is needed to
+ * display all of the text, so that it functions properly inside of
+ * a <code>JScrollPane</code>.  If the value for the rows or columns
+ * is equal to zero, the preferred size along that axis is used for
+ * the viewport preferred size along the same axis.
  * <p>
  * The java.awt.TextArea could be monitored for changes by adding
  * a TextListener for TextEvent's.  In the JTextComponent based
@@ -63,8 +84,10 @@ import java.io.IOException;
  *
  * @beaninfo
  *   attribute: isContainer false
+ * description: A multi-line area that displays plain text.
+ * 
  * @author  Timothy Prinzing
- * @version 1.59 11/29/01
+ * @version 1.69 04/06/00
  * @see JTextPane
  * @see JEditorPane
  */
@@ -101,6 +124,8 @@ public class JTextArea extends JTextComponent {
      *
      * @param rows the number of rows >= 0
      * @param columns the number of columns >= 0
+     * @exception IllegalArgumentException if the rows or columns
+     *  arguments are negative.
      */
     public JTextArea(int rows, int columns) {
         this(null, null, rows, columns);
@@ -113,6 +138,8 @@ public class JTextArea extends JTextComponent {
      * @param text the text to be displayed, or null
      * @param rows the number of rows >= 0
      * @param columns the number of columns >= 0
+     * @exception IllegalArgumentException if the rows or columns
+     *  arguments are negative.
      */
     public JTextArea(String text, int rows, int columns) {
         this(null, text, rows, columns);
@@ -137,11 +164,14 @@ public class JTextArea extends JTextComponent {
      * @param text the text to be displayed, null if none
      * @param rows the number of rows >= 0
      * @param columns the number of columns >= 0
+     * @exception IllegalArgumentException if the rows or columns
+     *  arguments are negative.
      */
     public JTextArea(Document doc, String text, int rows, int columns) {
         super();
         this.rows = rows;
         this.columns = columns;
+	wrap = false;
         if (doc == null) {
             doc = createDefaultModel();
         }
@@ -149,6 +179,12 @@ public class JTextArea extends JTextComponent {
         if (text != null) {
             setText(text);
         }
+	if (rows < 0) {
+	    throw new IllegalArgumentException("rows: " + rows);
+	}
+	if (columns < 0) {
+	    throw new IllegalArgumentException("columns: " + rows);
+	}
     }
 
     /**
@@ -218,7 +254,8 @@ public class JTextArea extends JTextComponent {
      * to true the lines will be wrapped if they are too long
      * to fit within the allocated width.  If set to false,
      * the lines will always be unwrapped.  A PropertyChange event ("lineWrap")
-     * is fired when the policy is changed.
+     * is fired when the policy is changed.  By default this property
+     * is false.
      *
      * @param wrap indicates if lines should be wrapped.
      * @see #getLineWrap
@@ -248,17 +285,18 @@ public class JTextArea extends JTextComponent {
     /**
      * Set the style of wrapping used if the text area is wrapping
      * lines.  If set to true the lines will be wrapped at word
-     * boundries (ie whitespace) if they are too long
+     * boundaries (whitespace) if they are too long
      * to fit within the allocated width.  If set to false,
-     * the lines will be wrapped at character boundries.
+     * the lines will be wrapped at character boundaries.
+     * By default this property is false.
      *
-     * @param word indicates if word boundries should be used
+     * @param word indicates if word boundaries should be used
      *   for line wrapping.
      * @see #getWrapStyleWord
      * @beaninfo
      *   preferred: false
      *       bound: true
-     * description: should wrapping occur at word boundries
+     * description: should wrapping occur at word boundaries
      */
     public void setWrapStyleWord(boolean word) {
         boolean old = this.word;
@@ -269,12 +307,12 @@ public class JTextArea extends JTextComponent {
     /**
      * Get the style of wrapping used if the text area is wrapping
      * lines.  If set to true the lines will be wrapped at word
-     * boundries (ie whitespace) if they are too long
+     * boundaries (ie whitespace) if they are too long
      * to fit within the allocated width.  If set to false,
-     * the lines will be wrapped at character boundries.
+     * the lines will be wrapped at character boundaries.
      *
-     * @returns if the wrap style should be word boundries
-     *  instead of character boundries.
+     * @returns if the wrap style should be word boundaries
+     *  instead of character boundaries.
      * @see #setWrapStyleWord
      */
     public boolean getWrapStyleWord() {
@@ -309,7 +347,7 @@ public class JTextArea extends JTextComponent {
      */
     public int getLineCount() {
 	// There is an implicit break being modeled at the end of the
-	// document to deal with boundry conditions at the end.  This
+	// document to deal with boundary conditions at the end.  This
 	// is not desired in the line count, so we detect it and remove
 	// its effect if throwing off the count.
         Element map = getDocument().getDefaultRootElement();
@@ -464,8 +502,8 @@ public class JTextArea extends JTextComponent {
      *
      */
 
-    protected void processComponentKeyEvent(KeyEvent e)  {
-        super.processComponentKeyEvent(e);
+    protected void processKeyEvent(KeyEvent e)  {
+        super.processKeyEvent(e);
         // tab consumption
 	// We are actually consuming any TABs modified in any way, because
 	// we don't want awt to get anything it can use for focus traversal.
@@ -707,10 +745,13 @@ public class JTextArea extends JTextComponent {
 
 
     /**
-     * Get the AccessibleContext associated with this JTextArea.
-     * Creates a new context if necessary.
+     * Gets the AccessibleContext associated with this JTextArea. 
+     * For JTextAreas, the AccessibleContext takes the form of an 
+     * AccessibleJTextArea. 
+     * A new AccessibleJTextArea instance is created if necessary.
      *
-     * @return the AccessibleContext of this JTextArea
+     * @return an AccessibleJTextArea that serves as the 
+     *         AccessibleContext of this JTextArea
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -720,7 +761,10 @@ public class JTextArea extends JTextComponent {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JTextArea</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to text area user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

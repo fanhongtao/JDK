@@ -1,8 +1,11 @@
 /*
  * %W% %E%
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.event;
 
@@ -47,8 +50,8 @@ public class AncestorEvent extends AWTEvent {
      *
      * @param source          the JComponent that originated the event
      *                        (typically <code>this</code>)
-     * @param id              an int specifying {@link ANCESTOR_ADDED}, 
-     *                        {@link ANCESTOR_REMOVED} or {@link ANCESTOR_MOVED}
+     * @param id              an int specifying {@link #ANCESTOR_ADDED}, 
+     *                        {@link #ANCESTOR_REMOVED} or {@link #ANCESTOR_MOVED}
      * @param ancestor        a Container object specifying the ancestor-component
      *                        whose display-status changed
      * @param ancestorParent  a Container object specifying the ancestor's parent

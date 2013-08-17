@@ -1,8 +1,11 @@
 /*
- * @(#)CRL.java	1.6 01/11/29
+ * @(#)CRL.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.cert;
@@ -18,12 +21,12 @@ package java.security.cert;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.6 01/11/29
+ * @version 1.9, 02/02/00
  *
  * @see X509CRL
  * @see CertificateFactory
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class CRL {

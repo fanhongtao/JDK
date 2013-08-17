@@ -1,8 +1,11 @@
 /*
- * @(#)CellEditor.java	1.17 01/11/29
+ * @(#)CellEditor.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -35,7 +38,7 @@ import javax.swing.event.*;
  *
  * @see javax.swing.event.CellEditorListener
  *
- * @version 1.17 11/29/01
+ * @version 1.19 02/02/00
  * @author Alan Chung
  */
 public interface CellEditor {
@@ -60,22 +63,6 @@ public interface CellEditor {
     public boolean isCellEditable(EventObject anEvent);
 
     /**
-     * Tell the editor to start editing using <I>anEvent</I>.  It is
-     * up to the editor if it want to start editing in different states
-     * depending on the exact type of <I>anEvent</I>.  For example, with
-     * a text field editor, if the event is a mouse event the editor
-     * might start editing with the cursor at the clicked point.  If
-     * the event is a keyboard event, it might want replace the value
-     * of the text field with that first key, etc.  <I>anEvent</I>
-     * is in the invoking component's coordinate system.  A null value
-     * is a valid parameter for <I>anEvent</I>, and it is up to the editor
-     * to determine what is the default starting state.  For example,
-     * a text field editor might want to select all the text and start
-     * editing if <I>anEvent</I> is null.  The editor can assume
-     * the Component returned by getCellEditorComponent() is properly
-     * installed in the clients Component hierarchy before this method is
-     * called. <p>
-     *
      * The return value of shouldSelectCell() is a boolean indicating whether
      * the editing cell should be selected or not.  Typically, the return
      * value is true, because is most cases the editing cell should be

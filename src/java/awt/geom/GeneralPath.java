@@ -1,8 +1,11 @@
 /*
- * @(#)GeneralPath.java	1.51 01/11/29
+ * @(#)GeneralPath.java	1.54 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -32,7 +35,7 @@ import sun.awt.geom.Crossings;
  * the number of times that the path crosses the ray from
  * left to right does not equal the  number of times that the path crosses
  * the ray from right to left.  
- * @version 10 Feb 1997
+ * @version 1.54, 02/02/00
  * @author Jim Graham
  */
 public final class GeneralPath implements Shape, Cloneable {
@@ -604,7 +607,7 @@ public final class GeneralPath implements Shape, Cloneable {
      * @return     a clone of this instance.
      * @exception  OutOfMemoryError            if there is not enough memory.
      * @see        java.lang.Cloneable
-     * @since      JDK1.2
+     * @since      1.2
      */
     public Object clone() {
 	try {

@@ -1,8 +1,11 @@
 /*
- * @(#)ButtonGroup.java	1.23 01/11/29
+ * @(#)ButtonGroup.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -14,9 +17,21 @@ import java.io.Serializable;
 /**
  * This class is used to create a multiple-exclusion scope for
  * a set of buttons. Creating a set of buttons with the
- * same ButtonGroup object means that turning "on" one of those buttons 
- * turns off all other buttons in the group. A ButtonGroup can be used with
- * sets of JButton, JRadioButton, or JRadioButtonMenuItem objects.
+ * same <code>ButtonGroup</code> object means that
+ * turning "on" one of those buttons 
+ * turns off all other buttons in the group.
+ * <p>
+ * A <code>ButtonGroup</code> can be used with
+ * any set of objects that inherit from <code>AbstractButton</code>.
+ * Typically a button group contains instances of 
+ * <code>JRadioButton</code>,
+ * <code>JRadioButtonMenuItem</code>,
+ * or <code>JToggleButton</code>.
+ * It wouldn't make sense to put an instance of 
+ * <code>JButton</code> or <code>JMenuItem</code>
+ * in a button group
+ * because <code>JButton</code> and <code>JMenuItem</code>
+ * don't implement the selected state.
  * <p>
  * Initially, all buttons in the group are unselected. Once any button is
  * selected, one button is always selected in the group. There is no way
@@ -26,6 +41,10 @@ import java.io.Serializable;
  * turn off all the displayed radio buttons. For example, a normal button
  * with the label "none" could be wired to select the invisible radio button.
  * <p>
+ * For examples and further information on using button groups see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html#radiobutton">How to Use Radio Buttons</a>,
+ * a section in <em>The Java Tutorial</em>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
  * future Swing releases.  The current serialization support is appropriate
@@ -33,7 +52,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 11/29/01
+ * @version 1.27 02/02/00
  * @author Jeff Dinkins
  */
 public class ButtonGroup implements Serializable {
@@ -112,6 +131,17 @@ public class ButtonGroup implements Serializable {
      */
     public boolean isSelected(ButtonModel m) {
         return (m == selection);
+    }
+
+    /**
+     * Returns the number of buttons in the group.
+     */
+    public int getButtonCount() {
+	if (buttons == null) {
+	    return 0;
+	} else {
+	    return buttons.size();
+	}
     }
 
 }

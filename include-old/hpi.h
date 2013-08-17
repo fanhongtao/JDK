@@ -1,8 +1,11 @@
 /*
- * @(#)hpi.h	1.11 01/11/29
+ * @(#)hpi.h	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -161,6 +164,7 @@ typedef struct {
   int	         (*ThreadSetPriority)(sys_thread_t *tid, int prio);
   int	         (*ThreadGetPriority)(sys_thread_t *tid, int *prio);
   void *         (*ThreadStackPointer)(sys_thread_t *tid); 
+  void *	 (*ThreadStackTop)(sys_thread_t *tid);
   long *         (*ThreadRegs)(sys_thread_t *tid, int *regs);
   int	         (*ThreadSingle)(void);
   void	         (*ThreadMulti)(void);
@@ -246,6 +250,14 @@ typedef struct {
   int              (*Timeout)(int fd, long timeout); 
   struct hostent * (*GetHostByName)(char *hostname);
   int              (*Socket)(int domain, int type, int protocol);
+  int              (*SocketShutdown)(int fd, int howto);
+  int              (*Bind)(int fd, struct sockaddr *him, int len);
+  int              (*GetSocketName)(int fd, struct sockaddr *him, int *len);
+  int              (*GetHostName)(char *hostname, int namelen);
+  struct hostent * (*GetHostByAddr)(const char *hostname, int len, int type);
+  int              (*SocketGetOption)(int fd, int level, int optname, char *optval, int *optlen);
+  int              (*SocketSetOption)(int fd, int level, int optname, const char *optval, int optlen);
+  struct protoent * (*GetProtoByName)(char* name);
 } HPI_SocketInterface;
 
 /*
@@ -259,9 +271,6 @@ typedef struct vm_calls {
     void   (*monitorContendedEnter)(sys_thread_t *self, sys_mon_t *mid);
     void   (*monitorContendedEntered)(sys_thread_t *self, sys_mon_t *mid);
     void   (*monitorContendedExit)(sys_thread_t *self, sys_mon_t *mid);
-#ifdef __linux__
-    void   (*threadRecordStackTop)(sys_thread_t *self, void *stack_top);
-#endif    
 } vm_calls_t;
 
 #ifdef __cplusplus

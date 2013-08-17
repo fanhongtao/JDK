@@ -1,8 +1,11 @@
 /*
- * @(#)Registry.java	1.10 01/11/29
+ * @(#)Registry.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi.registry;
 
@@ -30,14 +33,14 @@ import java.rmi.*;
  * to a remote object registry, use one of the
  * <code>LocateRegistry.getRegistry</code> methods.
  *
- * @version 1.10, 11/29/01
+ * @version 1.13, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.Naming
  * @see     java.rmi.registry.LocateRegistry
  */
 public interface Registry extends Remote {
-    /** Well known port for registry */
+    /** Well known port for registry. */
     public static final int REGISTRY_PORT = 1099;
     
     /**
@@ -109,12 +112,11 @@ public interface Registry extends Remote {
      * URL-formatted strings. The array contains a snapshot of the names
      * present in the registry at the time of the call.
      *
-     * @param name a URL-formatted name that specifies the remote registry
      * @return an array of names (in the appropriate URL format) bound
      *  in the registry
-     * @exception MalformedURLException if the name is not an appropriately
-     *  formatted URL
      * @exception RemoteException if registry could not be contacted
+     * @exception AccessException if this operation is not permitted (if
+     * originating from a non-local host, for example)
      * @since JDK1.1
      */
     public String[] list()

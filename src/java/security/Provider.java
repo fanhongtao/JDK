@@ -1,8 +1,11 @@
 /*
- * @(#)Provider.java	1.42 01/11/29
+ * @(#)Provider.java	1.48 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -28,9 +31,13 @@ import java.util.*;
  * <p>See <a href =
  * "../../../guide/security/CryptoSpec.html#Provider">The Provider Class</a>
  * in the "Java Cryptography Architecture API Specification &amp; Reference"
- * for information about how providers work and how to install them.
+ * for information about how a particular type of provider, the
+ * cryptographic service provider, works and is installed. However,
+ * please note that a provider can be used to implement any security
+ * service in Java that uses a pluggable architecture with a choice
+ * of implementations that fit underneath. 
  *
- * @version 1.42 01/11/29
+ * @version 1.48, 02/02/00
  * @author Benjamin Renaud
  */
 public abstract class Provider extends Properties {
@@ -187,7 +194,7 @@ public abstract class Provider extends Properties {
      *          java.lang.SecurityManager#checkSecurityAccess}</code> method denies
      *          access to clear this provider
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized void clear() {
 	check("clearProviderProperties."+name);
@@ -197,7 +204,7 @@ public abstract class Provider extends Properties {
     /**
      * Reads a property list (key and element pairs) from the input stream.
      *
-     * @param      in   the input stream.
+     * @param inStream   the input stream.
      * @exception  IOException  if an error occurred when reading from the
      *               input stream.
      * @see java.util.Properties#load
@@ -212,7 +219,7 @@ public abstract class Provider extends Properties {
      * These mappings will replace any properties that this provider had 
      * for any of the keys currently in the specified Map. 
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized void putAll(Map t) {
 	check("putAllProviderProperties."+name);
@@ -224,7 +231,7 @@ public abstract class Provider extends Properties {
      * in this Provider.
      *
      * @see   java.util.Map.Entry
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Set entrySet() {
 	if (entrySet == null) {
@@ -249,17 +256,17 @@ public abstract class Provider extends Properties {
      * Returns an unmodifiable Set view of the property keys contained in 
      * this provider.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public Set keySet() {
 	return Collections.unmodifiableSet(super.keySet());
     }
 
-    /*
+    /**
      * Returns an unmodifiable Collection view of the property values 
      * contained in this provider.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public Collection values() {
 	return Collections.unmodifiableCollection(super.values());
@@ -291,7 +298,7 @@ public abstract class Provider extends Properties {
      *          java.lang.SecurityManager#checkSecurityAccess}</code> method denies
      *          access to set property values.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Object put(Object key, Object value) {
 	check("putProviderProperty."+name);
@@ -322,7 +329,7 @@ public abstract class Provider extends Properties {
      *          java.lang.SecurityManager#checkSecurityAccess}</code> method denies
      *          access to remove this provider's properties.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Object remove(Object key) {
 	check("removeProviderProperty."+name);

@@ -1,8 +1,11 @@
 /*
- * @(#)Lease.java	1.8 01/11/29
+ * @(#)Lease.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.rmi.dgc;
 
@@ -30,6 +33,8 @@ public final class Lease implements java.io.Serializable {
     /**
      * Constructs a lease with a specific VMID and lease duration. The
      * vmid may be null.
+     * @param id VMID associated with this lease
+     * @param duration lease duration
      */
     public Lease(VMID id, long duration)
     {
@@ -39,6 +44,7 @@ public final class Lease implements java.io.Serializable {
 
     /**
      * Returns the client VMID associated with the lease.
+     * @return client VMID
      */
     public VMID getVMID()
     {
@@ -47,6 +53,7 @@ public final class Lease implements java.io.Serializable {
 
     /**
      * Returns the lease duration.
+     * @return lease duration
      */
     public long getValue()
     {

@@ -1,8 +1,11 @@
 /*
- * @(#)Transparency.java	1.15 01/11/29
+ * @(#)Transparency.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -10,7 +13,7 @@ package java.awt;
 /**
  * The <code>Transparency</code> interface defines the common transparency
  * modes for implementing classes.
- * @version 10 Feb 1997
+ * @version 1.17, 02/02/00
  */
 public interface Transparency {
 

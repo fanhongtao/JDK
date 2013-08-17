@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractTableModel.java	1.24 01/11/29
+ * @(#)AbstractTableModel.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.table;
@@ -10,16 +13,16 @@ package javax.swing.table;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.io.Serializable;
-
+import java.util.EventListener; 
 
 /**
  *  This abstract class provides default implementations for most of
- *  the methods in the <B>TableModel</B> interface. It takes care of
- *  the management of listners and provides some conveniences for generating
- *  TableModelEvents and dispatching them to the listeners.
- *  To create a concrete TableModel as a sublcass of
- *  AbstractTableModel you need only provide implementations for the
- *  following three methods:
+ *  the methods in the <code>TableModel</code> interface. It takes care of
+ *  the management of listeners and provides some conveniences for generating
+ *  <code>TableModelEvents</code> and dispatching them to the listeners.
+ *  To create a concrete <code>TableModel</code> as a sublcass of
+ *  <code>AbstractTableModel</code> you need only provide implementations 
+ *  for the following three methods:
  *
  *  <pre>
  *  public int getRowCount();
@@ -34,7 +37,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 11/29/01
+ * @version 1.28 02/02/00
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -52,8 +55,12 @@ public abstract class AbstractTableModel implements TableModel, Serializable
 //
 
     /**
-     *  Return a default name for the column using spreadsheet conventions:
-     *  A, B, C, ... Z, AA, AB, etc.
+     *  Returns a default name for the column using spreadsheet conventions:
+     *  A, B, C, ... Z, AA, AB, etc.  If <code>column</code> cannot be found,
+     *  returns an empty string.
+     *
+     * @param column  the column being queried
+     * @return a string containing the default name of <code>column</code>
      */
     public String getColumnName(int column) {
 	String result = "";
@@ -64,10 +71,14 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Convenience method for locating columns by name.
+     * Returns a column given its name.
      * Implementation is naive so this should be overridden if
      * this method is to be called often. This method is not
-     * in the TableModel interface and is not used by the JTable.
+     * in the <code>TableModel</code> interface and is not used by the
+     * <code>JTable</code>.
+     *
+     * @param columnName string containing name of column to be located
+     * @return the column with <code>columnName</code>, or -1 if not found
      */
     public int findColumn(String columnName) {
         for (int i = 0; i < getColumnCount(); i++) {
@@ -79,14 +90,21 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     *  Returns Object.class by default
+     *  Returns <code>Object.class</code> regardless of <code>columnIndex</code>.
+     *
+     *  @param columnIndex  the column being queried
+     *  @return the Object.class
      */
     public Class getColumnClass(int columnIndex) {
 	return Object.class;
     }
 
     /**
-     *  This default implementation returns false for all cells
+     *  Returns false.  This is the default implementation for all cells.
+     *
+     *  @param  rowIndex  the row being queried
+     *  @param  columnIndex the column being queried
+     *  @return false
      */
     public boolean isCellEditable(int rowIndex, int columnIndex) {
 	return false;
@@ -95,6 +113,10 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     /**
      *  This empty implementation is provided so users don't have to implement
      *  this method if their data model is not editable.
+     *
+     *  @param  aValue   value to assign to cell
+     *  @param  rowIndex   row of cell
+     *  @param  columnIndex  column of cell
      */
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
     }
@@ -105,7 +127,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
 //
 
     /**
-     * Add a listener to the list that's notified each time a change
+     * Adds a listener to the list that's notified each time a change
      * to the data model occurs.
      *
      * @param	l		the TableModelListener
@@ -115,7 +137,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Remove a listener from the list that's notified each time a
+     * Removes a listener from the list that's notified each time a
      * change to the data model occurs.
      *
      * @param	l		the TableModelListener
@@ -129,10 +151,12 @@ public abstract class AbstractTableModel implements TableModel, Serializable
 //
 
     /**
-     * Notify all listeners that all cell values in the table's rows may have changed.
-     * The number of rows may also have changed and the JTable should redraw the
-     * table from scratch. The structure of the table, ie. the order of the
-     * columns is assumed to be the same.
+     * Notifies all listeners that all cell values in the table's
+     * rows may have changed. The number of rows may also have changed
+     * and the <code>JTable</code> should redraw the
+     * table from scratch. The structure of the table (as in the order of the
+     * columns) is assumed to be the same.
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -141,13 +165,16 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Notify all listeners that the table's structure has changed.
+     * Notifies all listeners that the table's structure has changed.
      * The number of columns in the table, and the names and types of
      * the new columns may be different from the previous state.
-     * If the JTable recieves this event and its <I>autoCreateColumnsFromModel</I>
-     * flag is set it discards any TableColumns that it had and reallocates
-     * default ones in the order they appear in the model. This is the
-     * same as calling <code>setModel(TableModel)</code> on the JTable.
+     * If the <code>JTable</code> receives this event and its
+     * <code>autoCreateColumnsFromModel</code>
+     * flag is set it discards any table columns that it had and reallocates
+     * default columns in the order they appear in the model. This is the
+     * same as calling <code>setModel(TableModel)</code> on the
+     * <code>JTable</code>.
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -156,10 +183,15 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Notify all listeners that rows in the (inclusive) range
-     * [<I>firstRow</I>, <I>lastRow</I>] have been inserted.
+     * Notifies all listeners that rows in the range
+     * <code>[firstRow, lastRow]</code>, inclusive, have been inserted.
+     *
+     * @param  firstRow  the first row
+     * @param  lastRow   the last row
+     *
      * @see TableModelEvent
      * @see EventListenerList
+     *
      */
     public void fireTableRowsInserted(int firstRow, int lastRow) {
         fireTableChanged(new TableModelEvent(this, firstRow, lastRow,
@@ -167,8 +199,12 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Notify all listeners that rows in the (inclusive) range
-     * [<I>firstRow</I>, <I>lastRow</I>] have been updated.
+     * Notifies all listeners that rows in the range
+     * <code>[firstRow, lastRow]</code>, inclusive, have been updated.
+     *
+     * @param firstRow  the first row
+     * @param lastRow   the last row
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -178,8 +214,12 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Notify all listeners that rows in the (inclusive) range
-     * [<I>firstRow</I>, <I>lastRow</I>] have been deleted.
+     * Notifies all listeners that rows in the range
+     * <code>[firstRow, lastRow]</code>, inclusive, have been deleted.
+     *
+     * @param firstRow  the first row
+     * @param lastRow   the last row
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -189,8 +229,11 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Notify all listeners that the value of the cell at (row, column)
-     * has been updated.
+     * Notifies all listeners that the value of the cell at 
+     * <code>[row, column]</code> has been updated.
+     *
+     * @param row  row of cell which has been updated
+     * @param column  column of cell which has been updated
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -199,8 +242,12 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Forward the given notification event to all TableModelListeners that registered
+     * Forwards the given notification event to all
+     * <code>TableModelListeners</code> that registered
      * themselves as listeners for this table model.
+     *
+     * @param e  the event to be forwarded
+     *
      * @see #addTableModelListener
      * @see TableModelEvent
      * @see EventListenerList
@@ -217,4 +264,16 @@ public abstract class AbstractTableModel implements TableModel, Serializable
 	}
     }
 
+    /**
+     * Returns an array of all the listeners of the given type that 
+     * were added to this model. 
+     *
+     * @returns all of the objects receiving <code>listenerType</code>
+     *		notifications from this model
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
+    }
 } // End of class AbstractTableModel

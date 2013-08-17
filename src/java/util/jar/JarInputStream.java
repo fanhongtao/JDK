@@ -1,8 +1,11 @@
 /*
- * @(#)JarInputStream.java	1.21 01/11/29
+ * @(#)JarInputStream.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -19,10 +22,10 @@ import sun.security.util.ManifestEntryVerifier;
  * can be used to store meta-information about the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.21, 11/29/01
+ * @version 1.25, 02/02/00
  * @see	    Manifest
  * @see	    java.util.zip.ZipInputStream
- * @since   JDK1.2
+ * @since   1.2
  */
 public
 class JarInputStream extends ZipInputStream {
@@ -94,6 +97,9 @@ class JarInputStream extends ZipInputStream {
     /**
      * Returns the <code>Manifest</code> for this JAR file, or
      * <code>null</code> if none.
+     *
+     * @return the <code>Manifest</code> for this JAR file, or
+     *         <code>null</code> if none.
      */
     public Manifest getManifest() {
 	return man;
@@ -130,6 +136,8 @@ class JarInputStream extends ZipInputStream {
     /**
      * Reads the next JAR file entry and positions the stream at the
      * beginning of the entry data.
+     *
+     * @return the next JAR file entry
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
      */
@@ -166,6 +174,7 @@ class JarInputStream extends ZipInputStream {
      * specified JAR file entry name.
      *
      * @param name the name of the JAR/ZIP file entry
+     * @return the <code>JarEntry</code> object just created
      */
     protected ZipEntry createZipEntry(String name) {
 	JarEntry e = new JarEntry(name);

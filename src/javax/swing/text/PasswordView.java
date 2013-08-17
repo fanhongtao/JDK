@@ -1,8 +1,11 @@
 /*
- * @(#)PasswordView.java	1.10 01/11/29
+ * @(#)PasswordView.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -17,7 +20,7 @@ import javax.swing.JPasswordField;
  * component to a JPasswordField).
  *
  * @author  Timothy Prinzing
- * @version 1.10 11/29/01
+ * @version 1.13 02/02/00
  * @see     View
  */
 public class PasswordView extends FieldView {
@@ -50,6 +53,9 @@ public class PasswordView extends FieldView {
 	Container c = getContainer();
 	if (c instanceof JPasswordField) {
 	    JPasswordField f = (JPasswordField) c;
+	    if (! f.echoCharIsSet()) {
+		return super.drawUnselectedText(g, x, y, p0, p1);
+	    }
 	    g.setColor(f.getForeground());
 	    char echoChar = f.getEchoChar();
 	    int n = p1 - p0;
@@ -81,7 +87,9 @@ public class PasswordView extends FieldView {
 	Container c = getContainer();
 	if (c instanceof JPasswordField) {
 	    JPasswordField f = (JPasswordField) c;
-	    g.setColor(f.getSelectedTextColor());
+	    if (! f.echoCharIsSet()) {
+		return super.drawSelectedText(g, x, y, p0, p1);
+	    }
 	    char echoChar = f.getEchoChar();
 	    int n = p1 - p0;
 	    for (int i = 0; i < n; i++) {
@@ -124,6 +132,9 @@ public class PasswordView extends FieldView {
 	Container c = getContainer();
 	if (c instanceof JPasswordField) {
 	    JPasswordField f = (JPasswordField) c;
+	    if (! f.echoCharIsSet()) {
+		return super.modelToView(pos, a, b);
+	    }
 	    char echoChar = f.getEchoChar();
 	    FontMetrics m = f.getFontMetrics(f.getFont());
 	    
@@ -153,6 +164,9 @@ public class PasswordView extends FieldView {
 	Container c = getContainer();
 	if (c instanceof JPasswordField) {
 	    JPasswordField f = (JPasswordField) c;
+	    if (! f.echoCharIsSet()) {
+		return super.viewToModel(fx, fy, a, bias);
+	    }
 	    char echoChar = f.getEchoChar();
 	    FontMetrics m = f.getFontMetrics(f.getFont());
 	    a = adjustAllocation(a);

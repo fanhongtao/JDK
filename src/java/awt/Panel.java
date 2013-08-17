@@ -1,12 +1,16 @@
 /*
- * @(#)Panel.java	1.24 01/11/29
+ * @(#)Panel.java	1.30 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.PanelPeer;
+import javax.accessibility.*;
 
 /**
  * <code>Panel</code> is the simplest container class. A panel
@@ -16,12 +20,12 @@ import java.awt.peer.PanelPeer;
  * The default layout manager for a panel is the
  * <code>FlowLayout</code> layout manager.
  *
- * @version 	1.24, 11/29/01
+ * @version 	1.30, 04/06/00
  * @author 	Sami Shaio
  * @see     java.awt.FlowLayout
  * @since   JDK1.0
  */
-public class Panel extends Container {
+public class Panel extends Container implements Accessible {
     private static final String base = "panel";
     private static int nameCounter = 0;
 
@@ -69,6 +73,44 @@ public class Panel extends Container {
 	        peer = getToolkit().createPanel(this);
 	    super.addNotify();
 	}
+    }
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this Panel. 
+     * For panels, the AccessibleContext takes the form of an 
+     * AccessibleAWTPanel. 
+     * A new AccessibleAWTPanel instance is created if necessary.
+     *
+     * @return an AccessibleAWTPanel that serves as the 
+     *         AccessibleContext of this Panel
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTPanel();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Panel</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to panel user-interface elements.
+     */
+    protected class AccessibleAWTPanel extends AccessibleAWTContainer {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.PANEL;
+        }
     }
 
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)FileDialog.java	1.41 01/11/29
+ * @(#)FileDialog.java	1.43 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -22,7 +25,7 @@ import java.io.ObjectInputStream;
  *
  * @see Window#show
  *
- * @version 	1.41, 11/29/01
+ * @version 	1.43, 02/02/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -270,7 +273,8 @@ public class FileDialog extends Dialog {
     /**
      * Determines this file dialog's filename filter. A filename filter
      * allows the user to specify which files appear in the file dialog
-     * window.
+     * window.  Filename filters do not function in Sun's reference
+     * implementation for Windows 95, 98, or NT 4.0.
      * @return    this file dialog's filename filter.
      * @see       java.io.FilenameFilter
      * @see       java.awt.FileDialog#setFilenameFilter
@@ -282,6 +286,8 @@ public class FileDialog extends Dialog {
     /**
      * Sets the filename filter for this file dialog window to the
      * specified filter.
+     * Filename filters do not function in Sun's reference
+     * implementation for Windows 95, 98, or NT 4.0.
      * @param   filter   the specified filter.
      * @see     java.io.FilenameFilter
      * @see     java.awt.FileDialog#getFilenameFilter

@@ -1,8 +1,11 @@
 /*
- * @(#)TypeMismatch.java	1.5 01/11/29
+ * @(#)TypeMismatch.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -14,12 +17,20 @@ package org.omg.CORBA.DynAnyPackage;
  * accessed.  
  */
 public final class TypeMismatch
-	extends org.omg.CORBA.UserException {
-    //	constructor
+    extends org.omg.CORBA.UserException {
+
+    /**
+     * Constructs a <code>TypeMismatch</code> object.
+     */
     public TypeMismatch() {
 	super();
     }
 
+    /**
+     * Constructs a <code>TypeMismatch</code> object.
+     * @param reason  a <code>String</code> giving more information
+     * regarding the exception.
+     */
     public TypeMismatch(String reason) {
 	super(reason);
     }

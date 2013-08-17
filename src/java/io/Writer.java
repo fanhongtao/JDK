@@ -1,8 +1,11 @@
 /*
- * @(#)Writer.java	1.17 01/11/29
+ * @(#)Writer.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -25,7 +28,7 @@ package java.io;
  * @see   StringWriter
  * @see Reader
  *
- * @version 	1.17, 01/11/29
+ * @version 	1.19, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -62,6 +65,8 @@ public abstract class Writer {
     /**
      * Create a new character-stream writer whose critical sections will
      * synchronize on the given object.
+     *
+     * @param lock  Object to synchronize on.
      */
     protected Writer(Object lock) {
 	if (lock == null) {
@@ -78,6 +83,7 @@ public abstract class Writer {
      * <p> Subclasses that intend to support efficient single-character output
      * should override this method.
      *
+     * @param c  int specifying a character to be written.
      * @exception  IOException  If an I/O error occurs
      */
     public void write(int c) throws IOException {

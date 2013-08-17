@@ -1,8 +1,11 @@
 /*
  * %W% %E%
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -44,7 +47,6 @@ public class AccessibleResourceBundle extends ListResourceBundle {
 //        { "grouping","grouping" },
 //        { "image","image" },
 //        { "indicator","indicator" },
-//        { "listitem","list item" },
 //        { "radiobuttonmenuitem","radio button menu item" },
 //        { "row","row" },
 //        { "tablecell","table cell" },
@@ -55,6 +57,7 @@ public class AccessibleResourceBundle extends ListResourceBundle {
         { "colorchooser","color chooser" },
         { "columnheader","column header" },
         { "combobox","combo box" },
+        { "canvas","canvas" },
         { "desktopicon","desktop icon" },
         { "desktoppane","desktop pane" },
         { "dialog","dialog" },
@@ -67,6 +70,7 @@ public class AccessibleResourceBundle extends ListResourceBundle {
         { "label","label" },
         { "layeredpane","layered pane" },
         { "list","list" },
+        { "listitem","list item" },
         { "menubar","menu bar" },
         { "menu","menu" },
         { "menuitem","menu item" },
@@ -96,6 +100,12 @@ public class AccessibleResourceBundle extends ListResourceBundle {
         { "unknown","unknown" },
         { "viewport","viewport" },
         { "window","window" },
+        // Relations
+        { "labelFor","label for" },
+        { "labeledBy","labeled by" },
+        { "memberOf","member of" },
+        { "controlledBy","controlledBy" },
+        { "controllerFor","controllerFor" },
         // State modes
         { "active","active" },
         { "armed","armed" },

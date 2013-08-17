@@ -1,8 +1,11 @@
 /*
- * @(#)UserException.java	1.35 01/11/29
+ * @(#)UserException.java	1.38 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -21,7 +24,7 @@ public abstract class UserException extends java.lang.Exception implements org.o
 
     /**
      * Constructs a <code>UserException</code> object.
-	 * This method is called only by subclasses.
+     * This method is called only by subclasses.
      */
     protected UserException() {
 	super();

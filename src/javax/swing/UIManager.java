@@ -1,8 +1,11 @@
 /*
- * @(#)UIManager.java	1.75 01/11/29
+ * @(#)UIManager.java	1.83 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -55,7 +58,7 @@ import java.util.Vector;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.75 11/29/01
+ * @version 1.83 02/02/00
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -96,10 +99,11 @@ public class UIManager implements Serializable
      */
     private static final Object lafStateACKey = new StringBuffer("LookAndFeel State");
 
-    /* Lock object used in place of class object for synchronization. 
-     * (4187686)
+
+    /* Lock object used in place of class object for synchronization. (4187686)
      */
     private static final Object classLock = new Object();
+
 
     /* Cache the last referenced LAFState to improve performance 
      * when accessing it.  The cache is based on last thread rather
@@ -111,9 +115,10 @@ public class UIManager implements Serializable
     private static Thread currentLAFStateThread = null;
     private static LAFState currentLAFState = null;
 
+
     /**
      * Return the LAFState object, lazily create one if neccessary.  All access
-     * to the LAFState fields is done via this method, e.g.:
+     * to the LAFState fields is done via this method, for example:
      * <pre>
      *     getLAFState().initialized = true;
      * </pre>
@@ -251,7 +256,7 @@ public class UIManager implements Serializable
     /** 
      * Return an array of objects that provide some information about the
      * LookAndFeel implementations that have been installed with this 
-     * java development kit.  The LookAndFeel info objects can be used
+     * software development kit.  The LookAndFeel info objects can be used
      * by an application to construct a menu of look and feel options for 
      * the user or to set the look and feel at start up time.  Note that 
      * we do not return the LookAndFeel classes themselves here to avoid the
@@ -419,8 +424,8 @@ public class UIManager implements Serializable
 
     /**
      * Returns the name of the LookAndFeel class that implements
-     * the default cross platform look and feel, i.e. the "Java
-     * Look and Feel", or JLF.
+     * the default cross platform look and feel -- the Java
+     * Look and Feel (JLF).
      * 
      * @return  a string with the JLF implementation-class
      * @see #setLookAndFeel
@@ -536,7 +541,7 @@ public class UIManager implements Serializable
      *
      * @param key    an Object specifying the retrieval key
      * @param value  the Object to store
-     * @return the Object returned by {@link UIDefaults.put}
+     * @return the Object returned by {@link UIDefaults#put}
      */
     public static Object put(Object key, Object value) { 
         return getDefaults().put(key, value); 
@@ -608,8 +613,7 @@ public class UIManager implements Serializable
      * @see #getAuxiliaryLookAndFeels
      * @see #getInstalledLookAndFeels
      */
-    static public void addAuxiliaryLookAndFeel(LookAndFeel laf) 
-    {
+    static public void addAuxiliaryLookAndFeel(LookAndFeel laf) {
         maybeInitialize();
 
         Vector v = getLAFState().auxLookAndFeels;
@@ -643,8 +647,7 @@ public class UIManager implements Serializable
      * @see #setLookAndFeel
      * @see #getInstalledLookAndFeels
      */
-    static public boolean removeAuxiliaryLookAndFeel(LookAndFeel laf) 
-    {
+    static public boolean removeAuxiliaryLookAndFeel(LookAndFeel laf) {
         maybeInitialize();
 
 	boolean result;
@@ -680,8 +683,7 @@ public class UIManager implements Serializable
      * @see #setLookAndFeel
      * @see #getInstalledLookAndFeels
      */
-    static public LookAndFeel[] getAuxiliaryLookAndFeels() 
-    {
+    static public LookAndFeel[] getAuxiliaryLookAndFeels() {
         maybeInitialize();
 
         Vector v = getLAFState().auxLookAndFeels;
@@ -871,7 +873,9 @@ public class UIManager implements Serializable
             String className = p.nextToken();
             try {
                 Class lnfClass = SwingUtilities.loadSystemClass(className);
-                auxLookAndFeels.addElement(lnfClass.newInstance());
+		LookAndFeel newLAF = (LookAndFeel)lnfClass.newInstance();
+		newLAF.initialize();
+                auxLookAndFeels.addElement(newLAF);
             } 
             catch (Exception e) {
                 System.err.println("UIManager: failed loading auxiliary look and feel " + className);
@@ -897,33 +901,12 @@ public class UIManager implements Serializable
     }
 
 
-    private static void initializeSystemDefaults(Properties swingProps)
-    {
+    private static void initializeSystemDefaults(Properties swingProps) {
         Object defaults[] = {
             "FocusManagerClassName", "javax.swing.DefaultFocusManager"
         };
         getLAFState().setSystemDefaults(new UIDefaults(defaults));
 	getLAFState().swingProps = swingProps;
-    }
-
-
-    private static void initialize()
-    {
-        Properties swingProps = loadSwingProperties();
-	try {
-	    // We discourage the JIT during UI initialization.
-	    // JITing here tends to be counter-productive.
-	    java.lang.Compiler.disable();
-
-            initializeSystemDefaults(swingProps);
-            initializeDefaultLAF(swingProps);
-            initializeAuxiliaryLAFs(swingProps);
-            initializeInstalledLAFs(swingProps);
-
-	} finally {
-	    // Make sure to always re-enable the JIT.
-	    java.lang.Compiler.enable();
-	}
     }
 
 
@@ -943,4 +926,27 @@ public class UIManager implements Serializable
         }
     }
 
+
+    /*
+     * Only called by maybeInitialize().
+     */
+    private static void initialize() {
+        Properties swingProps = loadSwingProperties();
+	try {
+	    // We discourage the JIT during UI initialization.
+	    // JITing here tends to be counter-productive.
+	    java.lang.Compiler.disable();
+
+            initializeSystemDefaults(swingProps);
+            initializeDefaultLAF(swingProps);
+            initializeAuxiliaryLAFs(swingProps);
+            initializeInstalledLAFs(swingProps);
+
+	} 
+	finally {
+	    // Make sure to always re-enable the JIT.
+	    java.lang.Compiler.enable();
+	}
+    }
 }
+

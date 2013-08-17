@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultTableModel.java	1.20 01/11/29
+ * @(#)DefaultTableModel.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.table;
@@ -14,16 +17,9 @@ import javax.swing.event.TableModelEvent;
 
 
 /**
- * This is an implementation of TableModel that uses a Vector of Vectors
- * to store the cell value objects.
- * <p>
- * <b>Note:</b><br>
- * The DefaultTableModel's API contains the methods addColumn(),
- * removeColumn(), but not methods to insert a column at an index
- * nor methods to move the columns.  This is because JTable does
- * not display the columns based on the order of the columns in
- * this model.  So rearranging them here doesn't do much.  See
- * the column ordering methods in TableColumnModel.
+ * This is an implementation of <code>TableModel</code> that
+ * uses a <code>Vector</code> of <code>Vectors</code> to store the
+ * cell value objects.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -32,7 +28,7 @@ import javax.swing.event.TableModelEvent;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.20 11/29/01
+ * @version 1.27 02/02/00
  * @author Alan Chung
  * @author Philip Milne
  *
@@ -45,10 +41,13 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 // Instance Variables
 //
 
-    /** The Vector of Vector of Object values */
+    /**
+     * The <code>Vector</code> of <code>Vectors</code> of 
+     * <code>Object</code> values.
+     */
     protected Vector    dataVector;
 
-    /** The Vector of column identifiers */
+    /** The <code>Vector</code> of column identifiers. */
     protected Vector    columnIdentifiers;
 
 //
@@ -56,19 +55,20 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 //
 
     /**
-     *  Constructs a default DefaultTableModel which is a table of
-     *  zero columns and zero rows.
+     *  Constructs a default <code>DefaultTableModel</code> 
+     *  which is a table of zero columns and zero rows.
      */
     public DefaultTableModel() {
         this((Vector)null, 0);
     }
 
     /**
-     *  Constructs a DefaultTableModel with <i>numRows</i> and
-     *  <i>numColumns</i> of <b>null</b> object values.
+     *  Constructs a <code>DefaultTableModel</code> with
+     *  <code>numRows</code> and <code>numColumns</code> of
+     *  <code>null</code> object values.
      *
-     * @param numRows           The number of rows the table holds
-     * @param numColumns        The number of columns the table holds
+     * @param numRows           the number of rows the table holds
+     * @param numColumns        the number of columns the table holds
      *
      * @see #setValueAt
      */
@@ -81,14 +81,16 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Constructs a DefaultTableModel with as many columns as there are
-     *  elements in <i>columnNames</i> and <i>numRows</i> of <b>null</b>
+     *  Constructs a <code>DefaultTableModel</code> with as many columns
+     *  as there are elements in <code>columnNames</code>
+     *  and <code>numRows</code> of <code>null</code>
      *  object values.  Each column's name will be taken from
-     *  the <i>columnNames</i> vector.
+     *  the <code>columnNames</code> vector.
      *
-     * @param columnNames       Vector containing the names of the new columns.
-     *                          If this null then the model has no columns
-     * @param numRows           The number of rows the table holds
+     * @param columnNames       <code>vector</code> containing the names
+     *				of the new columns.  If this is 
+     *                          <code>null</code> then the model has no columns
+     * @param numRows           the number of rows the table holds
      * @see #setDataVector
      * @see #setValueAt
      */
@@ -99,14 +101,16 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Constructs a DefaultTableModel with as many columns as there are
-     *  elements in <i>columnNames</i> and <i>numRows</i> of <b>null</b>
+     *  Constructs a <code>DefaultTableModel</code> with as many
+     *  columns as there are elements in <code>columnNames</code>
+     *  and <code>numRows</code> of <code>null</code>
      *  object values.  Each column's name will be taken from
-     *  the <i>columnNames</i> array.
+     *  the <code>columnNames</code> array.
      *
-     * @param columnNames       Array containing the names of the new columns.
-     *                          If this null then the model has no columns
-     * @param numRows           The number of rows the table holds
+     * @param columnNames       <code>array</code> containing the names
+     *				of the new columns.  If this is
+     *                          <code>null</code> then the model has no columns
+     * @param numRows           the number of rows the table holds
      * @see #setDataVector
      * @see #setValueAt
      */
@@ -115,12 +119,13 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Constructs a DefaultTableModel and initializes the table
-     *  by passing <i>data</i> and <i>columnNames</i> to the setDataVector()
-     *  method.
+     *  Constructs a <code>DefaultTableModel</code> and initializes the table
+     *  by passing <code>data</code> and <code>columnNames</code>
+     *  to the <code>setDataVector</code> method.
      *
-     * @param data              The data of the table
-     * @param columnNames       Vector containing the names of the new columns.
+     * @param data              the data of the table
+     * @param columnNames       <code>vector</code> containing the names
+     *				of the new columns
      * @see #getDataVector
      * @see #setDataVector
      */
@@ -129,13 +134,14 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Constructs a DefaultTableModel and initializes the table
-     *  by passing <i>data</i> and <i>columnNames</i> to the setDataVector()
-     *  method. The first index in the Object[][] is the row index and
-     *  the second is the column index.
+     *  Constructs a <code>DefaultTableModel</code> and initializes the table
+     *  by passing <code>data</code> and <code>columnNames</code>
+     *  to the <code>setDataVector</code>
+     *  method. The first index in the <code>Object[][]</code> array is
+     *  the row index and the second is the column index.
      *
-     * @param data              The data of the table
-     * @param columnNames       The names of the columns.
+     * @param data              the data of the table
+     * @param columnNames       the names of the columns
      * @see #getDataVector
      * @see #setDataVector
      */
@@ -148,21 +154,15 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 //
 
     /**
-     *  This returns the Vector of Vectors that contains the table's
+     *  Returns the <code>Vector</code> of <code>Vectors</code>
+     *  that contains the table's
      *  data values.  The vectors contained in the outer vector are
      *  each a single row of values.  In other words, to get to the cell
-     *  at row 1, column 5 <p>
+     *  at row 1, column 5: <p>
      *
      *  <code>((Vector)getDataVector().elementAt(1)).elementAt(5);</code><p>
      *
-     *  You can directly alter the returned Vector.  You can change the cell
-     *  values, the number of rows. If you need to alter the number of columns
-     *  in the model, you can do so with addColumn(), removeColumn(), or
-     *  the setDataVector() methods.  Once you have finished modifying the
-     *  dataVector,  you <b>must</b> inform the model of the new data using
-     *  one of the notification methods. The notification methods
-     *  will generate the appropriate TableModelListener messages to notify
-     *  the JTable and any other listeners of this model.
+     * @return  the vector of vectors containing the tables data values
      *
      * @see #newDataAvailable
      * @see #newRowsAdded
@@ -173,17 +173,19 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  This replaces the current dataVector instance variable with the
-     *  new Vector of rows, <i>newData</i>. <i>columnNames</i> are the names
-     *  of the new columns.  The first name in <i>columnNames</i> is
-     *  mapped to column 0 in <i>newData</i>. Each row in <i>newData</i>
-     *  is adjusted to match the number of columns in <i>columnNames</i>
-     *  either by truncating the Vector if it is too long, or adding
-     *  null values if it is too short.
+     *  Replaces the current <code>dataVector</code> instance variable with the
+     *  new Vector of rows, <code>newData</code>.
+     *  <code>columnNames</code> are the names
+     *  of the new columns.  The first name in <code>columnNames</code> is
+     *  mapped to column 0 in <code>newData</code>. Each row in
+     *  <code>newData</code>
+     *  is adjusted to match the number of columns in <code>columnNames</code>
+     *  either by truncating the <code>Vector</code> if it is too long,
+     *  or adding <code>null</code> values if it is too short.
      *  <p>
      *
-     * @param   newData         The new data vector
-     * @param   columnNames     The names of the columns
+     * @param   newData         the new data vector
+     * @param   columnNames     the names of the columns
      * @see #newDataAvailable
      * @see #getDataVector
      */
@@ -206,11 +208,14 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  This replaces the value in the dataVector instance variable with the
-     *  values in the array <i>newData</i>.  The first index in the Object[][]
+     *  Replaces the value in the <code>dataVector</code> instance 
+     *  variable with the values in the array <code>newData</code>.
+     *  The first index in the <code>Object[][]</code>
      *  array is the row index and the second is the column index.
-     *  <i>columnNames</i> are the names of the new columns.
+     *  <code>columnNames</code> are the names of the new columns.
      *
+     * @param newData		the new data vector
+     * @param columnNames	the names of the columns
      * @see #setDataVector(Vector, Vector)
      */
     public void setDataVector(Object[][] newData, Object[] columnNames) {
@@ -218,7 +223,9 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Equivalent to fireTableChanged.
+     *  Equivalent to <code>fireTableChanged</code>.
+     *
+     * @param event  the change event 
      *
      */
     public void newDataAvailable(TableModelEvent event) {
@@ -226,15 +233,18 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  This method will make sure the new rows have the correct number of columns.
-     *  It does so using the setSize method in Vector which truncates Vectors
-     *  which are too long, and appends nulls if they are too short.
-     *  This method also sends out a tableChanged() notification message
-     *  to all the listeners.
+     *  Ensures that the new rows have the correct number of columns.
+     *  This is accomplished by  using the <code>setSize</code> method in
+     *  <code>Vector</code> which truncates vectors
+     *  which are too long, and appends <code>null</code>s if they
+     *  are too short.
+     *  This method also sends out a <code>tableChanged</code>
+     *  notification message to all the listeners.
      *
-     * @parameter event         This TableModelEvent describes where the
-     *                          rows were added.  If <b>null</b> it assumes
-     *                          all the rows were newly added.
+     * @param event         this <code>TableModelEvent</code> describes 
+     *                           where the rows were added. 
+     *				 If <code>null</code> it assumes
+     *                           all the rows were newly added
      * @see #getDataVector
      */
     public void newRowsAdded(TableModelEvent event) {
@@ -255,7 +265,9 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Equivalent to fireTableChanged().
+     *  Equivalent to <code>fireTableChanged</code>.
+     *
+     *  @param event the change event
      *
      */
     public void rowsRemoved(TableModelEvent event) {
@@ -263,10 +275,16 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     * Replaces the column identifiers in the model.
+     * Replaces the column identifiers in the model.  If the number of
+     * <code>newIdentifier</code>s is greater than the current number
+     * of columns, new columns are added to the end of each row in the model.
+     * If the number of <code>newIdentifier</code>s is less than the current
+     * number of columns, all the extra columns at the end of a row are
+     * discarded. <p>
      *
-     * @param   newIdentifiers  Vector of column identifiers.  A null means
-     *                          setting the model to zero columns
+     * @param   newIdentifiers  vector of column identifiers.  If
+     *				<code>null</code>, set the model
+     *                          to zero columns
      * @see #setNumRows
      */
     public void setColumnIdentifiers(Vector newIdentifiers) {
@@ -283,14 +301,15 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 
     /**
      * Replaces the column identifiers in the model.  If the number of
-     * <i>newIdentifiers</i> is greater than the current numColumns,
-     * new columns are added to the end of each row in the model.
-     * If the number of <i>newIdentifier</i> is less than the current
+     * <code>newIdentifier</code>s is greater than the current number
+     * of columns, new columns are added to the end of each row in the model.
+     * If the number of <code>newIdentifier</code>s is less than the current
      * number of columns, all the extra columns at the end of a row are
      * discarded. <p>
      *
-     * @param   newIdentifiers  Array of column identifiers.  A null means
-     *                          setting the model to zero columns
+     * @param   newIdentifiers  array of column identifiers. 
+     *				If <code>null</code>, set
+     *                          the model to zero columns
      * @see #setNumRows
      */
     public void setColumnIdentifiers(Object[] newIdentifiers) {
@@ -298,13 +317,16 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
+     * Obsolete as of Java 2 platform v1.3.  Please use <code>setRowCount</code> instead.
+     */
+    /*
      *  Sets the number of rows in the model.  If the new size is greater
      *  than the current size, new rows are added to the end of the model
      *  If the new size is less than the current size, all
-     *  rows at index <i>newSize</i> and greater are discarded. <p>
+     *  rows at index <code>newSize</code> and greater are discarded. <p>
      *
      * @param   newSize   the new number of rows
-     * @see #setColumnIdentifiers
+     * @see #setRowCount
      */
     public void setNumRows(int newSize) {
         if ((newSize < 0) || (newSize == getRowCount()))
@@ -334,31 +356,65 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Add a column to the model.  The new column will have the
-     *  idenitifier <i>columnName</i>.  This method will send a
-     *  tableChanged() notification message to all the listeners.
-     *  This method is a cover for <i>addColumn(Object, Vector)</i> which
-     *  uses null as the data vector.
+     *  Sets the number of rows in the model.  If the new size is greater
+     *  than the current size, new rows are added to the end of the model
+     *  If the new size is less than the current size, all
+     *  rows at index <code>rowCount</code> and greater are discarded. <p>
+     *
+     *  @see #setColumnCount
+     */
+    public void setRowCount(int rowCount) { 
+	setNumRows(rowCount); 
+    } 
+
+    /**
+     *  Sets the number of columns in the model.  If the new size is greater
+     *  than the current size, new columns are added to the end of the model 
+     *  with <code>null</code> cell values.
+     *  If the new size is less than the current size, all columns at index
+     *  <code>columnCount</code> and greater are discarded. 
+     *
+     *  @param columnCount  the new number of columns in the model
+     *
+     *  @see #setColumnCount
+     */
+    public void setColumnCount(int columnCount) { 
+	for (int r = 0; r < getRowCount(); r++) { 
+	    Vector row = (Vector)dataVector.elementAt(r); 
+	    row.setSize(columnCount); 
+	}
+	columnIdentifiers.setSize(columnCount); 
+	fireTableStructureChanged();
+    } 
+
+    /**
+     *  Adds a column to the model.  The new column will have the
+     *  identifier <code>columnName</code>.  This method will send a
+     *  <code>tableChanged</code> notification message to all the listeners.
+     *  This method is a cover for <code>addColumn(Object, Vector)</code> which
+     *  uses <code>null</code> as the data vector.
      *
      * @param   columnName the identifier of the column being added
-     * @exception IllegalArgumentException      if columnName is null
+     * @exception IllegalArgumentException      if <code>columnName</code>
+     *						is <code>null</code>
      */
     public void addColumn(Object columnName) {
         addColumn(columnName, (Vector)null);
     }
 
     /**
-     *  Add a column to the model.  The new column will have the
-     *  idenitifier <i>columnName</i>.  <i>columnData</i> is the
-     *  optional Vector of data for the column.  If it is <b>null</b>
-     *  the column is filled with <b>null</b> values.  Otherwise,
+     *  Adds a column to the model.  The new column will have the
+     *  identifier <code>columnName</code>.  <code>columnData</code> is the
+     *  optional vector of data for the column.  If it is <code>null</code>
+     *  the column is filled with <code>null</code> values.  Otherwise,
      *  the new data will be added to model starting with the first
      *  element going to row 0, etc.  This method will send a
-     *  tableChanged() notification message to all the listeners.
+     *  <code>tableChanged</code> notification message to all the listeners.
      *
      * @param   columnName the identifier of the column being added
      * @param   columnData       optional data of the column being added
-     * @exception IllegalArgumentException      if columnName is null
+     * @exception IllegalArgumentException      if <code>columnName</code>
+     *						is <code>null</code>
      */
     public void addColumn(Object columnName, Vector columnData) {
         if (columnName == null)
@@ -386,7 +442,13 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Adds a column to the model with name <i>columnName</i>.
+     *  Adds a column to the model.  The new column will have the
+     *  identifier <code>columnName</code>.  <code>columnData</code> is the
+     *  optional array of data for the column.  If it is <code>null</code>
+     *  the column is filled with <code>null</code> values.  Otherwise,
+     *  the new data will be added to model starting with the first
+     *  element going to row 0, etc.  This method will send a
+     *  <code>tableChanged</code> notification message to all the listeners.
      *
      * @see #addColumn(Object, Vector)
      */
@@ -395,9 +457,9 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Add a row to the end of the model.  The new row will contain
-     *  <b>null</b> values unless <i>rowData</i> is specified.  Notification
-     *  of the row being added will be generated.
+     *  Adds a row to the end of the model.  The new row will contain
+     *  <code>null</code> values unless <code>rowData</code> is specified.
+     *  Notification of the row being added will be generated.
      *
      * @param   rowData          optional data of the row being added
      */
@@ -417,9 +479,9 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Add a row to the end of the model.  The new row will contain
-     *  <b>null</b> values unless <i>rowData</i> is specified.  Notification
-     *  of the row being added will be generated.
+     *  Adds a row to the end of the model.  The new row will contain
+     *  <code>null</code> values unless <code>rowData</code> is specified.
+     *  Notification of the row being added will be generated.
      *
      * @param   rowData          optional data of the row being added
      */
@@ -428,13 +490,13 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Insert a row at <i>row</i> in the model.  The new row will contain
-     *  <b>null</b> values unless <i>rowData</i> is specified.  Notification
-     *  of the row being added will be generated.
+     *  Inserts a row at <code>row</code> in the model.  The new row
+     *  will contain <code>null</code> values unless <code>rowData</code>
+     *  is specified.  Notification of the row being added will be generated.
      *
      * @param   row             the row index of the row to be inserted
      * @param   rowData         optional data of the row being added
-     * @exception  ArrayIndexOutOfBoundsException  if the row was invalid.
+     * @exception  ArrayIndexOutOfBoundsException  if the row was invalid
      */
     public void insertRow(int row, Vector rowData) {
         if (rowData == null) {
@@ -452,36 +514,40 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Insert a row at <i>row</i> in the model.  The new row will contain
-     *  <b>null</b> values unless <i>rowData</i> is specified.  Notification
-     *  of the row being added will be generated.
+     *  Inserts a row at <code>row</code> in the model.  The new row
+     *  will contain <code>null</code> values unless <code>rowData</code>
+     *  is specified.  Notification of the row being added will be generated.
      *
      * @param   row      the row index of the row to be inserted
      * @param   rowData          optional data of the row being added
-     * @exception  ArrayIndexOutOfBoundsException  if the row was invalid.
+     * @exception  ArrayIndexOutOfBoundsException  if the row was invalid
      */
     public void insertRow(int row, Object[] rowData) {
         insertRow(row, convertToVector(rowData));
     }
 
     /**
-     *  Moves one or more rows starting at <i>startIndex</i> to <i>endIndex</i>
-     *  in the model to the <i>toIndex</i>.    This method will send a
-     *  tableChanged() notification message to all the listeners. <p>
+     *  Moves one or more rows starting at <code>startIndex</code>
+     *  to <code>endIndex</code> in the model to the <code>toIndex</code>.
+     *  This method will send a <code>tableChanged</code> notification
+     *  message to all the listeners. <p>
      *
+     * <pre>
      *  Examples of moves:<p>
      *  1. moveRow(1,3,5);<p>
      *          a|B|C|D|e|f|g|h|i|j|k   - before
-     *          a|e|f|B|C|D|g|h|i|j|k   - after
+     *          a|e|f|B|C|D|g|h|i|j|k   - after<p>
      *  2. moveRow(6,7,1);<p>
      *          a|b|c|d|e|f|G|H|i|j|k   - before
      *          a|G|H|b|c|d|e|f|i|j|k   - after
+     * </pre>
      *
      * @param   startIndex       the starting row index to be moved
      * @param   endIndex         the ending row index to be moved
      * @param   toIndex          the destination of the rows to be moved
-     * @exception  ArrayIndexOutOfBoundsException  if any of the indices are out of
-     *                           range.  Or if endIndex is less than startIndex.
+     * @exception  ArrayIndexOutOfBoundsException  if any of the indices
+     *                           are out of range; or if <code>endIndex</code>
+     *				 is less than <code>startIndex</code>
      */
     public void moveRow(int startIndex, int endIndex, int toIndex) {
         if ((startIndex < 0) || (startIndex >= getRowCount()))
@@ -511,11 +577,11 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Remove the row at <i>row</i> from the model.  Notification
+     *  Removes the row at <code>row</code> from the model.  Notification
      *  of the row being removed will be sent to all the listeners.
      *
      * @param   row      the row index of the row to be removed
-     * @exception  ArrayIndexOutOfBoundsException  if the row was invalid.
+     * @exception  ArrayIndexOutOfBoundsException  if the row was invalid
      */
     public void removeRow(int row) {
         dataVector.removeElementAt(row);
@@ -546,10 +612,12 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 
     /**
      * Returns the column name.
+     *
      * @return a name for this column using the string value of the
-     * appropriate member in <I>columnIdentfiers</I>. If <I>columnIdentfiers</I>
-     * is null or does not have and entry for this index return the default
-     * name provided by the superclass.
+     * appropriate member in <code>columnIdentifiers</code>.
+     * If <code>columnIdentifiers</code> is <code>null</code>
+     * or does not have an entry for this index, returns the default
+     * name provided by the superclass
      */
     public String getColumnName(int column) {
         if (columnIdentifiers == null || columnIdentifiers.size() <= column) {
@@ -565,13 +633,11 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     * Returns true if the cell at <I>row</I> and <I>column</I>
-     * is editable.  Otherwise, the setValueAt() on the cell will not change
-     * the value of that cell.
+     * Returns true regardless of parameter values.
      *
-     * @param   row             the row whose value is to be looked up
-     * @param   column          the column whose value is to be looked up
-     * @return                  true if the cell is editable.
+     * @param   row             the row whose value is to be queried
+     * @param   column          the column whose value is to be queried
+     * @return                  true
      * @see #setValueAt
      */
     public boolean isCellEditable(int row, int column) {
@@ -579,14 +645,14 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     * Returns an attribute value for the cell at <I>row</I>
-     * and <I>column</I>.
+     * Returns an attribute value for the cell at <code>row</code>
+     * and <code>column</code>.
      *
-     * @param   row             the row whose value is to be looked up
-     * @param   column          the column whose value is to be looked up
+     * @param   row             the row whose value is to be queried
+     * @param   column          the column whose value is to be queried
      * @return                  the value Object at the specified cell
      * @exception  ArrayIndexOutOfBoundsException  if an invalid row or
-     *               column was given.
+     *               column was given
      */
     public Object getValueAt(int row, int column) {
         Vector rowVector = (Vector)dataVector.elementAt(row);
@@ -594,15 +660,15 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     * Sets the object value for the cell at <I>column</I> and
-     * <I>row</I>.  <I>aValue</I> is the new value.  This method
-     * will generate a tableChanged() notification.
+     * Sets the object value for the cell at <code>column</code> and
+     * <code>row</code>.  <code>aValue</code> is the new value.  This method
+     * will generate a <code>tableChanged</code> notification.
      *
-     * @param   aValue          the new value.  This can be null.
+     * @param   aValue          the new value; this can be null
      * @param   row             the row whose value is to be changed
      * @param   column          the column whose value is to be changed
      * @exception  ArrayIndexOutOfBoundsException  if an invalid row or
-     *               column was given.
+     *               column was given
      */
     public void setValueAt(Object aValue, int row, int column) {
         Vector rowVector = (Vector)dataVector.elementAt(row);
@@ -616,7 +682,12 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 // Protected Methods
 //
 
-    /** Returns a Vector that contains the same objects as the array */
+    /** 
+     * Returns a vector that contains the same objects as the array.
+     * @param anArray  the array to be converted
+     * @return  the new vector; if <code>anArray</code> is <code>null</code>,
+     *				returns <code>null</code>
+     */
     protected static Vector convertToVector(Object[] anArray) {
         if (anArray == null)
             return null;
@@ -628,7 +699,12 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
         return v;
     }
 
-    /** Returns a Vector of Vectors that contains the same objects as the array */
+    /** 
+     * Returns a vector of vectors that contains the same objects as the array.
+     * @param anArray  the double array to be converted
+     * @return the new vector of vectors; if <code>anArray</code> is
+     *				<code>null</code>, returns <code>null</code>
+     */
     protected static Vector convertToVector(Object[][] anArray) {
         if (anArray == null)
             return null;

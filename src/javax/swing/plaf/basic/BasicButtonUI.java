@@ -1,8 +1,11 @@
 /*
- * @(#)BasicButtonUI.java	1.98 01/11/29
+ * @(#)BasicButtonUI.java	1.100 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package javax.swing.plaf.basic;
@@ -22,7 +25,7 @@ import javax.swing.text.View;
 /**
  * BasicButton implementation
  *
- * @version 1.98 11/29/01
+ * @version 1.100 02/02/00
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
@@ -267,25 +270,38 @@ public class BasicButtonUI extends ButtonUI{
     protected void paintIcon(Graphics g, JComponent c, Rectangle iconRect){
             AbstractButton b = (AbstractButton) c;                           
             ButtonModel model = b.getModel();
-            Icon icon = null;
+            Icon icon = b.getIcon();
+            Icon tmpIcon = null;
+
+	    if(icon == null) {
+	       return;
+	    }
+
             if(!model.isEnabled()) {
-                icon = (Icon) b.getDisabledIcon();
+		if(model.isSelected()) {
+                   tmpIcon = (Icon) b.getDisabledSelectedIcon();
+		} else {
+                   tmpIcon = (Icon) b.getDisabledIcon();
+		}
             } else if(model.isPressed() && model.isArmed()) {
-                icon = (Icon) b.getPressedIcon();
-                if(icon == null) {
-                    // Use default icon
-                    icon = (Icon) b.getIcon();
-                } else {
+                tmpIcon = (Icon) b.getPressedIcon();
+                if(tmpIcon != null) {
                     // revert back to 0 offset
                     clearTextShiftOffset();
                 }
             } else if(b.isRolloverEnabled() && model.isRollover()) {
-                icon = (Icon) b.getRolloverIcon();
-            }
+		if(model.isSelected()) {
+                   tmpIcon = (Icon) b.getRolloverSelectedIcon();
+		} else {
+                   tmpIcon = (Icon) b.getRolloverIcon();
+		}
+            } else if(model.isSelected()) {
+                tmpIcon = (Icon) b.getSelectedIcon();
+	    }
               
-            if (icon == null) {
-                icon = (Icon) b.getIcon();
-            }
+	    if(tmpIcon != null) {
+	        icon = tmpIcon;
+	    }
                
             if(model.isPressed() && model.isArmed()) {
                 icon.paintIcon(c, g, iconRect.x + getTextShiftOffset(),

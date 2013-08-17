@@ -1,22 +1,25 @@
 /*
- * @(#)ZipException.java	1.10 01/11/29
+ * @(#)ZipException.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
+
+import java.io.IOException;
 
 /**
  * Signals that a Zip exception of some sort has occurred.
  *
  * @author  unascribed
- * @version 1.10 11/29/01
+ * @version 1.12 02/02/00
  * @see     java.io.IOExcpetion
  * @since   JDK1.0
  */
-
-import java.io.IOException;
 
 public
 class ZipException extends IOException {

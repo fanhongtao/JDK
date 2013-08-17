@@ -1,8 +1,11 @@
 /*
- * @(#)FileOutputStream.java	1.36 01/11/29
+ * @(#)FileOutputStream.java	1.39 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -10,11 +13,15 @@ package java.io;
 
 /**
  * A file output stream is an output stream for writing data to a 
- * <code>File</code> or to a <code>FileDescriptor</code>. What files 
- * are available or may be created depends on the host environment.
+ * <code>File</code> or to a <code>FileDescriptor</code>. Whether or not
+ * a file is available or may be created depends upon the underlying
+ * platform.  Some platforms, in particular, allow a file to be opened
+ * for writing by only one <tt>FileOutputStream</tt> (or other
+ * file-writing object) at a time.  In such situations the constructors in
+ * this class will fail if the file involved is already open.
  *
  * @author  Arthur van Hoff
- * @version 1.36, 11/29/01
+ * @version 1.39, 02/02/00
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see     java.io.FileInputStream
@@ -121,7 +128,7 @@ class FileOutputStream extends OutputStream
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
      */
-    public FileOutputStream(File file) throws IOException {
+    public FileOutputStream(File file) throws FileNotFoundException {
 	this(file.getPath());
     }
 

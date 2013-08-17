@@ -1,8 +1,11 @@
 /*
- * @(#)KeyFactorySpi.java	1.5 01/11/29
+ * @(#)KeyFactorySpi.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -37,7 +40,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.5 01/11/29
+ * @version 1.8, 02/02/00
  *
  * @see KeyFactory
  * @see Key
@@ -47,7 +50,7 @@ import java.security.spec.InvalidKeySpecException;
  * @see java.security.spec.DSAPublicKeySpec
  * @see java.security.spec.X509EncodedKeySpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class KeyFactorySpi {

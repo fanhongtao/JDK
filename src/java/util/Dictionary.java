@@ -1,8 +1,11 @@
 /*
- * @(#)Dictionary.java	1.14 01/11/29
+ * @(#)Dictionary.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -22,7 +25,7 @@ package java.util;
  * implement the Map interface, rather than extendidng this class.</strong>
  *
  * @author  unascribed
- * @version 1.14, 11/29/01
+ * @version 1.15, 02/02/00
  * @see	    java.util.Map
  * @see     java.lang.Object#equals(java.lang.Object)
  * @see     java.lang.Object#hashCode()

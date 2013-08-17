@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractList.java	1.27 01/11/29
+ * @(#)AbstractList.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -40,12 +43,12 @@ package java.util;
  * collection being implemented admits a more efficient implementation.
  *
  * @author  Josh Bloch
- * @version 1.27 11/29/01
+ * @version 1.31, 02/02/00
  * @see Collection
  * @see List
  * @see AbstractSequentialList
  * @see AbstractCollection
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AbstractList extends AbstractCollection implements List {
@@ -424,17 +427,14 @@ public abstract class AbstractList extends AbstractCollection implements List {
 	public void remove() {
 	    if (lastRet == -1)
 		throw new IllegalStateException();
+            checkForComodification();
 
 	    try {
 		AbstractList.this.remove(lastRet);
 		if (lastRet < cursor)
 		    cursor--;
 		lastRet = -1;
-
-		int newModCount = modCount;
-		if (newModCount - expectedModCount > 1)
-		    throw new ConcurrentModificationException();
-		expectedModCount = newModCount;
+		expectedModCount = modCount;
 	    } catch(IndexOutOfBoundsException e) {
 		throw new ConcurrentModificationException();
 	    }
@@ -478,28 +478,23 @@ public abstract class AbstractList extends AbstractCollection implements List {
 	public void set(Object o) {
 	    if (lastRet == -1)
 		throw new IllegalStateException();
+            checkForComodification();
 
 	    try {
 		AbstractList.this.set(lastRet, o);
-
-		int newModCount = modCount;
-		if (newModCount - expectedModCount > 1)
-		    throw new ConcurrentModificationException();
-		expectedModCount = newModCount;
+		expectedModCount = modCount;
 	    } catch(IndexOutOfBoundsException e) {
 		throw new ConcurrentModificationException();
 	    }
 	}
 
 	public void add(Object o) {
+            checkForComodification();
+
 	    try {
 		AbstractList.this.add(cursor++, o);
 		lastRet = -1;
-
-		int newModCount = modCount;
-		if (newModCount - expectedModCount > 1)
-		    throw new ConcurrentModificationException();
-		expectedModCount = newModCount;
+		expectedModCount = modCount;
 	    } catch(IndexOutOfBoundsException e) {
 		throw new ConcurrentModificationException();
 	    }
@@ -508,21 +503,23 @@ public abstract class AbstractList extends AbstractCollection implements List {
 
     /**
      * Returns a view of the portion of this list between <tt>fromIndex</tt>,
-     * inclusive, and <tt>toIndex</tt>, exclusive.  The returned list is
-     * backed by this list, so changes in the returned list are reflected in
-     * this list, and vice-versa.  The returned list supports all of the
-     * optional list operations supported by this list.<p>
+     * inclusive, and <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex</tt> and
+     * <tt>toIndex</tt> are equal, the returned list is empty.)  The returned
+     * list is backed by this list, so changes in the returned list are
+     * reflected in this list, and vice-versa.  The returned list supports all
+     * of the optional list operations supported by this list.<p>
      *
      * This method eliminates the need for explicit range operations (of the
      * sort that commonly exist for arrays).  Any operation that expects a
      * list can be used as a range operation by operating on a subList view
      * instead of a whole list.  For example, the following idiom removes a
      * range of elements from a list:
-     * 
-     * <pre> * list.subList(from, to).clear(); </pre> n Similar idioms may be
-     * constructed for <tt>indexOf</tt> and <tt>lastIndexOf</tt>, and all of
-     * the algorithms in the <tt>Collections</tt> class can be applied to a
-     * subList.<p>
+     * <pre>
+     *     list.subList(from, to).clear();
+     * </pre>
+     * Similar idioms may be constructed for <tt>indexOf</tt> and
+     * <tt>lastIndexOf</tt>, and all of the algorithms in the
+     * <tt>Collections</tt> class can be applied to a subList.<p>
      * 
      * The semantics of the list returned by this method become undefined if
      * the backing list (i.e., this list) is <i>structurally modified</i> in
@@ -555,13 +552,12 @@ public abstract class AbstractList extends AbstractCollection implements List {
      * <tt>ConcurrentModificationException</tt> if it is not.
      *
      * @param fromIndex low endpoint (inclusive) of the subList.
-     * @param toKey high endpoint (exclusive) of the subList.
+     * @param toIndex high endpoint (exclusive) of the subList.
      * @return a view of the specified range within this list.
      * @throws IndexOutOfBoundsException endpoint index value out of range
      *         <tt>(fromIndex &lt; 0 || toIndex &gt; size)</tt>
      * @throws IllegalArgumentException endpoint indices out of order
-     * <tt>(fromIndex &gt; toIndex)</tt>
-     */
+     * <tt>(fromIndex &gt; toIndex)</tt> */
     public List subList(int fromIndex, int toIndex) {
         return new SubList(this, fromIndex, toIndex);
     }

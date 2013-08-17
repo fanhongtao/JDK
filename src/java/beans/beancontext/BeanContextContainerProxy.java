@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextContainerProxy.java	1.2 01/11/29
+ * @(#)BeanContextContainerProxy.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -16,8 +19,8 @@ import java.awt.Container;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.2
- * @since JDK1.2
+ * @version 1.6, 02/02/00
+ * @since 1.2
  *
  * @seealso java.beans.beancontext.BeanContext
  * @seealso java.beans.beancontext.BeanContextSupport
@@ -26,8 +29,10 @@ import java.awt.Container;
 public interface BeanContextContainerProxy {
 
     /**
-     * @return the AWT Container associated with this BeanContext
+     * Gets the <code>java.awt.Container</code> associated 
+     * with this <code>BeanContext</code>.
+     * @return the <code>java.awt.Container</code> associated 
+     * with this <code>BeanContext</code>.
      */
-
     Container getContainer();
 }

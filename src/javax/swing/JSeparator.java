@@ -1,8 +1,11 @@
 /*
- * @(#)JSeparator.java	1.35 01/11/29
+ * @(#)JSeparator.java	1.42 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -16,8 +19,19 @@ import java.io.IOException;
 
 
 /**
- * An implementation of a Menu Separator -- a divider between menu items
+ * An implementation of a menu separator -- a divider between menu items
  * that breaks them up into logical groupings.
+ * Instead of using <code>JSeparator</code> directly,
+ * you can use the <code>JMenu</code> or <code>JPopupMenu</code>
+ * <code>addSeparator</code> method
+ * to create and add a separator.
+ *
+ * <p>
+ *
+ * For more information and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
+ * a section in <em>The Java Tutorial.</em>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -28,7 +42,9 @@ import java.io.IOException;
  *
  * @beaninfo
  *      attribute: isContainer false
- * @version 1.35 11/29/01
+ *    description: A divider between menu items.
+ *
+ * @version 1.42 04/06/00
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -42,18 +58,22 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
 
     private int orientation = HORIZONTAL;
 
-    /** Create a new horizontal separator. */
+    /** Creates a new horizontal separator. */
     public JSeparator()
     {
         this( HORIZONTAL );
     }
 
     /**
-     * Create a new separator with the specified horizontal or
+     * Creates a new separator with the specified horizontal or
      * vertical orientation. 
      *
-     * @param orientation an int specifying SwingConstants.HORIZONTAL or
-     *        SwingConstants.VERTICAL
+     * @param orientation an integer specifying
+     *		<code>SwingConstants.HORIZONTAL</code> or
+     *          <code>SwingConstants.VERTICAL</code>
+     * @exception IllegalArgumentException if <code>orientation</code>
+     *		is neither <code>SwingConstants.HORIZONTAL</code> nor
+     *		<code>SwingConstants.VERTICAL</code>
      */
     public JSeparator( int orientation )
     {
@@ -88,9 +108,9 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
     }
     
     /**
-     * Notification from the UIFactory that the L&F has changed. 
+     * Notification from the <code>UIFactory</code> that the L&F has changed. 
      * Called to replace the UI with the latest version from the 
-     * UIFactory.
+     * <code>UIFactorys</code>.
      *
      * @see JComponent#updateUI
      */
@@ -102,7 +122,7 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
     /**
      * Returns the name of the L&F class that renders this component.
      *
-     * @return "SeparatorUI"
+     * @return the string "SeparatorUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      */
@@ -112,7 +132,8 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
 
 
     /** 
-     * See readObject() and writeObject() in JComponent for more 
+     * See <code>readObject</code> and <code>writeObject</code> in
+     * <code>JComponent</code> for more 
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -140,6 +161,11 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
     /**
      * Sets the orientation of the separator.
      * The default value of this property is HORIZONTAL.
+     * @param orientation  either <code>SwingConstants.HORIZONTAL</code>
+     *			or <code>SwingConstants.VERTICAL</code>
+     * @exception IllegalArgumentException  if <code>orientation</code>
+     *		is neither <code>SwingConstants.HORIZONTAL</code>
+     *		nor <code>SwingConstants.VERTICAL</code>
      * 
      * @see SwingConstants
      * @see #getOrientation
@@ -177,13 +203,14 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
 
 
     /**
-     * Returns a string representation of this JSeparator. This method 
+     * Returns a string representation of this <code>JSeparator</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JSeparator.
+     * @return  a string representation of this <code>JSeparator</code>
      */
     protected String paramString() {
 	String orientationString = (orientation == HORIZONTAL ?
@@ -195,7 +222,7 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
 
     /**
      * Identifies whether or not this component can receive the focus.
-     * JSeparators cannot recieve focus.
+     * <code>JSeparator</code>s cannot recieve focus.
      *
      * @return false
      */
@@ -210,9 +237,13 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JSeparator. 
+     * For separators, the AccessibleContext takes the form of an 
+     * AccessibleJSeparator. 
+     * A new AccessibleJSeparator instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJSeparator that serves as the 
+     *         AccessibleContext of this JSeparator
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -222,7 +253,9 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JSeparator</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to separator user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

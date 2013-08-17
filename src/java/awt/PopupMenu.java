@@ -1,13 +1,17 @@
 /*
- * @(#)PopupMenu.java	1.18 01/11/29
+ * @(#)PopupMenu.java	1.24 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
 
 import java.awt.peer.PopupMenuPeer;
+import javax.accessibility.*;
 
 
 /**
@@ -18,7 +22,7 @@ import java.awt.peer.PopupMenuPeer;
  * you add it to a MenuBar), then you <b>cannot</b> call <code>show</code>
  * on that PopupMenu.
  *
- * @version	1.18 11/29/01
+ * @version	1.24 04/06/00
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
@@ -126,4 +130,50 @@ public class PopupMenu extends Menu {
 	    }
 	}
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this PopupMenu. 
+     * For popup menus, the AccessibleContext takes the form of an 
+     * AccessibleAWTPopupMenu. 
+     * A new AccessibleAWTPopupMenu instance is created if necessary.
+     *
+     * @return an AccessibleAWTPopupMenu that serves as the 
+     *         AccessibleContext of this PopupMenu
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTPopupMenu();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * Inner class of PopupMenu used to provide default support for
+     * accessibility.  This class is not meant to be used directly by
+     * application developers, but is instead meant only to be
+     * subclassed by menu component developers.
+     * <p>
+     * This class implements accessibility support for the 
+     * <code>PopupMenu</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to popup menu user-interface elements.
+     */
+    protected class AccessibleAWTPopupMenu extends AccessibleAWTMenu {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.POPUP_MENU;
+        }
+
+    } // class AccessibleAWTPopupMenu
+
 }

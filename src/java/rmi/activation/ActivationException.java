@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationException.java	1.15 01/11/29
+ * @(#)ActivationException.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -11,8 +14,8 @@ package java.rmi.activation;
  * General exception used by the activation interfaces.
  *
  * @author 	Ann Wollrath
- * @version	1.15, 11/29/01
- * @since 	JDK1.2
+ * @version	1.19, 02/02/00
+ * @since 	1.2
  */
 public class ActivationException extends Exception {
 
@@ -23,13 +26,13 @@ public class ActivationException extends Exception {
      */
     public Throwable detail;
 
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = -4320118837291406071L;
 
     /**
      * Constructs an <code>ActivationException</code> with no specified
      * detail message.
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationException() {
 	super();
@@ -39,7 +42,7 @@ public class ActivationException extends Exception {
      * Constructs an <code>ActivationException</code> with detail
      * message, <code>s</code>.
      * @param s the detail message
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationException(String s) {
 	super(s);
@@ -51,7 +54,7 @@ public class ActivationException extends Exception {
      *
      * @param s detail message
      * @param ex detail exception
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationException(String s, Throwable ex) {
 	super(s);
@@ -62,7 +65,7 @@ public class ActivationException extends Exception {
      * Produces the message, include the message from the nested
      * exception if there is one.
      * @return the message
-     * @since JDK1.2
+     * @since 1.2
      */
     public String getMessage() {
 	if (detail == null) 
@@ -77,7 +80,7 @@ public class ActivationException extends Exception {
      * Prints the composite message and the embedded stack trace to
      * the specified stream <code>ps</code>.
      * @param ps the print stream
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace(java.io.PrintStream ps) {
 	if (detail == null) {
@@ -92,7 +95,7 @@ public class ActivationException extends Exception {
 
     /**
      * Prints the composite message to <code>System.err</code>.
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace() {
 	printStackTrace(System.err);
@@ -100,9 +103,9 @@ public class ActivationException extends Exception {
 
     /**
      * Prints the composite message and the embedded stack trace to
-     * the specified print writer <code>pw</code>
+     * the specified print writer <code>pw</code>.
      * @param pw the print writer
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace(java.io.PrintWriter pw)
     {

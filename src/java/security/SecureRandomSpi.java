@@ -1,8 +1,11 @@
 /*
- * @(#)SecureRandomSpi.java	1.4 01/11/29
+ * @(#)SecureRandomSpi.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -14,10 +17,10 @@ package java.security;
  * service provider who wishes to supply the implementation
  * of a cryptographically strong pseudo-random number generator.
  *
- * @version 1.4 01/11/29
+ * @version 1.7, 02/02/00
  *
  * @see SecureRandom
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class SecureRandomSpi implements java.io.Serializable {

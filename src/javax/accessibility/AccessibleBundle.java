@@ -1,12 +1,17 @@
 /*
- * @(#)AccessibleBundle.java	1.10 01/11/29
+ * @(#)AccessibleBundle.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -23,11 +28,16 @@ import java.util.ResourceBundle;
  * @see AccessibleRole
  * @see AccessibleState
  *
- * @version     1.10 11/29/01 23:09:22
+ * @version     1.12 10/05/99
  * @author      Willie Walker
  * @author	Peter Korn
+ * @author	Lynn Monsanto
  */
 public abstract class AccessibleBundle {
+
+    private static Hashtable table = null;
+    private final String defaultResourceBundleName 
+	= "javax.accessibility.resources.accessibility";
 
     /**
      * The locale independent name of the state.  This is a programmatic 
@@ -37,7 +47,7 @@ public abstract class AccessibleBundle {
     protected String key = null;
 
     /**
-     * Obtain the key as a localized string. 
+     * Obtains the key as a localized string. 
      * If a localized string cannot be found for the key, the 
      * locale independent key stored in the role will be returned. 
      * This method is intended to be used only by subclasses so that they 
@@ -50,33 +60,20 @@ public abstract class AccessibleBundle {
      */
     protected String toDisplayString(String resourceBundleName, 
 			             Locale locale) {
-        // [[[FIXME:  WDW - obtaining resource bundles can be
-        // expensive, especially when obtaining them from ASCII
-        // properties files.  A time performace improvement can be
-        // made here if we cache the resource bundles by locale.
-        // We probably should also see if ResourceBundle itself
-        // caches these for us.  If it does, it would be nice.]]]
-        ResourceBundle resources;
-        String displayString = null;
 
-        try {
-            resources = ResourceBundle.getBundle(resourceBundleName, 
-                                                 locale);
-            displayString = resources.getString(key);
-        } catch (MissingResourceException mre) {
-            System.err.println(mre 
-		    + ":  " + resourceBundleName + " not found");
-        }
+	// loads the resource bundle if necessary
+	loadResourceBundle(resourceBundleName, locale);
 
-        if (displayString != null) {
-	    return displayString;
-	} else {
-	    return key;
-        }
+	// returns the localized string
+	Object o = table.get(key);
+	if (o != null && o instanceof String) {
+	    return (String)o;
+	}
+	return key;
     }
 
     /**
-     * Obtain the key as a localized string. 
+     * Obtains the key as a localized string. 
      * If a localized string cannot be found for the key, the 
      * locale independent key stored in the role will be returned. 
      *
@@ -84,13 +81,11 @@ public abstract class AccessibleBundle {
      * @return a localized String for the key.
      */
     public String toDisplayString(Locale locale) {
-        return toDisplayString(
-		"javax.accessibility.AccessibleResourceBundle", 
-                locale);
+        return toDisplayString(defaultResourceBundleName, locale);
     }
 
     /** 
-     * Get localized string describing the key using the default locale.
+     * Gets localized string describing the key using the default locale.
      * @return a localized String describing the key for the default locale
      */
     public String toDisplayString() {
@@ -98,11 +93,36 @@ public abstract class AccessibleBundle {
     }
 
     /** 
-     * Get localized string describing the key using the default locale.
+     * Gets localized string describing the key using the default locale.
      * @return a localized String describing the key using the default locale
      * @see #toDisplayString
      */
     public String toString() {
         return toDisplayString();
     }
+
+    /*
+     * Loads the Accessibility resource bundle if necessary.
+     */
+    private void loadResourceBundle(String resourceBundleName,
+				    Locale locale) {
+	if (table == null) {
+	    try {
+		table = new Hashtable();
+		ResourceBundle bundle
+		    = ResourceBundle.getBundle(resourceBundleName,
+					       locale);
+		Enumeration iter = bundle.getKeys();
+		while(iter.hasMoreElements()) {
+		    String key = (String)iter.nextElement();
+		    table.put(key, bundle.getObject(key));
+		}
+	    } catch (MissingResourceException e) {
+		// Just return so toDisplayString() returns the
+		// non-localized key.
+		return;
+	    }
+	}
+    }
+
 }

@@ -1,8 +1,11 @@
 /*
- * @(#)threads.h	1.56 01/11/29
+ * @(#)threads.h	1.56 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_THREADS_H_
@@ -95,15 +98,6 @@ void *threadStackBase(TID tid);
 void *threadStackPointer(TID tid);
 
 #define threadCheckStack()		sysThreadCheckStack()
-
-
-#ifdef __linux__ 
-/*
- * Callback into the VM, used by the HPI thread subsystem.  See
- * extensive comments in threads.c.
- */
-void threadRecordStackTop(sys_thread_t *self, void *stack_top);
-#endif
 
 /*
  * Interface to thread interrupt support

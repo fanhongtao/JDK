@@ -1,8 +1,11 @@
 /*
- * @(#)RemoteObject.java	1.18 01/11/29
+ * @(#)RemoteObject.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.server;
@@ -17,13 +20,13 @@ import java.rmi.NoSuchObjectException;
  * <code>RemoteObject</code> provides the remote semantics of Object by
  * implementing methods for hashCode, equals, and toString.
  *
- * @version 1.18, 11/29/01
+ * @version 1.22, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
 public abstract class RemoteObject implements Remote, java.io.Serializable {
 
-    /** the objects remote reference */
+    /** the object's remote reference. */
     transient protected RemoteRef ref;
     
     /** indicate compatibility with JDK 1.1.x version of class */
@@ -40,6 +43,7 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
     /**
      * Creates a remote object, initialized with the specified remote
      * reference.
+     * @param newref remote reference
      * @since JDK1.1
      */
     protected RemoteObject(RemoteRef newref) {
@@ -48,7 +52,8 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 
     /**
      * Returns the remote reference for the remote object.
-     * @since JDK1.2
+     * @return remote reference for the remote object
+     * @since 1.2
      */
     public RemoteRef getRef() {
 	return ref;
@@ -62,7 +67,7 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * @return the stub for the remote object, <code>obj</code>.
      * @exception NoSuchObjectException if the stub for the
      * remote object could not be found.
-     * @since JDK1.2
+     * @since 1.2
      */
     public static Remote toStub(Remote obj) throws NoSuchObjectException {
 	if (obj instanceof RemoteStub) {

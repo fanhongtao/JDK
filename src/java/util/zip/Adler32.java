@@ -1,8 +1,11 @@
 /*
- * @(#)Adler32.java	1.22 03/05/15
+ * @(#)Adler32.java	1.22 00/02/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -13,7 +16,7 @@ package java.util.zip;
  * can be computed much faster.
  *
  * @see		Checksum
- * @version 	1.22, 05/15/03
+ * @version 	1.22, 02/02/00
  * @author 	David Connelly
  */
 public
@@ -37,6 +40,8 @@ class Adler32 implements Checksum {
 
     /**
      * Updates checksum with specified byte.
+     * 
+     * @param b an array of bytes
      */
     public void update(int b) {
 	adler = update(adler, b);
@@ -49,7 +54,7 @@ class Adler32 implements Checksum {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length - len) {
+	if (off < 0 || len < 0 || off + len > b.length) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	adler = updateBytes(adler, b, off, len);

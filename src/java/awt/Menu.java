@@ -1,8 +1,11 @@
 /*
- * @(#)Menu.java	1.51 01/11/29
+ * @(#)Menu.java	1.61 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -10,6 +13,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.awt.peer.MenuPeer;
 import java.awt.event.KeyEvent;
+import javax.accessibility.*;
 
 /**
  * A <code>Menu</code> object is a pull-down menu component
@@ -28,13 +32,13 @@ import java.awt.event.KeyEvent;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.51, 11/29/01
+ * @version 1.61, 04/06/00
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
  * @since   JDK1.0
  */
-public class Menu extends MenuItem implements MenuContainer {
+public class Menu extends MenuItem implements MenuContainer, Accessible {
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -373,7 +377,10 @@ public class Menu extends MenuItem implements MenuContainer {
 
     /**
      * Removes the specified menu item from this menu.
-     * @param       item the item to be removed from the menu
+     * @param  item the item to be removed from the menu. 
+     *         If <code>item</code> is <code>null</code> 
+     *         or is not in this menu, this method does 
+     *         nothing. 
      */
     public void remove(MenuComponent item) {
         synchronized (getTreeLock()) {
@@ -391,8 +398,8 @@ public class Menu extends MenuItem implements MenuContainer {
     public void removeAll() {
         synchronized (getTreeLock()) {
 	    int nitems = getItemCount();
-	    for (int i = 0 ; i < nitems ; i++) {
-	        remove(0);
+	    for (int i = nitems-1 ; i >= 0 ; i--) {
+	        remove(i);
 	    }
 	}
     }
@@ -520,5 +527,50 @@ public class Menu extends MenuItem implements MenuContainer {
      * Initialize JNI field and method IDs
      */
     private static native void initIDs();
-}
 
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this Menu. 
+     * For menus, the AccessibleContext takes the form of an 
+     * AccessibleAWTMenu. 
+     * A new AccessibleAWTMenu instance is created if necessary.
+     *
+     * @return an AccessibleAWTMenu that serves as the 
+     *         AccessibleContext of this Menu
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTMenu();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * Inner class of Menu used to provide default support for
+     * accessibility.  This class is not meant to be used directly by
+     * application developers, but is instead meant only to be
+     * subclassed by menu component developers.
+     * <p>
+     * This class implements accessibility support for the 
+     * <code>Menu</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to menu user-interface elements.
+     */
+    protected class AccessibleAWTMenu extends AccessibleAWTMenuItem {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.MENU;
+        }
+
+    } // class AccessibleAWTMenu
+
+}

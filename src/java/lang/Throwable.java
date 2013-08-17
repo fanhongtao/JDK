@@ -1,8 +1,11 @@
 /*
- * @(#)Throwable.java	1.39 01/11/29
+ * @(#)Throwable.java	1.44 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -44,7 +47,7 @@ package java.lang;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.31, 01/26/97
+ * @version 1.44, 02/02/00
  * @since   JDK1.0
  */
 public class Throwable implements java.io.Serializable {
@@ -77,11 +80,11 @@ public class Throwable implements java.io.Serializable {
 
     /**
      * Constructs a new <code>Throwable</code> with the specified error 
-     * message. Also, the method {@link @fillInStackTrace()} is called for 
+     * message. Also, the method {@link #fillInStackTrace()} is called for 
      * this object.
      *
      * @param   message   the error message. The error message is saved for 
-     *          later retrieval by the {@link @getMessage()} method.
+     *          later retrieval by the {@link #getMessage()} method.
      */
     public Throwable(String message) {
 	fillInStackTrace();
@@ -89,7 +92,7 @@ public class Throwable implements java.io.Serializable {
     }
 
     /**
-     * Returns the errort message string of this throwable object.
+     * Returns the error message string of this throwable object.
      *
      * @return  the error message string of this <code>Throwable</code> 
      *          object if it was {@link #Throwable(String) created} with an 
@@ -108,6 +111,7 @@ public class Throwable implements java.io.Serializable {
      * method, the default implementation returns the same result as
      * <code>getMessage()</code>.
      *
+     * @return  The localized description of this <code>Throwable</code>.
      * @since   JDK1.1
      */
     public String getLocalizedMessage() {
@@ -181,7 +185,9 @@ public class Throwable implements java.io.Serializable {
 
     /**
      * Prints this <code>Throwable</code> and its backtrace to the 
-     * specified print stream. 
+     * specified print stream.
+     *
+     * @param s <code>PrintStream</code> to use for output
      */
     public void printStackTrace(java.io.PrintStream s) { 
 	synchronized (s) {
@@ -194,6 +200,7 @@ public class Throwable implements java.io.Serializable {
      * Prints this <code>Throwable</code> and its backtrace to the specified
      * print writer.
      *
+     * @param s <code>PrintWriter</code> to use for output
      * @since   JDK1.1
      */
     public void printStackTrace(java.io.PrintWriter s) { 
@@ -215,7 +222,7 @@ public class Throwable implements java.io.Serializable {
      *     try {
      *         a = b / c;
      *     } catch(ArithmeticThrowable e) {
-     *         a = Number.MAX_VALUE;
+     *         a = Double.MAX_VALUE;
      *         throw e.fillInStackTrace();
      *     }
      * </pre></blockquote>

@@ -1,8 +1,11 @@
 /*
- * @(#)Comparable.java	1.10 01/11/29
+ * @(#)Comparable.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -61,7 +64,7 @@ package java.lang;
  * </pre>
  *
  * @author  Josh Bloch
- * @version 1.10 11/29/01
+ * @version 1.13, 02/02/00
  * @see java.util.Comparator
  * @see java.util.Collections#sort(java.util.List)
  * @see java.util.Arrays#sort(Object[])
@@ -69,7 +72,7 @@ package java.lang;
  * @see java.util.SortedMap
  * @see java.util.TreeSet
  * @see java.util.TreeMap
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface Comparable {

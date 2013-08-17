@@ -1,8 +1,11 @@
 /*
- * @(#)Area.java	1.4 01/11/29
+ * @(#)Area.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -170,6 +173,7 @@ public class Area implements Shape, Cloneable {
      */
     public void reset() {
 	curves = new Vector();
+	invalidateBounds();
     }
 
     /**
@@ -229,7 +233,11 @@ public class Area implements Shape, Cloneable {
 
     /**
      * Tests whether this <code>Area</code> is comprised of a single
-     * closed subpath.
+     * closed subpath.  This method returns <code>true</code> if the 
+     * path contains 0 or 1 subpaths, or <code>false</code> if the path
+     * contains more than 1 subpath.  The subpaths are counted by the 
+     * number of {@link PathIterator#SEG_MOVETO SEG_MOVETO}  segments 
+     * that appear in the path.
      * @return    <code>true</code> if the <code>Area</code> is comprised
      * of a single basic geometry; <code>false</code> otherwise.
      */
@@ -270,6 +278,12 @@ public class Area implements Shape, Cloneable {
     /**
      * Returns a high precision bounding {@link Rectangle2D} that
      * completely encloses this <code>Area</code>.
+     * <p>
+     * The Area class will attempt to return the tightest bounding
+     * box possible for the Shape.  The bounding box will not be
+     * padded to include the control points of curves in the outline
+     * of the Shape, but should tightly fit the actual geometry of
+     * the outline itself.
      * @return    the bounding <code>Rectangle2D</code> for the
      * <code>Area</code>.
      */
@@ -280,6 +294,15 @@ public class Area implements Shape, Cloneable {
     /**
      * Returns a bounding {@link Rectangle} that completely encloses
      * this <code>Area</code>.
+     * <p>
+     * The Area class will attempt to return the tightest bounding
+     * box possible for the Shape.  The bounding box will not be
+     * padded to include the control points of curves in the outline
+     * of the Shape, but should tightly fit the actual geometry of
+     * the outline itself.  Since the returned object represents
+     * the bounding box with integers, the bounding box can only be
+     * as tight as the nearest integer coordinates that encompass
+     * the geometry of the Shape.
      * @return    the bounding <code>Rectangle</code> for the
      * <code>Area</code>.
      */
@@ -310,6 +333,9 @@ public class Area implements Shape, Cloneable {
 	if (other == this) {
 	    return true;
 	}
+	if (other == null) {
+	    return false;
+	}
 	Vector c = new AreaOp.XorOp().calculate(this.curves, other.curves);
 	return c.isEmpty();
     }
@@ -326,6 +352,7 @@ public class Area implements Shape, Cloneable {
 	// REMIND: this could be simplified by "breaking out" the
 	// PathIterator code from the constructor
 	curves = new Area(t.createTransformedShape(this)).curves;
+	invalidateBounds();
     }
 
     /**

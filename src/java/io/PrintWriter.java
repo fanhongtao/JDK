@@ -1,8 +1,11 @@
 /*
- * @(#)PrintWriter.java	1.20 01/11/29
+ * @(#)PrintWriter.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -23,7 +26,7 @@ package java.io;
  * <p> Methods in this class never throw I/O exceptions.  The client may
  * inquire as to whether any errors have occurred by invoking checkError().
  *
- * @version 	1.20, 01/11/29
+ * @version 	1.24, 02/02/00
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1
@@ -35,7 +38,7 @@ public class PrintWriter extends Writer {
      * The underlying character-output stream of this
      * <code>PrintWriter</code>.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     protected Writer out;
 
@@ -388,6 +391,8 @@ public class PrintWriter extends Writer {
      * Print a boolean value and then terminate the line.  This method behaves
      * as though it invokes <code>{@link #print(boolean)}</code> and then
      * <code>{@link #println()}</code>.
+     *
+     * @param x the <code>boolean</code> value to be printed
      */
     public void println(boolean x) {
 	synchronized (lock) {
@@ -400,6 +405,8 @@ public class PrintWriter extends Writer {
      * Print a character and then terminate the line.  This method behaves as
      * though it invokes <code>{@link #print(char)}</code> and then <code>{@link
      * #println()}</code>.
+     *
+     * @param x the <code>char</code> value to be printed
      */
     public void println(char x) {
 	synchronized (lock) {
@@ -412,6 +419,8 @@ public class PrintWriter extends Writer {
      * Print an integer and then terminate the line.  This method behaves as
      * though it invokes <code>{@link #print(int)}</code> and then <code>{@link
      * #println()}</code>.
+     *
+     * @param x the <code>int</code> value to be printed
      */
     public void println(int x) {
 	synchronized (lock) {
@@ -424,6 +433,8 @@ public class PrintWriter extends Writer {
      * Print a long integer and then terminate the line.  This method behaves
      * as though it invokes <code>{@link #print(long)}</code> and then
      * <code>{@link #println()}</code>.
+     *
+     * @param x the <code>long</code> value to be printed
      */
     public void println(long x) {
 	synchronized (lock) {
@@ -436,6 +447,8 @@ public class PrintWriter extends Writer {
      * Print a floating-point number and then terminate the line.  This method
      * behaves as though it invokes <code>{@link #print(float)}</code> and then
      * <code>{@link #println()}</code>.
+     *
+     * @param x the <code>float</code> value to be printed
      */
     public void println(float x) {
 	synchronized (lock) {
@@ -448,6 +461,8 @@ public class PrintWriter extends Writer {
      * Print a double-precision floating-point number and then terminate the
      * line.  This method behaves as though it invokes <code>{@link
      * #print(double)}</code> and then <code>{@link #println()}</code>.
+     *
+     * @param x the <code>double</code> value to be printed
      */
     public void println(double x) {
 	synchronized (lock) {
@@ -460,6 +475,8 @@ public class PrintWriter extends Writer {
      * Print an array of characters and then terminate the line.  This method
      * behaves as though it invokes <code>{@link #print(char[])}</code> and then
      * <code>{@link #println()}</code>.
+     *
+     * @param x the array of <code>char</code> values to be printed
      */
     public void println(char x[]) {
 	synchronized (lock) {
@@ -472,6 +489,8 @@ public class PrintWriter extends Writer {
      * Print a String and then terminate the line.  This method behaves as
      * though it invokes <code>{@link #print(String)}</code> and then
      * <code>{@link #println()}</code>.
+     *
+     * @param x the <code>String</code> value to be printed
      */
     public void println(String x) {
 	synchronized (lock) {
@@ -484,6 +503,8 @@ public class PrintWriter extends Writer {
      * Print an Object and then terminate the line.  This method behaves as
      * though it invokes <code>{@link #print(Object)}</code> and then
      * <code>{@link #println()}</code>.
+     *
+     * @param x the <code>Object</code> value to be printed
      */
     public void println(Object x) {
 	synchronized (lock) {

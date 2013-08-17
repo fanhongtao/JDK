@@ -1,8 +1,11 @@
 /*
- * @(#)Frame.java	1.97 01/11/29
+ * @(#)Frame.java	1.108 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -14,6 +17,7 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import sun.awt.AppContext;
 import java.lang.ref.WeakReference;
+import javax.accessibility.*;
 
 /**
  * A Frame is a top-level window with a title and a border.
@@ -34,11 +38,54 @@ import java.lang.ref.WeakReference;
  * <p>
  * The default layout for a frame is BorderLayout.
  * <p>
+ * In a multi-screen environment, you can create a <code>Frame</code>
+ * on a different screen device by constructing the <code>Frame</code>
+ * with {@link Frame(GraphicsConfiguration)} or
+ * {@link Frame(String title, GraphicsConfiguration)}.  The
+ * <code>GraphicsConfiguration</code> object is one of the
+ * <code>GraphicsConfiguration</code> objects of the target screen
+ * device.
+ * <p>
+ * In a virtual device multi-screen environment in which the desktop
+ * area could span multiple physical screen devices, the bounds of all
+ * configurations are relative to the virtual-coordinate system.  The
+ * origin of the virtual-coordinate system is at the upper left-hand
+ * corner of the primary physical screen.  Depending on the location
+ * of the primary screen in the virtual device, negative coordinates
+ * are possible, as shown in the following figure.
+ * <p>
+ * <img src="doc-files/MultiScreen.gif">
+ * ALIGN=center HSPACE=10 VSPACE=7>
+ * <p>
+ * In such an environment, when calling <code>setLocation</code>, 
+ * you must pass a virtual coordinate to this method.  Similarly, 
+ * calling <code>getLocationOnScreen</code> on a <code>Frame</code>
+ * returns virtual device coordinates.  Call the <code>getBounds</code>
+ * method of a <code>GraphicsConfiguration</code> to find its origin in
+ * the virtual coordinate system.
+ * <p>
+ * The following code sets the
+ * location of the <code>Frame</code> at (10, 10) relative
+ * to the origin of the physical screen of the corresponding
+ * <code>GraphicsConfiguration</code>.  If the bounds of the
+ * <code>GraphicsConfiguration</code> is not taken into account, the
+ * <code>Frame</code> location would be set at (10, 10) relative to the
+ * virtual-coordinate system and would appear on the primary physical
+ * screen, which might be different from the physical screen of the
+ * specified <code>GraphicsConfiguration</code>.
+ *
+ * <pre>
+ *      Frame f = new Frame(GraphicsConfiguration gc);
+ *      Rectangle bounds = gc.getBounds();
+ *      f.setLocation(10 + bounds.x, 10 + bounds.y);
+ * </pre>
+ *
+ * <p>
  * Frames are capable of generating the following types of window events:
  * WindowOpened, WindowClosing, WindowClosed, WindowIconified,
  * WindowDeiconified, WindowActivated, WindowDeactivated.
  *
- * @version 	1.97, 11/29/01
+ * @version 	1.108, 04/06/00
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -212,7 +259,23 @@ public class Frame extends Window implements MenuContainer {
      * @see Component#setVisible
      */
     public Frame() {
-        this("");
+        this("", (GraphicsConfiguration)null);
+    }
+
+    /**
+     * Create a <code>Frame</code> with the specified 
+     * <code>GraphicsConfiguration</code> of
+     * a screen device.
+     * @param gc the <code>GraphicsConfiguration</code> 
+     * of the target screen device. If <code>gc</code> 
+     * is <code>null</code>, the system default 
+     * <code>GraphicsConfiguration</code> is assumed.
+     * @exception IllegalArgumentException if 
+     * <code>gc</code> is not from a screen device.
+     * @since     1.3
+     */
+    public Frame(GraphicsConfiguration gc) {
+        this("", gc);
     }
 
     /**
@@ -221,13 +284,36 @@ public class Frame extends Window implements MenuContainer {
      * @param title the title to be displayed in the frame's border.
      *              A <code>null</code> value
      *              is treated as an empty string, "".
+     * @exception IllegalArgumentException if gc is not from
+     * a screen device.
      * @see java.awt.Component#setSize
      * @see java.awt.Component#setVisible
+     * @see java.awt.GraphicsConfiguration#getBounds
      */
     public Frame(String title) {
+        this(title, (GraphicsConfiguration)null);
+    }
+    
+    /**
+     * Constructs a new, initially invisible <code>Frame</code> object 
+     * with the specified title and a 
+     * <code>GraphicsConfiguration</code>.
+     * @param title the title to be displayed in the frame's border.
+     *              A <code>null</code> value
+     *              is treated as an empty string, "".
+     * @param gc the <code>GraphicsConfiguration</code> 
+     * of the target screen device.  If <code>gc</code> is 
+     * <code>null</code>, the system default 
+     * <code>GraphicsConfiguration</code> is assumed.
+     * @exception IllegalArgumentException if <code>gc</code> 
+     * is not from a screen device.
+     * @see java.awt.Component#setSize
+     * @see java.awt.Component#setVisible
+     * @see java.awt.GraphicsConfiguration#getBounds
+     */
+    public Frame(String title, GraphicsConfiguration gc) {
+        super(gc);
 	this.title = title;
-	visible = false;
-	setLayout(new BorderLayout());
 	weakThis = new WeakReference(this);
         addToFrameList();
     }
@@ -522,7 +608,7 @@ public class Frame extends Window implements MenuContainer {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Component.setCursor(Cursor)</code>.
      */
-    public synchronized void setCursor(int cursorType) {
+    public void setCursor(int cursorType) {
 	if (cursorType < DEFAULT_CURSOR || cursorType > MOVE_CURSOR) {
 	    throw new IllegalArgumentException("illegal cursor type");
 	}
@@ -541,7 +627,7 @@ public class Frame extends Window implements MenuContainer {
      * Returns an array containing all Frames created by the application.
      * If called from an applet, the array will only include the Frames
      * accessible by that applet.
-     * @since JDK1.2
+     * @since 1.2
      */
     public static Frame[] getFrames() {
         synchronized (Frame.class) {
@@ -666,4 +752,63 @@ public class Frame extends Window implements MenuContainer {
      */
     private static native void initIDs();
 
+    /*
+     * --- Accessibility Support ---
+     *
+     */
+
+    /**
+     * Gets the AccessibleContext associated with this Frame. 
+     * For frames, the AccessibleContext takes the form of an 
+     * AccessibleAWTFrame. 
+     * A new AccessibleAWTFrame instance is created if necessary.
+     *
+     * @return an AccessibleAWTFrame that serves as the 
+     *         AccessibleContext of this Frame
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTFrame();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Frame</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to frame user-interface elements.
+     */
+    protected class AccessibleAWTFrame extends AccessibleAWTWindow {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.FRAME;
+        }
+
+        /**
+         * Get the state of this object.
+         *
+         * @return an instance of AccessibleStateSet containing the current
+         * state set of the object
+         * @see AccessibleState
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (getFocusOwner() != null) {
+                states.add(AccessibleState.ACTIVE);
+            }
+            if (isResizable()) {
+                states.add(AccessibleState.RESIZABLE);
+            }
+            return states;
+        }
+
+
+    } // inner class AccessibleAWTFrame
 }

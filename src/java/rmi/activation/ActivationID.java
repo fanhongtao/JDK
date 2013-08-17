@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationID.java	1.16 01/11/29
+ * @(#)ActivationID.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -34,9 +37,9 @@ import sun.security.action.GetPropertyAction;
  * this method both registers and exports the object. </ul>
  *
  * @author	Ann Wollrath
- * @version	1.16, 11/29/01
+ * @version	1.19, 02/02/00
  * @see		Activatable
- * @since	JDK1.2
+ * @since	1.2
  */
 public class ActivationID implements java.io.Serializable {
     /**
@@ -49,7 +52,7 @@ public class ActivationID implements java.io.Serializable {
      */
     private UID uid = new UID();
 
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = -4608673054848209235L;
 
     /**
@@ -61,7 +64,7 @@ public class ActivationID implements java.io.Serializable {
      *
      * @param activator reference to the activator responsible for
      * activating the object
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationID(Activator activator) {
 	this.activator = activator;
@@ -77,7 +80,7 @@ public class ActivationID implements java.io.Serializable {
      * @exception ActivationException if activation fails
      * @exception UnknownObjectException if the object is unknown
      * @exception RemoteException if remote call fails
-     * @since JDK1.2
+     * @since 1.2
      */
     public Remote activate(boolean force)
 	throws ActivationException, UnknownObjectException, RemoteException
@@ -103,7 +106,7 @@ public class ActivationID implements java.io.Serializable {
      * refer to the same remote object will have the same hash code.
      *
      * @see java.util.Hashtable
-     * @since JDK1.2
+     * @since 1.2
      */
     public int hashCode() {
 	return uid.hashCode();
@@ -119,7 +122,7 @@ public class ActivationID implements java.io.Serializable {
      * @param	obj	the Object to compare with
      * @return	true if these Objects are equal; false otherwise.
      * @see		java.util.Hashtable
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean equals(Object obj) {
 	if (obj instanceof ActivationID) {

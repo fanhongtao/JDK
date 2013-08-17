@@ -1,8 +1,11 @@
 /*
- * @(#)InstantiationException.java	1.13 01/11/29
+ * @(#)InstantiationException.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -14,7 +17,7 @@ package java.lang;
  * instantiated because it is an interface or is an abstract class. 
  *
  * @author  unascribed
- * @version 1.13, 11/29/01
+ * @version 1.14, 02/02/00
  * @see     java.lang.Class#newInstance()
  * @since   JDK1.0
  */

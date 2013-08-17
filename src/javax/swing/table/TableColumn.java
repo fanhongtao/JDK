@@ -1,8 +1,11 @@
 /*
- * @(#)TableColumn.java	1.35 01/11/29
+ * @(#)TableColumn.java	1.49 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.table;
@@ -18,21 +21,23 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 /**
- *  A <B>TableColumn</B> represents all the attributes of a column in a
- *  <B>JTable</B>, such as width, resizibility, minimum and maximum width.
- *  In addition, the <B>TableColumn</B> provides slots for a renderer and 
- *  editor that can be used to display and edit the values in this column. 
+ *  A <code>TableColumn</code> represents all the attributes of a column in a
+ *  <code>JTable</code>, such as width, resizibility, minimum and maximum width.
+ *  In addition, the <code>TableColumn</code> provides slots for a renderer and 
+ *  an editor that can be used to display and edit the values in this column. 
  *  <p>
  *  It is also possible to specify renderers and editors on a per type basis
- *  rather than a per column basis - see the <I>setDefaultRenderer(Class)</I> method
- *  in the <B>JTable</B>. This default mechanism is only used when the renderer (or
- *  editor) in the <B>TableColumn</B> is <I>null</I>.
+ *  rather than a per column basis - see the 
+ *  <code>setDefaultRenderer</code> method in the <code>JTable</code> class.
+ *  This default mechanism is only used when the renderer (or
+ *  editor) in the <code>TableColumn</code> is <code>null</code>.
  * <p>
- *  The TableColumn stores the link between the columns in the <B>JTable</B>
- *  and the columns in the <B>TableModel</B>. This, the <I>modelIndex</I>, is the
- *  column in the TableModel which will be queried for the data values for the
+ *  The <code>TableColumn</code> stores the link between the columns in the
+ *  <code>JTable</code> and the columns in the <code>TableModel</code>.
+ *  The <code>modelIndex</code> is the column in the
+ *  <code>TableModel</code>, which will be queried for the data values for the
  *  cells in this column. As the column moves around in the view this
- *  <I>modelIndex</I> does not change.
+ *  <code>modelIndex</code> does not change.
  *  <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -41,29 +46,46 @@ import java.beans.PropertyChangeListener;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.35 11/29/01
+ * @version 1.49 02/02/00
  * @author Alan Chung
  * @author Philip Milne
- * @see TableColumnModel
+ * @see javax.swing.table.TableColumnModel
  *
- * @see DefaultTableColumnModel
+ * @see javax.swing.table.DefaultTableColumnModel
+ * @see javax.swing.table.JTableHeader#getDefaultRenderer()
  * @see JTable#getDefaultRenderer(Class)
  * @see JTable#getDefaultEditor(Class)
  * @see JTable#getCellRenderer(int, int)
  * @see JTable#getCellEditor(int, int)
  */
 public class TableColumn extends Object implements Serializable {
-//
-// Static Constants
-//
 
-    /** Bound property name. */
+    /** 
+     * Obsolete as of Java 2 platform v1.3.  Please use string literals to identify 
+     * properties.
+     */
+    /* 
+     * Warning: The value of this constant, "columWidth" is wrong as the
+     * name of the property is "columnWidth".
+     */
     public final static String COLUMN_WIDTH_PROPERTY = "columWidth";
-    /** Bound property name. */
+
+    /** 
+     * Obsolete as of Java 2 platform v1.3.  Please use string literals to identify 
+     * properties.
+     */
     public final static String HEADER_VALUE_PROPERTY = "headerValue";
-    /** Bound property name. */
+
+    /** 
+     * Obsolete as of Java 2 platform v1.3.  Please use string literals to identify 
+     * properties.
+     */
     public final static String HEADER_RENDERER_PROPERTY = "headerRenderer";
-    /** Bound property name. */
+
+    /** 
+     * Obsolete as of Java 2 platform v1.3.  Please use string literals to identify 
+     * properties.
+     */
     public final static String CELL_RENDERER_PROPERTY = "cellRenderer";
 
 //
@@ -72,57 +94,65 @@ public class TableColumn extends Object implements Serializable {
 
     /**
       * The index of the column in the model which is to be displayed by
-      * this TableColumn. As columns are moved around in the view the
-      * model index remains constant.
+      * this <code>TableColumn</code>. As columns are moved around in the
+      * view <code>modelIndex</code> remains constant.
       */
     protected int	modelIndex;
 
     /**
      *  This object is not used internally by the drawing machinery of
-     *  the JTable. Identifiers may be set in the TableColumn as as an
-     *  optional way to tag and locate TableColumns. The table package does
+     *  the <code>JTable</code>; identifiers may be set in the
+     *  <code>TableColumn</code> as as an
+     *  optional way to tag and locate table columns. The table package does
      *  not modify or invoke any methods in these identifer objects other
-     *  than the <I>equals</I> method which is used in the
-     *  <I>getColumnIndex()</I> method in the <B>DefaultTableColumnModel</B>.
+     *  than the <code>equals</code> method which is used in the
+     *  <code>getColumnIndex()</code> method in the
+     *  <code>DefaultTableColumnModel</code>.
      */
     protected Object	identifier;
 
-    /** The width of the column */
+    /** The width of the column. */
     protected int	width;
 
-    /** The minimum width of the column */
+    /** The minimum width of the column. */
     protected int	minWidth;
 
-    /** The minimum width of the column */
+    /** The preferred width of the column. */
     private int         preferredWidth;
 
-    /** The maximum width of the column */
+    /** The maximum width of the column. */
     protected int	maxWidth;
 
-    /** The renderer used to draw the header of the column */
+    /** The renderer used to draw the header of the column. */
     protected TableCellRenderer	headerRenderer;
 
-    /** The header value of the column */
+    /** The header value of the column. */
     protected Object		headerValue;
 
-    /** The renderer used to draw the data cells of the column */
+    /** The renderer used to draw the data cells of the column. */
     protected TableCellRenderer	cellRenderer;
 
-    /** The editor used to edit the data cells of the column */
+    /** The editor used to edit the data cells of the column. */
     protected TableCellEditor	cellEditor;
 
-    /** Resizable flag */
+    /** If true, the user is allowed to resize the column; the default is true. */
     protected boolean	isResizable;
 
     /**
+     * This field was not used in previous releases and there are
+     * currently no plans to support it in the future.
+     * 
+     * @deprecated as of Java 2 platform v1.3
+     */
+    /*
      *  Counter used to disable posting of resizing notifications until the
-     *  end of the resize
+     *  end of the resize. 
      */
     transient protected int	resizedPostingDisableCount;
 
     /**
-     * If any PropertyChangeListeners have been registered, the
-     * changeSupport field describes them.
+     * If any <code>PropertyChangeListeners</code> have been registered, the
+     * <code>changeSupport</code> field describes them.
      */
     private SwingPropertyChangeSupport changeSupport;
 
@@ -132,8 +162,9 @@ public class TableColumn extends Object implements Serializable {
 
     /** 
      *  Cover method, using a default model index of 0, 
-     *  default width of 75, a null renderer and a null editor. 
-     *  This methods is intended for serialization. 
+     *  default width of 75, a <code>null</code> renderer and a
+     *  <code>null</code> editor. 
+     *  This method is intended for serialization. 
      *  @see #TableColumn(int, int, TableCellRenderer, TableCellEditor)
      */
     public TableColumn() {
@@ -141,7 +172,8 @@ public class TableColumn extends Object implements Serializable {
     }
 
     /** 
-     *  Cover method, using a default width of 75, a null renderer and a null editor. 
+     *  Cover method, using a default width of 75, a <code>null</code>
+     *  renderer and a <code>null</code> editor. 
      *  @see #TableColumn(int, int, TableCellRenderer, TableCellEditor)
      */
     public TableColumn(int modelIndex) {
@@ -149,7 +181,8 @@ public class TableColumn extends Object implements Serializable {
     }
 
     /** 
-     *  Cover method, using a null renderer and a null editor. 
+     *  Cover method, using a <code>null</code> renderer and a
+     *  <code>null</code> editor. 
      *  @see #TableColumn(int, int, TableCellRenderer, TableCellEditor)
      */
     public TableColumn(int modelIndex, int width) {
@@ -157,21 +190,25 @@ public class TableColumn extends Object implements Serializable {
     }
 
     /**
-     *  Creates and initializes an instance of <B>TableColumn</B> with
-     *  <I>modelIndex</I>. The <I>modelIndex</I> is the index of the column 
+     *  Creates and initializes an instance of 
+     *  <code>TableColumn</code> with <code>modelIndex</code>.
+     *  All <code>TableColumn</code> constructors delegate to this one.
+     *  The <code>modelIndex</code> is the index of the column 
      *  in the model which will supply the data for this column in the table. 
-     *  The modelIndex does not change as the columns are reordered in the view. 
-     *  The width parameter is used to set both the preferredWidth for this 
-     *  column and the intial width. The renderer and editor are the objects 
-     *  used repsectively to render and edit values in this column. When 
-     *  these are null, default values, provided by the getDefaultRenderer(Class) 
-     *  and getDefaultEditor(Class) methods in the JTable are used to 
+     *  The <code>modelIndex</code> does not change as the columns are reordered
+     *  in the view. The width parameter is used to set both the 
+     *  <code>preferredWidth</code> for this 
+     *  column and the initial width. The renderer and editor are the objects 
+     *  used respectively to render and edit values in this column. When 
+     *  these are <code>null</code>, default values, provided by the
+     *  <code>getDefaultRenderer</code> 
+     *  and <code>getDefaultEditor</code> methods in the
+     *  <code>JTable</code> class are used to 
      *  provide defaults based on the type of the data in this column. 
-     *  This column-centric rendering strategy can be circumvented by 
-     *  overriding the getCellRenderer() methods in the JTable. 
+     *  This column-centric rendering strategy can be circumvented by overriding
+     *  the <code>getCellRenderer</code> methods in the <code>JTable</code>. 
      *  <p>
      *
-     * @param	modelIndex	the column in the model which provides the values for this column
      * @see JTable#getDefaultRenderer(Class)
      * @see JTable#getDefaultEditor(Class)
      * @see JTable#getCellRenderer(int, int)
@@ -193,7 +230,6 @@ public class TableColumn extends Object implements Serializable {
 	maxWidth = Integer.MAX_VALUE;
 	isResizable = true;
 	resizedPostingDisableCount = 0;
-	setHeaderRenderer(createDefaultHeaderRenderer());
 	headerValue = null;
     }
 
@@ -201,263 +237,283 @@ public class TableColumn extends Object implements Serializable {
 // Modifying and Querying attributes
 //
 
-    /**
-     * Sets the model index for this column. The model index is the
-     * index of the column in the model that will be displayed by this
-     * TableColumn. As the TableColumn is moved around in the view
-     * the model index remains constant.
-     */
-    public void setModelIndex(int anIndex)
-    {
-	modelIndex = anIndex;
+    private void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+        if (changeSupport != null) {
+            changeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    private void firePropertyChange(String propertyName, int oldValue, int newValue) {
+        if (oldValue != newValue) {
+            firePropertyChange(propertyName, new Integer(oldValue), new Integer(newValue));
+        }
+    }
+
+    private void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
+        if (oldValue != newValue) {
+            firePropertyChange(propertyName, new Boolean(oldValue), new Boolean(newValue));
+        }
     }
 
     /**
-     * Gets the model index for this column.
+     * Sets the model index for this column. The model index is the
+     * index of the column in the model that will be displayed by this
+     * <code>TableColumn</code>. As the <code>TableColumn</code>
+     * is moved around in the view the model index remains constant. 
+     * @param  modelIndex  the new modelIndex
+     * @beaninfo
+     *  bound: true
+     *  description: The model index.
      */
-    public int getModelIndex()
-    {
+    public void setModelIndex(int modelIndex) {
+	int old = this.modelIndex; 
+	this.modelIndex = modelIndex; 
+	firePropertyChange("modelIndex", old, modelIndex); 
+    }
+
+    /**
+     * Returns the model index for this column.
+     * @return the <code>modelIndex</code> property
+     */
+    public int getModelIndex() {
 	return modelIndex;
     }
 
     /**
-     * Sets the <B>TableColumn</B>'s identifier to <I>anIdentifier</I>.
-     * Note identifiers are not used by the JTable, they are purely a
+     * Sets the <code>TableColumn</code>'s identifier to
+     * <code>anIdentifier</code>. <p>
+     * Note: identifiers are not used by the <code>JTable</code>,
+     * they are purely a
      * convenience for the external tagging and location of columns.
      *
-     * @param	   anIdentifier		an identifier for this column
+     * @param	   identifier		an identifier for this column
      * @see	   #getIdentifier
+     * @beaninfo
+     *  bound: true
+     *  description: A unique identifier for this column.
      */
-    public void setIdentifier(Object anIdentifier)
-    {
-	identifier = anIdentifier;
+    public void setIdentifier(Object identifier) { 
+	Object old = this.identifier; 
+	this.identifier = identifier; 
+	firePropertyChange("identifier", old, identifier); 	
     }
 
 
     /**
-     *  Returns the identifier object for this column. Note identifiers are not
-     *  used by the JTable, they are purely a convenience for external use.
-     *  If the identifier is <I>null</I> <I>getIdentifier()</I> returns
-     *  <code>getHeaderValue()</code> as a default.
+     *  Returns the <code>identifier</code> object for this column.
+     *  Note identifiers are not used by <code>JTable</code>,
+     *  they are purely a convenience for external use.
+     *  If the <code>identifier</code> is <code>null</code>,
+     *  <code>getIdentifier()</code> returns <code>getHeaderValue</code>
+     *  as a default.
      *
-     * @return	the idenitifer object for this column
+     * @return	the <code>identifier</code> property
      * @see	#setIdentifier
      */
-    public Object getIdentifier()
-    {
+    public Object getIdentifier() {
         return (identifier != null) ? identifier : getHeaderValue();
 
     }
 
     /**
-     * Sets the <B>TableCellRenderer</B> used to draw the <B>TableColumn's</B>
-     * header to <I>aRenderer</I>.  Posts a bound property change notification
-     * with the name HEADER_RENDERER_PROPERTY.
-     *
-     * @exception IllegalArgumentException	if <I>aRenderer</I> is null.
-     * @param	  aRenderer			the new header renderer
-     * @see	  #getHeaderRenderer
-     */
-    public void setHeaderRenderer(TableCellRenderer aRenderer)
-    {
-	TableCellRenderer oldRenderer = headerRenderer;
-
-	if (aRenderer == null) {
-	    throw new IllegalArgumentException("Object is null");
-	}
-	headerRenderer = aRenderer;
-
-	// Post header renderer changed event notification
-	if (changeSupport != null) {
-	    changeSupport.firePropertyChange(HEADER_RENDERER_PROPERTY,
-					     oldRenderer, headerRenderer);
-	}
-    }
-
-    /**
-     * Returns the <B>TableCellRenderer</B> used to draw the header of the
-     * <B>TableColumn</B>. The default header renderer is a
-     * <B>JCellRenderer</B> initialized with a <B>JLabel</B>.
-     *
-     * @return	the <B>TableCellRenderer</B> used to draw the header
-     * @see	#setHeaderRenderer
-     * @see	#setHeaderValue
-     */
-    public TableCellRenderer getHeaderRenderer()
-    {
-	return headerRenderer;
-    }
-
-    /**
-     * Sets the <B>Object</B> used as the value for the headerRenderer
-     * Posts a bound property change notification with the name
-     * HEADER_VALUE_PROPERTY.
-     *
-     * @param	  aValue			the new header value
+     * Sets the <code>Object</code> whose string representation will be
+     * used as the value for the <code>headerRenderer</code>.  When the
+     * <code>TableColumn</code> is created, the default <code>headerValue</code>
+     * is <code>null</code>.
+     * @param headerValue  the new headerValue
      * @see	  #getHeaderValue
+     * @beaninfo
+     *  bound: true
+     *  description: The text to be used by the header renderer.
      */
-    public void setHeaderValue(Object aValue)
-    {
-	Object oldValue = headerValue;
-
-	headerValue = aValue;
-
-	// Post header value changed event notification
-	if (changeSupport != null) {
-	    changeSupport.firePropertyChange(HEADER_VALUE_PROPERTY,
-					     oldValue, headerValue);
-	}
+    public void setHeaderValue(Object headerValue) {
+	Object old = this.headerValue;
+	this.headerValue = headerValue;
+	firePropertyChange("headerValue", old, headerValue);
     }
 
     /**
-     * Returns the <B>Object</B> used as the value for the header renderer.
+     * Returns the <code>Object</code> used as the value for the header
+     * renderer.
      *
-     * @return	the <B>Object</B> used as the value for the header renderer
+     * @return	the <code>headerValue</code> property
      * @see	#setHeaderValue
      */
     public Object getHeaderValue() {
 	return headerValue;
     }
 
+    //
+    // Renderers and Editors
+    //
+
     /**
-     * Sets the <B>TableCellRenderer</B> used by <B>JTable</B> to draw
-     * individual values for this column to <I>aRenderer</I>.  Posts a
-     * bound property change notification with the name CELL_RENDERER_PROPERTY.
+     * Sets the <code>TableCellRenderer</code> used to draw the 
+     * <code>TableColumn</code>'s header to <code>headerRenderer</code>. 
      *
-     * @param	aRenderer			the new data cell renderer
-     * @see	#getCellRenderer
+     * @param headerRenderer  the new headerRenderer
+     *
+     * @see	  #getHeaderRenderer
+     * @beaninfo
+     *  bound: true
+     *  description: The header renderer.
      */
-    public void setCellRenderer(TableCellRenderer aRenderer)
-    {
-	TableCellRenderer oldRenderer = cellRenderer;
-
-	cellRenderer = aRenderer;
-
-	// Post cell renderer changed event notification
-	if (changeSupport != null) {
-	    changeSupport.firePropertyChange(CELL_RENDERER_PROPERTY,
-					     oldRenderer, cellRenderer);
-	}
+    public void setHeaderRenderer(TableCellRenderer headerRenderer) {
+	TableCellRenderer old = this.headerRenderer;
+	this.headerRenderer = headerRenderer;
+	firePropertyChange("headerRenderer", old, headerRenderer);
     }
 
     /**
-     * Returns the <B>TableCellRenderer</B> used by the <B>JTable</B> to draw
-     * values for this column.  The <I>cellRenderer</I> of the column not
-     * only controls the visual look for the column, but is also used to
-     * interpret the value object supplied by the TableModel. When the 
-     * <I>cellRenderer</I> is null, the JTable uses a default renderer based on 
-     * class of the cells in that column. The default value for a 
-     * <I>cellRenderer</I> is null.  
+     * Returns the <code>TableCellRenderer</code> used to draw the header of the
+     * <code>TableColumn</code>. When the <code>headerRenderer</code> is
+     * <code>null</code>, the <code>JTableHeader</code>
+     * uses its <code>defaultRenderer</code>. The default value for a 
+     * <code>headerRenderer</code> is <code>null</code>.  
      *
-     * @return	the <B>TableCellRenderer</B> used by the <B>JTable</B> to
-     * 		draw values for this column
+     * @return	the <code>headerRenderer</code> property
+     * @see	#setHeaderRenderer
+     * @see	#setHeaderValue     
+     * @see	javax.swing.table.JTableHeader#getDefaultRenderer()
+     */
+    public TableCellRenderer getHeaderRenderer() {
+	return headerRenderer;
+    }
+
+    /**
+     * Sets the <code>TableCellRenderer</code> used by <code>JTable</code>
+     * to draw individual values for this column.  
+     *
+     * @param cellRenderer  the new cellRenderer
+     * @see	#getCellRenderer
+     * @beaninfo
+     *  bound: true
+     *  description: The renderer to use for cell values.  
+     */
+    public void setCellRenderer(TableCellRenderer cellRenderer) {
+	TableCellRenderer old = this.cellRenderer;
+	this.cellRenderer = cellRenderer;
+	firePropertyChange("cellRenderer", old, cellRenderer);
+    }
+
+    /**
+     * Returns the <code>TableCellRenderer</code> used by the
+     * <code>JTable</code> to draw
+     * values for this column.  The <code>cellRenderer</code> of the column
+     * not only controls the visual look for the column, but is also used to
+     * interpret the value object supplied by the <code>TableModel</code>.
+     * When the <code>cellRenderer</code> is <code>null</code>,
+     * the <code>JTable</code> uses a default renderer based on the 
+     * class of the cells in that column. The default value for a 
+     * <code>cellRenderer</code> is <code>null</code>.  
+     *
+     * @return	the <code>cellRenderer</code> property
      * @see	#setCellRenderer
      * @see	JTable#setDefaultRenderer
      */
-    public TableCellRenderer getCellRenderer()
-    {
+    public TableCellRenderer getCellRenderer() {
 	return cellRenderer;
     }
 
     /**
-     * Sets the <B>TableCellEditor</B> used by <B>JTable</B> to draw individual
-     * values for this column to <I>anEditor</I>.  
+     * Sets the editor to used by when a cell in this column is edited.  
      *
-     * @param	anEditor			the new data cell editor
+     * @param cellEditor  the new cellEditor
      * @see	#getCellEditor
+     * @beaninfo
+     *  bound: true
+     *  description: The editor to use for cell values.     
      */
-    public void setCellEditor(TableCellEditor anEditor)
-    {
-	cellEditor = anEditor;
+    public void setCellEditor(TableCellEditor cellEditor){
+	TableCellEditor old = this.cellEditor;
+	this.cellEditor = cellEditor;
+	firePropertyChange("cellEditor", old, cellEditor);
     }
 
     /**
-     * Returns the <B>TableCellEditor</B> used by the <B>JTable</B> to draw
-     * values for this column.  The <I>cellEditor</I> of the column not
-     * only controls the visual look for the column, but is also used to
-     * interpret the value object supplied by the TableModel. When the 
-     * <I>cellEditor</I> is null, the JTable uses a default editor based on 
+     * Returns the <code>TableCellEditor</code> used by the
+     * <code>JTable</code> to edit values for this column.  When the 
+     * <code>cellEditor</code> is <code>null</code>, the <code>JTable</code>
+     * uses a default editor based on the
      * class of the cells in that column. The default value for a 
-     * <I>cellEditor</I> is null.  
-     * 
+     * <code>cellEditor</code> is <code>null</code>.  
      *
-     * @return	the <B>TableCellEditor</B> used by the <B>JTable</B> to
-     * 		draw values for this column
+     * @return	the <code>cellEditor</code> property
      * @see	#setCellEditor
      * @see	JTable#setDefaultEditor
      */
-    public TableCellEditor getCellEditor()
-    {
+    public TableCellEditor getCellEditor() {
 	return cellEditor;
     }
 
     /**
-     * This method should not be used to set the widths of columns in the JTable - 
-     * use, setPreferredWidth() instead. Like a layout manager in the 
-     * AWT, the JTable adjusts a column's width automatically whenever the 
+     * This method should not be used to set the widths of columns in the 
+     * <code>JTable</code>, use <code>setPreferredWidth</code> instead.
+     * Like a layout manager in the 
+     * AWT, the <code>JTable</code> adjusts a column's width automatically
+     * whenever the 
      * table itself changes size, or a column's preferred width is changed. 
      * Setting widths programmatically therefore has no long term effect. 
      * <p>
-     * This methods, sets this column's width to <I>newWidth</I>.  
-     * If <I>newWidth</I> exceeds the minimum or maximum width, 
-     * it's adjusted to the appropriate limiting value. Posts a bound property
-     * change notification with the name COLUMN_WIDTH_PROPERTY.
+     * This method sets this column's width to <code>width</code>.  
+     * If <code>width</code> exceeds the minimum or maximum width, 
+     * it is adjusted to the appropriate limiting value.
      * <p>
-     * @param	newWidth		The new width value
+     * @param  width  the new width
      * @see	#getWidth
      * @see	#setMinWidth
      * @see	#setMaxWidth
      * @see	#setPreferredWidth
      * @see     JTable#sizeColumnsToFit(int)
+     * @beaninfo
+     *  bound: true
+     *  description: The width of the column.     
      */
-    public void setWidth(int width)
-    {
-	int oldWidth = this.width;
-
-	// Set the width, and check min & max
+    public void setWidth(int width) {
+	int old = this.width;
 	this.width = Math.min(Math.max(width, minWidth), maxWidth); 
-
-	// Post resize event notification
-	if (changeSupport != null && this.width != oldWidth) {
-	    changeSupport.firePropertyChange(COLUMN_WIDTH_PROPERTY,
-					   new Integer(oldWidth), new Integer(this.width));
-	}
+	firePropertyChange("width", old, this.width);	
     }
 
     /**
-     * Returns the width of the <B>TableColumn</B>. The default width is
+     * Returns the width of the <code>TableColumn</code>. The default width is
      * 75.
      *
-     * @return	the width of the <B>TableColumn</B>
+     * @return	the <code>width</code> property
      * @see	#setWidth
      */
-    public int getWidth()
-    {
+    public int getWidth() {
 	return width;
     }
 
     /**
-     * Sets this column's preferred width to <I>preferredWidth</I>.  
-     * If <I>preferredWidth</I> exceeds the minimum or maximum width, 
-     * it's adjusted to the appropriate limiting value. 
+     * Sets this column's preferred width to <code>preferredWidth</code>.  
+     * If <code>preferredWidth</code> exceeds the minimum or maximum width, 
+     * it is adjusted to the appropriate limiting value. 
      * <p>
-     * For details on how the widths of columns in the JTable 
-     * (and JTableHeader) are calculated from the preferredWidth, 
-     * see the sizeColumnsToFit(int) method in the JTable. 
+     * For details on how the widths of columns in the <code>JTable</code> 
+     * (and <code>JTableHeader</code>) are calculated from the
+     * <code>preferredWidth</code>, 
+     * see the <code>sizeColumnsToFit</code> method in <code>JTable</code>. 
      *
-     * @param	preferredWidth		The new preferred width.
+     * @param  preferredWidth the new preferred width
      * @see	#getPreferredWidth
      * @see     JTable#sizeColumnsToFit(int)
+     * @beaninfo
+     *  bound: true
+     *  description: The preferred width of the column.     
      */
-    public void setPreferredWidth(int preferredWidth) {
+    public void setPreferredWidth(int preferredWidth) { 
+	int old = this.preferredWidth;
 	this.preferredWidth = Math.min(Math.max(preferredWidth, minWidth), maxWidth); 
+	firePropertyChange("preferredWidth", old, this.preferredWidth);	
     }
 
     /**
-     * Returns the preferred width of the <B>TableColumn</B>. 
+     * Returns the preferred width of the <code>TableColumn</code>. 
      * The default preferred width is 75.
      *
-     * @return	the width of the <B>TableColumn</B>
+     * @return	the <code>preferredWidth</code> property
      * @see	#setPreferredWidth
      */
     public int getPreferredWidth() {
@@ -465,131 +521,143 @@ public class TableColumn extends Object implements Serializable {
     }
 
     /**
-     * Sets the <B>TableColumn's</B> minimum width to <I>newMinWidth</I>,
-     * also adjusting the current width if it's less than this value.
+     * Sets the <code>TableColumn</code>'s minimum width to
+     * <code>minWidth</code>; also adjusts the current width
+     * and preferred width if they are less than this value.
      *
-     * @param	newMinWidth		the new minimum width value
+     * @param minWidth  the new minimum width
      * @see	#getMinWidth
      * @see	#setPreferredWidth
      * @see	#setMaxWidth
+     * @beaninfo
+     *  bound: true
+     *  description: The minimum width of the column.     
      */
-    public void setMinWidth(int minWidth)
-    {
+    public void setMinWidth(int minWidth) { 
+	int old = this.minWidth;	
 	this.minWidth = Math.max(minWidth, 0);
-
 	if (width < minWidth) {
 	    setWidth(minWidth);
 	}
+	if (preferredWidth < minWidth) {
+	    setPreferredWidth(minWidth);
+	}
+	firePropertyChange("minWidth", old, this.minWidth);	
     }
 
     /**
-     * Returns the minimum width for the <B>TableColumn</B>. The
-     * <B>TableColumn's</B> width can't be made less than this either
+     * Returns the minimum width for the <code>TableColumn</code>. The
+     * <code>TableColumn</code>'s width can't be made less than this either
      * by the user or programmatically.  The default minWidth is 15.
      *
-     * @return	the minimum width for the <B>TableColumn</B>
+     * @return	the <code>minWidth</code> property
      * @see	#setMinWidth
      */
-    public int getMinWidth()
-    {
+    public int getMinWidth() {
 	return minWidth;
     }
 
     /**
-     * Sets the <B>TableColumn's</B> maximum width to <I>newMaxWidth</I>,
-     * also adjusting the current width if it's greater than this value.
+     * Sets the <code>TableColumn</code>'s maximum width to
+     * <code>maxWidth</code>; also adjusts the width and preferred
+     * width if they are greater than this value.
      *
-     * @param	newMaxWidth		the new maximum width value
+     * @param maxWidth  the new maximum width
      * @see	#getMaxWidth
      * @see	#setPreferredWidth
      * @see	#setMinWidth
+     * @beaninfo
+     *  bound: true
+     *  description: The maximum width of the column.     
      */
-    public void setMaxWidth(int maxWidth)
-    {
+    public void setMaxWidth(int maxWidth) {
+	int old = this.maxWidth;	
 	this.maxWidth = Math.max(minWidth, maxWidth);
-
 	if (width > maxWidth) {
-	    this.setWidth(maxWidth); 
+	    setWidth(maxWidth);
 	}
+	if (preferredWidth > maxWidth) {
+	    setPreferredWidth(maxWidth);
+	}
+	firePropertyChange("maxWidth", old, this.maxWidth);	
     }
 
     /**
-     * Returns the maximum width for the <B>TableColumn</B>. The
-     * <B>TableColumn's</B> width can't be made larger than this
+     * Returns the maximum width for the <code>TableColumn</code>. The
+     * <code>TableColumn</code>'s width can't be made larger than this
      * either by the user or programmatically.  The default maxWidth
      * is Integer.MAX_VALUE.
      *
-     * @return	the maximum width for the <B>TableColumn</B>.
+     * @return	the <code>maxWidth</code> property
      * @see	#setMaxWidth
      */
-    public int getMaxWidth()
-    {
+    public int getMaxWidth() {
 	return maxWidth;
     }
 
     /**
-     * Sets whether the user can resize the receiver in its
-     * <B>JTableView</B>.
+     * Sets whether this column can be resized.
      *
-     * @param	flag		true if the column isResizable
+     * @param isResizable  if true, resizing is allowed; otherwise false
      * @see	#getResizable
+     * @beaninfo
+     *  bound: true
+     *  description: Whether or not this column can be resized.
      */
-    public void setResizable(boolean flag)
-    {
-	isResizable = flag;
+    public void setResizable(boolean isResizable) {
+	boolean old = this.isResizable;	
+	this.isResizable = isResizable;
+	firePropertyChange("isResizable", old, this.isResizable);	
     }
 
     /**
-     * Returns true if the user is allowed to resize the <B>TableColumn</B>
+     * Returns true if the user is allowed to resize the
+     * <code>TableColumn</code>'s
      * width, false otherwise. You can change the width programmatically
      * regardless of this setting.  The default is true.
      *
-     * @return	true if the user is allowed to resize the <B>TableColumn</B>
-     * 		width, false otherwise.
+     * @return	the <code>isResizable</code> property
      * @see	#setResizable
      */
-    public boolean getResizable()
-    {
+    public boolean getResizable() {
 	return isResizable;
     }
 
     /**
-     * Resizes the <B>TableColumn</B> to fit the width of its header cell.
-     * If the maximum width is less than the width of the header, the
-     * maximum is increased to the header's width. Similarly, if the
-     * minimum width is greater than the width of the header, the minimum
-     * is reduced to the header's width.
+     * Resizes the <code>TableColumn</code> to fit the width of its header cell.
+     * This method does nothing if the header renderer is <code>null</code>
+     * (the default case).
      *
      * @see	#setPreferredWidth
      */
     public void sizeWidthToFit() {
-	// Get the preferred width of the header
-        Component comp;
-	comp = this.getHeaderRenderer().getTableCellRendererComponent(null,
+	// Get the preferred width of the header 
+	if (headerRenderer == null) { 
+	    return; 
+	}
+        Component comp = headerRenderer.getTableCellRendererComponent(null,
 				getHeaderValue(), false, false, 0, 0);
 	int headerWidth = comp.getPreferredSize().width;
-
-	// Have to adjust the max or min before setting the width
-	if (headerWidth > this.getMaxWidth())
-	    this.setMaxWidth(headerWidth);
-	if (headerWidth < this.getMinWidth())
-	    this.setMinWidth(headerWidth);
 
 	// Set the width
 	this.setWidth(headerWidth);
     }
 
     /**
-     * Turns off listener-notifications would otherwise occur 
-     * when a column is resized.
+     * This field was not used in previous releases and there are
+     * currently no plans to support it in the future.
+     * 
+     * @deprecated as of Java 2 platform v1.3
      */
     public void disableResizedPosting() {
 	resizedPostingDisableCount++;
     }
 
     /**
-     * Turns on listener-notifications so that listeners are once
-     * again informed when a column is resized.
+     * This field was not used in previous releases and there are
+     * currently no plans to support it in the future.
+     * 
+     * @deprecated as of Java 2 platform v1.3
      */
     public void enableResizedPosting() {
 	resizedPostingDisableCount--;
@@ -600,19 +668,20 @@ public class TableColumn extends Object implements Serializable {
 //
 
     /**
-     * Add a PropertyChangeListener to the listener list.
+     * Adds a <code>PropertyChangeListener</code> to the listener list.
      * The listener is registered for all properties.
      * <p>
-     * A PropertyChangeEvent will get fired in response to an
-     * explicit setFont, setBackground, or SetForeground on the
+     * A <code>PropertyChangeEvent</code> will get fired in response to an
+     * explicit call to <code>setFont</code>, <code>setBackground</code>,
+     * or <code>setForeground</code> on the
      * current component.  Note that if the current component is
      * inheriting its foreground, background, or font from its
      * container, then no event will be fired in response to a
      * change in the inherited property.
      *
-     * @param listener  The PropertyChangeListener to be added
+     * @param listener  the listener to be added
+     *
      */
-
     public synchronized void addPropertyChangeListener(
                                 PropertyChangeListener listener) {
         if (changeSupport == null) {
@@ -622,11 +691,12 @@ public class TableColumn extends Object implements Serializable {
     }
 
     /**
-     * Remove a PropertyChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
+     * Removes a <code>PropertyChangeListener</code> from the listener list.
+     * The <code>PropertyChangeListener</code> to be removed was registered
      * for all properties.
      *
-     * @param listener  The PropertyChangeListener to be removed
+     * @param listener  the listener to be removed
+     *
      */
 
     public synchronized void removePropertyChangeListener(
@@ -640,6 +710,17 @@ public class TableColumn extends Object implements Serializable {
 // Protected Methods
 //
 
+    /** 
+     * As of Java 2 platform v1.3, this method is not called by the <code>TableColumn</code>
+     * constructor.  Previously this method was used by the
+     * <code>TableColumn</code> to create a default header renderer.
+     * As of Java 2 platform v1.3, the default header renderer is <code>null</code>.
+     * <code>JTableHeader</code> now provides its own shared default
+     * renderer, just as the <code>JTable</code> does for its cell renderers.
+     *
+     * @return the default header renderer
+     * @see javax.swing.table.JTableHeader#createDefaultRenderer()
+     */
     protected TableCellRenderer createDefaultHeaderRenderer() {
 	DefaultTableCellRenderer label = new DefaultTableCellRenderer() {
 	    public Component getTableCellRendererComponent(JTable table, Object value,
@@ -663,3 +744,8 @@ public class TableColumn extends Object implements Serializable {
     }
 
 } // End of class TableColumn
+
+
+
+
+

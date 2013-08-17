@@ -1,8 +1,11 @@
 /*
- * @(#)ObjectStreamField.java	1.26 01/11/29
+ * @(#)ObjectStreamField.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -15,14 +18,18 @@ import java.lang.reflect.Field;
  * fields of a class.
  *
  * @author  Roger Riggs
- * @version 1.26, 11/29/01
+ * @version 1.30, 02/02/00
  * @see ObjectStreamClass
+ * @since 1.2
  */
 public class ObjectStreamField implements Comparable {
     /**
      * Create a Serializable field with the specified type.
      * This field should be documented with a <code>serialField</code>
      * tag. 
+     *
+     * @param n the name of the serializable field
+     * @param clazz the <code>Class</code> object of the serializable field
      */
     public ObjectStreamField(String n, Class clazz) {
     	name = n;
@@ -89,6 +96,9 @@ public class ObjectStreamField implements Comparable {
 
     /**
      * Get the name of this field.
+     *
+     * @return a <code>String</code> representing the name of the serializable
+     * field 
      */
     public String getName() {
     	return name;
@@ -96,6 +106,8 @@ public class ObjectStreamField implements Comparable {
 
     /**
      * Get the type of the field.
+     *
+     * @return the <code>Class</code> object of the serializable field 
      */
     public Class getType() {
     	if (clazz != null)
@@ -141,6 +153,8 @@ public class ObjectStreamField implements Comparable {
      * Z            boolean
      * [            array
      * </pre></blockquote>
+     *
+     * @return the typecode of the serializable field
      */
     public char getTypeCode() {
 	return type;
@@ -149,7 +163,7 @@ public class ObjectStreamField implements Comparable {
     /**
      * Return the JVM type signature.
      *
-     * @returns null if this field has a primitive type.
+     * @return null if this field has a primitive type.
      */
     public String getTypeString() {
 	return typeString;
@@ -157,6 +171,9 @@ public class ObjectStreamField implements Comparable {
 
     /**
      * Offset of field within instance data.
+     *
+     * @return the offset of this field
+     * @see #setOffset
      */
     public int getOffset() {
 	return bufoffset;
@@ -164,6 +181,9 @@ public class ObjectStreamField implements Comparable {
 
     /** 
      * Offset within instance data.
+     *
+     * @param offset the offset of the field
+     * @see #getOffset
      */
     protected void setOffset(int offset) {
 	bufoffset = offset;
@@ -178,6 +198,8 @@ public class ObjectStreamField implements Comparable {
 
     /**
      * Return true if this field has a primitive type.
+     *
+     * @return true if and only if this field corresponds to a primitive type
      */
     public boolean isPrimitive() {
 	return (type != '[' && type != 'L');
@@ -213,7 +235,7 @@ public class ObjectStreamField implements Comparable {
     /**
      * Compare the type of this ObjectStreamField with <code>other</code>.
      * 
-     * @returns true if both ObjectStreamFields are serializable compatible.
+     * @return true if both ObjectStreamFields are serializable compatible.
      */
     boolean typeEquals(ObjectStreamField other) {
 	if (other == null || type != other.type)
@@ -245,7 +267,7 @@ public class ObjectStreamField implements Comparable {
 
 
     /**
-     * @returns a ObjectStreamField with enough fields set to search 
+     * @return a ObjectStreamField with enough fields set to search 
      *          a list for a matching ObjectStreamField.
      * @see #compareTo(Object)
      */

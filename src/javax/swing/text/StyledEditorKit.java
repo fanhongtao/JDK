@@ -1,8 +1,11 @@
 /*
- * @(#)StyledEditorKit.java	1.32 01/11/29
+ * @(#)StyledEditorKit.java	1.33 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -24,7 +27,7 @@ import javax.swing.KeyStroke;
  * provides a minimal set of actions for editing styled text.
  *
  * @author  Timothy Prinzing
- * @version 1.32 11/29/01
+ * @version 1.33 02/02/00
  */
 public class StyledEditorKit extends DefaultEditorKit {
 
@@ -189,11 +192,12 @@ public class StyledEditorKit extends DefaultEditorKit {
 	    int start = Math.min(dot, mark);
 	    // record current character attributes.
 	    StyledDocument doc = (StyledDocument)aDoc;
-	    // Get the attributes from the character before the start of
-	    // the selection.
+	    // If nothing is selected, get the attributes from the character
+	    // before the start of the selection, otherwise get the attributes
+	    // from the character element at the start of the selection.
 	    Element run;
 	    currentParagraph = doc.getParagraphElement(start);
-	    if (currentParagraph.getStartOffset() == start) {
+	    if (currentParagraph.getStartOffset() == start || dot != mark) {
 		// Get the attributes from the character at the selection
 		// if in a different paragrah!
 		run = doc.getCharacterElement(start);

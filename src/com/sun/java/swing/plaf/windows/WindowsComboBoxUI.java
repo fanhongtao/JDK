@@ -1,8 +1,11 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.21 01/11/29
+ * @(#)WindowsComboBoxUI.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -25,7 +28,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.18 10/30/98
+ * @version 1.25, 02/02/00
  * @author Tom Santos
  */
 
@@ -74,83 +77,42 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         super.selectPreviousPossibleValue();
     } 
 
-    JComboBox windowsGetComboBox() {
-        return comboBox;
-    }
-
     protected void installKeyboardActions() {
+	ActionMap oldMap = (ActionMap)UIManager.get("ComboBox.actionMap");
         super.installKeyboardActions();
-
-        ActionListener downAction = new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                if ( windowsGetComboBox().isEnabled() ) {
-                    if ( !windowsGetComboBox().isEditable() ||
-                         (windowsGetComboBox().isEditable() && isPopupVisible(windowsGetComboBox())) ) {
-                        selectNextPossibleValue();
-                    }
-                }
-            }
-        };
-
-        comboBox.registerKeyboardAction( downAction,
-                                         KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ),
-                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        ActionListener upAction = new ActionListener() {
-            public void actionPerformed( ActionEvent e ) {
-                if ( windowsGetComboBox().isEnabled() ) {
-                    if ( !windowsGetComboBox().isEditable() ||
-                         (windowsGetComboBox().isEditable() && isPopupVisible(windowsGetComboBox())) ) {
-                        selectPreviousPossibleValue();
-                    }
-                }
-            }
-        };
-
-        comboBox.registerKeyboardAction( upAction,
-                                         KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ),
-                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	if (oldMap == null) {
+	    ActionMap map = (ActionMap)UIManager.get("ComboBox.actionMap");
+	    if (map != null) {
+		// The actions we install are a little different, override
+		// them here.
+		map.put("selectPrevious", new UpAction());
+		map.put("selectNext", new DownAction());
+	    }
+	}
     }
 
     void windowsSetPopupVisible( boolean visible ) {
         setPopupVisible( comboBox, visible );
     }
 
-    protected void uninstallKeyboardActions() {
-        super.uninstallKeyboardActions();
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0));
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,0));
-    }
-
     protected ComboPopup createPopup() {
         return new WindowsComboPopup( comboBox );
     }
 
-    /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
-     */          
-    public class WindowsComboPopup extends BasicComboPopup {
-        // This is here because the compiler isn't currently letting this
-        // inner class have access to its parent's inherited data members.
-        JComboBox comboBox;
+    /** 
+     * Subclassed to add Windows specific Key Bindings.
+     */
+    protected class WindowsComboPopup extends BasicComboPopup {
 
         public WindowsComboPopup( JComboBox cBox ) {
             super( cBox );
-            comboBox = cBox;
         }
 
         protected KeyListener createKeyListener() {
             return new InvocationKeyHandler();
         }
 
-        /**
-         * This inner class is marked &quot;public&quot; due to a compiler bug.
-         * This class should be treated as a &quot;protected&quot; inner class.
-         * Instantiate it only within subclasses of <FooUI>.
-         */          
-        public class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
+        protected class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
             public void keyReleased( KeyEvent e ) {
                 if ( e.getKeyCode() == KeyEvent.VK_F4 ) {
                     if ( isVisible() ) {
@@ -183,5 +145,32 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
             }
         }
     }
-}
 
+
+    static class DownAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JComboBox comboBox = (JComboBox)e.getSource();
+	    if ( comboBox.isEnabled() ) {
+		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
+		if ( !comboBox.isEditable() || (comboBox.isEditable() &&
+						ui.isPopupVisible(comboBox))) {
+		    ui.selectNextPossibleValue();
+		}
+	    }
+	}
+    }
+
+
+    static class UpAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JComboBox comboBox = (JComboBox)e.getSource();
+	    if ( comboBox.isEnabled() ) {
+		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
+		if ( !comboBox.isEditable() || (comboBox.isEditable() &&
+						ui.isPopupVisible(comboBox))) {
+		    ui.selectPreviousPossibleValue();
+		}
+	    }
+	}
+    }
+}

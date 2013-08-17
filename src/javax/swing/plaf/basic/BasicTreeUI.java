@@ -1,8 +1,11 @@
 /*
- * @(#)BasicTreeUI.java	1.107 01/11/29
+ * @(#)BasicTreeUI.java	1.122 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -14,7 +17,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.*;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.TreeUI;
@@ -24,7 +29,7 @@ import javax.swing.tree.*;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.107 11/29/01
+ * @version 1.113 07/20/99
  * @author Scott Violet
  */
 
@@ -111,6 +116,11 @@ public class BasicTreeUI extends TreeUI
      * and if the root handles are visible. */
     protected int               depthOffset;
 
+    /** Last width the tree was at when painted. This is used when
+     * !leftToRigth to notice the bounds have changed so that we can instruct
+     * the TreeState to relayout. */
+    private int                 lastWidth;
+
     // Following 4 ivars are only valid when editing.
 
     /** When editing, this will be the Component that is doing the actual
@@ -127,20 +137,14 @@ public class BasicTreeUI extends TreeUI
     /** Set to true if the editor has a different size than the renderer. */
     protected boolean           editorHasDifferentSize;
 
-    /** Updated when selection changes. This really needs to be in JTree, and
-     * public at some point. */
-    private TreePath            anchorPath;
-    /** Path of last selected item. */
-    private TreePath            leadPath;
     /** Row correspondin to lead path. */
     private int                 leadRow;
-    /** If true, the selection will be changed with the focus, otherwise
-     * both the selection and focus will change at the same time. This comes
-     * from the property Tree.changeSelectionWithFocus. */
-    private boolean             changeSelectionWithFocus;
-    /** KeyStrokes registered actions under. */
-    private Vector              keyActions;
+    /** If true, the property change event for LEAD_SELECTION_PATH_PROPERTY,
+     * or ANCHOR_SELECTION_PATH_PROPERTY will not generate a repaint. */
+    private boolean             ignoreLAChange;
 
+    /** Indicates the orientation. */
+    private boolean             leftToRight;
 
     // Cached listeners
     private PropertyChangeListener propertyChangeListener;
@@ -534,9 +538,10 @@ public class BasicTreeUI extends TreeUI
 	drawingCache = new Hashtable(7);
 
 	// Data member initializations
+	leftToRight = BasicGraphicsUtils.isLeftToRight(tree);
+	lastWidth = tree.getWidth();
 	stopEditingInCompleteEditing = true;
 	lastSelectedRow = -1;
-	leadPath = anchorPath = null;
 	leadRow = -1;
 	preferredSize = new Dimension();
 	tree.setRowHeight(UIManager.getInt("Tree.rowHeight"));
@@ -592,8 +597,6 @@ public class BasicTreeUI extends TreeUI
 			   intValue());
 	setRightChildIndent(((Integer)UIManager.get("Tree.rightChildIndent")).
 			   intValue());
-	changeSelectionWithFocus = ((Boolean)UIManager.get
-			     ("Tree.changeSelectionWithFocus")).booleanValue();
     }
 
     protected void installListeners() {
@@ -629,163 +632,123 @@ public class BasicTreeUI extends TreeUI
 	}
     }
 
-    private void registerKeyAction(ActionListener action, KeyStroke ks) {
-	keyActions.addElement(ks);
-	tree.registerKeyboardAction(action, ks, JComponent.WHEN_FOCUSED);
+    protected void installKeyboardActions() {
+	InputMap km = getInputMap(JComponent.
+				  WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+	SwingUtilities.replaceUIInputMap(tree, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+					 km);
+	km = getInputMap(JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIInputMap(tree, JComponent.WHEN_FOCUSED, km);
+	ActionMap am = getActionMap();
+
+	SwingUtilities.replaceUIActionMap(tree, am);
     }
 
-    protected void installKeyboardActions() {
-	// PENDING(sky): All these names need to be rethought, and the values
-	// need to come from the defaults manager.
-	boolean changeSelection = changeSelectionWithFocus();
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+	    return (InputMap)UIManager.get("Tree.ancestorInputMap");
+	}
+	else if (condition == JComponent.WHEN_FOCUSED) {
+	    return (InputMap)UIManager.get("Tree.focusInputMap");
+	}
+	return null;
+    }
 
-	// YES! 33 key actions, yeesh!
-        // hania: This became 43 when I added the keypad arrow key actions.
-	// hania: is counding the number of calls below really the best way
-        // to determine the size this vector needs to be initialized to?
-	keyActions = new Vector(43);
-	registerKeyAction(new TreeIncrementAction(-1, "UP", false,
-		  changeSelection), KeyStroke.getKeyStroke(KeyEvent.VK_UP,0));
-	registerKeyAction(new TreeIncrementAction(-1, "UP", false,
-		  changeSelection), KeyStroke.getKeyStroke("KP_UP"));
-	registerKeyAction(new TreeIncrementAction(-1, "SELECT_UP", true,
-                          true), KeyStroke.getKeyStroke(KeyEvent.VK_UP,
-			  InputEvent.SHIFT_MASK));
-	registerKeyAction(new TreeIncrementAction(-1, "SELECT_UP", true,
-                          true), KeyStroke.getKeyStroke("shift KP_UP"));
-	registerKeyAction(new TreeIncrementAction(1, "DOWN", false,
-		changeSelection), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0));
-	registerKeyAction(new TreeIncrementAction(1, "DOWN", false,
-		changeSelection), KeyStroke.getKeyStroke("KP_DOWN" ));
-	registerKeyAction(new TreeIncrementAction(1, "SELECT_DOWN",
-			  true, true), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
-			  InputEvent.SHIFT_MASK));
-	registerKeyAction(new TreeIncrementAction(1, "SELECT_DOWN",
-			  true, true), KeyStroke.getKeyStroke("shift KP_DOWN"));
-	registerKeyAction(new TreeTraverseAction(1, "RIGHT",
-				 changeSelection),
-				 KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0));
-	registerKeyAction(new TreeTraverseAction(1, "RIGHT",
-				 changeSelection),
-				 KeyStroke.getKeyStroke("KP_RIGHT"));
-	registerKeyAction(new TreeTraverseAction(-1, "LEFT",
-				 changeSelection),
-				 KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0));
-	registerKeyAction(new TreeTraverseAction(-1, "LEFT",
-				 changeSelection),
-				 KeyStroke.getKeyStroke("KP_LEFT"));
-	registerKeyAction(new TreePageAction(-1, "P_UP", false,
-			       changeSelection),
-			       KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0));
-	registerKeyAction(new TreePageAction(-1, "SELECT_P_UP",
-			      true, true),
-			      KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,
-			      InputEvent.SHIFT_MASK));
-	registerKeyAction(new TreePageAction(1, "P_DOWN", false,
-			  changeSelection),
-			  KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0));
-	registerKeyAction(new TreePageAction(1, "SELECT_P_DOWN",
-			      true, true), KeyStroke.getKeyStroke(KeyEvent.
-			      VK_PAGE_DOWN, InputEvent.SHIFT_MASK));
-	registerKeyAction(new TreeHomeAction(-1, "HOME", false,
-	         changeSelection), KeyStroke.getKeyStroke(KeyEvent.VK_HOME,0));
-	registerKeyAction(new TreeHomeAction(-1, "SELECT_HOME",true, 
-			     true), KeyStroke.getKeyStroke(KeyEvent.VK_HOME,
-                             InputEvent.SHIFT_MASK));
-	registerKeyAction(new TreeHomeAction(1, "END", false,
-		    changeSelection),KeyStroke.getKeyStroke
-			  (KeyEvent.VK_END,0));
-	registerKeyAction(new TreeHomeAction(1, "SELECT_END", true,
-			      true), KeyStroke.getKeyStroke(KeyEvent.VK_END,
-			      InputEvent.SHIFT_MASK));
-	registerKeyAction(new TreeToggleAction("TOGGLE"),
-				 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0));
-	KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-	tree.registerKeyboardAction(new TreeCancelEditingAction("ESCAPE"), ks,
-				JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-	keyActions.addElement(ks);
-	registerKeyAction(new TreeEditAction("EDIT_NODE"),
-				    KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-	ActionListener  saAction = new TreeSelectAllAction("SELECT_ALL",true);
-	registerKeyAction(saAction, KeyStroke.getKeyStroke
-				    (KeyEvent.VK_A, InputEvent.CTRL_MASK));
-	registerKeyAction(saAction, KeyStroke.getKeyStroke
-				    (KeyEvent.VK_SLASH, InputEvent.CTRL_MASK));
-	registerKeyAction(new TreeSelectAllAction("UNSELECT_ALL",
-			 false), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SLASH,
-			 InputEvent.CTRL_MASK));
-	registerKeyAction(new TreeAddSelectionAction("SELECT_NODE", false),
-			    KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,
-			    InputEvent.CTRL_MASK));
-	registerKeyAction(new TreeExtendSelectionAction
-			    ("EXTEND_SELECTION"),
-			    KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 
-			    InputEvent.SHIFT_MASK));
-	if(changeSelection) {
-	    registerKeyAction(new TreeHomeAction(-1, "HOME", false,
-			 false), KeyStroke.getKeyStroke(KeyEvent.VK_HOME,
-			 InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreeHomeAction(1, "END", false,
-		         false),KeyStroke.getKeyStroke(KeyEvent.VK_END,
-                         InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreeIncrementAction(-1, "UP",
-			 false, false), KeyStroke.getKeyStroke(KeyEvent.VK_UP,
-			 InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreeIncrementAction(-1, "UP",
-			 false, false), KeyStroke.getKeyStroke("ctrl KP_UP"));
-	    registerKeyAction(new TreeIncrementAction(1, "DOWN",
-			 false, false), KeyStroke.getKeyStroke
-			 (KeyEvent.VK_DOWN, InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreeIncrementAction(1, "DOWN",
-			 false, false), KeyStroke.getKeyStroke
-			 ("ctrl KP_DOWN"));
-	    registerKeyAction(new TreePageAction(1, "LEAD_P_DOWN", false,
-			      false), KeyStroke.getKeyStroke
-			      (KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreePageAction(1, "SELECT_P_DOWN", true,
-			      true), KeyStroke.getKeyStroke
-			      (KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK |
-			      InputEvent.SHIFT_MASK));
-	    registerKeyAction(new TreePageAction(-1, "LEAD_P_UP", false,
-			      false), KeyStroke.getKeyStroke
-			      (KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreePageAction(-1, "SELECT_P_UP", true,
-			      true), KeyStroke.getKeyStroke
-			      (KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK |
-			      InputEvent.SHIFT_MASK));
-	    registerKeyAction(new ScrollAction(tree, SwingConstants.
-			      HORIZONTAL, -10), KeyStroke.getKeyStroke
-			      (KeyEvent.VK_LEFT, InputEvent.CTRL_MASK));
-	    registerKeyAction(new ScrollAction(tree, SwingConstants.
-			      HORIZONTAL, -10), KeyStroke.getKeyStroke
-			      ("ctrl KP_LEFT"));
-	    registerKeyAction(new ScrollAction(tree, SwingConstants.
-			      HORIZONTAL, 10), KeyStroke.getKeyStroke
-			      (KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK));
-	    registerKeyAction(new ScrollAction(tree, SwingConstants.
-			      HORIZONTAL, 10), KeyStroke.getKeyStroke
-			      ("ctrl KP_RIGHT"));
-	    registerKeyAction(new TreeAddSelectionAction("SELECT_NODE", false),
-			    KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0));
-	}
-	else {
-	    registerKeyAction(new TreeScrollLRAction(1, "CTRL_P_DOWN",
-			  false), KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,
-			  InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreeScrollLRAction(-1, "CTRL_P_UP",
-			    false), KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,
-			    InputEvent.CTRL_MASK));
-	    registerKeyAction(new TreeScrollLRAction(-1,
-			    "SELECT_CTRL_P_UP", true), KeyStroke.
-			    getKeyStroke(KeyEvent.VK_PAGE_UP,
-			    InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-	    registerKeyAction(new TreeScrollLRAction(1,
-                          "SELECT_CTRL_P_DOWN", true), KeyStroke.
-                          getKeyStroke(KeyEvent.VK_PAGE_DOWN,
-			  InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-	    registerKeyAction(new TreeAddSelectionAction("SELECT_NODE", true),
-			    KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0));
-	}
+    ActionMap getActionMap() {
+	return createActionMap();
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+
+	map.put("selectPrevious", new TreeIncrementAction(-1, "selectPrevious",
+							  false, true));
+	map.put("selectPreviousChangeLead", new TreeIncrementAction
+		(-1, "selectPreviousLead", false, false));
+	map.put("selectPreviousExtendSelection", new TreeIncrementAction
+		(-1, "selectPreviousExtendSelection", true, true));
+
+	map.put("selectNext", new TreeIncrementAction
+		(1, "selectNext", false, true));
+	map.put("selectNextChangeLead", new TreeIncrementAction
+		(1, "selectNextLead", false, false));
+	map.put("selectNextExtendSelection", new TreeIncrementAction
+		(1, "selectNextExtendSelection", true, true));
+
+	map.put("selectChild", new TreeTraverseAction
+		(1, "selectChild", true));
+	map.put("selectChildChangeLead", new TreeTraverseAction
+		(1, "selectChildLead", false));
+
+	map.put("selectParent", new TreeTraverseAction
+		(-1, "selectParent", true));
+	map.put("selectParentChangeLead", new TreeTraverseAction
+		(-1, "selectParentLead", false));	
+
+	map.put("scrollUpChangeSelection", new TreePageAction
+		(-1, "scrollUpChangeSelection", false, true));
+	map.put("scrollUpChangeLead", new TreePageAction
+		(-1, "scrollUpChangeLead", false, false));
+	map.put("scrollUpExtendSelection", new TreePageAction
+		(-1, "scrollUpExtendSelection", true, true));
+
+	map.put("scrollDownChangeSelection", new TreePageAction
+		(1, "scrollDownChangeSelection", false, true));
+	map.put("scrollDownExtendSelection", new TreePageAction
+		(1, "scrollDownExtendSelection", true, true));
+	map.put("scrollDownChangeLead", new TreePageAction
+		(1, "scrollDownChangeLead", false, false));
+
+	map.put("selectFirst", new TreeHomeAction
+		(-1, "selectFirst", false, true));
+	map.put("selectFirstChangeLead", new TreeHomeAction
+		(-1, "selectFirst", false, false));
+	map.put("selectFirstExtendSelection",new TreeHomeAction
+		(-1, "selectFirstExtendSelection", true, true));
+
+	map.put("selectLast", new TreeHomeAction
+		(1, "selectLast", false, true));
+	map.put("selectLastChangeLead", new TreeHomeAction
+		(1, "selectLast", false, false));
+	map.put("selectLastExtendSelection", new TreeHomeAction
+		(1, "selectLastExtendSelection", true, true));
+
+	map.put("toggle", new TreeToggleAction("toggle"));
+
+	map.put("cancel", new TreeCancelEditingAction("cancel"));
+
+	map.put("startEditing", new TreeEditAction("startEditing"));
+
+	map.put("selectAll", new TreeSelectAllAction("selectAll", true));
+
+	map.put("clearSelection", new TreeSelectAllAction
+		("clearSelection", false));
+
+	map.put("toggleSelectionPreserveAnchor",
+		new TreeAddSelectionAction("toggleSelectionPreserveAnchor",
+					   false));
+	map.put("toggleSelection",
+		new TreeAddSelectionAction("toggleSelection", true));
+
+	map.put("extendSelection", new TreeExtendSelectionAction
+		("extendSelection"));
+
+	map.put("scrollLeft", new ScrollAction
+		(tree, SwingConstants.HORIZONTAL, -10));
+	map.put("scrollLeftExtendSelection", new TreeScrollLRAction
+		(-1, "scrollLeftExtendSelection", true, true));
+	map.put("scrollRight", new ScrollAction
+		(tree, SwingConstants.HORIZONTAL, 10));
+	map.put("scrollRightExtendSelection", new TreeScrollLRAction
+		(1, "scrollRightExtendSelection", true, true));
+
+	map.put("scrollRightChangeLead", new TreeScrollLRAction
+		(1, "scrollRightChangeLead", false, false));
+	map.put("scrollLeftChangeLead", new TreeScrollLRAction
+		(-1, "scrollLeftChangeLead", false, false));
+	return map;
     }
 
     /**
@@ -963,8 +926,8 @@ public class BasicTreeUI extends TreeUI
 	mouseListener = null;
 	focusListener = null;
 	keyListener = null;
-	treeState = null;
 	setSelectionModel(null);
+	treeState = null;
 	drawingCache = null;
 	selectionModelPropertyChangeListener = null;
 	tree = null;
@@ -1011,11 +974,11 @@ public class BasicTreeUI extends TreeUI
     }
 
     protected void uninstallKeyboardActions() {
-	for(int counter = keyActions.size() - 1; counter >= 0; counter--) {
-	    tree.unregisterKeyboardAction((KeyStroke)keyActions.
-					  elementAt(counter));
-	}
-	keyActions = null;
+	SwingUtilities.replaceUIActionMap(tree, null);
+	SwingUtilities.replaceUIInputMap(tree, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+					 null);
+	SwingUtilities.replaceUIInputMap(tree, JComponent.WHEN_FOCUSED, null);
     }
 
     /**
@@ -1024,6 +987,15 @@ public class BasicTreeUI extends TreeUI
     protected void uninstallComponents() {
 	if(rendererPane != null) {
 	    tree.remove(rendererPane);
+	}
+    }
+
+    /**
+     * Recomputes the right margin, and invalidates any tree states
+     */
+    private void redoTheLayout() {
+	if (treeState != null) {
+	    treeState.invalidateSizes();
 	}
     }
 
@@ -1039,6 +1011,21 @@ public class BasicTreeUI extends TreeUI
 	// Should never happen if installed for a UI
 	if(treeState == null) {
 	    return;
+	}
+
+	// Update the lastWidth if necessary.
+	// This should really come from a ComponentListener installed on
+	// the JTree, but for the time being it is here.
+	int              width = tree.getWidth();
+
+	if (width != lastWidth) {
+	    lastWidth = width;
+	    if (!leftToRight) {
+		// For RTL when the size changes, we have to refresh the
+		// cache as the X position is based off the width.
+		redoTheLayout();
+		updateSize();
+	    }
 	}
 
 	Rectangle        paintBounds = g.getClipBounds();
@@ -1123,6 +1110,13 @@ public class BasicTreeUI extends TreeUI
 					   path, row, isExpanded,
 					   hasBeenExpanded, isLeaf);
 		    }
+                    //This is the quick fix for bug 4259260.  Somewhere we
+                    //are out by 4 pixels in the RTL layout.  Its probably
+                    //due to built in right-side padding in some icons.  Rather
+                    //than ferret out problem at the source, this compensates. 
+            	    if (!leftToRight) {
+                        bounds.x +=4;
+                    }
 		    paintRow(g, paintBounds, insets, bounds, path,
 				 row, isExpanded, hasBeenExpanded, isLeaf);
 		    if((bounds.y + bounds.height) >= endY)
@@ -1134,6 +1128,8 @@ public class BasicTreeUI extends TreeUI
 		row++;
 	    }
 	}
+	// Empty out the renderer pane, allowing renderers to be gc'ed.
+	rendererPane.removeAll();
     }
 
     /**
@@ -1153,16 +1149,32 @@ public class BasicTreeUI extends TreeUI
 	int clipBottom = clipBounds.y + (clipBounds.height - 1);
 	int lineY = bounds.y + bounds.height / 2;
 	// Offset leftX from parents indent.
-	int leftX = bounds.x - totalChildIndent + 8;
-	int nodeX = bounds.x - getHorizontalLegBuffer();
+	if (leftToRight) {
+	    int leftX = bounds.x - getRightChildIndent();
+	    int nodeX = bounds.x - getHorizontalLegBuffer();
 	
-	if(lineY > clipTop && lineY < clipBottom && nodeX > clipLeft &&
-	   leftX < clipRight ) {
-	    leftX = Math.max(leftX, clipLeft);
-	    nodeX = Math.min(nodeX, clipRight);
+	    if(lineY > clipTop && lineY < clipBottom && nodeX > clipLeft &&
+	                                              leftX < clipRight ) {
+	        leftX = Math.max(leftX, clipLeft);
+		nodeX = Math.min(nodeX, clipRight);
 
-	    g.setColor(getHashColor());
-	    paintHorizontalLine(g, tree, lineY, leftX, nodeX);
+		g.setColor(getHashColor());
+		paintHorizontalLine(g, tree, lineY, leftX, nodeX);
+	    }
+	}
+	else {
+	    int leftX = bounds.x + bounds.width + getRightChildIndent();
+	    int nodeX = bounds.x + bounds.width + 
+	                                  getHorizontalLegBuffer() - 1;
+
+	    if(lineY > clipTop && lineY < clipBottom &&
+	       leftX > clipLeft && nodeX < clipRight) {
+	        leftX = Math.min(leftX, clipRight);
+		nodeX = Math.max(nodeX, clipLeft);
+
+		g.setColor(getHashColor());
+		paintHorizontalLine(g, tree, lineY, nodeX, leftX);
+	    }
 	}
     }
 
@@ -1172,8 +1184,15 @@ public class BasicTreeUI extends TreeUI
      */
     protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds,
 					  Insets insets, TreePath path) {
-        int lineX = ((path.getPathCount() - 1 + depthOffset) *
-		     totalChildIndent) + 8 + insets.left;
+	int lineX;
+	if (leftToRight) {
+	    lineX = ((path.getPathCount() + depthOffset) *
+		     totalChildIndent) - getRightChildIndent() + insets.left;
+	}
+	else {
+	    lineX = lastWidth - ((path.getPathCount() - 1 + depthOffset) *
+				                       totalChildIndent) - 9;
+	}
 	int clipLeft = clipBounds.x;
 	int clipRight = clipBounds.x + (clipBounds.width - 1);
 
@@ -1241,7 +1260,13 @@ public class BasicTreeUI extends TreeUI
 	// or the model child count is > 0.
 	if (!isLeaf && (!hasBeenExpanded ||
 			treeModel.getChildCount(value) > 0)) {
-	    int middleXOfKnob = bounds.x - (getRightChildIndent() - 1);
+	    int middleXOfKnob;
+	    if (leftToRight) {
+	        middleXOfKnob = bounds.x - (getRightChildIndent() - 1);
+	    }
+	    else {
+	        middleXOfKnob = bounds.x + bounds.width + getRightChildIndent();
+	    }
 	    int middleYOfKnob = bounds.y + (bounds.height / 2);
 
 	    if (isExpanded) {
@@ -1274,7 +1299,7 @@ public class BasicTreeUI extends TreeUI
 	int leadIndex;
 
 	if(tree.hasFocus()) {
-	    leadIndex = getLeadRow();
+	    leadIndex = getLeadSelectionRow();
 	}
 	else
 	    leadIndex = -1;
@@ -1559,7 +1584,9 @@ public class BasicTreeUI extends TreeUI
     /**
      * Updates the <code>preferredSize</code> instance variable,
      * which is returned from <code>getPreferredSize()</code>.<p>
-     * The size is determined from the current AbstractLayoutCache.
+     * For left to right orientations, the size is determined from the
+     * current AbstractLayoutCache. For RTL orientations, the preferred size
+     * becomes the width minus the minimum x position.
      */
     protected void updateCachedPreferredSize() {
 	if(treeState != null) {
@@ -1572,10 +1599,34 @@ public class BasicTreeUI extends TreeUI
 		    visRect.x -= i.left;
 		    visRect.y -= i.top;
 		}
-		preferredSize.width = treeState.getPreferredWidth(visRect);
+		if (leftToRight) {
+		    preferredSize.width = treeState.getPreferredWidth(visRect);
+		}
+		else {
+		    if (getRowCount(tree) == 0) {
+			preferredSize.width = 0;
+		    }
+		    else {
+			preferredSize.width = lastWidth - getMinX(visRect);
+		    }
+		}
 	    }
-	    else
+	    else if (leftToRight) {
 		preferredSize.width = treeState.getPreferredWidth(null);
+	    }
+	    else {
+		Rectangle tempRect = null;
+		int rowCount = tree.getRowCount();
+		int width = 0;
+		for (int counter = 0; counter < rowCount; counter++) {
+		    tempRect = treeState.getBounds
+			       (treeState.getPathForRow(counter), tempRect);
+		    if (tempRect != null) {
+			width = Math.max(lastWidth - tempRect.x, width);
+		    }
+		}
+		preferredSize.width = width;
+	    }
 	    preferredSize.height = treeState.getPreferredHeight();
 	    if(i != null) {
 		preferredSize.width += i.left + i.right;
@@ -1583,6 +1634,51 @@ public class BasicTreeUI extends TreeUI
 	    }
 	}
 	validCachedPreferredSize = true;
+    }
+
+    /**
+     * Returns the minimum x location for the nodes in <code>bounds</code>.
+     */
+    private int getMinX(Rectangle bounds) {
+	TreePath      firstPath;
+	int           endY;
+
+	if(bounds == null) {
+	    firstPath = getPathForRow(tree, 0);
+	    endY = Integer.MAX_VALUE;
+	}
+	else {
+	    firstPath = treeState.getPathClosestTo(bounds.x, bounds.y);
+	    endY = bounds.height + bounds.y;
+	}
+
+	Enumeration   paths = treeState.getVisiblePathsFrom(firstPath);
+	int           minX = 0;
+
+	if(paths != null && paths.hasMoreElements()) {
+	    Rectangle   pBounds = treeState.getBounds
+		                  ((TreePath)paths.nextElement(), null);
+	    int         width;
+
+	    if(pBounds != null) {
+		minX = pBounds.x + pBounds.width;
+		if (pBounds.y >= endY) {
+		    return minX;
+		}
+	    }
+	    while (pBounds != null && paths.hasMoreElements()) {
+		pBounds = treeState.getBounds((TreePath)paths.nextElement(),
+					      pBounds);
+		if (pBounds != null && pBounds.y < endY) {
+		    minX = Math.min(minX, pBounds.x);
+		}
+		else {
+		    pBounds = null;
+		}
+	    }
+	    return minX;
+	}
+	return minX;
     }
 
     /**
@@ -1614,8 +1710,6 @@ public class BasicTreeUI extends TreeUI
 							   (tree, beginRow));
 
 		if(scrollBounds != null) {
-		    scrollBounds.width += scrollBounds.x;
-		    scrollBounds.x = 0;
 		    tree.scrollRectToVisible(scrollBounds);
 		}
 	    }
@@ -1888,10 +1982,17 @@ public class BasicTreeUI extends TreeUI
 
 	    int                     boxLeftX = (i != null) ? i.left : 0;
 
-	    boxLeftX += (((path.getPathCount() + depthOffset - 2) *
-			  totalChildIndent) + getLeftChildIndent()) -
-		          boxWidth / 2;
-
+	    if (leftToRight) {
+	        boxLeftX += (((path.getPathCount() + depthOffset - 2) *
+			      totalChildIndent) + getLeftChildIndent()) -
+		              boxWidth / 2;
+	    }
+	    else {
+	        boxLeftX += lastWidth - 1 - 
+		            ((path.getPathCount() - 2 + depthOffset) *
+			     totalChildIndent) - getLeftChildIndent() -
+		            boxWidth / 2;
+	    }
 	    int boxRightX = boxLeftX + boxWidth;
 
 	    return mouseX >= boxLeftX && mouseX <= boxRightX;
@@ -1961,9 +2062,7 @@ public class BasicTreeUI extends TreeUI
 	if(!SwingUtilities.isLeftMouseButton(event)) {
 	    return false;
 	}
-
-	// NOTE: This will be enabled in a future release.
-	int           clickCount = 2;//tree.getToggleClickCount();
+	int           clickCount = tree.getToggleClickCount();
 
 	if(clickCount <= 0) {
 	    return false;
@@ -1988,12 +2087,12 @@ public class BasicTreeUI extends TreeUI
 	    else
 		tree.addSelectionPath(path);
 	    lastSelectedRow = getRowForPath(tree, path);
-	    setAnchorPath(path);
-	    setLeadPath(path);
+	    setAnchorSelectionPath(path);
+	    setLeadSelectionPath(path);
 	}
 	/* Adjust from the anchor point. */
 	else if(isMultiSelectEvent(event)) {
-	    TreePath    anchor = getAnchorPath();
+	    TreePath    anchor = getAnchorSelectionPath();
 	    int         anchorRow = (anchor == null) ? -1 :
 		                    getRowForPath(tree, anchor);
 
@@ -2009,7 +2108,8 @@ public class BasicTreeUI extends TreeUI
 		else
 		    tree.setSelectionInterval(anchorRow, row);
 		lastSelectedRow = row;
-		setAnchorPath(lastAnchorPath);
+		setAnchorSelectionPath(lastAnchorPath);
+		setLeadSelectionPath(path);
 	    }
 	}
 	/* Otherwise set the selection to just this interval. */
@@ -2034,52 +2134,57 @@ public class BasicTreeUI extends TreeUI
     }
 
     //
-    // PENDING(sky): The following selection methods will eventually be
-    // moved in TreeSelectionModel or JTree proper. They are put here
-    // until new API can be added to account for it.
+    // The following selection methods (lead/anchor) are covers for the
+    // methods in JTree.
     //
-    private void setAnchorPath(TreePath newPath) {
-	anchorPath = newPath;
+    private void setAnchorSelectionPath(TreePath newPath) {
+	ignoreLAChange = true;
+	try {
+	    tree.setAnchorSelectionPath(newPath);
+	} finally{ 
+	    ignoreLAChange = false;
+	}
     }
 
-    private TreePath getAnchorPath() {
-	return anchorPath;
+    private TreePath getAnchorSelectionPath() {
+	return tree.getAnchorSelectionPath();
     }
 
-    private void setLeadPath(TreePath newPath) {
-	setLeadPath(newPath, false);
+    private void setLeadSelectionPath(TreePath newPath) {
+	setLeadSelectionPath(newPath, false);
     }
 
-    private void setLeadPath(TreePath newPath, boolean repaint) {
-	Rectangle       bounds = repaint ? getPathBounds(tree, leadPath) :
-	                         null;
+    private void setLeadSelectionPath(TreePath newPath, boolean repaint) {
+	Rectangle       bounds = repaint ?
+	                    getPathBounds(tree, getLeadSelectionPath()) : null;
 
-	leadPath = newPath;
-	leadRow = getRowForPath(tree, leadPath);
+	ignoreLAChange = true;
+	try {
+	    tree.setLeadSelectionPath(newPath);
+	} finally {
+	    ignoreLAChange = false;
+	}
+	leadRow = getRowForPath(tree, newPath);
 
 	if(repaint) {
 	    if(bounds != null)
 		tree.repaint(bounds);
-	    bounds = getPathBounds(tree, leadPath);
+	    bounds = getPathBounds(tree, newPath);
 	    if(bounds != null)
 		tree.repaint(bounds);
 	}
     }
 
-    private TreePath getLeadPath() {
-	return leadPath;
+    private TreePath getLeadSelectionPath() {
+	return tree.getLeadSelectionPath();
     }
 
     private void updateLeadRow() {
-	leadRow = getRowForPath(tree, leadPath);
+	leadRow = getRowForPath(tree, getLeadSelectionPath());
     }
 
-    private int getLeadRow() {
+    private int getLeadSelectionRow() {
 	return leadRow;
-    }
-
-    private boolean changeSelectionWithFocus() {
-	return changeSelectionWithFocus;
     }
 
     /**
@@ -2087,7 +2192,7 @@ public class BasicTreeUI extends TreeUI
      * the lead of the selection. This does not scroll.
      */
     private void extendSelection(TreePath newLead) {
-	TreePath           aPath = getAnchorPath();
+	TreePath           aPath = getAnchorSelectionPath();
 	int                aRow = (aPath == null) ? -1 :
 			          getRowForPath(tree, aPath);
 	int                newIndex = getRowForPath(tree, newLead);
@@ -2102,11 +2207,23 @@ public class BasicTreeUI extends TreeUI
 	    else {
 		tree.setSelectionInterval(newIndex, aRow);
 	    }
-	    setAnchorPath(aPath);
-	    setLeadPath(newLead);
+	    setAnchorSelectionPath(aPath);
+	    setLeadSelectionPath(newLead);
 	}
     }
 
+    /**
+     * Invokes <code>repaint</code> on the JTree for the passed in TreePath,
+     * <code>path</code>.
+     */
+    private void repaintPath(TreePath path) {
+	if (path != null) {
+	    Rectangle bounds = getPathBounds(tree, path);
+	    if (bounds != null) {
+		tree.repaint(bounds.x, bounds.y, bounds.width, bounds.height);
+	    }
+	}
+    }
 
     /**
      * Updates the TreeState in response to nodes expanding/collapsing.
@@ -2299,8 +2416,8 @@ public class BasicTreeUI extends TreeUI
 	public void valueChanged(TreeSelectionEvent event) {
 	    // Stop editing
 	    completeEditing();
-	    // Make sure all the paths are visible.
-	    if(treeSelectionModel != null) {
+	    // Make sure all the paths are visible, if necessary.
+	    if(tree.getExpandsSelectedPaths() && treeSelectionModel != null) {
 		TreePath[]           paths = treeSelectionModel
 		                         .getSelectionPaths();
 
@@ -2312,17 +2429,17 @@ public class BasicTreeUI extends TreeUI
 		}
 	    }
 
-	    TreePath oldLead = leadPath;
+	    TreePath oldLead = getLeadSelectionPath();
 	    lastSelectedRow = tree.getMinSelectionRow();
-	    TreePath lead = tree.getLeadSelectionPath();
-	    setAnchorPath(lead);
-	    setLeadPath(lead);
+	    TreePath lead = tree.getSelectionModel().getLeadSelectionPath();
+	    setAnchorSelectionPath(lead);
+	    setLeadSelectionPath(lead);
 
 	    TreePath[]       changedPaths = event.getPaths();
 	    Rectangle        nodeBounds;
 	    Rectangle        visRect = tree.getVisibleRect();
 	    boolean          paintPaths = true;
-	    int              nWidth = tree.getSize().width;
+	    int              nWidth = tree.getWidth();
 
 	    if(changedPaths != null) {
 		int              counter, maxCounter = changedPaths.length;
@@ -2343,15 +2460,10 @@ public class BasicTreeUI extends TreeUI
 		}
 	    }
 	    if(paintPaths) {
-		nodeBounds = getPathBounds(tree,
-					   event.getOldLeadSelectionPath());
-		if(nodeBounds != null && visRect.intersects(nodeBounds))
-		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
-		nodeBounds = getPathBounds(tree,
-					   event.getNewLeadSelectionPath());
-		if(nodeBounds != null && visRect.intersects(nodeBounds))
-		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
 		nodeBounds = getPathBounds(tree, oldLead);
+		if(nodeBounds != null && visRect.intersects(nodeBounds))
+		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
+		nodeBounds = getPathBounds(tree, lead);
 		if(nodeBounds != null && visRect.intersects(nodeBounds))
 		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
 	    }
@@ -2389,7 +2501,7 @@ public class BasicTreeUI extends TreeUI
 	protected boolean            isKeyDown;
 
 	public void keyPressed(KeyEvent e) {
-	    if(tree.hasFocus() && tree.isEnabled()) {
+	    if(tree != null && tree.hasFocus() && tree.isEnabled()) {
 		KeyStroke       keyStroke = KeyStroke.getKeyStroke
 		                     (e.getKeyCode(), e.getModifiers());
 
@@ -2406,7 +2518,9 @@ public class BasicTreeUI extends TreeUI
 		else
 		    repeatKeyAction = null;
 		if(isKeyDown && repeatKeyAction != null) {
-		    repeatKeyAction.actionPerformed(null);
+		    repeatKeyAction.actionPerformed(new ActionEvent(tree, 
+								    ActionEvent.ACTION_PERFORMED,
+								    "")); //tree.getActionCommand()
 		    e.consume();
 		}
 		else
@@ -2436,7 +2550,7 @@ public class BasicTreeUI extends TreeUI
 		pBounds = getPathBounds(tree, tree.getLeadSelectionPath());
 		if(pBounds != null)
 		    tree.repaint(pBounds);
-		pBounds = getPathBounds(tree, getLeadPath());
+		pBounds = getPathBounds(tree, getLeadSelectionPath());
 		if(pBounds != null)
 		    tree.repaint(pBounds);
 	    }
@@ -2484,6 +2598,10 @@ public class BasicTreeUI extends TreeUI
 		    size = new Rectangle(getRowX(row, depth), 0,
 					 prefSize.width, prefSize.height);
 		}
+
+		if(!leftToRight) {
+		    size.x = lastWidth - size.width - size.x - 2;
+		}
 		return size;
 	    }
 	    // Not editing, use renderer.
@@ -2509,6 +2627,10 @@ public class BasicTreeUI extends TreeUI
 		else {
 		    size = new Rectangle(getRowX(row, depth), 0,
 					 prefSize.width, prefSize.height);
+		}
+
+		if(!leftToRight) {
+		    size.x = lastWidth - size.width - size.x - 2;
 		}
 		return size;
 	    }
@@ -2582,8 +2704,23 @@ public class BasicTreeUI extends TreeUI
 	    if(event.getSource() == tree) {
 		String              changeName = event.getPropertyName();
 
+		if (changeName.equals(JTree.LEAD_SELECTION_PATH_PROPERTY)) {
+		    if (!ignoreLAChange) {
+			updateLeadRow();
+			repaintPath((TreePath)event.getOldValue());
+			repaintPath((TreePath)event.getNewValue());
+		    }
+		}
+		else if (changeName.equals(JTree.
+					   ANCHOR_SELECTION_PATH_PROPERTY)) {
+		    if (!ignoreLAChange) {
+			repaintPath((TreePath)event.getOldValue());
+			repaintPath((TreePath)event.getNewValue());
+		    }
+		}
 		if(changeName.equals(JTree.CELL_RENDERER_PROPERTY)) {
 		    setCellRenderer((TreeCellRenderer)event.getNewValue());
+		    redoTheLayout();
 		}
 		else if(changeName.equals(JTree.TREE_MODEL_PROPERTY)) {
 		    setModel((TreeModel)event.getNewValue());
@@ -2617,6 +2754,13 @@ public class BasicTreeUI extends TreeUI
 		    if(treeState != null)
 			treeState.invalidateSizes();
 		    updateSize();
+		}
+		else if (changeName.equals("componentOrientation")) {
+		    if (tree != null) {
+			leftToRight = BasicGraphicsUtils.isLeftToRight(tree);
+			redoTheLayout();
+			tree.treeDidChange();
+		    }
 		}
 	    }
 	}
@@ -2663,7 +2807,7 @@ public class BasicTreeUI extends TreeUI
 	    int                rowCount;
 
 	    if(tree != null && (rowCount = getRowCount(tree)) > 0) {
-		int               minSelIndex = getLeadRow();
+		int               minSelIndex = getLeadSelectionRow();
 		int               newIndex;
 
 		if(minSelIndex == -1)
@@ -2707,7 +2851,8 @@ public class BasicTreeUI extends TreeUI
 			tree.setSelectionInterval(newIndex, newIndex);
 		    }
 		    else {
-			setLeadPath(getPathForRow(tree, newIndex), true);
+			setLeadSelectionPath(getPathForRow(tree, newIndex),
+					     true);
 		    }
 		    ensureRowsAreVisible(newIndex, newIndex);
 		}
@@ -2746,7 +2891,7 @@ public class BasicTreeUI extends TreeUI
 	    if(tree != null && (rowCount = getRowCount(tree)) > 0 &&
 		treeSelectionModel != null) {
 		Dimension         maxSize = tree.getSize();
-		TreePath          lead = getLeadPath();
+		TreePath          lead = getLeadSelectionPath();
 		TreePath          newPath;
 		Rectangle         visRect = tree.getVisibleRect();
 
@@ -2792,7 +2937,7 @@ public class BasicTreeUI extends TreeUI
 		    tree.setSelectionPath(newPath);
 		}
 		else {
-		    setLeadPath(newPath, true);
+		    setLeadSelectionPath(newPath, true);
 		}
 		tree.scrollRectToVisible(newRect);
 	    }
@@ -2812,11 +2957,13 @@ public class BasicTreeUI extends TreeUI
 	/** Specifies the direction to adjust the selection by. */
 	protected int         direction;
 	private boolean       addToSelection;
+	private boolean       changeSelection;
 
-	public TreeScrollLRAction(int direction, String name,
-				  boolean addToSelection) {
+	TreeScrollLRAction(int direction, String name, boolean addToSelection,
+			   boolean changeSelection) {
 	    this.direction = direction;
 	    this.addToSelection = addToSelection;
+	    this.changeSelection = changeSelection;
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -2844,11 +2991,11 @@ public class BasicTreeUI extends TreeUI
 		if (addToSelection) {
 		    extendSelection(newPath);
 		}
-		else if(changeSelectionWithFocus()) {
+		else if(changeSelection) {
 		    tree.setSelectionPath(newPath);
 		}
 		else {
-		    setLeadPath(newPath, true);
+		    setLeadSelectionPath(newPath, true);
 		}
 	    }
 	}
@@ -2886,7 +3033,7 @@ public class BasicTreeUI extends TreeUI
 
 	    if(tree != null && treeSelectionModel != null &&
 		(rowCount = getRowCount(tree)) > 0) {
-		int                  selIndex = getLeadRow();
+		int                  selIndex = getLeadSelectionRow();
 		int                  newIndex;
 
 		if(selIndex == -1) {
@@ -2906,7 +3053,7 @@ public class BasicTreeUI extends TreeUI
 		    tree.setSelectionInterval(newIndex, newIndex);
 		}
 		else {
-		    setLeadPath(getPathForRow(tree, newIndex), true);
+		    setLeadSelectionPath(getPathForRow(tree, newIndex), true);
 		}
 		ensureRowsAreVisible(newIndex, newIndex);
 		lastSelectedRow = newIndex;
@@ -2948,7 +3095,7 @@ public class BasicTreeUI extends TreeUI
 		if(direction == -1) {
 		    ensureRowsAreVisible(0, 0);
 		    if (addToSelection) {
-			TreePath        aPath = getAnchorPath();
+			TreePath        aPath = getAnchorSelectionPath();
 			int             aRow = (aPath == null) ? -1 :
 			                getRowForPath(tree, aPath);
 
@@ -2957,21 +3104,21 @@ public class BasicTreeUI extends TreeUI
 			}
 			else {
 			    tree.setSelectionInterval(0, aRow);
-			    setAnchorPath(aPath);
-			    setLeadPath(getPathForRow(tree, 0));
+			    setAnchorSelectionPath(aPath);
+			    setLeadSelectionPath(getPathForRow(tree, 0));
 			}
 		    }
 		    else if(changeSelection) {
 			tree.setSelectionInterval(0, 0);
 		    }
 		    else {
-			setLeadPath(getPathForRow(tree, 0), true);
+			setLeadSelectionPath(getPathForRow(tree, 0), true);
 		    }
 		}
 		else {
 		    ensureRowsAreVisible(rowCount - 1, rowCount - 1);
 		    if (addToSelection) {
-			TreePath        aPath = getAnchorPath();
+			TreePath        aPath = getAnchorSelectionPath();
 			int             aRow = (aPath == null) ? -1 :
 			                getRowForPath(tree, aPath);
 
@@ -2981,15 +3128,17 @@ public class BasicTreeUI extends TreeUI
 			}
 			else {
 			    tree.setSelectionInterval(aRow, rowCount - 1);
-			    setAnchorPath(aPath);
-			    setLeadPath(getPathForRow(tree, rowCount -1));
+			    setAnchorSelectionPath(aPath);
+			    setLeadSelectionPath(getPathForRow(tree,
+							       rowCount -1));
 			}
 		    }
 		    else if(changeSelection) {
 			tree.setSelectionInterval(rowCount - 1, rowCount - 1);
 		    }
 		    else {
-			setLeadPath(getPathForRow(tree, rowCount - 1), true);
+			setLeadSelectionPath(getPathForRow(tree,
+							  rowCount - 1), true);
 		    }
 		}
 	    }
@@ -3010,15 +3159,15 @@ public class BasicTreeUI extends TreeUI
 
 	public void actionPerformed(ActionEvent e) {
 	    if(tree != null) {
-		int            selRow = getLeadRow();
+		int            selRow = getLeadSelectionRow();
 
 		if(selRow != -1 && !isLeaf(selRow)) {
-		    TreePath aPath = getAnchorPath();
-		    TreePath lPath = getLeadPath();
+		    TreePath aPath = getAnchorSelectionPath();
+		    TreePath lPath = getLeadSelectionPath();
 
 		    toggleExpandState(getPathForRow(tree, selRow));
-		    setAnchorPath(aPath);
-		    setLeadPath(lPath);
+		    setAnchorSelectionPath(aPath);
+		    setLeadSelectionPath(lPath);
 		}
 	    }
 	}
@@ -3031,7 +3180,7 @@ public class BasicTreeUI extends TreeUI
     /**
      * Scrolls the component it is created with a specified amount.
      */
-    private static class ScrollAction implements ActionListener {
+    private static class ScrollAction extends AbstractAction {
 	private JComponent component;
 	private int direction;
 	private int amount;
@@ -3090,7 +3239,7 @@ public class BasicTreeUI extends TreeUI
 
 	public void actionPerformed(ActionEvent ae) {
 	    if(tree != null && tree.isEnabled()) {
-		TreePath   lead = getLeadPath();
+		TreePath   lead = getLeadSelectionPath();
 		int        editRow = (lead != null) ?
 		                     getRowForPath(tree, lead) : -1;
 
@@ -3120,30 +3269,30 @@ public class BasicTreeUI extends TreeUI
 
 	    if(tree != null && rowCount > 0) {
 		if(selectAll) {
-		    TreePath      lastPath = getLeadPath();
-		    TreePath      aPath = getAnchorPath();
+		    TreePath      lastPath = getLeadSelectionPath();
+		    TreePath      aPath = getAnchorSelectionPath();
 
 		    if(lastPath != null && !tree.isVisible(lastPath)) {
 			lastPath = null;
 		    }
 		    tree.setSelectionInterval(0, rowCount - 1);
 		    if(lastPath != null) {
-			setLeadPath(lastPath);
+			setLeadSelectionPath(lastPath);
 		    }
 		    if(aPath != null && tree.isVisible(aPath)) {
-			setAnchorPath(aPath);
+			setAnchorSelectionPath(aPath);
 		    }
 		    else if(lastPath != null) {
-			setAnchorPath(lastPath);
+			setAnchorSelectionPath(lastPath);
 		    }
 		}
 		else {
-		    TreePath      lastPath = getLeadPath();
-		    TreePath      aPath = getAnchorPath();
+		    TreePath      lastPath = getLeadSelectionPath();
+		    TreePath      aPath = getAnchorSelectionPath();
 
 		    tree.clearSelection();
-		    setAnchorPath(aPath);
-		    setLeadPath(lastPath);
+		    setAnchorSelectionPath(aPath);
+		    setLeadSelectionPath(lastPath);
 		}
 	    }
 	}
@@ -3166,9 +3315,9 @@ public class BasicTreeUI extends TreeUI
 	    int                   rowCount = getRowCount(tree);
 
 	    if(tree != null && rowCount > 0) {
-		int       lead = getLeadRow();
-		TreePath  aPath = getAnchorPath();
-		TreePath  lPath = getLeadPath();
+		int       lead = getLeadSelectionRow();
+		TreePath  aPath = getAnchorSelectionPath();
+		TreePath  lPath = getLeadSelectionPath();
 
 		if(lead == -1) {
 		    lead = 0;
@@ -3176,12 +3325,12 @@ public class BasicTreeUI extends TreeUI
 		if(!changeAnchor) {
 		    if(tree.isRowSelected(lead)) {
 			tree.removeSelectionRow(lead);
-			setLeadPath(lPath);
+			setLeadSelectionPath(lPath);
 		    }
 		    else {
 			tree.addSelectionRow(lead);
 		    }
-		    setAnchorPath(aPath);
+		    setAnchorSelectionPath(aPath);
 		}
 		else {
 		    tree.setSelectionRow(lead);
@@ -3203,18 +3352,18 @@ public class BasicTreeUI extends TreeUI
 
 	public void actionPerformed(ActionEvent ae) {
 	    if(tree != null && getRowCount(tree) > 0) {
-		int       lead = getLeadRow();
+		int       lead = getLeadSelectionRow();
 
 		if(lead != -1) {
-		    TreePath      leadP = getLeadPath();
-		    TreePath      aPath = getAnchorPath();
+		    TreePath      leadP = getLeadSelectionPath();
+		    TreePath      aPath = getAnchorSelectionPath();
 		    int           aRow = getRowForPath(tree, aPath);
 
 		    if(aRow == -1)
 			aRow = 0;
 		    tree.setSelectionInterval(aRow, lead);
-		    setLeadPath(leadP);
-		    setAnchorPath(aPath);
+		    setLeadSelectionPath(leadP);
+		    setAnchorSelectionPath(aPath);
 		}
 	    }
 	}

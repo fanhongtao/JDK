@@ -1,8 +1,11 @@
 /*
- * @(#)NotEmpty.java	1.6 01/11/29
+ * @(#)NotEmpty.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 /*
  * File: ./org/omg/CosNaming/NamingContextPackage/NotEmpty.java
@@ -13,7 +16,7 @@
 
 package org.omg.CosNaming.NamingContextPackage;
 public final class NotEmpty
-	extends org.omg.CORBA.UserException implements org.omg.CORBA.portable.IDLEntity {
+    extends org.omg.CORBA.UserException implements org.omg.CORBA.portable.IDLEntity {
     //	constructor
     public NotEmpty() {
 	super();

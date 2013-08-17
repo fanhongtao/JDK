@@ -1,8 +1,11 @@
 /*
- * @(#)AppletStub.java	1.18 01/11/29
+ * @(#)AppletStub.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.applet;
 
@@ -16,7 +19,7 @@ import java.net.URL;
  * is running.
  *
  * @author 	Arthur van Hoff
- * @version     1.18, 11/29/01
+ * @version     1.21, 02/02/00
  * @see         java.applet.Applet#setStub(java.applet.AppletStub)
  * @since       JDK1.0
  */
@@ -32,9 +35,20 @@ public interface AppletStub {
     boolean isActive();
 
     /**
-     * Gets the document URL.
+     * Returns an absolute URL naming the directory of the document in which
+     * the applet is embedded.  For example, suppose an applet is contained
+     * within the document:
+     * <blockquote><pre>
+     *    http://java.sun.com/products/jdk/1.2/index.html
+     * </pre></blockquote>
+     * The document base is:
+     * <blockquote><pre>
+     *    http://java.sun.com/products/jdk/1.2/
+     * </pre></blockquote>
      *
-     * @return  the <code>URL</code> of the document containing the applet.
+     * @return  the {@link java.net.URL} of the document that contains this
+     *          applet.
+     * @see     java.applet.AppletStub#getCodeBase()
      */
     URL getDocumentBase();
 
@@ -58,7 +72,8 @@ public interface AppletStub {
      * value <code>"blue"</code>.
      *
      * @param   name   a parameter name.
-     * @return  the value of the named parameter.
+     * @return  the value of the named parameter,
+     * or <tt>null</tt> if not set.
      */
     String getParameter(String name);
 

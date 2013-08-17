@@ -1,8 +1,11 @@
 /*
- * @(#)AffineTransform.java	1.60 01/11/29
+ * @(#)AffineTransform.java	1.62 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -28,7 +31,7 @@ import java.awt.Shape;
  *	[ 1 ]   [   0    0    1   ] [ 1 ]   [         1         ]
  * </pre>
  *
- * @version 10 Feb 1997
+ * @version 1.62, 02/02/00
  * @author Jim Graham
  */
 public class AffineTransform implements Cloneable, java.io.Serializable {

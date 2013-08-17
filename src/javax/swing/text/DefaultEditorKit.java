@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultEditorKit.java	1.43 01/11/29
+ * @(#)DefaultEditorKit.java	1.50 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -22,10 +25,16 @@ import javax.swing.SwingConstants;
  * provides a minimal set of actions for a simple editor.
  *
  * @author  Timothy Prinzing
- * @version 1.43 11/29/01
+ * @version 1.50 02/02/00
  */
 public class DefaultEditorKit extends EditorKit {
     
+    /**
+     * default constructor for DefaultEditorKit
+     */
+    public DefaultEditorKit() {
+    }
+
     /**
      * Gets the MIME type of the data that this
      * kit represents support for.  The default
@@ -35,17 +44,6 @@ public class DefaultEditorKit extends EditorKit {
      */
     public String getContentType() {
         return "text/plain";
-    }
-
-    /**
-     * Creates a copy of the editor kit.  This
-     * allows an implementation to serve as a prototype
-     * for others, so that they can be quickly created.
-     *
-     * @return the copy
-     */
-    public Object clone() {
-	return new DefaultEditorKit();
     }
 
     /**
@@ -125,8 +123,10 @@ public class DefaultEditorKit extends EditorKit {
      */
     public void write(OutputStream out, Document doc, int pos, int len) 
         throws IOException, BadLocationException {
+	OutputStreamWriter osw = new OutputStreamWriter(out);
 
-        write(new OutputStreamWriter(out), doc, pos, len);
+        write(osw, doc, pos, len);
+	osw.flush();
     }
 
     /**
@@ -324,7 +324,6 @@ public class DefaultEditorKit extends EditorKit {
      * Name of the action to place content into the associated
      * document.  If there is a selection, it is removed before
      * the new content is added.
-     * @see InsertContentAction
      * @see #getActions
      */
     public static final String insertContentAction = "insert-content";
@@ -333,7 +332,6 @@ public class DefaultEditorKit extends EditorKit {
      * Name of the action to place a line/paragraph break into
      * the document.  If there is a selection, it is removed before
      * the break is added.
-     * @see InsertBreakAction
      * @see #getActions
      */
     public static final String insertBreakAction = "insert-break";
@@ -342,7 +340,6 @@ public class DefaultEditorKit extends EditorKit {
      * Name of the action to place a tab character into
      * the document.  If there is a selection, it is removed before
      * the tab is added.
-     * @see InsertTabAction
      * @see #getActions
      */
     public static final String insertTabAction = "insert-tab";
@@ -350,7 +347,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the action to delete the character of content that
      * precedes the current caret position.
-     * @see DeletePrevCharAction
      * @see #getActions
      */
     public static final String deletePrevCharAction = "delete-previous";
@@ -358,7 +354,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the action to delete the character of content that
      * follows the current caret position.
-     * @see DeleteNextCharAction
      * @see #getActions
      */
     public static final String deleteNextCharAction = "delete-next";
@@ -366,7 +361,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the action to set the editor into read-only
      * mode.
-     * @see ReadOnlyAction
      * @see #getActions
      */
     public static final String readOnlyAction = "set-read-only";
@@ -374,7 +368,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the action to set the editor into writeable
      * mode.
-     * @see WritableAction
      * @see #getActions
      */
     public static final String writableAction = "set-writable";
@@ -406,21 +399,18 @@ public class DefaultEditorKit extends EditorKit {
 
     /**
      * Name of the action to create a beep.
-     * @see BeepAction
      * @see #getActions
      */
     public static final String beepAction = "beep";
 
     /**
      * Name of the action to page up vertically.
-     * @see PageUpAction
      * @see #getActions
      */
     public static final String pageUpAction = "page-up";
 
     /**
      * Name of the action to page down vertically.
-     * @see PageDownAction
      * @see #getActions
      */
     public static final String pageDownAction = "page-down";
@@ -428,7 +418,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the action to page up vertically, and move the
      * selection.
-     * @see PageUpAction
      * @see #getActions
      */
     /*public*/ static final String selectionPageUpAction = "selection-page-up";
@@ -436,15 +425,27 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the action to page down vertically, and move the
      * selection.
-     * @see PageDownAction
      * @see #getActions
      */
     /*public*/ static final String selectionPageDownAction = "selection-page-down";
 
     /**
+     * Name of the action to page left horizontally, and move the
+     * selection.
+     * @see #getActions
+     */
+    /*public*/ static final String selectionPageLeftAction = "selection-page-left";
+
+    /**
+     * Name of the action to page right horizontally, and move the
+     * selection.
+     * @see #getActions
+     */
+    /*public*/ static final String selectionPageRightAction = "selection-page-right";
+
+    /**
      * Name of the Action for moving the caret 
      * logically forward one position.
-     * @see ForwardAction
      * @see #getActions
      */
     public static final String forwardAction = "caret-forward";
@@ -452,7 +453,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * logically backward one position.
-     * @see BackwardAction
      * @see #getActions
      */
     public static final String backwardAction = "caret-backward";
@@ -460,7 +460,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for extending the selection
      * by moving the caret logically forward one position.
-     * @see SelectionForwardAction
      * @see #getActions
      */
     public static final String selectionForwardAction = "selection-forward";
@@ -468,7 +467,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for extending the selection
      * by moving the caret logically backward one position.
-     * @see SelectionBackwardAction
      * @see #getActions
      */
     public static final String selectionBackwardAction = "selection-backward";
@@ -476,7 +474,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * logically upward one position.
-     * @see UpAction
      * @see #getActions
      */
     public static final String upAction = "caret-up";
@@ -484,7 +481,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * logically downward one position.
-     * @see DownAction
      * @see #getActions
      */
     public static final String downAction = "caret-down";
@@ -492,7 +488,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * logically upward one position, extending the selection.
-     * @see UpAction
      * @see #getActions
      */
     public static final String selectionUpAction = "selection-up";
@@ -500,7 +495,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * logically downward one position, extending the selection.
-     * @see DownAction
      * @see #getActions
      */
     public static final String selectionDownAction = "selection-down";
@@ -508,7 +502,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of a word.
-     * @see BeginAction
      * @see #getActions
      */
     public static final String beginWordAction = "caret-begin-word";
@@ -516,7 +509,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of a word.
-     * @see EndAction
      * @see #getActions
      */
     public static final String endWordAction = "caret-end-word";
@@ -524,7 +516,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of a word, extending the selection.
-     * @see BeginWordAction
      * @see #getActions
      */
     public static final String selectionBeginWordAction = "selection-begin-word";
@@ -532,7 +523,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of a word, extending the selection.
-     * @see EndWordAction
      * @see #getActions
      */
     public static final String selectionEndWordAction = "selection-end-word";
@@ -540,7 +530,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret to the begining of the
      * previous word.
-     * @see PreviousWordAction
      * @see #getActions
      */
     public static final String previousWordAction = "caret-previous-word";
@@ -549,7 +538,6 @@ public class DefaultEditorKit extends EditorKit {
      * Name of the Action for moving the caret to the begining of the
      * next word.
      * to the next of the document.
-     * @see NextWordAction
      * @see #getActions
      */
     public static final String nextWordAction = "caret-next-word";
@@ -557,7 +545,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the selection to the begining of the
      * previous word, extending the selection.
-     * @see PreviousWordAction
      * @see #getActions
      */
     public static final String selectionPreviousWordAction = "selection-previous-word";
@@ -565,7 +552,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the selection to the begining of the
      * next word, extending the selection.
-     * @see NextWordAction
      * @see #getActions
      */
     public static final String selectionNextWordAction = "selection-next-word";
@@ -573,7 +559,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of a line.
-     * @see BeginAction
      * @see #getActions
      */
     public static final String beginLineAction = "caret-begin-line";
@@ -581,7 +566,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of a line.
-     * @see EndAction
      * @see #getActions
      */
     public static final String endLineAction = "caret-end-line";
@@ -589,7 +573,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of a line, extending the selection.
-     * @see BeginLineAction
      * @see #getActions
      */
     public static final String selectionBeginLineAction = "selection-begin-line";
@@ -597,7 +580,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of a line, extending the selection.
-     * @see EndLineAction
      * @see #getActions
      */
     public static final String selectionEndLineAction = "selection-end-line";
@@ -605,7 +587,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of a paragraph.
-     * @see BeginAction
      * @see #getActions
      */
     public static final String beginParagraphAction = "caret-begin-paragraph";
@@ -613,7 +594,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of a paragraph.
-     * @see EndAction
      * @see #getActions
      */
     public static final String endParagraphAction = "caret-end-paragraph";
@@ -621,7 +601,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of a paragraph, extending the selection.
-     * @see BeginParagraphAction
      * @see #getActions
      */
     public static final String selectionBeginParagraphAction = "selection-begin-paragraph";
@@ -629,7 +608,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of a paragraph, extending the selection.
-     * @see EndParagraphAction
      * @see #getActions
      */
     public static final String selectionEndParagraphAction = "selection-end-paragraph";
@@ -637,7 +615,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of the document.
-     * @see BeginAction
      * @see #getActions
      */
     public static final String beginAction = "caret-begin";
@@ -645,7 +622,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of the document.
-     * @see EndAction
      * @see #getActions
      */
     public static final String endAction = "caret-end";
@@ -653,7 +629,6 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the begining of the document.
-     * @see BeginAction
      * @see #getActions
      */
     public static final String selectionBeginAction = "selection-begin";
@@ -661,51 +636,51 @@ public class DefaultEditorKit extends EditorKit {
     /**
      * Name of the Action for moving the caret 
      * to the end of the document.
-     * @see EndAction
      * @see #getActions
      */
     public static final String selectionEndAction = "selection-end";
 
     /**
      * Name of the Action for selecting a word around the caret.
-     * @see SelectWordAction
      * @see #getActions
      */
     public static final String selectWordAction = "select-word";
 
     /**
      * Name of the Action for selecting a line around the caret.
-     * @see SelectLineAction
      * @see #getActions
      */
     public static final String selectLineAction = "select-line";
 
     /**
      * Name of the Action for selecting a paragraph around the caret.
-     * @see SelectParagraphAction
      * @see #getActions
      */
     public static final String selectParagraphAction = "select-paragraph";
 
     /**
      * Name of the Action for selecting the entire document
-     * @see SelectAllAction
      * @see #getActions
      */
     public static final String selectAllAction = "select-all";
 
     /**
      * Name of the Action for removing selection
-     * @see UnselectAction
      * @see #getActions
      */
     /*public*/ static final String unselectAction = "unselect";
+  
+    /**
+     * Name of the Action for toggling the component's orientation.
+     * @see #getActions
+     */
+    /*public*/ static final String toggleComponentOrientationAction 
+        = "toggle-componentOrientation";
 
     /**
      * Name of the action that is executed by default if 
      * a <em>key typed event</em> is received and there
      * is no keymap entry.
-     * @see DefaultKeyTypedAction
      * @see #getActions
      */
     public static final String defaultKeyTypedAction = "default-typed";
@@ -721,6 +696,8 @@ public class DefaultEditorKit extends EditorKit {
 	new PageDownAction(pageDownAction, false),
         new PageUpAction(selectionPageUpAction, true), 
 	new PageDownAction(selectionPageDownAction, true),
+        new PageAction(selectionPageLeftAction, true, true), 
+	new PageAction(selectionPageRightAction, false, true),
         new InsertBreakAction(), new BeepAction(),
         new NextVisualPositionAction(forwardAction, false,
 				     SwingConstants.EAST),
@@ -761,7 +738,8 @@ public class DefaultEditorKit extends EditorKit {
         new DefaultKeyTypedAction(), new InsertTabAction(),
         new SelectWordAction(), new SelectLineAction(),
         new SelectParagraphAction(), new SelectAllAction(),
-        new UnselectAction(), new DumpModelAction()
+        new UnselectAction(), new ToggleComponentOrientationAction(),
+        new DumpModelAction()
     };
 
     /**
@@ -771,7 +749,9 @@ public class DefaultEditorKit extends EditorKit {
      * different VM's in what gets sent as a <em>key typed</em>
      * event, and this action tries to filter out the undesired
      * events.  This filters the control characters and those
-     * with the ALT modifier.
+     * with the ALT modifier.  It allows Control-Alt sequences
+     * through as these form legitimate unicode characters on
+     * some PC keyboards.
      * <p>
      * If the event doesn't get filtered, it will try to insert
      * content into the text editor.  The content is fetched
@@ -810,15 +790,12 @@ public class DefaultEditorKit extends EditorKit {
             JTextComponent target = getTextComponent(e);
             if ((target != null) && (e != null)) {
 		if ((! target.isEditable()) || (! target.isEnabled())) {
-		    target.getToolkit().beep();
 		    return;
 		}
                 String content = e.getActionCommand();
                 int mod = e.getModifiers();
-                if ((content != null) && (content.length() > 0) && 
-                    ((mod & ActionEvent.ALT_MASK) == 
-                    (mod & ActionEvent.CTRL_MASK))) 
-                {
+                if ((content != null) && (content.length() > 0) &&
+                    ((mod & ActionEvent.ALT_MASK) == (mod & ActionEvent.CTRL_MASK))) {
                     char c = content.charAt(0);
                     if ((c >= 0x20) && (c != 0x7F)) {
                         target.replaceSelection(content);
@@ -1258,7 +1235,12 @@ public class DefaultEditorKit extends EditorKit {
 		try {
 		    if(selectedIndex != -1) {
 			r = target.modelToView(selectedIndex);
-			r.y -= scrollOffset;
+			if (scrollOffset == 0 && visible.y == 0 && r.y > 0) {
+			    r.y = 0;
+			}
+			else {
+			    r.y -= scrollOffset;
+			}
 			selectedIndex = target.viewToModel(new Point(r.x,r.y));
 			Document doc = target.getDocument();
 			if ((selectedIndex != 0) && 
@@ -1309,8 +1291,9 @@ public class DefaultEditorKit extends EditorKit {
 		target.computeVisibleRect(visible);
 		scrollOffset = visible.y;
 		visible.y += visible.height;
-		if((visible.y+visible.height) > target.getHeight())
-		    visible.y = (target.getHeight() - visible.height);
+		int maxHeight = target.getHeight();
+		if((visible.y+visible.height) > maxHeight)
+		    visible.y = (maxHeight - visible.height);
 		scrollOffset = visible.y - scrollOffset;
 		target.scrollRectToVisible(visible);
 		
@@ -1319,6 +1302,10 @@ public class DefaultEditorKit extends EditorKit {
 		    if(selectedIndex != -1) {
 			r = target.modelToView(selectedIndex);
 			r.y += scrollOffset;
+			if (scrollOffset == 0 &&
+			    (visible.y + visible.height == maxHeight)) {
+			    r.y = visible.y + visible.height;
+			}
 			selectedIndex = target.viewToModel(new Point(r.x,r.y));
 			Document doc = target.getDocument();
 			if ((selectedIndex != 0) && 
@@ -1339,6 +1326,64 @@ public class DefaultEditorKit extends EditorKit {
 	    }
 	}
         private boolean select;
+    }
+
+    /**
+     * Pages one view to the left or right.
+     */
+    static class PageAction extends TextAction {
+
+	/** Create this object with the appropriate identifier. */
+	public PageAction(String nm, boolean left, boolean select) {
+	    super(nm);
+	    this.select = select;
+	    this.left = left;
+	}
+
+	/** The operation to perform when this action is triggered. */
+        public void actionPerformed(ActionEvent e) {
+	    JTextComponent target = getTextComponent(e);
+	    if (target != null) {
+		int selectedIndex;
+		Rectangle visible = new Rectangle();
+		target.computeVisibleRect(visible);
+		if (left) {
+		    visible.x = Math.max(0, visible.x - visible.width);
+		}
+		else {
+		    visible.x += visible.width;
+		}
+		target.scrollRectToVisible(visible);
+		
+		selectedIndex = target.getCaretPosition();
+		if(selectedIndex != -1) {
+		    if (left) {
+			selectedIndex = target.viewToModel
+			    (new Point(visible.x, visible.y));
+		    }
+		    else {
+			selectedIndex = target.viewToModel
+			    (new Point(visible.x + visible.width - 1,
+				       visible.y + visible.height - 1));
+		    }
+		    Document doc = target.getDocument();
+		    if ((selectedIndex != 0) && 
+			(selectedIndex  > (doc.getLength()-1))) {
+			selectedIndex = doc.getLength()-1;
+		    }
+		    else if(selectedIndex  < 0) {
+			selectedIndex = 0;
+		    }
+		    if (select)
+			target.moveCaretPosition(selectedIndex);
+		    else
+			target.setCaretPosition(selectedIndex);
+		}
+	    }
+	}
+
+        private boolean select;
+	private boolean left;
     }
 
     static class DumpModelAction extends TextAction {
@@ -1386,20 +1431,17 @@ public class DefaultEditorKit extends EditorKit {
 			                      (DefaultCaret)caret : null;
 		int dot = caret.getDot();
 		Position.Bias[] bias = new Position.Bias[1];
+		Point magicPosition = caret.getMagicCaretPosition();
 
 		try {
-		    if(caret != null &&
+		    if(magicPosition == null &&
 		       (direction == SwingConstants.NORTH ||
 			direction == SwingConstants.SOUTH)) {
-			Point p = caret.getMagicCaretPosition();
-			if (p == null) {
-			    Rectangle r = (bidiCaret != null) ?
+			Rectangle r = (bidiCaret != null) ?
 				target.getUI().modelToView(target, dot,
 						      bidiCaret.getDotBias()) :
 				target.modelToView(dot);
-			    p = new Point(r.x, r.y);
-			    caret.setMagicCaretPosition(p);
-			}
+			magicPosition = new Point(r.x, r.y);
 		    }
 
                     dot = target.getUI().getNextVisualPositionFrom(target, dot,
@@ -1422,9 +1464,10 @@ public class DefaultEditorKit extends EditorKit {
 			    caret.setDot(dot);
 			}
 		    }
-		    if(direction == SwingConstants.EAST ||
-		       direction == SwingConstants.WEST) {
-			target.getCaret().setMagicCaretPosition(null);
+		    if(magicPosition != null &&
+		       (direction == SwingConstants.NORTH ||
+			direction == SwingConstants.SOUTH)) {
+			target.getCaret().setMagicCaretPosition(magicPosition);
 		    }
                 } catch (BadLocationException ex) {
                 }
@@ -1626,7 +1669,6 @@ public class DefaultEditorKit extends EditorKit {
                     } else {
                         target.setCaretPosition(begOffs);
                     }
-		    target.getCaret().setMagicCaretPosition(null);
                 } catch (BadLocationException bl) {
                     target.getToolkit().beep();
                 }
@@ -1667,7 +1709,6 @@ public class DefaultEditorKit extends EditorKit {
                     } else {
                         target.setCaretPosition(endOffs);
                     }
-		    target.getCaret().setMagicCaretPosition(null);
                 } catch (BadLocationException bl) {
                     target.getToolkit().beep();
                 }
@@ -1739,7 +1780,8 @@ public class DefaultEditorKit extends EditorKit {
             if (target != null) {
                 int offs = target.getCaretPosition();
                 Element elem = Utilities.getParagraphElement(target, offs);
-                offs = elem.getEndOffset();
+                offs = Math.min(target.getDocument().getLength(),
+				elem.getEndOffset());
                 if (select) {
                     target.moveCaretPosition(offs);
                 } else {
@@ -1947,6 +1989,36 @@ public class DefaultEditorKit extends EditorKit {
             }
         }
 
+    }
+
+    /*
+     * Toggles the ComponentOrientation of the text component.
+     * @see DefaultEditorKit#toggleComponentOrientationAction
+     * @see DefaultEditorKit#getActions
+     */
+    static class ToggleComponentOrientationAction extends TextAction {
+
+        /** 
+         * Create this action with the appropriate identifier. 
+         */
+        ToggleComponentOrientationAction() {
+            super(toggleComponentOrientationAction);
+        }
+
+        /** The operation to perform when this action is triggered. */
+        public void actionPerformed(ActionEvent e) {
+            JTextComponent target = getTextComponent(e);
+            if (target != null) {
+                ComponentOrientation last = target.getComponentOrientation();
+                ComponentOrientation next;
+                if( last == ComponentOrientation.RIGHT_TO_LEFT )
+                    next = ComponentOrientation.LEFT_TO_RIGHT;
+                else
+                    next = ComponentOrientation.RIGHT_TO_LEFT;
+                target.setComponentOrientation(next);
+                target.repaint();
+            }
+        }
     }
 
 }

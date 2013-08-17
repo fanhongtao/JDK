@@ -1,8 +1,11 @@
 /*
- * @(#)MenuEvent.java	1.10 01/11/29
+ * @(#)MenuEvent.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.event;
 
@@ -21,7 +24,7 @@ import java.util.EventObject;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.10 11/29/01
+ * @version 1.11 02/02/00
  * @author Georges Saab
  * @author David Karlton
  */

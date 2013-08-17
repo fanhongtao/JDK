@@ -1,8 +1,11 @@
 /*
- * @(#)Parser.java	1.18 01/11/29
+ * @(#)Parser.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.text.html.parser;
@@ -36,9 +39,9 @@ import sun.misc.MessageUtils;
  * specification.
  *
  * @see DTD
- * @see Tag
+ * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.18, 11/29/01
+ * @version 1.24, 02/02/00
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -91,6 +94,18 @@ class Parser implements DTDConstants {
     /** Number of \n's encountered. A \r\n will not increment this. */
     private int lfCount;
 
+    //
+    // To correctly identify the start of a tag/comment/text we need two
+    // ivars. Two are needed as handleText isn't invoked until the tag
+    // after the text has been parsed, that is the parser parses the text,
+    // then a tag, then invokes handleText followed by handleStart.
+    //
+    /** The start position of the current block. Block is overloaded here,
+     * it really means the current start position for the current comment,
+     * tag, text. Use getBlockStartPosition to access this. */
+    private int currentBlockStartPos;
+    /** Start position of the last block. */
+    private int lastBlockStartPos;
 
     public Parser(DTD dtd) {
 	this.dtd = dtd;
@@ -102,6 +117,17 @@ class Parser implements DTDConstants {
      */
     protected int getCurrentLine() {
 	return ln;
+    }
+
+    /**
+     * Returns the start position of the current block. Block is
+     * overloaded here, it really means the current start position for
+     * the current comment tag, text, block.... This is provided for
+     * subclassers that wish to know the start of the current block when
+     * called with one of the handleXXX methods.
+     */
+    int getBlockStartPosition() {
+	return Math.max(0, lastBlockStartPos - 1);
     }
 
     /**
@@ -191,10 +217,12 @@ class Parser implements DTDConstants {
      * An error has occurred.
      */
     protected void handleError(int ln, String msg) {
+	/*
 	Thread.dumpStack();
 	System.out.println("**** " + stack);
 	System.out.println("line " + ln + ": error: " + msg);
 	System.out.println();
+	*/
     }
 
     /**
@@ -209,6 +237,7 @@ class Parser implements DTDConstants {
 		!stack.advance(dtd.pcdata)) {
 		last = tag;
 		space = false;
+		lastBlockStartPos = currentBlockStartPos;
 		return;
 	    }
 	}
@@ -233,6 +262,7 @@ class Parser implements DTDConstants {
 	} else {
 	    handleText(newtext);
 	}
+	lastBlockStartPos = currentBlockStartPos;
 	textpos = 0;
 	last = tag;
 	space = false;
@@ -279,7 +309,11 @@ class Parser implements DTDConstants {
 	    // we need to update it here.
 	    //
 	    last = tag;
+	    // Note that we should really check last.breakFlows before
+	    // assuming this should be false.
+	    space = false;
 	}
+	lastBlockStartPos = currentBlockStartPos;
 
 	// check required attributes
 	for (AttributeList a = elem.atts ; a != null ; a = a.next) {
@@ -1191,6 +1225,11 @@ class Parser implements DTDConstants {
 			if (att != null) {
 			    attvalue = att.getValue();
 			}
+			else {
+			    // Make it null so that NULL_ATTRIBUTE_VALUE is
+			    // used
+			    attvalue = null;
+			}
 		    }
 		}
 	    } else if (!strict && ch == ',') { // allows for comma separated attribute-value pairs
@@ -1385,6 +1424,7 @@ class Parser implements DTDConstants {
 				char newtext[] = new char[textpos];
 				System.arraycopy(text, 0, newtext, 0, textpos);
 				handleText(newtext);
+				lastBlockStartPos = currentBlockStartPos;
 				textpos = 0;
 			    }
 			    parseComment();
@@ -1775,9 +1815,11 @@ class Parser implements DTDConstants {
             }
 
 	    int c = ch;
+	    currentBlockStartPos = currentPosition;
 	    switch (c) {
 	      case '<':
 		parseTag();
+		lastBlockStartPos = currentPosition;
 		continue;
 
 	      case '/':
@@ -1823,6 +1865,9 @@ class Parser implements DTDConstants {
 		    break;
 		}
 		space = true;
+		if (textpos == 0) {
+		    lastBlockStartPos = currentPosition;
+		}
 		continue;
 
 	      case '\r':
@@ -1838,6 +1883,9 @@ class Parser implements DTDConstants {
 		if ((stack != null) && stack.pre) {
 		    break;
 		}
+		if (textpos == 0) {
+		    lastBlockStartPos = currentPosition;
+		}
 		space = true;
 		continue;
 
@@ -1849,6 +1897,9 @@ class Parser implements DTDConstants {
 		    break;
 		}
 		space = true;
+		if (textpos == 0) {
+		    lastBlockStartPos = currentPosition;
+		}
 		continue;
 
 	      default:
@@ -1873,6 +1924,9 @@ class Parser implements DTDConstants {
 
 	    // output pending space
 	    if (space) {
+		if (textpos == 0) {
+		    lastBlockStartPos--;
+		}
 		text[textpos++] = ' ';
 		space = false;
 	    }

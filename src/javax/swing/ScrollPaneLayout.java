@@ -1,8 +1,11 @@
 /*
- * @(#)ScrollPaneLayout.java	1.35 01/11/29
+ * @(#)ScrollPaneLayout.java	1.47 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -34,7 +37,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.35 11/29/01
+ * @version 1.47 02/02/00
  * @author Hans Muller
  */
 public class ScrollPaneLayout
@@ -50,14 +53,14 @@ public class ScrollPaneLayout
 
     /**
      * The scrollpanes vertical scrollbar child.  Default is a JScrollBar.
-     * @see JScrollPane#setVerticalScrollbar
+     * @see JScrollPane#setVerticalScrollBar
      */
     protected JScrollBar vsb;
 
 
     /**
      * The scrollpanes horizontal scrollbar child.  Default is a JScrollBar.
-     * @see JScrollPane#setHorizontalScrollbar
+     * @see JScrollPane#setHorizontalScrollBar
      */
     protected JScrollBar hsb;
 
@@ -157,14 +160,18 @@ public class ScrollPaneLayout
 
 
     /** 
-     * The method used to replace an existing component (if any) with a
-     * new one. Used to add each different kind of component to a JScrollPane,
-     * since there can be one and only one left corner, vertical scrollbar,
+     * The method used to remove an existing component.
+     * Since there can be one and only one left corner, vertical scrollbar,
      * and so on. So only one of each subcomponent is allowed, the old one
      * is removed (if it exists) when a new one is added.
+     * <p>
+     * This method returns <code>newC</code>. If <code>oldC</code> is
+     * not equal to <code>newC</code> and is non-<code>null</code>,
+     * it will be removed from its parent.
      * 
-     * @param oldC the Component to replace
-     * @param newC the Component to add
+     * @param oldC the <code>Component</code> to replace
+     * @param newC the <code>Component</code> to add
+     * @return the <code>newC</code>
      */
     protected Component addSingletonComponent(Component oldC, Component newC)
     {
@@ -177,7 +184,8 @@ public class ScrollPaneLayout
 
     /**
      * Adds the specified component to the layout. The layout is
-     * identified using one of:<ul>
+     * identified using one of:
+     * <ul>
      * <li>JScrollPane.VIEWPORT
      * <li>JScrollPane.VERTICAL_SCROLLBAR
      * <li>JScrollPane.HORIZONTAL_SCROLLBAR
@@ -349,8 +357,8 @@ public class ScrollPaneLayout
 
 
     /**
-     * Returns the JScrollbar object that handles horizontal scrolling.
-     * @return the JScrollbar object that handles horizontal scrolling
+     * Returns the JScrollBar object that handles horizontal scrolling.
+     * @return the JScrollBar object that handles horizontal scrolling
      * @see JScrollPane#getHorizontalScrollBar
      */
     public JScrollBar getHorizontalScrollBar() {
@@ -358,8 +366,8 @@ public class ScrollPaneLayout
     }
 
     /**
-     * Returns the JScrollbar object that handles vertical scrolling.
-     * @return the JScrollbar object that handles vertical scrolling
+     * Returns the JScrollBar object that handles vertical scrolling.
+     * @return the JScrollBar object that handles vertical scrolling
      * @see JScrollPane#getVerticalScrollBar
      */
     public JScrollBar getVerticalScrollBar() {
@@ -655,7 +663,8 @@ public class ScrollPaneLayout
 	vsbPolicy = scrollPane.getVerticalScrollBarPolicy();
 	hsbPolicy = scrollPane.getHorizontalScrollBarPolicy();
 
-	Rectangle availR = new Rectangle(scrollPane.getSize());
+	Rectangle availR = scrollPane.getBounds();
+	availR.x = availR.y = 0;
 
 	Insets insets = parent.getInsets();
 	availR.x = insets.left;
@@ -663,6 +672,9 @@ public class ScrollPaneLayout
 	availR.width -= insets.left + insets.right;
 	availR.height -= insets.top + insets.bottom;
 
+        /* Get the scrollPane's orientation.
+         */
+        boolean leftToRight = SwingUtilities.isLeftToRight(scrollPane);
 
 	/* If there's a visible column header remove the space it 
 	 * needs from the top of availR.  The column header is treated 
@@ -679,17 +691,22 @@ public class ScrollPaneLayout
 	}
 
 	/* If there's a visible row header remove the space it needs
-	 * from the left of availR.  The row header is treated 
+	 * from the left or right of availR.  The row header is treated 
 	 * as if it were fixed width, arbitrary height.
 	 */
 
-	Rectangle rowHeadR = new Rectangle(availR.x, 0, 0, 0);
+	Rectangle rowHeadR = new Rectangle(0, 0, 0, 0);
 	
 	if ((rowHead != null) && (rowHead.isVisible())) {
 	    int rowHeadWidth = rowHead.getPreferredSize().width;
 	    rowHeadR.width = rowHeadWidth;
-	    availR.x += rowHeadWidth;
 	    availR.width -= rowHeadWidth;
+            if ( leftToRight ) {
+                rowHeadR.x = availR.x;
+                availR.x += rowHeadWidth;
+            } else {
+                rowHeadR.x = availR.x + availR.width;
+            }
 	}
 
 	/* If there's a JScrollPane.viewportBorder, remove the
@@ -709,15 +726,13 @@ public class ScrollPaneLayout
 	    vpbInsets = new Insets(0,0,0,0);
 	}
 
-	colHeadR.x = availR.x;
-	rowHeadR.y = availR.y;
 
 	/* At this point availR is the space available for the viewport
-	 * and scrollbars, and the rowHeadR colHeadR rectangles are correct
-	 * except for their width and height respectively.  Once we're 
+	 * and scrollbars. rowHeadR is correct except for its height and y
+         * and colHeadR is correct except for its width and x.  Once we're 
 	 * through computing the dimensions  of these three parts we can 
-	 * go back and set the dimensions of rowHeadR.width, colHeadR.height, 
-	 * and the bounds for the corners.
+	 * go back and set the dimensions of rowHeadR.height, rowHeadR.y,
+         * colHeadR.width, colHeadR.x and the bounds for the corners.
 	 * 
          * We'll decide about putting up scrollbars by comparing the 
          * viewport views preferred size with the viewports extent
@@ -744,10 +759,14 @@ public class ScrollPaneLayout
 
 	boolean viewTracksViewportWidth = false;
 	boolean viewTracksViewportHeight = false;
+	Scrollable sv;
 	if (view instanceof Scrollable) {
-	    Scrollable sv = ((Scrollable)view);
+	    sv = (Scrollable)view;
 	    viewTracksViewportWidth = sv.getScrollableTracksViewportWidth();
 	    viewTracksViewportHeight = sv.getScrollableTracksViewportHeight();
+	}
+	else {
+	    sv = null;
 	}
 
 	/* If there's a vertical scrollbar and we need one, allocate
@@ -770,10 +789,8 @@ public class ScrollPaneLayout
 
 
 	if ((vsb != null) && vsbNeeded) {
-	    int vsbWidth = vsb.getPreferredSize().width;
-	    availR.width -= vsbWidth;
-	    vsbR.x = availR.x + availR.width + vpbInsets.right;
-	    vsbR.width = vsbWidth;
+	    adjustForVSB(true, availR, vsbR, vpbInsets, leftToRight);
+	    extentSize = viewport.toViewCoordinates(availR.getSize());
 	}
 	
 	/* If there's a horizontal scrollbar and we need one, allocate
@@ -794,26 +811,84 @@ public class ScrollPaneLayout
 	}
 
 	if ((hsb != null) && hsbNeeded) {
-	    int hsbHeight = hsb.getPreferredSize().height;
-	    availR.height -= hsbHeight;
-	    hsbR.y = availR.y + availR.height + vpbInsets.bottom;
-	    hsbR.height = hsbHeight;
-	
+	    adjustForHSB(true, availR, hsbR, vpbInsets);
+
 	    /* If we added the horizontal scrollbar then we've implicitly 
 	     * reduced  the vertical space available to the viewport. 
 	     * As a consequence we may have to add the vertical scrollbar, 
 	     * if that hasn't been done so already.  Ofcourse we
 	     * don't bother with any of this if the vsbPolicy is NEVER.
 	     */
-	    if ((vsb != null) && !vsbNeeded && (vsbPolicy != VERTICAL_SCROLLBAR_NEVER)) {
+	    if ((vsb != null) && !vsbNeeded &&
+		(vsbPolicy != VERTICAL_SCROLLBAR_NEVER)) {
+
 		extentSize = viewport.toViewCoordinates(availR.getSize());
 		vsbNeeded = viewPrefSize.height > extentSize.height;
 
 		if (vsbNeeded) {
-		    int vsbWidth = vsb.getPreferredSize().width;
-		    availR.width -= vsbWidth;
-		    vsbR.x = availR.x + availR.width + vpbInsets.right;
-		    vsbR.width = vsbWidth;
+		    adjustForVSB(true, availR, vsbR, vpbInsets, leftToRight);
+		}
+	    }
+	}
+
+	/* Set the size of the viewport first, and then recheck the Scrollable
+	 * methods. Some components base their return values for the Scrollable
+	 * methods on the size of the Viewport, so that if we don't
+	 * ask after resetting the bounds we may have gotten the wrong
+	 * answer.
+	 */
+	
+	if (viewport != null) {
+	    viewport.setBounds(availR);
+
+	    if (sv != null) {
+		extentSize = viewport.toViewCoordinates(availR.getSize());
+
+		boolean oldHSBNeeded = hsbNeeded;
+		boolean oldVSBNeeded = vsbNeeded;
+		viewTracksViewportWidth = sv.
+		                          getScrollableTracksViewportWidth();
+		viewTracksViewportHeight = sv.
+		                          getScrollableTracksViewportHeight();
+		if (vsb != null && vsbPolicy == VERTICAL_SCROLLBAR_AS_NEEDED) {
+		    boolean newVSBNeeded = !viewTracksViewportHeight &&
+		                     (viewPrefSize.height > extentSize.height);
+		    if (newVSBNeeded != vsbNeeded) {
+			vsbNeeded = newVSBNeeded;
+			adjustForVSB(vsbNeeded, availR, vsbR, vpbInsets,
+				     leftToRight);
+			extentSize = viewport.toViewCoordinates
+			                      (availR.getSize());
+		    }
+		}
+		if (hsb != null && hsbPolicy ==HORIZONTAL_SCROLLBAR_AS_NEEDED){
+		    boolean newHSBbNeeded = !viewTracksViewportWidth &&
+			               (viewPrefSize.width > extentSize.width);
+		    if (newHSBbNeeded != hsbNeeded) {
+			hsbNeeded = newHSBbNeeded;
+			adjustForHSB(hsbNeeded, availR, hsbR, vpbInsets);
+			if ((vsb != null) && !vsbNeeded &&
+			    (vsbPolicy != VERTICAL_SCROLLBAR_NEVER)) {
+
+			    extentSize = viewport.toViewCoordinates
+				         (availR.getSize());
+			    vsbNeeded = viewPrefSize.height >
+				        extentSize.height;
+
+			    if (vsbNeeded) {
+				adjustForVSB(true, availR, vsbR, vpbInsets,
+					     leftToRight);
+			    }
+			}
+		    }
+		}
+		if (oldHSBNeeded != hsbNeeded ||
+		    oldVSBNeeded != vsbNeeded) {
+		    viewport.setBounds(availR);
+		    // You could argue that we should recheck the
+		    // Scrollable methods again until they stop changing,
+		    // but they might never stop changing, so we stop here
+		    // and don't do any additional checks.
 		}
 	    }
 	}
@@ -821,20 +896,17 @@ public class ScrollPaneLayout
 	/* We now have the final size of the viewport: availR.
 	 * Now fixup the header and scrollbar widths/heights.
 	 */
-	
 	vsbR.height = availR.height + vpbInsets.top + vpbInsets.bottom;
 	hsbR.width = availR.width + vpbInsets.left + vpbInsets.right;
-	rowHeadR.height = availR.height;
-	colHeadR.width = availR.width;
+	rowHeadR.height = availR.height + vpbInsets.top + vpbInsets.bottom;
+        rowHeadR.y = availR.y - vpbInsets.top;
+	colHeadR.width = availR.width + vpbInsets.left + vpbInsets.right;
+        colHeadR.x = availR.x - vpbInsets.left;
 
-	/* Set the bounds of all nine components.  The scrollbars
+	/* Set the bounds of the remaining components.  The scrollbars
 	 * are made invisible if they're not needed.
 	 */
 	
-	if (viewport != null) {
-	    viewport.setBounds(availR);
-	}
-
 	if (rowHead != null) {
 	    rowHead.setBounds(rowHeadR);
 	}
@@ -864,21 +936,81 @@ public class ScrollPaneLayout
 	}
 
 	if (lowerLeft != null) {
-	    lowerLeft.setBounds(rowHeadR.x, hsbR.y, rowHeadR.width, hsbR.height);
+	    lowerLeft.setBounds(leftToRight ? rowHeadR.x : vsbR.x,
+                                hsbR.y,
+                                leftToRight ? rowHeadR.width : vsbR.width,
+                                hsbR.height);
 	}
 
 	if (lowerRight != null) {
-	    lowerRight.setBounds(vsbR.x, hsbR.y, vsbR.width, hsbR.height);
+	    lowerRight.setBounds(leftToRight ? vsbR.x : rowHeadR.x,
+                                 hsbR.y,
+                                 leftToRight ? vsbR.width : rowHeadR.width,
+                                 hsbR.height);
 	}
 
 	if (upperLeft != null) {
-	    upperLeft.setBounds(rowHeadR.x, colHeadR.y, rowHeadR.width, colHeadR.height);
+	    upperLeft.setBounds(leftToRight ? rowHeadR.x : vsbR.x,
+                                colHeadR.y,
+                                leftToRight ? rowHeadR.width : vsbR.width,
+                                colHeadR.height);
 	}
 
 	if (upperRight != null) {
-	    upperRight.setBounds(vsbR.x, colHeadR.y, vsbR.width, colHeadR.height);
+	    upperRight.setBounds(leftToRight ? vsbR.x : rowHeadR.x,
+                                 colHeadR.y,
+                                 leftToRight ? vsbR.width : rowHeadR.width,
+                                 colHeadR.height);
 	}
     }
+
+    /**
+     * Adjusts the Rectangle <code>available</code> based on if
+     * the vertical scrollbar is needed (<code>wantsVSB</code>).
+     * The location of the vsb is updated in <code>vsbR</code>, and
+     * the viewport border insets (<code>vpbInsets</code>) are used to offset
+     * the vsb.
+     */
+    private void adjustForVSB(boolean wantsVSB, Rectangle available,
+			      Rectangle vsbR, Insets vpbInsets, 
+                              boolean leftToRight) {
+	int vsbWidth = vsb.getPreferredSize().width;
+	if (wantsVSB) {
+	    available.width -= vsbWidth;
+	    vsbR.width = vsbWidth;
+            
+            if( leftToRight ) {
+                vsbR.x = available.x + available.width + vpbInsets.right;
+            } else {
+                vsbR.x = available.x - vpbInsets.left;
+                available.x += vsbWidth;
+            }
+	}
+	else {
+	    available.width += vsbWidth;
+	}
+    }
+
+    /**
+     * Adjusts the Rectangle <code>available</code> based on if
+     * the horizontal scrollbar is needed (<code>wantsHSB</code>).
+     * The location of the hsb is updated in <code>hsbR</code>, and
+     * the viewport border insets (<code>vpbInsets</code>) are used to offset
+     * the hsb.
+     */
+    private void adjustForHSB(boolean wantsHSB, Rectangle available,
+			      Rectangle hsbR, Insets vpbInsets) {
+	int hsbHeight = hsb.getPreferredSize().height;
+	if (wantsHSB) {
+	    available.height -= hsbHeight;
+	    hsbR.y = available.y + available.height + vpbInsets.bottom;
+	    hsbR.height = hsbHeight;
+	}
+	else {
+	    available.height += hsbHeight;
+	}
+    }
+
     
 
     /** 

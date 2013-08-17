@@ -1,17 +1,16 @@
 /*
- * @(#)GregorianCalendar.java	1.48 01/11/29
+ * @(#)GregorianCalendar.java	1.53 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)GregorianCalendar.java	1.48 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996-1998 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -78,7 +64,8 @@ package java.util;
  * changeover and which fall between January 1 and March 24.
  *
  * <p>Values calculated for the <code>WEEK_OF_YEAR</code> field range from 1 to
- * 53.  Week 1 for a year is the first week that contains at least
+ * 53.  Week 1 for a year is the earliest seven day period starting on
+ * <code>getFirstDayOfWeek()</code> that contains at least
  * <code>getMinimalDaysInFirstWeek()</code> days from that year.  It thus
  * depends on the values of <code>getMinimalDaysInFirstWeek()</code>,
  * <code>getFirstDayOfWeek()</code>, and the day of the week of January 1.
@@ -93,6 +80,24 @@ package java.util;
  * <code>getFirstDayOfWeek()</code> is <code>SUNDAY</code>, then week 1 of 1998
  * starts on January 4, 1998, and ends on January 10, 1998; the first three days
  * of 1998 then are part of week 53 of 1997.
+ *
+ * <p>Values calculated for the <code>WEEK_OF_MONTH</code> field range from 0 or
+ * 1 to 4 or 5.  Week 1 of a month (the days with <code>WEEK_OF_MONTH =
+ * 1</code>) is the earliest set of at least
+ * <code>getMinimalDaysInFirstWeek()</code> contiguous days in that month,
+ * ending on the day before <code>getFirstDayOfWeek()</code>.  Unlike
+ * week 1 of a year, week 1 of a month may be shorter than 7 days, need
+ * not start on <code>getFirstDayOfWeek()</code>, and will not include days of
+ * the previous month.  Days of a month before week 1 have a
+ * <code>WEEK_OF_MONTH</code> of 0.
+ *
+ * <p>For example, if <code>getFirstDayOfWeek()</code> is <code>SUNDAY</code>
+ * and <code>getMinimalDaysInFirstWeek()</code> is 4, then the first week of
+ * January 1998 is Sunday, January 4 through Saturday, January 10.  These days
+ * have a <code>WEEK_OF_MONTH</code> of 1.  Thursday, January 1 through
+ * Saturday, January 3 have a <code>WEEK_OF_MONTH</code> of 0.  If
+ * <code>getMinimalDaysInFirstWeek()</code> is changed to 3, then January 1
+ * through January 3 have a <code>WEEK_OF_MONTH</code> of 1.
  *
  * <p>
  * <strong>Example:</strong>
@@ -172,8 +177,10 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.48
- * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu */
+ * @version      1.53
+ * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
+ * @since JDK1.1
+ */
 public class GregorianCalendar extends Calendar {
     /*
      * Implementation Notes
@@ -659,6 +666,7 @@ public class GregorianCalendar extends Calendar {
 
     /**
      * Roll a field by a signed amount.
+     * @since 1.2
      */
     public void roll(int field, int amount) {
         if (amount == 0) return; // Nothing to do
@@ -967,6 +975,7 @@ public class GregorianCalendar extends Calendar {
     /**
      * Return the minimum value that this field could have, given the current date.
      * For the Gregorian calendar, this is the same as getMinimum() and getGreatestMinimum().
+     * @since 1.2
      */
     public int getActualMinimum(int field) {
         return getMinimum(field);
@@ -977,6 +986,7 @@ public class GregorianCalendar extends Calendar {
      * For example, with the date "Feb 3, 1997" and the DAY_OF_MONTH field, the actual
      * maximum would be 28; for "Feb 3, 1996" it s 29.  Similarly for a Hebrew calendar,
      * for some years the actual maximum for MONTH is 12, and for others 13.
+     * @since 1.2
      */
     public int getActualMaximum(int field) {
         /* It is a known limitation that the code here (and in getActualMinimum)
@@ -1161,7 +1171,8 @@ public class GregorianCalendar extends Calendar {
         // Call getOffset() to get the TimeZone offset.  The millisInDay value must
         // be standard local millis.
         int dstOffset = getTimeZone().getOffset(era,year,month,date,dayOfWeek,millisInDay,
-                                                monthLength(month)) - rawOffset;
+                                                monthLength(month), prevMonthLength(month))
+                        - rawOffset;
 
         // Adjust our millisInDay for DST, if necessary.
         millisInDay += dstOffset;
@@ -1239,8 +1250,11 @@ public class GregorianCalendar extends Calendar {
             int n1 = floorDivide(rem[0], 365, rem);
             rawYear = 400*n400 + 100*n100 + 4*n4 + n1;
             dayOfYear = rem[0]; // zero-based day of year
-            if (n100 == 4 || n1 == 4) dayOfYear = 365; // Dec 31 at end of 4- or 400-yr cycle
-            else ++rawYear;
+            if (n100 == 4 || n1 == 4) {
+		dayOfYear = 365; // Dec 31 at end of 4- or 400-yr cycle
+            } else {
+		++rawYear;
+	    }
             
             isLeap = ((rawYear&0x3) == 0) && // equiv. to (rawYear%4 == 0)
                 (rawYear%100 != 0 || rawYear%400 == 0);
@@ -1294,8 +1308,11 @@ public class GregorianCalendar extends Calendar {
         internalSet(DATE, date);
         internalSet(DAY_OF_WEEK, dayOfWeek);
         internalSet(DAY_OF_YEAR, ++dayOfYear); // Convert from 0-based to 1-based
-        if (quick) return;
+        if (quick) {
+	    return;
+	}
 
+	// WEEK_OF_YEAR start
         // Compute the week of the year.  Valid week numbers run from 1 to 52
         // or 53, depending on the year, the first day of the week, and the
         // minimal days in the first week.  Days at the start of the year may
@@ -1306,15 +1323,24 @@ public class GregorianCalendar extends Calendar {
         int woy = (dayOfYear - 1 + relDowJan1) / 7; // 0..53
         if ((7 - relDowJan1) >= getMinimalDaysInFirstWeek()) {
             ++woy;
-            // Check to see if we are in the last week; if so, we need
-            // to handle the case in which we are the first week of the
-            // next year.
+	}
+
+	// XXX: The calculation of dayOfYear does not take into account 
+	// Gregorian cut over date. The next if statement depends on that 
+	// assumption.
+	if (dayOfYear > 359) { // Fast check which eliminates most cases
+	    // Check to see if we are in the last week; if so, we need
+	    // to handle the case in which we are the first week of the
+	    // next year.
             int lastDoy = yearLength();
             int lastRelDow = (relDow + lastDoy - dayOfYear) % 7;
-            if (lastRelDow < 0) lastRelDow += 7;
-            if (dayOfYear > 359 && // Fast check which eliminates most cases
-                (6 - lastRelDow) >= getMinimalDaysInFirstWeek() &&
-                (dayOfYear + 7 - relDow) > lastDoy) woy = 1;
+            if (lastRelDow < 0) {
+		lastRelDow += 7;
+	    }
+            if (((6 - lastRelDow) >= getMinimalDaysInFirstWeek()) &&
+                ((dayOfYear + 7 - relDow) > lastDoy)) {
+		woy = 1;
+	    }
         }
         else if (woy == 0) {
             // We are the last week of the previous year.
@@ -1322,6 +1348,7 @@ public class GregorianCalendar extends Calendar {
             woy = weekNumber(prevDoy, dayOfWeek);
         }
         internalSet(WEEK_OF_YEAR, woy);
+	// WEEK_OF_YEAR end
 
         internalSet(WEEK_OF_MONTH, weekNumber(date, dayOfWeek));
         internalSet(DAY_OF_WEEK_IN_MONTH, (date-1) / 7 + 1);
@@ -1486,7 +1513,8 @@ public class GregorianCalendar extends Calendar {
                                        internalGet(DATE),
                                        dow,
                                        normalizedMillisInDay[0],
-                                       monthLength(internalGet(MONTH))) -
+                                       monthLength(internalGet(MONTH)),
+                                       prevMonthLength(internalGet(MONTH))) -
                 zoneOffset;
             // Note: Because we pass in wall millisInDay, rather than
             // standard millisInDay, we interpret "1:00 am" on the day
@@ -1530,19 +1558,36 @@ public class GregorianCalendar extends Calendar {
         int doyStamp = stamp[DAY_OF_YEAR];
         int woyStamp = aggregateStamp(stamp[WEEK_OF_YEAR], dowStamp);
 
-        int bestStamp = (monthStamp > domStamp) ? monthStamp : domStamp;
+        int bestStamp = domStamp;
         if (womStamp > bestStamp) bestStamp = womStamp;
         if (dowimStamp > bestStamp) bestStamp = dowimStamp;
         if (doyStamp > bestStamp) bestStamp = doyStamp;
         if (woyStamp > bestStamp) bestStamp = woyStamp;
 
+        /* No complete combination exists.  Look for WEEK_OF_MONTH,
+         * DAY_OF_WEEK_IN_MONTH, or WEEK_OF_YEAR alone.  Treat DAY_OF_WEEK alone
+         * as DAY_OF_WEEK_IN_MONTH.
+         */
+        if (bestStamp == UNSET) {
+            womStamp = stamp[WEEK_OF_MONTH];
+            dowimStamp = Math.max(stamp[DAY_OF_WEEK_IN_MONTH], dowStamp);
+            woyStamp = stamp[WEEK_OF_YEAR];
+            bestStamp = Math.max(Math.max(womStamp, dowimStamp), woyStamp);
+
+            /* Treat MONTH alone or no fields at all as DAY_OF_MONTH.  This may
+             * result in bestStamp = domStamp = UNSET if no fields are set,
+             * which indicates DAY_OF_MONTH.
+             */
+            if (bestStamp == UNSET) {
+                bestStamp = domStamp = monthStamp;
+            }
+        }
+
         boolean useMonth = false;
 
-        if (bestStamp != UNSET &&
-            (bestStamp == monthStamp ||
-             bestStamp == domStamp ||
-             bestStamp == womStamp ||
-             bestStamp == dowimStamp)) {
+        if (bestStamp == domStamp ||
+            bestStamp == womStamp ||
+            bestStamp == dowimStamp) {
             useMonth = true;
 
             // We have the month specified. Make it 0-based for the algorithm.
@@ -1575,10 +1620,9 @@ public class GregorianCalendar extends Calendar {
 
             julianDay += isLeap ? LEAP_NUM_DAYS[month] : NUM_DAYS[month];
 
-            if (bestStamp == domStamp ||
-                bestStamp == monthStamp) {
+            if (bestStamp == domStamp) {
 
-                date = (domStamp != UNSET) ? internalGet(DAY_OF_MONTH) : 1;
+                date = (stamp[DAY_OF_MONTH] != UNSET) ? internalGet(DAY_OF_MONTH) : 1;
             }
             else { // assert(bestStamp == womStamp || bestStamp == dowimStamp)
                 // Compute from day of week plus week number or from the day of
@@ -1596,7 +1640,7 @@ public class GregorianCalendar extends Calendar {
                 // 1..-6.  It represents the locale-specific first day of the
                 // week of the first day of the month, ignoring minimal days in
                 // first week.
-                date = 1 - fdm + ((stamp[DAY_OF_WEEK] != UNSET) ?
+                date = 1 - fdm + (dowStamp != UNSET ?
                                   (internalGet(DAY_OF_WEEK) - getFirstDayOfWeek()) : 0);
 
                 if (bestStamp == womStamp) {
@@ -1613,7 +1657,8 @@ public class GregorianCalendar extends Calendar {
                     // We are basing this on the day-of-week-in-month.  The only
                     // trickiness occurs if the day-of-week-in-month is
                     // negative.
-                    int dim = internalGet(DAY_OF_WEEK_IN_MONTH);
+                    int dim = stamp[DAY_OF_WEEK_IN_MONTH] != UNSET ?
+                        internalGet(DAY_OF_WEEK_IN_MONTH) : 1;
                     if (dim >= 0) date += 7*(dim - 1);
                     else {
                         // Move date to the last of this day-of-week in this
@@ -1636,13 +1681,10 @@ public class GregorianCalendar extends Calendar {
 
             // No month, start with January 0 (day before Jan 1), then adjust.
 
-            if (bestStamp == UNSET) {
-                ++julianDay; // Advance to January 1
-            }
-            else if (bestStamp == doyStamp) {
+            if (bestStamp == doyStamp) {
                 julianDay += internalGet(DAY_OF_YEAR);
             }
-            else if (bestStamp == woyStamp) {
+            else { // assert(bestStamp == woyStamp)
                 // Compute from day of week plus week of year
 
                 // Find the day of the week for the first of this year.  This
@@ -1658,7 +1700,7 @@ public class GregorianCalendar extends Calendar {
                 // of the first day of the year.
 
                 // First ignore the minimal days in first week.
-                date = 1 - fdy + ((stamp[DAY_OF_WEEK] != UNSET) ?
+                date = 1 - fdy + (dowStamp != UNSET ?
                                   (internalGet(DAY_OF_WEEK) - getFirstDayOfWeek()) : 0);
 
                 // Adjust for minimal days in first week.
@@ -1842,6 +1884,16 @@ public class GregorianCalendar extends Calendar {
             year = 1-year;
         }
         return monthLength(month, year);
+    }
+
+    /**
+     * Returns the length of the previous month.  For January, returns the
+     * arbitrary value 31, which will not be used:  This value is passed to
+     * SimpleTimeZone.getOffset(), and if the month is -1 (the month before
+     * January), the day value will be ignored.
+     */
+    private final int prevMonthLength(int month) {
+        return (month > 1) ? monthLength(month - 1) : 31;
     }
 
     private final int yearLength(int year) {

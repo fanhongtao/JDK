@@ -1,8 +1,11 @@
 /*
- * @(#)Set.java	1.19 01/11/29
+ * @(#)Set.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -32,7 +35,7 @@ package java.util;
  * not permissible for a set to contain itself as an element.
  *
  * @author  Josh Bloch
- * @version 1.19 11/29/01
+ * @version 1.23, 02/02/00
  * @see Collection
  * @see List
  * @see SortedSet
@@ -41,7 +44,7 @@ package java.util;
  * @see AbstractSet
  * @see Collections#singleton(java.lang.Object)
  * @see Collections#EMPTY_SET
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface Set extends Collection {
@@ -69,6 +72,7 @@ public interface Set extends Collection {
      * element <code>e</code> such that <code>(o==null ? e==null :
      * o.equals(e))</code>.
      *
+     * @param o element whose presence in this set is to be tested.
      * @return <tt>true</tt> if this set contains the specified element.
      */
     boolean contains(Object o);

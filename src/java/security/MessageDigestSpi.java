@@ -1,8 +1,11 @@
 /*
- * @(#)MessageDigestSpi.java	1.7 01/11/29
+ * @(#)MessageDigestSpi.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -30,7 +33,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.7 01/11/29
+ * @version 1.11, 02/02/00
  *
  * @see MessageDigest
  */
@@ -50,7 +53,7 @@ public abstract class MessageDigestSpi {
      *
      * @return the digest length in bytes.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     protected int engineGetDigestLength() {
 	return 0;
@@ -80,7 +83,7 @@ public abstract class MessageDigestSpi {
      * Completes the hash computation by performing final
      * operations such as padding. Once <code>engineDigest</code> has 
      * been called, the engine should be reset (see 
-     * {@link engineReset() engineReset}).  
+     * {@link #engineReset() engineReset}).  
      * Resetting is the responsibility of the
      * engine implementor.
      *
@@ -92,7 +95,7 @@ public abstract class MessageDigestSpi {
      * Completes the hash computation by performing final
      * operations such as padding. Once <code>engineDigest</code> has
      * been called, the engine should be reset (see 
-     * {@link engineReset() engineReset}).  
+     * {@link #engineReset() engineReset}).  
      * Resetting is the responsibility of the
      * engine implementor.
      *
@@ -116,7 +119,7 @@ public abstract class MessageDigestSpi {
      * 
      * @exception DigestException if an error occurs.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     protected int engineDigest(byte[] buf, int offset, int len)
 						throws DigestException {

@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextMembershipEvent.java	1.7 01/11/29
+ * @(#)BeanContextMembershipEvent.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -17,31 +20,40 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * <p>
- * Compliant BeanContexts fire events on this interface when state maintained
- * by the BeanContext, for some or all of its "children", changes, to all
- * BeanContextListeners that register themselves with a particular BeanContext.
- * </p>
+ * A <code>BeanContextMembershipEvent</code> encapsulates 
+ * the list of children added to, or removed from, 
+ * the membership of a particular <code>BeanContext</code>. 
+ * An instance of this event is fired whenever a successful 
+ * add(), remove(), retainAll(), removeAll(), or clear() is 
+ * invoked on a given <code>BeanContext</code> instance.
+ * Objects interested in receiving events of this type must 
+ * implement the <code>BeanContextMembershipListener</code> 
+ * interface, and must register their intent via the
+ * <code>BeanContext</code>'s 
+ * <code>addBeanContextMembershipListener(BeanContextMembershipListener bcml)
+ * </code> method. 
  *
  * @author	Laurence P. G. Cable
- * @version	1.7
+ * @version	1.11
  * @since	1.2
  * @see		java.beans.beancontext.BeanContext
  * @see		java.beans.beancontext.BeanContextEvent
- * @see		java.beans.beancontext.BeanContextListener
+ * @see		java.beans.beancontext.BeanContextMembershipListener
  */
-
 public class BeanContextMembershipEvent extends BeanContextEvent {
 
     /**
      * Contruct a BeanContextMembershipEvent
      *
      * @param bc	The BeanContext source
-     * @param changes	The Children effected
+     * @param changes	The Children affected
      */
 
     public BeanContextMembershipEvent(BeanContext bc, Collection changes) {
 	super(bc);
+
+	if (changes == null) throw new NullPointerException(
+	    "BeanContextMembershipEvent constructor:  changes is null.");
 
 	children = changes;
     }
@@ -51,43 +63,58 @@ public class BeanContextMembershipEvent extends BeanContextEvent {
      *
      * @param bc	The BeanContext source
      * @param changes	The Children effected
+     * @exception       NullPointerException if changes associated with this 
+     *                  event are null.
      */
 
     public BeanContextMembershipEvent(BeanContext bc, Object[] changes) {
 	super(bc);
 
+	if (changes == null) throw new NullPointerException(
+	    "BeanContextMembershipEvent:  changes is null.");
+
 	children = Arrays.asList(changes);
     }
 
     /**
-     * how many children are effected by the notification
+     * Gets the number of children affected by the notification.
+     * @return the number of children affected by the notification
      */
-
     public int size() { return children.size(); }
 
     /**
-     * @return is the child specified effected by the event?
+     * Is the child specified affected by the event?
+     * @return <code>true</code> if affected, <code>false</code> 
+     * if not
      */
-
     public boolean contains(Object child) {
 	return children.contains(child);
     }
 
     /**
-     * @return the array of children effected
+     * Gets the array of children affected by this event.
+     * @return the array of children affected
      */
-
     public Object[] toArray() { return children.toArray(); }
 
     /**
+     * Gets the array of children affected by this event.
      * @return the array of children effected
      */
-
     public Iterator iterator() { return children.iterator(); }
 
     /*
      * fields
      */
 
+   /**
+    * The list of children affected by this 
+    * event notification.
+    */
     protected Collection children;
 }
+
+
+
+
+

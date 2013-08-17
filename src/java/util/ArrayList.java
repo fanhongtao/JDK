@@ -1,8 +1,11 @@
 /*
- * @(#)ArrayList.java	1.20 01/11/29
+ * @(#)ArrayList.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -58,13 +61,13 @@ package java.util;
  * future.
  *
  * @author  Josh Bloch
- * @version 1.20 11/29/01
+ * @version 1.25, 02/02/00
  * @see	    Collection
  * @see	    List
  * @see	    LinkedList
  * @see	    Vector
  * @see	    Collections#synchronizedList(List)
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class ArrayList extends AbstractList implements List, Cloneable,
@@ -86,9 +89,14 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * Constructs an empty list with the specified initial capacity.
      *
      * @param   initialCapacity   the initial capacity of the list.
+     * @exception IllegalArgumentException if the specified initial capacity
+     *            is negative
      */
     public ArrayList(int initialCapacity) {
 	super();
+        if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal Capacity: "+
+                                               initialCapacity);
 	this.elementData = new Object[initialCapacity];
     }
 
@@ -104,6 +112,8 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * collection, in the order they are returned by the collection's
      * iterator.  The <tt>ArrayList</tt> instance has an initial capacity of
      * 110% the size of the specified collection.
+     *
+     * @param c the collection whose elements are to be placed into this list.
      */
     public ArrayList(Collection c) {
         size = c.size();
@@ -168,7 +178,7 @@ public class ArrayList extends AbstractList implements List, Cloneable,
     /**
      * Returns <tt>true</tt> if this list contains the specified element.
      *
-     * @param o element whose presence in this List is to be tested.
+     * @param elem element whose presence in this List is to be tested.
      */
     public boolean contains(Object elem) {
 	return indexOf(elem) >= 0;
@@ -399,9 +409,7 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * undefined if the specified Collection is this list, and this
      * list is nonempty.)
      *
-     * @param index index at which to insert first element
-     *			  from the specified collection.
-     * @param c elements to be inserted into this list.
+     * @param c the elements to be inserted into this list.
      * @throws    IndexOutOfBoundsException if index out of range <tt>(index
      *		  &lt; 0 || index &gt; size())</tt>.
      */
@@ -460,7 +468,7 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * (If <tt>toIndex==fromIndex</tt>, this operation has no effect.)
      *
      * @param fromIndex index of first element to be removed.
-     * @param fromIndex index after last element to be removed.
+     * @param toIndex index after last element to be removed.
      */
     protected void removeRange(int fromIndex, int toIndex) {
 	modCount++;

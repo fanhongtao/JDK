@@ -1,8 +1,11 @@
 /*
- * @(#)DatagramSocket.java	1.40 01/11/29
+ * @(#)DatagramSocket.java	1.49 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -24,7 +27,7 @@ import java.io.InterruptedIOException;
  * DatagramSocket.
  *
  * @author  Pavani Diwanji
- * @version 1.37, 10/30/98
+ * @version 1.49, 02/02/00
  * @see     java.net.DatagramPacket
  * @since JDK1.0
  */
@@ -147,10 +150,14 @@ class DatagramSocket {
 	if (sec != null) {
 	    sec.checkListen(port);
 	}
-	try {
-	    impl = (DatagramSocketImpl) implClass.newInstance();
-	} catch (Exception e) {
-	    throw new SocketException("can't instantiate DatagramSocketImpl");
+	if (factory != null) {
+	    impl = factory.createDatagramSocketImpl();
+	} else {
+	    try {
+	        impl = (DatagramSocketImpl) implClass.newInstance();
+	    } catch (Exception e) {
+	        throw new SocketException("can't instantiate DatagramSocketImpl");
+	    }
 	}
 	// creates a udp socket
 	impl.create();
@@ -398,7 +405,8 @@ class DatagramSocket {
      *  <code>checkConnect</code> method doesn't allow the operation.
      * 
      * @see SecurityManager#checkConnect
-     *
+     * @return an <tt>InetAddress</tt> representing the local
+     * address to which the socket is bound
      * @since   1.1
      */
     public InetAddress getLocalAddress() {
@@ -434,7 +442,10 @@ class DatagramSocket {
      *  timeout must be > 0.
      *  A timeout of zero is interpreted as an infinite timeout.
      *
+     * @param timeout the specified timeout in milliseconds.
+     * @throws SocketException if there is an error in the underlying protocol, such as a TCP error. 
      * @since   JDK1.1
+     * @see #getSoTimeout()
      */
     public synchronized void setSoTimeout(int timeout) throws SocketException {
 	impl.setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
@@ -444,7 +455,10 @@ class DatagramSocket {
      * Retrive setting for SO_TIMEOUT.  0 returns implies that the
      * option is disabled (i.e., timeout of infinity).
      *
+     * @return the setting for SO_TIMEOUT
+     * @throws SocketException if there is an error in the underlying protocol, such as a TCP error.
      * @since   JDK1.1
+     * @see #setSoTimeout(int)
      */
     public synchronized int getSoTimeout() throws SocketException {
 	Object o = impl.getOption(SocketOptions.SO_TIMEOUT);
@@ -458,8 +472,8 @@ class DatagramSocket {
 
     /**
      * Sets the SO_SNDBUF option to the specified value for this
-     * DatagramSocket. The SO_SNDBUF option is used by the platform's
-     * networking code as a hint for the size to use to allocate set
+     * <tt>DatagramSocket</tt>. The SO_SNDBUF option is used by the platform's
+     * networking code as a hint for the size to set
      * the underlying network I/O buffers.
      *
      * <p>Increasing buffer size can increase the performance of
@@ -469,13 +483,16 @@ class DatagramSocket {
      *
      * <p>Because SO_SNDBUF is a hint, applications that want to
      * verify what size the buffers were set to should call
-     * <href="#getSendBufferSize>getSendBufferSize</a>.
+     * {@link #getSendBufferSize()}.
      *
      * @param size the size to which to set the send buffer
      * size. This value must be greater than 0.
      *
-     * @exception IllegalArgumentException if the value is 0 or is
+     * @exception <tt>SocketException</tt> if there is an error 
+     * in the underlying protocol, such as a TCP error.
+     * @exception <tt>IllegalArgumentException</tt> if the value is 0 or is
      * negative.
+     * @see #getSendBufferSize()
      */
     public synchronized void setSendBufferSize(int size)
     throws SocketException{
@@ -486,9 +503,12 @@ class DatagramSocket {
     }
 
     /**
-     * Get value of the SO_SNDBUF option for this socket, that is the
-     * buffer size used by the platform for output on the this Socket.
+     * Get value of the SO_SNDBUF option for this <tt>DatagramSocket</tt>, that is the
+     * buffer size used by the platform for output on this <tt>DatagramSocket</tt>.
      *
+     * @return the value of the SO_SNDBUF option for this <tt>DatagramSocket</tt>
+     * @exception <tt>SocketException</tt> if there is an error in 
+     * the underlying protocol, such as a TCP error.
      * @see #setSendBufferSize
      */
     public synchronized int getSendBufferSize() throws SocketException {
@@ -502,38 +522,43 @@ class DatagramSocket {
 
     /**
      * Sets the SO_RCVBUF option to the specified value for this
-     * DatagramSocket. The SO_RCVBUF option is used by the platform's
-     * networking code as a hint for the size to use to allocate set
+     * <tt>DatagramSocket</tt>. The SO_RCVBUF option is used by the platform's
+     * networking code as a hint for the size to set
      * the underlying network I/O buffers.
      *
      * <p>Increasing buffer size can increase the performance of
      * network I/O for high-volume connection, while decreasing it can
      * help reduce the backlog of incoming data. For UDP, this sets
-     * the maximum size of a packet that may be sent on this socket.
+     * the maximum size of a packet that may be sent on this <tt>DatagramSocket</tt>.
      *
      * <p>Because SO_RCVBUF is a hint, applications that want to
      * verify what size the buffers were set to should call
-     * <href="#getReceiveBufferSize>getReceiveBufferSize</a>.
+     * {@link #getReceiveBufferSize()}.
      *
      * @param size the size to which to set the receive buffer
      * size. This value must be greater than 0.
      *
+     * @exception <tt>SocketException</tt> if there is an error in 
+     * the underlying protocol, such as a TCP error.
      * @exception IllegalArgumentException if the value is 0 or is
      * negative.
+     * @see #getReceiveBufferSize()
      */
     public synchronized void setReceiveBufferSize(int size)
     throws SocketException{
-	if (size < 0) {
+	if (size <= 0) {
 	    throw new IllegalArgumentException("invalid receive size");
 	}
 	impl.setOption(SocketOptions.SO_RCVBUF, new Integer(size));
     }
 
     /**
-     * Get value of the SO_RCVBUF option for this socket, that is the
-     * buffer size used by the platform for input on the this Socket.
+     * Get value of the SO_RCVBUF option for this <tt>DatagramSocket</tt>, that is the
+     * buffer size used by the platform for input on this <tt>DatagramSocket</tt>.
      *
-     * @see #setReceiveBufferSize
+     * @return the value of the SO_RCVBUF option for this <tt>DatagramSocket</tt>
+     * @exception SocketException if there is an error in the underlying protocol, such as a TCP error.
+     * @see #setReceiveBufferSize(int)
      */
     public synchronized int getReceiveBufferSize()
     throws SocketException{
@@ -550,5 +575,49 @@ class DatagramSocket {
      */
     public void close() {
 	impl.close();
+    }
+ 
+    /**
+     * The factory for all datagram sockets.
+     */
+    static DatagramSocketImplFactory factory;
+ 
+    /**
+     * Sets the datagram socket implementation factory for the
+     * application. The factory can be specified only once.
+     * <p>
+     * When an application creates a new datagram socket, the socket
+     * implementation factory's <code>createDatagramSocketImpl</code> method 
+is
+     * called to create the actual datagram socket implementation.
+     * 
+     * <p>If there is a security manager, this method first calls
+     * the security manager's <code>checkSetFactory</code> method 
+     * to ensure the operation is allowed. 
+     * This could result in a SecurityException.
+     *
+     * @param      fac   the desired factory.
+     * @exception  IOException  if an I/O error occurs when setting the
+     *              datagram socket factory.
+     * @exception  SocketException  if the factory is already defined.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkSetFactory</code> method doesn't allow the 
+     operation.
+     * @see        
+     java.net.DatagramSocketImplFactory#createDatagramSocketImpl()
+     * @see       SecurityManager#checkSetFactory
+     */
+    public static synchronized void 
+    setDatagramSocketImplFactory(DatagramSocketImplFactory fac)
+       throws IOException
+    {
+        if (factory != null) {
+	    throw new SocketException("factory already defined");
+	}
+ 	SecurityManager security = System.getSecurityManager();
+ 	if (security != null) {
+	    security.checkSetFactory();
+ 	}
+ 	factory = fac;
     }
 }

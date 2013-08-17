@@ -1,8 +1,11 @@
 /*
- * @(#)TextAction.java	1.20 01/11/29
+ * @(#)TextAction.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -35,7 +38,7 @@ import javax.swing.KeyStroke;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.20 11/29/01
+ * @version 1.21 02/02/00
  */
 public abstract class TextAction extends AbstractAction {
 

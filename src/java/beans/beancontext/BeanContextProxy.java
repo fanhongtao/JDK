@@ -1,22 +1,28 @@
 /*
- * @(#)BeanContextProxy.java	1.3 01/11/29
+ * @(#)BeanContextProxy.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
 
 /**
  * <p>
- * This interface is implemented by a JavaBean that does not directly have 
- * a BeanContext(Child) associated with it (via implementing that interface or a subinterface thereof), but has a public BeanContext(Child) delegated from it.
+ * This interface is implemented by a JavaBean that does 
+ * not directly have a BeanContext(Child) associated with 
+ * it (via implementing that interface or a subinterface thereof), 
+ * but has a public BeanContext(Child) delegated from it.
  * For example, a subclass of java.awt.Container may have a BeanContext 
  * associated with it that all Component children of that Container shall
  * be contained within.
  * </p>
  * <p>
- * An Object may not implement this interface and the BeanContextChild interface
+ * An Object may not implement this interface and the 
+ * BeanContextChild interface
  * (or any subinterfaces thereof) they are mutually exclusive.
  * </p>
  * <p>
@@ -46,8 +52,8 @@ package java.beans.beancontext;
  * instance
  * </p>
  * @author Laurence P. G. Cable
- * @version 1.1
- * @since JDK1.2
+ * @version 1.7, 02/02/00
+ * @since 1.2
  *
  * @seealso java.beans.beancontext.BeanContextChild
  * @seealso java.beans.beancontext.BeanContextChildSupport
@@ -56,8 +62,10 @@ package java.beans.beancontext;
 public interface BeanContextProxy {
 
     /**
-     * @return the BeanContextChild (or subinterface) associated with this Object
+     * Gets the <code>BeanContextChild</code> (or subinterface) 
+     * associated with this object. 
+     * @return the <code>BeanContextChild</code> (or subinterface) 
+     * associated with this object
      */
-
     BeanContextChild getBeanContextProxy();
 }

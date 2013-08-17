@@ -1,8 +1,11 @@
 /*
- * @(#)BasicScrollBarUI.java	1.53 01/11/29
+ * @(#)BasicScrollBarUI.java	1.57 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.plaf.basic;
 
@@ -20,7 +23,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.53 11/29/01
+ * @version 1.57 02/02/00
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -28,6 +31,12 @@ import javax.swing.plaf.*;
 public class BasicScrollBarUI 
     extends ScrollBarUI implements LayoutManager, SwingConstants
 {
+    private static final int POSITIVE_SCROLL = 1;
+    private static final int NEGATIVE_SCROLL = -1;
+
+    private static final int MIN_SCROLL = 2;
+    private static final int MAX_SCROLL = 3;
+
     protected Dimension minimumThumbSize;
     protected Dimension maximumThumbSize;
 
@@ -60,6 +69,10 @@ public class BasicScrollBarUI
     protected Timer scrollTimer;
 
     private final static int scrollSpeedThrottle = 60; // delay in milli seconds
+
+    /** True indicates a middle click will absolutely position the
+     * scrollbar. */
+    private boolean supportsAbsolutePositioning;
 
 
     public static ComponentUI createUI(JComponent c)    {
@@ -108,6 +121,10 @@ public class BasicScrollBarUI
     {
 	minimumThumbSize = (Dimension)UIManager.get("ScrollBar.minimumThumbSize");
 	maximumThumbSize = (Dimension)UIManager.get("ScrollBar.maximumThumbSize");
+
+	Boolean absB = (Boolean)UIManager.get("ScrollBar.allowsAbsolutePositioning");
+	supportsAbsolutePositioning = (absB != null) ? absB.booleanValue() :
+	                              false;
 
 	trackHighlight = NO_HIGHLIGHT;
         switch (scrollbar.getOrientation()) {
@@ -164,9 +181,52 @@ public class BasicScrollBarUI
 
 
     protected void installKeyboardActions(){
+	ActionMap map = getActionMap();
+
+	SwingUtilities.replaceUIActionMap(scrollbar, map);
+	InputMap inputMap = getInputMap(JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIInputMap(scrollbar, JComponent.WHEN_FOCUSED,
+					 inputMap);
     }
 
     protected void uninstallKeyboardActions(){
+	SwingUtilities.replaceUIInputMap(scrollbar, JComponent.WHEN_FOCUSED,
+					 null);
+	SwingUtilities.replaceUIActionMap(scrollbar, null);
+    }
+
+    private InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_FOCUSED) {
+	    return (InputMap)UIManager.get("ScrollBar.focusInputMap");
+	}
+	return null;
+    }
+
+    private ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("ScrollBar.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("ScrollBar.actionMap", map);
+	    }
+	}
+	return map;
+    }
+
+    private ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+        map.put("positiveUnitIncrement", new SharedActionScroller
+		(POSITIVE_SCROLL, false));
+        map.put("positiveBlockIncrement", new SharedActionScroller
+		(POSITIVE_SCROLL, true));
+        map.put("negativeUnitIncrement", new SharedActionScroller
+		(NEGATIVE_SCROLL, false));
+        map.put("negativeBlockIncrement", new SharedActionScroller
+		(NEGATIVE_SCROLL, true));
+        map.put("minScroll", new SharedActionScroller(MIN_SCROLL, true));
+        map.put("maxScroll", new SharedActionScroller(MAX_SCROLL, true));
+	return map;
     }
 
 
@@ -385,15 +445,14 @@ public class BasicScrollBarUI
     }
 
     /** 
-     * Return the smallest acceptable size for the thumb.  If the scrollbar
-     * becomes so small that this size isn't available, the thumb will be
-     * hidden.  To create a fixed size thumb one make this
-     * method and <code>getMinimumThumbSize</code> return the same value.
+     * Return the largest acceptable size for the thumb.  To create a fixed 
+     * size thumb one make this method and <code>getMinimumThumbSize</code> 
+     * return the same value.
      * <p>
      * <b>Warning </b>: the value returned by this method should not be
      * be modified, it's a shared static constant.
      *
-     * @return The smallest acceptable size for the thumb.
+     * @return The largest acceptable size for the thumb.
      * @see #getMinimumThumbSize
      */
     protected Dimension getMaximumThumbSize()	{ 
@@ -697,7 +756,17 @@ public class BasicScrollBarUI
         scrollbar.setValue(delta + scrollbar.getValue()); 
 	}
     }
-  		
+
+    /**
+     * Indicates whether the user can absolutely position the offset with
+     * a mouse click (usually the middle mouse button).
+     * <p>The return value is determined from the UIManager property
+     * ScrollBar.allowsAbsolutePositioning.
+     */
+    private boolean getSupportsAbsolutePositioning() {
+	return supportsAbsolutePositioning;
+    }
+
     /**
      * A listener to listen for model changes.
      *
@@ -748,6 +817,10 @@ public class BasicScrollBarUI
 	    if(!scrollbar.isEnabled())
 		return;
 
+	    if (!scrollbar.hasFocus()) {
+		scrollbar.requestFocus();
+	    }
+
 	    scrollbar.setValueIsAdjusting(true);
 
             currentMouseX = e.getX();
@@ -765,7 +838,21 @@ public class BasicScrollBarUI
                 }
 		isDragging = true;
 		return;
-	    }            
+	    }
+	    else if (getSupportsAbsolutePositioning() &&
+		     SwingUtilities.isMiddleMouseButton(e)) {
+                switch (scrollbar.getOrientation()) {
+                case JScrollBar.VERTICAL:
+		    offset = getThumbBounds().height / 2;
+                    break;
+                case JScrollBar.HORIZONTAL:
+		    offset = getThumbBounds().width / 2;
+                    break;
+                }
+		isDragging = true;
+		setValueFrom(e);
+		return;
+	    }
 	    isDragging = false;
 							
             Dimension sbSize = scrollbar.getSize();
@@ -805,8 +892,11 @@ public class BasicScrollBarUI
 	 * Set the models value to the position of the top/left
 	 * of the thumb relative to the origin of the track.
 	 */
-	public void mouseDragged(MouseEvent e)
-	{
+	public void mouseDragged(MouseEvent e) {
+	    setValueFrom(e);
+	}
+
+	private void setValueFrom(MouseEvent e) {
 	    if(!scrollbar.isEnabled() || !isDragging) {
 		return;
 	    }
@@ -878,6 +968,9 @@ public class BasicScrollBarUI
 	    scrollTimer.start();
 
 	    handledEvent = true;	
+	    if (!scrollbar.hasFocus()) {
+		scrollbar.requestFocus();
+	    }
 	}
 
 	public void mouseReleased(MouseEvent e)		{
@@ -968,7 +1061,58 @@ public class BasicScrollBarUI
                     ((BasicArrowButton)decrButton).setDirection(orient.intValue() == HORIZONTAL?
                                                                 WEST : NORTH);
                 }
+            } else if ("componentOrientation".equals(propertyName)) {
+                ComponentOrientation co = scrollbar.getComponentOrientation();
+                incrButton.setComponentOrientation(co);
+                decrButton.setComponentOrientation(co);
             }
+	}
+    }
+
+
+    /**
+     * Used for scrolling the scrollbar.
+     */
+    private static class SharedActionScroller extends AbstractAction {
+        private int dir;
+        private boolean block;
+
+        SharedActionScroller(int dir, boolean block) {
+            this.dir = dir;
+            this.block = block;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+	    JScrollBar scrollBar = (JScrollBar)e.getSource();
+	    if (dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL) {
+		int amount;
+		// Don't use the BasicScrollBarUI.scrollByXXX methods as we
+		// don't want to use an invokeLater to reset the trackHighlight
+		// via an invokeLater
+		if (block) {
+		    if (dir == NEGATIVE_SCROLL) {
+			amount = -1 * scrollBar.getBlockIncrement(-1);
+		    }
+		    else {
+			amount = scrollBar.getBlockIncrement(1);
+		    }
+		}
+		else {
+		    if (dir == NEGATIVE_SCROLL) {
+			amount = -1 * scrollBar.getUnitIncrement(-1);
+		    }
+		    else {
+			amount = scrollBar.getUnitIncrement(1);
+		    }
+		}
+		scrollBar.setValue(scrollBar.getValue() + amount);
+	    }
+	    else if (dir == MIN_SCROLL) {
+		scrollBar.setValue(scrollBar.getMinimum());
+	    }
+	    else if (dir == MAX_SCROLL) {
+		scrollBar.setValue(scrollBar.getMaximum());
+	    }
 	}
     }
 }

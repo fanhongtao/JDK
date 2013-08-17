@@ -1,8 +1,11 @@
 /*
- * @(#)Float.java	1.54 01/11/29
+ * @(#)Float.java	1.60 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -20,7 +23,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.48, 07/23/98
+ * @version 1.60, 02/02/00
  * @since   JDK1.0
  */
 public final class Float extends Number implements Comparable {
@@ -174,7 +177,7 @@ public final class Float extends Number implements Comparable {
      * @exception  NumberFormatException  if the string does not contain a
      *               parsable float.
      * @see        java.lang.Double#valueOf(String)
-     * @since      JDK1.2
+     * @since      1.2
      */
     public static float parseFloat(String s) throws NumberFormatException {
 	return FloatingDecimal.readJavaFormatString(s).floatValue();
@@ -382,13 +385,13 @@ public final class Float extends Number implements Comparable {
      * </ul>
      * This definition allows hashtables to operate properly.
      *
+     * @param obj the object to be compared
      * @return  <code>true</code> if the objects are the same;
      *          <code>false</code> otherwise.
      * @see     java.lang.Float#floatToIntBits(float)
      */
     public boolean equals(Object obj) {
-	return (obj != null)
-	       && (obj instanceof Float)
+	return (obj instanceof Float)
 	       && (floatToIntBits(((Float)obj).value) == floatToIntBits(value));
     }
 
@@ -422,6 +425,38 @@ public final class Float extends Number implements Comparable {
     public static native int floatToIntBits(float value);
 
     /**
+     * Returns the bit represention of a single-float value.
+     * The result is a representation of the floating-point argument 
+     * according to the IEEE 754 floating-point "single 
+     * precision" bit layout. 
+     * <ul>
+     * <li>Bit 31 (the bit that is selected by the mask 
+     * <code>0x80000000</code>) represents the sign of the floating-point 
+     * number. 
+     * <li>Bits 30-23 (the bits that are selected by the mask 
+     * <code>0x7f800000</code>) represent the exponent. 
+     * <li>Bits 22-0 (the bits that are selected by the mask 
+     * <code>0x007fffff</code>) represent the significand (sometimes called 
+     * the mantissa) of the floating-point number. 
+     * <li>If the argument is positive infinity, the result is 
+     * <code>0x7f800000</code>. 
+     * <li>If the argument is negative infinity, the result is 
+     * <code>0xff800000</code>.
+     * <p>
+     * If the argument is NaN, the result is the integer
+     * representing the actual NaN value.  Unlike the <code>floatToIntBits</code>
+     * method, <code>intToRawIntBits</code> does not collapse NaN values.
+     * </ul>
+     * In all cases, the result is an integer that, when given to the 
+     * {@link #intBitsToFloat(int)} method, will produce a floating-point 
+     * value equal to the argument to <code>floatToRawIntBits</code>.
+     * 
+     * @param   value   a floating-point number.
+     * @return  the bits that represent the floating-point number.
+     */
+    public static native int floatToRawIntBits(float value);
+
+    /**
      * Returns the single-float corresponding to a given bit represention.
      * The argument is considered to be a representation of a
      * floating-point value according to the IEEE 754 floating-point
@@ -436,8 +471,10 @@ public final class Float extends Number implements Comparable {
      * If the argument is any value in the range <code>0x7f800001</code> 
      * through <code>0x7fffffff</code> or in the range 
      * <code>0xff800001</code> through <code>0xffffffff</code>, the result is 
-     * NaN. All IEEE 754 NaN values are, in effect, lumped together by 
-     * the Java language into a single value called NaN. 
+     * NaN. All IEEE 754 NaN values of type <code>float</code> are, in effect,
+     * lumped together by the Java programming language into a single 
+     * <code>float</code> value called NaN.  Distinct values of NaN are only
+     * accessible by use of the <code>Float.floatToRawIntBits</code> method.
      * <p>
      * In all other cases, let <i>s</i>, <i>e</i>, and <i>m</i> be three 
      * values that can be computed from the argument: 
@@ -482,7 +519,7 @@ public final class Float extends Number implements Comparable {
      *		<code>0</code> if this Float is numerically greater than
      *		<code>anotherFloat</code>.
      *		
-     * @since   JDK1.2
+     * @since   1.2
      * @see     Comparable#compareTo(Object)
      */
     public int compareTo(Float anotherFloat) {
@@ -518,7 +555,7 @@ public final class Float extends Number implements Comparable {
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Float</code>.
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((Float)o);

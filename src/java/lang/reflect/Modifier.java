@@ -1,8 +1,11 @@
 /*
- * @(#)Modifier.java	1.14 01/11/29
+ * @(#)Modifier.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang.reflect;
@@ -108,7 +111,7 @@ class Modifier {
     }
 
     /**
-     * Return true if the specifier integer includes the <tt>strict</tt>
+     * Return true if the specifier integer includes the <tt>strictfp</tt>
      * modifier.
      */
     public static boolean isStrict(int mod) {
@@ -144,7 +147,7 @@ class Modifier {
 
 	if ((mod & INTERFACE) != 0)	sb.append("interface ");
 
-	if ((mod & STRICT) != 0)	sb.append("strict ");
+	if ((mod & STRICT) != 0)	sb.append("strictfp ");
 
 	if ((len = sb.length()) > 0)	/* trim trailing space */
 	    return sb.toString().substring(0, len-1);
@@ -223,7 +226,7 @@ class Modifier {
     public static final int ABSTRACT         = 0x00000400;
 
     /**
-     * The <code>int</code> value representing the <code>strict</code> 
+     * The <code>int</code> value representing the <code>strictfp</code> 
      * modifier.
      */    
     public static final int STRICT           = 0x00000800;

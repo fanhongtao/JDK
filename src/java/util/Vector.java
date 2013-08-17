@@ -1,8 +1,11 @@
 /*
- * @(#)Vector.java	1.63 01/11/29
+ * @(#)Vector.java	1.70 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -23,9 +26,9 @@ package java.util;
  * capacity of a vector before inserting a large number of 
  * components; this reduces the amount of incremental reallocation. <p>
  *
- * As of JDK1.2, this class has been retrofitted to implement List,
- * so that it becomes a part of Java's collection framework.  Unlike
- * the new collection implementations, Vector is synchronized.<p>
+ * As of the Java 2 platform v1.2, this class has been retrofitted to
+ * implement List, so that it becomes a part of Java's collection framework.
+ * Unlike the new collection implementations, Vector is synchronized.<p>
  *
  * The Iterators returned by Vector's iterator and listIterator
  * methods are <em>fail-fast</em>: if the Vector is structurally modified
@@ -39,7 +42,7 @@ package java.util;
  *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.63, 11/29/01
+ * @version 1.70, 02/02/00
  * @see Collection
  * @see List
  * @see ArrayList
@@ -71,8 +74,8 @@ public class Vector extends AbstractList implements List, Cloneable,
     /**
      * The amount by which the capacity of the vector is automatically 
      * incremented when its size becomes greater than its capacity.  If 
-     * the capacity increment is <code>0</code>, the capacity of the 
-     * vector is doubled each time it needs to grow. 
+     * the capacity increment is less than or equal to zero, the capacity
+     * of the vector is doubled each time it needs to grow.
      *
      * @serial
      */
@@ -126,12 +129,38 @@ public class Vector extends AbstractList implements List, Cloneable,
      * collection, in the order they are returned by the collection's
      * iterator.
      *
-     * @since   JDK1.2
+     * @param c the collection whose elements are to be placed into this
+     *       vector.
+     * @since   1.2
      */
     public Vector(Collection c) {
         elementCount = c.size();
 	elementData = new Object[(elementCount*110)/100]; // 10% for growth
         c.toArray(elementData);
+    }
+
+    /**
+     * This method is here to ensure that the serialization a Vector instance
+     * is also synchronized.
+     */
+     
+    private synchronized void writeObject(java.io.ObjectOutputStream s)
+        throws java.io.IOException
+    {
+	// Write out the serializable fields to the stream.
+	s.defaultWriteObject();
+    }
+
+    /**
+     * This method is here to ensure that the deserialization a Vector instance
+     * is also synchronized.
+     */
+     
+    private synchronized void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException
+    {
+	// Read in serializable fields from the stream.
+	s.defaultReadObject();
     }
 
     /**
@@ -168,17 +197,19 @@ public class Vector extends AbstractList implements List, Cloneable,
     /**
      * Increases the capacity of this vector, if necessary, to ensure 
      * that it can hold at least the number of components specified by 
-     * the minimum capacity argument. <p>If the current capacity of this 
-     * vector is less than <tt>minCapacity</tt>, then its capacity is
-     * increased by replacing its internal data array, kept in the field 
-     * <tt>elementData</tt>, with a larger one. The size of the new data 
-     * array will be the old size plus <tt>capacityIncrement</tt>, unless 
-     * the value of <tt>capacityIncrement</tt> is nonpositive, in which 
-     * case the new capacity will be twice the old capacity; but if
-     * this new size is still smaller than <tt>minCapacity</tt>, then the 
-     * new capacity will be <tt>minCapacity</tt>. 
+     * the minimum capacity argument.
      *
-     * @param   minCapacity   the desired minimum capacity.
+     * <p>If the current capacity of this vector is less than
+     * <tt>minCapacity</tt>, then its capacity is increased by replacing its
+     * internal data array, kept in the field <tt>elementData</tt>, with a
+     * larger one.  The size of the new data array will be the old size plus
+     * <tt>capacityIncrement</tt>, unless the value of
+     * <tt>capacityIncrement</tt> is less than or equal to zero, in which case
+     * the new capacity will be twice the old capacity; but if this new size
+     * is still smaller than <tt>minCapacity</tt>, then the new capacity will
+     * be <tt>minCapacity</tt>.
+     *
+     * @param minCapacity the desired minimum capacity.
      */
     public synchronized void ensureCapacity(int minCapacity) {
 	modCount++;
@@ -321,13 +352,15 @@ public class Vector extends AbstractList implements List, Cloneable,
      * the <code>equals</code> method. 
      *
      * @param   elem    an object.
-     * @param   index   the index to start searching from.
+     * @param   index   the non-negative index to start searching from.
      * @return  the index of the first occurrence of the object argument in
      *          this vector at position <code>index</code> or later in the
      *          vector, that is, the smallest value <tt>k</tt> such that 
      *          <tt>elem.equals(elementData[k]) && (k &gt;= index)</tt> is 
      *          <tt>true</tt>; returns <code>-1</code> if the object is not 
-     *           found.
+     *          found. (Returns <code>-1</code> if <tt>index</tt> &gt;= the
+     *          current size of this <tt>Vector</tt>.)
+     * @exception  IndexOutOfBoundsException  if <tt>index</tt> is negative.
      * @see     Object#equals(Object)
      */
     public synchronized int indexOf(Object elem, int index) {
@@ -364,12 +397,18 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @param  elem    the desired component.
      * @param  index   the index to start searching from.
      * @return the index of the last occurrence of the specified object in this
-     *          vector at position less than <code>index</code> in the 
-     *          vector, that is, the largest value <tt>k</tt> such that 
+     *          vector at position less than or equal to <code>index</code> in
+     *          the vector, that is, the largest value <tt>k</tt> such that 
      *          <tt>elem.equals(elementData[k]) && (k &lt;= index)</tt> is 
      *          <tt>true</tt>; <code>-1</code> if the object is not found.
+     *          (Returns <code>-1</code> if <tt>index</tt> is negative.)
+     * @exception  IndexOutOfBoundsException  if <tt>index</tt> is greater
+     *             than or equal to the current size of this vector.
      */
     public synchronized int lastIndexOf(Object elem, int index) {
+        if (index >= elementCount)
+            throw new IndexOutOfBoundsException(index + " >= "+ elementCount);
+
 	if (elem == null) {
 	    for (int i = index; i >= 0; i--)
 		if (elementData[i]==null)
@@ -627,7 +666,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * Returns an array containing all of the elements in this Vector
      * in the correct order.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Object[] toArray() {
 	Object[] result = new Object[elementCount];
@@ -677,7 +716,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @param index index of element to return.
      * @exception ArrayIndexOutOfBoundsException index is out of range (index
      * 		  &lt; 0 || index &gt;= size()).
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Object get(int index) {
 	if (index >= elementCount)
@@ -696,7 +735,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @exception ArrayIndexOutOfBoundsException index out of range
      *		  (index &lt; 0 || index &gt;= size()).
      * @exception IllegalArgumentException fromIndex &gt; toIndex.
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Object set(int index, Object element) {
 	if (index >= elementCount)
@@ -712,7 +751,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      *
      * @param o element to be appended to this Vector.
      * @return true (as per the general contract of Collection.add).
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized boolean add(Object o) {
 	modCount++;
@@ -730,7 +769,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      *
      * @param o element to be removed from this Vector, if present.
      * @return true if the Vector contained the specified element.
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean remove(Object o) {
         return removeElement(o);
@@ -745,7 +784,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @param element element to be inserted.
      * @exception ArrayIndexOutOfBoundsException index is out of range
      *		  (index &lt; 0 || index &gt; size()).
-     * @since JDK1.2
+     * @since 1.2
      */
     public void add(int index, Object element) {
         insertElementAt(element, index);
@@ -759,7 +798,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @exception ArrayIndexOutOfBoundsException index out of range (index
      * 		  &lt; 0 || index &gt;= size()).
      * @param index the index of the element to removed.
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized Object remove(int index) {
 	modCount++;
@@ -780,7 +819,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * Removes all of the elements from this Vector.  The Vector will
      * be empty after this call returns (unless it throws an exception).
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public void clear() {
         removeAllElements();
@@ -807,12 +846,10 @@ public class Vector extends AbstractList implements List, Cloneable,
      * (This implies that the behavior of this call is undefined if the
      * specified Collection is this Vector, and this Vector is nonempty.)
      *
-     * @param index index at which to insert first element
-     *			  from the specified collection.
      * @param c elements to be inserted into this Vector.
      * @exception ArrayIndexOutOfBoundsException index out of range (index
      *		  &lt; 0 || index &gt; size()).
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized boolean addAll(Collection c) {
 	modCount++;
@@ -831,7 +868,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * specified Collection.
      *
      * @return true if this Vector changed as a result of the call.
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized boolean removeAll(Collection c) {
         return super.removeAll(c);
@@ -843,7 +880,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * of its elements that are not contained in the specified Collection. 
      *
      * @return true if this Vector changed as a result of the call.
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized boolean retainAll(Collection c)  {
         return super.retainAll(c);
@@ -862,7 +899,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @param c elements to be inserted into this Vector.
      * @exception ArrayIndexOutOfBoundsException index out of range (index
      *		  &lt; 0 || index &gt; size()).
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized boolean addAll(int index, Collection c) {
 	modCount++;
@@ -943,7 +980,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * a fashion that iterations in progress may yield incorrect results.)
      *
      * @param fromIndex low endpoint (inclusive) of the subList.
-     * @param toKey high endpoint (exclusive) of the subList.
+     * @param toIndex high endpoint (exclusive) of the subList.
      * @return a view of the specified range within this List.
      * @throws IndexOutOfBoundsException endpoint index value out of range
      *         <code>(fromIndex &lt; 0 || toIndex &gt; size)</code>
@@ -963,7 +1000,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * toIndex==fromIndex, this operation has no effect.)
      *
      * @param fromIndex index of first element to be removed.
-     * @param fromIndex index after last element to be removed.
+     * @param toIndex index after last element to be removed.
      */
     protected void removeRange(int fromIndex, int toIndex) {
 	modCount++;

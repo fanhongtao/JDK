@@ -1,8 +1,11 @@
 /*
- * @(#)Caret.java	1.24 01/11/29
+ * @(#)Caret.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -13,15 +16,24 @@ import javax.swing.event.ChangeListener;
 
 /**
  * A place within a document view that represents where
- * things can be inserted into the document model.  It gives a 
- * way to navigate through the document view while abstracting
- * away the details of how the view is arranged.  This can
- * be useful because some views may filter out portions of
- * the associated model, and some views may not allow navigation
- * in certain areas such as read-only areas.
+ * things can be inserted into the document model.  A caret
+ * has a position in the document referred to as a dot.
+ * The dot is where the caret is currently located in the
+ * model.  There is
+ * a second position maintained by the caret that represents
+ * the other end of a selection called mark.  If there is
+ * no selection the dot and mark will be equal.  If a selection
+ * exists, the two values will be different.
+ * <p>
+ * The dot can be placed by either calling 
+ * <code>setDot</code> or <code>moveDot</code>.  Setting
+ * the dot has the effect of removing any selection that may
+ * have previously existed.  The dot and mark will be equal.
+ * Moving the dot has the effect of creating a selection as
+ * the mark is left at whatever position it previously had.
  *
  * @author  Timothy Prinzing
- * @version 1.24 11/29/01
+ * @version 1.26 02/02/00
  */
 public interface Caret {
 
@@ -97,18 +109,23 @@ public interface Caret {
     public void setSelectionVisible(boolean v);
 
     /**
-     * Saves the current caret position.  This is used when 
-     * caret up or down actions occur, moving between lines
-     * that have uneven end positions.
+     * Set the current caret visual location.  This can be used when 
+     * moving between lines that have uneven end positions (such as
+     * when caret up or down actions occur).  If text flows
+     * left-to-right or right-to-left the x-coordinate will indicate
+     * the desired navigation location for vertical movement.  If
+     * the text flow is top-to-bottom, the y-coordinate will indicate
+     * the desired navigation location for horizontal movement.
      *
-     * @param p  the Point to use for the saved position
+     * @param p  the Point to use for the saved position.  This
+     *   can be null to indicate there is no visual location.
      */
     public void setMagicCaretPosition(Point p);
 
     /**
-     * Gets the current caret position. 
+     * Gets the current caret visual location. 
      *
-     * @return the position
+     * @return the visual position.
      * @see #setMagicCaretPosition
      */
     public Point getMagicCaretPosition();
@@ -159,7 +176,7 @@ public interface Caret {
     public void setDot(int dot);
 
     /**
-     * Moves the caret position to some other position,
+     * Moves the caret position (dot) to some other position,
      * leaving behind the mark.  This is useful for
      * making selections.
      *

@@ -1,8 +1,11 @@
 /*
- * @(#)ToolTipManager.java	1.41 01/11/29
+ * @(#)ToolTipManager.java	1.49 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -16,7 +19,7 @@ import java.io.Serializable;
  * Manages all the ToolTips in the system.
  *
  * @see JComponent#createToolTip
- * @version 1.41 11/29/01
+ * @version 1.44 06/01/99
  * @author Dave Moore
  * @author Rich Schiavi
  */
@@ -30,6 +33,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     final static ToolTipManager sharedInstance = new ToolTipManager();
     Popup tipWindow;
     JToolTip tip;
+    private PopupFactory popupFactory = new DefaultPopupFactory();
 
     private Rectangle popupRect = null;
     private Rectangle popupFrameRect = null;
@@ -40,10 +44,11 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     private long timerEnter = 0;
    
     private KeyStroke postTip,hideTip;
-    private ActionListener postTipAction, hideTipAction;
+    private Action postTipAction, hideTipAction;
 
     private FocusListener focusChangeListener = null;
 
+    // PENDING(ges)
     protected boolean lightWeightPopupEnabled = true;
     protected boolean heavyWeightPopupEnabled = false;
 
@@ -57,7 +62,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 
 	// create accessibility actions 
 	postTip = KeyStroke.getKeyStroke(KeyEvent.VK_F1,Event.CTRL_MASK);
-	postTipAction = new ActionListener(){
+	postTipAction = new AbstractAction(){
 	  public void actionPerformed(ActionEvent e){
 	    if (tipWindow != null) // showing we unshow
 	      hideTipWindow();
@@ -81,12 +86,17 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	  }
 	};
 	hideTip = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0);
-	hideTipAction = new ActionListener(){
+	hideTipAction = new AbstractAction(){
 	  public void actionPerformed(ActionEvent e){
 	    hideTipWindow();
 	    JComponent jc = (JComponent)e.getSource();
 	    jc.removeFocusListener(focusChangeListener);
 	    preferredLocation = null;
+	  }
+	  public boolean isEnabled() {
+	      // Only enable when the tooltip is showing, otherwise
+	      // we will get in the way of any UI actions.
+	      return tipShowing;
 	  }
 	};
     }
@@ -116,11 +126,10 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
      * When displaying the JToolTip, the ToolTipManager choose to use a light weight JPanel if
      * it fits. This method allows you to disable this feature. You have to do disable
      * it if your application mixes light weight and heavy weights components.
-     * @deprecated As of Swing1.1
-     *  replaced by <code>setToolTipWindowUsePolicy(int)</code>.
+     *
      */
     public void setLightWeightPopupEnabled(boolean aFlag){
-      lightWeightPopupEnabled = aFlag;
+	popupFactory.setLightWeightPopupEnabled(aFlag);
     }
     
     /**
@@ -130,20 +139,20 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
      * @return true if lightweight ToolTips are in use
      */
     public boolean isLightWeightPopupEnabled() { 
-        return lightWeightPopupEnabled;
+        return popupFactory.isLightWeightPopupEnabled();
     }
 
 
     /**
      * Specifies the initial delay value.
      *
-     * @param microSeconds  an int specifying the number of microseconds
+     * @param milliseconds  the number of milliseconds
      *        to delay (after the cursor has paused) before displaying the
      *        tooltip
      * @see #getInitialDelay
      */
-    public void setInitialDelay(int microSeconds) {
-        enterTimer.setInitialDelay(microSeconds);
+    public void setInitialDelay(int milliseconds) {
+        enterTimer.setInitialDelay(milliseconds);
     }
 
     /**
@@ -159,13 +168,13 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     /**
      * Specifies the dismisal delay value.
      *
-     * @param microSeconds  an int specifying the number of microseconds
+     * @param milliseconds  the number of milliseconds
      *        to delay (after the cursor has moved on) before taking away
      *        the tooltip
      * @see #getDismissDelay
      */
-    public void setDismissDelay(int microSeconds) {
-        insideTimer.setInitialDelay(microSeconds);
+    public void setDismissDelay(int milliseconds) {
+        insideTimer.setInitialDelay(milliseconds);
     }
 
     /**
@@ -181,12 +190,12 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     /**
      * Specifies the time to delay before reshowing the tooltip.
      *
-     * @param microSeconds  an int specifying the time in microseconds
-     *        before reshowing the tooltip if the cursor stops again
+     * @param milliseconds  the time in milliseconds
+     *        to delay before reshowing the tooltip if the cursor stops again
      * @see #getReshowDelay
      */
-    public void setReshowDelay(int microSeconds) {
-        exitTimer.setInitialDelay(microSeconds);
+    public void setReshowDelay(int milliseconds) {
+        exitTimer.setInitialDelay(milliseconds);
     }
 
     /**
@@ -207,6 +216,8 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             Point screenLocation = insideComponent.getLocationOnScreen();
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             Point location = new Point();
+	    boolean leftToRight 
+                = SwingUtilities.isLeftToRight(insideComponent);
 
             // Just to be paranoid
             hideTipWindow();
@@ -215,29 +226,20 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             tip.setTipText(toolTipText);
             size = tip.getPreferredSize();
 
-	    // fix bug 4135787: Tooltips don't work when used in awt.Frame or awt.Applet, etc
-	    // this is a quick and dirty check 
-	    if (insideComponent.getRootPane() == null){
-	      tipWindow = new WindowPopup((frameForComponent(insideComponent)),tip,size);
-	      heavyWeightPopupEnabled = true;
-	    }
-	    else if (lightWeightPopupEnabled){
-	      heavyWeightPopupEnabled = false;
-	      tipWindow = new JPanelPopup(tip,size);
-	    }
-	    else {
-	      heavyWeightPopupEnabled = false;
-	      tipWindow = new PanelPopup(tip,size);
-	    }
-
-            tipWindow.addMouseListener(this);
-
             if(preferredLocation != null) {
                 location.x = screenLocation.x + preferredLocation.x;
                 location.y = screenLocation.y + preferredLocation.y;
+		if (!leftToRight) {
+		    location.x -= size.width;
+		}
             } else {
                 location.x = screenLocation.x + mouseEvent.getX();
                 location.y = screenLocation.y + mouseEvent.getY() + 20;
+		if (!leftToRight) {
+		    if(location.x - size.width>=0) {
+		        location.x -= size.width;
+		    }
+		}
 
                 if (location.x + size.width > screenSize.width) {
                     location.x -= size.width;
@@ -254,7 +256,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 		  popupRect = new Rectangle();
 		}
 		popupRect.setBounds(location.x,location.y,
-				    tipWindow.getBounds().width,tipWindow.getBounds().height);
+				    size.width,size.height);
 
 		int y = getPopupFitHeight(popupRect, insideComponent);
 		int x = getPopupFitWidth(popupRect,insideComponent);
@@ -268,7 +270,14 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 		}
 	    }		
 
-	    tipWindow.show(insideComponent,location.x,location.y);
+	    tipWindow = popupFactory.getPopup(tip,
+					      insideComponent,
+					      location.x,
+					      location.y);
+	    if (tipWindow instanceof Window) 
+		((Window)tipWindow).addMouseListener(this);
+
+	    tipWindow.show(insideComponent);
             insideTimer.start();
 	    timerEnter = System.currentTimeMillis();
 	    tipShowing = true;
@@ -277,7 +286,8 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 
     void hideTipWindow() {
         if (tipWindow != null) {
-            tipWindow.removeMouseListener(this);
+	    if (tipWindow instanceof Window) 
+		((Window)tipWindow).removeMouseListener(this);
 	    tipWindow.hide();
 	    tipWindow = null;
 	    tipShowing = false;
@@ -300,18 +310,33 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     // add keylistener here to trigger tip for access
     /**
      * Register a component for tooltip management.
+     * <p>This will register key bindings to show and hide the tooltip text
+     * only if <code>component</code> has focus bindings. This is done
+     * so that components that are not normally focus traversable, such
+     * as JLabel, are not made focus traversable as a result of invoking
+     * this method.
      *
      * @param component  a JComponent object
+     * @see JComponent#isFocusTraversable
      */
     public void registerComponent(JComponent component) {
         component.removeMouseListener(this);
         component.addMouseListener(this);
-	// register our accessibility keybindings for this component
-	// this will apply globally across L&F
-	// Post Tip: Ctrl+F1
-	// Unpost Tip: Esc and Ctrl+F1
-	component.registerKeyboardAction(postTipAction,postTip,JComponent.WHEN_FOCUSED);
-	component.registerKeyboardAction(hideTipAction,hideTip,JComponent.WHEN_FOCUSED);
+	if (shouldRegisterBindings(component)) {
+	    // register our accessibility keybindings for this component
+	    // this will apply globally across L&F
+	    // Post Tip: Ctrl+F1
+	    // Unpost Tip: Esc and Ctrl+F1
+	    InputMap inputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
+	    ActionMap actionMap = component.getActionMap();
+
+	    if (inputMap != null && actionMap != null) {
+		inputMap.put(postTip, "postTip");
+		inputMap.put(hideTip, "hideTip");
+		actionMap.put("postTip", postTipAction);
+		actionMap.put("hideTip", hideTipAction);
+	    }
+	}
     }
 
     /**
@@ -321,10 +346,38 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
      */
     public void unregisterComponent(JComponent component) {
         component.removeMouseListener(this);
-	component.unregisterKeyboardAction(postTip);
-	component.unregisterKeyboardAction(hideTip);
+	if (shouldRegisterBindings(component)) {
+	    InputMap inputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
+	    ActionMap actionMap = component.getActionMap();
+
+	    if (inputMap != null && actionMap != null) {
+		inputMap.remove(postTip);
+		inputMap.remove(hideTip);
+		actionMap.remove("postTip");
+		actionMap.remove("hideTip");
+	    }
+	}
     }
 
+    /**
+     * Returns whether or not bindings should be registered on the given
+     * Component. This is implemented to return true if the receiver has
+     * a binding in any one of the InputMaps registered under the condition
+     * <code>WHEN_FOCUSED</code>.
+     * <p>
+     * This does not use <code>isFocusTraversable</code> as
+     * some components may override <code>isFocusTraversable</code> and
+     * base the return value on something other than bindings. For example,
+     * JButton bases its return value on its enabled state.
+     */
+    private boolean shouldRegisterBindings(JComponent component) {
+	InputMap inputMap = component.getInputMap(JComponent.WHEN_FOCUSED,
+						  false);
+	while (inputMap != null && inputMap.size() == 0) {
+	    inputMap = inputMap.getParent();
+	}
+	return (inputMap != null);
+    }
 
     // implements java.awt.event.MouseListener
     public void mouseEntered(MouseEvent event) {
@@ -408,7 +461,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	  // if we get an exit and have a heavy window
 	  // we need to check if it if overlapping the inside component
             Container insideComponentWindow = insideComponent.getTopLevelAncestor();
-            Rectangle b = tipWindow.getBounds();
+            Rectangle b = tipWindow.getBoundsOnScreen();
             Point location = event.getPoint();
             location.x += b.x;
             location.y += b.y;
@@ -431,7 +484,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             location.x += bounds.x;
             location.y += bounds.y;
 
-            bounds = tipWindow.getBounds();
+            bounds = tipWindow.getBoundsOnScreen();
             if(location.x >= bounds.x && location.x < (bounds.x + bounds.width) &&
                location.y >= bounds.y && location.y < (bounds.y + bounds.height)) {
                 shouldHide = false;
@@ -610,160 +663,5 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     }
   }
 	
-  /*
-   * The following interface describes what a popup should implement.
-   * We do this because the ToolTip manager uses popup that can be windows or
-   * panels. The reason is two-fold: We'd like to use panels mostly, but when the
-   * panel (or tooltip) would not fit, we need to use a Window to avoid the panel
-   * being clipped or not shown.
-   *
-   */
-  private interface Popup {
-    public void show(JComponent invoker, int x, int y);
-    public void hide();
-    public void addMouseListener(ToolTipManager c);
-    public void removeMouseListener(ToolTipManager c);
-    public Rectangle getBounds();
-  }
-
-
-  class JPanelPopup extends JPanel implements Popup  {
-    public JPanelPopup(JComponent t, Dimension s) {
-      super();
-      setLayout(new BorderLayout());
-      setDoubleBuffered(true);
-      this.setOpaque(true);
-      add(t, BorderLayout.CENTER);
-      setSize(s);
-    }
-
-    public void update(Graphics g) {
-      paint(g);
-    }
-        
-    public Rectangle getBounds(){
-	return super.getBounds();
-    }
-
-
-    public void show(JComponent invoker, int x, int y) {
-      Point p = new Point(x,y);
-      SwingUtilities.convertPointFromScreen(p,invoker.getRootPane().getLayeredPane());
-      this.setBounds(p.x,p.y,getSize().width, getSize().height);
-      invoker.getRootPane().getLayeredPane().add(this,JLayeredPane.POPUP_LAYER,0);
-    }
-
-    public void hide() {
-      Container parent = getParent();
-      Rectangle r = this.getBounds();
-      if(parent != null){
-	parent.remove(this);
-	parent.repaint(r.x,r.y,r.width,r.height);
-      }
-    }
-
-    public void addMouseListener(ToolTipManager c){
-	super.addMouseListener(c);
-    }
-
-    public void removeMouseListener(ToolTipManager c){
-	super.removeMouseListener(c);
-    }
-
-  }
-
-  // MEDIUM
-  class PanelPopup extends Panel implements Popup {
-    public PanelPopup(JComponent t, Dimension s) {
-      super();
-      setLayout(new BorderLayout());
-      add(t, BorderLayout.CENTER);
-      setSize(s);
-    }
-
-    public Rectangle getBounds(){
-	return super.getBounds();
-    }
-
-    public void show(JComponent invoker, int x, int y) {
-	Point p = new Point(x,y);
-	SwingUtilities.convertPointFromScreen(p,invoker.getRootPane().getLayeredPane());
-	invoker.getRootPane().getLayeredPane().add(this,JLayeredPane.POPUP_LAYER,0);
-	// 4144271
-	this.setBounds(p.x,p.y,getSize().width, getSize().height);
-    }
-
-
-    public void hide() {
-      Container parent = getParent();
-      Rectangle r = this.getBounds();
-      if(parent != null){
-	parent.remove(this);
-	parent.repaint(r.x,r.y,r.width,r.height);
-      }
-    }
-
-    public void addMouseListener(ToolTipManager c){
-	super.addMouseListener(c);
-    }
-
-    public void removeMouseListener(ToolTipManager c){
-	super.removeMouseListener(c);
-    }
-  }
-
-  class WindowPopup extends Window implements Popup  {
-    boolean  firstShow = true;
-    JComponent tip;
-    Frame frame;
-
-    public WindowPopup(Frame f,JComponent t, Dimension size) {
-      super(f);
-      this.tip = t;
-      this.frame = f;
-      add(t, BorderLayout.CENTER);
-      pack();
-      // setSize(size);
-    }
-
-    public Rectangle getBounds(){
-	return super.getBounds();
-    }
-
-    public void show(JComponent invoker, int x, int y) {
-      this.setLocation(x,y);
-      this.setVisible(true);
-
-      /** This hack is to workaround a bug on Solaris where the windows does not really show
-       *  the first time
-       *  It causes a side effect of MS JVM reporting IllegalArumentException: null source
-       *  fairly frequently - also happens if you use HeavyWeight JPopup, ie JComboBox 
-       */
-      if(firstShow) {
-	this.hide();
-	this.setVisible(true);
-	firstShow = false;
-      }
-    }
-        
-    public void hide() {
-      super.hide();
-      /** We need to call removeNotify() here because hide() does something only if
-       *  Component.visible is true. When the app frame is miniaturized, the parent 
-       *  frame of this frame is invisible, causing AWT to believe that this frame
-       *  is invisible and causing hide() to do nothing
-       */
-      removeNotify();
-    }
-
-    public void addMouseListener(ToolTipManager c){
-	super.addMouseListener(c);
-    }
-
-    public void removeMouseListener(ToolTipManager c){
-	super.removeMouseListener(c);
-    }
-
-  }
 
 }

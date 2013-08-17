@@ -1,8 +1,11 @@
 /*
- * @(#)URLEncoder.java	1.16 01/11/29
+ * @(#)URLEncoder.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -20,8 +23,9 @@ import java.util.BitSet;
  * To convert a <code>String</code>, each character is examined in turn:
  * <ul>
  * <li>The ASCII characters '<code>a</code>' through '<code>z</code>',
- *     '<code>A</code>' through '<code>Z</code>', and '<code>0</code>'
- *     through '<code>9</code>' remain the same.
+ *     '<code>A</code>' through '<code>Z</code>', '<code>0</code>'
+ *     through '<code>9</code>', and &quot;.&quot;, &quot;-&quot;, 
+ * &quot;*&quot;, &quot;_&quot; remain the same.
  * <li>The space character '<code>&nbsp;</code>' is converted into a
  *     plus sign '<code>+</code>'.
  * <li>All other characters are converted into the 3-character string
@@ -30,7 +34,7 @@ import java.util.BitSet;
  * </ul>
  *
  * @author  Herb Jellinek
- * @version 1.16, 11/29/01
+ * @version 1.18, 02/02/00
  * @since   JDK1.0
  */
 public class URLEncoder {

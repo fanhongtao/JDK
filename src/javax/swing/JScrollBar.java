@@ -1,8 +1,11 @@
 /*
- * @(#)JScrollBar.java	1.61 01/11/29
+ * @(#)JScrollBar.java	1.65 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -51,7 +54,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A component that helps determine the visible content range of an area.
  *
- * @version 1.61 11/29/01
+ * @version 1.65 04/06/00
  * @author David Kloba
  */
 public class JScrollBar extends JComponent implements Adjustable, Accessible
@@ -133,6 +136,7 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
         this.orientation = orientation;
         this.model = new DefaultBoundedRangeModel(value, extent, min, max);
         this.model.addChangeListener(fwdAdjustmentEvents);
+	setRequestFocusEnabled(false);
         updateUI();
     }
 
@@ -680,6 +684,17 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
         }
     }
 
+    /**
+     * Identifies whether or not this component can receive the focus. This
+     * returns false as JScrollBar's do not want to participate in focus
+     * traversal.
+     *
+     * @return true if this component can receive the focus
+     */
+    public boolean isFocusTraversable() {
+	return false;
+    }
+
     /** 
      * See readObject() and writeObject() in JComponent for more 
      * information about serialization in Swing.
@@ -716,9 +731,13 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JScrollBar. 
+     * For JScrollBar, the AccessibleContext takes the form of an 
+     * AccessibleJScrollBar. 
+     * A new AccessibleJScrollBar instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJScrollBar that serves as the 
+     *         AccessibleContext of this JScrollBar
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -728,7 +747,10 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JScrollBar</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to scroll bar user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -771,8 +793,12 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
         }
 
         /**
-         * Get the AccessibleValue associated with this object if one
-         * exists.  Otherwise return null.
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
          */
         public AccessibleValue getAccessibleValue() {
             return this;

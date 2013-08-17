@@ -1,68 +1,72 @@
 /*
- * @(#)EventListenerList.java	1.24 01/11/29
+ * @(#)EventListenerList.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.event;
 
 import java.io.*;
 import java.util.*;
+import java.lang.reflect.Array; 
 
 /**
- * A class which holds a list of EventListeners.  A single instance
+ * A class that holds a list of EventListeners.  A single instance
  * can be used to hold all listeners (of all types) for the instance
- * using the lsit.  It is the responsiblity of the class using the
+ * using the list.  It is the responsiblity of the class using the
  * EventListenerList to provide type-safe API (preferably conforming
  * to the JavaBeans spec) and methods which dispatch event notification
  * methods to appropriate Event Listeners on the list.
  * 
- * The main benefits which this class provides are that it is relatively
- * cheap in the case of no listeners, and provides serialization for 
- * eventlistener lists in a single place, as well as a degree of MT safety
+ * The main benefits that this class provides are that it is relatively
+ * cheap in the case of no listeners, and it provides serialization for 
+ * event-listener lists in a single place, as well as a degree of MT safety
  * (when used correctly).
  *
  * Usage example:
- *    Say one is defining a class which sends out FooEvents, and wantds
+ *    Say one is defining a class that sends out FooEvents, and one wants
  * to allow users of the class to register FooListeners and receive 
  * notification when FooEvents occur.  The following should be added
  * to the class definition:
-   <pre>
-   EventListenerList listenrList = new EventListnerList();
-   FooEvent fooEvent = null;
-
-   public void addFooListener(FooListener l) {
-       listenerList.add(FooListener.class, l);
-   }
-
-   public void removeFooListener(FooListener l) {
-       listenerList.remove(FooListener.class, l);
-   }
-
- 
-    // Notify all listeners that have registered interest for
-    // notification on this event type.  The event instance 
-    // is lazily created using the parameters passed into 
-    // the fire method.
-
-    protected void firefooXXX() {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==FooListener.class) {
-		// Lazily create the event:
-		if (fooEvent == null)
-		    fooEvent = new FooEvent(this);
-		((FooListener)listeners[i+1]).fooXXX(fooEvent);
-	    }	       
-	}
-    }	
-   </pre>
- * foo should be changed to the appropriate name, and Method to the
- * appropriate method name (one fire method should exist for each
- * notification method in the FooListener interface).
+ * <pre>
+ * EventListenerList listenerList = new EventListenerList();
+ * FooEvent fooEvent = null;
+ *
+ * public void addFooListener(FooListener l) {
+ *     listenerList.add(FooListener.class, l);
+ * }
+ *
+ * public void removeFooListener(FooListener l) {
+ *     listenerList.remove(FooListener.class, l);
+ * }
+ *
+ *
+ * // Notify all listeners that have registered interest for
+ * // notification on this event type.  The event instance 
+ * // is lazily created using the parameters passed into 
+ * // the fire method.
+ *
+ * protected void fireFooXXX() {
+ *     // Guaranteed to return a non-null array
+ *     Object[] listeners = listenerList.getListenerList();
+ *     // Process the listeners last to first, notifying
+ *     // those that are interested in this event
+ *     for (int i = listeners.length-2; i>=0; i-=2) {
+ *         if (listeners[i]==FooListener.class) {
+ *             // Lazily create the event:
+ *             if (fooEvent == null)
+ *                 fooEvent = new FooEvent(this);
+ *             ((FooListener)listeners[i+1]).fooXXX(fooEvent);
+ *         }
+ *     }
+ * }
+ * </pre>
+ * foo should be changed to the appropriate name, and fireFooXxx to the
+ * appropriate method name.  One fire method should exist for each
+ * notification method in the FooListener interface.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
@@ -71,7 +75,7 @@ import java.util.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 11/29/01
+ * @version 1.27 02/02/00
  * @author Georges Saab
  * @author Hans Muller
  * @author James Gosling
@@ -83,10 +87,10 @@ public class EventListenerList implements Serializable {
     protected transient Object[] listenerList = NULL_ARRAY;
 
     /**
-     * This passes back the event listener list as an array
-     * of ListenerType - listener pairs.  Note that for 
+     * Passes back the event listener list as an array
+     * of ListenerType-listener pairs.  Note that for 
      * performance reasons, this implementation passes back 
-     * the actual data structure in which the listner data
+     * the actual data structure in which the listener data
      * is stored internally!  
      * This method is guaranteed to pass back a non-null
      * array, so that no null-checking is required in 
@@ -104,15 +108,35 @@ public class EventListenerList implements Serializable {
     }
 
     /**
-     * Return the total number of listeners for this listenerlist
+     * Return an array of all the listeners of the given type.
+     * 
+     * @returns all of the listeners of the specified type. 
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class t) { 
+	Object[] lList = listenerList; 
+	int n = getListenerCount(t); 
+        EventListener[] result = (EventListener[])Array.newInstance(t, n); 
+	int j = 0; 
+	for (int i = lList.length-2; i>=0; i-=2) {
+	    if (lList[i] == t) {
+		result[j++] = (EventListener)lList[i+1];
+	    }
+	}
+	return result;   
+    }
+
+    /**
+     * Returns the total number of listeners for this listener list.
      */
     public int getListenerCount() {
 	return listenerList.length/2;
     }
 
     /**
-     * Return the total number of listeners of the supplied type 
-     * for this listenerlist.
+     * Returns the total number of listeners of the supplied type 
+     * for this listener list.
      */
     public int getListenerCount(Class t) {
 	int count = 0;
@@ -124,7 +148,7 @@ public class EventListenerList implements Serializable {
 	return count;
     }
     /**
-     * Add the listener as a listener of the specified type.
+     * Adds the listener as a listener of the specified type.
      * @param t the type of the listener to be added
      * @param l the listener to be added
      */
@@ -157,7 +181,7 @@ public class EventListenerList implements Serializable {
     }
 
     /**
-     * Remove the listener as a listener of the specified type.
+     * Removes the listener as a listener of the specified type.
      * @param t the type of the listener to be removed
      * @param l the listener to be removed
      */
@@ -228,7 +252,7 @@ public class EventListenerList implements Serializable {
     }
 
     /**
-     * Return a string representation of the EventListenerList.
+     * Returns a string representation of the EventListenerList.
      */
     public String toString() {
 	Object[] lList = listenerList;

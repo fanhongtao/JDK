@@ -1,8 +1,11 @@
 /*
- * @(#)NO_IMPLEMENT.java	1.23 01/11/29
+ * @(#)NO_IMPLEMENT.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -28,7 +31,7 @@ public final class NO_IMPLEMENT extends SystemException {
      * and a null description.
      */
     public NO_IMPLEMENT() {
-       this("");
+	this("");
     }
 
     /**
@@ -45,7 +48,7 @@ public final class NO_IMPLEMENT extends SystemException {
      * minor code and completion status.
      * @param minor the minor code
      * @param completed a <code>CompletionStatus</code> instance indicating
-	 *                  the completion status
+     *                  the completion status
      */
     public NO_IMPLEMENT(int minor, CompletionStatus completed) {
         this("", minor, completed);
@@ -56,7 +59,7 @@ public final class NO_IMPLEMENT extends SystemException {
      * message, minor code, and completion status.
      * @param s the String containing a description message
      * @param completed a <code>CompletionStatus</code> instance indicating
-	 *                  the completion status
+     *                  the completion status
      */
     public NO_IMPLEMENT(String s, int minor, CompletionStatus completed) {
         super(s, minor, completed);

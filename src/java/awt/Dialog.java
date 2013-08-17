@@ -1,8 +1,11 @@
 /*
- * @(#)Dialog.java	1.62 01/11/29
+ * @(#)Dialog.java	1.67 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -11,8 +14,7 @@ import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-import sun.awt.AxBridgeHelper;
-
+import javax.accessibility.*;
 
 /**
  * A Dialog is a top-level window with a title and a border
@@ -52,7 +54,7 @@ import sun.awt.AxBridgeHelper;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.62, 11/29/01
+ * @version 	1.67, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -98,7 +100,7 @@ public class Dialog extends Window {
     String title;
 
     private transient boolean keepBlocking = false;
-
+    
     private static final String base = "dialog";
     private static int nameCounter = 0;
 
@@ -174,7 +176,7 @@ public class Dialog extends Window {
      * @param owner the owner of the dialog
      * @exception java.lang.IllegalArgumentException if <code>owner</code>
      *            is <code>null</code>
-     * @since JDK1.2
+     * @since 1.2
      */
     public Dialog(Dialog owner) {
 	this(owner, "", false);
@@ -189,7 +191,7 @@ public class Dialog extends Window {
      *        to be thrown.
      * @exception java.lang.IllegalArgumentException if <code>owner</code>
      *            is <code>null</code>
-     * @since JDK1.2
+     * @since 1.2
      */
     public Dialog(Dialog owner, String title) {
 	this(owner, title, false);
@@ -205,7 +207,7 @@ public class Dialog extends Window {
      * @param modal if true, dialog blocks input to other app windows when shown
      * @exception java.lang.IllegalArgumentException if <code>owner</code>
      *            is <code>null</code>
-     * @since JDK1.2
+     * @since 1.2
      */
     public Dialog(Dialog owner, String title, boolean modal) {
 	super(owner);
@@ -310,7 +312,16 @@ public class Dialog extends Window {
             } else {
                 visible = retval = true;
                 peer.show(); // now guaranteed never to block
+		createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED,
+				      this, parent,
+				      HierarchyEvent.SHOWING_CHANGED);
             }
+	    if (retval && (componentListener != null ||
+			   (eventMask & AWTEvent.COMPONENT_EVENT_MASK) != 0)) {
+	        ComponentEvent e =
+		    new ComponentEvent(this, ComponentEvent.COMPONENT_SHOWN);
+		Toolkit.getEventQueue().postEvent(e);
+	    }
         }
 
         if (retval && (state & OPENED) == 0) {
@@ -339,8 +350,6 @@ public class Dialog extends Window {
      * @see Component#validate
      * @see java.awt.Dialog#isModal
      */
-    private EventQueue tempEQ = null;
-    private AxBridgeHelper axbHelper = null;
     public void show() {
         if (!isModal()) {
             conditionalShow();
@@ -354,59 +363,41 @@ public class Dialog extends Window {
                 // We have two mechanisms for blocking: 1. If we're on the
                 // EventDispatchThread, start a new event pump. 2. If we're
                 // on any other thread, call wait() on the treelock.
-		//
-		// if we are calling from windows activex thread
-		// we need to create a message loop for the activex
-		// container to avoid blocking
 
-		if (Toolkit.getEventQueue().isDispatchThread()) {
-		    EventDispatchThread dispatchThread =
-			(EventDispatchThread) Thread.currentThread();
-                    /*
-                     * pump events, filter out input events for
-                     * component not belong to our modal dialog.
-                     *
-                     * we already disabled other components in native code
-                     * but because the event is posted from a different 
-                     * thread so it's possible that there are some events
-                     * for other component already posted in the queue
-                     * before we decide do modal show.  
-                     */ 
-		    dispatchThread.pumpEventsForComponent(new Conditional() {
-			public boolean evaluate() {
-			    return keepBlocking;
-			}
-		    }, (Component)this);
-		    return;
-		}
-
-		if (peer.getClass().getName().equals(
-			"sun.awt.windows.WDialogPeer")) {
-			axbHelper = new AxBridgeHelper();
-			EventDispatchThread stoppedEDT = null;
-                	if (axbHelper.isAppMainThread()) {
-                    		stoppedEDT = (EventDispatchThread)
-					AxBridgeHelper.isNewDispatchThreadNeeded();
-                    		if (stoppedEDT != null) {
-                        		tempEQ = new EventQueue();
-                        		stoppedEDT.getEventQueue().push(tempEQ);
-                    		}
-                    		axbHelper.nativeModalWait();
-				return;
-			}
-			axbHelper = null;
-		}
-
-                synchronized (getTreeLock()) {
-                        while (keepBlocking) {
+                if (Toolkit.getEventQueue().isDispatchThread()) {
+                    EventDispatchThread dispatchThread =
+                        (EventDispatchThread)Thread.currentThread();
+                    dispatchThread.pumpEvents(new Conditional() {
+                        public boolean evaluate() {
+                            return keepBlocking && windowClosingException == null;
+                        }
+                    });
+                } else {
+                    synchronized (getTreeLock()) {
+                        while (keepBlocking && windowClosingException == null) {
                             try {
                                 getTreeLock().wait();
                             } catch (InterruptedException e) {
                                 break;
                             }
                         }
+                    }
+                }
+                if (windowClosingException != null) {
+                    windowClosingException.fillInStackTrace();
+                    throw windowClosingException;
                 }
             }
+        }
+    }
+    
+    void interruptBlocking() {
+        if (modal) {
+            disposeImpl();
+        } else if (windowClosingException != null) {
+            windowClosingException.fillInStackTrace();
+            windowClosingException.printStackTrace();
+            windowClosingException = null;
         }
     }
 
@@ -415,17 +406,6 @@ public class Dialog extends Window {
             synchronized (getTreeLock()) {
                 keepBlocking = false;
                 EventQueue.invokeLater(new Runnable(){ public void run() {} });
-		if (peer.getClass().getName().equals("sun.awt.windows.WDialogPeer")) {
-                	// XXX: synchronize?
-                	if (tempEQ != null)  {
-                    		tempEQ.pop();
-                    		tempEQ = null;
-                	}
-			if (axbHelper != null) {
-                		axbHelper.nativeModalNotify();
-				axbHelper = null;
-			}
-		}
                 getTreeLock().notifyAll();
             }
         }
@@ -445,10 +425,14 @@ public class Dialog extends Window {
      * blocked.
      */
     public void dispose() {
+        disposeImpl();
+    }
+    
+    private void disposeImpl() {
         super.dispose();
         hideAndDisposeHandler();
     }
-
+    
     /**
      * Indicates whether this dialog is resizable by the user.
      * @return    <code>true</code> if the user can resize the dialog;
@@ -503,4 +487,66 @@ public class Dialog extends Window {
      * Initialize JNI field and method IDs
      */
     private static native void initIDs();
+
+    /*
+     * --- Accessibility Support ---
+     *
+     */
+
+    /**
+     * Gets the AccessibleContext associated with this Dialog. 
+     * For dialogs, the AccessibleContext takes the form of an 
+     * AccessibleAWTDialog. 
+     * A new AccessibleAWTDialog instance is created if necessary.
+     *
+     * @return an AccessibleAWTDialog that serves as the 
+     *         AccessibleContext of this Dialog
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTDialog();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Dialog</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to dialog user-interface elements.
+     */
+    protected class AccessibleAWTDialog extends AccessibleAWTWindow {
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.DIALOG;
+        }
+
+        /**
+         * Get the state of this object.
+         *
+         * @return an instance of AccessibleStateSet containing the current 
+         * state set of the object
+         * @see AccessibleState
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (getFocusOwner() != null) {
+                states.add(AccessibleState.ACTIVE);
+            }
+	    if (isModal()) {
+                states.add(AccessibleState.MODAL);
+	    }
+	    if (isResizable()) {
+                states.add(AccessibleState.RESIZABLE);
+	    }
+            return states;
+        }
+    
+    } // inner class AccessibleAWTDialog
 }

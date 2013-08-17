@@ -1,8 +1,11 @@
 /*
- * @(#)RSAPrivateCrtKeySpec.java	1.6 01/11/29
+ * @(#)RSAPrivateCrtKeySpec.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.spec;
@@ -11,12 +14,12 @@ import java.math.BigInteger;
 
 /**
  * This class specifies an RSA private key, as defined in the PKCS#1
- * standard, using the <i>Chinese Remainder Theorem</i> (CRT) information
- * values.
+ * standard, using the Chinese Remainder Theorem (CRT) information values for
+ * efficiency.
  *
  * @author Jan Luehe
  *
- * @version 1.6 01/11/29
+ * @version 1.8 00/02/02
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -37,6 +40,24 @@ public class RSAPrivateCrtKeySpec extends RSAPrivateKeySpec {
     private BigInteger primeExponentQ;
     private BigInteger crtCoefficient;
 
+
+
+   /**
+    * Creates a new <code>RSAPrivateCrtKeySpec</code>
+    * given the modulus, publicExponent, privateExponent,
+    * primeP, primeQ, primeExponentP, primeExponentQ, and
+    * crtCoefficient as defined in PKCS#1.
+    *
+    * @param modulus the modulus n
+    * @param publicExponent the public exponent e
+    * @param privateExponent the private exponent d
+    * @param primeP the prime factor p of n
+    * @param primeQ the prime factor q of n
+    * @param primeExponentP this is d mod (p-1)
+    * @param primeExponentQ this is d mod (q-1)
+    * @param crtCoefficient the Chinese Remainder Theorem
+    * coefficient q-1 mod p
+    */
     public RSAPrivateCrtKeySpec(BigInteger modulus,
 				BigInteger publicExponent,
 				BigInteger privateExponent,

@@ -1,8 +1,11 @@
 /*
- * @(#)KeyStore.java	1.22 01/11/29
+ * @(#)KeyStore.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -78,17 +81,18 @@ import java.util.*;
  * </ul>
  *
  * <p>Before a keystore can be accessed, it must be
- * <a href="#load(java.io.InputStream, char[])">loaded</a>. In order to create an empty keystore, you pass <code>null</code>
+ * {@link #load(java.io.InputStream, char[]) loaded}. In order to create 
+ * an empty keystore, you pass <code>null</code>
  * as the <code>InputStream</code> argument to the <code>load</code> method.
  *
  * @author Jan Luehe
  *
- * @version 1.22, 11/29/01
+ * @version 1.29, 02/02/00
  *
  * @see java.security.PrivateKey
  * @see java.security.cert.Certificate
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class KeyStore {
@@ -486,6 +490,8 @@ public class KeyStore {
      * Returns true if the entry identified by the given alias is a
      * <i>key entry</i>, and false otherwise.
      *
+     * @param alias the alias for the keystore entry to be checked
+     *
      * @return true if the entry identified by the given alias is a
      * <i>key entry</i>, false otherwise.
      *
@@ -504,6 +510,8 @@ public class KeyStore {
     /**
      * Returns true if the entry identified by the given alias is a
      * <i>trusted certificate entry</i>, and false otherwise.
+     *
+     * @param alias the alias for the keystore entry to be checked
      *
      * @return true if the entry identified by the given alias is a
      * <i>trusted certificate entry</i>, false otherwise.
@@ -608,11 +616,11 @@ public class KeyStore {
 
     /**
      * Returns the default keystore type as specified in the Java security
-     * properties file, or the string "jks" (acronym for "Java keystore")
+     * properties file, or the string &quot;jks&quot; (acronym for &quot;Java keystore&quot;)
      * if no such property exists.
      * The Java security properties file is located in the file named
      * &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
-     * refers to the directory where the JDK was installed.
+     * refers to the directory where the SDK was installed.
      *
      * <p>The default keystore type can be used by applications that do not
      * want to use a hard-coded keystore type when calling one of the
@@ -622,6 +630,10 @@ public class KeyStore {
      * <p>The default keystore type can be changed by setting the value of the
      * "keystore.type" security property (in the Java security properties
      * file) to the desired keystore type.
+     *
+     * @return the default keystore type as specified in the 
+     * Java security properties file, or the string &quot;jks&quot;
+     * if no such property exists.
      */
     public final static String getDefaultType() {
 	String kstype;

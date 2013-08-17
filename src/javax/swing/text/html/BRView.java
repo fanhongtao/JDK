@@ -1,23 +1,26 @@
 /*
- * @(#)BRView.java	1.5 01/11/29
+ * @(#)BRView.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
 import javax.swing.text.*;
 
 /**
- * Processes the <BR> tag i.e forces a line break.
+ * Processes the &lt;BR&gt; tag.  In other words, forces a line break.
  *
  * @author Sunita Mani
- * @version 1.5 11/29/01
+ * @version 1.7 02/02/00
  */
 class BRView extends InlineView {
 
     /**
-     * Creates a new view that represents an <br> element.
+     * Creates a new view that represents a &lt;BR&gt; element.
      *
      * @param elem the element to create a view for
      */

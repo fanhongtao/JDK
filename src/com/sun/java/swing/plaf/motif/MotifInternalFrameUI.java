@@ -1,8 +1,11 @@
 /*
- * @(#)MotifInternalFrameUI.java	1.15 01/11/29
+ * @(#)MotifInternalFrameUI.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -15,7 +18,6 @@ import javax.swing.event.*;
 import java.util.EventListener;
 
 import javax.swing.plaf.basic.*;
-import javax.swing.plaf.basic.BasicInternalFrameUI;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 
@@ -30,7 +32,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.15 11/29/01
+ * @version 1.18 02/02/00
  * @author Tom Ball
  */
 public class MotifInternalFrameUI extends BasicInternalFrameUI {
@@ -40,6 +42,14 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
     Color shadow;
     MotifInternalFrameTitlePane titlePane;
 
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke closeMenuKey;
 
 
@@ -69,6 +79,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 
     protected void installKeyboardActions(){
       super.installKeyboardActions();
+      // We replace the 
       // we use JPopup in our TitlePane so need escape support
       closeMenuKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     }
@@ -94,65 +105,78 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
     protected void uninstallKeyboardActions(){
       super.uninstallKeyboardActions();
       if (isKeyBindingRegistered()){
-	frame.unregisterKeyboardAction(closeMenuKey);
-	frame.getDesktopIcon().unregisterKeyboardAction(closeMenuKey);
+	JInternalFrame.JDesktopIcon di = frame.getDesktopIcon();
+	SwingUtilities.replaceUIActionMap(di, null);
+	SwingUtilities.replaceUIInputMap(di, JComponent.WHEN_IN_FOCUSED_WINDOW,
+					 null);
       }
     }
     
     protected void setupMenuOpenKey(){
-	frame.registerKeyboardAction(new ActionListener(){
-	    public void actionPerformed(ActionEvent e){
-		titlePane.showSystemMenu();
-	    }
-	    public boolean isEnabled(){
-		return isKeyBindingActive();
-	    }
-	},
-	    openMenuKey,
-	    JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-	frame.getDesktopIcon().registerKeyboardAction(new ActionListener(){
-	    public void actionPerformed(ActionEvent e){
-	      JInternalFrame.JDesktopIcon icon = getFrame().getDesktopIcon();
-	      MotifDesktopIconUI micon = (MotifDesktopIconUI)icon.getUI();
-	      micon.showSystemMenu();
-	    }
-	    public boolean isEnabled(){
-		return isKeyBindingActive();
-	    }
-	},
-	    openMenuKey,
-	    JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-    }       
-
+	super.setupMenuOpenKey();
+	ActionMap map = SwingUtilities.getUIActionMap(frame);
+	if (map != null) {
+	    // BasicInternalFrameUI creates an action with the same name, we override
+	    // it as MotifInternalFrameTitlePane has a titlePane ivar that shadows the
+	    // titlePane ivar in BasicInternalFrameUI, making supers action throw
+	    // an NPE for us.
+	    map.put("showSystemMenu", new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+		    titlePane.showSystemMenu();
+		}
+		public boolean isEnabled(){
+		    return isKeyBindingActive();
+		}
+	    });
+	}
+    }
 
     protected void setupMenuCloseKey(){
-      	frame.registerKeyboardAction(new ActionListener(){
-	  public void actionPerformed(ActionEvent e){
-	    titlePane.hideSystemMenu();
-	  }
-	  public boolean isEnabled(){
-	    return isKeyBindingActive();
-	  }
-	},
-	  closeMenuKey,
-	  JComponent.WHEN_IN_FOCUSED_WINDOW);
+	ActionMap map = SwingUtilities.getUIActionMap(frame);
+	if (map != null) {
+	    map.put("hideSystemMenu", new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+		    titlePane.hideSystemMenu();
+		}
+		public boolean isEnabled(){
+		    return isKeyBindingActive();
+		}
+	    });
+	}
 
-      	frame.getDesktopIcon().registerKeyboardAction(new ActionListener(){
-	  public void actionPerformed(ActionEvent e){
-	    JInternalFrame.JDesktopIcon icon = getFrame().getDesktopIcon();
-	    MotifDesktopIconUI micon = (MotifDesktopIconUI)icon.getUI();
-	    micon.hideSystemMenu();
-	  }
-	  public boolean isEnabled(){
-	    return isKeyBindingActive();
-	  }
-	},
-	  closeMenuKey,
-	  JComponent.WHEN_IN_FOCUSED_WINDOW);
+	// Set up the bindings for the DesktopIcon, it is odd that
+	// we install them, and not the desktop icon.
+	JInternalFrame.JDesktopIcon di = frame.getDesktopIcon();
+	InputMap diInputMap = SwingUtilities.getUIInputMap
+	                  (di, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	if (diInputMap == null) {
+	    Object[] bindings = (Object[])UIManager.get
+		                          ("DesktopIcon.windowBindings");
+	    if (bindings != null) {
+		diInputMap = LookAndFeel.makeComponentInputMap(di, bindings);
 
-
+		SwingUtilities.replaceUIInputMap(di, JComponent.
+					       WHEN_IN_FOCUSED_WINDOW,
+					       diInputMap);
+	    }
+	}
+	ActionMap diActionMap = SwingUtilities.getUIActionMap(di);
+	if (diActionMap == null) {
+	    diActionMap = new ActionMapUIResource();
+	    diActionMap.put("hideSystemMenu", new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+		    JInternalFrame.JDesktopIcon icon = getFrame().
+			             getDesktopIcon();
+		    MotifDesktopIconUI micon = (MotifDesktopIconUI)icon.
+			                       getUI();
+		    micon.hideSystemMenu();
+		}
+		public boolean isEnabled(){
+		    return isKeyBindingActive();
+		}
+	    });
+	    SwingUtilities.replaceUIActionMap(di, diActionMap);
+	}
     }
 
     /** This method is called when the frame becomes selected.

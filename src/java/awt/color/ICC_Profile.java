@@ -1,8 +1,11 @@
 /*
- * @(#)ICC_Profile.java	1.19 01/11/29
+ * @(#)ICC_Profile.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /**********************************************************************
@@ -21,16 +24,27 @@ import sun.awt.color.CMM;
 import sun.awt.color.ProfileDeferralMgr;
 import sun.awt.color.ProfileDeferralInfo;
 import sun.awt.color.ProfileActivator;
-import java.io.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
+import java.io.OutputStream;
+import java.io.Serializable;
+
 import java.util.StringTokenizer;
 
 /**
- *  
- * A representation of color profile data for device
- * independent and device dependent color spaces based on the ICC
- * Profile Format Specification, Version 3.4, August 15, 1997, from
- * the International Color Consortium (see <A href="http://www.color.org">
- * http://www.color.org</A>).
+ * A representation of color profile data for device independent and
+ * device dependent color spaces based on the International Color
+ * Consortium Specification ICC.1:1998-09, File Format for Color Profiles,
+ * September 1998, and the addendum ICC.1A:1999-04, April 1999, to that
+ * specification (see <A href="http://www.color.org"> http://www.color.org</A>).
  * <p>
  * An ICC_ColorSpace object can be constructed from an appropriate
  * ICC_Profile.
@@ -57,16 +71,21 @@ import java.util.StringTokenizer;
  */
 
 
-public class ICC_Profile
-extends Object {
-    long    ID;
+public class ICC_Profile implements Serializable {
+
+    transient long ID;
+
+    private transient ProfileDeferralInfo deferralInfo;
+    private transient ProfileActivator profileActivator;
+
+    // Registry of singleton profile objects for specific color spaces
+    // defined in the ColorSpace class (e.g. CS_sRGB), see
+    // getInstance(int cspace) factory method.
     private static ICC_Profile sRGBprofile;
     private static ICC_Profile XYZprofile;
     private static ICC_Profile PYCCprofile;
     private static ICC_Profile GRAYprofile;
     private static ICC_Profile LINEAR_RGBprofile;
-    private ProfileDeferralInfo deferralInfo;
-    private ProfileActivator profileActivator;
 
 
     /**
@@ -351,6 +370,11 @@ extends Object {
     public static final int icSigCopyrightTag     = 0x63707274;    /* 'cprt' */
 
     /**
+     * ICC Profile Tag Signature: 'crdi'.
+     */
+    public static final int icSigCrdInfoTag       = 0x63726469;    /* 'crdi' */
+
+    /**
      * ICC Profile Tag Signature: 'dmnd'.
      */
     public static final int icSigDeviceMfgDescTag = 0x646D6E64;    /* 'dmnd' */
@@ -359,6 +383,11 @@ extends Object {
      * ICC Profile Tag Signature: 'dmdd'.
      */
     public static final int icSigDeviceModelDescTag = 0x646D6464;  /* 'dmdd' */
+
+    /**
+     * ICC Profile Tag Signature: 'devs'.
+     */
+    public static final int icSigDeviceSettingsTag =  0x64657673;  /* 'devs' */
 
     /**
      * ICC Profile Tag Signature: 'gamt'.
@@ -399,6 +428,16 @@ extends Object {
      * ICC Profile Tag Signature: 'wtpt'.
      */
     public static final int icSigMediaWhitePointTag = 0x77747074;  /* 'wtpt' */
+
+    /**
+     * ICC Profile Tag Signature: 'ncl2'.
+     */
+    public static final int icSigNamedColor2Tag   = 0x6E636C32;    /* 'ncl2' */
+
+    /**
+     * ICC Profile Tag Signature: 'resp'.
+     */
+    public static final int icSigOutputResponseTag = 0x72657370;   /* 'resp' */
 
     /**
      * ICC Profile Tag Signature: 'pre0'.
@@ -499,9 +538,9 @@ extends Object {
     public static final int icSigViewingConditionsTag = 0x76696577;/* 'view' */
 
     /**
-     * ICC Profile Tag Signature: 'nc12'.
+     * ICC Profile Tag Signature: 'chrm'.
      */
-    public static final int icSigNamedColor2Tag   = 0x6E636C32;    /* 'ncl2' */
+    public static final int icSigChromaticityTag  = 0x6368726d;    /* 'chrm' */
 
 
     /**
@@ -1609,4 +1648,179 @@ extends Object {
         return fis;
     }
 
+
+    /* 
+     * Serialization support.
+     * 
+     * Directly deserialized profiles are useless since they are not
+     * registered with CMM.  We don't allow constructor to be called
+     * directly and instead have clients to call one of getInstance
+     * factory methods that will register the profile with CMM.  For
+     * deserialization we implement readResolve method that will
+     * resolve the bogus deserialized profile object with one obtained
+     * with getInstance as well.
+     *
+     * There're two primary factory methods for construction of ICC
+     * profiles: getInstance(int cspace) and getInstance(byte[] data).
+     * This implementation of ICC_Profile uses the former to return a
+     * cached singleton profile object, other implementations will
+     * likely use this technique too.  To preserve the singleton
+     * pattern across serialization we serialize cached singleton
+     * profiles in such a way that deserializing VM could call
+     * getInstance(int cspace) method that will resolve deserialized
+     * object into the corresponding singleton as well.
+     * 
+     * Since the singletons are private to ICC_Profile the readResolve
+     * method have to be `protected' instead of `private' so that
+     * singletons that are instances of subclasses of ICC_Profile
+     * could be correctly deserialized.
+     */
+
+
+    /**
+     * Version of the format of additional serialized data in the
+     * stream.  Version&nbsp;<code>1</code> corresponds to Java&nbsp;2
+     * Platform,&nbsp;v1.3.
+     * @since 1.3
+     * @serial
+     */
+    private int iccProfileSerializedDataVersion = 1;
+
+
+    /**
+     * Writes default serializable fields to the stream.  Writes a
+     * string and an array of bytes to the stream as additional data.
+     *
+     * @param s stream used for serialization.
+     * @throws IOException
+     *     thrown by <code>ObjectInputStream</code>.
+     * @serialData 
+     *     The <code>String</code> is the name of one of
+     *     <code>CS_<var>*</var></code> constants defined in the
+     *     {@link ColorSpace} class if the profile object is a profile
+     *     for a predefined color space (for example
+     *     <code>"CS_sRGB"</code>).  The string is <code>null</code>
+     *     otherwise.
+     *     <p>
+     *     The <code>byte[]</code> array is the profile data for the
+     *     profile.  For predefined color spaces <code>null</code> is
+     *     written instead of the profile data.  If in the future
+     *     versions of Java API new predefined color spaces will be
+     *     added, future versions of this class may choose to write
+     *     for new predefined color spaces not only the color space
+     *     name, but the profile data as well so that older versions
+     *     could still deserialize the object.
+     */
+    private void writeObject(ObjectOutputStream s)
+      throws IOException
+    {
+	s.defaultWriteObject();
+
+	String csName = null;
+	if (this == sRGBprofile) {
+	    csName = "CS_sRGB";
+	} else if (this == XYZprofile) {
+	    csName = "CS_CIEXYZ";
+	} else if (this == PYCCprofile) {
+	    csName = "CS_PYCC";
+	} else if (this == GRAYprofile) {
+	    csName = "CS_GRAY";
+	} else if (this == LINEAR_RGBprofile) {
+	    csName = "CS_LINEAR_RGB";
+	}
+
+	// Future versions may choose to write profile data for new
+	// predefined color spaces as well, if any will be introduced,
+	// so that old versions that don't recognize the new CS name
+	// may fall back to constructing profile from the data.
+	byte[] data = null;
+	if (csName == null) {
+	    // getData will activate deferred profile if necessary
+	    data = getData();
+	}
+
+	s.writeObject(csName);
+	s.writeObject(data);
+    }
+
+    // Temporary storage used by readObject to store resolved profile
+    // (obtained with getInstance) for readResolve to return.
+    private transient ICC_Profile resolvedDeserializedProfile;
+
+    /**
+     * Reads default serializable fields from the stream.  Reads from
+     * the stream a string and an array of bytes as additional data.
+     *
+     * @param s stream used for deserialization.
+     * @throws IOException
+     *     thrown by <code>ObjectInputStream</code>.
+     * @throws ClassNotFoundException
+     *     thrown by <code>ObjectInputStream</code>.
+     * @serialData
+     *     The <code>String</code> is the name of one of
+     *     <code>CS_<var>*</var></code> constants defined in the
+     *     {@link ColorSpace} class if the profile object is a profile
+     *     for a predefined color space (for example
+     *     <code>"CS_sRGB"</code>).  The string is <code>null</code>
+     *     otherwise.
+     *     <p>
+     *     The <code>byte[]</code> array is the profile data for the
+     *     profile.  It will usually be <code>null</code> for the
+     *     predefined profiles.
+     *     <p>
+     *     If the string is recognized as a constant name for
+     *     predefined color space the object will be resolved into
+     *     profile obtained with
+     *     <code>getInstance(int&nbsp;cspace)</code> and the profile
+     *     data are ignored.  Otherwise the object will be resolved
+     *     into profile obtained with
+     *     <code>getInstance(byte[]&nbsp;data)</code>.
+     * @see #readResolve()
+     * @see #getInstance(int)
+     * @see #getInstance(byte[])
+     */
+    private void readObject(ObjectInputStream s)
+      throws IOException, ClassNotFoundException
+    {
+	s.defaultReadObject();
+
+	String csName = (String)s.readObject();
+	byte[] data = (byte[])s.readObject();
+
+	int cspace = 0;		// ColorSpace.CS_* constant if known
+	boolean isKnownPredefinedCS = false;
+	if (csName != null) {
+	    isKnownPredefinedCS = true;
+	    if (csName.equals("CS_sRGB")) {
+		cspace = ColorSpace.CS_sRGB;
+	    } else if (csName.equals("CS_CIEXYZ")) {
+		cspace = ColorSpace.CS_CIEXYZ;
+	    } else if (csName.equals("CS_PYCC")) {
+		cspace = ColorSpace.CS_PYCC;
+	    } else if (csName.equals("CS_GRAY")) {
+		cspace = ColorSpace.CS_GRAY;
+	    } else if (csName.equals("CS_LINEAR_RGB")) {
+		cspace = ColorSpace.CS_LINEAR_RGB;
+	    } else {
+		isKnownPredefinedCS = false;
+	    }
+	}
+
+	if (isKnownPredefinedCS) {
+	    resolvedDeserializedProfile = getInstance(cspace);
+	} else {
+	    resolvedDeserializedProfile = getInstance(data);
+	}
+    }
+
+    /**
+     * Resolves instances being deserialized into instances registered
+     * with CMM.
+     * @return ICC_Profile object for profile registered with CMM.
+     * @throws ObjectStreamException
+     *     never thrown, but mandated by the serialization spec.
+     */
+    protected Object readResolve() throws ObjectStreamException {
+	return resolvedDeserializedProfile;
+    }
 }

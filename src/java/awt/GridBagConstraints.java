@@ -1,8 +1,11 @@
 /*
- * @(#)GridBagConstraints.java	1.20 01/11/29
+ * @(#)GridBagConstraints.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -11,7 +14,7 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version 1.9, 06/16/97
+ * @version 	1.26, 02/02/00
  * @author Doug Stein
  * @see java.awt.GridBagLayout
  * @since JDK1.0
@@ -115,7 +118,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * The default value is <code>RELATIVE</code>. 
      * gridx should be a non-negative value.
      * @serial
-     * @see clone()
+     * @see #clone()
      * @see java.awt.GridBagConstraints#gridy
      */
   public int gridx;
@@ -130,7 +133,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * The default value is <code>RELATIVE</code>.
      * gridy should be a non-negative value.
      * @serial
-     * @see clone() 
+     * @see #clone() 
      * @see java.awt.GridBagConstraints#gridx
      */
   public int gridy;
@@ -145,7 +148,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <p>
      * gridwidth should be non-negative and the default value is 1.
      * @serial
-     * @see clone() 
+     * @see #clone() 
      * @see java.awt.GridBagConstraints#gridheight
      */
   public int gridwidth;
@@ -160,7 +163,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <p>
      * gridheight should be a non-negative value and the default value is 1.
      * @serial
-     * @see clone()
+     * @see #clone()
      * @see java.awt.GridBagConstraints#gridwidth
      */
   public int gridheight;
@@ -169,11 +172,11 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * Specifies how to distribute extra horizontal space. 
      * <p>
      * The grid bag layout manager calculates the weight of a column to 
-     * be the maximum <code>weighty</code> of all the components in a 
-     * row. If the resulting layout is smaller horizontally than the area 
+     * be the maximum <code>weightx</code> of all the components in a 
+     * column. If the resulting layout is smaller horizontally than the area 
      * it needs to fill, the extra space is distributed to each column in 
-     * proportion to its weight. A column that has a weight zero receives no 
-     * extra space. 
+     * proportion to its weight. A column that has a weight of zero receives 
+     * no extra space. 
      * <p>
      * If all the weights are zero, all the extra space appears between 
      * the grids of the cell and the left and right edges. 
@@ -181,7 +184,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * The default value of this field is <code>0</code>.
      * weightx should be a non-negative value.
      * @serial
-     * @see clone() 
+     * @see #clone() 
      * @see java.awt.GridBagConstraints#weighty
      */
   public double weightx;
@@ -190,7 +193,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * Specifies how to distribute extra vertical space. 
      * <p>
      * The grid bag layout manager calculates the weight of a row to be 
-     * the maximum <code>weightx</code> of all the components in a row. 
+     * the maximum <code>weighty</code> of all the components in a row. 
      * If the resulting layout is smaller vertically than the area it 
      * needs to fill, the extra space is distributed to each row in 
      * proportion to its weight. A row that has a weight of zero receives no 
@@ -202,7 +205,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * The default value of this field is <code>0</code>. 
      * weighty should be a non-negative value.
      * @serial
-     * @see clone()
+     * @see #clone()
      * @see java.awt.GridBagConstraints#weightx
      */
   public double weighty;
@@ -216,7 +219,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <code>WEST</code>, and <code>NORTHWEST</code>.
      * The default value is <code>CENTER</code>. 
      * @serial
-     * @see clone()
+     * @see #clone()
      */
   public int anchor;
 
@@ -243,7 +246,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <p>
      * The default value is <code>NONE</code>. 
      * @serial
-     * @see clone()
+     * @see #clone()
      */
   public int fill;
 
@@ -254,7 +257,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <p>
      * The default value is <code>new Insets(0, 0, 0, 0)</code>. 
      * @serial
-     * @see clone()
+     * @see #clone()
      */
   public Insets insets;
 
@@ -266,7 +269,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <p>
      * The default value is <code>0</code>. 
      * @serial
-     * @see clone()
+     * @see #clone()
      * @see java.awt.GridBagConstraints#ipady
      */
   public int ipadx;
@@ -279,7 +282,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <p>
      * The default value is 0. 
      * @serial
-     * @see clone()
+     * @see #clone()
      * @see java.awt.GridBagConstraints#ipadx
      */
   public int ipady;
@@ -376,7 +379,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
     * @see java.awt.GridBagConstraints#ipadx
     * @see java.awt.GridBagConstraints#ipady
     * 
-    * @since JDK1.2
+    * @since 1.2
     */
   public GridBagConstraints(int gridx, int gridy,
                             int gridwidth, int gridheight,

@@ -1,8 +1,11 @@
 /*
- * @(#)Collection.java	1.26 01/11/29
+ * @(#)Collection.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -11,7 +14,7 @@ package java.util;
  * The root interface in the <i>collection hierarchy</i>.  A collection
  * represents a group of objects, known as its <i>elements</i>.  Some
  * collections allow duplicate elements and others do not.  Some are ordered
- * and others unordered.  The JDK does not provide any <i>direct</i>
+ * and others unordered.  The SDK does not provide any <i>direct</i>
  * implementations of this interface: it provides implementations of more
  * specific subinterfaces like <tt>Set</tt> and <tt>List</tt>.  This interface
  * is typically used to pass collections around and manipulate them where
@@ -30,10 +33,10 @@ package java.util;
  * producing an equivalent collection of the desired implementation type.
  * There is no way to enforce this convention (as interfaces cannot contain
  * constructors) but all of the general-purpose <tt>Collection</tt>
- * implementations in the JDK comply.<p>
+ * implementations in the SDK comply.<p>
  *
  * @author  Josh Bloch
- * @version 1.26 11/29/01
+ * @version 1.31, 02/02/00
  * @see	    Set
  * @see	    List
  * @see	    Map
@@ -47,7 +50,7 @@ package java.util;
  * @see     Collections
  * @see	    Arrays
  * @see	    AbstractCollection
- * @since   JDK1.2
+ * @since   1.2
  */
 
 public interface Collection {
@@ -65,7 +68,7 @@ public interface Collection {
     /**
      * Returns <tt>true</tt> if this collection contains no elements.
      *
-     * @returns <tt>true</tt> if this collection contains no elements
+     * @return <tt>true</tt> if this collection contains no elements
      */
     boolean isEmpty();
 
@@ -87,7 +90,7 @@ public interface Collection {
      * (unless this collection is an instance of some class that provides a
      * guarantee).
      * 
-     * @returns an <tt>Iterator</tt> over the elements in this collection
+     * @return an <tt>Iterator</tt> over the elements in this collection
      */
     Iterator iterator();
 
@@ -143,7 +146,7 @@ public interface Collection {
      * Note that <tt>toArray(new Object[0])</tt> is identical in function to
      * <tt>toArray()</tt>.
      *
-     * @param the array into which the elements of this collection are to be
+     * @param a the array into which the elements of this collection are to be
      *        stored, if it is big enough; otherwise, a new array of the same
      *        runtime type is allocated for this purpose.
      * @return an array containing the elements of this collection

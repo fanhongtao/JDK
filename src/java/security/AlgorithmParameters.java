@@ -1,8 +1,11 @@
 /*
- * @(#)AlgorithmParameters.java	1.15 01/11/29
+ * @(#)AlgorithmParameters.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -49,13 +52,13 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.15 01/11/29
+ * @version 1.19, 02/02/00
  *
  * @see java.security.spec.AlgorithmParameterSpec
  * @see java.security.spec.DSAParameterSpec
  * @see KeyPairGenerator
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class AlgorithmParameters {
@@ -75,7 +78,7 @@ public class AlgorithmParameters {
     /**
      * Creates an AlgorithmParameters object.
      *
-     * @param keyFacSpi the delegate
+     * @param paramSpi the delegate
      * @param provider the provider
      * @param algorithm the algorithm
      */

@@ -1,8 +1,11 @@
 /*
- * @(#)MotifSliderUI.java	1.17 01/11/29
+ * @(#)MotifSliderUI.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -26,7 +29,7 @@ import javax.swing.plaf.basic.BasicSliderUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 11/29/01
+ * @version 1.19 02/02/00
  * @author Jeff Dinkins
  */
 public class MotifSliderUI extends BasicSliderUI {
@@ -138,31 +141,6 @@ public class MotifSliderUI extends BasicSliderUI {
 
             g.translate(-(knobBounds.x-1), 0);
         }
-    }
-   
-    protected void installKeyboardActions( JSlider slider ) {
-        super.installKeyboardActions( slider );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_UP, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_DOWN, 0 ) );
-
-        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, true),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, Event.CTRL_MASK), 
-                                      JComponent.WHEN_FOCUSED);
-
-        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, true),
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, Event.CTRL_MASK), 
-                                      JComponent.WHEN_FOCUSED);
-    }
-
-    protected void uninstallKeyboardActions( JSlider slider ) {
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_DOWN, Event.CTRL_MASK ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_UP, Event.CTRL_MASK ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_HOME, 0 ) );
-        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_END, 0 ) );
     }
 }
 

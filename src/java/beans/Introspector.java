@@ -1,8 +1,11 @@
 /*
- * @(#)Introspector.java	1.92 01/11/29
+ * @(#)Introspector.java	1.98 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans;
@@ -46,6 +49,10 @@ import java.security.*;
  * patterns to identify property accessors, event sources, or public
  * methods.  We then proceed to analyze the class's superclass and add
  * in the information from it (and possibly on up the superclass chain).
+ * <P>
+ * For more information about introspection and design patterns, please 
+ * consult the 
+ *  <a href="http://java.sun.com/beans/docs/index.html">JavaBeans specification</a>.
  */
 
 public class Introspector {
@@ -81,7 +88,7 @@ public class Introspector {
 
     /**
      * Introspect on a Java bean and learn about all its properties, exposed
-     * methods, and events, subnject to some comtrol flags.
+     * methods, and events, subject to some control flags.
      *
      * @param beanClass  The bean class to be analyzed.
      * @param flags  Flags to control the introspection.
@@ -473,9 +480,16 @@ public class Introspector {
 	}
 	// If the property type has changed, use the new descriptor.
 	Class opd = old.getPropertyType();
+
 	Class npd = pd.getPropertyType();
 	if (opd != null && npd != null && opd != npd) {
-	    properties.put(name, pd);
+        if ((pd.getWriteMethod() != null && pd.getReadMethod() != null) ||
+            (old.getWriteMethod() == null && pd.getWriteMethod() == null) ||
+            (old.getReadMethod() == null && pd.getReadMethod() == null))  {
+            // don't replace a read/write property with a write or 
+            // read only property
+	        properties.put(name, pd);
+        }
 	    return;
 	}
 
@@ -899,6 +913,61 @@ public class Introspector {
     }
 
     /**
+     * Internal support for finding a target methodName with a given
+     * parameter list on a given class.
+     */
+    private static Method internalFindMethod(Class start, String methodName,
+                                                 int argCount, Class args[]) {
+        // For overriden methods we need to find the most derived version.
+        // So we start with the given class and walk up the superclass chain.
+        for (Class cl = start; cl != null; cl = cl.getSuperclass()) {
+            Method methods[] = getPublicDeclaredMethods(cl);
+            for (int i = 0; i < methods.length; i++) {
+                Method method = methods[i];
+                if (method == null) {
+                    continue;
+                }
+                // skip static methods.
+                int mods = method.getModifiers();
+                if (Modifier.isStatic(mods)) {
+                    continue;
+                }
+                // make sure method signature matches.
+                Class params[] = method.getParameterTypes();
+                if (method.getName().equals(methodName) && 
+                    params.length == argCount) {
+                    boolean different = false;
+                    if (argCount > 0) {
+                        for (int j = 0; j < argCount; j++) {
+                            if (params[j] != args[j]) {
+                                different = true;
+                                continue;
+                            }
+                        }
+                        if (different) {
+                            continue;
+                        }
+                    }
+                    return method;
+                }
+            }
+        }
+
+        // Now check any inherited interfaces.  This is necessary both when
+        // the argument class is itself an interface, and when the argument
+        // class is an abstract class.
+        Class ifcs[] = start.getInterfaces();
+        for (int i = 0 ; i < ifcs.length; i++) {
+            Method m = internalFindMethod(ifcs[i], methodName, argCount);
+            if (m != null) {
+                return m;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Find a target methodName on a given class.
      */
     static Method findMethod(Class cls, String methodName, int argCount) 
@@ -915,6 +984,25 @@ public class Introspector {
 	// We failed to find a suitable method
 	throw new IntrospectionException("No method \"" + methodName + 
 					"\" with " + argCount + " arg(s)");
+    }
+
+    /**
+     * Find a target methodName with specific parameter list on a given class.
+     */
+    static Method findMethod(Class cls, String methodName, int argCount, 
+                             Class args[]) throws IntrospectionException {
+        if (methodName == null) {
+            return null;
+        }
+
+        Method m = internalFindMethod(cls, methodName, argCount, args);
+        if (m != null ) {
+            return m;
+        }
+
+        // We failed to find a suitable method
+        throw new IntrospectionException("No method \"" + methodName + 
+                   "\" with " + argCount + " arg(s) of matching types.");
     }
 
     /**

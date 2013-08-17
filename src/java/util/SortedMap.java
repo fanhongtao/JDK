@@ -1,8 +1,11 @@
 /*
- * @(#)SortedMap.java	1.8 01/11/29
+ * @(#)SortedMap.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -50,11 +53,11 @@ package java.util;
  * constructor with a single argument of type sorted map, which creates a new
  * sorted map with the same key-value mappings and the same ordering as the
  * input sorted map.  There is no way to enforce this recommendation (as
- * interfaces cannot contain constructors) but the JDK implementation
+ * interfaces cannot contain constructors) but the SDK implementation
  * (TreeMap) complies.
  *
  * @author  Josh Bloch
- * @version 1.8 11/29/01
+ * @version 1.12, 02/02/00
  * @see Map
  * @see TreeMap
  * @see SortedSet
@@ -62,7 +65,7 @@ package java.util;
  * @see Comparable
  * @see Collection
  * @see ClassCastException
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface SortedMap extends Map {
@@ -111,15 +114,19 @@ public interface SortedMap extends Map {
      * @param toKey high endpoint (exclusive) of the subMap.
      * @return a view of the specified range within this sorted map.
      * 
-     * @throws ClassCastException if <tt>fromKey</tt> or <tt>toKey</tt> cannot
-     *		  be compared with the keys currently in the sorted map.
-     *		  (Implementations may, but are not required to, throw this
-     *		  exception under these circumstances.)
-     * @throws NullPointerException if <tt>fromKey</tt> or <tt>toKey</tt> is
-     *		  <tt>null</tt> and this sorted map does not tolerate
-     *		  <tt>null</tt> keys.
+     * @throws ClassCastException if <tt>fromKey</tt> and <tt>toKey</tt>
+     *         cannot be compared to one another using this map's comparator
+     *         (or, if the map has no comparator, using natural ordering).
+     *         Implementations may, but are not required to, throw this
+     *	       exception if <tt>fromKey</tt> or <tt>toKey</tt>
+     *         cannot be compared to keys currently in the map.
      * @throws IllegalArgumentException if <tt>fromKey</tt> is greater than
-     *         <tt>toKey</tt>.
+     *         <tt>toKey</tt>; or if this map is itself a subMap, headMap,
+     *         or tailMap, and <tt>fromKey</tt> or <tt>toKey</tt> are not
+     *         within the specified range of the subMap, headMap, or tailMap.
+     * @throws NullPointerException if <tt>fromKey</tt> or <tt>toKey</tt> is
+     *	       <tt>null</tt> and this sorted map does not tolerate
+     *	       <tt>null</tt> keys.
      */
     SortedMap subMap(Object fromKey, Object toKey);
 
@@ -146,13 +153,17 @@ public interface SortedMap extends Map {
      *
      * @param toKey high endpoint (exclusive) of the subMap.
      * @return a view of the specified initial range of this sorted map.
-     * 
-     * @throws ClassCastException if <tt>toKey</tt> cannot be compared with
-     *		  the keys currently in the sorted map.  (Implementations may,
-     *		  but are not required to, throw this exception under these
-     *		  circumstances.)
+     * @throws ClassCastException if <tt>toKey</tt> is not compatible
+     *         with this map's comparator (or, if the map has no comparator,
+     *         if <tt>toKey</tt> does not implement <tt>Comparable</tt>).
+     *         Implementations may, but are not required to, throw this
+     *	       exception if <tt>toKey</tt> cannot be compared to keys
+     *         currently in the map.
+     * @throws IllegalArgumentException if this map is itself a subMap,
+     *         headMap, or tailMap, and <tt>toKey</tt> is not within the
+     *         specified range of the subMap, headMap, or tailMap.
      * @throws NullPointerException if <tt>toKey</tt> is <tt>null</tt> and
-     *		  this sorted map does not tolerate <tt>null</tt> keys.
+     *	       this sorted map does not tolerate <tt>null</tt> keys.
      */
     SortedMap headMap(Object toKey);
 
@@ -180,14 +191,17 @@ public interface SortedMap extends Map {
      *
      * @param fromKey low endpoint (inclusive) of the tailMap.
      * @return a view of the specified final range of this sorted map.
-     * 
-     * @throws ClassCastException if <tt>fromKey</tt> cannot be compared with
-     *		  the keys currently in the sorted map.  (Implementations may,
-     *		  but are not required to, throw this exception under these
-     *		  circumstances.)
-     * 
+     * @throws ClassCastException if <tt>fromKey</tt> is not compatible
+     *         with this map's comparator (or, if the map has no comparator,
+     *         if <tt>fromKey</tt> does not implement <tt>Comparable</tt>).
+     *         Implementations may, but are not required to, throw this
+     *	       exception if <tt>fromKey</tt> cannot be compared to keys
+     *         currently in the map.
+     * @throws IllegalArgumentException if this map is itself a subMap,
+     *         headMap, or tailMap, and <tt>fromKey</tt> is not within the
+     *         specified range of the subMap, headMap, or tailMap.
      * @throws NullPointerException if <tt>fromKey</tt> is <tt>null</tt> and
-     *         this sorted map does not tolerate <tt>null</tt> keys.
+     *	       this sorted map does not tolerate <tt>null</tt> keys.
      */
     SortedMap tailMap(Object fromKey);
 

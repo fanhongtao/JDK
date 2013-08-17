@@ -1,8 +1,11 @@
 /*
- * @(#)JSplitPane.java	1.52 01/11/29
+ * @(#)JSplitPane.java	1.62 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -24,29 +27,42 @@ import java.io.IOException;
 
 
 /**
- * JSplitPane is used to divide two (and only two) Components. The two
- * Components are graphically divided based on the look and feel
- * implementation, and the two Components can then be interactively 
- * resized by the user.
+ * <code>JSplitPane</code> is used to divide two (and only two)
+ * <code>Component</code>s. The two <code>Component</code>s
+ * are graphically divided based on the look and feel
+ * implementation, and the two <code>Component</code>s can then be
+ * interactively resized by the user.
+ * Information on using <code>JSplitPane</code> is in
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/splitpane.html">How to Use Split Panes</a> in 
+ * <em>The Java Tutorial</em>.
  * <p>
- * The two Components can be aligned left to right using
+ * The two <code>Component</code>s in a split pane can be aligned
+ * left to right using
  * <code>JSplitPane.HORIZONTAL_SPLIT</code>, or top to bottom using 
  * <code>JSplitPane.VERTICAL_SPLIT</code>.
- * The preferred way to change the size of the Components is to invoke
+ * The preferred way to change the size of the <code>Component</code>s
+ * is to invoke
  * <code>setDividerLocation</code> where <code>location</code> is either
  * the new x or y position, depending on the orientation of the
- * JSplitPane. If one component changes, JSplitPane also attempts to 
- * reposition the other component.
+ * <code>JSplitPane</code>.
  * <p>
- * To resize the Components to their preferred sizes invoke
+ * To resize the <code>Component</code>s to their preferred sizes invoke
  * <code>resetToPreferredSizes</code>.
  * <p>
- * When the user is resizing the Components the minimum size of the
- * Components is used to determine the maximum/minimum position the
- * Components can be set to. So that if the minimum size of the two
- * components is greater than the size of the splitpane the divider
+ * When the user is resizing the <code>Component</code>s the minimum
+ * size of the <code>Components</code> is used to determine the
+ * maximum/minimum position the <code>Component</code>s
+ * can be set to. If the minimum size of the two
+ * components is greater than the size of the split pane the divider
  * will not allow you to resize it. To alter the minimum size of a
- * JComponent, see {@link JComponent#setMinimumSize}.
+ * <code>JComponent</code>, see {@link JComponent#setMinimumSize}.
+ * <p>
+ * When the user resizes the split pane the new space is distributed between
+ * the two components based on the <code>resizeWeight</code> property.
+ * A value of 0,
+ * the default, indicates the right/bottom component gets all the space,
+ * where as a value of 1 indicates the left/top component gets all the space.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
@@ -63,7 +79,7 @@ import java.io.IOException;
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.52 11/29/01
+ * @version 1.62 04/06/00
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible
@@ -75,40 +91,46 @@ public class JSplitPane extends JComponent implements Accessible
     private static final String uiClassID = "SplitPaneUI";
 
     /**
-     * Vertical split indicates the Components are split along the
-     * y axis, eg the two Components will be split one on top of the other.
+     * Vertical split indicates the <code>Component</code>s are
+     * split along the y axis.  For example the two
+     * <code>Component</code>s will be split one on top of the other.
      */
     public final static int VERTICAL_SPLIT = 0;
 
     /**
-     * Horizontal split indicates the Components are split along the
-     * x axis, eg the two Components will be split one to the left of the
+     * Horizontal split indicates the <code>Component</code>s are
+     * split along the x axis.  For example the two
+     * <code>Component</code>s will be split one to the left of the
      * other.
      */
     public final static int HORIZONTAL_SPLIT = 1;
 
     /**
-     * Used to add a Component to the left of the other Component.
+     * Used to add a <code>Component</code> to the left of the other
+     * <code>Component</code>.
      */
     public final static String LEFT = "left";
 
     /**
-     * Used to add a Component to the right of the other Component.
+     * Used to add a <code>Component</code> to the right of the other
+     * <code>Component</code>.
      */
     public final static String RIGHT = "right";
 
     /**
-     * Used to add a Component above the other Component.
+     * Used to add a <code>Component</code> above the other
+     * <code>Component</code>.
      */
     public final static String TOP = "top";
 
     /**
-     * Used to add a Component below the other Component.
+     * Used to add a <code>Component</code> below the other
+     * <code>Component</code>.
      */
     public final static String BOTTOM = "bottom";
 
     /**
-     * Used to add a Component that will represent the divider.
+     * Used to add a <code>Component</code> that will represent the divider.
      */
     public final static String DIVIDER = "divider";
 
@@ -138,6 +160,18 @@ public class JSplitPane extends JComponent implements Accessible
      */
     public final static String LAST_DIVIDER_LOCATION_PROPERTY =
                                "lastDividerLocation";
+
+    /**
+     * Bound property for the dividerLocation.
+     * @since 1.3
+     */
+    public final static String DIVIDER_LOCATION_PROPERTY = "dividerLocation";
+
+    /**
+     * Bound property for weight.
+     * @since 1.3.
+     */
+    public final static String RESIZE_WEIGHT_PROPERTY = "resizeWeight";
 
     /**
      * How the views are split.
@@ -176,11 +210,22 @@ public class JSplitPane extends JComponent implements Accessible
      */
     protected int lastDividerLocation;
 
+    /**
+     * How to distribute extra space.
+     */
+    private double resizeWeight;
 
     /**
-     * Returns a new JSplitPane configured to arrange the child
+     * Location of the divider, at least the value that was set, the UI may
+     * have a different value.
+     */
+    private int dividerLocation;
+
+
+    /**
+     * Creates a new <code>JSplitPane</code> configured to arrange the child
      * components side-by-side horizontally with no continuous 
-     * layout, using two buttons for the compoents.
+     * layout, using two buttons for the components.
      */
     public JSplitPane() {
         this(JSplitPane.HORIZONTAL_SPLIT, false, new JButton("left button"),
@@ -189,11 +234,13 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns a new JSplitPane configured with the specified orientation
-     * and no continuous layout.
+     * Creates a new <code>JSplitPane</code> configured with the
+     * specified orientation and no continuous layout.
      *
-     * @param newOrientation an int specifying the horizontal or vertical
-     *        orientation
+     * @param newOrientation  <code>JSplitPane.HORIZONTAL_SPLIT</code> or
+     *                        <code>JSplitPane.VERTICAL_SPLIT</code>
+     * @exception IllegalArgumentException if <code>orientation</code>
+     *		is not one of HORIZONTAL_SPLIT or VERTICAL_SPLIT.
      */
     public JSplitPane(int newOrientation) {
         this(newOrientation, false);
@@ -201,14 +248,16 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns a new JSplitPane with the specified orientation and
-     * redrawing style.
+     * Creates a new <code>JSplitPane</code> with the specified
+     * orientation and redrawing style.
      *
-     * @param newOrientation an int specifying the horizontal or vertical
-     *        orientation
+     * @param newOrientation  <code>JSplitPane.HORIZONTAL_SPLIT</code> or
+     *                        <code>JSplitPane.VERTICAL_SPLIT</code>
      * @param newContinuousLayout  a boolean, true for the components to 
      *        redraw continuously as the divider changes position, false
      *        to wait until the divider position stops changing to redraw
+     * @exception IllegalArgumentException if <code>orientation</code>
+     *		is not one of HORIZONTAL_SPLIT or VERTICAL_SPLIT
      */
     public JSplitPane(int newOrientation,
                       boolean newContinuousLayout) {
@@ -217,18 +266,23 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns a new JSplitPane with the specified orientation and
-     * with the specifiied components that does not do continuous
+     * Creates a new <code>JSplitPane</code> with the specified
+     * orientation and
+     * with the specified components that do not do continuous
      * redrawing.
      *
-     * @param newOrientation an int specifying the horizontal or vertical
-     *        orientation
-     * @param newContinuousLayout  a boolean, true for the components to 
-     *        redraw continuously as the divider changes position, false
-     *        to wait until the divider position stops changing to redraw
-     * @param newLeftComponent the Component that will appear on the left
-     *        of a horizontally-split pane, or at the top of a
-     *        vertically-split pane.
+     * @param newOrientation  <code>JSplitPane.HORIZONTAL_SPLIT</code> or
+     *                        <code>JSplitPane.VERTICAL_SPLIT</code>
+     * @param newLeftComponent the <code>Component</code> that will
+     *		appear on the left
+     *        	of a horizontally-split pane, or at the top of a
+     *        	vertically-split pane
+     * @param newRightComponent the <code>Component</code> that will
+     *		appear on the right
+     *        	of a horizontally-split pane, or at the bottom of a
+     *        	vertically-split pane
+     * @exception IllegalArgumentException if <code>orientation</code>
+     *		is not one of: HORIZONTAL_SPLIT or VERTICAL_SPLIT
      */
     public JSplitPane(int newOrientation,
                       Component newLeftComponent,
@@ -238,17 +292,25 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns a new JSplitPane with the specified orientation and
+     * Creates a new <code>JSplitPane</code> with the specified
+     * orientation and
      * redrawing style, and with the specified components.
      *
-     * @param newOrientation an int specifying the horizontal or vertical
-     *        orientation
+     * @param newOrientation  <code>JSplitPane.HORIZONTAL_SPLIT</code> or
+     *                        <code>JSplitPane.VERTICAL_SPLIT</code>
      * @param newContinuousLayout  a boolean, true for the components to 
      *        redraw continuously as the divider changes position, false
      *        to wait until the divider position stops changing to redraw
-     * @param newLeftComponent the Component that will appear on the left
-     *        of a horizontally-split pane, or at the top of a
-     *        vertically-split pane.
+     * @param newLeftComponent the <code>Component</code> that will
+     *		appear on the left
+     *        	of a horizontally-split pane, or at the top of a
+     *        	vertically-split pane
+     * @param newRightComponent the <code>Component</code> that will
+     *		appear on the right
+     *        	of a horizontally-split pane, or at the bottom of a
+     *        	vertically-split pane
+     * @exception IllegalArgumentException if <code>orientation</code>
+     *		is not one of HORIZONTAL_SPLIT or VERTICAL_SPLIT
      */
     public JSplitPane(int newOrientation,
                       boolean newContinuousLayout,
@@ -256,6 +318,7 @@ public class JSplitPane extends JComponent implements Accessible
                       Component newRightComponent){
         super();
 
+	dividerLocation = -1;
         setLayout(null);
 	setOpaque(true);
         orientation = newOrientation;
@@ -277,7 +340,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Sets the L&F object that renders this component.
      *
-     * @param ui  the SplitPaneUI L&F object
+     * @param ui  the <code>SplitPaneUI</code> L&F object
      * @see UIDefaults#getUI
      */
     public void setUI(SplitPaneUI ui) {
@@ -289,10 +352,10 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns the SplitPaneUI that is providing the current look and 
-     * feel. 
+     * Returns the <code>SplitPaneUI</code> that is providing the
+     * current look and feel. 
      *
-     * @return the SplitPaneUI object that renders this component
+     * @return the <code>SplitPaneUI</code> object that renders this component
      * @beaninfo
      *       expert: true
      *  description: The L&F object that renders this component.
@@ -303,9 +366,9 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Notification from the UIManager that the L&F has changed. 
+     * Notification from the <code>UIManager</code> that the L&F has changed. 
      * Replaces the current UI object with the latest version from the 
-     * UIManager.
+     * <code>UIManager</code>.
      *
      * @see JComponent#updateUI
      */
@@ -318,7 +381,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the name of the L&F class that renders this component.
      *
-     * @return "SplitPaneUI"
+     * @return the string "SplitPaneUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      * @beaninfo
@@ -333,7 +396,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Sets the size of the divider.
      *
-     * @param newSize an int giving the size of the divider in pixels
+     * @param newSize an integer giving the size of the divider in pixels
      * @beaninfo
      *        bound: true
      *  description: The size of the divider.
@@ -351,7 +414,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the size of the divider.
      *
-     * @return an int giving the size of the divider in pixels
+     * @return an integer giving the size of the divider in pixels
      */
     public int getDividerSize() {
         return dividerSize;
@@ -361,7 +424,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Sets the component to the left (or above) the divider.
      *
-     * @param comp the Component to display in that position
+     * @param comp the <code>Component</code> to display in that position
      */
     public void setLeftComponent(Component comp) {
         if (comp == null) {
@@ -378,7 +441,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the component to the left (or above) the divider.
      *
-     * @return the Component displayed in that position
+     * @return the <code>Component</code> displayed in that position
      * @beaninfo
      *    preferred: true
      *  description: The component to the left (or above) the divider.
@@ -391,7 +454,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Sets the component above, or to the left of the divider.
      *
-     * @param comp the Component to display in that position
+     * @param comp the <code>Component</code> to display in that position
      * @beaninfo
      *  description: The component above, or to the left of the divider.
      */
@@ -403,7 +466,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the component above, or to the left of the divider.
      *
-     * @return the Component displayed in that position
+     * @return the <code>Component</code> displayed in that position
      */
     public Component getTopComponent() {
         return leftComponent;
@@ -413,7 +476,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Sets the component to the right (or below) the divider.
      *
-     * @param comp the Component to display in that position
+     * @param comp the <code>Component</code> to display in that position
      * @beaninfo
      *    preferred: true
      *  description: The component to the right (or below) the divider.
@@ -433,7 +496,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the component to the right (or below) the divider.
      *
-     * @return the Component displayed in that position
+     * @return the <code>Component</code> displayed in that position
      */
     public Component getRightComponent() {
         return rightComponent;
@@ -443,7 +506,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Sets the component below, or to the right of the divider.
      *
-     * @param comp the Component to display in that position
+     * @param comp the <code>Component</code> to display in that position
      * @beaninfo
      *  description: The component below, or to the right of the divider.
      */
@@ -455,7 +518,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the component below, or to the right of the divider.
      *
-     * @return the Component displayed in that position
+     * @return the <code>Component</code> displayed in that position
      */
     public Component getBottomComponent() {
         return rightComponent;
@@ -463,7 +526,7 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Determines whether the JSplitPane provides a UI widget
+     * Determines whether the <code>JSplitPane</code> provides a UI widget
      * on the divider to quickly expand/collapse the divider.
      *
      * @param newValue a boolean, where true means to provide a
@@ -497,7 +560,7 @@ public class JSplitPane extends JComponent implements Accessible
      * Sets the last location the divider was at to
      * <code>newLastLocation</code>.
      *
-     * @param newLastLocation an int specifying the last divider location
+     * @param newLastLocation an integer specifying the last divider location
      *        in pixels, from the left (or upper) edge of the pane to the 
      *        left (or upper) edge of the divider
      * @beaninfo
@@ -516,7 +579,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the last location the divider was at.
      *
-     * @return an int specifying the last divider location as a count
+     * @return an integer specifying the last divider location as a count
      *       of pixels from the left (or upper) edge of the pane to the 
      *       left (or upper) edge of the divider
      */
@@ -532,7 +595,9 @@ public class JSplitPane extends JComponent implements Accessible
      * <li>JSplitPane.HORIZONTAL_SPLIT  (left/right orientation of components)
      * </ul>
      *
-     * @param orientation an int specifying the orientation
+     * @param orientation an integer specifying the orientation
+     * @exception IllegalArgumentException if orientation is not one of:
+     *        HORIZONTAL_SPLIT or VERTICAL_SPLIT.
      * @beaninfo
      *        bound: true
      *  description: The orientation, or how the splitter is divided.
@@ -558,7 +623,7 @@ public class JSplitPane extends JComponent implements Accessible
     /**
      * Returns the orientation.
      * 
-     * @return an int giving the orientation
+     * @return an integer giving the orientation
      * @see #setOrientation
      */
     public int getOrientation() {
@@ -598,10 +663,48 @@ public class JSplitPane extends JComponent implements Accessible
         return continuousLayout;
     }
 
+    /**
+     * Specifies how to distribute extra space when the size of the split pane
+     * changes. A value of 0, the default,
+     * indicates the right/bottom component gets all the extra space (the
+     * left/top component acts fixed), where as a value of 1 specifies the
+     * left/top component gets all the extra space (the right/bottom component
+     * acts fixed). Specifically, the left/top component gets (weight * diff)
+     * extra space and the right/bottom component gets (1 - weight) * diff
+     * extra space.
+     *
+     * @param value as described above
+     * @exception IllegalArgumentException if <code>value</code> is < 0 or > 1
+     * @since 1.3
+     * @beaninfo
+     *        bound: true
+     *  description: Specifies how to distribute extra space when the split pane
+     *               resizes.
+     */
+    public void setResizeWeight(double value) {
+	if (value < 0 || value > 1) {
+	    throw new IllegalArgumentException("JSplitPane weight must be between 0 and 1");
+	}
+	double         oldWeight = resizeWeight;
+
+	resizeWeight = value;
+	firePropertyChange(RESIZE_WEIGHT_PROPERTY, oldWeight, value);
+    }
 
     /**
-     * Messaged to relayout the JSplitPane based on the preferred size
-     * of the children components.
+     * Returns the number that determines how extra space is distributed.
+     * @return how extra space is to be distributed on a resize of the
+     *         split pane
+     * @since 1.3
+     */
+    public double getResizeWeight() {
+	return resizeWeight;
+    }
+
+    /**
+     * Lays out the <code>JSplitPane</code> layout based on the preferred size
+     * of the children components. This will likely result in changing
+     * the divider location.
      */
     public void resetToPreferredSizes() {
         SplitPaneUI         ui = getUI();
@@ -613,7 +716,15 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Sets the divider location as a percentage of the JSplitPane's size.
+     * Sets the divider location as a percentage of the
+     * <code>JSplitPane</code>'s size.
+     * <p>
+     * This method is implemented in terms of
+     * <code>setDividerLocation(int)</code>.
+     * This method immediately changes the size of the split pane based on
+     * its current size. If the split pane is not correctly realized and on
+     * screen, this method will have no effect (new divider location will
+     * become (current size * proportionalLocation) which is 0).
      *
      * @param proportionalLocation  a double-precision floating point value
      *        that specifies a percentage, from zero (top/left) to 1.0
@@ -641,34 +752,48 @@ public class JSplitPane extends JComponent implements Accessible
 
     /**
      * Sets the location of the divider. This is passed off to the 
-     * look and feel implementation.
+     * look and feel implementation, and then listeners are notified. A value
+     * less than 0 implies the divider should be reset to a value that
+     * attempts to honor the preferred size of the left/top component.
+     * After notifying the listeners, the last divider location is updated,
+     * via <code>setLastDividerLocation</code>.
      *
      * @param location an int specifying a UI-specific value (typically a 
      *        pixel count)
+     * @beaninfo
+     *        bound: true
+     *  description: The location of the divider.
      */
     public void setDividerLocation(int location) {
+	int                 oldValue = dividerLocation;
+
+	dividerLocation = location;
+
+	// Notify UI.
         SplitPaneUI         ui = getUI();
 
         if (ui != null) {
             ui.setDividerLocation(this, location);
         }
+
+	// Then listeners
+	firePropertyChange(DIVIDER_LOCATION_PROPERTY, oldValue, location);
+
+	// And update the last divider location.
+	setLastDividerLocation(oldValue);
     }
 
 
     /**
-     * Returns the location of the divider from the look and feel
-     * implementation.
+     * Returns the last value passed to <code>setDividerLocation</code>.
+     * The value returned from this method may differ from the actual
+     * divider location (if <code>setDividerLocation</code> was passed a
+     * value bigger than the curent size).
      *
-     * @return an int specifying a UI-specific value (typically a 
-     *         pixel count)
+     * @return an integer specifying the location of the divider
      */
     public int getDividerLocation() {
-        SplitPaneUI         ui = getUI();
-
-        if (ui != null) {
-            return ui.getDividerLocation(this);
-        }
-        return -1;
+	return dividerLocation;
     }
 
 
@@ -676,8 +801,9 @@ public class JSplitPane extends JComponent implements Accessible
      * Returns the minimum location of the divider from the look and feel
      * implementation.
      *
-     * @return an int specifying a UI-specific value for the minimum
-     *         location (typically a pixel count)
+     * @return an integer specifying a UI-specific value for the minimum
+     *         	location (typically a pixel count); or -1 if the UI is
+     *		<code>null</code>
      * @beaninfo
      *  description: The minimum location of the divider from the L&F.
      */
@@ -695,8 +821,9 @@ public class JSplitPane extends JComponent implements Accessible
      * Returns the maximum location of the divider from the look and feel
      * implementation.
      *
-     * @return an int specifying a UI-specific value for the maximum
-     *         location (typically a pixel count)
+     * @return an integer specifying a UI-specific value for the maximum
+     *         	location (typically a pixel count); or -1 if the  UI is
+     *		<code>null</code>
      */
     public int getMaximumDividerLocation() {
         SplitPaneUI         ui = getUI();
@@ -710,10 +837,10 @@ public class JSplitPane extends JComponent implements Accessible
 
     /**
      * Removes the child component, <code>component</code> from the
-     * pane. Resets the leftComponent or rightComponent instance
-     * variable, as necessary.
+     * pane. Resets the <code>leftComponent</code> or
+     * <code>rightComponent</code> instance variable, as necessary.
      * 
-     * @param component the Component to remove
+     * @param component the <code>Component</code> to remove
      */
     public void remove(Component component) {
         if (component == leftComponent) {
@@ -730,11 +857,11 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Removes the Component at the specified index. Updates the
-     * leftComponent and rightComponent instance variables
-     * as necessary, and then messages super.
+     * Removes the <code>Component</code> at the specified index.
+     * Updates the <code>leftComponent</code> and <code>rightComponent</code>
+     * instance variables as necessary, and then messages super.
      *
-     * @param index an int specifying the component to remove, where
+     * @param index an integer specifying the component to remove, where
      *        1 specifies the left/top component and 2 specifies the 
      *        bottom/right component
      */
@@ -755,8 +882,9 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Removes all the child components from the receiver. Resets the
-     * leftComonent and rightComponent instance variables.
+     * Removes all the child components from the split pane. Resets the
+     * <code>leftComonent</code> and <code>rightComponent</code>
+     * instance variables.
      */
     public void removeAll() {
         leftComponent = rightComponent = null;
@@ -769,9 +897,10 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /** 
-     * Calls to revalidate() on any descendant of this JSplitPane,
+     * Returns true, so that calls to <code>revalidate</code>
+     * on any descendant of this <code>JSplitPane</code>
      * will cause a request to be queued that
-     * will validate the JSplitPane and all its descendants.
+     * will validate the <code>JSplitPane</code> and all its descendants.
      * 
      * @return true
      * @see JComponent#revalidate
@@ -785,6 +914,7 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
+     * Adds the specified component to this split pane.
      * If <code>constraints</code> identifies the left/top or
      * right/bottom child component, and a component with that identifier
      * was previously added, it will be removed and then <code>comp</code>
@@ -792,22 +922,25 @@ public class JSplitPane extends JComponent implements Accessible
      * one of the known identifers the layout manager may throw an
      * IllegalArgumentException.
      * <p>
-     * The possible constraints objects (Strings) are:<ul>
+     * The possible constraints objects (Strings) are:
+     * <ul>
      * <li>JSplitPane.TOP
      * <li>JSplitPane.LEFT
      * <li>JSplitPane.BOTTOM
      * <li>JSplitPane.RIGHT
      * </ul>
-     * If the constraints object is null, the component is added in the
+     * If the <code>constraints</code> object is <code>null</code>,
+     * the component is added in the
      * first available position (left/top if open, else right/bottom).
      * 
      * @param comp        the component to add
-     * @param constraints an Object specifying the layout constraints 
+     * @param constraints an <code>Object</code> specifying the
+     *			  layout constraints 
      *                    (position) for this component
-     * @param index       an int specifying the index in the container's
+     * @param index       an integer specifying the index in the container's
      *                    list.
-     * @exception IllegalArgumentException thrown if the constraints object
-     *            does not match an existing component
+     * @exception IllegalArgumentException  if the <code>constraints</code>
+     *		object does not match an existing component
      * @see java.awt.Container#addImpl(Component, Object, int)
      */
     protected void addImpl(Component comp, Object constraints, int index) 
@@ -863,10 +996,10 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Subclassed to message the UI with finishedPaintingChildren after
-     * super has been messaged, as well as painting the border.
+     * Subclassed to message the UI with <code>finishedPaintingChildren</code>
+     * after super has been messaged, as well as painting the border.
      *
-     * @param g the Graphics context within which to paint
+     * @param g the <code>Graphics</code> context within which to paint
      */
     protected void paintChildren(Graphics g) {
         super.paintChildren(g);
@@ -882,7 +1015,8 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /** 
-     * See readObject() and writeObject() in JComponent for more 
+     * See <code>readObject</code> and <code>writeObject</code> in
+     * <code>JComponent</code> for more 
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -894,13 +1028,14 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns a string representation of this JSplitPane. This method 
+     * Returns a string representation of this <code>JSplitPane</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JSplitPane.
+     * @return  a string representation of this <code>JSplitPane</code>.
      */
     protected String paramString() {
         String orientationString = (orientation == HORIZONTAL_SPLIT ?
@@ -926,12 +1061,16 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JSplitPane. 
+     * For split panes, the AccessibleContext takes the form of an 
+     * AccessibleJSplitPane. 
+     * A new AccessibleJSplitPane instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJSplitPane that serves as the 
+     *         AccessibleContext of this JSplitPane
      * @beaninfo
      *       expert: true
-     *  description: The AccessibleContext associated with this Label.
+     *  description: The AccessibleContext associated with this SplitPane.
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -942,7 +1081,9 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JSplitPane</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to split pane user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -954,7 +1095,7 @@ public class JSplitPane extends JComponent implements Accessible
     protected class AccessibleJSplitPane extends AccessibleJComponent 
         implements AccessibleValue {
         /**
-         * Get the state set of this object.
+         * Gets the state set of this object.
          *
          * @return an instance of AccessibleState containing the current state 
          * of the object
@@ -975,8 +1116,12 @@ public class JSplitPane extends JComponent implements Accessible
     
 
         /**
-         * Get the AccessibleValue associated with this object if one
-         * exists.  Otherwise return null.
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
          */
         public AccessibleValue getAccessibleValue() {
             return this;
@@ -984,7 +1129,7 @@ public class JSplitPane extends JComponent implements Accessible
 
 
         /**
-         * Get the accessible value of this object.
+         * Gets the accessible value of this object.
          *
          * @return a localized String describing the value of this object
          */
@@ -994,7 +1139,7 @@ public class JSplitPane extends JComponent implements Accessible
     
 
         /**
-         * Set the value of this object as a Number.
+         * Sets the value of this object as a Number.
          *
          * @return True if the value was set.
          */
@@ -1009,7 +1154,7 @@ public class JSplitPane extends JComponent implements Accessible
     
 
         /**
-         * Get the minimum accessible value of this object.
+         * Gets the minimum accessible value of this object.
          *
          * @return The minimum value of this object.
          */
@@ -1020,7 +1165,7 @@ public class JSplitPane extends JComponent implements Accessible
     
 
         /**
-         * Get the maximum accessible value of this object.
+         * Gets the maximum accessible value of this object.
          *
          * @return The maximum value of this object.
          */
@@ -1031,7 +1176,7 @@ public class JSplitPane extends JComponent implements Accessible
     
 
         /**
-         * Get the role of this object.
+         * Gets the role of this object.
          *
          * @return an instance of AccessibleRole describing the role of 
          * the object

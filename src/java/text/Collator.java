@@ -1,17 +1,16 @@
 /*
- * @(#)Collator.java	1.22 01/11/29
+ * @(#)Collator.java	1.27 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)Collator.java	1.22 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996-1998 -  All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
- *
- * Portions copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -41,7 +27,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.text.resources.*;
-import java.util.Hashtable;
+import sun.misc.SoftCache;
 
 
 /**
@@ -53,7 +39,7 @@ import java.util.Hashtable;
  * <code>Collator</code> is an abstract base class. Subclasses
  * implement specific collation strategies. One subclass,
  * <code>RuleBasedCollator</code>, is currently provided with
- * the JDK and is applicable to a wide set of languages. Other
+ * the Java 2 platform and is applicable to a wide set of languages. Other
  * subclasses may be created to handle more specialized needs.
  *
  * <p>
@@ -118,8 +104,8 @@ import java.util.Hashtable;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.22 11/29/01
- * @author      Helena Shih
+ * @version     1.27, 01/19/00
+ * @author      Helena Shih, Laura Werner, Richard Gillam
  */
 
 public abstract class Collator implements java.util.Comparator, Cloneable {
@@ -307,8 +293,8 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
      *         first argument is less than, equal to, or greater than the
      *         second. 
      * @exception ClassCastException the arguments cannot be cast to Strings.
-     * @see Comparator
-     * @since   JDK1.2
+     * @see java.util.Comparator
+     * @since   1.2
      */
     public int compare(Object o1, Object o2) {
     return compare((String)o1, (String)o2);
@@ -476,7 +462,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
 
     private int strength = 0;
     private int decmp = 0;
-    private static Hashtable cache = new Hashtable();
+    private static SoftCache cache = new SoftCache();
 
     //
     // FIXME: These three constants should be removed.
@@ -499,7 +485,4 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
      * @see java.text.Collator#compare
      */
     final static int GREATER = 1;
-
-    // Proclaims serialization compatibility to 1.1.
-    static final long serialVersionUID = -7718728969026499504L;
  }

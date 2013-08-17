@@ -1,8 +1,11 @@
 /*
- * @(#)Scrollable.java	1.5 01/11/29
+ * @(#)Scrollable.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -20,7 +23,7 @@ import java.awt.Rectangle;
  * @see JViewport
  * @see JScrollPane
  * @see JScrollBar
- * @version 1.5 11/29/01
+ * @version 1.6 02/02/00
  * @author Hans Muller
  */
 public interface Scrollable  

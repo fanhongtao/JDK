@@ -1,8 +1,11 @@
 /*
- * @(#)MetalScrollBarUI.java	1.22 01/11/29
+ * @(#)MetalScrollBarUI.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -40,7 +43,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
  * Implementation of ScrollBarUI for the Metal Look and Feel
  * <p>
  *
- * @version 1.22 11/29/01
+ * @version 1.21 08/26/98
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -130,10 +133,17 @@ public class MetalScrollBarUI extends BasicScrollBarUI
     {
         g.translate( trackBounds.x, trackBounds.y );
 
+        boolean leftToRight = MetalUtils.isLeftToRight(c);
+
 	if ( scrollbar.getOrientation() == JScrollBar.VERTICAL )
 	{
 	    if ( !isFreeStanding ) {
-	        trackBounds.width += 2;
+                if ( !leftToRight ) {
+                    trackBounds.width += 1;
+                    g.translate( -1, 0 );
+		} else {
+                    trackBounds.width += 2;
+                }
 	    }
 
 	    if ( c.isEnabled() ) {
@@ -158,7 +168,12 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	    }
 
 	    if ( !isFreeStanding ) {
-	        trackBounds.width -= 2;
+                if ( !leftToRight ) {
+                    trackBounds.width -= 1;
+                    g.translate( 1, 0 );
+		} else {
+                    trackBounds.width -= 2;
+                }
 	    }
 	}
 	else  // HORIZONTAL
@@ -201,12 +216,20 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	    return;
 	}
 
+        boolean leftToRight = MetalUtils.isLeftToRight(c);
+
         g.translate( thumbBounds.x, thumbBounds.y );
 
 	if ( scrollbar.getOrientation() == JScrollBar.VERTICAL )
 	{
 	    if ( !isFreeStanding ) {
-	        thumbBounds.width += 2;
+                if ( !leftToRight ) {
+                    thumbBounds.width += 1;
+                    g.translate( -1, 0 );
+		} else {
+                    thumbBounds.width += 2;
+                }
+
 	    }
 
 	    g.setColor( thumbColor );
@@ -223,7 +246,12 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	    bumps.paintIcon( c, g, 3, 4 );
 
 	    if ( !isFreeStanding ) {
-	        thumbBounds.width -= 2;
+                if ( !leftToRight ) {
+                    thumbBounds.width -= 1;
+                    g.translate( 1, 0 );
+		} else {
+                    thumbBounds.width -= 2;
+                }
 	    }
 	}
 	else  // HORIZONTAL

@@ -1,8 +1,11 @@
 /*
- * @(#)KeyPairGenerator.java	1.42 01/11/29
+ * @(#)KeyPairGenerator.java	1.49 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -30,7 +33,7 @@ import java.security.spec.AlgorithmParameterSpec;
  * algorithms (e.g., in the case of the <i>DSA</i> algorithm, the keysize 
  * corresponds to the length of the modulus).
  * There is an 
- * <a href = "#initialize(int, java.security.SecureRandom)">initialize</a> 
+ * {@link #initialize(int, java.security.SecureRandom) initialize}
  * method in this KeyPairGenerator class that takes these two universally
  * shared types of arguments. There is also one that takes just a
  * <code>keysize</code> argument, and uses the <code>SecureRandom</code>
@@ -57,8 +60,8 @@ import java.security.spec.AlgorithmParameterSpec;
  * <li><b>Algorithm-Specific Initialization</b>
  * <p>For situations where a set of algorithm-specific parameters already
  * exists (e.g., so-called <i>community parameters</i> in DSA), there are two
- * <a href = "#initialize(java.security.spec.AlgorithmParameterSpec)">
- * initialize</a> methods that have an <code>AlgorithmParameterSpec</code>
+ * {@link #initialize(java.security.spec.AlgorithmParameterSpec)
+ * initialize} methods that have an <code>AlgorithmParameterSpec</code>
  * argument. One also has a <code>SecureRandom</code> argument, while the
  * the other uses the <code>SecureRandom</code>
  * implementation of the highest-priority installed provider as the source
@@ -82,7 +85,7 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Benjamin Renaud
  *
- * @version 1.42, 01/11/29
+ * @version 1.49, 02/02/00
  *
  * @see java.security.spec.AlgorithmParameterSpec
  */
@@ -224,6 +227,9 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      * @param keysize the keysize. This is an
      * algorithm-specific metric, such as modulus length, specified in
      * number of bits.
+     *
+     * @exception InvalidParameterException if the <code>keysize</code> is not
+     * supported by this KeyPairGenerator object.
      */
     public void initialize(int keysize) {
 	initialize(keysize, new SecureRandom());
@@ -238,7 +244,10 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      * number of bits.
      * @param random the source of randomness.
      *
-     * @since JDK1.2
+     * @exception InvalidParameterException if the <code>keysize</code> is not
+     * supported by this KeyPairGenerator object.
+     *
+     * @since 1.2
      */
     public void initialize(int keysize, SecureRandom random) {
 	// This does nothing, because either
@@ -264,10 +273,10 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      *
      * <p>This concrete method has been added to this previously-defined
      * abstract class.
-     * This method calls the KeyPairGeneratorSpi <a href =
-     * "KeyPairGeneratorSpi.html#
+     * This method calls the KeyPairGeneratorSpi 
+     * {@link KeyPairGeneratorSpi.html#
      * initialize(java.security.spec.AlgorithmParameterSpec,
-     * java.security.SecureRandom)">initialize</a> method, 
+     * java.security.SecureRandom) initialize} method, 
      * passing it <code>params</code> and a source of randomness (obtained
      * from the highest-priority installed provider or system-provided if none
      * of the installed providers supply one).
@@ -279,7 +288,7 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      * @exception InvalidAlgorithmParameterException if the given parameters
      * are inappropriate for this key pair generator.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public void initialize(AlgorithmParameterSpec params)
 	throws InvalidAlgorithmParameterException {
@@ -292,10 +301,10 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      *
      * <p>This concrete method has been added to this previously-defined
      * abstract class.
-     * This method calls the KeyPairGeneratorSpi <a href =
-     * "KeyPairGeneratorSpi.html#
+     * This method calls the KeyPairGeneratorSpi {@link 
+     * KeyPairGeneratorSpi.html#
      * initialize(java.security.spec.AlgorithmParameterSpec,
-     * java.security.SecureRandom)">initialize</a> method, 
+     * java.security.SecureRandom) initialize} method, 
      * passing it <code>params</code> and <code>random</code>.
      * That <code>initialize</code>
      * method always throws an
@@ -307,7 +316,7 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      * @exception InvalidAlgorithmParameterException if the given parameters
      * are inappropriate for this key pair generator.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public void initialize(AlgorithmParameterSpec params,
 			   SecureRandom random)
@@ -326,20 +335,55 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
     }
 
     /**
-     * Generates a key pair. Unless an initialization method is called
-     * using a KeyPairGenerator interface, algorithm-specific defaults
-     * will be used. This will generate a new key pair every time it
-     * is called.
+     * Generates a key pair.
+     *
+     * <p>If this KeyPairGenerator has not been initialized explicitly,
+     * provider-specific defaults will be used for the size and other
+     * (algorithm-specific) values of the generated keys.
+     *
+     * <p>This will generate a new key pair every time it is called.
+     *
+     * <p>This method is functionally equivalent to 
+     * {@link #generateKeyPair() generateKeyPair}.
      *
      * @return the generated key pair
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public final KeyPair genKeyPair() {
 	return generateKeyPair();
     }
 
-
+    /**
+     * Generates a key pair.
+     *
+     * <p>If this KeyPairGenerator has not been initialized explicitly,
+     * provider-specific defaults will be used for the size and other
+     * (algorithm-specific) values of the generated keys.
+     *
+     * <p>This will generate a new key pair every time it is called.
+     * 
+     * <p>This method is functionally equivalent to 
+     * {@link #genKeyPair() genKeyPair}.
+     *
+     * @return the generated key pair
+     */
+    public KeyPair generateKeyPair() {
+	// This does nothing (except returning null), because either:
+	//
+	// 1. the implementation object returned by getInstance() is an
+	//    instance of KeyPairGenerator which has its own implementation
+	//    of generateKeyPair (overriding this one), so the application
+	//    would be calling that method directly, or
+	//
+	// 2. the implementation returned by getInstance() is an instance
+	//    of Delegate, in which case generateKeyPair is
+	//    overridden to invoke the corresponding SPI method.
+	//
+	// (This is a special case, because in JDK 1.1.x the generateKeyPair
+	// method was used both as an API and a SPI method.)
+        return null;
+    }
 
 
     /*

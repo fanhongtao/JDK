@@ -1,8 +1,11 @@
 /*
- * @(#)BasicDirectoryModel.java	1.15 01/11/29
+ * @(#)BasicDirectoryModel.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -71,12 +74,14 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    filechooser.getCurrentDirectory(), "..")
 	);
 
-	for(int i = 0; i < fileCache.size(); i++) {
-	    File f = (File) fileCache.elementAt(i);
-	    if(filechooser.isTraversable(f)) {
-		directories.addElement(f);
-	    } else {
-		files.addElement(f);
+	if(fileCache != null) {
+	    for(int i = 0; i < getSize(); i++) {
+		File f = (File) fileCache.elementAt(i);
+		if(filechooser.isTraversable(f)) {
+		    directories.addElement(f);
+		} else {
+		    files.addElement(f);
+		}
 	    }
 	}
 	return files;
@@ -102,7 +107,8 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	fileCache = new Vector(50);
 
 	loadThread = new LoadFilesThread(currentDirectory, fetchID);
-	loadThread.start();    }
+	loadThread.start();
+    }
 
     // PENDING(jeff) - this is inefficient - should sent out
     // incremental adjustment values instead of saying that the
@@ -111,7 +117,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	// System.out.println("BasicDirectoryModel: firecontentschanged");
 	files = null;
 	directories = null;
-	fireContentsChanged(this, 0, fileCache.size()-1);
+	fireContentsChanged(this, 0, getSize()-1);
     }
 
     public int getSize() {
@@ -232,7 +238,8 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
     }
 
     protected boolean lt(File a, File b) {
-	return a.getName().compareTo(b.getName()) < 0;
+	// ignore case when comparing
+	return a.getName().toLowerCase().compareTo(b.getName().toLowerCase()) < 0;
     }
 
 
@@ -327,8 +334,10 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    if(fetchID == fid) {
 		synchronized(lock) {
 		    if(doFire) {
-			for(int i = 0; i < files.size(); i++) {
-			    fileCache.addElement(files.elementAt(i));
+			if(fileCache != null) {
+			    for(int i = 0; i < files.size(); i++) {
+				fileCache.addElement(files.elementAt(i));
+			    }
 			}
 		    }
 		    fireContentsChanged();

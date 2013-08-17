@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextServiceProviderBeanInfo.java	1.4 01/11/29
+ * @(#)BeanContextServiceProviderBeanInfo.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -20,9 +23,10 @@ import java.beans.BeanInfo;
 public interface BeanContextServiceProviderBeanInfo extends BeanInfo {
 
     /**
-     * @return an array of BeanInfo, one for each service class or 
-     * interface statically available from this ServiceProvider class.
+     * Gets a <code>BeanInfo</code> array, one for each 
+     * service class or interface statically available 
+     * from this ServiceProvider. 
+     * @return the <code>BeanInfo</code> array
      */
-
     BeanInfo[] getServicesBeanInfo();
 }

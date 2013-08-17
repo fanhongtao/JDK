@@ -1,8 +1,11 @@
 /*
- * @(#)Streamable.java	1.15 01/11/29
+ * @(#)Streamable.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package org.omg.CORBA.portable;
 
@@ -20,14 +23,14 @@ import org.omg.CORBA.TypeCode;
 public interface Streamable {
     /**
      * Reads data from <code>istream</code> and initalizes the
-	 * <code>value</code> field of the Holder with the unmarshalled data.
+     * <code>value</code> field of the Holder with the unmarshalled data.
      *
      * @param     istream   the InputStream that represents the CDR data from the wire.
      */
     void _read(InputStream istream);
     /**
      * Marshals to <code>ostream</code> the value in the 
-	 * <code>value</code> field of the Holder.
+     * <code>value</code> field of the Holder.
      *
      * @param     ostream   the CDR OutputStream
      */
@@ -35,7 +38,7 @@ public interface Streamable {
 
     /**
      * Retrieves the <code>TypeCode</code> object corresponding to the value
-	 * in the <code>value</code> field of the Holder.
+     * in the <code>value</code> field of the Holder.
      *
      * @return    the <code>TypeCode</code> object for the value held in the holder
      */

@@ -1,18 +1,16 @@
 /*
- * @(#)CharacterIterator.java	1.14 01/11/29
+ * @(#)CharacterIterator.java	1.15 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)CharacterIterator.java	1.14 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  * The original version of this source code and documentation
  * is copyrighted and owned by Taligent, Inc., a wholly-owned
@@ -22,19 +20,6 @@
  *
  * This notice and attribution to Taligent may not be removed.
  * Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -117,7 +102,7 @@ public interface CharacterIterator extends Cloneable
      * Sets the position to getBeginIndex() and returns the character at that
      * position.
      * @return the first character in the text, or DONE if the text is empty
-     * @see getBeginIndex
+     * @see #getBeginIndex()
      */
     public char first();
 
@@ -125,7 +110,7 @@ public interface CharacterIterator extends Cloneable
      * Sets the position to getEndIndex()-1 (getEndIndex() if the text is empty)
      * and returns the character at that position.
      * @return the last character in the text, or DONE if the text is empty
-     * @see getEndIndex
+     * @see #getEndIndex()
      */
     public char last();
 
@@ -133,7 +118,7 @@ public interface CharacterIterator extends Cloneable
      * Gets the character at the current position (as returned by getIndex()).
      * @return the character at the current position or DONE if the current
      * position is off the end of the text.
-     * @see getIndex
+     * @see #getIndex()
      */
     public char current();
 

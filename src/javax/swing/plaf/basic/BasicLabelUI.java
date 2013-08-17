@@ -1,8 +1,11 @@
 /*
- * @(#)BasicLabelUI.java	1.66 01/11/29
+ * @(#)BasicLabelUI.java	1.69 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -30,7 +33,7 @@ import java.beans.PropertyChangeListener;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.66 11/29/01
+ * @version 1.69 02/02/00
  * @author Hans Muller
  */
 public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
@@ -309,13 +312,40 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     protected void installKeyboardActions(JLabel l) {
         int dka = l.getDisplayedMnemonic();
         Component lf = l.getLabelFor();
-        l.resetKeyboardActions();
         if ((dka != 0) && (lf != null)) {
-            l.registerKeyboardAction(
-                    new PressAction(l,lf),
-                    KeyStroke.getKeyStroke(dka,ActionEvent.ALT_MASK,false),
-                    JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    ActionMap map = SwingUtilities.getUIActionMap(l);
+	    if (map == null) {
+		map = createActionMap();
+		if (map != null) {
+		    SwingUtilities.replaceUIActionMap(l, map);
+		    UIManager.put("Label.actionMap", map);
+		}
+	    }
+	    InputMap inputMap = SwingUtilities.getUIInputMap
+		            (l, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    if (inputMap == null) {
+		inputMap = new ComponentInputMapUIResource(l);
+		SwingUtilities.replaceUIInputMap(l,
+				JComponent.WHEN_IN_FOCUSED_WINDOW, inputMap);
+	    }
+	    inputMap.clear();
+	    inputMap.put(KeyStroke.getKeyStroke(dka, ActionEvent.ALT_MASK,
+					      false), "press");
         }
+	else {
+	    InputMap inputMap = SwingUtilities.getUIInputMap
+		            (l, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    if (inputMap != null) {
+		inputMap.clear();
+	    }
+	}
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("press", new PressAction());
+	map.put("release", new ReleaseAction());
+	return map;
     }
 
     protected void uninstallDefaults(JLabel c){
@@ -330,7 +360,10 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     }
 
     protected void uninstallKeyboardActions(JLabel c) {
-        c.resetKeyboardActions();
+	SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_FOCUSED, null);
+	SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_IN_FOCUSED_WINDOW,
+				       null);
+	SwingUtilities.replaceUIActionMap(c, null);
     }
 
     public static ComponentUI createUI(JComponent c) {
@@ -339,10 +372,7 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 
     public void propertyChange(PropertyChangeEvent e) {
 	String name = e.getPropertyName();
-        if (e.getPropertyName().equals("labelFor") ||
-            e.getPropertyName().equals("displayedMnemonic")) {
-            installKeyboardActions((JLabel) e.getSource());
-        } else if (name.equals("text")) {
+	if (name.equals("text")) {
 	    // remove the old html view client property if one
 	    // existed, and install a new one if the text installed
 	    // into the JLabel is html source.
@@ -350,36 +380,36 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 	    String text = lbl.getText();
 	    BasicHTML.updateRenderer(lbl, text);
 	}
+        else if (name.equals("labelFor") ||
+		 name.equals("displayedMnemonic")) {
+            installKeyboardActions((JLabel) e.getSource());
+        }
     }
 
     // When the accelerator is pressed, temporarily make the JLabel 
     // focusTraversable by registering a WHEN_FOCUSED action for the
     // release of the accelerator.  Then give it focus so it can 
     // prevent unwanted keyTyped events from getting to other components.
-    static class PressAction implements ActionListener {
-        JLabel    owner;
-        Component labelFor;
-
-        PressAction(JLabel l, Component c) {
-            owner = l;
-            labelFor = c;
+    static class PressAction extends AbstractAction {
+        PressAction() {
         }
 
         public void actionPerformed(ActionEvent e) {
-            owner.registerKeyboardAction(
-                    new ReleaseAction(owner,labelFor),
-                    KeyStroke.getKeyStroke(owner.getDisplayedMnemonic(),
-                                           ActionEvent.ALT_MASK,true),
-                    JComponent.WHEN_FOCUSED);
-
-            // Need this if the accelerator is released before the ALT key
-            //
-            owner.registerKeyboardAction(
-                    new ReleaseAction(owner,labelFor),
-                    KeyStroke.getKeyStroke(0,ActionEvent.ALT_MASK,true),
-                    JComponent.WHEN_FOCUSED);
-
-            owner.requestFocus();
+	   JLabel label = (JLabel)e.getSource();
+	   Component labelFor = label.getLabelFor();
+	   if(labelFor != null && labelFor.isEnabled()) {
+	      InputMap inputMap = SwingUtilities.getUIInputMap(label, JComponent.WHEN_FOCUSED);
+	      if (inputMap == null) {
+	         inputMap = new InputMapUIResource();
+		 SwingUtilities.replaceUIInputMap(label, JComponent.WHEN_FOCUSED, inputMap);
+	      }
+	      int dka = label.getDisplayedMnemonic();
+	      inputMap.put(KeyStroke.getKeyStroke(dka, ActionEvent.ALT_MASK, true), "release");
+              // Need this if the accelerator is released before the ALT key
+	      inputMap.put(KeyStroke.getKeyStroke(0, ActionEvent.ALT_MASK, true), "release");
+	      Component owner = label.getLabelFor();
+	      label.requestFocus();
+	   }
         }
 
     }
@@ -387,23 +417,22 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     // On the release of the accelerator, remove the keyboard action
     // that allows the label to take focus and then give focus to the
     // labelFor component.
-    static class ReleaseAction implements ActionListener {
-        JLabel    owner;
-        Component labelFor;
-
-        ReleaseAction(JLabel l, Component c) {
-            owner = l;
-            labelFor = c;
+    static class ReleaseAction extends AbstractAction {
+        ReleaseAction() {
         }
         
         public void actionPerformed(ActionEvent e) {
-            owner.unregisterKeyboardAction(
-                    KeyStroke.getKeyStroke(owner.getDisplayedMnemonic(),
-                                           ActionEvent.ALT_MASK,true));
-            owner.unregisterKeyboardAction(
-                    KeyStroke.getKeyStroke(0,ActionEvent.ALT_MASK,true));
-            labelFor.requestFocus();
+	   JLabel label = (JLabel)e.getSource();
+	   Component labelFor = label.getLabelFor();
+	   if(labelFor != null && labelFor.isEnabled()) {
+	      InputMap inputMap = SwingUtilities.getUIInputMap(label, JComponent.WHEN_FOCUSED);
+	      if (inputMap != null) {
+	         // inputMap should never be null.
+	         inputMap.remove(KeyStroke.getKeyStroke (label.getDisplayedMnemonic(), ActionEvent.ALT_MASK, true));
+	         inputMap.remove(KeyStroke.getKeyStroke(0, ActionEvent.ALT_MASK, true));
+	      }
+              label.getLabelFor().requestFocus();
+	   }
         }
-
     }
 }

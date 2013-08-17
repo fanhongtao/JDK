@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractSequentialList.java	1.15 01/11/29
+ * @(#)AbstractSequentialList.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -37,12 +40,12 @@ package java.util;
  * specification.
  *
  * @author  Josh Bloch
- * @version 1.15 11/29/01
+ * @version 1.21, 02/02/00
  * @see Collection
  * @see List
  * @see AbstractList
  * @see AbstractCollection
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AbstractSequentialList extends AbstractList {
@@ -157,7 +160,7 @@ public abstract class AbstractSequentialList extends AbstractList {
      * <tt>UnsupportedOperationException</tt> if list iterator does not
      * implement the <tt>remove</tt> operation.
      *
-     * @param the index of the element to be removed from the List.
+     * @param  index index of the element to be removed from the List.
      * @return the element that was removed from the list.
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      *		  is not supported by this list.
@@ -224,7 +227,6 @@ public abstract class AbstractSequentialList extends AbstractList {
 	Iterator e2 = c.iterator();
 	while (e2.hasNext()) {
 	    e1.add(e2.next());
-	    e1.next();	// Skip over the element that we just added
 	    modified = true;
 	}
 	return modified;

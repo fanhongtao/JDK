@@ -1,8 +1,11 @@
 /*
- * @(#)ServantObject.java	1.6 01/11/29
+ * @(#)ServantObject.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -23,9 +26,9 @@ package org.omg.CORBA.portable;
 public class ServantObject
 {
     /** The real servant. The local stub may cast this field to the expected type, and then
-    * invoke the operation directly. Note, the object may or may not be the actual servant
-    * instance. 
-    * @return The real servant
-    */
+     * invoke the operation directly. Note, the object may or may not be the actual servant
+     * instance. 
+     * @return The real servant
+     */
     public java.lang.Object servant;
 }

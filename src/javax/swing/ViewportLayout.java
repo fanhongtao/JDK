@@ -1,8 +1,11 @@
 /*
- * @(#)ViewportLayout.java	1.28 01/11/29
+ * @(#)ViewportLayout.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -17,7 +20,8 @@ import java.awt.Insets;
 import java.io.Serializable;
 
 /**
- * The default layout manager for JViewport.  JViewportLayout defines
+ * The default layout manager for <code>JViewport</code>. 
+ * <code>ViewportLayout</code> defines
  * a policy for layout that should be useful for most applications.
  * The viewport makes its view the same size as the viewport,
  * however it will not make the view smaller than its minimum size.
@@ -32,7 +36,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.28 11/29/01
+ * @version 1.29 02/02/00
  * @author Hans Muller
  */
 public class ViewportLayout implements LayoutManager, Serializable
@@ -56,7 +60,8 @@ public class ViewportLayout implements LayoutManager, Serializable
      * Returns the preferred dimensions for this layout given the components
      * in the specified target container.
      * @param target the component which needs to be laid out
-     * @return a Dimension object containing the preferred dimensions
+     * @return a <code>Dimension</code> object containing the
+     *		preferred dimensions
      * @see #minimumLayoutSize
      */
     public Dimension preferredLayoutSize(Container parent) {
@@ -78,7 +83,8 @@ public class ViewportLayout implements LayoutManager, Serializable
      * contained in the specified target container.
      *
      * @param target the component which needs to be laid out
-     * @return a Dimension object containing the minimum dimensions
+     * @return a <code>Dimension</code> object containing the minimum
+     *		dimensions
      * @see #preferredLayoutSize
      */
     public Dimension minimumLayoutSize(Container parent) {
@@ -92,7 +98,7 @@ public class ViewportLayout implements LayoutManager, Serializable
      * @param parent  the container to lay out
      *
      * @exception AWTError  if the target isn't the container specified to the
-     *                      BoxLayout constructor
+     *                      <code>BoxLayout</code> constructor
      */
     public void layoutContainer(Container parent)
     {

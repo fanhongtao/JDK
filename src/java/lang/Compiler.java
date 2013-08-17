@@ -1,8 +1,11 @@
 /*
- * @(#)Compiler.java	1.16 01/11/29
+ * @(#)Compiler.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -26,7 +29,7 @@ package java.lang;
  * If no compiler is available, these methods do nothing.
  *
  * @author  Frank Yellin
- * @version 1.12, 06/29/98
+ * @version 1.15, 02/02/00
  * @see     java.lang.System#getProperty(java.lang.String)
  * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
  * @see     java.lang.System#loadLibrary(java.lang.String)
@@ -41,29 +44,32 @@ public final class Compiler  {
 
     static {
         registerNatives();
-	String library = null;
-	boolean loaded = false;
-	try {
-	    library = System.getProperty("java.compiler");
-	    if ((library != null) &&
-		(!library.equals("NONE")) &&
-		(!library.equals(""))) {
-		System.loadLibrary(library);
-		initialize();
-		loaded = true;
-	    }
-	} catch (UnsatisfiedLinkError e) {
-         if(!library.equals("javacomp")) {
-             System.err.println("Warning: JIT compiler \"" + library +
-		     "\" not found. Will use interpreter.");
-         }
-	}
-	String vmInfo = System.getProperty("java.vm.info");
-	if (loaded) {
-	    System.setProperty("java.vm.info", vmInfo + ", " + library);
-	} else {
-	    System.setProperty("java.vm.info", vmInfo + ", nojit");
-	}
+	java.security.AccessController.doPrivileged
+	    (new java.security.PrivilegedAction() {
+		public Object run() {
+		    boolean loaded = false;
+		    String jit = System.getProperty("java.compiler");
+		    if ((jit != null) && (!jit.equals("NONE")) &&
+			(!jit.equals("")))
+		    {
+			try {
+			    System.loadLibrary(jit);
+			    initialize();
+			    loaded = true;
+			} catch (UnsatisfiedLinkError e) {
+			    System.err.println("Warning: JIT compiler \"" +
+			      jit + "\" not found. Will use interpreter.");
+			}
+		    }
+		    String info = System.getProperty("java.vm.info");
+		    if (loaded) {
+			System.setProperty("java.vm.info", info + ", " + jit);
+		    } else {
+			System.setProperty("java.vm.info", info + ", nojit");
+		    }
+		    return null;
+		}
+	    });
     }
 
     /**

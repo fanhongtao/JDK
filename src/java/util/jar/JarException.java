@@ -1,8 +1,11 @@
 /*
- * @(#)JarException.java	1.6 01/11/29
+ * @(#)JarException.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -12,8 +15,8 @@ package java.util.jar;
  * or writing to a JAR file.
  *
  * @author  David Connelly
- * @version 1.6, 11/29/01
- * @since   JDK1.2
+ * @version 1.9, 02/02/00
+ * @since   1.2
  */
 public
 class JarException extends java.util.zip.ZipException {

@@ -1,8 +1,11 @@
 /*
- * @(#)TimerQueue.java	1.28 01/11/29
+ * @(#)TimerQueue.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -20,7 +23,7 @@ import java.util.*;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.28 11/29/01
+ * @version 1.29 02/02/00
  * @author Dave Moore
  */
 class TimerQueue implements Runnable

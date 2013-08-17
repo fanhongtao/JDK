@@ -1,8 +1,11 @@
 /*
- * @(#)sysmacros_md.h	1.44 01/11/29
+ * @(#)sysmacros_md.h	1.46 00/03/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_SOLARIS_SYSMACROS_MD_H_
@@ -38,34 +41,30 @@ void panic (const char *, ...);
 #define sysStoreBarrier() ((void) 0)
 #endif
 
-#ifdef __linux__
-#if defined(__sparc__)
-#define sysMemoryFlush() __asm__ __volatile__ ("" : : : "memory")
-#define sysStoreBarrier() __asm__ __volatile__ ("" : : : "memory")
-
-#elif defined(__i386__)
-#define sysMemoryFlush() __asm__ __volatile__ ("lock; addl $0,0(%%esp)" : : : "memory")
-#define sysStoreBarrier() __asm__ __volatile__ ("" : : : "memory")
-
-#elif defined(__powerpc__)
-#define sysMemoryFlush()  __asm__ __volatile__ ("sync" : : : "memory")
-#define sysStoreBarrier() __asm__ __volatile__ ("eieio" : : : "memory")
-
-#elif defined(__mc68000__)
-#define sysMemoryFlush()  __asm__ __volatile__ ("" : : : "memory")
-#define sysStoreBarrier() __asm__ __volatile__ ("" : : : "memory")
-
-#else
-#error No definition for sysMemoryFlush && sysStoreBarrier!
-#endif
-
-#else /* linux */
-
 /*
  * Flush the write buffer
  */
 #if defined(__GNUC__)
 
+#ifdef __linux__
+#if defined(__sparc__)
+#define sysMemoryFlush() __asm__ __volatile__ ("" : : : "memory")
+#define sysStoreBarrier() __asm__ __volatile__ ("" : : : "memory")
+#elif defined(__i386__)
+#define sysMemoryFlush() __asm__ __volatile__ ("lock; addl $0,0(%%esp)" : : : "memory")
+#define sysStoreBarrier() __asm__ __volatile__ ("" : : : "memory")
+#elif defined(__powerpc__)
+#define sysMemoryFlush()  __asm__ __volatile__ ("sync" : : : "memory")
+#define sysStoreBarrier() __asm__ __volatile__ ("eieio" : : : "memory")
+#elif defined(__mc68000__)
+#define sysMemoryFlush()  __asm__ __volatile__ ("" : : : "memory")
+#define sysStoreBarrier() __asm__ __volatile__ ("" : : : "memory")
+#else
+#error No definition for sysMemoryFlush && sysStoreBarrier!
+#endif
+#endif /* linux */
+
+#ifndef __linux__
 #ifdef sparc
 #define sysMemoryFlush()  __asm__ ("ldstub [%sp-4], %g0");
 #elif i386
@@ -73,25 +72,26 @@ void panic (const char *, ...);
 #else
 #error No definition for sysMemoryFlush!
 #endif
+#endif /* not linux */
 
-#else
+
+#else /* !GNUC */
 void sysMemoryFlush(void);
 #endif
-#endif /* linux */
 
 long *  sysInvokeNative(void *, void *, long *, char *, int, void *);
 
-/* name of the default JIT compiler to be used on Solaris */
-
-#ifdef __linux__
-#if (defined(__powerpc__) || defined(__mc68000__))
+/*
+ * Name of the default JIT that the classic VM will try to load.  Note
+ * that because of "4251347: Please remove Solaris JIT from the binary
+ * JDK/JRE bundles", the JIT has been turned off on Solaris.
+ */
+#if defined(__solaris__) || defined(__linux__)
 #define DEFAULT_JIT_NAME "NONE"
-#else
-#define DEFAULT_JIT_NAME "javacomp"
-#endif
 #else
 #define DEFAULT_JIT_NAME "sunwjit"
 #endif
+
 #define JVM_ONLOAD_SYMBOLS   {"JVM_OnLoad"}
 
 #endif /* !_JAVASOFT_SOLARIS_SYSMACROS_MD_H_ */

@@ -1,8 +1,11 @@
 /*
- * @(#)BasicButtonListener.java	1.40 01/11/29
+ * @(#)BasicButtonListener.java	1.46 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package javax.swing.plaf.basic;
@@ -12,11 +15,14 @@ import java.awt.event.*;
 import java.beans.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.ActionMapUIResource;
+import javax.swing.plaf.ButtonUI;
+import javax.swing.plaf.ComponentInputMapUIResource;
 
 /**
  * Button Listener
  *
- * @version 1.40 11/29/01
+ * @version 1.46 02/02/00
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -24,32 +30,16 @@ import javax.swing.event.*;
 public class BasicButtonListener implements MouseListener, MouseMotionListener, 
                                    FocusListener, ChangeListener, PropertyChangeListener
 {
-    // used in mouseDragged
-    private Rectangle tmpRect = new Rectangle();
-
-
-    // Keyboard Actions used by the mnemonic accelerator and
-    // the "spacebar" accelerator triggers
-    private KeyStroke altPressedKeyStroke = null;
-    private KeyStroke altReleasedKeyStroke = null;
-    private KeyStroke nonAltReleasedKeyStroke = null;
-
-    // These two keystrokes can be shared accross all buttons. 
-    private static KeyStroke spacePressedKeyStroke = null;
-    private static KeyStroke spaceReleasedKeyStroke = null;
+    /** Set to true when the WindowInputMap is installed. */
+    private boolean createdWindowInputMap;
   
     public BasicButtonListener(AbstractButton b) {
-	if(spacePressedKeyStroke == null) {
-	    spacePressedKeyStroke = KeyStroke.getKeyStroke(' ', 0, false);
-	    spaceReleasedKeyStroke = KeyStroke.getKeyStroke(' ', 0,true);
-	}
     }
 
     public void propertyChange(PropertyChangeEvent e) {
 	String prop = e.getPropertyName();
 	if(prop.equals(AbstractButton.MNEMONIC_CHANGED_PROPERTY)) {
-	    uninstallKeyboardActions((AbstractButton) e.getSource());
-	    installKeyboardActions((AbstractButton) e.getSource());
+	    updateMnemonicBinding((AbstractButton)e.getSource());
 	}
 
 	if(prop.equals(AbstractButton.CONTENT_AREA_FILLED_CHANGED_PROPERTY)) {
@@ -71,59 +61,102 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
      * button and registring the keyboard mnemonic (if any).
      */
     public void installKeyboardActions(JComponent c) {
-	AbstractButton b = (AbstractButton) c;
+	AbstractButton b = (AbstractButton)c;	
+	// Update the mnemonic binding.
+	updateMnemonicBinding(b);
 
-	PressedAction pressedAction = new PressedAction(b);
-	ReleasedAction releasedAction = new ReleasedAction(b);
+	// Reset the ActionMap.
+	ActionMap map = getActionMap(b);
 
-	b.registerKeyboardAction(pressedAction, spacePressedKeyStroke, JComponent.WHEN_FOCUSED);
-	b.registerKeyboardAction(releasedAction, spaceReleasedKeyStroke, JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIActionMap(c, map);
 
-	int m = b.getMnemonic();
-	if(m != 0) {
-	    altPressedKeyStroke     = KeyStroke.getKeyStroke(m, ActionEvent.ALT_MASK, false);
-	    altReleasedKeyStroke    = KeyStroke.getKeyStroke(m, ActionEvent.ALT_MASK, true);
-	    nonAltReleasedKeyStroke = KeyStroke.getKeyStroke(m, 0, true);
-	    
-	    b.registerKeyboardAction(pressedAction, altPressedKeyStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-	    b.registerKeyboardAction(releasedAction, altReleasedKeyStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-	    b.registerKeyboardAction(releasedAction, nonAltReleasedKeyStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-	} 
+	InputMap km = getInputMap(JComponent.WHEN_FOCUSED, c);
+
+	SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_FOCUSED, km);
     }
 
     /**
      * Unregister's default key actions
-     * @see #registerKeyboardActions
      */
     public void uninstallKeyboardActions(JComponent c) {
-	AbstractButton b = (AbstractButton) c;
-
-	// Don't null out the spacePressed/spaceReleased KeyStrokes,
-	// they are shared accross all buttons
- 	if(spacePressedKeyStroke != null) {
-	    b.unregisterKeyboardAction(spacePressedKeyStroke);
+	if (createdWindowInputMap) {
+	    SwingUtilities.replaceUIInputMap(c, JComponent.
+					   WHEN_IN_FOCUSED_WINDOW, null);
+	    createdWindowInputMap = false;
 	}
-
- 	if(spaceReleasedKeyStroke != null) {
-	    b.unregisterKeyboardAction(spaceReleasedKeyStroke);
-	}
-
- 	if(altPressedKeyStroke != null) {
-	    b.unregisterKeyboardAction(altPressedKeyStroke);
-	    altPressedKeyStroke = null;
-	}
-
- 	if(altReleasedKeyStroke != null) {
-	    b.unregisterKeyboardAction(altReleasedKeyStroke);
-	    altReleasedKeyStroke = null;
-	}
-
- 	if(nonAltReleasedKeyStroke != null) {
-	    b.unregisterKeyboardAction(nonAltReleasedKeyStroke);
-	    nonAltReleasedKeyStroke = null;
-	}
+	SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_FOCUSED, null);
+	SwingUtilities.replaceUIActionMap(c, null);
     }
 
+    /**
+     * Returns the ActionMap to use for <code>b</code>. Called as part of
+     * <code>installKeyboardActions</code>.
+     */
+    ActionMap getActionMap(AbstractButton b) {
+	return createActionMap(b);
+    }
+
+    /**
+     * Returns the InputMap for condition <code>condition</code>. Called as
+     * part of <code>installKeyboardActions</code>.
+     */
+    InputMap getInputMap(int condition, JComponent c) {
+	if (condition == JComponent.WHEN_FOCUSED) {
+	    ButtonUI ui = ((AbstractButton)c).getUI();
+	    if (ui != null && (ui instanceof BasicButtonUI)) {
+		return (InputMap)UIManager.get(((BasicButtonUI)ui).
+				       getPropertyPrefix() +"focusInputMap");
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * Creates and returns the ActionMap to use for the button.
+     */
+    ActionMap createActionMap(AbstractButton c) {
+	ActionMap retValue = new javax.swing.plaf.ActionMapUIResource();
+
+	retValue.put("pressed", new PressedAction((AbstractButton)c));
+	retValue.put("released", new ReleasedAction((AbstractButton)c));
+	return retValue;
+    }
+
+    /**
+     * Resets the binding for the mnemonic in the WHEN_IN_FOCUSED_WINDOW
+     * UI InputMap.
+     */
+    void updateMnemonicBinding(AbstractButton b) {
+	int m = b.getMnemonic();
+	if(m != 0) {
+	    InputMap map;
+	    if (!createdWindowInputMap) {
+		map = new ComponentInputMapUIResource(b);
+		SwingUtilities.replaceUIInputMap(b,
+			       JComponent.WHEN_IN_FOCUSED_WINDOW, map);
+		createdWindowInputMap = true;
+	    }
+	    else {
+		map = SwingUtilities.getUIInputMap(b, JComponent.
+						 WHEN_IN_FOCUSED_WINDOW);
+	    }
+	    if (map != null) {
+		map.clear();
+		map.put(KeyStroke.getKeyStroke(m, ActionEvent.ALT_MASK, false),
+			"pressed");
+		map.put(KeyStroke.getKeyStroke(m, ActionEvent.ALT_MASK, true),
+		       "released");
+		map.put(KeyStroke.getKeyStroke(m, 0, true), "released");
+	    }
+	} 
+	else if (createdWindowInputMap) {
+	    InputMap map = SwingUtilities.getUIInputMap(b, JComponent.
+					     WHEN_IN_FOCUSED_WINDOW);
+	    if (map != null) {
+		map.clear();
+	    }
+	}
+    }
 
     public void stateChanged(ChangeEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
@@ -151,69 +184,61 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
 
     public void mouseDragged(MouseEvent e) {
-	AbstractButton b = (AbstractButton) e.getSource();
-
-	// HACK! We're forced to do this since mouseEnter and mouseExit aren't
-	// reported while the mouse is down.
-	ButtonModel model = b.getModel();
-
-	if(model.isPressed()) {
-            tmpRect.width = b.getWidth();
-            tmpRect.height = b.getHeight();
-            if(tmpRect.contains(e.getPoint())) {
-                model.setArmed(true);
-            } else {
-                model.setArmed(false);
-            }
-        }
     };
 
     public void mouseClicked(MouseEvent e) {
     };
  
     public void mousePressed(MouseEvent e) {
-        if ( SwingUtilities.isLeftMouseButton(e) ) {
-	    AbstractButton b = (AbstractButton) e.getSource();
-	    ButtonModel model = b.getModel();
-	    if (!model.isEnabled()) {
-		// Disabled buttons ignore all input...
-		return;
-	    }
-
-	    // But because of the mouseDragged hack above, we can't do setArmed
-	    // in mouseEnter. As a workaround, set it here just before setting
-	    // focus.
-	    model.setArmed(true);
-	    model.setPressed(true);
-	    if(!b.hasFocus()) {
-		b.requestFocus();
-	    }            
-	}
+       if (SwingUtilities.isLeftMouseButton(e) ) {
+	  AbstractButton b = (AbstractButton) e.getSource();
+	  if(b.contains(e.getX(), e.getY())) {
+	     ButtonModel model = b.getModel();
+	     if (!model.isEnabled()) {
+	        // Disabled buttons ignore all input...
+	   	return;
+	     }
+	     if (!model.isArmed()) {
+		// button not armed, should be
+                model.setArmed(true);
+	     }
+	     model.setPressed(true);
+	     if(!b.hasFocus()) {
+	        b.requestFocus();
+	     }            
+	  } 
+       }
     };
     
     public void mouseReleased(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
 	ButtonModel model = b.getModel();
 	model.setPressed(false);
-	model.setArmed(false);
     };
  
     public void mouseEntered(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-	if(b.isRolloverEnabled()) {
-	    b.getModel().setRollover(true);
-	}
+        if(b.contains(e.getX(), e.getY())) {
+	   ButtonModel model = b.getModel();
+	   if(b.isRolloverEnabled()) {
+	       model.setRollover(true);
+	   }
+           model.setArmed(true);
+        }
     };
  
     public void mouseExited(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-	if(b.isRolloverEnabled()) {
-	    b.getModel().setRollover(false);
-	}
+        if(!b.contains(e.getX(), e.getY())) {
+	   ButtonModel model = b.getModel();
+	   if(b.isRolloverEnabled()) {
+	       model.setRollover(false);
+	   }
+           model.setArmed(false);
+        }
     };
-	
 
-    static class PressedAction implements ActionListener {
+    static class PressedAction extends AbstractAction {
 	AbstractButton b = null;
         PressedAction(AbstractButton b) {
 	    this.b = b;
@@ -237,14 +262,16 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 	}
     }
 
-   static class ReleasedAction implements ActionListener {
+   static class ReleasedAction extends AbstractAction {
 	AbstractButton b = null;
         ReleasedAction(AbstractButton b) {
 	    this.b = b;
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-	    b.getModel().setPressed(false);
+            ButtonModel model = b.getModel();
+            model.setPressed(false);
+            model.setArmed(false);
         }
 
 	public boolean isEnabled() {

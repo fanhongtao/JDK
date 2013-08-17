@@ -1,8 +1,11 @@
 /*
- * @(#)URLClassLoader.java	1.70 03/06/13
+ * @(#)URLClassLoader.java	1.71 00/04/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -47,8 +50,8 @@ import sun.misc.URLClassPath;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.70, 06/13/03
- * @since   JDK1.2
+ * @version 1.71, 04/06/00
+ * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
     /* The search path for classes and resources */
@@ -163,6 +166,7 @@ public class URLClassLoader extends SecureClassLoader {
      * Returns the search path of URLs for loading classes and resources.
      * This includes the original list of URLs specified to the constructor,
      * along with any URLs subsequently appended by the addURL() method.
+     * @return the search path of URLs for loading classes and resources.
      */
     public URL[] getURLs() {
 	return ucp.getURLs();
@@ -232,7 +236,9 @@ public class URLClassLoader extends SecureClassLoader {
 	    } else {
 		if (man != null) {
 		    definePackage(pkgname, man, url);
-		}
+		} else {
+                    definePackage(pkgname, null, null, null, null, null, null, null);
+                }
 	    }
 	}
 	// Now read the class bytes and define the class
@@ -255,6 +261,7 @@ public class URLClassLoader extends SecureClassLoader {
      * @exception   IllegalArgumentException if the package name duplicates
      *              an existing package either in this class loader or one
      *              of its ancestors
+     * @return the newly defined Package object
      */
     protected Package definePackage(String name, Manifest man, URL url)
 	throws IllegalArgumentException
@@ -327,10 +334,10 @@ public class URLClassLoader extends SecureClassLoader {
 
     /**
      * Finds the resource with the specified name on the URL search path.
-     * Returns a URL for the resource, or null if the resource could not
-     * be found.
      *
      * @param name the name of the resource
+     * @return a <code>URL</code> for the resource, or <code>null</code> 
+     * if the resource could not be found.
      */
     public URL findResource(final String name) {
 	/*
@@ -357,35 +364,35 @@ public class URLClassLoader extends SecureClassLoader {
     public Enumeration findResources(final String name) throws IOException {
         final Enumeration e = ucp.getResources(name, true);
 
-        return new Enumeration() {
-            private URL res;
+	return new Enumeration() {
+	    private URL res;
 
-            public Object nextElement() {
-                if (res == null)
-                    throw new NoSuchElementException();
-                URL url = res;
-                res = null;
-                return url;
-            }
-  
-            public boolean hasMoreElements() {
-                if (res != null)
-                    return true;
-                do {
-                    Resource r = (Resource)
-                        AccessController.doPrivileged(new PrivilegedAction() {
-                        public Object run() {
-                            if (!e.hasMoreElements())
-                                return null;
-                            return e.nextElement();
-                        }
-                    }, acc);
-                    if (r == null)
-                        break;
-                    res = ucp.checkURL(r.getURL());
-                } while (res == null);
-                return res != null;
-            }
+	    public Object nextElement() {
+		if (res == null)
+		    throw new NoSuchElementException();
+		URL url = res;
+	        res = null;
+		return url;
+	    }
+
+	    public boolean hasMoreElements() {
+		if (res != null)
+		    return true;
+		do {
+		    Resource r = (Resource)
+		        AccessController.doPrivileged(new PrivilegedAction() {
+			public Object run() {
+			    if (!e.hasMoreElements())
+				return null;
+			    return e.nextElement();
+			}
+		    }, acc);
+		    if (r == null)
+			break;
+		    res = ucp.checkURL(r.getURL());
+		} while (res == null);
+		return res != null;
+	    }
 	};
     }
 
@@ -538,17 +545,10 @@ final class FactoryURLClassLoader extends URLClassLoader {
 	// should go away once we've added support for exported packages.
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-            String cname = name.replace('/', '.');
-            if (cname.startsWith("[")) {
-                int b = cname.lastIndexOf('[') + 2;
-                if (b > 1 && b < cname.length()) {
-                    cname = cname.substring(b);
-                }
-            }
-            int i = cname.lastIndexOf('.');
-            if (i != -1) {
-                sm.checkPackageAccess(cname.substring(0, i));
-            }
+	    int i = name.lastIndexOf('.');
+	    if (i != -1) {
+		sm.checkPackageAccess(name.substring(0, i));
+	    }
 	}
 	return super.loadClass(name, resolve);
     }

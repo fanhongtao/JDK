@@ -1,8 +1,11 @@
 /*
- * @(#)MetalSplitPaneDivider.java	1.12 01/11/29
+ * @(#)MetalSplitPaneDivider.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -23,7 +26,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.12 11/29/01
+ * @version 1.14 02/02/00
  * @author Steve Wilson
  * @author Ralph kar
  */
@@ -60,12 +63,21 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 	    g.setColor(controlColor);
 	}
 	Rectangle clip = g.getClipBounds();
+	Insets insets = getInsets();
 	g.fillRect(clip.x, clip.y, clip.width, clip.height);
         Dimension  size = getSize();
         size.width -= inset * 2;
         size.height -= inset * 2;
+	int drawX = inset;
+	int drawY = inset;
+	if (insets != null) {
+	    size.width -= (insets.left + insets.right);
+	    size.height -= (insets.top + insets.bottom);
+	    drawX += insets.left;
+	    drawY += insets.top;
+	}
         usedBumps.setBumpArea(size);
-        usedBumps.paintIcon(this, g, inset, inset);
+        usedBumps.paintIcon(this, g, drawX, drawY);
         super.paint(g);
     }
 
@@ -158,6 +170,7 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 		return false;
 	    }
         };
+	b.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         return b;
@@ -252,6 +265,7 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 		return false;
 	    }
         };
+	b.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         return b;
@@ -273,7 +287,7 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
             int         orientation = getOrientationFromSuper();
             int         oneTouchSize = getOneTouchSizeFromSuper();
             int         oneTouchOffset = getOneTouchOffsetFromSuper();
-            int         blockSize = Math.min(getDividerSize(), oneTouchSize);
+	    Insets      insets = getInsets();
 
             // This layout differs from the one used in BasicSplitPaneDivider.
             // It does not center justify the oneTouchExpadable buttons.
@@ -283,16 +297,30 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
                 c == MetalSplitPaneDivider.this) {
                 if (splitPane.isOneTouchExpandable()) {
                     if (orientation == JSplitPane.VERTICAL_SPLIT) {
-                        leftButton.setBounds(oneTouchOffset, 0,
+			int extraY = (insets != null) ? insets.top : 0;
+			int blockSize = getDividerSize();
+
+			if (insets != null) {
+			    blockSize -= (insets.top + insets.bottom);
+			}
+			blockSize = Math.min(blockSize, oneTouchSize);
+                        leftButton.setBounds(oneTouchOffset, extraY,
                                              blockSize * 2, blockSize);
                         rightButton.setBounds(oneTouchOffset +
-                                              oneTouchSize * 2, 0,
+                                              oneTouchSize * 2, extraY,
                                               blockSize * 2, blockSize);
                     }
                     else {
-                        leftButton.setBounds(0, oneTouchOffset,
+			int blockSize = getDividerSize();
+			int extraX = (insets != null) ? insets.left : 0;
+
+			if (insets != null) {
+			    blockSize -= (insets.left + insets.right);
+			}
+			blockSize = Math.min(blockSize, oneTouchSize);
+                        leftButton.setBounds(extraX, oneTouchOffset,
                                              blockSize, blockSize * 2);
-                        rightButton.setBounds(0, oneTouchOffset +
+                        rightButton.setBounds(extraX, oneTouchOffset +
                                               oneTouchSize * 2, blockSize,
                                               blockSize * 2);
                     }

@@ -1,8 +1,11 @@
 /*
- * @(#)BorderLayout.java	1.41 01/11/29
+ * @(#)BorderLayout.java	1.45 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -46,7 +49,7 @@ import java.util.Hashtable;
  * orientation is <code>LEFT_TO_RIGHT</code>, only the
  * <code>BEFORE_FIRST_LINE</code> will be layed out.
  * <p>
- * NOTE: Currently (in JDK 1.2), BorderLayout does not support vertical
+ * NOTE: Currently (in the Java 2 platform v1.2), BorderLayout does not support vertical
  * orientations.  The <code>isVertical</code> setting on the container's
  * ComponentOrientation is not respected.
  * <p>
@@ -82,9 +85,9 @@ import java.util.Hashtable;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.27 02/11/97
+ * @version 	1.45, 02/02/00
  * @author 	Arthur van Hoff
- * @see         java.awt.Container.add(String, Component)
+ * @see         java.awt.Container#add(String, Component)
  * @see         java.awt.ComponentOrientation
  * @since       JDK1.0
  */
@@ -101,7 +104,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      */
 	int hgap;
-
+   	
 	/**
      * Constructs a border layout with the vertical gaps
      * between components.
@@ -163,7 +166,7 @@ public class BorderLayout implements LayoutManager2,
      * @see #removeLayoutComponent
      */
 	Component center;
-
+    
     /**
      *
      * A relative positioning constant, that can be used instead of
@@ -231,7 +234,7 @@ public class BorderLayout implements LayoutManager2,
      * equivalent to NORTH.
      *
      * @see java.awt.Component#getComponentOrientation
-     * @since JDK1.2
+     * @since 1.2
      */
     public static final String BEFORE_FIRST_LINE = "First";
 
@@ -241,7 +244,7 @@ public class BorderLayout implements LayoutManager2,
      * equivalent to SOUTH.
      *
      * @see java.awt.Component#getComponentOrientation
-     * @since JDK1.2
+     * @since 1.2
      */
     public static final String AFTER_LAST_LINE = "Last";
 
@@ -251,7 +254,7 @@ public class BorderLayout implements LayoutManager2,
      * this is equivalent to WEST.
      *
      * @see java.awt.Component#getComponentOrientation
-     * @since JDK1.2
+     * @since 1.2
      */
     public static final String BEFORE_LINE_BEGINS = "Before";
 
@@ -261,7 +264,7 @@ public class BorderLayout implements LayoutManager2,
      * this is equivalent to EAST.
      *
      * @see java.awt.Component#getComponentOrientation
-     * @since JDK1.2
+     * @since 1.2
      */
     public static final String AFTER_LINE_ENDS = "After";
 
@@ -528,25 +531,9 @@ public class BorderLayout implements LayoutManager2,
 	}
 
 	Insets insets = target.getInsets();
-
-        /*if[Linux]
-          // If your insets are 0 and you have no children
-          //   then size will be 0 which will prevent a resize
-          //   from occuring so set size to 1 to enable resize
-          //   to occur on WM that allow a 0 inset
-
- 	  dim.width += insets.left + insets.right;
-	  dim.height += insets.top + insets.bottom;
-
-          if (dim.width == 0 && dim.height == 0) {
-            dim.width=1;
-            dim.height=1;
-          }
-        else[Linux]*/
-
 	dim.width += insets.left + insets.right;
 	dim.height += insets.top + insets.bottom;
-        /*end[Linux]*/
+
 	return dim;
       }
     }

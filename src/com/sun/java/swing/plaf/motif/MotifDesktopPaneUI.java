@@ -1,8 +1,11 @@
 /*
- * @(#)MotifDesktopPaneUI.java	1.17 01/11/29
+ * @(#)MotifDesktopPaneUI.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -25,7 +28,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 11/29/01
+ * @version 1.19 02/02/00
  * @author David Kloba
  */
 public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneUI
@@ -64,6 +67,7 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
     private class MotifDesktopManager extends DefaultDesktopManager implements Serializable {
         JComponent dragPane;
         boolean usingDragPane;
+        private transient JLayeredPane layeredPaneForDragPane;
 
     // PENDING(klobad) this should be optimized
     public void setBoundsForFrame(JComponent f, int newX, int newY, 
@@ -91,10 +95,10 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 	if(f.getParent() instanceof JLayeredPane) {
 	    if(dragPane == null)
 		dragPane = new DragPane();
-	    JLayeredPane p = (JLayeredPane)f.getParent();
-	    p.setLayer(dragPane, Integer.MAX_VALUE);
+	    layeredPaneForDragPane = (JLayeredPane)f.getParent();
+	    layeredPaneForDragPane.setLayer(dragPane, Integer.MAX_VALUE);
 	    dragPane.setBounds(f.getX(), f.getY(), f.getWidth(), f.getHeight());
-	    p.add(dragPane);
+	    layeredPaneForDragPane.add(dragPane);
 	    usingDragPane = true;
 	}
     }
@@ -105,8 +109,7 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 
     public void endDraggingFrame(JComponent f) {
 	if(usingDragPane) {
-	    JLayeredPane p = (JLayeredPane)f.getParent();
-	    p.remove(dragPane);
+	    layeredPaneForDragPane.remove(dragPane);
 	    usingDragPane = false;
             setBoundsForFrame(f, dragPane.getX(), dragPane.getY(), 
 				dragPane.getWidth(), dragPane.getHeight());

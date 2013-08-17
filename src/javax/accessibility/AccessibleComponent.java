@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleComponent.java	1.7 01/11/29
+ * @(#)AccessibleComponent.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -16,7 +19,7 @@ import java.awt.event.*;
  * mechanism for an assistive technology to determine and set the 
  * graphical representation of an object.  Applications can determine
  * if an object supports the AccessibleComponent interface by first
- * obtaining its AccessibleContext (see {@link AccessibleAccessible})
+ * obtaining its AccessibleContext 
  * and then calling the
  * {@link AccessibleContext#getAccessibleComponent} method.
  * If the return value is not null, the object supports this interface.
@@ -26,7 +29,7 @@ import java.awt.event.*;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleComponent
  *
- * @version     1.7 11/29/01 23:09:23
+ * @version     1.7 10/05/99 14:00:28
  * @author	Peter Korn
  * @author	Hans Muller
  * @author      Willie Walker
@@ -34,7 +37,7 @@ import java.awt.event.*;
 public interface AccessibleComponent {
 
     /**
-     * Get the background color of this object.
+     * Gets the background color of this object.
      *
      * @return the background color, if supported, of the object; 
      * otherwise, null
@@ -43,7 +46,7 @@ public interface AccessibleComponent {
     public Color getBackground();
 
     /**
-     * Set the background color of this object.
+     * Sets the background color of this object.
      *
      * @param c the new Color for the background
      * @see #setBackground
@@ -51,7 +54,7 @@ public interface AccessibleComponent {
     public void setBackground(Color c);
 
     /**
-     * Get the foreground color of this object.
+     * Gets the foreground color of this object.
      *
      * @return the foreground color, if supported, of the object; 
      * otherwise, null
@@ -60,7 +63,7 @@ public interface AccessibleComponent {
     public Color getForeground();
 
     /**
-     * Set the foreground color of this object.
+     * Sets the foreground color of this object.
      *
      * @param c the new Color for the foreground
      * @see #getForeground
@@ -68,7 +71,7 @@ public interface AccessibleComponent {
     public void setForeground(Color c);
 
     /**
-     * Get the Cursor of this object.
+     * Gets the Cursor of this object.
      *
      * @return the Cursor, if supported, of the object; otherwise, null
      * @see #setCursor
@@ -76,7 +79,7 @@ public interface AccessibleComponent {
     public Cursor getCursor();
 
     /**
-     * Set the Cursor of this object.
+     * Sets the Cursor of this object.
      *
      * @param c the new Cursor for the object
      * @see #getCursor
@@ -84,7 +87,7 @@ public interface AccessibleComponent {
     public void setCursor(Cursor cursor);
 
     /**
-     * Get the Font of this object.
+     * Gets the Font of this object.
      *
      * @return the Font,if supported, for the object; otherwise, null
      * @see #setFont
@@ -92,7 +95,7 @@ public interface AccessibleComponent {
     public Font getFont();
 
     /**
-     * Set the Font of this object.
+     * Sets the Font of this object.
      *
      * @param f the new Font for the object
      * @see #getFont
@@ -100,7 +103,7 @@ public interface AccessibleComponent {
     public void setFont(Font f);
 
     /**
-     * Get the FontMetrics of this object.
+     * Gets the FontMetrics of this object.
      *
      * @param f the Font
      * @return the FontMetrics, if supported, the object; otherwise, null
@@ -109,9 +112,9 @@ public interface AccessibleComponent {
     public FontMetrics getFontMetrics(Font f);
 
     /**
-     * Determine if the object is enabled.  Objects that are enabled
+     * Determines if the object is enabled.  Objects that are enabled
      * will also have the AccessibleState.ENABLED state set in their
-     * AccessibleStateSet.
+     * AccessibleStateSets.
      *
      * @return true if object is enabled; otherwise, false
      * @see #setEnabled
@@ -122,7 +125,7 @@ public interface AccessibleComponent {
     public boolean isEnabled();
 
     /**
-     * Set the enabled state of the object.
+     * Sets the enabled state of the object.
      *
      * @param b if true, enables this object; otherwise, disables it 
      * @see #isEnabled
@@ -130,13 +133,13 @@ public interface AccessibleComponent {
     public void setEnabled(boolean b);
 
     /**
-     * Determine if the object is visible.  Note: this means that the
+     * Determines if the object is visible.  Note: this means that the
      * object intends to be visible; however, it may not be
      * showing on the screen because one of the objects that this object
      * is contained by is currently not visible.  To determine if an object is
      * showing on the screen, use isShowing().
      * <p>Objects that are visible will also have the 
-     * AccessibleState.VISIBLE state set in their AccessibleStateSet.
+     * AccessibleState.VISIBLE state set in their AccessibleStateSets.
      *
      * @return true if object is visible; otherwise, false
      * @see #setVisible
@@ -147,7 +150,7 @@ public interface AccessibleComponent {
     public boolean isVisible();
 
     /**
-     * Set the visible state of the object.
+     * Sets the visible state of the object.
      *
      * @param b if true, shows this object; otherwise, hides it 
      * @see #isVisible
@@ -155,11 +158,11 @@ public interface AccessibleComponent {
     public void setVisible(boolean b);
 
     /**
-     * Determine if the object is showing.  This is determined by checking
-     * the visibility of the object and visibility of the object ancestors.
+     * Determines if the object is showing.  This is determined by checking
+     * the visibility of the object and its ancestors.
      * Note: this
      * will return true even if the object is obscured by another (for example,
-     * it to object is underneath a menu that was pulled down).
+     * it is underneath a menu that was pulled down).
      *
      * @return true if object is showing; otherwise, false
      */
@@ -179,7 +182,7 @@ public interface AccessibleComponent {
     /** 
      * Returns the location of the object on the screen.
      *
-     * @return location of object on screen; null if this object
+     * @return the location of the object on screen; null if this object
      * is not on the screen
      * @see #getBounds
      * @see #getLocation
@@ -192,7 +195,7 @@ public interface AccessibleComponent {
      * coordinate space.
      *
      * @return An instance of Point representing the top-left corner of the 
-     * objects's bounds in the coordinate space of the screen; null if
+     * object's bounds in the coordinate space of the screen; null if
      * this object or its parent are not on the screen
      * @see #getBounds
      * @see #getLocationOnScreen
@@ -229,7 +232,7 @@ public interface AccessibleComponent {
 
     /** 
      * Returns the size of this object in the form of a Dimension object. 
-     * The height field of the Dimension object contains this objects's
+     * The height field of the Dimension object contains this object's
      * height, and the width field of the Dimension object contains this 
      * object's width. 
      *
@@ -242,7 +245,7 @@ public interface AccessibleComponent {
     /** 
      * Resizes this object so that it has width and height. 
      *	
-     * @param d - The dimension specifying the new size of the object. 
+     * @param d The dimension specifying the new size of the object. 
      * @see #getSize
      */
     public void setSize(Dimension d);
@@ -260,7 +263,7 @@ public interface AccessibleComponent {
     /**
      * Returns whether this object can accept focus or not.   Objects that 
      * can accept focus will also have the AccessibleState.FOCUSABLE state 
-     * set in their AccessibleStateSet.
+     * set in their AccessibleStateSets.
      *
      * @return true if object can accept focus; otherwise false
      * @see AccessibleContext#getAccessibleStateSet

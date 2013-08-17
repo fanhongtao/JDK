@@ -1,8 +1,11 @@
 /*
- * @(#)Dimension.java	1.22 01/11/29
+ * @(#)Dimension.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -26,7 +29,7 @@ import java.awt.geom.Dimension2D;
  * negative, the behavior of some methods defined by other objects is 
  * undefined. 
  * 
- * @version 	1.22, 11/29/01
+ * @version 	1.26, 02/02/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see         java.awt.Component
@@ -39,8 +42,8 @@ public class Dimension extends Dimension2D implements java.io.Serializable {
      * The width dimension. Negative values can be used. 
      *
      * @serial
-     * @see getSize()
-     * @see setSize()
+     * @see #getSize
+     * @see #setSize
      */
     public int width;
 
@@ -48,8 +51,8 @@ public class Dimension extends Dimension2D implements java.io.Serializable {
      * The height dimension. Negative values can be used. 
      *
      * @serial
-     * @see getSize()
-     * @see setSize()
+     * @see #getSize
+     * @see #setSize
      */
     public int height;
 
@@ -176,6 +179,16 @@ public class Dimension extends Dimension2D implements java.io.Serializable {
 	    return (width == d.width) && (height == d.height);
 	}
 	return false;
+    }
+
+    /**
+     * Returns the hash code for this Dimension.
+     *
+     * @return    a hash code for this Dimension.
+     */
+    public int hashCode() {
+        int sum = width + height;
+        return sum * (sum + 1)/2 + width;
     }
 
     /**

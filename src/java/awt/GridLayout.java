@@ -1,8 +1,11 @@
 /*
- * @(#)GridLayout.java	1.26 01/11/29
+ * @(#)GridLayout.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -50,8 +53,8 @@ package java.awt;
  * the number of columns affects the layout only when the 
  * number of rows is set to zero.
  *
- * @version 1.26, 11/29/01
- * @author 
+ * @version 1.28, 02/02/00
+ * @author  Arthur van Hoff
  * @since   JDK1.0
  */
 public class GridLayout implements LayoutManager, java.io.Serializable {

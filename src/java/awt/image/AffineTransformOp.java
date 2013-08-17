@@ -1,8 +1,11 @@
 /*
- * @(#)AffineTransformOp.java	1.46 01/11/29
+ * @(#)AffineTransformOp.java	1.55 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -68,7 +71,7 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * <CODE>RenderingHints</CODE> object.  If the interpolation hint is 
      * defined, it will be used. Otherwise, if the rendering quality hint is        
      * defined, the interpolation type is determined from its value.  If no 
-     * hints are is specified (<CODE>hints</CODE> is null),
+     * hints are specified (<CODE>hints</CODE> is null),
      * the interpolation type is {@link #TYPE_NEAREST_NEIGHBOR 
      * TYPE_NEAREST_NEIGHBOR}.
      *
@@ -116,12 +119,21 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * 
      * @param xform The <CODE>AffineTransform</CODE> to use for the operation.
      * @param interpolationType One of the integer
-     * interpolation type constants defined by this class: {@link 
-     * #TYPE_NEAREST_NEIGHBOR TYPE_NEAREST_NEIGHBOR}, 
-     * {@link #TYPE_BILINEAR TYPE_BILINEAR}, 
+     * interpolation type constants defined by this class: 
+     * {@link #TYPE_NEAREST_NEIGHBOR TYPE_NEAREST_NEIGHBOR}, 
+     * {@link #TYPE_BILINEAR TYPE_BILINEAR}. 
      */
     public AffineTransformOp(AffineTransform xform, int interpolationType) {
         this.xform = (AffineTransform)xform.clone();
+        switch(interpolationType) {
+            case TYPE_NEAREST_NEIGHBOR:
+            case TYPE_BILINEAR:
+            case TYPE_BICUBIC:
+                break;
+        default:
+            throw new IllegalArgumentException("Unknown interpolation type: "+
+                                               interpolationType);
+        }
         this.interpolationType = interpolationType;
     }
 
@@ -142,7 +154,18 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * If the destination image is null,
      * a <CODE>BufferedImage</CODE> is created with the source 
      * <CODE>ColorModel</CODE>.
-     * An <CODE>IllegalArgumentException</CODE> may be thrown if the source is
+     * <p>
+     * The coordinates of the rectangle returned by 
+     * <code>getBounds2D(BufferedImage)</code>
+     * are not necessarily the same as the coordinates of the 
+     * <code>BufferedImage</code> returned by this method.  If the
+     * upper-left corner coordinates of the rectangle are 
+     * negative then this part of the rectangle is not drawn.  If the
+     * upper-left corner coordinates of the  rectangle are positive 
+     * then the filtered image is drawn at that position in the
+     * destination <code>BufferedImage</code>.
+     * <p> 
+     * An <CODE>IllegalArgumentException</CODE> is thrown if the source is
      * the same as the destination.
      *
      * @param src The <CODE>BufferedImage</CODE> to transform.
@@ -150,7 +173,13 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * of the transformation.
      *
      * @return The filtered <CODE>BufferedImage</CODE>.
-     * @throws ImagingOpException If the image cannot be transformed.
+     * @throws IllegalArgumentException if <code>src</code> and 
+     *         <code>dst</code> are the same
+     * @throws ImagingOpException if the image cannot be transformed
+     *         because of a data-processing error that might be 
+     *         caused by an invalid image format, tile format, or
+     *         image-processing operation, or any other unsupported 
+     *         operation.
      */
     public final BufferedImage filter(BufferedImage src, BufferedImage dst) {
         
@@ -235,7 +264,11 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
         }
         else if (origDst != dst) {
             java.awt.Graphics2D g = origDst.createGraphics();
-            g.drawImage(dst, 0, 0, null);
+	    try {
+	        g.drawImage(dst, 0, 0, null);
+	    } finally {
+	        g.dispose();
+	    }
         }
         
         return origDst;
@@ -252,15 +285,27 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * the same as the destination or if the number of bands in
      * the source is not equal to the number of bands in the
      * destination.
-     *
+     * <p>
+     * The coordinates of the rectangle returned by 
+     * <code>getBounds2D(Raster)</code>
+     * are not necessarily the same as the coordinates of the
+     * <code>WritableRaster</code> returned by this method.  If the
+     * upper-left corner coordinates of rectangle are negative then
+     * this part of the rectangle is not drawn.  If the coordinates 
+     * of the rectangle are positive then the filtered image is drawn at
+     * that position in the destination <code>Raster</code>.
+     * <p>
      * @param src The <CODE>Raster</CODE> to transform.
      * @param dst The <CODE>Raster</CODE> in which to store the results of the 
      * transformation.
      *
      * @return The transformed <CODE>Raster</CODE>.
      *
-     * @throws ImagingOpException If the <CODE>Raster</CODE> cannot be 
-     * transformed.
+     * @throws ImagingOpException if the raster cannot be transformed
+     *         because of a data-processing error that might be
+     *         caused by an invalid image format, tile format, or
+     *         image-processing operation, or any other unsupported
+     *         operation.
      */
     public final WritableRaster filter(Raster src, WritableRaster dst) {
         if (src == null) {
@@ -290,7 +335,8 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
     /**
      * Returns the bounding box of the transformed destination.  The
      * rectangle returned is the actual bounding box of the 
-     * transformed points.  
+     * transformed points.  The coordinates of the upper-left corner
+     * of the returned rectangle might not be (0,&nbsp;0).
      *
      * @param src The <CODE>BufferedImage</CODE> to be transformed.
      *
@@ -304,7 +350,8 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
     /**
      * Returns the bounding box of the transformed destination.  The
      * rectangle returned will be the actual bounding box of the
-     * transformed points.
+     * transformed points.  The coordinates of the upper-left corner
+     * of the returned rectangle might not be (0,&nbsp;0).
      *
      * @param src The <CODE>Raster</CODE> to be transformed.
      *
@@ -464,8 +511,10 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
                 val = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
                 break;
             default:
+                // Should never get here 
                 throw new InternalError("Unknown interpolation type "+
-                                        interpolationType);
+                                         interpolationType);
+
             }
             hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, val);
         }

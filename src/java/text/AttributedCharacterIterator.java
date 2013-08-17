@@ -1,8 +1,11 @@
 /*
- * @(#)AttributedCharacterIterator.java	1.22 01/11/29
+ * @(#)AttributedCharacterIterator.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.text;
@@ -49,7 +52,7 @@ import java.util.Set;
  * @see java.awt.font.TextAttribute
  * @see AttributedString
  * @see Annotation
- * @since JDK1.2
+ * @since 1.2
  */
 
 public interface AttributedCharacterIterator extends CharacterIterator {
@@ -129,7 +132,7 @@ public interface AttributedCharacterIterator extends CharacterIterator {
                 return instance;
             } else {
                 throw new InvalidObjectException("unknown attribute name");
-            };
+            }
         }
 
         /**

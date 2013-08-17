@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleAction.java	1.8 01/11/29
+ * @(#)AccessibleAction.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -11,8 +14,8 @@ package javax.accessibility;
  * The AccessibleAction interface should be supported by any object 
  * that can perform one or more actions.  This interface
  * provides the standard mechanism for an assistive technology to determine 
- * what those actions are as well as tell the object to perform those
- * actions.  Any object that can be manipulated should support this
+ * what those actions are as well as tell the object to perform them.
+ * Any object that can be manipulated should support this
  * interface.  Applications can determine if an object supports the 
  * AccessibleAction interface by first obtaining its AccessibleContext (see
  * {@link Accessible}) and then calling the {@link AccessibleContext#getAccessibleAction}
@@ -49,10 +52,10 @@ public interface AccessibleAction {
     public String getAccessibleActionDescription(int i);
 
     /**
-     * Perform the specified Action on the object
+     * Performs the specified Action on the object
      *
      * @param i zero-based index of actions
-     * @return true if the the action was performed; else false.
+     * @return true if the action was performed; otherwise false.
      * @see #getAccessibleActionCount
      */
     public boolean doAccessibleAction(int i);

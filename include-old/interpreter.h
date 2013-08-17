@@ -1,8 +1,11 @@
 /*
- * @(#)interpreter.h	1.214 01/11/29
+ * @(#)interpreter.h	1.219 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -28,6 +31,7 @@
 
 /* Global variables */
 extern bool_t debugging;
+extern bool_t instruction_tracing;
 extern bool_t verbose;
 extern bool_t verbosegc;
 extern bool_t verboseclassdep;
@@ -249,17 +253,12 @@ struct execenv {
     /* per thread profile information */
     struct profile_table * profileData; 
   
-    /* For HPROF. Always compiled in to make sure the SysThread2EE
-     * macro stays the same for JITs.
+    /* Low address on stacks that grow downwards.  If $esp >= (stack_top +
+     * redzone), then there is potential C stack overflow, so a JIT doing
+     * explicit stack overflow checks must now raise the exception.
      */
-    unsigned int RESERVED3;
-#ifdef __linux__
-   void* stack_top;    /* Low address on stacks that grow downwards.
-			 * If $esp >= (stack_top + redzone), then there is
-			 * potential C stack overflow, so a JIT doing explicit
-			 * stack overflow checks must now raise the exception.
-			 */
-#endif 
+    void* stack_top;
+
     /* Platform-dependent thread block. See threads_md.c for details.
      * This field must be placed at the end of execenv.
      * Use double to make sure sys_thr is 8-byte aligned. */
@@ -339,7 +338,7 @@ int ExpandJavaStack(ExecEnv *ee,
      (frame)->constant_pool == NULL)
 
 #define FRAME_PREV(frame, frame_buf) \
-	IS_JIT_FRAME(frame) ? \
+	(CompilerHandlesFrame() || IS_JIT_FRAME(frame)) ? \
 	    CompiledFramePrev(frame, frame_buf) : frame->prev;
 
 
@@ -575,7 +574,8 @@ bool_t invokeCompiledMethod(JHandle *o, struct methodblock *mb, int args_size,
 void invokerValidateArgs(stack_item * optop, struct methodblock * mb);
 #endif /* DEBUG */
 
-void * FindBuiltinEntry(const char *name);
+void * FindBuiltinEntry(const char *name); /* A symbol in libjava.so.  */
+void * FindVerifyEntry(const char *name);  /* A symbol in libverify.so */
 bool_t LoadJavaLibrary(void);
 bool_t RunOnLoadHook(void *h);
 
@@ -608,10 +608,6 @@ void printStackTrace(struct execenv *ee, int limit, void (*f)(char *, ...));
 
 /* From check_class.c */
 void VerifyClass(ClassClass *cb);
-
-#ifdef JCOV
-#include "jcov.h"
-#endif /* JCOV */
 
 /* from classload.c */
 void FreeClass(ClassClass *cb);
@@ -719,6 +715,7 @@ bool_t CompilerRegisterNatives(ClassClass *cb);
 bool_t CompilerUnregisterNatives(ClassClass *cb);
 bool_t CompiledCodeSignalHandler(int sig, void *info, void *uc);
 int CompiledCodePCtoLineNo(unsigned char *pc);
+int CompilerHandlesFrame(void);
 
 /*
  * returns 0 if inline succeeded, -1 if can't be inlined, 1 if call needs

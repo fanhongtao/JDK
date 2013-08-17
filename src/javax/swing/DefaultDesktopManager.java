@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultDesktopManager.java	1.25 01/11/29
+ * @(#)DefaultDesktopManager.java	1.41 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -22,12 +25,11 @@ import java.awt.event.ComponentEvent;
   * to handle their desktop-like actions.
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.25 11/29/01
+  * @version 1.41 02/02/00
   * @author David Kloba
   * @author Steve Wilson
   */
 public class DefaultDesktopManager implements DesktopManager, java.io.Serializable {
-    final static String PREVIOUS_BOUNDS_PROPERTY = "previousBounds";
     final static String HAS_BEEN_ICONIFIED_PROPERTY = "wasIconOnce";
 
     final static int DEFAULT_DRAG_MODE = 0;
@@ -36,17 +38,15 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
   
     int dragMode = DEFAULT_DRAG_MODE;
 
-    private static JInternalFrame currentActiveFrame = null;
-
-     private transient Rectangle currentBounds = null;
-     private transient Graphics desktopGraphics = null;
-     private transient Rectangle desktopBounds = null;   
-     private transient Rectangle[] floatingItems = {};
+    private transient Rectangle currentBounds = null;
+    private transient Graphics desktopGraphics = null;
+    private transient Rectangle desktopBounds = null;   
+    private transient Rectangle[] floatingItems = {};
 
 
     /** Normally this method will not be called. If it is, it
       * try to determine the appropriate parent from the desktopIcon of the frame.
-      * Will remove the desktopIcon from it's parent if it successfully adds the frame.
+      * Will remove the desktopIcon from its parent if it successfully adds the frame.
       */
     public void openFrame(JInternalFrame f) {
         if(f.getDesktopIcon().getParent() != null) {
@@ -55,59 +55,63 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         }
     }
 
-    /** Removes the frame, and if necessary the desktopIcon, from it's parent. */
+    /** Removes the frame, and if necessary the desktopIcon, from its parent. */
     public void closeFrame(JInternalFrame f) {
-        if(f.getParent() != null) {
-            Container c = f.getParent();
+        boolean findNext = f.isSelected();
+	Container c = f.getParent();
+	if (findNext)
+	    try { f.setSelected(false); } catch (PropertyVetoException e2) { }
+        if(c != null) {
             c.remove(f);
             c.repaint(f.getX(), f.getY(), f.getWidth(), f.getHeight());
         }
         removeIconFor(f);
-        if(getPreviousBounds(f) != null)
-            setPreviousBounds(f, null);
+        if(f.getNormalBounds() != null)
+            f.setNormalBounds(null);
         if(wasIcon(f))
             setWasIcon(f, null);
+	if (findNext) activateNextFrame(c);
     }
 
-    /** Resizes the frame to fill it's parents bounds. */
+    /** Resizes the frame to fill its parents bounds. */
     public void maximizeFrame(JInternalFrame f) {
 
         Rectangle p;
         if(!f.isIcon()) {
-        setPreviousBounds(f, f.getBounds());
             p = f.getParent().getBounds();
         } else {
-             Container c = f.getDesktopIcon().getParent();
+            Container c = f.getDesktopIcon().getParent();
             if(c == null)
                 return;
             p = c.getBounds();
             try { f.setIcon(false); } catch (PropertyVetoException e2) { }
         }
+	f.setNormalBounds(f.getBounds());
         setBoundsForFrame(f, 0, 0, p.width, p.height);
         try { f.setSelected(true); } catch (PropertyVetoException e2) { }
 
         removeIconFor(f);
     }
 
-    /** Restores the frame back to it's size and position prior to a maximizeFrame()
+    /** Restores the frame back to its size and position prior to a maximizeFrame()
       * call.
       */
     public void minimizeFrame(JInternalFrame f) {
-        if(getPreviousBounds(f) != null) {
-            Rectangle r = getPreviousBounds(f);
-            setPreviousBounds(f, null);
+        if((f.getNormalBounds()) != null) {
+            Rectangle r = f.getNormalBounds();
+	    f.setNormalBounds(null);
             try { f.setSelected(true); } catch (PropertyVetoException e2) { }
-            if(f.isIcon())
-                try { f.setIcon(false); } catch (PropertyVetoException e2) { }
             setBoundsForFrame(f, r.x, r.y, r.width, r.height);
         }
         removeIconFor(f);
     }
 
-    /** Removes the frame from it's parent and adds it's desktopIcon to the parent. */
+    /** Removes the frame from its parent and adds its desktopIcon to the parent. */
     public void iconifyFrame(JInternalFrame f) {
         JInternalFrame.JDesktopIcon desktopIcon;
         Container c;
+	JDesktopPane d = f.getDesktopPane();
+	boolean findNext = f.isSelected();
 
         desktopIcon = f.getDesktopIcon();
         if(!wasIcon(f)) {
@@ -118,22 +122,48 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
         c = f.getParent();
 
+	if (c == null) return;
+
 	if (c instanceof JLayeredPane) {
 	    JLayeredPane lp = (JLayeredPane)c;
 	    int layer = lp.getLayer(f);
 	    lp.putLayer(desktopIcon, layer);
 	}
-
+	if (f.isMaximum()) {
+	    try { f.setMaximum(false); } catch (PropertyVetoException e2) { }
+	}
         c.remove(f);
         c.add(desktopIcon);
         c.repaint(f.getX(), f.getY(), f.getWidth(), f.getHeight());
         try { f.setSelected(false); } catch (PropertyVetoException e2) { }
+	/* get topmost of the remaining frames */
+	if (findNext) {
+	  activateNextFrame(c);
+	}
+
     }
 
-    /** Removes the desktopIcon from it's parent and adds it's frame to the parent. */
+    void activateNextFrame(Container c) {
+      int i;
+      JInternalFrame nextFrame = null;
+      if (c == null) return;
+      for (i = 0; i < c.getComponentCount(); i++) {
+	if (c.getComponent(i) instanceof JInternalFrame) {
+	  nextFrame = (JInternalFrame) c.getComponent(i);
+	  break;
+	}
+      }
+      if (nextFrame != null) {
+	try { nextFrame.setSelected(true); }
+	catch (PropertyVetoException e2) { }
+	nextFrame.moveToFront();
+      }
+      
+    }
+
+    /** Removes the desktopIcon from its parent and adds its frame to the parent. */
     public void deiconifyFrame(JInternalFrame f) {
         JInternalFrame.JDesktopIcon desktopIcon;
-        Dimension size;
 
         desktopIcon = f.getDesktopIcon();
         if(desktopIcon.getParent() != null) {
@@ -150,36 +180,40 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
     public void activateFrame(JInternalFrame f) {
         Container p = f.getParent();
         Component[] c;
-
+	JDesktopPane d = f.getDesktopPane();
+	JInternalFrame currentlyActiveFrame =
+	  (d == null) ? null : d.getSelectedFrame();
 	// fix for bug: 4162443
         if(p == null) {
-            // If the frame is not in parent, it's icon maybe, check it
+            // If the frame is not in parent, its icon maybe, check it
             p = f.getDesktopIcon().getParent();
             if(p == null)
                 return;
         }
 	// we only need to keep track of the currentActive InternalFrame, if any
-	if (currentActiveFrame == null){
-	  currentActiveFrame = f;
-	}
-	else if (currentActiveFrame != f) {  
+	if (currentlyActiveFrame == null){
+	  if (d != null) { d.setSelectedFrame(f);}
+	} else if (currentlyActiveFrame != f) {  
 	  // if not the same frame as the current active
 	  // we deactivate the current 
-	  if (currentActiveFrame.isSelected()) { 
+	  if (currentlyActiveFrame.isSelected()) { 
 	    try {
-	      currentActiveFrame.setSelected(false);
+	      currentlyActiveFrame.setSelected(false);
 	    }
 	    catch(PropertyVetoException e2) {}
 	  }
-	  currentActiveFrame = f;
+	  if (d != null) { d.setSelectedFrame(f);}
 	}
 	f.moveToFront();
     }
     
     // implements javax.swing.DesktopManager
     public void deactivateFrame(JInternalFrame f) {
-      if (currentActiveFrame == f)
-	currentActiveFrame = null;
+      JDesktopPane d = f.getDesktopPane();
+      JInternalFrame currentlyActiveFrame =
+	  (d == null) ? null : d.getSelectedFrame();
+      if (currentlyActiveFrame == f)
+	d.setSelectedFrame(null);
     }
 
     // implements javax.swing.DesktopManager
@@ -207,7 +241,14 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	  } else if (mode != null && mode.equals("faster") && f instanceof JInternalFrame) {
 	    dragMode = FASTER_DRAG_MODE;
 	  } else {
-	    dragMode = DEFAULT_DRAG_MODE;
+            
+	    if ( p.getDragMode() == JDesktopPane.OUTLINE_DRAG_MODE ) {
+	        dragMode = OUTLINE_DRAG_MODE;
+	    } else if ( p.getDragMode() == JDesktopPane.LIVE_DRAG_MODE && f instanceof JInternalFrame) {
+	        dragMode = FASTER_DRAG_MODE;
+	    } else {
+	        dragMode = DEFAULT_DRAG_MODE;
+	    }
 	  }
 	}
     }
@@ -233,7 +274,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	      }
 	      g.drawRect( newX, newY, f.getWidth()-1, f.getHeight()-1);
 	      currentLoc = new Point (newX, newY);
-	      g.setPaintMode();
+	      g.dispose();
 	    }
 	} else if (dragMode == FASTER_DRAG_MODE) {
 	  dragFrameFaster(f, newX, newY);
@@ -249,7 +290,10 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	    currentLoc = null;
 	} else if (dragMode == FASTER_DRAG_MODE) { 
 	    currentBounds = null;
-	    desktopGraphics = null;
+	    if (desktopGraphics != null) {
+	        desktopGraphics.dispose();
+	        desktopGraphics = null;
+	    }
 	    desktopBounds = null;
 	    ((JInternalFrame)f).isDragging = false;
 	}
@@ -277,6 +321,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	      g.drawRect( newX, newY, newWidth-1, newHeight-1);
 	      currentBounds = new Rectangle (newX, newY, newWidth, newHeight);
 	      g.setPaintMode();
+	      g.dispose();
 	    }
 	}
 
@@ -297,7 +342,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         f.setBounds(newX, newY, newWidth, newHeight);
         if(didResize) {
             f.validate();
-        }
+        } 
     }
 
     /** Convience method to remove the desktopIcon of <b>f</b> is necessary. */
@@ -316,19 +361,26 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
     protected Rectangle getBoundsForIconOf(JInternalFrame f) {
       //
-      // Get the parent bounds and child components.
-      //
-
-      Container c = f.getParent();
-      Rectangle parentBounds = c.getBounds();
-      Component [] components = c.getComponents();
-
-      //
       // Get the icon for this internal frame and its preferred size
       //
 
       JInternalFrame.JDesktopIcon icon = f.getDesktopIcon();
       Dimension prefSize = icon.getPreferredSize();
+
+      //
+      // Get the parent bounds and child components.
+      //
+
+      Container c = f.getParent();
+
+      if (c == null) {
+	/* the frame has not yet been added to the parent; how about (0,0) ?*/
+	return new Rectangle(0, 0, prefSize.width, prefSize.height);
+      }
+	
+      Rectangle parentBounds = c.getBounds();
+      Component [] components = c.getComponents();
+
 
       //
       // Iterate through valid default icon locations and return the
@@ -362,8 +414,14 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	  }
 	  else if ( components[i] instanceof JInternalFrame.JDesktopIcon ){
 	    currentIcon = (JInternalFrame.JDesktopIcon)components[i];
-	  }
-
+	  } else
+	    /* found a child that's neither an internal frame nor
+	       an icon. I don't believe this should happen, but at
+	       present it does and causes a null pointer exception.
+	       Even when that gets fixed, this code protects against
+	       the npe. hania */
+	    continue;
+	  
 	  //
 	  // If this icon intersects the current location, get next location.
 	  //
@@ -375,6 +433,12 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	    }
 	  }
 	}
+
+	if (currentIcon == null)
+	  /* didn't find any useful children above. This probably shouldn't
+	   happen, but this check protects against an npe if it ever does
+	   (and it's happening now) */
+	  return availableRectangle;
 
 	x += currentIcon.getBounds().width;
 
@@ -389,13 +453,11 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
     /** Stores the bounds of the component just before a maximize call. */
     protected void setPreviousBounds(JInternalFrame f, Rectangle r)     {
-	if (r != null) {
-	    f.putClientProperty(PREVIOUS_BOUNDS_PROPERTY, r);
-	}
+	f.setNormalBounds(r);
     }
 
     protected Rectangle getPreviousBounds(JInternalFrame f)     {
-        return (Rectangle)f.getClientProperty(PREVIOUS_BOUNDS_PROPERTY);
+        return f.getNormalBounds();
     }
 
     /** Sets that the component has been iconized and the bounds of the
@@ -445,15 +507,10 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
    // move the frame
       currentBounds.x = newX;
       currentBounds.y = newY;
-
-      if ( isFloaterCollision(previousBounds, currentBounds) ) {
-         setBoundsForFrame(f, newX, newY, f.getWidth(), f.getHeight()); 
-	 //  System.out.println("Bail");
-         return;
-      }
    
       emergencyCleanup(f);
       
+      boolean floaterCollision = isFloaterCollision(previousBounds, currentBounds);
   
     // System.out.println(previousBounds);
       Rectangle visBounds = previousBounds.intersection(desktopBounds);
@@ -462,20 +519,32 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
      // System.out.println(visBounds);
 
+      if(!floaterCollision) {
       // blit the frame to the new location
+	// if we're under a floater we can't blit	
       desktopGraphics.copyArea(visBounds.x,
                                visBounds.y,
                                visBounds.width,
                                visBounds.height,
                                newX - previousBounds.x,
                                newY - previousBounds.y);   
-
-         
+      }
+ 
+      JComponent parent = (JComponent)f.getParent();
+        
       f.setBounds(currentBounds);
+
+      if(floaterCollision) {
+	// since we couldn't blit we just redraw as fast as possible
+        // the isDragging mucking is to avoid activating emergency cleanup
+        ((JInternalFrame)f).isDragging = false;
+	parent.paintImmediately(currentBounds);
+        ((JInternalFrame)f).isDragging = true;
+      }
 
       // fake out the repaint manager.  We'll take care of everything
       RepaintManager currentManager = RepaintManager.currentManager(f); 
-      JComponent parent = (JComponent)f.getParent();
+
       currentManager.markCompletelyClean(parent);
       currentManager.markCompletelyClean(f);
 

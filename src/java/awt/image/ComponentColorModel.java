@@ -1,8 +1,11 @@
 /*
- * @(#)ComponentColorModel.java	1.47 01/11/29
+ * @(#)ComponentColorModel.java	1.54 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -63,24 +66,30 @@ public class ComponentColorModel extends ColorModel {
     
     /**
      * Constructs a <CODE>ComponentColorModel</CODE> from the specified 
-     * parameters. Color components will be in the specified <CODE>ColorSpace</CODE>.  
-     * The <CODE>bits</CODE> array specifies the number of significant bits 
-     * per color and alpha component.  Its length should be the number 
-     * of components in the <CODE>ColorSpace</CODE> if there is no alpha 
+     * parameters. Color components will be in the specified 
+     * <CODE>ColorSpace</CODE>.  The <CODE>bits</CODE> array specifies the 
+     * number of significant bits per color and alpha component.  Its
+     * length should be the number of components in the 
+     * <CODE>ColorSpace</CODE> if there is no alpha 
      * information in the pixel values, or one more than this number if 
      * there is alpha information.  An <CODE>IllegalArgumentException</CODE> 
-     * is thrown if the length of the array does not match the number of components.  
-     * <CODE>hasAlpha</CODE> indicates whether alpha information is present.  If 
-     * <CODE>hasAlpha</CODE> is true, then the boolean <CODE>isAlphaPremultiplied</CODE> 
+     * is thrown if the length of the array does not match the number of 
+     * components.  <CODE>hasAlpha</CODE> indicates whether alpha
+     * information is present.  If <CODE>hasAlpha</CODE> is true, then 
+     * the boolean <CODE>isAlphaPremultiplied</CODE> 
      * specifies how to interpret color and alpha samples in pixel values.  
-     * If the boolean is true, color samples are assumed to have been multiplied 
-     * by the alpha sample. The <CODE>transparency</CODE> specifies what alpha 
-     * values can be represented by this color model.  The <CODE>transferType</CODE> 
-     * is the type of primitive array used to represent pixel values.  Note that 
-     * the <CODE>bits</CODE> array contains the number of significant bits per 
+     * If the boolean is true, color samples are assumed to have been 
+     * multiplied by the alpha sample. The <CODE>transparency</CODE> 
+     * specifies what alpha values can be represented by this color model.
+     * The acceptable <code>transparency</code> values are
+     * <CODE>OPAQUE</CODE>, <CODE>BITMASK</CODE> or <CODE>TRANSLUCENT</CODE>.
+     *  The <CODE>transferType</CODE> is the type of primitive array used
+     * to represent pixel values.  Note that the <CODE>bits</CODE> array
+     * contains the number of significant bits per 
      * color/alpha component after the translation from pixel values.
      *
-     * @param colorSpace       The <CODE>ColorSpace</CODE> associated with this color model.
+     * @param colorSpace       The <CODE>ColorSpace</CODE> associated 
+     *                         with this color model.
      * @param bits             The number of significant bits per component.
      * @param hasAlpha         If true, this color model supports alpha.
      * @param isAlphaPremultiplied If true, alpha is premultiplied.
@@ -89,8 +98,8 @@ public class ComponentColorModel extends ColorModel {
      * @param transferType     Specifies the type of primitive array used to
      *                         represent pixel values.
      *
-     * @throws IllegalArgumentException If the length of the length of the <CODE>bits</CODE> 
-     * array does not match the number of components.
+     * @throws IllegalArgumentException If the length of the 
+     *         <CODE>bits</CODE> array does not match the number of components.
      *
      * @see ColorSpace
      * @see java.awt.Transparency
@@ -133,7 +142,7 @@ public class ComponentColorModel extends ColorModel {
         float[] norm = { (float) pixel / ((1<<nBits[0]) - 1) };
         float[] rgb = colorSpace.toRGB(norm);
 
-        return (int) rgb[0]*255;
+        return (int) (rgb[0]*255);
     }
 
     /**
@@ -163,7 +172,7 @@ public class ComponentColorModel extends ColorModel {
         float[] norm = { (float) pixel / ((1<<nBits[0]) - 1) };
         float[] rgb = colorSpace.toRGB(norm);
         
-        return (int) rgb[1]*255;
+        return (int) (rgb[1]*255);
     }
 
     /**
@@ -193,7 +202,7 @@ public class ComponentColorModel extends ColorModel {
         float[] norm = { (float) pixel / ((1<<nBits[0]) - 1) };
         float[] rgb = colorSpace.toRGB(norm);
         
-        return (int) rgb[2]*255;
+        return (int) (rgb[2]*255);
     }
 
     /**
@@ -253,8 +262,12 @@ public class ComponentColorModel extends ColorModel {
      * of data elements of type <CODE>transferType</CODE> passed in as an object 
      * reference. The returned value will be a non pre-multiplied value. If the
      * alpha is premultiplied, this method divides it out before returning
-     * the value (if the alpha value is 0, the red value will be 0).
-     *
+     * the value (if the alpha value is 0, the red value will be 0). Since 
+     * <code>ComponentColorModel</code> can be subclassed, subclasses
+     * inherit the implementation of this method and if they don't override 
+     * it then they throw an exception if they use an unsupported
+     * <code>transferType</code>.
+     * 
      * @param inData The pixel from which you want to get the red color component, 
      * specified by an array of data elements of type <CODE>transferType</CODE>.
      *
@@ -271,8 +284,7 @@ public class ComponentColorModel extends ColorModel {
      * or <CODE>DataBuffer.TYPE_INT</CODE>.     
      */
     public int getRed(Object inData) {
-        // REMIND: Should this be CS_sRGB or TYPE_RGB?
-        if (colorSpaceType == ColorSpace.TYPE_RGB) {
+        if (is_sRGB) {
             boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
             int alp = 0;
             int red = 0;
@@ -310,15 +322,18 @@ public class ComponentColorModel extends ColorModel {
                        : (red<<(-shift)));
             }
             if (needAlpha) {
-                return (int) (red*((1<<nBits[numColorComponents])-1.f)/alp);
+                return (alp != 0)
+                    ? (int) (red*((1<<nBits[numColorComponents])-1.f)/alp)
+                    : 0;
             }
             else {
                 return red;
             }
         }
-        else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-            return getGray(inData);
-        }
+        // REMIND: possible grayscale optimization here
+        // else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
+        //     return getGray(inData);
+        // }
 
         // Not TYPE_GRAY or TYPE_RGB ColorSpace
         int pixel[];
@@ -334,17 +349,9 @@ public class ComponentColorModel extends ColorModel {
 
         // Normalize the pixel in order to convert it
         float[] norm = getNormalizedComponents(pixel, 0, null, 0);
+        // Note that getNormalizedComponents returns non-premultiplied values
         float[] rgb = colorSpace.toRGB(norm);
-        int color;
-        
-        if (isAlphaPremultiplied && supportsAlpha) {
-            color = (int) (rgb[0]*255*norm[numColorComponents]);
-        }
-        else {
-            color = (int) rgb[0]*255;
-        }
-        
-        return color;
+        return (int) (rgb[0] * 255.0f);
     }
    
 
@@ -356,12 +363,16 @@ public class ComponentColorModel extends ColorModel {
      * passed in as an object reference. The returned value is a non pre-multiplied 
      * value. If the alpha is premultiplied, this method divides it out before 
      * returning the value (if the alpha value is 0, the green value will be 0).
+     * Since <code>ComponentColorModel</code> can be subclassed,
+     * subclasses inherit the implementation of this method and if they
+     * don't override it then they throw an exception if they use an
+     * unsupported <code>transferType</code>.
      *
      * @param inData The pixel from which you want to get the green color component, 
      * specified by an array of data elements of type <CODE>transferType</CODE>.
      *
      * @return The green color component for the specified pixel, as an int.
-	 *
+     *
      * @throws ClassCastException If <CODE>inData</CODE> is not a primitive array 
      * of type <CODE>transferType</CODE>. 
      * @throws ArrayIndexOutOfBoundsException if <CODE>inData</CODE> is not 
@@ -374,8 +385,7 @@ public class ComponentColorModel extends ColorModel {
      * or <CODE>DataBuffer.TYPE_INT</CODE>.
      */
     public int getGreen(Object inData) {
-        // REMIND: Should this be CS_sRGB or TYPE_RGB?
-        if (colorSpaceType == ColorSpace.TYPE_RGB) {
+        if (is_sRGB) {
             boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
             int alp = 0;
             int green = 0;
@@ -414,15 +424,18 @@ public class ComponentColorModel extends ColorModel {
 
             }
             if (needAlpha) {
-                return (int) (green*((1<<nBits[numColorComponents])-1.f)/alp);
+                return (alp != 0)
+                    ? (int) (green*((1<<nBits[numColorComponents])-1.f)/alp)
+                    : 0;
             }
             else {
                 return green;
             }
         }
-        else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-            return getGray(inData);
-        }
+        // REMIND: possible grayscale optimization here
+        // else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
+        //     return getGray(inData);
+        // }
 
         int pixel[];
         if (inData instanceof int[]) {
@@ -437,17 +450,9 @@ public class ComponentColorModel extends ColorModel {
 
         // Normalize the pixel in order to convert it
         float[] norm = getNormalizedComponents(pixel, 0, null, 0);
+        // Note that getNormalizedComponents returns non-premultiplied values
         float[] rgb = colorSpace.toRGB(norm);
-        int color;
-        
-        if (isAlphaPremultiplied && supportsAlpha) {
-            color = (int) (rgb[1]*255*norm[numColorComponents]);
-        }
-        else {
-            color = (int) rgb[1]*255;
-        }
-        
-        return color;
+        return (int) (rgb[1] * 255.0f);
     }
    
 
@@ -458,13 +463,17 @@ public class ComponentColorModel extends ColorModel {
      * specified by an array of data elements of type <CODE>transferType</CODE> 
      * passed in as an object reference. The returned value is a non pre-multiplied 
      * value. If the alpha is premultiplied, this method divides it out before
-     *  returning the value (if the alpha value is 0, the blue value will be 0).
+     * returning the value (if the alpha value is 0, the blue value will be 0).
+     * Since <code>ComponentColorModel</code> can be subclassed,
+     * subclasses inherit the implementation of this method and if they
+     * don't override it then they throw an exception if they use an
+     * unsupported <code>transferType</code>.
      *
      * @param inData The pixel from which you want to get the blue color component, 
      * specified by an array of data elements of type <CODE>transferType</CODE>.
      *
      * @return The blue color component for the specified pixel, as an int.
-	 *
+     *
      * @throws ClassCastException If <CODE>inData</CODE> is not a primitive array 
      * of type <CODE>transferType</CODE>. 
      * @throws ArrayIndexOutOfBoundsException if <CODE>inData</CODE> is not 
@@ -477,8 +486,7 @@ public class ComponentColorModel extends ColorModel {
      * or <CODE>DataBuffer.TYPE_INT</CODE>.
      */
     public int getBlue(Object inData) {
-        // REMIND: Should this be CS_sRGB or TYPE_RGB?
-        if (colorSpaceType == ColorSpace.TYPE_RGB) {
+        if (is_sRGB) {
             boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
             int alp = 0;
             int blue = 0;
@@ -516,15 +524,18 @@ public class ComponentColorModel extends ColorModel {
                         : (blue<<(-shift)));
             }
             if (needAlpha) {
-                return (int) (blue*((1<<nBits[numColorComponents])-1.f)/alp);
+                return (alp != 0)
+                    ? (int) (blue*((1<<nBits[numColorComponents])-1.f)/alp)
+                    : 0;
             }
             else {
                 return blue;
             }
         }
-        else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-            return getGray(inData);
-        }
+        // REMIND: possible grayscale optimization here
+        // else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
+        //     return getGray(inData);
+        // }
 
         int pixel[];
         if (inData instanceof int[]) {
@@ -539,30 +550,26 @@ public class ComponentColorModel extends ColorModel {
 
         // Normalize the pixel in order to convert it
         float[] norm = getNormalizedComponents(pixel, 0, null, 0);
+        // Note that getNormalizedComponents returns non-premultiplied values
         float[] rgb = colorSpace.toRGB(norm);
-        int color;
-        
-        if (isAlphaPremultiplied && supportsAlpha) {
-            color = (int) (rgb[2]*255*norm[numColorComponents]);
-        }
-        else {
-            color = (int) rgb[2]*255;
-        }
-        
-        return color;
+        return (int) (rgb[2] * 255.0f);
     }
 
     /**
      * Returns the alpha component for the specified pixel, scaled from
      * 0 to 255.  The pixel value is specified by an array of data
      * elements of type <CODE>transferType</CODE> passed in as an 
-     * object reference.
+     * object reference.  Since <code>ComponentColorModel</code> can be
+     * subclassed, subclasses inherit the
+     * implementation of this method and if they don't override it then   
+     * they throw an exception if they use an unsupported 
+     * <code>transferType</code>.
      *
      * @param inData The pixel from which you want to get the alpha component, 
      * specified by an array of data elements of type <CODE>transferType</CODE>.
      *
      * @return The alpha component for the specified pixel, as an int.
-	 *
+     *
      * @throws ClassCastException If <CODE>inData</CODE> is not a primitive array 
      * of type <CODE>transferType</CODE>. 
      * @throws ArrayIndexOutOfBoundsException if <CODE>inData</CODE> is not 
@@ -613,6 +620,8 @@ public class ComponentColorModel extends ColorModel {
 
     // This method returns a gray color that can be mapped to
     // RGB values in getRGB().  It assumes that the colorspace is TYPE_GRAY.
+    // REMIND: this routine currently not used
+    /*
     private int getGray(Object inData) {
         boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
         int alp = 0;
@@ -653,10 +662,13 @@ public class ComponentColorModel extends ColorModel {
         }
         return (!needAlpha
                 ? gray
-                : (int)(gray*(1<<nBits[numColorComponents])-1.f)/alp
-                   );
+                : ((alp != 0)
+                    ? (int)(gray*(1<<nBits[numColorComponents])-1.f)/alp
+                    : 0)
+                );
 
     }
+     */
     
     private float getNormAlpha(int pixel[]) {
         return (float) (pixel[numColorComponents] /
@@ -672,12 +684,16 @@ public class ComponentColorModel extends ColorModel {
      * The returned value is in a non pre-multiplied format. If
      * the alpha is premultiplied, this method divides it out of the
      * color components (if the alpha value is 0, the color values will be 0).
+     * Since <code>ComponentColorModel</code> can be subclassed,
+     * subclasses inherit the implementation of this method and if they
+     * don't override it then they throw an exception if they use an
+     * unsupported <code>transferType</code>.
      *
      * @param inData The pixel from which you want to get the color/alpha components, 
      * specified by an array of data elements of type <CODE>transferType</CODE>.
      *
      * @return The color/alpha components for the specified pixel, as an int.
-	 *
+     *
      * @throws ClassCastException If <CODE>inData</CODE> is not a primitive array 
      * of type <CODE>transferType</CODE>. 
      * @throws ArrayIndexOutOfBoundsException if <CODE>inData</CODE> is not 
@@ -692,11 +708,34 @@ public class ComponentColorModel extends ColorModel {
      */
     public int getRGB(Object inData) {
         if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-            int gray = getGray(inData);
+            int gray = getRed(inData); // Red sRGB component should equal
+                                       // green and blue components
             return (getAlpha(inData) << 24)
                 | (gray << 16)
                 | (gray <<  8)
                 | gray;
+        }
+        if (!is_sRGB) {
+            int pixel[];
+            if (inData instanceof int[]) {
+                pixel = (int[])inData;
+            } else {
+                pixel = DataBuffer.toIntArray(inData);
+                if (pixel == null) {
+                   throw new UnsupportedOperationException(
+                       "This method has not been "+
+                       "implemented for transferType " + transferType);
+                }
+            }
+
+            // Normalize the pixel in order to convert it
+            float[] norm = getNormalizedComponents(pixel, 0, null, 0);
+            // Note that getNormalizedComponents returns non-premult values
+            float[] rgb = colorSpace.toRGB(norm);
+            return (getAlpha(inData) << 24)
+                | (((int) (rgb[0] * 255.0f)) << 16)
+                | (((int) (rgb[1] * 255.0f)) << 8)
+                | (((int) (rgb[2] * 255.0f)) << 0);
         }
         return (getAlpha(inData) << 24)
             | (getRed(inData) << 16)
@@ -710,7 +749,12 @@ public class ComponentColorModel extends ColorModel {
      * in the default RGB color model.
      * This array can then be passed to the <CODE>setDataElements</CODE> 
      * method of a <CODE>WritableRaster</CODE> object.  If the <CODE>pixel</CODE> 
-     * parameter is null, a new array is allocated.  
+     * parameter is null, a new array is allocated.  Since
+     * <code>ComponentColorModel</code> can be subclassed, subclasses
+     * inherit the implementation of this method and if they don't
+     * override it then   
+     * they throw an exception if they use an unsupported 
+     * <code>transferType</code>.
      *
      * @param rgb
      * @param pixel The integer representation of the pixel.
@@ -742,6 +786,7 @@ public class ComponentColorModel extends ColorModel {
         // REMIND: Use rendering hints?
         
         if (! is_sRGB) {
+            /* REMIND: possible gray scale optimization here
             if (colorSpaceType == ColorSpace.TYPE_GRAY) {
                 double gray = ((((rgb>>16)&0xff)*.299/255) +
                                (((rgb>>8) &0xff)*.587/255) +
@@ -760,6 +805,7 @@ public class ComponentColorModel extends ColorModel {
                 }
             }
             else {
+             */
                 // Need to convert the color
                 float[] norm = new float[3];
                 norm[0] = ((rgb>>16)&0xff)/255.f;
@@ -767,19 +813,26 @@ public class ComponentColorModel extends ColorModel {
                 norm[2] = ((rgb>>0)&0xff)/255.f;
 
                 norm = colorSpace.fromRGB(norm);
-                for (int i = 0; i < numColorComponents; i++) {
-                    intpixel[i] = (int)(norm[i]*((1<<nBits[i]) - 1));
-                }
                 if (supportsAlpha) {
                     if (nBits[numColorComponents] == 8) {
                         intpixel[numColorComponents] = (rgb>>24)&0xff;
                     }
                     else {
                         intpixel[numColorComponents] =
-                            (int)(((rgb>>24)&0xff)/255.f * ((1<<nBits[1])-1));
+                            (int)(((rgb>>24)&0xff)/255.f *
+                                  ((1<<nBits[numColorComponents])-1));
+                    }
+                    if (isAlphaPremultiplied) {
+                        float falp = ((rgb>>24)&0xff)/255.f;
+                        for (int i = 0; i < numColorComponents; i++) {
+                            norm[i] *= falp;
+                        }
                     }
                 }
-            }
+                for (int i = 0; i < numColorComponents; i++) {
+                    intpixel[i] = (int)(norm[i]*((1<<nBits[i]) - 1));
+                }
+            // } REMIND: gray scale optimization commented out
         }
         else {
             int alp = (rgb>>24)&0xff;
@@ -916,7 +969,11 @@ public class ComponentColorModel extends ColorModel {
      * an object reference. 
      * Color/alpha components are stored in the <CODE>components</CODE> array 
      * starting at  <CODE>offset</CODE> (even if the array is allocated by 
-     * this method). 
+     * this method).  Since <code>ComponentColorModel</code> can be
+     * subclassed, subclasses inherit the
+     * implementation of this method and if they don't override it then   
+     * this method might throw an exception if they use an unsupported 
+     * <code>transferType</code>.
      *
      * @param pixel A pixel value specified by an array of data elements of
      * type <CODE>transferType</CODE>.
@@ -927,8 +984,8 @@ public class ComponentColorModel extends ColorModel {
      *
      * @return The <CODE>components</CODE> array.
      *
-     * @throws UnsupportedOperationException If the transfer type of 
-     * this <CODE>ComponentColorModel</CODE>
+     * @throws UnsupportedOperationException in some cases iff the
+     * transfer type of this <CODE>ComponentColorModel</CODE>
      * is not one of the supported transfer types:  
      * <CODE>DataBuffer.TYPE_BYTE</CODE>, <CODE>DataBuffer.TYPE_USHORT</CODE>, 
      * or <CODE>DataBuffer.TYPE_INT</CODE>.
@@ -1001,7 +1058,11 @@ public class ComponentColorModel extends ColorModel {
      * be a primitive array of type <CODE>transferType</CODE>. An 
      * <CODE>ArrayIndexOutOfBoundsException</CODE> is thrown if 
      * <CODE>obj</CODE> is not large enough to hold a pixel value 
-     * for this <CODE>ColorModel</CODE>.
+     * for this <CODE>ColorModel</CODE>.  Since
+     * <code>ComponentColorModel</code> can be subclassed, subclasses
+     * inherit the implementation of this method and if they don't
+     * override it then they throw an exception if they use an 
+     * unsupported <code>transferType</code>.
      *
      * @return The data element array representation of a pixel 
      * in this <CODE>ColorModel</CODE>.
@@ -1088,14 +1149,14 @@ public class ComponentColorModel extends ColorModel {
      * to be coerced, this method also returns an instance of 
      * this <CODE>ColorModel</CODE> with
      * the <CODE>isAlphaPremultiplied</CODE> flag set appropriately.
+     * Since <code>ColorModel</code> can be subclassed, subclasses inherit
+     * the implementation of this method and if they don't override it
+     * then they throw an exception if they use an unsupported 
+     * <code>transferType</code>.
      *
-     * @throws UnsupportedOperationException If the transfer type of 
-     * this <CODE>ComponentColorModel</CODE>
-     * is not one of the supported transfer types:  
-     * <CODE>DataBuffer.TYPE_BYTE</CODE>, <CODE>DataBuffer.TYPE_USHORT</CODE>, 
-     * or <CODE>DataBuffer.TYPE_INT</CODE>.
-     *
-     * @throws UnsupportedOperationException If the transfer type of 
+     * @throws NullPointerException if <code>raster</code> is 
+     * <code>null</code> and data coercion is required.
+     * @throws UnsupportedOperationException if the transfer type of 
      * this <CODE>ComponentColorModel</CODE>
      * is not one of the supported transfer types:  
      * <CODE>DataBuffer.TYPE_BYTE</CODE>, <CODE>DataBuffer.TYPE_USHORT</CODE>, 
@@ -1298,7 +1359,7 @@ public class ComponentColorModel extends ColorModel {
 
         // Create the raster
         raster = Raster.createInterleavedRaster(transferType,
-                                                w, h,
+                                                w, h, 
                                                 numComponents, null);
 
         return raster;
@@ -1319,7 +1380,7 @@ public class ComponentColorModel extends ColorModel {
     public SampleModel createCompatibleSampleModel(int w, int h) {
         int[] bandOffsets = new int[numComponents];
         for (int i=0; i < numComponents; i++) {
-            bandOffsets[i] = 0;
+            bandOffsets[i] = i;
         }
         return new PixelInterleavedSampleModel(transferType, w, h,
                                                numComponents, w*numComponents,
@@ -1339,7 +1400,7 @@ public class ComponentColorModel extends ColorModel {
      * @see SampleModel 
      */
     public boolean isCompatibleSampleModel(SampleModel sm) {
-        if (sm instanceof ComponentSampleModel) {
+        if (!(sm instanceof ComponentSampleModel)) {
             return false;
         }
 

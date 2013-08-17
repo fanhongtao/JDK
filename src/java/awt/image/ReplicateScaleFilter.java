@@ -1,8 +1,11 @@
 /*
- * @(#)ReplicateScaleFilter.java	1.8 01/11/29
+ * @(#)ReplicateScaleFilter.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -26,17 +29,48 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.8 11/29/01
+ * @version	1.12 02/02/00
  * @author 	Jim Graham
  */
 public class ReplicateScaleFilter extends ImageFilter {
+
+    /**
+     * The width of the source image.
+     */
     protected int srcWidth;
+
+    /**
+     * The height of the source image.
+     */
     protected int srcHeight;
+
+    /**
+     * The target width to scale the image.
+     */
     protected int destWidth;
+
+    /**
+     * The target height to scale the image.
+     */
     protected int destHeight;
 
+    /**
+     * An <code>int</code> array containing information about a 
+     * row of pixels.
+     */
     protected int srcrows[];
+
+    /**
+     * An <code>int</code> array containing information about a
+     * column of pixels.
+     */
     protected int srccols[];
+
+    /**
+     * A <code>byte</code> array initialized with a size of
+     * {@link #destWidth} and used to deliver a row of pixel
+     * data to the {@link ImageConsumer}.
+     */
     protected Object outpixbuf;
 
     /**
@@ -44,6 +78,8 @@ public class ReplicateScaleFilter extends ImageFilter {
      * its source Image as specified by the width and height parameters.
      * @param width the target width to scale the image
      * @param height the target height to scale the image
+     * @throws IllegalArgumentException if <code>width</code> equals 
+     *         zero or <code>height</code> equals zero
      */
     public ReplicateScaleFilter(int width, int height) {
         if (width == 0 || height == 0) {
@@ -58,6 +94,13 @@ public class ReplicateScaleFilter extends ImageFilter {
     /**
      * Passes along the properties from the source object after adding a
      * property indicating the scale applied.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public void setProperties(Hashtable props) {
 	props = (Hashtable) props.clone();
@@ -74,6 +117,13 @@ public class ReplicateScaleFilter extends ImageFilter {
     /**
      * Override the dimensions of the source image and pass the dimensions
      * of the new scaled size to the ImageConsumer.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ImageConsumer
      */
     public void setDimensions(int w, int h) {
@@ -107,6 +157,13 @@ public class ReplicateScaleFilter extends ImageFilter {
      * Choose which rows and columns of the delivered byte pixels are
      * needed for the destination scaled image and pass through just
      * those rows and columns that are needed, replicated as necessary.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public void setPixels(int x, int y, int w, int h,
 			  ColorModel model, byte pixels[], int off,
@@ -141,6 +198,13 @@ public class ReplicateScaleFilter extends ImageFilter {
      * Choose which rows and columns of the delivered int pixels are
      * needed for the destination scaled image and pass through just
      * those rows and columns that are needed, replicated as necessary.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
+     * are being filtered. Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      */
     public void setPixels(int x, int y, int w, int h,
 			  ColorModel model, int pixels[], int off,

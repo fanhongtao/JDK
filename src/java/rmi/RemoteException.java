@@ -1,8 +1,11 @@
 /*
- * @(#)RemoteException.java	1.13 01/11/29
+ * @(#)RemoteException.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi;
@@ -14,7 +17,7 @@ package java.rmi;
  * extends <code>java.rmi.Remote</code>, must list
  * <code>RemoteException</code> in its throws clause.
  * 
- * @version 1.13, 11/29/01
+ * @version 1.17, 02/02/00
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -80,7 +83,7 @@ public class RemoteException extends java.io.IOException {
      * Prints the composite message and the embedded stack trace to
      * the specified stream <code>ps</code>.
      * @param ps the print stream
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace(java.io.PrintStream ps)
     {
@@ -96,7 +99,7 @@ public class RemoteException extends java.io.IOException {
 
     /**
      * Prints the composite message to <code>System.err</code>.
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace()
     {
@@ -105,9 +108,9 @@ public class RemoteException extends java.io.IOException {
 
     /**
      * Prints the composite message and the embedded stack trace to
-     * the specified print writer <code>pw</code>
+     * the specified print writer <code>pw</code>.
      * @param pw the print writer
-     * @since JDK1.2
+     * @since 1.2
      */
     public void printStackTrace(java.io.PrintWriter pw)
     {

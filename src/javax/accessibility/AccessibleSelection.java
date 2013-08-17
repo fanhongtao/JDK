@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleSelection.java	1.8 01/11/29
+ * @(#)AccessibleSelection.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -11,7 +14,7 @@ package javax.accessibility;
  * This AccessibleSelection interface
  * provides the standard mechanism for an assistive technology to determine 
  * what the current selected children are, as well as modify the selection set.
- * Any object that has children that can be selected should support this
+ * Any object that has children that can be selected should support 
  * the AccessibleSelection interface.  Applications can determine if an object supports the 
  * AccessibleSelection interface by first obtaining its AccessibleContext (see
  * {@link Accessible}) and then calling the
@@ -23,7 +26,7 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleSelection
  *
- * @version     1.8 11/29/01 23:09:28
+ * @version     1.7 08/26/98 21:14:11
  * @author	Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
@@ -40,7 +43,7 @@ public interface AccessibleSelection {
 
     /**
      * Returns an Accessible representing the specified selected child
-     * in the object.  If there isn't a selection, or there are 
+     * of the object.  If there isn't a selection, or there are 
      * fewer children selected than the integer passed in, the return
      * value will be null.
      * <p>Note that the index represents the i-th selected child, which

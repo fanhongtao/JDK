@@ -1,8 +1,11 @@
 /*
- * @(#)OptionListModel.java	1.4 01/11/29
+ * @(#)OptionListModel.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -24,7 +27,7 @@ import java.io.Serializable;
  * accurate reset, if the user requests a reset of the form.
  *
   @author Sunita Mani
-  @version 1.4 11/29/01
+  @version 1.6 02/02/00
  */
 
 class OptionListModel extends DefaultListModel implements ListSelectionModel, Serializable {
@@ -401,7 +404,7 @@ class OptionListModel extends DefaultListModel implements ListSelectionModel, Se
      * Remove the indices in the interval index0,index1 (inclusive) from
      * the selection model.  This is typically called to sync the selection
      * model width a corresponding change in the data model.  Note
-     * that (as always) index0 need not be <= index1.
+     * that (as always) index0 can be greater than index1.
      */
     public void removeIndexInterval(int index0, int index1)
     {

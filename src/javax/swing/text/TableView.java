@@ -1,8 +1,11 @@
 /*
- * @(#)TableView.java	1.25 01/11/29
+ * @(#)TableView.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -10,6 +13,7 @@ import java.awt.*;
 import java.util.BitSet;
 import java.util.Vector;
 import javax.swing.SizeRequirements;
+import javax.swing.event.DocumentEvent;
 
 import javax.swing.text.html.HTML;
 
@@ -46,7 +50,7 @@ import javax.swing.text.html.HTML;
  * spans if desired).
  * 
  * @author  Timothy Prinzing
- * @version 1.25 11/29/01
+ * @version 1.28 02/02/00
  * @see     View
  */
 public abstract class TableView extends BoxView {
@@ -73,10 +77,9 @@ public abstract class TableView extends BoxView {
     }
 
     /**
-     * Table cells can now be any arbitrary 
+     * @deprecated Table cells can now be any arbitrary 
      * View implementation and should be produced by the
-     * ViewFactory rather than the table.  This method will be deprecated
-     * in a future release.
+     * ViewFactory rather than the table.
      *
      * @param elem an element
      * @return the cell
@@ -170,6 +173,21 @@ public abstract class TableView extends BoxView {
 	gridValid = false;
     }
 
+    protected void forwardUpdate(DocumentEvent.ElementChange ec, 
+				     DocumentEvent e, Shape a, ViewFactory f) {
+	super.forwardUpdate(ec, e, a, f);
+	// A change in any of the table cells usually effects the whole table,
+	// so redraw it all!
+	if (a != null) {
+	    Component c = getContainer();
+	    if (c != null) {
+		Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a :
+		                   a.getBounds();
+		c.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
+	    }
+	}
+    }
+
     /**
      * Change the child views.  This is implemented to
      * provide the superclass behavior and invalidate the
@@ -228,7 +246,7 @@ public abstract class TableView extends BoxView {
 			}
 		    }
 		}
-		maxColumns = Math.max(maxColumns, col + 1);
+		maxColumns = Math.max(maxColumns, col);
 	    }
 
 	    // setup the column layout/requirements

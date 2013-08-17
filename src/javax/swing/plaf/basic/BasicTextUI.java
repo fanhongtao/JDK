@@ -1,13 +1,18 @@
 /*
- * @(#)BasicTextUI.java	1.29 01/11/29
+ * @(#)BasicTextUI.java	1.44 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.plaf.basic;
 
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.*;
 import java.beans.*;
 import java.io.*;
 import javax.swing.*;
@@ -75,7 +80,7 @@ import javax.swing.border.Border;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.29 11/29/01
+ * @version 1.44 04/06/00
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -318,11 +323,110 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     }
 
     protected void installKeyboardActions() {
+	// backward compatibility support... keymaps for the UI
+	// are now installed in the more friendly input map.
         editor.setKeymap(createKeymap()); 
-    }  
+
+        InputMap km = getInputMap();
+	if (km != null) {
+	    SwingUtilities.replaceUIInputMap(editor, JComponent.WHEN_FOCUSED,
+					     km);
+	}
+	
+	ActionMap map = getActionMap();
+	if (map != null) {
+	    SwingUtilities.replaceUIActionMap(editor, map);
+	}
+
+	updateFocusAcceleratorBinding(false);
+    }
+
+    /**
+     * Get the InputMap to use for the UI.  
+     */
+    InputMap getInputMap() {
+	InputMap map = new InputMapUIResource();
+	InputMap shared = 
+	    (InputMap)UIManager.get(getPropertyPrefix() + ".focusInputMap");
+	if (shared != null) {
+	    map.setParent(shared);
+	}
+	return map;
+    }
+
+    /**
+     * Invoked when the focus accelerator changes, this will update the
+     * key bindings as necessary.
+     */
+    void updateFocusAcceleratorBinding(boolean changed) {
+	char accelerator = editor.getFocusAccelerator();
+
+	if (changed || accelerator != '\0') {
+	    InputMap km = SwingUtilities.getUIInputMap
+		        (editor, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+	    if (km == null && accelerator != '\0') {
+		km = new ComponentInputMapUIResource(editor);
+		SwingUtilities.replaceUIInputMap(editor, JComponent.
+						 WHEN_IN_FOCUSED_WINDOW, km);
+		ActionMap am = getActionMap();
+		SwingUtilities.replaceUIActionMap(editor, am);
+	    }
+	    if (km != null) {
+		km.clear();
+		if (accelerator != '\0') {
+		    km.put(KeyStroke.getKeyStroke(accelerator,
+						  ActionEvent.ALT_MASK),
+			   "requestFocus");
+		}
+	    }
+	}
+    }
+
+    /**
+     * Fetch an action map to use.  This map is shared across
+     * TextUI implementations of a given type.
+     */
+    ActionMap getActionMap() {
+	String mapName = getPropertyPrefix() + ".actionMap";
+	ActionMap map = (ActionMap)UIManager.get(mapName);
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put(mapName, map);
+	    }
+	}
+        ActionMap componentMap = new ActionMapUIResource();
+        componentMap.put("requestFocus", new FocusAction());
+        if (map != null) {
+            componentMap.setParent(map);
+        }
+	return componentMap;
+    }
+
+    /**
+     * Create a default action map.  This is basically the
+     * set of actions found exported by the component.
+     */
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	Action[] actions = editor.getActions();
+	//System.out.println("building map for UI: " + getPropertyPrefix());
+	int n = actions.length;
+	for (int i = 0; i < n; i++) {
+	    Action a = actions[i];
+	    map.put(a.getValue(Action.NAME), a);
+	    //System.out.println("  " + a.getValue(Action.NAME));
+	}
+	return map;
+    }
 
     protected void uninstallKeyboardActions() {
         editor.setKeymap(null);
+	SwingUtilities.replaceUIInputMap(editor, JComponent.
+					 WHEN_IN_FOCUSED_WINDOW, null);
+	SwingUtilities.replaceUIActionMap(editor, null);
     }
     
     /**
@@ -335,8 +439,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     protected void paintBackground(Graphics g) {
         g.setColor(editor.getBackground());
-        Dimension d = editor.getSize();
-        g.fillRect(0, 0, d.width, d.height);
+        g.fillRect(0, 0, editor.getWidth(), editor.getHeight());
     }
 
     /**
@@ -377,6 +480,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         rootView.setView(v);
         painted = false;
         editor.revalidate();
+        editor.repaint();
     }
 
     /**
@@ -479,6 +583,13 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             installListeners();
             installKeyboardActions();
 
+	    LayoutManager oldLayout = editor.getLayout();
+	    if ((oldLayout == null) || (oldLayout instanceof UIResource)) {
+		// by default, use default LayoutManger implementation that
+		// will position the components associated with a View object.
+		editor.setLayout(updateHandler);
+	    }
+
         } else {
             throw new Error("TextUI needs JTextComponent");
         }
@@ -501,6 +612,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         uninstallDefaults();
         rootView.setView(null);
         c.removeAll();
+	LayoutManager lm = c.getLayout();
+	if (lm instanceof UIResource) {
+	    c.setLayout(null);
+	}
 
         // controller part
         uninstallKeyboardActions();
@@ -535,10 +650,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     public final void paint(Graphics g, JComponent c) {
 	if ((rootView.getViewCount() > 0) && (rootView.getView(0) != null)) {
 	    Document doc = editor.getDocument();
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
 	    try {
-		if (doc instanceof AbstractDocument) {
-		    ((AbstractDocument)doc).readLock();
-		}
 		paintSafely(g);
 	    } finally {
 		if (doc instanceof AbstractDocument) {
@@ -565,11 +680,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	Insets i = c.getInsets();
 	Dimension d = c.getSize();
 
+	if (doc instanceof AbstractDocument) {
+	    ((AbstractDocument)doc).readLock();
+	}
 	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-
 	    if ((d.width > (i.left + i.right)) && (d.height > (i.top + i.bottom))) {
 		rootView.setSize(d.width - i.left - i.right, d.height - i.top - i.bottom);
 	    }
@@ -595,11 +709,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	Document doc = editor.getDocument();
         Insets i = c.getInsets();
 	Dimension d = new Dimension();
+	if (doc instanceof AbstractDocument) {
+	    ((AbstractDocument)doc).readLock();
+	}
 	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-
 	    d.width = (int) rootView.getMinimumSpan(View.X_AXIS) + i.left + i.right;
 	    d.height = (int)  rootView.getMinimumSpan(View.Y_AXIS) + i.top + i.bottom;
 	} finally {
@@ -620,11 +733,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	Document doc = editor.getDocument();
         Insets i = c.getInsets();
 	Dimension d = new Dimension();
+	if (doc instanceof AbstractDocument) {
+	    ((AbstractDocument)doc).readLock();
+	}
 	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-
 	    d.width = (int) Math.min((long) rootView.getMaximumSpan(View.X_AXIS) + 
 				     (long) i.left + (long) i.right, Integer.MAX_VALUE);
 	    d.height = (int) Math.min((long) rootView.getMaximumSpan(View.Y_AXIS) + 
@@ -645,22 +757,30 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      * to an unfortunate set of historical events this 
      * method is inappropriately named.  The Rectangle
      * returned has nothing to do with visibility.  
+     * The component must have a non-zero positive size for 
+     * this translation to be computed.
      *
      * @return the bounding box for the root view
      */
     protected Rectangle getVisibleEditorRect() {
-        Rectangle alloc = new Rectangle(editor.getSize());
-        Insets insets = editor.getInsets();
-        alloc.x += insets.left;
-        alloc.y += insets.top;
-        alloc.width -= insets.left + insets.right;
-        alloc.height -= insets.top + insets.bottom;
-        return alloc;
+	Rectangle alloc = editor.getBounds();
+	if ((alloc.width > 0) && (alloc.height > 0)) {
+	    alloc.x = alloc.y = 0;
+	    Insets insets = editor.getInsets();
+	    alloc.x += insets.left;
+	    alloc.y += insets.top;
+	    alloc.width -= insets.left + insets.right;
+	    alloc.height -= insets.top + insets.bottom;
+	    return alloc;
+	}
+	return null;
     }
 
     /**
      * Converts the given location in the model to a place in
      * the view coordinate system.
+     * The component must have a non-zero positive size for 
+     * this translation to be computed.
      *
      * @param tc the text component for which this UI is installed
      * @param pos the local location in the model to translate >= 0
@@ -676,6 +796,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     /**
      * Converts the given location in the model to a place in
      * the view coordinate system.
+     * The component must have a non-zero positive size for 
+     * this translation to be computed.
      *
      * @param tc the text component for which this UI is installed
      * @param pos the local location in the model to translate >= 0
@@ -686,15 +808,17 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     public Rectangle modelToView(JTextComponent tc, int pos, Position.Bias bias) throws BadLocationException {
 	Document doc = editor.getDocument();
+	if (doc instanceof AbstractDocument) {
+	    ((AbstractDocument)doc).readLock();
+	}
 	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-	    if (painted) {
-		Rectangle alloc = getVisibleEditorRect();
+	    Rectangle alloc = getVisibleEditorRect();
+	    if (alloc != null) {
 		rootView.setSize(alloc.width, alloc.height);
 		Shape s = rootView.modelToView(pos, alloc, bias);
-		return s.getBounds();
+		if (s != null) {
+		  return s.getBounds();
+		}
 	    }
 	} finally {
 	    if (doc instanceof AbstractDocument) {
@@ -707,6 +831,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     /**
      * Converts the given place in the view coordinate system
      * to the nearest representative location in the model.
+     * The component must have a non-zero positive size for 
+     * this translation to be computed.
      *
      * @param tc the text component for which this UI is installed
      * @param pt the location in the view to translate.  This
@@ -722,24 +848,26 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     /**
      * Converts the given place in the view coordinate system
      * to the nearest representative location in the model.
+     * The component must have a non-zero positive size for 
+     * this translation to be computed.
      *
      * @param tc the text component for which this UI is installed
      * @param pt the location in the view to translate.  This
      *  should be in the same coordinate system as the mouse events.
      * @return the offset from the start of the document >= 0,
-     *   -1 if not painted
+     *   -1 if the component doesn't yet have a positive size.
      * @see TextUI#viewToModel
      */
     public int viewToModel(JTextComponent tc, Point pt,
 			   Position.Bias[] biasReturn) {
 	int offs = -1;
 	Document doc = editor.getDocument();
+	if (doc instanceof AbstractDocument) {
+	    ((AbstractDocument)doc).readLock();
+	}
 	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-	    if (painted) {
-		Rectangle alloc = getVisibleEditorRect();
+	    Rectangle alloc = getVisibleEditorRect();
+	    if (alloc != null) {
 		rootView.setSize(alloc.width, alloc.height);
 		offs = rootView.viewToModel(pt.x, pt.y, alloc, biasReturn);
 	    }
@@ -772,10 +900,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 		    Position.Bias b, int direction, Position.Bias[] biasRet)
 	            throws BadLocationException{
 	Document doc = editor.getDocument();
+	if (doc instanceof AbstractDocument) {
+	    ((AbstractDocument)doc).readLock();
+	}
 	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
 	    if (painted) {
 		Rectangle alloc = getVisibleEditorRect();
 		rootView.setSize(alloc.width, alloc.height);
@@ -816,10 +944,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         if (painted) {
             Rectangle alloc = getVisibleEditorRect();
 	    Document doc = t.getDocument();
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
             try {
-		if (doc instanceof AbstractDocument) {
-		    ((AbstractDocument)doc).readLock();
-		}
 		rootView.setSize(alloc.width, alloc.height);
 		Shape toDamage = rootView.modelToView(p0, p0Bias,
                                                       p1, p1Bias, alloc);
@@ -1036,7 +1164,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
          */
         public void paint(Graphics g, Shape allocation) {
             if (view != null) {
-                Rectangle alloc = allocation.getBounds();
+                Rectangle alloc = (allocation instanceof Rectangle) ?
+		          (Rectangle)allocation : allocation.getBounds();
                 view.setSize(alloc.width, alloc.height);
                 view.paint(g, allocation);
             }
@@ -1073,6 +1202,20 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             return view;
         }
 
+	/**
+	 * Returns the child view index representing the given position in
+	 * the model.  This is implemented to return the index of the only
+	 * child.
+	 *
+	 * @param pos the position >= 0
+	 * @returns  index of the view representing the given position, or 
+	 *   -1 if no view represents that position
+	 * @since 1.3
+	 */
+        public int getViewIndex(int pos, Position.Bias b) {
+	    return 0;
+	}
+    
         /**
          * Fetches the allocation for the given child view. 
          * This enables finding out where various views
@@ -1354,7 +1497,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      * accelerator changes, a new keystroke is registered to request
      * focus.
      */
-    class UpdateHandler implements PropertyChangeListener, DocumentListener {
+    class UpdateHandler implements PropertyChangeListener, DocumentListener, LayoutManager2, Runnable, UIResource {
 
         // --- PropertyChangeListener methods -----------------------
 
@@ -1374,6 +1517,18 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
                 }
                 modelChanged();
             }
+	    if (JTextComponent.FOCUS_ACCELERATOR_KEY.equals
+		(evt.getPropertyName())) {
+		updateFocusAcceleratorBinding(true);
+            } else if ("componentOrientation".equals(evt.getPropertyName())) {
+                ComponentOrientation o=(ComponentOrientation)evt.getNewValue();
+                Boolean runDir = o.isLeftToRight() 
+                                 ? TextAttribute.RUN_DIRECTION_LTR
+                                 : TextAttribute.RUN_DIRECTION_RTL;
+                Document doc = editor.getDocument();
+                doc.putProperty( TextAttribute.RUN_DIRECTION, runDir );
+                modelChanged();
+            }
             BasicTextUI.this.propertyChange(evt);
         }
 
@@ -1390,6 +1545,19 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
          * @see DocumentListener#insertUpdate
          */
         public final void insertUpdate(DocumentEvent e) {
+	    Document doc = e.getDocument();
+	    Object o = doc.getProperty("i18n");
+	    if (o instanceof Boolean) {
+		Boolean i18nFlag = (Boolean) o;
+		if (i18nFlag.booleanValue() != i18nView) {
+		    // i18n flag changed, rebuild the view
+		    i18nView = i18nFlag.booleanValue();
+		    modelChanged();
+		    return;
+		}
+	    }
+
+	    // normal insert update
             Rectangle alloc = (painted) ? getVisibleEditorRect() : null;
             rootView.insertUpdate(e, alloc, rootView.getViewFactory());
         }
@@ -1405,9 +1573,21 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
          * @see DocumentListener#removeUpdate
          */
         public final void removeUpdate(DocumentEvent e) {
+	    if ((constraints != null) && (! constraints.isEmpty())) {
+		// There may be components to remove.  This method may
+		// be called by a thread other than the event dispatching
+		// thread.  We really want to do this before any repaints
+		// get scheduled so the order here is important.
+		if (SwingUtilities.isEventDispatchThread()) {
+		    run();
+		} else {
+		    SwingUtilities.invokeLater(this);
+		}
+	    }
+
             Rectangle alloc = (painted) ? getVisibleEditorRect() : null;
             rootView.removeUpdate(e, alloc, rootView.getViewFactory());
-        }
+	}
 
         /**
          * The change notification.  Gets sent to the root of the view structure
@@ -1423,7 +1603,219 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             Rectangle alloc = (painted) ? getVisibleEditorRect() : null;
             rootView.changedUpdate(e, alloc, rootView.getViewFactory());
         }
+
+	// --- Runnable methods --------------------------------------
+
+	/**
+	 * Weed out components that have an association with a View
+	 * that have been removed.
+	 */
+        public void run() {
+	    Vector toRemove = null;
+	    Enumeration components = constraints.keys();
+	    while (components.hasMoreElements()) {
+		Component comp = (Component) components.nextElement();
+		View v = (View) constraints.get(comp);
+		if (v.getStartOffset() == v.getEndOffset()) {
+		    // this view has been removed, its coordinates
+		    // have collapsed down to the removal location.
+		    if (toRemove == null) {
+			toRemove = new Vector();
+		    }
+		    toRemove.addElement(comp);
+		}
+	    }
+	    if (toRemove != null) {
+		int n = toRemove.size();
+		for (int i = 0; i < n; i++) {
+		    editor.remove((Component) toRemove.elementAt(i));
+		}
+	    }
+	}
+
+	// --- LayoutManager2 methods --------------------------------
+
+	/**
+	 * Adds the specified component with the specified name to
+	 * the layout.
+	 * @param name the component name
+	 * @param comp the component to be added
+	 */
+	public void addLayoutComponent(String name, Component comp) {
+	    // not supported
+	}
+
+	/**
+	 * Removes the specified component from the layout.
+	 * @param comp the component to be removed
+	 */
+	public void removeLayoutComponent(Component comp) {
+	    if (constraints != null) {
+		// remove the constraint record
+		constraints.remove(comp);
+	    }
+	}
+
+	/**
+	 * Calculates the preferred size dimensions for the specified 
+	 * panel given the components in the specified parent container.
+	 * @param parent the component to be laid out
+	 *  
+	 * @see #minimumLayoutSize
+	 */
+	public Dimension preferredLayoutSize(Container parent) {
+	    // should not be called (JComponent uses UI instead)
+	    return null;
+	}
+
+	/** 
+	 * Calculates the minimum size dimensions for the specified 
+	 * panel given the components in the specified parent container.
+	 * @param parent the component to be laid out
+	 * @see #preferredLayoutSize
+	 */
+	public Dimension minimumLayoutSize(Container parent) {
+	    // should not be called (JComponent uses UI instead)
+	    return null;
+	}
+
+	/** 
+	 * Lays out the container in the specified panel.  This is
+	 * implemented to position all components that were added
+	 * with a View object as a constraint.  The current allocation
+	 * of the associated View is used as the location of the 
+	 * component.
+	 * <p>
+	 * A read-lock is acquired on the document to prevent the
+	 * view tree from being modified while the layout process
+	 * is active.
+	 *
+	 * @param parent the component which needs to be laid out 
+	 */
+	public void layoutContainer(Container parent) {
+	    if ((constraints != null) && (! constraints.isEmpty())) {
+		Rectangle alloc = getVisibleEditorRect();
+		if (alloc != null) {
+		    Document doc = editor.getDocument();
+		    if (doc instanceof AbstractDocument) {
+			((AbstractDocument)doc).readLock();
+		    }
+		    try {
+			rootView.setSize(alloc.width, alloc.height);
+			Enumeration components = constraints.keys();
+			while (components.hasMoreElements()) {
+			    Component comp = (Component) components.nextElement();
+			    View v = (View) constraints.get(comp);
+			    Shape ca = calculateViewPosition(alloc, v);
+			    if (ca != null) {
+				Rectangle compAlloc = (ca instanceof Rectangle) ? 
+				    (Rectangle) ca : ca.getBounds();
+				comp.setBounds(compAlloc);
+			    }
+			}
+		    } finally {
+			if (doc instanceof AbstractDocument) {
+			    ((AbstractDocument)doc).readUnlock();
+			}
+		    }			
+		}
+	    }
+	}
+
+	/**
+	 * Find the Shape representing the given view.
+	 */
+	Shape calculateViewPosition(Shape alloc, View v) {
+	    int pos = v.getStartOffset();
+	    View child = null;
+	    for (View parent = rootView; (parent != null) && (parent != v); parent = child) {
+		int index = parent.getViewIndex(pos, Position.Bias.Forward);
+		alloc = parent.getChildAllocation(index, alloc);
+		child = parent.getView(index);
+	    }
+	    return (child != null) ? alloc : null;
+	}
+
+	/**
+	 * Adds the specified component to the layout, using the specified
+	 * constraint object.  We only store those components that were added
+	 * with a constraint that is of type View.
+	 *
+	 * @param comp the component to be added
+	 * @param constraint  where/how the component is added to the layout.
+	 */
+	public void addLayoutComponent(Component comp, Object constraint) {
+	    if (constraint instanceof View) {
+		if (constraints == null) {
+		    constraints = new Hashtable(7);
+		}
+		constraints.put(comp, constraint);
+	    }
+	}
+
+	/** 
+	 * Returns the maximum size of this component.
+	 * @see java.awt.Component#getMinimumSize()
+	 * @see java.awt.Component#getPreferredSize()
+	 * @see LayoutManager
+	 */
+        public Dimension maximumLayoutSize(Container target) {
+	    // should not be called (JComponent uses UI instead)
+	    return null;
+	}
+
+	/**
+	 * Returns the alignment along the x axis.  This specifies how
+	 * the component would like to be aligned relative to other 
+	 * components.  The value should be a number between 0 and 1
+	 * where 0 represents alignment along the origin, 1 is aligned
+	 * the furthest away from the origin, 0.5 is centered, etc.
+	 */
+        public float getLayoutAlignmentX(Container target) {
+	    return 0.5f;
+	}
+
+	/**
+	 * Returns the alignment along the y axis.  This specifies how
+	 * the component would like to be aligned relative to other 
+	 * components.  The value should be a number between 0 and 1
+	 * where 0 represents alignment along the origin, 1 is aligned
+	 * the furthest away from the origin, 0.5 is centered, etc.
+	 */
+        public float getLayoutAlignmentY(Container target) {
+	    return 0.5f;
+	}
+
+	/**
+	 * Invalidates the layout, indicating that if the layout manager
+	 * has cached information it should be discarded.
+	 */
+        public void invalidateLayout(Container target) {
+	}
+
+	/**
+	 * The "layout constraints" for the LayoutManager2 implementation.
+	 * These are View objects for those components that are represented
+	 * by a View in the View tree.
+	 */
+	private Hashtable constraints;
+
+	private boolean i18nView = false;
     }
 
+
+    /**
+     * Registered in the ActionMap.
+     */
+    class FocusAction extends AbstractAction {
+
+        public void actionPerformed(ActionEvent e) {
+	    editor.requestFocus();
+        }
+
+        public boolean isEnabled() {
+            return editor.isEditable();
+        }
+    }
 }
 

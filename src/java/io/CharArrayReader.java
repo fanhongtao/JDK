@@ -1,8 +1,11 @@
 /*
- * @(#)CharArrayReader.java	1.13 01/11/29
+ * @(#)CharArrayReader.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -12,21 +15,21 @@ package java.io;
  * character-input stream.
  *
  * @author	Herb Jellinek
- * @version 	1.13, 11/29/01
+ * @version 	1.15, 02/02/00
  * @since       JDK1.1
  */
 public
 class CharArrayReader extends Reader {
-    /** Character buffer */
+    /** The character buffer. */
     protected char buf[];
 
-    /** Current buffer position */
+    /** The current buffer position. */
     protected int pos;
 
-    /** Position of mark in buffer */
+    /** The position of mark in buffer. */
     protected int markedPos = 0;
 
-    /** Number of valid characters in buffer */
+    /** The number of valid characters in the buffer. */
     protected int count;
 
     /**

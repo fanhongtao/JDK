@@ -1,18 +1,16 @@
 /*
- * @(#)PropertyResourceBundle.java	1.16 01/11/29
+ * @(#)PropertyResourceBundle.java	1.18 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)PropertyResourceBundle.java	1.16 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
- * All Rights Reserved.
  *
  * The original version of this source code and documentation
  * is copyrighted and owned by Taligent, Inc., a wholly-owned
@@ -22,21 +20,8 @@
  *
  * This notice and attribution to Taligent may not be removed.
  * Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
  */
+
 package java.util;
 
 import java.util.Properties;
@@ -47,8 +32,10 @@ import java.io.IOException;
  * <code>PropertyResourceBundle</code> is a concrete subclass of
  * <code>ResourceBundle</code> that manages resources for a locale
  * using a set of static strings from a property file. See
- * <code>ResourceBundle</code> for more information about resource
- * bundles in general.
+ * {@link ResourceBundle ResourceBundle} for more information about resource
+ * bundles. See {@link Properties Properties} for more information
+ * about properties files, in particular the
+ * <a href="Properties.html#encoding">information on character encodings</a>.
  *
  * <p>
  * Unlike other types of resource bundle, you don't subclass
@@ -99,6 +86,8 @@ import java.io.IOException;
  *
  * @see ResourceBundle
  * @see ListResourceBundle
+ * @see Properties
+ * @since JDK1.1
  */
 public class PropertyResourceBundle extends ResourceBundle {
     /**

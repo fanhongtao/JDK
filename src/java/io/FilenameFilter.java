@@ -1,8 +1,11 @@
 /*
- * @(#)FilenameFilter.java	1.19 01/11/29
+ * @(#)FilenameFilter.java	1.20 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -16,7 +19,7 @@ package java.io;
  *
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
- * @version 1.19, 11/29/01
+ * @version 1.20, 02/02/00
  * @see     java.awt.FileDialog#setFilenameFilter(java.io.FilenameFilter)
  * @see     java.io.File
  * @see     java.io.File#list(java.io.FilenameFilter)

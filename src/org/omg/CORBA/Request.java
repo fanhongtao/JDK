@@ -1,8 +1,11 @@
 /*
- * @(#)Request.java	1.17 01/11/29
+ * @(#)Request.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -49,236 +52,236 @@ package org.omg.CORBA;
 
 public abstract class Request {
 
-  /**
-* Retrieves the the target object reference.
-*
-* @return			the object reference that points to the
-*                    object implementation for the method
-*                    to be invoked
-*/
+    /**
+     * Retrieves the the target object reference.
+     *
+     * @return			the object reference that points to the
+     *                    object implementation for the method
+     *                    to be invoked
+     */
 
-public abstract org.omg.CORBA.Object target();
+    public abstract org.omg.CORBA.Object target();
 
-/**
-* Retrieves the name of the method to be invoked.
-*
-* @return			the name of the method to be invoked
-*/
+    /**
+     * Retrieves the name of the method to be invoked.
+     *
+     * @return			the name of the method to be invoked
+     */
 
-public abstract String operation();
+    public abstract String operation();
 
-/**
-* Retrieves the <code>NVList</code> object containing the arguments
-* to the method being invoked.  The elements in the list are
-* <code>NamedValue</code> objects, with each one describing an argument
-* to the method.
-*
-* @return	the <code>NVList</code> object containing the arguments
-*			for the method
-*
-*/
+    /**
+     * Retrieves the <code>NVList</code> object containing the arguments
+     * to the method being invoked.  The elements in the list are
+     * <code>NamedValue</code> objects, with each one describing an argument
+     * to the method.
+     *
+     * @return	the <code>NVList</code> object containing the arguments
+     *			for the method
+     *
+     */
 
-public abstract NVList arguments();
+    public abstract NVList arguments();
 
-/**
-* Retrieves the <code>NamedValue</code> object containing the return
-* value for the method.
-*
-* @return		the <code>NamedValue</code> object containing the result
-*				of the method
-*/
+    /**
+     * Retrieves the <code>NamedValue</code> object containing the return
+     * value for the method.
+     *
+     * @return		the <code>NamedValue</code> object containing the result
+     *				of the method
+     */
 
-public abstract NamedValue result();
+    public abstract NamedValue result();
 
-/**
-* Retrieves the <code>Environment</code> object for this request.
-* It contains the exception that the method being invoked has
-* thrown (after the invocation returns).
-*
-*
-* @return	the <code>Environment</code> object for this request
-*/
+    /**
+     * Retrieves the <code>Environment</code> object for this request.
+     * It contains the exception that the method being invoked has
+     * thrown (after the invocation returns).
+     *
+     *
+     * @return	the <code>Environment</code> object for this request
+     */
 
-public abstract Environment env();
+    public abstract Environment env();
 
-/**
-* Retrieves the <code>ExceptionList</code> object for this request.
-* This list contains <code>TypeCode</code> objects describing the
-* exceptions that may be thrown by the method being invoked.
-*
-* @return	the <code>ExceptionList</code> object describing the exceptions
-*            that may be thrown by the method being invoked
-*/
+    /**
+     * Retrieves the <code>ExceptionList</code> object for this request.
+     * This list contains <code>TypeCode</code> objects describing the
+     * exceptions that may be thrown by the method being invoked.
+     *
+     * @return	the <code>ExceptionList</code> object describing the exceptions
+     *            that may be thrown by the method being invoked
+     */
 
-public abstract ExceptionList exceptions();
+    public abstract ExceptionList exceptions();
 
-/**
-* Retrieves the <code>ContextList</code> object for this request.
-* This list contains context <code>String</code>s that need to
-* be resolved and sent with the invocation.
-*
-*
-* @return			the list of context strings whose values
-*				need to be resolved and sent with the
-*				invocation.
-*/
+    /**
+     * Retrieves the <code>ContextList</code> object for this request.
+     * This list contains context <code>String</code>s that need to
+     * be resolved and sent with the invocation.
+     *
+     *
+     * @return			the list of context strings whose values
+     *				need to be resolved and sent with the
+     *				invocation.
+     */
 
-public abstract ContextList contexts();
+    public abstract ContextList contexts();
 
-/**
-* Retrieves the <code>Context</code> object for this request.
-* This is a list of properties giving information about the
-* client, the environment, or the circumstances of this request.
-*
-* @return		the <code>Context</code> object that is to be used
-*				to resolve any context strings whose
-*				values need to be sent with the invocation
-*/
+    /**
+     * Retrieves the <code>Context</code> object for this request.
+     * This is a list of properties giving information about the
+     * client, the environment, or the circumstances of this request.
+     *
+     * @return		the <code>Context</code> object that is to be used
+     *				to resolve any context strings whose
+     *				values need to be sent with the invocation
+     */
 
-public abstract Context ctx();
+    public abstract Context ctx();
 
-/**
-* Sets this request's <code>Context</code> object to the one given.
-*
-* @param c		the new <code>Context</code> object to be used for
-*				resolving context strings
-*/
+    /**
+     * Sets this request's <code>Context</code> object to the one given.
+     *
+     * @param c		the new <code>Context</code> object to be used for
+     *				resolving context strings
+     */
 
-public abstract void ctx(Context c);
-
-
-/**
-* Creates an input argument and adds it to this <code>Request</code>
-* object.
-*
-* @return		an <code>Any</code> object that contains the
-*                value and typecode for the input argument added
-*/
-
-public abstract Any add_in_arg();
-
-/**
-* Creates an input argument with the given name and adds it to
-* this <code>Request</code> object.
-*
-* @param name		the name of the argument being added
-* @return		an <code>Any</code> object that contains the
-*                value and typecode for the input argument added
-*/
-
-public abstract Any add_named_in_arg(String name);
-
-/**
-* Adds an input/output argument to this <code>Request</code> object.
-*
-* @return		an <code>Any</code> object that contains the
-*                value and typecode for the input/output argument added
-*/
-
-public abstract Any add_inout_arg();
-
-/**
-* Adds an input/output argument with the given name to this
-* <code>Request</code> object.
-*
-* @param name		the name of the argument being added
-* @return		an <code>Any</code> object that contains the
-*                value and typecode for the input/output argument added
-*/
-
-public abstract Any add_named_inout_arg(String name);
+    public abstract void ctx(Context c);
 
 
-/**
-* Adds an output argument to this <code>Request</code> object.
-*
-* @return		an <code>Any</code> object that contains the
-*                value and typecode for the output argument added
-*/
+    /**
+     * Creates an input argument and adds it to this <code>Request</code>
+     * object.
+     *
+     * @return		an <code>Any</code> object that contains the
+     *                value and typecode for the input argument added
+     */
 
-public abstract Any add_out_arg();
+    public abstract Any add_in_arg();
 
-/**
-* Adds an output argument with the given name to this
-* <code>Request</code> object.
-*
-* @param name		the name of the argument being added
-* @return		an <code>Any</code> object that contains the
-*                value and typecode for the output argument added
-*/
+    /**
+     * Creates an input argument with the given name and adds it to
+     * this <code>Request</code> object.
+     *
+     * @param name		the name of the argument being added
+     * @return		an <code>Any</code> object that contains the
+     *                value and typecode for the input argument added
+     */
 
-public abstract Any add_named_out_arg(String name);
+    public abstract Any add_named_in_arg(String name);
 
-/**
-* Sets the typecode for the return
-* value of the method.
-*
-* @param tc			the <code>TypeCode</code> object containing type information
-*                   for the return value
-*/
+    /**
+     * Adds an input/output argument to this <code>Request</code> object.
+     *
+     * @return		an <code>Any</code> object that contains the
+     *                value and typecode for the input/output argument added
+     */
 
-public abstract void set_return_type(TypeCode tc);
+    public abstract Any add_inout_arg();
 
-/**
-* Returns the <code>Any</code> object that contains the value for the
-* result of the method.
-*
-* @return			an <code>Any</code> object containing the value and
-*                   typecode for the return value
-*/
+    /**
+     * Adds an input/output argument with the given name to this
+     * <code>Request</code> object.
+     *
+     * @param name		the name of the argument being added
+     * @return		an <code>Any</code> object that contains the
+     *                value and typecode for the input/output argument added
+     */
 
-public abstract Any return_value();
+    public abstract Any add_named_inout_arg(String name);
 
-/**
-* Makes a synchronous invocation using the
-* information in the <code>Request</code> object. Exception information is
-* placed into the <code>Request</code> object's environment object.
-*/
 
-public abstract void invoke();
+    /**
+     * Adds an output argument to this <code>Request</code> object.
+     *
+     * @return		an <code>Any</code> object that contains the
+     *                value and typecode for the output argument added
+     */
 
-/**
-* Makes a oneway invocation on the
-* request. In other words, it does not expect or wait for a
-* response. Note that this can be used even if the operation was
-* not declared as oneway in the IDL declaration. No response or
-* exception information is returned.
-*/
+    public abstract Any add_out_arg();
 
-public abstract void send_oneway();
+    /**
+     * Adds an output argument with the given name to this
+     * <code>Request</code> object.
+     *
+     * @param name		the name of the argument being added
+     * @return		an <code>Any</code> object that contains the
+     *                value and typecode for the output argument added
+     */
 
-/**
-* Makes an asynchronous invocation on
-* the request. In other words, it does not wait for a response before it
-* returns to the user. The user can then later use the methods
-* <code>poll_response</code> and <code>get_response</code> to get
-* the result or exception information for the invocation.
-*/
+    public abstract Any add_named_out_arg(String name);
 
-  public abstract void send_deferred();
+    /**
+     * Sets the typecode for the return
+     * value of the method.
+     *
+     * @param tc			the <code>TypeCode</code> object containing type information
+     *                   for the return value
+     */
 
-  /**
-   * Allows the user to determine
-   * whether a response has been received for the invocation triggered
-   * earlier with the <code>send_deferred</code> method.
-   *
-   * @return		<code>true</code> if the method response has
-   * 				been received; <code>false</code> otherwise
-   */
+    public abstract void set_return_type(TypeCode tc);
 
-  public abstract boolean poll_response();
+    /**
+     * Returns the <code>Any</code> object that contains the value for the
+     * result of the method.
+     *
+     * @return			an <code>Any</code> object containing the value and
+     *                   typecode for the return value
+     */
 
-  /**
-   * Allows the user to access the
-   * response for the invocation triggered earlier with the
-   * <code>send_deferred</code> method.
-   *
-   * @exception WrongTransaction  if the method <code>get_response</code> was invoked
-   * from a different transaction's scope than the one from which the
-   * request was originally sent. See the OMG Transaction Service specification
-   * for details.
-   */
+    public abstract Any return_value();
 
-  public abstract void get_response() throws WrongTransaction;
+    /**
+     * Makes a synchronous invocation using the
+     * information in the <code>Request</code> object. Exception information is
+     * placed into the <code>Request</code> object's environment object.
+     */
+
+    public abstract void invoke();
+
+    /**
+     * Makes a oneway invocation on the
+     * request. In other words, it does not expect or wait for a
+     * response. Note that this can be used even if the operation was
+     * not declared as oneway in the IDL declaration. No response or
+     * exception information is returned.
+     */
+
+    public abstract void send_oneway();
+
+    /**
+     * Makes an asynchronous invocation on
+     * the request. In other words, it does not wait for a response before it
+     * returns to the user. The user can then later use the methods
+     * <code>poll_response</code> and <code>get_response</code> to get
+     * the result or exception information for the invocation.
+     */
+
+    public abstract void send_deferred();
+
+    /**
+     * Allows the user to determine
+     * whether a response has been received for the invocation triggered
+     * earlier with the <code>send_deferred</code> method.
+     *
+     * @return		<code>true</code> if the method response has
+     * 				been received; <code>false</code> otherwise
+     */
+
+    public abstract boolean poll_response();
+
+    /**
+     * Allows the user to access the
+     * response for the invocation triggered earlier with the
+     * <code>send_deferred</code> method.
+     *
+     * @exception WrongTransaction  if the method <code>get_response</code> was invoked
+     * from a different transaction's scope than the one from which the
+     * request was originally sent. See the OMG Transaction Service specification
+     * for details.
+     */
+
+    public abstract void get_response() throws WrongTransaction;
 
 };

@@ -9,6 +9,7 @@ typedef struct Classjava_lang_String {
     struct HArrayOfChar *value;
     int32_t offset;
     int32_t count;
+    int32_t hash;
 /* Inaccessible static: btcConverter */
 /* Inaccessible static: ctbConverter */
 #undef java_lang_String_serialVersionUID

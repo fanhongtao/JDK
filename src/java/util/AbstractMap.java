@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractMap.java	1.18 01/11/29
+ * @(#)AbstractMap.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -34,10 +37,10 @@ import java.util.Map.Entry;
  * map being implemented admits a more efficient implementation.
  *
  * @author  Josh Bloch
- * @version 1.18 11/29/01
+ * @version 1.21, 02/02/00
  * @see Map
  * @see Collection
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AbstractMap implements Map {

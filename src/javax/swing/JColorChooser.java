@@ -1,8 +1,11 @@
 /*
- * @(#)JColorChooser.java	1.23 01/11/29
+ * @(#)JColorChooser.java	1.30 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -20,18 +23,24 @@ import javax.accessibility.*;
 
 
 /**
- * JColorChooser provides a pane of controls designed to allow
+ * <code>JColorChooser</code> provides a pane of controls designed to allow
  * a user to manipulate and select a color.
+ * For information about using color choosers, see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/colorchooser.html">How to Use Color Choosers</a>,
+ * a section in <em>The Java Tutorial</em>.
  *
- * This class provides 3 levels of API:
+ * <p>
+ *
+ * This class provides three levels of API:
  * <ol>
  * <li>A static convenience method which shows a modal color-chooser
  * dialog and returns the color selected by the user.
  * <li>A static convenience method for creating a color-chooser dialog
- * where ActionListeners can be specified to be invoked when
+ * where <code>ActionListeners</code> can be specified to be invoked when
  * the user presses one of the dialog buttons.
- * <li>The ability to create instances of JColorChooser panes
- * directly (within any container). PropertyChange listeners
+ * <li>The ability to create instances of <code>JColorChooser</code> panes
+ * directly (within any container). <code>PropertyChange</code> listeners
  * can be added to detect when the current "color" property changes.
  * </ol>
  * <p>
@@ -41,14 +50,6 @@ import javax.accessibility.*;
  * for short term storage or RMI between applications running the same
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
- * <p>
- * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
- *
  *
  *
  * @beaninfo
@@ -56,7 +57,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.23 11/29/01
+ * @version 1.30 04/06/00
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -99,9 +100,9 @@ public class JColorChooser extends JComponent implements Accessible {
      * this method hides/disposes the dialog and returns the selected color.
      * If the user presses the "Cancel" button or closes the dialog without
      * pressing "OK", then this method hides/disposes the dialog and returns
-     * null.
+     * <code>null</code>.
      *
-     * @param component    the parent Component for the dialog
+     * @param component    the parent <code>Component</code> for the dialog
      * @param title        the String containing the dialog's title
      * @param initialColor the initial Color set when the color-chooser is shown
      */
@@ -124,12 +125,12 @@ public class JColorChooser extends JComponent implements Accessible {
 
     /**
      * Creates and returns a new dialog containing the specified
-     * ColorChooser pane along with "OK", "Cancel", and "Reset" buttons.
-     * If the "OK" or "Cancel" buttons are pressed, the dialog is
+     * <code>ColorChooser</code>` pane along with "OK", "Cancel", and "Reset"
+     * buttons. If the "OK" or "Cancel" buttons are pressed, the dialog is
      * automatically hidden (but not disposed).  If the "Reset"
      * button is pressed, the color-chooser's color will be reset to the
-     * color which was set the last time show() was invoked on the dialog
-     * and the dialog will remain showing.
+     * color which was set the last time <code>show</code> was invoked on the
+     * dialog and the dialog will remain showing.
      *
      * @param c              the parent component for the dialog
      * @param title          the title for the dialog
@@ -167,7 +168,8 @@ public class JColorChooser extends JComponent implements Accessible {
     }
 
     /**
-     * Creates a color chooser pane with the specified ColorSelectionModel.
+     * Creates a color chooser pane with the specified
+     * <code>ColorSelectionModel</code>.
      *
      * @param initialColor the initial color set in the chooser
      */
@@ -202,9 +204,9 @@ public class JColorChooser extends JComponent implements Accessible {
     }
 
     /**
-     * Notification from the UIManager that the L&F has changed.
+     * Notification from the <code>UIManager</code> that the L&F has changed.
      * Replaces the current UI object with the latest version from the
-     * UIManager.
+     * <code>UIManager</code>.
      *
      * @see JComponent#updateUI
      */
@@ -215,7 +217,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Returns the name of the L&F class that renders this component.
      *
-     * @return "ColorChooserUI"
+     * @return the string "ColorChooserUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      */
@@ -236,7 +238,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Sets the current color of the color chooser to the
      * specified color.
-     * This will fire a PropertyChangeEvent for the property
+     * This will fire a <code>PropertyChangeEvent</code> for the property
      * named "color".
      *
      * @param color the color to be set in the color chooser
@@ -254,11 +256,14 @@ public class JColorChooser extends JComponent implements Accessible {
 
     /**
      * Sets the current color of the color chooser to the
-     * specified RGB color.
+     * specified RGB color.  Note that the values of red, green,
+     * and blue should be between the numbers 0 and 255, inclusive.
      *
      * @param r   an int specifying the amount of Red
      * @param g   an int specifying the amount of Green
      * @param b   an int specifying the amount of Blue
+     * @exception IllegalArgumentException if r,g,b values are out of range
+     * @see java.awt.Color
      */
     public void setColor(int r, int g, int b) {
         setColor(new Color(r,g,b));
@@ -279,7 +284,7 @@ public class JColorChooser extends JComponent implements Accessible {
 
     /**
      * Sets the current preview panel.
-     * This will fire a PropertyChangeEvent for the property
+     * This will fire a <code>PropertyChangeEvent</code> for the property
      * named "previewPanel".
      *
      * @param color the color to be set in the color chooser
@@ -323,7 +328,10 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Removes the Color Panel specified.
      *
+     * @exception IllegalArgumentException if panel is not in list of
+     * 			known chooser panels
      * @param name   a string that specifies the panel to be removed
+     * @return the color panel
      */
     public AbstractColorChooserPanel removeChooserPanel( AbstractColorChooserPanel panel ) {
 
@@ -349,9 +357,9 @@ public class JColorChooser extends JComponent implements Accessible {
 	    System.arraycopy(chooserPanels, 1, newArray, 0, newArray.length);
 	}
 	else {  // in middle
-	    System.arraycopy(chooserPanels, 0, newArray, 0, containedAt-1);
+	    System.arraycopy(chooserPanels, 0, newArray, 0, containedAt);
 	    System.arraycopy(chooserPanels, containedAt+1,
-			     newArray, containedAt, chooserPanels.length - containedAt);
+			     newArray, containedAt, (chooserPanels.length - containedAt - 1));
 	}
 
 	setChooserPanels(newArray);
@@ -413,7 +421,8 @@ public class JColorChooser extends JComponent implements Accessible {
 
 
     /**
-     * See readObject() and writeObject() in JComponent for more
+     * See <code>readObject</code> and <code>writeObject</code> in
+     * <code>JComponent</code> for more
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -425,13 +434,14 @@ public class JColorChooser extends JComponent implements Accessible {
 
 
     /**
-     * Returns a string representation of this JColorChooser. This method 
+     * Returns a string representation of this <code>JColorChooser</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JColorChooser.
+     * @return  a string representation of this <code>JColorChooser</code>
      */
     protected String paramString() {
 	StringBuffer chooserPanelsString = new StringBuffer("");
@@ -454,9 +464,13 @@ public class JColorChooser extends JComponent implements Accessible {
     protected AccessibleContext accessibleContext = null;
 
     /**
-     * Get the AccessibleContext associated with this JColorChooser
+     * Gets the AccessibleContext associated with this JColorChooser. 
+     * For color choosers, the AccessibleContext takes the form of an 
+     * AccessibleJColorChooser. 
+     * A new AccessibleJColorChooser instance is created if necessary.
      *
-     * @return the AccessibleContext of this JColorChooser
+     * @return an AccessibleJColorChooser that serves as the 
+     *         AccessibleContext of this JColorChooser
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -466,7 +480,10 @@ public class JColorChooser extends JComponent implements Accessible {
     }
 
     /**
-     * The class used to obtain the accessible context for this object.
+     * This class implements accessibility support for the 
+     * <code>JColorChooser</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to color chooser user-interface 
+     * elements.
      */
     protected class AccessibleJColorChooser extends AccessibleJComponent {
 
@@ -532,13 +549,19 @@ class ColorChooserDialog extends JDialog {
         JButton cancelButton = new JButton(cancelString);
 
 	// The following few lines are used to register esc to close the dialog
-	ActionListener cancelKeyAction = new ActionListener() {
+	Action cancelKeyAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 ((AbstractButton)e.getSource()).fireActionPerformed(e);
             }
         }; 
 	KeyStroke cancelKeyStroke = KeyStroke.getKeyStroke((char)KeyEvent.VK_ESCAPE, false);
-	cancelButton.registerKeyboardAction(cancelKeyAction,  cancelKeyStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	InputMap inputMap = cancelButton.getInputMap(JComponent.
+						     WHEN_IN_FOCUSED_WINDOW);
+	ActionMap actionMap = cancelButton.getActionMap();
+	if (inputMap != null && actionMap != null) {
+	    inputMap.put(cancelKeyStroke, "cancel");
+	    actionMap.put("cancel", cancelKeyAction);
+	}
 	// end esc handling
 
         cancelButton.setActionCommand("cancel");

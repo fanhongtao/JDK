@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultHighlighter.java	1.29 01/11/29
+ * @(#)DefaultHighlighter.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -15,7 +18,7 @@ import javax.swing.plaf.*;
  * painter that renders in a solid color.
  * 
  * @author  Timothy Prinzing
- * @version 1.29 11/29/01
+ * @version 1.31 02/02/00
  * @see     Highlighter
  */
 public class DefaultHighlighter extends LayeredHighlighter {
@@ -36,21 +39,27 @@ public class DefaultHighlighter extends LayeredHighlighter {
      */
     public void paint(Graphics g) {
         // PENDING(prinz) - should cull ranges not visible
-        Rectangle a = new Rectangle(component.getSize());
-        Insets insets = component.getInsets();
-        a.x += insets.left;
-        a.y += insets.top;
-        a.width -= insets.left + insets.right;
-        a.height -= insets.top + insets.bottom;
         int len = highlights.size();
         for (int i = 0; i < len; i++) {
 	    HighlightInfo info = (HighlightInfo) highlights.elementAt(i);
 	    if (!(info instanceof LayeredHighlightInfo)) {
-		Highlighter.HighlightPainter p = info.getPainter();
-		p.paint(g, info.getStartOffset(), info.getEndOffset(), a,
-			component);
+		// Avoid allocing unless we need it.
+		Rectangle a = component.getBounds();
+		Insets insets = component.getInsets();
+		a.x = insets.left;
+		a.y = insets.top;
+		a.width -= insets.left + insets.right;
+		a.height -= insets.top + insets.bottom;
+		for (; i < len; i++) {
+		    info = (HighlightInfo)highlights.elementAt(i);
+		    if (!(info instanceof LayeredHighlightInfo)) {
+			Highlighter.HighlightPainter p = info.getPainter();
+			p.paint(g, info.getStartOffset(), info.getEndOffset(),
+				a, component);
+		    }
+		}
 	    }
-        }
+	}
     }
 
     /**

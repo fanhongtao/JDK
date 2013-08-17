@@ -1,8 +1,11 @@
 /*
- * @(#)MotifButtonListener.java	1.11 01/11/29
+ * @(#)MotifButtonListener.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 
@@ -18,7 +21,7 @@ import javax.swing.event.*;
  * Button Listener
  * <p>
  *
- * @version 1.11 11/29/01
+ * @version 1.13 02/02/00
  * @author Rich Schiavi
  */
 public class MotifButtonListener extends BasicButtonListener {
@@ -42,6 +45,7 @@ public class MotifButtonListener extends BasicButtonListener {
 	b.repaint();
     }
   
+/*
     // Here for rollover purposes
     public void mouseEntered(MouseEvent e) {
         AbstractButton button = (AbstractButton)e.getSource();
@@ -53,6 +57,7 @@ public class MotifButtonListener extends BasicButtonListener {
         AbstractButton button = (AbstractButton)e.getSource();
         button.getModel().setRollover(false);
     }
+*/
 
     protected void checkOpacity(AbstractButton b) {
 	b.setOpaque( false );

@@ -1,8 +1,11 @@
 /*
- * @(#)jvm_md.h	1.13 01/11/29
+ * @(#)jvm_md.h	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_JVM_MD_H_
@@ -38,6 +41,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/signal.h>
 
 /* O Flags */
 
@@ -47,22 +51,12 @@
 #define JVM_O_O_APPEND   O_APPEND
 #define JVM_O_EXCL       O_EXCL
 #define JVM_O_CREAT      O_CREAT
+#define JVM_O_DELETE     0x10000
+
+/* Signals */
+
+#define JVM_SIGINT     SIGINT
+#define JVM_SIGTERM    SIGTERM
 
 
 #endif /* !_JAVASOFT_JVM_MD_H_ */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

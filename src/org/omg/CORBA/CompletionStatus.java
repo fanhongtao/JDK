@@ -1,8 +1,11 @@
 /*
- * @(#)CompletionStatus.java	1.11 01/11/29
+ * @(#)CompletionStatus.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package org.omg.CORBA;
 
@@ -45,13 +48,13 @@ public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  * The constant indicating that a method had not completed running
  * when a <code>SystemException</code> was thrown.
  */
-                            _COMPLETED_NO = 1,
+	_COMPLETED_NO = 1,
 
 /**
  * The constant indicating that it is unknown whether a method had
  * completed running when a <code>SystemException</code> was thrown.
  */
-                            _COMPLETED_MAYBE = 2;
+	_COMPLETED_MAYBE = 2;
 
 
 /**
@@ -66,13 +69,13 @@ public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  */
     public static final CompletionStatus COMPLETED_NO    = new CompletionStatus(_COMPLETED_NO);
 
-/**
+    /**
  * An instance of <code>CompletionStatus</code> initialized with
  * the constant <code>_COMPLETED_MAYBE</code>.
  */
     public static final CompletionStatus COMPLETED_MAYBE = new CompletionStatus(_COMPLETED_MAYBE);
 
-/**
+    /**
  * Retrieves the value of this <code>CompletionStatus</code> object.
  *
  * @return  one of the possible <code>CompletionStatus</code> values:
@@ -86,6 +89,11 @@ public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  * Creates a <code>CompletionStatus</code> object from the given <code>int</code>.
  *
  * @param i  one of <code>_COMPLETED_YES</code>, <code>_COMPLETED_NO</code>, or
+ *          <code>_COMPLETED_MAYBE</code>
+ *
+ * @return  one of the possible <code>CompletionStatus</code> objects 
+ *          with values:
+ *          <code>_COMPLETED_YES</code>, <code>_COMPLETED_NO</code>, or
  *          <code>_COMPLETED_MAYBE</code>
  *
  * @exception org.omg.CORBA.BAD_PARAM  if the argument given is not one of the
@@ -105,6 +113,13 @@ public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
     }
 
 
+/**
+ * Creates a <code>CompletionStatus</code> object from the given <code>int</code>.
+ *
+ * @param _value  one of <code>_COMPLETED_YES</code>, <code>_COMPLETED_NO</code>, or
+ *          <code>_COMPLETED_MAYBE</code>
+ *
+ */
     protected CompletionStatus(int _value) {
 	this._value = _value;
     }

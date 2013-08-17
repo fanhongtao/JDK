@@ -1,8 +1,11 @@
 /*
- * @(#)PushbackInputStream.java	1.26 01/11/29
+ * @(#)PushbackInputStream.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -28,7 +31,7 @@ package java.io;
  *
  * @author  David Connelly
  * @author  Jonathan Payne
- * @version 1.26, 11/29/01
+ * @version 1.31, 02/02/00
  * @since   JDK1.0
  */
 public
@@ -256,7 +259,7 @@ class PushbackInputStream extends FilterInputStream {
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
      * @see        java.io.InputStream#skip(long n)
-     * @since      JDK1.2
+     * @since      1.2
      */
     public long skip(long n) throws IOException {
         ensureOpen();

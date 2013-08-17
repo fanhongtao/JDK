@@ -1,8 +1,11 @@
 /*
- * @(#)ObjectImpl.java	1.28 01/11/29
+ * @(#)ObjectImpl.java	1.32 00/07/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package org.omg.CORBA.portable;
 
@@ -30,7 +33,10 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
     private transient Delegate __delegate;
 
 
-    /** return the Delegate contained in this ObjectImpl instance. */
+    /**
+     * Provides a reference to the vendor-specific Delegate for this ObjectImpl. 
+     * @return the Delegate contained in this ObjectImpl instance. 
+     */
     public Delegate _get_delegate() {
         if (__delegate == null)
 	    throw new BAD_OPERATION("The delegate has not been set!");
@@ -38,15 +44,20 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
     }
 
 
-    /** set the Delegate contained in this ObjectImpl instance. */
+    /** 
+     * Sets the Delegate contained in this ObjectImpl instance. 
+     * @delegate implementation delegate used for an instance of this object.
+     */
     public void _set_delegate(Delegate delegate) {
         __delegate = delegate;
     }
 
-    /** return the array of all repository identifiers supported by this
-        ObjectImpl instance (e.g. For a stub, _ids() will return information
-        about all interfaces supported by the stub).
-    */
+    /** 
+     * Provides a string array containing the repository ids for this object.
+     * @return the array of all repository identifiers supported by this
+     * ObjectImpl instance (e.g. For a stub, _ids() will return information
+     * about all interfaces supported by the stub).
+     */
     public abstract String[] _ids();
 
 
@@ -87,30 +98,30 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
 
     /** default implementation of the org.omg.CORBA.Object method. */
     public Request _create_request(Context ctx,
-				 String operation,
-				 NVList arg_list,
-				 NamedValue result) {
+				   String operation,
+				   NVList arg_list,
+				   NamedValue result) {
         return _get_delegate().create_request(this,
-					  ctx,
-					  operation,
-					  arg_list,
-					  result);
+					      ctx,
+					      operation,
+					      arg_list,
+					      result);
     }
 
     /** default implementation of the org.omg.CORBA.Object method. */
     public Request _create_request(Context ctx,
-				 String operation,
-				 NVList arg_list,
-				 NamedValue result,
-				 ExceptionList exceptions,
-				 ContextList contexts) {
+				   String operation,
+				   NVList arg_list,
+				   NamedValue result,
+				   ExceptionList exceptions,
+				   ContextList contexts) {
         return _get_delegate().create_request(this,
-					  ctx,
-					  operation,
-					  arg_list,
-					  result,
-					  exceptions,
-					  contexts);
+					      ctx,
+					      operation,
+					      arg_list,
+					      result,
+					      exceptions,
+					      contexts);
     }
 
     /** default implementation of the org.omg.CORBA.Object method. */
@@ -134,7 +145,7 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
             try {
 		Class[] argc = { org.omg.CORBA.Object.class };
 	        java.lang.reflect.Method meth = 
-                     delegate.getClass().getMethod("get_interface", argc);
+		    delegate.getClass().getMethod("get_interface", argc);
 		Object[] argx = { this };
                 return (org.omg.CORBA.Object)meth.invoke(delegate, argx);
 	    }
@@ -157,7 +168,9 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
         }
     }
 
-    /** return the ORB instance which created the Delegate contained in
+    /** 
+     * Provides reference to the ORB associated with this object and its delegate.
+     * @return the ORB instance which created the Delegate contained in
      *  this ObjectImpl.
      */
     public org.omg.CORBA.ORB _orb() {
@@ -185,19 +198,41 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
     public org.omg.CORBA.Object
 	_set_policy_override(org.omg.CORBA.Policy[] policies,
 			     org.omg.CORBA.SetOverrideType set_add) {
-	    return _get_delegate().set_policy_override(this, policies,
-						       set_add);
+	return _get_delegate().set_policy_override(this, policies,
+						   set_add);
     }
 
     /**
-     *
+     * Checks whether this object is process-local.
+     * @return true if this object is process-local.
      */
     public boolean _is_local() {
         return _get_delegate().is_local(this);
     }
 
     /**
+     * Returns a Java reference to the servant which should be used for this 
+     * request. _servant_preinvoke() is invoked by a local stub.
+     * If a ServantObject object is returned, then its servant field 
+     * has been set to an object of the expected type (Note: the object may 
+     * or may not be the actual servant instance). The local stub may cast 
+     * the servant field to the expected type, and then invoke the operation 
+     * directly. The ServantRequest object is valid for only one invocation, 
+     * and cannot be used for more than one invocation.
      *
+     * @param operation a string containing the operation name.
+     * The operation name corresponds to the operation name as it would be 
+     * encoded in a GIOP request.
+     *
+     * @param expectedType a Class object representing the expected type of the servant.
+     * The expected type is the Class object associated with the operations 
+     * class of the stub's interface (e.g. A stub for an interface Foo, 
+     * would pass the Class object for the FooOperations interface).
+     *
+     * @return a ServantObject object.
+     * The method may return a null value if it does not wish to support 
+     * this optimization (e.g. due to security, transactions, etc). 
+     * The method must return null if the servant is not of the expected type.
      */
     public ServantObject _servant_preinvoke(String operation,
                                             Class expectedType) {
@@ -206,7 +241,16 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
     }
 
     /**
+     * Is invoked by the local stub after the operation 
+     * has been invoked on the local servant.
+     * This method must be called if _servant_preinvoke() returned a non-null 
+     * value, even if an exception was thrown by the servant's method. 
+     * For this reason, the call to _servant_postinvoke() should be placed 
+     * in a Java finally clause.
      *
+     *
+     * @param servant the instance of the ServantObject returned from 
+     *  the servant_preinvoke() method.
      */
     public void _servant_postinvoke(ServantObject servant) {
         _get_delegate().servant_postinvoke(this, servant);
@@ -222,6 +266,10 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
      * marshaling arguments. The stub must supply the operation name,
      * and indicate if a response is expected (i.e is this a oneway
      * call).
+     *
+     * @param operation         a String giving the name of the object.
+     * @param responseExpected  a boolean -- true if request is not one way.
+     * @return an OutputStream object for dispatching the request.
      */
     public OutputStream _request(String operation,
 				 boolean responseExpected) {
@@ -235,6 +283,11 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
      * marshaled reply. If an exception occurs, _invoke may throw an
      * ApplicationException object which contains an InputStream from
      * which the user exception state may be unmarshaled.
+     *
+     * @param output  an OutputStream object for dispatching the request.
+     * @return an InputStream object for reading the response.
+     * @throws ApplicationException an exception -- thrown if the invocation meets application-defined exception.
+     * @throws RemarshalException an exception -- thrown if the invocation leads to a remarshalling error.
      */
     public InputStream _invoke(OutputStream output)
 	throws ApplicationException, RemarshalException {
@@ -248,30 +301,32 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
      * _invoke() or ApplicationException.getInputStream(). A null
      * value may also be passed to _releaseReply, in which case the
      * method is a noop.
+     *
+     * @param input  an InputStream object that represents handle to the reply.
      */
     public void _releaseReply(InputStream input) {
 	_get_delegate().releaseReply(this, input);
     }
 
     public String toString() {
-		if ( __delegate != null )
-			return __delegate.toString(this);
-		else
-			return getClass().getName() + ": no delegate set";
+        if ( __delegate != null )
+           return __delegate.toString(this);
+        else
+           return getClass().getName() + ": no delegate set";
     }
 
     public int hashCode() {
-		if ( __delegate != null )
-			return __delegate.hashCode(this);
-		else
-			return System.identityHashCode(this);
+        if ( __delegate != null )
+           return __delegate.hashCode(this);
+        else
+           return System.identityHashCode(this);
     }
 
     public boolean equals(java.lang.Object obj) {
-		if ( __delegate != null )
-			return __delegate.equals(this, obj);
-		else
-			return (this==obj);
+        if ( __delegate != null )
+           return __delegate.equals(this, obj);
+        else
+           return (this==obj);
     }
 }
 

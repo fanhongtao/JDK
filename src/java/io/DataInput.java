@@ -1,8 +1,11 @@
 /*
- * @(#)DataInput.java	1.14 01/11/29
+ * @(#)DataInput.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -29,7 +32,7 @@ package java.io;
  * closed.
  *
  * @author  Frank Yellin
- * @version 1.14, 11/29/01
+ * @version 1.16, 02/02/00
  * @see     java.io.DataInputStream
  * @see     java.io.DataOutput
  * @since   JDK1.0
@@ -116,6 +119,8 @@ interface DataInput {
      * at most, equal to <code>len</code>.
      *
      * @param     b   the buffer into which the data is read.
+     * @param off  an int specifying the offset into the data.
+     * @param len  an int specifying the number of bytes to read.
      * @exception  EOFException  if this stream reaches the end before reading
      *               all the bytes.
      * @exception  IOException   if an I/O error occurs.

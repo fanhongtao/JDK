@@ -1,8 +1,11 @@
 /*
- * @(#)ServiceDetailHelper.java	1.3 01/11/29
+ * @(#)ServiceDetailHelper.java	1.6 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -30,35 +33,35 @@ public class ServiceDetailHelper {
 	}
         return that;
     }
-   public static org.omg.CORBA.ServiceDetail extract(org.omg.CORBA.Any a) {
-     org.omg.CORBA.portable.InputStream in = a.create_input_stream();
-     return read(in);
-   }
-   public static void insert(org.omg.CORBA.Any a, org.omg.CORBA.ServiceDetail that) {
-     org.omg.CORBA.portable.OutputStream out = a.create_output_stream();
-     write(out, that);
-     a.read_value(out.create_input_stream(), type());
-   }
-   private static org.omg.CORBA.TypeCode _tc;
-   synchronized public static org.omg.CORBA.TypeCode type() {
-       int _memberCount = 2;
-       org.omg.CORBA.StructMember[] _members = null;
-          if (_tc == null) {
-               _members= new org.omg.CORBA.StructMember[2];
-               _members[0] = new org.omg.CORBA.StructMember(
-                 "service_detail_type",
-                 org.omg.CORBA.ORB.init().get_primitive_tc(org.omg.CORBA.TCKind.tk_ulong),
-                 null);
+    public static org.omg.CORBA.ServiceDetail extract(org.omg.CORBA.Any a) {
+	org.omg.CORBA.portable.InputStream in = a.create_input_stream();
+	return read(in);
+    }
+    public static void insert(org.omg.CORBA.Any a, org.omg.CORBA.ServiceDetail that) {
+	org.omg.CORBA.portable.OutputStream out = a.create_output_stream();
+	write(out, that);
+	a.read_value(out.create_input_stream(), type());
+    }
+    private static org.omg.CORBA.TypeCode _tc;
+    synchronized public static org.omg.CORBA.TypeCode type() {
+	int _memberCount = 2;
+	org.omg.CORBA.StructMember[] _members = null;
+	if (_tc == null) {
+	    _members= new org.omg.CORBA.StructMember[2];
+	    _members[0] = new org.omg.CORBA.StructMember(
+							 "service_detail_type",
+							 org.omg.CORBA.ORB.init().get_primitive_tc(org.omg.CORBA.TCKind.tk_ulong),
+							 null);
 
-               _members[1] = new org.omg.CORBA.StructMember(
-                 "service_detail",
-                 org.omg.CORBA.ORB.init().create_sequence_tc(0, org.omg.CORBA.ORB.init().get_primitive_tc(org.omg.CORBA.TCKind.tk_octet)),
-                 null);
-             _tc = org.omg.CORBA.ORB.init().create_struct_tc(id(), "ServiceDetail", _members);
-          }
-      return _tc;
-   }
-   public static String id() {
-       return "IDL:omg.org/CORBA/ServiceDetail:1.0";
-   }
+	    _members[1] = new org.omg.CORBA.StructMember(
+							 "service_detail",
+							 org.omg.CORBA.ORB.init().create_sequence_tc(0, org.omg.CORBA.ORB.init().get_primitive_tc(org.omg.CORBA.TCKind.tk_octet)),
+							 null);
+	    _tc = org.omg.CORBA.ORB.init().create_struct_tc(id(), "ServiceDetail", _members);
+	}
+	return _tc;
+    }
+    public static String id() {
+	return "IDL:omg.org/CORBA/ServiceDetail:1.0";
+    }
 }

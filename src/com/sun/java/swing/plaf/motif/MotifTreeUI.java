@@ -1,8 +1,11 @@
 /*
- * @(#)MotifTreeUI.java	1.17 01/11/29
+ * @(#)MotifTreeUI.java	1.21 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -28,7 +31,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 11/29/01
+ * @version 1.16 08/28/98
  * @author Jeff Dinkins
  */
 public class MotifTreeUI extends BasicTreeUI
@@ -51,7 +54,7 @@ public class MotifTreeUI extends BasicTreeUI
   
     protected void paintVerticalLine( Graphics g, JComponent c, int x, int top, int bottom )
       {
-	g.fillRect( x - 1, top, 2, bottom - top );
+          g.fillRect( x - 1, top, 2, bottom - top + 2 );
       }
 
     protected void paintHorizontalLine( Graphics g, JComponent c, int y, int left, int right )

@@ -1,43 +1,55 @@
 /*
- * @(#)DynValue.java	1.8 01/11/29
+ * @(#)DynValue.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
 
+/**
+ * The representation of a <code>DynAny</code> object that is associated
+ *  with an IDL value type.
+ */
 public interface DynValue extends org.omg.CORBA.Object, org.omg.CORBA.DynAny {
 
     /**
-     * Return the name of the current member while traversing a
-     * <code>DynAny</code> which represents a Value object.
+     * Returns the name of the current member while traversing a
+     * <code>DynAny</code> object that represents a Value object.
      *
-     * @return the name of the current member.
+     * @return the name of the current member
      */
     String current_member_name();
 
     /**
-     * Return the <code>TypeCode</code> kind of the current member.
+     * Returns the <code>TCKind</code> object that describes the current member.
      *
-     * @return the <code>TCKind</code> corresponding to the current
-     * member.
+     * @return the <code>TCKind</code> object corresponding to the current
+     * member
      */
     TCKind current_member_kind();
 
     /**
-     * Return an array containing all the members of the value object
+     * Returns an array containing all the members of the value object
      * stored in this <code>DynValue</code>.
      *
      * @return an array of name-value pairs.
+	 * @see #set_members
      */
     org.omg.CORBA.NameValuePair[] get_members();
 
     /**
-     * Set the members of a value object this <code>DynValue</code>
-     * represents.
+     * Sets the members of the value object this <code>DynValue</code>
+     * object represents to the given array of <code>NameValuePair</code>
+	 * objects.
      *
-     * @param value the array of name-value pairs.
+     * @param value the array of name-value pairs to be set
+     * @throws org.omg.CORBA.DynAnyPackage.InvalidSeq
+     *         if an inconsistent value is part of the given array
+	 * @see #get_members
      */
     void set_members(NameValuePair[] value)
 	throws org.omg.CORBA.DynAnyPackage.InvalidSeq;

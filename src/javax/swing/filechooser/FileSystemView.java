@@ -1,8 +1,11 @@
 /*
- * @(#)FileSystemView.java	1.14 01/11/29
+ * @(#)FileSystemView.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.filechooser;
@@ -36,7 +39,7 @@ import java.lang.reflect.*;
  * how Mac/OS2/BeOS/etc file systems can modify FileSystemView
  * to handle their particular type of file system.
  *
- * @version 1.14 11/29/01
+ * @version 1.12 02/02/00
  * @author Jeff Dinkins
  */
 public abstract class FileSystemView {
@@ -132,27 +135,29 @@ public abstract class FileSystemView {
 	Vector files = new Vector();
 
 	// add all files in dir
-	
-	File [] names = dir.listFiles();
-	
+	String[] names = dir.list();
+
 	File f;
-	
+
 	int nameCount = names == null ? 0 : names.length;
-	
+
 	for (int i = 0; i < nameCount; i++) {
-	    
-	  f = names[i];
-	  
-	  if (f.isFile() || f.isDirectory()) {
-	    if (!useFileHiding || !isHiddenFile(f)) {
-	      files.addElement(f);
+	    f = createFileObject(dir, names[i]);
+	    if(useFileHiding) {
+		if(!isHiddenFile(f)) {
+		    files.addElement(f);
+		}
+	    } else {
+		files.addElement(f);
 	    }
-	  }
 	}
-	return (File[])files.toArray(new File[files.size()]);
-	
+
+	File[] fileArray = new File[files.size()];
+	files.copyInto(fileArray);
+
+	return fileArray;
     }
-  
+
     /**
      * Returns the parent directory of dir.
      */

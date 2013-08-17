@@ -1,8 +1,11 @@
 /*
- * @(#)FontMetrics.java	1.38 01/11/29
+ * @(#)FontMetrics.java	1.42 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -16,9 +19,7 @@ import java.text.CharacterIterator;
 /**
  * The <code>FontMetrics</code> class defines a font metrics object, which
  * encapsulates information about the rendering of a particular font on a
- * particular screen. Note that the implementations of these methods are
- * inefficient, so they are usually overridden with more efficient
- * toolkit-specific implementations.
+ * particular screen. 
  * <p>
  * <b>Note to subclassers</b>: Since many of these methods form closed,
  * mutually recursive loops, you must take care that you implement
@@ -37,6 +38,10 @@ import java.text.CharacterIterator;
  * <p>
  * <img src="doc-files/FontMetrics-1.gif" border=15 align
  * ALIGN=right HSPACE=10 VSPACE=7>
+ * Note that the implementations of these methods are
+ * inefficient, so they are usually overridden with more efficient
+ * toolkit-specific implementations.
+ * <p>
  * When an application asks AWT to place a character at the position
  * (<i>x</i>,&nbsp;<i>y</i>), the character is placed so that its
  * reference point (shown as the dot in the accompanying image) is
@@ -51,22 +56,24 @@ import java.text.CharacterIterator;
  * baseline. The advance width indicates the position at which AWT
  * should place the next character.
  * <p>
- * If the current character is placed with its reference point
- * at the position (<i>x</i>,&nbsp;<i>y</i>), and
- * the character's advance width is <i>w</i>, then the new
- * character is placed with its reference point at the position
- * (<i>x&nbsp;</i><code>+</code><i>&nbsp;w</i>,&nbsp;<i>y</i>).
- * The advance width is often, but not necessarily, the same as the width
- * of a character's bounding box. In particular, oblique and
- * italic fonts often have characters whose top-right corner extends
- * slightly beyond the advance width.
- * <p>
  * An array of characters or a string can also have an ascent, a
  * descent, and an advance width. The ascent of the array is the
  * maximum ascent of any character in the array. The descent is the
  * maximum descent of any character in the array. The advance width
  * is the sum of the advance widths of each of the characters in the
- * array.
+ * character array.  The advance of a <code>String</code> is the
+ * distance along the baseline of the <code>String</code>.  This 
+ * distance is the width that should be used for centering or 
+ * right-aligning the <code>String</code>.
+ * Note that the advance of a <code>String</code> is not necessarily 
+ * the sum of the advances of its characters measured in isolation 
+ * because the width of a character can vary depending on its context.  
+ * For example, in Arabic text, the shape of a character can change 
+ * in order to connect to other characters.  Also, in some scripts, 
+ * certain character sequences can be represented by a single shape, 
+ * called a <em>ligature</em>.  Measuring characters individually does
+ * not account for these transformations.
+ *
  * @version 	1.21 03/18/98
  * @author 	Jim Graham
  * @see         java.awt.Font
@@ -212,9 +219,10 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Gets the maximum advance width of any character in this 
-     * <code>Font</code>.  The advance width is the amount by which the
-     * current point is moved from one character to the next in a line of
-     * text.
+     * <code>Font</code>.  The advance is the
+     * distance from the leftmost point to the rightmost point on the
+     * string's baseline.  The advance of a <code>String</code> is    
+     * not necessarily the sum of the advances of its characters.
      * @return    the maximum advance width of any character
      *            in the <code>Font</code>, or <code>-1</code> if the
      *            maximum advance width is not known.
@@ -225,9 +233,11 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Returns the advance width of the specified character in this 
-     * <code>Font</code>.
-     * The advance width is the amount by which the current point is
-     * moved from one character to the next in a line of text.
+     * <code>Font</code>.  The advance is the
+     * distance from the leftmost point to the rightmost point on the
+     * character's baseline.  Note that the advance of a
+     * <code>String</code> is not necessarily the sum of the advances 
+     * of its characters.
      * @param ch the character to be measured
      * @return    the advance width of the specified <code>char</code>
      *                 in the <code>Font</code> described by this
@@ -241,10 +251,11 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Returns the advance width of the specified character in this 
-     * <code>Font</code>.
-     * The advance width is the amount by which the current point is
-     * moved from one character to the next in a line of text.
-     * @param ch the character to be measured
+     * <code>Font</code>.  The advance is the
+     * distance from the leftmost point to the rightmost point on the
+     * character's baseline.  Note that the advance of a
+     * <code>String</code> is not necessarily the sum of the advances 
+     * of its characters.
      * @return     the advance width of the specified <code>char</code>
      *                  in the <code>Font</code> described by this 
      *			<code>FontMetrics</code> object.
@@ -261,15 +272,26 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Returns the total advance width for showing the specified 
-     * <code>String</code> in this <code>Font</code>. The advance width is
-     * the amount by which the current point is moved from one character
-     * to the next in a line of text.
+     * <code>String</code> in this <code>Font</code>.  The advance
+     * is the distance from the leftmost point to the rightmost point
+     * on the string's baseline.  
+     * <p>
+     * Note that the total advance width returned from this method
+     * does not take into account the rendering context.  Therefore, 
+     * the anti-aliasing and fractional metrics hints can affect the
+     * value of the advance.  When enabling the anti-aliasing and 
+     * fractional metrics hints, use 
+     * <code>getStringBounds(String, Graphics)</code> 
+     * instead of this method.  The advance of a <code>String</code> is
+     * not necessarily the sum of the advances of its characters.
+     * <p>
      * @param str the <code>String</code> to be measured
      * @return    the advance width of the specified <code>String</code>
      *                  in the <code>Font</code> described by this
      *			<code>FontMetrics</code>.
      * @see       #bytesWidth(byte[], int, int)
      * @see       #charsWidth(char[], int, int)
+     * @see       #getStringBounds(String, Graphics)
      */
     public int stringWidth(String str) {
 	int len = str.length();
@@ -280,9 +302,12 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Returns the total advance width for showing the specified array
-     * of characters in this <code>Font</code>.  The advance width is the
-     * amount by which the current point is moved from one character to
-     * the next in a line of text.
+     * of characters in this <code>Font</code>.  The advance is the
+     * distance from the leftmost point to the rightmost point on the
+     * string's baseline.  The advance of a <code>String</code>
+     * is not necessarily the sum of the advances of its characters.
+     * This is equivalent to measuring a <code>String</code> of the
+     * characters in the specified range.
      * @param data the array of characters to be measured
      * @param off the start offset of the characters in the array
      * @param len the number of characters to be measured from the array
@@ -300,9 +325,12 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Returns the total advance width for showing the specified array
-     * of bytes in this <code>Font</code>.
-     * The advance width is the amount by which the current point is
-     * moved from one character to the next in a line of text.
+     * of bytes in this <code>Font</code>.  The advance is the
+     * distance from the leftmost point to the rightmost point on the
+     * string's baseline.  The advance of a <code>String</code>
+     * is not necessarily the sum of the advances of its characters.  
+     * This is equivalent to measuring a <code>String</code> of the
+     * characters in the specified range.
      * @param data the array of bytes to be measured
      * @param off the start offset of the bytes in the array
      * @param len the number of bytes to be measured from the array
@@ -319,9 +347,11 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * Gets the advance widths of the first 256 characters in the 
-     * <code>Font</code>.  The advance width is the amount by which the
-     * current point is moved from one character to the next in a line of
-     * text.
+     * <code>Font</code>.  The advance is the
+     * distance from the leftmost point to the rightmost point on the
+     * character's baseline.  Note that the advance of a
+     * <code>String</code> is not necessarily the sum of the advances 
+     * of its characters.
      * @return    an array storing the advance widths of the
      *                 characters in the <code>Font</code>
      *                 described by this <code>FontMetrics</code> object.

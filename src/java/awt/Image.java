@@ -1,8 +1,11 @@
 /*
- * @(#)Image.java	1.29 01/11/29
+ * @(#)Image.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
@@ -18,7 +21,7 @@ import java.awt.image.ReplicateScaleFilter;
  * classes that represent graphical images. The image must be 
  * obtained in a platform-specific manner.
  *
- * @version 	1.29, 11/29/01
+ * @version 	1.31, 02/02/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -114,7 +117,7 @@ public abstract class Image {
      * @see        java.awt.Image#SCALE_FAST 
      * @see        java.awt.Image#SCALE_SMOOTH
      * @see        java.awt.Image#SCALE_REPLICATE
-     * @see        java.awt.Image#SCALE_AVERAGE 
+     * @see        java.awt.Image#SCALE_AREA_AVERAGING
      * @since      JDK1.1
      */
     public Image getScaledInstance(int width, int height, int hints) {

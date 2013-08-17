@@ -1,8 +1,11 @@
 /*
- * @(#)JLabel.java	1.90 01/11/29
+ * @(#)JLabel.java	1.100 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -10,6 +13,9 @@ package javax.swing;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.*;
+import java.text.*;
+import java.awt.geom.*;
 
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -17,6 +23,10 @@ import java.io.IOException;
 
 import javax.swing.plaf.LabelUI;
 import javax.accessibility.*;
+import javax.swing.text.*;
+import javax.swing.text.html.*;
+import javax.swing.plaf.basic.*;
+import java.util.*;
 
 
 /**
@@ -54,8 +64,8 @@ import javax.accessibility.*;
  * should appear between the text and the image.
  * The default is 4 pixels.
  * <p>
- * See <a href="http://java.sun.com/docs/books/tutorial/ui/swing/label.html">How to Use Labels</a>
- * in <a href="http://java.sun.com/Series/Tutorial/index.html"><em>The Java Tutorial</em></a>
+ * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/label.html">How to Use Labels</a>
+ * in <em>The Java Tutorial</em>
  * for further documentation.
  * <p>
  * <strong>Warning:</strong>
@@ -69,7 +79,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.90 11/29/01
+ * @version 1.100 02/02/00
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -94,7 +104,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     private int iconTextGap = 4;
 
     protected Component labelFor = null;
-
+    private AccessibleIcon accessibleIcon      = null;
 
     /**
      * Client property key used to determine what label is labeling the
@@ -337,8 +347,8 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         defaultIcon = icon;
 
         /* If the default icon has really changed and we had
-         * generated the disabled icon for this component,
-         * (i.e. setDiabledIcon() was never called) then 
+         * generated the disabled icon for this component
+         * (in other words, setDisabledIcon() was never called), then 
          * clear the disabledIcon field.
          */
         if ((defaultIcon != oldValue) && !disabledIconSet) {
@@ -366,6 +376,16 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
             } 
             repaint();
         }
+
+	// set the accessible icon
+	accessibleIcon = null;
+	if (defaultIcon instanceof Accessible) {
+	    AccessibleContext ac = 
+		((Accessible)defaultIcon).getAccessibleContext();
+	    if (ac != null && ac instanceof AccessibleIcon) {
+		accessibleIcon = (AccessibleIcon)ac;
+	    }
+	} 
     }
 
 
@@ -394,8 +414,8 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 
 
     /**
-     * Set the icon to be displayed if this JLabel is "disabled", i.e.
-     * JLabel.setEnabled(false).
+     * Set the icon to be displayed if this JLabel is "disabled"
+     * (JLabel.setEnabled(false)).
      * <p>
      * The default value of this property is null.
      * 
@@ -774,6 +794,23 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     }
 
 
+    /**
+     * This is overriden to return false if the current Icon's Image is
+     * not equal to the passed in Image <code>img</code>.
+     *
+     * @see     java.awt.image.ImageObserver
+     * @see     java.awt.Component#imageUpdate(java.awt.Image, int, int, int, int, int)
+     */
+    public boolean imageUpdate(Image img, int infoflags,
+			       int x, int y, int w, int h) {
+	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
+	    !SwingUtilities.doesIconReferenceImage(getDisabledIcon(), img)) {
+	    return false;
+	}
+	return super.imageUpdate(img, infoflags, x, y, w, h);
+    }
+
+
     /** 
      * See readObject() and writeObject() in JComponent for more 
      * information about serialization in Swing.
@@ -798,9 +835,11 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     protected String paramString() {
 	String textString = (text != null ?
 			     text : "");
-	String defaultIconString = (defaultIcon != null ?
+	String defaultIconString = ((defaultIcon != null) 
+				    && (defaultIcon != this)  ?
 				    defaultIcon.toString() : "");
-	String disabledIconString = (disabledIcon != null ?
+	String disabledIconString = ((disabledIcon != null) 
+				     && (disabledIcon != this) ?
 				     disabledIcon.toString() : "");
 	String labelForString = (labelFor  != null ?
 				 labelFor.toString() : "");
@@ -853,65 +892,6 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * --- Accessibility Support ---
      */
 
-    /** 
-     * Get the AccessibleContext of this object 
-     *
-     * @return the AccessibleContext of this object
-     * @beaninfo
-     *       expert: true
-     *  description: The AccessibleContext associated with this Label.
-     */
-    public AccessibleContext getAccessibleContext() {
-        if (accessibleContext == null) {
-            accessibleContext = new AccessibleJLabel();
-        }
-        return accessibleContext;
-    }
-
-    /**
-     * The class used to obtain the accessible role for this object.
-     * <p>
-     * <strong>Warning:</strong>
-     * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
-     */
-    protected class AccessibleJLabel extends AccessibleJComponent {
-
-        /**
-         * Get the accessible name of this object.  
-         * 
-         * @return the localized name of the object -- can be null if this 
-         * object does not have a name
-         * @see AccessibleContext#setAccessibleName
-         */
-        public String getAccessibleName() {
-            if (accessibleName != null) {
-                return accessibleName;
-            } else {
-                if (getText() == null) {
-                    return super.getAccessibleName();
-                } else {
-                    return getText();
-                }
-            }
-        }
-
-        /**
-         * Get the role of this object.
-         *
-         * @return an instance of AccessibleRole describing the role of the 
-         * object
-         * @see AccessibleRole
-         */
-        public AccessibleRole getAccessibleRole() {
-            return AccessibleRole.LABEL;
-        }
-
-    }  // AccessibleJComponent
-
     /**
      * Get the component this is labelling.
      *
@@ -958,4 +938,482 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         }
     }
 
+    /** 
+     * Get the AccessibleContext of this object 
+     *
+     * @return the AccessibleContext of this object
+     * @beaninfo
+     *       expert: true
+     *  description: The AccessibleContext associated with this Label.
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleJLabel();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * The class used to obtain the accessible role for this object.
+     * <p>
+     * <strong>Warning:</strong>
+     * Serialized objects of this class will not be compatible with
+     * future Swing releases.  The current serialization support is appropriate
+     * for short term storage or RMI between applications running the same
+     * version of Swing.  A future release of Swing will provide support for
+     * long term persistence.
+     */
+    protected class AccessibleJLabel extends AccessibleJComponent
+        implements AccessibleText {
+
+        /**
+         * Get the accessible name of this object.  
+         * 
+         * @return the localized name of the object -- can be null if this 
+         * object does not have a name
+         * @see AccessibleContext#setAccessibleName
+         */
+        public String getAccessibleName() {
+            if (accessibleName != null) {
+                return accessibleName;
+            } else {
+                if (JLabel.this.getText() == null) {
+                    return super.getAccessibleName();
+                } else {
+                    return JLabel.this.getText();
+                }
+            }
+        }
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         * @see AccessibleRole
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.LABEL;
+        }
+
+	/**
+	 * Get the AccessibleIcons associated with this object if one
+	 * or more exist.  Otherwise return null.
+	 */
+	public AccessibleIcon [] getAccessibleIcon() {
+	    if (JLabel.this.accessibleIcon == null) {
+		return null; 
+	    } else {
+		AccessibleIcon [] ac = new AccessibleIcon[1];
+		ac[0] = JLabel.this.accessibleIcon;
+		return ac;
+	    }
+	}
+
+        /**
+         * Get the AccessibleRelationSet associated with this object if one
+         * exists.  Otherwise return null.
+         * @see AccessibleRelation
+         */
+        public AccessibleRelationSet getAccessibleRelationSet() {
+	    // Check where the AccessibleContext's relation
+	    // set already contains a LABEL_FOR relation.
+	    AccessibleRelationSet relationSet 
+		= super.getAccessibleRelationSet();
+
+	    if (!relationSet.contains(AccessibleRelation.LABEL_FOR)) {
+		Component c = JLabel.this.getLabelFor();
+		if (c != null) {
+		    AccessibleRelation relation 
+			= new AccessibleRelation(AccessibleRelation.LABEL_FOR);
+		    relation.setTarget(c);
+		    relationSet.add(relation);
+		}
+	    }
+	    return relationSet;
+        }
+
+
+	/* AccessibleText ---------- */
+
+	public AccessibleText getAccessibleText() {
+	    View view = (View)JLabel.this.getClientProperty("html");
+	    if (view != null) {
+		return this;
+	    } else {
+		return null;
+	    }
+	}
+
+	/**
+	 * Given a point in local coordinates, return the zero-based index
+	 * of the character under that Point.  If the point is invalid,
+	 * this method returns -1.
+	 *
+	 * @param p the Point in local coordinates
+	 * @return the zero-based index of the character under Point p; if 
+	 * Point is invalid returns -1.
+	 */
+	public int getIndexAtPoint(Point p) {
+	    View view = (View) JLabel.this.getClientProperty("html");
+	    if (view != null) {
+		Rectangle r = getTextRectangle();
+                if (r == null) {
+                    return -1;
+                }
+		Rectangle2D.Float shape = 
+		    new Rectangle2D.Float(r.x, r.y, r.width, r.height);
+		Position.Bias bias[] = new Position.Bias[1];
+		return view.viewToModel(p.x, p.y, shape, bias);
+	    } else {
+		return -1;
+	    }
+	}
+	
+	/**
+	 * Determine the bounding box of the character at the given 
+	 * index into the string.  The bounds are returned in local
+	 * coordinates.  If the index is invalid an empty rectangle is 
+	 * returned.
+	 *
+	 * @param i the index into the String
+	 * @return the screen coordinates of the character's the bounding box,
+	 * if index is invalid returns an empty rectangle.
+	 */
+	public Rectangle getCharacterBounds(int i) {
+	    View view = (View) JLabel.this.getClientProperty("html");
+	    if (view != null) {
+		Rectangle r = getTextRectangle();
+        if (r == null) {
+            return null;
+        }
+		Rectangle2D.Float shape = 
+		    new Rectangle2D.Float(r.x, r.y, r.width, r.height);
+		try {
+		    Shape charShape = 
+			view.modelToView(i, shape, Position.Bias.Forward);
+		    return charShape.getBounds();
+		} catch (BadLocationException e) {
+		    return null;
+		}
+	    } else {
+		return null;
+	    }
+	}
+	
+	/**
+	 * Return the number of characters (valid indicies) 
+	 *
+	 * @return the number of characters
+	 */
+	public int getCharCount() {
+	    View view = (View) JLabel.this.getClientProperty("html");
+	    if (view != null) {
+		Document d = view.getDocument();
+		if (d instanceof StyledDocument) {
+		    StyledDocument doc = (StyledDocument)d;
+		    return doc.getLength();
+		}
+	    }
+	    return accessibleContext.getAccessibleName().length();
+	}
+	
+	/**
+	 * Return the zero-based offset of the caret.
+	 *
+	 * Note: That to the right of the caret will have the same index
+	 * value as the offset (the caret is between two characters).
+	 * @return the zero-based offset of the caret.
+	 */
+	public int getCaretPosition() {
+	    // There is no caret.
+	    return -1;
+	}
+	
+        /**
+         * Returns the String at a given index. 
+         *
+         * @param part the AccessibleText.CHARACTER, AccessibleText.WORD,
+         * or AccessibleText.SENTENCE to retrieve
+         * @param index an index within the text >= 0
+         * @return the letter, word, or sentence,
+         *   null for an invalid index or part
+         */
+        public String getAtIndex(int part, int index) {
+            if (index < 0 || index >= getCharCount()) {
+                return null;
+            }
+            switch (part) {
+            case AccessibleText.CHARACTER:
+                try {
+                    return getText(index, 1);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            case AccessibleText.WORD:
+                try {
+                    String s = getText(0, getCharCount());
+                    BreakIterator words = BreakIterator.getWordInstance();
+                    words.setText(s);
+                    int end = words.following(index);
+                    return s.substring(words.previous(), end);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            case AccessibleText.SENTENCE:
+                try {
+                    String s = getText(0, getCharCount());
+                    BreakIterator sentence = 
+			BreakIterator.getSentenceInstance();
+                    sentence.setText(s);
+                    int end = sentence.following(index);
+                    return s.substring(sentence.previous(), end);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            default:
+                return null;
+            }
+        }
+
+        /**
+         * Returns the String after a given index.
+         *
+         * @param part the AccessibleText.CHARACTER, AccessibleText.WORD,
+         * or AccessibleText.SENTENCE to retrieve
+         * @param index an index within the text >= 0
+         * @return the letter, word, or sentence, null for an invalid
+         *  index or part
+         */
+        public String getAfterIndex(int part, int index) {
+            if (index < 0 || index >= getCharCount()) {
+                return null;
+            }
+            switch (part) {
+            case AccessibleText.CHARACTER:
+		if (index+1 >= getCharCount()) {
+		   return null;
+		}
+                try {
+                    return getText(index+1, 1);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            case AccessibleText.WORD:
+                try {
+                    String s = getText(0, getCharCount());
+                    BreakIterator words = BreakIterator.getWordInstance();
+                    words.setText(s);
+                    int start = words.following(index);
+		    if (start == BreakIterator.DONE || start >= s.length()) {
+			return null;
+		    }
+		    int end = words.following(start);
+		    if (end == BreakIterator.DONE || end >= s.length()) {
+			return null;
+		    }
+                    return s.substring(start, end);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            case AccessibleText.SENTENCE:
+                try {
+                    String s = getText(0, getCharCount());
+                    BreakIterator sentence = 
+			BreakIterator.getSentenceInstance();
+                    sentence.setText(s);
+                    int start = sentence.following(index);
+		    if (start == BreakIterator.DONE || start >= s.length()) {
+			return null;
+		    }
+		    int end = sentence.following(start);
+		    if (end == BreakIterator.DONE || end >= s.length()) {
+			return null;
+		    }
+                    return s.substring(start, end);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            default:
+                return null;
+            }
+        }
+
+        /**
+         * Returns the String before a given index.
+         *
+         * @param part the AccessibleText.CHARACTER, AccessibleText.WORD,
+         *   or AccessibleText.SENTENCE to retrieve
+         * @param index an index within the text >= 0
+         * @return the letter, word, or sentence, null for an invalid index
+         *  or part
+         */
+        public String getBeforeIndex(int part, int index) {
+            if (index < 0 || index > getCharCount()-1) {
+                return null;
+            }
+            switch (part) {
+            case AccessibleText.CHARACTER:
+		if (index == 0) {
+		    return null;
+		}
+                try {
+                    return getText(index-1, 1);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            case AccessibleText.WORD:
+                try {
+                    String s = getText(0, getCharCount());
+                    BreakIterator words = BreakIterator.getWordInstance();
+                    words.setText(s);
+                    int end = words.following(index);
+                    end = words.previous();
+		    int start = words.previous();
+		    if (start == BreakIterator.DONE) {
+			return null;
+		    }
+                    return s.substring(start, end);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            case AccessibleText.SENTENCE:
+                try {
+                    String s = getText(0, getCharCount());
+                    BreakIterator sentence = 
+			BreakIterator.getSentenceInstance();
+                    sentence.setText(s);
+                    int end = sentence.following(index);
+                    end = sentence.previous();
+		    int start = sentence.previous();
+		    if (start == BreakIterator.DONE) {
+			return null;
+		    }
+                    return s.substring(start, end);
+                } catch (BadLocationException e) {
+                    return null;
+                }
+            default:
+                return null;
+            }
+        }
+
+	/**
+	 * Return the AttributeSet for a given character at a given index
+	 *
+	 * @param i the zero-based index into the text 
+	 * @return the AttributeSet of the character
+	 */
+	public AttributeSet getCharacterAttribute(int i) {
+	    View view = (View) JLabel.this.getClientProperty("html");
+	    if (view != null) {
+		Document d = view.getDocument();
+		if (d instanceof StyledDocument) {
+		    StyledDocument doc = (StyledDocument)d;
+		    Element elem = doc.getCharacterElement(i);
+		    if (elem != null) {
+			return elem.getAttributes();
+		    }
+		}
+	    }
+	    return null;
+	}
+
+	/**
+	 * Returns the start offset within the selected text.
+	 * If there is no selection, but there is
+	 * a caret, the start and end offsets will be the same.
+	 *
+	 * @return the index into the text of the start of the selection
+	 */
+	public int getSelectionStart() {
+	    // Text cannot be selected.
+	    return -1;
+	}
+
+	/**
+	 * Returns the end offset within the selected text.
+	 * If there is no selection, but there is
+	 * a caret, the start and end offsets will be the same.
+	 *
+	 * @return the index into teh text of the end of the selection
+	 */
+	public int getSelectionEnd() {
+	    // Text cannot be selected.
+	    return -1;
+	}
+
+	/**
+	 * Returns the portion of the text that is selected. 
+	 *
+	 * @return the String portion of the text that is selected
+	 */
+	public String getSelectedText() {
+	    // Text cannot be selected.
+	    return null;
+	}
+
+	/*
+	 * Returns the text substring starting at the specified
+	 * offset with the specified length.
+	 */
+	private String getText(int offset, int length) 
+	    throws BadLocationException {
+
+	    View view = (View) JLabel.this.getClientProperty("html");
+	    if (view != null) {
+		Document d = view.getDocument();
+		if (d instanceof StyledDocument) {
+		    StyledDocument doc = (StyledDocument)d;
+		    return doc.getText(offset, length);
+		}
+	    }
+	    return null;
+	}
+
+	/*
+	 * Returns the bounding rectangle for the component text.
+	 */
+	private Rectangle getTextRectangle() {
+	    
+	    String text = JLabel.this.getText();
+	    Icon icon = (JLabel.this.isEnabled()) ? JLabel.this.getIcon() : JLabel.this.getDisabledIcon();
+	    
+	    if ((icon == null) && (text == null)) {
+		return null;
+	    }
+
+	    Rectangle paintIconR = new Rectangle();
+	    Rectangle paintTextR = new Rectangle();
+	    Rectangle paintViewR = new Rectangle();
+	    Insets paintViewInsets = new Insets(0, 0, 0, 0);
+
+	    paintViewInsets = JLabel.this.getInsets(paintViewInsets);
+	    paintViewR.x = paintViewInsets.left;
+	    paintViewR.y = paintViewInsets.top;
+	    paintViewR.width = JLabel.this.getWidth() - (paintViewInsets.left + paintViewInsets.right);
+	    paintViewR.height = JLabel.this.getHeight() - (paintViewInsets.top + paintViewInsets.bottom);
+	    
+            Graphics g = JLabel.this.getGraphics();
+            if (g == null) {
+                return null;
+            }
+	    String clippedText = SwingUtilities.layoutCompoundLabel(
+	        (JComponent)JLabel.this,
+		g.getFontMetrics(),
+		text,
+		icon,
+		JLabel.this.getVerticalAlignment(),
+		JLabel.this.getHorizontalAlignment(),
+		JLabel.this.getVerticalTextPosition(),
+		JLabel.this.getHorizontalTextPosition(),
+		paintViewR,
+		paintIconR,
+		paintTextR,
+		JLabel.this.getIconTextGap());
+
+	    return paintTextR;
+	}
+	
+    }  // AccessibleJComponent
 }

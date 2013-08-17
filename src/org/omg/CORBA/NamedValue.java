@@ -1,8 +1,11 @@
 /*
- * @(#)NamedValue.java	1.16 01/11/29
+ * @(#)NamedValue.java	1.19 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -78,31 +81,31 @@ package org.omg.CORBA;
 
 public abstract class NamedValue {
 
-  /**
-   * Retrieves the name for this <code>NamedValue</code> object.
-   *
-   * @return			a <code>String</code> object representing
-   *                    the name of this <code>NamedValue</code> object
-   */
+    /**
+     * Retrieves the name for this <code>NamedValue</code> object.
+     *
+     * @return			a <code>String</code> object representing
+     *                    the name of this <code>NamedValue</code> object
+     */
 
-  public abstract String name();
+    public abstract String name();
 
-  /**
-   * Retrieves the value for this <code>NamedValue</code> object.
-   *
-   * @return			an <code>Any</code> object containing
-   *                    the value of this <code>NamedValue</code> object
-   */
+    /**
+     * Retrieves the value for this <code>NamedValue</code> object.
+     *
+     * @return			an <code>Any</code> object containing
+     *                    the value of this <code>NamedValue</code> object
+     */
 
-  public abstract Any value();
+    public abstract Any value();
 
-  /**
-   * Retrieves the argument mode flag for this <code>NamedValue</code> object.
-   *
-   * @return			an <code>int</code> representing the argument
-   *                    mode for this <code>NamedValue</code> object
-   */
+    /**
+     * Retrieves the argument mode flag for this <code>NamedValue</code> object.
+     *
+     * @return			an <code>int</code> representing the argument
+     *                    mode for this <code>NamedValue</code> object
+     */
 
-  public abstract int flags();
+    public abstract int flags();
 
 }

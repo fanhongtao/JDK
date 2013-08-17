@@ -1,8 +1,11 @@
 /*
- * @(#)SimpleAttributeSet.java	1.29 01/11/29
+ * @(#)SimpleAttributeSet.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -25,7 +28,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.29 11/29/01
+ * @version 1.32 02/02/00
  * @author Tim Prinzing
  */
 public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cloneable
@@ -210,13 +213,18 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
      * @param attributes the set of attributes to remove
      */
     public void removeAttributes(AttributeSet attributes) {
-        Enumeration names = attributes.getAttributeNames();
-        while (names.hasMoreElements()) {
-            Object name = names.nextElement();
-            Object value = attributes.getAttribute(name);
-            if (value.equals(getAttribute(name)))
-                removeAttribute(name);
-        }
+	if (attributes == this) {
+	    table.clear();
+	}
+	else {
+	    Enumeration names = attributes.getAttributeNames();
+	    while (names.hasMoreElements()) {
+		Object name = names.nextElement();
+		Object value = attributes.getAttribute(name);
+		if (value.equals(getAttribute(name)))
+		    removeAttribute(name);
+	    }
+	}
     }
 
     /**
@@ -269,9 +277,8 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
 
     /**
      * Compares this object to the specifed object.
-     * The result is <code>true</code> if and only if the argument is not 
-     * <code>null</code> and is a <code>Font</code> object with the same 
-     * name, style, and point size as this font. 
+     * The result is <code>true</code> if the object is an equivalent
+     * set of attributes.
      * @param     obj   the object to compare this font with.
      * @return    <code>true</code> if the objects are equal; 
      *            <code>false</code> otherwise.

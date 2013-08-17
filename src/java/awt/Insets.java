@@ -1,8 +1,11 @@
 /*
- * @(#)Insets.java	1.21 01/11/29
+ * @(#)Insets.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -13,7 +16,7 @@ package java.awt;
  * at each of its edges. The space can be a border, a blank space, or 
  * a title. 
  *
- * @version 	1.21, 11/29/01
+ * @version 	1.25, 02/02/00
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see         java.awt.LayoutManager
@@ -28,37 +31,37 @@ public class Insets implements Cloneable, java.io.Serializable {
      * to yield a new location for the Top.
      *
      * @serial
-     * @see clone()
+     * @see #clone()
      */
     public int top;
 
     /**
      * The inset from the left.
-     * This value is added to the left of the rectangle
-     * to yield a new location for the left edge.
+     * This value is added to the Left of the rectangle
+     * to yield a new location for the Left edge.
      *
      * @serial
-     * @see clone()
+     * @see #clone()
      */
     public int left;
 
     /**
      * The inset from the bottom.
-     * This value is added to the Bottom of the rectangle
+     * This value is subtracted from the Bottom of the rectangle
      * to yield a new location for the Bottom.
      *
      * @serial
-     * @see clone()
+     * @see #clone()
      */
     public int bottom;
 
     /**
      * The inset from the right.
-     * This value is added to the Right of the rectangle
+     * This value is subtracted from the Right of the rectangle
      * to yield a new location for the Right edge.
      *
      * @serial
-     * @see clone()
+     * @see #clone()
      */
     public int right;
 
@@ -104,6 +107,20 @@ public class Insets implements Cloneable, java.io.Serializable {
 		    (bottom == insets.bottom) && (right == insets.right));
 	}
 	return false;
+    }
+
+    /**
+     * Returns the hash code for this Insets.
+     *
+     * @return    a hash code for this Insets.
+     */
+    public int hashCode() {
+        int sum1 = left + bottom;
+        int sum2 = right + top;
+        int val1 = sum1 * (sum1 + 1)/2 + left;
+        int val2 = sum2 * (sum2 + 1)/2 + top;
+        int sum3 = val1 + val2;
+        return sum3 * (sum3 + 1)/2 + val2;
     }
 
     /**

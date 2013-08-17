@@ -1,8 +1,11 @@
 /*
- * @(#)BeanContextChildSupport.java	1.5 01/11/29
+ * @(#)BeanContextChildSupport.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans.beancontext;
@@ -31,8 +34,8 @@ import java.io.Serializable;
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.5
- * @since	JDK1.2
+ * @version	1.10, 02/02/00
+ * @since	1.2
  * 
  * @seealso	java.beans.beancontext.BeanContext
  * @seealso	java.beans.beancontext.BeanContextServices
@@ -73,9 +76,12 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
     }
 
     /**
-     * setBeanContext
+     * Sets the <code>BeanContext</code> for 
+     * this <code>BeanContextChildSupport</code>.
+     * @param bc the new value to be assigned to the <code>BeanContext</code> 
+     * property
+     * @throws <code>PropertyVetoException</code> if the change is rejected
      */
-
     public synchronized void setBeanContext(BeanContext bc) throws PropertyVetoException {
 	if (bc == beanContext) return;
 
@@ -116,97 +122,126 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
     }
 
     /**
-     * @returns the current BeanContext associated with the JavaBean
+     * Gets the nesting <code>BeanContext</code> 
+     * for this <code>BeanContextChildSupport</code>.
+     * @return the nesting <code>BeanContext</code> for 
+     * this <code>BeanContextChildSupport</code>.
      */
-
     public synchronized BeanContext getBeanContext() { return beanContext; }
 
     /**
-     * add a property change listener
+     * Adds a property change listener.
+     * @param name The name of the property to listen on
+     * @param pcl The <code>PropertyChangeListener</code> to be added
      */
-
     public void addPropertyChangeListener(String name, PropertyChangeListener pcl) {
 	pcSupport.addPropertyChangeListener(name, pcl);
     }
 
     /**
-     * remove a property change listener
+     * Remove a property change listener.
+     * @param name The name of the property that was listened on
+     * @param pcl The PropertyChangeListener to be removed
      */
-
     public void removePropertyChangeListener(String name, PropertyChangeListener pcl) {
 	pcSupport.removePropertyChangeListener(name, pcl);
     }
 
     /**
-     * add a vetoable change listener
+     * Adds a <code>VetoableChangeListener</code>.
+     * @param name The name of the property to listen on
+     * @param vcl The <code>VetoableChangeListener</code> to be added
      */
-
     public void addVetoableChangeListener(String name, VetoableChangeListener vcl) {
 	vcSupport.addVetoableChangeListener(name, vcl);
     }
 
     /**
-     * remove a vetoable change listener
+     * Removes a <code>VetoableChangeListener</code>.
+     * @param name The name of the property that was listened on
+     * @param vcl The <code>VetoableChangeListener</code> to be removed
      */
-
     public void removeVetoableChangeListener(String name, VetoableChangeListener vcl) {
 	vcSupport.removeVetoableChangeListener(name, vcl);
     }
 
     /**
-     * a service provided by the nesting BeanContext has been revoked.
+     * A service provided by the nesting BeanContext has been revoked.
      * 
-     * subclasses may override this method in order to implement their own
-     * behaviors 
+     * Subclasses may override this method in order to implement their own
+     * behaviors.
+     * @param bcsre The <code>BeanContextServiceRevokedEvent</code> fired as a 
+     * result of a service being revoked
      */
-
     public void serviceRevoked(BeanContextServiceRevokedEvent bcsre) { }
 
     /**
-     * a new service is available from the nesting BeanContext.
+     * A new service is available from the nesting BeanContext.
      * 
-     * subclasses may override this method in order to implement their own
+     * Subclasses may override this method in order to implement their own
      * behaviors 
+     * @param bcsae The BeanContextServiceAvailableEvent fired as a
+     * result of a service becoming available
+     * 
      */
-
     public void serviceAvailable(BeanContextServiceAvailableEvent bcsae) { }
 
     /**
-     * @return the BeanContextChild peer of this class
+     * Gets the <tt>BeanContextChild</tt> associated with this 
+     * <tt>BeanContextChildSupport</tt>.
+     *
+     * @return the <tt>BeanContextChild</tt> peer of this class
      */
-
     public BeanContextChild getBeanContextChildPeer() { return beanContextChildPeer; }
 
     /**
+     * Reports whether or not this class is a delegate of another.
+     * 
      * @return true if this class is a delegate of another
      */
-
     public boolean isDelegated() { return !this.equals(beanContextChildPeer); }
 
     /**
-     * fires a propertyChange Event
+     * Report a bound property update to any registered listeners. No event is
+     * fired if old and new are equal and non-null.
+     * @param name The programmatic name of the property that was changed
+     * @param oldValue  The old value of the property
+     * @param newValue  The new value of the property
      */
-
     public void firePropertyChange(String name, Object oldValue, Object newValue) {
 	pcSupport.firePropertyChange(name, oldValue, newValue);
     }
 
     /**
-     * fires a vetoableChange Event
+     * Report a vetoable property update to any registered listeners. 
+     * If anyone vetos the change, then fire a new event 
+     * reverting everyone to the old value and then rethrow 
+     * the PropertyVetoException. <P>
+     *
+     * No event is fired if old and new are equal and non-null.
+     * <P>
+     * @param name The programmatic name of the property that is about to
+     * change
+     * 
+     * @param oldValue The old value of the property
+     * @param newValue - The new value of the property
+     * 
+     * @throws PropertyVetoException if the recipient wishes the property
+     * change to be rolled back.
      */
-
     public void fireVetoableChange(String name, Object oldValue, Object newValue) throws PropertyVetoException {
 	vcSupport.fireVetoableChange(name, oldValue, newValue);
     }
 
     /**
-     * called from setBeanContext to validate (or otherwise) the
+     * Called from setBeanContext to validate (or otherwise) the
      * pending change in the nesting BeanContext property value.
-     *
-     * returning false will cause setBeanContext to throw
+     * Returning false will cause setBeanContext to throw
      * PropertyVetoException.
+     * @param newValue the new value that has been requested for 
+     *  the BeanContext property
+     * @return <code>true</code> if the change operation is to be vetoed
      */
-
     public boolean validatePendingSetBeanContext(BeanContext newValue) {
 	return true;
     }
@@ -266,12 +301,31 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
      * fields
      */
 
+    /**
+     * The <code>BeanContext</code> in which 
+     * this <code>BeanContextChild</code> is nested.
+     */
     public    BeanContextChild 	    beanContextChildPeer;
 
+   /** 
+    * The <tt>PropertyChangeSupport</tt> associated with this
+    * <tt>BeanContextChildSupport</tt>.
+    */
     protected PropertyChangeSupport pcSupport;
+
+   /**
+    * The <tt>VetoableChangeSupport</tt> associated with this
+    * <tt>BeanContextChildSupport</tt>.
+    */
     protected VetoableChangeSupport vcSupport;
 
     protected transient BeanContext	      beanContext;
+
+   /**
+    * A flag indicating that there has been
+    * at least one <code>PropertyChangeVetoException</code>
+    * thrown for the attempted setBeanContext operation.
+    */
     protected transient boolean     	      rejectedSetBCOnce;
 
 }

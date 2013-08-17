@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleStateSet.java	1.10 01/11/29
+ * @(#)AccessibleStateSet.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -13,14 +16,14 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
- * Class AccessibleStateSet determines a components state set.  The state set
- * of a component is a set of AccessibleState objects and descriptions the
+ * Class AccessibleStateSet determines a component's state set.  The state set
+ * of a component is a set of AccessibleState objects and descriptions. E.G., The
  * current overall state of the object, such as whether it is enabled, 
  * has focus, etc.
  *
  * @see AccessibleState
  *
- * @version     1.10 11/29/01 23:09:29
+ * @version     1.10 10/12/99 15:05:34
  * @author      Willie Walker
  */
 public class AccessibleStateSet {
@@ -37,14 +40,14 @@ public class AccessibleStateSet {
     protected Vector states = null;
 
     /**
-     * Create a new empty state set.
+     * Creates a new empty state set.
      */
     public AccessibleStateSet() {
         states = null;
     }
 
     /**
-     * Create a new state with the initial set of states contained in 
+     * Creates a new state with the initial set of states contained in 
      * the array of states passed in.  Duplicate entries are ignored.
      * @param state an array of AccessibleState describing the state set.
      */
@@ -60,7 +63,7 @@ public class AccessibleStateSet {
     }
 
     /**
-     * Add a new state to the current state set if it is not already
+     * Adds a new state to the current state set if it is not already
      * present.  If the state is already in the state set, the state
      * set is unchanged and the return value is false.  Otherwise, 
      * the state is added to the state set and the return value is
@@ -86,7 +89,7 @@ public class AccessibleStateSet {
     }
 
     /**
-     * Add all of the states to the existing state set.  Duplicate entries 
+     * Adds all of the states to the existing state set.  Duplicate entries 
      * are ignored.
      * @param state  AccessibleState array describing the state set.
      */
@@ -104,13 +107,13 @@ public class AccessibleStateSet {
     }
 
     /**
-     * Remove a state from the current state set.  If the state is not
+     * Removes a state from the current state set.  If the state is not
      * in the set, the state set will be unchanged and the return value
      * will be false.  If the state is in the state set, it will be removed
      * from the set and the return value will be true.
      *	
      * @param state the state to remove from the state set
-     * @return true is the state is in the state set; false if the state set 
+     * @return true if the state is in the state set; false if the state set 
      * will be unchanged
      */
     public boolean remove(AccessibleState state) {
@@ -122,7 +125,7 @@ public class AccessibleStateSet {
     }
 
     /**
-     * Remove all the states from the current state set.
+     * Removes all the states from the current state set.
      */
     public void clear() {
         if (states != null) {
@@ -131,7 +134,7 @@ public class AccessibleStateSet {
     }
 
     /**
-     * Check if the current state is in the state set.
+     * Checks if the current state is in the state set.
      * @param state the state
      * @return true if the state is in the state set; otherwise false
      */
@@ -145,7 +148,7 @@ public class AccessibleStateSet {
 
     /**
      * Returns the current state set as an array of AccessibleState
-     * @return AccessibleState array conatining the current state.
+     * @return AccessibleState array containing the current state.
      */
     public AccessibleState[] toArray() {
         if (states == null) {
@@ -160,7 +163,7 @@ public class AccessibleStateSet {
     }
 
     /**
-     * Create a localized String representing all the states in the set 
+     * Creates a localized String representing all the states in the set 
      * using the default locale.
      *
      * @return comma separated localized String

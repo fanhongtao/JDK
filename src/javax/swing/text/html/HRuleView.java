@@ -1,14 +1,18 @@
 /*
- * @(#)HRuleView.java	1.24 01/11/29
+ * @(#)HRuleView.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
 import java.awt.*;
 import javax.swing.BorderFactory;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.text.*;
 import java.util.Enumeration;
 import java.lang.Integer;
@@ -19,33 +23,66 @@ import java.lang.Integer;
  *
  * @author  Timothy Prinzing
  * @author  Sara Swanson
- * @version 1.24 11/29/01
+ * @version 1.27 02/02/00
  */
 class HRuleView extends View  {
 
     /**
-     * Creates a new view that represents an <hr> element.
+     * Creates a new view that represents an &lt;hr&gt; element.
      *
      * @param elem the element to create a view for
      */
     public HRuleView(Element elem) {
 	super(elem);
-	AttributeSet attr = elem.getAttributes();
+	setPropertiesFromAttributes();
+    }
 
-	if (attr != null) {
-	    margin_left = 0;
-	    margin_right = 0;
-            alignment = StyleConstants.getAlignment(attr);
-	    noshade = (String) attr.getAttribute("noshade");
-	    String sizestr = (String)attr.getAttribute("size");
-	    if (sizestr != null)
-	        size = (Integer.valueOf(sizestr)).intValue();
-	    String hrwidthstr = (String)attr.getAttribute("width");
-	    if (hrwidthstr != null)
-		hrwidth = (Integer.valueOf(hrwidthstr)).intValue();
+    /**
+     * Update any cached values that come from attributes.
+     */
+    protected void setPropertiesFromAttributes() {
+	StyleSheet sheet = ((HTMLDocument)getDocument()).getStyleSheet();
+	AttributeSet eAttr = getElement().getAttributes();
+	attr = sheet.getViewAttributes(this);
+
+	alignment = StyleConstants.ALIGN_LEFT;
+	size = 0;
+	noshade = null;
+	widthValue = null;
+	// Get the width/height
+	Enumeration attributes = attr.getAttributeNames();
+	while (attributes.hasMoreElements()) {
+	    Object key = attributes.nextElement();
 	}
+	if (attr != null) {
+            alignment = StyleConstants.getAlignment(attr);
+	    noshade = (String)eAttr.getAttribute("noshade");
+	    Object value = attr.getAttribute("size");
+	    if (value != null && (value instanceof String))
+		size = Integer.parseInt((String)value);
+	    value = attr.getAttribute(CSS.Attribute.WIDTH);
+	    if (value != null && (value instanceof CSS.LengthValue)) {
+		widthValue = (CSS.LengthValue)value;
+	    }
+	    topMargin = getLength(CSS.Attribute.MARGIN_TOP, attr);
+	    bottomMargin = getLength(CSS.Attribute.MARGIN_BOTTOM, attr);
+	    leftMargin = getLength(CSS.Attribute.MARGIN_LEFT, attr);
+	    rightMargin = getLength(CSS.Attribute.MARGIN_RIGHT, attr);
+	}
+	else {
+	    topMargin = bottomMargin = leftMargin = rightMargin = 0;
+	}
+	if (bevel == null) {
+	    bevel = BorderFactory.createLoweredBevelBorder();
+	}
+    }
 
-	bevel = BorderFactory.createLoweredBevelBorder();
+    // This will be removed and centralized at some point, need to unify this
+    // and avoid private classes.
+    private float getLength(CSS.Attribute key, AttributeSet a) {
+	CSS.LengthValue lv = (CSS.LengthValue) a.getAttribute(key);
+	float len = (lv != null) ? lv.getValue() : 0;
+	return len;
     }
 
     // --- View methods ---------------------------------------------
@@ -60,11 +97,13 @@ class HRuleView extends View  {
     public void paint(Graphics g, Shape a) {
 	Rectangle alloc = a.getBounds();
 	int x = 0;
-	int y = alloc.y + SPACE_ABOVE;
-	int width = alloc.width - (int)(margin_left + margin_right);
-	if (hrwidth > 0)
-		width = hrwidth;
-	int height = alloc.height - (SPACE_ABOVE + SPACE_BELOW);
+	int y = alloc.y + SPACE_ABOVE + (int)topMargin;
+	int width = alloc.width - (int)(leftMargin + rightMargin);
+	if (widthValue != null) {
+	    width = (int)widthValue.getValue((float)width);
+	}
+	int height = alloc.height - (SPACE_ABOVE + SPACE_BELOW +
+				     (int)topMargin + (int)bottomMargin);
  	if (size > 0)
 		height = size;
 
@@ -74,11 +113,11 @@ class HRuleView extends View  {
             x = alloc.x + (alloc.width / 2) - (width / 2);
 	    break;
         case StyleConstants.ALIGN_RIGHT:
-            x = alloc.x + alloc.width - hrwidth - (int)(margin_right);
+            x = alloc.x + alloc.width - width - (int)rightMargin;
 	    break;
         case StyleConstants.ALIGN_LEFT:
         default:
-            x = alloc.x + (int)margin_left;
+            x = alloc.x + (int)leftMargin;
 	    break;
         }
 
@@ -106,12 +145,15 @@ class HRuleView extends View  {
 	    return i.left + i.right;
 	case View.Y_AXIS:
 	    if (size > 0) {
-	        return size + SPACE_ABOVE + SPACE_BELOW;
+	        return size + SPACE_ABOVE + SPACE_BELOW + topMargin +
+		    bottomMargin;
 	    } else {
 		if (noshade == HTML.NULL_ATTRIBUTE_VALUE) {
-		    return 1 + SPACE_ABOVE + SPACE_BELOW;
+		    return 1 + SPACE_ABOVE + SPACE_BELOW + topMargin +
+			bottomMargin;
 		} else {
-		    return i.top + i.bottom + SPACE_ABOVE + SPACE_BELOW;
+		    return i.top + i.bottom + SPACE_ABOVE + SPACE_BELOW +
+			topMargin + bottomMargin;
 		}
 	    }
 	default:
@@ -142,10 +184,12 @@ class HRuleView extends View  {
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
      * @param pos the potential location of the start of the 
-     *   broken view >= 0.  This may be useful for calculating tab
+     *   broken view (greater than or equal to zero).
+     *   This may be useful for calculating tab
      *   positions.
      * @param len specifies the relative length from <em>pos</em>
-     *   where a potential break is desired >= 0.
+     *   where a potential break is desired. The value must be greater
+     *   than or equal to zero.
      * @return the weight, which should be a value between
      *   ForcedBreakWeight and BadBreakWeight.
      */
@@ -206,18 +250,40 @@ class HRuleView extends View  {
 	return getEndOffset();
     }
 
+    /**
+     * Fetches the attributes to use when rendering.  This is
+     * implemented to multiplex the attributes specified in the
+     * model with a StyleSheet.
+     */
+    public AttributeSet getAttributes() {
+	return attr;
+    }
+
+    public void changedUpdate(DocumentEvent changes, Shape a, ViewFactory f) {
+	super.changedUpdate(changes, a, f);
+	int pos = changes.getOffset();
+	if (pos <= getStartOffset() && (pos + changes.getLength()) >=
+	    getEndOffset()) {
+	    setPropertiesFromAttributes();
+	}
+    }
+
     // --- variables ------------------------------------------------
 
     private Border bevel;
-    private float margin_left = 0;
-    private float margin_right = 0;
+    private float topMargin;
+    private float bottomMargin;
+    private float leftMargin;
+    private float rightMargin;
     private int alignment = StyleConstants.ALIGN_LEFT;
     private String noshade = null;
     private int size = 0;
-    private int hrwidth = 0;
+    private CSS.LengthValue widthValue;
 
     private static final int SPACE_ABOVE = 3;
     private static final int SPACE_BELOW = 3;
-    
+
+    /** View Attributes. */
+    private AttributeSet attr;
 }
 

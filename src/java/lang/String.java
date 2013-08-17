@@ -1,8 +1,11 @@
 /*
- * @(#)String.java	1.115 01/11/29
+ * @(#)String.java	1.127 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -62,7 +65,7 @@ import java.lang.ref.SoftReference;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.115, 11/29/01
+ * @version 1.121, 10/06/99
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -75,6 +78,7 @@ import java.lang.ref.SoftReference;
  * @see     java.lang.StringBuffer#append(long)
  * @see     java.lang.StringBuffer#append(java.lang.Object)
  * @see     java.lang.StringBuffer#append(java.lang.String)
+ * @see     <a href="package-summary.html#charenc">Character encodings</a>
  * @since   JDK1.0
  */
 public final
@@ -87,6 +91,9 @@ class String implements java.io.Serializable, Comparable {
 
     /** The count is the number of characters in the String. */
     private int count;
+
+    /** Cache the hash code for the string */
+    private int hash = 0;
 
     /** The cached converter for each thread. 
      *  Note: These are declared null to minimize the classes
@@ -104,7 +111,7 @@ class String implements java.io.Serializable, Comparable {
      * @return     ByteToCharConverter for the specified encoding.
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
-     * @since      JDK1.2
+     * @since      1.2
      */
     private static ByteToCharConverter getBTCConverter(String encoding)
                                   throws UnsupportedEncodingException {
@@ -131,7 +138,7 @@ class String implements java.io.Serializable, Comparable {
      * @return     CharToByteConverter for the specified encoding.
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
-     * @since      JDK1.2
+     * @since      1.2
      */
     private static CharToByteConverter getCTBConverter(String encoding)
                                   throws UnsupportedEncodingException {
@@ -165,7 +172,7 @@ class String implements java.io.Serializable, Comparable {
      * string instance within the stream.
      */
     private static final ObjectStreamField[] serialPersistentFields = 
-	ObjectStreamClass.NO_FIELDS;
+        new ObjectStreamField[0];
 
     /**
      * Initializes a newly created <code>String</code> object so that it 
@@ -378,14 +385,16 @@ class String implements java.io.Serializable, Comparable {
      * @param  bytes   The bytes to be converted into characters
      * @param  offset  Index of the first byte to convert
      * @param  length  Number of bytes to convert
-     * @param  enc     The name of a character encoding
-     *
-     * @exception  UnsupportedEncodingException
-     *             If the named encoding is not supported
-     *             IndexOutOfBoundsException  if the <code>offset</code>
-     *               and <code>count</code> arguments index characters outside
-     *               the bounds of the <code>value</code> array.
-     * @since      JDK1.1
+     * @param  enc     The name of a supported
+     *                 <a href="package-summary.html#charenc">character
+     *                 encoding</a>
+     * @throws  UnsupportedEncodingException
+     *          if the named encoding is not supported
+     * @throws  IndexOutOfBoundsException
+     *          if the <code>offset</code> and <code>count</code> arguments
+     *          index characters outside the bounds of the <code>value</code>
+     *          array.
+     * @since JDK1.1
      */
     public String(byte bytes[], int offset, int length, String enc)
 	throws UnsupportedEncodingException
@@ -400,7 +409,9 @@ class String implements java.io.Serializable, Comparable {
      * equal to the length of the byte array.
      *
      * @param  bytes   The bytes to be converted into characters
-     * @param  enc     A character-encoding name
+     * @param  enc     The name of a supported
+     *                 <a href="package-summary.html#charenc">character
+     *                 encoding</a>
      *
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
@@ -639,7 +650,9 @@ class String implements java.io.Serializable, Comparable {
      * Convert this <code>String</code> into bytes according to the specified
      * character encoding, storing the result into a new byte array.
      *
-     * @param  enc  A character-encoding name
+     * @param  enc     The name of a supported
+     *                 <a href="package-summary.html#charenc">character
+     *                 encoding</a>
      * @return      The resultant byte array
      *
      * @exception  UnsupportedEncodingException
@@ -680,7 +693,7 @@ class String implements java.io.Serializable, Comparable {
 	if (this == anObject) {
 	    return true;
 	}
-	if ((anObject != null) && (anObject instanceof String)) {
+	if (anObject instanceof String) {
 	    String anotherString = (String)anObject;
 	    int n = count;
 	    if (n == anotherString.count) {
@@ -709,9 +722,9 @@ class String implements java.io.Serializable, Comparable {
      * the same, ignoring case if at least one of the following is true:
      * <ul><li>The two characters are the same (as compared by the 
      * <code>==</code> operator).
-     * <li>Applying the method {@link java.lang.Character#toUppercase(char)} 
+     * <li>Applying the method {@link java.lang.Character#toUpperCase(char)} 
      * to each character produces the same result.
-     * <li>Applying the method {@link java.lang.Character#toLowercase(char) 
+     * <li>Applying the method {@link java.lang.Character#toLowerCase(char)}
      * to each character produces the same result.</ul>
      *
      * @param   anotherString   the <code>String</code> to compare this
@@ -806,7 +819,7 @@ class String implements java.io.Serializable, Comparable {
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>String</code>. 
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((String)o);
@@ -814,7 +827,7 @@ class String implements java.io.Serializable, Comparable {
 
     /**
      * Returns a Comparator that orders <code>String</code> objects as by
-     * <code>compareToIgnoreCase</code>.
+     * <code>compareToIgnoreCase</code>.  This comparator is serializable.
      * <p>
      * Note that this Comparator does <em>not</em> take locale into account,
      * and will result in an unsatisfactory ordering for certain locales.
@@ -823,12 +836,15 @@ class String implements java.io.Serializable, Comparable {
      *
      * @return  Comparator for case insensitive comparison of strings
      * @see     java.text.Collator#compare(String, String)
-     * @since   JDK1.2
+     * @since   1.2
      */
     public static final Comparator CASE_INSENSITIVE_ORDER
                                          = new CaseInsensitiveComparator();
     private static class CaseInsensitiveComparator
                          implements Comparator, java.io.Serializable {
+	// use serialVersionUID from JDK 1.2.2 for interoperability
+	private static final long serialVersionUID = 8575799808933029326L;
+
         public int compare(Object o1, Object o2) {
             String s1 = (String) o1;
             String s2 = (String) o2;
@@ -867,7 +883,7 @@ class String implements java.io.Serializable, Comparable {
      *		the specified String is greater than, equal to, or less
      *		than this String, ignoring case considerations.
      * @see     java.text.Collator#compare(String, String)
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareToIgnoreCase(String str) {
         return CASE_INSENSITIVE_ORDER.compare(this, str);
@@ -1103,14 +1119,16 @@ class String implements java.io.Serializable, Comparable {
      * @return  a hash code value for this object. 
      */
     public int hashCode() {
-	int h = 0;
-	int off = offset;
-	char val[] = value;
-	int len = count;
+	int h = hash;
+	if (h == 0) {
+	    int off = offset;
+	    char val[] = value;
+	    int len = count;
 
-	for (int i = 0; i < len; i++)
-	    h = 31*h + val[off++];
-
+	    for (int i = 0; i < len; i++)
+		h = 31*h + val[off++];
+	    hash = h;
+	}
 	return h;
     }
 
@@ -1610,7 +1628,7 @@ class String implements java.io.Serializable, Comparable {
      * @param locale use the case transformation rules for this locale
      * @return the String, converted to lowercase.
      * @see     java.lang.Character#toLowerCase(char)
-     * @see     java.lang.String#toUpperCase()
+     * @see     java.lang.String#toUpperCase(Locale)
      * @since   JDK1.1
      */
     public String toLowerCase(Locale locale) {
@@ -1684,7 +1702,7 @@ class String implements java.io.Serializable, Comparable {
      *
      * @return  the string, converted to lowercase.
      * @see     java.lang.Character#toLowerCase(char)
-     * @see     java.lang.String#toUpperCase()
+     * @see     java.lang.String#toLowerCase(Locale)
      */
     public String toLowerCase() {
         return toLowerCase(Locale.getDefault());
@@ -1727,7 +1745,7 @@ class String implements java.io.Serializable, Comparable {
      * @param locale use the case transformation rules for this locale
      * @return the String, converted to uppercase.
      * @see     java.lang.Character#toUpperCase(char)
-     * @see     java.lang.String#toLowerCase(char)
+     * @see     java.lang.String#toLowerCase(Locale)
      * @since   JDK1.1
      */
     public String toUpperCase(Locale locale) {
@@ -1822,7 +1840,7 @@ class String implements java.io.Serializable, Comparable {
      *
      * @return  the string, converted to uppercase.
      * @see     java.lang.Character#toUpperCase(char)
-     * @see     java.lang.String#toLowerCase()
+     * @see     java.lang.String#toUpperCase(Locale)
      */
     public String toUpperCase() {
         return toUpperCase(Locale.getDefault());

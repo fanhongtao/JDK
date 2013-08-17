@@ -1,8 +1,11 @@
 /*
- * @(#)NotFoundReason.java	1.6 01/11/29
+ * @(#)NotFoundReason.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 /*
  * File: ./org/omg/CosNaming/NamingContextPackage/NotFoundReason.java
@@ -13,29 +16,29 @@
 
 package org.omg.CosNaming.NamingContextPackage;
 public final class NotFoundReason implements org.omg.CORBA.portable.IDLEntity {
-     public static final int _missing_node = 0,
-	  		     _not_context = 1,
-	  		     _not_object = 2;
-     public static final NotFoundReason missing_node = new NotFoundReason(_missing_node);
-     public static final NotFoundReason not_context = new NotFoundReason(_not_context);
-     public static final NotFoundReason not_object = new NotFoundReason(_not_object);
-     public int value() {
-         return _value;
-     }
-     public static final NotFoundReason from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
-           switch (i) {
-             case _missing_node:
-                 return missing_node;
-             case _not_context:
-                 return not_context;
-             case _not_object:
-                 return not_object;
-             default:
-	              throw new org.omg.CORBA.BAD_PARAM();
-           }
-     }
-     private NotFoundReason(int _value){
-         this._value = _value;
-     }
-     private int _value;
+    public static final int _missing_node = 0,
+	_not_context = 1,
+	_not_object = 2;
+    public static final NotFoundReason missing_node = new NotFoundReason(_missing_node);
+    public static final NotFoundReason not_context = new NotFoundReason(_not_context);
+    public static final NotFoundReason not_object = new NotFoundReason(_not_object);
+    public int value() {
+	return _value;
+    }
+    public static final NotFoundReason from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
+	switch (i) {
+	case _missing_node:
+	    return missing_node;
+	case _not_context:
+	    return not_context;
+	case _not_object:
+	    return not_object;
+	default:
+	    throw new org.omg.CORBA.BAD_PARAM();
+	}
+    }
+    private NotFoundReason(int _value){
+	this._value = _value;
+    }
+    private int _value;
 }

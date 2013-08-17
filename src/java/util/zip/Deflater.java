@@ -1,8 +1,11 @@
 /*
- * @(#)Deflater.java	1.34 03/05/15
+ * @(#)Deflater.java	1.34 00/02/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -16,7 +19,7 @@ package java.util.zip;
  * package description</a>.
  * 
  * @see		Inflater
- * @version 	1.34, 05/15/03
+ * @version 	1.34, 02/02/00
  * @author 	David Connelly
  */
 public
@@ -123,7 +126,7 @@ class Deflater {
 	if (b== null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length - len) {
+	if (off < 0 || len < 0 || off + len > b.length) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	this.buf = b;
@@ -157,7 +160,7 @@ class Deflater {
 	if (strm == 0 || b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length - len) {
+	if (off < 0 || len < 0 || off + len > b.length) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	setDictionary(strm, b, off, len);
@@ -216,6 +219,8 @@ class Deflater {
     /**
      * Returns true if the input data buffer is empty and setInput()
      * should be called in order to provide more input.
+     * @return true if the input data buffer is empty and setInput()
+     * should be called in order to provide more input
      */
     public boolean needsInput() {
 	return len <= 0;
@@ -232,6 +237,8 @@ class Deflater {
     /**
      * Returns true if the end of the compressed data output stream has
      * been reached.
+     * @return true if the end of the compressed data output stream has
+     * been reached
      */
     public synchronized boolean finished() {
 	return finished;
@@ -251,7 +258,7 @@ class Deflater {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length - len) {
+	if (off < 0 || len < 0 || off + len > b.length) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	return deflateBytes(b, off, len);
@@ -271,6 +278,7 @@ class Deflater {
 
     /**
      * Returns the ADLER-32 value of the uncompressed data.
+     * @return the ADLER-32 value of the uncompressed data
      */
     public synchronized int getAdler() {
 	if (strm == 0) {
@@ -281,6 +289,7 @@ class Deflater {
 
     /**
      * Returns the total number of bytes input so far.
+     * @return the total number of bytes input so far
      */
     public synchronized int getTotalIn() {
 	if (strm == 0) {
@@ -291,6 +300,7 @@ class Deflater {
 
     /**
      * Returns the total number of bytes output so far.
+     * @return the total number of bytes output so far
      */
     public synchronized int getTotalOut() {
 	if (strm == 0) {

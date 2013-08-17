@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractSet.java	1.9 01/11/29
+ * @(#)AbstractSet.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -24,11 +27,11 @@ package java.util;
  * for <tt>equals</tt> and <tt>hashCode</tt>.
  *
  * @author  Josh Bloch
- * @version 1.9 11/29/01
+ * @version 1.14, 02/02/00
  * @see Collection
  * @see AbstractCollection
  * @see Set
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class AbstractSet extends AbstractCollection implements Set {
@@ -82,7 +85,7 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
      * <tt>hashCode</tt> method on each element in the collection, and
      * adding up the results.
      *
-     * @returns the hash code value for this set.
+     * @return the hash code value for this set.
      */
     public int hashCode() {
 	int h = 0;
@@ -94,5 +97,51 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
         }
 	return h;
     }
+
+    /**
+     * Removes from this set all of its elements that are contained in
+     * the specified collection (optional operation).<p>
+     *
+     * This implementation determines which is the smaller of this set
+     * and the specified collection, by invoking the <tt>size</tt>
+     * method on each.  If this set has fewer elements, then the
+     * implementation iterates over this set, checking each element
+     * returned by the iterator in turn to see if it is contained in
+     * the specified collection.  If it is so contained, it is removed
+     * from this set with the iterator's <tt>remove</tt> method.  If
+     * the specified collection has fewer elements, then the
+     * implementation iterates over the specified collection, removing
+     * from this set each element returned by the iterator, using this
+     * set's <tt>remove</tt> method.<p>
+     *
+     * Note that this implementation will throw an
+     * <tt>UnsupportedOperationException</tt> if the iterator returned by the
+     * <tt>iterator</tt> method does not implement the <tt>remove</tt> method.
+     *
+     * @param c elements to be removed from this set.
+     * @return <tt>true</tt> if this set changed as a result of the call.
+     *
+     * @throws    UnsupportedOperationException removeAll is not supported
+     *            by this set.
+     * @see #remove(Object)
+     * @see #contains(Object)
+     */
+    public boolean removeAll(Collection c) {
+        boolean modified = false;
+
+        if (size() > c.size()) {
+            for (Iterator i = c.iterator(); i.hasNext(); )
+                modified |= remove(i.next());
+        } else {
+            for (Iterator i = iterator(); i.hasNext(); ) {
+                if(c.contains(i.next())) {
+                    i.remove();
+                    modified = true;
+                }
+            }
+        }
+        return modified;
+    }
+
 }
 

@@ -1,8 +1,11 @@
 /*
- * @(#)InvokeHandler.java	1.7 01/11/29
+ * @(#)InvokeHandler.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package org.omg.CORBA.portable;
 
@@ -45,6 +48,7 @@ public interface InvokeHandler {
      * to construct a proper reply
      * @return The <code>OutputStream</code> created by the
      * ResponseHandler which contains the marshalled reply
+     * @throws SystemException is thrown when invocation fails due to a CORBA system exception.
      */
 
     OutputStream _invoke(String method, InputStream input,

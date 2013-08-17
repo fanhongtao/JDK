@@ -1,8 +1,11 @@
 /*
- * @(#)Long.java	1.43 01/11/29
+ * @(#)Long.java	1.52 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -20,7 +23,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.43, 11/29/01
+ * @version 1.52, 02/02/00
  * @since   JDK1.0
  */
 public final class Long extends Number implements Comparable {
@@ -209,8 +212,7 @@ public final class Long extends Number implements Comparable {
      * The argument is converted to signed decimal representation and 
      * returned as a string, exactly as if the argument and the radix 
      * 10 were given as arguments to the 
-     * {@link #toString(java.lang.String, int)} method that takes two 
-     * arguments.
+     * {@link #toString(long, int)} method that takes two arguments.
      *
      * @param   i   a <code>long</code> to be converted.
      * @return  a string representation of the argument in base&nbsp;10.
@@ -423,10 +425,10 @@ public final class Long extends Number implements Comparable {
      * Decodes a <code>String</code> into a <code>Long</code>.  Accepts
      * decimal, hexadecimal, and octal numbers, in the following formats:
      * <pre>
-     *     [-]    <decimal constant>
-     *     [-] 0x     <hex constant>
-     *     [-] #      <hex constant>
-     *     [-] 0    <octal constant>
+     *     [-]        decimal constant
+     *     [-] 0x     hex constant
+     *     [-] #      hex constant
+     *     [-] 0      octal constant
      * </pre>
      *
      * The constant following an (optional) negative sign and/or "radix
@@ -618,7 +620,7 @@ public final class Long extends Number implements Comparable {
      *          <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof Long)) {
+	if (obj instanceof Long) {
 	    return value == ((Long)obj).longValue();
 	}
 	return false;
@@ -636,9 +638,9 @@ public final class Long extends Number implements Comparable {
      * Details of possible numeric formats can be found with the 
      * definition of <code>getProperty</code>. 
      * <p>
-     * If there is no property with the specified name, or if the
-     * property does not have the correct numeric format, then
-     * <code>null</code> is returned.
+     * If there is no property with the specified name, if the specified name
+     * is empty or null, or if the property does not have the correct numeric
+     * format, then <code>null</code> is returned.
      * <p>
      * In other words, this method returns a <tt>Long</tt> object equal to 
      * the value of:
@@ -661,16 +663,16 @@ public final class Long extends Number implements Comparable {
      * <p>
      * The first argument is treated as the name of a system property. 
      * System properties are accessible through the 
-     * {@link java.lang.System#getProperty()} method. The 
+     * {@link java.lang.System#getProperty(java.lang.String)} method. The 
      * string value of this property is then interpreted as a long value 
      * and a <code>Long</code> object representing this value is returned. 
      * Details of possible numeric formats can be found with the 
      * definition of <code>getProperty</code>. 
      * <p>
-     * If there is no property with the specified name, or if the 
-     * property does not have the correct numeric format, then a 
-     * <code>Long</code> object that represents the value of the second 
-     * argument is returned. 
+     * The second argument is the default value. A <code>Long</code> object
+     * that represents the value of the second argument is returned if there
+     * is no property of the specified name, if the property does not have
+     * the correct numeric format, or if the specified name is empty or null.
      * <p>
      * In other words, this method returns a <tt>Long</tt> object equal 
      * to the value of:
@@ -716,15 +718,17 @@ public final class Long extends Number implements Comparable {
      * <li>Otherwise the property value is parsed as a decimal
      * integer exactly as for the method 
      * {@link #valueOf(java.lang.String, int)} with radix 10. 
+     * </ul>
      * <p>
      * Note that, in every case, neither <tt>L</tt> nor <tt>l</tt> is 
      * permitted to appear at the end of the property value as a type 
      * indicator, as would be permitted in Java programming language 
      * source code.
      * <p>
-     * The second argument is the default value. If there is no property 
-     * of the specified name, or if the property does not have the 
-     * correct numeric format, then the second argument is returned. 
+     * The second argument is the default value. The default value is
+     * returned if there is no property of the specified name, if the
+     * property does not have the correct numeric format, or if the
+     * specified name is empty or null.
      *
      * @param   nm   property name.
      * @param   val   default value.
@@ -734,7 +738,12 @@ public final class Long extends Number implements Comparable {
      * @see java.lang.Long#decode
      */
     public static Long getLong(String nm, Long val) {
-	String v = System.getProperty(nm);
+        String v = null;
+        try {
+            v = System.getProperty(nm);
+        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException e) {
+        }
 	if (v != null) {
 	    try {
 		return Long.decode(v);
@@ -754,7 +763,7 @@ public final class Long extends Number implements Comparable {
      *          value greater than <code>0</code> if this Long is
      *          numerically greater than the Long argument
      *		(signed comparison).
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Long anotherLong) {
 	long thisVal = this.value;
@@ -778,7 +787,7 @@ public final class Long extends Number implements Comparable {
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Long</code>.
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((Long)o);

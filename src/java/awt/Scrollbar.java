@@ -1,16 +1,21 @@
 /*
- * @(#)Scrollbar.java	1.66 01/11/29
+ * @(#)Scrollbar.java	1.77 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package java.awt;
 
 import java.awt.peer.ScrollbarPeer;
 import java.awt.event.*;
+import java.util.EventListener;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import javax.accessibility.*;
 
 
 /**
@@ -109,10 +114,10 @@ import java.io.IOException;
  * </ul>
  * <p>
  * The JDK&nbsp;1.0 event system is supported for backwards
- * compatibility, but its use with newer versions of JDK is
+ * compatibility, but its use with newer versions of the platform is
  * discouraged. The fives types of adjustment event introduced
  * with JDK&nbsp;1.1 correspond to the five event types
- * that are associated with scroll bars in previous JDK versions.
+ * that are associated with scroll bars in previous platform versions.
  * The following list gives the adjustment event type,
  * and the corresponding JDK&nbsp;1.0 event type it replaces.
  * <p>
@@ -130,13 +135,13 @@ import java.io.IOException;
  * </ul>
  * <p>
  *
- * @version	1.66 11/29/01
+ * @version 	1.77, 04/06/00
  * @author 	Sami Shaio
  * @see         java.awt.event.AdjustmentEvent
  * @see         java.awt.event.AdjustmentListener
  * @since       JDK1.0
  */
-public class Scrollbar extends Component implements Adjustable {
+public class Scrollbar extends Component implements Adjustable, Accessible {
 
     /**
      * A constant that indicates a horizontal scroll bar.
@@ -420,6 +425,14 @@ public class Scrollbar extends Component implements Adjustable {
 		invalidate();
 	    }
 	}
+        if (accessibleContext != null) {
+            accessibleContext.firePropertyChange(
+                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                    ((orientation == VERTICAL)
+                     ? AccessibleState.HORIZONTAL : AccessibleState.VERTICAL),
+                    ((orientation == VERTICAL) 
+                     ? AccessibleState.VERTICAL : AccessibleState.HORIZONTAL));
+        }
     }
 
     /**
@@ -511,8 +524,8 @@ public class Scrollbar extends Component implements Adjustable {
      * mutually consistent.
      * @param       newMaximum   the new maximum value
      *                     for this scroll bar.
-     * @see         java.awtScrollbar#setValues
-     * @see         java.awtScrollbar#setMinimum
+     * @see         java.awt.Scrollbar#setValues
+     * @see         java.awt.Scrollbar#setMinimum
      * @since       JDK1.1
      */
     public void setMaximum(int newMaximum) {
@@ -683,31 +696,42 @@ public class Scrollbar extends Component implements Adjustable {
      * @param      minimum is the minimum value of the scroll bar.
      * @param      maximum is the maximum value of the scroll bar.
      */
-    public synchronized void setValues(int value, int visible, int minimum, int maximum) {
-	if (maximum <= minimum) {
-	    maximum = minimum + 1;
-	}
-	if (visible > maximum - minimum) {
-	  visible = maximum - minimum;
-	}
-	if (visible < 1) {
-	  visible = 1;
-	}
-	if (value < minimum) {
-	    value = minimum;
-	}
-	if (value > maximum - visible) {
-	    value = maximum - visible;
-	}
+    public void setValues(int value, int visible, int minimum, int maximum) {
+        int oldValue;
+        synchronized (this) {
+            if (maximum <= minimum) {
+                maximum = minimum + 1;
+            }
+            if (visible > maximum - minimum) {
+                visible = maximum - minimum;
+            }
+            if (visible < 1) {
+                visible = 1;
+            }
+            if (value < minimum) {
+                value = minimum;
+            }
+            if (value > maximum - visible) {
+                value = maximum - visible;
+            }
 
-	this.value = value;
-	this.visibleAmount = visible;
-	this.minimum = minimum;
-	this.maximum = maximum;
-	ScrollbarPeer peer = (ScrollbarPeer)this.peer;
-	if (peer != null) {
-	    peer.setValues(value, visibleAmount, minimum, maximum);
-	}
+            oldValue = this.value;
+            this.value = value;
+            this.visibleAmount = visible;
+            this.minimum = minimum;
+            this.maximum = maximum;
+            ScrollbarPeer peer = (ScrollbarPeer)this.peer;
+            if (peer != null) {
+                peer.setValues(value, visibleAmount, minimum, maximum);
+            }
+        }
+
+        if ((oldValue != value) && (accessibleContext != null))  {
+            accessibleContext.firePropertyChange(
+                    AccessibleContext.ACCESSIBLE_VALUE_PROPERTY,
+                    new Integer(oldValue),
+                    new Integer(value));
+        }
     }
 
     /**
@@ -745,6 +769,30 @@ public class Scrollbar extends Component implements Adjustable {
 	    return;
 	}
 	adjustmentListener = AWTEventMulticaster.remove(adjustmentListener, l);
+    }
+
+    /**
+     * Return an array of all the listeners that were added to the Scrollbar
+     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
+     * argument.  For example, to get all of the AdjustmentListener(s) for the
+     * given Scrollbar <code>s</code>, one would write:
+     * <pre>
+     * AdjustmentListener[] als = (AdjustmentListener[])(s.getListeners(AdjustmentListener.class))
+     * </pre>
+     * If no such listener list exists, then an empty array is returned.
+     * 
+     * @param    listenerType   Type of listeners requested
+     * @return   all of the listeners of the specified type supported by this scrollbar
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	EventListener l = null; 
+	if  (listenerType == AdjustmentListener.class) { 
+	    l = adjustmentListener;
+	} else {
+	    return super.getListeners(listenerType);
+	}
+	return AWTEventMulticaster.getListeners(l, listenerType);
     }
 
     // REMIND: remove when filtering is done at lower level
@@ -877,5 +925,116 @@ public class Scrollbar extends Component implements Adjustable {
 	  s.readObject();
       }
     }
+
+
+/////////////////
+// Accessibility support
+////////////////
+
+    /**
+     * Gets the AccessibleContext associated with this Scrollbar. 
+     * For scrollbars, the AccessibleContext takes the form of an 
+     * AccessibleAWTScrollBar. 
+     * A new AccessibleAWTScrollBar instance is created if necessary.
+     *
+     * @return an AccessibleAWTScrollBar that serves as the 
+     *         AccessibleContext of this ScrollBar
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleAWTScrollBar();
+        }
+        return accessibleContext;
+    }
+
+    /**
+     * This class implements accessibility support for the 
+     * <code>Scrollbar</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to scrollbar user-interface elements.
+     */
+    protected class AccessibleAWTScrollBar extends AccessibleAWTComponent
+        implements AccessibleValue {
+
+        /**
+         * Get the state set of this object.
+         *
+         * @return an instance of AccessibleState containing the current state 
+         * of the object
+         * @see AccessibleState
+         */
+        public AccessibleStateSet getAccessibleStateSet() {
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (getOrientation() == VERTICAL) {
+                states.add(AccessibleState.VERTICAL);
+            } else {
+                states.add(AccessibleState.HORIZONTAL);
+            }
+            return states;
+        }
+
+        /**
+         * Get the role of this object.
+         *
+         * @return an instance of AccessibleRole describing the role of the 
+         * object
+         */
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.SCROLL_BAR;
+        }
+
+        /**
+         * Get the AccessibleValue associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleValue interface on behalf of itself.
+	 * 
+	 * @return this object
+         */
+        public AccessibleValue getAccessibleValue() {
+            return this;
+        }
+
+        /**
+         * Get the accessible value of this object.
+         *
+         * @return The current value of this object.
+         */
+        public Number getCurrentAccessibleValue() {
+            return new Integer(getValue());
+        }
+
+        /**
+         * Set the value of this object as a Number.
+         *
+         * @return True if the value was set.
+         */
+        public boolean setCurrentAccessibleValue(Number n) {
+            if (n instanceof Integer) {
+                setValue(n.intValue());
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /**
+         * Get the minimum accessible value of this object.
+         *
+         * @return The minimum value of this object.
+         */
+        public Number getMinimumAccessibleValue() {
+            return new Integer(getMinimum());
+        }
+
+        /**
+         * Get the maximum accessible value of this object.
+         *
+         * @return The maximum value of this object.
+         */
+        public Number getMaximumAccessibleValue() {
+            return new Integer(getMaximum());
+        }
+
+    } // AccessibleAWTScrollBar
 
 }

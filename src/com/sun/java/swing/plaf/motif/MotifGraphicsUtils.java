@@ -1,8 +1,11 @@
 /*
- * @(#)MotifGraphicsUtils.java	1.36 01/11/29
+ * @(#)MotifGraphicsUtils.java	1.38 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package com.sun.java.swing.plaf.motif;
 
@@ -16,18 +19,22 @@ import java.awt.Rectangle;
 import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
+import java.awt.Container;
 
 import javax.swing.plaf.basic.*;
 import javax.swing.text.View;
 
 /*
- * @version 1.36 11/29/01
+ * @version 1.38 02/02/00
  * @author Jeff Dinkins
  * @author Dave Kloba
  */
 
 public class MotifGraphicsUtils implements SwingConstants 
 {       
+    /* Client Property keys for text and accelerator text widths */
+    private static final String MAX_ACC_WIDTH  =  "maxAccWidth";
+    
     /**
      * Draws the point (<b>x</b>, <b>y</b>) in the current color.
      */
@@ -242,15 +249,28 @@ public class MotifGraphicsUtils implements SwingConstants
 	
 	// Draw the Accelerator Text
 	if(acceleratorText != null && !acceleratorText.equals("")) {
+
+	    //Get the maxAccWidth from the parent to calculate the offset.
+	    int accOffset = 0;
+	    Container parent = b.getParent();
+	    if (parent != null && parent instanceof JComponent) {
+		JComponent p = (JComponent) parent;
+		Integer maxValueInt = (Integer) p.getClientProperty(MotifGraphicsUtils.MAX_ACC_WIDTH);
+		int maxValue = maxValueInt!=null ? maxValueInt.intValue() : 0;
+		
+		//Calculate the offset, with which the accelerator texts will be drawn with.
+		accOffset = maxValue - acceleratorRect.width;
+	    }
+
 	    g.setFont( UIManager.getFont("MenuItem.acceleratorFont") );
 	    if(!model.isEnabled()) {
 		// *** paint the acceleratorText disabled
 		g.setColor(b.getBackground().brighter());
 		BasicGraphicsUtils.drawString(g,acceleratorText,0,
-					      acceleratorRect.x, acceleratorRect.y + fm.getAscent());
+					      acceleratorRect.x - accOffset, acceleratorRect.y + fm.getAscent());
 		g.setColor(b.getBackground().darker());
 		BasicGraphicsUtils.drawString(g,acceleratorText,0,
-					      acceleratorRect.x - 1, acceleratorRect.y + fm.getAscent() - 1);
+					      acceleratorRect.x - accOffset - 1, acceleratorRect.y + fm.getAscent() - 1);
 	    } else {
 		// *** paint the acceleratorText normally
 		if (model.isArmed()|| (c instanceof JMenu && model.isSelected()))
@@ -260,7 +280,7 @@ public class MotifGraphicsUtils implements SwingConstants
 			g.setColor(b.getForeground());
 		    }
 		BasicGraphicsUtils.drawString(g,acceleratorText, 0,
-					      acceleratorRect.x,
+					      acceleratorRect.x - accOffset,
 					      acceleratorRect.y + fmAccel.getAscent());
 	    }
 	}

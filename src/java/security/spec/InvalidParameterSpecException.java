@@ -1,8 +1,11 @@
 /*
- * @(#)InvalidParameterSpecException.java	1.8 01/11/29
+ * @(#)InvalidParameterSpecException.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.spec;
@@ -14,13 +17,13 @@ import java.security.GeneralSecurityException;
  *
  * @author Jan Luehe
  *
- * @version 1.8, 11/29/01
+ * @version 1.11, 02/02/00
  *
  * @see java.security.AlgorithmParameters
  * @see AlgorithmParameterSpec
  * @see DSAParameterSpec
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public class InvalidParameterSpecException extends GeneralSecurityException {

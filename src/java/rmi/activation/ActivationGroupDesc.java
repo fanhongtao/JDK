@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationGroupDesc.java	1.18 01/11/29
+ * @(#)ActivationGroupDesc.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -37,15 +40,15 @@ import java.util.Properties;
  * <li> the group's initialization data (in a
  * <code>java.rmi.MarshalledObject</code>)</ul><p>
  *
- * @version	1.18, 11/29/01
+ * @version	1.24, 02/02/00
  * @author	Ann Wollrath
- * @since	JDK1.2
+ * @since	1.2
  * @see		ActivationGroup
  * @see		ActivationGroupID
  */
 public final class ActivationGroupDesc implements java.io.Serializable {
     /**
-     * @serial The group's fully package qualified className.
+     * @serial The group's fully package qualified class name.
      */
     private String className;
 
@@ -71,46 +74,51 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      */
     private Properties props;
     
-
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = -4936225423168276595L;
 
     /**
-     * Constructs a group descriptor that uses system default for group
+     * Constructs a group descriptor that uses the system defaults for group
      * implementation and code location.  Properties specify Java
      * environment overrides (which will override system properties in
      * the group implementation's VM).  The command
      * environment can control the exact command/options used in
      * starting the child VM, or can be <code>null</code> to accept
      * rmid's default.
-     * 
-     * @param properties the set of properties to set when the group is
+     *
+     * <p>This constructor will create an <code>ActivationGroupDesc</code>
+     * with a <code>null</code> group class name, which indicates the system's
+     * default <code>ActivationGroup</code> implementation.
+     *
+     * @param overrides the set of properties to set when the group is
      * recreated.
      * @param cmd the controlling options for executing the VM in
-     * another process (or null).
-     * @since JDK1.2
+     * another process (or <code>null</code>).
+     * @since 1.2
      */
     public ActivationGroupDesc(Properties overrides,
                                CommandEnvironment cmd)
     {
-	this("sun.rmi.server.ActivationGroupImpl", null, null, overrides, cmd);
+	this(null, null, null, overrides, cmd);
     }
 
     /**
      * Specifies an alternate group implementation and execution
      * environment to be used for the group.
      * 
-     * @param className the group's fully package qualified className
+     * @param className the group's package qualified class name or
+     * <code>null</code>. A <code>null</code> group class name indicates
+     * the system's default <code>ActivationGroup</code> implementation.
      * @param location the location from where to load the group's
      * class
      * @param data the group's initialization data contained in
      * marshalled form (could contain properties, for example)
      * @param overrides a properties map which will override those set
      * by default in the subprocess environment (will be translated
-     * into <code>-D</code> options), or null.
+     * into <code>-D</code> options), or <code>null</code>.
      * @param cmd the controlling options for executing the VM in
-     * another process (or null).
-     * @since JDK1.2
+     * another process (or <code>null</code>).
+     * @since 1.2
      */
     public ActivationGroupDesc(String className,
 			       String location,
@@ -126,9 +134,11 @@ public final class ActivationGroupDesc implements java.io.Serializable {
     }
 
     /**
-     * Returns the group's class name.
+     * Returns the group's class name (possibly <code>null</code>).  A
+     * <code>null</code> group class name indicates the system's default
+     * <code>ActivationGroup</code> implementation.
      * @return the group's class name
-     * @since JDK1.2
+     * @since 1.2
      */
     public String getClassName() {
 	return className;
@@ -137,7 +147,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
     /**
      * Returns the group's code location.
      * @return the group's code location
-     * @since JDK1.2
+     * @since 1.2
      */
     public String getLocation() {
 	return location;
@@ -146,7 +156,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
     /**
      * Returns the group's initialization data.
      * @return the group's initialization data
-     * @since JDK1.2
+     * @since 1.2
      */
     public MarshalledObject getData() {
 	return data;
@@ -154,8 +164,8 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 
     /**
      * Returns the group's property-override list.
-     * @return the property-override list, or null
-     * @since JDK1.2
+     * @return the property-override list, or <code>null</code>
+     * @since 1.2
      */
     public Properties getPropertyOverrides() {
 	return (props != null) ? (Properties) props.clone() : null;
@@ -163,8 +173,8 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 
     /**
      * Returns the group's command-environment control object.
-     * @return the command-environment object, or null
-     * @since JDK1.2
+     * @return the command-environment object, or <code>null</code>
+     * @since 1.2
      */
     public CommandEnvironment getCommandEnvironment() {
 	return this.env;
@@ -176,7 +186,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      *
      * This class allows overriding default system properties and
      * specifying implementation-defined options for ActivationGroups.
-     * @since JDK1.2
+     * @since 1.2
      */
     public static class CommandEnvironment
 	implements java.io.Serializable
@@ -196,15 +206,15 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	 * information.
 	 * 
 	 * @param cmdpath the name of the java executable, including
-	 * the full path, or null, meaning "use rmid's default".  The
-	 * named program <em>must</em> be able to accept multiple
+	 * the full path, or <code>null</code>, meaning "use rmid's default".
+	 * The named program <em>must</em> be able to accept multiple
 	 * <code>-Dpropname=value</code> options (as documented for the
 	 * "java" tool)
 	 * 
 	 * @param argv extra options which will be used in creating the
 	 * ActivationGroup.  Null has the same effect as an empty
 	 * list.
-	 * @since JDK1.2
+	 * @since 1.2
 	 */
 	public CommandEnvironment(String cmdpath,
 				  String[] argv)
@@ -223,9 +233,9 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	/**
 	 * Fetch the configured path-qualified java command name.
 	 *
-	 * @return the configured name, or null if configured to
+	 * @return the configured name, or <code>null</code> if configured to
 	 * accept the default
-	 * @since JDK1.2
+	 * @since 1.2
 	 */
 	public String getCommandPath() {
 	    return (this.command);
@@ -238,8 +248,8 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	 * to the new child command by rmid.
 	 * Note that rmid may add other options before or after these
 	 * options, or both.
-	 * Never returns null.
-	 * @since JDK1.2
+	 * Never returns <code>null</code>.
+	 * @since 1.2
 	 */
 	public String[] getCommandOptions() {
 	    return (this.options != null
@@ -253,7 +263,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	 * @param	obj	the Object to compare with
 	 * @return	true if these Objects are equal; false otherwise.
 	 * @see		java.util.Hashtable
-	 * @since JDK1.2
+	 * @since 1.2
 	 */
 	public boolean equals(Object obj) {
 	
@@ -269,7 +279,8 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	}
 
 	/**
-	 * Return identical values for similar <code>CommandEnvironment</code>s
+	 * Return identical values for similar
+	 * <code>CommandEnvironment</code>s.
 	 * @return an integer
 	 * @see java.util.Hashtable
 	 */
@@ -286,7 +297,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      * @param	obj	the Object to compare with
      * @return	true if these Objects are equal; false otherwise.
      * @see		java.util.Hashtable
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean equals(Object obj) {
 	

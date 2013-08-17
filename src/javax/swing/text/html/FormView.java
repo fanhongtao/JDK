@@ -1,8 +1,11 @@
 /*
- * @(#)FormView.java	1.7 01/11/29
+ * @(#)FormView.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -25,8 +28,7 @@ import javax.swing.text.*;
  * multiple views mapped over the document, they will share the 
  * embedded component models.
  * <p>
- * The components produced get their opaque property set to 
- * false.  The following table shows what components get built
+ * The following table shows what components get built
  * by this view.
  * <table>
  * <tr>
@@ -69,15 +71,25 @@ import javax.swing.text.*;
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.7 11/29/01
+ * @version 1.14 02/02/00
  */
 public class FormView extends ComponentView implements ActionListener {
 
     /**
      * If a value attribute is not specified for a FORM input element
-     * of type "submit" or "reset", then these default strings are used.
+     * of type "submit", then this default string is used.
+     *
+     * @deprecated As of 1.3, value now comes from UIManager property
+     *             FormView.submitButtonText
      */
     public static final String SUBMIT = new String("Submit Query");
+    /**
+     * If a value attribute is not specified for a FORM input element
+     * of type "reset", then this default string is used.
+     *
+     * @deprecated As of 1.3, value comes from UIManager UIManager property
+     *             FormView.resetButtonText
+     */
     public static final String RESET = new String("Reset");
 
     /**
@@ -111,7 +123,6 @@ public class FormView extends ComponentView implements ActionListener {
 							 HTML.Attribute.SIZE,
 							 1);
 		list.setVisibleRowCount(size);
-		list.setOpaque(false);
 		list.setSelectionModel((ListSelectionModel)model);
 		c = new JScrollPane(list);
 	    } else {
@@ -134,17 +145,16 @@ public class FormView extends ComponentView implements ActionListener {
 
 	if (c != null) {
 	    c.setAlignmentY(1.0f);
-	    c.setOpaque(false);
 	}
 	return c;
     }
 
 
     /**
-     * Creates a component for an <input> element based on the
+     * Creates a component for an &lt;INPUT&gt; element based on the
      * value of the "type" attribute.
      *
-     * @param set of attributes associated with the <input> element.
+     * @param set of attributes associated with the &lt;INPUT&gt; element.
      * @param model the value of the StyleConstants.ModelAttribute
      * @return the component.
      */
@@ -157,9 +167,9 @@ public class FormView extends ComponentView implements ActionListener {
 		attr.getAttribute(HTML.Attribute.VALUE);
 	    if (value == null) {
 		if (type.equals("submit")) {
-		    value = SUBMIT;
+		    value = UIManager.getString("FormView.submitButtonText");
 		} else {
-		    value = RESET;
+		    value = UIManager.getString("FormView.resetButtonText");
 		}
 	    }
 	    JButton button = new JButton(value);
@@ -199,16 +209,26 @@ public class FormView extends ComponentView implements ActionListener {
 		((JRadioButton)c).setModel((JToggleButton.ToggleButtonModel)model);
 	    }
 	} else if (type.equals("text")) {
-	    JTextField field = new JTextField();
-	    c = field;
-	    if (model != null) {
-		field.setDocument((Document) model);
-	    }
 	    int size = HTML.getIntegerAttributeValue(attr,
 						     HTML.Attribute.SIZE,
 						     -1);
+	    JTextField field;
 	    if (size > 0) {
+		// If the size is specified, we don't want to allow the
+		// text field to be bigger than the preferred size.
+		field = new JTextField() {
+		    public Dimension getMaximumSize() {
+			return getPreferredSize();
+		    }
+		};
 		field.setColumns(size);
+	    }
+	    else {
+		field = new JTextField();
+	    }
+	    c = field;
+	    if (model != null) {
+		field.setDocument((Document) model);
 	    }
 	    String value = (String) 
 		attr.getAttribute(HTML.Attribute.VALUE);
@@ -314,8 +334,8 @@ public class FormView extends ComponentView implements ActionListener {
 	/**
 	 * This method is responsible for extracting the
 	 * method and action attributes associated with the
-	 * <form> and using those to determine how (i.e POST or GET)
-	 * and where(URL) to submit the form.  If action is
+	 * &lt;FORM&gt; and using those to determine how (POST or GET)
+	 * and where (URL) to submit the form.  If action is
 	 * not specified, the base url of the existing document is
 	 * used.  Also, if method is not specified, the default is
 	 * GET.  Once form submission is done, run uses the
@@ -339,10 +359,6 @@ public class FormView extends ComponentView implements ActionListener {
 		    if (action == null) {
 			
 			String file = baseURL.getFile();
-			int paramIndex = file.indexOf('?');
-			if (paramIndex >= 0) {
-			    file = file.substring(0, paramIndex);
-			}
 			actionURL = new URL(baseURL.getProtocol(), 
 					    baseURL.getHost(), 
 					    baseURL.getPort(), 
@@ -390,7 +406,7 @@ public class FormView extends ComponentView implements ActionListener {
 	/**
 	 * This method is responsible for loading the
 	 * document into the FormView's container,
-	 * i.e JEditorPane.
+	 * which is a JEditorPane.
 	 */
 	public void loadDocument() {
 	    JEditorPane c = (JEditorPane)getContainer();
@@ -402,22 +418,13 @@ public class FormView extends ComponentView implements ActionListener {
 	}
 
 	/**
-	 * Get the value of the action attribute.  If the value 
-	 * specifies additional information at the end of the URL,
-	 * i.e after a ?, then only the URL is returned.
-	 * 
+	 * Get the value of the action attribute.
 	 */
 	public String getAction() {
 	    if (formAttr == null) { 
 		return null;
 	    }
-	    String action = (String)formAttr.getAttribute(HTML.Attribute.ACTION);
-	    // commonly occuring error
-	    int index = action.indexOf('?');
-	    if (index != -1) {
-		action = action.substring(0, index);
-		}
-	    return action;
+	    return (String)formAttr.getAttribute(HTML.Attribute.ACTION);
 	}
 	
 	/**
@@ -475,7 +482,7 @@ public class FormView extends ComponentView implements ActionListener {
 
     /**
      * This method is called to submit a form in response
-     * to a click on an image.  i.e an <input> form
+     * to a click on an image -- an &lt;INPUT&gt; form
      * element of type "image".
      *
      * @param the mouse click coordinates.

@@ -1,8 +1,11 @@
 /*
- * @(#)HTMLEditorKit.java	1.83 01/11/29
+ * @(#)HTMLEditorKit.java	1.98 00/07/20
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text.html;
 
@@ -29,7 +32,7 @@ import java.util.*;
  * for the &lt;object&gt; tag.
  * <p>
  * There are several goals of the HTML EditorKit provided, that have
- * an effect upon the way that html is modeled.  These
+ * an effect upon the way that HTML is modeled.  These
  * have influenced its design in a substantial way.  
  * <dl>
  * <p>
@@ -38,16 +41,16 @@ import java.util.*;
  * <dd>
  * It might seem fairly obvious that a plug-in for JEditorPane
  * should provide editing support, but that fact has several
- * design considerations.  There are a substantial number of html
- * documents that don't properly conform to an html specification.
+ * design considerations.  There are a substantial number of HTML
+ * documents that don't properly conform to an HTML specification.
  * These must be normalized somewhat into a correct form if one
  * is to edit them.  Additionally, users don't like to be presented
  * with an excessive amount of structure editing, so using traditional
- * text editing gestures is preferred over using the html structure 
- * exactly as defined in the html document.
+ * text editing gestures is preferred over using the HTML structure 
+ * exactly as defined in the HTML document.
  * <p>
- * The modeling of html is provided by the class <code>HTMLDocument</code>.
- * It's documention describes the details of how the html is modeled.
+ * The modeling of HTML is provided by the class <code>HTMLDocument</code>.
+ * Its documention describes the details of how the HTML is modeled.
  * The editing support leverages heavily off of the text package.
  * <p>
  * <dt>
@@ -73,7 +76,7 @@ import java.util.*;
  *   document that produces a different reader.  The reader controls
  *   how the document is structured.  Although the Document provides
  *   HTML support by default, there is nothing preventing support of
- *   non-html tags that result in alternative element structures.
+ *   non-HTML tags that result in alternative element structures.
  *   <li>
  *   The default view of the models are provided as a hierarchy of
  *   View implementations, so one can easily customize how a particular
@@ -88,7 +91,7 @@ import java.util.*;
  *   which are kept in the views.  This makes it possible to have
  *   multiple views mapped over the same model that appear substantially
  *   different.  This can be especially useful for printing.  For
- *   most html attributes, the html attributes are converted to css
+ *   most HTML attributes, the HTML attributes are converted to CSS
  *   attributes for display.  This helps make the View implementations
  *   more general purpose
  * </ol>
@@ -127,7 +130,7 @@ import java.util.*;
  * It is generally the most pleasing to users if there is no loss
  * of data between the two operation.  The policy of the HTMLEditorKit
  * will be to store things not recognized or not necessarily visible
- * so they can be subsequently written out.  The model of the html document
+ * so they can be subsequently written out.  The model of the HTML document
  * should therefore contain all information discovered while reading the
  * document.  This is constrained in some ways by the need to support 
  * editing (i.e. incorrect documents sometimes must be normalized).
@@ -137,7 +140,7 @@ import java.util.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.83, 11/29/01
+ * @version 1.98 07/20/00
  */
 public class HTMLEditorKit extends StyledEditorKit {
    
@@ -179,7 +182,7 @@ public class HTMLEditorKit extends StyledEditorKit {
      * @return the factory
      */
     public ViewFactory getViewFactory() {
-	return new HTMLFactory();
+	return defaultFactory;
     }
 
     /**
@@ -195,7 +198,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 	ss.addStyleSheet(styles);
 
 	HTMLDocument doc = new HTMLDocument(ss);
-	doc.putProperty(HTMLDocument.PARSER_PROPERTY, getParser());
+	doc.setParser(getParser());
 	doc.setAsynchronousLoadPriority(4);
 	doc.setTokenThreshold(100);
 	return doc;
@@ -204,20 +207,20 @@ public class HTMLEditorKit extends StyledEditorKit {
     /**
      * Inserts content from the given stream. If <code>doc</code> is
      * an instance of HTMLDocument, this will read
-     * html 3.2 text. Inserting html into a non-empty document must be inside
+     * HTML 3.2 text. Inserting HTML into a non-empty document must be inside
      * the body Element, if you do not insert into the body an exception will
      * be thrown. When inserting into a non-empty document all tags outside
      * of the body (head, title) will be dropped.
      * 
-     * @param in  The stream to read from
-     * @param doc The destination for the insertion.
-     * @param pos The location in the document to place the
-     *   content.
+     * @param in  the stream to read from
+     * @param doc the destination for the insertion
+     * @param pos the location in the document to place the
+     *   content
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
-     *   location within the document.
+     *   location within the document
      * @exception RuntimeException (will eventually be a BadLocationException)
-     *            if pos is invalid.
+     *            if pos is invalid
      */
     public void read(Reader in, Document doc, int pos) throws IOException, BadLocationException {
 
@@ -243,16 +246,16 @@ public class HTMLEditorKit extends StyledEditorKit {
     /**
      * Inserts HTML into an existing document.
      *
-     * @param doc Document to insert into.
-     * @param offset offset to insert HTML at
-     * @param popDepth number of ElementSpec.EndTagType to generate before
-     *        inserting.
-     * @param pushDepth number of ElementSpec.StartTagType with a direction
+     * @param doc       the document to insert into
+     * @param offset    the offset to insert HTML at
+     * @param popDepth  the number of ElementSpec.EndTagTypes to generate before
+     *        inserting
+     * @param pushDepth the number of ElementSpec.StartTagTypes with a direction
      *        of ElementSpec.JoinNextDirection that should be generated
-     *        before inserting, but after the end tags have been generated.
-     * @param insertTag first tag to start inserting into document.
+     *        before inserting, but after the end tags have been generated
+     * @param insertTag the first tag to start inserting into document
      * @exception RuntimeException (will eventually be a BadLocationException)
-     *            if pos is invalid.
+     *            if pos is invalid
      */
     public void insertHTML(HTMLDocument doc, int offset, String html,
 			   int popDepth, int pushDepth,
@@ -279,14 +282,14 @@ public class HTMLEditorKit extends StyledEditorKit {
      * Write content from a document to the given stream
      * in a format appropriate for this kind of content handler.
      * 
-     * @param out  The stream to write to
-     * @param doc The source for the write.
-     * @param pos The location in the document to fetch the
-     *   content.
-     * @param len The amount to write out.
+     * @param out  the stream to write to
+     * @param doc  the source for the write
+     * @param pos  the location in the document to fetch the
+     *   content
+     * @param len  the amount to write out
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
-     *   location within the document.
+     *   location within the document
      */
     public void write(Writer out, Document doc, int pos, int len) 
 	throws IOException, BadLocationException {
@@ -310,7 +313,7 @@ public class HTMLEditorKit extends StyledEditorKit {
      */
     public void install(JEditorPane c) {
 	c.addMouseListener(linkHandler);
-        c.addMouseMotionListener(tmpHandler);
+        c.addMouseMotionListener(linkHandler);
 	super.install(c);
     }
 
@@ -323,7 +326,7 @@ public class HTMLEditorKit extends StyledEditorKit {
      */
     public void deinstall(JEditorPane c) {
 	c.removeMouseListener(linkHandler);
-        c.removeMouseMotionListener(tmpHandler);
+        c.removeMouseMotionListener(linkHandler);
 	super.deinstall(c);
     }
 
@@ -335,8 +338,8 @@ public class HTMLEditorKit extends StyledEditorKit {
 
     /**
      * Set the set of styles to be used to render the various
-     * html elements.  These styles are specified in terms of
-     * css specifications.  Each document produced by the kit
+     * HTML elements.  These styles are specified in terms of
+     * CSS specifications.  Each document produced by the kit
      * will have a copy of the sheet which it can add the 
      * document specific styles to.  By default, the StyleSheet
      * specified is shared by all HTMLEditorKit instances.
@@ -349,7 +352,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 
     /**
      * Get the set of styles currently being used to render the
-     * html elements.  By default the resource specified by
+     * HTML elements.  By default the resource specified by
      * DEFAULT_CSS gets loaded, and is shared by all HTMLEditorKit 
      * instances.
      */
@@ -376,7 +379,7 @@ public class HTMLEditorKit extends StyledEditorKit {
      * to function when used in an applet.
      *
      * @param name the name of the resource, relative to the
-     *  HTMLEditorKit class.
+     *  HTMLEditorKit class
      * @returns a stream representing the resource
      */
     static InputStream getResourceAsStream(String name) {
@@ -439,7 +442,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 		set.addAttribute(StyleConstants.NameAttribute,
 				 HTML.Tag.CONTENT);
 	    }
-		else if (tag == HTML.Tag.HR || tag == HTML.Tag.BR) {
+	    else if (tag == HTML.Tag.HR || tag == HTML.Tag.BR) {
 		// Don't copy HR's or BR's either.
 		set.addAttribute(StyleConstants.NameAttribute,
 				 HTML.Tag.CONTENT);
@@ -449,6 +452,12 @@ public class HTMLEditorKit extends StyledEditorKit {
 		set.addAttribute(StyleConstants.NameAttribute,
 				 HTML.Tag.CONTENT);
 		set.removeAttribute(HTML.Attribute.COMMENT);
+	    }
+	    else if (tag == HTML.Tag.INPUT) {
+		// or INPUT either
+		set.addAttribute(StyleConstants.NameAttribute,
+				 HTML.Tag.CONTENT);
+		set.removeAttribute(HTML.Tag.INPUT);
 	    }
 	    else if (tag instanceof HTML.UnknownTag) {
 		// Don't copy unknowns either:(
@@ -473,12 +482,46 @@ public class HTMLEditorKit extends StyledEditorKit {
     }
 
     /**
-     * Fetch the parser to use for reading html streams.
+     * Sets the default cursor.
+     *
+     * @since 1.3
+     */
+    public void setDefaultCursor(Cursor cursor) {
+	defaultCursor = cursor;
+    }
+
+    /**
+     * Returns the default cursor.
+     *
+     * @since 1.3
+     */
+    public Cursor getDefaultCursor() {
+	return defaultCursor;
+    }
+
+    /**
+     * Sets the cursor to use over links.
+     *
+     * @since 1.3
+     */
+    public void setLinkCursor(Cursor cursor) {
+	linkCursor = cursor;
+    }
+
+    /**
+     * Returns the cursor to use over hyper links.
+     */
+    public Cursor getLinkCursor() {
+	return linkCursor;
+    }
+
+    /**
+     * Fetch the parser to use for reading HTML streams.
      * This can be reimplemented to provide a different
      * parser.  The default implementation is loaded dynamically
      * to avoid the overhead of loading the default parser if
      * it's not used.  The default parser is the HotJava parser
-     * using an html 3.2 dtd.
+     * using an HTML 3.2 DTD.
      */
     protected Parser getParser() {
 	if (defaultParser == null) {
@@ -493,93 +536,32 @@ public class HTMLEditorKit extends StyledEditorKit {
 
     // --- variables ------------------------------------------
 
+    private static final Cursor MoveCursor = Cursor.getPredefinedCursor
+	                            (Cursor.HAND_CURSOR);
+    private static final Cursor DefaultCursor = Cursor.getPredefinedCursor
+	                            (Cursor.DEFAULT_CURSOR);
+
+    /** Shared factory for creating HTML Views. */
+    private static final ViewFactory defaultFactory = new HTMLFactory();
+
     MutableAttributeSet input;
     private static StyleSheet defaultStyles = null;
-    private MouseListener linkHandler = new LinkController();
+    private LinkController linkHandler = new LinkController();
     private static Parser defaultParser = null;
+    private Cursor defaultCursor = DefaultCursor;
+    private Cursor linkCursor = MoveCursor;
 
-    private MouseMotionListener tmpHandler = new TemporaryHandler();
 
-    /**
-     * Class to generate hyperlink enter and exit events.  This
-     * should be part of the LinkController class.
-     * PENDING(prinz) MOVE THIS WHEN API CHANGES ARE ALLOWED!!!!
-     */
-    static class TemporaryHandler implements MouseMotionListener {
-
-        private Element curElem = null;
-	private String href = null;
-
-        // ignore the drags
-        public void mouseDragged(MouseEvent e) {
-        }
-
-        // track the moving of the mouse.
-        public void mouseMoved(MouseEvent e) {
-            JEditorPane editor = (JEditorPane) e.getSource();
-            if (!editor.isEditable()) {
-                Point pt = new Point(e.getX(), e.getY());
-                int pos = editor.viewToModel(pt);
-                if (pos >= 0) {
-                    Document doc = editor.getDocument();
-                    if (doc instanceof HTMLDocument) {
-                        HTMLDocument hdoc = (HTMLDocument) doc;
-                        Element elem = hdoc.getCharacterElement(pos);
-			if (curElem != elem) {
-			    curElem = elem;
-			    AttributeSet a = elem.getAttributes();
-			    AttributeSet anchor = (AttributeSet) a.getAttribute(HTML.Tag.A);
-			    String href = (anchor != null) ? 
-				(String) anchor.getAttribute(HTML.Attribute.HREF) 
-				: null;
-			    
-			    if (href != this.href) {
-				// reference changed, fire event(s)
-				fireEvents(editor, hdoc, href);
-				this.href = href;
-			    }
-                        }
-                    }
-                }
-            }
-        }
-
-	void fireEvents(JEditorPane editor, HTMLDocument doc, String href) {
-	    if (this.href != null) {
-		// fire an exited event on the old link
-		URL u;
-		try {
-		    u = new URL(doc.getBase(), this.href);
-		} catch (MalformedURLException m) {
-		    u = null;
-		}
-		HyperlinkEvent exit = new HyperlinkEvent(editor,
-							 HyperlinkEvent.EventType.EXITED,
-							 u, this.href);
-		editor.fireHyperlinkUpdate(exit);
-	    }
-	    if (href != null) {
-		// fire an entered event on the new link
-		URL u;
-		try {
-		    u = new URL(doc.getBase(), href);
-		} catch (MalformedURLException m) {
-		    u = null;
-		}
-		HyperlinkEvent entered = new HyperlinkEvent(editor,
-							    HyperlinkEvent.EventType.ENTERED,
-							    u, href);
-		editor.fireHyperlinkUpdate(entered);
-	    }
-	}
-    }							
-
-	
     /**
      * Class to watch the associated component and fire
      * hyperlink events on it when appropriate.
      */
-    public static class LinkController extends MouseAdapter implements Serializable {
+    public static class LinkController extends MouseAdapter implements MouseMotionListener, Serializable {
+        private Element curElem = null;
+	private String href = null;
+	/** This is used by viewToModel to avoid allocing a new array each
+	 * time. */
+	private Position.Bias[] bias = new Position.Bias[1];
 
 	/**
          * Called for a mouse click event.
@@ -601,6 +583,55 @@ public class HTMLEditorKit extends StyledEditorKit {
 		}
 	    }
 	}
+
+        // ignore the drags
+        public void mouseDragged(MouseEvent e) {
+        }
+
+        // track the moving of the mouse.
+        public void mouseMoved(MouseEvent e) {
+            JEditorPane editor = (JEditorPane) e.getSource();
+	    HTMLEditorKit kit = (HTMLEditorKit)editor.getEditorKit();
+	    boolean adjustCursor = true;
+	    Cursor newCursor = kit.getDefaultCursor();
+            if (!editor.isEditable()) {
+                Point pt = new Point(e.getX(), e.getY());
+                int pos = editor.getUI().viewToModel(editor, pt, bias);
+		if (bias[0] == Position.Bias.Backward && pos > 0) {
+		    pos--;
+		}
+                if (pos >= 0) {
+                    Document doc = editor.getDocument();
+                    if (doc instanceof HTMLDocument) {
+                        HTMLDocument hdoc = (HTMLDocument) doc;
+                        Element elem = hdoc.getCharacterElement(pos);
+			if (curElem != elem) {
+			    curElem = elem;
+			    AttributeSet a = elem.getAttributes();
+			    AttributeSet anchor = (AttributeSet) a.getAttribute(HTML.Tag.A);
+			    String href = (anchor != null) ? 
+				(String) anchor.getAttribute(HTML.Attribute.HREF) 
+				: null;
+			    
+			    if (href != this.href) {
+				// reference changed, fire event(s)
+				fireEvents(editor, hdoc, href);
+				this.href = href;
+				if (href != null) {
+				    newCursor = kit.getLinkCursor();
+				}
+			    }
+                        }
+			else {
+			    adjustCursor = false;
+			}
+                    }
+                }
+            }
+	    if (adjustCursor && editor.getCursor() != newCursor) {
+		editor.setCursor(newCursor);
+	    }
+        }
 
 	/**
 	 * Calls linkActivated on the associated JEditorPane
@@ -722,6 +753,35 @@ public class HTMLEditorKit extends StyledEditorKit {
 	    }
 	    return linkEvent;
 	}
+
+	void fireEvents(JEditorPane editor, HTMLDocument doc, String href) {
+	    if (this.href != null) {
+		// fire an exited event on the old link
+		URL u;
+		try {
+		    u = new URL(doc.getBase(), this.href);
+		} catch (MalformedURLException m) {
+		    u = null;
+		}
+		HyperlinkEvent exit = new HyperlinkEvent(editor,
+							 HyperlinkEvent.EventType.EXITED,
+							 u, this.href);
+		editor.fireHyperlinkUpdate(exit);
+	    }
+	    if (href != null) {
+		// fire an entered event on the new link
+		URL u;
+		try {
+		    u = new URL(doc.getBase(), href);
+		} catch (MalformedURLException m) {
+		    u = null;
+		}
+		HyperlinkEvent entered = new HyperlinkEvent(editor,
+							    HyperlinkEvent.EventType.ENTERED,
+							    u, href);
+		editor.fireHyperlinkUpdate(entered);
+	    }
+	}
     }
 
     /**
@@ -730,7 +790,6 @@ public class HTMLEditorKit extends StyledEditorKit {
      * implementation provided by this editor kit.
      */
     public static abstract class Parser {
-
 	/**
 	 * Parse the given stream and drive the given callback 
 	 * with the results of the parse.  This method should
@@ -746,8 +805,22 @@ public class HTMLEditorKit extends StyledEditorKit {
      * <code>flush</code> method will be the last method
      * called, to give the receiver a chance to flush any
      * pending data into the document.
+     * <p>Refer to DocumentParser, the default parser used, for further
+     * information on the contents of the AttributeSets, the positions, and
+     * other info.
+     *
+     * @see javax.swing.text.html.parser.DocumentParser
      */
     public static class ParserCallback {
+	/**
+	 * This is passed as an attribute in the attributeset to indicate
+	 * the element is implied eg, the string '&lt;&gt;foo&lt;\t&gt;' 
+	 * contains an implied html element and an implied body element.
+	 *
+	 * @since 1.3
+	 */
+	public static final Object IMPLIED = "_implied_";
+
 
         public void flush() throws BadLocationException {
 	}
@@ -769,50 +842,98 @@ public class HTMLEditorKit extends StyledEditorKit {
 
 	public void handleError(String errorMsg, int pos){
 	}
+
+	/**
+	 * This is invoked after the stream has been parsed, but before
+	 * <code>flush</code>. <code>eol</code> will be one of \n, \r
+	 * or \r\n, which ever is encountered the most in parsing the
+	 * stream.
+	 *
+	 * @since 1.3
+	 */
+	public void handleEndOfLineString(String eol) {
+	}
     }
 
     /**
-     * A factory to build views for html.  The following 
+     * A factory to build views for HTML.  The following 
      * table describes what this factory will build by
      * default.
      *
      * <table>
-     * <th>Tag<th>View created
+     * <tr>
+     * <th align=left>Tag<th align=left>View created
+     * </tr><tr>
      * <td>HTML.Tag.CONTENT<td>InlineView
+     * </tr><tr>
      * <td>HTML.Tag.IMPLIED<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.P<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.H1<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.H2<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.H3<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.H4<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.H5<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.H6<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.DT<td>javax.swing.text.html.ParagraphView
+     * </tr><tr>
      * <td>HTML.Tag.MENU<td>ListView
+     * </tr><tr>
      * <td>HTML.Tag.DIR<td>ListView
+     * </tr><tr>
      * <td>HTML.Tag.UL<td>ListView
+     * </tr><tr>
      * <td>HTML.Tag.OL<td>ListView
+     * </tr><tr>
      * <td>HTML.Tag.LI<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.DL<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.DD<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.BODY<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.HTML<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.CENTER<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.DIV<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.BLOCKQUOTE<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.PRE<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.BLOCKQUOTE<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.PRE<td>BlockView
+     * </tr><tr>
      * <td>HTML.Tag.IMG<td>ImageView
+     * </tr><tr>
      * <td>HTML.Tag.HR<td>HRuleView
+     * </tr><tr>
      * <td>HTML.Tag.BR<td>BRView
+     * </tr><tr>
      * <td>HTML.Tag.TABLE<td>javax.swing.text.html.TableView
+     * </tr><tr>
      * <td>HTML.Tag.INPUT<td>FormView
+     * </tr><tr>
      * <td>HTML.Tag.SELECT<td>FormView
+     * </tr><tr>
      * <td>HTML.Tag.TEXTAREA<td>FormView
+     * </tr><tr>
      * <td>HTML.Tag.OBJECT<td>ObjectView
+     * </tr><tr>
      * <td>HTML.Tag.FRAMESET<td>FrameSetView
+     * </tr><tr>
      * <td>HTML.Tag.FRAME<td>FrameView
+     * </tr>
      * </table>
      */
     public static class HTMLFactory implements ViewFactory {
@@ -862,11 +983,12 @@ public class HTMLEditorKit extends StyledEditorKit {
 			    return r;
 			}
 		    };
+		} else if (kind == HTML.Tag.HTML) {
+		    return new BlockView(elem, View.Y_AXIS);
 		} else if ((kind == HTML.Tag.LI) || 
 			   (kind == HTML.Tag.CENTER) ||
 			   (kind == HTML.Tag.DL) ||
 			   (kind == HTML.Tag.DD) || 
-			   (kind == HTML.Tag.HTML) || 
 			   (kind == HTML.Tag.DIV) ||
 			   (kind == HTML.Tag.BLOCKQUOTE) || 
 			   (kind == HTML.Tag.PRE)) {
@@ -874,9 +996,6 @@ public class HTMLEditorKit extends StyledEditorKit {
 		    return new BlockView(elem, View.Y_AXIS);
 		} else if (kind == HTML.Tag.NOFRAMES) {
 		    return new NoFramesView(elem, View.Y_AXIS);
-		} else if ((kind == HTML.Tag.TH) ||
-			   (kind == HTML.Tag.TD)) {
-		    return new javax.swing.text.html.TableView.CellView(elem);
 		} else if (kind==HTML.Tag.IMG) {
 		    return new ImageView(elem);
 		} else if (kind == HTML.Tag.ISINDEX) {
@@ -907,8 +1026,30 @@ public class HTMLEditorKit extends StyledEditorKit {
 		    return new HiddenTagView(elem);
 		} else if (kind == HTML.Tag.COMMENT) {
 		    return new CommentView(elem);
-		} else if ((kind == HTML.Tag.HEAD) ||
-			   (kind == HTML.Tag.TITLE) ||
+		} else if (kind == HTML.Tag.HEAD) {
+		    // Make the head never visible, and never load its
+		    // children. For Cursor positioning,
+		    // getNextVisualPositionFrom is overriden to always return
+		    // the end offset of the element.
+		    return new BlockView(elem, View.X_AXIS) {
+			public float getPreferredSpan(int axis) {
+			    return 0;
+			}
+			public float getMinimumSpan(int axis) {
+			    return 0;
+			}
+			public float getMaximumSpan(int axis) {
+			    return 0;
+			}
+			protected void loadChildren(ViewFactory f) {
+			}
+			public int getNextVisualPositionFrom(int pos,
+				     Position.Bias b, Shape a, 
+				     int direction, Position.Bias[] biasRet) {
+			    return getElement().getEndOffset();
+			}
+		    };
+		} else if ((kind == HTML.Tag.TITLE) ||
 			   (kind == HTML.Tag.META) ||
 			   (kind == HTML.Tag.LINK) ||
 			   (kind == HTML.Tag.STYLE) ||
@@ -919,13 +1060,28 @@ public class HTMLEditorKit extends StyledEditorKit {
 			   (kind == HTML.Tag.APPLET)) {
 		    return new HiddenTagView(elem);
 		}
-		// don't know how to build this....
-		throw new Error("Can't build a " + kind + ", " + elem);
 	    }
-
-	    // don't know how to build this....
-	    throw new Error("Can't build a " + elem);
+	    // If we get here, it's either an element we don't know about
+	    // or something from StyledDocument that doesn't have a mapping to HTML.
+	    String nm = elem.getName();
+	    if (nm != null) {
+		if (nm.equals(AbstractDocument.ContentElementName)) {
+		    return new LabelView(elem);
+		} else if (nm.equals(AbstractDocument.ParagraphElementName)) {
+		    return new ParagraphView(elem);
+		} else if (nm.equals(AbstractDocument.SectionElementName)) {
+		    return new BoxView(elem, View.Y_AXIS);
+		} else if (nm.equals(StyleConstants.ComponentElementName)) {
+		    return new ComponentView(elem);
+		} else if (nm.equals(StyleConstants.IconElementName)) {
+		    return new IconView(elem);
+		}
+	    }
+	
+	    // default to text display
+	    return new LabelView(elem);
 	}
+
     }
 
     // --- Action implementations ------------------------------
@@ -1015,6 +1171,9 @@ public class HTMLEditorKit extends StyledEditorKit {
 	new InsertHRAction(),
 	new InsertHTMLTextAction("InsertPre", INSERT_PRE_HTML,
 				 HTML.Tag.BODY, HTML.Tag.PRE),
+	new NavigateLinkAction("next-link-action"), 
+	new NavigateLinkAction("previous-link-action"), 
+	new ActivateLinkAction("activate-link-action")
     };
 
 
@@ -1130,7 +1289,7 @@ public class HTMLEditorKit extends StyledEditorKit {
      * For example, lets say you wanted to create an action to insert
      * a table into the body. The parentTag would be HTML.Tag.BODY,
      * addTag would be HTML.Tag.TABLE, and the string could be something
-     * like &lt;table>&lt;tr>&lt;td>&lt;/td>&lt;/tr>&lt;/table>.
+     * like &lt;table&gt;&lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;.
      * <p>There is also an option to supply an alternate parentTag and
      * addTag. These will be checked for if there is no parentTag at
      * offset.
@@ -1185,9 +1344,24 @@ public class HTMLEditorKit extends StyledEditorKit {
 	}
 
 	/**
-	 * This is invoked when inserting at a boundry. It determines
+	 * This is invoked when inserting at a boundary. It determines
 	 * the number of pops, and then the number of pushes that need
 	 * to be performed, and then invokes insertHTML.
+	 * @since 1.3
+	 */
+	protected void insertAtBoundary(JEditorPane editor, HTMLDocument doc,
+					int offset, Element insertElement,
+					String html, HTML.Tag parentTag,
+					HTML.Tag addTag) {
+	    insertAtBoundry(editor, doc, offset, insertElement, html,
+			    parentTag, addTag);
+	}
+
+	/**
+	 * This is invoked when inserting at a boundary. It determines
+	 * the number of pops, and then the number of pushes that need
+	 * to be performed, and then invokes insertHTML.
+	 * @deprecated As of Java 2 platform v1.3, use insertAtBoundary
 	 */
 	protected void insertAtBoundry(JEditorPane editor, HTMLDocument doc,
 				       int offset, Element insertElement,
@@ -1247,7 +1421,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 
 	/**
 	 * If there is an Element with name <code>tag</code> at
-	 * <code>offset</code>, this will invoke either insertAtBoundry
+	 * <code>offset</code>, this will invoke either insertAtBoundary
 	 * or <code>insertHTML</code>. This returns true if there is
 	 * a match, and one of the inserts is invoked.
 	 */
@@ -1256,8 +1430,8 @@ public class HTMLEditorKit extends StyledEditorKit {
 			      int offset, HTML.Tag tag, HTML.Tag addTag) {
 	    Element e = findElementMatchingTag(doc, offset, tag);
 	    if (e != null && e.getStartOffset() == offset) {
-		insertAtBoundry(editor, doc, offset, e, html,
-				tag, addTag);
+		insertAtBoundary(editor, doc, offset, e, html,
+				 tag, addTag);
 		return true;
 	    }
 	    else if (offset > 0) {
@@ -1300,9 +1474,9 @@ public class HTMLEditorKit extends StyledEditorKit {
 	}
 
         /**
-         * Inserts the html into the document.
+         * Inserts the HTML into the document.
          *
-         * @param e the event
+         * @param ae the event
          */
         public void actionPerformed(ActionEvent ae) {
 	    JEditorPane editor = getEditor(ae);
@@ -1357,9 +1531,9 @@ public class HTMLEditorKit extends StyledEditorKit {
 	}
 
         /**
-         * Inserts the html into the document.
+         * Inserts the HTML into the document.
          *
-         * @param e the event
+         * @param ae the event
          */
         public void actionPerformed(ActionEvent ae) {
 	    JEditorPane editor = getEditor(ae);
@@ -1376,5 +1550,229 @@ public class HTMLEditorKit extends StyledEditorKit {
 	    }
 	}
 	
+    }
+
+    /*
+     * Action to move the focus on the next or previous hypertext link
+     */
+    static class NavigateLinkAction extends TextAction {
+
+	FocusHighlightPainter focusPainter = new FocusHighlightPainter(null);
+	Object selectionTag;
+	boolean focusBack = false;
+
+        /** 
+         * Create this action with the appropriate identifier. 
+         */
+        public NavigateLinkAction(String actionName) {
+            super(actionName);
+	    if ("previous-link-action".equals(actionName)) {
+		focusBack = true;
+	    }
+        }
+
+        /** The operation to perform when this action is triggered. */
+        public void actionPerformed(ActionEvent e) {
+            JTextComponent component = getTextComponent(e);
+	    if (component.isEditable()) {
+		return;
+	    }
+
+	    // highlight the next link after the curent caret position
+            if (component != null) {
+		Document doc = component.getDocument();
+		if (doc != null) {
+		    
+		    HTMLDocument hdoc = (HTMLDocument) doc;
+		    HTMLDocument.Iterator ei = hdoc.getIterator(HTML.Tag.A);
+
+		    int currentOffset = component.getCaretPosition();
+		    int prevStartOffset = 0;
+		    int prevEndOffset = 0;
+		    
+		    while (ei.isValid()) {
+			AttributeSet anchor = ei.getAttributes();
+			if (anchor != null) {
+			    String href = (String)anchor.getAttribute(HTML.Attribute.HREF);
+			    if (href != null) {
+				int startOffset = ei.getStartOffset();
+				if (focusBack) {
+				    if (startOffset >= currentOffset) {
+					component.setCaretPosition(prevStartOffset);
+					moveCaretPosition(component, prevStartOffset, 
+							  prevEndOffset);
+					return;
+				    }
+				} else { // focus forward
+				    if (startOffset > currentOffset) {
+					component.setCaretPosition(startOffset);
+					moveCaretPosition(component, startOffset,
+							  ei.getEndOffset());
+					return;
+				    } 
+				}
+			    }
+			}
+			prevStartOffset = ei.getStartOffset();
+			prevEndOffset = ei.getEndOffset();
+			ei.next();
+		    }
+                }
+            }
+        }
+	
+	/*
+	 * Moves the caret from mark to dot
+	 */
+	private void moveCaretPosition(JTextComponent component, int mark, int dot) {
+	    Highlighter h = component.getHighlighter();
+	    if (h != null) {
+		int p0 = Math.min(dot, mark);
+		int p1 = Math.max(dot, mark);
+		try {
+		    if (selectionTag != null) {
+			h.changeHighlight(selectionTag, p0, p1);
+		    } else {
+			Highlighter.HighlightPainter p = focusPainter;
+			selectionTag = h.addHighlight(p0, p1, p);
+		    }
+		} catch (BadLocationException e) {
+		    // XXX 
+		}
+	    }
+	}
+
+	/**
+	 * A highlight painter that draws a one-pixel border around
+	 * the highlighted area.
+	 */ 
+	class FocusHighlightPainter extends 
+	    DefaultHighlighter.DefaultHighlightPainter {
+
+	    FocusHighlightPainter(Color color) {
+		super(color);
+	    }
+	    
+	    /**
+	     * Paints a portion of a highlight.
+	     *
+	     * @param g the graphics context
+	     * @param offs0 the starting model offset >= 0
+	     * @param offs1 the ending model offset >= offs1
+	     * @param bounds the bounding box of the view, which is not
+	     *        necessarily the region to paint.
+	     * @param c the editor
+	     * @param view View painting for
+	     * @return region drawing occured in
+	     */
+	    public Shape paintLayer(Graphics g, int offs0, int offs1,
+				    Shape bounds, JTextComponent c, View view) {
+		
+		Color color = getColor();
+		
+		if (color == null) {
+		    g.setColor(c.getSelectionColor());
+		}
+		else {
+		    g.setColor(color);
+		}
+		if (offs0 == view.getStartOffset() &&
+		    offs1 == view.getEndOffset()) {
+		    // Contained in view, can just use bounds.
+		    Rectangle alloc;
+		    if (bounds instanceof Rectangle) {
+			alloc = (Rectangle)bounds;
+		    }
+		    else {
+			alloc = bounds.getBounds();
+		    }
+		    g.drawRect(alloc.x, alloc.y, alloc.width - 1, alloc.height);
+		    return alloc;
+		}
+		else {
+		    // Should only render part of View.
+		    try {
+			// --- determine locations ---
+			Shape shape = view.modelToView(offs0, Position.Bias.Forward,
+						       offs1,Position.Bias.Backward,
+						       bounds);
+			Rectangle r = (shape instanceof Rectangle) ?
+			    (Rectangle)shape : shape.getBounds();
+			g.drawRect(r.x, r.y, r.width - 1, r.height);
+			return r;
+		    } catch (BadLocationException e) {
+			// can't render
+		    }
+		}
+		// Only if exception
+		return null;
+	    }
+	}
+    }
+
+    /*
+     * Action to activate the hypertext link that has focus.
+     */
+    static class ActivateLinkAction extends TextAction {
+
+        /** 
+         * Create this action with the appropriate identifier. 
+         */
+        public ActivateLinkAction(String actionName) {
+            super(actionName);
+        }
+	
+        /** The operation to perform when this action is triggered. */
+        public void actionPerformed(ActionEvent e) {
+
+            JTextComponent c = getTextComponent(e);
+	    if (!(c instanceof JEditorPane)) {
+		return;
+	    }
+	    JEditorPane component = (JEditorPane)c;
+	    if (component.isEditable()) {
+		return;
+	    }
+	    
+	    // activate the hypertext link at the current caret position
+            if (component != null) {
+		Document doc = component.getDocument();
+		if (doc != null) {
+		    
+		    HTMLDocument hdoc = (HTMLDocument) doc;
+		    HTMLDocument.Iterator ei = hdoc.getIterator(HTML.Tag.A);
+
+		    int currentOffset = component.getCaretPosition();
+		    String urlString = null;
+		    
+		    while (ei.isValid()) {
+			AttributeSet anchor = ei.getAttributes();
+			if (anchor != null) {
+			    String href = 
+				(String)anchor.getAttribute(HTML.Attribute.HREF);
+			    if (href != null) {
+				if (currentOffset >= ei.getStartOffset() &&
+				    currentOffset <= ei.getEndOffset()) {
+				    urlString = href;
+				    break;
+				}
+			    }
+			}
+			ei.next();
+		    }
+		    if (urlString != null) {
+			try {
+			    URL page = 
+				(URL)doc.getProperty(Document.StreamDescriptionProperty);
+			    URL url = new URL(page, urlString);
+			    HyperlinkEvent linkEvent = new HyperlinkEvent(component, 
+                                HyperlinkEvent.EventType.ACTIVATED, url);
+			    component.fireHyperlinkUpdate(linkEvent);
+			} catch (MalformedURLException m) {
+			}			
+		    }
+		}
+	    }
+	}
     }
 }

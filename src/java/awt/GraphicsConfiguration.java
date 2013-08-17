@@ -1,8 +1,11 @@
 /*
- * @(#)GraphicsConfiguration.java	1.21 01/11/29
+ * @(#)GraphicsConfiguration.java	1.26 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt;
@@ -20,6 +23,51 @@ import java.awt.image.ColorModel;
  * and Macintoshes, the different screen resolution/color resolution
  * combinations would be different <code>GraphicsConfiguration</code>
  * objects.
+ * <p>
+ * In a virtual device multi-screen environment in which the desktop
+ * area could span multiple physical screen devices, the bounds of the 
+ * <code>GraphicsConfiguration</code> objects are relative to the
+ * virtual coordinate system.  When setting the location of a 
+ * component, use {@link #getBounds() getBounds} to get the bounds of 
+ * the desired <code>GraphicsConfiguration</code> and offset the location
+ * with the coordinates of the <code>GraphicsConfiguration</code>,
+ * as the following code sample illustrates:
+ * <pre>
+ *      Frame f = new Frame(GraphicsConfiguration gc);
+ *      Rectangle bounds = gc.getBounds();
+ *      f.setLocation(10 + bounds.x, 10 + bounds.y);
+ * </pre>
+ * To determine if your environment is a virtual device
+ * environment, call <code>getBounds</code> on all of the 
+ * <code>GraphicsConfiguration</code> objects in your system.  If 
+ * any of the origins of the returned bounds are not (0,&nbsp;0),
+ * your environment is a virtual device environment.
+ * <p>
+ * You can also use <code>getBounds</code> to determine the bounds
+ * of the virtual device.  Call <code>getBounds</code> on all
+ * of the <code>GraphicsConfiguration</code> objects in your
+ * system.  Then, calculate the union of all of the bounds returned
+ * from the calls to <code>getBounds</code>.  The union is the
+ * bounds of the virtual device.  The following code sample
+ * calculates the bounds of the virtual device.
+ * <pre>
+ *	Rectangle virtualBounds = new Rectangle();
+ *      GraphicsEnvironment ge = GraphicsEnvironment.
+ *		getLocalGraphicsEnvironment();
+ *	GraphicsDevice[] gs =
+ *		ge.getScreenDevices();
+ *	for (int j = 0; j < gs.length; j++) { 
+ *	   GraphicsDevice gd = gs[j];
+ *	   GraphicsConfiguration[] gc =
+ *	      gd.getConfigurations();
+ *	   for (int i=0; i < gc.length; i++) {
+ *	      virtualBounds =
+ *		virtualBounds.union(gc[i].getBounds());
+ *	   }
+ *      }
+ * </pre>                   
+ * @see Window
+ * @see Frame
  * @see GraphicsEnvironment
  * @see GraphicsDevice
  */
@@ -30,7 +78,7 @@ import java.awt.image.ColorModel;
  * capabilities and checking if the GraphicsConfiguration
  * implements the interface for that capability.
  *
- * @version  10 Feb 1997
+ * @version 1.26, 02/02/00
  */
 
 
@@ -161,6 +209,17 @@ public abstract class GraphicsConfiguration {
      */
     public abstract AffineTransform getNormalizingTransform();
 
-}
+    /**
+     * Returns the bounds of the <code>GraphicsConfiguration</code>
+     * in the device coordinates. In a multi-screen environment
+     * with a virtual device, the bounds can have negative X
+     * or Y origins.
+     * @return the bounds of the area covered by this
+     * <code>GraphicsConfiguration</code>.
+     * @since 1.3
+     */
+    public abstract Rectangle getBounds();
+    
+    }
 
 

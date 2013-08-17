@@ -1,17 +1,16 @@
 /*
- * @(#)DateFormatSymbols.java	1.31 01/11/29
+ * @(#)DateFormatSymbols.java	1.32 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)DateFormatSymbols.java	1.31 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -41,6 +27,8 @@ import java.util.ResourceBundle;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.util.Hashtable;
+import java.util.Vector;
+import java.util.Enumeration;
 
 /**
  * <code>DateFormatSymbols</code> is a public class for encapsulating
@@ -85,7 +73,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          SimpleDateFormat
  * @see          java.util.SimpleTimeZone
- * @version      1.31 11/29/01
+ * @version      1.32 01/19/00
  * @author       Chen-Lieh Huang
  */
 public class DateFormatSymbols implements Serializable, Cloneable {
@@ -414,6 +402,11 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      */
     private static Hashtable cachedLocaleData = new Hashtable(3);
 
+    /**
+     * cache to hold time zone localized strings. Keyed by Locale
+     */
+    private static Hashtable cachedZoneData = new Hashtable();
+
     /* Utility methods for fetching resource bundles */
     private ResourceBundle getLocaleElements(Locale desiredLocale) {
     return ResourceBundle.getBundle("java.text.resources.LocaleElements",
@@ -455,14 +448,44 @@ public class DateFormatSymbols implements Serializable, Cloneable {
 	return rbs;
     }
 
+    /**
+     * Load time zone localized strings. Enumerate all keys (except
+     * "localPatternChars" and "zoneStrings").
+     */
+    private String[][] loadZoneStrings(Locale desiredLocale, 
+				       ResourceBundle rsrc) 
+    {
+	String[][] zones;
+	SoftReference data = (SoftReference)cachedZoneData.get(desiredLocale);
+	if (data == null || ((zones = (String[][])data.get()) == null)) {
+	    Vector vec = new Vector();
+	    Enumeration keys = rsrc.getKeys();
+	    while(keys.hasMoreElements()) {
+		String key = (String)keys.nextElement();
+		if (!key.equals("localPatternChars") && 
+		    !key.equals("zoneStrings")) {
+		    vec.add(rsrc.getObject(key));
+		}
+	    }
+	    zones = new String[vec.size()][];
+	    vec.toArray(zones);
+	    data = new SoftReference(zones);
+	    cachedZoneData.put(desiredLocale, data);
+	} 
+	return zones;
+    }
+
     private void initializeData(Locale desiredLocale)
     {
-    int i;
-    ResourceBundle[] rbs = cacheLookup(desiredLocale);
-    ResourceBundle resource = rbs[0];
-    ResourceBundle zoneResource = rbs[1];
+	int i;
+	ResourceBundle[] rbs = cacheLookup(desiredLocale);
+	ResourceBundle resource = rbs[0];
+	ResourceBundle zoneResource = rbs[1];
 
-    eras = (String[])resource.getObject("Eras");
+	// FIXME: cache only ResourceBundle. Hence every time, will do
+	// getObject(). This won't be necessary if the Resource itself
+	// is cached.
+	eras = (String[])resource.getObject("Eras");
         months = resource.getStringArray("MonthNames");
         shortMonths = resource.getStringArray("MonthAbbreviations");
         String[] lWeekdays = resource.getStringArray("DayNames");
@@ -476,7 +499,8 @@ public class DateFormatSymbols implements Serializable, Cloneable {
         for (i=0; i<sWeekdays.length; i++)
             shortWeekdays[i+1] = sWeekdays[i];
         ampms = resource.getStringArray("AmPmMarkers");
-        zoneStrings = (String[][])zoneResource.getObject("zoneStrings");
+	zoneStrings = (String[][])loadZoneStrings(desiredLocale, 
+						  zoneResource);
         localPatternChars
             = (String) zoneResource.getObject("localPatternChars");
     }

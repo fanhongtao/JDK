@@ -1,8 +1,11 @@
 /*
- * @(#)X509Certificate.java	1.22 01/11/29
+ * @(#)X509Certificate.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security.cert;
@@ -40,9 +43,10 @@ import java.util.Date;
  * CA certificates are either signed by themselves, or by some other
  * CA such as a "root" CA.
  * <p>
- * A good decription and profiling is provided in the IETF PKIX WG
- * draft, Part I:  X.509 Certificate and CRL Profile,
- * &lt;draft-ietf-pkix-ipki-part1-07.txt&gt;.
+ * More information can be found in RFC 2459,
+ * "Internet X.509 Public Key Infrastructure Certificate and CRL
+ * Profile" at <A HREF="http://www.ietf.org/rfc/rfc2459.txt"> 
+ * http://www.ietf.org/rfc/rfc2459.txt </A>.
  * <p>
  * The ASN.1 definition of <code>tbsCertificate</code> is:
  * <pre>
@@ -74,7 +78,7 @@ import java.util.Date;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.22
+ * @version 1.27
  *
  * @see Certificate
  * @see CertificateFactory
@@ -207,7 +211,7 @@ implements X509Extension {
      * subject    Name
      * </pre>
      * 
-     * <p>See {@link getIssuerDN()#getIssuerDN} for <code>Name</code> 
+     * <p>See {@link #getIssuerDN() getIssuerDN} for <code>Name</code> 
      * and other relevant definitions.
      * 
      * @return a Principal whose name is the subject name.
@@ -236,7 +240,7 @@ implements X509Extension {
 
     /**
      * Gets the <code>notAfter</code> date from the validity period of 
-     * the certificate. See {@link getNotBefore()#getNotBefore}
+     * the certificate. See {@link #getNotBefore() getNotBefore}
      * for relevant ASN.1 definitions.
      *
      * @return the end date of the validity period.
@@ -293,9 +297,9 @@ implements X509Extension {
      * An OID is represented by a set of positive whole numbers separated
      * by periods.
      * For example, the string "1.2.840.10040.4.3" identifies the SHA-1
-     * with DSA signature algorithm, as per the PKIX part I.
+     * with DSA signature algorithm, as per RFC 2459.
      * 
-     * <p>See {@link getSigAlgName()#getSigAlgName} for 
+     * <p>See {@link #getSigAlgName() getSigAlgName} for 
      * relevant ASN.1 definitions.
      *
      * @return the signature algorithm OID string.
@@ -308,11 +312,11 @@ implements X509Extension {
      * algorithm parameters are null; the parameters are usually
      * supplied with the certificate's public key.
      * If access to individual parameter values is needed then use
-     * {@link java.security.AlgorithmParameters#AlgorithmParameters}
+     * {@link java.security.AlgorithmParameters AlgorithmParameters}
      * and instantiate with the name returned by
-     * {@link getSigAlgName()#getSigAlgName}.
+     * {@link #getSigAlgName() getSigAlgName}.
      * 
-     * <p>See {@link getSigAlgName()#getSigAlgName} for 
+     * <p>See {@link #getSigAlgName() getSigAlgName} for 
      * relevant ASN.1 definitions.
      *
      * @return the DER-encoded signature algorithm parameters, or
@@ -324,7 +328,7 @@ implements X509Extension {
      * Gets the <code>issuerUniqueID</code> value from the certificate.
      * The issuer unique identifier is present in the certificate
      * to handle the possibility of reuse of issuer names over time.
-     * The PKIX Part I recommends that names not be reused and that
+     * RFC 2459 recommends that names not be reused and that
      * conforming certificates not make use of unique identifiers.
      * Applications conforming to that profile should be capable of
      * parsing unique identifiers and making comparisons.
@@ -373,12 +377,16 @@ implements X509Extension {
      *     encipherOnly            (7),
      *     decipherOnly            (8) }
      * </pre>
-     * The PKIX part I draft recommends that when used, this be marked
+     * RFC 2459 recommends that when used, this be marked
      * as a critical extension.
      *
-     * @return the bit values of the KeyUsage extension as an array of
-     * booleans,
-     * or null if the KeyUsage extension is not present in the certificate.
+     * @return the KeyUsage extension of this certificate, represented as
+     * an array of booleans. The order of KeyUsage values in the array is
+     * the same as in the above ASN.1 definition. The array will contain a
+     * value for each KeyUsage defined above. If the KeyUsage list encoded
+     * in the certificate is longer than the above list, it will not be
+     * truncated. Returns null if this certificate does not
+     * contain a KeyUsage extension.
      */
     public abstract boolean[] getKeyUsage();
 
@@ -395,7 +403,7 @@ implements X509Extension {
      * certification path. A value of zero indicates that only an end-entity
      * certificate may follow in the path.
      * <p>
-     * Note that for the PKIX profile this extension is always marked
+     * Note that for RFC 2459 this extension is always marked
      * critical if <code>cA</code> is TRUE, meaning this certificate belongs
      * to a Certificate Authority.
      * <p>
@@ -406,9 +414,13 @@ implements X509Extension {
      *     pathLenConstraint   INTEGER (0..MAX) OPTIONAL }
      * </pre>
      *
-     * @return the length of the constraint if the BasicConstraints extension
-     * is present in the certificate and the <code>cA</code> value is TRUE. 
-     * Otherwise returns -1.
+     * @return the value of <code>pathLenConstraint</code> if the
+     * BasicConstraints extension is present in the certificate and the
+     * subject of the certificate is a CA, otherwise -1.
+     * If the subject of the certificate is a CA and
+     * <code>pathLenConstraint</code> does not appear,
+     * <code>Integer.MAX_VALUE</code> is returned to indicate that there is no
+     * limit to the allowed length of the certification path.
      */
     public abstract int getBasicConstraints();
 }

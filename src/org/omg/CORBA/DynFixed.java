@@ -1,32 +1,40 @@
 /*
- * @(#)DynFixed.java	1.4 01/11/29
+ * @(#)DynFixed.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
 package org.omg.CORBA;
 
-/** The DynFixed interface represents a DynAny object which is associated
+/**
+ *  Represents a <code>DynAny</code> object that is associated
  *  with an IDL fixed type.
  */
 
 public interface DynFixed extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**
-     * Return the value of the fixed type represented in the
-     * <code>DynFixed</code.
+     * Returns the value of the fixed type represented in this
+     * <code>DynFixed</code> object.
      *
-     * @return the value as a byte array.
+     * @return the value as a byte array
+	 * @see #set_value
      */
     public byte[] get_value();
 
     /**
-     * Set the value of the fixed type instance into this
-     * <code>DynFixed</code>.
+     * Sets the given fixed type instance as the value for this 
+     * <code>DynFixed</code> object.
      *
-     * @param val the value as a byte array.
+     * @param val the value of the fixed type as a byte array
+	 * @throws org.omg.CORBA.DynAnyPackage.InvalidValue if the given
+	 *         argument is bad
+	 * @see #get_value
      */
     public void set_value(byte[] val)
         throws org.omg.CORBA.DynAnyPackage.InvalidValue;

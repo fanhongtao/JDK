@@ -1,8 +1,11 @@
 /*
- * @(#)ServerRequest.java	1.21 01/11/29
+ * @(#)ServerRequest.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -77,8 +80,8 @@ public abstract class ServerRequest {
      * respectively.
      *
      * @return     the name of the operation to be invoked
-	 * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
-	 *      package comments for unimplemented features</a>
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
+     *      package comments for unimplemented features</a>
      */
     public String operation()
     {
@@ -89,26 +92,26 @@ public abstract class ServerRequest {
     /**
      * Specifies method parameter types and retrieves "in" and "inout"
      * argument values.
-	 * <P>
-	 * Note that this method is deprecated; use the method
-	 * <code>arguments</code> in its place.
-	 * <P>
-	 * Unless it calls the method <code>set_exception</code>,
+     * <P>
+     * Note that this method is deprecated; use the method
+     * <code>arguments</code> in its place.
+     * <P>
+     * Unless it calls the method <code>set_exception</code>,
      * the DIR must call this method exactly once, even if the
      * method signature contains no parameters. Once the method <code>
-	 * arguments</code> or <code>set_exception</code>
+     * arguments</code> or <code>set_exception</code>
      * has been called, calling <code>arguments</code> on the same
      * <code>ServerRequest</code> object 
      * will result in a <code>BAD_INV_ORDER</code> system exception.
-	 * The DIR must pass in to the method <code>arguments</code>
-	 * an NVList initialized with TypeCodes and Flags
+     * The DIR must pass in to the method <code>arguments</code>
+     * an NVList initialized with TypeCodes and Flags
      * describing the parameter types for the operation, in the order in which
      * they appear in the IDL specification (left to right). A
      * potentially-different NVList will be returned from
-	 * <code>arguments</code>, with the
+     * <code>arguments</code>, with the
      * "in" and "inout" argument values supplied. If it does not call
      * the method <code>set_exception</code>,
-	 * the DIR must supply the returned NVList with return
+     * the DIR must supply the returned NVList with return
      * values for any "out" arguments before returning, and may also change
      * the return values for any "inout" arguments.
      *
@@ -124,29 +127,29 @@ public abstract class ServerRequest {
     /**
      * Specifies method parameter types and retrieves "in" and "inout"
      * argument values.
-	 * Unless it calls the method <code>set_exception</code>,
+     * Unless it calls the method <code>set_exception</code>,
      * the DIR must call this method exactly once, even if the
      * method signature contains no parameters. Once the method <code>
-	 * arguments</code> or <code>set_exception</code>
+     * arguments</code> or <code>set_exception</code>
      * has been called, calling <code>arguments</code> on the same
      * <code>ServerRequest</code> object 
      * will result in a <code>BAD_INV_ORDER</code> system exception.
-	 * The DIR must pass in to the method <code>arguments</code>
-	 * an NVList initialized with TypeCodes and Flags
+     * The DIR must pass in to the method <code>arguments</code>
+     * an NVList initialized with TypeCodes and Flags
      * describing the parameter types for the operation, in the order in which
      * they appear in the IDL specification (left to right). A
      * potentially-different NVList will be returned from
-	 * <code>arguments</code>, with the
+     * <code>arguments</code>, with the
      * "in" and "inout" argument values supplied. If it does not call
      * the method <code>set_exception</code>,
-	 * the DIR must supply the returned NVList with return
+     * the DIR must supply the returned NVList with return
      * values for any "out" arguments before returning, and it may also change
      * the return values for any "inout" arguments.
      *
      * @param args              the arguments of the method, in the
      *                            form of an NVList
-	 * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
-	 *      package comments for unimplemented features</a>
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
+     *      package comments for unimplemented features</a>
      */
     public void arguments(org.omg.CORBA.NVList args) {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -156,23 +159,23 @@ public abstract class ServerRequest {
 
     /**
      * Specifies any return value for the call. 
-	 * <P>
-	 * Note that this method is deprecated; use the method
-	 * <code>set_result</code> in its place.
-	 * <P>
-	 * Unless the method 
-	 * <code>set_exception</code> is called, if the invoked method
-	 * has a non-void result type, the method <code>set_result</code>
-	 * must be called exactly once before the DIR returns.
+     * <P>
+     * Note that this method is deprecated; use the method
+     * <code>set_result</code> in its place.
+     * <P>
+     * Unless the method 
+     * <code>set_exception</code> is called, if the invoked method
+     * has a non-void result type, the method <code>set_result</code>
+     * must be called exactly once before the DIR returns.
      * If the operation has a void result type, the method 
-	 * <code>set_result</code> may optionally be
+     * <code>set_result</code> may optionally be
      * called once with an <code>Any</code> object whose type is 
-	 * <code>tk_void</code>. Calling the method <code>set_result</code> before
+     * <code>tk_void</code>. Calling the method <code>set_result</code> before
      * the method <code>arguments</code> has been called or after
-	 * the method <code>set_result</code> or <code>set_exception</code> has been
+     * the method <code>set_result</code> or <code>set_exception</code> has been
      * called will result in a BAD_INV_ORDER exception. Calling the method
-	 * <code>set_result</code> without having previously called
-	 * the method <code>ctx</code> when the IDL operation contains a
+     * <code>set_result</code> without having previously called
+     * the method <code>ctx</code> when the IDL operation contains a
      * context expression, or when the NVList passed to arguments did not
      * describe all parameters passed by the client, may result in a MARSHAL
      * system exception.
@@ -187,24 +190,24 @@ public abstract class ServerRequest {
 
     /**
      * Specifies any return value for the call. Unless the method 
-	 * <code>set_exception</code> is called, if the invoked method
-	 * has a non-void result type, the method <code>set_result</code>
-	 * must be called exactly once before the DIR returns.
+     * <code>set_exception</code> is called, if the invoked method
+     * has a non-void result type, the method <code>set_result</code>
+     * must be called exactly once before the DIR returns.
      * If the operation has a void result type, the method 
-	 * <code>set_result</code> may optionally be
+     * <code>set_result</code> may optionally be
      * called once with an <code>Any</code> object whose type is 
-	 * <code>tk_void</code>. Calling the method <code>set_result</code> before
+     * <code>tk_void</code>. Calling the method <code>set_result</code> before
      * the method <code>arguments</code> has been called or after
-	 * the method <code>set_result</code> or <code>set_exception</code> has been
+     * the method <code>set_result</code> or <code>set_exception</code> has been
      * called will result in a BAD_INV_ORDER exception. Calling the method
-	 * <code>set_result</code> without having previously called
-	 * the method <code>ctx</code> when the IDL operation contains a
+     * <code>set_result</code> without having previously called
+     * the method <code>ctx</code> when the IDL operation contains a
      * context expression, or when the NVList passed to arguments did not
      * describe all parameters passed by the client, may result in a MARSHAL
      * system exception.
      *
-	 * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
-	 *      package comments for unimplemented features</a>
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
+     *      package comments for unimplemented features</a>
      */
     public void set_result(org.omg.CORBA.Any any)
     {
@@ -232,27 +235,27 @@ public abstract class ServerRequest {
     }
 
     /**
-	 * Returns the given exception to the client.  This method 
-	 * is invoked by the DIR, which may call it at any time.
+     * Returns the given exception to the client.  This method 
+     * is invoked by the DIR, which may call it at any time.
      * The <code>Any</code> object  passed to this method must
-	 * contain either a system
+     * contain either a system
      * exception or one of the user exceptions specified in the 
      * invoked operation's IDL definition. Passing in an
      * <code>Any</code> object that does not contain an exception 
-	 * will cause a BAD_PARAM system exception to be thrown. Passing
+     * will cause a BAD_PARAM system exception to be thrown. Passing
      * in an unlisted user exception will result in either the DIR receiving a
      * BAD_PARAM system exception or in the client receiving an
      * UNKNOWN_EXCEPTION system exception.
      *
      * @param any	the <code>Any</code> object containing the exception
-	 * @exception BAD_PARAM if the given <code>Any</code> object does not
-	 *                      contain an exception or the exception is an
-	 *                      unlisted user exception
-	 * @exception UNKNOWN_EXCEPTION if the given exception is an unlisted
-	 *                              user exception and the DIR did not
-	 *                              receive a BAD_PARAM exception
-	 * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
-	 *      package comments for unimplemented features</a>
+     * @exception BAD_PARAM if the given <code>Any</code> object does not
+     *                      contain an exception or the exception is an
+     *                      unlisted user exception
+     * @exception UNKNOWN_EXCEPTION if the given exception is an unlisted
+     *                              user exception and the DIR did not
+     *                              receive a BAD_PARAM exception
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
+     *      package comments for unimplemented features</a>
      */
     public void set_exception(Any any)
     {
@@ -260,24 +263,24 @@ public abstract class ServerRequest {
     }
 
     /**
-	 * Returns the context information specified in IDL for the operation
+     * Returns the context information specified in IDL for the operation
      * when the operation is not an attribute access and the operation's IDL
      * definition contains a context expression; otherwise it returns
      * a nil <code>Context</code> reference. Calling the method
-	 * <code>ctx</code> before the method <code>arguments</code> has
-	 * been called or after the method <code>ctx</code>,
-	 * <code>set_result</code>, or <code>set_exception</code>
-	 * has been called will result in a
+     * <code>ctx</code> before the method <code>arguments</code> has
+     * been called or after the method <code>ctx</code>,
+     * <code>set_result</code>, or <code>set_exception</code>
+     * has been called will result in a
      * BAD_INV_ORDER system exception.
      *
      * @return			the context object that is to be used
      *				to resolve any context strings whose
      *				values need to be sent with the invocation.
-	 * @exception BAD_INV_ORDER if (1) the method <code>ctx</code> is called
-	 *                          before the method <code>arguments</code> or
-	 *                          (2) the method <code>ctx</code> is called
-	 *                          after calling <code>set_result</code> or
-	 *                          <code>set_exception</code>
+     * @exception BAD_INV_ORDER if (1) the method <code>ctx</code> is called
+     *                          before the method <code>arguments</code> or
+     *                          (2) the method <code>ctx</code> is called
+     *                          after calling <code>set_result</code> or
+     *                          <code>set_exception</code>
      */
     public abstract Context ctx();
 

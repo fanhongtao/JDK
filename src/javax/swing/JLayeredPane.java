@@ -1,8 +1,11 @@
 /*
- * @(#)JLayeredPane.java	1.34 01/11/29
+ * @(#)JLayeredPane.java	1.38 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -19,6 +22,9 @@ import javax.accessibility.*;
  * each other when needed. An Integer object specifies each component's depth in the
  * container, where higher-numbered components sit &quot;on top&quot; of other 
  * components.
+ * For task-oriented documentation and examples of using layered panes see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/layeredpane.html">How to Use a Layered Pane</a>,
+ * a section in <em>The Java Tutorial</em>.
  * <P>
  * <TABLE ALIGN="RIGHT" BORDER="0">
  * <TR>
@@ -118,7 +124,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  * 
- * @version 1.34 11/29/01
+ * @version 1.38 04/06/00
  * @author David Kloba
  */
 public class JLayeredPane extends JComponent implements Accessible {
@@ -668,9 +674,13 @@ public class JLayeredPane extends JComponent implements Accessible {
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JLayeredPane. 
+     * For layered panes, the AccessibleContext takes the form of an 
+     * AccessibleJLayeredPane. 
+     * A new AccessibleJLayeredPane instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJLayeredPane that serves as the 
+     *         AccessibleContext of this JLayeredPane
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -680,7 +690,10 @@ public class JLayeredPane extends JComponent implements Accessible {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JLayeredPane</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to layered pane user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

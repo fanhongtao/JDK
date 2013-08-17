@@ -1,8 +1,11 @@
 /*
- * @(#)RSAPrivateKey.java	1.5 01/11/29
+ * @(#)RSAPrivateKey.java	1.7 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.interfaces;
@@ -14,20 +17,13 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.5 01/11/29
+ * @version 1.7 00/02/02
  *
  * @see RSAPrivateCrtKey
  */
 
-public interface RSAPrivateKey extends java.security.PrivateKey {
-
-    /**
-     * Returns the modulus.
-     *
-     * @return the modulus
-     */
-    public BigInteger getModulus();
-
+public interface RSAPrivateKey extends java.security.PrivateKey, RSAKey
+{
     /**
      * Returns the private exponent.
      *

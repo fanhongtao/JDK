@@ -1,8 +1,11 @@
 /*
- * @(#)MimeType.java	1.15 01/11/29
+ * @(#)MimeType.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.datatransfer;
@@ -11,11 +14,16 @@ import java.io.Externalizable;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
 import java.io.IOException;
+import java.util.Enumeration;
 
 
 /**
  * A Multipurpose Internet Mail Extension (MIME) type, as defined
  * in RFC 2045 and 2046.
+ *
+ * THIS IS *NOT* - REPEAT *NOT* - A PUBLIC CLASS! DataFlavor IS
+ * THE PUBLIC INTERFACE, AND THIS IS PROVIDED AS A ***PRIVATE***
+ * (THAT IS AS IN *NOT* PUBLIC) HELPER CLASS!
  */
 class MimeType implements Externalizable, Cloneable {
 
@@ -82,11 +90,40 @@ MimeTypeParseException {
 	    throw new RuntimeException("cannot clone parameter list");
 	}
     }
+
+    public int hashCode() {
+
+	// We sum up the hash codes for all of the strings. This
+	// way, the order of the strings is irrelevant
+	int code = 0;
+	code += primaryType.hashCode();
+	code += subType.hashCode();
+	code += parameters.hashCode();
+	return code;
+    } // hashCode()
+
+    /**
+     * MimeTypes are equals if their primary types, subtypes, and
+     * parameters are all equal. No default values are taken into
+     * account.
+     */
+    public boolean equals(Object thatObject) {
+	if (!(thatObject instanceof MimeType)) {
+	    return false;
+	}
+	MimeType that = (MimeType)thatObject;
+	boolean isIt = 
+	    ((this.primaryType.equals(that.primaryType)) &&
+	     (this.subType.equals(that.subType)) &&
+	     (this.parameters.equals(that.parameters)));
+	return isIt;
+    } // equals()
     
     /**
      * A routine for parsing the MIME type out of a String.
      */
     private void parse(String rawdata) throws MimeTypeParseException {
+	//System.out.println("MimeType.parse("+rawdata+")");
         int slashIndex = rawdata.indexOf('/');
         int semIndex = rawdata.indexOf(';');
         if((slashIndex < 0) && (semIndex < 0)) {
@@ -299,4 +336,4 @@ ClassNotFoundException {
 
     private static final String TSPECIALS = "()<>@,;:\\\"/[]?=";
     
-}
+} // class MimeType

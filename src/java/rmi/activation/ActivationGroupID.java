@@ -1,8 +1,11 @@
 /*
- * @(#)ActivationGroupID.java	1.9 01/11/29
+ * @(#)ActivationGroupID.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -23,10 +26,10 @@ import java.rmi.server.UID;
  * when an activation group is created/recreated.
  *
  * @author 	Ann Wollrath
- * @version	1.9, 11/29/01
+ * @version	1.12, 02/02/00
  * @see 	ActivationGroup
  * @see		ActivationGroupDesc
- * @since	JDK1.2
+ * @since	1.2
  */
 public class ActivationGroupID implements java.io.Serializable {
     /**
@@ -39,14 +42,14 @@ public class ActivationGroupID implements java.io.Serializable {
      */
     private UID uid = new UID();
 
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private  static final long serialVersionUID = -1648432278909740833L;
 
     /**
      * Constructs a unique group id.
      *
      * @param system the group's activation system
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationGroupID(ActivationSystem system) {
 	this.system = system;
@@ -55,7 +58,7 @@ public class ActivationGroupID implements java.io.Serializable {
     /**
      * Returns the group's activation system.
      * @return the group's activation system
-     * @since JDK1.2
+     * @since 1.2
      */
     public ActivationSystem getSystem() {
 	return system;
@@ -67,7 +70,7 @@ public class ActivationGroupID implements java.io.Serializable {
      * same hash code.
      *
      * @see java.util.Hashtable
-     * @since JDK1.2
+     * @since 1.2
      */
     public int hashCode() {
 	return uid.hashCode();
@@ -83,7 +86,7 @@ public class ActivationGroupID implements java.io.Serializable {
      * @param	obj	the Object to compare with
      * @return	true if these Objects are equal; false otherwise.
      * @see		java.util.Hashtable
-     * @since JDK1.2
+     * @since 1.2
      */
     public boolean equals(Object obj) {
 	if (this == obj) {

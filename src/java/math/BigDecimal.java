@@ -1,8 +1,11 @@
 /*
- * @(#)BigDecimal.java	1.21 01/11/29
+ * @(#)BigDecimal.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.math;
@@ -50,7 +53,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.21, 03/09/04
+ * @version 1.29, 02/02/00
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {
@@ -74,25 +77,82 @@ public class BigDecimal extends Number implements Comparable {
     private static final long serialVersionUID = 6108874887143696463L;
 
     // Constructors
-
+    
     /**
      * Translates the String representation of a BigDecmal into a BigDecimal.
-     * The String representation consists of an optional minus sign followed
-     * by a sequence of zero or more decimal digits, optionally followed by a
-     * fraction.  The fraction consists of of a decimal point followed by zero
-     * or more decimal digits.  The string must contain at least one digit in
-     * the integer or fractional part.  The scale of the resulting BigDecimal
-     * will be the number of digits to the right of the decimal point in the
-     * string, or 0 if the string contains no decimal point.  The
-     * character-to-digit mapping is provided by Character.digit.  The String
-     * may not contain any extraneous characters (whitespace, for example).
+     * The String representation consists of an optional sign (<tt>'+'</tt> or
+     * <tt>'-'</tt>) followed by a sequence of zero or more decimal digits
+     * ("the integer"), optionally followed by a fraction, optionally followed
+     * by an exponent.
+     *
+     * <p>The fraction consists of of a decimal point followed by zero or more
+     * decimal digits.  The string must contain at least one digit in either
+     * the integer or the fraction.  The number formed by the sign, the
+     * integer and the fraction is referred to as the <i>significand</i>.
+     *
+     * <p>The exponent consists of the character <tt>'e'</tt>(<tt>0x75</tt>)
+     * or <tt>E</tt> (<tt>0x45</tt>) followed by one or more decimal digits.
+     * The value of the exponenet must lie between <tt>Integer.MIN_VALUE</tt>
+     * and <tt>Integer.MAX_VALUE</tt>, inclusive.
+     *
+     * <p>The scale of the returned BigDecimal will be the number of digits in
+     * the fraction, or zero if the string contains no decimal point, subject
+     * to adjustment for any exponent:  If the string contains an exponent, the
+     * exponent is subtracted from the scale.  If the resulting scale is
+     * negative, the scale of the returned BigDecimal is zero and the unscaled
+     * value is multiplied by the appropriate power of ten so that, in every
+     * case, the resulting BigDecimal is equal to <i>significand *
+     * 10<sup>exponent</sup></i>. (If in the future this specification is 
+     * amended to permit negative scales, the final step of zeroing the scale
+     * and adjusting the unscaled value will be eliminated.)
+     *
+     * <p>The character-to-digit mapping is provided by {@link
+     * java.lang.Character#digit}.  The String may not contain any extraneous
+     * characters (whitespace, for example).
+     *
+     * <p>Note: For floats (and doubles) other that NAN, +INFINITY and
+     * -INFINITY, this constructor is compatible with the values returned by
+     * <tt>Float.toString</tt> (and <tt>Double.toString</tt>).  This is
+     * generally the preferred way to convert a float (or double) into a
+     * BigDecimal, as it doesn't suffer from the unpredictability of the
+     * {@link #BigDecimal(double)} constructor.
+     *
+     * <p>Note: the optional leading plus sign and trailing exponent were
+     * added in release 1.3.
      *
      * @param val String representation of BigDecimal.
      * @throws NumberFormatException <tt>val</tt> is not a valid representation
      *	       of a BigDecimal.
-     * @see    Character#digit
      */
     public BigDecimal(String val) {
+        // Deal with leading plus sign if present
+        if (val.charAt(0) == '+') {
+            val = val.substring(1);      /* Discard leading '+' */
+	    if (val.charAt(0) == '-')	 /* "+-123.456" illegal! */
+		throw new NumberFormatException();
+        }
+
+        // If exponent is present, break into exponent and significand
+        int exponent = 0;
+	int ePos = val.indexOf('e');
+        if (ePos == -1)
+            ePos = val.indexOf('E');
+        if (ePos != -1) {
+            String exp = val.substring(ePos+1);
+            if (exp.length() == 0)              /* "1.2e" illegal! */
+                throw new NumberFormatException();
+            if (exp.charAt(0) == '+') {
+                exp = exp.substring(1);         /* Discard leading '+' */
+                if (exp.charAt(0) == '-')       /* "123.456e+-7" illegal! */
+                    throw new NumberFormatException();
+            }
+            exponent = Integer.parseInt(exp);
+            if (ePos==0)
+		throw new NumberFormatException(); /* "e123" illegal! */
+            val = val.substring(0, ePos);
+        }
+
+        // Parse significand
 	int pointPos = val.indexOf('.');
 	if (pointPos == -1) {			 /* e.g. "123" */
 	    intVal = new BigInteger(val);
@@ -116,6 +176,13 @@ public class BigDecimal extends Number implements Comparable {
 		intVal = timesTenToThe(intPart, scale).add(fraction);
 	    }
 	}
+
+        // Combine exponent into significand
+        scale -= exponent;
+        if (scale < 0) {
+            intVal = timesTenToThe(intVal, -scale);
+            scale = 0;
+        }
     }
 
     /**
@@ -441,7 +508,7 @@ public class BigDecimal extends Number implements Comparable {
      * BigDecimal.  (Computes <tt>(this * 10<sup>this.scale()</sup>)</tt>.)
      *
      * @return the unscaled value of this BigDecimal.
-     * @since   JDK1.2
+     * @since   1.2
      */
     public BigInteger unscaledValue() {
         return intVal;
@@ -528,6 +595,7 @@ public class BigDecimal extends Number implements Comparable {
      * the division.
      *
      * @param  scale scale of the BigDecimal value to be returned.
+     * @param  roundingMode The rounding mode to apply.
      * @return a BigDecimal whose scale is the specified value, and whose
      *	       unscaled value is determined by multiplying or dividing this
      * 	       BigDecimal's unscaled value by the appropriate power of ten to
@@ -672,7 +740,7 @@ public class BigDecimal extends Number implements Comparable {
      * @throws ClassCastException <tt>o</tt> is not a BigDecimal.
      * @see    #compareTo(java.math.BigDecimal)
      * @see    Comparable
-     * @since  JDK1.2
+     * @since  1.2
      */
     public int compareTo(Object o) {
 	return compareTo((BigDecimal)o);
@@ -684,7 +752,7 @@ public class BigDecimal extends Number implements Comparable {
      * if they are equal in value and scale (thus 2.0 is not equal to 2.00
      * when compared by this method).
      *
-     * @param  o Object to which this BigDecimal is to be compared.
+     * @param  x Object to which this BigDecimal is to be compared.
      * @return <tt>true</tt> if and only if the specified Object is a
      *	       BigDecimal whose value and scale are equal to this BigDecimal's.
      * @see    #compareTo(java.math.BigDecimal)

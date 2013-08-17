@@ -1,8 +1,11 @@
 /*
- * @(#)AbstractWriter.java	1.11 01/11/29
+ * @(#)AbstractWriter.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.text;
@@ -19,7 +22,7 @@ import java.util.Enumeration;
  * But this value can be set by subclasses.
  *
  * @author Sunita Mani
- * @version 1.11, 11/29/01
+ * @version 1.14, 02/02/00
  */
 
 public abstract class AbstractWriter {
@@ -37,7 +40,57 @@ public abstract class AbstractWriter {
     // get incremened instead of indentLevel to avoid indenting going greater
     // than line length.
     private int offsetIndent = 0;
+
+    /**
+     * String used for end of line. If the Document has the property
+     * EndOfLineStringProperty, it will be used for newlines. Otherwise
+     * the System property line.separator will be used. The line separator
+     * can also be set.
+     */
+    private String lineSeparator;
+
+    /**
+     * True indicates that when writing, the line can be split, false 
+     * indicates that even if the line is > than max line length it should
+     * not be split.
+     */
+    private boolean canWrapLines;
+
+    /**
+     * True while the current line is empty. This will remain true after
+     * indenting.
+     */
+    private boolean isLineEmpty;
+
+    /**
+     * Used when indenting. Will contain the spaces.
+     */
+    private char[] indentChars;
+
+    /**
+     * Used when writing out a string.
+     */
+    private char[] tempChars;
+
+    /**
+     * This is used in <code>writeLineSeparator</code> instead of
+     * tempChars. If tempChars were used it would mean write couldn't invoke
+     * <code>writeLineSeparator</code> as it might have been passed
+     * tempChars.
+     */
+    private char[] newlineChars;
+
+    /**
+     * Used for writing text.
+     */
+    private Segment segment;
+
+    /**
+     * How the text packages models newlines.
+     * @see #getLineSeparator
+     */
     protected static final char NEWLINE = '\n';
+
 
     /**
      * Creates a new AbstractWriter.
@@ -68,6 +121,24 @@ public abstract class AbstractWriter {
 	out = w;
 	startOffset = pos;
 	endOffset = pos + len;
+	Object docNewline = doc.getProperty(DefaultEditorKit.
+				       EndOfLineStringProperty);
+	if (docNewline instanceof String) {
+	    setLineSeparator((String)docNewline);
+	}
+	else {
+	    String newline = null;
+	    try {
+		newline = System.getProperty("line.separator");
+	    } catch (SecurityException se) {}
+	    if (newline == null) {
+		// Should not get here, but if we do it means we could not
+		// find a newline string, use \n in this case.
+		newline = "\n";
+	    }
+	    setLineSeparator(newline);
+	}
+	canWrapLines = true;
     }
 
     /**
@@ -99,6 +170,25 @@ public abstract class AbstractWriter {
 	out = w;
 	startOffset = pos;
 	endOffset = pos + len;
+	canWrapLines = true;
+    }
+
+    /**
+     * Returns the first offset to be output.
+     *
+     * @since 1.3
+     */
+    public int getStartOffset() {
+	return startOffset;
+    }
+
+    /**
+     * Returns the last offset to be output.
+     *
+     * @since 1.3
+     */
+    public int getEndOffset() {
+	return endOffset;
     }
 
     /**
@@ -108,6 +198,15 @@ public abstract class AbstractWriter {
      */
     protected ElementIterator getElementIterator() {
 	return it;
+    }
+
+    /**
+     * Returns the Writer that is used to output the content.
+     *
+     * @since 1.3
+     */
+    protected Writer getWriter() {
+	return out;
     }
 
     /**
@@ -131,7 +230,8 @@ public abstract class AbstractWriter {
      *         is in the range.
      */
     protected boolean inRange(Element next) {
-
+	int startOffset = getStartOffset();
+	int endOffset = getEndOffset();
 	if ((next.getStartOffset() >= startOffset && 
 	     next.getStartOffset()  < endOffset) ||
 	    (startOffset >= next.getStartOffset() &&
@@ -176,10 +276,18 @@ public abstract class AbstractWriter {
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
      */
-    protected void text(Element elem) throws BadLocationException, IOException {
-	String contentStr = getText(elem);
-	if (contentStr.length() > 0) {
-	    write(contentStr);
+    protected void text(Element elem) throws BadLocationException,
+	                                     IOException {
+	int start = Math.max(getStartOffset(), elem.getStartOffset());
+	int end = Math.min(getEndOffset(), elem.getEndOffset());
+	if (start < end) {
+	    if (segment == null) {
+		segment = new Segment();
+	    }
+	    getDocument().getText(start, end - start, segment);
+	    if (segment.count > 0) {
+		write(segment.array, segment.offset, segment.count);
+	    }
 	}
     }
 
@@ -194,6 +302,66 @@ public abstract class AbstractWriter {
     }
 
     /**
+     * Returns the maximum line length.
+     *
+     * @since 1.3
+     */
+    protected int getLineLength() {
+	return maxLineLength;
+    }
+
+    /**
+     * Sets the current line length.
+     *
+     * @since 1.3.
+     */
+    protected void setCurrentLineLength(int length) {
+	currLength = length;
+	isLineEmpty = (currLength == 0);
+    }
+
+    /**
+     * Returns the current line length.
+     *
+     * @since 1.3.
+     */
+    protected int getCurrentLineLength() {
+	return currLength;
+    }
+
+    /**
+     * Returns true if the current line should be considered empty. This
+     * is true when <code>getCurrentLineLength</code> == 0 ||
+     * <code>indent</code> has been invoked on an empty line.
+     *
+     * @since 1.3
+     */
+    protected boolean isLineEmpty() {
+	return isLineEmpty;
+    }
+
+    /**
+     * Sets whether or not lines can be wrapped. This can be toggled
+     * during the writing of lines. For example, outputting HTML might 
+     * set this to false when outputting a quoted string.
+     *
+     * @since 1.3
+     */
+    protected void setCanWrapLines(boolean newValue) {
+	canWrapLines = newValue;
+    }
+
+    /**
+     * Returns whether or not the lines can be wrapped. If this is false
+     * no lineSeparator's will be output.
+     *
+     * @since 1.3
+     */
+    protected boolean getCanWrapLines() {
+	return canWrapLines;
+    }
+
+    /**
      * Enables subclasses to specify how many spaces an indent
      * maps to. When indentation takes place, the indent level
      * is multiplied by this mapping.  The default is 2.
@@ -205,7 +373,38 @@ public abstract class AbstractWriter {
     }
 
     /**
-     * Increments the indent level.
+     * Returns the amount of space to indent.
+     *
+     * @since 1.3
+     */
+    protected int getIndentSpace() {
+	return indentSpace;
+    }
+
+    /**
+     * Sets the String used to reprsent newlines. This is initialized
+     * in the constructor from either the Document, or the System property
+     * line.separator.
+     *
+     * @since 1.3
+     */
+    public void setLineSeparator(String value) {
+	lineSeparator = value;
+    }
+
+    /**
+     * Returns the string used to represent newlines.
+     *
+     * @since 1.3
+     */
+    public String getLineSeparator() {
+	return lineSeparator;
+    }
+
+    /**
+     * Increments the indent level. If indenting would cause
+     * <code>getIndentSpace()</code> *<code>getIndentLevel()</code> to be >
+     * than <code>getLineLength()</code> this will not cause an indent.
      */
     protected void incrIndent() {
 	// Only increment to a certain point.
@@ -213,7 +412,7 @@ public abstract class AbstractWriter {
 	    offsetIndent++;
 	}
 	else {
-	    if (++indentLevel * indentSpace >= maxLineLength) {
+	    if (++indentLevel * getIndentSpace() >= getLineLength()) {
 		offsetIndent++;
 		--indentLevel;
 	    }
@@ -233,87 +432,220 @@ public abstract class AbstractWriter {
     }
 
     /**
-     * Does indentation.  The number of spaces written
-     * out is indent level times the space to map mapping.
+     * Returns the current indentation level. That is, the number of times
+     * <code>incrIndent</code> has been invoked minus the number of times
+     * <code>decrIndent</code> has been invoked.
+     *
+     * @since 1.3
+     */
+    protected int getIndentLevel() {
+	return indentLevel;
+    }
+
+    /**
+     * Does indentation. The number of spaces written
+     * out is indent level times the space to map mapping. If the current
+     * line is empty, this will not make it so that the current line is
+     * still considered empty.
      *
      * @exception IOException on any I/O error
      */
     protected void indent() throws IOException {
-	int numOfSpaces = indentLevel*indentSpace;
-	for (int i = 0; i < numOfSpaces; i++) {
-	    write(' ');
+	int max = getIndentLevel() * getIndentSpace();
+	if (indentChars == null || max > indentChars.length) {
+	    indentChars = new char[max];
+	    for (int counter = 0; counter < max; counter++) {
+		indentChars[counter] = ' ';
+	    }
+	}
+	int length = getCurrentLineLength();
+	boolean wasEmpty = isLineEmpty();
+	output(indentChars, 0, max);
+	if (wasEmpty && length == 0) {
+	    isLineEmpty = true;
 	}
     }
 
     /**
-     * Writes out a character.  If the character is
-     * a newline then it resets the current length to
-     * 0.  If the current length equals the maximum
-     * line length, then a newline is outputed and the
-     * current length is reset to 0.
+     * Writes out a character. This is implemented to invoke
+     * the <code>write</code> method that takes a char[].
      *
      * @param     a char.
      * @exception IOException on any I/O error
      */
     protected void write(char ch) throws IOException {
-
-	out.write(ch);
-	if (ch == NEWLINE) {
-	    currLength = 0;
-	} else {
-	    ++currLength;
-	    if (currLength == maxLineLength) {
-		out.write(NEWLINE);
-		currLength = 0;
-		indent();
-	    }
+	if (tempChars == null) {
+	    tempChars = new char[128];
 	}
+	tempChars[0] = ch;
+	write(tempChars, 0, 1);
     }
 
     /**
-     * Writes out a string.  If writing out the string on
-     * the current line results in the maximum line length
-     * being exceeded, it then attempts to write this line out
-     * on the next line.  However if the length of the
-     * string itself exceeds the maximum line length, it
-     * then recursively calls this method on the substring
-     * from 0 to max line length, and then again from
-     * max line length+1 to the end of the string -- inserting
-     * new lines where necessary.
+     * Writes out a string. This is implemented to invoke the
+     * <code>write</code> method that takes a char[].
      *
      * @param     a String.
      * @exception IOException on any I/O error
      */
-    protected void write(String str) throws IOException {
+    protected void write(String content) throws IOException {
+	int size = content.length();
+	if (tempChars == null || tempChars.length < size) {
+	    tempChars = new char[size];
+	}
+	content.getChars(0, size, tempChars, 0);
+	write(tempChars, 0, size);
+    }
 
-	int indentSize = indentLevel*indentSpace;
-	int newlineIndex = str.indexOf(NEWLINE);
-	if (currLength + str.length() <= maxLineLength) {
-	    /* enuf space for the line */
-	    out.write(str);
-	    currLength += str.length();
-	    if (newlineIndex >= 0) {
-		currLength -= newlineIndex - 1;
+    /**
+     * Writes the line separator. This invokes <code>output</code> directly
+     * as well as setting the <code>lineLength</code> to 0.
+     *
+     * @since 1.3
+     */
+    protected void writeLineSeparator() throws IOException {
+	String newline = getLineSeparator();
+	int length = newline.length();
+	if (newlineChars == null || newlineChars.length < length) {
+	    newlineChars = new char[length];
+	}
+	newline.getChars(0, length, newlineChars, 0);
+	output(newlineChars, 0, length);
+	setCurrentLineLength(0);
+    }
+
+    /**
+     * All write methods call into this one. If <code>getCanWrapLines()</code>
+     * returns false, this will call <code>output</code> with each sequence
+     * of <code>chars</code> that doesn't contain a NEWLINE, followed
+     * by a call to <code>writeLineSeparator</code>. On the other hand,
+     * if <code>getCanWrapLines()</code> returns true, this will split the
+     * string, as necessary, so <code>getLineLength</code> is honored.
+     * The only exception is if the current string contains no whitespace,
+     * and won't fit in which case the line length will exceed 
+     * <code>getLineLength</code>.
+     *
+     * @since 1.3
+     */
+    protected void write(char[] chars, int startIndex, int length)
+	           throws IOException {
+	if (!getCanWrapLines()) {
+	    // We can not break string, just track if a newline
+	    // is in it.
+	    int lastIndex = startIndex;
+	    int endIndex = startIndex + length;
+	    int newlineIndex = indexOf(chars, NEWLINE, startIndex, endIndex);
+	    while (newlineIndex != -1) {
+		if (newlineIndex > lastIndex) {
+		    output(chars, lastIndex, newlineIndex - lastIndex);
+		}
+		writeLineSeparator();
+		lastIndex = newlineIndex + 1;
+		newlineIndex = indexOf(chars, '\n', lastIndex, endIndex);
 	    }
-	} else if (indentSize + str.length() <= maxLineLength) {
-
-	    /* the line fits by itself on its own line */
-	    out.write(NEWLINE);
-	    currLength = 0;
-	    indent();
-	    out.write(str);
-	    currLength = indentSize + str.length();
-	    if (newlineIndex >= 0) {
-		currLength -= newlineIndex - 1;
+	    if (lastIndex < endIndex) {
+		output(chars, lastIndex, endIndex - lastIndex);
 	    }
-	} else {
-	    /* the line is too big to fit by itself. */
+	}
+	else {
+	    // We can break chars if the length exceeds maxLength.
+	    int lastIndex = startIndex;
+	    int endIndex = startIndex + length;
+	    int lineLength = getCurrentLineLength();
+	    int maxLength = getLineLength();
 
-	    int maxLength = maxLineLength - indentSize;
-	    String substr = str.substring(0, maxLength);
-	    write(substr);
-	    substr = str.substring(maxLength, str.length());
-	    write(substr);
+	    if (lineLength >= maxLength && !isLineEmpty()) {
+		// This can happen if some tags have been written out.
+		writeLineSeparator();
+	    }
+	    while (lastIndex < endIndex) {
+		int newlineIndex = indexOf(chars, NEWLINE, lastIndex,
+					   endIndex);
+		boolean needsNewline = false;
+
+		lineLength = getCurrentLineLength();
+		if (newlineIndex != -1 && (lineLength +
+			      (newlineIndex - lastIndex)) < maxLength) {
+		    if (newlineIndex > lastIndex) {
+			output(chars, lastIndex, newlineIndex - lastIndex);
+		    }
+		    lastIndex = newlineIndex + 1;
+		    needsNewline = true;
+		}
+		else if (newlineIndex == -1 && (lineLength +
+				(endIndex - lastIndex)) < maxLength) {
+		    if (endIndex > lastIndex) {
+			output(chars, lastIndex, endIndex - lastIndex);
+		    }
+		    lastIndex = endIndex;
+		}
+		else {
+		    // Need to break chars, find a place to split chars at,
+		    // from lastIndex to endIndex,
+		    // or maxLength - lineLength whichever is smaller
+		    int breakPoint = -1;
+		    int maxBreak = Math.min(endIndex - lastIndex,
+					    maxLength - lineLength - 1);
+		    int counter = 0;
+		    while (counter < maxBreak) {
+			if (Character.isWhitespace(chars[counter +
+							lastIndex])) {
+			    breakPoint = counter;
+			}
+			counter++;
+		    }
+		    if (breakPoint != -1) {
+			// Found a place to break at.
+			breakPoint += lastIndex + 1;
+			output(chars, lastIndex, breakPoint - lastIndex);
+			lastIndex = breakPoint;
+		    }
+		    else {
+			// No where good to break.
+			if (isLineEmpty()) {
+			    // If the current output line is empty, find the
+			    // next whitespace, or write out the whole string.
+			    // maxBreak will be negative if current line too
+			    // long.
+			    counter = Math.max(0, maxBreak);
+			    maxBreak = endIndex - lastIndex;
+			    while (counter < maxBreak) {
+				if (Character.isWhitespace(chars[counter +
+								lastIndex])) {
+				    breakPoint = counter;
+				    break;
+				}
+				counter++;
+			    }
+			    if (breakPoint == -1) {
+				output(chars, lastIndex, endIndex - lastIndex);
+				breakPoint = endIndex;
+			    }
+			    else {
+				breakPoint += lastIndex;
+				if (chars[breakPoint] == NEWLINE) {
+				    output(chars, lastIndex, breakPoint++ -
+					   lastIndex);
+				}
+				else {
+				    output(chars, lastIndex, ++breakPoint -
+					      lastIndex);
+				}
+			    }
+			    lastIndex = breakPoint;
+			}
+			// else Iterate through again.
+		    }
+		    // Force a newline since line length too long.
+		    needsNewline = true;
+		}
+		if (needsNewline || lastIndex < endIndex) {
+		    writeLineSeparator();
+		    if (lastIndex < endIndex) {
+			indent();
+		    }
+		}
+	    }
 	}
     }
 
@@ -331,5 +663,38 @@ public abstract class AbstractWriter {
 	    Object name = names.nextElement();
 	    write(" " + name + "=" + attr.getAttribute(name));
 	}
+    }
+
+    /**
+     * The last stop in writing out content. All the write methods eventually
+     * make it to this method, which invokes <code>write</code> on the
+     * Writer.
+     * <p>This method also updates the line length based on
+     * <code>length</code>. If this is invoked to output a newline, the
+     * current line length will need to be reset as will no longer be
+     * valid. If it is up to the caller to do this. Use
+     * <code>writeLineSeparator</code> to write out a newline, which will
+     * property update the current line length.
+     *
+     * @since 1.3
+     */
+    protected void output(char[] content, int start, int length)
+	           throws IOException {
+	getWriter().write(content, start, length);
+	setCurrentLineLength(getCurrentLineLength() + length);
+    }
+
+    /**
+     * Support method to locate an occurence of a particular character.
+     */
+    private int indexOf(char[] chars, char sChar, int startIndex,
+			int endIndex) {
+	while(startIndex < endIndex) {
+	    if (chars[startIndex] == sChar) {
+		return startIndex;
+	    }
+	    startIndex++;
+	}
+	return -1;
     }
 }

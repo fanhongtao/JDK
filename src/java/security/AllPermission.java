@@ -1,8 +1,11 @@
 /*
- * @(#)AllPermission.java	1.6 01/11/29
+ * @(#)AllPermission.java	1.15 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.security;
@@ -30,9 +33,11 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.6 01/11/29
+ * @version 1.15 00/04/06
  *
  * @author Roland Schemers
+ *
+ * @serial exclude
  */
 
 public final class AllPermission extends Permission {
@@ -128,15 +133,20 @@ public final class AllPermission extends Permission {
  * @see java.security.Permission
  * @see java.security.Permissions
  *
- * @version 1.6 03/09/04
+ * @version 1.15 04/06/00
  *
  * @author Roland Schemers
+ *
+ * @serial include
  */
 
 final class AllPermissionCollection
 extends PermissionCollection 
 implements java.io.Serializable 
 {
+
+    // use serialVersionUID from JDK 1.2.2 for interoperability
+    private static final long serialVersionUID = -4023755556366636806L;
 
     private boolean all_allowed; // true if any all permissions have been added
 
@@ -154,6 +164,12 @@ implements java.io.Serializable
      * permission.path.
      *
      * @param permission the Permission object to add.
+     *
+     * @exception IllegalArgumentException - if the permission is not a
+     *                                       AllPermission
+     *
+     * @exception SecurityException - if this AllPermissionCollection object
+     *                                has been marked readonly
      */
 
     public void add(Permission permission)
@@ -161,6 +177,9 @@ implements java.io.Serializable
 	if (! (permission instanceof AllPermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
+	if (isReadOnly())
+	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+
 	all_allowed = true;
     }
 
@@ -184,18 +203,17 @@ implements java.io.Serializable
      *
      * @return an enumeration of all the AllPermission objects.
      */
-
     public Enumeration elements()
     {
 	return new Enumeration() {
-	    private boolean done = false;
+	    private boolean hasMore = all_allowed;
 
 	    public boolean hasMoreElements() {
-		return !done;
+		return hasMore;
 	    }
 
 	    public Object nextElement() {
-		done = true;
+		hasMore = false;
 		return new AllPermission();
 	    }
 	};

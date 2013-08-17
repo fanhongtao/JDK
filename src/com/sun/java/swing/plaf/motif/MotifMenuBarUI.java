@@ -1,8 +1,11 @@
 /*
- * @(#)MotifMenuBarUI.java	1.34 01/11/29
+ * @(#)MotifMenuBarUI.java	1.35 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -37,7 +40,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * 1.34 11/29/01
+ * 1.35 02/02/00
  * @author Georges Saab
  * @author Rich Schiavi
  */

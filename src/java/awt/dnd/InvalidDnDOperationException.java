@@ -1,8 +1,11 @@
 /*
- * @(#)InvalidDnDOperationException.java	1.6 01/11/29
+ * @(#)InvalidDnDOperationException.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.dnd;
@@ -13,8 +16,8 @@ package java.awt.dnd;
  * to undertake the requested operation that the present time, since the
  * undrelying DnD system is not in the appropriate state.
  *
- * @version 1.6
- * @since JDK1.2
+ * @version 	1.9, 02/02/00
+ * @since 1.2
  */
 
 public class InvalidDnDOperationException extends IllegalStateException {

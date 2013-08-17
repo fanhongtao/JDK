@@ -1,8 +1,11 @@
 /*
- * @(#)DropTargetDragEvent.java	1.13 01/11/29
+ * @(#)DropTargetDragEvent.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.dnd;
@@ -21,8 +24,8 @@ import java.util.List;
  * <code>DropTargetListener</code> via its
  * dragEnter() and dragOver() methods.
  *
- * @version 1.13
- * @since JDK1.2
+ * @version 	1.16, 02/02/00
+ * @since 1.2
  */
 
 public class DropTargetDragEvent extends DropTargetEvent {

@@ -1,8 +1,11 @@
 /*
- * @(#)GraphicsEnvironment.java	1.37 01/11/29
+ * @(#)GraphicsEnvironment.java	1.42 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -28,7 +31,7 @@ import java.io.InputStream;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 10 Feb 1997
+ * @version 	1.42, 02/02/00
  */
 
 public abstract class GraphicsEnvironment {
@@ -45,7 +48,7 @@ public abstract class GraphicsEnvironment {
      * Returns the local <code>GraphicsEnvironment</code>.
      * @return this <code>GraphicsEnvironment</code>.
      */
-    public static GraphicsEnvironment getLocalGraphicsEnvironment() {
+    public static synchronized GraphicsEnvironment getLocalGraphicsEnvironment() {
 	if (localEnv == null) {
 	    String nm = (String) java.security.AccessController.doPrivileged
 		(new sun.security.action.GetPropertyAction
@@ -115,7 +118,7 @@ public abstract class GraphicsEnvironment {
      * @see java.awt.Font
      * @see java.awt.Font#deriveFont
      * @see java.awt.Font#getFontName
-     * @since JDK 1.2
+     * @since 1.2
      */
     public abstract Font[] getAllFonts();
 
@@ -136,7 +139,7 @@ public abstract class GraphicsEnvironment {
      * @see #getAllFonts
      * @see java.awt.Font
      * @see java.awt.Font#getFamily
-     * @since JDK 1.2
+     * @since 1.2
      */
     public abstract String[] getAvailableFontFamilyNames();
 
@@ -162,7 +165,7 @@ public abstract class GraphicsEnvironment {
      * @see #getAllFonts
      * @see java.awt.Font
      * @see java.awt.Font#getFamily
-     * @since JDK 1.2
+     * @since 1.2
      */
     public abstract String[] getAvailableFontFamilyNames(Locale l);
 

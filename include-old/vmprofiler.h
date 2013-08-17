@@ -1,8 +1,11 @@
 /*
- * @(#)vmprofiler.h	1.28 01/11/29
+ * @(#)vmprofiler.h	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_VMPROFILER_H_
@@ -44,7 +47,7 @@ void jvmpi_delete_weakref(ExecEnv *ee, jobject ref);
 void jvmpi_new_arena(void);
 void jvmpi_alloc_object(ExecEnv *ee, JHandle *h);
 void jvmpi_free_object(JHandle *h);
-void jvmpi_move_object(void *old, void *new);
+void jvmpi_move_object(void *oldobj, void *newobj);
 
 void jvmpi_load_class(ClassClass *cb);
 void jvmpi_load_class_hook(unsigned char **ptrP, unsigned char **end_ptrP,
@@ -77,6 +80,14 @@ void jvmpi_gc_finish(long used_objs, long used_obj_space, long total_obj_space);
 void jvmpi_dump_context_lock(void);
 void jvmpi_dump_context_unlock(void);
 
+void jvmpi_trace_instr(ExecEnv *ee, unsigned char *pc, unsigned char opcode);
+void jvmpi_trace_if(ExecEnv *ee, unsigned char *pc, int is_true);
+void jvmpi_trace_tableswitch(ExecEnv *ee, unsigned char *pc, int key, int low, int hi);
+void jvmpi_trace_lookupswitch(ExecEnv *ee,
+                              unsigned char *pc,
+                              int chosen_pair_index,
+                              int pairs_total);
+
 typedef struct {
     unsigned int flag;
     jint (*enable_handler)(void *arg);
@@ -91,17 +102,14 @@ extern jvmpi_event_info_t jvmpi_event_info[];
 #define JVMPI_EVENT_ENABLED    -2
 #define JVMPI_EVENT_DISABLED   0
 
-  /* [sbb] added unsigned int cast */
 #ifdef __linux__
 #define JVMPI_EVENT_IS_ENABLED(e) \
   ((e) > 32 ? (jvmpi_event_info[e].flag == (unsigned int)JVMPI_EVENT_ENABLED) : \
               (jvmpi_event_flags & (1 << e)))
-
 #else
 #define JVMPI_EVENT_IS_ENABLED(e) \
   ((e) > 32 ? (jvmpi_event_info[e].flag == JVMPI_EVENT_ENABLED) : \
               (jvmpi_event_flags & (1 << e)))
-
 #endif
 
 /* constants */

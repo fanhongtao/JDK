@@ -1,8 +1,11 @@
 /*
- * @(#)KeyAdapter.java	1.11 01/11/29
+ * @(#)KeyAdapter.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -24,13 +27,15 @@ package java.awt.event;
  * the relevant method in the listener object is invoked,
  * and the <code>KeyEvent</code> is passed to it.
  *
+ * @author Carl Quinn
+ * @version 1.13 02/02/00
+ *
  * @see KeyEvent
  * @see KeyListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/keylistener.html">Tutorial: Writing a Key Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.11 11/29/01
- * @author Carl Quinn
+ * @since 1.1
  */
 public abstract class KeyAdapter implements KeyListener {
     /**

@@ -1,8 +1,11 @@
 /*
- * @(#)PrivilegedActionException.java	1.4 01/11/29
+ * @(#)PrivilegedActionException.java	1.9 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -28,14 +31,17 @@ import java.io.PrintStream;
  */
 public
 class PrivilegedActionException extends Exception {
+    // use serialVersionUID from JDK 1.2.2 for interoperability
+    private static final long serialVersionUID = 4724086851538908602L;
+
     /**
      * @serial
      */
     private Exception exception;
 
     /**
-     * Constructs a new PrivilegedActionException "wrapping"
-     * the specific Exception
+     * Constructs a new PrivilegedActionException &quot;wrapping&quot;
+     * the specific Exception.
      *
      * @param exception The exception thrown
      */
@@ -95,5 +101,16 @@ class PrivilegedActionException extends Exception {
 		super.printStackTrace(pw);
 	    }
 	}
+    }
+
+    /**
+     * Returns a string describing this exception, including a description
+     * of the exception it wraps.
+     *
+     * @return a string representation of this
+     * <code>PrivilegedActionException</code>
+     */
+    public String toString() {
+	return getClass().getName() + " <<" + this.exception.toString() + ">>";
     }
 }

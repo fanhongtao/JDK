@@ -1,8 +1,11 @@
 /*
- * @(#)JTextPane.java	1.67 01/11/29
+ * @(#)JTextPane.java	1.72 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -19,7 +22,13 @@ import javax.swing.plaf.*;
 
 /**
  * A text component that can be marked up with attributes that are
- * represented graphically.  This component models paragraphs
+ * represented graphically. 
+ * You can find how-to information and examples of using text panes in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/text.html">Using Text Components</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
+ * <p>
+ * This component models paragraphs
  * that are composed of runs of character level attributes.  Each
  * paragraph may have a logical style attached to it which contains
  * the default attributes to use if no overriden by attributes set
@@ -37,9 +46,13 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
+ * @beaninfo
+ *   attribute: isContainer true
+ * description: A text component that can be marked up with attributes that are graphically represented.
+ *
  * @author  Timothy Prinzing
- * @version 1.67 11/29/01
- * @see text.StyledEditorKit
+ * @version 1.72 02/02/00
+ * @see javax.swing.text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {
 
@@ -54,7 +67,7 @@ public class JTextPane extends JEditorPane {
 
     /**
      * Constructs a new JTextPane, with a specified document model.
-     * A new instance of text.StyledEditorKit is created and set.
+     * A new instance of javax.swing.text.StyledEditorKit is created and set.
      *
      * @param doc the document model
      */
@@ -391,7 +404,7 @@ public class JTextPane extends JEditorPane {
 
     /**
      * Creates the EditorKit to use by default.  This
-     * is implemented to return text.StyledEditorKit.
+     * is implemented to return javax.swing.text.StyledEditorKit.
      *
      * @return the editor kit
      */
@@ -405,7 +418,7 @@ public class JTextPane extends JEditorPane {
      * establishes the content type of the editor.
      * 
      * @param kit the desired editor behavior.
-     * @exception IllegalArgumentException if kit is not a text.StyledEditorKit
+     * @exception IllegalArgumentException if kit is not a StyledEditorKit
      */
     public final void setEditorKit(EditorKit kit) {
         if (kit instanceof StyledEditorKit) {
@@ -414,19 +427,6 @@ public class JTextPane extends JEditorPane {
             throw new IllegalArgumentException("Must be StyledEditorKit");
         }
     }
-
-    // --- Scrollable  ----------------------------------------
-
-    /**
-     * Returns true if a viewport should always force the width of this 
-     * Scrollable to match the width of the viewport.  
-     * 
-     * @return true if a viewport should force the Scrollables width to match its own.
-     */
-    public boolean getScrollableTracksViewportWidth() {
-        return true;
-    }
-
 
     /**
      * Returns a string representation of this JTextPane. This method 

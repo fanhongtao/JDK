@@ -1,8 +1,11 @@
 /*
- * @(#)FilterOutputStream.java	1.26 01/11/29
+ * @(#)FilterOutputStream.java	1.28 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -21,7 +24,7 @@ package java.io;
  * methods as well as provide additional methods and fields. 
  *
  * @author  Jonathan Payne
- * @version 1.26, 11/29/01
+ * @version 1.28, 02/02/00
  * @since   JDK1.0
  */
 public
@@ -101,6 +104,9 @@ class FilterOutputStream extends OutputStream {
      * @see        java.io.FilterOutputStream#write(int)
      */
     public void write(byte b[], int off, int len) throws IOException {
+	if ((off | len | (b.length - (len + off)) | (off + len)) < 0)
+	    throw new IndexOutOfBoundsException();
+
 	for (int i = 0 ; i < len ; i++) {
 	    write(b[off + i]);
 	}

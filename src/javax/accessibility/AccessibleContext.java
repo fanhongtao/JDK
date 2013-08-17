@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleContext.java	1.24 01/11/29
+ * @(#)AccessibleContext.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -15,16 +18,16 @@ import java.awt.IllegalComponentStateException;
 /**
  * AccessibleContext represents the minimum information all accessible objects
  * return.  This information includes the accessible name, description, role,
- * and state of the object, as well as information about the parent and 
- * children of the object.  AccessibleContext also contains methods for
+ * and state of the object, as well as information about its parent and 
+ * children.  AccessibleContext also contains methods for
  * obtaining more specific accessibility information about a component.
- * If the component supports it, these methods will return an object that
+ * If the component supports them, these methods will return an object that
  * implements one or more of the following interfaces:
  * <P><ul>
  * <li>{@link AccessibleAction} - the object can perform one or more actions.  
  * This interface provides the standard mechanism for an assistive
  * technology to determine what those actions are and tell the object
- * to perform those actions.  Any object that can be manipulated should
+ * to perform them.  Any object that can be manipulated should
  * support this interface.
  * <li>{@link AccessibleComponent} - the object has a graphical representation.
  * This interface provides the standard mechanism for an assistive 
@@ -33,8 +36,8 @@ import java.awt.IllegalComponentStateException;
  * this interface.
  * <li>{@link  AccessibleSelection} - the object allows its children to be 
  * selected.  This interface provides the standard mechanism for an
- * assistive technology to determine the currently selected children
- * as well as modify the selection set.  Any object that has children
+ * assistive technology to determine the currently selected children of the object
+ * as well as modify its selection set.  Any object that has children
  * that can be selected should support this interface.
  * <li>{@link AccessibleText} - the object presents editable textual information
  * on the display.  This interface provides the standard mechanism for
@@ -43,17 +46,15 @@ import java.awt.IllegalComponentStateException;
  * support this interface.
  * <li>{@link AccessibleValue} - the object supports a numerical value.  This
  * interface provides the standard mechanism for an assistive technology
- * to determine and set the current value of the object, as well as the
+ * to determine and set the current value of the object, as well as obtain its
  * minimum and maximum values.  Any object that supports a numerical value
  * should support this interface.</ul>
- * <P>In the future, additional interfaces (e.g., AccessibleTable) may be 
- * added, and the abstract class AccessibleContext will be updated
- * accordingly.
  *
- * @version     1.17 02/04/98 11:50:50
+ * @version     1.29 10/05/99
  * @author	Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
+ * @author      Lynn Monsanto
  */
 public abstract class AccessibleContext {
 
@@ -88,7 +89,7 @@ public abstract class AccessibleContext {
     * AccessibleState.HORIZONTAL.  Please note that either value can also 
     * be null.  For example, when a component changes from being enabled 
     * to disabled, the old value will be AccessibleState.ENABLED
-    * and the new value will null.
+    * and the new value will be null.
     *
     * @see #getAccessibleStateSet
     * @see AccessibleState
@@ -101,7 +102,7 @@ public abstract class AccessibleContext {
     * Constant used to determine when the accessibleValue property has
     * changed.  The old value in the PropertyChangeEvent will be a Number 
     * representing the old value and the new value will be a Number 
-    * representing the new value.
+    * representing the new value
     *
     * @see #getAccessibleValue
     * @see #addPropertyChangeListener
@@ -130,7 +131,7 @@ public abstract class AccessibleContext {
 
    /**
     * Constant used to determine when the accessibleText caret has changed.
-    * has changed.  The old value in the PropertyChangeEvent will be an
+    * The old value in the PropertyChangeEvent will be an
     * integer representing the old caret position, and the new value will 
     * be an integer representing the new/current caret position.
     *
@@ -150,7 +151,7 @@ public abstract class AccessibleContext {
    /**
     * Constant used to determine when Accessible children are added/removed
     * from the object.  If an Accessible child is being added, the old
-    * value will be null and the new value the Accessible child.  If an
+    * value will be null and the new value will be the Accessible child.  If an
     * Accessible child is being removed, the old value will be the Accessible
     * child, and the new value will be null.
     *
@@ -170,6 +171,91 @@ public abstract class AccessibleContext {
     * @see #addPropertyChangeListener
     */
    public static final String ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY = "AccessibleActiveDescendant";
+
+    /** 
+     * Constant used to indicate that the table caption has changed
+     * The old value in the PropertyChangeEvent will be an Accessible
+     * representing the previous table caption and the new value will
+     * be an Accessible representing the new table caption.
+     * @see Accessible
+     * @see AccessibleTable
+     */
+    public static final String ACCESSIBLE_TABLE_CAPTION_CHANGED = 
+	"accessibleTableCaptionChanged";
+
+    /** 
+     * Constant used to indicate that the table summary has changed
+     * The old value in the PropertyChangeEvent will be an Accessible
+     * representing the previous table summary and the new value will
+     * be an Accessible representing the new table summary.
+     * @see Accessible
+     * @see AccessibleTable
+     */
+    public static final String ACCESSIBLE_TABLE_SUMMARY_CHANGED = 
+	"accessibleTableSummaryChanged";
+
+    /** 
+     * Constant used to indicate that table data has changed.
+     * The old value in the PropertyChangeEvent will be null and the 
+     * new value will be an AccessibleTableModelChange representing
+     * the table change.
+     * @see AccessibleTable
+     * @see AccessibleTableModelChange
+     */
+    public static final String ACCESSIBLE_TABLE_MODEL_CHANGED = 
+	"accessibleTableModelChanged";
+
+    /** 
+     * Constant used to indicate that the row header has changed
+     * The old value in the PropertyChangeEvent will be null and the 
+     * new value will be an AccessibleTableModelChange representing
+     * the header change.
+     * @see AccessibleTable
+     * @see AccessibleTableModelChange
+     */
+    public static final String ACCESSIBLE_TABLE_ROW_HEADER_CHANGED = 
+	"accessibleTableRowHeaderChanged";
+
+    /** 
+     * Constant used to indicate that the row description has changed
+     * The old value in the PropertyChangeEvent will be null and the 
+     * new value will be an Integer representing the row index.
+     * @see AccessibleTable
+     */
+    public static final String ACCESSIBLE_TABLE_ROW_DESCRIPTION_CHANGED =
+	"accessibleTableRowDescriptionChanged";
+
+    /** 
+     * Constant used to indicate that the column header has changed
+     * The old value in the PropertyChangeEvent will be null and the 
+     * new value will be an AccessibleTableModelChange representing
+     * the header change.
+     * @see AccessibleTable
+     * @see AccessibleTableModelChange
+     */
+    public static final String ACCESSIBLE_TABLE_COLUMN_HEADER_CHANGED =
+	"accessibleTableColumnHeaderChanged";
+
+    /** 
+     * Constant used to indicate that the column description has changed
+     * The old value in the PropertyChangeEvent will be null and the 
+     * new value will be an Integer representing the column index.
+     * @see AccessibleTable
+     */
+    public static final String ACCESSIBLE_TABLE_COLUMN_DESCRIPTION_CHANGED =
+	"accessibleTableColumnDescriptionChanged";
+
+    /**
+     * Constant used to indicate that the supported set of actions
+     * has changed.  The old value in the PropertyChangeEvent will
+     * be an Integer representing the old number of actions supported
+     * and the new value will be an Integer representing the new 
+     * number of actions supported.
+     * @see AccessibleAction
+     */
+    public static final String ACCESSIBLE_ACTION_PROPERTY =
+	"accessibleActionProperty";
+     
 
     /** 
      * The accessible parent of this object.
@@ -205,7 +291,14 @@ public abstract class AccessibleContext {
     private PropertyChangeSupport accessibleChangeSupport = null;
 
     /**
-     * Get the accessibleName property of this object.  The accessibleName
+     * Used to represent the context's relation set
+     * @see #getAccessibleRelationSet
+     */
+    private AccessibleRelationSet relationSet 
+	= new AccessibleRelationSet();
+
+    /**
+     * Gets the accessibleName property of this object.  The accessibleName
      * property of an object is a localized String that designates the purpose
      * of the object.  For example, the accessibleName property of a label
      * or button might be the text of the label or button itself.  In the
@@ -224,7 +317,7 @@ public abstract class AccessibleContext {
     }
 	
     /**
-     * Set the localized accessible name of this object.  Changing the
+     * Sets the localized accessible name of this object.  Changing the
      * name will cause a PropertyChangeEvent to be fired for the
      * ACCESSIBLE_NAME_PROPERTY property.
      *
@@ -240,7 +333,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the accessibleDescription property of this object.  The
+     * Gets the accessibleDescription property of this object.  The
      * accessibleDescription property of this object is a short localized
      * phrase describing the purpose of the object.  For example, in the 
      * case of a 'Cancel' button, the accessibleDescription could be
@@ -256,7 +349,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Set the accessible description of this object.  Changing the
+     * Sets the accessible description of this object.  Changing the
      * name will cause a PropertyChangeEvent to be fired for the
      * ACCESSIBLE_DESCRIPTION_PROPERTY property.
      *
@@ -273,7 +366,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the role of this object.  The role of the object is the generic
+     * Gets the role of this object.  The role of the object is the generic
      * purpose or use of the class of this object.  For example, the role
      * of a push button is AccessibleRole.PUSH_BUTTON.  The roles in 
      * AccessibleRole are provided so component developers can pick from
@@ -293,8 +386,8 @@ public abstract class AccessibleContext {
     public abstract AccessibleRole getAccessibleRole();
     
     /**
-     * Get the state set of this object.  The AccessibleStateSet of an object
-     * is composed of a set of unique AccessibleState's.  A change in the 
+     * Gets the state set of this object.  The AccessibleStateSet of an object
+     * is composed of a set of unique AccessibleStates.  A change in the 
      * AccessibleStateSet of an object will cause a PropertyChangeEvent to 
      * be fired for the ACCESSIBLE_STATE_PROPERTY property.
      *
@@ -307,7 +400,7 @@ public abstract class AccessibleContext {
     public abstract AccessibleStateSet getAccessibleStateSet();
 
     /**
-     * Get the Accessible parent of this object.
+     * Gets the Accessible parent of this object.
      *
      * @return the Accessible parent of this object; null if this
      * object does not have an Accessible parent
@@ -317,7 +410,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Set the Accessible parent of this object.  This is meant to be used
+     * Sets the Accessible parent of this object.  This is meant to be used
      * only in the situations where the actual component's parent should 
      * not be treated as the component's accessible parent and is a method 
      * that should only be called by the parent of the accessible child. 
@@ -329,7 +422,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the 0-based index of this object in its accessible parent.
+     * Gets the 0-based index of this object in its accessible parent.
      *
      * @return the 0-based index of this object in its parent; -1 if this 
      * object does not have an accessible parent.
@@ -348,7 +441,7 @@ public abstract class AccessibleContext {
     public abstract int getAccessibleChildrenCount();
 
     /**
-     * Return the specified Accessible child of the object.  The Accessible
+     * Returns the specified Accessible child of the object.  The Accessible
      * children of an Accessible object are zero-based, so the first child 
      * of an Accessible child is at index 0, the second child is at index 1,
      * and so on.
@@ -363,7 +456,7 @@ public abstract class AccessibleContext {
      * Gets the locale of the component. If the component does not have a 
      * locale, then the locale of its parent is returned.  
      *
-     * @return This component's locale.  If this component does not have 
+     * @return this component's locale.  If this component does not have 
      * a locale, the locale of its parent is returned.
      *
      * @exception IllegalComponentStateException 
@@ -374,7 +467,7 @@ public abstract class AccessibleContext {
     public abstract Locale getLocale() throws IllegalComponentStateException;
 
     /**
-     * Add a PropertyChangeListener to the listener list.
+     * Adds a PropertyChangeListener to the listener list.
      * The listener is registered for all Accessible properties and will
      * be called when those properties change.
      *
@@ -396,7 +489,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Remove a PropertyChangeListener from the listener list.
+     * Removes a PropertyChangeListener from the listener list.
      * This removes a PropertyChangeListener that was registered
      * for all properties.
      *
@@ -409,7 +502,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the AccessibleAction associated with this object that supports
+     * Gets the AccessibleAction associated with this object that supports
      * one or more actions. 
      *
      * @return AccessibleAction if supported by object; else return null
@@ -420,7 +513,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the AccessibleComponent associated with this object that has a 
+     * Gets the AccessibleComponent associated with this object that has a 
      * graphical representation.
      *
      * @return AccessibleComponent if supported by object; else return null
@@ -431,7 +524,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the AccessibleSelection associated with this object which allows its
+     * Gets the AccessibleSelection associated with this object which allows its
      * Accessible children to be selected.  
      * 
      * @return AccessibleSelection if supported by object; else return null
@@ -441,16 +534,8 @@ public abstract class AccessibleContext {
 	return null;
     }
 
-//    /**
-//     * Get the AccessibleTable associated with this object if one
-//     * exists.  Otherwise return null.
-//     */
-//    public AccessibleTable getAccessibleTable() {
-//        return null;
-//    }
-
     /**
-     * Get the AccessibleText associated with this object presently editable
+     * Gets the AccessibleText associated with this object presently editable
      * text on the display.
      *
      * @return AccessibleText if supported by object; else return null
@@ -461,13 +546,47 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Get the AccessibleValue associated with this object that supports a 
+     * Gets the AccessibleValue associated with this object that supports a 
      * Numerical value. 
      * 
      * @return AccessibleValue if supported by object; else return null 
      * @see AccessibleValue
      */
     public AccessibleValue getAccessibleValue() {
+	return null;
+    }
+
+    /**
+     * Gets the AccessibleIcons associated with an object that has
+     * one or more associated icons
+     * 
+     * @return an array of AccessibleIcon if supported by object; 
+     * otherwise return null 
+     * @see AccessibleIcon
+     */
+    public AccessibleIcon [] getAccessibleIcon() {
+	return null;
+    }
+
+    /**
+     * Gets the AccessibleRelationSet associated with an object
+     * 
+     * @return an AccessibleRelationSet if supported by object;
+     * otherwise return null
+     * @see AccessibleRelationSet
+     */
+    public AccessibleRelationSet getAccessibleRelationSet() {
+	return relationSet;
+    }
+
+    /**
+     * Gets the AccessibleTable associated with an object
+     * 
+     * @return an AccessibleTable if supported by object;
+     * otherwise return null
+     * @see AccessibleTable
+     */
+    public AccessibleTable getAccessibleTable() {
 	return null;
     }
 

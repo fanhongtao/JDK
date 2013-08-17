@@ -1,8 +1,11 @@
 /*
- * @(#)Attributes.java	1.30 01/11/29
+ * @(#)Attributes.java	1.37 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.jar;
@@ -24,9 +27,9 @@ import java.util.Iterator;
  * characters and will be UTF8-encoded when written to the output stream.
  *
  * @author  David Connelly
- * @version 1.30, 11/29/01
+ * @version 1.37, 02/02/00
  * @see	    Manifest
- * @since   JDK1.2
+ * @since   1.2
  */
 public class Attributes implements Map, Cloneable {
     /**
@@ -54,6 +57,8 @@ public class Attributes implements Map, Cloneable {
     /**
      * Constructs a new Attributes object with the same attribute name-value
      * mappings as in the specified Attributes.
+     *
+     * @param attr the specified Attributes
      */
     public Attributes(Attributes attr) {
 	map = new HashMap(attr);
@@ -65,6 +70,8 @@ public class Attributes implements Map, Cloneable {
      * attribute name was not found.
      *
      * @param name the attribute name
+     * @return the value of the specified attribute name, or null if
+     *         not found.
      */
     public Object get(Object name) {
 	return map.get(name);
@@ -81,6 +88,8 @@ public class Attributes implements Map, Cloneable {
      * </pre>
      *
      * @param name the attribute name as a string
+     * @return the String value of the specified attribute name, or null if
+     *         not found.
      */
     public String getValue(String name) {
         return (String)get(new Attributes.Name((String)name));
@@ -96,6 +105,8 @@ public class Attributes implements Map, Cloneable {
      * </pre>
      *
      * @param name the Attributes.Name object
+     * @return the String value of the specified Attribute.Name, or null if
+     *         not found.
      */
     public String getValue(Name name) {
 	return (String)get(name);
@@ -127,8 +138,9 @@ public class Attributes implements Map, Cloneable {
      *	    return (String)put(new Attributes.Name(name), value);
      * </pre>
      *
-     * @param the attribute name as a string
+     * @param name the attribute name as a string
      * @param value the attribute value
+     * @return the previous value of the attribute, or null if none
      * @exception IllegalArgumentException if the attribute name is invalid
      */
     public String putValue(String name, String value) {
@@ -140,6 +152,7 @@ public class Attributes implements Map, Cloneable {
      * Returns the previous attribute value, or null if none.
      *
      * @param name attribute name
+     * @return the previous value of the attribute, or null if none
      */
     public Object remove(Object name) {
 	return map.remove(name);
@@ -150,6 +163,8 @@ public class Attributes implements Map, Cloneable {
      * to the specified value.
      *
      * @param value the attribute value
+     * @return true if this Map maps one or more attribute names to
+     *         the specified value
      */
     public boolean containsValue(Object value) {
 	return map.containsValue(value);
@@ -159,6 +174,7 @@ public class Attributes implements Map, Cloneable {
      * Returns true if this Map contains the specified attribute name (key).
      *
      * @param name the attribute name
+     * @return true if this Map contains the specified attribute name
      */
     public boolean containsKey(Object name) {
 	return map.containsKey(name);
@@ -169,14 +185,10 @@ public class Attributes implements Map, Cloneable {
      * Attributes to this Map. Duplicate mappings will be replaced.
      *
      * @param attr the Attributes to be stored in this map
-     * @exception IllegalArgumentException if attr is not a Attributes instance
+     * @exception ClassCastException if attr is not an Attributes
      */
     public void putAll(Map attr) {
-        if (!(attr instanceof Attributes)) {
-            throw new IllegalArgumentException
-                ("attr is not instance of Attributes");
-        }
-	map.putAll(attr);
+	map.putAll((Attributes)attr);
     }
 
     /**
@@ -386,7 +398,7 @@ public class Attributes implements Map, Cloneable {
 
 	private static boolean isValid(String name) {
 	    int len = name.length();
-	    if (len > 70) {
+	    if (len > 70 || len == 0) {
 		return false;
 	    }
 	    for (int i = 0; i < len; i++) {
@@ -412,6 +424,8 @@ public class Attributes implements Map, Cloneable {
 	/**
 	 * Compares this attribute name to another for equality.
 	 * @param o the object to compare
+         * @return true if this attribute name is equal to the
+         *         specified attribute object
 	 */
 	public boolean equals(Object o) {
 	    if (o instanceof Name) {
@@ -487,6 +501,30 @@ public class Attributes implements Map, Cloneable {
          */ 
         public static final Name SEALED = new Name("Sealed");
 
+       /**
+         * <code>Name</code> object for <code>Extension-List</code> manifest attribute 
+         * used for declaring dependencies on installed extensions.
+         * @see <a href="../../../../guide/extensions/spec.html#dependnecy">
+         *      Installed extension dependency</a>
+         */ 
+        public static final Name EXTENSION_LIST = new Name("Extension-List");
+
+        /**
+         * <code>Name</code> object for <code>Extension-Name</code> manifest attribute 
+         * used for declaring dependencies on installed extensions.
+         * @see <a href="../../../../guide/extensions/spec.html#dependency">
+         *      Installed extension dependency</a>
+         */ 
+        public static final Name EXTENSION_NAME = new Name("Extension-Name");
+
+        /**
+         * <code>Name</code> object for <code>Extension-Name</code> manifest attribute 
+         * used for declaring dependencies on installed extensions.
+         * @see <a href="../../../../guide/extensions/spec.html#dependency">
+         *      Installed extension dependency</a>
+         */ 
+        public static final Name EXTENSION_INSTALLATION = new Name("Extension-Installation");
+
         /**
          * <code>Name</code> object for <code>Implementation-Title</code> 
          * manifest attribute used for package versioning.
@@ -510,6 +548,22 @@ public class Attributes implements Map, Cloneable {
          *      Java Product Versioning Specification</a>
          */
         public static final Name IMPLEMENTATION_VENDOR = new Name("Implementation-Vendor");
+
+	/**
+         * <code>Name</code> object for <code>Implementation-Vendor-Id</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name IMPLEMENTATION_VENDOR_ID = new Name("Implementation-Vendor-Id");
+
+       /**
+         * <code>Name</code> object for <code>Implementation-Vendor-URL</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name IMPLEMENTATION_URL = new Name("Implementation-URL");
 
         /**
          * <code>Name</code> object for <code>Specification-Title</code> 

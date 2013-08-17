@@ -1,8 +1,11 @@
 /*
- * @(#)X509Extension.java	1.14 01/11/29
+ * @(#)X509Extension.java	1.16 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security.cert;
@@ -47,14 +50,16 @@ import java.util.Set;
  * be handled by a <em>Class</em> that understands the extension.
  *
  * @author Hemma Prafullchandra
- * @version 1.14 01/11/29
+ * @version 1.16 00/02/02
  */
 
 public interface X509Extension {
 
     /**
-     * Return true if a critical extension is found that is
-     * not supported, otherwise return false.
+     * Check if there is a critical extension that is not supported.
+     * 
+     * @return <tt>true</tt> if a critical extension is found that is
+     * not supported, otherwise <tt>false</tt>.
      */
     public boolean hasUnsupportedCriticalExtension();
 

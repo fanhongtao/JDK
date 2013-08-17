@@ -1,8 +1,11 @@
 /*
- * @(#)DataOutputStream.java	1.29 01/11/29
+ * @(#)DataOutputStream.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -13,7 +16,7 @@ package java.io;
  * then use a data input stream to read the data back in. 
  *
  * @author  unascribed
- * @version 1.29, 11/29/01
+ * @version 1.32, 02/02/00
  * @see     java.io.DataInputStream
  * @since   JDK1.0
  */
@@ -300,12 +303,38 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @exception  IOException  if an I/O error occurs.
      */
     public final void writeUTF(String str) throws IOException {
-	OutputStream out = this.out;
+        writeUTF(str, this);
+    }
+
+    /**
+     * Writes a string to the specified DataOutput using UTF-8 encoding in a
+     * machine-independent manner. 
+     * <p>
+     * First, two bytes are written to out as if by the <code>writeShort</code>
+     * method giving the number of bytes to follow. This value is the number of
+     * bytes actually written out, not the length of the string. Following the
+     * length, each character of the string is output, in sequence, using the
+     * UTF-8 encoding for the character. If no exception is thrown, the
+     * counter <code>written</code> is incremented by the total number of 
+     * bytes written to the output stream. This will be at least two 
+     * plus the length of <code>str</code>, and at most two plus 
+     * thrice the length of <code>str</code>.
+     *
+     * @param      str   a string to be written.
+     * @param      out   destination to write to
+     * @return     The number of bytes written out.
+     * @exception  IOException  if an I/O error occurs.
+     */
+    static int writeUTF(String str, DataOutput out) throws IOException {
 	int strlen = str.length();
 	int utflen = 0;
+ 	char[] charr = new char[strlen];
+	int c, count = 0;
 
-	for (int i = 0 ; i < strlen ; i++) {
-	    int c = str.charAt(i);
+	str.getChars(0, strlen, charr, 0);
+ 
+	for (int i = 0; i < strlen; i++) {
+	    c = charr[i];
 	    if ((c >= 0x0001) && (c <= 0x007F)) {
 		utflen++;
 	    } else if (c > 0x07FF) {
@@ -316,26 +345,27 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
 	}
 
 	if (utflen > 65535)
-	    throw new UTFDataFormatException();		  
+	    throw new UTFDataFormatException();
 
-	out.write((utflen >>> 8) & 0xFF);
-	out.write((utflen >>> 0) & 0xFF);
-	for (int i = 0 ; i < strlen ; i++) {
-	    int c = str.charAt(i);
+	byte[] bytearr = new byte[utflen+2];
+	bytearr[count++] = (byte) ((utflen >>> 8) & 0xFF);
+	bytearr[count++] = (byte) ((utflen >>> 0) & 0xFF);
+	for (int i = 0; i < strlen; i++) {
+	    c = charr[i];
 	    if ((c >= 0x0001) && (c <= 0x007F)) {
-		out.write(c);
+		bytearr[count++] = (byte) c;
 	    } else if (c > 0x07FF) {
-		out.write(0xE0 | ((c >> 12) & 0x0F));
-		out.write(0x80 | ((c >>  6) & 0x3F));
-		out.write(0x80 | ((c >>  0) & 0x3F));
-		incCount(2);
+		bytearr[count++] = (byte) (0xE0 | ((c >> 12) & 0x0F));
+		bytearr[count++] = (byte) (0x80 | ((c >>  6) & 0x3F));
+		bytearr[count++] = (byte) (0x80 | ((c >>  0) & 0x3F));
 	    } else {
-		out.write(0xC0 | ((c >>  6) & 0x1F));
-		out.write(0x80 | ((c >>  0) & 0x3F));
-		incCount(1);
+		bytearr[count++] = (byte) (0xC0 | ((c >>  6) & 0x1F));
+		bytearr[count++] = (byte) (0x80 | ((c >>  0) & 0x3F));
 	    }
 	}
-	incCount(strlen + 2);
+        out.write(bytearr);
+
+	return utflen + 2;
     }
 
     /**

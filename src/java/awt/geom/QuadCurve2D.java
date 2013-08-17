@@ -1,8 +1,11 @@
 /*
- * @(#)QuadCurve2D.java	1.18 01/11/29
+ * @(#)QuadCurve2D.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -19,7 +22,7 @@ import java.awt.Rectangle;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 10 Feb 1997
+ * @version 	1.22, 02/02/00
  * @author	Jim Graham
  */
 public abstract class QuadCurve2D implements Shape, Cloneable {
@@ -750,7 +753,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
 
     /**
      * Solves the quadratic whose coefficients are in the <code>eqn</code> 
-     * array and places the non-complex roots back into the array,
+     * array and places the non-complex roots back into the same array,
      * returning the number of roots.  The quadratic solved is represented
      * by the equation:
      * <pre>
@@ -768,11 +771,11 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
 	return solveQuadratic(eqn, eqn);
     }
 
-    /*
+    /**
      * Solves the quadratic whose coefficients are in the <code>eqn</code> 
-     * array and places the non-complex roots into the result array,
-     * returning the number of roots.  The quadratic solved is represented
-     * by the equation:
+     * array and places the non-complex roots into the <code>res</code>
+     * array, returning the number of roots.
+     * The quadratic solved is represented by the equation:
      * <pre>
      *     eqn = {C, B, A};
      *     ax^2 + bx + c = 0
@@ -783,7 +786,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * @return the number of roots, or <code>-1</code> if the equation is
      *	a constant.
      */
-    static int solveQuadratic(double eqn[], double res[]) {
+    public static int solveQuadratic(double eqn[], double res[]) {
 	double a = eqn[2];
 	double b = eqn[1];
 	double c = eqn[0];
@@ -1265,7 +1268,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * @return     a clone of this instance.
      * @exception  OutOfMemoryError            if there is not enough memory.
      * @see        java.lang.Cloneable
-     * @since      JDK1.2
+     * @since      1.2
      */
     public Object clone() {
 	try {

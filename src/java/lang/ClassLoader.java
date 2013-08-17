@@ -1,8 +1,11 @@
 /*
- * @(#)ClassLoader.java	1.131 01/11/29
+ * @(#)ClassLoader.java	1.143 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -121,7 +124,7 @@ import sun.misc.CompoundEnumeration;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.131, 11/29/01
+ * @version 1.143, 04/06/00
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -185,13 +188,14 @@ public abstract class ClassLoader {
      * If there is a security manager, its <code>checkCreateClassLoader</code>
      * method is called. This may result in a security exception. 
      *
-     * @throws  SecurityException
-     *    if a security manager exists and its <code>checkCreateClassLoader</code> 
-     *    method doesn't allow creation of a new class loader.
+     * @throws  SecurityException if a security manager exists and its
+     * <code>checkCreateClassLoader</code> method doesn't allow creation of a
+     * new class loader.
      * 
+     * @param parent the parent class loader
      * @see       java.lang.SecurityException
      * @see       java.lang.SecurityManager#checkCreateClassLoader()
-     * @since     JDK1.2
+     * @since     1.2
      */
     protected ClassLoader(ClassLoader parent) {
 	SecurityManager security = System.getSecurityManager();
@@ -266,7 +270,8 @@ public abstract class ClassLoader {
      * <code>resolve</code> flag is true, this method will then call the
      * {@link #resolveClass(Class)} method on the resulting class object.
      * <p>
-     * From JDK1.2, subclasses of ClassLoader are encouraged to override
+     * From the Java 2 SDK, v1.2, subclasses of ClassLoader are 
+     * encouraged to override
      * {@link #findClass(String)}, rather than this method.<p>
      *
      * @param     name the name of the class
@@ -335,7 +340,7 @@ public abstract class ClassLoader {
      * @param  name the name of the class
      * @return the resulting <code>Class</code> object
      * @exception ClassNotFoundException if the class could not be found
-     * @since  JDK1.2
+     * @since  1.2
      */
     protected Class findClass(String name) throws ClassNotFoundException {
 	throw new ClassNotFoundException(name);
@@ -440,6 +445,11 @@ public abstract class ClassLoader {
      * ensures that the class you are defining is indeed the class
      * you think it is.
      *
+     * <p>The specified class name cannot begin with "java.", since all 
+     * classes in the java.* packages can only be defined by the bootstrap 
+     * class loader.
+     * 
+     *
      * @exception  ClassFormatError if the data did not contain a valid class
      * @exception  IndexOutOfBoundsException if either <code>off</code> or 
      *             <code>len</code> is negative, or if 
@@ -447,7 +457,8 @@ public abstract class ClassLoader {
      *
      * @exception  SecurityException if an attempt is made to add this class
      *             to a package that contains classes that were signed by
-     *             a different set of certificates then this class.
+     *             a different set of certificates than this class, or if 
+     *             the class name begins with "java.".
      *
      * @param name the name of the class
      * @param b the class bytes
@@ -462,6 +473,10 @@ public abstract class ClassLoader {
 	throws ClassFormatError
     {
 	check();
+        if ((name != null) && name.startsWith("java.")) {
+            throw new SecurityException("Prohibited package name: " + 
+                                        name.substring(0, name.lastIndexOf('.')));
+        }
 	if (protectionDomain == null) {
 	    protectionDomain = getDefaultDomain();
 	}
@@ -576,21 +591,23 @@ public abstract class ClassLoader {
     /**
      * Finds a class with the specified name, loading it if necessary.<p>
      *
-     * Prior to JDK1.2, this method loads a class from the local file
+     * Prior to the Java 2 SDK, this method loads a class from the local file
      * system in a platform-dependent manner, and returns a class object
      * that has no associated class loader.<p>
      *
-     * Since JDK1.2, this method loads the class through the system class
-     * loader(see {@link #getSystemClassLoader()}).  Class objects returned
-     * might have <code>ClassLoader</code>s associated with them.  Subclasses
-     * of <code>ClassLoader</code> need not usually call this method, because
-     * most class loaders need to override just {@link #findClass(String)}.<p>
+     * Since the Java 2 SDK v1.2, this method loads the class through the
+     * system class loader(see {@link #getSystemClassLoader()}).  Class objects
+     * returned might have <code>ClassLoader</code>s associated with them.
+     * Subclasses of <code>ClassLoader</code> need not usually call this
+     * method, because most class loaders need to override just {@link
+     * #findClass(String)}.<p>
      *
+     * @param     name the name of the class that is to be found
+     * @return the <code>Class</code> object for the specified
+     * <code>name</code>
+     * @exception ClassNotFoundException if the class could not be found
      * @see       #ClassLoader(ClassLoader)
      * @see       #getParent()
-     * @param     name the name of the class that is to be found
-     * @return    a system class with the given name
-     * @exception ClassNotFoundException if the class could not be found
      */
     protected final Class findSystemClass(String name)
 	throws ClassNotFoundException
@@ -617,6 +634,7 @@ public abstract class ClassLoader {
      * permission to ensure it's ok to access the parent class loader.
      * If not, a <code>SecurityException</code> will be thrown.
      *
+     * @return the parent <code>ClassLoader</code>
      * @throws SecurityException
      *    if a security manager exists and its 
      *    <code>checkPermission</code> method doesn't allow
@@ -625,7 +643,7 @@ public abstract class ClassLoader {
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
      * 
-     * @since JDK1.2
+     * @since 1.2
      */
     public final ClassLoader getParent() {
 	if (parent == null)
@@ -643,6 +661,7 @@ public abstract class ClassLoader {
     /**
      * Sets the signers of a class. This should be called after defining a
      * class.
+     *
      * @param c the <code>Class</code> object
      * @param signers the signers for the class
      * @since JDK1.1
@@ -732,7 +751,8 @@ public abstract class ClassLoader {
      * @return an enumeration of URL to the resource. If no resources could
      *         be found, the enumeration will be empty. Resources that the 
      *         doesn't have access to will not be in the enumeration.
-     * @since  JDK1.2
+     * @throws IOException if I/O errors occur
+     * @since  1.2
      * @see    #getResource
      * @see #findResources
      */
@@ -755,7 +775,8 @@ public abstract class ClassLoader {
      *
      * @param  name the resource name
      * @return an Enumeration of URLs for the resources
-     * @since  JDK1.2
+     * @throws IOException if I/O errors occur
+     * @since  1.2
      */
     protected Enumeration findResources(String name) throws IOException {
 	return new CompoundEnumeration(new Enumeration[0]);
@@ -769,7 +790,7 @@ public abstract class ClassLoader {
      * @param  name the resource name
      * @return a URL for reading the resource, or <code>null</code>
      *         if the resource could not be found
-     * @since  JDK1.2
+     * @since  1.2
      */
     protected URL findResource(String name) {
 	return null;
@@ -782,7 +803,7 @@ public abstract class ClassLoader {
      * In JDK1.1, the search path used is that of the virtual machine's
      * built-in class loader.<p>
      *
-     * Since JDK1.2, this method locates the resource through the system class
+     * Since the Java 2 SDK v1.2, this method locates the resource through the system class
      * loader (see {@link #getSystemClassLoader()}).
      *
      * @param  name the resource name
@@ -817,7 +838,8 @@ public abstract class ClassLoader {
      *
      * @param  name the resource name
      * @return an enumeration of resource URLs
-     * @since JDK1.2
+     * @throws IOException if I/O errors occur
+     * @since 1.2
      */
     public static Enumeration getSystemResources(String name)
 	throws IOException
@@ -920,11 +942,11 @@ public abstract class ClassLoader {
      *        access to the system class loader.
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
-     * @since JDK1.2
+     * @since 1.2
      */
     public static ClassLoader getSystemClassLoader() {
 	if (!sclSet) {
-            // Workaround for 4154308 (JDK 1.2FCS build breaker)
+            // Workaround for 4154308 (1.2FCS build breaker)
             // Launcher l = Launcher.getLauncher();
             sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
 	    if (l != null) {
@@ -994,10 +1016,11 @@ public abstract class ClassLoader {
      * @param sealBase    If not null, then this package is sealed with
      *                    respect to the given code source URL. Otherwise,
      *			  the package is not sealed.
+     * @return the newly defined <code>Package</code> object
      * @exception IllegalArgumentException if package name duplicates an
      *            existing package either in this class loader or one of
      *            its ancestors
-     * @since JDK1.2
+     * @since 1.2
      */
     protected Package definePackage(String name, String specTitle,
 				    String specVersion, String specVendor,
@@ -1025,7 +1048,7 @@ public abstract class ClassLoader {
      * @param  name the package name
      * @return the Package corresponding to the given name, or null if not
      *         found
-     * @since  JDK1.2
+     * @since  1.2
      */
     protected Package getPackage(String name) {
 	synchronized (packages) {
@@ -1048,7 +1071,9 @@ public abstract class ClassLoader {
      * Returns all of the Packages defined by this class loader and its
      * ancestors.
      *
-     * @since JDK1.2
+     * @return the array of <code>Package</code> objects defined by this
+     * <code>ClassLoader</code>
+     * @since 1.2
      */
     protected Package[] getPackages() {
 	Map map;
@@ -1063,7 +1088,10 @@ public abstract class ClassLoader {
 	}
 	if (pkgs != null) {
 	    for (int i = 0; i < pkgs.length; i++) {
-		map.put(pkgs[i].getName(), pkgs[i]);
+                String pkgName = pkgs[i].getName();
+                if (map.get(pkgName) == null) {
+                    map.put(pkgName, pkgs[i]);
+                }
 	    }
 	}
 	return (Package[])map.values().toArray(new Package[map.size()]);
@@ -1080,7 +1108,7 @@ public abstract class ClassLoader {
      * @return     the absolute path of the native library
      * @see        java.lang.System#loadLibrary(java.lang.String)
      * @see        java.lang.System#mapLibraryName(java.lang.String)
-     * @since      JDK1.2
+     * @since      1.2
      */
     protected String findLibrary(String libname) {
         return null;
@@ -1098,9 +1126,9 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.131, 11/29/01
+     * @version 1.143, 04/06/00
      * @see     java.lang.ClassLoader
-     * @since   JDK1.2
+     * @since   1.2
      */ 
     static class NativeLibrary {
         /* opaque handle to native library, used in native code. */ 

@@ -1,8 +1,11 @@
 /*
- * @(#)EmptyBorder.java	1.20 01/11/29
+ * @(#)EmptyBorder.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.border;
 
@@ -23,7 +26,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.20 11/29/01
+ * @version 1.22 02/02/00
  * @author David Kloba
  */
 public class EmptyBorder extends AbstractBorder implements Serializable
@@ -46,13 +49,13 @@ public class EmptyBorder extends AbstractBorder implements Serializable
 
     /**
      * Creates an empty border with the specified insets.
-     * @param insets the insets of the border
+     * @param borderInsets the insets of the border
      */
-    public EmptyBorder(Insets insets)   {
-        this.top = insets.top; 
-        this.right = insets.right;
-        this.bottom = insets.bottom;
-        this.left = insets.left;
+    public EmptyBorder(Insets borderInsets)   {
+        this.top = borderInsets.top; 
+        this.right = borderInsets.right;
+        this.bottom = borderInsets.bottom;
+        this.left = borderInsets.left;
     }
 
     /**
@@ -66,7 +69,7 @@ public class EmptyBorder extends AbstractBorder implements Serializable
      * @param c the component for which this border insets value applies
      */
     public Insets getBorderInsets(Component c)       {
-        return new Insets(top, left, bottom, right);
+        return getBorderInsets();
     }
 
     /** 
@@ -80,6 +83,13 @@ public class EmptyBorder extends AbstractBorder implements Serializable
         insets.right = right;
         insets.bottom = bottom;
         return insets;
+    }
+
+    /**
+     * Returns the insets of the border.
+     */
+    public Insets getBorderInsets() {
+        return new Insets(top, left, bottom, right);
     }
 
     /**

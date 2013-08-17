@@ -1,8 +1,11 @@
 /*
- * @(#)Ellipse2D.java	1.11 01/11/29
+ * @(#)Ellipse2D.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.geom;
@@ -16,7 +19,7 @@ package java.awt.geom;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 10 Feb 1997
+ * @version 1.13, 02/02/00
  * @author	Jim Graham
  */
 public abstract class Ellipse2D extends RectangularShape {

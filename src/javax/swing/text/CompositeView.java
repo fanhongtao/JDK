@@ -1,8 +1,11 @@
 /*
- * @(#)CompositeView.java	1.46 01/11/29
+ * @(#)CompositeView.java	1.54 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -34,7 +37,7 @@ import javax.swing.SwingConstants;
  * <dd>This class does not implement a layout policy
  * as it is abstract.  A subclass will determine how
  * the children are laid out by implementing the
- * <a href="View#setSize">setSize</a> method to position
+ * <a href="View.html#setSize(float, float)">setSize</a> method to position
  * the children when the size has been changed.
  *
  * <dt><b>paint the children</b>
@@ -46,7 +49,7 @@ import javax.swing.SwingConstants;
  * child view.
  *
  * <dt><b>propagation of 
- * <a href="javax.swing.event.DocumentEvent">DocumentEvent</a> 
+ * <a href="../event/DocumentEvent.html">DocumentEvent</a> 
  * information to the appropriate children.</b>
  *
  * <dt>propagation of model/view translation to the
@@ -54,7 +57,7 @@ import javax.swing.SwingConstants;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.46 11/29/01
+ * @version 1.54 02/02/00
  */
 public abstract class CompositeView extends View {
 
@@ -82,6 +85,11 @@ public abstract class CompositeView extends View {
      * @see #setParent
      */
     protected void loadChildren(ViewFactory f) {
+	if (f == null) {
+	    // No factory. This most likely indicates the parent view
+	    // has changed out from under us, bail!
+	    return;
+	}
 	Element e = getElement();
 	int n = e.getElementCount();
 	if (n > 0) {
@@ -90,242 +98,6 @@ public abstract class CompositeView extends View {
 		added[i] = f.create(e.getElement(i));
 	    }
 	    replace(0, 0, added);
-	}
-    }
-
-    /**
-     * Removes all of the children.
-     */
-    public void removeAll() {
-	replace(0, nchildren, ZERO);
-    }
-
-    /**
-     * Removes one of the children at the given position.
-     */
-    /*public*/ void remove(int i) {
-	replace(i, 1, ZERO);
-    }
-
-    /**
-     * Inserts a single child view.  This is a convenience 
-     * call to replace.
-     *
-     * @param offs the offset of the view to insert before >= 0
-     * @param v the view
-     * @see #replace
-     */
-    public void insert(int offs, View v) {
-	View[] one = new View[1];
-	one[0] = v;
-	replace(offs, 0, one);
-    }
-
-    /**
-     * Appends a single child view.  This is a convenience 
-     * call to replace.
-     *
-     * @param v the view
-     * @see #replace
-     */
-    public void append(View v) {
-	View[] one = new View[1];
-	one[0] = v;
-	replace(nchildren, 0, one);
-    }
-
-    /**
-     * Replace child views.  If there are no views to remove
-     * this acts as an insert.  If there are no views to
-     * add this acts as a remove.  Views being removed will
-     * have the parent set to null, and the internal reference
-     * to them removed so that they can be garbage collected.
-     *
-     * @param index the starting index into the child views to insert
-     *   the new views >= 0
-     * @param length the number of existing child views to remove >= 0
-     * @param views the child views to add
-     */
-    public void replace(int offset, int length, View[] views) {
-	// update parent reference on removed views
-	for (int i = offset; i < offset + length; i++) {
-	    children[i].setParent(null);
-	    children[i] = null;
-	}
-	
-	// update the array
-	int delta = views.length - length;
-	int src = offset + length;
-	int nmove = nchildren - src;
-	int dest = src + delta;
-	if ((nchildren + delta) >= children.length) {
-	    // need to grow the array
-	    int newLength = Math.max(2*children.length, nchildren + delta);
-	    View[] newChildren = new View[newLength];
-	    System.arraycopy(children, 0, newChildren, 0, offset);
-	    System.arraycopy(views, 0, newChildren, offset, views.length);
-	    System.arraycopy(children, src, newChildren, dest, nmove);
-	    children = newChildren;
-	} else {
-	    // patch the existing array
-	    System.arraycopy(children, src, children, dest, nmove);
-	    System.arraycopy(views, 0, children, offset, views.length);
-	}
-	nchildren = nchildren + delta;
-
-	// update parent reference on added views
-	for (int i = 0; i < views.length; i++) {
-	    views[i].setParent(this);
-	}
-    }
-
-    /**
-     * Updates the child views in response to receiving notification
-     * that the model changed, and there is change record for the 
-     * element this view is responsible for.  This is implemented
-     * to assume the child views are directly responsible for the
-     * child elements of the element this view represents.  The
-     * ViewFactory is used to create child views for each element
-     * specified as added in the ElementChange, starting at the
-     * index specified in the given ElementChange.  The number of
-     * child views representing the removed elements specified are 
-     * removed.
-     * 
-     * @param ec The change information for the element this view
-     *  is responsible for.  This should not be null if this method
-     *  gets called.
-     * @param e the change information from the associated document
-     * @param f the factory to use to build child views
-     * @return whether or not the child views represent the
-     *  child elements of the element this view is responsible
-     *  for.  Some views create children that represent a portion 
-     *  of the element they are responsible for, and should return
-     *  false.  This information is used to determine if views 
-     *  in the range of the added elements should be forwarded to
-     *  or not.
-     * @see #insertUpdate
-     * @see #removeUpdate
-     * @see #changedUpdate     
-     */
-    /*protected*/ boolean updateChildren(DocumentEvent.ElementChange ec, 
-					 DocumentEvent e, ViewFactory f) {
-	// the structure of this element changed.
-	Element[] removedElems = ec.getChildrenRemoved();
-	Element[] addedElems = ec.getChildrenAdded();
-	View[] added = new View[addedElems.length];
-	for (int i = 0; i < addedElems.length; i++) {
-	    added[i] = f.create(addedElems[i]);
-	}
-	int index = ec.getIndex();
-	replace(index, removedElems.length, added);
-	return true;
-    }
-
-    /**
-     * Forward the given DocumentEvent to the child views
-     * that need to be notified of the change to the model.
-     * If there were changes to the element this view is 
-     * responsible for, that should be considered when 
-     * forwarding (i.e. new child views should not get
-     * notified).
-     *
-     * @param ec changes to the element this view is responsible
-     *  for (may be null if there were no changes).
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see #insertUpdate
-     * @see #removeUpdate
-     * @see #changedUpdate     
-     */
-    /*protected*/ void forwardUpdate(DocumentEvent.ElementChange ec, 
-				      DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-	int pos = e.getOffset();
-	int index0 = getViewIndexAtPosition(pos);
-	int index1 = index0;
-	View v = (index0 >= 0) ? getView(index0) : null;
-	if (v != null) {
-	    if ((v.getStartOffset() == pos) && (pos > 0)) {
-		// If v is at a boundry, forward the event to the previous
-		// view too.
-		index0 = Math.max(index0 - 1, 0);
-	    }
-	}
-	if (e.getType() != DocumentEvent.EventType.REMOVE) {
-	    index1 = getViewIndexAtPosition(pos + e.getLength());
-	    if (index1 < 0) {
-		index1 = getViewCount() - 1;
-	    }
-	}
-	int hole0 = index1 + 1;
-	int hole1 = hole0;
-	Element[] addedElems = (ec != null) ? ec.getChildrenAdded() : null;
-	if ((addedElems != null) && (addedElems.length > 0)) {
-	    hole0 = ec.getIndex();
-	    hole1 = hole0 + addedElems.length - 1;
-	}
-
-	// forward to any view not in the forwarding hole 
-	// formed by added elements (i.e. they will be updated
-	// by initialization.
-	for (int i = index0; i <= index1; i++) {
-	    if (! ((i >= hole0) && (i <= hole1))) {
-		v = getView(i);
-		if (v != null) {
-		    Shape childAlloc = getChildAllocation(i, a);
-		    forwardUpdateToView(v, e, childAlloc, f);
-		}
-	    }
-	}
-    }
-
-    /**
-     * Forward the DocumentEvent to the give child view.  This
-     * simply messages the view with a call to insertUpdate, 
-     * removeUpdate, or changedUpdate depending upon the type
-     * of the event.  This is called by
-     * <a href="#forwardUpdate">forwardUpdate</a> to forward 
-     * the event to children that need it.
-     *
-     * @param v the child view to forward the event to.
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see #forwardUpdate
-     */
-    /*protected*/ void forwardUpdateToView(View v, DocumentEvent e, 
-					   Shape a, ViewFactory f) {
-	DocumentEvent.EventType type = e.getType();
-	if (type == DocumentEvent.EventType.INSERT) {
-	    v.insertUpdate(e, a, f);
-	} else if (type == DocumentEvent.EventType.REMOVE) {
-	    v.removeUpdate(e, a, f);
-	} else {
-	    v.changedUpdate(e, a, f);
-	}
-    }
-
-    /**
-     * Update the layout in response to receiving notification of
-     * change from the model.  This is implemented to call preferenceChanged
-     * to reschedule a new layout if the ElementChange record is not null.
-     *
-     * @param ec changes to the element this view is responsible
-     *  for (may be null if there were no changes).
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see #insertUpdate
-     * @see #removeUpdate
-     * @see #changedUpdate     
-     */
-    /*protected*/ void updateLayout(DocumentEvent.ElementChange ec, 
-				    DocumentEvent e, Shape a) {
-	if ((ec != null) && (a != null)) {
-	    // should damage more intelligently
-	    preferenceChanged(null, true, true);
-	    getContainer().repaint();
 	}
     }
 
@@ -372,6 +144,58 @@ public abstract class CompositeView extends View {
      */
     public View getView(int n) {
 	return children[n];
+    }
+
+    /**
+     * Replace child views.  If there are no views to remove
+     * this acts as an insert.  If there are no views to
+     * add this acts as a remove.  Views being removed will
+     * have the parent set to null, and the internal reference
+     * to them removed so that they can be garbage collected.
+     *
+     * @param index the starting index into the child views to insert
+     *   the new views.  This should be a value >= 0 and <= getViewCount.
+     * @param length the number of existing child views to remove.
+     *   This should be a value >= 0 and <= (getViewCount() - offset).
+     * @param views the child views to add.  This value can be null
+     *   to indicate no children are being added (useful to remove).
+     */
+    public void replace(int offset, int length, View[] views) {
+	// make sure an array exists
+	if (views == null) {
+	    views = ZERO;
+	}
+
+	// update parent reference on removed views
+	for (int i = offset; i < offset + length; i++) {
+	    children[i].setParent(null);
+	    children[i] = null;
+	}
+	
+	// update the array
+	int delta = views.length - length;
+	int src = offset + length;
+	int nmove = nchildren - src;
+	int dest = src + delta;
+	if ((nchildren + delta) >= children.length) {
+	    // need to grow the array
+	    int newLength = Math.max(2*children.length, nchildren + delta);
+	    View[] newChildren = new View[newLength];
+	    System.arraycopy(children, 0, newChildren, 0, offset);
+	    System.arraycopy(views, 0, newChildren, offset, views.length);
+	    System.arraycopy(children, src, newChildren, dest, nmove);
+	    children = newChildren;
+	} else {
+	    // patch the existing array
+	    System.arraycopy(children, src, children, dest, nmove);
+	    System.arraycopy(views, 0, children, offset, views.length);
+	}
+	nchildren = nchildren + delta;
+
+	// update parent reference on added views
+	for (int i = 0; i < views.length; i++) {
+	    views[i].setParent(this);
+	}
     }
 
     /**
@@ -614,122 +438,23 @@ public abstract class CompositeView extends View {
     }
 
     /**
-     * Gives notification that something was inserted into 
-     * the document in a location that this view is responsible for.  
-     * To reduce the burden to subclasses, this functionality is
-     * spread out into the following calls that subclasses can
-     * reimplement:
-     * <ol>
-     * <li><a href="#updateChildren">updateChildren</a> is called
-     * if there were any changes to the element this view is
-     * responsible for.  If this view has child views that are
-     * represent the child elements, then this method should do
-     * whatever is necessary to make sure the child views correctly
-     * represent the model.
-     * <li><a href="#forwardUpdate">forwardUpdate</a> is called
-     * to forward the DocumentEvent to the appropriate child views.
-     * <li><a href="#updateLayout">updateLayout</a> is called to
-     * give the view a chance to either repair it's layout, to reschedule
-     * layout, or do nothing.
-     * </ol>
+     * Returns the child view index representing the given position in
+     * the model.  This is implemented to call the getViewIndexByPosition
+     * method for backward compatibility.
      *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#insertUpdate
+     * @param pos the position >= 0
+     * @returns  index of the view representing the given position, or 
+     *   -1 if no view represents that position
      */
-    public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-	DocumentEvent.ElementChange ec = e.getChange(elem);
-	if (ec != null) {
-	    if (! updateChildren(ec, e, f)) {
-		// don't consider the element changes they
-		// are for a view further down.
-		ec = null;
-	    }
+    public int getViewIndex(int pos, Position.Bias b) {
+	if(b == Position.Bias.Backward) {
+	    pos -= 1;
 	}
-	forwardUpdate(ec, e, a, f);
-	updateLayout(ec, e, a);
-    }
-
-    /**
-     * Gives notification that something was removed from the document
-     * in a location that this view is responsible for.
-     * To reduce the burden to subclasses, this functionality is
-     * spread out into the following calls that subclasses can
-     * reimplement:
-     * <ol>
-     * <li><a href="#updateChildren">updateChildren</a> is called
-     * if there were any changes to the element this view is
-     * responsible for.  If this view has child views that are
-     * represent the child elements, then this method should do
-     * whatever is necessary to make sure the child views correctly
-     * represent the model.
-     * <li><a href="#forwardUpdate">forwardUpdate</a> is called
-     * to forward the DocumentEvent to the appropriate child views.
-     * <li><a href="#updateLayout">updateLayout</a> is called to
-     * give the view a chance to either repair it's layout, to reschedule
-     * layout, or do nothing.
-     * </ol>
-     *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#removeUpdate
-     */
-    public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-	DocumentEvent.ElementChange ec = e.getChange(elem);
-	if (ec != null) {
-	    if (! updateChildren(ec, e, f)) {
-		// don't consider the element changes they
-		// are for a view further down.
-		ec = null;
-	    }
+	if ((pos >= getStartOffset()) && (pos < getEndOffset())) {
+	    return getViewIndexAtPosition(pos);
 	}
-	forwardUpdate(ec, e, a, f);
-	updateLayout(ec, e, a);
+	return -1;
     }
-
-    /**
-     * Gives notification from the document that attributes were changed
-     * in a location that this view is responsible for.
-     * To reduce the burden to subclasses, this functionality is
-     * spread out into the following calls that subclasses can
-     * reimplement:
-     * <ol>
-     * <li><a href="#updateChildren">updateChildren</a> is called
-     * if there were any changes to the element this view is
-     * responsible for.  If this view has child views that are
-     * represent the child elements, then this method should do
-     * whatever is necessary to make sure the child views correctly
-     * represent the model.
-     * <li><a href="#forwardUpdate">forwardUpdate</a> is called
-     * to forward the DocumentEvent to the appropriate child views.
-     * <li><a href="#updateLayout">updateLayout</a> is called to
-     * give the view a chance to either repair it's layout, to reschedule
-     * layout, or do nothing.
-     * </ol>
-     *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#changedUpdate
-     */
-    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-	DocumentEvent.ElementChange ec = e.getChange(elem);
-	if (ec != null) {
-	    if (! updateChildren(ec, e, f)) {
-		// don't consider the element changes they
-		// are for a view further down.
-		ec = null;
-	    }
-	}
-	forwardUpdate(ec, e, a, f);
-	updateLayout(ec, e, a);
-    }
-
 
     // --- local methods ----------------------------------------------------
 
@@ -786,17 +511,13 @@ public abstract class CompositeView extends View {
      *   null if there isn't one
      */
     protected View getViewAtPosition(int pos, Rectangle a) {
-	Element elem = getElement();
-	int index = elem.getElementIndex(pos);
-	Element child = elem.getElement(index);
-	if ((child != null) && (index < getViewCount())) {
+	int index = getViewIndexAtPosition(pos);
+	if ((index >= 0) && (index < getViewCount())) {
 	    View v = getView(index);
-	    if (v.getElement() == child) {
-		if (a != null) {
-		    childAllocation(index, a);
-		}
-		return v;
+	    if (a != null) {
+		childAllocation(index, a);
 	    }
+	    return v;
 	}
 	return null;
     }
@@ -861,7 +582,7 @@ public abstract class CompositeView extends View {
      *
      * @param attr the attributes
      */
-    protected final void setParagraphInsets(AttributeSet attr) {
+    protected void setParagraphInsets(AttributeSet attr) {
 	// Since version 1.1 doesn't have scaling and assumes 
 	// a pixel is equal to a point, we just cast the point
 	// sizes to integers.
@@ -879,7 +600,7 @@ public abstract class CompositeView extends View {
      * @param bottom the bottom inset >= 0
      * @param right the right inset >= 0
      */
-    protected final void setInsets(short top, short left, short bottom, short right) {
+    protected void setInsets(short top, short left, short bottom, short right) {
 	this.top = top;
 	this.left = left;
 	this.right = right;
@@ -891,7 +612,7 @@ public abstract class CompositeView extends View {
      *
      * @return the inset >= 0
      */
-    protected final short getLeftInset() {
+    protected short getLeftInset() {
 	return left;
     }
 
@@ -900,7 +621,7 @@ public abstract class CompositeView extends View {
      *
      * @return the inset >= 0
      */
-    protected final short getRightInset() {
+    protected short getRightInset() {
 	return right;
     }
 
@@ -909,7 +630,7 @@ public abstract class CompositeView extends View {
      *
      * @return the inset >= 0
      */
-    protected final short getTopInset() {
+    protected short getTopInset() {
 	return top;
     }
 
@@ -918,7 +639,7 @@ public abstract class CompositeView extends View {
      *
      * @return the inset >= 0
      */
-    protected final short getBottomInset() {
+    protected short getBottomInset() {
 	return bottom;
     }
 
@@ -989,6 +710,10 @@ public abstract class CompositeView extends View {
 						    int direction,
 						    Position.Bias[] biasRet)
 	                                        throws BadLocationException {
+	if(getViewCount() == 0) {
+	    // Nothing to do.
+	    return pos;
+	}
 	boolean isEast = (direction == EAST);
 	Rectangle alloc = getInsideAllocation(a);
 	int retValue;
@@ -1092,8 +817,9 @@ public abstract class CompositeView extends View {
 
     // ---- member variables ---------------------------------------------
 
-    private static View[] ZERO = new View[0];
     
+    private static View[] ZERO = new View[0];
+
     private View[] children;
     private int nchildren;
     private short left;

@@ -1,14 +1,14 @@
-The source code, classes, and supporting files for the Java2D demo are 
-contained in the Java2Demo.jar file.  To run the Java2D demo :
+The classes for the Java2D demo are contained in the Java2Demo.jar file.  
+To run the Java2D demo:
 
 % java -jar Java2Demo.jar
    - or -
 % appletviewer Java2Demo.html
 
 Although it's not necessary to unpack the Java2Demo.jar file to run 
-the demo, you may want to extract its contents so you can look at the 
-source code or other files individually. To extract the contents of 
-Java2Demo.jar, run this command from the Java2D directory :
+the demo, you may want to extract its contents if you plan to modify
+any of the demo source code. To extract the contents of Java2Demo.jar, 
+run this command from the Java2D directory:
 
     jar xvf Java2Demo.jar
 
@@ -46,16 +46,16 @@ you to create new instances of that demo's surface.
 
 To run the demo continuously without user interaction, select the 
 Run Window item in the Options menu and press the run button in the 
-new window that's displayed.  To do this from the command line :
+new window that's displayed.  To do this from the command line:
 
     java -jar Java2Demo.jar -runs=10
 
-To view all the command line options for customizing demo runs :
+To view all the command line options for customizing demo runs:
 
     java -jar Java2Demo.jar -help
 
 Parameters that can be used in the Java2Demo.html file inside the applet 
-tag to customize demo runs :
+tag to customize demo runs:
               <param name="runs" value="10">
               <param name="delay" value="10">
               <param name="ccthread" value=" ">
@@ -82,16 +82,13 @@ the Java2D directory:
 To recompile a demo, first extract the contents of the Java2Demo.jar 
 file, then issue this command from the Java2D directory:
 
-    For win32 :
+    For Win32:
 
-        javac demos\Clipping\ClipAnim.java
+        javac src\demos\Clipping\ClipAnim.java -d .
 
-    For solaris :
+    For Solaris:
 
-        javac demos/Clipping/ClipAnim.java
-
-Appletviewer and Hotjava throw security exceptions when attempting
-to print.  To print run the demo as a stand alone application.
+        javac src/demos/Clipping/ClipAnim.java -d .
 
 To increase or decrease the Memory Monitor sampling rate click on the
 Memory Monitor's title border, a panel with a TextField will appear.
@@ -108,9 +105,19 @@ activated and stopped by clicking in the gray area of the demos Custom
 Control panel.
 
 For less garbage collection and smoother animation for the Intro and
-other animated demos run with command line argument :
+other animated demos run with command line argument:
 
     java -jar -ms48m Java2Demo.jar
+
+To allow printing of surfaces while running the demo in applet mode,
+you must first run policytool to change your .java.policy file.  In 
+policytool, add the permission for java.lang.RuntimePermission with a 
+target name of queuePrintJob.  The .java.policy file should then include
+the following:
+
+    grant {
+        permission java.lang.RuntimePermission "queuePrintJob";
+    };
 
 
 
@@ -120,49 +127,56 @@ NOTE about demo surfaces
 
 The demo groups are in separate packages with their class files stored 
 in directories named according to the demo group name.  All drawing 
-demos extend the DemoSurface abstract class and implement the 
-DemoSurface's drawDemo method.  All animated demos implement the 
-AnimatingContext interface.
+demos extend either the Surface, AnimatingSurface, ControlsSurface or
+AnimatingControlsSurface classes.  Surface is the base class, demos
+must implement the Surface's render method.  All animated demos extend 
+either the AnimatingSurface or the AnimatingControlsSurface classes.  
+Animated demos must implement the reset and step methods.  The demos
+with gui controls extend either the ControlsSurface or the 
+AnimatingControlsSurface classes.  Demos with controls must implement
+the methods in the CustomControlsContext interface.
 
-You can change a demo into a Canvas instead of a DemoSurface by making 
-it extend Canvas rather than DemoSurface. You'll also need to change 
-drawDemo(int w, int h, Graphics2D g2) to paint(Graphics g), and declare and 
-intialize g2. For those demos that animate, the run(), start() and 
-stop() methods will be needed to handle the thread, and you should 
-create and draw into an off screen image for double buffering.  As an 
-example, the conversion for Curves.java (non-animated) would be:
 
-public class Curves extends DemoSurface {
-    public void drawDemo(int w, int h, Graphics2D g2) {
-        ...
-    }
-}
+-----------------------------------------------------------------------
+Known Issue
+-----------------------------------------------------------------------
 
-Becomes :
-
-public class Curves extends Canvas {
-    public void paint(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-	Dimension d = getSize();
-        ...
-    }
-}
-
-Most of the Java2Demo demos can be found as stand-alone Samples :
-
-http://java.sun.com/products/java-media/2D/samples/index.html
+This problem is present on Microsoft Windows 95 with DirectX and 
+Windows 98 and 98SE operating systems. Solaris(TM) and Windows NT 
+operating systems are not affected.
+    
+Java2Demo exhibits random lockups in lengthy looping runs or in runs 
+having "custom Thread" activated specific tabs such as Transform.  This 
+lockup occurs mostly on slower machines, PII233 and below, but is also 
+seen less frequently on faster machines.  The cause is possibly 
+DirectDraw and/or videocard driver or combination thereof.  Please do 
+one of the following to either prevent or reduce the chances of a 
+lockup:
+   
+Run with following parameter: -Dsun.java2d.noddraw=true
+   
+   java -Dsun.java2d.noddraw=true -jar Java2Demo.jar
+   
+and/or visit Microsoft's DirectX and dnload the latest as well as the 
+latest of your videocard driver.
 
 
 ======================================================================
 
-For a Java2D API Guide & Tutorial :
+Most of the Java2Demo demos can be found as stand-alone Samples:
 
-http://java.sun.com/products/jdk/1.2/docs/guide/2d/spec/j2d-bookTOC.doc.html
-http://java.sun.com/docs/books/tutorial/2d/index.html
+http://java.sun.com/products/java-media/2D/samples/index.html
 
-For the latest version of the Java2D demo :
 
-http://java.sun.com/products/java-media/2D/index.html
+For a Java2D API Guide & Tutorial:
+
+http://java.sun.com/products/jdk/1.3/docs/guide/2d/spec/j2d-bookTOC.doc.html
+http://java.sun.com/docs/books/tutorial/2d/
+
+
+For the latest version of the Java2D demo:
+
+http://java.sun.com/products/java-media/2D/
 
 You may send comments via the java2d-comments@sun.com alias, 
 which is a one-way alias to Sun's Java 2D API developers, or via the

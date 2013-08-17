@@ -1,8 +1,11 @@
 /*
- * @(#)ElementIterator.java	1.7 01/11/29
+ * @(#)ElementIterator.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.text;
@@ -47,7 +50,7 @@ import java.util.Enumeration;
  *    }
  *
  * @author Sunita Mani
- * @version 1.7 11/29/01
+ * @version 1.9 02/02/00
  *
  */
 
@@ -130,11 +133,13 @@ public class ElementIterator implements Cloneable {
 
 	try {
 	    ElementIterator it = new ElementIterator(root);
-	    it.elementStack = new Stack();
-	    for (int i = 0; i < elementStack.size(); i++) {
-		StackItem item = (StackItem)elementStack.elementAt(i);
-		StackItem clonee = (StackItem)item.clone();
-		it.elementStack.push(clonee);
+	    if (elementStack != null) {
+		it.elementStack = new Stack();
+		for (int i = 0; i < elementStack.size(); i++) {
+		    StackItem item = (StackItem)elementStack.elementAt(i);
+		    StackItem clonee = (StackItem)item.clone();
+		    it.elementStack.push(clonee);
+		}
 	    }
 	    return it;
 	} catch (CloneNotSupportedException e) {
@@ -167,6 +172,9 @@ public class ElementIterator implements Cloneable {
      * @return the depth.
      */
     public int depth() {
+	if (elementStack == null) {
+	    return 0;
+	}
 	return elementStack.size();
     }
 
@@ -271,7 +279,8 @@ public class ElementIterator implements Cloneable {
      */
     public Element previous() {
 
-	if (elementStack == null | elementStack.size() == 1) {
+	int stackSize;
+	if (elementStack == null || (stackSize = elementStack.size()) == 0) {
 	    return null;
 	}
 
@@ -283,13 +292,17 @@ public class ElementIterator implements Cloneable {
 
 	if (index > 0) {
 	    /* return child at previous index. */
-	    return elem.getElement(--index);
+	    return getDeepestLeaf(elem.getElement(--index));
 	} else if (index == 0) {
 	    /* this implies that current is the element's
 	       first child, therefore previous is the
 	       element itself. */
 	    return elem;
 	} else if (index == -1) {
+	    if (stackSize == 1) {
+		// current is the root, nothing before it.
+		return null;
+	    }
 	    /* We need to return either the item
 	       below the top item or one of the
 	       former's children. */
@@ -300,12 +313,27 @@ public class ElementIterator implements Cloneable {
 	    elementStack.push(top);
 	    elem = item.getElement();
 	    index = item.getIndex();
-	    return ((index == -1) ? elem : elem.getElement(index));
+	    return ((index == -1) ? elem : getDeepestLeaf(elem.getElement
+							  (index)));
 	}
 	// should never get here.
 	return null;
     }
 
+    /**
+     * Returns the last child of <code>parent</code> that is a leaf. If the
+     * last child is a not a leaf, this method is called with the last child.
+     */
+    private Element getDeepestLeaf(Element parent) {
+	if (parent.isLeaf()) {
+	    return parent;
+	}
+	int childCount = parent.getElementCount();
+	if (childCount == 0) {
+	    return parent;
+	}
+	return getDeepestLeaf(parent.getElement(childCount - 1));
+    }
 
     /*
       Iterates through the element tree and prints

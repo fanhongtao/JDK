@@ -1,8 +1,11 @@
 /*
- * @(#)java.c	1.55 01/11/29
+ * @(#)java.c	1.66 00/07/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
@@ -30,9 +33,11 @@
 #define FULL_VERSION "1.2"
 #endif
 
-static jboolean printVersion = JNI_FALSE;
+static jboolean printVersion = JNI_FALSE; /* print and exit */
+static jboolean showVersion = JNI_FALSE;  /* print but continue */
 static char *progname;
 jboolean debug = JNI_FALSE;
+int      status = 0;
 
 /*
  * List of VM options to be specified when the VM is created.
@@ -65,6 +70,12 @@ static void PrintJavaVersion(JNIEnv *env);
 static void PrintUsage(void);
 static jint PrintXUsage(void);
 
+/* Support for options such as -client, -classic etc. */
+#define MAX_KNOWN_VMS 10
+static char *knownVMs[MAX_KNOWN_VMS];
+static jint ReadKnownVMs(const char *jrepath);
+static void FreeKnownVMs();
+
 /*
  * Entry point.
  */
@@ -81,38 +92,84 @@ main(int argc, char **argv)
     jobjectArray mainArgs;
     int ret;
     InvocationFunctions ifn;
-    char *jvmtype = 0;
+    const char *jvmtype = 0;
     jboolean jvmspecified = JNI_FALSE;     /* Assume no option specified. */
+    char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
     jlong start, end;
+    int i, knownVMsCount;
 
     if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
 	debug = JNI_TRUE;
 	printf("----_JAVA_LAUNCHER_DEBUG----\n");
     }
 
-    /* Did the user pass a -classic or -hotspot as the first option to
-     * the launcher? */
-    if (argc > 1) {
-	if (strcmp(argv[1], "-hotspot") == 0) {
-	    jvmtype = "hotspot";
-	    jvmspecified = JNI_TRUE;
-	} else if (strcmp(argv[1], "-classic") == 0) {
-	    jvmtype = "classic";
-	    jvmspecified = JNI_TRUE;
+    /* Find out where the JRE is that we will be using. */
+    if (!GetJREPath(jrepath, sizeof(jrepath))) {
+	fprintf(stderr, "Error: could not find Java 2 Runtime Environment.\n");
+	return 2;
+    }
+
+    knownVMsCount = ReadKnownVMs(jrepath);
+    if (knownVMsCount < 1) { /* Error already printed. */
+	return 3;
+    }
+
+    /* Did the user pass an explicit VM type? */
+    if (argc > 1 && argv[1][0] == '-') {
+	for (i = 0; i < knownVMsCount; i++) {
+	    if (strcmp(argv[1], knownVMs[i]) == 0) {
+		jvmtype = argv[1]+1; /* skip the - */
+		jvmspecified = JNI_TRUE;
+		break;
+	    }
 	}
     }
-    ifn.CreateJavaVM = 0; ifn.GetDefaultJavaVMInitArgs = 0;
-    if (!LoadJavaVM(jvmtype, &ifn))
-	return 1;
+    if (jvmspecified) {
+	jvmpath[0] = '\0';
+	if (!GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
+	    fprintf(stderr, "Error: no `%s' JVM at `%s'.\n", jvmtype, jvmpath);
+	    return 4;
+	}
+    } else {
+	/* Find an installed VM in the preferred order... */
+	jboolean foundJVM = JNI_FALSE;
+	for (i = 0; i < knownVMsCount; i++) {
+	    jvmtype = knownVMs[i] + 1; /* skip the - */
+	    if (GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
+		foundJVM = JNI_TRUE;
+		break;
+	    }
+	}
+	if (!foundJVM) {
+	    fprintf(stderr, "Error: could not find a JVM.\n");
+	    return 5;
+	}
+    }
+    FreeKnownVMs();
 
-    /* Grab the program name */
-    progname = *argv++;
+    /* If we got here, jvmpath has been correctly initialized. */
+    ifn.CreateJavaVM = 0; ifn.GetDefaultJavaVMInitArgs = 0;
+    if (!LoadJavaVM(jvmpath, &ifn)) {
+        status = 1;
+	return 6;
+    }
+    
+#ifdef JAVA_ARGS  /* javac, jar and friends. */
+    progname = "java";
+#else             /* java, oldjava, javaw and friends */
+#ifdef PROGNAME
+    progname = PROGNAME;
+#else
+    progname = *argv;
     if ((s = strrchr(progname, FILE_SEPARATOR)) != 0) {
 	progname = s + 1;
     }
+#endif /* PROGNAME */
+#endif /* JAVA_ARGS */
+    ++argv;
     --argc;
 
-    /* Skip over a specified -classic/-hotspot option */
+    /* Skip over a specified -classic/-client/-server option */
     if (jvmspecified) {
 	argv++;
 	argc--;
@@ -121,8 +178,10 @@ main(int argc, char **argv)
 #ifdef JAVA_ARGS
     /* Preprocess wrapper arguments */
     TranslateDashJArgs(&argc, &argv);
-    if (!AddApplicationOptions())
+    if (!AddApplicationOptions()) {
+        status = 2;
 	return 1;
+    }
 #endif
 
     /* Set default CLASSPATH */
@@ -135,9 +194,10 @@ main(int argc, char **argv)
 	JDK1_1InitArgs args;
 	char *buf;
 	args.version = JNI_VERSION_1_1;
-	if (ifn.GetDefaultJavaVMInitArgs(&args) != JNI_OK ||
-		args.classpath == 0) {
+	if (ifn.GetDefaultJavaVMInitArgs(&args) != JNI_OK
+                || args.classpath == 0) {
 	    fprintf(stderr, "Could not get default system class path.\n");
+            status = 2;
 	    return 1;
 	}
 	buf = MemAlloc(strlen(args.classpath) + strlen(s) + 2);
@@ -151,6 +211,7 @@ main(int argc, char **argv)
 
     /* Parse command line options */
     if (!ParseArguments(&argc, &argv, &jarfile, &classname, &ret)) {
+        status = 2;
 	return ret;
     }
 
@@ -165,18 +226,23 @@ main(int argc, char **argv)
 	start = CounterGet();
     if (!InitializeJVM(&vm, &env, &ifn)) {
 	fprintf(stderr, "Could not create the Java virtual machine.\n");
+        status = 3;
 	return 1;
     }
 
-    if (printVersion) {
+    if (printVersion || showVersion) {
         PrintJavaVersion(env);
 	if ((*env)->ExceptionOccurred(env)) {
 	    (*env)->ExceptionDescribe(env);
-	    ret = 1;
-	} else {
-	    ret = 0;
+	    goto leave;
 	}
-	goto leave;
+	if (printVersion) {
+	    ret = 0;
+	    goto leave;
+	}
+	if (showVersion) {
+	    fprintf(stderr, "\n");
+	}
     }
 
     /* If the user specified neither a class name or a JAR file */
@@ -206,13 +272,13 @@ main(int argc, char **argv)
     /* Get the application's main class */
     if (jarfile != 0) {
 	jstring mainClassName = GetMainClassName(env, jarfile);
+	if ((*env)->ExceptionOccurred(env)) {
+	    (*env)->ExceptionDescribe(env);
+	    goto leave;
+	}
 	if (mainClassName == NULL) {
 	    fprintf(stderr, "Failed to load Main-Class manifest attribute "
 		    "from\n%s\n", jarfile);
-	    goto leave;
-	}
-	if ((*env)->ExceptionOccurred(env)) {
-	    (*env)->ExceptionDescribe(env);
 	    goto leave;
 	}
 	classname = (char *)(*env)->GetStringUTFChars(env, mainClassName, 0);
@@ -227,6 +293,7 @@ main(int argc, char **argv)
     }
     if (mainClass == NULL) {
         (*env)->ExceptionDescribe(env);
+        status = 4;
 	goto leave;
     }
 
@@ -239,6 +306,7 @@ main(int argc, char **argv)
 	} else {
 	    fprintf(stderr, "No main method found in specified class.\n");
 	}
+        status = 5;
 	goto leave;
     }
 
@@ -351,6 +419,8 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 	} else if (strcmp(arg, "-version") == 0) {
 	    printVersion = JNI_TRUE;
 	    return JNI_TRUE;
+	} else if (strcmp(arg, "-showversion") == 0) {
+	    showVersion = JNI_TRUE;
 	} else if (strcmp(arg, "-X") == 0) {
 	    *pret = PrintXUsage();
 	    return JNI_FALSE;
@@ -668,6 +738,7 @@ AddApplicationOptions()
     char home[MAXPATHLEN]; /* application home */
     char separator[] = { PATH_SEPARATOR, '\0' };
     int size, i;
+    int strlenHome;
 
     s = getenv("CLASSPATH");
     if (s) {
@@ -688,18 +759,19 @@ AddApplicationOptions()
     AddOption(apphome, NULL);
 
     /* How big is the application's classpath? */
-    size = strlen(home) * NUM_APP_CLASSPATH + 40; /* 40: -Djava.class.path */
+    size = 40;                                 /* 40: "-Djava.class.path=" */
+    strlenHome = strlen(home);
     for (i = 0; i < NUM_APP_CLASSPATH; i++) {
-	size += strlen(app_classpath[i]);
+	size += strlenHome + strlen(app_classpath[i]) + 1; /* 1: separator */
     }
     appcp = (char *)MemAlloc(size + 1);
     strcpy(appcp, "-Djava.class.path=");
     for (i = 0; i < NUM_APP_CLASSPATH; i++) {
 	strcat(appcp, home);			/* c:\program files\myapp */
-	strcat(appcp, app_classpath[i]);	/* lib\myapp.jar	  */
+	strcat(appcp, app_classpath[i]);	/* \lib\myapp.jar	  */
 	strcat(appcp, separator);		/* ;			  */
     }
-    appcp[strlen(appcp)-1] = '\0';  /* remove trailing path seperator */
+    appcp[strlen(appcp)-1] = '\0';  /* remove trailing path separator */
     AddOption(appcp, NULL);
     return JNI_TRUE;
 }
@@ -711,45 +783,13 @@ AddApplicationOptions()
 static void
 PrintJavaVersion(JNIEnv *env)
 {
-    jclass sysClass;
-    jmethodID getPropID;
+    jclass ver;
+    jmethodID print;
 
-    jstring java_version;
-    jstring java_vm_name;
-    jstring java_vm_info;
+    NULL_CHECK(ver = (*env)->FindClass(env, "sun/misc/Version"));
+    NULL_CHECK(print = (*env)->GetStaticMethodID(env, ver, "print", "()V"));
 
-    char c_version[128];
-    char c_vm_name[256];
-    char c_vm_info[256];
-
-    NULL_CHECK(sysClass = (*env)->FindClass(env, "java/lang/System"));
-    NULL_CHECK(getPropID = (*env)->GetStaticMethodID(env, sysClass,
-						     "getProperty",
-			     "(Ljava/lang/String;)Ljava/lang/String;"));
-
-    NULL_CHECK(java_version = (*env)->NewStringUTF(env, "java.version"));
-    NULL_CHECK(java_vm_name = (*env)->NewStringUTF(env, "java.vm.name"));
-    NULL_CHECK(java_vm_info = (*env)->NewStringUTF(env, "java.vm.info"));
-
-    NULL_CHECK(java_version =
-    (*env)->CallStaticObjectMethod(env, sysClass, getPropID, java_version));
-    NULL_CHECK(java_vm_name =
-    (*env)->CallStaticObjectMethod(env, sysClass, getPropID, java_vm_name));
-    NULL_CHECK(java_vm_info =
-    (*env)->CallStaticObjectMethod(env, sysClass, getPropID, java_vm_info));
-
-    (*env)->GetStringUTFRegion(env, java_version, 0,
-			       (*env)->GetStringLength(env, java_version),
-			       c_version);
-    (*env)->GetStringUTFRegion(env, java_vm_name, 0,
-			       (*env)->GetStringLength(env, java_vm_name),
-			       c_vm_name);
-    (*env)->GetStringUTFRegion(env, java_vm_info, 0,
-			       (*env)->GetStringLength(env, java_vm_info),
-			       c_vm_info);
-
-    fprintf(stderr, "java version \"%s\"\n", c_version);
-    fprintf(stderr, "%s (%s)\n", c_vm_name, c_vm_info);
+    (*env)->CallStaticVoidMethod(env, ver, print);
 }
 
 /*
@@ -769,18 +809,19 @@ PrintUsage(void)
 	"where options include:\n"
 #ifdef OLDJAVA
 	"    -cp -classpath <directories and zip/jar files separated by %c>\n"
-	"              set search path for classes and resources\n"
+	"                  set search path for classes and resources\n"
 #else
 	"    -cp -classpath <directories and zip/jar files separated by %c>\n"
-	"              set search path for application classes and resources\n"
+	"                  set search path for application classes and resources\n"
 #endif
 	"    -D<name>=<value>\n"
-	"              set a system property\n"
+	"                  set a system property\n"
 	"    -verbose[:class|gc|jni]\n"
-	"              enable verbose output\n"
-	"    -version  print product version\n"
-	"    -? -help  print this help message\n"
-	"    -X        print help on non-standard options\n",
+	"                  enable verbose output\n"
+	"    -version      print product version and exit\n"
+	"    -showversion  print product version and continue\n"
+	"    -? -help      print this help message\n"
+	"    -X            print help on non-standard options\n",
 #ifndef OLDJAVA
 	progname,
 #endif
@@ -810,4 +851,73 @@ PrintXUsage(void)
     }
     fclose(fp);
     return 0;
+}
+
+/*
+ * Read the jvm.cfg file and fill the knownJVMs[] array.
+ */
+static jint cfgLinesRead = 0;
+
+static jint
+ReadKnownVMs(const char *jrepath)
+{
+    FILE *jvmCfg;
+    char jvmCfgName[MAXPATHLEN];
+    char line[MAXPATHLEN];
+    int cnt = 0;
+    int lineno = 0;
+    jlong start, end;
+
+    if (debug) {
+	start = CounterGet();
+    }
+
+    strcpy(jvmCfgName, jrepath);
+    strcat(jvmCfgName, JVM_CFG);
+
+    jvmCfg = fopen(jvmCfgName, "r");
+    if (jvmCfg == NULL) {
+	fprintf(stderr, "Error: could not open `%s'\n", jvmCfgName);
+	return 0;
+    }
+    while (fgets(line, sizeof(line), jvmCfg) != NULL) {
+	lineno++;
+	if (line[0] == '#')
+	    continue;
+	if (line[0] != '-') {
+	    fprintf(stderr, "Warning: no leading - on line %d of `%s'\n",
+		    lineno, jvmCfgName);
+	}
+	if (cnt >= MAX_KNOWN_VMS) {
+	    fprintf(stderr,
+		    "Warning: can't read more than %d entries from\n`%s'\n",
+		    MAX_KNOWN_VMS, jvmCfgName);
+	    break;
+	}
+	line[strlen(line)-1] = '\0'; /* remove trailing newline */
+	if (debug)
+	    printf("jvm.cfg[%d] = ->%s<-\n", cnt, line);
+	knownVMs[cnt++] = strdup(line);
+    }
+    fclose(jvmCfg);
+    cfgLinesRead = cnt;
+
+    if (debug) {
+	end   = CounterGet();
+	printf("%ld micro seconds to parse jvm.cfg\n",
+	       (jint)Counter2Micros(end-start));
+    }
+
+    return cnt;
+}
+
+
+static void
+FreeKnownVMs()
+{
+    int i;
+    for (i = 0; i < cfgLinesRead; i++) {
+	free(knownVMs[i]);
+	knownVMs[i] = NULL;
+    }
 }

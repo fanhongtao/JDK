@@ -1,14 +1,17 @@
 /*
- * @(#)ARG_OUT.java	1.9 01/11/29
+ * @(#)ARG_OUT.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
 
 /**
- * Signifies an "output" argument to an invocation,
+ * A constant that signifies an "output" argument to an invocation,
  * meaning that the argument is being passed from the server to
  * the client.
  * <code>ARG_OUT.value</code> is one of the possible values used
@@ -27,8 +30,11 @@ package org.omg.CORBA;
  * @see     org.omg.CORBA.NamedValue
  * @since   JDK1.2
  */
-
 public interface ARG_OUT {
+
+/**
+ * The constant value indicating an output argument.
+ */
   int value = 2;
 }
 

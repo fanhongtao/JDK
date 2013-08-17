@@ -1,8 +1,11 @@
 /*
- * @(#)MetalComboBoxUI.java	1.26 01/11/29
+ * @(#)MetalComboBoxUI.java	1.29 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -29,7 +32,7 @@ import java.beans.*;
  *
  * @see MetalComboBoxListCellRenderer
  * @see MetalPopupMenuBorder
- * @version 1.17 07/09/98
+ * @version 1.29 02/02/00
  * @author Tom Santos
  */
 public class MetalComboBoxUI extends BasicComboBoxUI {
@@ -339,86 +342,6 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
 
     void togglePopup() {
        toggleOpenClose();
-    }
-
-    protected void installKeyboardActions() {
-        super.installKeyboardActions();
-
-        ActionListener downAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if ( metalGetComboBox().isEnabled() ) {
-                    if ( isPopupVisible() ) {
-                        selectNextPossibleValue();
-                    }
-                    else {
-                        setPopupVisible( metalGetComboBox(), true );
-                    }
-                }
-            }
-        };
-
-        metalGetComboBox().registerKeyboardAction( downAction,
-                                                   KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        metalGetComboBox().registerKeyboardAction( downAction,
-                                                   KeyStroke.getKeyStroke("KP_DOWN"),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        ActionListener altAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if ( metalGetComboBox().isEnabled() && isPopupVisible() ) {
-                    togglePopup();
-                }
-            }
-        };
-        
-        metalGetComboBox().registerKeyboardAction( altAction,
-                                                   KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,InputEvent.ALT_MASK),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        metalGetComboBox().registerKeyboardAction( altAction,
-                                                   KeyStroke.getKeyStroke("alt KP_DOWN"),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        metalGetComboBox().registerKeyboardAction( altAction,
-                                                   KeyStroke.getKeyStroke(KeyEvent.VK_UP,InputEvent.ALT_MASK),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        metalGetComboBox().registerKeyboardAction( altAction,
-                                                   KeyStroke.getKeyStroke("alt KP_UP"),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        ActionListener upAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if ( metalGetComboBox().isEnabled() && isPopupVisible() ) {
-                    selectPreviousPossibleValue();
-                }
-            }
-        };
-
-        metalGetComboBox().registerKeyboardAction( upAction,
-                                                   KeyStroke.getKeyStroke(KeyEvent.VK_UP,0),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        metalGetComboBox().registerKeyboardAction( upAction,
-                                                   KeyStroke.getKeyStroke("KP_UP"),
-                                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    }
-
-    protected void uninstallKeyboardActions() {
-        super.uninstallKeyboardActions();
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0));
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_DOWN"));
-
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,InputEvent.ALT_MASK));
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke("alt KP_DOWN"));
-
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,0));
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_UP"));
-
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,InputEvent.ALT_MASK));
-        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke("alt KP_UP"));
     }
 
     Component metalGetEditor() {

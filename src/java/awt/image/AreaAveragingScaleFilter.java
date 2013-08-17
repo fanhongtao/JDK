@@ -1,8 +1,11 @@
 /*
- * @(#)AreaAveragingScaleFilter.java	1.7 01/11/29
+ * @(#)AreaAveragingScaleFilter.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.image;
@@ -32,10 +35,10 @@ import java.awt.Rectangle;
  * object to produce scaled versions of existing images.
  *
  * @see FilteredImageSource
- * @see ReplicateImageFilter
+ * @see ReplicateScaleFilter
  * @see ImageFilter
  *
- * @version	1.7 11/29/01
+ * @version	1.10 02/02/00
  * @author 	Jim Graham
  */
 public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
@@ -61,6 +64,13 @@ public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
     /**
      * Detect if the data is being delivered with the necessary hints
      * to allow the averaging algorithm to do its work.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> whose 
+     * pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere      
+     * with the filtering operation.  
      * @see ImageConsumer#setHints
      */
     public void setHints(int hints) {
@@ -190,6 +200,13 @@ public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
      * specified in the setHints call then relay the work to our
      * superclass which is capable of scaling pixels regardless of
      * the delivery hints.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> 
+     * whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ReplicateScaleFilter
      */
     public void setPixels(int x, int y, int w, int h,
@@ -209,6 +226,13 @@ public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
      * specified in the setHints call then relay the work to our
      * superclass which is capable of scaling pixels regardless of
      * the delivery hints.
+     * <p>
+     * Note: This method is intended to be called by the 
+     * <code>ImageProducer</code> of the <code>Image</code> 
+     * whose pixels are being filtered.  Developers using
+     * this class to filter pixels from an image should avoid calling
+     * this method directly since that operation could interfere
+     * with the filtering operation.
      * @see ReplicateScaleFilter
      */
     public void setPixels(int x, int y, int w, int h,

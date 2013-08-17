@@ -1,8 +1,11 @@
 /*
- * @(#)BitSet.java	1.40 01/11/29
+ * @(#)BitSet.java	1.46 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util;
@@ -29,7 +32,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.40, 03/09/04
+ * @version 1.46, 02/02/00
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {
@@ -135,7 +138,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * if the <code>BitSet</code> contains no set bits.
      *
      * @return  the logical size of this <code>BitSet</code>.
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int length() {
         if (unitsInUse == 0)
@@ -196,9 +199,9 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * Clears all of the bits in this <code>BitSet</code> whose corresponding
      * bit is set in the specified <code>BitSet</code>.
      *
-     * @param     s the <code>BitSet</code> with which to mask this
+     * @param     set the <code>BitSet</code> with which to mask this
      *            <code>BitSet</code>.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public void andNot(BitSet set) {
         int unitsInCommon = Math.min(unitsInUse, set.unitsInUse);
@@ -391,7 +394,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * @see     java.util.BitSet#size()
      */
     public boolean equals(Object obj) {
-	if (obj == null || !(obj instanceof BitSet))
+	if (!(obj instanceof BitSet))
 	    return false;
 	if (this == obj)
 	    return true;

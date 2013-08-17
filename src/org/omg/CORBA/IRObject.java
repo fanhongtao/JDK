@@ -1,8 +1,11 @@
 /*
- * @(#)IRObject.java	1.14 01/11/29
+ * @(#)IRObject.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 /*
  * File: ./org/omg/CORBA/IRObject.java
@@ -17,25 +20,8 @@ An IRObject IDL interface represents the most generic interface
 from which all other Interface Repository interfaces are derived,
 even the Repository itself.
 */
-public interface IRObject
-    extends org.omg.CORBA.Object, org.omg.CORBA.portable.IDLEntity
+
+public interface IRObject extends IRObjectOperations, org.omg.CORBA.Object, 
+    org.omg.CORBA.portable.IDLEntity
 {
-    /**
-    * Returns the <code>DefinitionKind</code> corresponding to this Interface Repository object.
-    * @return the <code>DefinitionKind</code> corresponding to this Interface Repository object.
-    */
-    org.omg.CORBA.DefinitionKind def_kind();
-    /**
-     * Destroys this object. If the object is a Container,
-     * this method is applied to all its contents. If the object contains an IDLType
-     * attribute for an anonymous type, that IDLType is destroyed.
-     * If the object is currently contained in some other object, it is removed.
-     * If the method is invoked on a <code>Repository</code> or on a <code>PrimitiveDef</code>
-     * then the <code>BAD_INV_ORDER</code> exception is raised with minor value 2.
-     * An attempt to destroy an object that would leave the repository in an
-     * incoherent state causes <code>BAD_INV_ORDER</code> exception to be raised
-     * with the minor code 1.
-     * @exception <code>BAD_INV_ORDER</code>
-     */
-    void destroy();
 }

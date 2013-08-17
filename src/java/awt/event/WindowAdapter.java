@@ -1,8 +1,11 @@
 /*
- * @(#)WindowAdapter.java	1.12 01/11/29
+ * @(#)WindowAdapter.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -14,7 +17,7 @@ package java.awt.event;
  * <P>
  * Extend this class to create a <code>WindowEvent</code> listener 
  * and override the methods for the events of interest. (If you implement the 
- * <code>WindowrListener</code> interface, you have to define all of
+ * <code>WindowListener</code> interface, you have to define all of
  * the methods in it. This abstract class defines null methods for them
  * all, so you can only have to define methods for events you care about.)
  * <P>
@@ -30,9 +33,10 @@ package java.awt.event;
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/windowlistener.html">Tutorial: Writing a Window Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.12 11/29/01
  * @author Carl Quinn
  * @author Amy Fowler
+ * @version 1.15, 02/02/00
+ * @since 1.1
  */
 public abstract class WindowAdapter implements WindowListener {
     /**

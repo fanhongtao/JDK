@@ -1,8 +1,11 @@
 /*
- * @(#)Timer.java	1.29 01/11/29
+ * @(#)Timer.java	1.32 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -20,16 +23,23 @@ import javax.swing.event.EventListenerList;
 
 
 /**
- * Object subclass that causes an action to occur at a predefined rate.  For
+ * Causes an action to occur at a predefined rate.  For
  * example, an animation object can use a Timer as the trigger for drawing its
- * next frame.  Each Timer has a list of ActionListeners and a delay (
- * the time between <b>actionPerfomed()</b> calls).  When
+ * next frame.
+ * For documentation and examples of using timers, see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/timer.html">How to Use Timers</a>
+ * in <em>The Java Tutorial.</em>
+ *
+ * <p>
+ * Each Timer has a list of ActionListeners and a delay
+ * (the time between <b>actionPerformed()</b> calls).  When
  * delay milliseconds have passed, a Timer sends the <b>actionPerformed()</b>
  * message to its listeners.  This cycle repeats until
- * <b>stop()</b> is called, or halts immediately if the Jimer is configured
+ * <b>stop()</b> is called, or halts immediately if the Timer is configured
  * to send its message just once.<p>
  * Using a Timer involves first creating it, then starting it using
  * the <b>start()</b> method.
+ *
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
@@ -38,7 +48,7 @@ import javax.swing.event.EventListenerList;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.29 11/29/01
+ * @version 1.32 02/02/00
  * @author Dave Moore
  */
 public class Timer implements Serializable
@@ -142,6 +152,18 @@ public class Timer implements Serializable
         }
     }
 
+    /**
+     * Return an array of all the listeners of the given type that 
+     * were added to this timer. 
+     *
+     * @returns all of the objects recieving <em>listenerType</em> notifications 
+     *          from this timer
+     * 
+     * @since 1.3
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
+    }
 
     /**
      * Returns the timer queue.

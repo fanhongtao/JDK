@@ -1,8 +1,11 @@
 /*
- * @(#)LookAndFeel.java	1.19 01/11/29
+ * @(#)LookAndFeel.java	1.24 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -27,7 +30,7 @@ import java.util.StringTokenizer;
  * Completely characterizes a look and feel from the point of view
  * of the pluggable look and feel components.  
  * 
- * @version 1.19 11/29/01
+ * @version 1.24 02/02/00
  * @author Tom Ball
  * @author Hans Muller
  */
@@ -118,96 +121,12 @@ public abstract class LookAndFeel
         }
     }
 
-
-    /*
-     * // see parseKeyStroke (private)
-     */
-    private static class ModifierKeyword {
-	final String keyword;
-	final int mask;
-	ModifierKeyword(String keyword, int mask) {
-	    this.keyword = keyword;
-	    this.mask = mask;
-	}
-	int getModifierMask(String s) {
-	    return (s.equals(keyword)) ? mask : 0;
-	}
-    };
-
-
-    /*
-     * // see parseKeyStroke (private)
-     */
-    private static ModifierKeyword[] modifierKeywords = {
-	new ModifierKeyword("shift", InputEvent.SHIFT_MASK),
-	new ModifierKeyword("control", InputEvent.CTRL_MASK),
-	new ModifierKeyword("meta", InputEvent.META_MASK),
-	new ModifierKeyword("alt", InputEvent.ALT_MASK),
-	new ModifierKeyword("button1", InputEvent.BUTTON1_MASK),
-	new ModifierKeyword("button2", InputEvent.BUTTON2_MASK),
-	new ModifierKeyword("button3", InputEvent.BUTTON3_MASK)
-    };
-
-
-    /**
-     * Parse a string with the following syntax and return an a KeyStroke:
-     * <pre>
-     *    "&lt;modifiers&gt;* &lt;key&gt;"
-     *    modifiers := shift | control | meta | alt | button1 | button2 | button3
-     *    key := KeyEvent keycode name, i.e. the name following "VK_".
-     * </pre>
-     * Here are some examples:
-     * <pre>
-     *     "INSERT" => new KeyStroke(0, KeyEvent.VK_INSERT);
-     *     "control DELETE" => new KeyStroke(InputEvent.CTRL_MASK, KeyEvent.VK_DELETE);
-     *     "alt shift X" => new KeyStroke(InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK, KeyEvent.VK_X);
-     * </pre>
-     */
-    private static KeyStroke parseKeyStroke(String s) 
-    {
-	StringTokenizer st = new StringTokenizer(s);
-	String token;
-	int mask = 0;
-
-	while((token = st.nextToken()) != null) {
-	    int tokenMask = 0;
-
-	    /* if token matches a modifier keyword update mask and continue */
-
-	    for(int i = 0; (tokenMask == 0) && (i < modifierKeywords.length); i++) {
-		tokenMask = modifierKeywords[i].getModifierMask(token);
-	    }
-
-	    if (tokenMask != 0) {
-		mask |= tokenMask;
-		continue;
-	    }
-
-	    /* otherwise token is the keycode name less the "VK_" prefix */
-
-	    String keycodeName = "VK_" + token; 
-	    int keycode;
-	    try {
-		keycode = KeyEvent.class.getField(keycodeName).getInt(KeyEvent.class);
-	    }
-	    catch (Exception e) {
-		e.printStackTrace();
-		throw new Error("Unrecognized keycode name: " + keycodeName);
-	    }
-
-	    return KeyStroke.getKeyStroke(keycode, mask);
-	}
-
-	throw new Error("Can't parse KeyStroke: \"" + s + "\"");
-    }
-
-
     /**
      * Convenience method for building lists of KeyBindings.
      * <p>
      * Return an array of KeyBindings, one for each KeyStroke,Action pair
      * in <b>keyBindingList</b>.  A KeyStroke can either be a string in
-     * the format specified by the private <code>parseKeyStroke</code> 
+     * the format specified by the <code>KeyStroke.getKeyStroke</code> 
      * method or a KeyStroke object.
      * <p>
      * Actions are strings.  Here's an example:
@@ -232,7 +151,7 @@ public abstract class LookAndFeel
 	for(int i = 0; i < keyBindingList.length; i += 2) {
 	    KeyStroke keystroke = (keyBindingList[i] instanceof KeyStroke)
 		? (KeyStroke)keyBindingList[i]
-		: parseKeyStroke((String)keyBindingList[i]);
+		: KeyStroke.getKeyStroke((String)keyBindingList[i]);
 	    String action = (String)keyBindingList[i+1];
 	    rv[i / 2] = new JTextComponent.KeyBinding(keystroke, action);
 	}
@@ -240,6 +159,64 @@ public abstract class LookAndFeel
 	return rv;
     }
 
+    /**
+     * Creates a InputMap from <code>keys</code>. <code>keys</code>
+     * describes the InputMap, with every even number item being a String
+     * giving the KeyStroke as speced in
+     * <code>KeyStroke.getKeyStroke(String)</code>
+     * (or a KeyStroke), and every odd number item the Object
+     * used to determine the associated Action in an ActionMap.
+     *
+     * @since 1.3
+     */
+    public static InputMap makeInputMap(Object[] keys) {
+	InputMap retMap = new InputMapUIResource();
+	loadKeyBindings(retMap, keys);
+	return retMap;
+    }
+
+    /**
+     * Creates a ComponentInputMap from <code>keys</code>. <code>keys</code>
+     * describes the InputMap, with every even number item being a String
+     * giving
+     * the KeyStroke as speced in <code>KeyStroke.getKeyStroke(String)</code>
+     * (or a KeyStroke), and every odd number item the Object
+     * used to determine the associated Action in an ActionMap.
+     *
+     * @since 1.3
+     */
+    public static ComponentInputMap makeComponentInputMap(JComponent c,
+							  Object[] keys) {
+	ComponentInputMap retMap = new ComponentInputMapUIResource(c);
+	loadKeyBindings(retMap, keys);
+	return retMap;
+    }
+
+
+    /**
+     * Loads the bindings in <code>keys</code> into <code>retMap</code>.
+     * This does not remove any existing bindings in <code>retMap</code>.
+     * <code>keys</code>
+     * describes the InputMap, with every even number item being a String
+     * giving
+     * the KeyStroke as speced in <code>KeyStroke.getKeyStroke(String)</code>
+     * (or a KeyStroke), and every odd number item the Object
+     * used to determine the associated Action in an ActionMap.
+     *
+     * @since 1.3
+     */
+    public static void loadKeyBindings(InputMap retMap, Object[] keys) {
+	if (keys != null) {
+	    for (int counter = 0, maxCounter = keys.length;
+		 counter < maxCounter; counter++) {
+		Object keyStrokeO = keys[counter++];
+		KeyStroke ks = (keyStrokeO instanceof KeyStroke) ?
+		                (KeyStroke)keyStrokeO :
+		                KeyStroke.getKeyStroke((String)keyStrokeO);
+		retMap.put(ks, keys[counter]);
+	    }
+	}
+    }
 
     /**
      * Utility method that creates a UIDefaults.LazyValue that creates

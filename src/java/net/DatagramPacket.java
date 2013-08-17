@@ -1,8 +1,11 @@
 /*
- * @(#)DatagramPacket.java	1.26 01/11/29
+ * @(#)DatagramPacket.java	1.30 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.net;
@@ -18,7 +21,7 @@ package java.net;
  *
  * @author  Pavani Diwanji
  * @author  Benjamin Renaud
- * @version 1.26, 11/29/01
+ * @version 1.30, 02/02/00
  * @since   JDK1.0
  */
 public final 
@@ -53,6 +56,8 @@ class DatagramPacket {
      * @param   buf      buffer for holding the incoming datagram.
      * @param   offset   the offset for the buffer
      * @param   length   the number of bytes to read.
+     *
+     * @since JDK1.2
      */
     public DatagramPacket(byte buf[], int offset, int length) {
 	setData(buf, offset, length);
@@ -84,9 +89,11 @@ class DatagramPacket {
      * @param   buf      the packet data.
      * @param   offset   the packet data offset.
      * @param   length   the packet data length.
-     * @param   addr     the destination address.
+     * @param   address  the destination address.
      * @param   port     the destination port number.
      * @see java.net.InetAddress
+     *
+     * @since JDK1.2
      */
     public DatagramPacket(byte buf[], int offset, int length,
 			  InetAddress address, int port) {
@@ -103,7 +110,7 @@ class DatagramPacket {
      *
      * @param   buf      the packet data.
      * @param   length   the packet length.
-     * @param   addr     the destination address.
+     * @param   address  the destination address.
      * @param   port     the destination port number.
      * @see     java.net.InetAddress
      */
@@ -119,6 +126,7 @@ class DatagramPacket {
      * @return  the IP address of the machine to which this datagram is being
      *          sent or from which the datagram was received.
      * @see     java.net.InetAddress
+     * @see #setAddress(java.net.InetAddress)
      */
     public synchronized InetAddress getAddress() {
 	return address;
@@ -130,6 +138,7 @@ class DatagramPacket {
      *
      * @return  the port number on the remote host to which this datagram is
      *          being sent or from which the datagram was received.
+     * @see #setPort(int)
      */
     public synchronized int getPort() {
 	return port;
@@ -139,6 +148,7 @@ class DatagramPacket {
      * Returns the data received or the data to be sent.
      *
      * @return  the data received or the data to be sent.
+     * @see #setData(byte[], int, int)
      */
     public synchronized byte[] getData() {
 	return buf;
@@ -150,6 +160,8 @@ class DatagramPacket {
      *
      * @return  the offset of the data to be sent or the offset of the
      *          data received.
+     *
+     * @since JDK1.2
      */
     public synchronized int getOffset() {
 	return offset;
@@ -161,6 +173,7 @@ class DatagramPacket {
      *
      * @return  the length of the data to be sent or the length of the
      *          data received.
+     * @see #setLength(int)
      */
     public synchronized int getLength() {
 	return length;
@@ -182,7 +195,7 @@ class DatagramPacket {
      * @see #getOffset
      * @see #getLength
      *
-     * @since JDK1.1 
+     * @since JDK1.2 
      */
     public synchronized void setData(byte[] buf, int offset, int length) {
 	/* this will check to see if buf is null */
@@ -196,14 +209,22 @@ class DatagramPacket {
     }
 
     /**
+     * Sets the IP address of the machine to which this datagram
+     * is being sent.
+     * @param iaddr the <code>InetAddress</code>
      * @since   JDK1.1
+     * @see #getAddress()
      */
     public synchronized void setAddress(InetAddress iaddr) {
 	address = iaddr;
     }
 
     /**
+     * Sets the port number on the remote host to which this datagram
+     * is being sent.
+     * @param iport the port number
      * @since   JDK1.1
+     * @see #setPort(int)
      */
     public synchronized void setPort(int iport) {
 	if (iport < 0 || iport > 0xFFFF) {

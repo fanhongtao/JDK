@@ -1,17 +1,16 @@
 /*
- * @(#)SimpleDateFormat.java	1.45 01/11/29
+ * @(#)SimpleDateFormat.java	1.52 00/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /*
- * @(#)SimpleDateFormat.java	1.45 01/11/29
- *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
- *
- * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -19,19 +18,6 @@
  * and Sun. This technology is protected by multiple US and International
  * patents. This notice and attribution to Taligent may not be removed.
  *   Taligent is a registered trademark of Taligent, Inc.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
 
@@ -47,6 +33,7 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.lang.ClassNotFoundException;
 import java.util.Hashtable;
+import java.lang.StringIndexOutOfBoundsException;
 
 /**
  * <code>SimpleDateFormat</code> is a concrete class for formatting and
@@ -191,7 +178,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          DateFormatSymbols
  * @see          DecimalFormat
- * @version      1.29 01/15/98
+ * @version      1.52, 01/19/00
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
@@ -269,7 +256,7 @@ public class SimpleDateFormat extends DateFormat {
      * @see java.text.DateFormat
      */
     public SimpleDateFormat() {
-        this(SHORT, SHORT + 4, Locale.getDefault());
+        this(SHORT, SHORT, Locale.getDefault());
     }
 
     /**
@@ -307,30 +294,32 @@ public class SimpleDateFormat extends DateFormat {
 
     /* Package-private, called by DateFormat factory methods */
     SimpleDateFormat(int timeStyle, int dateStyle, Locale loc) {
-    /* try the cache first */
-    String[] dateTimePatterns = (String[]) cachedLocaleData.get(loc);
-    if (dateTimePatterns == null) { /* cache miss */
-        ResourceBundle r = ResourceBundle.getBundle
-        ("java.text.resources.LocaleElements", loc);
-        dateTimePatterns = r.getStringArray("DateTimePatterns");
-        /* update cache */
-        cachedLocaleData.put(loc, dateTimePatterns);
-    }
-
-        formatData = new DateFormatSymbols(loc);
-        if ((timeStyle >= 0) && (dateStyle >= 0)) {
-            Object[] dateTimeArgs = {dateTimePatterns[timeStyle],
-                                     dateTimePatterns[dateStyle]};
-            pattern = MessageFormat.format(dateTimePatterns[8], dateTimeArgs);
+        /* try the cache first */
+        String[] dateTimePatterns = (String[]) cachedLocaleData.get(loc);
+        if (dateTimePatterns == null) { /* cache miss */
+            ResourceBundle r = ResourceBundle.getBundle
+            ("java.text.resources.LocaleElements", loc);
+            dateTimePatterns = r.getStringArray("DateTimePatterns");
+            /* update cache */
+            cachedLocaleData.put(loc, dateTimePatterns);
         }
-        else if (timeStyle >= 0)
-            pattern = dateTimePatterns[timeStyle];
-        else if (dateStyle >= 0)
-            pattern = dateTimePatterns[dateStyle];
-        else
-            throw new IllegalArgumentException("No date or time style specified");
+	formatData = new DateFormatSymbols(loc);
+	if ((timeStyle >= 0) && (dateStyle >= 0)) {
+	  Object[] dateTimeArgs = {dateTimePatterns[timeStyle],
+			       dateTimePatterns[dateStyle + 4]};
+	  pattern = MessageFormat.format(dateTimePatterns[8], dateTimeArgs);
+	}
+	else if (timeStyle >= 0) {
+	  pattern = dateTimePatterns[timeStyle];
+	}
+	else if (dateStyle >= 0) {
+            pattern = dateTimePatterns[dateStyle + 4];
+	}
+	else {
+	    throw new IllegalArgumentException("No date or time style specified");
+	}
 
-        initialize(loc);
+	initialize(loc);
     }
 
     /* Initialize calendar and numberFormat fields */
@@ -481,7 +470,7 @@ public class SimpleDateFormat extends DateFormat {
          throws IllegalArgumentException
     {
         int     patternCharIndex = -1;
-        int     maxIntCount = 10;
+        int     maxIntCount = Integer.MAX_VALUE;
         String  current = "";
 
         if ((patternCharIndex=formatData.patternChars.indexOf(ch)) == -1)
@@ -497,7 +486,6 @@ public class SimpleDateFormat extends DateFormat {
             break;
         case 1: // 'y' - YEAR
             if (count >= 4)
-                //                current = zeroPaddingNumber(value, 4, count);
                 current = zeroPaddingNumber(value, 4, maxIntCount);
             else // count < 4
                 current = zeroPaddingNumber(value, 2, 2); // clip 1996 to 96
@@ -517,15 +505,6 @@ public class SimpleDateFormat extends DateFormat {
                                             count, maxIntCount);
             else
                 current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 8: // 'S' - MILLISECOND
-            if (count > 3)
-                count = 3;
-            else if (count == 2)
-                value = value / 10;
-            else if (count == 1)
-                value = value / 100;
-            current = zeroPaddingNumber(value, count, maxIntCount);
             break;
         case 9: // 'E' - DAY_OF_WEEK
             if (count >= 4)
@@ -593,6 +572,7 @@ public class SimpleDateFormat extends DateFormat {
             // case 5: // 'H' - HOUR_OF_DAY:0-based.  eg, 23:59 + 1 hour =>> 00:59
             // case 6: // 'm' - MINUTE
             // case 7: // 's' - SECOND
+            // case 8: // 'S' - MILLISECOND
             // case 10: // 'D' - DAY_OF_YEAR
             // case 11: // 'F' - DAY_OF_WEEK_IN_MONTH
             // case 12: // 'w' - WEEK_OF_YEAR
@@ -613,8 +593,9 @@ public class SimpleDateFormat extends DateFormat {
         return current;
     }
 
-
-    // Pad the shorter numbers up to maxCount digits.
+    /**
+     * Formats a number with the specified minimum and maximum number of digits.
+     */
     private String zeroPaddingNumber(long value, int minDigits, int maxDigits)
     {
         numberFormat.setMinimumIntegerDigits(minDigits);
@@ -892,6 +873,64 @@ public class SimpleDateFormat extends DateFormat {
         return -start;
     }
 
+    private int matchZoneString(String text, int start, int zoneIndex) {
+	int j;
+	for (j = 1; j <= 4; ++j) {
+	    // Checking long and short zones [1 & 2],
+	    // and long and short daylight [3 & 4].
+	    if (text.regionMatches(true, start,
+				   formatData.zoneStrings[zoneIndex][j], 0,
+				   formatData.zoneStrings[zoneIndex][j].length())) {
+		break;
+	    }
+	}
+	return (j > 4) ? -1 : j;
+    }	
+
+    /**
+     * find time zone 'text' matched zoneStrings and set to internal
+     * calendar.
+     */
+    private int subParseZoneString(String text, int start) {
+	// At this point, check for named time zones by looking through
+	// the locale data from the DateFormatZoneData strings.
+	// Want to be able to parse both short and long forms.
+	int zoneIndex = 
+	    formatData.getZoneIndex (getTimeZone().getID());
+	TimeZone tz = null;
+	int j = 0, i = 0;
+	if ((zoneIndex != -1) && ((j = matchZoneString(text, start, zoneIndex)) > 0)) {
+	    tz = TimeZone.getTimeZone(formatData.zoneStrings[zoneIndex][0]);
+	    i = zoneIndex;
+	}
+	if (tz == null) {
+	    zoneIndex = 
+		formatData.getZoneIndex (TimeZone.getDefault().getID());
+	    if ((zoneIndex != -1) && ((j = matchZoneString(text, start, zoneIndex)) > 0)) {
+		tz = TimeZone.getTimeZone(formatData.zoneStrings[zoneIndex][0]);
+		i = zoneIndex;
+	    }
+	}	    
+
+	if (tz == null) {
+	    for (i = 0; i < formatData.zoneStrings.length; i++) {
+		if ((j = matchZoneString(text, start, i)) > 0) {
+		    tz = TimeZone.getTimeZone(formatData.zoneStrings[i][0]);
+		    break;
+		}
+	    }
+	}
+	if (tz != null) { // Matched any ?
+	    calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
+	    // The code below time zone is assumed to be instance of
+	    // SimpleTimeZone.
+	    calendar.set(Calendar.DST_OFFSET, 
+			 j >= 3 ? ((SimpleTimeZone)tz).getDSTSavings() : 0);
+	    return (start + formatData.zoneStrings[i][j].length());
+	}
+	return 0;
+    }
+
     /**
      * Private member function that converts the parsed date strings into
      * timeFields. Returns -start (for ParsePosition) if failed.
@@ -909,7 +948,7 @@ public class SimpleDateFormat extends DateFormat {
     private int subParse(String text, int start, char ch, int count,
                          boolean obeyCount, boolean[] ambiguousYear)
     {
-        Number number;
+        Number number = null;
         int value = 0;
         int i;
         ParsePosition pos = new ParsePosition(0);
@@ -938,9 +977,8 @@ public class SimpleDateFormat extends DateFormat {
         if (patternCharIndex == 4 /*HOUR_OF_DAY1_FIELD*/ ||
             patternCharIndex == 15 /*HOUR1_FIELD*/ ||
             (patternCharIndex == 2 /*MONTH_FIELD*/ && count <= 2) ||
-            patternCharIndex == 1 /*YEAR*/)
+            patternCharIndex == 1)
         {
-            int parseStart = pos.getIndex(); // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
             // It would be good to unify this with the obeyCount logic below,
             // but that's going to be difficult.
             if (obeyCount)
@@ -949,9 +987,7 @@ public class SimpleDateFormat extends DateFormat {
                 number = numberFormat.parse(text.substring(0, start+count), pos);
             }
             else number = numberFormat.parse(text, pos);
-            if (number == null
-                // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                || pos.getIndex() == parseStart)
+            if (number == null)
                 return -start;
             value = number.intValue();
         }
@@ -1045,42 +1081,38 @@ public class SimpleDateFormat extends DateFormat {
                 //    GMT[+-]hours:minutes or
                 //    GMT[+-]hhmm or
                 //    GMT.
-                if ((text.length() - start) > GMT.length() &&
+                if ((text.length() - start) >= GMT.length() &&
                     text.regionMatches(true, start, GMT, 0, GMT.length()))
                 {
                     calendar.set(Calendar.DST_OFFSET, 0);
 
                     pos.index = start + GMT.length();
 
-                    if( text.charAt(pos.index) == '+' )
-                        sign = 1;
-                    else if( text.charAt(pos.index) == '-' )
-                        sign = -1;
-                    else {
-                        calendar.set(Calendar.ZONE_OFFSET, 0 );
-                        return pos.index;
+		    try { // try-catch for "GMT" only time zone string
+			if( text.charAt(pos.index) == '+' ) {
+			    sign = 1;
+			} else if( text.charAt(pos.index) == '-' ) {
+			    sign = -1;
+			} 
+		    } catch(StringIndexOutOfBoundsException e) {
                     }
+		    if (sign == 0) {
+			calendar.set(Calendar.ZONE_OFFSET, 0 );
+			return pos.index;
+		    }
 
                     // Look for hours:minutes or hhmm.
                     pos.index++;
-                    // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                    int parseStart = pos.getIndex();
                     Number tzNumber = numberFormat.parse(text, pos);
-                    if( tzNumber == null
-                        // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                        || pos.getIndex() == parseStart) {
+                    if( tzNumber == null) {
                         return -start;
                     }
                     if( text.charAt(pos.index) == ':' ) {
                         // This is the hours:minutes case
                         offset = tzNumber.intValue() * 60;
                         pos.index++;
-                        // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                        parseStart = pos.getIndex();
                         tzNumber = numberFormat.parse(text, pos);
-                        if( tzNumber == null
-                            // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                            || pos.getIndex() == parseStart) {
+                        if( tzNumber == null) {
                             return -start;
                         }
                         offset += tzNumber.intValue();
@@ -1100,28 +1132,9 @@ public class SimpleDateFormat extends DateFormat {
                     // At this point, check for named time zones by looking through
                     // the locale data from the DateFormatZoneData strings.
                     // Want to be able to parse both short and long forms.
-                    for (i=0; i<formatData.zoneStrings.length; i++)
-                    {
-                        // Checking long and short zones [1 & 2],
-                        // and long and short daylight [3 & 4].
-                        int j = 1;
-                        for (; j <= 4; ++j)
-                        {
-                            if (text.regionMatches(true, start,
-                                                   formatData.zoneStrings[i][j], 0,
-                                                   formatData.zoneStrings[i][j].length()))
-                                break;
-                        }
-                        if (j <= 4)
-                        {
-                            TimeZone tz = TimeZone.getTimeZone(formatData.zoneStrings[i][0]);
-                            calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
-                            // Must call set() with something -- TODO -- Fix this to
-                            // use the correct DST SAVINGS for the zone.
-                            calendar.set(Calendar.DST_OFFSET, j >= 3 ? millisPerHour : 0);
-                            return (start + formatData.zoneStrings[i][j].length());
-                        }
-                    }
+		    i = subParseZoneString(text, start);
+		    if (i != 0)
+			return i;
 
                     // As a last resort, look for numeric timezones of the form
                     // [+-]hhmm as specified by RFC 822.  This code is actually
@@ -1129,12 +1142,8 @@ public class SimpleDateFormat extends DateFormat {
                     // its best with numbers that aren't strictly 4 digits long.
                     DecimalFormat fmt = new DecimalFormat("+####;-####");
                     fmt.setParseIntegerOnly(true);
-                    // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                    int parseStart = pos.getIndex();
                     Number tzNumber = fmt.parse( text, pos );
-                    if( tzNumber == null
-                        // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                        || pos.getIndex() == parseStart) {
+                    if( tzNumber == null) {
                         return -start;   // Wasn't actually a number.
                     }
                     offset = tzNumber.intValue();
@@ -1183,8 +1192,6 @@ public class SimpleDateFormat extends DateFormat {
             // case 13: // 'W' - WEEK_OF_MONTH
             // case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
 
-            // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-            int parseStart = pos.getIndex();
             // Handle "generic" fields
             if (obeyCount)
             {
@@ -1192,9 +1199,7 @@ public class SimpleDateFormat extends DateFormat {
                 number = numberFormat.parse(text.substring(0, start+count), pos);
             }
             else number = numberFormat.parse(text, pos);
-            if (number != null
-                // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
-                && pos.getIndex() != parseStart) {
+            if (number != null) {
                 calendar.set(field, number.intValue());
                 return pos.index;
             }

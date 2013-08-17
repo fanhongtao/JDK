@@ -1,8 +1,11 @@
 /*
- * @(#)Character.java	1.56 01/11/29
+ * @(#)Character.java	1.61 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 // This file was generated AUTOMATICALLY from a template file Fri Jun 19 11:07:53 PDT 1998
@@ -41,7 +44,7 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Guy Steele
  * @author  Akira Tanaka
- * @version 1.56, 01/11/29
+ * @version 1.61, 02/02/00
  * @since   JDK1.0
  */
 
@@ -104,7 +107,7 @@ public final class Character
     public static final Class	TYPE = Class.getPrimitiveClass("char");
 
     /**
-     * Public data for enumerated Unicode general category types
+     * Public data for enumerated Unicode general category types.
      *
      * @since   JDK1.1
      */
@@ -145,7 +148,7 @@ public final class Character
      * UnicodeBlock}</code>.  Other portions of the Java API may define other
      * subsets for their own purposes.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static class Subset  {
 
@@ -194,7 +197,7 @@ public final class Character
      * by the Unicode 2.0 specification.  Any given character is contained by
      * at most one Unicode block.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public static final class UnicodeBlock extends Subset {
 
@@ -575,7 +578,7 @@ public final class Character
      *          <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof Character)) {
+	if (obj instanceof Character) {
 	    return value == ((Character)obj).charValue();
 	} 
 	return false;
@@ -1417,7 +1420,7 @@ public final class Character
      *          numerically greater than the Character argument (unsigned
      *		comparison).  Note that this is strictly a numerical
      *		comparison; it is not locale-dependent.
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Character anotherCharacter) {
 	return this.value - anotherCharacter.value;
@@ -1440,7 +1443,7 @@ public final class Character
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Character</code>. 
      * @see     java.lang.Comparable
-     * @since JDK1.2 */
+     * @since 1.2 */
     public int compareTo(Object o) {
 	return compareTo((Character)o);
     }

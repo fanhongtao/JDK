@@ -1,13 +1,17 @@
 /*
- * @(#)JRadioButton.java	1.53 01/11/29
+ * @(#)JRadioButton.java	1.64 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.*;
 
 import javax.swing.plaf.*;
 import javax.accessibility.*;
@@ -25,15 +29,15 @@ import java.io.IOException;
  * object and use its <code>add</code> method to include the JRadioButton objects
  * in the group.)
  * <blockquote>
- * Note:<br>
+ * <strong>Note:</strong>
  * The ButtonGroup object is a logical grouping -- not a physical grouping.
  * Tocreate a button panel, you should still create a {@link JPanel} or similar
- * container-object and add a {@link Border} to it to set it off from surrounding
+ * container-object and add a {@link javax.swing.border.Border} to it to set it off from surrounding
  * components.
- * <blockquote>
+ * </blockquote>
  * <p>
- * See <a href="http://java.sun.com/docs/books/tutorial/ui/swing/radiobutton.html">How to Use Radio Buttons</a>
- * in <a href="http://java.sun.com/Series/Tutorial/index.html"><em>The Java Tutorial</em></a>
+ * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>
+ * in <em>The Java Tutorial</em>
  * for further documentation.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
@@ -49,9 +53,11 @@ import java.io.IOException;
  * 
  * @beaninfo
  *   attribute: isContainer false
+ * description: A component which can display it's state as selected or deselected.
+ *
  * @see ButtonGroup
  * @see JCheckBox
- * @version 1.53 11/29/01
+ * @version 1.64 04/06/00
  * @author Jeff Dinkins
  */
 public class JRadioButton extends JToggleButton implements Accessible {
@@ -79,6 +85,17 @@ public class JRadioButton extends JToggleButton implements Accessible {
      */
     public JRadioButton(Icon icon) {
         this(null, icon, false);
+    }
+
+    /**
+     * Creates a radiobutton where properties are taken from the 
+     * Action supplied.
+     *
+     * @since 1.3
+     */
+    public JRadioButton(Action a) {
+        this();
+	setAction(a);
     }
 
     /**
@@ -166,6 +183,67 @@ public class JRadioButton extends JToggleButton implements Accessible {
     }
 
 
+    /**
+     * Factory method which sets the ActionEvent source's properties
+     * according to values from the Action instance.  The properties 
+     * which are set may differ for subclasses.
+     * By default, the properties which get set are Text, Icon
+     * Enabled, and ToolTipText.
+     *
+     * @param a the Action from which to get the properties, or null
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    protected void configurePropertiesFromAction(Action a) {
+	setText((a!=null?(String)a.getValue(Action.NAME):null));
+	setEnabled((a!=null?a.isEnabled():true));
+ 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
+    }
+
+    /**
+     * Factory method which creates the PropertyChangeListener
+     * used to update the ActionEvent source as properties change on
+     * its Action instance.  Subclasses may override this in order 
+     * to provide their own PropertyChangeListener if the set of
+     * properties which should be kept up to date differs from the
+     * default properties (Text, Icon, Enabled, ToolTipText).
+     *
+     * Note that PropertyChangeListeners should avoid holding
+     * strong references to the ActionEvent source, as this may hinder
+     * garbage collection of the ActionEvent source and all components
+     * in its containment hierarchy.  
+     *
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
+        return new AbstractActionPropertyChangeListener(this, a) {
+	    public void propertyChange(PropertyChangeEvent e) {	    
+		String propertyName = e.getPropertyName();
+		AbstractButton button = (AbstractButton)getTarget();
+		if (button == null) {   //WeakRef GC'ed in 1.2
+		    Action action = (Action)e.getSource();
+		    action.removePropertyChangeListener(this);
+		} else {
+		    if (e.getPropertyName().equals(Action.NAME)) {
+			String text = (String) e.getNewValue();
+			button.setText(text);
+			button.repaint();
+		    } else if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
+			String text = (String) e.getNewValue();
+			button.setToolTipText(text);
+		    } else if (propertyName.equals("enabled")) {
+			Boolean enabledState = (Boolean) e.getNewValue();
+			button.setEnabled(enabledState.booleanValue());
+			button.repaint();
+		    } 
+		}
+	    }
+	};
+    }
+
     /** 
      * See readObject() and writeObject() in JComponent for more 
      * information about serialization in Swing.
@@ -198,9 +276,13 @@ public class JRadioButton extends JToggleButton implements Accessible {
 
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JRadioButton. 
+     * For JRadioButtons, the AccessibleContext takes the form of an 
+     * AccessibleJRadioButton. 
+     * A new AccessibleJRadioButton instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJRadioButton that serves as the 
+     *         AccessibleContext of this JRadioButton
      * @beaninfo
      *       expert: true
      *  description: The AccessibleContext associated with this Button
@@ -213,7 +295,10 @@ public class JRadioButton extends JToggleButton implements Accessible {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JRadioButton</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to radio button 
+     * user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

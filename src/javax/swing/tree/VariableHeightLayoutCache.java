@@ -1,8 +1,11 @@
 /*
- * @(#)VariableHeightLayoutCache.java	1.12 01/11/29
+ * @(#)VariableHeightLayoutCache.java	1.13 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -26,7 +29,7 @@ import java.util.Vector;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.12 11/29/01
+ * @version 1.13 02/02/00
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -239,6 +242,21 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 	    if(node.isVisible())
 		updateYLocationsFrom(node.getRow());
 	}
+    }
+
+    /**
+     * Returns the preferred height.
+     */
+    public int getPreferredHeight() {
+	// Get the height
+	int           rowCount = getRowCount();
+
+	if(rowCount > 0) {
+	    TreeStateNode  node = getNode(rowCount - 1);
+
+	    return node.getYOrigin() + node.getPreferredHeight();
+	}
+	return 0;
     }
 
     /**
@@ -481,21 +499,15 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 			counter--) {
 			removedNode = (TreeStateNode)changedParentNode.
 				getChildAt(changedIndexs[counter]);
-			if(removedNode.isExpanded())
+			if(removedNode.isExpanded()) {
 			    removedNode.collapse(false);
+			}
 
 			/* Let the selection model now. */
 			if(makeInvisible) {
 			    removedRow = removedNode.getRow();
 			    if(removedRow != -1) {
 				visibleNodes.removeElementAt(removedRow);
-				if(treeSelectionModel != null) {
-				    TreePath oldPath = removedNode.
-					    getTreePath();
-
-				    treeSelectionModel.removeSelectionPath
-					(oldPath);
-				}
 			    }
 			}
 			changedParentNode.remove(changedIndexs[counter]);
@@ -532,7 +544,6 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		    if(!isFixedRowHeight() && changedParentNode.isVisible())
 			this.updateYLocationsFrom(changedParentNode.getRow());
 		}
-
 	    }
 	}
     }
@@ -1468,7 +1479,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		    visibleNodesChanged();
 		}
 
-		// Update the selection.
+		// Update the rows in the selection
 		if(treeSelectionModel != null) {
 		    treeSelectionModel.resetRowSelection();
 		}
@@ -1481,7 +1492,6 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 	 */
 	protected void collapse(boolean adjustTree) {
 	    if (isExpanded()) {
-		Vector      selectedPaths = null;
 		Enumeration cursor = preorderEnumeration();
 		cursor.nextElement(); // don't remove me, I'm still visible
 		int rowsDeleted = 0;
@@ -1495,27 +1505,13 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		int startYEnd = lastYEnd;
 		int myRow = getRow();
 
-		expanded = false;
-
-		if(myRow == -1)
-		    markSizeInvalid();
-		else if (adjustTree)
-		    updatePreferredSize(myRow);
-
 		if(!isFixed) {
 		    while(cursor.hasMoreElements()) {
 			TreeStateNode node = (TreeStateNode)cursor.
 			    nextElement();
-			if (visibleNodes.contains(node)) {
+			if (node.isVisible()) {
 			    rowsDeleted++;
-			    if(treeSelectionModel != null &&
-			       treeSelectionModel.isRowSelected
-			       (rowsDeleted + myRow)) {
-				if(selectedPaths == null)
-				    selectedPaths = new Vector();
-				selectedPaths.addElement(node.getTreePath());
-			    }
-			    visibleNodes.removeElement(node);
+			    //visibleNodes.removeElement(node);
 			    lastYEnd = node.getYOrigin() +
 				node.getPreferredHeight();
 			}
@@ -1525,19 +1521,25 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		    while(cursor.hasMoreElements()) {
 			TreeStateNode node = (TreeStateNode)cursor.
 			    nextElement();
-			if (visibleNodes.contains(node)) {
+			if (node.isVisible()) {
 			    rowsDeleted++;
-			    if(treeSelectionModel != null &&
-			       treeSelectionModel.isRowSelected
-			       (rowsDeleted + myRow)) {
-				if(selectedPaths == null)
-				    selectedPaths = new Vector();
-				selectedPaths.addElement(node.getTreePath());
-			    }
-			    visibleNodes.removeElement(node);
+			    //visibleNodes.removeElement(node);
 			}
 		    }
 		}
+
+		// Clean up the visible nodes.
+		for (int counter = rowsDeleted + myRow; counter > myRow;
+		     counter--) {
+		    visibleNodes.removeElementAt(counter);
+		}
+
+		expanded = false;
+
+		if(myRow == -1)
+		    markSizeInvalid();
+		else if (adjustTree)
+		    updatePreferredSize(myRow);
 
 		if(myRow != -1 && adjustTree &&
 		   (rowsDeleted > 0 || startHeight != getPreferredHeight())) {
@@ -1557,20 +1559,9 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		    didAdjustTree();
 		    visibleNodesChanged();
 		}
-
-		/* Adjust the selections. */
-		if(treeSelectionModel != null && rowsDeleted > 0 &&
-		   myRow != -1) {
-		    if(selectedPaths != null) {
-			int              maxCounter = selectedPaths.size();
-			TreePath[]      treePaths = new TreePath[maxCounter];
-
-			selectedPaths.copyInto(treePaths);
-			treeSelectionModel.removeSelectionPaths(treePaths);
-			treeSelectionModel.addSelectionPath(getTreePath());
-		    }
-		    else
-			treeSelectionModel.resetRowSelection();
+ 		if(treeSelectionModel != null && rowsDeleted > 0 &&
+ 		   myRow != -1) {
+		    treeSelectionModel.resetRowSelection();
 		}
 	    }
 	}

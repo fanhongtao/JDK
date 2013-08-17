@@ -1,8 +1,11 @@
 /*
- * @(#)BasicListUI.java	1.51 01/11/29
+ * @(#)BasicListUI.java	1.54 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -23,7 +26,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.51 11/29/01
+ * @version 1.54 02/02/00
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -39,7 +42,7 @@ public class BasicListUI extends ListUI
     protected ListDataListener listDataListener;
     protected PropertyChangeListener propertyChangeListener;
 
-    // PENDING(hmuller) need a doc pointer to #getRowHeight, #maybeUpdateLayout
+    // PENDING(hmuller) need a doc pointer to #getRowHeight, #maybeUpdateLayoutState
     protected int[] cellHeights = null;
     protected int cellHeight = -1;
     protected int cellWidth = -1;
@@ -48,7 +51,7 @@ public class BasicListUI extends ListUI
     /* The bits below define JList property changes that affect layout.
      * When one of these properties changes we set a bit in
      * updateLayoutStateNeeded.  The change is dealt with lazily, see
-     * maybeUpdateLayout.  Changes to the JLists model, e.g. the
+     * maybeUpdateLayoutState.  Changes to the JLists model, e.g. the
      * models length changed, are handled similarly, see DataListener.
      */
 
@@ -243,98 +246,75 @@ public class BasicListUI extends ListUI
      * @see #installUI
      */
     protected void installKeyboardActions() {
-	// up
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("SelectPreviousRow", CHANGE_SELECTION, -1),
-			KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("SelectPreviousRow", CHANGE_SELECTION, -1),
-			KeyStroke.getKeyStroke("KP_UP"),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, -1),
-			KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.
-			SHIFT_MASK), JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, -1),
-			KeyStroke.getKeyStroke("shift KP_UP"), 
-				    JComponent.WHEN_FOCUSED);
-	// down
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("SelectNextRow", CHANGE_SELECTION, 1),
-			KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("SelectNextRow", CHANGE_SELECTION, 1),
-			KeyStroke.getKeyStroke("KP_DOWN"),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, 1),
-			KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.
-			SHIFT_MASK), JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new IncrementLeadSelectionAction
-		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, 1),
-			KeyStroke.getKeyStroke("shift KP_DOWN"),
-				    JComponent.WHEN_FOCUSED);
+	InputMap inputMap = getInputMap(JComponent.WHEN_FOCUSED);
 
-	// home
-	list.registerKeyboardAction(new HomeAction
-		        ("SelectHome", CHANGE_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new HomeAction
-		        ("ExtendSelectHome", EXTEND_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.
-			SHIFT_MASK), JComponent.WHEN_FOCUSED);
+	SwingUtilities.replaceUIInputMap(list, JComponent.WHEN_FOCUSED,
+					   inputMap);
+	ActionMap map = getActionMap();
 
-	// end
-	list.registerKeyboardAction(new EndAction
-		        ("SelectEnd", CHANGE_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new EndAction
-		        ("ExtendSelectEnd", EXTEND_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.
-			SHIFT_MASK), JComponent.WHEN_FOCUSED);
-
-	// page up
-	list.registerKeyboardAction(new PageUpAction
-		        ("SelectPageUp", CHANGE_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new PageUpAction
-		        ("ExtendSelectPageUp", EXTEND_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.
-			SHIFT_MASK), JComponent.WHEN_FOCUSED);
-
-	// page down
-	list.registerKeyboardAction(new PageDownAction
-		        ("SelectPageDown", CHANGE_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0),
-			JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(new PageDownAction
-		        ("ExtendSelectPageDown", EXTEND_SELECTION),
-			KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,
-			InputEvent.SHIFT_MASK), JComponent.WHEN_FOCUSED);
-
-	// select all
-	ActionListener selectAll = new SelectAllAction("SelectAll");
-	list.registerKeyboardAction(selectAll,
-				    KeyStroke.getKeyStroke(KeyEvent.VK_A, 
-				    InputEvent.CTRL_MASK),
-				    JComponent.WHEN_FOCUSED);
-	list.registerKeyboardAction(selectAll, KeyStroke.getKeyStroke
-				    (KeyEvent.VK_SLASH, InputEvent.CTRL_MASK),
-				    JComponent.WHEN_FOCUSED);
-
-	// clear selection
-	list.registerKeyboardAction(new ClearSelectionAction("ClearSelection"),
-				    KeyStroke.getKeyStroke(KeyEvent.
-				    VK_BACK_SLASH, InputEvent.CTRL_MASK),
-				    JComponent.WHEN_FOCUSED);
+	if (map != null) {
+	    SwingUtilities.replaceUIActionMap(list, map);
+	}
     }
 
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_FOCUSED) {
+	    return (InputMap)UIManager.get("List.focusInputMap");
+	}
+	return null;
+    }
+
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("List.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("List.actionMap", map);
+	    }
+	}
+	return map;
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("selectPreviousRow",
+		    new IncrementLeadSelectionAction("selectPreviousRow",
+						     CHANGE_SELECTION, -1));
+	map.put("selectPreviousRowExtendSelection",
+		    new IncrementLeadSelectionAction
+		    ("selectPreviousRowExtendSelection",EXTEND_SELECTION, -1));
+	map.put("selectNextRow",
+		    new IncrementLeadSelectionAction("selectNextRow",
+						     CHANGE_SELECTION, 1));
+	map.put("selectNextRowExtendSelection",
+		    new IncrementLeadSelectionAction
+		    ("selectNextRowExtendSelection", EXTEND_SELECTION, 1));
+	map.put("selectFirstRow",
+		    new HomeAction("selectFirstRow", CHANGE_SELECTION));
+	map.put("selectFirstRowExtendSelection",
+		    new HomeAction("selectFirstRowExtendSelection",
+				   EXTEND_SELECTION));
+	map.put("selectLastRow",
+		    new EndAction("selctLastRow", CHANGE_SELECTION));
+	map.put("selectLastRowExtendSelection",
+		    new EndAction("selectLastRowExtendSelection",
+				  EXTEND_SELECTION));
+	map.put("scrollUp",
+		    new PageUpAction("scrollUp", CHANGE_SELECTION));
+	map.put("scrollUpExtendSelection",
+		    new PageUpAction("scrollUpExtendSelection",
+				     EXTEND_SELECTION));
+	map.put("scrollDown",
+		    new PageDownAction("scrollDown", CHANGE_SELECTION));
+	map.put("scrollDownExtendSelection",
+		    new PageDownAction("scrollDownExtendSelection",
+				       EXTEND_SELECTION));
+	map.put("selectAll", new SelectAllAction("selectAll"));
+	map.put("clearSelection", new 
+		    ClearSelectionAction("clearSelection"));
+	return map;
+    }
 
     /**
      * Unregister keyboard actions for the up and down arrow keys.
@@ -347,57 +327,8 @@ public class BasicListUI extends ListUI
      * @see #installUI
      */
     protected void uninstallKeyboardActions() {
-	// up
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
-							     0));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_UP"));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      (KeyEvent.VK_UP, InputEvent.SHIFT_MASK));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      ("shift KP_UP"));
-
-	// down
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.
-							     VK_DOWN, 0));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_DOWN"));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				    (KeyEvent.VK_DOWN, InputEvent.SHIFT_MASK));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				    ("shift KP_DOWN"));
-
-	// home
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_HOME,
-							     0));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				  (KeyEvent.VK_HOME, InputEvent.SHIFT_MASK));
-
-	// end
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.
-							     VK_END, 0));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				    (KeyEvent.VK_END, InputEvent.SHIFT_MASK));
-
-	// page up
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      (KeyEvent.VK_PAGE_UP, 0));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			       (KeyEvent.VK_PAGE_UP, InputEvent.SHIFT_MASK));
-
-	// page down
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      (KeyEvent.VK_PAGE_DOWN, 0));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			      (KeyEvent.VK_PAGE_DOWN, InputEvent.SHIFT_MASK));
-
-	// select all
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-				      (KeyEvent.VK_A, InputEvent.CTRL_MASK));
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			      (KeyEvent.VK_SLASH, InputEvent.CTRL_MASK));
-
-	// clear selection
-        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
-			      (KeyEvent.VK_BACK_SLASH, InputEvent.CTRL_MASK));
+	SwingUtilities.replaceUIActionMap(list, null);
+	SwingUtilities.replaceUIInputMap(list, JComponent.WHEN_FOCUSED, null);
     }
 
 
@@ -587,12 +518,13 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * @return The origin of the index'th cell.
+     * @return The origin of the index'th cell, null if index is invalid.
      * @see ListUI#indexToLocation
      */
     public Point indexToLocation(JList list, int index) {
         maybeUpdateLayoutState();
-        return new Point(0, convertRowToY(index));
+	int y = convertRowToY(index);
+        return (y == -1) ? null : new Point(0, y);
     }
 
 
@@ -655,7 +587,10 @@ public class BasicListUI extends ListUI
         int nrows = list.getModel().getSize();
         Insets insets = list.getInsets();
 
-        if (cellHeights == null) {
+	if (nrows <= 0) {
+	    return -1;
+	}
+        else if (cellHeights == null) {
             int row = (cellHeight == 0) ? 0 : ((y0 - insets.top) / cellHeight);
             return ((row < 0) || (row >= nrows)) ? -1 : row;
         }
@@ -1041,7 +976,7 @@ public class BasicListUI extends ListUI
      * long term persistence.
      *
      * @see JList#getModel
-     * @see #maybeUpdateLayout
+     * @see #maybeUpdateLayoutState
      * @see #createListDataListener
      * @see #installUI
      */
@@ -1146,8 +1081,8 @@ public class BasicListUI extends ListUI
      * version of Swing.  A future release of Swing will provide support for
      * long term persistence.
      *
-     * @see #maybeUpdateLayout
-     * @see #createPropertyListener
+     * @see #maybeUpdateLayoutState
+     * @see #createPropertyChangeListener
      * @see #installUI
      */
     public class PropertyChangeHandler implements PropertyChangeListener
@@ -1270,23 +1205,11 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * A generaic action this is only enabled when the JList is enabled.
-     */
-    private abstract class ListAction implements ActionListener {
-	protected ListAction(String name) {
-	}
-
-	public boolean isEnabled() { return (list != null &&
-					     list.isEnabled()); }
-    }
-
-
-    /**
      * Action to increment the selection in the list up/down a row at
      * a type. This also has the option to extend the selection, or
      * only move the lead.
      */
-    private class IncrementLeadSelectionAction extends ListAction {
+    private static class IncrementLeadSelectionAction extends AbstractAction {
 	/** Amount to offset, subclasses will define what this means. */
 	protected int amount;
 	/** One of CHANGE_LEAD, CHANGE_SELECTION or EXTEND_SELECTION. */
@@ -1307,7 +1230,7 @@ public class BasicListUI extends ListUI
 	 * Returns the next index to select. This is based on the lead
 	 * selected index and the <code>amount</code> ivar.
 	 */
-	protected int getNextIndex() {
+	protected int getNextIndex(JList list) {
 	    int index = list.getLeadSelectionIndex();
 	    int size = list.getModel().getSize();
 
@@ -1331,7 +1254,7 @@ public class BasicListUI extends ListUI
 	 * Ensures the particular index is visible. This simply forwards
 	 * the method to list.
 	 */
-	protected void ensureIndexIsVisible(int index) {
+	protected void ensureIndexIsVisible(JList list, int index) {
 	    list.ensureIndexIsVisible(index);
 	}
 
@@ -1345,7 +1268,8 @@ public class BasicListUI extends ListUI
 	 * lead is set to the new index.
 	 */
 	public void actionPerformed(ActionEvent e) {
-	    int index = getNextIndex();
+	    JList list = (JList)e.getSource();
+	    int index = getNextIndex(list);
 	    if (index >= 0 && index < list.getModel().getSize()) {
 		ListSelectionModel lsm = list.getSelectionModel();
 
@@ -1364,7 +1288,7 @@ public class BasicListUI extends ListUI
 		else {
 		    lsm.setLeadSelectionIndex(index);
 		}
-		ensureIndexIsVisible(index);
+		ensureIndexIsVisible(list, index);
 	    }
 	}
     }
@@ -1373,12 +1297,12 @@ public class BasicListUI extends ListUI
     /**
      * Action to move the selection to the first item in the list.
      */
-    private class HomeAction extends IncrementLeadSelectionAction {
+    private static class HomeAction extends IncrementLeadSelectionAction {
 	protected HomeAction(String name, int type) {
 	    super(name, type);
 	}
 
-	protected int getNextIndex() {
+	protected int getNextIndex(JList list) {
 	    return 0;
 	}
     }
@@ -1387,12 +1311,12 @@ public class BasicListUI extends ListUI
     /**
      * Action to move the selection to the last item in the list.
      */
-    private class EndAction extends IncrementLeadSelectionAction {
+    private static class EndAction extends IncrementLeadSelectionAction {
 	protected EndAction(String name, int type) {
 	    super(name, type);
 	}
 
-	protected int getNextIndex() {
+	protected int getNextIndex(JList list) {
 	    return list.getModel().getSize() - 1;
 	}
     }
@@ -1401,12 +1325,12 @@ public class BasicListUI extends ListUI
     /**
      * Action to move up one page.
      */
-    private class PageUpAction extends IncrementLeadSelectionAction {
+    private static class PageUpAction extends IncrementLeadSelectionAction {
 	protected PageUpAction(String name, int type) {
 	    super(name, type);
 	}
 
-	protected int getNextIndex() {
+	protected int getNextIndex(JList list) {
 	    int index = list.getFirstVisibleIndex();
 	    ListSelectionModel lsm = list.getSelectionModel();
 
@@ -1418,7 +1342,7 @@ public class BasicListUI extends ListUI
 	    return index;
 	}
 
-	protected void ensureIndexIsVisible(int index) {
+	protected void ensureIndexIsVisible(JList list, int index) {
 	    Rectangle visRect = list.getVisibleRect();
 	    Rectangle cellBounds = list.getCellBounds(index, index);
 	    cellBounds.height = visRect.height;
@@ -1430,12 +1354,12 @@ public class BasicListUI extends ListUI
     /**
      * Action to move down one page.
      */
-    private class PageDownAction extends IncrementLeadSelectionAction {
+    private static class PageDownAction extends IncrementLeadSelectionAction {
 	protected PageDownAction(String name, int type) {
 	    super(name, type);
 	}
 
-	protected int getNextIndex() {
+	protected int getNextIndex(JList list) {
 	    int index = list.getLastVisibleIndex();
 	    ListSelectionModel lsm = list.getSelectionModel();
 
@@ -1454,7 +1378,7 @@ public class BasicListUI extends ListUI
 	    return index;
 	}
 
-	protected void ensureIndexIsVisible(int index) {
+	protected void ensureIndexIsVisible(JList list, int index) {
 	    Rectangle visRect = list.getVisibleRect();
 	    Rectangle cellBounds = list.getCellBounds(index, index);
 	    cellBounds.y = Math.max(0, cellBounds.y + cellBounds.height -
@@ -1468,12 +1392,13 @@ public class BasicListUI extends ListUI
     /**
      * Action to select all the items in the list.
      */
-    private class SelectAllAction extends ListAction {
+    private static class SelectAllAction extends AbstractAction {
 	private SelectAllAction(String name) {
 	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent e) {
+	    JList list = (JList)e.getSource();
 	    // Select all should not alter the lead and anchor.
 	    // ListSelectionModel encforces the selection to the anchor/lead,
 	    // so it is commented out.
@@ -1491,12 +1416,13 @@ public class BasicListUI extends ListUI
     /**
      * Action to clear the selection in the list.
      */
-    private class ClearSelectionAction extends ListAction {
+    private static class ClearSelectionAction extends AbstractAction {
 	private ClearSelectionAction(String name) {
 	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent e) {
+	    JList list = (JList)e.getSource();
 	    // Unselect all should not alter the lead and anchor.
 	    // ListSelectionModel encforces the selection to the anchor/lead,
 	    // so it is commented out.

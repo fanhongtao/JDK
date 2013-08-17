@@ -1,8 +1,11 @@
 /*
- * @(#)BasicToolBarUI.java	1.54 01/11/29
+ * @(#)BasicToolBarUI.java	1.59 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -33,7 +36,7 @@ import javax.swing.plaf.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.54 11/29/01
+ * @version 1.59 02/02/00
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -60,20 +63,43 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
     protected ContainerListener toolBarContListener;
     protected FocusListener toolBarFocusListener;
 
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke upKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke downKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke leftKey;
+    /**
+     * As of Java 2 platform v1.3 this previously undocumented field is no
+     * longer used.
+     * Key bindings are now defined by the LookAndFeel, please refer to
+     * the key bindings specification for further details.
+     *
+     * @deprecated As of Java 2 platform v1.3.
+     */
     protected KeyStroke rightKey;
 
-    // hania 10/29/98: if the above (upKey, etc) need to be
-    // protected fields (and I don't really understand why they do), then so
-    // do the ones below (kpUpKey, etc). I am making them private
-    // until we can make a release where API changes are allowed.
-  
-    private KeyStroke kpUpKey;
-    private KeyStroke kpDownKey;
-    private KeyStroke kpLeftKey;
-    private KeyStroke kpRightKey;
 
     private static String FOCUSED_COMP_INDEX = "JToolBar.focusedCompIndex";
 
@@ -234,78 +260,53 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
     protected void installKeyboardActions( )
     {
-        ActionListener upAction = new UpAction();
-	ActionListener downAction = new DownAction();
-	ActionListener leftAction = new LeftAction();
-	ActionListener rightAction = new RightAction();
+	InputMap km = getInputMap(JComponent.
+				  WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        upKey    = KeyStroke.getKeyStroke( KeyEvent.VK_UP,0 );
-        downKey  = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,0 );
-        leftKey  = KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,0 );
-        rightKey = KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,0 );
+	SwingUtilities.replaceUIInputMap(toolBar, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+					 km);
+	ActionMap am = getActionMap();
 
-        kpUpKey    = KeyStroke.getKeyStroke( "KP_UP" );
-        kpDownKey  = KeyStroke.getKeyStroke( "KP_DOWN" );
-        kpLeftKey  = KeyStroke.getKeyStroke( "KP_LEFT" );
-        kpRightKey = KeyStroke.getKeyStroke( "KP_RIGHT" );
-
-        toolBar.registerKeyboardAction(
-            upAction,
-            upKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            downAction,
-            downKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            leftAction, 
-            leftKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            rightAction,
-            rightKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            upAction,
-            kpUpKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            downAction,
-            kpDownKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            leftAction, 
-            kpLeftKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        toolBar.registerKeyboardAction(
-            rightAction,
-            kpRightKey, 
-            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	if (am != null) {
+	    SwingUtilities.replaceUIActionMap(toolBar, am);
+	}
     }
 
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+	    return (InputMap)UIManager.get("ToolBar.ancestorInputMap");
+	}
+	return null;
+    }
+
+    ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("ToolBar.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.put("ToolBar.actionMap", map);
+	    }
+	}
+	return map;
+    }
+
+    ActionMap createActionMap() {
+	ActionMap map = new ActionMapUIResource();
+	map.put("navigateRight", new RightAction());
+	map.put("navigateLeft", new LeftAction());
+	map.put("navigateUp", new UpAction());
+	map.put("navigateDown", new DownAction());
+	return map;
+    }
 
     protected void uninstallKeyboardActions( )
     {
-        toolBar.unregisterKeyboardAction( upKey );
-	toolBar.unregisterKeyboardAction( downKey );
-	toolBar.unregisterKeyboardAction( leftKey );
-	toolBar.unregisterKeyboardAction( rightKey );
-        
-	upKey = downKey = rightKey = leftKey = null;
-
-        toolBar.unregisterKeyboardAction( kpUpKey );
-	toolBar.unregisterKeyboardAction( kpDownKey );
-	toolBar.unregisterKeyboardAction( kpLeftKey );
-	toolBar.unregisterKeyboardAction( kpRightKey );
-        
-	kpUpKey = kpDownKey = kpRightKey = kpLeftKey = null;
+	SwingUtilities.replaceUIActionMap(toolBar, null);
+	SwingUtilities.replaceUIInputMap(toolBar, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+					 null);
     }
 
     protected void navigateFocusedComp( int direction )
@@ -658,33 +659,41 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
     // The private inner classes below should be changed to protected the
     // next time API changes are allowed.
   
-    private abstract class KeyAction implements ActionListener {
+    private static abstract class KeyAction extends AbstractAction {
         public boolean isEnabled() { 
             return true;
         }
     };
 
-    private class RightAction extends KeyAction {
+    private static class RightAction extends KeyAction {
         public void actionPerformed(ActionEvent e) {
-            navigateFocusedComp(EAST);
+	    JToolBar toolBar = (JToolBar)e.getSource();
+	    BasicToolBarUI ui = (BasicToolBarUI)toolBar.getUI();
+            ui.navigateFocusedComp(EAST);
         }
     };
     
-    private class LeftAction extends KeyAction {
+    private static class LeftAction extends KeyAction {
         public void actionPerformed(ActionEvent e) {
-            navigateFocusedComp(WEST);
+	    JToolBar toolBar = (JToolBar)e.getSource();
+	    BasicToolBarUI ui = (BasicToolBarUI)toolBar.getUI();
+            ui.navigateFocusedComp(WEST);
         }
     };
 
-    private class UpAction extends KeyAction {
+    private static class UpAction extends KeyAction {
         public void actionPerformed(ActionEvent e) {
-            navigateFocusedComp(NORTH);
+	    JToolBar toolBar = (JToolBar)e.getSource();
+	    BasicToolBarUI ui = (BasicToolBarUI)toolBar.getUI();
+            ui.navigateFocusedComp(NORTH);
         }
     };
 
-    private class DownAction extends KeyAction {
+    private static class DownAction extends KeyAction {
         public void actionPerformed(ActionEvent e) {
-            navigateFocusedComp(SOUTH);
+	    JToolBar toolBar = (JToolBar)e.getSource();
+	    BasicToolBarUI ui = (BasicToolBarUI)toolBar.getUI();
+            ui.navigateFocusedComp(SOUTH);
         }
     };
 

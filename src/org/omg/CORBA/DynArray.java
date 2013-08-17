@@ -1,8 +1,11 @@
 /*
- * @(#)DynArray.java	1.4 01/11/29
+ * @(#)DynArray.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -16,18 +19,21 @@ package org.omg.CORBA;
 public interface DynArray extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**
-     * Return the value of all the elements of the array.
+     * Returns the value of all the elements of this array.
      *
-     * @return an array of <code>Any</code>s.
+     * @return the array of <code>Any</code> objects that is the value
+	 *         for this <code>DynArray</code> object
+	 * @see #set_elements
      */
     public org.omg.CORBA.Any[] get_elements();
 
     /**
-     * Set the values of all elements of an array represented by this
-     * <code>DynArray</code>.
+     * Sets the value of this
+     * <code>DynArray</code> object to the given array.
      *
-     * @param value the array of <code>Any</code>s.
-     * @exception InvalidSeq if the sequence is bad.
+     * @param value the array of <code>Any</code> objects
+     * @exception InvalidSeq if the sequence is bad
+	 * @see #get_elements
      */
     public void set_elements(org.omg.CORBA.Any[] value)
         throws org.omg.CORBA.DynAnyPackage.InvalidSeq;

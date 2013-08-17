@@ -1,8 +1,11 @@
 /*
- * @(#)BasicFileChooserUI.java	1.18 01/11/29
+ * @(#)BasicFileChooserUI.java	1.22 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -51,18 +54,13 @@ public class BasicFileChooserUI extends FileChooserUI {
     protected String updateButtonText = null;
     protected String helpButtonText = null;
 
-    private String newFolderErrorSeparator = null;
-    private String newFolderErrorText = null;
-    private String fileDescriptionText = null;
-    private String directoryDescriptionText = null;
-
     protected String saveButtonToolTipText = null;
     protected String openButtonToolTipText = null;
     protected String cancelButtonToolTipText = null;
     protected String updateButtonToolTipText = null;
     protected String helpButtonToolTipText = null;
 
-    // Some of the more generic FileChooser functions
+    // Some generic FileChooser functions
     private Action approveSelectionAction = new ApproveSelectionAction();
     private Action cancelSelectionAction = new CancelSelectionAction();
     private Action updateAction = new UpdateAction();
@@ -70,16 +68,17 @@ public class BasicFileChooserUI extends FileChooserUI {
     private Action goHomeAction = new GoHomeAction();
     private Action changeToParentDirectoryAction = new ChangeToParentDirectoryAction();
 
+    private String newFolderErrorSeparator = null;
+    private String newFolderErrorText = null;
+    private String fileDescriptionText = null;
+    private String directoryDescriptionText = null;
+
     private JFileChooser filechooser = null;
 
     private PropertyChangeListener propertyChangeListener = null;
     private AncestorListener ancestorListener = null;
-
     private AcceptAllFileFilter acceptAllFileFilter = new AcceptAllFileFilter();
-
-
     private BasicDirectoryModel model = null;
-
     private BasicFileView fileView = new BasicFileView();
 
     // The accessoryPanel is a container to place the JFileChooser accessory component
@@ -141,6 +140,26 @@ public class BasicFileChooserUI extends FileChooserUI {
 	fc.addAncestorListener(ancestorListener);
 	
 
+	InputMap inputMap = getInputMap(JComponent.
+					WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	SwingUtilities.replaceUIInputMap(fc, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
+	ActionMap actionMap = getActionMap();
+	SwingUtilities.replaceUIActionMap(fc, actionMap);
+    }
+
+    InputMap getInputMap(int condition) {
+	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+	    return (InputMap)UIManager.get("FileChooser.ancestorInputMap");
+	}
+	return null;
+    }
+
+    ActionMap getActionMap() {
+	return createActionMap();
+    }
+
+    ActionMap createActionMap() {
 	AbstractAction escAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
 		getFileChooser().cancelSelection();
@@ -149,9 +168,9 @@ public class BasicFileChooserUI extends FileChooserUI {
                 return getFileChooser().isEnabled();
             }
         };
-        fc.registerKeyboardAction(escAction,
-					 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),
-					 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	ActionMap map = new ActionMapUIResource();
+	map.put("cancelSelection", escAction);
+	return map;
     }
 
 
@@ -160,7 +179,9 @@ public class BasicFileChooserUI extends FileChooserUI {
 	    fc.removePropertyChangeListener(propertyChangeListener);
 	}
 	fc.removePropertyChangeListener(model);
-	fc.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0));
+	SwingUtilities.replaceUIInputMap(fc, JComponent.
+					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, null);
+	SwingUtilities.replaceUIActionMap(fc, null);
 	fc.removeAncestorListener(ancestorListener);
 	ancestorListener = null;
     }
@@ -327,17 +348,11 @@ public class BasicFileChooserUI extends FileChooserUI {
 		int index = list.locationToIndex(e.getPoint());
 		if(index >= 0) {
 		    File f = (File) list.getModel().getElementAt(index);
-		    try {
-		      // Strip trailing ".."
-		      f = f.getCanonicalFile();
-                    } catch (IOException ex) {
-		      // That's ok, we'll use f as is
-                    }
 		    if(getFileChooser().isTraversable(f)) {
-                        list.clearSelection();
-                        getFileChooser().setCurrentDirectory(f);
-                    } else {
-		        getFileChooser().approveSelection();
+			list.clearSelection();
+			getFileChooser().setCurrentDirectory(f);
+		    } else {
+			getFileChooser().approveSelection();
 		    }
 		}
 	    }
@@ -351,11 +366,24 @@ public class BasicFileChooserUI extends FileChooserUI {
     protected class SelectionListener implements ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
 	    if(!e.getValueIsAdjusting()) {
+		JFileChooser chooser = getFileChooser();
 		JList list = (JList) e.getSource();
-		File f = (File) list.getSelectedValue();
-		if(f != null && ((getFileChooser().isDirectorySelectionEnabled()) ||
-				 !getFileChooser().isTraversable(f))) {
-		    getFileChooser().setSelectedFile(f);
+
+		File file = (File) list.getSelectedValue();
+
+		if(file != null) {
+		   chooser.setSelectedFile(file);
+		}
+
+		if(chooser.isMultiSelectionEnabled()) {
+		    Object[] objects = list.getSelectedValues();
+		    if(objects != null) {
+			File[] files = new File[objects.length];
+			for(int i = 0; i < objects.length; i++) {
+			    files[i] = (File) objects[i];
+			}
+			chooser.setSelectedFiles(files);
+		    }
 		}
 	    }
 	}
@@ -494,33 +522,46 @@ public class BasicFileChooserUI extends FileChooserUI {
      */
     protected class ApproveSelectionAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
+	    JFileChooser chooser = getFileChooser();
+
 	    String filename = getFileName();
-	    FileSystemView fs = getFileChooser().getFileSystemView();
-	    File dir = getFileChooser().getCurrentDirectory();
+	    FileSystemView fs = chooser.getFileSystemView();
+	    File dir = chooser.getCurrentDirectory();
+
+	    if(filename == null || filename.equals("")) {
+		// no file selected, multiple selection off, therefore cancel the approve action
+		return;
+	    }
 
 	    if(filename != null) {
 		// Remove whitespace from beginning and end of filename
 		filename = filename.trim();
 	    }
+
+
 	    if(filename != null && !filename.equals("")) {
 		// check for directory change action
 		File selectedFile = fs.createFileObject(filename);
 		if(!selectedFile.isAbsolute()) {
 		   selectedFile = fs.createFileObject(dir, filename);
 		}
-		if(selectedFile.isDirectory() && getFileChooser().isTraversable(selectedFile)
-		                              && !getFileChooser().isDirectorySelectionEnabled())
-		{
-		    getFileChooser().setCurrentDirectory(selectedFile);
-		} else if ((!selectedFile.isDirectory() && getFileChooser().isFileSelectionEnabled()) ||
-			   (selectedFile.isDirectory() && getFileChooser().isDirectorySelectionEnabled())) {
-		    getFileChooser().setSelectedFile(selectedFile);
-		    getFileChooser().approveSelection();
+
+		boolean isDir = selectedFile.isDirectory();
+		boolean isTrav = chooser.isTraversable(selectedFile);
+		boolean isDirSelEnabled = chooser.isDirectorySelectionEnabled();
+		boolean isFileSelEnabled = chooser.isFileSelectionEnabled();
+
+		if(isDir && isTrav && !isDirSelEnabled) {
+		    chooser.setCurrentDirectory(selectedFile);
+		} else if ((!isDir && isFileSelEnabled) || (isDir && isDirSelEnabled)) {
+		    chooser.setSelectedFile(selectedFile);
+		    chooser.approveSelection();
 		}
 		return;
 	    }
-	    getFileChooser().setSelectedFile(null);
-	    getFileChooser().cancelSelection();
+	    chooser.setSelectedFile(null);
+	    chooser.setSelectedFiles(null);
+	    chooser.cancelSelection();
 	}
     }
 

@@ -1,8 +1,11 @@
 /*
- * @(#)RandomAccessFile.java	1.51 01/11/29
+ * @(#)RandomAccessFile.java	1.56 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -32,7 +35,7 @@ package java.io;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.51, 11/29/01
+ * @version 1.56, 02/02/00
  * @since   JDK1.0
  */
 
@@ -134,7 +137,9 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
      */
-    public RandomAccessFile(File file, String mode) throws IOException {
+    public RandomAccessFile(File file, String mode)
+	throws FileNotFoundException
+    {
 	this(file.getPath(), mode);
     }
 
@@ -407,7 +412,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
      *
      * @param      newLength    The desired length of the file
      * @exception  IOException  If an I/O error occurs
-     * @since      JDK1.2
+     * @since      1.2
      */
     public native void setLength(long newLength) throws IOException;
 
@@ -935,41 +940,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * @exception  IOException  if an I/O error occurs.
      */
     public final void writeUTF(String str) throws IOException {
-	int strlen = str.length();
-	int utflen = 0;
-
-	for (int i = 0 ; i < strlen ; i++) {
-	    int c = str.charAt(i);
-	    if ((c >= 0x0001) && (c <= 0x007F)) {
-		utflen++;
-	    } else if (c > 0x07FF) {
-		utflen += 3;
-	    } else {
-		utflen += 2;
-	    }
-	}
-
-	if (utflen > 65535)
-	    throw new UTFDataFormatException();		  
-
-	write((utflen >>> 8) & 0xFF);
-	write((utflen >>> 0) & 0xFF);
-	for (int i = 0 ; i < strlen ; i++) {
-	    int c = str.charAt(i);
-	    if ((c >= 0x0001) && (c <= 0x007F)) {
-		write(c);
-	    } else if (c > 0x07FF) {
-		write(0xE0 | ((c >> 12) & 0x0F));
-		write(0x80 | ((c >>  6) & 0x3F));
-		write(0x80 | ((c >>  0) & 0x3F));
-		//written += 2;
-	    } else {
-		write(0xC0 | ((c >>  6) & 0x1F));
-		write(0x80 | ((c >>  0) & 0x3F));
-		//written += 1;
-	    }
-	}
-	//written += strlen + 2;
+        DataOutputStream.writeUTF(str, this);
     }
 
     private static native void initIDs();

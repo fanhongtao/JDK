@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultMutableTreeNode.java	1.12 01/11/29
+ * @(#)DefaultMutableTreeNode.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -14,7 +17,15 @@ import java.util.*;
 
 /**
  * A <code>DefaultMutableTreeNode</code> is a general-purpose node in a tree data
- * structure. A tree node may have at most one parent and 0 or more children.
+ * structure. 
+ * For examples of using default mutable tree nodes, see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
+ * in <em>The Java Tutorial.</em>
+ *
+ * <p>
+ *
+ * A tree node may have at most one parent and 0 or more children.
  * <code>DefaultMutableTreeNode</code> provides operations for examining and modifying a
  * node's parent and children and also operations for examining the tree that
  * the node is a part of.  A node's tree is the set of all nodes that can be
@@ -43,6 +54,7 @@ import java.util.*;
  * DefaultMutableTreeNode contains only DefaultMutableNode instances. All
  * of the TreeNode/MutableTreeNode methods will behave as defined no
  * matter what implementations are added.
+ *
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -53,7 +65,7 @@ import java.util.*;
  *
  * @see MutableTreeNode
  *
- * @version 1.12 11/29/01
+ * @version 1.15 02/02/00
  * @author Rob Davis
  */
 public class DefaultMutableTreeNode extends Object implements Cloneable,
@@ -496,7 +508,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	// same level so if one is null, the other is
 	
 	if (node1 != null || node2 != null) {
-	    throw new InternalError ("nodes should be null");
+	    throw new Error ("nodes should be null");
 	}
 	
 	return null;
@@ -536,7 +548,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	}
 	
 	if (last == null) {
-	    throw new InternalError ("nodes should be null");
+	    throw new Error ("nodes should be null");
 	}
 	
 	return ((DefaultMutableTreeNode)last).getLevel() - getLevel();
@@ -960,7 +972,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
 	    if (retval && !((DefaultMutableTreeNode)getParent())
 		           .isNodeChild(anotherNode)) {
-		throw new InternalError("sibling has different parent");
+		throw new Error("sibling has different parent");
 	    }
 	}
 
@@ -1008,7 +1020,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	}
 
 	if (retval != null && !isNodeSibling(retval)) {
-	    throw new InternalError("child of parent is not a sibling");
+	    throw new Error("child of parent is not a sibling");
 	}
 
 	return retval;
@@ -1035,7 +1047,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	}
 
 	if (retval != null && !isNodeSibling(retval)) {
-	    throw new InternalError("child of parent is not a sibling");
+	    throw new Error("child of parent is not a sibling");
 	}
 
 	return retval;
@@ -1193,7 +1205,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	}
 
 	if (count < 1) {
-	    throw new InternalError("tree has zero leaves");
+	    throw new Error("tree has zero leaves");
 	}
 
 	return count;
@@ -1237,7 +1249,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
 	} catch (CloneNotSupportedException e) {
 	    // Won't happen because we implement Cloneable
-	    throw new InternalError(e.toString());
+	    throw new Error(e.toString());
 	}
 
 	return newNode;

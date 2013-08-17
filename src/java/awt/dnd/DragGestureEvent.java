@@ -1,8 +1,11 @@
 /*
- * @(#)DragGestureEvent.java	1.14 01/11/29
+ * @(#)DragGestureEvent.java	1.15 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -31,7 +34,7 @@ import java.util.Iterator;
  * platform dependent drag initiating gesture has occurred 
  * on the <code>Component</code> that it is tracking.
  * 
- * @version 1.14
+ * @version 1.15
  * @see java.awt.dnd.DragGestureRecognizer
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragSource

@@ -1,8 +1,11 @@
 /*
- * @(#)PrinterJob.java	1.18 01/11/29
+ * @(#)PrinterJob.java	1.23 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.print;
@@ -122,7 +125,7 @@ public abstract class PrinterJob {
      *            is cancelled; a new <code>PageFormat</code> object
      *		  containing the format indicated by the user if the
      *		  dialog is acknowledged.
-     * @since     JDK1.2
+     * @since     1.2
      */
     public abstract PageFormat pageDialog(PageFormat page);
 
@@ -146,13 +149,17 @@ public abstract class PrinterJob {
     }
 
     /**
-     * Alters the <code>PageFormat</code> argument to be usable on
-     * this <code>PrinterJob</code> object's current printer.
-     * @param page this page description is cloned and then its settings
-     *		are altered to be usuable for this
-     *		<code>PrinterJob</code>
+     * Returns the clone of <code>page</code> with its settings
+     * adjusted to be compatible with the current printer of this
+     * <code>PrinterJob</code>.  For example, the returned 
+     * <code>PageFormat</code> could have its imageable area 
+     * adjusted to fit within the physical area of the paper that
+     * is used by the current printer.
+     * @param page the <code>PageFormat</code> that is cloned and 
+     *		whose settings are changed to be compatible with
+     *		the current printer
      * @return a <code>PageFormat</code> that is cloned from
-     *		the <code>PageFormat</code> parameter and altered
+     *		<code>page</code> and whose settings are changed 
      *		to conform with this <code>PrinterJob</code>.
      */
     public abstract PageFormat validatePage(PageFormat page);

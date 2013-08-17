@@ -1,8 +1,11 @@
 /*
- * @(#)View.java	1.36 01/11/29
+ * @(#)View.java	1.51 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -36,7 +39,7 @@ the Component implementation was abandoned in favor of an alternative.
   <p>The component api uses integers, but in 1.2 one can use floating point device 
   independent coordinates.  An api that works in both 1.1 and 1.2 would be convenient 
   for minimizing transition difficulties.  The View class uses the Shape interface
-  and float arguments to enable View implementations in JDK 1.2 and later while
+  and float arguments to enable View implementations for the Java 2 platform v1.2 and later while
   still functioning in the older 1.1 JDK.
   </p>
   </ol>
@@ -70,15 +73,15 @@ A view has the following responsibilities:
     implementation, the minimum span will be &lt;= the preferred span which in turn
     will be &lt;= the maximum span.
     </p>
-    <p align=center><img src="View-flexibility.jpg">
+    <p align=center><img src="doc-files/View-flexibility.jpg">
     <p>The minimum set of methods for layout are:
     <ul>
-    <li><a href="#getMinimumSpan">getMinimumSpan</a>
-    <li><a href="#getPreferredSpan">getPreferredSpan</a>
-    <li><a href="#getMaximumSpan">getMaximumSpan</a>
-    <li><a href="#getAlignment">getAlignment</a>
-    <li><a href="#preferenceChanged">preferenceChanged</a>
-    <li><a href="#setSize">setSize</a>
+    <li><a href="#getMinimumSpan(int)">getMinimumSpan</a>
+    <li><a href="#getPreferredSpan(int)">getPreferredSpan</a>
+    <li><a href="#getMaximumSpan(int)">getMaximumSpan</a>
+    <li><a href="#getAlignment(int)">getAlignment</a>
+    <li><a href="#preferenceChanged(javax.swing.text.View, boolean, boolean)">preferenceChanged</a>
+    <li><a href="#setSize(float, float)">setSize</a>
     </ul>
   
   <p>The setSize method should be prepared to be called a number of times
@@ -93,7 +96,7 @@ A view has the following responsibilities:
     This allows parent View implementations to cache the child requirements if
     desired.  The calling sequence looks something like the following:
     </p>
-    <p align=center><img src="View-layout.jpg">
+    <p align=center><img src="doc-files/View-layout.jpg">
     <p>The exact calling sequence is up to the layout functionality of
     the parent view (if the view has any children).  The view may collect
     the preferences of the children prior to determining what it will give 
@@ -135,7 +138,7 @@ A view has the following responsibilities:
     </ul>
     <p>The methods for rendering are:
     <ul>
-    <li><a href="#paint">paint</a>
+    <li><a href="#paint(java.awt.Graphics, java.awt.Shape)">paint</a>
     </ul>
     <p>
 
@@ -146,12 +149,12 @@ A view has the following responsibilities:
     to perform translation to properly locate spatial representation of the model.  
     The methods for doing this are:
     <ul>
-    <li><a href="#modelToView">modelToView</a>
-    <li><a href="#viewToModel">viewToModel</a>
-    <li><a href="#getDocument">getDocument</a>
-    <li><a href="#getElement">getElement</a>
-    <li><a href="#getStartOffset">getStartOffset</a>
-    <li><a href="#getEndOffset">getEndOffset</a>
+    <li><a href="#modelToView(int, javax.swing.text.Position.Bias, int, javax.swing.text.Position.Bias, java.awt.Shape)">modelToView</a>
+    <li><a href="#viewToModel(float, float, java.awt.Shape, javax.swing.text.Position.Bias[])">viewToModel</a>
+    <li><a href="#getDocument()">getDocument</a>
+    <li><a href="#getElement()">getElement</a>
+    <li><a href="#getStartOffset()">getStartOffset</a>
+    <li><a href="#getEndOffset()">getEndOffset</a>
     </ul>
     <p>The layout must be valid prior to attempting to make the translation.
     The translation is not valid, and must not be attempted while changes
@@ -177,9 +180,10 @@ A view has the following responsibilities:
     <li><a href="#changedUpdate">changedUpdate</a>
     </ul>    
     <p>
+</dl>
  *
  * @author  Timothy Prinzing
- * @version 1.36 11/29/01
+ * @version 1.51 02/02/00
  */
 public abstract class View implements SwingConstants {
 
@@ -345,6 +349,90 @@ public abstract class View implements SwingConstants {
 	return null;
     }
 
+
+    /**
+     * Removes all of the children.  This is a convenience
+     * call to replace.
+     *
+     * @since 1.3
+     */
+    public void removeAll() {
+	replace(0, getViewCount(), null);
+    }
+
+    /**
+     * Removes one of the children at the given position.
+     * This is a convenience call to replace.
+     * @since 1.3
+     */
+    public void remove(int i) {
+	replace(i, 1, null);
+    }
+
+    /**
+     * Inserts a single child view.  This is a convenience 
+     * call to replace.
+     *
+     * @param offs the offset of the view to insert before >= 0
+     * @param v the view
+     * @see #replace
+     * @since 1.3
+     */
+    public void insert(int offs, View v) {
+	View[] one = new View[1];
+	one[0] = v;
+	replace(offs, 0, one);
+    }
+
+    /**
+     * Appends a single child view.  This is a convenience 
+     * call to replace.
+     *
+     * @param v the view
+     * @see #replace
+     * @since 1.3
+     */
+    public void append(View v) {
+	View[] one = new View[1];
+	one[0] = v;
+	replace(getViewCount(), 0, one);
+    }
+
+    /**
+     * Replace child views.  If there are no views to remove
+     * this acts as an insert.  If there are no views to
+     * add this acts as a remove.  Views being removed will
+     * have the parent set to null, and the internal reference
+     * to them removed so that they can be garbage collected.
+     * This is implemented to do nothing, because by default
+     * a view has no children.
+     *
+     * @param index the starting index into the child views to insert
+     *   the new views.  This should be a value >= 0 and <= getViewCount.
+     * @param length the number of existing child views to remove.
+     *   This should be a value >= 0 and <= (getViewCount() - offset).
+     * @param views the child views to add.  This value can be null
+     *   to indicate no children are being added (useful to remove).
+     * @since 1.3
+     */
+    public void replace(int offset, int length, View[] views) {
+    }
+
+    /**
+     * Returns the child view index representing the given position in
+     * the model.  By default a view has no children so this is implemented
+     * to return -1 to indicate there is no valid child index for any
+     * position.
+     *
+     * @param pos the position >= 0
+     * @returns  index of the view representing the given position, or 
+     *   -1 if no view represents that position
+     * @since 1.3
+     */
+    public int getViewIndex(int pos, Position.Bias b) {
+	return -1;
+    }
+    
     /**
      * Fetches the allocation for the given child view. 
      * This enables finding out where various views
@@ -384,17 +472,33 @@ public abstract class View implements SwingConstants {
 	biasRet[0] = Position.Bias.Forward;
 	switch (direction) {
 	case NORTH:
-	{
-	    JTextComponent target = (JTextComponent) getContainer();
-	    Rectangle r = target.modelToView(pos);
-	    pos = Utilities.getPositionAbove(target, pos, r.x);
-	}
-	    break;
 	case SOUTH:
 	{
 	    JTextComponent target = (JTextComponent) getContainer();
-	    Rectangle r = target.modelToView(pos);
-	    pos = Utilities.getPositionBelow(target, pos, r.x);
+	    Caret c = (target != null) ? target.getCaret() : null;
+	    // YECK! Ideally, the x location from the magic caret position
+	    // would be passed in.
+	    Point mcp;
+	    if (c != null) {
+		mcp = c.getMagicCaretPosition();
+	    }
+	    else {
+		mcp = null;
+	    }
+	    int x;
+	    if (mcp == null) {
+		Rectangle loc = target.modelToView(pos);
+		x = (loc == null) ? 0 : loc.x;
+	    }
+	    else {
+		x = mcp.x;
+	    }
+	    if (direction == NORTH) {
+		pos = Utilities.getPositionAbove(target, pos, x);
+	    }
+	    else {
+		pos = Utilities.getPositionBelow(target, pos, x);
+	    }
 	}
 	    break;
 	case WEST:
@@ -506,8 +610,24 @@ public abstract class View implements SwingConstants {
     public abstract int viewToModel(float x, float y, Shape a, Position.Bias[] biasReturn);
 
     /**
-     * Gives notification that something was inserted into the document 
-     * in a location that this view is responsible for.
+     * Gives notification that something was inserted into 
+     * the document in a location that this view is responsible for.  
+     * To reduce the burden to subclasses, this functionality is
+     * spread out into the following calls that subclasses can
+     * reimplement:
+     * <ol>
+     * <li><a href="#updateChildren">updateChildren</a> is called
+     * if there were any changes to the element this view is
+     * responsible for.  If this view has child views that are
+     * represent the child elements, then this method should do
+     * whatever is necessary to make sure the child views correctly
+     * represent the model.
+     * <li><a href="#forwardUpdate">forwardUpdate</a> is called
+     * to forward the DocumentEvent to the appropriate child views.
+     * <li><a href="#updateLayout">updateLayout</a> is called to
+     * give the view a chance to either repair it's layout, to reschedule
+     * layout, or do nothing.
+     * </ol>
      *
      * @param e the change information from the associated document
      * @param a the current allocation of the view
@@ -515,11 +635,40 @@ public abstract class View implements SwingConstants {
      * @see View#insertUpdate
      */
     public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	if (getViewCount() > 0) {
+	    Element elem = getElement();
+	    DocumentEvent.ElementChange ec = e.getChange(elem);
+	    if (ec != null) {
+		if (! updateChildren(ec, e, f)) {
+		    // don't consider the element changes they
+		    // are for a view further down.
+		    ec = null;
+		}
+	    }
+	    forwardUpdate(ec, e, a, f);
+	    updateLayout(ec, e, a);
+	}
     }
 
     /**
-     * Gives notification from the document that attributes were removed 
+     * Gives notification that something was removed from the document
      * in a location that this view is responsible for.
+     * To reduce the burden to subclasses, this functionality is
+     * spread out into the following calls that subclasses can
+     * reimplement:
+     * <ol>
+     * <li><a href="#updateChildren">updateChildren</a> is called
+     * if there were any changes to the element this view is
+     * responsible for.  If this view has child views that are
+     * represent the child elements, then this method should do
+     * whatever is necessary to make sure the child views correctly
+     * represent the model.
+     * <li><a href="#forwardUpdate">forwardUpdate</a> is called
+     * to forward the DocumentEvent to the appropriate child views.
+     * <li><a href="#updateLayout">updateLayout</a> is called to
+     * give the view a chance to either repair it's layout, to reschedule
+     * layout, or do nothing.
+     * </ol>
      *
      * @param e the change information from the associated document
      * @param a the current allocation of the view
@@ -527,11 +676,40 @@ public abstract class View implements SwingConstants {
      * @see View#removeUpdate
      */
     public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	if (getViewCount() > 0) {
+	    Element elem = getElement();
+	    DocumentEvent.ElementChange ec = e.getChange(elem);
+	    if (ec != null) {
+		if (! updateChildren(ec, e, f)) {
+		    // don't consider the element changes they
+		    // are for a view further down.
+		    ec = null;
+		}
+	    }
+	    forwardUpdate(ec, e, a, f);
+	    updateLayout(ec, e, a);
+	}
     }
 
     /**
      * Gives notification from the document that attributes were changed
      * in a location that this view is responsible for.
+     * To reduce the burden to subclasses, this functionality is
+     * spread out into the following calls that subclasses can
+     * reimplement:
+     * <ol>
+     * <li><a href="#updateChildren">updateChildren</a> is called
+     * if there were any changes to the element this view is
+     * responsible for.  If this view has child views that are
+     * represent the child elements, then this method should do
+     * whatever is necessary to make sure the child views correctly
+     * represent the model.
+     * <li><a href="#forwardUpdate">forwardUpdate</a> is called
+     * to forward the DocumentEvent to the appropriate child views.
+     * <li><a href="#updateLayout">updateLayout</a> is called to
+     * give the view a chance to either repair it's layout, to reschedule
+     * layout, or do nothing.
+     * </ol>
      *
      * @param e the change information from the associated document
      * @param a the current allocation of the view
@@ -539,6 +717,19 @@ public abstract class View implements SwingConstants {
      * @see View#changedUpdate
      */
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	if (getViewCount() > 0) {
+	    Element elem = getElement();
+	    DocumentEvent.ElementChange ec = e.getChange(elem);
+	    if (ec != null) {
+		if (! updateChildren(ec, e, f)) {
+		    // don't consider the element changes they
+		    // are for a view further down.
+		    ec = null;
+		}
+	    }
+	    forwardUpdate(ec, e, a, f);
+	    updateLayout(ec, e, a);
+	}
     }
 
     /**
@@ -583,6 +774,19 @@ public abstract class View implements SwingConstants {
      */
     public Element getElement() {
 	return elem;
+    }
+
+    /**
+     * Fetch a Graphics for rendering.  This can be used to determine
+     * font characteristics, and will be different for a print view
+     * than a component view.
+     *
+     * @since 1.3
+     */
+    public Graphics getGraphics() {
+	// PENDING(prinz) this is a temporary implementation
+	Component c = getContainer();
+	return c.getGraphics();
     }
 
     /**
@@ -690,10 +894,10 @@ public abstract class View implements SwingConstants {
      *   ForcedBreakWeight and BadBreakWeight.
      * @see LabelView
      * @see ParagraphView
-     * @see BadBreakWeight
-     * @see GoodBreakWeight
-     * @see ExcellentBreakWeight
-     * @see ForcedBreakWeight
+     * @see #BadBreakWeight
+     * @see #GoodBreakWeight
+     * @see #ExcellentBreakWeight
+     * @see #ForcedBreakWeight
      */
     public int getBreakWeight(int axis, float pos, float len) {
 	if (len > getPreferredSpan(axis)) {
@@ -752,15 +956,186 @@ public abstract class View implements SwingConstants {
     }
 
     /**
+     * Updates the child views in response to receiving notification
+     * that the model changed, and there is change record for the 
+     * element this view is responsible for.  This is implemented
+     * to assume the child views are directly responsible for the
+     * child elements of the element this view represents.  The
+     * ViewFactory is used to create child views for each element
+     * specified as added in the ElementChange, starting at the
+     * index specified in the given ElementChange.  The number of
+     * child views representing the removed elements specified are 
+     * removed.
+     * 
+     * @param ec The change information for the element this view
+     *  is responsible for.  This should not be null if this method
+     *  gets called.
+     * @param e the change information from the associated document
+     * @param f the factory to use to build child views
+     * @return whether or not the child views represent the
+     *  child elements of the element this view is responsible
+     *  for.  Some views create children that represent a portion 
+     *  of the element they are responsible for, and should return
+     *  false.  This information is used to determine if views 
+     *  in the range of the added elements should be forwarded to
+     *  or not.
+     * @see #insertUpdate
+     * @see #removeUpdate
+     * @see #changedUpdate
+     * @since 1.3
+     */
+    protected boolean updateChildren(DocumentEvent.ElementChange ec, 
+					 DocumentEvent e, ViewFactory f) {
+	Element[] removedElems = ec.getChildrenRemoved();
+	Element[] addedElems = ec.getChildrenAdded();
+	View[] added = null;
+	if (addedElems != null) {
+	    added = new View[addedElems.length];
+	    for (int i = 0; i < addedElems.length; i++) {
+		added[i] = f.create(addedElems[i]);
+	    }
+	}
+	int nremoved = 0;
+	int index = ec.getIndex();
+	if (removedElems != null) {
+	    nremoved = removedElems.length;
+	}
+	replace(index, nremoved, added);
+	return true;
+    }
+
+    /**
+     * Forward the given DocumentEvent to the child views
+     * that need to be notified of the change to the model.
+     * If there were changes to the element this view is 
+     * responsible for, that should be considered when 
+     * forwarding (i.e. new child views should not get
+     * notified).
+     *
+     * @param ec changes to the element this view is responsible
+     *  for (may be null if there were no changes).
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see #insertUpdate
+     * @see #removeUpdate
+     * @see #changedUpdate     
+     * @since 1.3
+     */
+    protected void forwardUpdate(DocumentEvent.ElementChange ec, 
+				      DocumentEvent e, Shape a, ViewFactory f) {
+	Element elem = getElement();
+	int pos = e.getOffset();
+	int index0 = getViewIndex(pos, Position.Bias.Forward);
+	if (index0 == -1 && e.getType() == DocumentEvent.EventType.REMOVE &&
+	    pos >= getEndOffset()) {
+	    // Event beyond our offsets. We may have represented this, that is
+	    // the remove may have removed one of our child Elements that
+	    // represented this, so, we should foward to last element.
+	    index0 = getViewCount() - 1;
+	}
+	int index1 = index0;
+	View v = (index0 >= 0) ? getView(index0) : null;
+	if (v != null) {
+	    if ((v.getStartOffset() == pos) && (pos > 0)) {
+		// If v is at a boundary, forward the event to the previous
+		// view too.
+		index0 = Math.max(index0 - 1, 0);
+	    }
+	}
+	if (e.getType() != DocumentEvent.EventType.REMOVE) {
+	    index1 = getViewIndex(pos + e.getLength(), Position.Bias.Forward);
+	    if (index1 < 0) {
+		index1 = getViewCount() - 1;
+	    }
+	}
+	int hole0 = index1 + 1;
+	int hole1 = hole0;
+	Element[] addedElems = (ec != null) ? ec.getChildrenAdded() : null;
+	if ((addedElems != null) && (addedElems.length > 0)) {
+	    hole0 = ec.getIndex();
+	    hole1 = hole0 + addedElems.length - 1;
+	}
+
+	// forward to any view not in the forwarding hole 
+	// formed by added elements (i.e. they will be updated
+	// by initialization.
+	index0 = Math.max(index0, 0);
+	for (int i = index0; i <= index1; i++) {
+	    if (! ((i >= hole0) && (i <= hole1))) {
+		v = getView(i);
+		if (v != null) {
+		    Shape childAlloc = getChildAllocation(i, a);
+		    forwardUpdateToView(v, e, childAlloc, f);
+		}
+	    }
+	}
+    }
+
+    /**
+     * Forward the DocumentEvent to the give child view.  This
+     * simply messages the view with a call to insertUpdate, 
+     * removeUpdate, or changedUpdate depending upon the type
+     * of the event.  This is called by
+     * <a href="#forwardUpdate">forwardUpdate</a> to forward 
+     * the event to children that need it.
+     *
+     * @param v the child view to forward the event to.
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see #forwardUpdate
+     * @since 1.3
+     */
+    protected void forwardUpdateToView(View v, DocumentEvent e, 
+					   Shape a, ViewFactory f) {
+	DocumentEvent.EventType type = e.getType();
+	if (type == DocumentEvent.EventType.INSERT) {
+	    v.insertUpdate(e, a, f);
+	} else if (type == DocumentEvent.EventType.REMOVE) {
+	    v.removeUpdate(e, a, f);
+	} else {
+	    v.changedUpdate(e, a, f);
+	}
+    }
+
+    /**
+     * Update the layout in response to receiving notification of
+     * change from the model.  This is implemented to call preferenceChanged
+     * to reschedule a new layout if the ElementChange record is not null.
+     *
+     * @param ec changes to the element this view is responsible
+     *  for (may be null if there were no changes).
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see #insertUpdate
+     * @see #removeUpdate
+     * @see #changedUpdate     
+     * @since 1.3
+     */
+    protected void updateLayout(DocumentEvent.ElementChange ec, 
+				    DocumentEvent e, Shape a) {
+	if ((ec != null) && (a != null)) {
+	    // should damage more intelligently
+	    preferenceChanged(null, true, true);
+	    Container host = getContainer();
+	    if (host != null) {
+		host.repaint();
+	    }
+	}
+    }
+
+    /**
      * The weight to indicate a view is a bad break
      * opportunity for the purpose of formatting.  This
      * value indicates that no attempt should be made to
      * break the view into fragments as the view has 
      * not been written to support fragmenting.
      * @see #getBreakWeight
-     * @see GoodBreakWeight
-     * @see ExcellentBreakWeight
-     * @see ForcedBreakWeight
+     * @see #GoodBreakWeight
+     * @see #ExcellentBreakWeight
+     * @see #ForcedBreakWeight
      */
     public static final int BadBreakWeight = 0;
 
@@ -769,10 +1144,9 @@ public abstract class View implements SwingConstants {
      * but better opportunities probably exist.
      * 
      * @see #getBreakWeight
-     * @see BadBreakWeight
-     * @see GoodBreakWeight
-     * @see ExcellentBreakWeight
-     * @see ForcedBreakWeight
+     * @see #BadBreakWeight
+     * @see #ExcellentBreakWeight
+     * @see #ForcedBreakWeight
      */
     public static final int GoodBreakWeight = 1000;
 
@@ -782,10 +1156,9 @@ public abstract class View implements SwingConstants {
      * break.
      *
      * @see #getBreakWeight
-     * @see BadBreakWeight
-     * @see GoodBreakWeight
-     * @see ExcellentBreakWeight
-     * @see ForcedBreakWeight
+     * @see #BadBreakWeight
+     * @see #GoodBreakWeight
+     * @see #ForcedBreakWeight
      */
     public static final int ExcellentBreakWeight = 2000;
 
@@ -796,10 +1169,9 @@ public abstract class View implements SwingConstants {
      * by breaking them.
      *
      * @see #getBreakWeight
-     * @see BadBreakWeight
-     * @see GoodBreakWeight
-     * @see ExcellentBreakWeight
-     * @see ForcedBreakWeight
+     * @see #BadBreakWeight
+     * @see #GoodBreakWeight
+     * @see #ExcellentBreakWeight
      */
     public static final int ForcedBreakWeight = 3000;
 

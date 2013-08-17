@@ -1,8 +1,11 @@
 /*
- * @(#)Object.java	1.50 01/11/29
+ * @(#)Object.java	1.54 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -13,7 +16,7 @@ package java.lang;
  * including arrays, implement the methods of this class. 
  *
  * @author  unascribed
- * @version 1.50, 11/29/01
+ * @version 1.54, 02/02/00
  * @see     java.lang.Class
  * @since   JDK1.0
  */
@@ -175,7 +178,7 @@ public class Object {
      * "textually represents" this object. The result should 
      * be a concise but informative representation that is easy for a 
      * person to read.
-     * It is recommendedthat all subclasses override this method.
+     * It is recommended that all subclasses override this method.
      * <p>
      * The <code>toString</code> method for class <code>Object</code> 
      * returns a string consisting of the name of the class of which the 
@@ -273,7 +276,7 @@ public class Object {
      * object. 
      * <li>Some other thread {@link java.lang.Thread#interrupt() interrupts} 
      * thread <var>T</var>. 
-     * The specified amount of real time has elapsed, more or less.  If 
+     * <li>The specified amount of real time has elapsed, more or less.  If 
      * <tt>timeout</tt> is zero, however, then real time is not taken into 
      * consideration and the thread simply waits until notified. 
      * </ul>
@@ -358,7 +361,7 @@ public class Object {
      * a monitor. 
      *
      * @param      timeout   the maximum time to wait in milliseconds.
-     * @param      nano      additional time, in nanoseconds range
+     * @param      nanos      additional time, in nanoseconds range
      *                       0-999999.
      * @exception  IllegalArgumentException      if the value of timeout is
      *			    negative or the value of nanos is
@@ -461,6 +464,8 @@ public class Object {
      * Any exception thrown by the <code>finalize</code> method causes 
      * the finalization of this object to be halted, but is otherwise 
      * ignored. 
+     *
+     * @throws Throwable the <code>Exception</code> raised by this method
      */
     protected void finalize() throws Throwable { }
 }

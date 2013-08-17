@@ -1,8 +1,11 @@
 /*
- * @(#)WrappedPlainView.java	1.20 01/11/29
+ * @(#)WrappedPlainView.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -31,14 +34,14 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.20 11/29/01
+ * @version 1.22 02/02/00
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
 
     /**
      * Creates a new WrappedPlainView.  Lines will be wrapped
-     * on character boundries.
+     * on character boundaries.
      *
      * @param elem the element underlying the view
      */
@@ -48,11 +51,11 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 
     /**
      * Creates a new WrappedPlainView.  Lines can be wrapped on
-     * either character or word boundries depending upon the
+     * either character or word boundaries depending upon the
      * setting of the wordWrap parameter.
      *
      * @param elem the element underlying the view
-     * @param wordWrap should lines be wrapped on word boundries?
+     * @param wordWrap should lines be wrapped on word boundaries?
      */
     public WrappedPlainView(Element elem, boolean wordWrap) {
 	super(elem, Y_AXIS);
@@ -201,7 +204,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * This is called by the nested wrapped line
      * views to determine the break location.  This can
      * be reimplemented to alter the breaking behavior.
-     * It will either break at word or character boundries
+     * It will either break at word or character boundaries
      * depending upon the break argument given at
      * construction.
      */

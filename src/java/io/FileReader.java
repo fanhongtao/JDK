@@ -1,8 +1,11 @@
 /*
- * @(#)FileReader.java	1.8 01/11/29
+ * @(#)FileReader.java	1.10 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.io;
@@ -17,23 +20,45 @@ package java.io;
  * @see InputStreamReader
  * @see FileInputStream
  *
- * @version 	1.8, 01/11/29
+ * @version 	1.10, 00/02/02
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
-
 public class FileReader extends InputStreamReader {
 
+   /**
+    * Creates a new <tt>FileReader</tt>, given the name of the
+    * file to read from.
+    *
+    * @param fileName the name of the file to read from
+    * @throws <tt>FileNotFoundException</tt> if the specified 
+    * file is not found
+    */
     public FileReader(String fileName) throws FileNotFoundException {
 	super(new FileInputStream(fileName));
     }
 
+   /**
+    * Creates a new <tt>FileReader</tt>, given the <tt>File</tt> 
+    * to read from.
+    *
+    * @param file the <tt>File</tt> to read from
+    * @throws <tt>FileNotFoundException</tt> if the specified 
+    * file is not found
+    */
     public FileReader(File file) throws FileNotFoundException {
 	super(new FileInputStream(file));
     }
 
+   /**
+    * Creates a new <tt>FileReader</tt>, given the 
+    * <tt>FileDescriptor</tt> to read from.
+    *
+    * @param fd the FileDescriptor to read from
+    */
     public FileReader(FileDescriptor fd) {
 	super(new FileInputStream(fd));
     }
 
 }
+

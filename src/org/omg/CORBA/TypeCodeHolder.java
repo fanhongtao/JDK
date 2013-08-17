@@ -1,8 +1,11 @@
 /*
- * @(#)TypeCodeHolder.java	1.24 01/11/29
+ * @(#)TypeCodeHolder.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -33,7 +36,7 @@ public final class TypeCodeHolder implements Streamable {
 
     /**
      * The <code>TypeCode</code> value held by
-	 * this <code>TypeCodeHolder</code> object.
+     * this <code>TypeCodeHolder</code> object.
      */
     public TypeCode value;
 
@@ -58,7 +61,7 @@ public final class TypeCodeHolder implements Streamable {
 
     /**
      * Reads from <code>input</code> and initalizes the value in 
-	 * this <code>TypeCodeHolder</code> object
+     * this <code>TypeCodeHolder</code> object
      * with the unmarshalled data.
      *
      * @param input the InputStream containing CDR formatted data from the wire
@@ -69,7 +72,7 @@ public final class TypeCodeHolder implements Streamable {
 
     /**
      * Marshals to <code>output</code> the value in 
-	 * this <code>TypeCodeHolder</code> object.
+     * this <code>TypeCodeHolder</code> object.
      *
      * @param output the OutputStream which will contain the CDR formatted data
      */
@@ -79,10 +82,10 @@ public final class TypeCodeHolder implements Streamable {
 
     /**
      * Returns the TypeCode corresponding to the value held in
-	 * this <code>TypeCodeHolder</code> object.
+     * this <code>TypeCodeHolder</code> object.
      *
      * @return    the TypeCode of the value held in
-	 *             this <code>TypeCodeHolder</code> object
+     *             this <code>TypeCodeHolder</code> object
      */
     public org.omg.CORBA.TypeCode _type() {
 	return ORB.init().get_primitive_tc(TCKind.tk_TypeCode);

@@ -1,8 +1,11 @@
 /*
- * @(#)BeanInfo.java	1.23 01/11/29
+ * @(#)BeanInfo.java	1.25 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.beans;
@@ -54,7 +57,7 @@ public interface BeanInfo {
 
     /**
      * A bean may have a "default" event that is the event that will
-     * mostly commonly be used by human's when using the bean. 
+     * mostly commonly be used by humans when using the bean. 
      * @return Index of default event in the EventSetDescriptor array
      *		returned by getEventSetDescriptors.
      * <P>	Returns -1 if there is no default event.

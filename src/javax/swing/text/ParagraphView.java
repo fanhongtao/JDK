@@ -1,17 +1,17 @@
 /*
- * @(#)ParagraphView.java	1.67 01/11/29
+ * @(#)ParagraphView.java	1.76 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
-import java.util.Vector;
-import java.util.Properties;
 import java.awt.*;
 import javax.swing.event.*;
 import javax.swing.SizeRequirements;
-import javax.swing.SwingConstants;
 
 /**
  * View of a simple line-wrapping paragraph that supports
@@ -27,10 +27,10 @@ import javax.swing.SwingConstants;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.67 11/29/01
+ * @version 1.76 02/02/00
  * @see     View
  */
-public class ParagraphView extends BoxView implements TabExpander {
+public class ParagraphView extends FlowView implements TabExpander {
 
     /**
      * Constructs a ParagraphView for the given element.
@@ -39,8 +39,30 @@ public class ParagraphView extends BoxView implements TabExpander {
      */
     public ParagraphView(Element elem) {
 	super(elem, View.Y_AXIS);
-	layoutSpan = -1;
 	setPropertiesFromAttributes();
+	Document doc = elem.getDocument();
+	Object i18nFlag = doc.getProperty(AbstractDocument.I18NProperty);
+	if ((i18nFlag != null) && i18nFlag.equals(Boolean.TRUE)) {
+	    try {
+		if (i18nStrategy == null) {
+		    // the classname should probably come from a property file.
+		    String classname = "javax.swing.text.TextLayoutStrategy"; 
+		    ClassLoader loader = getClass().getClassLoader();
+		    if (loader != null) {
+			i18nStrategy = loader.loadClass(classname);
+		    } else {
+			i18nStrategy = Class.forName(classname);
+		    }
+		}
+		Object o = i18nStrategy.newInstance();
+		if (o instanceof FlowStrategy) {
+		    strategy = (FlowStrategy) o;
+		}
+	    } catch (Throwable e) {
+		throw new StateInvariantError("ParagraphView: Can't create i18n strategy: " 
+					      + e.getMessage());
+	    }
+	}
     }
 
     /**
@@ -87,7 +109,7 @@ public class ParagraphView extends BoxView implements TabExpander {
      * to the element this view is responsible for.
      */
     protected int getLayoutViewCount() {
-	return layoutPool.size();
+	return layoutPool.getViewCount();
     }
 
     /**
@@ -100,257 +122,7 @@ public class ParagraphView extends BoxView implements TabExpander {
      * elements) and used for layout.
      */
     protected View getLayoutView(int index) {
-	return (View) layoutPool.elementAt(index);
-    }
-
-    /**
-     * Loads all of the children to initialize the view.
-     * This is called by the <code>setParent</code> method.
-     * This is reimplemented to not load any children directly
-     * (as they are created in the process of formatting).
-     * This does create views to represent the child elements,
-     * but they are placed into a pool that is used in the 
-     * process of formatting.
-     *
-     * @param f the view factory
-     */
-    protected void loadChildren(ViewFactory f) {
-        layoutPool = new Vector();
-        Element e = getElement();
-        int n = e.getElementCount();
-        for (int i = 0; i < n; i++) {
-	    View v = f.create(e.getElement(i));
-	    v.setParent(this);
-            layoutPool.addElement(v);
-        }
-    }
-
-    /**
-     * Fetches the child view that represents the given position in
-     * the model.  This is implemented to walk through the children
-     * looking for a range that contains the given position.  In this
-     * view the children do not have a one to one mapping with the
-     * child elements (i.e. the children are actually rows that
-     * represent a portion of the element this view represents).
-     *
-     * @param pos  the search position >= 0
-     * @param a  the allocation to the box on entry, and the
-     *   allocation of the view containing the position on exit
-     * @returns  the view representing the given position, or 
-     *   null if there isn't one
-     */
-    protected View getViewAtPosition(int pos, Rectangle a) {
-        int n = getViewCount();
-        for (int i = 0; i < n; i++) {
-            View v = getView(i);
-            int p0 = v.getStartOffset();
-            int p1 = v.getEndOffset();
-            if ((pos >= p0) && (pos < p1)) {
-                // it's in this view.
-		if (a != null) {
-		    childAllocation(i, a);
-		}
-                return v;
-            }
-        }
-	if (pos == getEndOffset()) {
-	    // PENDING(bcb): This will probably want to choose the first
-	    // if right to left.
-	    View v = getView(n - 1);
-	    if (a != null) {
-		this.childAllocation(n - 1, a);
-	    }
-	    return v;
-	}
-        return null;
-    }
-
-    /**
-     * Fetches the child view index representing the given position in
-     * the model.
-     *
-     * @param pos the position >= 0
-     * @returns  index of the view representing the given position, or 
-     *   -1 if no view represents that position
-     */
-    protected int getViewIndexAtPosition(int pos) {
-	// This is expensive, but are views are not necessarily layed
-	// out in model order.
-	if(pos < getStartOffset() || pos >= getEndOffset())
-	    return -1;
-	for(int counter = getViewCount() - 1; counter >= 0; counter--) {
-	    View v = getView(counter);
-	    if(pos >= v.getStartOffset() &&
-	       pos < v.getEndOffset()) {
-		return counter;
-	    }
-	}
-	return -1;
-    }
-
-    /**
-     * Lays out the children.  If the layout span has changed,
-     * the rows are rebuilt.  The superclass functionality
-     * is called after checking and possibly rebuilding the
-     * rows.  If the height has changed, the 
-     * <code>preferenceChanged</code> method is called
-     * on the parent since the vertical preference is 
-     * rigid.
-     *
-     * @param width  the width to lay out against >= 0.  This is
-     *   the width inside of the inset area.
-     * @param height the height to lay out against >= 0 (not used
-     *   by paragraph, but used by the superclass).  This
-     *   is the height inside of the inset area.
-     */
-    protected void layout(int width, int height) {
-        if (layoutSpan != width) {
-            int oldHeight = height;
-            rebuildRows(width);
-            int newHeight = (int) getPreferredSpan(Y_AXIS);
-            if (oldHeight != newHeight) {
-                View p = getParent();
-                p.preferenceChanged(this, false, true);
-            }
-        }
-
-        // do normal box layout
-        super.layout(width, height);
-    }
-
-    /** 
-     * Does a a full layout on this View.  This causes all of 
-     * the rows (child views) to be rebuilt to match the given 
-     * span of the given allocation.
-     *
-     * @param span  the length to layout against.
-     */
-    void rebuildRows(int span) {
-        layoutSpan = span;
-        int p0 = getStartOffset(); 
-        int p1 = getEndOffset();
-        removeAll();
-
-        // Removing the rows may leave some views in the layout pool
-        // disconnected from the view tree.  Rather than trying to 
-        // figure out which views these are, we simply reparent all of 
-        // the views in the pool.
-        int n = layoutPool.size();
-        for( int i=0; i<n; i++ ) {
-            View v = (View)layoutPool.elementAt(i);
-            v.setParent(this);
-        }
-        
-	boolean firstRow = true;
-
-        while(p0 < p1) {
-            int old = p0;
-            // PENDING(prinz) The old rows should be reused and
-            // new ones created only if needed... and discarded
-            // only if not needed.
-            Row row = new Row(getElement());
-	    if(firstRow) {
-		// Give it at least 5 pixels.
-		row.setInsets((short)0, (short)Math.min(span - 5,
-							firstLineIndent),
-			      (short)0, (short)0);
-		firstRow = false;
-	    }
-            append(row);
-
-            // layout the row to the current span
-            layoutRow(row, p0);
-            p0 = row.getEndOffset();
-            if (p0 <= old) {
-                throw new StateInvariantError("infinite loop in formatting");
-            }
-        }
-    }
-
-    /**
-     * Creates a row of views that will fit within the 
-     * current layout span.  The rows occupy the area
-     * from the left inset to the right inset.
-     * 
-     * @param row the row to fill in with views.  This is assumed
-     *   to be empty on entry.
-     * @param pos  The current position in the children of
-     *   this views element from which to start.  
-     */
-    void layoutRow(Row row, int pos) {
-        int x = tabBase + getLeftInset();
-        int spanLeft = layoutSpan;
-        int end = getEndOffset();
-	// Indentation.
-	int preX = x;
-	x += row.getLeftInset();
-	spanLeft -= (x - preX);
-	int availableSpan = spanLeft;
-	preX = x;
-
-	boolean forcedBreak = false;
-        while (pos < end  && spanLeft > 0) {
-            View v = createView(pos);
-	    
-            int chunkSpan;
-            if (v instanceof TabableView) {
-                chunkSpan = (int) ((TabableView)v).getTabbedSpan(x, this);
-            } else {
-                chunkSpan = (int) v.getPreferredSpan(View.X_AXIS);
-            }
-
-	    // If a forced break is necessary, break
-	    if (v.getBreakWeight(View.X_AXIS, pos, spanLeft) >= ForcedBreakWeight) {
-		int n = row.getViewCount();
-		if (n > 0) {
-		    /* If this is a forced break and it's not the only view
-		     * the view should be replaced with a call to breakView.
-		     * If it's it only view, it should be used directly.  In
-		     * either case no more children should be added beyond this
-		     * view.
-		     */
-		    v = v.breakView(X_AXIS, pos, x, spanLeft);
-		    if (v != null) {
-			if (v instanceof TabableView) {
-			    chunkSpan = (int) ((TabableView)v).getTabbedSpan(x, this);
-			} else {
-			    chunkSpan = (int) v.getPreferredSpan(View.X_AXIS);
-			}
-		    } else {
-			chunkSpan = 0;
-		    }
-		}
-		forcedBreak = true;
-	    }
-
-            spanLeft -= chunkSpan;
-            x += chunkSpan;
-	    if (v != null) {
-		row.append(v);
-		pos = v.getEndOffset();
-	    }
-	    if (forcedBreak) {
-		break;
-	    }
-
-        }
-        if (spanLeft < 0) {
-            // This row is too long and needs to be adjusted.
-            adjustRow(row, availableSpan, preX);
-        } else if (row.getViewCount() == 0) {
-	    // Impossible spec... put in whatever is left.
-            View v = createView(pos);
-	    row.append(v);
-	}
-	// Adjust for line spacing
-	if(lineSpacing > 1) {
-	    float height = row.getPreferredSpan(View.Y_AXIS);
-	    float addition = (height * lineSpacing) - height;
-	    if(addition > 0) {
-		row.setInsets(row.getTopInset(), row.getLeftInset(),
-			      (short) addition, row.getRightInset());
-	    }
-	}
+	return layoutPool.getView(index);
     }
 
     /**
@@ -366,91 +138,171 @@ public class ParagraphView extends BoxView implements TabExpander {
      * @param x the location r starts at.
      */
     protected void adjustRow(Row r, int desiredSpan, int x) {
-        int n = r.getViewCount();
-        int span = 0;
-        int bestWeight = BadBreakWeight;
-        int bestSpan = 0;
-        int bestIndex = -1;
-        int bestOffset = 0;
-        View v;
-        for (int i = 0; i < n; i++) {
-            v = r.getView(i);
-            int spanLeft = desiredSpan - span;
-
-            int w = v.getBreakWeight(X_AXIS, x + span, spanLeft);
-            if (w >= bestWeight) {
-                bestWeight = w;
-                bestIndex = i;
-                bestSpan = span;
-                if (w >= ForcedBreakWeight) {
-                    // it's a forced break, so there is
-                    // no point in searching further.
-                    break;
-                }
-            }
-            span += v.getPreferredSpan(X_AXIS);
-        }
-        if (bestIndex < 0) {
-            // there is nothing that can be broken, leave
-            // it in it's current state.
-            return;
-        }
-
-        // Break the best candidate view, and patch up the row.
-        int spanLeft = desiredSpan - bestSpan;
-        v = r.getView(bestIndex);
-        v = v.breakView(X_AXIS, v.getStartOffset(), x + bestSpan, spanLeft);
-        View[] va = new View[1];
-        va[0] = v;
-        r.replace(bestIndex, n - bestIndex, va);
-
-        // The views removed from the row now live in the layout pool with a
-        // null parent.  These must be reparented.  Note: we could remember
-        // what is being replaced and then reparent exactly those, but its
-        // probably faster to just search the layout pool.
-        int poolSize = layoutPool.size();
-        for( int i=0; i<poolSize; i++ ) {
-            v = (View)layoutPool.elementAt(i);
-            if( v.getParent() == null )
-                v.setParent(this);
-        }
-        
     }
 
     /**
-     * Creates a unidirectional view that can be used to represent the
-     * current chunk.  This can be either an entire view from the
-     * layout pool, or a fragment there of.
+     * Overriden from CompositeView.
      */
-    View createView(int startOffset) {
-        // Get the child view that contains the given starting position
-        int childIndex = getElement().getElementIndex(startOffset);
-        View v = (View) layoutPool.elementAt(childIndex);
-
-        int endOffset = v.getEndOffset();
-        
-        // REMIND (bcb) handle case of not an abstract document.
-        AbstractDocument d = (AbstractDocument)getDocument();
-        
-        if(d.getProperty(AbstractDocument.I18NProperty).equals(Boolean.TRUE)) {
-            Element bidiRoot = d.getBidiRootElement();
-            if( bidiRoot.getElementCount() > 1 ) {
-                int bidiIndex = bidiRoot.getElementIndex( startOffset );
-                Element bidiElem = bidiRoot.getElement( bidiIndex );
-                endOffset = Math.min( bidiElem.getEndOffset(), endOffset );
-            }
-        }
-
-        if (startOffset==v.getStartOffset() && endOffset==v.getEndOffset()) {
-            // return the entire view
-            return v;
-        }
-
-        // return a unidirectional fragment.
-        v = v.createFragment(startOffset, endOffset);
-        return v;
+    protected int getNextNorthSouthVisualPositionFrom(int pos, Position.Bias b,
+						      Shape a, int direction,
+						      Position.Bias[] biasRet)
+	                                        throws BadLocationException {
+	int vIndex;
+	if(pos == -1) {
+	    vIndex = (direction == NORTH) ?
+		     getViewCount() - 1 : 0;
+	}
+	else {
+	    if(b == Position.Bias.Backward && pos > 0) {
+		vIndex = getViewIndexAtPosition(pos - 1);
+	    }
+	    else {
+		vIndex = getViewIndexAtPosition(pos);
+	    }
+	    if(direction == NORTH) {
+		if(vIndex == 0) {
+		    return -1;
+		}
+		vIndex--;
+	    }
+	    else if(++vIndex >= getViewCount()) {
+		return -1;
+	    }
+	}
+	// vIndex gives index of row to look in.
+	JTextComponent text = (JTextComponent)getContainer();
+	Caret c = text.getCaret();
+	Point magicPoint;
+	magicPoint = (c != null) ? c.getMagicCaretPosition() : null;
+	int x;
+	if(magicPoint == null) {
+	    Shape posBounds = text.getUI().modelToView(text, pos, b);
+	    if(posBounds == null) {
+		x = 0;
+	    }
+	    else {
+		x = posBounds.getBounds().x;
+	    }
+	}
+	else {
+	    x = magicPoint.x;
+	}
+	return getClosestPositionTo(pos, b, a, direction, biasRet, vIndex, x);
     }
 
+    /**
+     * Returns the closest model position to <code>x</code>.
+     * <code>rowIndex</code> gives the index of the view that corresponds
+     * that should be looked in.
+     */
+    // NOTE: This will not properly work if ParagraphView contains
+    // other ParagraphViews. It won't raise, but this does not message
+    // the children views with getNextVisualPositionFrom.
+    protected int getClosestPositionTo(int pos, Position.Bias b, Shape a,
+				       int direction, Position.Bias[] biasRet,
+				       int rowIndex, int x)
+	      throws BadLocationException {
+	JTextComponent text = (JTextComponent)getContainer();
+	Document doc = getDocument();
+	AbstractDocument aDoc = (doc instanceof AbstractDocument) ?
+	                        (AbstractDocument)doc : null;
+	View row = getView(rowIndex);
+	int lastPos = -1;
+	// This could be made better to check backward positions too.
+	biasRet[0] = Position.Bias.Forward;
+	for(int vc = 0, numViews = row.getViewCount(); vc < numViews; vc++) {
+	    View v = row.getView(vc);
+	    int start = v.getStartOffset();
+	    boolean ltr = (aDoc != null) ? aDoc.isLeftToRight
+		           (start, start + 1) : true;
+	    if(ltr) {
+		lastPos = start;
+		for(int end = v.getEndOffset(); lastPos < end; lastPos++) {
+		    if(text.modelToView(lastPos).getBounds().x >= x) {
+			return lastPos;
+		    }
+		}
+		lastPos--;
+	    }
+	    else {
+		for(lastPos = v.getEndOffset() - 1; lastPos >= start;
+		    lastPos--) {
+		    if(text.modelToView(lastPos).getBounds().x >= x) {
+			return lastPos;
+		    }
+		}
+		lastPos++;
+	    }
+	}
+	if(lastPos == -1) {
+	    return getStartOffset();
+	}
+	return lastPos;
+    }
+
+    protected boolean flipEastAndWestAtEnds(int position,
+					    Position.Bias bias) {
+	Document doc = getDocument();
+	if(doc instanceof AbstractDocument &&
+	   !((AbstractDocument)doc).isLeftToRight(getStartOffset(),
+						  getStartOffset() + 1)) {
+	    return true;
+	}
+	return false;
+    }
+
+    // --- FlowView methods ---------------------------------------------
+
+    /**
+     * Fetch the constraining span to flow against for
+     * the given child index.
+     */
+    public int getFlowSpan(int index) {
+	View child = getView(index);
+	int adjust = 0;
+	if (child instanceof Row) {
+	    Row row = (Row) child;
+	    adjust = row.getLeftInset() + row.getRightInset();
+	}
+	int span = layoutSpan - adjust;
+	return span;
+    }
+
+    /**
+     * Fetch the location along the flow axis that the
+     * flow span will start at.
+     */
+    public int getFlowStart(int index) {
+	View child = getView(index);
+	int adjust = 0;
+	if (child instanceof Row) {
+	    Row row = (Row) child;
+	    adjust = row.getLeftInset();
+	}
+	return tabBase + adjust;
+    }
+
+    /**
+     * Create a View that should be used to hold a 
+     * a rows worth of children in a flow.
+     */
+    protected View createRow() {
+	Element elem = getElement();
+	Row row = new Row(elem);
+
+	// Adjust for line spacing
+	if(lineSpacing > 1) {
+	    float height = row.getPreferredSpan(View.Y_AXIS);
+	    float addition = (height * lineSpacing) - height;
+	    if(addition > 0) {
+		row.setInsets(row.getTopInset(), row.getLeftInset(),
+			      (short) addition, row.getRightInset());
+	    }
+	}
+
+	return row;
+    }
+	
     // --- TabExpander methods ------------------------------------------
 
     /**
@@ -565,9 +417,9 @@ public class ParagraphView extends BoxView implements TabExpander {
         // PENDING: when ParagraphView supports breaking location
         // into layoutPool will have to change!
         viewIndex = getElement().getElementIndex(startOffset);
-        numViews = layoutPool.size();
+        numViews = layoutPool.getViewCount();
         while(startOffset < endOffset && viewIndex < numViews) {
-            view = (View) layoutPool.elementAt(viewIndex++);
+            view = layoutPool.getView(viewIndex++);
             viewEnd = view.getEndOffset();
             tempEnd = Math.min(endOffset, viewEnd);
             if(view instanceof TabableView)
@@ -622,17 +474,6 @@ public class ParagraphView extends BoxView implements TabExpander {
 	return (float)tabBase;
     }
 
-    protected boolean flipEastAndWestAtEnds(int position,
-					    Position.Bias bias) {
-	Document doc = getDocument();
-	if(doc instanceof AbstractDocument &&
-	   !((AbstractDocument)doc).isLeftToRight(getStartOffset(),
-						  getStartOffset() + 1)) {
-	    return true;
-	}
-	return false;
-    }
-
     // ---- View methods ----------------------------------------------------
 
     /**
@@ -645,29 +486,9 @@ public class ParagraphView extends BoxView implements TabExpander {
      * @see View#paint
      */
     public void paint(Graphics g, Shape a) {
-        Rectangle alloc = a.getBounds();
-        tabBase = alloc.x;
+        Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a : a.getBounds();
+        tabBase = alloc.x + getLeftInset();
         super.paint(g, a);
-    }
-
-    protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-	if (r == null) {
-	    r = new SizeRequirements();
-	}
-	float pref = 0;
-	int n = layoutPool.size();
-	for (int i = 0; i < n; i++) {
-	    View v = (View) layoutPool.elementAt(i);
-	    pref += v.getPreferredSpan(axis);
-	}
-
-	float insets = (axis == X_AXIS) ? getLeftInset() + getRightInset() :
-	    getTopInset() + getBottomInset();
-	r.minimum = ((int) insets) + 5;
-	r.preferred = Math.max(r.minimum, (int) pref);
-	r.maximum = Short.MAX_VALUE;
-	r.alignment = 0.5f;
-	return r;
     }
 
     /**
@@ -754,147 +575,6 @@ public class ParagraphView extends BoxView implements TabExpander {
     }
 
     /**
-     * Gives notification that something was inserted into the document
-     * in a location that this view is responsible for.
-     *
-     * @param changes the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#insertUpdate
-     */
-    public void insertUpdate(DocumentEvent changes, Shape a, ViewFactory f) {
-        // update the pool of logical children
-        Element elem = getElement();
-        DocumentEvent.ElementChange ec = changes.getChange(elem);
-        if (ec != null) {
-            // the structure of this element changed.
-            updateLogicalChildren(ec, f);
-        }
-
-        // find and forward if there is anything there to 
-        // forward to.  If children were removed then there was
-        // a replacement of the removal range and there is no
-        // need to forward.
-	if (ec != null && ec.getChildrenAdded().length > 0) {
-	    int index = ec.getIndex();
-	    int pos = changes.getOffset();
-	    if (index > 0) {
-		Element child = elem.getElement(index - 1);
-		if (child.getEndOffset() >= pos) {
-		    View v = (View)layoutPool.elementAt(index - 1);
-		    v.insertUpdate(changes, null, f);
-		}
-	    }
-	    int endIndex = index + ec.getChildrenAdded().length;
-	    if (endIndex < layoutPool.size()) {
-		Element child = elem.getElement(endIndex);
-		int start = child.getStartOffset();
-		if (start >= pos && start <= (pos + changes.getLength())) {
-		    View v = (View)layoutPool.elementAt(endIndex);
-		    v.insertUpdate(changes, null, f);
-		}
-	    }
-	}
-        //REMIND(bcb) It is possible for an event have no added children,
-        //a removed child and a change to an existing child.  To see, this
-        //do the following.  Bring up Stylepad. Empty its contents. Select
-        //a different font.  Type a line until it wraps then hit return.
-        //Someone should code review this change.
-        else/* if (ec == null || (ec.getChildrenRemoved().length == 0)) */{
-            int pos = changes.getOffset();
-            int index = elem.getElementIndex(pos);
-            View v = (View) layoutPool.elementAt(index);
-            v.insertUpdate(changes, null, f);
-	    if (index > 0 && v.getStartOffset() == pos) {
-		v = (View)layoutPool.elementAt(index - 1);
-		v.insertUpdate(changes, null, f);
-	    }
-        }
-
-        // force layout, should do something more intelligent about
-        // incurring damage and triggering a new layout.  This is just
-        // about as brute force as it can get.
-        layoutSpan = Integer.MAX_VALUE;
-        preferenceChanged(null, true, true);
-        Rectangle alloc = getInsideAllocation(a);
-        if (alloc != null) {
-            layout(alloc.width, alloc.height);
-            Component host = getContainer();
-            host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
-        }
-    }
-
-    /**
-     * Update the logical children to reflect changes made 
-     * to the element this view is responsible.  This updates
-     * the pool of views used for layout (ie. the views 
-     * representing the child elements of the element this
-     * view is responsible for).  This is called by the 
-     * <code>insertUpdate, removeUpdate, and changeUpdate</code>
-     * methods.
-     */
-    void updateLogicalChildren(DocumentEvent.ElementChange ec, ViewFactory f) {
-        int index = ec.getIndex();
-        Element[] removedElems = ec.getChildrenRemoved();
-        for (int i = 0; i < removedElems.length; i++) {
-	    View v = (View) layoutPool.elementAt(index);
-	    v.setParent(null);
-            layoutPool.removeElementAt(index);
-        }
-        Element[] addedElems = ec.getChildrenAdded();
-        for (int i = 0; i < addedElems.length; i++) {
-	    View v = f.create(addedElems[i]);
-	    v.setParent(this);
-            layoutPool.insertElementAt(v, index + i);
-        }
-    }
-
-    /**
-     * Gives notification that something was removed from the document
-     * in a location that this view is responsible for.
-     *
-     * @param changes the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#removeUpdate
-     */
-    public void removeUpdate(DocumentEvent changes, Shape a, ViewFactory f) {
-        // update the pool of logical children
-        Element elem = getElement();
-        DocumentEvent.ElementChange ec = changes.getChange(elem);
-        if (ec != null) {
-            // the structure of this element changed.
-            updateLogicalChildren(ec, f);
-        }
-
-        // find and forward if there is anything there to 
-        // forward to.  If children were added then there was
-        // a replacement of the removal range and there is no
-        // need to forward.
-        if (ec == null || (ec.getChildrenAdded().length == 0)) {
-            int pos = changes.getOffset();
-            int index = elem.getElementIndex(pos);
-            View v = (View) layoutPool.elementAt(index);
-            v.removeUpdate(changes, null, f);
-	    if (index > 0 && elem.getElement(index).getStartOffset() == pos) {
-		((View)layoutPool.elementAt(index - 1)).
-		                  removeUpdate(changes, null, f);
-	    }
-        }
-
-        // force layout, should do something more intelligent about
-        // incurring damage and triggering a new layout.
-        layoutSpan = Integer.MAX_VALUE;
-        preferenceChanged(null, true, true);
-        if (a != null) {
-            Rectangle alloc = getInsideAllocation(a);
-            layout(alloc.width, alloc.height);
-            Component host = getContainer();
-            host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
-        }
-    }
-
-    /**
      * Gives notification from the document that attributes were changed
      * in a location that this view is responsible for.
      *
@@ -904,142 +584,12 @@ public class ParagraphView extends BoxView implements TabExpander {
      * @see View#changedUpdate
      */
     public void changedUpdate(DocumentEvent changes, Shape a, ViewFactory f) {
-        // update any property settings stored
+        // update any property settings stored, and layout should be 
+	// recomputed 
 	setPropertiesFromAttributes();
-
-        // update the pool of logical children
-        Element elem = getElement();
-        DocumentEvent.ElementChange ec = changes.getChange(elem);
-        if (ec != null) {
-            // the structure of this element changed.
-            updateLogicalChildren(ec, f);
-        }
-
-        // forward to the logical children
-        int p0 = changes.getOffset();
-        int p1 = p0 + changes.getLength();
-        int index0 = elem.getElementIndex(p0);
-        int index1 = elem.getElementIndex(p1 - 1);
-	// Check for case where p0 == p1 and they fall on a boundry.
-	if (p0 == p1 && index1 < index0 && index0 > 0) {
-	    index0--;
-	    index1 = index0 + 1;
-	}
-        for (int i = index0; i <= index1; i++) {
-            View v = (View) layoutPool.elementAt(i);
-            v.changedUpdate(changes, null, f);
-        }
-
-        // force layout, should do something more intelligent about
-        // incurring damage and triggering a new layout.
-        layoutSpan = Integer.MAX_VALUE;
-        preferenceChanged(null, true, true);
-        if (a != null) {
-            Rectangle alloc = getInsideAllocation(a);
-            layout(alloc.width, alloc.height);
-            Component host = getContainer();
-            host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
-        }
-    }
-
-    /**
-     * Overriden from CompositeView.
-     */
-    protected int getNextNorthSouthVisualPositionFrom(int pos, Position.Bias b,
-						      Shape a, int direction,
-						      Position.Bias[] biasRet)
-	                                        throws BadLocationException {
-	int vIndex;
-	if(pos == -1) {
-	    vIndex = (direction == SwingConstants.NORTH) ?
-		     getViewCount() - 1 : 0;
-	}
-	else {
-	    if(b == Position.Bias.Backward && pos > 0) {
-		vIndex = getViewIndexAtPosition(pos - 1);
-	    }
-	    else {
-		vIndex = getViewIndexAtPosition(pos);
-	    }
-	    if(direction == NORTH) {
-		if(vIndex == 0) {
-		    return -1;
-		}
-		vIndex--;
-	    }
-	    else if(++vIndex >= getViewCount()) {
-		return -1;
-	    }
-	}
-	// vIndex gives index of row to look in.
-	JTextComponent text = (JTextComponent)getContainer();
-	Caret c = text.getCaret();
-	Point magicPoint;
-	magicPoint = (c != null) ? c.getMagicCaretPosition() : null;
-	int x;
-	if(magicPoint == null) {
-	    Shape posBounds = text.getUI().modelToView(text, pos, b);
-	    if(posBounds == null) {
-		x = 0;
-	    }
-	    else {
-		x = posBounds.getBounds().x;
-	    }
-	}
-	else {
-	    x = magicPoint.x;
-	}
-	return getClosestPositionTo(pos, b, a, direction, biasRet, vIndex, x);
-    }
-
-    /**
-     * Returns the closest model position to <code>x</code>.
-     * <code>rowIndex</code> gives the index of the view that corresponds
-     * that should be looked in.
-     */
-    // NOTE: This will not properly work if ParagraphView contains
-    // other ParagraphViews. It won't raise, but this does not message
-    // the children views with getNextVisualPositionFrom.
-    protected int getClosestPositionTo(int pos, Position.Bias b, Shape a,
-				       int direction, Position.Bias[] biasRet,
-				       int rowIndex, int x)
-	      throws BadLocationException {
-	JTextComponent text = (JTextComponent)getContainer();
-	Document doc = getDocument();
-	AbstractDocument aDoc = (doc instanceof AbstractDocument) ?
-	                        (AbstractDocument)doc : null;
-	View row = getView(rowIndex);
-	int lastPos = -1;
-	// This could be made better to check backward positions too.
-	biasRet[0] = Position.Bias.Forward;
-	for(int vc = 0, numViews = row.getViewCount(); vc < numViews; vc++) {
-	    View v = row.getView(vc);
-	    int start = v.getStartOffset();
-	    boolean ltr = (aDoc != null) ? aDoc.isLeftToRight
-		           (start, start + 1) : true;
-	    if(ltr) {
-		lastPos = start;
-		for(int end = v.getEndOffset(); lastPos < end; lastPos++) {
-		    if(text.modelToView(lastPos).getBounds().x >= x) {
-			return lastPos;
-		    }
-		}
-		lastPos--;
-	    }
-	    else {
-		for(lastPos = v.getEndOffset() - 1; lastPos >= start;
-		    lastPos--) {
-		    if(text.modelToView(lastPos).getBounds().x >= x) {
-			return lastPos;
-		    }
-		}
-		lastPos++;
-	    }
-	}
-	if(lastPos == -1) {
-	    return getStartOffset();
-	}
-	return lastPos;
+	layoutChanged(X_AXIS);
+	layoutChanged(Y_AXIS);
+	super.changedUpdate(changes, a, f);
     }
 
     
@@ -1058,20 +608,10 @@ public class ParagraphView extends BoxView implements TabExpander {
     private int tabBase;
 
     /**
-     * Used by the layout process.  The span holds the
-     * length that has been formatted to. 
+     * Used to create an i18n-based layout strategy
      */
-    private int layoutSpan;
+    static Class i18nStrategy;
 
-    /**
-     * These are the views that represent the child elements
-     * of the element this view represents.  These are not
-     * directly children of this view.  These are either 
-     * placed into the rows directly or used for the purpose
-     * of breaking into smaller chunks.
-     */
-    private Vector layoutPool;
-    
     /** Used for searching for a tab. */
     static char[] tabChars;
     /** Used for searching for a tab or decimal character. */
@@ -1110,48 +650,8 @@ public class ParagraphView extends BoxView implements TabExpander {
 	 * the outer classes attributes.
 	 */
         public AttributeSet getAttributes() {
-	    return ParagraphView.this.getAttributes();
-	}
-
-	/**
-	 * Determines the desired alignment for this view along an
-	 * axis.  This is implemented to give a horizontal alignment
-	 * appropriate for the kind of justification being done.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @returns the desired alignment >= 0.0f && <= 1.0f.  This should
-	 *   be a value between 0.0 and 1.0 where 0 indicates alignment at the
-	 *   origin and 1.0 indicates alignment to the full span
-	 *   away from the origin.  An alignment of 0.5 would be the
-	 *   center of the view.
-	 * @exception IllegalArgumentException for an invalid axis
-	 */
-        protected void layout(int width, int height) {
-	    Document doc = getDocument();
-            if (doc.getProperty(AbstractDocument.I18NProperty).equals(Boolean.TRUE)) {
-		int n = getViewCount();
-		if (n > 1) {
-
-		    // REMIND (bcb) handle case of not an abstract document.
-		    AbstractDocument d = (AbstractDocument)getDocument();
-		    Element bidiRoot 
-			= ((AbstractDocument)getElement().getDocument()).getBidiRootElement();
-		    byte[] levels = new byte[n];
-		    View[] reorder = new View[n];
-		    
-		    for( int i=0; i<n; i++ ) {
-			View v = getView(i);
-			int bidiIndex =bidiRoot.getElementIndex(v.getStartOffset());
-			Element bidiElem = bidiRoot.getElement( bidiIndex );
-			levels[i] = (byte)StyleConstants.getBidiLevel(bidiElem.getAttributes());
-			reorder[i] = v;
-		    }
-		    
-		    Bidi.reorderVisually( levels, reorder );
-		    replace(0, n, reorder);
-		}
-	    }
-	    super.layout(width, height);
+	    View p = getParent();
+	    return (p != null) ? p.getAttributes() : null;
 	}
 
         public float getAlignment(int axis) {
@@ -1254,42 +754,6 @@ public class ParagraphView extends BoxView implements TabExpander {
 								  SizeRequirements r) {
 	    return baselineRequirements(axis, r);
 	}
-
-        /**
-         * Fetches the child view that represents the given position in
-         * the model.  This is implemented to walk through the children
-         * looking for a range that contains the given position.
-         * @param pos  The search position 
-         * @param a  The allocation to the box on entry, and the
-         *   allocation of the view containing the position on exit.
-         * @returns  The view representing the given position, or 
-         *   null if there isn't one.
-         */
-        protected View getViewAtPosition(int pos, Rectangle a) {
-            int n = getViewCount();
-            for (int i = 0; i < n; i++) {
-                View v = getView(i);
-                int p0 = v.getStartOffset();
-                int p1 = v.getEndOffset();
-                if ((pos >= p0) && (pos < p1)) {
-                    // it's in this view.
-		    if (a != null) {
-			this.childAllocation(i, a);
-		    }
-                    return v;
-                }
-            }
-	    if (pos == getEndOffset()) {
-		// PENDING(bcb): This will probably want to choose the first
-		// if right to left.
-		View v = getView(n - 1);
-		if (a != null) {
-		    this.childAllocation(n - 1, a);
-		}
-		return v;
-	    }
-            return null;
-        }
 
 	/**
 	 * Fetches the child view index representing the given position in

@@ -1,8 +1,11 @@
 /*
- * @(#)DatabaseMetaData.java	1.21 01/11/29
+ * @(#)DatabaseMetaData.java	1.27 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -13,8 +16,8 @@ package java.sql;
  *
  * <P>Many of the methods here return lists of information in 
  * the form of <code>ResultSet</code> objects.
- * You can use the normal ResultSet methods such as getString and getInt 
- * to retrieve the data from these ResultSets.  If a given form of
+ * You can use the normal <code>ResultSet</code> methods such as getString and getInt 
+ * to retrieve the data from these <code>ResultSet</code>.  If a given form of
  * metadata is not available, these methods should throw an SQLException.
  *
  * <P>Some of these methods take arguments that are String patterns.  These
@@ -25,8 +28,8 @@ package java.sql;
  * that argument's criteria will be dropped from the search.
  * 
  * <P>An <code>SQLException</code> will be thrown if a driver does not support a meta
- * data method.  In the case of methods that return a ResultSet,
- * either a ResultSet (which may be empty) is returned or a
+ * data method.  In the case of methods that return a <code>ResultSet</code>,
+ * either a <code>ResultSet</code> (which may be empty) is returned or a
  * SQLException is thrown.
  */
 public interface DatabaseMetaData {
@@ -363,8 +366,8 @@ public interface DatabaseMetaData {
 
     /**
      * Are concatenations between NULL and non-NULL values NULL?
-     *
-     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
+     * For SQL-92 compliance, a JDBC technology-enabled driver will
+	 * return <code>true</code>.
      *
      * @return <code>true</code> if so; <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
@@ -461,7 +464,7 @@ public interface DatabaseMetaData {
 	boolean supportsLikeEscapeClause() throws SQLException;
 
     /**
-     * Are multiple ResultSets from a single execute supported?
+     * Are multiple <code>ResultSet</code> from a single execute supported?
      *
      * @return <code>true</code> if so; <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
@@ -928,9 +931,11 @@ public interface DatabaseMetaData {
 	int getMaxCursorNameLength() throws SQLException;
 
     /**
-     * What's the maximum length of an index (in bytes)?	
+     * Retrieves the maximum number of bytes for an index, including all
+	 * of the parts of the index.
      *
-     * @return max index length in bytes;
+     * @return max index length in bytes, which includes the composite of all
+	 *      the constituent parts of the index;
 	 *      a result of zero means that there is no limit or the limit is not known
      * @exception SQLException if a database access error occurs
      */
@@ -982,7 +987,7 @@ public interface DatabaseMetaData {
 	boolean doesMaxRowSizeIncludeBlobs() throws SQLException;
 
     /**
-     * What's the maximum length of a SQL statement?
+     * What's the maximum length of an SQL statement?
      *
      * @return max length in bytes;
 	 *      a result of zero means that there is no limit or the limit is not known
@@ -1127,7 +1132,7 @@ public interface DatabaseMetaData {
      * @param schemaPattern a schema name pattern; "" retrieves those
      * without a schema
      * @param procedureNamePattern a procedure name pattern 
-     * @return ResultSet - each row is a procedure description 
+     * @return <code>ResultSet</code> - each row is a procedure description 
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
@@ -1171,7 +1176,7 @@ public interface DatabaseMetaData {
      * if any, is first. Next are the parameter descriptions in call
      * order. The column descriptions follow in column number order.
      *
-     * <P>Each row in the ResultSet is a parameter description or
+     * <P>Each row in the <code>ResultSet</code> is a parameter description or
      * column description with the following fields:
      *  <OL>
      *	<LI><B>PROCEDURE_CAT</B> String => procedure catalog (may be null)
@@ -1185,7 +1190,7 @@ public interface DatabaseMetaData {
      *      <LI> procedureColumnInOut - INOUT parameter
      *      <LI> procedureColumnOut - OUT parameter
      *      <LI> procedureColumnReturn - procedure return value
-     *      <LI> procedureColumnResult - result column in ResultSet
+     *      <LI> procedureColumnResult - result column in <code>ResultSet</code>
      *      </UL>
      *  <LI><B>DATA_TYPE</B> short => SQL type from java.sql.Types
      *	<LI><B>TYPE_NAME</B> String => SQL type name, for a UDT type the
@@ -1213,7 +1218,7 @@ public interface DatabaseMetaData {
      * without a schema 
      * @param procedureNamePattern a procedure name pattern 
      * @param columnNamePattern a column name pattern 
-     * @return ResultSet - each row describes a stored procedure parameter or 
+     * @return <code>ResultSet</code> - each row describes a stored procedure parameter or 
      *      column
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
@@ -1332,7 +1337,7 @@ public interface DatabaseMetaData {
      * without a schema
      * @param tableNamePattern a table name pattern 
      * @param types a list of table types to include; null returns all types 
-     * @return ResultSet - each row is a table description
+     * @return <code>ResultSet</code> - each row is a table description
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
@@ -1348,7 +1353,7 @@ public interface DatabaseMetaData {
      *	<LI><B>TABLE_SCHEM</B> String => schema name
      *  </OL>
      *
-     * @return ResultSet - each row has a single String column that is a
+     * @return <code>ResultSet</code> - each row has a single String column that is a
      * schema name 
      * @exception SQLException if a database access error occurs
      */
@@ -1363,7 +1368,7 @@ public interface DatabaseMetaData {
      *	<LI><B>TABLE_CAT</B> String => catalog name
      *  </OL>
      *
-     * @return ResultSet - each row has a single String column that is a
+     * @return <code>ResultSet</code> - each row has a single String column that is a
      * catalog name 
      * @exception SQLException if a database access error occurs
      */
@@ -1380,7 +1385,7 @@ public interface DatabaseMetaData {
      *			"LOCAL TEMPORARY", "ALIAS", "SYNONYM".
      *  </OL>
      *
-     * @return ResultSet - each row has a single String column that is a
+     * @return <code>ResultSet</code> - each row has a single String column that is a
      * table type 
      * @exception SQLException if a database access error occurs
      */
@@ -1434,7 +1439,7 @@ public interface DatabaseMetaData {
      * without a schema
      * @param tableNamePattern a table name pattern 
      * @param columnNamePattern a column name pattern 
-     * @return ResultSet - each row is a column description
+     * @return <code>ResultSet</code> - each row is a column description
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
@@ -1493,7 +1498,7 @@ public interface DatabaseMetaData {
      * @param schema a schema name; "" retrieves those without a schema
      * @param table a table name
      * @param columnNamePattern a column name pattern 
-     * @return ResultSet - each row is a column privilege description
+     * @return <code>ResultSet</code> - each row is a column privilege description
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
@@ -1529,7 +1534,7 @@ public interface DatabaseMetaData {
      * @param schemaPattern a schema name pattern; "" retrieves those
      * without a schema
      * @param tableNamePattern a table name pattern 
-     * @return ResultSet - each row is a table privilege description
+     * @return <code>ResultSet</code> - each row is a table privilege description
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
@@ -1570,7 +1575,7 @@ public interface DatabaseMetaData {
      * @param table a table name
      * @param scope the scope of interest; use same values as SCOPE
      * @param nullable include columns that are nullable?
-     * @return ResultSet - each row is a column description 
+     * @return <code>ResultSet</code> - each row is a column description 
      * @exception SQLException if a database access error occurs
      */
 	ResultSet getBestRowIdentifier(String catalog, String schema,
@@ -1661,7 +1666,7 @@ public interface DatabaseMetaData {
      * catalog; null means drop catalog name from the selection criteria
      * @param schema a schema name; "" retrieves those without a schema
      * @param table a table name
-     * @return ResultSet - each row is a column description 
+     * @return <code>ResultSet</code> - each row is a column description 
      * @exception SQLException if a database access error occurs
      */
 	ResultSet getVersionColumns(String catalog, String schema,
@@ -1713,7 +1718,7 @@ public interface DatabaseMetaData {
      * @param schema a schema name; "" retrieves those
      * without a schema
      * @param table a table name
-     * @return ResultSet - each row is a primary key column description 
+     * @return <code>ResultSet</code> - each row is a primary key column description 
      * @exception SQLException if a database access error occurs
      */
 	ResultSet getPrimaryKeys(String catalog, String schema,
@@ -1783,7 +1788,7 @@ public interface DatabaseMetaData {
      * @param schema a schema name; "" retrieves those
      * without a schema
      * @param table a table name
-     * @return ResultSet - each row is a primary key column description 
+     * @return <code>ResultSet</code> - each row is a primary key column description 
      * @exception SQLException if a database access error occurs
      * @see #getExportedKeys 
      */
@@ -1957,7 +1962,7 @@ public interface DatabaseMetaData {
      * @param schema a schema name; "" retrieves those
      * without a schema
      * @param table a table name
-     * @return ResultSet - each row is a foreign key column description 
+     * @return <code>ResultSet</code> - each row is a foreign key column description 
      * @exception SQLException if a database access error occurs
      * @see #getImportedKeys 
      */
@@ -2036,7 +2041,7 @@ public interface DatabaseMetaData {
      * @param foreignSchema a schema name; "" retrieves those
      * without a schema
      * @param foreignTable the table name that imports the key
-     * @return ResultSet - each row is a foreign key column description 
+     * @return <code>ResultSet</code> - each row is a foreign key column description 
      * @exception SQLException if a database access error occurs
      * @see #getImportedKeys 
      */
@@ -2088,7 +2093,7 @@ public interface DatabaseMetaData {
      *	<LI><B>NUM_PREC_RADIX</B> int => usually 2 or 10
      *  </OL>
      *
-     * @return ResultSet - each row is a SQL type description 
+     * @return <code>ResultSet</code> - each row is an SQL type description 
      * @exception SQLException if a database access error occurs
      */
 	ResultSet getTypeInfo() throws SQLException;
@@ -2205,7 +2210,7 @@ public interface DatabaseMetaData {
      * @param approximate when true, result is allowed to reflect approximate 
      *     or out of data values; when false, results are requested to be 
      *     accurate
-     * @return ResultSet - each row is an index column description 
+     * @return <code>ResultSet</code> - each row is an index column description 
      * @exception SQLException if a database access error occurs
      */
 	ResultSet getIndexInfo(String catalog, String schema, String table,
@@ -2250,20 +2255,18 @@ public interface DatabaseMetaData {
     //--------------------------JDBC 2.0-----------------------------
 
     /**
-     * JDBC 2.0
-     *
      * Does the database support the given result set type?
      *
      * @param type defined in <code>java.sql.ResultSet</code>
      * @return <code>true</code> if so; <code>false</code> otherwise 
      * @exception SQLException if a database access error occurs
      * @see Connection
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean supportsResultSetType(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
-     *
      * Does the database support the concurrency type in combination
      * with the given result set type?
      *
@@ -2272,12 +2275,13 @@ public interface DatabaseMetaData {
      * @return <code>true</code> if so; <code>false</code> otherwise 
      * @exception SQLException if a database access error occurs
      * @see Connection
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean supportsResultSetConcurrency(int type, int concurrency)
       throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether a result set's own updates are visible.
      *
@@ -2285,11 +2289,12 @@ public interface DatabaseMetaData {
      * @return <code>true</code> if updates are visible for the result set type;
 	 *        <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean ownUpdatesAreVisible(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether a result set's own deletes are visible.
      *
@@ -2297,10 +2302,12 @@ public interface DatabaseMetaData {
      * @return <code>true</code> if deletes are visible for the result set type;
 	 *        <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean ownDeletesAreVisible(int type) throws SQLException;
+
     /**
-     * JDBC 2.0
      *
      * Indicates whether a result set's own inserts are visible.
      *
@@ -2308,11 +2315,12 @@ public interface DatabaseMetaData {
      * @return <code>true</code> if inserts are visible for the result set type;
 	 *        <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean ownInsertsAreVisible(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether updates made by others are visible.
      *
@@ -2321,11 +2329,12 @@ public interface DatabaseMetaData {
 	 * are visible for the result set type;
 	 *        <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean othersUpdatesAreVisible(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether deletes made by others are visible.
      *
@@ -2334,10 +2343,12 @@ public interface DatabaseMetaData {
 	 * are visible for the result set type;
 	 *        <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean othersDeletesAreVisible(int type) throws SQLException;
+
     /**
-     * JDBC 2.0
      *
      * Indicates whether inserts made by others are visible.
      *
@@ -2347,11 +2358,12 @@ public interface DatabaseMetaData {
 	 * are visible for the result set type;
 	 *        <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean othersInsertsAreVisible(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether or not a visible row update can be detected by 
      * calling the method <code>ResultSet.rowUpdated</code>.
@@ -2360,11 +2372,12 @@ public interface DatabaseMetaData {
      * @return <code>true</code> if changes are detected by the result set type;
 	 *         <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean updatesAreDetected(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether or not a visible row delete can be detected by 
      * calling ResultSet.rowDeleted().  If deletesAreDetected()
@@ -2373,11 +2386,12 @@ public interface DatabaseMetaData {
      * @param result set type, i.e. ResultSet.TYPE_XXX
      * @return true if changes are detected by the resultset type
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean deletesAreDetected(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Indicates whether or not a visible row insert can be detected
      * by calling ResultSet.rowInserted().
@@ -2385,19 +2399,21 @@ public interface DatabaseMetaData {
      * @param result set type, i.e. ResultSet.TYPE_XXX
      * @return true if changes are detected by the resultset type
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean insertsAreDetected(int type) throws SQLException;
 
     /**
-     * JDBC 2.0
      *
 	 * Indicates whether the driver supports batch updates.
      * @return true if the driver supports batch updates; false otherwise
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     boolean supportsBatchUpdates() throws SQLException;
 
     /**
-     * JDBC 2.0
      *
      * Gets a description of the user-defined types defined in a particular
      * schema.  Schema-specific UDTs may have type JAVA_OBJECT, STRUCT, 
@@ -2431,18 +2447,21 @@ public interface DatabaseMetaData {
      * name
      * @param types a list of user-named types to include (JAVA_OBJECT, 
      * STRUCT, or DISTINCT); null returns all types 
-     * @return ResultSet - each row is a type description
+     * @return <code>ResultSet</code> - each row is a type description
      * @exception SQLException if a database access error occurs
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     ResultSet getUDTs(String catalog, String schemaPattern, 
 		      String typeNamePattern, int[] types) 
       throws SQLException;
 
     /**
-     * JDBC 2.0
 	 * Retrieves the connection that produced this metadata object.
      *
      * @return the connection that produced this metadata object
+	 * @since 1.2
+	 * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
      */
     Connection getConnection() throws SQLException;
 }

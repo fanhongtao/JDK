@@ -1,8 +1,11 @@
 /*
- * @(#)SignatureSpi.java	1.10 01/11/29
+ * @(#)SignatureSpi.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
   
 package java.security;
@@ -23,7 +26,7 @@ import java.io.*;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.10 01/11/29
+ * @version 1.14, 02/02/00
  *
  * @see Signature
  */
@@ -156,7 +159,7 @@ public abstract class SignatureSpi {
      * @exception SignatureException if an error occurs or <code>len</code>
      * is less than the actual signature length.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     protected int engineSign(byte[] outbuf, int offset, int len)
 	                throws SignatureException {
@@ -208,9 +211,9 @@ public abstract class SignatureSpi {
      * the parameter is already set
      * and cannot be set again, a security exception occurs, and so on. 
      *
-     * @deprecated Replaced by <a href =
-     * "#engineSetParameter(java.security.spec.AlgorithmParameterSpec)">
-     * engineSetParameter</a>.
+     * @deprecated Replaced by {@link 
+     * #engineSetParameter(java.security.spec.AlgorithmParameterSpec)
+     * engineSetParameter}.
      */
     protected abstract void engineSetParameter(String param, Object value) 
 	throws InvalidParameterException;

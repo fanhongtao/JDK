@@ -1,8 +1,11 @@
 /*
- * @(#)ContainerEvent.java	1.9 01/11/29
+ * @(#)ContainerEvent.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.event;
@@ -34,9 +37,10 @@ import java.awt.Component;
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/containerlistener.html">Tutorial: Writing a Container Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.9 11/29/01
  * @author Tim Prinzing
  * @author Amy Fowler
+ * @version 1.11 02/02/00
+ * @since 1.1
  */
 public class ContainerEvent extends ComponentEvent {
 

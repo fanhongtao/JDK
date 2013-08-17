@@ -1,8 +1,11 @@
 /*
- * @(#)StyleContext.java	1.58 01/11/29
+ * @(#)StyleContext.java	1.65 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -37,7 +40,7 @@ import javax.swing.event.ChangeEvent;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.58 11/29/01
+ * @version 1.65 02/02/00
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -195,7 +198,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * @return the color
      */
     public Color getBackground(AttributeSet attr) {
-	return StyleConstants.getForeground(attr);
+	return StyleConstants.getBackground(attr);
     }
 
     /**
@@ -739,6 +742,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
 
         public SmallAttributeSet(Object[] attributes) {
             this.attributes = attributes;
+	    updateResolveParent();
         }
 
         public SmallAttributeSet(AttributeSet attrs) {
@@ -752,9 +756,24 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
                 i += 2;
             }
             attributes = tbl;
+	    updateResolveParent();
         }
 
+	private void updateResolveParent() {
+	    resolveParent = null;
+            Object[] tbl = attributes;
+            for (int i = 0; i < tbl.length; i += 2) {
+		if (tbl[i] == StyleConstants.ResolveAttribute) {
+		    resolveParent = (AttributeSet)tbl[i + 1];
+		    break;
+		}
+            }
+	}
+
         Object getLocalAttribute(Object nm) {
+	    if (nm == StyleConstants.ResolveAttribute) {
+		return resolveParent;
+	    }
             Object[] tbl = attributes;
             for (int i = 0; i < tbl.length; i += 2) {
                 if (nm.equals(tbl[i])) {
@@ -799,10 +818,9 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
 
         /**
          * Compares this object to the specifed object.
-         * The result is <code>true</code> if and only if the argument is not 
-         * <code>null</code> and is a <code>Font</code> object with the same 
-         * name, style, and point size as this font. 
-         * @param     obj   the object to compare this font with.
+         * The result is <code>true</code> if the object is an equivalent
+	 * set of attributes.
+         * @param     obj   the object to compare with.
          * @return    <code>true</code> if the objects are equal; 
          *            <code>false</code> otherwise.
          */
@@ -947,13 +965,15 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * @see AttributeSet#getResolveParent
          */
         public AttributeSet getResolveParent() {
-            return (AttributeSet) getLocalAttribute(StyleConstants.ResolveAttribute);
+            return resolveParent;
         }
 
         // --- variables -----------------------------------------
 
         Object[] attributes;
         int nrefs;
+	// This is also stored in attributes
+	AttributeSet resolveParent;
     }
 
     /**
@@ -1188,7 +1208,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
     /**
      * A collection of attributes, typically used to represent
      * character and paragraph styles.  This is an implementation
-     * of MutableAttributeSet that can be observed if desired.
+     * of MutableAttributeSet that can be observed if desired. 
      * These styles will take advantage of immutability while
      * the sets are small enough, and may be substantially more
      * efficient than something like SimpleAttributeSet.
@@ -1271,7 +1291,6 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * Adds a change listener.
          *
          * @param l the change listener
-         * @see Attributes#addChangeListener
          */
         public void addChangeListener(ChangeListener l) {
             listenerList.add(ChangeListener.class, l);
@@ -1281,7 +1300,6 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * Removes a change listener.
          *
          * @param l the change listener
-         * @see Attributes#removeChangeListener
          */
         public void removeChangeListener(ChangeListener l) {
             listenerList.remove(ChangeListener.class, l);
@@ -1310,6 +1328,19 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
                 }              
             }
         }       
+
+	/**
+	 * Return an array of all the listeners of the given type that 
+	 * were added to this model. 
+	 *
+	 * @returns all of the objects recieving <em>listenerType</em> notifications 
+	 *          from this model
+	 * 
+	 * @since 1.3
+	 */
+	public EventListener[] getListeners(Class listenerType) { 
+	    return listenerList.getListeners(listenerType); 
+	}
         
         // --- AttributeSet ----------------------------
         // delegated to the immutable field "attributes"
@@ -1533,6 +1564,18 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          */
         private transient AttributeSet attributes;
 
+    }
+
+    static {
+	// initialize the static key registry with the StyleConstants keys
+        try {
+	    int n = StyleConstants.keys.length;
+            for (int i = 0; i < n; i++) {
+                StyleContext.registerStaticAttributeKey(StyleConstants.keys[i]);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
 

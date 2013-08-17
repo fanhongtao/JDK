@@ -1,8 +1,11 @@
 /*
- * @(#)MetalToolTipUI.java	1.13 01/11/29
+ * @(#)MetalToolTipUI.java	1.17 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf.metal;
@@ -27,15 +30,16 @@ import javax.swing.plaf.basic.BasicToolTipUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.13 11/29/01
+ * @version 1.17 02/02/00
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
 
     static MetalToolTipUI sharedInstance = new MetalToolTipUI();
-    Font smallFont;			    	     
-    static JToolTip tip;
+    private Font smallFont;			    	     
+    private JToolTip tip;
     public static final int padSpaceBetweenStrings = 12;
+    private String acceleratorDelimiter;
 
     public MetalToolTipUI() {
         super();
@@ -50,6 +54,8 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	tip = (JToolTip)c;
 	Font f = c.getFont();
 	smallFont = new Font( f.getName(), f.getStyle(), f.getSize() - 2 );
+	acceleratorDelimiter = UIManager.getString( "MenuItem.acceleratorDelimiter" );
+	if ( acceleratorDelimiter == null ) { acceleratorDelimiter = "-"; }
     }
 
     public void paint(Graphics g, JComponent c) {
@@ -66,7 +72,7 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	    g.setFont(smallFont);
 	    g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
 	    g.drawString(keyText, 
-		         metrics.stringWidth(tipText) + 3 + padSpaceBetweenStrings, 
+		         metrics.stringWidth(tipText) + padSpaceBetweenStrings, 
 		         2 + metrics.getAscent());
 	}
     }
@@ -94,14 +100,28 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	  char c = (char)keys[i].getKeyCode();
 	  int mod = keys[i].getModifiers();
 	  int condition =  comp.getConditionForKeyStroke(keys[i]);
-	  if ( mod == InputEvent.CTRL_MASK && condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
-	      controlKeyStr = "cntl+"+(char)keys[i].getKeyCode();
+
+	  if ( condition == JComponent.WHEN_IN_FOCUSED_WINDOW &&
+	       ( (mod & InputEvent.ALT_MASK) != 0 || (mod & InputEvent.CTRL_MASK) != 0 ||
+		 (mod & InputEvent.SHIFT_MASK) != 0 || (mod & InputEvent.META_MASK) != 0 ) )
+	  {
+	      controlKeyStr = KeyEvent.getKeyModifiersText(mod) +
+		              acceleratorDelimiter + (char)keys[i].getKeyCode();
 	      break;
-	  } else if (mod == InputEvent.ALT_MASK && condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
-	      controlKeyStr = "alt+"+(char)keys[i].getKeyCode();
-	      break;
-	  } 
+	  }
 	}
+
+	/* Special case for menu item since they do not register a
+	   keyboard action for their mnemonics and they always use Alt */
+	if ( controlKeyStr.equals("") && comp instanceof JMenuItem )
+	{
+	    int mnemonic = ((JMenuItem) comp).getMnemonic();
+	    if ( mnemonic != 0 )
+	    {
+	        controlKeyStr = "Alt" + acceleratorDelimiter + (char) mnemonic;
+	    }
+	}
+
 	return controlKeyStr;
     }
 

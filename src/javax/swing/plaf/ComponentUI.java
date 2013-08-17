@@ -1,8 +1,11 @@
 /*
- * @(#)ComponentUI.java	1.14 01/11/29
+ * @(#)ComponentUI.java	1.18 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.plaf;
@@ -64,6 +67,10 @@ public abstract class ComponentUI
      * screen that can be viewed as components, but actual components
      * are not used for presenting those areas.
      *
+     * Note: as of the Java 2 platform v1.3, it is recommended that developers call
+     * Component.AccessibleAWTComponent.getAccessibleChildrenCount() instead
+     * of using this method.
+     *
      * @see #getAccessibleChild
      * @return the number of accessible children in the object.
      */
@@ -76,6 +83,10 @@ public abstract class ComponentUI
      * UI's might wish to override this if they present areas on the
      * screen that can be viewed as components, but actual components
      * are not used for presenting those areas.
+     *
+     * Note: as of the Java 2 platform v1.3, it is recommended that developers call
+     * Component.AccessibleAWTComponent.getAccessibleChild() instead
+     * of using this method.
      *
      * @see #getAccessibleChildrenCount
      * @param i zero-based index of child

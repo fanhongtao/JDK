@@ -1,8 +1,11 @@
 /*
- * @(#)InputSubset.java	1.3 01/11/29
+ * @(#)InputSubset.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.awt.im;
@@ -14,8 +17,8 @@ package java.awt.im;
  * java.lang.Character.UnicodeBlock}</code> class, these constants do not
  * directly correspond to Unicode code blocks.
  *
- * @version 1.3, 01/11/29
- * @since   JDK1.2
+ * @version 1.8, 02/02/00
+ * @since   1.2
  */
 
 public final class InputSubset extends Character.Subset {
@@ -73,9 +76,25 @@ public final class InputSubset extends Character.Subset {
 
     /**
      * Constant for the halfwidth katakana subset of the Unicode halfwidth and
-     * fullwidth forms character blocks.
+     * fullwidth forms character block.
      */
     public static final InputSubset HALFWIDTH_KATAKANA
         = new InputSubset("HALFWIDTH_KATAKANA");
+
+    /**
+     * Constant for the fullwidth ASCII variants subset of the Unicode halfwidth and
+     * fullwidth forms character block.
+     * @since 1.3
+     */
+    public static final InputSubset FULLWIDTH_LATIN
+        = new InputSubset("FULLWIDTH_LATIN");
+
+    /**
+     * Constant for the fullwidth digits included in the Unicode halfwidth and
+     * fullwidth forms character block.
+     * @since 1.3
+     */
+    public static final InputSubset FULLWIDTH_DIGITS
+        = new InputSubset("FULLWIDTH_DIGITS");
 
 }

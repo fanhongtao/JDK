@@ -1,8 +1,11 @@
 /*
- * @(#)Integer.java	1.55 01/11/29
+ * @(#)Integer.java	1.62 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.lang;
@@ -20,7 +23,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.55, 11/29/01
+ * @version 1.62, 02/02/00
  * @since   JDK1.0
  */
 public final class Integer extends Number implements Comparable {
@@ -632,7 +635,7 @@ public final class Integer extends Number implements Comparable {
      *          <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof Integer)) {
+	if (obj instanceof Integer) {
 	    return value == ((Integer)obj).intValue();
 	}
 	return false;
@@ -650,10 +653,10 @@ public final class Integer extends Number implements Comparable {
      * returned. Details of possible numeric formats can be found with 
      * the definition of <code>getProperty</code>. 
      * <p>
-     * If there is no property with the specified name, or if the 
-     * property does not have the correct numeric format, then 
-     * <code>null</code> is returned.  In other words, this method returns 
-     * an <code>Integer</code> object equal to the value of:
+     * If there is no property with the specified name, if the specified name
+     * is empty or null, or if the property does not have the correct numeric
+     * format, then <code>null</code> is returned. In other words, this method
+     * returns an <code>Integer</code> object equal to the value of:
      * <blockquote><pre>
      * getInteger(nm, null)
      * </pre></blockquote>
@@ -679,10 +682,10 @@ public final class Integer extends Number implements Comparable {
      * returned. Details of possible numeric formats can be found with 
      * the definition of <code>getProperty</code>. 
      * <p>
-     * If there is no property with the specified name, or if the 
-     * property does not have the correct numeric format, then an 
-     * <code>Integer</code> object that represents the value of the 
-     * second argument is returned. 
+     * The second argument is the default value. An <code>Integer</code> object
+     * that represents the value of the second argument is returned if there
+     * is no property of the specified name, if the property does not have
+     * the correct numeric format, or if the specified name is empty or null.
      * <p>
      * In other words, this method returns an <code>Integer</code> object 
      * equal to the value of:
@@ -730,9 +733,10 @@ public final class Integer extends Number implements Comparable {
      * exactly as for the method {@link #valueOf(java.lang.String, int)} 
      * with radix 10. 
      * </ul><p>
-     * The second argument is the default value. If there is no property 
-     * of the specified name, or if the property does not have the 
-     * correct numeric format, then the second argument is returned. 
+     * The second argument is the default value. The default value is
+     * returned if there is no property of the specified name, if the
+     * property does not have the correct numeric format, or if the
+     * specified name is empty or null.
      *
      * @param   nm   property name.
      * @param   val   default value.
@@ -742,7 +746,12 @@ public final class Integer extends Number implements Comparable {
      * @see java.lang.Integer#decode
      */
     public static Integer getInteger(String nm, Integer val) {
-	String v = System.getProperty(nm);
+	String v = null;
+        try {
+            v = System.getProperty(nm);
+        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException e) {
+        }
 	if (v != null) {
 	    try {
 		return Integer.decode(v);
@@ -756,10 +765,10 @@ public final class Integer extends Number implements Comparable {
      * Decodes a <code>String</code> into an <code>Integer</code>.  Accepts
      * decimal, hexadecimal, and octal numbers, in the following formats:
      * <pre>
-     *     [-]    <decimal constant>
-     *     [-] 0x     <hex constant>
-     *     [-] #      <hex constant>
-     *     [-] 0    <octal constant>
+     *     [-]        decimal constant
+     *     [-] 0x     hex constant
+     *     [-] #      hex constant
+     *     [-] 0      octal constant
      * </pre>
      *
      * The constant following an (optional) negative sign and/or "radix
@@ -829,7 +838,7 @@ public final class Integer extends Number implements Comparable {
      *          value greater than <code>0</code> if this Integer is
      *          numerically greater than the Integer argument
      *		(signed comparison).
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Integer anotherInteger) {
 	int thisVal = this.value;
@@ -853,7 +862,7 @@ public final class Integer extends Number implements Comparable {
      * @exception <code>ClassCastException</code> if the argument is not an
      *		  <code>Integer</code>.
      * @see     java.lang.Comparable
-     * @since   JDK1.2
+     * @since   1.2
      */
     public int compareTo(Object o) {
 	return compareTo((Integer)o);

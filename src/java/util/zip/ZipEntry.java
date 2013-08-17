@@ -1,8 +1,11 @@
 /*
- * @(#)ZipEntry.java	1.27 01/11/29
+ * @(#)ZipEntry.java	1.31 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.util.zip;
@@ -12,7 +15,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.27, 11/29/01
+ * @version	1.31, 02/02/00
  * @author	David Connelly
  */
 public
@@ -41,6 +44,9 @@ class ZipEntry implements ZipConstants, Cloneable {
     public static final int DEFLATED = 8;
 
     static {
+        /* load the zip library */
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("zip"));
 	initIDs();
     }
 
@@ -67,6 +73,7 @@ class ZipEntry implements ZipConstants, Cloneable {
     /**
      * Creates a new zip entry with fields taken from the specified
      * zip entry.
+     * @param e a zip Entry object
      */
     public ZipEntry(ZipEntry e) {
 	name = e.name;
@@ -100,6 +107,7 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Returns the name of the entry.
+     * @return the name of the entry
      */
     public String getName() {
 	return name;
@@ -109,6 +117,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * Sets the modification time of the entry.
      * @param time the entry modification time in number of milliseconds
      *		   since the epoch
+     * @see #getTime()
      */
     public void setTime(long time) {
 	this.time = javaToDosTime(time);
@@ -116,6 +125,8 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Returns the modification time of the entry, or -1 if not specified.
+     * @return the modification time of the entry, or -1 if not specified
+     * @see #setTime(long)
      */
     public long getTime() {
 	return time != -1 ? dosToJavaTime(time) : -1;
@@ -126,6 +137,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @param size the uncompressed size in bytes
      * @exception IllegalArgumentException if the specified size is less
      *		  than 0 or greater than 0xFFFFFFFF bytes
+     * @see #getSize()
      */
     public void setSize(long size) {
 	if (size < 0 || size > 0xFFFFFFFFL) {
@@ -136,6 +148,8 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Returns the uncompressed size of the entry data, or -1 if not known.
+     * @return the uncompressed size of the entry data, or -1 if not known
+     * @see #setSize(long)
      */
     public long getSize() {
 	return size;
@@ -145,6 +159,8 @@ class ZipEntry implements ZipConstants, Cloneable {
      * Returns the size of the compressed entry data, or -1 if not known.
      * In the case of a stored entry, the compressed size will be the same
      * as the uncompressed size of the entry.
+     * @return the size of the compressed entry data, or -1 if not known
+     * @see #setCompressedSize(long)
      */
     public long getCompressedSize() {
 	return csize;
@@ -152,6 +168,8 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Sets the size of the compressed entry data.
+     * @param csize the compressed size to set to
+     * @see #getCompressedSize()
      */
     public void setCompressedSize(long csize) {
 	this.csize = csize;
@@ -162,6 +180,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @param crc the CRC-32 value
      * @exception IllegalArgumentException if the specified CRC-32 value is
      *		  less than 0 or greater than 0xFFFFFFFF
+     * @see #setCrc(long)
      */
     public void setCrc(long crc) {
 	if (crc < 0 || crc > 0xFFFFFFFFL) {
@@ -173,6 +192,9 @@ class ZipEntry implements ZipConstants, Cloneable {
     /**
      * Returns the CRC-32 checksum of the uncompressed entry data, or -1 if
      * not known.
+     * @return the CRC-32 checksum of the uncompressed entry data, or -1 if
+     * not known
+     * @see #getCrc()
      */
     public long getCrc() {
 	return crc;
@@ -183,6 +205,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @param method the compression method, either STORED or DEFLATED
      * @exception IllegalArgumentException if the specified compression
      *		  method is invalid
+     * @see #getMethod()
      */
     public void setMethod(int method) {
 	if (method != STORED && method != DEFLATED) {
@@ -193,6 +216,8 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Returns the compression method of the entry, or -1 if not specified.
+     * @return the compression method of the entry, or -1 if not specified
+     * @see #setMethod(int)
      */
     public int getMethod() {
 	return method;
@@ -203,6 +228,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @param extra the extra field data bytes
      * @exception IllegalArgumentException if the length of the specified
      *		  extra field data is greater than 0xFFFFF bytes
+     * @see #getExtra()
      */
     public void setExtra(byte[] extra) {
 	if (extra != null && extra.length > 0xFFFF) {
@@ -213,6 +239,8 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Returns the extra field data for the entry, or null if none.
+     * @return the extra field data for the entry, or null if none
+     * @see #setExtra(byte[])
      */
     public byte[] getExtra() {
 	return extra;
@@ -223,6 +251,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @param comment the comment string
      * @exception IllegalArgumentException if the length of the specified
      *		  comment string is greater than 0xFFFF bytes
+     * @see #getComment()
      */
     public void setComment(String comment) {
 	if (comment != null && comment.length() > 0xFFFF) {
@@ -233,6 +262,8 @@ class ZipEntry implements ZipConstants, Cloneable {
 
     /**
      * Returns the comment string for the entry, or null if none.
+     * @return the comment string for the entry, or null if none
+     * @see #setComment(String)
      */
     public String getComment() {
 	return comment;
@@ -241,6 +272,7 @@ class ZipEntry implements ZipConstants, Cloneable {
     /**
      * Returns true if this is a directory entry. A directory entry is
      * defined to be one whose name ends with a '/'.
+     * @return true if this is a directory entry
      */
     public boolean isDirectory() {
 	return name.endsWith("/");
@@ -293,7 +325,7 @@ class ZipEntry implements ZipConstants, Cloneable {
     public Object clone() {
 	try {
 	    ZipEntry e = (ZipEntry)super.clone();
-	    e.extra = (byte[])extra.clone();
+	    e.extra = (extra == null ? null : (byte[])extra.clone());
 	    return e;
 	} catch (CloneNotSupportedException e) {
 	    // This should never happen, since we are Cloneable

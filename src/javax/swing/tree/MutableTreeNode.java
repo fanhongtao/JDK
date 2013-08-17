@@ -1,8 +1,11 @@
 /*
- * @(#)MutableTreeNode.java	1.6 01/11/29
+ * @(#)MutableTreeNode.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.tree;
@@ -12,7 +15,10 @@ package javax.swing.tree;
  * by adding or removing child nodes, or by changing the contents
  * of a user object stored in the node.
  *
- * @version 1.6 11/29/01
+ * @see DefaultMutableTreeNode
+ * @see javax.swing.JTree
+ *
+ * @version 1.8 02/02/00
  * @author Rob Davis
  * @author Scott Violet
  */

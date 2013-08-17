@@ -1,8 +1,11 @@
 /*
- * @(#)InvalidKeyException.java	1.9 01/11/29
+ * @(#)InvalidKeyException.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -12,7 +15,7 @@ package java.security;
  * This is the exception for invalid Keys (invalid encoding, wrong
  * length, uninitialized, etc).
  *
- * @version 1.6 08/01/96
+ * @version 1.11, 02/02/00
  * @author Benjamin Renaud 
  */
 

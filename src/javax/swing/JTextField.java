@@ -1,13 +1,17 @@
 /*
- * @(#)JTextField.java	1.59 01/11/29
+ * @(#)JTextField.java	1.72 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.*;
 import javax.swing.text.*;
 import javax.swing.plaf.*;
 import javax.swing.event.*;
@@ -19,7 +23,14 @@ import java.io.IOException;
 
 /**
  * JTextField is a lightweight component that allows the editing 
- * of a single line of text.  It is intended to be source-compatible
+ * of a single line of text.  
+ * For information on and examples of using text fields,
+ * see 
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/textfield.html">How to Use Text Fields</a>
+ * in <em>The Java Tutorial.</em>
+ *
+ * <p>
+ * JTextField is intended to be source-compatible
  * with java.awt.TextField where it is reasonable to do so.  This
  * component has capabilities not found in the java.awt.TextField 
  * class.  The superclass should be consulted for additional capabilities.
@@ -34,9 +45,9 @@ import java.io.IOException;
  * <p>
  * The method <code>setEchoChar</code> and <code>getEchoChar</code>
  * are not provided directly to avoid a new implementation of a
- * pluggable look-and-feel inadvertantly exposing password characters.
- * To provide password-like services a seperate class JPasswordField
- * extends JTextField to provide this service with an independantly
+ * pluggable look-and-feel inadvertently exposing password characters.
+ * To provide password-like services a separate class JPasswordField
+ * extends JTextField to provide this service with an independently
  * pluggable look-and-feel.
  * <p>
  * The java.awt.TextField could be monitored for changes by adding
@@ -46,40 +57,33 @@ import java.io.IOException;
  * the location of the change and the kind of change if desired.
  * The code fragment might look something like:
  * <pre><code>
- *    DocumentListener myListener = ??;
- *    JTextField myArea = ??;
- *    myArea.getDocument().addDocumentListener(myListener);
+ * &nbsp;   DocumentListener myListener = ??;
+ * &nbsp;   JTextField myArea = ??;
+ * &nbsp;   myArea.getDocument().addDocumentListener(myListener);
  * </code></pre>
  * <p>
  * The horizontal alignment of JTextField can be set to be left
- * justified, centered, or right justified if the required size
+ * justified, leading justified, centered, right justified or trailing justified.
+ * Right/trailing justification is useful if the required size
  * of the field text is smaller than the size allocated to it.
  * This is determined by the <code>setHorizontalAlignment</code>
  * and <code>getHorizontalAlignment</code> methods.  The default
- * is to be left justified.
+ * is to be leading justified.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
  * <a href="doc-files/Key-Index.html#JTextField">JTextField</a> key assignments.
  * <p>
- * For compatibility with java.awt.TextField, the VK_ENTER key fires
- * the ActionEvent to the registered ActionListeners.  However, awt
- * didn't have default buttons like swing does.  If a text field has
- * focus and the VK_ENTER key is pressed, it will fire the fields
- * ActionEvent rather than activate the default button.  To disable
- * the compatibility with awt for text fields, the following code
- * fragment will remove the binding of VK_ENTER from the default keymap
- * used by all JTextFields if that is desired.
- * <pre><code>
-
-  static {
-    JTextField f = new JTextField();
-    KeyStroke enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
-    Keymap map = f.getKeymap();
-    map.removeKeyStrokeBinding(enter);
-  }
-
- * </code></pre>
+ * How the text field consumes VK_ENTER events depends
+ * on whether the text field has any action listeners.
+ * If so, then VK_ENTER results in the listeners
+ * getting an ActionEvent,
+ * and the VK_ENTER event is consumed.
+ * This is compatible with how AWT text fields handle VK_ENTER events.
+ * If the text field has no action listeners, then as of v 1.3 the VK_ENTER
+ * event is not consumed.  Instead, the bindings of ancestor components 
+ * are processed, which enables the default button feature of
+ * JFC/Swing to work.
  * <p>
  * Customized fields can easily be created by extending the model and
  * changing the default model provided.  For example, the following piece
@@ -88,32 +92,32 @@ import java.io.IOException;
  * programmatic changes.
  * <pre><code>
 
-public class UpperCaseField extends JTextField {
-
-    public UpperCaseField(int cols) {
-	super(cols);
-    }
-
-    protected Document createDefaultModel() {
-	return new UpperCaseDocument();
-    }
-
-    static class UpperCaseDocument extends PlainDocument {
-
-        public void insertString(int offs, String str, AttributeSet a) 
-	    throws BadLocationException {
-
-	    if (str == null) {
-		return;
-	    }
-	    char[] upper = str.toCharArray();
-	    for (int i = 0; i < upper.length; i++) {
-		upper[i] = Character.toUpperCase(upper[i]);
-	    }
-	    super.insertString(offs, new String(upper), a);
-	}
-    }
-}
+&nbsp;public class UpperCaseField extends JTextField {
+&nbsp;
+&nbsp;    public UpperCaseField(int cols) {
+&nbsp;        super(cols);
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Document createDefaultModel() {
+&nbsp;	      return new UpperCaseDocument();
+&nbsp;    }
+&nbsp;
+&nbsp;    static class UpperCaseDocument extends PlainDocument {
+&nbsp;
+&nbsp;        public void insertString(int offs, String str, AttributeSet a) 
+&nbsp;	          throws BadLocationException {
+&nbsp;
+&nbsp;	          if (str == null) {
+&nbsp;		      return;
+&nbsp;	          }
+&nbsp;	          char[] upper = str.toCharArray();
+&nbsp;	          for (int i = 0; i < upper.length; i++) {
+&nbsp;		      upper[i] = Character.toUpperCase(upper[i]);
+&nbsp;	          }
+&nbsp;	          super.insertString(offs, new String(upper), a);
+&nbsp;	      }
+&nbsp;    }
+&nbsp;}
 
  * </code></pre>
  * <p>
@@ -126,11 +130,13 @@ public class UpperCaseField extends JTextField {
  *
  * @beaninfo
  *   attribute: isContainer false
+ * description: A component which allows for the editing of a single line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.59 11/29/01
+ * @version 1.72 04/06/00
  * @see #setActionCommand
  * @see JPasswordField
+ * @see #addActionListener
  */
 public class JTextField extends JTextComponent implements SwingConstants {
 
@@ -224,20 +230,25 @@ public class JTextField extends JTextComponent implements SwingConstants {
     
     /**
      * Calls to revalidate that come from within the textfield itself will
-     * be handled by validating the textfield. 
+     * be handled by validating the textfield, unless the receiver
+     * is contained within a JViewport, in which case this returns false.
      * 
      * @see JComponent#revalidate
      * @see JComponent#isValidateRoot
      */
     public boolean isValidateRoot() {
+	Component parent = getParent();
+	if (parent instanceof JViewport) {
+	    return false;
+	}
         return true;
     }
 
 
     /**
      * Returns the horizontal alignment of the text.
-     * Valid keys: JTextField.LEFT (the default), JTextField.CENTER,
-     * JTextField.RIGHT.
+     * Valid keys: JTextField.LEFT, JTextField.CENTER, JTextField.RIGHT,
+     * JTextField.LEADING and JTextField.TRAILING
      *
      * @return the alignment
      */
@@ -247,10 +258,10 @@ public class JTextField extends JTextComponent implements SwingConstants {
     
     /**
      * Sets the horizontal alignment of the text.
-     * Valid keys: JTextField.LEFT (the default), JTextField.CENTER,
-     * JTextField.RIGHT.  invalidate() and repaint() are called when the
-     * alignment is set, and a PropertyChange event ("horizontalAlignment")
-     * is fired.
+     * Valid keys: JTextField.LEFT, JTextField.CENTER, JTextField.RIGHT, 
+     * JTextField.LEADING (the default) and JTextField.TRAILING.  
+     * invalidate() and repaint() are called when the alignment is set, 
+     * and a PropertyChange event ("horizontalAlignment") is fired.
      *
      * @param alignment the alignment
      * @exception IllegalArgumentException if the alignment
@@ -258,13 +269,17 @@ public class JTextField extends JTextComponent implements SwingConstants {
      * @beaninfo
      *   preferred: true
      *       bound: true
-     * description: Set the field alignment to LEFT (the default), CENTER, RIGHT
+     * description: Set the field alignment to LEFT, CENTER, RIGHT,
+     *              LEADING (the default) or TRAILING
      *        enum: LEFT JTextField.LEFT CENTER JTextField.CENTER RIGHT JTextField.RIGHT
+     *              LEADING JTextField.LEADING TRAILING JTextField.TRAILING
      */
      public void setHorizontalAlignment(int alignment) {
         if (alignment == horizontalAlignment) return;
         int oldValue = horizontalAlignment;
-        if ((alignment == LEFT) || (alignment == CENTER) || (alignment == RIGHT)) {
+        if ((alignment == LEFT) || (alignment == CENTER) || 
+	    (alignment == RIGHT)|| (alignment == LEADING) || 
+	    (alignment == TRAILING)) {
             horizontalAlignment = alignment;
         } else {
             throw new IllegalArgumentException("horizontalAlignment");
@@ -379,7 +394,11 @@ public class JTextField extends JTextComponent implements SwingConstants {
      * @param l the action listener 
      */ 
     public synchronized void removeActionListener(ActionListener l) {
-        listenerList.remove(ActionListener.class, l);
+	if ((l != null) && (getAction() == l)) {
+	    setAction(null);
+	} else {
+	    listenerList.remove(ActionListener.class, l);
+	}
     }
 
     /**
@@ -411,6 +430,137 @@ public class JTextField extends JTextComponent implements SwingConstants {
      */
     public void setActionCommand(String command) {
         this.command = command;
+    }
+
+    private Action action;
+    private PropertyChangeListener actionPropertyChangeListener;
+
+    /**
+     * Sets the Action for the ActionEvent source. The new Action replaces
+     * any previously set Action but does not affect ActionListeners 
+     * independantly added with addActionListener().  If the Action is already
+     * a registered ActionListener for the ActionEvent source, it is not re-registered.
+     *
+     * A side-effect of setting the Action is that the ActionEvent source's properties 
+     * are immediately set from the values in the Action (performed by the method 
+     * configurePropertiesFromAction()) and subsequently updated as the Action's
+     * properties change (via a PropertyChangeListener created by the method
+     * createActionPropertyChangeListener().
+     *
+     * @param a the Action for the JTextField, or null.
+     * @since 1.3
+     * @see Action
+     * @see #getAction
+     * @see #configurePropertiesFromAction
+     * @see #createActionPropertyChangeListener
+     * @beaninfo
+     *        bound: true
+     *    attribute: visualUpdate true
+     *  description: the Action instance connected with this ActionEvent source
+     */
+    public void setAction(Action a) {
+	Action oldValue = getAction();
+	if (action==null || !action.equals(a)) {
+	    action = a;
+	    if (oldValue!=null) {
+		removeActionListener(oldValue);
+		oldValue.removePropertyChangeListener(actionPropertyChangeListener);
+		actionPropertyChangeListener = null;
+	    }
+	    configurePropertiesFromAction(action);
+	    if (action!=null) {		
+		// Don't add if it is already a listener
+		if (!isListener(ActionListener.class, action)) {
+		    addActionListener(action);
+		}
+		// Reverse linkage:
+		actionPropertyChangeListener = createActionPropertyChangeListener(action);
+		action.addPropertyChangeListener(actionPropertyChangeListener);
+	    }
+	    firePropertyChange("action", oldValue, action);
+	    revalidate();
+	    repaint();
+	}
+    }
+
+    private boolean isListener(Class c, ActionListener a) {
+	boolean isListener = false;
+	Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==c && listeners[i+1]==a) {
+		    isListener=true;
+	    }
+	}
+	return isListener;
+    }
+
+    /**
+     * Returns the currently set Action for this ActionEvent source,
+     * or null if no Action is set.
+     *
+     * @return the Action for this ActionEvent source, or null.
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    public Action getAction() {
+	return action;
+    }
+
+    /**
+     * Factory method which sets the ActionEvent source's properties
+     * according to values from the Action instance.  The properties 
+     * which are set may differ for subclasses.
+     * By default, the properties which get set are 
+     * Enabled and ToolTipText.
+     *
+     * @param a the Action from which to get the properties, or null
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    protected void configurePropertiesFromAction(Action a) {
+	setEnabled((a!=null?a.isEnabled():true));
+ 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
+    }
+
+    /**
+     * Factory method which creates the PropertyChangeListener
+     * used to update the ActionEvent source as properties change on
+     * its Action instance.  Subclasses may override this in order 
+     * to provide their own PropertyChangeListener if the set of
+     * properties which should be kept up to date differs from the
+     * default properties (Text, Enabled, ToolTipText).
+     *
+     * Note that PropertyChangeListeners should avoid holding
+     * strong references to the ActionEvent source, as this may hinder
+     * garbage collection of the ActionEvent source and all components
+     * in its containment hierarchy.  
+     *
+     * @since 1.3
+     * @see Action
+     * @see #setAction
+     */
+    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
+        return new AbstractActionPropertyChangeListener(this, a) {
+	    public void propertyChange(PropertyChangeEvent e) {	    
+		String propertyName = e.getPropertyName();
+		JTextField textField = (JTextField)getTarget();
+		if (textField == null) {   //WeakRef GC'ed in 1.2
+		    Action action = (Action)e.getSource();
+		    action.removePropertyChangeListener(this);
+		} else {
+		    if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
+			String text = (String) e.getNewValue();
+			textField.setToolTipText(text);
+		    } else if (propertyName.equals("enabled")) {
+			Boolean enabledState = (Boolean) e.getNewValue();
+			textField.setEnabled(enabledState.booleanValue());
+			textField.repaint();
+		    } 
+		}
+	    }
+	};
     }
 
     /**
@@ -490,6 +640,22 @@ public class JTextField extends JTextComponent implements SwingConstants {
         }
     }
 
+    /**
+     * Returns true if the receiver has an ActionListener installed.
+     */
+    boolean hasActionListener() {
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==ActionListener.class) {
+                return true;
+            }          
+        }
+        return false;
+    }
+
     // --- variables -------------------------------------------
 
     /**
@@ -500,7 +666,7 @@ public class JTextField extends JTextComponent implements SwingConstants {
     public static final String notifyAction = "notify-field-accept";
 
     private BoundedRangeModel visibility;
-    private int horizontalAlignment  = LEFT;
+    private int horizontalAlignment = LEADING;
     private int columns;
     private int columnWidth;
     private String command;
@@ -529,6 +695,14 @@ public class JTextField extends JTextComponent implements SwingConstants {
                 JTextField field = (JTextField) target;
                 field.postActionEvent();
             }
+        }
+
+        public boolean isEnabled() {
+            JTextComponent target = getFocusedComponent();
+            if (target instanceof JTextField) {
+                return ((JTextField)target).hasActionListener();
+            }
+            return false;
         }
     }
 
@@ -570,6 +744,10 @@ public class JTextField extends JTextComponent implements SwingConstants {
 	    horizontalAlignmentString = "CENTER";
 	} else if (horizontalAlignment == RIGHT) {
 	    horizontalAlignmentString = "RIGHT";
+	} else if (horizontalAlignment == LEADING) {
+	    horizontalAlignmentString = "LEADING";
+	} else if (horizontalAlignment == TRAILING) {
+	    horizontalAlignmentString = "TRAILING";
 	} else horizontalAlignmentString = "";
         String commandString = (command != null ?
 				command : "");
@@ -588,10 +766,13 @@ public class JTextField extends JTextComponent implements SwingConstants {
 
 
     /**
-     * Get the AccessibleContext associated with this JTextField.
-     * Creates a new context if necessary.
+     * Gets the AccessibleContext associated with this JTextField. 
+     * For JTextFields, the AccessibleContext takes the form of an 
+     * AccessibleJTextField. 
+     * A new AccessibleJTextField instance is created if necessary.
      *
-     * @return the AccessibleContext of this JTextField
+     * @return an AccessibleJTextField that serves as the 
+     *         AccessibleContext of this JTextField
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -601,7 +782,10 @@ public class JTextField extends JTextComponent implements SwingConstants {
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JTextField</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to text field user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

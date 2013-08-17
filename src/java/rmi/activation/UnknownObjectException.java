@@ -1,8 +1,11 @@
 /*
- * @(#)UnknownObjectException.java	1.5 01/11/29
+ * @(#)UnknownObjectException.java	1.8 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.rmi.activation;
@@ -17,9 +20,9 @@ package java.rmi.activation;
  * An <code>ActivationID</code> is also obtained during the
  * <code>Activatable.register</code> call.
  * 
- * @version 1.5, 11/29/01
+ * @version 1.8, 02/02/00
  * @author  Ann Wollrath
- * @since   JDK1.2
+ * @since   1.2
  * @see     java.rmi.activation.Activatable
  * @see     java.rmi.activation.ActivationGroup
  * @see     java.rmi.activation.ActivationID
@@ -29,7 +32,7 @@ package java.rmi.activation;
  */
 public class UnknownObjectException extends ActivationException {
 
-    /** indicate compatibility with JDK 1.2 version of class */
+    /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = 3425547551622251430L;
     
     /**
@@ -37,7 +40,7 @@ public class UnknownObjectException extends ActivationException {
      * detail message.
      *
      * @param s the detail message
-     * @since JDK1.2
+     * @since 1.2
      */
     public UnknownObjectException(String s) {
 	super(s);

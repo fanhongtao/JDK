@@ -1,8 +1,11 @@
 /*
- * @(#)RenderContext.java	1.8 01/11/29
+ * @(#)RenderContext.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 /* ********************************************************************
@@ -144,10 +147,29 @@ public class RenderContext implements Cloneable {
      * @param modTransform the AffineTransform to prepend to the
      *        current usr2dev transform.
      */
+    public void preConcatenateTransform(AffineTransform modTransform) {
+        this.preConcetenateTransform(modTransform);                
+    }
+    
+    /**
+     * Modifies the current user-to-device transform by prepending another
+     * transform.  In matrix notation the operation is:
+     * <pre>
+     * [this] = [modTransform] x [this]
+     * </pre>
+     * This method does the same thing as the preConcatenateTransform
+     * method.  It is here for backward compatibility with previous releases
+     * which misspelled the method name.
+     *
+     * @param modTransform the AffineTransform to prepend to the
+     *        current usr2dev transform.
+     * @deprecated     replaced by
+     *                 <code>preConcatenateTransform(AffineTransform)</code>.
+     */
     public void preConcetenateTransform(AffineTransform modTransform) {
         usr2dev.preConcatenate(modTransform);                
     }
-    
+
     /**
      * Modifies the current user-to-device transform by appending another
      * transform.  In matrix notation the operation is:
@@ -157,6 +179,25 @@ public class RenderContext implements Cloneable {
      *
      * @param modTransform the AffineTransform to append to the
      *        current usr2dev transform.
+     */
+    public void concatenateTransform(AffineTransform modTransform) {
+        this.concetenateTransform(modTransform);                
+    }
+    
+    /**
+     * Modifies the current user-to-device transform by appending another
+     * transform.  In matrix notation the operation is:
+     * <pre>
+     * [this] = [this] x [modTransform]
+     * </pre>
+     * This method does the same thing as the concatenateTransform
+     * method.  It is here for backward compatibility with previous releases
+     * which misspelled the method name.
+     *
+     * @param modTransform the AffineTransform to append to the
+     *        current usr2dev transform.
+     * @deprecated     replaced by
+     *                 <code>concatenateTransform(AffineTransform)</code>.
      */
     public void concetenateTransform(AffineTransform modTransform) {
         usr2dev.concatenate(modTransform);                

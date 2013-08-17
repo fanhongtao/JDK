@@ -1,8 +1,11 @@
 /*
- * @(#)AccessibleRole.java	1.29 01/11/29
+ * @(#)AccessibleRole.java	1.35 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.accessibility;
@@ -13,8 +16,8 @@ import java.util.ResourceBundle;
 
 /**
  * <P>Class AccessibleRole determines the role of a component.  The role of a 
- * component describes the components generic function, such as
- * "push button," "table," or "list."
+ * component describes its generic function. (E.G., 
+* "push button," "table," or "list.")
  * <p>The toDisplayString method allows you to obtain the localized string 
  * for a locale independent key from a predefined ResourceBundle for the 
  * keys defined in this class.
@@ -25,9 +28,10 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.18 12/03/97 14:49:26
+ * @version     1.32 10/12/99
  * @author      Willie Walker
  * @author	Peter Korn
+ * @author	Lynn Monsanto
  */
 public class AccessibleRole extends AccessibleBundle {
 
@@ -45,6 +49,16 @@ public class AccessibleRole extends AccessibleBundle {
      */
     public static final AccessibleRole COLUMN_HEADER
             = new AccessibleRole("columnheader");
+
+    /** 
+     * Object that can be drawn into and is used to trap
+     * events.
+     * @see #FRAME
+     * @see #GLASS_PANE
+     * @see #LAYERED_PANE
+     */     
+    public static final AccessibleRole CANVAS
+            = new AccessibleRole("canvas");
 
     /** 
      * A list of choices the user can select from.  Also optionally 
@@ -101,6 +115,7 @@ public class AccessibleRole extends AccessibleBundle {
      * A top level window with a title bar, border, menu bar, etc.  It is
      * often used as the primary window for an application.
      * @see #DIALOG
+     * @see #CANVAS
      * @see #WINDOW
      */
     public static final AccessibleRole FRAME
@@ -150,6 +165,12 @@ public class AccessibleRole extends AccessibleBundle {
     public static final AccessibleRole FILLER
             = new AccessibleRole("filler");
 
+    /**
+     * A small fixed size picture, typically used to decorate components.
+     */
+    public static final AccessibleRole ICON
+	    = new AccessibleRole("icon");
+
     /** 
      * An object used to present an icon or short string in an interface.
      */
@@ -169,6 +190,7 @@ public class AccessibleRole extends AccessibleBundle {
      * A pane that is guaranteed to be painted on top
      * of all panes beneath it.
      * @see #ROOT_PANE
+     * @see #CANVAS
      */
     public static final AccessibleRole GLASS_PANE
             = new AccessibleRole("glasspane");
@@ -185,13 +207,23 @@ public class AccessibleRole extends AccessibleBundle {
             = new AccessibleRole("layeredpane");
 
     /**
-     * An object that presents a list of objects to user and allows the
+     * An object that presents a list of objects to the user and allows the
      * user to select one or more of them.  A list is usually contained
      * within a scroll pane.
      * @see #SCROLL_PANE
+     * @see #LIST_ITEM
      */
     public static final AccessibleRole LIST
             = new AccessibleRole("list");
+
+    /**
+     * An object that presents an element in a list.  A list is usually
+     * contained within a scroll pane.
+     * @see #SCROLL_PANE
+     * @see #LIST
+     */
+    public static final AccessibleRole LIST_ITEM
+            = new AccessibleRole("listitem");
 
     /**
      * An object usually drawn at the top of the primary dialog box of
@@ -216,7 +248,7 @@ public class AccessibleRole extends AccessibleBundle {
             = new AccessibleRole("popupmenu");
 
     /** 
-     * An object usually contained in a menu bar that contains a list
+     * An object usually found inside a menu bar that contains a list
      * of actions the user can choose from.  A menu can have any object
      * as its children, but most often they are menu items, other menus,
      * or rudimentary objects such as radio buttons, check boxes, or
@@ -306,7 +338,7 @@ public class AccessibleRole extends AccessibleBundle {
   
     /**
      * A specialized push button that can be checked or unchecked, but
-     * does not provide a separate indicator indicating the current state.
+     * does not provide a separate indicator for the current state.
      * @see #PUSH_BUTTON
      * @see #CHECK_BOX
      * @see #RADIO_BUTTON
@@ -316,7 +348,7 @@ public class AccessibleRole extends AccessibleBundle {
 
     /**
      * A choice that can be checked or unchecked and provides a 
-     * separate indicator indicating the current state.
+     * separate indicator for the current state.
      * @see #PUSH_BUTTON
      * @see #TOGGLE_BUTTON
      * @see #RADIO_BUTTON
@@ -406,7 +438,7 @@ public class AccessibleRole extends AccessibleBundle {
 
     /**
      * A bar or palette usually composed of push buttons or toggle buttons.
-     * It is often used to provide the most often used functions for an
+     * It is often used to provide the most frequently used functions for an
      * application.
      */
     public static final AccessibleRole TOOL_BAR
@@ -469,17 +501,11 @@ public class AccessibleRole extends AccessibleBundle {
 //    public static final AccessibleRole DOCUMENT
 //            = new AccessibleRole("document");
 
-//    public static final AccessibleRole GROUPING
-//            = new AccessibleRole("grouping");
-
 //    public static final AccessibleRole IMAGE
-//            = new AccessibleRole("image");
+//            = new AccessibleRole("Image");
 
 //    public static final AccessibleRole INDICATOR
 //            = new AccessibleRole("indicator");
-
-//    public static final AccessibleRole LIST_ITEM
-//            = new AccessibleRole("listitem");
 
 //    public static final AccessibleRole RADIO_BUTTON_MENU_ITEM
 //            = new AccessibleRole("radiobuttonmenuitem");
@@ -494,7 +520,7 @@ public class AccessibleRole extends AccessibleBundle {
 //            = new AccessibleRole("treenode");
 
     /**
-     * Create a new AccessibleRole using the given locale independent key.
+     * Creates a new AccessibleRole using the given locale independent key.
      * This should not be a public method.  Instead, it is used to create
      * the constants in this file to make it a strongly typed enumeration.
      * Subclasses of this class should enforce similar policy.

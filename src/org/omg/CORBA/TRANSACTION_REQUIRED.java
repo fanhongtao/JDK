@@ -1,8 +1,11 @@
 /*
- * @(#)TRANSACTION_REQUIRED.java	1.11 01/11/29
+ * @(#)TRANSACTION_REQUIRED.java	1.14 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package org.omg.CORBA;
@@ -34,7 +37,7 @@ public final class TRANSACTION_REQUIRED extends SystemException {
 
     /**
      * Constructs a <code>TRANSACTION_REQUIRED</code> exception with the specified
-	 * description message, a minor code of 0, and a completion state of COMPLETED_NO.
+     * description message, a minor code of 0, and a completion state of COMPLETED_NO.
      * @param s the String containing a detail message
      */
     public TRANSACTION_REQUIRED(String s) {

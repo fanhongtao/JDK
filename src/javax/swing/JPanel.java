@@ -1,8 +1,11 @@
 /*
- * @(#)JPanel.java	1.31 01/11/29
+ * @(#)JPanel.java	1.37 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -19,6 +22,10 @@ import java.io.IOException;
 
 /**
  * JPanel is a generic lightweight container.
+ * For examples and task-oriented documentation for JPanel, see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/panel.html">How to Use Panels</a>,
+ * a section in <em>The Java Tutorial</em>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
@@ -27,13 +34,10 @@ import java.io.IOException;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
- * Mixing Heavy and Light Components</a>
- *
  * @beaninfo
  * description: A generic lightweight container.
  * 
- * @version 1.31 11/29/01
+ * @version 1.37 04/06/00
  * @author Arnaud Weber
  * @author Steve Wilson
  */
@@ -153,9 +157,13 @@ public class JPanel extends JComponent implements Accessible
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JPanel. 
+     * For JPanels, the AccessibleContext takes the form of an 
+     * AccessibleJPanel. 
+     * A new AccessibleJPanel instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJPanel that serves as the 
+     *         AccessibleContext of this JPanel
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -165,7 +173,10 @@ public class JPanel extends JComponent implements Accessible
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JPanel</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to panel user-interface 
+     * elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with

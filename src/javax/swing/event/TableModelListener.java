@@ -1,8 +1,11 @@
 /*
- * @(#)TableModelListener.java	1.11 01/11/29
+ * @(#)TableModelListener.java	1.12 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing.event;
@@ -13,7 +16,7 @@ import java.util.EventListener;
  * TableModelListener defines the interface for an object that listens
  * to changes in a TableModel.
  *
- * @version 1.11 11/29/01
+ * @version 1.12 02/02/00
  * @author Alan Chung
  * @see javax.swing.table.TableModel
  */

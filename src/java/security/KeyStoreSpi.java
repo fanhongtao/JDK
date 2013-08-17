@@ -1,8 +1,11 @@
 /*
- * @(#)KeyStoreSpi.java	1.5 01/11/29
+ * @(#)KeyStoreSpi.java	1.9 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.security;
@@ -21,11 +24,11 @@ import java.util.*;
  *
  * @author Jan Luehe
  *
- * @version 1.5, 11/29/01
+ * @version 1.9, 02/02/00
  *
  * @see KeyStore
  *
- * @since JDK1.2
+ * @since 1.2
  */
 
 public abstract class KeyStoreSpi {
@@ -195,6 +198,8 @@ public abstract class KeyStoreSpi {
      * Returns true if the entry identified by the given alias is a
      * <i>key entry</i>, and false otherwise.
      *
+     * @param alias the alias for the keystore entry to be checked
+     *
      * @return true if the entry identified by the given alias is a
      * <i>key entry</i>, false otherwise.
      */
@@ -203,6 +208,8 @@ public abstract class KeyStoreSpi {
     /**
      * Returns true if the entry identified by the given alias is a
      * <i>trusted certificate entry</i>, and false otherwise.
+     *
+     * @param alias the alias for the keystore entry to be checked
      *
      * @return true if the entry identified by the given alias is a
      * <i>trusted certificate entry</i>, false otherwise.

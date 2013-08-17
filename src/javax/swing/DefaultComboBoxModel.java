@@ -1,8 +1,11 @@
 /*
- * @(#)DefaultComboBoxModel.java	1.9 01/11/29
+ * @(#)DefaultComboBoxModel.java	1.11 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing;
 
@@ -26,7 +29,7 @@ import javax.accessibility.*;
 /**
  * The default model for combo boxes.
  *
- * @version 1.6 09/01/98
+ * @version 1.11 02/02/00
  * @author Arnaud Weber
  * @author Tom Santos
  */

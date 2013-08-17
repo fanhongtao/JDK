@@ -1,8 +1,11 @@
 /*
- * @(#)ProgressMonitor.java	1.19 01/11/29
+ * @(#)ProgressMonitor.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 
@@ -24,7 +27,7 @@ import java.awt.event.WindowEvent;
 
 
 /** A class to monitor the progress of some operation. If it looks
- * like it will take a while, a progress dialog will be popped up.
+ * like the operation will take a while, a progress dialog will be popped up.
  * When the ProgressMonitor is created it is given a numeric range and a
  * descriptive string. As the operation progresses, call the setProgress method
  * to indicate how far along the [min,max] range the operation is.
@@ -37,10 +40,17 @@ import java.awt.event.WindowEvent;
  * be updated when setProgress is called.  setProgress won't always update
  * the progress bar, it will only be done if the amount of progress is
  * visibly significant.
+ *
  * <p>
+ * 
+ * For further documentation and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/components/progress.html">How to Monitor Progress</a>,
+ * a section in <em>The Java Tutorial.</em>
+ *
  * @see ProgressMonitorInputStream
  * @author James Gosling
- * @version 1.19 11/29/01
+ * @version 1.22 02/02/00
  */
 public class ProgressMonitor extends Object
 {
@@ -72,7 +82,7 @@ public class ProgressMonitor extends Object
      *        to the user to indicate what operation is being monitored.
      *        This does not change as the operation progresses.
      *        See the message parameters to methods in
-     *        {@link JOptionsPane#message}
+     *        {@link JOptionPane#message}
      *        for the range of values.
      * @param note a short note describing the state of the
      *        operation.  As the operation progresses, you can call

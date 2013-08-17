@@ -1,8 +1,11 @@
 /*
- * @(#)jvmpi.h	1.20 01/11/29
+ * @(#)jvmpi.h	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_JVMPI_H_
@@ -166,6 +169,28 @@ typedef struct {
 	    jmethodID method_id;        /* id of unloaded compiled method */
 	} compiled_method_unload;
 
+	struct {
+	    jmethodID method_id; /* id of the method the instruction belongs to */
+	    jint offset;         /* instruction offset in the method's bytecode */
+	    union {
+		struct {
+		    jboolean is_true; /* whether true or false branch is taken  */
+		} if_info;
+		struct {
+		    jint key; /* top stack value used as an index */
+		    jint low; /* min value of the index           */
+		    jint hi;  /* max value of the index           */
+		} tableswitch_info;
+		struct {
+		    jint chosen_pair_index; /* actually chosen pair index (0-based)
+                                             * if chosen_pair_index == pairs_total then
+                                             * the 'default' branch is taken
+                                             */
+		    jint pairs_total;       /* total number of lookupswitch pairs */
+		} lookupswitch_info;
+	    } u;
+	} instruction;
+	
         struct {
 	    char *begin;                /* beginning of dump buffer, 
 					   see below for format */
@@ -303,6 +328,8 @@ typedef struct {
 
 #define JVMPI_EVENT_COMPILED_METHOD_LOAD    ((jint)7) 
 #define JVMPI_EVENT_COMPILED_METHOD_UNLOAD  ((jint)8) 
+
+#define JVMPI_EVENT_INSTRUCTION_START       ((jint)9) 
 
 #define JVMPI_EVENT_THREAD_START           ((jint)33) 
 #define JVMPI_EVENT_THREAD_END             ((jint)34) 

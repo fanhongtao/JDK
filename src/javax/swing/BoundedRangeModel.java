@@ -1,8 +1,11 @@
 /*
- * @(#)BoundedRangeModel.java	1.20 01/11/29
+ * @(#)BoundedRangeModel.java	1.22 00/02/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -46,8 +49,15 @@ import javax.swing.event.*;
  *   than PropertyChangeEvents. This was done to keep the overhead of monitoring
  *   a BoundedRangeModel low. Changes are often reported at MouseDragged rates. 
  * </ul>
+ *
+ * <p>
  * 
- * @version 1.20 11/29/01
+ * For an example of specifying custom bounded range models used by sliders,
+ * see <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/overview/anatomy.html">The Anatomy of a Swing-Based Program</a>
+ * in <em>The Java Tutorial.</em>
+ * 
+ * @version 1.22 02/02/00
  * @author Hans Muller
  * @see DefaultBoundedRangeModel
  */

@@ -1,8 +1,11 @@
 /*
- * @(#)JTree.java	1.111 01/11/29
+ * @(#)JTree.java	1.135 00/04/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package javax.swing;
@@ -19,18 +22,24 @@ import javax.accessibility.*;
 
 
 /**
+ * <a name="jtree_description">
  * A control that displays a set of hierarchical data as an outline.
- * A specific node can be identified either by a TreePath (an object
+ * You can find task-oriented documentation and examples of using trees in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>,
+ * a section in <em>The Java Tutorial.</em>
+ * <p>
+ * A specific node in a tree can be identified either by a
+ * <code>TreePath</code> (an object
  * that encapsulates a node and all of its ancestors), or by its
  * display row, where each row in the display area displays one node.
- * <p>
  * An <i>expanded</i> node is one displays its children. A <i>collapsed</i>
  * node is one which hides them. A <i>hidden</i> node is one which is
- * under a collapsed parent. A <i>viewable</i> node is under a collapsed 
- * parent, but may or may not be displayed. A <i>displayed</i> node
+ * under a collapsed ancestor. All of a <i>viewable</i> nodes parents
+ * are expanded, but may or may not be displayed. A <i>displayed</i> node
  * is both viewable and in the display area, where it can be seen.
  * <p>
- * These JTree methods use "visible" to mean "displayed":<ul>
+ * The following <code>JTree</code> methods use "visible" to mean "displayed":
+ * <ul>
  * <li><code>isRootVisible()</code>
  * <li><code>setRootVisible()</code>
  * <li><code>scrollPathToVisible()</code>
@@ -39,26 +48,28 @@ import javax.accessibility.*;
  * <li><code>setVisibleRowCount()</code>
  * </ul>
  * <p>
- * These JTree methods use "visible" to mean "viewable" (under an
- * expanded parent):<ul>
+ * The next group of <code>JTree</code> methods use "visible" to mean
+ * "viewable" (under an expanded parent):
+ * <ul>
  * <li><code>isVisible()</code>
  * <li><code>makeVisible()</code>
  * </ul>
  * <p>
  * If you are interested in knowing when the selection changes implement
- * the TreeSelectionListener interface and add the instance using the
- * method addTreeSelectionListener. valueChanged will be invoked when the
+ * the <code>TreeSelectionListener</code> interface and add the instance
+ * using the method <code>addTreeSelectionListener</code>.
+ * <code>valueChanged</code> will be invoked when the
  * selection changes, that is if the user clicks twice on the same
- * node valueChanged will only be invoked once.
+ * node <code>valueChanged</code> will only be invoked once.
  * <p>
- * If you are interested in knowing either double clicks events or when
- * a user clicks on a node, regardless of whether or not it was selected
- * it is recommended you do the following:
+ * If you are interested in detecting either double-click events or when
+ * a user clicks on a node, regardless of whether or not it was selected,
+ * we recommend you do the following:
  * <pre>
  * final JTree tree = ...;
  *
  * MouseListener ml = new MouseAdapter() {
- *     public void <b>mouseClicked</b>(MouseEvent e) {
+ *     public void <b>mousePressed</b>(MouseEvent e) {
  *         int selRow = tree.getRowForLocation(e.getX(), e.getY());
  *         TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
  *         if(selRow != -1) {
@@ -76,18 +87,16 @@ import javax.accessibility.*;
  * NOTE: This example obtains both the path and row, but you only need to
  * get the one you're interested in.
  * <p>
- * To use JTree to display compound nodes (for example, nodes containing both
+ * To use <code>JTree</code> to display compound nodes
+ * (for example, nodes containing both
  * a graphic icon and text), subclass {@link TreeCellRenderer} and use 
- * {@link #setTreeCellRenderer} to tell the tree to use it. To edit such nodes,
- * subclass {@link TreeCellEditor} and use {@link #setTreeCellEditor}.
+ * {@link #setCellRenderer} to tell the tree to use it. To edit such nodes,
+ * subclass {@link TreeCellEditor} and use {@link #setCellEditor}.
  * <p>
- * Like all JComponent classes, you can use {@link JComponent#registerKeyboardAction}
- * to associate an {@link Action} object with a {@link KeyStroke} and execute the
- * action under specified conditions.
- * <p>
- * See <a href="http://java.sun.com/docs/books/tutorial/ui/swing/tree.html">How to Use Trees</a>
- * in <a href="http://java.sun.com/Series/Tutorial/index.html"><em>The Java Tutorial</em></a>
- * for further documentation.
+ * Like all <code>JComponent</code> classes, you can use {@link InputMap} and
+ * {@link ActionMap}
+ * to associate an {@link Action} object with a {@link KeyStroke}
+ * and execute the action under specified conditions.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
@@ -102,8 +111,9 @@ import javax.accessibility.*;
  *
  * @beaninfo
  *   attribute: isContainer false
+ * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.78 05/11/98
+ * @version $I% 04/06/00
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -133,8 +143,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     protected boolean                    rootVisible;
 
     /**
-     * The cell used to draw nodes. If null, the UI uses a default
-     * cellRenderer.
+     * The cell used to draw nodes. If <code>null</code>, the UI uses a default
+     * <code>cellRenderer</code>.
      */
     transient protected TreeCellRenderer  cellRenderer;
 
@@ -145,7 +155,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     protected int                         rowHeight;
 
     /**
-     * Maps from TreePath to Boolean indicating whether or not the
+     * Maps from <code>TreePath</code> to <code>Boolean</code>
+     * indicating whether or not the
      * particular path is expanded. This ONLY indicates whether a 
      * given path is expanded, and NOT if it is visible or not. That
      * information must be determined by visiting all the parent
@@ -179,12 +190,14 @@ public class JTree extends JComponent implements Scrollable, Accessible
     protected boolean           showsRootHandles;
 
     /**
-     * Creates a new event and passed it off the selectionListeners.
+     * Creates a new event and passed it off the
+     * <code>selectionListeners</code>.
      */
     protected transient TreeSelectionRedirector selectionRedirector;
 
     /**
-     * Editor for the entries.  Default is null (tree is not editable).
+     * Editor for the entries.  Default is <code>null</code>
+     * (tree is not editable).
      */
     transient protected TreeCellEditor          cellEditor;
 
@@ -207,15 +220,16 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Number of rows to make visible at one time. This value is used for
-     * the Scrollable interface. It determines the preferred size of the 
-     * display area.
+     * the <code>Scrollable</code> interface. It determines the preferred
+     * size of the display area.
      */
     protected int                     visibleRowCount;
 
     /**
      * If true, when editing is to be stopped by way of selection changing,
-     * data in tree changing or other means stopCellEditing is invoked, and
-     * changes are saved. If false, cancelCellEditing is invoked, and changes
+     * data in tree changing or other means <code>stopCellEditing</code>
+     * is invoked, and changes are saved. If false,
+     * <code>cancelCellEditing</code> is invoked, and changes
      * are discarded. Default is false.
      */
     protected boolean                 invokesStopCellEditing;
@@ -232,14 +246,45 @@ public class JTree extends JComponent implements Scrollable, Accessible
     protected int                     toggleClickCount;
 
     /**
-     * Updates the expandedState.
+     * Updates the <code>expandedState</code>.
      */
     transient protected TreeModelListener       treeModelListener;
 
     /**
-     * Used when setExpandedState is invoked, will be a Stack of Stacks.
+     * Used when <code>setExpandedState</code> is invoked,
+     * will be a <code>Stack</code> of <code>Stack</code>s.
      */
     transient private Stack           expandedStack;
+
+    /**
+     * Lead selection path, may not be <code>null</code>.
+     */
+    private TreePath                  leadPath;
+
+    /**
+     * Anchor path.
+     */
+    private TreePath                  anchorPath;
+
+    /**
+     * True if paths in the selection should be expanded.
+     */
+    private boolean                   expandsSelectedPaths;
+
+    /**
+     * This is set to true for the life of the setUI call.
+     */
+    private boolean                   settingUI;
+
+    /**
+     * When <code>addTreeExpansionListener</code> is invoked,
+     * and settingUI is true, this ivar gets set to the passed in
+     * <code>Listener</code>. This listener is then notified first in
+     * <code>fireTreeCollapsed</code> and <code>fireTreeExpanded</code>.
+     * <p>This is an ugly workaround for a way to have the UI listener
+     * get notified before other listeners.
+     */
+    private transient TreeExpansionListener     uiTreeExpansionListener;
 
     /**
      * Max number of stacks to keep around.
@@ -249,39 +294,48 @@ public class JTree extends JComponent implements Scrollable, Accessible
     //
     // Bound propery names
     //
-    /** Bound property name for cellRenderer. */
+    /** Bound property name for <code>cellRenderer</code>. */
     public final static String        CELL_RENDERER_PROPERTY = "cellRenderer";
-    /** Bound property name for treeModel. */
-    public final static String        TREE_MODEL_PROPERTY = "treeModel";
-    /** Bound property name for rootVisible. */
+    /** Bound property name for <code>treeModel</code>. */
+    public final static String        TREE_MODEL_PROPERTY = "model";
+    /** Bound property name for <code>rootVisible</code>. */
     public final static String        ROOT_VISIBLE_PROPERTY = "rootVisible";
-    /** Bound property name for showsRootHandles. */
+    /** Bound property name for <code>showsRootHandles</code>. */
     public final static String        SHOWS_ROOT_HANDLES_PROPERTY = "showsRootHandles";
-    /** Bound property name for rowHeight. */
+    /** Bound property name for <code>rowHeight</code>. */
     public final static String        ROW_HEIGHT_PROPERTY = "rowHeight";
-    /** Bound property name for cellEditor. */
+    /** Bound property name for <code>cellEditor</code>. */
     public final static String        CELL_EDITOR_PROPERTY = "cellEditor";
-    /** Bound property name for editable. */
+    /** Bound property name for <code>editable</code>. */
     public final static String        EDITABLE_PROPERTY = "editable";
-    /** Bound property name for largeModel. */
+    /** Bound property name for <code>largeModel</code>. */
     public final static String        LARGE_MODEL_PROPERTY = "largeModel";
     /** Bound property name for selectionModel. */
     public final static String        SELECTION_MODEL_PROPERTY = "selectionModel";
-    /** Bound property name for visibleRowCount. */
+    /** Bound property name for <code>visibleRowCount</code>. */
     public final static String        VISIBLE_ROW_COUNT_PROPERTY = "visibleRowCount";
-    /** Bound property name for messagesStopCellEditing. */
-    public final static String        INVOKES_STOP_CELL_EDITING_PROPERTY = "messagesStopCellEditing";
-    /** Bound property name for scrollsOnExpand. */
+    /** Bound property name for <code>messagesStopCellEditing</code>. */
+    public final static String        INVOKES_STOP_CELL_EDITING_PROPERTY = "invokesStopCellEditing";
+    /** Bound property name for <code>scrollsOnExpand</code>. */
     public final static String        SCROLLS_ON_EXPAND_PROPERTY = "scrollsOnExpand";
-    /** Bound property name for toggleClickCount. */
-    //public final static String        TOGGLE_CLICK_COUNT_PROPERTY = "toggleClickCount";
+    /** Bound property name for <code>toggleClickCount</code>. */
+    public final static String        TOGGLE_CLICK_COUNT_PROPERTY = "toggleClickCount";
+    /** Bound property name for <code>leadSelectionPath</code>.
+     * @since 1.3 */
+    public final static String        LEAD_SELECTION_PATH_PROPERTY = "leadSelectionPath";
+    /** Bound property name for anchor selection path.
+     * @since 1.3 */
+    public final static String        ANCHOR_SELECTION_PATH_PROPERTY = "anchorSelectionPath";
+    /** Bound property name for expands selected paths property
+     * @since 1.3 */
+    public final static String        EXPANDS_SELECTED_PATHS_PROPERTY = "expandsSelectedPaths";
 
 
     /**
-     * Creates and returns a sample TreeModel. Used primarily for beanbuilders.
-     * to show something interesting.
+     * Creates and returns a sample <code>TreeModel</code>.
+     * Used primarily for beanbuilders to show something interesting.
      *
-     * @return the default TreeModel
+     * @return the default <code>TreeModel</code>
      */
     protected static TreeModel getDefaultTreeModel() {
         DefaultMutableTreeNode      root = new DefaultMutableTreeNode("JTree");
@@ -311,17 +365,19 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a TreeModel wrapping the specified object. If the object
+     * Returns a <code>TreeModel</code> wrapping the specified object.
+     * If the object
      * is:<ul>
-     * <li>an array of Objects,
-     * <li>a Hashtable, or
-     * <li>a Vector
+     * <li>an array of <code>Object</code>s,
+     * <li>a <code>Hashtable</code>, or
+     * <li>a <code>Vector</code>
      * </ul>then a new root node is created with each of the incoming 
      * objects as children. Otherwise, a new root is created with the 
      * specified object as its value.
      *
-     * @param value  the Object used as the foundation for the TreeModel
-     * @return a TreeModel wrapping the specified object
+     * @param value  the <code>Object</code> used as the foundation for
+     *		the <code>TreeModel</code>
+     * @return a <code>TreeModel</code> wrapping the specified object
      */
     protected static TreeModel createTreeModel(Object value) {
         DefaultMutableTreeNode           root;
@@ -338,12 +394,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a JTree with a sample model.
-     * The default model used by the tree defines a leaf node as any node without
-     * children.
+     * Returns a <code>JTree</code> with a sample model.
+     * The default model used by the tree defines a leaf node as any node
+     * without children.
      *
-     * @return a JTree with the default model, which defines a leaf node
-     *         as any node without children.
+     * @return a <code>JTree</code> with the default model,
+     *		which defines a leaf node as any node without children.
      * @see DefaultTreeModel#asksAllowsChildren
      */
     public JTree() {
@@ -351,14 +407,15 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a JTree with each element of the specified array as the
+     * Returns a <code>JTree</code> with each element of the
+     * specified array as the
      * child of a new root node which is not displayed.
      * By default, the tree defines a leaf node as any node without
      * children.
      *
-     * @param value  an array of Objects
-     * @return a JTree with the contents of the array as children of
-     *         the root node
+     * @param value  an array of <code>Object</code>s
+     * @return a <code>JTree</code> with the contents of the array as
+     *		children of the root node
      * @see DefaultTreeModel#asksAllowsChildren
      */
     public JTree(Object[] value) {
@@ -368,13 +425,14 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a JTree with each element of the specified Vector as the
+     * Returns a <code>JTree</code> with each element of the specified
+     * <code>Vector</code> as the
      * child of a new root node which is not displayed. By default, the
      * tree defines a leaf node as any node without children.
      *
-     * @param value  a Vector
-     * @return a JTree with the contents of the Vector as children of
-     *         the root node
+     * @param value  a <code>Vector</code>
+     * @return a <code>JTree</code> with the contents of the
+     *		<code>Vector</code> as children of the root node
      * @see DefaultTreeModel#asksAllowsChildren
      */
     public JTree(Vector value) {
@@ -384,14 +442,15 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a JTree created from a Hashtable which does not display
-     * the root. Each value-half of the key/value pairs in the HashTable
+     * Returns a <code>JTree</code> created from a <code>Hashtable</code>
+     * which does not display with root.
+     * Each value-half of the key/value pairs in the <code>HashTable</code>
      * becomes a child of the new root node. By default, the tree defines
      * a leaf node as any node without children.
      *
-     * @param value  a Hashtable
-     * @return a JTree with the contents of the Hashtable as children of
-     *         the root node
+     * @param value  a <code>Hashtable</code>
+     * @return a <code>JTree</code> with the contents of the
+     * 		<code>Hashtable</code> as children of the root node
      * @see DefaultTreeModel#asksAllowsChildren
      */
     public JTree(Hashtable value) {
@@ -401,12 +460,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a JTree with the specified TreeNode as its root, which  
-     * displays the root node. By default, the tree defines a leaf node as any node
-     * without children.
+     * Returns a <code>JTree</code> with the specified TreeNode as its root,
+     * which displays the root node.
+     * By default, the tree defines a leaf node as any node without children.
      *
-     * @param root  a TreeNode object
-     * @return a JTree with the specified root node
+     * @param root  a <code>TreeNode</code> object
+     * @return a <code>JTree</code> with the specified root node
      * @see DefaultTreeModel#asksAllowsChildren
      */
     public JTree(TreeNode root) {
@@ -414,15 +473,16 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a JTree with the specified TreeNode as its root, which 
+     * Returns a <code>JTree</code> with the specified <code>TreeNode</code>
+     * as its root, which 
      * displays the root node and which decides whether a node is a 
      * leaf node in the specified manner.
      *
-     * @param root  a TreeNode object
+     * @param root  a <code>TreeNode</code> object
      * @param asksAllowsChildren  if false, any node without children is a 
-     *              leaf node. If true, only nodes that do not allow 
-     *              children are leaf nodes.
-     * @return a JTree with the specified root node
+     *              leaf node; if true, only nodes that do not allow 
+     *              children are leaf nodes
+     * @return a <code>JTree</code> with the specified root node
      * @see DefaultTreeModel#asksAllowsChildren
      */
     public JTree(TreeNode root, boolean asksAllowsChildren) {
@@ -430,11 +490,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns an instance of JTree which displays the root node 
+     * Returns an instance of <code>JTree</code> which displays the root node 
      * -- the tree is created using the specified data model.
      *
-     * @param newModel  the TreeModel to use as the data model
-     * @return a JTree based on the TreeModel
+     * @param newModel  the <code>TreeModel</code> to use as the data model
+     * @return a <code>JTree</code> based on the <code>TreeModel</code>
      */
     public JTree(TreeModel newModel) {
         super();
@@ -449,6 +509,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
         cellRenderer = null;
 	scrollsOnExpand = true;
         setOpaque(true);
+	expandsSelectedPaths = true;
         updateUI();
         setModel(newModel);
     }
@@ -470,15 +531,21 @@ public class JTree extends JComponent implements Scrollable, Accessible
      */
     public void setUI(TreeUI ui) {
         if ((TreeUI)this.ui != ui) {
-            super.setUI(ui);
-            repaint();
+	    settingUI = true;
+	    uiTreeExpansionListener = null;
+	    try {
+		super.setUI(ui);
+	    }
+	    finally {
+		settingUI = false;
+	    }
         }
     }
 
     /**
-     * Notification from the UIManager that the L&F has changed. 
+     * Notification from the <code>UIManager</code> that the L&F has changed. 
      * Replaces the current UI object with the latest version from the 
-     * UIManager.
+     * <code>UIManager</code>.
      *
      * @see JComponent#updateUI
      */
@@ -491,7 +558,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the name of the L&F class that renders this component.
      *
-     * @return "TreeUI"
+     * @return the string "TreeUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      */
@@ -501,18 +568,20 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
 
     /**
-     * Returns the current TreeCellRenderer that is rendering each cell.
+     * Returns the current <code>TreeCellRenderer</code>
+     *  that is rendering each cell.
      *
-     * @return the TreeCellRenderer that is rendering each cell
+     * @return the <code>TreeCellRenderer</code> that is rendering each cell
      */
     public TreeCellRenderer getCellRenderer() {
         return cellRenderer;
     }
 
     /**
-     * Sets the TreeCellRenderer that will be used to draw each cell.
+     * Sets the <code>TreeCellRenderer</code> that will be used to
+     * draw each cell.
      *
-     * @param x  the TreeCellRenderer that is to render each cell
+     * @param x  the <code>TreeCellRenderer</code> that is to render each cell
      * @beaninfo
      *        bound: true
      *  description: The TreeCellRenderer that will be used to draw
@@ -552,19 +621,19 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns true if the tree is editable.
      *
-     * @return true if the tree is editable.
+     * @return true if the tree is editable
      */
     public boolean isEditable() {
         return editable;
     }
 
     /**
-     * Sets the cell editor.  A null value implies that the
+     * Sets the cell editor.  A <code>null</code> value implies that the
      * tree cannot be edited.  If this represents a change in the
-     * cellEditor, the propertyChange method is invoked on all
-     * listeners.
+     * <code>cellEditor</code>, the <code>propertyChange</code>
+     * method is invoked on all listeners.
      *
-     * @param cellEditor the TreeCellEditor to use
+     * @param cellEditor the <code>TreeCellEditor</code> to use
      * @beaninfo
      *        bound: true
      *  description: The cell editor. A null value implies the tree
@@ -581,26 +650,26 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the editor used to edit entries in the tree.
      *
-     * @return the TreeCellEditor in use, or null if the tree cannot
-     *         be edited
+     * @return the <code>TreeCellEditor</code> in use,
+     *		or <code>null</code> if the tree cannot be edited
      */
     public TreeCellEditor getCellEditor() {
         return cellEditor;
     }
 
     /**
-     * Returns the TreeModel that is providing the data.
+     * Returns the <code>TreeModel</code> that is providing the data.
      *
-     * @return the TreeModel that is providing the data
+     * @return the <code>TreeModel</code> that is providing the data
      */
     public TreeModel getModel() {
         return treeModel;
     }
 
     /**
-     * Sets the TreeModel that will provide the data.
+     * Sets the <code>TreeModel</code> that will provide the data.
      *
-     * @param newModel the TreeModel that is to provide the data
+     * @param newModel the <code>TreeModel</code> that is to provide the data
      * @beaninfo
      *        bound: true
      *  description: The TreeModel that will provide the data.
@@ -648,7 +717,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Determines whether or not the root node from
-     * the TreeModel is visible.
+     * the <code>TreeModel</code> is visible.
      *
      * @param rootVisible true if the root node of the tree is to be displayed
      * @see #rootVisible
@@ -706,7 +775,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Sets the height of each cell.  If the specified value
+     * Sets the height of each cell, in pixels.  If the specified value
      * is less than or equal to zero the current cell renderer is
      * queried for each row's height.
      *
@@ -729,7 +798,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * or equal to 0 the height for each row is determined by the
      * renderer.
      *
-     * @param the height of each cell, in pixels. Zero or negative if the
+     * @param the height of each cell, in pixels; zero or negative if the
      *        height of each row is determined by the tree cell renderer
      */
     public int getRowHeight()
@@ -784,9 +853,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * <p>
      * Fires a property change for the INVOKES_STOP_CELL_EDITING_PROPERTY.
      *
-     * @param newValue true means that stopCellEditing is invoked when
-     *        editing is interruped, and data is saved. False means that
-     *        cancelCellEditing is invoked, and changes are lost.
+     * @param newValue true means that <code>stopCellEditing</code> is invoked 
+     *        when editing is interruped, and data is saved; false means that
+     *        <code>cancelCellEditing</code> is invoked, and changes are lost
      * @beaninfo
      *        bound: true
      *  description: Determines what happens when editing is interrupted,
@@ -817,6 +886,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Determines whether or not when a node is expanded, as many of
      * the descendants are scrolled to be inside the viewport as
      * possible. The default is true.
+     * @beaninfo
+     *        bound: true
+     *  description: Indicates if a node descendent should be scrolled when expanded.
      */
     public void setScrollsOnExpand(boolean newValue) {
 	boolean           oldValue = scrollsOnExpand;
@@ -828,19 +900,23 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Returns true if the tree scrolls to show previously hidden children.
+     *
      * @return true if when a node is expanded as many of the descendants
-     * as possible are scrolled to be visible.
+     * as possible are scrolled to be visible
      */
     public boolean getScrollsOnExpand() {
 	return scrollsOnExpand;
     }
 
-    // NOTE: This property will be enabled in a future release.
     /**
      * Sets the number of mouse clicks before a node will expand or close.
      * The default is two. 
+     *
+     * @since 1.3
+     * @beaninfo
+     *        bound: true
+     *  description: Number of clicks before a node will expand/collapse.
      */
-/*
     public void setToggleClickCount(int clickCount) {
 	int         oldCount = toggleClickCount;
 
@@ -848,17 +924,55 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	firePropertyChange(TOGGLE_CLICK_COUNT_PROPERTY, oldCount,
 			   clickCount);
     }
-*/
 
     /**
      * Returns the number of mouse clicks needed to expand or close a node.
-     * @return number of mouse clicks before node is expanded.
+     *
+     * @return number of mouse clicks before node is expanded
+     * @since 1.3
      */
-/*
     public int getToggleClickCount() {
 	return toggleClickCount;
     }
-*/
+
+    /**
+     * Configures the <code>expandsSelectedPaths</code> property. If
+     * true, any time the selection is changed, either via the
+     * <code>TreeSelectionModel</code>, or the cover methods provided by 
+     * <code>JTree</code>, the <code>TreePath</code>s parents will be
+     * expanded to make them visible (visible meaning the parent path is
+     * expanded, not necessarily in the visible rectangle of the
+     * <code>JTree</code>). If false, when the selection
+     * changes the nodes parent is not made visible (all its parents expanded).
+     * This is useful if you wish to have your selection model maintain paths
+     * that are not always visible (all parents expanded).
+     *
+     * @param newValue the new value for <code>expandsSelectedPaths</code>
+     *
+     * @since 1.3
+     * @beaninfo
+     *        bound: true
+     *  description: Indicates whether changes to the selection should make
+     *               the parent of the path visible.
+     */
+    public void setExpandsSelectedPaths(boolean newValue) {
+	boolean         oldValue = expandsSelectedPaths;
+
+	expandsSelectedPaths = newValue;
+	firePropertyChange(EXPANDS_SELECTED_PATHS_PROPERTY, oldValue,
+			   newValue);
+    }
+
+    /**
+     * Returns the <code>expandsSelectedPaths</code> property.
+     * @return true if selection changes result in the parent path being
+     *         expanded
+     * @since 1.3
+     * @see #setExpandsSelectedPaths
+     */
+    public boolean getExpandsSelectedPaths() {
+	return expandsSelectedPaths;
+    }
 
     /**
      * Returns <code>isEditable</code>. This is invoked from the UI before
@@ -874,16 +988,20 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Overrides JComponent's getToolTipText method in order to allow 
+     * Overrides <code>JComponent</code>'s <code>getToolTipText</code>
+     * method in order to allow 
      * renderer's tips to be used if it has text set.
      * <p>
-     * NOTE: For JTree to properly display tooltips of its renderers
-     *       JTree must be a registered component with the ToolTipManager.
-     *       This can be done by invoking
-     *       <code>ToolTipManager.sharedInstance().registerComponent(tree)</code>.
-     *       This is not done automaticly!
+     * NOTE: For <code>JTree</code> to properly display tooltips of its
+     * renderers, <code>JTree</code> must be a registered component with the
+     * <code>ToolTipManager</code>.  This can be done by invoking
+     * <code>ToolTipManager.sharedInstance().registerComponent(tree)</code>.
+     * This is not done automatically!
      *
-     * @param event the MouseEvent that initiated the ToolTip display
+     * @param event the <code>MouseEvent</code> that initiated the 
+     *		<code>ToolTip</code> display
+     * @return a string containing the  tooltip or <code>null</code>
+     *		if <code>event</code> is null
      */
     public String getToolTipText(MouseEvent event) {
         if(event != null) {
@@ -919,18 +1037,18 @@ public class JTree extends JComponent implements Scrollable, Accessible
     
     /**
      * Called by the renderers to convert the specified value to
-     * text. This implementation returns value.toString(), ignoring
+     * text. This implementation returns <code>value.toString</code>, ignoring
      * all other arguments. To control the conversion, subclass this 
      * method and use any of the arguments you need.
      * 
-     * @param value the Object to convert to text
+     * @param value the <code>Object</code> to convert to text
      * @param selected true if the node is selected
      * @param expanded true if the node is expanded
      * @param leaf  true if the node is a leaf node
-     * @param row  an int specifying the node's display row, where 0 is 
+     * @param row  an integer specifying the node's display row, where 0 is 
      *             the first row in the display
      * @param hasFocus true if the node has the focus
-     * @return the String representation of the node's value
+     * @return the <code>String</code> representation of the node's value
      */
     public String convertValueToText(Object value, boolean selected,
                                      boolean expanded, boolean leaf, int row,
@@ -959,31 +1077,64 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /** 
-     * Selects the node identified by the specified path.  If any
-     * component of the path is hidden (under a collapsed node), it is 
+     * Selects the node identified by the specified path. If any
+     * component of the path is hidden (under a collapsed node), and
+     * <code>getExpandsSelectedPaths</code> is true it is 
      * exposed (made viewable).
      *
-     * @param path the TreePath specifying the node to select
+     * @param path the <code>TreePath</code> specifying the node to select
      */
     public void setSelectionPath(TreePath path) {
-	makeVisible(path);
         getSelectionModel().setSelectionPath(path);
     }
 
     /** 
      * Selects the nodes identified by the specified array of paths.
      * If any component in any of the paths is hidden (under a collapsed
-     * node), it is exposed (made viewable).
+     * node), and <code>getExpandsSelectedPaths</code> is true
+     * it is exposed (made viewable).
      *
-     * @param paths an array of TreePath objects that specifies the nodes
-     *        to select
+     * @param paths an array of <code>TreePath</code> objects that specifies
+     *		the nodes to select
      */
     public void setSelectionPaths(TreePath[] paths) {
-	if(paths != null) {
-	    for(int counter = paths.length - 1; counter >= 0; counter--)
-		makeVisible(paths[counter]);
-	}
         getSelectionModel().setSelectionPaths(paths);
+    }
+
+    /**
+     * Sets the path identifies as the lead. The lead may not be selected.
+     * The lead is not maintained by <code>JTree</code>,
+     * rather the UI will update it.
+     *
+     * @param newPath  the new lead path
+     * @since 1.3
+     * @beaninfo
+     *        bound: true
+     *  description: Lead selection path
+     */
+    public void setLeadSelectionPath(TreePath newPath) {
+	TreePath          oldValue = leadPath;
+
+	leadPath = newPath;
+	firePropertyChange(LEAD_SELECTION_PATH_PROPERTY, oldValue, newPath);
+    }
+
+    /**
+     * Sets the path identified as the anchor.
+     * The anchor is not maintained by <code>JTree</code>, rather the UI will 
+     * update it.
+     *
+     * @param newPath  the new anchor path
+     * @since 1.3
+     * @beaninfo
+     *        bound: true
+     *  description: Anchor selection path
+     */
+    public void setAnchorSelectionPath(TreePath newPath) {
+	TreePath          oldValue = anchorPath;
+
+	anchorPath = newPath;
+	firePropertyChange(ANCHOR_SELECTION_PATH_PROPERTY, oldValue, newPath);
     }
 
     /**
@@ -1001,7 +1152,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Selects the nodes corresponding to each of the specified rows
      * in the display. If a particular element of <code>rows</code> is
-     * < 0 or >= getRowCount, it will be ignored. If none of the elements
+     * < 0 or >= <code>getRowCount</code>, it will be ignored.
+     * If none of the elements
      * in <code>rows</code> are valid rows, the selection will
      * be cleared. That is it will be as if <code>clearSelection</code>
      * was invoked.
@@ -1016,44 +1168,43 @@ public class JTree extends JComponent implements Scrollable, Accessible
             int                  numRows = rows.length;
             TreePath[]           paths = new TreePath[numRows];
 
-            for(int counter = 0; counter < numRows; counter++)
+            for(int counter = 0; counter < numRows; counter++) {
                 paths[counter] = ui.getPathForRow(this, rows[counter]);
+	    }
             setSelectionPaths(paths);
         }
     }
 
     /**
-     * Adds the node identified by the specified TreePath to the current
-     * selection. If any component of the path isn't viewable, it is 
+     * Adds the node identified by the specified <code>TreePath</code>
+     * to the current
+     * selection. If any component of the path isn't viewable, and
+     * <code>getExpandsSelectedPaths</code>is true it is 
      * made viewable.
      *
-     * @param path the TreePath to add
+     * @param path the <code>TreePath</code> to add
      */
     public void addSelectionPath(TreePath path) {
-	makeVisible(path);
         getSelectionModel().addSelectionPath(path);
     }
 
     /**
      * Adds each path in the array of paths to the current selection. If
-     * any component of any of the paths isn't viewable, it is
+     * any component of any of the paths isn't viewable and
+     * <code>getExpandsSelectedPaths</code> is true, it is
      * made viewable.
      *
-     * @param paths an array of TreePath objects that specifies the nodes
-     *              to add
+     * @param paths an array of <code>TreePath</code> objects that specifies
+     *		the nodes to add
      */
     public void addSelectionPaths(TreePath[] paths) {
-	if(paths != null) {
-	    for(int counter = paths.length - 1; counter >= 0; counter--)
-		makeVisible(paths[counter]);
-	}
 	getSelectionModel().addSelectionPaths(paths);
     }
 
     /**
      * Adds the path at the specified row to the current selection.
      *
-     * @param row  an int specifying the row of the node to add,
+     * @param row  an integer specifying the row of the node to add,
      *             where 0 is the first row in the display
      */
     public void addSelectionRow(int row) {
@@ -1085,8 +1236,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Returns the last path component in the first node of the current 
      * selection.
      *
-     * @return the last Object in the first selected node's TreePath,
-     *         or null if nothing is selected
+     * @return the last <code>Object</code> in the first selected node's
+     *		<code>TreePath</code>,
+     *		or <code>null</code> if nothing is selected
      * @see TreePath#getLastPathComponent
      */
     public Object getLastSelectedPathComponent() {
@@ -1098,10 +1250,27 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
+     * Returns the path identified as the lead.
+     * @return path identified as the lead
+     */
+    public TreePath getLeadSelectionPath() {
+	return leadPath;
+    }
+
+    /**
+     * Returns the path identified as the anchor.
+     * @return path identified as the anchor
+     * @since 1.3
+     */
+    public TreePath getAnchorSelectionPath() {
+	return anchorPath;
+    }
+
+    /**
      * Returns the path to the first selected node.
      *
-     * @return the TreePath for the first selected node, or null if
-     *         nothing is currently selected
+     * @return the <code>TreePath</code> for the first selected node,
+     *		or <code>null</code> if nothing is currently selected
      */
     public TreePath getSelectionPath() {
         return getSelectionModel().getSelectionPath();
@@ -1110,8 +1279,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the paths of all selected values.
      *
-     * @return an array of TreePath objects indicating the selected
-     *         nodes, or null if nothing is currently selected.
+     * @return an array of <code>TreePath</code> objects indicating the selected
+     *         nodes, or <code>null</code> if nothing is currently selected
      */
     public TreePath[] getSelectionPaths() {
         return getSelectionModel().getSelectionPaths();
@@ -1119,11 +1288,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Returns all of the currently selected rows. This method is simply
-     * forwarded to the TreeSelectionModel. If nothing is selected null
-     * or an empty array with be returned, based on the TreeSelectionModel
+     * forwarded to the <code>TreeSelectionModel</code>.
+     * If nothing is selected <code>null</code> or an empty array will
+     * be returned, based on the <code>TreeSelectionModel</code>
      * implementation.
      *
-     * @return an array of ints that identifies all currently selected rows
+     * @return an array of integers that identifies all currently selected rows
      *         where 0 is the first row in the display
      */
     public int[] getSelectionRows() {
@@ -1142,7 +1312,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Gets the first selected row.
      *
-     * @return an int designating the first selected row, where 0 is the 
+     * @return an integer designating the first selected row, where 0 is the 
      *         first row in the display
      */
     public int getMinSelectionRow() {
@@ -1150,9 +1320,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Gets the last selected row.
+     * Returns the last selected row.
      *
-     * @return an int designating the last selected row, where 0 is the 
+     * @return an integer designating the last selected row, where 0 is the 
      *         first row in the display
      */
     public int getMaxSelectionRow() {
@@ -1160,28 +1330,25 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns the row index of the last node added to the selection.
+     * Returns the row index corresponding to the lead path.
      *
-     * @return an int giving the row index of the last node added to the
-     *         selection, where 0 is the first row in the display
+     * @return an integer giving the row index of the lead path,
+     *		where 0 is the first row in the display; or -1
+     *		if <code>leadPath</code> is <code>null</code>
      */
     public int getLeadSelectionRow() {
-        return getSelectionModel().getLeadSelectionRow();
-    }
+	TreePath leadPath = getLeadSelectionPath();
 
-    /**
-     * Returns the path of the last node added to the selection.
-     *
-     * @return the TreePath of the last node added to the selection.
-     */
-    public TreePath getLeadSelectionPath() {
-        return getSelectionModel().getLeadSelectionPath();
+	if (leadPath != null) {
+	    return getRowForPath(leadPath);
+	}
+        return -1;
     }
 
     /**
      * Returns true if the item identified by the path is currently selected.
      *
-     * @param path a TreePath identifying a node
+     * @param path a <code>TreePath</code> identifying a node
      * @return true if the node is selected
      */
     public boolean isPathSelected(TreePath path) {
@@ -1191,7 +1358,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns true if the node identitifed by row is selected.
      *
-     * @param row  an int specifying a display row, where 0 is the first
+     * @param row  an integer specifying a display row, where 0 is the first
      *             row in the display
      * @return true if the node is selected
      */
@@ -1200,18 +1367,26 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns an Enumeration of the descendants of <code>path</code> that
-     * are currently expanded. If <code>path</code> is not currently
-     * expanded, this will return null. If you expand/collapse nodes while
-     * iterating over the returned Enumeration this may not return all
+     * Returns an <code>Enumeration</code> of the descendants of the
+     * path <code>parent</code> that
+     * are currently expanded. If <code>parent</code> is not currently
+     * expanded, this will return <code>null</code>.
+     * If you expand/collapse nodes while
+     * iterating over the returned <code>Enumeration</code>
+     * this may not return all
      * the expanded paths, or may return paths that are no longer expanded.
+     *
+     * @param parent  the path which is to be examined
+     * @return an <code>Enumeration</code> of the descendents of 
+     *		<code>parent</code>, or <code>null</code> if
+     *		<code>parent</code> is not currently expanded
      */
     public Enumeration getExpandedDescendants(TreePath parent) {
 	if(!isExpanded(parent))
 	    return null;
 
 	Enumeration       toggledPaths = expandedState.keys();
-	Vector            elements = new Vector();
+	Vector            elements = null;
 	TreePath          path;
 	Object            value;
 
@@ -1222,11 +1397,18 @@ public class JTree extends JComponent implements Scrollable, Accessible
 		// Add the path if it is expanded, a descendant of parent,
 		// and it is visible (all parents expanded). This is rather
 		// expensive!
-		if(value != null && ((Boolean)value).booleanValue() &&
+		if(path != parent && value != null &&
+		   ((Boolean)value).booleanValue() &&
 		   parent.isDescendant(path) && isVisible(path)) {
+		    if (elements == null) {
+			elements = new Vector();
+		    }
 		    elements.addElement(path);
 		}
 	    }
+	}
+	if (elements == null) {
+	    return DefaultMutableTreeNode.EMPTY_ENUMERATION;
 	}
 	return elements.elements();
     }
@@ -1234,6 +1416,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns true if the node identified by the path has ever been
      * expanded.
+     * @return true if the <code>path</code> has ever been expanded
      */
     public boolean hasBeenExpanded(TreePath path) {
 	return (path != null && expandedState.get(path) != null);
@@ -1242,7 +1425,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns true if the node identified by the path is currently expanded,
      * 
-     * @param path  the TreePath specifying the node to check
+     * @param path  the <code>TreePath</code> specifying the node to check
      * @return false if any of the nodes in the node's path are collapsed, 
      *               true if all nodes in the path are expanded
      */
@@ -1289,7 +1472,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * this will return false if any of the values in path are currently
      * not being displayed.
      * 
-     * @param path  the TreePath to check
+     * @param path  the <code>TreePath</code> to check
      * @return true if any of the nodes in the node's path are collapsed, 
      *               false if all nodes in the path are expanded
      */
@@ -1311,7 +1494,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Ensures that the node identified by path is currently viewable.
      *
-     * @param path  the TreePath to make visible
+     * @param path  the <code>TreePath</code> to make visible
      */
     public void makeVisible(TreePath path) {
         if(path != null) {
@@ -1325,7 +1508,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Returns true if the value identified by path is currently viewable,
-     * which means it is either the root or all of its parents are exapnded  ,
+     * which means it is either the root or all of its parents are expanded.
      * Otherwise, this method returns false. 
      *
      * @return true if the node is viewable, otherwise false
@@ -1343,16 +1526,17 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns the Rectangle that the specified node will be drawn
-     * into. Returns null if any component in the path is hidden
+     * Returns the <code>Rectangle</code> that the specified node will be drawn
+     * into. Returns <code>null</code> if any component in the path is hidden
      * (under a collapsed parent).
      * <p>
      * Note:<br>
      * This method returns a valid rectangle, even if the specified
      * node is not currently displayed.
      *
-     * @param path the TreePath identifying the node
-     * @return the Rectangle the node is drawn in, or null 
+     * @param path the <code>TreePath</code> identifying the node
+     * @return the <code>Rectangle</code> the node is drawn in,
+     *		or <code>null</code> 
      */
     public Rectangle getPathBounds(TreePath path) {
         TreeUI                   tree = getUI();
@@ -1363,12 +1547,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns the Rectangle that the node at the specified row is
+     * Returns the <code>Rectangle</code> that the node at the specified row is
      * drawn in.
      *
      * @param row  the row to be drawn, where 0 is the first row in the 
      *             display
-     * @return the Rectangle the node is drawn in 
+     * @return the <code>Rectangle</code> the node is drawn in 
      */
     public Rectangle getRowBounds(int row) {
 	TreePath          path = getPathForRow(row);
@@ -1380,9 +1564,10 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Makes sure all the path components in path are expanded (except
      * for the last path component) and scrolls so that the 
      * node identified by the path is displayed. Only works when this
-     * JTree is contained in a JSrollPane.
+     * <code>JTree</code> is contained in a <code>JScrollPane</code>.
      * 
-     * @param path  the TreePath identifying the node to bring into view
+     * @param path  the <code>TreePath</code> identifying the node to
+     * 		bring into view
      */
     public void scrollPathToVisible(TreePath path) {
 	if(path != null) {
@@ -1402,10 +1587,10 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Scrolls the item identified by row until it is displayed. The minimum
      * of amount of scrolling necessary to bring the row into view
-     * is performed. Only works when this JTree is contained in a
-     * JSrollPane.
+     * is performed. Only works when this <code>JTree</code> is contained in a
+     * <code>JScrollPane</code>.
      *
-     * @param row  an int specifying the row to scroll, where 0 is the
+     * @param row  an integer specifying the row to scroll, where 0 is the
      *             first row in the display
      */
     public void scrollRowToVisible(int row) {
@@ -1413,12 +1598,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns the path for the specified row.
-     * <!-->If row is not visible null is returned.<-->
+     * Returns the path for the specified row.  If <code>row</code> is
+     * not visible, <code>null</code> is returned.
      *
-     * @param row  an int specifying a row
-     * @return the TreePath to the specified node, null if
-     *         row < 0 or row > getRowCount()
+     * @param row  an integer specifying a row
+     * @return the <code>TreePath</code> to the specified node,
+     *		<code>null</code> if <code>row < 0</code>
+     *		or <code>row > getRowCount()</code>
      */
     public TreePath getPathForRow(int row) {
         TreeUI                  tree = getUI();
@@ -1432,8 +1618,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Returns the row that displays the node identified by the specified
      * path. 
      * 
-     * @param path  the TreePath identifying a node
-     * @return an int specifying the display row, where 0 is the first
+     * @param path  the <code>TreePath</code> identifying a node
+     * @return an integer specifying the display row, where 0 is the first
      *         row in the display, or -1 if any of the elements in path
      *         are hidden under a collapsed parent.
      */
@@ -1449,7 +1635,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Ensures that the node identified by the specified path is 
      * expanded and viewable.
      * 
-     * @param path  the TreePath identifying a node
+     * @param path  the <code>TreePath</code> identifying a node
      */
     public void expandPath(TreePath path) {
 	// Only expand if not leaf!
@@ -1463,10 +1649,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Ensures that the node in the specified row is expanded and
-     * viewable. <p> If <code>row</code> is < 0 or >= getRowCount this
+     * viewable.
+     * <p>
+     * If <code>row</code> is < 0 or >= <code>getRowCount</code> this
      * will have no effect.
      *
-     * @param row  an int specifying a display row, where 0 is the
+     * @param row  an integer specifying a display row, where 0 is the
      *             first row in the display
      */
     public void expandRow(int row) {
@@ -1477,7 +1665,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Ensures that the node identified by the specified path is 
      * collapsed and viewable.
      * 
-     * @param path  the TreePath identifying a node
+     * @param path  the <code>TreePath</code> identifying a node
       */
     public void collapsePath(TreePath path) {
 	setExpandedState(path, false);
@@ -1485,10 +1673,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Ensures that the node in the specified row is collapsed.
-     * <p> If <code>row</code> is < 0 or >= getRowCount this
+     * <p>
+     * If <code>row</code> is < 0 or >= <code>getRowCount</code> this
      * will have no effect.
      *
-     * @param row  an int specifying a display row, where 0 is the
+     * @param row  an integer specifying a display row, where 0 is the
      *             first row in the display
       */
     public void collapseRow(int row) {
@@ -1498,11 +1687,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the path for the node at the specified location.
      *
-     * @param x an int giving the number of pixels horizontally from
+     * @param x an integer giving the number of pixels horizontally from
      *          the left edge of the display area, minus any left margin
-     * @param y an int giving the number of pixels vertically from
+     * @param y an integer giving the number of pixels vertically from
      *          the top of the display area, minus any top margin
-     * @return  the TreePath for the node at that location
+     * @return  the <code>TreePath</code> for the node at that location
      */
     public TreePath getPathForLocation(int x, int y) {
         TreePath          closestPath = getClosestPathForLocation(x, y);
@@ -1520,9 +1709,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the row for the specified location. 
      *
-     * @param x an int giving the number of pixels horizontally from
+     * @param x an integer giving the number of pixels horizontally from
      *          the left edge of the display area, minus any left margin
-     * @param y an int giving the number of pixels vertically from
+     * @param y an integer giving the number of pixels vertically from
      *          the top of the display area, minus any top margin
      * @return the row corresponding to the location, or -1 if the
      *         location is not within the bounds of a displayed cell
@@ -1535,16 +1724,16 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the path to the node that is closest to x,y.  If
      * no nodes are currently viewable, or there is no model, returns
-     * null, otherwise it always returns a valid path.  To test if
+     * <code>null</code>, otherwise it always returns a valid path.  To test if
      * the node is exactly at x, y, get the node's bounds and
      * test x, y against that.
      *
-     * @param x an int giving the number of pixels horizontally from
+     * @param x an integer giving the number of pixels horizontally from
      *          the left edge of the display area, minus any left margin
-     * @param y an int giving the number of pixels vertically from
+     * @param y an integer giving the number of pixels vertically from
      *          the top of the display area, minus any top margin
-     * @return  the TreePath for the node closest to that location,
-     *          null if nothing is viewable or there is no model
+     * @return  the <code>TreePath</code> for the node closest to that location,
+     *          <code>null</code> if nothing is viewable or there is no model
      *
      * @see #getPathForLocation
      * @see #getPathBounds
@@ -1564,9 +1753,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * exactly at x, y, get the bounds for the node at the returned
      * row and test x, y against that.
      *
-     * @param x an int giving the number of pixels horizontally from
+     * @param x an integer giving the number of pixels horizontally from
      *          the left edge of the display area, minus any left margin
-     * @param y an int giving the number of pixels vertically from
+     * @param y an integer giving the number of pixels vertically from
      *          the top of the display area, minus any top margin
      * @return the row closest to the location, -1 if nothing is
      *         viewable or there is no model
@@ -1594,7 +1783,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Ends the current editing session. (The DefaultTreeCellEditor 
+     * Ends the current editing session.
+     * (The <code>DefaultTreeCellEditor</code> 
      * object saves any edits that are currently in progress on a cell.
      * Other implementations may operate differently.) 
      * Has no effect if the tree isn't being edited.
@@ -1628,10 +1818,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Selects the node identified by the specified path and initiates
-     * editing.  The edit-attempt fails if the CellEditor does not allow
+     * editing.  The edit-attempt fails if the <code>CellEditor</code>
+     * does not allow
      * editing for the specified item.
      * 
-     * @param path  the TreePath identifying a node
+     * @param path  the <code>TreePath</code> identifying a node
      */
     public void startEditingAtPath(TreePath path) {
         TreeUI                  tree = getUI();
@@ -1643,7 +1834,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns the path to the element that is currently being edited.
      *
-     * @return  the TreePath for the node being edited
+     * @return  the <code>TreePath</code> for the node being edited
      */
     public TreePath getEditingPath() {
         TreeUI                  tree = getUI();
@@ -1663,11 +1854,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
     //
 
     /**
-     * Sets the tree's selection model. When a null value is specified
-     * an empty electionModel is used, which does not allow selections.
+     * Sets the tree's selection model. When a <code>null</code> value is
+     * specified an emtpy
+     * <code>selectionModel</code> is used, which does not allow selections.
      *
-     * @param selectionModel the TreeSelectionModel to use, or null to
-     *        disable selections
+     * @param selectionModel the <code>TreeSelectionModel</code> to use,
+     *		or <code>null</code> to disable selections
      * @see TreeSelectionModel
      * @beaninfo
      *        bound: true
@@ -1704,11 +1896,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Returns the model for selections. This should always return a 
-     * non-null value. If you don't want to allow anything to be selected
-     * set the selection model to null, which forces an empty
+     * non-<code>null</code> value. If you don't want to allow anything
+     * to be selected
+     * set the selection model to <code>null</code>, which forces an empty
      * selection model to be used.
      *
-     * @param the TreeSelectionModel in use
+     * @param the <code>TreeSelectionModel</code> in use
      * @see #setSelectionModel
      */
     public TreeSelectionModel getSelectionModel() {
@@ -1716,14 +1909,16 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns JTreePath instances representing the path between index0
-     * and index1 (including index1).  Returns null if there is no tree.
+     * Returns <code>JTreePath</code> instances representing the path
+     * between index0 and index1 (including index1).
+     * Returns <code>null</code> if there is no tree.
      *
-     * @param index0  an int specifying a display row, where 0 is the
+     * @param index0  an integer specifying a display row, where 0 is the
      *                first row in the display
-     * @param index0  an int specifying a second display row
-     * @return an array of TreePath objects, one for each node between
-     *         index0 and index1, inclusive
+     * @param index1  an integer specifying a second display row
+     * @return an array of <code>TreePath</code> objects, one for each
+     *		node between index0 and index1, inclusive; or <code>null</code>
+     *		if there is no tree
      */
     protected TreePath[] getPathBetweenRows(int index0, int index1) {
         int              newMinIndex, newMaxIndex;
@@ -1747,9 +1942,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Selects the nodes between index0 and index1, inclusive.
      *
-     * @param index0  an int specifying a display row, where 0 is the
+     * @param index0  an integer specifying a display row, where 0 is the
      *                first row in the display
-     * @param index0  an int specifying a second display row
+     * @param index1  an integer specifying a second display row
     */
     public void setSelectionInterval(int index0, int index1) {
         TreePath[]         paths = getPathBetweenRows(index0, index1);
@@ -1761,9 +1956,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Adds the paths between index0 and index1, inclusive, to the 
      * selection.
      *
-     * @param index0  an int specifying a display row, where 0 is the
+     * @param index0  an integer specifying a display row, where 0 is the
      *                first row in the display
-     * @param index0  an int specifying a second display row
+     * @param index1  an integer specifying a second display row
      */
     public void addSelectionInterval(int index0, int index1) {
         TreePath[]         paths = getPathBetweenRows(index0, index1);
@@ -1775,9 +1970,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Removes the nodes between index0 and index1, inclusive, from the 
      * selection.
      *
-     * @param index0  an int specifying a display row, where 0 is the
+     * @param index0  an integer specifying a display row, where 0 is the
      *                first row in the display
-     * @param index0  an int specifying a second display row
+     * @param index1  an integer specifying a second display row
      */
     public void removeSelectionInterval(int index0, int index1) {
         TreePath[]         paths = getPathBetweenRows(index0, index1);
@@ -1789,7 +1984,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Removes the node identified by the specified path from the current
      * selection.
      * 
-     * @param path  the TreePath identifying a node
+     * @param path  the <code>TreePath</code> identifying a node
      */
     public void removeSelectionPath(TreePath path) {
         this.getSelectionModel().removeSelectionPath(path);
@@ -1799,8 +1994,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * Removes the nodes identified by the specified paths from the 
      * current selection.
      *
-     * @param paths an array of TreePath objects that specifies the nodes
-     *              to remove
+     * @param paths an array of <code>TreePath</code> objects that
+     *              specifies the nodes to remove
      */
     public void removeSelectionPaths(TreePath[] paths) {
         this.getSelectionModel().removeSelectionPaths(paths);
@@ -1855,30 +2050,36 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Adds a listener for TreeExpansion events.
+     * Adds a listener for <code>TreeExpansion</code> events.
      *
      * @param tel a TreeExpansionListener that will be notified when
      *            a tree node is expanded or collapsed (a "negative
      *            expansion")
      */
     public void addTreeExpansionListener(TreeExpansionListener tel) {
+	if (settingUI) {
+	    uiTreeExpansionListener = tel;
+	}
         listenerList.add(TreeExpansionListener.class, tel);
     }
 
     /**
-     * Removes a listener for TreeExpansion events.
+     * Removes a listener for <code>TreeExpansion</code> events.
      *
-     * @param tel the TreeExpansionListener to remove
+     * @param tel the <code>TreeExpansionListener</code> to remove
      */
     public void removeTreeExpansionListener(TreeExpansionListener tel) {
         listenerList.remove(TreeExpansionListener.class, tel);
+	if (uiTreeExpansionListener == tel) {
+	    uiTreeExpansionListener = null;
+	}
     }
 
     /**
-     * Adds a listener for TreeWillExpand events.
+     * Adds a listener for <code>TreeWillExpand</code> events.
      *
-     * @param tel a TreeWillExpandListener that will be notified when
-     *            a tree node will be expanded or collapsed (a "negative
+     * @param tel a <code>TreeWillExpandListener</code> that will be notified 
+     *            when a tree node will be expanded or collapsed (a "negative
      *            expansion")
      */
     public void addTreeWillExpandListener(TreeWillExpandListener tel) {
@@ -1886,9 +2087,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Removes a listener for TreeWillExpand events.
+     * Removes a listener for <code>TreeWillExpand</code> events.
      *
-     * @param tel the TreeWillExpandListener to remove
+     * @param tel the <code>TreeWillExpandListener</code> to remove
      */
     public void removeTreeWillExpandListener(TreeWillExpandListener tel) {
         listenerList.remove(TreeWillExpandListener.class, tel);
@@ -1900,17 +2101,23 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * is lazily created using the parameters passed into 
      * the fire method.
      *
-     * @param path the TreePath indicating the node that was expanded
+     * @param path the <code>TreePath</code> indicating the node that was
+     *		expanded
      * @see EventListenerList
      */
      public void fireTreeExpanded(TreePath path) {
         // Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         TreeExpansionEvent e = null;
+	if (uiTreeExpansionListener != null) {
+	    e = new TreeExpansionEvent(this, path);
+	    uiTreeExpansionListener.treeExpanded(e);
+	}
         // Process the listeners last to first, notifying
         // those that are interested in this event
         for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i]==TreeExpansionListener.class) {
+            if (listeners[i]==TreeExpansionListener.class &&
+		listeners[i + 1] != uiTreeExpansionListener) {
                 // Lazily create the event:
                 if (e == null)
                     e = new TreeExpansionEvent(this, path);
@@ -1926,17 +2133,23 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * is lazily created using the parameters passed into 
      * the fire method.
      *
-     * @param path the TreePath indicating the node that was collapsed
+     * @param path the <code>TreePath</code> indicating the node that was
+     *		collapsed
      * @see EventListenerList
      */
     public void fireTreeCollapsed(TreePath path) {
         // Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         TreeExpansionEvent e = null;
+	if (uiTreeExpansionListener != null) {
+	    e = new TreeExpansionEvent(this, path);
+	    uiTreeExpansionListener.treeCollapsed(e);
+	}
         // Process the listeners last to first, notifying
         // those that are interested in this event
         for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i]==TreeExpansionListener.class) {
+            if (listeners[i]==TreeExpansionListener.class &&
+		listeners[i + 1] != uiTreeExpansionListener) {
                 // Lazily create the event:
                 if (e == null)
                     e = new TreeExpansionEvent(this, path);
@@ -1952,7 +2165,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * is lazily created using the parameters passed into 
      * the fire method.
      *
-     * @param path the TreePath indicating the node that was expanded
+     * @param path the <code>TreePath</code> indicating the node that was
+     *		expanded
      * @see EventListenerList
      */
      public void fireTreeWillExpand(TreePath path) throws ExpandVetoException {
@@ -1978,7 +2192,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * is lazily created using the parameters passed into 
      * the fire method.
      *
-     * @param path the TreePath indicating the node that was expanded
+     * @param path the <code>TreePath</code> indicating the node that was
+     *		expanded
      * @see EventListenerList
      */
      public void fireTreeWillCollapse(TreePath path) throws ExpandVetoException {
@@ -1999,10 +2214,10 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }   
 
     /**
-     * Adds a listener for TreeSelection events.
+     * Adds a listener for <code>TreeSelection</code> events.
      *
-     * @param tsl the TreeSelectionListener that will be notified when
-     *            a node is selected or deselected (a "negative
+     * @param tsl the <code>TreeSelectionListener</code> that will be notified 
+     *            when a node is selected or deselected (a "negative
      *            selection")
      */
     public void addTreeSelectionListener(TreeSelectionListener tsl) {
@@ -2015,9 +2230,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Removes a TreeSelection listener.
+     * Removes a <code>TreeSelection</code> listener.
      *
-     * @param tsl the TreeSelectionListener to remove
+     * @param tsl the <code>TreeSelectionListener</code> to remove
      */
     public void removeTreeSelectionListener(TreeSelectionListener tsl) {
         listenerList.remove(TreeSelectionListener.class,tsl);
@@ -2030,12 +2245,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Notify all listeners that have registered interest for
+     * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
      * is lazily created using the parameters passed into 
      * the fire method.
      *
-     * @param e the TreeSelectionEvent generated by the TreeSelectionModel
+     * @param e the <code>TreeSelectionEvent</code> generated by the
+     *		<code>TreeSelectionModel</code>
      *          when a node is selected or deselected
      * @see EventListenerList
      */
@@ -2069,7 +2285,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Sets the number of rows that are to be displayed.
-     * This will only work if the reciever is contained in a JScrollPane,
+     * This will only work if the reciever is contained in a 
+     * <code>JScrollPane</code>,
      * and will adjust the preferred size and size of that scrollpane.
      *
      * @param newCount the number of rows to display
@@ -2247,7 +2464,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     /**
      * Returns an array of integers specifying the indexs of the
      * components in the <code>path</code>. If <code>path</code> is
-     * the root, this will return an empty array.
+     * the root, this will return an empty array.  If <code>path</code>
+     * is <code>null</code>, <code>null</code> will be returned.
      */
     private int[] getModelIndexsForPath(TreePath path) {
 	if(path != null) {
@@ -2269,8 +2487,10 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns a TreePath created by obtaining the children for each of
-     * the indices in <code>indexs</code>.
+     * Returns a <code>TreePath</code> created by obtaining the children
+     * for each of the indices in <code>indexs</code>. If <code>indexs</code>
+     * or the <code>TreeModel</code> is <code>null</code>, it will return
+     * <code>null</code>.
      */
     private TreePath getPathForIndexs(int[] indexs) {
 	if(indexs == null)
@@ -2295,8 +2515,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * EmptySelectionModel is a TreeSelectionModel that does not allow
-     * anything to be selected.
+     * <code>EmptySelectionModel</code> is a <code>TreeSelectionModel</code>
+     * that does not allow anything to be selected.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -2312,22 +2532,23 @@ public class JTree extends JComponent implements Scrollable, Accessible
         protected static final EmptySelectionModel sharedInstance =
             new EmptySelectionModel();
 
-        /** Returns a shared instance of an empty selection model */
+        /** Returns a shared instance of an empty selection model. */
         static public EmptySelectionModel sharedInstance() {
             return sharedInstance;
         }
 
-        /** A null implementation that selects nothing */
+        /** A <code>null</code> implementation that selects nothing. */
         public void setSelectionPaths(TreePath[] pPaths) {}
-        /** A null implementation that adds nothing */
+        /** A <code>null</code> implementation that adds nothing. */
         public void addSelectionPaths(TreePath[] paths) {}
-        /** A null implementation that removes nothing */
+        /** A <code>null</code> implementation that removes nothing. */
         public void removeSelectionPaths(TreePath[] paths) {}
     }
 
 
     /**
-     * Handles creating a new TreeSelectionEvent with the JTree as the
+     * Handles creating a new <code>TreeSelectionEvent</code> with the 
+     * <code>JTree</code> as the
      * source and passing it off to all the listeners.
      * <p>
      * <strong>Warning:</strong>
@@ -2341,9 +2562,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
                     TreeSelectionListener
     {
         /**
-         * Invoked by the TreeSelectionModel when the selection changes.
+         * Invoked by the <code>TreeSelectionModel</code> when the
+         * selection changes.
          * 
-         * @param e the TreeSelectionEvent generated by the TreeSelectionModel
+         * @param e the <code>TreeSelectionEvent</code> generated by the
+         *		<code>TreeSelectionModel</code>
          */
         public void valueChanged(TreeSelectionEvent e) {
             TreeSelectionEvent       newE;
@@ -2358,11 +2581,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
     //
 
     /**
-     * Returns the preferred display size of a JTree. The height is
+     * Returns the preferred display size of a <code>JTree</code>. The height is
      * determined from <code>getVisibleRowCount</code> and the width
      * is the current preferred width.
      *
-     * @return a Dimension object containing the preferred size
+     * @return a <code>Dimension</code> object containing the preferred size
      */
     public Dimension getPreferredScrollableViewportSize() {
         int                 width = getPreferredSize().width;
@@ -2388,11 +2611,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * or, if it is totally displayed, the height of the next row in the
      * scrolling direction.
      * 
-     * @param visibleRect The view area visible within the viewport
-     * @param orientation Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
-     * @param direction Less than zero to scroll up/left, greater than zero for down/right.
-     * @return The "unit" increment for scrolling in the specified direction
-     * @see JScrollBar#setUnitIncrement
+     * @param visibleRect the view area visible within the viewport
+     * @param orientation either <code>SwingConstants.VERTICAL</code>
+     *		or <code>SwingConstants.HORIZONTAL</code>
+     * @param direction less than zero to scroll up/left,
+     *		greater than zero for down/right
+     * @return the "unit" increment for scrolling in the specified direction
+     * @see JScrollBar#setUnitIncrement(int)
      */
     public int getScrollableUnitIncrement(Rectangle visibleRect,
                                           int orientation, int direction) {
@@ -2425,14 +2650,16 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
 
     /**
-     * Returns the amount for a block inrecment, which is the height or
+     * Returns the amount for a block increment, which is the height or
      * width of <code>visibleRect</code>, based on <code>orientation</code>.
      * 
-     * @param visibleRect The view area visible within the viewport
-     * @param orientation Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
-     * @param direction Less than zero to scroll up/left, greater than zero for down/right.
-     * @return The "block" increment for scrolling in the specified direction.
-     * @see JScrollBar#setBlockIncrement
+     * @param visibleRect the view area visible within the viewport
+     * @param orientation either <code>SwingConstants.VERTICAL</code>
+     *		or <code>SwingConstants.HORIZONTAL</code>
+     * @param direction less than zero to scroll up/left,
+     *		greater than zero for down/right.
+     * @return the "block" increment for scrolling in the specified direction
+     * @see JScrollBar#setBlockIncrement(int)
      */
     public int getScrollableBlockIncrement(Rectangle visibleRect,
                                            int orientation, int direction) {
@@ -2473,12 +2700,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Sets the expanded state of the receiver. If <code>state</code> is
+     * Sets the expanded state of this <code>JTree</code>.
+     * If <code>state</code> is
      * true, all parents of <code>path</code> and path are marked as
      * expanded. If <code>state</code> is false, all parents of 
      * <code>path</code> are marked EXPANDED, but <code>path</code> itself
      * is marked collapsed.<p>
-     * This will fail if a TreeWillExpandListener vetos it.
+     * This will fail if a <code>TreeWillExpandListener</code> vetos it.
      */
     protected void setExpandedState(TreePath path, boolean state) {
 	if(path != null) {
@@ -2540,6 +2768,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
 		    }
 		    expandedState.put(path, Boolean.FALSE);
 		    fireTreeCollapsed(path);
+		    if (removeDescendantSelectedPaths(path, false) &&
+			!isPathSelected(path)) {
+			// A descendant was selected, select the parent.
+			addSelectionPath(path);
+		    }
 		    if (accessibleContext != null) {
 			((AccessibleJTree)accessibleContext).
 			            fireVisibleDataPropertyChange();
@@ -2569,7 +2802,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * Returns an Enumeration of TreePaths that have been expanded that
+     * Returns an <code>Enumeration</code> of <code>TreePaths</code>
+     * that have been expanded that
      * are descendants of <code>parent</code>.
      */
     protected Enumeration getDescendantToggledPaths(TreePath parent) {
@@ -2589,7 +2823,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
     
     /**
-     * Removes any descendants of the TreePaths in <code>toRemove</code>
+     * Removes any descendants of the <code>TreePaths</code> in
+     * <code>toRemove</code>
      * that have been expanded.
      */
      protected void removeDescendantToggledPaths(Enumeration toRemove) {
@@ -2609,25 +2844,98 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
      /**
       * Clears the cache of toggled tree paths. This does NOT send out
-      * any TreeExpansionListener events.
+      * any <code>TreeExpansionListener</code> events.
       */
      protected void clearToggledPaths() {
 	 expandedState.clear();
      }
 
      /**
-      * Creates and returns an instance of TreeModelHandler. The returned
+      * Creates and returns an instance of <code>TreeModelHandler</code>.
+      * The returned
       * object is responsible for updating the expanded state when the
-      * TreeModel changes.
+      * <code>TreeModel</code> changes.
+      * <p>
+      * For more information on what expanded state means, see the
+      * <a href=#jtree_description>JTree description</a> above.
       */
      protected TreeModelListener createTreeModelListener() {
 	 return new TreeModelHandler();
      }
 
+    /**
+     * Removes any paths in the selection that are descendants of
+     * <code>path</code>. If <code>includePath</code> is true and
+     * <code>path</code> is selected, it will be removed from the selection.
+     *
+     * @return true if a descendant was selected
+     * @since 1.3
+     */
+    protected boolean removeDescendantSelectedPaths(TreePath path,
+						    boolean includePath) {
+	TreePath[]    toRemove = getDescendantSelectedPaths(path, includePath);
+
+	if (toRemove != null) {
+	    getSelectionModel().removeSelectionPaths(toRemove);
+	    return true;
+	}
+	return false;
+    }
+
+    /**
+     * Returns an array of paths in the selection that are descendants of
+     * <code>path</code>. The returned array may contain <code>null</code>s.
+     */
+    private TreePath[] getDescendantSelectedPaths(TreePath path,
+						  boolean includePath) {
+	TreeSelectionModel   sm = getSelectionModel();
+	TreePath[]           selPaths = (sm != null) ? sm.getSelectionPaths() :
+	                                null;
+
+	if(selPaths != null) {
+	    boolean        shouldRemove = false;
+
+	    for(int counter = selPaths.length - 1; counter >= 0; counter--) {
+		if(selPaths[counter] != null &&
+		   path.isDescendant(selPaths[counter]) &&
+		   (!path.equals(selPaths[counter]) || includePath))
+		    shouldRemove = true;
+		else
+		    selPaths[counter] = null;
+	    }
+	    if(!shouldRemove) {
+		selPaths = null;
+	    }
+	    return selPaths;
+	}
+	return null;
+    }
+
+    /**
+     * Removes any paths from the selection model that are descendants of
+     * the nodes identified by in <code>e</code>.
+     */
+    void removeDescendantSelectedPaths(TreeModelEvent e) {
+	TreePath            pPath = e.getTreePath();
+	Object[]            oldChildren = e.getChildren();
+	TreeSelectionModel  sm = getSelectionModel();
+
+	if (sm != null && pPath != null && oldChildren != null &&
+	    oldChildren.length > 0) {
+	    for (int counter = oldChildren.length - 1; counter >= 0;
+		 counter--) {
+		// Might be better to call getDescendantSelectedPaths
+		// numerous times, then push to the model.
+		removeDescendantSelectedPaths(pPath.pathByAddingChild
+					      (oldChildren[counter]), true);
+	    }
+	}
+    }
+
 
      /**
-      * Listens to the model and updates the expandedState accordingly
-      * when nodes are removed, or changed.
+      * Listens to the model and updates the <code>expandedState</code>
+      * accordingly when nodes are removed, or changed.
       */
     protected class TreeModelHandler implements TreeModelListener {
 	public void treeNodesChanged(TreeModelEvent e) { }
@@ -2671,6 +2979,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 			expandedState.put(parent, Boolean.TRUE);
 		}
 	    }
+	    removeDescendantSelectedPaths(parent, false);
 	}
 
 	public void treeNodesRemoved(TreeModelEvent e) {
@@ -2699,14 +3008,17 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
 	    if(model == null || model.isLeaf(parent.getLastPathComponent()))
 		expandedState.remove(parent);
+
+	    removeDescendantSelectedPaths(e);
 	}
     }
 
 
     /**
-     * DynamicUtilTreeNode can wrap vectors/hashtables/arrays/strings and
+     * <code>DynamicUtilTreeNode</code> can wrap 
+     * vectors/hashtables/arrays/strings and
      * create the appropriate children tree nodes as necessary. It is
-     * dynamic in that it'll only create the children as necessary.
+     * dynamic in that it will only create the children as necessary.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -2716,19 +3028,22 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * long term persistence.
      */
     public static class DynamicUtilTreeNode extends DefaultMutableTreeNode {
-        /* Does the receiver have children? */
+        /**
+         * Does the this <code>JTree</code> have children?
+         * This property is currently not implemented.
+         */
         protected boolean            hasChildren;
         /** Value to create children with. */
         protected Object             childValue;
-        /* Have the children been loaded yet? */
+        /** Have the children been loaded yet? */
         protected boolean            loadedChildren;
 
         /**
          * Adds to parent all the children in <code>children</code>.
-         * If <code>children</code> is an array or Vector all of its
+         * If <code>children</code> is an array or vector all of its
          * elements are added is children, otherwise if <code>children</code>
-         * is a Hashtable all the key/value pairs are added in the order
-         * Enumeration returns them.
+         * is a hashtable all the key/value pairs are added in the order
+         * <code>Enumeration</code> returns them.
          */
         public static void createChildren(DefaultMutableTreeNode parent,
                                           Object children) {
@@ -2765,15 +3080,19 @@ public class JTree extends JComponent implements Scrollable, Accessible
         /**
          * Creates a node with the specified object as its value and
          * with the specified children. For the node to allow children,
-         * the children-object must be an array of objects, a Vector,
-         * or a Hashtable -- even if empty. Otherwise, the node is not
+         * the children-object must be an array of objects, a
+         * <code>Vector</code>, or a <code>Hashtable</code> -- even
+         * if empty. Otherwise, the node is not
          * allowed to have children.
          *
-         * @param value  the Object that is the value for the new node
-         * @param children an array of Objects, a Vector, or a Hashtable
-         *                 used to create the child nodes. If any other
-         *                 object is specified, or if the value is null,
-         *                 then the node is not allowed to have children.
+         * @param value  the <code>Object</code> that is the value for the
+         *		new node
+         * @param children an array of <code>Object</code>s, a
+         *		<code>Vector</code>, or a <code>Hashtable</code>
+         *		used to create the child nodes; if any other
+         *		object is specified, or if the value is
+         *		<code>null</code>,
+         *		then the node is not allowed to have children
          */
         public DynamicUtilTreeNode(Object value, Object children) {
             super(value);
@@ -2797,8 +3116,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
          * Returns true if this node allows children. Whether the node
          * allows children depends on how it was created.
          *
-         * @return true if this node allows children, false otherwise.
-         * @see JTree.DynamicUtilTreeNode#DynamicUtilTreeNode(Object, Object)
+         * @return true if this node allows children, false otherwise
+         * @see #JTree.DynamicUtilTreeNode
          */
         public boolean isLeaf() {
             return !getAllowsChildren();
@@ -2816,10 +3135,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
         }
 
         /**
-         * Loads the children based on childValue. If childValue is
-         * a Vector orarray each element  added as a child, if childValue
-         * is a Hashtable each key/value pair is added in the order that
-         * Enumeration returns the keys.
+         * Loads the children based on <code>childValue</code>.
+         * If <code>childValue</code> is a <code>Vector</code>
+         * or array each element is added as a child,
+         * if <code>childValue</code> is a <code>Hashtable</code>
+         * each key/value pair is added in the order that
+         * <code>Enumeration</code> returns the keys.
          */
         protected void loadChildren() {
             loadedChildren = true;
@@ -2847,13 +3168,14 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
 
     /**
-     * Returns a string representation of this JTree. This method 
+     * Returns a string representation of this <code>JTree</code>.
+     * This method 
      * is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JTree.
+     * @return  a string representation of this <code>JTree</code>.
      */
     protected String paramString() {
         String rootVisibleString = (rootVisible ?
@@ -2886,9 +3208,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
 ////////////////
 
     /**
-     * Get the AccessibleContext associated with this JComponent
+     * Gets the AccessibleContext associated with this JTree. 
+     * For JTrees, the AccessibleContext takes the form of an 
+     * AccessibleJTree. 
+     * A new AccessibleJTree instance is created if necessary.
      *
-     * @return the AccessibleContext of this JComponent
+     * @return an AccessibleJTree that serves as the 
+     *         AccessibleContext of this JTree
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -2898,7 +3224,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
     }
 
     /**
-     * The class used to obtain the accessible role for this object.
+     * This class implements accessibility support for the 
+     * <code>JTree</code> class.  It provides an implementation of the 
+     * Java Accessibility API appropriate to tree user-interface elements.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
@@ -2953,7 +3281,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
         /**
          * Fire a visible data property change notification.
-         * A 'visible' data property is that it represents
+         * A 'visible' data property is one that represents
          * something about the way the component appears on the
          * display, where that appearance isn't bound to any other
          * property. It notifies screen readers  that the visual 
@@ -3010,6 +3338,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
          */
         public  void treeCollapsed(TreeExpansionEvent e) {
            fireVisibleDataPropertyChange();
+           firePropertyChange(AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                              AccessibleState.EXPANDED,
+                              AccessibleState.COLLAPSED);
         }
  
         /**
@@ -3019,6 +3350,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
          */
         public  void treeExpanded(TreeExpansionEvent e) {
             fireVisibleDataPropertyChange();
+            firePropertyChange(AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                               AccessibleState.COLLAPSED,
+                               AccessibleState.EXPANDED);
          }
 
  
@@ -3073,7 +3407,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
          * Returns the Accessible child, if one exists, contained at the local
          * coordinate Point.
          *
-         * @param p point in local coordinates of the this Accessible
+         * @param p point in local coordinates of this Accessible
          * @return the Accessible, if it exists, at the specified location;
          * else null
          */
@@ -3131,11 +3465,19 @@ public class JTree extends JComponent implements Scrollable, Accessible
          * @see #getAccessibleParent
          */
         public int getAccessibleIndexInParent() {
-            return 0;
+	    // didn't ever need to override this...
+            return super.getAccessibleIndexInParent();
 	}
 
         // AccessibleSelection methods
-
+	/**
+         * Get the AccessibleSelection associated with this object.  In the
+         * implementation of the Java Accessibility API for this class, 
+	 * return this object, which is responsible for implementing the
+         * AccessibleSelection interface on behalf of itself.
+	 * 
+	 * @return this object
+	 */
         public AccessibleSelection getAccessibleSelection() {
             return this;
         }
@@ -3147,25 +3489,35 @@ public class JTree extends JComponent implements Scrollable, Accessible
          * @return the number of items currently selected.
          */
         public int getAccessibleSelectionCount() {
-            return JTree.this.getSelectionCount();
+            Object[] rootPath = new Object[1];
+            rootPath[0] = treeModel.getRoot();
+            TreePath childPath = new TreePath(rootPath);
+            if (JTree.this.isPathSelected(childPath)) {
+                return 1;
+            } else {
+                return 0;
+            }
         }
 
         /**
          * Returns an Accessible representing the specified selected item
          * in the object.  If there isn't a selection, or there are 
-         * fewer items selcted than the integer passed in, the return
+         * fewer items selected than the integer passed in, the return
          * value will be null.
          *
          * @param i the zero-based index of selected items
          * @return an Accessible containing the selected item
          */
         public Accessible getAccessibleSelection(int i) {
-            TreePath[] paths = JTree.this.getSelectionPaths();
-            if (i < 0 || i >= paths.length) {
-                return null;
-            } else {
-                return new AccessibleJTreeNode(JTree.this, paths[i], JTree.this);
+            if (i == 0) {
+                Object[] rootPath = new Object[1];
+                rootPath[0] = treeModel.getRoot();
+                TreePath childPath = new TreePath(rootPath);
+                if (JTree.this.isPathSelected(childPath)) {
+                    return new AccessibleJTreeNode(JTree.this, childPath, JTree.this);
+                }
             }
+            return null;
         }
 
         /**
@@ -3250,7 +3602,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
         }
 
         /**
-         *
+         * This class implements accessibility support for the 
+         * <code>JTree</code> child.  It provides an implementation of the 
+         * Java Accessibility API appropriate to tree nodes.
          */
         protected class AccessibleJTreeNode extends AccessibleContext
             implements Accessible, AccessibleComponent, AccessibleSelection, 
@@ -3294,9 +3648,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
             }
 
             /**
-             * Get the AccessibleContext associated with this tree node
+             * Get the AccessibleContext associated with this tree node. 
+             * In the implementation of the Java Accessibility API for 
+	     * this class, return this object, which is its own 
+	     * AccessibleContext.
              *
-             * @return the AccessibleContext of this JComponent
+             * @return this object
              */
             public AccessibleContext getAccessibleContext() {
                 return this;
@@ -3373,7 +3730,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
             }
     
             //
-            // *** should check toolip text for desc. (needs MouseEvent)
+            // *** should check tooltip text for desc. (needs MouseEvent)
             //
             /**
              * Get the accessible description of this object.
@@ -3495,10 +3852,6 @@ public class JTree extends JComponent implements Scrollable, Accessible
 		    } else if (treeModel != null) {
 			accessibleParent = tree; // we're the top!
 			index = 0; // we're an only child!
-//			TreePath parentPath = new TreePath(treeModel.getRoot());
-//			accessibleParent = new AccessibleJTreeNode(tree, 
-//								   parentPath, 
-//								   null);
 			this.setAccessibleParent(accessibleParent);
 		    }
 		}
@@ -3516,6 +3869,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
 		// index is invalid 'till we have an accessibleParent...
 		if (accessibleParent == null) {
 		    getAccessibleParent();
+		}
+		Object[] objPath = path.getPath();
+		if (objPath.length > 1) {
+		    Object objParent = objPath[objPath.length-2];
+		    if (treeModel != null) {
+			index = treeModel.getIndexOfChild(objParent, obj);
+		    }
 		}
                 return index;
             }
@@ -3606,21 +3966,24 @@ public class JTree extends JComponent implements Scrollable, Accessible
             }
     
             /**
-             * Get the AccessibleAction associated with this object if one
-             * exists.  Otherwise return null.
-             *
-             * @return the AccessibleAction, or null
+             * Get the AccessibleAction associated with this object.  In the
+             * implementation of the Java Accessibility API for this class, 
+             * return this object, which is responsible for implementing the
+             * AccessibleAction interface on behalf of itself.
+	     * 
+	     * @return this object
              */
             public AccessibleAction getAccessibleAction() {
                 return this;
             }
 
             /**
-             * Get the AccessibleComponent associated with this tree node
-             * NOTE: if the node is not displayed (either scrolled off of
-             * the screen, or not expanded), this will return null
-             *
-             * @return the AccessibleComponent of this tree node
+             * Get the AccessibleComponent associated with this object.  In the
+             * implementation of the Java Accessibility API for this class, 
+             * return this object, which is responsible for implementing the
+             * AccessibleComponent interface on behalf of itself.
+             * 
+             * @return this object
              */
             public AccessibleComponent getAccessibleComponent() {
                 return this; // to override getBounds()
@@ -4033,7 +4396,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
             /**
              * Returns an Accessible representing the specified selected item
              * in the object.  If there isn't a selection, or there are 
-             * fewer items selcted than the integer passed in, the return
+             * fewer items selected than the integer passed in, the return
              * value will be null.
              *
              * @param i the zero-based index of selected items
