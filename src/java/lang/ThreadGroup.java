@@ -1,5 +1,5 @@
 /*
- * @(#)ThreadGroup.java	1.32 97/02/20
+ * @(#)ThreadGroup.java	1.33 98/01/21
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,7 +36,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.32, 02/20/97
+ * @version 1.33, 01/21/98
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -133,6 +133,7 @@ class ThreadGroup {
      * @since   JDK1.0
      */
     public final ThreadGroup getParent() {
+        checkAccess();
 	return parent;
     }
 

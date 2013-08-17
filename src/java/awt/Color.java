@@ -1,5 +1,5 @@
 /*
- * @(#)Color.java	1.29 97/02/17
+ * @(#)Color.java	1.32 97/12/19
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,11 +25,23 @@ import java.io.*;
 import java.lang.*;
 
 /**
- * A class to encapsulate RGB Colors.
+ * This class encapsulates colors using the RGB format. In RGB 
+ * format, the red, blue, and green components of a color are each 
+ * represented by an integer in the range 0-255. The value 0 
+ * indicates no contribution from this primary color. The value 255 
+ * indicates the maximum intensity of this color component. 
+ * <p>
+ * Although the <code>Color</code> class is based on the 
+ * three-component RGB model, the class provides a set of convenience 
+ * methods for converting between RGB and HSB colors. For a 
+ * definition of the RGB and HSB color models, see Foley, van&nbsp;Dam, 
+ * Feiner, and Hughes, <cite>Computer Graphics: Principles 
+ * and Practice</cite>.
  *
- * @version 	1.29, 02/17/97
+ * @version 	1.32, 12/19/97
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
+ * @since       JDK1.0
  */
 public class Color implements java.io.Serializable {
     
@@ -84,7 +96,7 @@ public class Color implements java.io.Serializable {
     public final static Color green 	= new Color(0, 255, 0);
 
     /**
-     * The color magneta.
+     * The color magenta.
      */
     public final static Color magenta	= new Color(255, 0, 255);
 
@@ -170,17 +182,20 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Creates a color with the specified red, green, and blue values in
-     * the range (0 - 255).  The actual color used in rendering will depend
-     * on finding the best match given the color space available for a
-     * given output device.
-     * @param r the red component
-     * @param g the green component
-     * @param b the blue component
-     * @see #getRed
-     * @see #getGreen
-     * @see #getBlue
-     * @see #getRGB
+     * Creates a color with the specified red, green, and blue 
+     * components. The three arguments must each be in the range 
+     * 0-255. 
+     * <p>
+     * The actual color used in rendering depends on finding the best 
+     * match given the color space available for a given output device. 
+     * @param       r the red component.
+     * @param       g the green component.
+     * @param       b the blue component.
+     * @see         java.awt.Color#getRed.
+     * @see         java.awt.Color#getGreen.
+     * @see         java.awt.Color#getBlue.
+     * @see         java.awt.Color#getRGB.
+     * @since       JDK1.0
      */
     public Color(int r, int g, int b) {
         this(((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF) << 0));
@@ -188,34 +203,43 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Creates a color with the specified combined RGB value consisting of
-     * the red component in bits 16-23, the green component in bits 8-15,
-     * and the blue component in bits 0-7.  The actual color used in
-     * rendering will depend on finding the best match given the color space
-     * available for a given output device.
-     * @param rgb the combined RGB components
-     * @see java.awt.image.ColorModel#getRGBdefault
-     * @see #getRed
-     * @see #getGreen
-     * @see #getBlue
-     * @see #getRGB
+     * Creates a color with the specified RGB value, where the red 
+     * component is in bits 16-23 of the argument, the green 
+     * component is in bits 8-15 of the argument, and the blue 
+     * component is in bits 0-7. The value zero indicates no 
+     * contribution from the primary color component. 
+     * <p>
+     * The actual color used in rendering depends on finding the best 
+     * match given the color space available for a given output device. 
+     * @param       rgb   an integer giving the red, green, and blue components.
+     * @see         java.awt.image.ColorModel#getRGBdefault
+     * @see         java.awt.Color#getRed.
+     * @see         java.awt.Color#getGreen.
+     * @see         java.awt.Color#getBlue.
+     * @see         java.awt.Color#getRGB.
+     * @since       JDK1.0
      */
     public Color(int rgb) {
       value = 0xff000000 | rgb;
     }
 
     /**
-     * Creates a color with the specified red, green, and blue values in the
-     * range (0.0 - 1.0). The actual color
-     * used in rendering will depend on finding the best match given the
-     * color space available for a given output device.
-     * @param r the red component
-     * @param g the red component
-     * @param b the red component
-     * @see #getRed
-     * @see #getGreen
-     * @see #getBlue
-     * @see #getRGB
+     * Creates a color with the specified red, green, and blue values, 
+     * where each of the values is in the range 0.0-1.0. The value 
+     * 0.0 indicates no contribution from the primary color component. 
+     * The value 1.0 indicates the maximum intensity of the primary color 
+     * component. 
+     * <p>
+     * The actual color used in rendering depends on finding the best 
+     * match given the color space available for a given output device. 
+     * @param       r the red component
+     * @param       g the red component
+     * @param       b the red component
+     * @see         java.awt.Color#getRed.
+     * @see         java.awt.Color#getGreen.
+     * @see         java.awt.Color#getBlue.
+     * @see         java.awt.Color#getRGB.
+     * @since       JDK1.0
      */
     public Color(float r, float g, float b) {
       this( (int) (r * 255), (int) (g * 255), (int) (b * 255));
@@ -223,36 +247,49 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Gets the red component.
-     * @see #getRGB
+     * Gets the red component of this color. The result is 
+     * an integer in the range 0 to 255. 
+     * @return        the red component of this color.
+     * @see           java.awt.Color#getRGB
+     * @since         JDK1.0
      */
     public int getRed() {
 	return (getRGB() >> 16) & 0xFF;
     }
 
     /**
-     * Gets the green component.
-     * @see #getRGB
+     * Gets the green component of this color. The result is 
+     * an integer in the range 0 to 255. 
+     * @return        the green component of this color.
+     * @see           java.awt.Color#getRGB
+     * @since         JDK1.0
      */
     public int getGreen() {
 	return (getRGB() >> 8) & 0xFF;
     }
 
     /**
-     * Gets the blue component.
-     * @see #getRGB
+     * Gets the blue component of this color. The result is 
+     * an integer in the range 0 to 255. 
+     * @return        the blue component of this color.
+     * @see           java.awt.Color#getRGB
+     * @since         JDK1.0
      */
     public int getBlue() {
 	return (getRGB() >> 0) & 0xFF;
     }
 
     /**
-     * Gets the RGB value representing the color in the default RGB ColorModel.
-     * (Bits 24-31 are 0xff, 16-23 are red, 8-15 are green, 0-7 are blue).
+     * Gets the RGB value representing the color in the default RGB ColorModel. 
+     * The red, green, and blue components of the color are each scaled to be 
+     * a value between 0 (abscence of the color) and 255 (complete saturation). 
+     * Bits 24-31 of the returned integer are 0xff, bits 16-23 are the red 
+     * value, bit 8-15 are the green value, and bits 0-7 are the blue value.
      * @see java.awt.image.ColorModel#getRGBdefault
      * @see #getRed
      * @see #getGreen
      * @see #getBlue
+     * @since JDK1.0
      */
     public int getRGB() {
 	return value;
@@ -261,7 +298,17 @@ public class Color implements java.io.Serializable {
     private static final double FACTOR = 0.7;
 
     /**
-     * Returns a brighter version of this color.
+     * Creates a brighter version of this color.
+     * <p>
+     * This method applies an arbitrary scale factor to each of the three RGB 
+     * components of the color to create a brighter version of the same 
+     * color. Although <code>brighter</code> and <code>darker</code> are 
+     * inverse operations, the results of a series of invocations of 
+     * these two methods may be inconsistent because of rounding errors. 
+     * @return     a new <code>Color</code> object, 
+     *                            a brighter version of this color.
+     * @see        java.awt.Color#darker
+     * @since      JDK1.0
      */
     public Color brighter() {
 	return new Color(Math.min((int)(getRed()  *(1/FACTOR)), 255), 
@@ -270,7 +317,17 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Returns a darker version of this color.
+     * Creates a darker version of this color.
+     * <p>
+     * This method applies an arbitrary scale factor to each of the three RGB 
+     * components of the color to create a darker version of the same 
+     * color. Although <code>brighter</code> and <code>darker</code> are 
+     * inverse operations, the results of a series of invocations of 
+     * these two methods may be inconsistent because of rounding errors. 
+     * @return  a new <code>Color</code> object, 
+     *                              a darker version of this color.
+     * @see        java.awt.Color#brighter
+     * @since      JDK1.0
      */
     public Color darker() {
 	return new Color(Math.max((int)(getRed()  *FACTOR), 0), 
@@ -279,32 +336,52 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Computes the hash code.
+     * Computes the hash code for this color.
+     * @return     a hash code value for this object.
+     * @since      JDK1.0
      */
     public int hashCode() {
 	return value;
     }
 
     /**
-     * Compares this object against the specified object.
-     * @param obj the object to compare with.
-     * @return true if the objects are the same; false otherwise.
+     * Determines whether another object is equal to this color.
+     * <p>
+     * The result is <code>true</code> if and only if the argument is not 
+     * <code>null</code> and is a <code>Color</code> object that has the same 
+     * red, green, and blue values as this object. 
+     * @param       obj   the object to compare with.
+     * @return      <code>true</code> if the objects are the same; 
+     *                             <code>false</code> otherwise.
+     * @since   JDK1.0
      */
     public boolean equals(Object obj) {
         return obj instanceof Color && ((Color)obj).value == this.value;
     }
 
     /**
-     * Returns the String representation of this Color's values.
+     * Creates a string that represents this color and indicates the 
+     * values of its RGB components. 
+     * @return     a representation of this color as a 
+     *                           <code>String</code> object.
+     * @since      JDK1.0
      */
     public String toString() {
         return getClass().getName() + "[r=" + getRed() + ",g=" + getGreen() + ",b=" + getBlue() + "]";
     }
 
     /**
-     * Gets the specified Color.
-     * @param nm representation of the color as a 24-bit integer
-     * @return the new color
+     * Converts a string to an integer and returns the 
+     * specified color. This method handles string formats that 
+     * are used to represent octal and hexidecimal numbers.
+     * @param      nm a string that represents 
+     *                            a color as a 24-bit integer.
+     * @return     the new color
+     * @see        java.lang.Integer#decode
+     * @exception  NumberFormatException  if the specified string cannot
+     *                      be interpreted as a decimal, 
+     *                      octal, or hexidecimal integer.
+     * @since      JDK1.1
      */
     public static Color decode(String nm) throws NumberFormatException {
 	Integer intval = Integer.decode(nm);
@@ -313,18 +390,42 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Gets the specified Color property.
-     * @param nm the name of the color property
+     * Finds a color in the system properties. 
+     * <p>
+     * The argument is treated as the name of a system property to 
+     * be obtained. The string value of this property is then interpreted 
+     * as an integer which is then converted to a color. 
+     * <p>
+     * If the specified property is not found, or could not be parsed as 
+     * an integer, then <code>null</code> is returned. 
+     * @param    nm the name of the color property
+     * @return   the color value of the property.
+     * @see      java.lang.System#getProperty(java.lang.String)
+     * @see      java.lang.Integer#getInteger(java.lang.String)
+     * @see      java.awt.Color#Color(int)
+     * @since    JDK1.0
      */
     public static Color getColor(String nm) {
 	return getColor(nm, null);
     }
 
     /**
-     * Gets the specified Color property of the specified Color.
-     * @param nm the name of the color property
-     * @param v the specified color
-     * @return the new color.
+     * Finds a color in the system properties. 
+     * <p>
+     * The first argument is treated as the name of a system property to 
+     * be obtained. The string value of this property is then interpreted 
+     * as an integer which is then converted to a color. 
+     * <p>
+     * If the specified property is not found, or cannot be parsed as 
+     * an integer, then the color specified by the second argument is 
+     * returned instead. 
+     * @param    nm the name of the color property
+     * @param    v    the default color value.
+     * @return   the color value of the property.
+     * @see      java.lang.System#getProperty(java.lang.String)
+     * @see      java.lang.Integer#getInteger(java.lang.String)
+     * @see      java.awt.Color#Color(int)
+     * @since    JDK1.0
      */
     public static Color getColor(String nm, Color v) {
 	Integer intval = Integer.getInteger(nm);
@@ -336,10 +437,22 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Gets the specified Color property of the color value.
-     * @param nm the name of the color property
-     * @param v the color value
-     * @return the new color.
+     * Finds a color in the system properties. 
+     * <p>
+     * The first argument is treated as the name of a system property to 
+     * be obtained. The string value of this property is then interpreted 
+     * as an integer which is then converted to a color. 
+     * <p>
+     * If the specified property is not found, or could not be parsed as 
+     * an integer, then the integer value <code>v</code> is used instead, 
+     * and is converted to a color.
+     * @param    nm  the name of the color property.
+     * @param    v   the default color value, as an integer.
+     * @return   the color value of the property.
+     * @see      java.lang.System#getProperty(java.lang.String)
+     * @see      java.lang.Integer#getInteger(java.lang.String)
+     * @see      java.awt.Color#Color(int)
+     * @since    JDK1.0
      */
     public static Color getColor(String nm, int v) {
 	Integer intval = Integer.getInteger(nm);
@@ -348,13 +461,22 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Returns the RGB value defined by the default RGB ColorModel, of
-     * the color corresponding to the given HSB color components.
-     * @param hue the hue component of the color
-     * @param saturation the saturation of the color
-     * @param brightness the brightness of the color
-     * @see java.awt.image.ColorModel#getRGBdefault
-     * @see #getRGB
+     * Converts the components of a color, as specified by the HSB 
+     * model, to an equivalent set of values for the RGB model. 
+     * <p>
+     * The integer that is returned by <code>HSBtoRGB</code> encodes the 
+     * value of a color in bits 0&endash;23 of an integer value, the same 
+     * format used by the method <code>getRGB</code>. This integer can be 
+     * supplied as an argument to the <code>Color</code> constructor that 
+     * takes a single integer argument. 
+     * @param     hue   the hue component of the color.
+     * @param     saturation   the saturation of the color.
+     * @param     brightness   the brightness of the color.
+     * @return    the RGB value of the color with the indicated hue, 
+     *                            saturation, and brightness.
+     * @see       java.awt.Color#getRGB()
+     * @see       java.awt.Color#Color(int)
+     * @since     JDK1.0
      */
     public static int HSBtoRGB(float hue, float saturation, float brightness) {
 	int r = 0, g = 0, b = 0;
@@ -403,15 +525,25 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Returns the HSB values corresponding to the color defined by the
-     * red, green, and blue components.
-     * @param r the red component of the color
-     * @param g the green component of the color
-     * @param b the blue component of the color
-     * @param hsbvals the array to be used to return the 3 HSB values, or null
-     * @return the array used to store the results [hue, saturation, brightness]
-     * @see java.awt.image.ColorModel#getRGBdefault
-     * @see #getRGB
+     * Converts the components of a color, as specified by the RGB 
+     * model, to an equivalent set of values for hue, saturation, and 
+     * brightness, the three components of the HSB model. 
+     * <p>
+     * If the <code>hsbvals</code> argument is <code>null</code>, then a 
+     * new array is allocated to return the result. Otherwise, the method 
+     * returns the array <code>hsbvals</code>, with the values put into 
+     * that array. 
+     * @param     r   the red component of the color.
+     * @param     g   the green component of the color.
+     * @param     b   the blue component of the color.
+     * @param     hsbvals  the array to be used to return the 
+     *                     three HSB values, or <code>null</code>.
+     * @return    an array of three elements containing the hue, saturation, 
+     *                     and brightness (in that order), of the color with 
+     *                     the indicated red, green, and blue components.
+     * @see       java.awt.Color#getRGB()
+     * @see       java.awt.Color#Color(int)
+     * @since     JDK1.0
      */
     public static float[] RGBtoHSB(int r, int g, int b, float[] hsbvals) {
 	float hue, saturation, brightness;
@@ -451,12 +583,19 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * A static Color factory for generating a Color object from HSB
-     * values.
-     * @param h the hue component
-     * @param s the saturation of the color
-     * @param b the brightness of the color
-     * @return the Color object for the corresponding RGB color
+     * Creates a <code>Color</code> object based on values supplied 
+     * for the HSB color model. 
+     * <p>
+     * Each of the three components should be a floating-point 
+     * value between zero and one (a number in the range 
+     * <code>0.0</code>&nbsp;&le;&nbsp;<code>h</code>, <code>s</code>, 
+     * <code>b</code>&nbsp;&le;&nbsp;<code>1.0). </code> 
+     * @param  h   the hue component.
+     * @param  s   the saturation of the color.
+     * @param  b   the brightness of the color.
+     * @return  a <code>Color</code> object with the specified hue, 
+     *                                 saturation, and brightness.
+     * @since   JDK1.0
      */
     public static Color getHSBColor(float h, float s, float b) {
 	return new Color(HSBtoRGB(h, s, b));

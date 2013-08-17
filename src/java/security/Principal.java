@@ -33,7 +33,7 @@ package java.security;
  * @see java.security.acl.Acl
  * @see java.security.acl.Group
  *
- * @version 1.12, 97/06/20
+ * @version 1.12, 00/08/15
  * @author Satish Dharmaraj 
  */
 public interface Principal {

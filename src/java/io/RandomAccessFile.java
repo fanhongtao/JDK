@@ -1,5 +1,5 @@
 /*
- * @(#)RandomAccessFile.java	1.31 97/02/05
+ * @(#)RandomAccessFile.java	1.33 98/01/09
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -33,7 +33,7 @@ import java.io.File;
  * read-only or read-write to files.
  *
  * @author  unascribed
- * @version 1.31, 02/05/97
+ * @version 1.33, 01/09/98
  * @since   JDK1.0
  */
 public
@@ -305,10 +305,16 @@ class RandomAccessFile implements DataOutput, DataInput {
     public native long getFilePointer() throws IOException;
 
     /**
-     * Sets the offset from the beginning of this file at which the next 
-     * read or write occurs. 
+     * Sets the file-pointer offset, measured from the beginning of this 
+     * file, at which the next read or write occurs.  The offset may be 
+     * set beyond the end of the file. Setting the offset beyond the end 
+     * of the file does not change the file length.  The file length will 
+     * change only by writing after the offset has been set beyond the end 
+     * of the file. 
      *
-     * @param      pos   the absolute position.
+     * @param      pos   the offset position, measured in bytes from the 
+     *                   beginning of the file, at which to set the file 
+     *                   pointer.
      * @exception  IOException  if an I/O error occurs.
      * @since      JDK1.0
      */
@@ -780,10 +786,9 @@ class RandomAccessFile implements DataOutput, DataInput {
      */
     public final void writeBytes(String s) throws IOException {
 	int len = s.length();
-	for (int i = 0 ; i < len ; i++) {
-	    write((byte)s.charAt(i));
-	}
-	//written += len;
+	byte[] b = new byte[len];
+	s.getBytes(0, len, b, 0);
+	writeBytes(b, 0, len);
     }
 
     /**
@@ -797,13 +802,16 @@ class RandomAccessFile implements DataOutput, DataInput {
      * @since      JDK1.0
      */
     public final void writeChars(String s) throws IOException {
-	int len = s.length();
-	for (int i = 0 ; i < len ; i++) {
-	    int v = s.charAt(i);
-	    write((v >>> 8) & 0xFF);
-	    write((v >>> 0) & 0xFF);
+	int clen = s.length();
+	int blen = 2*clen;
+	byte[] b = new byte[blen];
+	char[] c = new char[clen];
+	s.getChars(0, clen, c, 0);
+	for (int i = 0, j = 0; i < clen; i++) {
+	    b[j++] = (byte)(c[i] >>> 8);
+	    b[j++] = (byte)(c[i] >>> 0);
 	}
-	//written += len * 2;
+	writeBytes(b, 0, blen);
     }
 
     /**

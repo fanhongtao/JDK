@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_sq.java	1.4 97/02/24
+ * @(#)LocaleElements_sq.java	1.8 98/01/14
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,87 +45,139 @@
 
 package java.text.resources;
 
-public class LocaleElements_sq extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_sq() {
-        super.init(table);
+public class LocaleElements_sq extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "sq_AL" }, // locale id based on iso codes
+            { "LocaleID", "041c" }, // Windows id
+            { "ShortLanguage", "sqi" }, // iso-3 abbrev lang name
+            { "ShortCountry", "ALB" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "sq", "shqipe" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "AL", "Shqip\u00ebria" }
+                }
+            },
+            { "MonthNames", 
+                new String[] { 
+                    "janar", // january
+                    "shkurt", // february
+                    "mars", // march
+                    "prill", // april
+                    "maj", // may
+                    "qershor", // june
+                    "korrik", // july
+                    "gusht", // august
+                    "shtator", // september
+                    "tetor", // october
+                    "n\u00ebntor", // november
+                    "dhjetor", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations", 
+                new String[] { 
+                    "Jan", // abb january
+                    "Shk", // abb february
+                    "Mar", // abb march
+                    "Pri", // abb april
+                    "Maj", // abb may
+                    "Qer", // abb june
+                    "Kor", // abb july
+                    "Gsh", // abb august
+                    "Sht", // abb september
+                    "Tet", // abb october
+                    "N\u00ebn", // abb november
+                    "Dhj", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames", 
+                new String[] { 
+                    "e diel", // Sunday
+                    "e h\u00ebn\u00eb", // Monday
+                    "e mart\u00eb", // Tuesday
+                    "e m\u00ebrkur\u00eb", // Wednesday
+                    "e enjte", // Thursday
+                    "e premte", // Friday
+                    "e shtun\u00eb" // Saturday
+                }
+            },
+            { "DayAbbreviations", 
+                new String[] { 
+                    "Die", // abb Sunday
+                    "H\u00ebn", // abb Monday
+                    "Mar", // abb Tuesday
+                    "M\u00ebr", // abb Wednesday
+                    "Enj", // abb Thursday
+                    "Pre", // abb Friday
+                    "Sht" // abb Saturday
+                }
+            },
+            { "AmPmMarkers", 
+                new String[] { 
+                    "PD", // am marker
+                    "MD" // pm marker
+                }
+            },
+            { "Eras", 
+                new String[] { // era strings
+                    "p.e.r.", 
+                    "n.e.r." 
+                }
+            },
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "Lek#,##0.###;-Lek#,##0.###", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements", 
+                new String[] { 
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "Lek", // local currency symbol
+                    "ALL", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "h.mm.ss.a z", // full time pattern
+                    "h.mm.ss.a z", // long time pattern
+                    "h:mm:ss.a", // medium time pattern
+                    "h.mm.a", // short time pattern
+                    "yyyy-MM-dd", // full date pattern
+                    "yyyy-MM-dd", // long date pattern
+                    "yy-MM-dd", // medium date pattern
+                    "yy-MM-dd", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements", "@" } 
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */     "sq_AL",
-		/* Windows id */                       "041c",
-		/* iso-3 abbrev lang name */           "sqi",
-		/* iso-3 abbrev country name */        "ALB",
-		/* language names */                   "en_Albanian; sq_Shqipja",
-		/* country names */                    "en_Albania; sq_Shqiperia",
-		/* january */                          "Janar",
-		/* february */                         "Shkurt",
-		/* march */                            "Mars",
-		/* april */                            "Prill",
-		/* may */                              "Maj",
-		/* june */                             "Qershor",
-		/* july */                             "Korrik",
-		/* august */                           "Gusht",
-		/* september */                        "Shtator",
-		/* october */                          "Tetor",
-		/* november */                         "N\u00ebntor",
-		/* december */                         "Dhjetor",
-		/* month 13 if applicable */           "",
-		/* abb january */                      "Jan",
-		/* abb february */                     "Shk",
-		/* abb march */                        "Mar",
-		/* abb april */                        "Pri",
-		/* abb may */                          "Maj",
-		/* abb june */                         "Qer",
-		/* abb july */                         "Kor",
-		/* abb august */                       "Gus",
-		/* abb september */                    "Sht",
-		/* abb october */                      "Tet",
-		/* abb november */                     "N\u00ebn",
-		/* abb december */                     "Dhj",
-		/* abb month 13 if applicable */       "",
-		/* sunday */                           "E\u0020Diel\u00eb",
-		/* monday */                           "E\u0020H\u003bn\u00eb",
-		/* tuesday */                          "E\u0020Mart\u00eb",
-		/* wednesday */                        "E\u0020M\u00ebrkur\u00eb",
-		/* thursday */                         "E\u0020Enjte",
-		/* friday */                           "E\u0020Premte",
-		/* saturday */                         "E\u0020Shtun\u00eb",
-		/* abb sunday */                       "Die",
-		/* abb monday */                       "H\u00ebn",
-		/* abb tuesday */                      "Mar",
-		/* abb wednesday */                    "M\u00ebr",
-		/* abb thursday */                     "Enj",
-		/* abb friday */                       "Pre",
-		/* abb saturday */                     "Sht",
-		/* am marker; default is AM */         "AM",
-		/* pm marker; default is PM */         "PM",
-		/* era strings */                      "p.e.r.;n.e.r.",
-		/* decimal pattern */                  "#,##0.###;-#,##0.###",
-		/* currency pattern */                 "Lek#,##0.###;-Lek#,##0.###",
-		/* percent pattern */                  "#,##0%",
-		/* decimal separator */                ",",
-		/* group (thousands) separator */      ".",
-		/* list separator */                   "",
-		/* percent sign */                     "%",
-		/* native 0 digit */                   "0",
-		/* pattern digit */                    "#",
-		/* minus sign */                       "-",
-		/* exponential */                      "E",
-		/* local currency symbol */            "Lek",
-		/* intl currency symbol */             "ALL",
-		/* monetary decimal separator */       ",",
-		/* Full time pattern */                "H.mm.ss z",
-		/* Long time pattern */                "H.mm.ss z",
-		/* Default time pattern */             "H.mm.ss",
-		/* Short time pattern */               "H.mm",
-		/* Full date pattern */                "EEEE, yyyy, MMMM d",
-		/* Long date pattern */                "yyyy, MMMM d",
-		/* Default date pattern */             "yyyy-M-d",
-		/* Short date pattern */               "yy-M-d",
-		/* Date-Time pattern*/                 "{1} {0}",
-		/* first day of week */                "1",
-		/* min days in first week */           "1",
-		"@"                                  /* sort accents backwards */
-    };
 }

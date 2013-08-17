@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectInputStream.java	1.30 97/05/02
+ * @(#)ObjectInputStream.java	1.39 98/02/05
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -24,6 +24,8 @@ package java.io;
 import java.util.Vector;
 import java.util.Stack;
 import java.util.Hashtable;
+
+import sun.io.ObjectInputStreamDelegate; // RMI over IIOP hook.
 
 /**
  * An ObjectInputStream deserializes primitive data and objects previously
@@ -138,7 +140,7 @@ import java.util.Hashtable;
  * versioning that occurs.
  *
  * @author  Roger Riggs
- * @version 1.30, 05/02/97
+ * @version 1.39, 02/05/98
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -159,6 +161,21 @@ public class ObjectInputStream extends InputStream
     public ObjectInputStream(InputStream in)
 	throws IOException, StreamCorruptedException
   {
+        /*
+         * RMI over IIOP hook. Check if we are a trusted subclass
+         * that has implemented the "sun.io.ObjectInputStream"
+         * interface. If so, set our private flag that will be
+         * checked in "readObject", "defaultReadObject" and
+         * "enableResolveObject". Note that we don't initialize
+         * private instance variables in this case as an optimization
+         * (subclasses using the hook should have no need for them).
+         */
+        
+        if (this instanceof sun.io.ObjectInputStreamDelegate && this.getClass().getClassLoader() == null) {
+            isTrustedSubclass = true;
+            return;
+        }
+        
   	/*
   	 * Save the input stream to read bytes from
   	 * Create a DataInputStream used to read primitive types.
@@ -202,14 +219,41 @@ public class ObjectInputStream extends InputStream
      * @since     JDK1.1
      */
     public final Object readObject()
+ 	throws OptionalDataException, ClassNotFoundException, IOException {
+ 	
+ 	    /*
+ 	     * RMI over IIOP hook. Invoke delegate method if indicated.
+ 	     */
+ 	    if (isTrustedSubclass) {
+ 	        return ((ObjectInputStreamDelegate) this).readObjectDelegate();
+ 	    }
+ 	    
+ 	    /* require local Class for object by default. */
+ 	    return readObject(true);
+    }
+ 
+    /*
+      * Private implementation of Read an object from the ObjectInputStream.
+      *
+      * @param requireLocalClass If false, do not throw ClassNotFoundException
+      *                          when local class does not exist.
+      *
+      * @since     JDK1.2
+      */
+    private final Object readObject(boolean requireLocalClass)
 	throws OptionalDataException, ClassNotFoundException, IOException
     {
 	/* If the stream is in blockData mode and there's any data
 	 * left throw an exception to report how much there is.
 	 */
-	int n;
-	if (blockDataMode && (n = available()) > 0) {
-	    throw new OptionalDataException(n);
+	if (blockDataMode) {
+	    /* Can't use member method available() since it depends on the unreliable
+	     *  method InputStream.available().
+	     */
+	    if (count == 0)
+		refill();
+	    if (count > 0)
+		throw new OptionalDataException(count);
 	}
 	
 	/*
@@ -256,12 +300,24 @@ public class ObjectInputStream extends InputStream
 		break;
 		
 	    case TC_STRING:
-		obj = readUTF(); 
-		assignWireOffset(obj);
+		{
+		    obj = readUTF(); 
+		    Object localObj = obj; //readUTF does not set currentObject
+		    wireoffset = assignWireOffset(obj);
+
+		    /* Allow subclasses to replace the object */
+		    if (enableResolve) {
+			obj = resolveObject(obj);
+		    }
+
+		    if (obj != localObj)
+			wireHandle2Object.setElementAt(obj, wireoffset);
+		}
 		break;
 		
 	    case TC_CLASS:
-		ObjectStreamClass v = (ObjectStreamClass)readObject();
+		ObjectStreamClass v = 
+		    (ObjectStreamClass)readObject(requireLocalClass);
 		if (v == null) {
 		    /*
 		     * No class descriptor in stream or class not serializable
@@ -269,6 +325,9 @@ public class ObjectInputStream extends InputStream
 		    throw new StreamCorruptedException("Class not in stream");
 		}
 		obj = v.forClass();
+		if (obj == null && requireLocalClass) {
+		    throw new ClassNotFoundException(v.getName());
+		}
 		assignWireOffset(obj);
 		break;
 		
@@ -277,11 +336,19 @@ public class ObjectInputStream extends InputStream
 		break;
 		
 	    case TC_ARRAY:
-		obj = inputArray();
+		wireoffset = inputArray(requireLocalClass);
+		obj = currentObject;
+		/* Allow subclasses to replace the object */
+		if (enableResolve) {
+		    obj = resolveObject(obj);
+		}
+
+		if (obj != currentObject)
+		    wireHandle2Object.setElementAt(obj, wireoffset);
 		break;
 		
 	    case TC_OBJECT:
-		wireoffset = inputObject();
+		wireoffset = inputObject(requireLocalClass);
 		obj = currentObject;
 		if (enableResolve) {
 		    /* Hook for alternate object */
@@ -394,6 +461,15 @@ public class ObjectInputStream extends InputStream
     public final void defaultReadObject()
 	throws IOException, ClassNotFoundException, NotActiveException
     {
+ 	
+	/*
+	 * RMI over IIOP hook. Invoke delegate method if indicated.
+	 */
+	if (isTrustedSubclass) {
+	    ((ObjectInputStreamDelegate) this).defaultReadObjectDelegate();
+	    return;
+	}
+ 	    
 	if (currentObject == null || currentClassDesc == null)
 	    throw new NotActiveException("defaultReadObject");
 	
@@ -469,10 +545,15 @@ public class ObjectInputStream extends InputStream
 	    return;
 	
 	int size = callbacks.size();
+	if (size == 0)
+	    return;
+	
 	for (int i = 0; i < size; i++) {
 	    ValidationCallback curr = (ValidationCallback)callbacks.elementAt(i);
 	    curr.callback.validateObject();
 	}
+	/* All pending validations completed successfully. Reset.*/
+	callbacks.setSize(0);
     }
 
     /**
@@ -562,6 +643,14 @@ public class ObjectInputStream extends InputStream
     protected final boolean enableResolveObject(boolean enable)
 	throws SecurityException
     {
+ 	
+	/*
+	 * RMI over IIOP hook. Invoke delegate method if indicated.
+	 */
+	if (isTrustedSubclass) {
+	  return ((ObjectInputStreamDelegate) this).enableResolveObjectDelegate(enable);
+	}
+ 	    
 	boolean previous = enableResolve;
 	if (enable) {
 	    ClassLoader loader = this.getClass().getClassLoader();
@@ -599,7 +688,7 @@ public class ObjectInputStream extends InputStream
 
     /*
      * Read a ObjectStreamClasss from the stream, it may recursively
-     * create other ObjectStreamClasss for the classes it references.
+     * create another ObjectStreamClass for the superclass it references.
      */
     private ObjectStreamClass inputClassDescriptor()
 	throws IOException, InvalidClassException, ClassNotFoundException
@@ -623,7 +712,22 @@ public class ObjectInputStream extends InputStream
 	 * read the endOfBlockData. Then switch out of BlockDataMode.
 	 */
 	boolean prevMode = setBlockData(true);
-	aclass = resolveClass((ObjectStreamClass)v);
+	try {
+	    aclass = resolveClass((ObjectStreamClass)v);
+	} catch (ClassNotFoundException e) {
+	    /* Not all classes in the serialized stream must be resolvable to
+	     * a class in the current VM. The original version of a class need not
+	     * resolve a superclass added by an evolved version of the class.
+   	     * ClassNotFoundException will be thrown if it is detected elsewhere
+	     * that this class would be used as a most derived class.
+	     */
+	    aclass = null;
+ 	} catch (NoClassDefFoundError e) {
+ 	    /* This exception was thrown when looking for an array of class,
+ 	     * and class could not be found.
+ 	     */
+ 	    aclass = null;
+	}
 	SkipToEndOfBlockData();
 	prevMode = setBlockData(prevMode);
 
@@ -633,9 +737,6 @@ public class ObjectInputStream extends InputStream
 	 * Set the class this ObjectStreamClass will use to create 
 	 * instances.
 	 */
-	if (aclass == null) {
-	    throw new ClassNotFoundException(v.getName());
-	}
 	v.setClass(aclass);
 
 	/* Get the superdescriptor of this one and it set it.
@@ -648,30 +749,35 @@ public class ObjectInputStream extends InputStream
 
     /* Private routine to read in an array. Called from inputObject
      * after the typecode has been read from the stream.
+     *
+     * @param requireLocalClass If false, do not throw ClassNotFoundException
+     *                          when local class does not exist.
      */
-    private Object inputArray()
+    private int inputArray(boolean requireLocalClass)
 	throws IOException, ClassNotFoundException
     {
-	/* May raise ClassNotFoundException */
 	ObjectStreamClass v = (ObjectStreamClass)readObject();
-	
 	Class arrayclass = v.forClass();
+	if (arrayclass == null && requireLocalClass)
+	    throw new ClassNotFoundException(v.getName());
 
 	/* This can't be done with new because only the top level array
 	 * is needed and the type must be set properly.
 	 * the lower level arrays will be created when they are read.
 	 */
 	int length = readInt();
-	currentObject = allocateNewArray(arrayclass, length);
-	assignWireOffset(currentObject);
+	currentObject = (arrayclass == null) ? 
+	    null : allocateNewArray(arrayclass, length);
+	int wireoffset = assignWireOffset(currentObject);
 	
 	/* Read in the values from the array,
 	 * It dispatches using the type and read using the read* methods.
 	 */
 	int i;
-	Class type = arrayclass.getComponentType();
 
-	if (type.isPrimitive()) {
+	if (arrayclass != null 
+	    && arrayclass.getComponentType().isPrimitive()) {
+	    Class type = arrayclass.getComponentType();
 	    /* Arrays of primitive types read data in blocks and
 	     * decode the data types from the buffer.
 	     */
@@ -693,7 +799,13 @@ public class ObjectInputStream extends InputStream
 		}
 	    } else if (type == Byte.TYPE) {
 		byte[] array = (byte[])currentObject;
-		readFully(array, 0, length);
+		int ai = 0;
+		while (ai < length) {
+		    int readlen = Math.min(length-ai, buflen);
+		    readFully(buffer, 0, readlen);
+		    System.arraycopy(buffer, 0, array, ai, readlen);
+		    ai += readlen;
+		}
 	    } else if (type == Short.TYPE) {
 		short[] array = (short[])currentObject;
 		for (i = 0; i < length; i++) {
@@ -791,12 +903,15 @@ public class ObjectInputStream extends InputStream
 	    }
 	} else {		// Is array of objects
 	    Object[] array = (Object[])currentObject;
+	    boolean requiresLocalClass = (arrayclass != null);
 	    for (i = 0; i < length; i++) {
-		array[i] = readObject();
+		Object obj = readObject(requiresLocalClass);
+		if (array != null)
+		    array[i] = obj;
 	    }
 	}
 
-	return currentObject;
+	return wireoffset;
     }
 
     /*
@@ -809,8 +924,11 @@ public class ObjectInputStream extends InputStream
      * the default serialization methods or class defined special methods
      * if they have been defined.
      * The handle for the object is returned, the object itself is in currentObject.
+     *
+     * @param requireLocalClass If false, do not throw ClassNotFoundException
+     *                          when local class does not exist.
      */
-    private int inputObject()
+    private int inputObject(boolean requireLocalClass)
 	throws IOException, ClassNotFoundException
     {
 	int handle = -1;
@@ -819,8 +937,17 @@ public class ObjectInputStream extends InputStream
 	 */
 	currentClassDesc = (ObjectStreamClass)readObject();
 	currentClass = currentClassDesc.forClass();
+
+	/* require the class if required or if Externalizable data
+	 * can not be skipped if it was not written in BlockData mode.
+	 */
+	if (currentClass == null &&
+	    (requireLocalClass ||
+	     (currentClassDesc.isExternalizable() &&
+	      !currentClassDesc.hasExternalizableBlockDataMode())))
+	    throw new ClassNotFoundException(currentClassDesc.getName());
 	
-	
+
 	/* If Externalizable,
 	 *  Create an instance and tell it to read its data.
 	 * else,
@@ -828,10 +955,24 @@ public class ObjectInputStream extends InputStream
 	 */
 	if (currentClassDesc.isExternalizable()) {
 	    try {
-		currentObject = allocateNewObject(currentClass, currentClass);
+		currentObject = (currentClass == null) ?
+		    null : allocateNewObject(currentClass, currentClass);
 		handle = assignWireOffset(currentObject);
-		Externalizable ext = (Externalizable)currentObject;
-		ext.readExternal(this);
+		boolean prevmode = blockDataMode;
+		if (currentClassDesc.hasExternalizableBlockDataMode()) {
+		    prevmode = setBlockData(true);
+		}
+		try {
+		    if (currentObject != null) {
+			Externalizable ext = (Externalizable)currentObject;
+			ext.readExternal(this);
+		    }
+		} finally {
+		    if (currentClassDesc.hasExternalizableBlockDataMode()) {
+			SkipToEndOfBlockData();
+			setBlockData(prevmode);
+		    }
+		}
 	    } catch (IllegalAccessException e) {
 		throw new InvalidClassException(currentClass.getName(),
 					    "IllegalAccessException");
@@ -937,7 +1078,8 @@ public class ObjectInputStream extends InputStream
 	     * Remember the next wirehandle goes with the new object
 	     */
 	    try {
-		currentObject = allocateNewObject(currentClass, currclass);
+		currentObject = (currentClass == null) ? 
+		    null: allocateNewObject(currentClass, currclass);
 	    } catch (NoSuchMethodError e) {
 		throw new InvalidClassException(currclass.getName(),
 					    "NoSuchMethodError");
@@ -985,7 +1127,7 @@ public class ObjectInputStream extends InputStream
 			    defaultReadObject();
 			}
 		    } else {
-			/* No class for this descriptor,
+			/* No local class for this descriptor,
 			 * Skip over the data for this class.
 			 * like defaultReadObject with a null currentObject.
 			 * The native code will read the values but discard them.
@@ -1004,6 +1146,7 @@ public class ObjectInputStream extends InputStream
 		     * TC_ENDBLOCKDATA.  Skip anything up to that and read it.
 		     */
 		    if (currentClassDesc.hasWriteObject()) {
+			setBlockData(true);
 			SkipToEndOfBlockData();
 		    }
 		    setBlockData(false);
@@ -1028,7 +1171,8 @@ public class ObjectInputStream extends InputStream
     {
 	while (peekCode() != TC_ENDBLOCKDATA) {
 	    try {
-		Object ignore = readObject();
+		/* do not require a local Class equivalent of object being read. */
+		Object ignore = readObject(false);
 	    } catch (OptionalDataException data) {
 		if (data.length > 0)
 		    skip(data.length);
@@ -1041,13 +1185,28 @@ public class ObjectInputStream extends InputStream
      * Reset the stream to be just like it was after the constructor.
      */
     private void resetStream() throws IOException {
-	wireHandle2Object = new Vector(100,100);
+	if (wireHandle2Object == null)
+	    wireHandle2Object = new Vector(100,100);
+	else
+	    wireHandle2Object.setSize(0);   // release all references.
 	nextWireOffset = 0;
-	classes = new Class[20];
-	classdesc = new ObjectStreamClass[20];
+
+	if (classes == null)
+	    classes = new Class[20];
+	else {
+	    for (int i = 0; i < classes.length; i++)
+		classes[i] = null;
+	}
+	if (classdesc == null)
+	    classdesc = new ObjectStreamClass[20];
+	else {
+	    for (int i = 0; i < classdesc.length; i++)
+		classdesc[i] = null;
+	}
 	spClass = 0;
 	setBlockData(true);		// Re-enable buffering
-	callbacks = null;		// discard any pending callbacks
+	if (callbacks != null)
+	    callbacks.setSize(0);	// discard any pending callbacks
     }
 
     /* Allocate a handle for an object.
@@ -1553,7 +1712,14 @@ public class ObjectInputStream extends InputStream
      * Flag set to true to allow resolveObject to be called.
      * Set by enableResolveObject.
      */
-    private boolean enableResolve;
+    boolean enableResolve;
+    
+    /*
+     * RMI over IIOP hook: Flag to indicate if we are
+     * a trusted subclass that has implemented the delegate
+     * interface "sun.io.ObjectInputStreamDelegate".
+     */
+    private boolean isTrustedSubclass = false;
 }
 
 // Internal class to hold the Callback object and priority

@@ -1,5 +1,5 @@
 /*
- * @(#)MenuComponent.java	1.25 97/04/25
+ * @(#)MenuComponent.java	1.27 97/12/02
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,10 +25,17 @@ import java.awt.peer.MenuComponentPeer;
 import java.awt.event.ActionEvent;
 
 /**
- * The super class of all menu related components.
+ * The abstract class <code>MenuComponent</code> is the superclass 
+ * of all menu-related components. In this respect, the class
+ * <code>MenuComponent</code> is analogous to the abstract superclass
+ * <code>Component</code> for AWT components.
+ * <p>
+ * Menu components receive and process AWT events, just as components do,
+ * through the method <code>processEvent</code>.
  *
- * @version 	1.25, 04/25/97
+ * @version 	1.27, 12/02/97
  * @author 	Arthur van Hoff
+ * @since       JDK1.0
  */
 public abstract class MenuComponent implements java.io.Serializable {
     transient MenuComponentPeer peer;
@@ -51,6 +58,9 @@ public abstract class MenuComponent implements java.io.Serializable {
 
     /**
      * Gets the name of the menu component.
+     * @return        the name of the menu component.
+     * @see           java.awt.MenuComponent#setName(java.lang.String)
+     * @since         JDK1.1
      */
     public String getName() {
         return name;
@@ -58,14 +68,20 @@ public abstract class MenuComponent implements java.io.Serializable {
 
     /**
      * Sets the name of the component to the specified string.
-     * @param name  the name of the component.
+     * @param         name    the name of the menu component.
+     * @see           java.awt.MenuComponent#getName
+     * @since         JDK1.1
      */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
-     * Returns the parent container.
+     * Returns the parent container for this menu component.
+     * @return    the menu component containing this menu component, 
+     *                 or <code>null</code> if this menu component 
+     *                 is the outermost component, the menu bar itself.
+     * @since     JDK1.0
      */
     public MenuContainer getParent() {
 	return parent;
@@ -80,8 +96,11 @@ public abstract class MenuComponent implements java.io.Serializable {
     }
 
     /**
-     * Gets the font used for this MenuItem.
-     * @return the font if one is used; null otherwise.
+     * Gets the font used for this menu component.
+     * @return   the font used in this menu component, if there is one; 
+     *                  <code>null</code> otherwise.
+     * @see     java.awt.MenuComponent#setFont
+     * @since   JDK1.0
      */
     public Font getFont() {
 	Font font = this.font;
@@ -96,8 +115,12 @@ public abstract class MenuComponent implements java.io.Serializable {
     }
 
     /**
-     * Sets the font to be used for this MenuItem to the specified font.
-     * @param f the font to be set
+     * Sets the font to be used for this menu component to the specified 
+     * font. This font is also used by all subcomponents of this menu 
+     * component, unless those subcomponents specify a different font. 
+     * @param     f   the font to be set.
+     * @see       java.awt.MenuComponent#getFont
+     * @since     JDK1.0
      */
     public void setFont(Font f) {
 	font = f;
@@ -109,18 +132,26 @@ public abstract class MenuComponent implements java.io.Serializable {
      * the menu component.
      */
     public void removeNotify() {
-	MenuComponentPeer p = (MenuComponentPeer)this.peer;
-	if (p != null) {
-	    this.peer = null;
-	    p.dispose();
-	}
+        synchronized(getTreeLock()) {
+	    MenuComponentPeer p = (MenuComponentPeer)this.peer;
+	    if (p != null) {
+                Toolkit.getEventQueue().removeSourceEvents(this);
+	        this.peer = null;
+	        p.dispose();
+	    }
+        }
     }
 
     /**
      * Posts the specified event to the menu.
+     * This method is part of the Java&nbsp;1.0 event system
+     * and it is maintained only for backwards compatibility.
+     * Its use is discouraged, and it may not be supported
+     * in the future.
      * @param evt the event which is to take place
      * @deprecated As of JDK version 1.1,
-     * replaced by dispatchEvent(AWTEvent).
+     * replaced by <code>dispatchEvent(AWTEvent)</code>.
+     * @since JDK1.0
      */
     public boolean postEvent(Event evt) {
 	MenuContainer parent = this.parent;
@@ -165,21 +196,38 @@ public abstract class MenuComponent implements java.io.Serializable {
     /** 
      * Processes events occurring on this menu component.  
      * @param e the event
+     * @since JDK1.1
      */   
     protected void processEvent(AWTEvent e) {
     }
 
     /**
-     * Returns the String parameter of this MenuComponent.
+     * Returns the parameter string representing the state of this  
+     * menu component. This string is useful for debugging. 
+     * @return     the parameter string of this menu component.
+     * @since      JDK1.0
      */
     protected String paramString() {
 	return (name != null? name : "");
     }
 
     /**
-     * Returns the String representation of this MenuComponent's values.
+     * Returns a representation of this menu component as a string. 
+     * @return  a string representation of this menu component.
+     * @since     JDK1.0
      */
     public String toString() {
 	return getClass().getName() + "[" + paramString() + "]";
     }
+
+    /**
+     * Gets this component's locking object (the object that owns the thread 
+     * sychronization monitor) for AWT component-tree and layout
+     * operations.
+     * @return This component's locking object.
+     */
+    protected final Object getTreeLock() {
+	return Component.LOCK;
+    }
+
 }

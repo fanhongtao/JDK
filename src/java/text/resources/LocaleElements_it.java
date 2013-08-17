@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_it.java	1.4 97/02/24
+ * @(#)LocaleElements_it.java	1.6 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,87 +45,139 @@
 
 package java.text.resources;
 
-public class LocaleElements_it extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_it() {
-        super.init(table);
+public class LocaleElements_it extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "it_IT" }, // locale id based on iso codes
+            { "LocaleID", "0410" }, // Windows id
+            { "ShortLanguage", "ita" }, // iso-3 abbrev lang name
+            { "ShortCountry", "ITA" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "it", "italiano" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "IT", "Italia" },
+                    { "CH", "Svizzera" }
+                }
+            },
+            { "MonthNames", 
+                new String[] { 
+                    "gennaio", // january
+                    "febbraio", // february
+                    "marzo", // march
+                    "aprile", // april
+                    "maggio", // may
+                    "giugno", // june
+                    "luglio", // july
+                    "agosto", // august
+                    "settembre", // september
+                    "ottobre", // october
+                    "novembre", // november
+                    "dicembre", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations", 
+                new String[] { 
+                    "gen", // abb january
+                    "feb", // abb february
+                    "mar", // abb march
+                    "apr", // abb april
+                    "mag", // abb may
+                    "giu", // abb june
+                    "lug", // abb july
+                    "ago", // abb august
+                    "set", // abb september
+                    "ott", // abb october
+                    "nov", // abb november
+                    "dic", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames", 
+                new String[] { 
+                    "domenica", // Sunday
+                    "luned\u00ec", // Monday
+                    "marted\u00ec", // Tuesday
+                    "mercoled\u00ec", // Wednesday
+                    "gioved\u00ec", // Thursday
+                    "venerd\u00ec", // Friday
+                    "sabato" // Saturday
+                }
+            },
+            { "DayAbbreviations", 
+                new String[] { 
+                    "dom", // abb Sunday
+                    "lun", // abb Monday
+                    "mar", // abb Tuesday
+                    "mer", // abb Wednesday
+                    "gio", // abb Thursday
+                    "ven", // abb Friday
+                    "sab" // abb Saturday
+                }
+            },
+            { "Eras", 
+                new String[] { // era strings
+                    "BC", 
+                    "dopo Cristo" 
+                }
+            },
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "'L.' #,##0;-'L.' #,##0", // currency pattern
+                    "#,##0%" // percent pattertern
+                }
+            },
+            { "NumberElements", 
+                new String[] { 
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "L.", // local currency symbol
+                    "ITL", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "H.mm.ss z", // full time pattern
+                    "H.mm.ss z", // long time pattern
+                    "H.mm.ss", // medium time pattern
+                    "H.mm", // short time pattern
+                    "EEEE d MMMM yyyy", // full date pattern
+                    "d MMMM yyyy", // long date pattern
+                    "d-MMM-yy", // medium date pattern
+                    "dd/MM/yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements", 
+                new String[] { 
+                    "2", // first day of week
+                    "4" // min days in first week
+                }
+            }
+        };
     }
-
-    static String table []={
-        "it_IT", /*locale id based on iso codes*/
-        "0410", /*Windows id*/
-        "ita", /*iso-3 abbrev lang name*/
-        "ITA", /*iso-3 abbrev country name*/
-        "en_Italian; de_Italienisch; fr_italien; it_italiano", /*language names*/
-        "en_Italy; de_Italien; fr_Italie; it_Italia", /*country names*/
-        "gennaio", /*january*/
-        "febbraio", /*february*/
-        "marzo", /*march*/
-        "aprile", /*april*/
-        "maggio", /*may*/
-        "giugno", /*june*/
-        "luglio", /*july*/
-        "agosto", /*august*/
-        "settembre", /*september*/
-        "ottobre", /*october*/
-        "novembre", /*november*/
-        "dicembre", /*december*/
-        "", /*month 13 if applicable*/
-        "gen", /*abb january*/
-        "feb", /*abb february*/
-        "mar", /*abb march*/
-        "apr", /*abb april*/
-        "mag", /*abb may*/
-        "giu", /*abb june*/
-        "lug", /*abb july*/
-        "ago", /*abb august*/
-        "set", /*abb september*/
-        "ott", /*abb october*/
-        "nov", /*abb november*/
-        "dic", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "domenica", /*Sunday*/
-        "lunedì", /*Monday*/
-        "martedì", /*Tuesday*/
-        "mercoledì", /*Wednesday*/
-        "giovedì", /*Thursday*/
-        "venerdì", /*Friday*/
-        "sabato", /*Saturday*/
-        "dom", /*abb Sunday*/
-        "lun", /*abb Monday*/
-        "mar", /*abb Tuesday*/
-        "mer", /*abb Wednesday*/
-        "gio", /*abb Thursday*/
-        "ven", /*abb Friday*/
-        "sab", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;dopo Cristo", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "L'.' #,##0.00;-L'.' #,##0.00", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        ".", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "L.", /*local currency symbol*/
-        "ITL", /*intl currency symbol*/
-        "", /*monetary decimal separator*/
-        "H.mm.ss z", /*full time pattern*/
-        "H.mm.ss z", /*long time pattern*/
-        "H.mm.ss", /*medium time pattern*/
-        "H.mm", /*short time pattern*/
-        "EEEE d MMMM yyyy", /*full date pattern*/
-        "d MMMM yyyy", /*long date pattern*/
-        "d-MMM-yy", /*medium date pattern*/
-        "dd/MM/yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "4", /*min days in first week*/
-        ""
-    };
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_iw.java	1.3 97/03/03
+ * @(#)LocaleElements_iw.java	1.6 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,120 +45,196 @@
 
 package java.text.resources;
 
-public class LocaleElements_iw extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_iw() {
-        super.init(table);
+public class LocaleElements_iw extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "iw_IL" }, // locale id based on iso codes
+            { "LocaleID", "040d" }, // Windows id
+            { "ShortLanguage", "heb" }, // iso-3 abbrev lang name
+            { "ShortCountry", "ISR" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "iw", "\u05e2\u05d1\u05e8\u05d9\u05ea" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "IL", "\u05d9\u05e9\u05e8\u05d0\u05dc" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "\u05d9\u05e0\u05d5\u05d0\u05e8", // january
+                    "\u05e4\u05d1\u05e8\u05d5\u05d0\u05e8", // february
+                    "\u05de\u05e8\u05e5", // march
+                    "\u05d0\u05e4\u05e8\u05d9\u05dc", // april
+                    "\u05de\u05d0\u05d9", // may
+                    "\u05d9\u05d5\u05e0\u05d9", // june
+                    "\u05d9\u05d5\u05dc\u05d9", // july
+                    "\u05d0\u05d5\u05d2\u05d5\u05e1\u05d8", // august
+                    "\u05e1\u05e4\u05d8\u05de\u05d1\u05e8", // september
+                    "\u05d0\u05d5\u05e7\u05d8\u05d5\u05d1\u05e8", // october
+                    "\u05e0\u05d5\u05d1\u05de\u05d1\u05e8", // november
+                    "\u05d3\u05e6\u05de\u05d1\u05e8", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "\u05d9\u05e0\u05d5", // abb january
+                    "\u05e4\u05d1\u05e8", // abb february
+                    "\u05de\u05e8\u05e5", // abb march
+                    "\u05d0\u05e4\u05e8", // abb april
+                    "\u05de\u05d0\u05d9", // abb may
+                    "\u05d9\u05d5\u05e0", // abb june
+                    "\u05d9\u05d5\u05dc", // abb july
+                    "\u05d0\u05d5\u05d2", // abb august
+                    "\u05e1\u05e4\u05d8", // abb september
+                    "\u05d0\u05d5\u05e7", // abb october
+                    "\u05e0\u05d5\u05d1", // abb november
+                    "\u05d3\u05e6\u05de", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "\u05d9\u05d5\u05dd \u05e8\u05d0\u05e9\u05d5\u05df", // Sunday
+                    "\u05d9\u05d5\u05dd \u05e9\u05e0\u05d9", // Monday
+                    "\u05d9\u05d5\u05dd \u05e9\u05dc\u05d9\u05e9\u05d9", // Tuesday
+                    "\u05d9\u05d5\u05dd \u05e8\u05d1\u05d9\u05e2\u05d9", // Wednesday
+                    "\u05d9\u05d5\u05dd \u05d7\u05de\u05d9\u05e9\u05d9", // Thursday
+                    "\u05d9\u05d5\u05dd \u05e9\u05d9\u05e9\u05d9", // Friday
+                    "\u05e9\u05d1\u05ea" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "\u05d0", // abb Sunday
+                    "\u05d1", // abb Monday
+                    "\u05d2", // abb Tuesday
+                    "\u05d3", // abb Wednesday
+                    "\u05d4", // abb Thursday
+                    "\u05d5", // abb Friday
+                    "\u05e9" // abb Saturday
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "\u05dc\u05e1\u05d4\"\u05e0",
+                    "\u05dc\u05e4\u05e1\u05d4\"\u05e0"
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.## \u05e9\"\u05d7;-#,##0.## \u05e9\"\u05d7", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "\u05e9\"\u05d7", // local currency symbol
+                    "NIS", // intl currency symbol
+                    "." // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "HH:mm:ss z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "EEEE d MMMM yyyy", // full date pattern
+                    "d MMMM yyyy", // long date pattern
+                    "dd/MM/yyyy", // medium date pattern
+                    "dd/MM/yy", // short date pattern
+                    "{0} {1}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                /* for IW_IL, the following additions are needed: */
+                 "& \u0361 = \u05c4 "
+               + "& \u030d = \u0591 "
+               + "; \u0592 "
+               + "; \u0593 "
+               + "; \u0594 "
+               + "; \u0595 "
+               + "; \u0596 "
+               + "; \u0597 "
+               + "; \u0598 "
+               + "; \u0599 "
+               + "& \u0301 = \u059a "
+               + "& \u0300 = \u059b "
+               + "& \u0307 = \u059c ; \u059d "
+               + "& \u0302 = \u059e "
+               + "& \u0308 = \u059f "
+               + "& \u030c = \u05a0 "
+               + "& \u0306 = \u05a1 "
+               + "& \u0304 = \u05a3 ; \u05a4 "
+               + "& \u0303 = \u05a5 "
+               + "& \u030a = \u05a6 "
+               + "& \u0328 = \u05a7 "
+               + "& \u0327 = \u05a8 "
+               + "& \u030b = \u05a9 "
+               + "& \u0336 = \u05aa "
+               + "& \u0337 = \u05ab "
+               + "& \u0338 = \u05ac ; \u05ad ; \u05ae "
+               + "; \u05af "
+                // Points
+               + "; \u05b0 "
+               + "; \u05b1 "
+               + "; \u05b2 "
+               + "; \u05b3 "
+               + "; \u05b4 "
+               + "; \u05b5 "
+               + "; \u05b6 "
+               + "; \u05b7 "
+               + "; \u05b8 "
+               + "; \u05b9 "
+               + "; \u05bb "
+               + "; \u05bc "
+               + "; \u05bd "
+               + "; \u05bf "
+               + "; \u05c0 "
+               + "; \u05c1 "
+               + "; \u05c2 "
+                // Punctuations
+               + "& \u00b5 < \u05be "
+               + "< \u05c3 "
+               + "< \u05f3 "
+               + "< \u05f4 "
+                // Hebrew letters sort after Z's
+               + "& Z < \u05d0 "
+               + "< \u05d1 "
+               + "< \u05d2 "
+               + "< \u05d3 "
+               + "< \u05d4 "
+               + "< \u05d5 "
+               + "< \u05f0 "
+               + "< \u05f1 "
+               + "< \u05d6 "
+               + "< \u05d7 "
+               + "< \u05d8 "
+               + "< \u05d9 "
+               + "< \u05f2 "
+               + "< \u05da , \u05db "
+               + "< \u05dc "
+               + "< \u05dd , \u05de "
+               + "< \u05df , \u05e0 "
+               + "< \u05e1 "
+               + "< \u05e2 "
+               + "< \u05e3 , \u05e4 "
+               + "< \u05e5 , \u05e6 "
+               + "< \u05e7 "
+               + "< \u05e8 "
+               + "< \u05e9 "
+               + "< \u05ea "
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */        "iw_IL",
-		/* Windows id */                          "040d",
-		/* iso: 3 character lang name */          "iwb",
-		/* iso: 3 character country name */       "ILR",
-		/* language names */                      "en_Hebrew; iw_\u05e2\u05d1\u05e8\u05d9\u05ea",
-		/* country names */                       "en_Israel; iw_\u05d9\u05e9\u05e8\u05d0\u05dc",
-		/* january */                             "\u05E8\u05D0\u05D5\u05E0\u05D9",
-		/* february */
-		"\u05E8\u05D0\u05D5\u05E8\u05D1\u05E4",
-		/* march */                               "\u05E5\u05E8\u05DE",
-		/* april */                               "\u05DC\u05D9\u05E8\u05E4\u05D0",
-		/* may */                                 "\u05D9\u05D0\u05DE",
-		/* june */                                "\u05D9\u05E0\u05D5\u05D9",
-		/* july */                                "\u05D9\u05DC\u05D5\u05D9",
-		/* august */
-		"\u05D8\u05E1\u05D5\u05D2\u05D5\u05D0",
-		/* september */
-		"\u05E8\u05D1\u05DE\u05D8\u05E4\u05E1",
-		/* october */
-		"\u05E8\u05D1\u05D5\u05D8\u05E7\u05D5\u05D0",
-		/* november */
-		"\u05E8\u05D1\u05DE\u05D1\u05D5\u05E0",
-		/* december */                            "\u05E8\u05D1\u05DE\u05E6\u05D3",
-		/* month 13 if applicable */              "",
-		/* abb january */                         "\u05D5\u05E0\u05D9",
-		/* abb february */                        "\u05E8\u05D1\u05E4",
-		/* abb march */                           "\u05E5\u05E8\u05DE",
-		/* abb april */                           "\u05E8\u05E4\u05D0",
-		/* abb may */                             "\u05D9\u05D0\u05DE",
-		/* abb june */                            "\u05E0\u05D5\u05D9",
-		/* abb july */                            "\u05DC\u05D5\u05D9",
-		/* abb august */                          "\u05D2\u05D5\u05D0",
-		/* abb september */                       "\u05D8\u05E4\u05E1",
-		/* abb october */                         "\u05E7\u05D5\u05D0",
-		/* abb november */                        "\u05D1\u05D5\u05E0",
-		/* abb december */                        "\u05DE\u05E6\u05D3",
-		/* abb month 13 if applicable */          "",
-		/* sunday */                              "\u05EA\u05D1\u05E9",
-		/* monday */                              "\u05DF\u05D5\u05E9\u05D0\u05E8",
-		/* tuesday */                             "\u05D9\u05E0\u05E9",
-		/* wednesday */                           "\u05D9\u05E9\u05D9\u05DC\u05E9",
-		/* thursday */                            "\u05D9\u05E2\u05D9\u05D1\u05E8",
-		/* friday */                              "\u05D9\u05E9\u05D9\u05DE\u05D7",
-		/* saturday */                            "\u05D9\u05E9\u05E9",
-		/* abb sunday */                          "\u0027\u05E9",
-		/* abb monday */                          "\u0027\u05D0",
-		/* abb tuesday */                         "\u0027\u05D1",
-		/* abb wednesday */                       "\u0027\u05D2",
-		/* abb thursday */                        "\u0027\u05D3",
-		/* abb friday */                          "\u0027\u05D4",
-		/* abb saturday */                        "\u0027\u05D5",
-		/* am marker; default is AM */            "AM",
-		/* pm marker; default is PM */            "PM",
-		/* era strings (BC;AD) */                 "\u05dc\u05e1\u05d4\\u0022\u05e0;\u05dc\u05e4\u05e1\u05d4\\u0022\u05e0",
-		/* decimal pattern */                     "#,##0.###;-#,##0.###",
-		/* currency pattern */
-		"\u05D7\u05E9#,##0.##;\u05D7\u05E9-#,##0.##",
-		/* percent pattern */                     "#,##0%",
-		/* decimal separator */                   ".",
-		/* group (thousands) separator */         ",",
-		/* list separator  */                     "",
-		/* percent sign */                        "%",
-		/* native 0 digit */                      "0",
-		/* pattern digit */                       "#",
-		/* minus sign */                          "-",
-		/* exponential */                         "E",
-		/* local currency symbol */               "\u05D7\u05E9",
-		/* intl currency symbol */                "NIS",
-		/* monetary decimal separator */          ",",
-		/* Full time pattern */                   "H:mm:ss z",
-		/* Long time pattern */                   "H:mm:ss z",
-		/* Default time pattern */                "H:mm:ss",
-		/* Short time pattern */                  "H:mm",
-		/* Full date pattern */                   "EEEE, d MMMM, yyyy",
-		/* Long date pattern */                   "d MMMM, yyyy",
-		/* Default date pattern */                "dd/MM/yyyy",
-		/* Short date pattern */                  "dd/MM/yy",
-		/* Date-Time pattern */                   "{0} {1}",
-		/* First day of week */                   "1",
-		/* Min days in first week*/               "1",
-		/* for IW_IL, the following additions are needed: */
-		" & Z < \u05D0 " // alef
-		+" < \u05D1 " // bet
-		+" < \u05D2 " // gimmel
-		+" < \u05D3 " // dallet
-		+" < \u05D4 " // heh
-		+" < \u05D5 " // vav
-		+" < \u05D6 " // zain
-		+" < \u05D7 " // chet
-		+" < \u05D8 " // tet
-		+" < \u05D9 " // yod
-		+" < \u05DA " // kaf-final
-		+" < \u05DB " // kaf
-		+" < \u05DC " // lammed
-		+" < \u05DD " // mem-final
-		+" < \u05DE " // mem
-		+" < \u05DF " // nun-final
-		+" < \u05E0 " // nun
-		+" < \u05E1 " // samech
-		+" < \u05E2 " // ain
-		+" < \u05E3 " // pe-final
-		+" < \u05E4 " // pe
-		+" < \u05E5 " // zadi-final
-		+" < \u05E6 " // zadi
-		+" < \u05E7 " // kof
-		+" < \u05E8 " // resh
-		+" < \u05E9 " // shin
-		+" < \u05EA " // taf
-    };
 }

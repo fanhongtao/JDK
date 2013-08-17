@@ -1,22 +1,13 @@
 /*
- * @(#)Runtime.java	1.26 97/02/24
+ * @(#)Runtime.java	1.28 00/05/26
+ *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -34,7 +25,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.26, 02/24/97
+ * @version 1.28, 05/26/00
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -221,6 +212,9 @@ public class Runtime {
      * @since   JDK1.0
      */
     public Process exec(String cmdarray[], String envp[]) throws IOException {
+        cmdarray = (String[])cmdarray.clone();
+        envp = (envp != null ? (String[])envp.clone() : null);
+
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkExec(cmdarray[0]);

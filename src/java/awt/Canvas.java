@@ -1,5 +1,5 @@
 /*
- * @(#)Canvas.java	1.13 97/01/27 Sami Shaio
+ * @(#)Canvas.java	1.16 98/01/09 Sami Shaio
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -24,12 +24,18 @@ package java.awt;
 import java.awt.peer.CanvasPeer;
 
 /**
- * A Canvas component. This is a generic component which
- * needs to be subclassed in order to add some interesting
- * functionality.
+ * A <code>Canvas</code> component represents a blank rectangular 
+ * area of the screen onto which the application can draw or from 
+ * which the application can trap input events from the user. 
+ * <p>
+ * An application must subclass the <code>Canvas</code> class in 
+ * order to get useful functionality such as creating a custom 
+ * component. The <code>paint</code> method must be overridden 
+ * in order to perform custom graphics on the canvas.
  *
- * @version 	1.13 01/27/97
+ * @version 	1.16 01/09/98
  * @author 	Sami Shaio
+ * @since       JDK1.0
  */
 public class Canvas extends Component {
 
@@ -51,15 +57,32 @@ public class Canvas extends Component {
     /**
      * Creates the peer of the canvas.  This peer allows you to change the 
      * user interface of the canvas without changing its functionality.
+     * @see     java.awt.Toolkit#createCanvas(java.awt.Canvas)
+     * @see     java.awt.Component#getToolkit()
+     * @since   JDK1.0
      */
     public void addNotify() {
-	peer = getToolkit().createCanvas(this);
-	super.addNotify();
+        synchronized (getTreeLock()) {
+		if (peer == null)
+	    	peer = getToolkit().createCanvas(this);
+
+	    super.addNotify();
+        }
     }
 
     /**
-     * Paints the canvas in the default background color.
-     * @param g the specified Graphics window
+     * This method is called to repaint this canvas. Most applications 
+     * that subclass <code>Canvas</code> should override this method in 
+     * order to perform some useful operation. 
+     * <p>
+     * The <code>paint</code> method provided by <code>Canvas</code> 
+     * redraws this canvas's rectangle in the background color. 
+     * <p>
+     * The graphics context's origin (0,&nbsp;0) is the top-left corner 
+     * of this canvas. Its clipping region is the area of the context. 
+     * @param      g   the graphics context.
+     * @see        java.awt.Graphics
+     * @since      JDK1.0
      */
     public void paint(Graphics g) {
 	g.setColor(getBackground());

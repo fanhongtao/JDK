@@ -1,5 +1,5 @@
  /*
- * @(#)DateFormatZoneData_en_CA.java	1.3 97/02/24
+ * @(#)DateFormatZoneData_en_CA.java	1.7 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -49,8 +49,9 @@ import java.util.ListResourceBundle;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.3 02/24/97
+ * @version      1.7 01/12/98
  * @author       Chen-Lieh Huang
+ * @author       Alan Liu
  */
 //  Canada DateFormatZoneData
 //
@@ -64,19 +65,54 @@ public final class DateFormatZoneData_en_CA extends ListResourceBundle
     }
 
     private static final String kZoneStrings[][] = {
+        // Zones should have unique names and abbreviations within this locale.
+        // Names and abbreviations may be identical if the corresponding zones
+        // really are identical.  E.g.: America/Phoenix and America/Denver both
+        // use MST; these zones differ only in that America/Denver uses MDT as
+        // well.
+        //
+        // We list both short and long IDs.  Short IDs come first so that they
+        // are chosen preferentially during parsing of zone names.
+        //
         {"PST", "Pacific Standard Time", "PST",
-        "Pacific Daylight Time", "PDT", "Vancouver"},
+         "Pacific Daylight Time", "PDT" /*San Francisco*/},
         {"MST", "Mountain Standard Time", "MST",
-        "Mountain Daylight Time", "MDT", "Calgary"},
+         "Mountain Daylight Time", "MDT" /*Denver*/},
+        {"PNT", "Mountain Standard Time", "MST",
+         "Mountain Standard Time", "MST" /*Phoenix*/},
         {"CST", "Central Standard Time", "CST",
-        "Central Daylight Time", "CDT", "Winnipeg"},
+         "Central Daylight Time", "CDT" /*Chicago*/},
         {"EST", "Eastern Standard Time", "EST",
-        "Eastern Daylight Time", "EDT", "Toronto"},
-        // PRT is the ID for Puerto Rico and US Virgin Islands Time timezone.
-        {"PRT", "Atlantic Standard Time", "AST",
-        "Atlantic Daylight Time", "ADT", "Halifax"},
+         "Eastern Daylight Time", "EDT" /*New York*/},
+        {"IET", "Eastern Standard Time", "EST",
+         "Eastern Standard Time", "EST" /*Indianapolis*/},
+        {"HST", "Hawaii Standard Time", "HST",
+         "Hawaii Standard Time", "HST" /*Honolulu*/},
+        {"AST", "Alaska Standard Time", "AKST",
+         "Alaska Daylight Time", "AKDT" /*Anchorage*/},
         {"CNT", "Newfoundland Standard Time", "NST",
-        "Newfoundland Daylight Time", "NDT", "St. John's"}
+         "Newfoundland Daylight Time", "NDT" /*St. John's*/},
+
+        {"America/Los_Angeles", "Pacific Standard Time", "PST",
+         "Pacific Daylight Time", "PDT" /*San Francisco*/},
+        {"America/Denver", "Mountain Standard Time", "MST",
+         "Mountain Daylight Time", "MDT" /*Denver*/},
+        {"America/Phoenix", "Mountain Standard Time", "MST",
+         "Mountain Standard Time", "MST" /*Phoenix*/},
+        {"America/Chicago", "Central Standard Time", "CST",
+         "Central Daylight Time", "CDT" /*Chicago*/},
+        {"America/New_York", "Eastern Standard Time", "EST",
+         "Eastern Daylight Time", "EDT" /*New York*/},
+        {"America/Indianapolis", "Eastern Standard Time", "EST",
+         "Eastern Standard Time", "EST" /*Indianapolis*/},
+        {"Pacific/Honolulu", "Hawaii Standard Time", "HST",
+         "Hawaii Standard Time", "HST" /*Honolulu*/},
+        {"America/Anchorage", "Alaska Standard Time", "AKST",
+         "Alaska Daylight Time", "AKDT" /*Anchorage*/},
+        {"America/Halifax", "Atlantic Standard Time", "AST",
+         "Atlantic Daylight Time", "ADT" /*Halifax*/},  
+        {"America/St_Johns", "Newfoundland Standard Time", "NST",
+         "Newfoundland Daylight Time", "NDT" /*St. John's*/},
     };
 
     private static final String kLocalPatternChars = "GyMdkHmsSEDFwWahKz";

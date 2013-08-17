@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.35 97/03/05
+ * @(#)Dialog.java	1.41 98/10/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -31,15 +31,16 @@ import java.io.IOException;
 /**
  * A class that produces a dialog - a window that takes input from the user.
  * The default layout for a dialog is BorderLayout.
- *
+ * <p>
  * Dialogs are capable of generating the following window events:
  * WindowOpened, WindowClosing, WindowClosed, WindowActivated, WindowDeactivated.
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.35, 03/05/97
+ * @version 	1.41, 10/12/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
+ * @since       JDK1.0
  */
 public class Dialog extends Window {
     boolean	resizable = true;
@@ -68,6 +69,7 @@ public class Dialog extends Window {
      * @param parent the owner of the dialog
      * @see Component#setSize
      * @see Component#setVisible
+     * @since JDK1.0
      */
     public Dialog(Frame parent) {
 	this(parent, "", false);
@@ -89,6 +91,7 @@ public class Dialog extends Window {
      * @param title the title of the dialog
      * @see Component#setSize
      * @see Component#setVisible
+     * @since JDK1.0
      */
     public Dialog(Frame parent, String title) {
 	this(parent, title, false);
@@ -102,6 +105,7 @@ public class Dialog extends Window {
      * @param modal if true, dialog blocks input to the parent window when shown
      * @see Component#setSize
      * @see Component#setVisible
+     * @since JDK1.0
      */
     public Dialog(Frame parent, String title, boolean modal) {
 	super(parent);
@@ -114,35 +118,46 @@ public class Dialog extends Window {
     }
 
     /**
-     * Creates the frame's peer.  The peer allows us to change the appearance
+     * Creates the dialog's peer.  The peer allows us to change the appearance
      * of the frame without changing its functionality.
+     * @since JDK1.0
      */
     public void addNotify() {
-	if (peer == null) {
-	    peer = getToolkit().createDialog(this);
-	}
-	super.addNotify();
+        synchronized (getTreeLock()) {
+            if (peer == null) {
+                peer = getToolkit().createDialog(this);
+            }
+            super.addNotify();
+        }
     }
 
     /**
-     * Returns true if the Dialog is modal.  A modal
-     * Dialog grabs all the input to the parent frame from the user.
+     * Indicates whether the dialog is modal.  
+     * A modal dialog grabs all input from the user.
+     * @return    <code>true</code> if this dialog window is modal; 
+     *            <code>false</code> otherwise. 
+     * @see       java.awt.Dialog#setModal    
+     * @since     JDK1.0
      */
     public boolean isModal() {
 	return modal;
     }
 
     /**
-     * Specifies whether this Dialog is modal.  A modal
+     * Specifies whether this dialog is modal.  A modal
      * Dialog grabs all the input to the parent frame from the user.
+     * @see       java.awt.Dialog#isModal 
+     * @since     JDK1.1
      */
     public void setModal(boolean b) {
 	this.modal = b;
     }
 
     /**
-     * Gets the title of the Dialog.
-     * @see #setTitle
+     * Gets the title of the dialog.
+     * @return    the title of this dialog window.
+     * @see       java.awt.Dialog#setTitle
+     * @since     JDK1.0
      */
     public String getTitle() {
 	return title;
@@ -150,8 +165,9 @@ public class Dialog extends Window {
 
     /**
      * Sets the title of the Dialog.
-     * @param title the new title being given to the Dialog
+     * @param title the new title being given to the dialog
      * @see #getTitle
+     * @since JDK1.0
      */
     public synchronized void setTitle(String title) {
 	this.title = title;
@@ -171,23 +187,22 @@ public class Dialog extends Window {
      * will ensure that another dispatching thread will run while
      * the one which invoked show is blocked. 
      * @see Component#hide
+     * @since JDK1.0
      */
     public void show() {
-	synchronized(Component.LOCK) {
-            if (parent != null && parent.getPeer() == null) {
-            	parent.addNotify();
-            }
-	    if (peer == null) {
-		addNotify();
-	    }
-	    validate();	    
+      synchronized(getTreeLock()) {
+        if (parent != null && parent.getPeer() == null) {
+            parent.addNotify();
+        }
+	if (peer == null) {
+	    addNotify();
 	}
+      }
+	validate();	    
 	if (visible) {
 	    toFront();
 	} else {
-	    synchronized(Component.LOCK) {
-	        visible = true;
-	    }
+	    visible = true;
 	    if (isModal()) {
                 EventDispatchThread dt = null;
                 if (Thread.currentThread() instanceof EventDispatchThread) {
@@ -207,9 +222,7 @@ public class Dialog extends Window {
                     dt.stopDispatching();
                 }                
 	    } else {
-		synchronized(Component.LOCK) {
-		    peer.show();
-		}
+		peer.show();
                 if ((state & OPENED) == 0) {
                     postWindowEvent(WindowEvent.WINDOW_OPENED);
                     state |= OPENED;
@@ -219,7 +232,11 @@ public class Dialog extends Window {
     }
 
     /**
-     * Returns true if the user can resize the dialog.
+     * Indicates whether this dialog window is resizable.
+     * @return    <code>true</code> if the user can resize the dialog;
+     *            <code>false</code> otherwise.
+     * @see       java.awt.Dialog#setResizable
+     * @since     JDK1.0
      */
     public boolean isResizable() {
 	return resizable;
@@ -227,7 +244,10 @@ public class Dialog extends Window {
 
     /**
      * Sets the resizable flag.
-     * @param resizable true if resizable; false otherwise
+     * @param     resizable <code>true</code> if the user can 
+     *                 resize this dialog; <code>false</code> otherwise.
+     * @see       java.awt.Dialog#isResizable
+     * @since     JDK1.0
      */
     public synchronized void setResizable(boolean resizable) {
 	this.resizable = resizable;
@@ -238,7 +258,10 @@ public class Dialog extends Window {
     }
 
     /**
-     * Returns the parameter String of this Dialog.
+     * Returns the parameter string representing the state of this 
+     * dialog window. This string is useful for debugging. 
+     * @return    the parameter string of this dialog window.
+     * @since     JDK1.0
      */
     protected String paramString() {
 	String str = super.paramString() + (modal ? ",modal" : ",modeless");

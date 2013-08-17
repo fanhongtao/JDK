@@ -1,5 +1,5 @@
 /*
- * @(#)Vector.java	1.36 97/01/28
+ * @(#)Vector.java	1.38 97/12/18
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -40,7 +40,7 @@ package java.util;
  *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.36, 01/28/97
+ * @version 1.38, 12/18/97
  * @since   JDK1.0
  */
 public
@@ -63,8 +63,8 @@ class Vector implements Cloneable, java.io.Serializable {
     /**
      * The amount by which the capacity of the vector is automatically 
      * incremented when its size becomes greater than its capacity. If 
-     * the capacity is <code>0</code>, the capacity of the vector is 
-     * doubled each time it needs to grow. 
+     * the capacity increment is <code>0</code>, the capacity of the 
+     * vector is doubled each time it needs to grow. 
      *
      * @since   JDK1.0
      */
@@ -146,19 +146,31 @@ class Vector implements Cloneable, java.io.Serializable {
      * @since   JDK1.0
      */
     public final synchronized void ensureCapacity(int minCapacity) {
-	int oldCapacity = elementData.length;
-	if (minCapacity > oldCapacity) {
-	    Object oldData[] = elementData;
-	    int newCapacity = (capacityIncrement > 0) ?
-		(oldCapacity + capacityIncrement) : (oldCapacity * 2);
-    	    if (newCapacity < minCapacity) {
-		newCapacity = minCapacity;
-	    }
-	    elementData = new Object[newCapacity];
-	    System.arraycopy(oldData, 0, elementData, 0, elementCount);
+	if (minCapacity > elementData.length) {
+	    ensureCapacityHelper(minCapacity);
 	}
     }
 
+    /**
+     * This implements the unsynchronized semantics of ensureCapacity.
+     * Synchronized methods in this class can internally call this 
+     * method for ensuring capacity without incurring the cost of an 
+     * extra synchronization.
+     *
+     * @see java.util.Vector#ensureCapacity(int)
+     */ 
+    private void ensureCapacityHelper(int minCapacity) {
+	int oldCapacity = elementData.length;
+	Object oldData[] = elementData;
+	int newCapacity = (capacityIncrement > 0) ?
+	    (oldCapacity + capacityIncrement) : (oldCapacity * 2);
+	if (newCapacity < minCapacity) {
+	    newCapacity = minCapacity;
+	}
+	elementData = new Object[newCapacity];
+	System.arraycopy(oldData, 0, elementData, 0, elementCount);
+    }
+    
     /**
      * Sets the size of this vector. If the new size is greater than the 
      * current size, new <code>null</code> items are added to the end of 
@@ -169,8 +181,8 @@ class Vector implements Cloneable, java.io.Serializable {
      * @since   JDK1.0
      */
     public final synchronized void setSize(int newSize) {
-	if (newSize > elementCount) {
-	    ensureCapacity(newSize);
+	if ((newSize > elementCount) && (newSize > elementData.length)) {
+	    ensureCapacityHelper(newSize);
 	} else {
 	    for (int i = newSize ; i < elementCount ; i++) {
 		elementData[i] = null;
@@ -425,11 +437,14 @@ class Vector implements Cloneable, java.io.Serializable {
      * @since      JDK1.0
      */
     public final synchronized void insertElementAt(Object obj, int index) {
-	if (index >= elementCount + 1) {
+	int newcount = elementCount + 1;
+	if (index >= newcount) {
 	    throw new ArrayIndexOutOfBoundsException(index
 						     + " > " + elementCount);
 	}
-	ensureCapacity(elementCount + 1);
+	if (newcount > elementData.length) {
+	    ensureCapacityHelper(newcount);
+	}
 	System.arraycopy(elementData, index, elementData, index + 1, elementCount - index);
 	elementData[index] = obj;
 	elementCount++;
@@ -444,7 +459,10 @@ class Vector implements Cloneable, java.io.Serializable {
      * @since   JDK1.0
      */
     public final synchronized void addElement(Object obj) {
-	ensureCapacity(elementCount + 1);
+	int newcount = elementCount + 1;
+	if (newcount > elementData.length) {
+	    ensureCapacityHelper(newcount);
+	}
 	elementData[elementCount++] = obj;
     }
 

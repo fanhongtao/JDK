@@ -1,5 +1,5 @@
 /*
- * @(#)AWTEvent.java	1.20 97/02/21 Carl Quinn
+ * @(#)AWTEvent.java	1.21 98/01/09 Carl Quinn
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -50,7 +50,7 @@ import java.awt.event.*;
  * @see java.awt.event.ItemEvent
  * @see java.awt.event.TextEvent
  *
- * @version 1.20 02/21/97
+ * @version 1.21 01/09/98
  * @author Carl Quinn
  * @author Amy Fowler
  */
@@ -286,7 +286,11 @@ public abstract class AWTEvent extends EventObject {
                   arg = ie.getItem();
               } else {
                   newid = Event.ACTION_EVENT;
-                  if (src instanceof Choice) {
+                  
+				//Netscape: CheckboxMenuItems use the name of the 
+				//menu choice as the arg, NOT a Bool
+
+				  if (src instanceof Choice || src instanceof CheckboxMenuItem) {
                       arg = ie.getItem();
 
                   } else { // Checkbox

@@ -1,5 +1,5 @@
 /*
- * @(#)Modifier.java	1.4 96/11/23
+ * @(#)Modifier.java	1.5 97/12/18
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -75,7 +75,7 @@ class Modifier {
     }
 
     /**
-     * Return true if the specifier integer includes the <tt>final</tt>
+     * Return true if the specifier integer includes the <tt>synchronized</tt>
      * modifier.
      */
     public static boolean isSynchronized(int mod) {

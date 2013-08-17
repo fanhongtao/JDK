@@ -1,5 +1,5 @@
 /*
- * @(#)Container.java	1.107 97/05/05
+ * @(#)Container.java	1.134 98/02/25
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -42,9 +42,13 @@ import java.io.IOException;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.107, 05/05/97
+ * @version 	1.134, 02/25/98
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
+ * @see       java.awt.Container#add(java.awt.Component, int)
+ * @see       java.awt.Container#getComponent(int)
+ * @see       java.awt.LayoutManager
+ * @since     JDK1.0
  */
 public abstract class Container extends Component {
 
@@ -91,8 +95,10 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Returns the number of components in this panel.
-     * @see #getComponent
+     * Gets the number of components in this panel.
+     * @return    the number of components in this panel.
+     * @see       java.awt.Container#getComponent
+     * @since     JDK1.1
      */
     public int getComponentCount() {
 	return countComponents();
@@ -108,12 +114,14 @@ public abstract class Container extends Component {
 
     /** 
      * Gets the nth component in this container.
-     * @param n the number of the component to get
-     * @exception ArrayIndexOutOfBoundsException If the nth value does not 
-     * exist.
+     * @param      n   the index of the component to get.
+     * @return     the n<sup>th</sup> component in this container.
+     * @exception  ArrayIndexOutOfBoundsException  
+     *                 if the n<sup>th</sup> value does not exist.     
+     * @since      JDK1.0
      */
     public Component getComponent(int n) {
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 	    if ((n < 0) || (n >= ncomponents)) {
 		throw new ArrayIndexOutOfBoundsException("No such child: " + n);
 	    }
@@ -123,9 +131,11 @@ public abstract class Container extends Component {
 
     /**
      * Gets all the components in this container.
+     * @return    an array of all the components in this container.     
+     * @since     JDK1.0
      */
     public Component[] getComponents() {
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 	    Component list[] = new Component[ncomponents];
 	    System.arraycopy(component, 0, list, 0, ncomponents);
 	    return list;
@@ -133,10 +143,15 @@ public abstract class Container extends Component {
     }
 
     /**
-     * Returns the insets of the container. The insets indicate the size of
-     * the border of the container. A Frame, for example, will have a top inset
-     * that corresponds to the height of the Frame's title bar. 
-     * @see LayoutManager
+     * Determines the insets of this container, which indicate the size 
+     * of the container's border. 
+     * <p>
+     * A <code>Frame</code> object, for example, has a top inset that 
+     * corresponds to the height of the frame's title bar. 
+     * @return    the insets of this container.
+     * @see       java.awt.Insets
+     * @see       java.awt.LayoutManager
+     * @since     JDK1.1
      */
     public Insets getInsets() {
     	return insets();
@@ -144,7 +159,7 @@ public abstract class Container extends Component {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by getInsets().
+     * replaced by <code>getInsets()</code>.
      */
     public Insets insets() {
 	if (this.peer != null && this.peer instanceof ContainerPeer) {
@@ -155,8 +170,10 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Adds the specified component to this container.
-     * @param comp the component to be added
+     * Adds the specified component to the end of this container. 
+     * @param     comp   the component to be added.
+     * @return    the component argument.     
+     * @since     JDK1.0
      */
     public Component add(Component comp) {
         addImpl(comp, null, -1);
@@ -174,12 +191,14 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Adds the specified component to this container at the given
-     * position in the container's component list.
-     * @param comp the component to be added 
-     * @param index the position in the container's list at which to
-     * insert the component.  -1 means insert at the end.
-     * @see #remove
+     * Adds the specified component to this container at the given 
+     * position. 
+     * @param     comp   the component to be added.
+     * @param     index    the position at which to insert the component, 
+     *                   or <code>-1</code> to insert the component at the end.
+     * @return    the component <code>comp</code>
+     * @see	  #remove
+     * @since     JDK1.0
      */
     public Component add(Component comp, int index) {
 	addImpl(comp, null, index);
@@ -187,14 +206,14 @@ public abstract class Container extends Component {
     }
 
     /**
-     * Adds the specified component to this container at the specified
-     * index.  Also notifies the layout manager to add the component to
-     * the this container's layout using the specified constraints object.
-     * @param comp the component to be added
-     * @param constraints an object expressing layout contraints for this
-     * component
-     * @see #remove
-     * @see LayoutManager
+     * Adds the specified component to the end of this container.
+     * Also notifies the layout manager to add the component to 
+     * this container's layout using the specified constraints object.
+     * @param     comp the component to be added
+     * @param     constraints an object expressing 
+     *                  layout contraints for this component
+     * @see       java.awt.LayoutManager
+     * @since     JDK1.1
      */
     public void add(Component comp, Object constraints) {
 	addImpl(comp, constraints, -1);
@@ -219,22 +238,32 @@ public abstract class Container extends Component {
 
     /**
      * Adds the specified component to this container at the specified
-     * index.  Also notifies the layout manager to add the component to
-     * the this container's layout using the specified constraints object.
+     * index. This method also notifies the layout manager to add 
+     * the component to this container's layout using the specified 
+     * constraints object.
      * <p>
-     * This is the method to override if you want to track every add
-     * request to a container.  An overriding method should usually
-     * include a call to super.addImpl(comp, constraints, index).
-     * @param comp the component to be added
-     * @param constraints an object expressing layout contraints for this
-     * component
-     * @param index the position in the container's list at which to
-     * insert the component.  -1 means insert at the end.
-     * @see #remove
-     * @see LayoutManager
+     * This is the method to override if a program needs to track 
+     * every add request to a container. An overriding method should 
+     * usually include a call to the superclass's version of the method:
+     * <p>
+     * <blockquote>
+     * <code>super.addImpl(comp, constraints, index)</code>
+     * </blockquote>
+     * <p>
+     * @param     comp       the component to be added.
+     * @param     constraints an object expressing layout contraints 
+     *                 for this component.
+     * @param     index the position in the container's list at which to
+     *                 insert the component, where <code>-1</code> 
+     *                 means insert at the end.
+     * @see       java.awt.Container#add(java.awt.Component)       
+     * @see       java.awt.Container#add(java.awt.Component, int)       
+     * @see       java.awt.Container#add(java.awt.Component, java.lang.Object)       
+     * @see       java.awt.LayoutManager
+     * @since     JDK1.1
      */
     protected void addImpl(Component comp, Object constraints, int index) {
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 
 	    /* Check for correct arguments:  index in bounds,
 	     * comp cannot be one of this container's parents,
@@ -303,12 +332,14 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Removes the component at the specified index from this container.
-     * @param index the index of the component to be removed
+     * Removes the component, specified by <code>index</code>, 
+     * from this container. 
+     * @param     index   the index of the component to be removed.
      * @see #add
+     * @since JDK1.1
      */
     public void remove(int index) {
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
     	    Component comp = component[index];
 	    if (peer != null) {
 		comp.removeNotify();
@@ -339,13 +370,15 @@ public abstract class Container extends Component {
      * Removes the specified component from this container.
      * @param comp the component to be removed
      * @see #add
+     * @since JDK1.0
      */
     public void remove(Component comp) {
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 	    if (comp.parent == this)  {
     		/* Search backwards, expect that more recent additions
 		 * are more likely to be removed.
     	    	 */
+                Component component[] = this.component;
 		for (int i = ncomponents; --i >= 0; ) {
 		    if (component[i] == comp) {
     	    	    	remove(i);
@@ -359,9 +392,10 @@ public abstract class Container extends Component {
      * Removes all the components from this container.
      * @see #add
      * @see #remove
+     * @since JDK1.0
      */
     public void removeAll() {
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 	    while (ncomponents > 0) {
 		Component comp = component[--ncomponents];
 		component[ncomponents] = null;
@@ -391,6 +425,7 @@ public abstract class Container extends Component {
      * Gets the layout manager for this container.  
      * @see #doLayout
      * @see #setLayout
+     * @since JDK1.0
      */
     public LayoutManager getLayout() {
 	return layoutMgr;
@@ -401,6 +436,7 @@ public abstract class Container extends Component {
      * @param mgr the specified layout manager
      * @see #doLayout
      * @see #getLayout
+     * @since JDK1.0
      */
     public void setLayout(LayoutManager mgr) {
 	layoutMgr = mgr;
@@ -410,10 +446,13 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Does a layout on this Container.  Most programs should not call
-     * this directly, but should invoke validate instead.
+     * Causes this container to lay out its components.  Most programs 
+     * should not call this method directly, but should invoke 
+     * the <code>validate</code> method instead.
+     * @see java.awt.LayoutManager#layoutContainer
      * @see #setLayout
      * @see #validate
+     * @since JDK1.1
      */
     public void doLayout() {
 	layout();
@@ -421,7 +460,7 @@ public abstract class Container extends Component {
 
     /** 
      * @deprecated As of JDK version 1.1,
-     * replaced by doLayout().
+     * replaced by <code>doLayout()</code>.
      */
     public void layout() {
 	LayoutManager layoutMgr = this.layoutMgr;
@@ -447,15 +486,19 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Validates this Container and all of the components contained
-     * within it. 
+     * Validates this container and all of its subcomponents.
+     * <p>
+     * AWT uses <code>validate</code> to cause a container to lay out   
+     * its subcomponents again after the components it contains
+     * have been added to or modified.
      * @see #validate
      * @see Component#invalidate
+     * @since JDK1.0
      */
     public void validate() {
         /* Avoid grabbing lock unless really necessary. */
 	if (!valid) {
-	    synchronized (Component.LOCK) {
+	    synchronized (getTreeLock()) {
 		if (!valid && peer != null) {
                     Cursor oldCursor = getCursor();
 		    ContainerPeer p = null;
@@ -479,11 +522,12 @@ public abstract class Container extends Component {
      * Recursively descends the container tree and recomputes the
      * layout for any subtrees marked as needing it (those marked as
      * invalid).  Synchronization should be provided by the method
-     * that calls this:  validate.
+     * that calls this one:  <code>validate</code>.
      */
     protected void validateTree() {
 	if (!valid) {
 	    doLayout();
+            Component component[] = this.component;
 	    for (int i = 0 ; i < ncomponents ; ++i) {
 		Component comp = component[i];
 		if (   (comp instanceof Container) 
@@ -491,7 +535,7 @@ public abstract class Container extends Component {
 		    && !comp.valid) {
 		    ((Container)comp).validateTree();
 		} else {
-		    comp.valid = true;
+		    comp.validate();
 		}
 	    }
 	}
@@ -500,7 +544,13 @@ public abstract class Container extends Component {
 
     /** 
      * Returns the preferred size of this container.  
-     * @see #getMinimumSize
+     * @return    an instance of <code>Dimension</code> that represents 
+     *                the preferred size of this container.
+     * @see       java.awt.Container#getMinimumSize       
+     * @see       java.awt.Container#getLayout
+     * @see       java.awt.LayoutManager#preferredLayoutSize(java.awt.Container)
+     * @see       java.awt.Component#getPreferredSize
+     * @since     JDK1.0
      */
     public Dimension getPreferredSize() {
 	return preferredSize();
@@ -508,7 +558,7 @@ public abstract class Container extends Component {
 
     /** 
      * @deprecated As of JDK version 1.1,
-     * replaced by getPreferredSize().
+     * replaced by <code>getPreferredSize()</code>.
      */
     public Dimension preferredSize() {
 	/* Avoid grabbing the lock if a reasonable cached size value
@@ -518,7 +568,7 @@ public abstract class Container extends Component {
     	if (dim != null && isValid()) {
 	    return dim;
 	}
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 	    prefSize = (layoutMgr != null) ?
 			       layoutMgr.preferredLayoutSize(this) :
 			       super.preferredSize();
@@ -529,7 +579,13 @@ public abstract class Container extends Component {
 
     /** 
      * Returns the minimum size of this container.  
-     * @see #getPreferredSize
+     * @return    an instance of <code>Dimension</code> that represents 
+     *                the minimum size of this container.
+     * @see       java.awt.Container#getPreferredSize       
+     * @see       java.awt.Container#getLayout
+     * @see       java.awt.LayoutManager#minimumLayoutSize(java.awt.Container)
+     * @see       java.awt.Component#getMinimumSize
+     * @since     JDK1.1
      */
     public Dimension getMinimumSize() {
 	return minimumSize();
@@ -537,7 +593,7 @@ public abstract class Container extends Component {
 
     /** 
      * @deprecated As of JDK version 1.1,
-     * replaced by getMinimumSize().
+     * replaced by <code>getMinimumSize()</code>.
      */
     public Dimension minimumSize() {
 	/* Avoid grabbing the lock if a reasonable cached size value
@@ -547,7 +603,7 @@ public abstract class Container extends Component {
     	if (dim != null && isValid()) {
 	    return dim;
 	}
-	synchronized (Component.LOCK) {
+	synchronized (getTreeLock()) {
 	    minSize = (layoutMgr != null) ?
 		   layoutMgr.minimumLayoutSize(this) :
 		   super.minimumSize();
@@ -568,7 +624,7 @@ public abstract class Container extends Component {
 	    return dim;
 	}
 	if (layoutMgr instanceof LayoutManager2) {
-	    synchronized (Component.LOCK) {
+	    synchronized (getTreeLock()) {
 		LayoutManager2 lm = (LayoutManager2) layoutMgr;
 		maxSize = lm.maximumLayoutSize(this);
 	    }
@@ -588,7 +644,7 @@ public abstract class Container extends Component {
     public float getAlignmentX() {
 	float xAlign;
 	if (layoutMgr instanceof LayoutManager2) {
-	    synchronized (Component.LOCK) {
+	    synchronized (getTreeLock()) {
 		LayoutManager2 lm = (LayoutManager2) layoutMgr;
 		xAlign = lm.getLayoutAlignmentX(this);
 	    }
@@ -608,7 +664,7 @@ public abstract class Container extends Component {
     public float getAlignmentY() {
 	float yAlign;
 	if (layoutMgr instanceof LayoutManager2) {
-	    synchronized (Component.LOCK) {
+	    synchronized (getTreeLock()) {
 		LayoutManager2 lm = (LayoutManager2) layoutMgr;
 		yAlign = lm.getLayoutAlignmentY(this);
 	    }
@@ -631,6 +687,7 @@ public abstract class Container extends Component {
     public void paint(Graphics g) {
 	if (isShowing()) {
 	    int ncomponents = this.ncomponents;
+            Component component[] = this.component;
 	    Rectangle clip = g.getClipRect();
 	    for (int i = ncomponents - 1 ; i >= 0 ; i--) {
 		Component comp = component[i];
@@ -641,6 +698,7 @@ public abstract class Container extends Component {
 		    Rectangle cr = comp.getBounds();
 		    if ((clip == null) || cr.intersects(clip)) {
 			Graphics cg = g.create(cr.x, cr.y, cr.width, cr.height);
+			cg.setFont(comp.getFont());
 			try {
 			    comp.paint(cg);
 			} finally {
@@ -650,6 +708,27 @@ public abstract class Container extends Component {
 		}
 	    }
 	}
+    }
+
+    /** 
+     * Updates the container.  This forwards the update to any lightweight components 
+     * that are children of this container.  If this method is reimplemented, 
+     * super.update(g) should be called so that lightweight components are properly
+     * rendered.  If a child component is entirely clipped by the current clipping
+     * setting in g, update() will not be forwarded to that child.
+     *
+     * @param g the specified Graphics window
+     * @see   java.awt.Component#update(java.awt.Graphics)
+     */
+    public void update(Graphics g) {
+        if (isShowing()) {
+            if (! (peer instanceof java.awt.peer.LightweightPeer)) {
+                g.setColor(getBackground());
+                g.fillRect(0, 0, width, height);
+                g.setColor(getForeground());
+            }
+            super.update(g);
+        }
     }
 
     /** 
@@ -665,32 +744,36 @@ public abstract class Container extends Component {
     public void print(Graphics g) {
         super.print(g);  // By default, Component.print() calls paint()
 
-    	int ncomponents = this.ncomponents;
-	Rectangle clip = g.getClipRect();
+        int ncomponents = this.ncomponents;
+        Component component[] = this.component;
+        Rectangle clip = g.getClipRect();
 	for (int i = ncomponents - 1 ; i >= 0 ; i--) {
 	    Component comp = component[i];
 	    if (comp != null && comp.peer instanceof java.awt.peer.LightweightPeer) {
 		Rectangle cr = comp.getBounds();
-		if (cr.intersects(clip)) {
+		if ((clip==null) || cr.intersects(clip)) {
 		    Graphics cg = g.create(cr.x, cr.y, cr.width, cr.height);
+		    cg.setFont(comp.getFont());
 		    try {
 			comp.print(cg);
 		    } finally {
 			cg.dispose();
 		    }
 		}
-	    }
-	}
+            }
+        }
     }
 
     /** 
-     * Paints the components in this container.
-     * @param g the specified Graphics window
-     * @see Component#paint
-     * @see Component#paintAll
+     * Paints each of the components in this container. 
+     * @param     g   the graphics context.
+     * @see       java.awt.Component#paint
+     * @see       java.awt.Component#paintAll
+     * @since     JDK1.0
      */
     public void paintComponents(Graphics g) {
     	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
 	for (int i = ncomponents - 1 ; i >= 0 ; i--) {
 	    Component comp = component[i];
 	    if (comp != null) {
@@ -724,17 +807,20 @@ public abstract class Container extends Component {
     }
 
     /** 
-     * Prints the components in this container.
-     * @param g the specified Graphics window
-     * @see Component#print
-     * @see Component#printAll
+     * Prints each of the components in this container. 
+     * @param     g   the graphics context.
+     * @see       java.awt.Component#print
+     * @see       java.awt.Component#printAll
+     * @since     JDK1.0
      */
     public void printComponents(Graphics g) {
     	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
 	for (int i = 0 ; i < ncomponents ; i++) {
 	    Component comp = component[i];
 	    if (comp != null) {
 		Graphics cg = g.create(comp.x, comp.y, comp.width, comp.height);
+		cg.setFont(comp.getFont());
 		try {
 		    comp.printAll(cg);
 		} finally {
@@ -843,6 +929,7 @@ public abstract class Container extends Component {
      */
     Component getMouseEventTarget(int x, int y) {
 	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
 	for (int i = 0 ; i < ncomponents ; i++) {
 	    Component comp = component[i];
 	    if ((comp != null) && (comp.contains(x - comp.x, y - comp.y)) &&
@@ -928,7 +1015,16 @@ public abstract class Container extends Component {
 	    // component and request focus from the native window
 	    // if needed.
 	    if (dispatcher.setFocusRequest(c)) {
-		peer.requestFocus();
+                // If the focus is currently somewhere within this Window,
+                // call the peer to set focus to this Container.  This way,
+                // we avoid activating this Window if it's not currently
+                // active.  -fredx, 2-19-98, bug #4111098
+                Component window = this;
+                while (!(window instanceof Window))
+                    window = window.getParent();
+                if (((Window)window).isActive()) {
+                    peer.requestFocus();
+		}
                 Toolkit.getEventQueue().changeKeyEventFocus(this);
 	    }
 	}
@@ -936,7 +1032,7 @@ public abstract class Container extends Component {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by dispatchEvent(AWTEvent e)
+     * replaced by <code>dispatchEvent(AWTEvent e)</code>
      */
     public void deliverEvent(Event e) {
 	Component comp = getComponentAt(e.x, e.y);
@@ -954,13 +1050,14 @@ public abstract class Container extends Component {
      * is overlap in the components.  This is determined by finding
      * the component closest to the index 0 that claims to contain
      * the given point via Component.contains().
-     * @param x the x coordinate
-     * @param y the y coordinate
+     * @param x the <i>x</i> coordinate
+     * @param y the <i>y</i> coordinate
      * @return null if the component does not contain the position.
      * If there is no child component at the requested point and the 
      * point is within the bounds of the container the container itself 
-     * is returned, otherwise the top-most child is returned.
-     * @see Component#contains 
+     * is returned; otherwise the top-most child is returned.
+     * @see Component#contains
+     * @since JDK1.1
      */
     public Component getComponentAt(int x, int y) {
 	return locate(x, y);
@@ -968,13 +1065,14 @@ public abstract class Container extends Component {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by getComponentAt(int, int).
+     * replaced by <code>getComponentAt(int, int)</code>.
      */
     public Component locate(int x, int y) {
 	if (!contains(x, y)) {
 	    return null;
 	}
 	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
 	for (int i = 0 ; i < ncomponents ; i++) {
 	    Component comp = component[i];
 	    if (comp != null) {
@@ -987,11 +1085,13 @@ public abstract class Container extends Component {
     }
 
     /**
-     * Locates the component that contains the specified point.
-     * @param p the point
-     * @return null if the component does not contain the point;
-     * returns the component otherwise. 
-     * @see Component#contains 
+     * Gets the component that contains the specified point.
+     * @param      p   the point.
+     * @return     returns the component that contains the point,
+     *                 or <code>null</code> if the component does 
+     *                 not contain the point. 
+     * @see        java.awt.Component#contains 
+     * @since      JDK1.1 
      */
     public Component getComponentAt(Point p) {
 	return getComponentAt(p.x, p.y);
@@ -1000,9 +1100,10 @@ public abstract class Container extends Component {
     /** 
      * Notifies the container to create a peer. It will also
      * notify the components contained in this container.
-     * This method should be called by Container.add, and not by user
-     * code directly.
+     * This method should be called by <code>Container.add</code>, 
+     * and not by user code directly.
      * @see #removeNotify
+     * @since JDK1.0
      */
     public void addNotify() {
 	// addNotify() on the children may cause proxy event enabling
@@ -1013,32 +1114,42 @@ public abstract class Container extends Component {
 	if (! (peer instanceof java.awt.peer.LightweightPeer)) {
 	    dispatcher = new LightweightDispatcher(this);
 	}
-
-	int ncomponents = this.ncomponents;
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    component[i].addNotify();
-	}
+        synchronized (getTreeLock()) {
+	    int ncomponents = this.ncomponents;
+            Component component[] = this.component;
+	    for (int i = 0 ; i < ncomponents ; i++) {
+	        component[i].addNotify();
+	     }
+        }
     }
 
     /** 
-     * Notifies the container to remove its peer. It will
-     * also notify the components contained in this container.
-     * This method should be called by Container.remove, and not by user
-     * code directly.
-     * @see #addNotify
+     * Notifies this container and all of its subcomponents to remove 
+     * their peers. 
+     * This method should be invoked by the container's 
+     * <code>remove</code> method, and not directly by user code.
+     * @see       java.awt.Container#remove(int)
+     * @see       java.awt.Container#remove(java.awt.Component)
+     * @since     JDK1.0
      */
     public void removeNotify() {
-	int ncomponents = this.ncomponents;
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    component[i].removeNotify();
-	}
-	super.removeNotify();
+        synchronized(getTreeLock()) {
+            int ncomponents = this.ncomponents;
+            Component component[] = this.component;
+	    for (int i = 0 ; i < ncomponents ; i++) {
+	        component[i].removeNotify();
+	    }
+	    super.removeNotify();
+        }
     }
 
     /**
      * Checks if the component is contained in the component hierarchy of
      * this container.
      * @param c the component
+     * @return     <code>true</code> if it is an ancestor; 
+     *             <code>true</code> otherwise.
+     * @since      JDK1.1
      */
     public boolean isAncestorOf(Component c) {
 	Container p;
@@ -1055,7 +1166,10 @@ public abstract class Container extends Component {
     }
 
     /**
-     * Returns the parameter String of this Container.
+     * Returns the parameter string representing the state of this 
+     * container. This string is useful for debugging. 
+     * @return    the parameter string of this container.
+     * @since     JDK1.0
      */
     protected String paramString() {
 	String str = super.paramString();
@@ -1067,14 +1181,17 @@ public abstract class Container extends Component {
     }
 
     /**
-     * Prints out a list, starting at the specified indention, to the specified
-     * out stream. 
-     * @param out the Stream name
-     * @param indent the start of the list
+     * Prints a listing of this container to the specified output 
+     * stream. The listing starts at the specified indentation. 
+     * @param    out      a print stream.
+     * @param    indent   the number of spaces to indent.
+     * @see      java.awt.Component#list(java.io.PrintStream, int)
+     * @since    JDK
      */
     public void list(PrintStream out, int indent) {
 	super.list(out, indent);
 	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
 	for (int i = 0 ; i < ncomponents ; i++) {
 	    Component comp = component[i];
 	    if (comp != null) {
@@ -1090,6 +1207,7 @@ public abstract class Container extends Component {
     public void list(PrintWriter out, int indent) {
 	super.list(out, indent);
 	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
 	for (int i = 0 ; i < ncomponents ; i++) {
 	    Component comp = component[i];
 	    if (comp != null) {
@@ -1160,6 +1278,7 @@ public abstract class Container extends Component {
     {
       s.defaultReadObject();
 
+      Component component[] = this.component;
       for(int i = 0; i < ncomponents; i++)
 	component[i].parent = this;
 
@@ -1218,35 +1337,47 @@ class LightweightDispatcher implements java.io.Serializable {
      * requesting focus since it will receive no native focus requests.
      */
     boolean setFocusRequest(Component c) {
+	//System.out.println("setFocusRequest("+c+")");
 	boolean peerNeedsRequest = true;
 	Window w = nativeContainer.getWindow();
-	if (w != null && c != null) {
+	if ((w != null) && (c != null)) {
 	    Component focusOwner = w.getFocusOwner();
-	    if (focusOwner == nativeContainer) {
+	    if (focusOwner == null) {
+
+		// No focus in this component
+		focus = c;
+
+	    } else if (focusOwner == nativeContainer) {
 		// This container already has focus, so just 
 		// send FOCUS_GAINED event to lightweight component
-		c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
+		focus = c ;
+		Toolkit.getEventQueue().postEventAtHead(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
 		peerNeedsRequest = false;
 	    } else if (focusOwner == c) {
 		// lightweight already has the focus
+		focus = c ;
 		peerNeedsRequest = false;
 	    } else if (focusOwner == focus) {
 		// a lightweight component has focus currently and a new one has been
 		// requested.  There won't be any window-system events associated with
 		// this so we go ahead and send FOCUS_LOST for the old and FOCUS_GAINED
 		// for the new.
+		Toolkit.getEventQueue().postEventAtHead(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
 		if (focus != null) {
-		    focus.dispatchEvent(new FocusEvent(focus, 
+		    Toolkit.getEventQueue().postEventAtHead(new FocusEvent(focus, 
 						       FocusEvent.FOCUS_LOST, 
 						       false));
-		}
-		c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
+                }
+		focus = c ;
 		peerNeedsRequest = false;
-	    }
+	    }else { 
+		//Fix for bug 4095214
+		//Paul Sheehan
+                focus = c ; 
+            } 
    	}
-	focus = c;
 	return peerNeedsRequest;
-    }
+    } // setFocusRequest()
 
     /**
      * Dispatches an event to a lightweight sub-component if necessary, and
@@ -1280,13 +1411,16 @@ class LightweightDispatcher implements java.io.Serializable {
 
     private boolean processKeyEvent(KeyEvent e) {
 	if (focus != null) {
-	    KeyEvent retargeted = new KeyEvent(focus, 
-					       e.getID(), e.getWhen(),
-					       e.getModifiers(),
-					       e.getKeyCode(),
-                                               e.getKeyChar());
-	    focus.dispatchEvent(retargeted);
-	    return true;
+	    // Don't duplicate the event here.
+	    // The KeyEvent for LightWeightComponent is also passed to 
+	    // input methods and their native handlers. The native handlers
+	    // require the original native event data to be attached to
+	    // the KeyEvent.
+	    Component source = e.getComponent();
+	    e.setSource(focus);
+	    focus.dispatchEvent(e);
+	    e.setSource(source);
+	    return e.isConsumed();
 	}
 	return false;
     }
@@ -1361,6 +1495,11 @@ class LightweightDispatcher implements java.io.Serializable {
 	    // start forwarding to.
 	    Component t = nativeContainer.getMouseEventTarget(e.getX(), e.getY());
 	    if (t != null) {
+		if (id == MouseEvent.MOUSE_DRAGGED || id == MouseEvent.MOUSE_RELEASED) {
+ 			if (!dragging) {
+ 				return e.isConsumed();
+ 			}
+ 		}
 		setMouseTarget(t, e);
 		if (id != MouseEvent.MOUSE_ENTERED) {
 		    retargetMouseEvent(id, e);
@@ -1399,45 +1538,37 @@ class LightweightDispatcher implements java.io.Serializable {
      * message.
      */
     void retargetMouseEvent(int id, MouseEvent e) {
-	Point pt = getTranslatedPoint(e.getX(), e.getY(), 
-				      nativeContainer, mouseEventTarget);
-	if (pt != null) {
-	    MouseEvent retargeted = new MouseEvent(mouseEventTarget, 
-						   id,
-						   e.getWhen(),
-						   e.getModifiers(),
-						   pt.x, pt.y, e.getClickCount(),
-						   e.isPopupTrigger());
-	    mouseEventTarget.dispatchEvent(retargeted);
+        int x = e.getX(), y = e.getY();
+        Component component;
 
-	    // update cursor if needed.  This is done after the event has
-	    // been sent to the target so the target has a chance to change
-	    // the cursor after reacting to the event.
-	    Cursor c = mouseEventTarget.getCursor();
-	    if (nativeContainer.getCursor() != c) {
-		nativeContainer.setCursor(c);
-	    }
-	}
-    }
+        for(component = mouseEventTarget;
+            component != null && component != nativeContainer;
+            component = component.getParent()) {
+            x -= component.x;
+            y -= component.y;
+        }
+        if (component != null) {
+            MouseEvent retargeted = new MouseEvent(mouseEventTarget, 
+                                                   id, 
+                                                   e.getWhen(), 
+                                                   e.getModifiers(),
+                                                   x, 
+                                                   y, 
+                                                   e.getClickCount(), 
+                                                   e.isPopupTrigger());
+            mouseEventTarget.dispatchEvent(retargeted);
 
-    /**
-     * Returns the given point in the <i>from</i> components coordinate space
-     * translated into the <i>to</i> components coordinate space.  The 
-     * <i>from</i> component is expected to parent the <i>to</i> component.
-     */
-    static Point getTranslatedPoint(int x, int y, Component from, Component to) {
-	Component c;
-	for(c = to; c != null && c != from; c = c.getParent()) {
-	    Rectangle r = c.getBounds();
-	    x -= r.x;
-	    y -= r.y;
-	}
-	if (c != null) {
-	    return new Point(x, y);
-	}
-	return null;
+            // update cursor if needed.  This is done after the event has
+            // been sent to the target so the target has a chance to change
+            // the cursor after reacting to the event.
+            if (mouseEventTarget != null) {
+                Cursor c = mouseEventTarget.getCursor();
+                if (nativeContainer.getCursor() != c) {
+                    nativeContainer.setCursor(c);
+                }
+            }
+        }
     }
-	
 	
     // --- member variables -------------------------------
 

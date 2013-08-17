@@ -1,5 +1,5 @@
 /*
- * @(#)BorderLayout.java	1.27 97/01/27
+ * @(#)BorderLayout.java	1.31 97/12/02
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,13 +25,12 @@ package java.awt;
 import java.util.Hashtable;
 
 /**
- * A TNT style border bag layout. It will layout a container
- * using members named "North", "South", "East", "West" and
- * "Center".
- *
- * When you add a component to a container that has a BorderLayout
- * layout manager, be sure to specify a string for where to add the
- * component, for example:
+ * A border layout lays out a container, arranging and resizing
+ * its components to fit in five regions:
+ * <code>North</code>, <code>South</code>, <code>East</code>, 
+ * <code>West</code>, and <code>Center</code>.  When adding a 
+ * component to a container with a border layout, use one of these
+ * five names, for example:
  * <pre>
  *    Panel p = new Panel();
  *    p.setLayout(new BorderLayout());
@@ -44,14 +43,43 @@ import java.util.Hashtable;
  *    p2.setLayout(new BorderLayout());
  *    p2.add(new TextArea());  // Same as p.add(new TextArea(), "Center");
  * </pre>
- *
- * The "North", "South", "East" and "West" components get layed out
- * according to their preferred sizes and the constraints of the
- * container's size. The "Center" component will get any space left
- * over. 
+ * <p>
+ * The components are laid out according to their 
+ * preferred sizes and the constraints of the container's size. 
+ * The <code>North</code> and <code>South</code> components may 
+ * be stretched horizontally; the <code>East</code> and 
+ * <code>West</code> components may be stretched vertically; 
+ * the <code>Center</code> component may stretch both horizontally 
+ * and vertically to fill any space left over. 
+ * <p>
+ * Here is an example of five buttons in an applet laid out using 
+ * the <code>BorderLayout</code> layout manager:
+ * <p>
+ * <img src="images-awt/BorderLayout-1.gif"
+ * ALIGN=center HSPACE=10 VSPACE=7>
+ * <p>
+ * The code for this applet is as follows: 
+ * <p>
+ * <hr><blockquote><pre>
+ * import java.awt.*;
+ * import java.applet.Applet;
  * 
- * @version 	1.27 01/27/97
+ * public class buttonDir extends Applet {
+ *   public void init() {
+ *     setLayout(new BorderLayout());
+ *     add("North",  new Button("North"));
+ *     add("South",  new Button("South"));
+ *     add("East",   new Button("East"));
+ *     add("West",   new Button("West"));
+ *     add("Center", new Button("Center"));
+ *   }
+ * }
+ * </pre></blockquote><hr>
+ * <p>
+ * @version 	1.27 02/11/97
  * @author 	Arthur van Hoff
+ * @see         java.awt.Container.add(String, Component)
+ * @since       JDK1.0
  */
 public class BorderLayout implements LayoutManager2,
 				     java.io.Serializable {
@@ -65,27 +93,27 @@ public class BorderLayout implements LayoutManager2,
     Component center;
 
     /**
-     * The north layout constraint.
+     * The north layout constraint (top of container).
      */
     public static final String NORTH  = "North";
 
     /**
-     * The south layout constraint.
+     * The south layout constraint (bottom of container).
      */
     public static final String SOUTH  = "South";
 
     /**
-     * The east layout constraint.
+     * The east layout constraint (left side of container).
      */
     public static final String EAST   = "East";
 
     /**
-     * The west layout constraint.
+     * The west layout constraint (right side of container).
      */
     public static final String WEST   = "West";
 
     /**
-     * The center layout constraint.
+     * The center layout constraint (middle of container).
      */
     public static final String CENTER = "Center";
 
@@ -95,17 +123,23 @@ public class BorderLayout implements LayoutManager2,
      private static final long serialVersionUID = -8658291919501921765L;
 
     /**
-     * Constructs a new BorderLayout with no gaps between components.
+     * Constructs a new border layout with  
+     * no gaps between components.
+     * @since     JDK1.0
      */
     public BorderLayout() {
 	this(0, 0);
     }
 
     /**
-     * Constructs a BorderLayout with the specified gaps.
-     * @param hgap the horizontal gap
-     * @param vgap the vertical gap
-     */
+     * Constructs a border layout with the specified gaps 
+     * between components.
+     * The horizontal gap is specified by <code>hgap</code> 
+     * and the vertical gap is specified by <code>vgap</code>.
+     * @param   hgap   the horizontal gap.
+     * @param   vgap   the vertical gap.	
+     * @since   JDK1.0
+     */	
     public BorderLayout(int hgap, int vgap) {
 	this.hgap = hgap;
 	this.vgap = vgap;
@@ -113,6 +147,7 @@ public class BorderLayout implements LayoutManager2,
 
     /**
      * Returns the horizontal gap between components.
+     * @since   JDK1.1
      */
     public int getHgap() {
 	return hgap;
@@ -121,6 +156,7 @@ public class BorderLayout implements LayoutManager2,
     /**
      * Sets the horizontal gap between components.
      * @param hgap the horizontal gap between components
+     * @since   JDK1.1
      */
     public void setHgap(int hgap) {
 	this.hgap = hgap;
@@ -128,6 +164,7 @@ public class BorderLayout implements LayoutManager2,
     
     /**
      * Returns the vertical gap between components.
+     * @since   JDK1.1
      */
     public int getVgap() {
 	return vgap;
@@ -136,6 +173,7 @@ public class BorderLayout implements LayoutManager2,
     /**
      * Sets the vertical gap between components.
      * @param vgap the vertical gap between components
+     * @since   JDK1.1
      */
     public void setVgap(int vgap) {
 	this.vgap = vgap;
@@ -143,24 +181,37 @@ public class BorderLayout implements LayoutManager2,
 
     /**
      * Adds the specified component to the layout, using the specified
-     * constraint object.
-     * @param comp the component to be added
-     * @param constraints  where/how the component is added to the layout.
+     * constraint object.  For border layouts, the constraint must be
+     * one of the following strings:  <code>"North"</code>,
+     * <code>"South"</code>, <code>"East"</code>,
+     * <code>"West"</code>, or <code>"Center"</code>.  
+     * <p>
+     * Most applications do not call this method directly. This method 
+     * is called when a component is added to a container using the 
+     * <code>Container.add</code> method with the same argument types.
+     * @param   comp         the component to be added.
+     * @param   constraints  an object that specifies how and where 
+     *                       the component is added to the layout.
+     * @see     java.awt.Container#add(java.awt.Component, java.lang.Object)
+     * @exception   IllegalArgumentException  if the constraint object is not
+     *                 a string, or if it not one of the five specified strings.
+     * @since   JDK1.1
      */
     public void addLayoutComponent(Component comp, Object constraints) {
+      synchronized (comp.getTreeLock()) {
 	if ((constraints == null) || (constraints instanceof String)) {
 	    addLayoutComponent((String)constraints, comp);
 	} else {
 	    throw new IllegalArgumentException("cannot add to layout: constraint must be a string (or null)");
 	}
+      }
     }
 
     /**
-     * Replaced by addLayoutComponent(Component, Object).
-     * @deprecated
+     * @deprecated  replaced by <code>addLayoutComponent(Component, Object)</code>.
      */
     public void addLayoutComponent(String name, Component comp) {
-
+      synchronized (comp.getTreeLock()) {
 	/* Special case:  treat null the same as "Center". */
 	if (name == null) {
 	    name = "Center";
@@ -181,13 +232,21 @@ public class BorderLayout implements LayoutManager2,
 	} else {
 	    throw new IllegalArgumentException("cannot add to layout: unknown constraint: " + name);
 	}
+      }
     }
 
     /**
-     * Removes the specified component from the layout.
-     * @param comp the component to be removed
+     * Removes the specified component from this border layout. This 
+     * method is called when a container calls its <code>remove</code> or 
+     * <code>removeAll</code> methods. Most applications do not call this 
+     * method directly. 
+     * @param   comp   the component to be removed.
+     * @see     java.awt.Container#remove(java.awt.Component)
+     * @see     java.awt.Container#removeAll()
+     * @since   JDK1.0
      */
     public void removeLayoutComponent(Component comp) {
+      synchronized (comp.getTreeLock()) {
 	if (comp == center) {
 	    center = null;
 	} else if (comp == north) {
@@ -199,16 +258,26 @@ public class BorderLayout implements LayoutManager2,
 	} else if (comp == west) {
 	    west = null;
 	}
+      }
     }
 
     /**
-     * Returns the minimum dimensions needed to layout the components
-     * contained in the specified target container. 
-     * @param target the Container on which to do the layout
-     * @see Container
-     * @see #preferredLayoutSize
+     * Determines the minimum size of the <code>target</code> container 
+     * using this layout manager. 
+     * <p>
+     * This method is called when a container calls its 
+     * <code>getMinimumSize</code> method. Most applications do not call 
+     * this method directly. 
+     * @param   target   the container in which to do the layout.
+     * @return  the minimum dimensions needed to lay out the subcomponents 
+     *          of the specified container.
+     * @see     java.awt.Container  
+     * @see     java.awt.BorderLayout#preferredLayoutSize
+     * @see     java.awt.Container#getMinimumSize()
+     * @since   JDK1.0
      */
     public Dimension minimumLayoutSize(Container target) {
+      synchronized (target.getTreeLock()) {
 	Dimension dim = new Dimension(0, 0);
 
 	if ((east != null) && east.visible) {
@@ -242,16 +311,27 @@ public class BorderLayout implements LayoutManager2,
 	dim.height += insets.top + insets.bottom;
 
 	return dim;
+      }
     }
     
     /**
-     * Returns the preferred dimensions for this layout given the components
-     * in the specified target container.
-     * @param target the component which needs to be laid out
-     * @see Container
-     * @see #minimumLayoutSize
+     * Determines the preferred size of the <code>target</code> 
+     * container using this layout manager, based on the components
+     * in the container. 
+     * <p>
+     * Most applications do not call this method directly. This method
+     * is called when a container calls its <code>getPreferredSize</code> 
+     * method.
+     * @param   target   the container in which to do the layout.
+     * @return  the preferred dimensions to lay out the subcomponents 
+     *          of the specified container.
+     * @see     java.awt.Container  
+     * @see     java.awt.BorderLayout#minimumLayoutSize  
+     * @see     java.awt.Container#getPreferredSize()
+     * @since   JDK1.0
      */
     public Dimension preferredLayoutSize(Container target) {
+      synchronized (target.getTreeLock()) {
 	Dimension dim = new Dimension(0, 0);
 
 	if ((east != null) && east.visible) {
@@ -285,6 +365,7 @@ public class BorderLayout implements LayoutManager2,
 	dim.height += insets.top + insets.bottom;
 
 	return dim;
+      }
     }
 
     /**
@@ -329,13 +410,27 @@ public class BorderLayout implements LayoutManager2,
     }
 				      
     /**
-     * Lays out the specified container. This method will actually reshape the
-     * components in the specified target container in order to satisfy the 
-     * constraints of the BorderLayout object. 
-     * @param target the component being laid out
-     * @see Container
+     * Lays out the container argument using this border layout. 
+     * <p>
+     * This method actually reshapes the components in the specified
+     * container in order to satisfy the constraints of this 
+     * <code>BorderLayout</code> object. The <code>North</code> 
+     * and <code>South</code>components, if any, are placed at 
+     * the top and bottom of the container, respectively. The 
+     * <code>West</code> and <code>East</code> components are 
+     * then placed on the left and right, respectively. Finally, 
+     * the <code>Center</code> object is placed in any remaining 
+     * space in the middle. 
+     * <p>
+     * Most applications do not call this method directly. This method 
+     * is called when a container calls its <code>doLayout</code> method. 
+     * @param   target   the container in which to do the layout.
+     * @see     java.awt.Container  
+     * @see     java.awt.Container#doLayout()
+     * @since   JDK1.0
      */
     public void layoutContainer(Container target) {
+      synchronized (target.getTreeLock()) {
 	Insets insets = target.getInsets();
 	int top = insets.top;
 	int bottom = target.height - insets.bottom;
@@ -369,10 +464,13 @@ public class BorderLayout implements LayoutManager2,
 	if ((center != null) && center.visible) {
 	    center.setBounds(left, top, right - left, bottom - top);
 	}
+      }
     }
     
     /**
-     * Returns the String representation of this BorderLayout's values.
+     * Returns a string representation of the state of this border layout.
+     * @return    a string representation of this border layout.
+     * @since     JDK1.0
      */
     public String toString() {
 	return getClass().getName() + "[hgap=" + hgap + ",vgap=" + vgap + "]";

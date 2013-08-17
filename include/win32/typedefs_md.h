@@ -1,5 +1,5 @@
 /*
- * @(#)typedefs_md.h	1.23 97/01/23
+ * @(#)typedefs_md.h	1.25 98/01/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -60,7 +60,7 @@ typedef unsigned __int64 uint64_t;
 #define uint2ll(a)	((uint64_t)(unsigned long)(a))
 #define ll_rem(a,b)	((a) % (b))
 
-#define INT_OP(x,op,y)  (((#@op=='/')||(#@op=='%')) ?                  \
+#define INT_OP(x,op,y)  (((#op[0]=='/')||(#op[0]=='%')) ?                  \
 			 ( (((x)==0x80000000)&&((y)==-1)) ?            \
 			     ((x) op 1) :                              \
 			     ((x) op (y))) :                           \
@@ -71,9 +71,9 @@ typedef unsigned __int64 uint64_t;
 int32_t float2l(float f);
 int32_t double2l(double f);
 int64_t float2ll(float f);
+int64_t double2ll(double f);
 #define ll2float(a)	((float) (a))
 #define ll2double(a)	((double) (a))
-int64_t double2ll(double f);
 
 /* comparison operators */
 #define ll_ltz(ll)	((ll) < 0)

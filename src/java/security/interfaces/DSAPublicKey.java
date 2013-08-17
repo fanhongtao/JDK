@@ -32,7 +32,7 @@ import java.math.BigInteger;
  * @see java.security.KeyParams
  * @see java.security.Signature
  * 
- * @version 1.5, 97/06/20
+ * @version 1.5, 00/08/15
  * @author Benjamin Renaud 
  */
 public interface DSAPublicKey extends DSAKey, java.security.PublicKey {

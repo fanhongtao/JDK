@@ -1,22 +1,13 @@
 /*
- * @(#)ClassLoader.java	1.56 97/02/10
+ * @(#)ClassLoader.java	1.59 00/05/26
+ *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -95,7 +86,7 @@ import java.util.Hashtable;
  * </pre></blockquote><hr>
  *
  * @author  Arthur van Hoff
- * @version 1.56, 02/10/97
+ * @version 1.59, 05/26/00
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -141,26 +132,21 @@ public abstract class ClassLoader {
     }
 
     /**
-     * Requests the class loader to load a class with the specified 
+     * Requests the class loader to load and resolve a class with the specified 
      * name. The <code>loadClass</code> method is called by the Java 
      * Virtual Machine when a class loaded by a class loader first 
      * references another class. Every subclass of class 
      * <code>ClassLoader</code> must define this method. 
      * <p>
-     * If the <code>resolve</code> flag is true, the method should call 
-     * the <code>resolveClass</code> method on the resulting class object.
-     * <p>
      * Class loaders should use a hashtable or other cache to avoid 
      * defining classes with the same name multiple times. 
      *
      * @param      name      the name of the desired <code>Class</code>.
-     * @param      resolve   <code>true</code> if the <code>Class</code>
-     *                       must be resolved.
      * @return     the resulting <code>Class</code>, or <code>null</code>
      *             if it was not found.
      * @exception  ClassNotFoundException  if the class loader cannot find
      *               a definition for the class.
-     * @since      JDK1.0
+     * @since      JDK1.1
      */
     public Class loadClass(String name) throws ClassNotFoundException
     {
@@ -170,6 +156,10 @@ public abstract class ClassLoader {
     /**
      * Resolves the specified name to a Class. The method loadClass() is 
      * called by the virtual machine.
+     * <p>
+     * If the <code>resolve</code> flag is true, the method should call 
+     * the <code>resolveClass</code> method on the resulting class object.
+     * <p>
      * As an abstract method, loadClass() must be defined in a subclass of 
      * ClassLoader. By using a Hashtable, you can avoid loading the same 
      * Class more than once.
@@ -180,7 +170,7 @@ public abstract class ClassLoader {
      * @exception  ClassNotFoundException  if the class loader cannot find
      *               a definition for the class.
      * @see	   java.util.Hashtable
-     * @since      JDK1.1
+     * @since      JDK1.0
      */
     protected abstract Class loadClass(String name, boolean resolve)
     throws ClassNotFoundException;
@@ -307,8 +297,10 @@ public abstract class ClassLoader {
      */
     final Class loadClassInternal(String name, boolean resolve) 
                     throws ClassNotFoundException {
+	Class cl;
 	name = name.replace('/', '.');
-	Class cl = (Class)classes.get(name);
+	checkLoadClass(name);
+	cl = (Class)classes.get(name);
 	if (cl == null) {
 	    cl = loadClass(name, false);
 	    if (cl == null) 
@@ -322,6 +314,18 @@ public abstract class ClassLoader {
 	if (resolve) 
 	    resolveClass(cl);
 	return cl;
+    }
+
+    private void checkLoadClass(String name)
+    {
+        int i = name.lastIndexOf('.');
+
+        if (i != -1) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPackageAccess(name.substring(0, i));
+            }
+        }
     }
 
     /**

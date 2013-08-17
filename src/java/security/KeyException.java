@@ -29,7 +29,7 @@ package java.security;
  * @see InvalidKeyException
  * @see KeyManagementException
  *
- * @version 1.7 97/06/20
+ * @version 1.7 00/08/15
  * @author Benjamin Renaud
  */
 

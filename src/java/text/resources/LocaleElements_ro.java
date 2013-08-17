@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_ro.java	1.5 97/03/10
+ * @(#)LocaleElements_ro.java	1.8 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,89 +45,140 @@
 
 package java.text.resources;
 
-public class LocaleElements_ro extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_ro() {
-        super.init(table);
+public class LocaleElements_ro extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "ro_RO" }, // locale id based on iso codes
+            { "LocaleID", "0418" }, // Windows id
+            { "ShortLanguage", "ron" }, // iso-3 abbrev lang name
+            { "ShortCountry", "ROM" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "ro", "rom\u00e2n\u0103" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "RO", "Rom\u00e2nia" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "ianuarie", // january
+                    "februarie", // february
+                    "martie", // march
+                    "aprilie", // april
+                    "mai", // may
+                    "iunie", // june
+                    "iulie", // july
+                    "august", // august
+                    "septembrie", // september
+                    "octombrie", // october
+                    "noiembrie", // november
+                    "decembrie", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "Ian", // abb january
+                    "Feb", // abb february
+                    "Mar", // abb march
+                    "Apr", // abb april
+                    "Mai", // abb may
+                    "Iun", // abb june
+                    "Iul", // abb july
+                    "Aug", // abb august
+                    "Sep", // abb september
+                    "Oct", // abb october
+                    "Nov", // abb november
+                    "Dec", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "duminic\u0103", // Sunday
+                    "luni", // Monday
+                    "mar\u0163i", // Tuesday
+                    "miercuri", // Wednesday
+                    "joi", // Thursday
+                    "vineri", // Friday
+                    "s\u00eemb\u0103t\u0103" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "D", // abb Sunday
+                    "L", // abb Monday
+                    "Ma", // abb Tuesday
+                    "Mi", // abb Wednesday
+                    "J", // abb Thursday
+                    "V", // abb Friday
+                    "S" // abb Saturday
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "d.C.",
+                    "\u00ee.d.C."
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.00 LEI;-#,##0.00 LEI", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "LEI", // local currency symbol
+                    "ROL", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "HH:mm:ss z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "dd MMMM yyyy", // full date pattern
+                    "dd MMMM yyyy", // long date pattern
+                    "dd.MM.yyyy", // medium date pattern
+                    "dd.MM.yyyy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                "& A < a\u0306 , A\u0306 "       // a < a-breve
+                + "& D < \u0111, \u0110 "        // d < d-stroke
+                + "& I < i\u0302 , I\u0302 "     // i < i-circumflex
+                + "& S < s\u0327 , S\u0327 "     // s < s-cedilla
+                + "& \u00de < t\u0327 , T\u0327" // thorn < t-cedilla
+                + "& Z < z\u0307 , Z\u0307 "     // tal : ezh-tail < z-dot-above
+            }
+        };
     }
-
-    static String table []={
-        /* locale id based on iso codes */     "ro_RO",
-        /* Windows id */                       "0418",
-        /* iso-3 abbrev lang name */           "rom",
-        /* iso-3 abbrev country name */        "ROM",
-        /* language names */                   "en_Romanian; ro_rom\u00e2n\u0103",
-        /* country names */                    "en_Romania; ro_Rom\u00e2nia",
-        /* january */                          "Ianuarie",
-        /* february */                         "Februarie",
-        /* march */                            "Martie",
-        /* april */                            "Aprilie",
-        /* may */                              "Mai",
-        /* june */                             "Iunie",
-        /* july */                             "Iulie",
-        /* august */                           "August",
-        /* september */                        "Septembrie",
-        /* october */                          "Octombrie",
-        /* november */                         "Noiembrie",
-        /* december */                         "Decembrie",
-        /* month 13 if applicable */           "",
-        /* abb january */                      "Ian",
-        /* abb february */                     "Feb",
-        /* abb march */                        "Mar",
-        /* abb april */                        "Apr",
-        /* abb may */                          "Mai",
-        /* abb june */                         "Iun",
-        /* abb july */                         "Iul",
-        /* abb august */                       "Aug",
-        /* abb september */                    "Sep",
-        /* abb october */                      "Oct",
-        /* abb november */                     "Noe",
-        /* abb december */                     "Dec",
-        /* abb month 13 if applicable */       "",
-        /* sunday */                           "Duminic\u0103",
-        /* monday */                           "Luni",
-        /* tuesday */                          "Mar\u0163i",
-        /* wednesday */                        "Miercuri",
-        /* thursday */                         "Joi",
-        /* friday */                           "Vineri",
-        /* saturday */                         "Simb\u00e1t\u00e1",
-        /* abb sunday */                       "D",
-        /* abb monday */                       "L",
-        /* abb tuesday */                      "Ma",
-        /* abb wednesday */                    "Mi",
-        /* abb thursday */                     "J",
-        /* abb friday */                       "V",
-        /* abb saturday */                     "S",
-        /* am marker; default is AM */         "AM",
-        /* pm marker; default is PM */         "PM",
-        /* era strings */                      "d.C.;\u00EE.d.C.",
-        /* decimal pattern */                  "#,##0.###;-#,##0.###",
-        /* currency pattern */                 "#,##0.00 lei;-#,##0.00 lei",
-        /* percent pattern */                  "#,##0%",
-        /* decimal separator */                ",",
-        /* group (thousands) separator */      ".",
-        /* list separator */                   "",
-        /* percent sign */                     "%",
-        /* native 0 digit */                   "0",
-        /* pattern digit */                    "#",
-        /* minus sign */                       "-",
-        /* exponential */                      "E",
-        /* local currency symbol */            "lei",
-        /* intl currency symbol */             "ROL",
-        /* monetary decimal separator */       ",",
-        /* Full time pattern */                "H:mm:ss z",
-        /* Long time pattern */                "H:mm:ss z",
-        /* Default time pattern */             "H:mm:ss",
-        /* Short time pattern */               "H:mm",
-        /* Full date pattern */                "EEEE, d, MMMM yyyy",
-        /* Long date pattern */                "d, MMMM yyyy",
-        /* Default date pattern */             "d.M.yyyy",
-        /* Short date pattern */               "d.M.yy",
-        /* Date-Time pattern*/                 "{1} {0}",
-        /* first day of week */                "1",
-        /* min days in first week */           "1",
-        " & D < \u0111, \u0110" +                    /* d<stroke>   */
-        " & L < \u0142, \u0141" +                    /* l<stroke>   */
-        " & Z < \u017c, \u017b"                      /* z<abovedot> */
-    };
 }

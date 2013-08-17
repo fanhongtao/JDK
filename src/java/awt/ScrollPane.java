@@ -1,5 +1,5 @@
 /*
- * @(#)ScrollPane.java	1.48 97/03/13
+ * @(#)ScrollPane.java	1.53 98/10/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,16 +36,16 @@ import java.io.Serializable;
  * <LI>never: scrollbars never created or shown by the scrollpane
  * </OL>
  * <P>
- * The state of the positioning of the child component is represented
+ * The state of the horizontal and vertical scrollbars is represented
  * by two objects (one for each dimension) which implement the
  * Adjustable interface.  The API provides methods to access those
  * objects such that the attributes on the Adjustable object (such as unitIncrement,
  * value, etc.) can be manipulated.
  * <P>
- * Certain adjustable properties (minimum, maximum, and visibleAmount) 
- * are set internally by the scrollpane in accordance with the geometry 
- * of the scrollpane and its child and these should not be set by programs 
- * using the scrollpane.
+ * Certain adjustable properties (minimum, maximum, blockIncrement,
+ * and visibleAmount) are set internally by the scrollpane in accordance
+ * with the geometry of the scrollpane and its child and these should
+ * not be set by programs using the scrollpane.
  * <P>
  * If the scrollbar display policy is defined as "never", then the
  * scrollpane can still be programmatically scrolled using the 
@@ -64,9 +64,9 @@ import java.io.Serializable;
  * to get the current value for the insets.  If the value of 
  * scrollbarsAlwaysVisible is false, then the value of the insets
  * will change dynamically depending on whether the scrollbars are
- * currently visible or not.   
+ * currently visible or not.    
  *
- * @version     1.48 03/13/97
+ * @version     1.53 10/12/98
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
@@ -146,7 +146,7 @@ public class ScrollPane extends Container {
      * @param index position of child component (must be <= 0) 
      */
     protected final void addImpl(Component comp, Object constraints, int index) {
-    	synchronized (Component.LOCK) {
+    	synchronized (getTreeLock()) {
 	    if (getComponentCount() > 0) {
 		remove(0);
 	    }
@@ -212,7 +212,8 @@ public class ScrollPane extends Container {
 
     /**
      * Returns the Adjustable object which represents the state of
-     * the vertical scrollbar. 
+     * the vertical scrollbar. If the scrollbar display policy is "never",
+     * this method returns null.
      */
     public Adjustable getVAdjustable() {
         return vAdjustable;
@@ -220,7 +221,8 @@ public class ScrollPane extends Container {
 
     /**
      * Returns the Adjustable object which represents the state of
-     * the horizontal scrollbar.
+     * the horizontal scrollbar.  If the scrollbar display policy is "never",
+     * this method returns null.
      */
     public Adjustable getHAdjustable() {
         return hAdjustable;
@@ -235,12 +237,14 @@ public class ScrollPane extends Container {
      * x = 0, y = 0, width = (child width - view port width),
      * height = (child height - view port height).
      * This is a convenience method which interfaces with the Adjustable
-     * objects which respresent the state of the scrollbars.
+     * objects which represent the state of the scrollbars.
      * @param x the x position to scroll to
      * @param y the y position to scroll to
+     * @exception IllegalArgumentException if specified coordinates are
+     * not within the legal scrolling bounds of the child component.
      */
     public void setScrollPosition(int x, int y) {
-    	synchronized (Component.LOCK) {
+    	synchronized (getTreeLock()) {
 	    if (ncomponents <= 0) {
 		throw new NullPointerException("child is null");
 	    }
@@ -257,8 +261,10 @@ public class ScrollPane extends Container {
      * x = 0, y = 0, width = (child width - view port width),
      * height = (child height - view port height).
      * This is a convenience method which interfaces with the Adjustable
-     * objects which respresent the state of the scrollbars.
+     * objects which represent the state of the scrollbars.
      * @param p the Point representing the position to scroll to
+     * @exception IllegalArgumentException if specified coordinates are
+     * not within the legal scrolling bounds of the child component.
      */
     public void setScrollPosition(Point p) {
         setScrollPosition(p.x, p.y);
@@ -268,7 +274,7 @@ public class ScrollPane extends Container {
      * Returns the current x,y position within the child which is displayed 
      * at the 0,0 location of the scrolled panel's view port.
      * This is a convenience method which interfaces with the adjustable
-     * objects which respresent the state of the scrollbars.
+     * objects which represent the state of the scrollbars.
      * @return the coordinate position for the current scroll position
      */
     public Point getScrollPosition() {
@@ -334,7 +340,7 @@ public class ScrollPane extends Container {
 
     /** 
      * @deprecated As of JDK version 1.1,
-     * replaced by doLayout().
+     * replaced by <code>doLayout()</code>.
      */
     public void layout() {
 	if (ncomponents > 0) {
@@ -392,24 +398,24 @@ public class ScrollPane extends Container {
      * Creates the scroll pane's peer. 
      */
     public void addNotify() {
-	peer = getToolkit().createScrollPane(this);
-	super.addNotify();
-	
-	if (getComponentCount() > 0) {
-	    Component comp = getComponent(0);
-	    if (comp.peer instanceof java.awt.peer.LightweightPeer) {
-		synchronized(Component.LOCK) {
-		    // The scrollpane won't work with a windowless child... it assumes
-		    // it is moving a child window around so the windowless child is
-		    // wrapped with a window.
-		    remove(0);
-		    Panel child = new Panel();
-		    child.setLayout(new BorderLayout());
-		    child.add(comp);
-		    add(child);
+    	synchronized (getTreeLock()) {
+	    peer = getToolkit().createScrollPane(this);
+	    super.addNotify();
+	    
+	    if (getComponentCount() > 0) {
+		Component comp = getComponent(0);
+		if (comp.peer instanceof java.awt.peer.LightweightPeer) {
+			// The scrollpane won't work with a windowless child... it assumes
+			// it is moving a child window around so the windowless child is
+			// wrapped with a window.
+			remove(0);
+			Panel child = new Panel();
+			child.setLayout(new BorderLayout());
+			child.add(comp);
+			add(child);
 		}
-	    }
-	}
+            }
+        }
     }
 
     public String paramString() {

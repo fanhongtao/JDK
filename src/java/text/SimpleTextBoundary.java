@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleTextBoundary.java	1.11 97/01/27
+ * @(#)SimpleTextBoundary.java	1.15 98/02/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -30,7 +30,6 @@
 
 package java.text;
 
-
 /**
  * SimpleTextBoundary is an implementation of the BreakIterator
  * protocol.  SimpleTextBoundary uses a state machine to compute breaks.
@@ -46,6 +45,11 @@ final class SimpleTextBoundary extends BreakIterator
     private int pos;
     private CharacterIterator text;
     private TextBoundaryData data;
+
+    // internally, the not-a-Unicode value is used as a sentinel value meaning
+    // "the end of the string" for the purposes of looking up an appropriate
+    // state transition when you've run off the end of the string
+    private static final char END_OF_STRING = '\uffff';
 
     /**
      * Create a SimpleTextBoundary using the specified tables. Currently,
@@ -213,7 +217,7 @@ final class SimpleTextBoundary extends BreakIterator
      */
     public int next()
     {
-    	int result = pos;
+        int result = pos;
         if (pos < text.getEndIndex()) {
             pos = nextPosition(pos);
             result = pos;
@@ -278,20 +282,19 @@ final class SimpleTextBoundary extends BreakIterator
         for (char c = text.setIndex(offset);
              c != CharacterIterator.DONE && !data.forward().isEndState(state);
              c = text.next()) {
-
             state = data.forward().get(state, mappedChar(c));
             if (data.forward().isMarkState(state)) {
                 getEndIndex = text.getIndex();
             }
         }
-        if (data.forward().isEndState(state)) {
-        	return getEndIndex;
-		}
-        else if (text.current() != CharacterIterator.DONE) {
-        	return getEndIndex;
-        }
+        if (data.forward().isEndState(state))
+            return getEndIndex;
         else {
-        	return text.getEndIndex();
+            state = data.forward().get(state, mappedChar(END_OF_STRING));
+            if (data.forward().isMarkState(state))
+                return text.getEndIndex();
+            else
+                return getEndIndex;
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)jre_main.c	1.12 97/05/23 David Connelly
+ * @(#)jre_main.c	1.13 98/02/26 David Connelly
  *
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -307,7 +307,12 @@ jint ParseOptions(int *argcp, char ***argvp, JDK1_1InitArgs *vmargs)
 	} else if (strcmp(arg, "noverify") == 0) {
 	    vmargs->verifyMode = 0;
 	} else if (strcmp(arg, "nojit") == 0) {
-	    DeleteProperty("java.compiler");
+	    /**
+	     * Set the value of java.compiler equal to the empty 
+	     * string.  At the jit library loading step nothing will
+	     * loaded.
+	     */
+	    AddProperty("java.compiler=");
 	} else if (strcmp(arg, "v") == 0 || strcmp(arg, "verbose") == 0) {
 	    vmargs->verbose = JNI_TRUE;
 #ifdef JRE_DEBUG

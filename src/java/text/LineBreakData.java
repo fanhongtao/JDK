@@ -1,5 +1,5 @@
 /*
- * @(#)LineBreakData.java	1.5 97/01/17
+ * @(#)LineBreakData.java	1.8 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -47,152 +47,95 @@ final class LineBreakData extends TextBoundaryData
     //everything not included elsewhere
     private static final byte op                    = 4;
     //hyphens....
-    private static final byte nami                  = 5;
-    //namigata (indicates range or section to be filled in) ACTS
-    //like non-breaking character except when next to a break or CR
-    private static final byte kata                  = 6;
-    //large katakana
-    private static final byte smlKata               = 7;
-    //small katakana (except 'tsu')
-    private static final byte smlKtsu               = 8;
-    //small katakana tsu
-    private static final byte choon                 = 9;
-    //choon mark (katakana vowel extender)
-    private static final byte hira                  = 10;
-    //large hiragana
-    private static final byte smlHira               = 11;
-    //small hiragana (except 'tsu')
-    private static final byte smlHtsu               = 12;
-    //small hiragana tsu
-    private static final byte hiraDitto             = 13;
-    //hiragana dittos
-    private static final byte diacrit               = 14;
-    // kana diacriticals (dakuten, han-dakuten)
-    private static final byte kanji                 = 15;
-    private static final byte kanjiDitto            = 16;
-    //kanji ditto
-    private static final byte preJwrd               = 17;
+    private static final byte jwrd                  = 5;
+    //hiragana, katakana, and kanji
+    private static final byte preJwrd               = 6;
     //characters that bind to the beginning of a Japanese word
-    private static final byte postJwrd              = 18;
+    private static final byte postJwrd              = 7;
     //characters that bind to the end of a Japanese word
-    private static final int COL_COUNT = 19;
+    private static final byte digit                 = 8;
+    //digits
+    private static final byte numPunct              = 9;
+    //punctuation that can appear within a number
+    private static final byte currency              = 10;
+    //currency symbols that can precede a number
+    private static final byte nsm                   = 11;
+    // non-spacing marks
+    private static final byte nbsp                  = 12;
+    // non-breaking characters
+    private static final byte EOS                   = 13;
+    private static final int COL_COUNT = 14;
+
     private static final byte SI = (byte)0x80;
+    private static final byte STOP = (byte) 0;
+    private static final byte SI_STOP = (byte)SI + STOP;
 
     private static final byte kLineForwardData[] =
     {
-        // brk        bl            cr            nBl
-        // op         nmi           kat           smK
-        // sKT        cho           hir           smH
-        // sHT        hDi           dia           kan
-        // kDi        prJ           poJ
+        // brk         bl             cr             nBl
+        // op          kan            prJ            poJ
+        // dgt         np             curr           nsm
+        // nbsp        EOS
         /*00*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,
         /*01*/
-        (byte)(SI+4), (byte)(SI+2), (byte)(SI+4), (byte)(SI+3),
-        (byte)(SI+17),(byte)(SI+10), (byte)(SI+5), (byte)(SI+9),
-        (byte)(SI+9), (byte)(SI+9), (byte)(SI+6), (byte)(SI+9),
-        (byte)(SI+9), (byte)(SI+9), (byte)(SI+9), (byte)(SI+7),
-        (byte)(SI+9), (byte)(SI+8), (byte)(SI+3),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  (byte)(SI+3),
+        (byte)(SI+6),  (byte)(SI+5),  (byte)(SI+1),  (byte)(SI+8),
+        (byte)(SI+9),  (byte)(SI+8),  (byte)(SI+1),  (byte)(SI+1),
+        (byte)(SI+1),  SI_STOP,
         /*02*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+ 0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+2),
+        (byte)(SI+1),  SI_STOP,
         /*03*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+0), (byte)(SI+3),
-        (byte)(SI+17),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+8), (byte)(SI+3),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  (byte)(SI+3),
+        (byte)(SI+6),  SI_STOP,       SI_STOP,       (byte)(SI+8),
+        (byte)(SI+9),  (byte)(SI+8),  SI_STOP,       (byte)(SI+3),
+        (byte)(SI+1),  SI_STOP,
         /*04*/
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+ 0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,
         /*05*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+12),
-        (byte)(SI+11),(byte)(SI+13), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0),(byte)(SI+12), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+8),
+        SI_STOP,       (byte)(SI+8),  SI_STOP,       (byte)(SI+5),
+        (byte)(SI+1),  SI_STOP,
         /*06*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),(byte)(SI+15),
-        (byte)(SI+14),(byte)(SI+16),(byte)(SI+15), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
+        (byte)(SI+4),  SI_STOP,       (byte)(SI+7),  SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        (byte)(SI+9),  SI_STOP,       (byte)(SI+11), (byte)(SI+6),
+        (byte)(SI+1),  SI_STOP,
         /*07*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+7), (byte)(SI+0), (byte)(SI+3),
+        (byte)(SI+4),  SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,
         /*08*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+3),
-        (byte)(SI+17),(byte)(SI+10), (byte)(SI+5), (byte)(SI+9),
-        (byte)(SI+9), (byte)(SI+9), (byte)(SI+6), (byte)(SI+9),
-        (byte)(SI+9), (byte)(SI+9), (byte)(SI+9), (byte)(SI+7),
-        (byte)(SI+9), (byte)(SI+8), (byte)(SI+3),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+8),
+        SI_STOP,       (byte)(SI+8),  SI_STOP,       (byte)(SI+8),
+        (byte)(SI+1),  SI_STOP,
         /*09*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  (byte)(SI+3),
+        (byte)(SI+6),  SI_STOP,       SI_STOP,       (byte)(SI+8),
+        (byte)(SI+9),  (byte)(SI+10), (byte)(SI+10), (byte)(SI+9),
+        (byte)(SI+1),  SI_STOP,
         /*10*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+3),
-        (byte)(SI+17),(byte)(SI+10), (byte)(SI+5), (byte)(SI+9),
-        (byte)(SI+9), (byte)(SI+9), (byte)(SI+6), (byte)(SI+9),
-        (byte)(SI+9), (byte)(SI+9), (byte)(SI+9), (byte)(SI+7),
-        (byte)(SI+9), (byte)(SI+8), (byte)(SI+3),
+        (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+7),  SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+8),
+        (byte)(SI+9),  (byte)(SI+8),  SI_STOP,       (byte)(SI+10),
+        (byte)(SI+1),  SI_STOP,
         /*11*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+5), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
-        /*12*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+10), (byte)(SI+0),(byte)(SI+12),
-        (byte)(SI+11),(byte)(SI+13),(byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
-        /*13*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+11),(byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
-        /*14*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+6), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
-        /*15*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),(byte)(SI+15),
-        (byte)(SI+14),(byte)(SI+16), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
-        /*16*/
-        (byte)(SI+0), (byte)(SI+2), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+14),(byte)(SI+16), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+3),
-        /*17*/
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+4), (byte)(SI+0),
-        (byte)(SI+0),(byte)(SI+10), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0), (byte)(SI+0),
-        (byte)(SI+0), (byte)(SI+0), (byte)(SI+0)
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          STOP,          STOP,
+        (byte)(SI+9),  STOP,          STOP,          (byte)(11),
+        (byte)(SI+1),  STOP
     };
 
     private static final WordBreakTable kLineForward
@@ -200,224 +143,72 @@ final class LineBreakData extends TextBoundaryData
 
     private static final byte kLineBackwardData[] =
     {
-        // brk         bl            cr            nBl
-        // op          nmi           kat           smK
-        // sKT         cho           hir           smH
-        // sHT         hDi           dia           kan
-        // kDi         prJ           poJ
+        // brk         bl             cr             nBl
+        // op          kan            prJ            poJ
+        // dgt         np             curr           nsm
+        // nbsp        EOS
         /*00*/
-        (byte)(0),     (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),     (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),     (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),     (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),     (byte)(0),    (byte)(0),
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,
         /*01*/
-        (byte)(SI+4),  (byte)(SI+1), (byte)(SI+2), (byte)(SI+3),
-        (byte)(SI+3),  (byte)(SI+6),(byte)(SI+16), (byte)(SI+9),
-        (byte)(SI+10), (byte)(SI+9),(byte)(SI+17),(byte)(SI+11),
-        (byte)(SI+12),(byte)(SI+12), (byte)(SI+8), (byte)(SI+7),
-        (byte)(SI+13), (byte)(SI+3), (byte)(SI+5),
+        (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+2),
+        (byte)(SI+2),  (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+3),
+        (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+1),
+        (byte)(SI+2),  STOP,
         /*02*/
-        (byte)(SI+4),  (byte)(SI+2),    (byte)(0), (byte)(SI+3),
-        (byte)(SI+3),  (byte)(SI+6),(byte)(SI+16), (byte)(SI+9),
-        (byte)(SI+10), (byte)(SI+9),(byte)(SI+17),(byte)(SI+11),
-        (byte)(SI+12),(byte)(SI+12), (byte)(SI+8), (byte)(SI+7),
-        (byte)(SI+13),(byte)(SI+3),  (byte)(SI+5),
+        STOP,          STOP,          STOP,          (byte)(SI+2),
+        (byte)(SI+2),  STOP,          (byte)(SI+2),  (byte)(SI+3),
+        (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+2),
+        (byte)(SI+2),  STOP,
         /*03*/
-        (byte)(0),    (byte)(0),    (byte)(0), (byte)(SI+3),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3), (byte)(SI+5),
+        STOP,          STOP,          STOP,          (byte)(SI+2),
+        STOP,          (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+3),
+        (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+3),
+        (byte)(SI+2),  STOP,
         /*04*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),
-        /*05*/
-        (byte)(0),    (byte)(0),    (byte)(0), (byte)(SI+3),
-        (byte)(0), (byte)(SI+6),(byte)(SI+16), (byte)(SI+9),
-        (byte)(SI+10), (byte)(SI+9),(byte)(SI+17),(byte)(SI+11),
-        (byte)(SI+12),(byte)(SI+12), (byte)(SI+8), (byte)(SI+7),
-        (byte)(SI+13), (byte)(SI+3), (byte)(SI+5),
-        /*06*/
-        (byte)(SI+4),    (byte)(0),    (byte)(0), (byte)(SI+3),
-        (byte)(SI+3), (byte)(SI+6),(byte)(SI+16), (byte)(SI+9),
-        (byte)(SI+10), (byte)(SI+9),(byte)(SI+17),(byte)(SI+11),
-        (byte)(SI+12),(byte)(SI+12), (byte)(SI+8), (byte)(SI+7),
-        (byte)(SI+13), (byte)(SI+3), (byte)(SI+5),
-        /*07*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*08*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),(byte)(SI+16),  (byte)(0),
-        (byte)(0),    (byte)(0),(byte)(SI+17),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*09*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),(byte)(SI+16),  (byte)(9),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),   (byte)(14),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*10*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),(byte)(SI+16),  (byte)(9),
-        (byte)(0),    (byte)(9),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),   (byte)(14),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*11*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),(byte)(SI+17),   (byte)(11),
-        (byte)(0),    (byte)(0),   (byte)(15),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*12*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),(byte)(SI+17),   (byte)(11),
-        (byte)(0),   (byte)(12),   (byte)(15),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*13*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0), (byte)(SI+7),
-        (byte)(13),(byte)(SI+3),    (byte)(0),
-        /*14*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),(byte)(SI+16),  (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*15*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),(byte)(SI+17),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*16*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(10),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0),
-        /*17*/
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+6),    (byte)(0),    (byte)(0),
-        (byte)(0),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(12),    (byte)(0),    (byte)(0),    (byte)(0),
-        (byte)(0), (byte)(SI+3),    (byte)(0)
+        STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          (byte)(SI+2),  STOP,
+        STOP,          STOP,          (byte)(SI+2),  (byte)(SI+4),
+        (byte)(SI+4),  STOP
     };
 
     private static final WordBreakTable kLineBackward
         = new WordBreakTable(COL_COUNT, kLineBackwardData);
 
-	private static final int kRawMapping[] =
-	{
-		nonBlank, //UNASSIGNED		= 0,
-		nonBlank, //UPPERCASE_LETTER	= 1,
-		nonBlank, //LOWERCASE_LETTER	= 2,
-		nonBlank, //TITLECASE_LETTER	= 3,
-		nonBlank, //MODIFIER_LETTER		= 4,
-		nonBlank, //OTHER_LETTER		= 5,
-		nonBlank, //NON_SPACING_MARK	= 6,
-		nonBlank, //ENCLOSING_MARK		= 7,
-		nonBlank, //COMBINING_SPACING_MARK	= 8,
-		nonBlank, //DECIMAL_DIGIT_NUMBER	= 9,
-		nonBlank, //LETTER_NUMBER		= 10,
-		nonBlank, //OTHER_NUMBER		= 11,
-		blank, //SPACE_SEPARATOR		= 12,
-		blank, //LINE_SEPARATOR		= 13,
-		blank, //PARAGRAPH_SEPARATOR	= 14,		???????????
-		blank, //CONTROL			= 15,
-		nonBlank, //PRIVATE_USE		= 16,
-		nonBlank, //FORMAT		= 17
-		nonBlank, //????		= 18,
-		nonBlank, //SURROGATE		= 19,
-		op, //DASH_PUNCTUATION	= 20,
-		preJwrd, //START_PUNCTUATION	= 21,
-		postJwrd, //END_PUNCTUATION		= 22,
-		nonBlank, //CONNECTOR_PUNCTUATION	= 23,
-		nonBlank, //OTHER_PUNCTUATION	= 24,
-		nonBlank, //MATH_SYMBOL		= 25,
-		nonBlank, //CURRENCY_SYMBOL		= 26,
-		nonBlank, //MODIFIER_SYMBOL		= 27,
-		nonBlank  //OTHER_SYMBOL		= 28;
-	};
-/*
     private static final int kRawMapping[] =
     {
-        nonBlank, //00   Invalid
-        blank,    //01   SpaceWhitespace
-        blank,    //02   ZerowidthSpaceWhitespace
-        nonBlank, //03   ISOcontrol
-        blank,    //04   WhitespaceISOcontrol
-        nonBlank, //05   Dash
-        nonBlank, //06   Punctuation
-        op,       //07   DashPunctuation
-        nonBlank, //08   HyphenPunctuation
-        op,       //09   DashHyphenPunctuation
-        nonBlank, //10   PunctuationQuotationmark
-        nonBlank, //11   PunctuationTerminalpunctuation
-        nonBlank, //12   Currencysymbol
-        postJwrd, //13   PunctuationPairedpunctuation
-        postJwrd, //14   PunctuationQuotationmarkPairedpunctuation
-        preJwrd,  //15   PunctuationPairedpunctuationLeftofpair
-        preJwrd,  //16   PunctuationQuotationmarkPairedpunctuationLeftofpair
-        nonBlank, //17   PunctuationPairedpunctuationCombining
-        nonBlank, //18   PunctuationPairedpunctuationLeftofpairCombining
-        nonBlank, //19   Composite
-        nonBlank, //20   Numeric
-        nonBlank, //21   CompositeNumeric
-        nonBlank, //22   PunctuationAlphabetic
-        nonBlank, //23   Diacritic
-        nonBlank, //24   CompositeDiacritic
-        nonBlank, //25   PunctuationIdentifierpart
-        nonBlank, //26   DecimaldigitNumericIdentifierpart
-        nonBlank, //27   HexdigitDecimaldigitNumericIdentifierpart
-        nonBlank, //28   AlphabeticIdentifierpart
-        nonBlank, //29   CombiningAlphabeticIdentifierpart
-        nonBlank, //30   CompositeAlphabeticIdentifierpart
-        nonBlank, //31   CombiningCompositeAlphabeticIdentifierpart
-        nonBlank, //32   NumericAlphabeticIdentifierpart
-        nonBlank, //33   CompositeNumericAlphabeticIdentifierpart
-        nonBlank, //34   IdeographicIdentifierpart
-        nonBlank, //35   NumericIdeographicIdentifierpart
-        nonBlank, //36   CombiningDiacriticIdentifierpart
-        nonBlank, //37   ExtenderIdentifierpart
-        nonBlank, //38   CompositeExtenderIdentifierpart
-        nonBlank, //39   DiacriticExtenderIdentifierpart
-        nonBlank, //40   PunctuationDiacriticExtenderIdentifierpart
-        blank,    //41   ZerowidthWhitespaceBidicontrolIgnorablecontrol
-        blank,    //42   ZerowidthWhitespaceJoincontrolIgnorablecontrol
-        blank,    //43   ZerowidthWhitespaceFormatcontrolIgnorablecontrol
-        nonBlank, //44   AlphabeticIdentifierpartLower
-        nonBlank, //45   CompositeAlphabeticIdentifierpartLower
-        nonBlank, //46   HexdigitAlphabeticIdentifierpartLower
-        nonBlank, //47   AlphabeticIdentifierpartUpper
-        nonBlank, //48   CompositeAlphabeticIdentifierpartUpper
-        nonBlank, //49   HexdigitAlphabeticIdentifierpartUpper
-        nonBlank, //50   CompositeAlphabeticIdentifierpartTitle
-        nonBlank, //51   Marknonspacing
-        nonBlank, //52   CombiningMarknonspacing
-        nonBlank, //53   CombiningIdentifierpartMarknonspacing
-        nonBlank, //54   AlphabeticIdentifierpartMarknonspacing
-        nonBlank, //55   CombiningAlphabeticIdentifierpartMarknonspacing
-        nonBlank, //56   CompositeAlphabeticIdentifierpartMarknonspacing
-        nonBlank, //57 CombiningCompositeAlphabeticIdentifierpartMarknonspacing
-        nonBlank, //58   CombiningDiacriticIdentifierpartMarknonspacing
-        nonBlank, //59  CombiningCompositeDiacriticIdentifierpartMarknonspacing
-        blank,    //60   WhitespaceNongraphicSeparator
-        nonBlank, //61   WhitespaceISOcontrolNongraphicSeparator
-        nonBlank, //62   SpaceWhitespaceNongraphicNobreak
-        nonBlank, //63 ZerowidthSpaceWhitespaceIgnorablecontrolNongraphicNobreak
-    }; */
+        nonBlank, //UNASSIGNED             = 0,
+        nonBlank, //UPPERCASE_LETTER       = 1,
+        nonBlank, //LOWERCASE_LETTER       = 2,
+        nonBlank, //TITLECASE_LETTER       = 3,
+        nonBlank, //MODIFIER_LETTER        = 4,
+        nonBlank, //OTHER_LETTER           = 5,
+        nsm,      //NON_SPACING_MARK       = 6,
+        nsm,      //ENCLOSING_MARK         = 7,
+        nonBlank, //COMBINING_SPACING_MARK = 8,
+        digit, //DECIMAL_DIGIT_NUMBER      = 9,
+        nonBlank, //LETTER_NUMBER          = 10,
+        digit, //OTHER_NUMBER              = 11,
+        blank, //SPACE_SEPARATOR           = 12,
+        blank, //LINE_SEPARATOR            = 13,
+        blank, //PARAGRAPH_SEPARATOR       = 14,     ???????????
+        blank, //CONTROL                   = 15,
+        nonBlank, //PRIVATE_USE            = 16,
+        nonBlank, //FORMAT                 = 17
+        nonBlank, //????                   = 18,
+        nonBlank, //SURROGATE              = 19,
+        op, //DASH_PUNCTUATION             = 20,
+        preJwrd, //START_PUNCTUATION       = 21,
+        postJwrd, //END_PUNCTUATION        = 22,
+        nonBlank, //CONNECTOR_PUNCTUATION  = 23,
+        nonBlank, //OTHER_PUNCTUATION      = 24,
+        nonBlank, //MATH_SYMBOL            = 25,
+        preJwrd, //CURRENCY_SYMBOL         = 26,
+        nonBlank, //MODIFIER_SYMBOL        = 27,
+        nonBlank  //OTHER_SYMBOL           = 28;
+    };
 
     private static SpecialMapping kExceptionChar[] =
     {
@@ -425,32 +216,188 @@ final class LineBreakData extends TextBoundaryData
         //      required by the UnicodeClassMapping class.
         new SpecialMapping(ASCII_END_OF_TEXT, BREAK),
         new SpecialMapping(ASCII_HORIZONTAL_TABULATION,
-                           ASCII_CARRIAGE_RETURN, BREAK),
+                           ASCII_FORM_FEED, BREAK),
+        new SpecialMapping(ASCII_CARRIAGE_RETURN, cr),
         new SpecialMapping(ASCII_EXCLAMATION_MARK, postJwrd),
+        new SpecialMapping(ASCII_DOLLAR_SIGN, preJwrd),
         new SpecialMapping(ASCII_PERCENT, postJwrd),
-        new SpecialMapping(ASCII_COMMA, postJwrd),
-        new SpecialMapping(ASCII_FULL_STOP, postJwrd),
+        new SpecialMapping(ASCII_COMMA, numPunct),
+        new SpecialMapping(ASCII_FULL_STOP, numPunct),
         new SpecialMapping(ASCII_COLON, ASCII_SEMICOLON, postJwrd),
         new SpecialMapping(ASCII_QUESTION_MARK, postJwrd),
-        new SpecialMapping(LATIN1_SOFTHYPHEN, nonBlank),
+        new SpecialMapping(ASCII_NONBREAKING_SPACE, nbsp),
+        new SpecialMapping(ASCII_CENT_SIGN, postJwrd),
+        new SpecialMapping(LATIN1_SOFTHYPHEN, op),
+        new SpecialMapping(LATIN1_DEGREE_SIGN, postJwrd),
         new SpecialMapping(ARABIC_PERCENT_SIGN, postJwrd),
+        new SpecialMapping(FIGURE_SPACE, nbsp),
+        new SpecialMapping(NONBREAKING_HYPHEN, nbsp),
         new SpecialMapping(PUNCTUATION_LINE_SEPARATOR,
                            PUNCTUATION_PARAGRAPH_SEPARATOR, BREAK),
-        new SpecialMapping(PUNCTUATION_IDEOGRAPHIC_FULL_STOP, postJwrd),
         new SpecialMapping(PER_MILLE_SIGN, postJwrd),
         new SpecialMapping(PER_TEN_THOUSAND_SIGN, postJwrd),
-        new SpecialMapping(HIRAGANA_LETTER_SMALL_A, HIRAGANA_LETTER_VU, hira),
+        new SpecialMapping(PRIME, TRIPLE_PRIME, postJwrd),
+        new SpecialMapping(DEGREE_CELSIUS, postJwrd),
+        new SpecialMapping(DEGREE_FAHRENHEIT, postJwrd),
+        new SpecialMapping(PUNCTUATION_IDEOGRAPHIC_COMMA,
+                           PUNCTUATION_IDEOGRAPHIC_FULL_STOP, postJwrd),
+        new SpecialMapping(IDEOGRAPHIC_ITERATION_MARK, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_A, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_A, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_I, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_I, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_U, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_U, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_E, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_E, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_O, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_O, HIRAGANA_LETTER_DI, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_TU, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_TU, HIRAGANA_LETTER_MO, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_YA, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_YA, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_YU, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_YU, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_YO, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_YO, HIRAGANA_LETTER_RO, jwrd),
+        new SpecialMapping(HIRAGANA_LETTER_SMALL_WA, postJwrd),
+        new SpecialMapping(HIRAGANA_LETTER_WA, HIRAGANA_LETTER_VU, jwrd),
         new SpecialMapping(COMBINING_KATAKANA_HIRAGANA_VOICED_SOUND_MARK,
-                           HIRAGANA_SEMIVOICED_SOUND_MARK, diacrit),
-        new SpecialMapping(KATAKANA_LETTER_SMALL_A,
-                           KATAKANA_LETTER_SMALL_KE, kata),
-        new SpecialMapping(UNICODE_LOW_BOUND_HAN,UNICODE_HIGH_BOUND_HAN,kanji),
+                           HIRAGANA_SEMIVOICED_SOUND_MARK, postJwrd),
+        new SpecialMapping(HIRAGANA_ITERATION_MARK, HIRAGANA_VOICED_ITERATION_MARK, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_A, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_A, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_I, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_I, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_U, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_U, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_E, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_E, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_O, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_O, KATAKANA_LETTER_DI, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_TU, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_TU, KATAKANA_LETTER_MO, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_YA, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_YA, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_YU, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_YU, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_YO, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_YO, KATAKANA_LETTER_RO, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_WA, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_WA, KATAKANA_LETTER_VU, jwrd),
+        new SpecialMapping(KATAKANA_LETTER_SMALL_KA, KATAKANA_LETTER_SMALL_KE, postJwrd),
+        new SpecialMapping(KATAKANA_LETTER_VA, KATAKANA_LETTER_VO, jwrd),
+        new SpecialMapping(KATAKANA_HIRAGANA_PROLONGED_SOUND_MARK, postJwrd),
+        new SpecialMapping(KATAKANA_ITERATION_MARK, KATAKANA_VOICED_ITERATION_MARK, postJwrd),
+        new SpecialMapping(UNICODE_LOW_BOUND_HAN,UNICODE_HIGH_BOUND_HAN,jwrd),
         new SpecialMapping(CJK_COMPATIBILITY_F900,
-                           CJK_COMPATIBILITY_FA2D, kanji),
+                           CJK_COMPATIBILITY_FA2D, jwrd),
+        new SpecialMapping(UNICODE_ZERO_WIDTH_NON_BREAKING_SPACE, nbsp),
+        new SpecialMapping(END_OF_STRING, EOS)
+    };
+
+    private static final boolean LineExceptionFlags[] = {
+        false,          // kNonCharacter            = 0,
+        false,          // kUppercaseLetter         = 1,
+        false,          // kLowercaseLetter         = 2,
+        false,          // kTitlecaseLetter         = 3,
+        true,           // kModifierLetter          = 4,
+        true,           // kOtherLetter             = 5,
+        true,           // kNonSpacingMark          = 6,
+        false,          // kEnclosingMark           = 7,
+        false,          // kCombiningSpacingMark    = 8,
+        false,          // kDecimalNumber           = 9,
+        false,          // kLetterNumber            = 10,
+        false,          // kOtherNumber             = 11,
+        true,           // kSpaceSeparator          = 12,
+        true,           // kLineSeparator           = 13,
+        true,           // kParagraphSeparator      = 14,
+        true,           // kControlCharacter        = 15,
+        true,           // kFormatCharacter         = 16,
+        false,          // UNDEFINED                = 17,
+        false,          // kPrivateUseCharacter     = 18,
+        false,          // kSurrogate               = 19,
+        true,           // kDashPunctuation         = 20,
+        false,          // kOpenPunctuation         = 21,
+        false,          // kClosePunctuation        = 22,
+        false,          // kConnectorPunctuation    = 23,
+        true,           // kOtherPunctuation        = 24,
+        false,          // kMathSymbol              = 25,
+        true,           // kCurrencySymbol          = 26,
+        false,          // kModifierSymbol          = 27,
+        true            // kOtherSymbol             = 28
+    };
+
+    private static final int kLineAsciiValues[] = {
+        //  null    soh     stx     etx     eot     enq     ask     bell
+            blank,  blank,  blank,  BREAK,  blank,  blank,  blank,  blank,
+        //  bs      ht      lf      vt      ff      cr      so      si
+            blank,  BREAK,  BREAK,  BREAK,  BREAK,  cr,     blank,  blank,
+        //  dle     dc1     dc2     dc3     dc4     nak     syn     etb
+            blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
+        //  can     em      sub     esc     fs      gs      rs      us
+            blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
+        //  sp      !         "         #         $         %         &         '
+            blank,  postJwrd, nonBlank, nonBlank, currency, postJwrd, nonBlank, nonBlank,
+        //  (       )          *         +         ,         -   .         /
+            preJwrd, postJwrd, nonBlank, nonBlank, numPunct, op, numPunct, nonBlank,
+        //  0         1         2         3         4         5         6         7
+            digit,    digit,    digit,    digit,    digit,    digit,    digit,    digit,
+        //  8         9         :         ;         <         =         >         ?
+            digit,    digit,    postJwrd, postJwrd, nonBlank, nonBlank, nonBlank, postJwrd,
+        //  @         A         B         C         D         E         F         G
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  H         I         J         K         L         M         N         O
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  P         Q         R         S         T         U         V         W
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  X         Y         Z         [        \         ]         ^         _
+            nonBlank, nonBlank, nonBlank, preJwrd, nonBlank, postJwrd, nonBlank, nonBlank,
+        //  `         a         b         c         d         e         f         g
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  h         i         j         k         l         m         n         o
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  p         q         r         s         t         u         v         w
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  x         y         z         {        |         }         ~         del
+            nonBlank, nonBlank, nonBlank, preJwrd, nonBlank, postJwrd, nonBlank, blank,
+        //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
+            blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
+        //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
+            blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
+        //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
+            blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
+        //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
+            blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
+        //  nbsp   ¡         ¢         £         ¤         ¥         ¦
+            nbsp,  nonBlank, postJwrd, currency, currency, currency, nonBlank, nonBlank,
+        //  ¨         ©         ª         «        ¬         ­   ®         ¯
+            nonBlank, nonBlank, nonBlank, preJwrd, nonBlank, op, nonBlank, nonBlank,
+        //  °         ±         ²         ³         ´         µ         ¶         ·
+            postJwrd, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  ¸         ¹         º         »         ¼         ½         ¾         ¿
+            nonBlank, nonBlank, nonBlank, postJwrd, digit,    digit,    digit,    nonBlank,
+        //  À         Á         Â         Ã         Ä         Å         Æ         Ç
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  È         É         Ê         Ë         Ì         Í         Î         Ï
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  Ð         Ñ         Ò         Ó         Ô         Õ         Ö         ×
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  Ø         Ù         Ú         Û         Ü         Ý         Þ         ß
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  à         á         â         ã         ä         å         æ         ç
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  è         é         ê         ë         ì         í         î         ï
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  ð         ñ         ò         ó         ô         õ         ö         ÷
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
+        //  ø         ù         ú         û         ü         ý         þ         ÿ
+            nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank
     };
 
     private static final UnicodeClassMapping kLineMap
-        = new UnicodeClassMapping(kRawMapping, kExceptionChar);
+        = new UnicodeClassMapping(kRawMapping, kExceptionChar, LineExceptionFlags,
+        kLineAsciiValues);
 
     public WordBreakTable forward()
     {

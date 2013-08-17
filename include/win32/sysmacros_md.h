@@ -1,5 +1,5 @@
 /*
- * @(#)sysmacros_md.h	1.13 97/02/07
+ * @(#)sysmacros_md.h	1.15 97/10/07
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -52,6 +52,11 @@
 	   continue; \
 	}
 
+/*
+ * Case insensitive compare of ASCII strings
+ */
+#define sysStricmp(a, b)		stricmp(a, b)
+
 #define sysIsAbsolute(s) \
 	(*(s) == '/' || *(s) == '\\' \
 	 || (isalpha(*(s)) && *((s)+1) == ':' \
@@ -65,6 +70,23 @@
 #define sysSeek(fd,where,whence) lseek(fd,where,whence)
 #define sysRename(src,dst)	rename(src,dst)
 #define sysRmdir(dirp)          _rmdir(dirp)
+
+/*
+ * Set up thread-local storage for second order monitor cache.  The
+ * number of words of thread-local storage must be a power of 2!
+ */
+#define SYS_TLS_MONCACHE 8 /* must be power of 2 */
+#define sysCurrentCacheKey(tid) (tid->cacheKey)
+#define sysLocalMonCache(tid, hash) (tid->monitorCache[hash])
+
+
+#define sysMemoryFlush()  __asm { lock xor	DWORD PTR 0[esp], 0 }
+
+/*
+ * Intel doesn't seem to support a weak consistency model for MP
+ * so we define this to do nothing.
+ */
+#define sysStoreBarrier() 0
 
 /*
  * Simple, fast recursive lock for the monitor cache.
@@ -100,8 +122,5 @@ extern cache_lock_t _moncache_lock;
 			       }					\
 			       mutexUnlock(&_moncache_lock.mutex);	\
 			   }
-
-/* The current JIT interface requires sysMonitorExit to be a function */
-#define sysMonitorExitLocked(mid)	sysMonitorExit(mid)
 
 #endif /*_WIN32_SYSMACROS_MD_H_*/

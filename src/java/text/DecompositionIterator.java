@@ -1,5 +1,5 @@
 /*
- * @(#)DecompositionIterator.java	1.13 97/01/20
+ * @(#)DecompositionIterator.java	1.18 97/12/05
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -45,7 +45,7 @@ package java.text;
   * StringBuffer or Character.
   * @see        Collator
   * @see        RuleBasedCollator
-  * @version    1.13 01/20/97
+  * @version    1.18 12/05/97
   * @author     Mark Davis, Helena Shih
 */
 class DecompositionIterator {
@@ -57,72 +57,178 @@ class DecompositionIterator {
     /**
      * Create a decomposed string iterator.
      */
-    public DecompositionIterator(String src, int start, int end, int mode) {
-        str = src;
-        parsedStr = new StringBuffer(src.length());
-        sIndex = start;
-        pIndex = 0;
+    public DecompositionIterator(String source, int start, int end, int mode) {
+        str = source;
         getBeginIndex = start;
         getEndIndex = end;
+        sIndex = start;
+
+        decmpMode = mode;
+        decmpLimit = (mode == Collator.CANONICAL_DECOMPOSITION) ?
+            maximumCanonical : SHORT_MAX_VALUE;
+
+        parsedStr = null;     // lazy assignment
+        pIndex = 0;
+        backedUp = false;
+    }
+
+    public DecompositionIterator(String source, int mode)
+    {
+        this(source, 0, source.length(), mode);
+    }
+
+    /**
+     * Set the decomposition mode.
+     * @param mode the new decomposition mode.
+     * @see Collator
+     * @see RuleBasedCollator
+     */
+    public void setDecomposition(int mode)
+    {
         decmpMode = mode;
     }
+
+    /**
+     * Sets the string to the new source string.
+     * @param source            the new source string
+     */
+    public void setText(String source)
+    {
+        str = source;
+        parsedStr.setLength(0);
+        sIndex = 0;
+        pIndex = 0;
+        getBeginIndex = 0;
+        getEndIndex = source.length();
+    }
+
     /**
      * Get the next character.
      */
     public char next() {
         char ch;
-        if (decmpMode == Collator.NO_DECOMPOSITION) {
-            if (sIndex >= str.length())
-                return NULLORDER;
-            return str.charAt(sIndex++);
+        int index = 0;     // index into contents table
+        byte type;         // canonicalization type
+        char result;
+
+        if (backedUp) {
+            // Immediately after a call to previous(), just return the char it saved
+            result = prevChar;
+            backedUp = false;
         }
-        if (pIndex >= parsedStr.length()) {
-            parsedStr.setLength(0);
-            pIndex = 0;
-            uptoOffset = sIndex;
-            if (sIndex >= getEndIndex) {
-                return NULLORDER;
+        else if (decmpMode == Collator.NO_DECOMPOSITION) {
+            // If we're not really doing decomposition, just return the current char
+            result = sIndex < getEndIndex ? str.charAt(sIndex++) : NULLORDER;
+        }
+        else if (decomposing) {
+            // push out previously decomposed characters
+            result = parsedStr.charAt(pIndex++);
+            if (pIndex >= parsedStr.length()) {
+                decomposing = false;
             }
-            ch = str.charAt(uptoOffset++);
-            parsedStr.append(ch);
-            while (uptoOffset < getEndIndex) {
-                ch = str.charAt(uptoOffset);
-                if (((((1 << Character.NON_SPACING_MARK) |
-                       (1 << Character.ENCLOSING_MARK) |
-                       (1 << Character.COMBINING_SPACING_MARK)) >>
-                     Character.getType(ch)) & 1) != 0) {
-                    break;
+        }
+        else if (sIndex >= getEndIndex) {
+            // Past the end of the string
+            result = NULLORDER;
+        }
+        else {
+            // We have to fetch the next character from the string and then
+            // try to decompose it
+            ch = str.charAt(sIndex++);
+
+            // First, retrieve this character's index.  This is an index into
+            // the "contents" array, which contains a sequence of characters
+            // terminated by kSTerminator for each decomposing character.
+            // All of the sequences are packed into the one big "contents" array
+            // in order to save space.
+            index = startOffsets.elementAt(ch);
+
+            // The "canonicals" array stores the canonical ordering for each combining
+            // character in Unicode.  These orderings are used to sort the diacritical
+            // marks after a base character into a canonical order.  If a given Unicode
+            // character is *not* a combining character, its entry is BASE
+
+            if (index >= decmpLimit &&                      // no decomposition
+                      canonicals.elementAt(ch) == BASE) {   // no canonicalization
+                result = ch;
+            }
+            else {
+                // We have to decompose, canonicalize or both.
+                // Do so to the shortest possible substring.
+                //
+                // The length of the parsed string is unbounded, since
+                // the input string could have an arbitrary number
+                // of adjacent non-BASE characters. In practice,
+                // howev+er, a base character will be followed very
+                // few non-base characters. For example, a base
+                // character may be followed by diacritical marks.
+                // These are limited in number, most frequently one,
+                // rarely more than two. Therefore the default
+                // StringBuffer size is adequate for all normal
+                // sequences but will expand as needed for
+                // pathological input.
+                //
+                // Refer to the following sections of The Unicode
+                // Standard, Version 2.0
+                //
+                // Section 2.5 Combining Characters ,
+                // Section 3.6 Decomposition
+                // Section 3.9 Canonical Ordering Behavior
+                // Section 4.2 Combining Classes
+                // Section 5.9 Normalization
+                // Section 5.15 Sorting and Searching
+                //
+                if (parsedStr == null) {
+                    parsedStr = new StringBuffer();
+                } else {
+                    parsedStr.setLength(0);
                 }
-                parsedStr.append(ch);
-                uptoOffset++;
-            }
-            decompose(parsedStr, decmpMode);
-            fixCanonical(parsedStr);
-            uptoOffset -= sIndex;
-            sIndex += uptoOffset;
+
+                if (index < decmpLimit) {       // Decompose
+                          /* decompose */
+                    while((ch = contents.charAt(index++)) != '\u0000') {
+                        parsedStr.append(ch);
+                    }
+                } else {                        // Combining character
+                    parsedStr.append(ch);
+                }
+
+                // Any other combining chacters that immediately follow the decomposed
+                // character must be included in the buffer too, because they're
+                // conceptually part of the same logical character.
+                while (sIndex < getEndIndex &&
+                            canonicals.elementAt(ch = str.charAt(sIndex)) != BASE) {
+                    parsedStr.append(ch);
+                    sIndex++;
+                }
+
+                if (parsedStr.length() > 1) {
+                    // If there is more than one combining character in the buffer,
+                    // put them into the canonical order.
+                    fixCanonical(parsedStr);
+                    pIndex = 1;
+                    decomposing = true;
+                } else {
+                    decomposing = false;
+                }
+                result = parsedStr.charAt(0);
+              }
         }
-        return parsedStr.charAt(pIndex++);
+        prevChar = result; // for previous()
+        return result;
     }
+
+    /**
+     * Gets the previous character in the string.
+     * @return the previous character
+     */
     public char previous() {
-        if (decmpMode == Collator.NO_DECOMPOSITION) {
-            if (sIndex <= getBeginIndex)
-                return NULLORDER;
-            return str.charAt(--sIndex);
-        }
-        if (pIndex <= parsedStr.length()) {
-            if (pIndex > 1) {
-                pIndex--;
-                return parsedStr.charAt(pIndex);
-            } else {
-                parsedStr.setLength(0);
-                pIndex = 0;
-                sIndex -= uptoOffset;
-            }
-        }
-        if (sIndex < str.length())
-            return str.charAt(sIndex);
-        else
-            return NULLORDER;
+        // TODO: right now, this only handles a single-character backup.
+        // That's all that is used by CollationElementIterator at the moment,
+        // but when we expose this class in the API or add a previous method
+        // to CollationElementIterator, we'll need to flesh this method out.
+        backedUp = true;
+        return prevChar;
     }
     /**
      * Resets the cursor to the beginning of the string.
@@ -130,6 +236,47 @@ class DecompositionIterator {
     public void reset() {
         sIndex = getBeginIndex;
         pIndex = 0;
+        decomposing = false;    // LAURA
+        backedUp = false;       // LAURA
+    }
+    // ============================================================
+    // package private (These need to be made public for searching)
+    // ============================================================
+    /**
+     *  Sets the offset of the currently processed character in the source string.
+     *  @param newOffset the new offset
+     */
+    final void setOffset(int newOffset)
+    {
+        if (getBeginIndex <= newOffset && newOffset < getEndIndex) {
+            sIndex = newOffset;
+            pIndex = 0;
+            decomposing = false;
+            backedUp = false;
+        } else {
+            throw new IndexOutOfBoundsException(
+                "DecompositionIterator new offset out of bounds.");
+        }
+    }
+
+    /**
+     *  Get the current offset of the character in the processed source string.
+     *  @return The offset of the accessed character
+     */
+    final int getOffset()
+    {
+        return sIndex;
+    }
+
+    /**
+     * Get the decomposition mode.
+     * @return The decomposition mode.
+     * @see Collator
+     * @see RuleBasedCollator
+     */
+    public int getDecomposition()
+    {
+       return decmpMode;
     }
 
     // -------------------------------------------------------------
@@ -145,12 +292,16 @@ class DecompositionIterator {
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
      */
-    static String decompose(char source, int mode) {
+    static String decompose(char source, int mode)
+    {
         if (mode == Collator.NO_DECOMPOSITION) {
+            // Extract the substring from the source directly if the
+            // decomposition mode is NO_DECOMPOSITION.
             StringBuffer tmp = new StringBuffer();
             tmp.append(source);
             return tmp.toString();
         }
+
         int limit = (mode == Collator.CANONICAL_DECOMPOSITION) ?
             maximumCanonical : SHORT_MAX_VALUE;
         int index = startOffsets.elementAt(source);
@@ -161,15 +312,21 @@ class DecompositionIterator {
             if (ch == '\u0000') break;
             result.append(ch);
         }
+        fixCanonical(result);
         return result.toString();
     }
-    static void decompose(StringBuffer source, int mode) {
-        decompose(source,0,source.length(),mode);
-    }
 
-    static void decompose(StringBuffer source, int start, int end,
-                                   int mode)
-    {
+    /**
+     * Decomposes a StringBuffer in place
+     * @param source the string to be decomposed
+     * @param mode the decomposition mode
+     * @see java.text.Collator
+     * @see java.text.Collator#getDecomposition
+     * @see java.text.Collator#setDecomposition
+     */
+    static void decompose(StringBuffer source, int mode) {
+        int start = 0;
+        int end = source.length();
         if (mode == Collator.NO_DECOMPOSITION) {
             String temp = source.toString().substring(start, end);
             source.setLength(0);
@@ -191,6 +348,7 @@ class DecompositionIterator {
         source.setLength(0);
         source.append(result.toString());
     }
+
     /**
      * Decomposes string into string
      * If the source can't be decomposed, return "".
@@ -201,24 +359,10 @@ class DecompositionIterator {
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
      */
-    static String decompose(String source, int mode) {
-        return decompose(source,0,source.length(),mode);
-    }
-    /**
-     * Decomposes a range of string into string
-     * If the source can't be decomposed, return "".
-     * @param source the string to be decomposed with
-     * @param start the start offset of the text range
-     * @param end the end offset of the text range
-     * @param mode the decomposition mode
-     * @return the decomposed string
-     * @see java.text.Collator
-     * @see java.text.Collator#getDecomposition
-     * @see java.text.Collator#setDecomposition
-     */
-    static String decompose(String source, int start, int end,
-                                   int mode)
+    static String decompose(String source, int mode)
     {
+        int start = 0;
+        int end = source.length();
         if (mode == Collator.NO_DECOMPOSITION) {
             return source.substring(start, end);
         }
@@ -237,41 +381,7 @@ class DecompositionIterator {
         }
         return result.toString();
     }
-    /**
-     * Use for fast access in a tight loop.
-     * Puts count characters into output buffer, with no heap allocations.
-     * If the source can't be decomposed, returns length == 0;
-     * Make sure that you allocate an array of getMaximumDecomposition()
-     * members.
-     * @param source the character to be decomposed with
-     * @param output the character array to store the deomposed result string
-     * @param mode the decomposition mode
-     * @return the number of character of decomposed source string
-     * @see java.text.Collator
-     * @see java.text.Collator#getDecomposition
-     * @see java.text.Collator#setDecomposition
-     */
-    static int decompose(char source,
-                         char[] output,
-                         int mode)
-    {
-        if (mode == Collator.NO_DECOMPOSITION) {
-            output[0] = source;
-            output[1] = 0;
-            return 1;
-        }
-        int limit = (mode == Collator.CANONICAL_DECOMPOSITION) ?
-            maximumCanonical : SHORT_MAX_VALUE;
-        int index = startOffsets.elementAt(source);
-        if (index >= limit) return 0;
-        int i = 0;
-        while (true) {
-            char ch = contents.charAt(index++);
-            if (ch == '\u0000') break;
-            output[i++] = ch;
-        }
-        return i;
-    }
+
     /**
      * Use to allocate array for using decompose in a tight loop.
      * @return the maximum decomposition result characters for output
@@ -280,1135 +390,12 @@ class DecompositionIterator {
         return maximumDecomposition;
     }
 
-    //-----------------------------------------------------------
-    // privates
-    //-----------------------------------------------------------
-    //should be in Short class
-    private static final short SHORT_MAX_VALUE = 32767;
-    private static final char STERMINATOR = (char)0x0000;
-
-    // GENERATED
-    // Only making short array!!!
-    private static final short kOffsetIndex[] = {
-    (short)0, (short)128, (short)256, (short)384, (short)512,
-    (short)640,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)896,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768, (short)768, (short)768, (short)768, (short)768,
-    (short)768 };
-
-    private static final short kOffsetValues[] =    {
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)736, (short)739,
-    (short)742, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)745,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)747, (short)32767, (short)750,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)752,
-    (short)32767, (short)32767, (short)755, (short)757, (short)759,
-    (short)762, (short)32767, (short)32767, (short)764, (short)767,
-    (short)769, (short)32767, (short)771, (short)775, (short)779,
-    (short)32767, (short)0, (short)3, (short)6, (short)9,
-    (short)12, (short)15, (short)32767, (short)18, (short)24,
-    (short)27, (short)30, (short)33, (short)39, (short)42,
-    (short)45, (short)48, (short)32767, (short)54, (short)57,
-    (short)60, (short)63, (short)66, (short)69, (short)32767,
-    (short)72, (short)78, (short)81, (short)84, (short)87,
-    (short)90, (short)32767, (short)32767, (short)93, (short)96,
-    (short)99, (short)102, (short)105, (short)108, (short)32767,
-    (short)111, (short)117, (short)120, (short)123, (short)126,
-    (short)132, (short)135, (short)138, (short)141, (short)32767,
-    (short)147, (short)150, (short)153, (short)156, (short)159,
-    (short)162, (short)32767, (short)165, (short)171, (short)174,
-    (short)177, (short)180, (short)183, (short)32767, (short)186,
-    (short)189, (short)192, (short)195, (short)198, (short)201,
-    (short)204, (short)207, (short)210, (short)213, (short)216,
-    (short)219, (short)222, (short)225, (short)228, (short)231,
-    (short)234, (short)21, (short)114, (short)237, (short)240,
-    (short)243, (short)246, (short)249, (short)252, (short)255,
-    (short)258, (short)261, (short)264, (short)267, (short)270,
-    (short)273, (short)276, (short)279, (short)282, (short)285,
-    (short)288, (short)291, (short)294, (short)36, (short)129,
-    (short)297, (short)300, (short)303, (short)306, (short)309,
-    (short)312, (short)315, (short)318, (short)321, (short)32767,
-    (short)783, (short)786, (short)324, (short)327, (short)330,
-    (short)333, (short)32767, (short)336, (short)339, (short)342,
-    (short)345, (short)348, (short)351, (short)789, (short)792,
-    (short)51, (short)144, (short)354, (short)357, (short)360,
-    (short)363, (short)366, (short)369, (short)795, (short)32767,
-    (short)32767, (short)372, (short)375, (short)378, (short)381,
-    (short)384, (short)387, (short)32767, (short)32767, (short)390,
-    (short)393, (short)396, (short)399, (short)402, (short)405,
-    (short)408, (short)411, (short)414, (short)417, (short)420,
-    (short)423, (short)426, (short)429, (short)432, (short)435,
-    (short)438, (short)441, (short)75, (short)168, (short)444,
-    (short)447, (short)450, (short)453, (short)456, (short)459,
-    (short)462, (short)465, (short)468, (short)471, (short)474,
-    (short)477, (short)480, (short)483, (short)486, (short)489,
-    (short)492, (short)495, (short)498, (short)501, (short)504,
-    (short)507, (short)510, (short)798, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)513, (short)516, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)519, (short)522, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)800, (short)804, (short)808, (short)812,
-    (short)815, (short)818, (short)821, (short)824, (short)827,
-    (short)525, (short)528, (short)531, (short)534, (short)537,
-    (short)540, (short)543, (short)546, (short)549, (short)553,
-    (short)557, (short)561, (short)565, (short)569, (short)573,
-    (short)577, (short)32767, (short)581, (short)585, (short)589,
-    (short)593, (short)597, (short)600, (short)32767, (short)32767,
-    (short)603, (short)606, (short)609, (short)612, (short)615,
-    (short)618, (short)621, (short)625, (short)629, (short)632,
-    (short)635, (short)830, (short)833, (short)836, (short)638,
-    (short)641, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)644, (short)648, (short)652, (short)655, (short)658,
-    (short)661, (short)664, (short)667, (short)670, (short)673,
-    (short)676, (short)679, (short)682, (short)685, (short)688,
-    (short)691, (short)694, (short)697, (short)700, (short)703,
-    (short)706, (short)709, (short)712, (short)715, (short)718,
-    (short)721, (short)724, (short)727, (short)730, (short)733,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)839, (short)841, (short)843,
-    (short)845, (short)847, (short)849, (short)851, (short)853,
-    (short)855, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)857, (short)860, (short)863,
-    (short)866, (short)869, (short)872, (short)32767, (short)32767,
-    (short)875, (short)877, (short)879, (short)881, (short)883,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)885, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767, (short)32767, (short)32767,
-    (short)32767, (short)32767, (short)32767 };
-
-    private static final short kCanonicalIndex[] = {
-    (short)0, (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)128, (short)0, (short)0, (short)256, (short)0,
-    (short)384, (short)512, (short)640, (short)0, (short)0,
-    (short)0, (short)0, (short)768, (short)896, (short)1024,
-    (short)1152, (short)1280, (short)1408, (short)1536, (short)1664,
-    (short)1792, (short)0, (short)1920, (short)2048, (short)2176,
-    (short)2304, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)2432,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)2560, (short)2688, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)0, (short)0, (short)0,
-    (short)0, (short)2816, (short)0, (short)0, (short)0,
-    (short)0, (short)0, (short)2944, (short)0, (short)0,
-    (short)0 };
-
-    private static final byte kCanonicalValues[] =
-    {
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)104, (byte)92,
-    (byte)92, (byte)92, (byte)92, (byte)104, (byte)88,
-    (byte)92, (byte)92, (byte)92, (byte)92, (byte)92,
-    (byte)74, (byte)74, (byte)92, (byte)92, (byte)92,
-    (byte)92, (byte)74, (byte)74, (byte)92, (byte)92,
-    (byte)92, (byte)92, (byte)92, (byte)92, (byte)92,
-    (byte)92, (byte)92, (byte)92, (byte)92, (byte)-127,
-    (byte)-127, (byte)-127, (byte)-127, (byte)-127, (byte)92,
-    (byte)92, (byte)92, (byte)92, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)92, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)106, (byte)106,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)92, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)92, (byte)102, (byte)102, (byte)102, (byte)94,
-    (byte)92, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)-128, (byte)92, (byte)92,
-    (byte)92, (byte)92, (byte)92, (byte)102, (byte)102,
-    (byte)92, (byte)102, (byte)102, (byte)94, (byte)102,
-    (byte)102, (byte)-118, (byte)-117, (byte)-116, (byte)-115,
-    (byte)-114, (byte)-113, (byte)-112, (byte)-111, (byte)-110,
-    (byte)-109, (byte)-128, (byte)-108, (byte)-107, (byte)-106,
-    (byte)-128, (byte)-105, (byte)-128, (byte)-104, (byte)-103,
-    (byte)-128, (byte)102, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-101, (byte)-100, (byte)-99, (byte)-98,
-    (byte)-97, (byte)-96, (byte)-95, (byte)-94, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-93, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)102, (byte)102, (byte)-128, (byte)-128, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)92, (byte)102,
-    (byte)-128, (byte)-128, (byte)102, (byte)102, (byte)-128,
-    (byte)92, (byte)102, (byte)102, (byte)92, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-91, (byte)-92,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-121, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-90, (byte)-89, (byte)-88,
-    (byte)-87, (byte)-86, (byte)-85, (byte)-84, (byte)-83,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-119,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-82, (byte)-81,
-    (byte)102, (byte)102, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-80, (byte)-79, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-78, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-121, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-77, (byte)-76, (byte)-75, (byte)-74, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-119, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-73, (byte)-72,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-71, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-121, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-70, (byte)-69,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-68,
-    (byte)-67, (byte)-128, (byte)-128, (byte)-66, (byte)-65,
-    (byte)-119, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-64, (byte)-63, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-61, (byte)-62, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-121, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-60, (byte)-59, (byte)-58, (byte)-57,
-    (byte)-56, (byte)-128, (byte)-55, (byte)-54, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-119, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-53, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-121,
-    (byte)-128, (byte)-128, (byte)-52, (byte)-128, (byte)-51,
-    (byte)-50, (byte)-49, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-119, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)102, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-48, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-119,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-47, (byte)-46, (byte)-45,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-44, (byte)-43, (byte)-42, (byte)-128, (byte)-41,
-    (byte)-40, (byte)-39, (byte)-119, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-38, (byte)-37, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-36, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-35, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-34,
-    (byte)-119, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-33, (byte)-32, (byte)-31, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-119, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-30, (byte)-128,
-    (byte)-128, (byte)-29, (byte)-28, (byte)-27, (byte)-26,
-    (byte)-25, (byte)-24, (byte)-23, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-22, (byte)-21, (byte)-20, (byte)-19, (byte)-18,
-    (byte)-17, (byte)-16, (byte)0, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-15, (byte)-128, (byte)-128, (byte)-14,
-    (byte)-13, (byte)-12, (byte)-11, (byte)-10, (byte)-9,
-    (byte)-128, (byte)-8, (byte)-7, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-6,
-    (byte)-5, (byte)-4, (byte)-3, (byte)-2, (byte)-1,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)92,
-    (byte)92, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)102, (byte)-128,
-    (byte)102, (byte)-128, (byte)88, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)92, (byte)92, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)1, (byte)2,
-    (byte)3, (byte)4, (byte)5, (byte)6, (byte)7,
-    (byte)8, (byte)9, (byte)10, (byte)11, (byte)12,
-    (byte)13, (byte)14, (byte)-128, (byte)15, (byte)16,
-    (byte)102, (byte)102, (byte)-119, (byte)-128, (byte)102,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)102,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-122,
-    (byte)-122, (byte)-122, (byte)-122, (byte)-122, (byte)-122,
-    (byte)-128, (byte)-122, (byte)-128, (byte)-122, (byte)-122,
-    (byte)-122, (byte)-122, (byte)-122, (byte)-122, (byte)-122,
-    (byte)-122, (byte)-122, (byte)-122, (byte)-122, (byte)-122,
-    (byte)-122, (byte)-122, (byte)-122, (byte)-122, (byte)-122,
-    (byte)-122, (byte)-122, (byte)-122, (byte)-122, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-122, (byte)-122, (byte)-122,
-    (byte)-122, (byte)-122, (byte)-122, (byte)-122, (byte)-128,
-    (byte)-122, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)102, (byte)102, (byte)-127, (byte)-127,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)-127,
-    (byte)-127, (byte)-127, (byte)102, (byte)102, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-127, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)90, (byte)100, (byte)104, (byte)94,
-    (byte)96, (byte)96, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-120, (byte)-120, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-102, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)102, (byte)102, (byte)102, (byte)102, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128, (byte)-128, (byte)-128, (byte)-128, (byte)-128,
-    (byte)-128 };
-
-    private static String contents =
-    "A\u0300\u0000A\u0301\u0000A\u0302\u0000A\u0303\u0000A\u0308\u0000"+
-    "A\u030A\u0000C\u0327\u0000D\u0335\u0000E\u0300\u0000E\u0301\u0000"+
-    "E\u0302\u0000E\u0308\u0000H\u0335\u0000I\u0300\u0000I\u0301\u0000"+
-    "I\u0302\u0000I\u0308\u0000L\u0337\u0000N\u0303\u0000O\u0300\u0000"+
-    "O\u0301\u0000O\u0302\u0000O\u0303\u0000O\u0308\u0000O\u0338\u0000"+
-    "T\u0335\u0000U\u0300\u0000U\u0301\u0000U\u0302\u0000U\u0308\u0000"+
-    "Y\u0301\u0000a\u0300\u0000a\u0301\u0000a\u0302\u0000a\u0303\u0000"+
-    "a\u0308\u0000a\u030A\u0000c\u0327\u0000d\u0335\u0000e\u0300\u0000"+
-    "e\u0301\u0000e\u0302\u0000e\u0308\u0000h\u0335\u0000i\u0300\u0000"+
-    "i\u0301\u0000i\u0302\u0000i\u0308\u0000l\u0337\u0000n\u0303\u0000"+
-    "o\u0300\u0000o\u0301\u0000o\u0302\u0000o\u0303\u0000o\u0308\u0000"+
-    "o\u0338\u0000t\u0335\u0000u\u0300\u0000u\u0301\u0000u\u0302\u0000"+
-    "u\u0308\u0000y\u0301\u0000y\u0308\u0000A\u0304\u0000a\u0304\u0000"+
-    "A\u0306\u0000a\u0306\u0000A\u0328\u0000a\u0328\u0000C\u0301\u0000"+
-    "c\u0301\u0000C\u0302\u0000c\u0302\u0000C\u0307\u0000c\u0307\u0000"+
-    "C\u030C\u0000c\u030C\u0000D\u030C\u0000d\u030C\u0000E\u0304\u0000"+
-    "e\u0304\u0000E\u0306\u0000e\u0306\u0000E\u0307\u0000e\u0307\u0000"+
-    "E\u0328\u0000e\u0328\u0000E\u030C\u0000e\u030C\u0000G\u0302\u0000"+
-    "g\u0302\u0000G\u0306\u0000g\u0306\u0000G\u0307\u0000g\u0307\u0000"+
-    "G\u0327\u0000g\u0327\u0000H\u0302\u0000h\u0302\u0000I\u0303\u0000"+
-    "i\u0303\u0000I\u0304\u0000i\u0304\u0000I\u0306\u0000i\u0306\u0000"+
-    "I\u0328\u0000i\u0328\u0000I\u0307\u0000J\u0302\u0000j\u0302\u0000"+
-    "K\u0327\u0000k\u0327\u0000L\u0301\u0000l\u0301\u0000L\u0327\u0000"+
-    "l\u0327\u0000L\u030C\u0000l\u030C\u0000N\u0301\u0000n\u0301\u0000"+
-    "N\u0327\u0000n\u0327\u0000N\u030C\u0000n\u030C\u0000O\u0304\u0000"+
-    "o\u0304\u0000O\u0306\u0000o\u0306\u0000O\u030B\u0000o\u030B\u0000"+
-    "R\u0301\u0000r\u0301\u0000R\u0327\u0000r\u0327\u0000R\u030C\u0000"+
-    "r\u030C\u0000S\u0301\u0000s\u0301\u0000S\u0302\u0000s\u0302\u0000"+
-    "S\u0327\u0000s\u0327\u0000S\u030C\u0000s\u030C\u0000T\u0327\u0000"+
-    "t\u0327\u0000T\u030C\u0000t\u030C\u0000U\u0303\u0000u\u0303\u0000"+
-    "U\u0304\u0000u\u0304\u0000U\u0306\u0000u\u0306\u0000U\u030A\u0000"+
-    "u\u030A\u0000U\u030B\u0000u\u030B\u0000U\u0328\u0000u\u0328\u0000"+
-    "W\u0302\u0000w\u0302\u0000Y\u0302\u0000y\u0302\u0000Y\u0308\u0000"+
-    "Z\u0301\u0000z\u0301\u0000Z\u0307\u0000z\u0307\u0000Z\u030C\u0000"+
-    "z\u030C\u0000O\u031B\u0000o\u031B\u0000U\u031B\u0000u\u031B\u0000"+
-    "A\u030C\u0000a\u030C\u0000I\u030C\u0000i\u030C\u0000O\u030C\u0000"+
-    "o\u030C\u0000U\u030C\u0000u\u030C\u0000U\u0308\u0304\u0000u\u0308"+
-    "\u0304\u0000U\u0308\u0301\u0000u\u0308\u0301\u0000U\u0308\u030C"+
-    "\u0000u\u0308\u030C\u0000U\u0308\u0300\u0000u\u0308\u0300\u0000"+
-    "A\u0308\u0304\u0000a\u0308\u0304\u0000A\u0307\u0304\u0000a\u0307"+
-    "\u0304\u0000Æ\u0304\u0000æ\u0304\u0000G\u030C\u0000g\u030C\u0000"+
-    "K\u030C\u0000k\u030C\u0000O\u0328\u0000o\u0328\u0000O\u0328\u0304"+
-    "\u0000o\u0328\u0304\u0000\u01B7\u030C\u0000\u0292\u030C\u0000"+
-    "j\u030C\u0000G\u0301\u0000g\u0301\u0000A\u030A\u0301\u0000a\u030A"+
-    "\u0301\u0000Æ\u0301\u0000æ\u0301\u0000Ø\u0301\u0000ø\u0301\u0000"+
-    "A\u030F\u0000a\u030F\u0000A\u0311\u0000a\u0311\u0000E\u030F\u0000"+
-    "e\u030F\u0000E\u0311\u0000e\u0311\u0000I\u030F\u0000i\u030F\u0000"+
-    "I\u0311\u0000i\u0311\u0000O\u030F\u0000o\u030F\u0000O\u0311\u0000"+
-    "o\u0311\u0000R\u030F\u0000r\u030F\u0000R\u0311\u0000r\u0311\u0000"+
-    "U\u030F\u0000u\u030F\u0000U\u0311\u0000u\u0311\u0000 \u0302\u0000"+
-    " \u0332\u0000 \u0300\u0000 \u0000 \u0308\u0000a\u0000 \u0304\u0000"+
-    "2\u00003\u0000 \u0301\u0000\u03BC\u0000 \u0327\u00001\u0000o\u0000"+
-    "1\u20444\u00001\u20442\u00003\u20444\u0000IJ\u0000ij\u0000L·\u0000"+
-    "l·\u0000\u02BCn\u0000s\u0000DZ\u030C\u0000Dz\u030C\u0000dz\u030C"+
-    "\u0000LJ\u0000Lj\u0000lj\u0000NJ\u0000Nj\u0000nj\u0000DZ\u0000"+
-    "Dz\u0000dz\u0000h\u0000\u0266\u0000j\u0000r\u0000\u0279\u0000"+
-    "\u027B\u0000\u0281\u0000w\u0000y\u0000 \u0306\u0000 \u0307\u0000"+
-    " \u030A\u0000 \u0328\u0000 \u0303\u0000 \u030B\u0000\u0263\u0000"+
-    "l\u0000s\u0000x\u0000\u0295\u0000Fr\u0000";
-
-private static int maximumDecomposition = 888;
-private static int maximumCanonical = 736;
-    private StringBuffer parsedStr = null;
-    private String str = null;
-    private int pIndex = 0;
-    private int sIndex = 0;
-    private int getEndIndex = 0;
-    private int decmpMode = 0;
-    private int getBeginIndex = 0;
-    private int uptoOffset = 0;
-
-    // END OF GENERATED CODE
-    private static final CompactShortArray startOffsets
-        = new CompactShortArray(kOffsetIndex, kOffsetValues);
-
-    // old canonical class
-    // used since canonical values are 0..255
-    static final byte BASE = (byte)-128;
-    private static CompactByteArray canonicals
-        = new CompactByteArray(kCanonicalIndex, kCanonicalValues);
-    /** Fixes canonical order.
-        <BR>Optimized for the case where NO swaps are necessary.
+    /**
+     * Fixes the sorting sequence of non-spacing characters according to
+     * their combining class.  The algorithm is listed on p.3-11 in the
+     * Unicode Standard 2.0.  The table of combining classes is on p.4-2
+     * in the Unicode Standard 2.0.
+     * @param result the string to fix.
      */
     private static void fixCanonical(StringBuffer result) {
         int i = result.length() - 1;
@@ -1432,4 +419,1127 @@ private static int maximumCanonical = 736;
             }
         }
     }
+
+    //-----------------------------------------------------------
+    // privates
+    //-----------------------------------------------------------
+    //should be in Short class
+    private static final short SHORT_MAX_VALUE = 32767;
+    private static final char STERMINATOR = (char)0x0000;
+
+    // BEGIN RUN-LENGTH ENCODED ARRAYS [LIU]
+    // These arrays are encoded as String objects since statically initialized
+    // arrays cost 6 instructions per element in the class file.  The arrays are
+    // decoded using methods in Utility.
+    private static final short kOffsetIndex[] =
+        Utility.RLEStringToShortArray(
+        "\000\u0200\000a\u00E1\u0161\u01E1\u0231\u02A1\u031D\u039C\u0414\u048E"+
+        "\u0507\uA5A5\006\u048E\u055E\u05BE\u061E\u048E\u067D\u06E9\u0736\u077F"+
+        "\u07CB\u048E\u0818\u0865\u08C3\u0942\u048E\u048E\u09C1\u0A41\uA5A5\030"+
+        "\u048E\u0AC1\u0B41\u0BC1\u0C41\u0CC1\u0D41\u0DBF\u048E\u0E3F\u0EBF\u0F2D"+
+        "\u048E\u0F58\u0FCC\uA5A5\026\u048E\u104C\u10CA\u1149\u11C9\u1249\u12C9"+
+        "\u1349\u13C9\uA5A5\u018E\u048E\u1449\u14C9\uA5A5\004\u048E\u1549\u15C9"+
+        "\u1648\u16C8"
+        );
+    private static final short kOffsetValues[] =
+        Utility.RLEStringToShortArray(
+        "\000\u1748\uA5A5^\u7FFF\u0C80\u0C83\u0C86\uA5A5 \u7FFF\u0C89\uA5A5\007"+
+        "\u7FFF\u0C8B\u7FFF\u0C8E\uA5A5\004\u7FFF\u0C90\u7FFF\u7FFF\u0C93\u0C95"+
+        "\u0C97\u0C9A\u7FFF\u7FFF\u0C9C\u0C9F\u0CA1\u7FFF\u0CA3\u0CA7\u0CAB\u7FFF"+
+        "\000\003\006\011\014\017\u7FFF\022\025\030\033\036!$'*\u7FFF-0369<\u7FFF"+
+        "\u7FFF?BEHK\u7FFF\u7FFFNQTWZ]\u7FFF`cfilorux\u7FFF{~\u0081\u0084\u0087"+
+        "\u008A\u7FFF\u7FFF\u008D\u0090\u0093\u0096\u0099\u7FFF\u009C\u009F\u00A2"+
+        "\u00A5\u00A8\u00AB\u00AE\u00B1\u00B4\u00B7\u00BA\u00BD\u00C0\u00C3\u00C6"+
+        "\u00C9\u00CC\u7FFF\u7FFF\u00CF\u00D2\u00D5\u00D8\u00DB\u00DE\u00E1\u00E4"+
+        "\u00E7\u00EA\u00ED\u00F0\u00F3\u00F6\u00F9\u00FC\u00FF\u0102\u0105\u0108"+
+        "\u7FFF\u7FFF\u010B\u010E\u0111\u0114\u0117\u011A\u011D\u0120\u0123\u7FFF"+
+        "\u0CAF\u0CB2\u0126\u0129\u012C\u012F\u7FFF\u0132\u0135\u0138\u013B\u013E"+
+        "\u0141\u0CB5\u0CB8\u7FFF\u7FFF\u0144\u0147\u014A\u014D\u0150\u0153\u0CBB"+
+        "\u7FFF\u7FFF\u0156\u0159\u015C\u015F\u0162\u0165\u7FFF\u7FFF\u0168\u016B"+
+        "\u016E\u0171\u0174\u0177\u017A\u017D\u0180\u0183\u0186\u0189\u018C\u018F"+
+        "\u0192\u0195\u0198\u019B\u7FFF\u7FFF\u019E\u01A1\u01A4\u01A7\u01AA\u01AD"+
+        "\u01B0\u01B3\u01B6\u01B9\u01BC\u01BF\u01C2\u01C5\u01C8\u01CB\u01CE\u01D1"+
+        "\u01D4\u01D7\u01DA\u01DD\u01E0\u0CBE\uA5A5 \u7FFF\u01E3\u01E6\uA5A5\015"+
+        "\u7FFF\u01E9\u01EC\uA5A5\023\u7FFF\u0CC0\u0CC4\u0CC8\u0CCC\u0CCF\u0CD2"+
+        "\u0CD5\u0CD8\u0CDB\u01EF\u01F2\u01F5\u01F8\u01FB\u01FE\u0201\u0204\u0207"+
+        "\u020B\u020F\u0213\u0217\u021B\u021F\u0223\u7FFF\u0227\u022B\u022F\u0233"+
+        "\u0237\u023A\u7FFF\u7FFF\u023D\u0240\u0243\u0246\u0249\u024C\u024F\u0253"+
+        "\u0257\u025A\u025D\u0CDE\u0CE1\u0CE4\u0260\u0263\uA5A5\004\u7FFF\u0266"+
+        "\u026A\u026E\u0271\u0274\u0277\u027A\u027D\u0280\u0283\u0286\u0289\u028C"+
+        "\u028F\u0292\u0295\u0298\u029B\u029E\u02A1\u02A4\u02A7\u02AA\u02AD\u02B0"+
+        "\u02B3\u02B6\u02B9\u02BC\u02BF\uA5A5h\u7FFF\u0CE7\u0CE9\u0CEB\u0CED\u0CEF"+
+        "\u0CF1\u0CF3\u0CF5\u0CF7\uA5A5\037\u7FFF\u0CF9\u0CFC\u0CFF\u0D02\u0D05"+
+        "\u0D08\u7FFF\u7FFF\u0D0B\u0D0D\u0D0F\u0D11\u0D13\uA5A5\033\u7FFF\u02C2"+
+        "\uA5A53\u7FFF\u02C5\uA5A5/\u7FFF\u02C8\uA5A5\005\u7FFF\u0D15\uA5A5\005"+
+        "\u7FFF\u0D18\u0D1B\u02CD\u02D0\u02D2\u02D5\u02D8\u7FFF\u02DB\u7FFF\u02DE"+
+        "\u02E1\u02E4\uA5A5\031\u7FFF\u02E8\u02EB\u02EE\u02F1\u02F4\u02F7\u02FA"+
+        "\uA5A5\031\u7FFF\u02FE\u0301\u0304\u0307\u030A\uA5A5\004\u7FFF\u030D\u0310"+
+        "\uA5A5+\u7FFF\u0313\u7FFF\u0316\u7FFF\u7FFF\u7FFF\u0319\uA5A5\004\u7FFF"+
+        "\u031C\u7FFF\u031F\uA5A5\012\u7FFF\u0322\uA5A5\037\u7FFF\u0325\uA5A5\027"+
+        "\u7FFF\u0328\u7FFF\u032B\u7FFF\u7FFF\u7FFF\u032E\uA5A5\004\u7FFF\u0331"+
+        "\u7FFF\u0334\uA5A5\027\u7FFF\u0337\u033A\uA5A5A\u7FFF\u033D\u0340\uA5A5"+
+        "\015\u7FFF\u0343\u0346\u0349\u034C\u034F\u0351\u0353\u0356\u0359\u035B"+
+        "\u035D\u0360\u0363\u0366\u0369\u036C\u036F\u0371\u0373\u0376\u0379\u037C"+
+        "\u037F\u0382\u0385\u0387\u0389\u038C\u7FFF\u7FFF\u038F\u0392\u0395\u0398"+
+        "\u039B\u039E\u03A1\u03A4\u7FFF\u7FFF\u03A7\u03AA\uA5A5\u0080\u7FFF\u0D1F"+
+        "\uA5A5x\u7FFF\u03AD\uA5A5\007\u7FFF\u03B0\u7FFF\u7FFF\u03B3\uA5A5#\u7FFF"+
+        "\u03B6\u03B9\u03BC\u03BF\u03C2\u03C5\u03C8\u03CB\uA5A50\u7FFF\u03CE\uA5A5"+
+        "\032\u7FFF\u03D1\u03D4\uA5A5\017\u7FFF\u03D7\u03DA\u7FFF\u03DD\uA5A5Y"+
+        "\u7FFF\u03E0\u03E3\u03E6\u03E9\u7FFF\u03EC\uA5A5H\u7FFF\u03EF\u7FFF\u7FFF"+
+        "\u03F2\u03F5\uA5A5\017\u7FFF\u03F8\u03FB\u7FFF\u03FE\uA5A5 \u7FFF\u0401"+
+        "\uA5A55\u7FFF\u0404\u0407\u040A\uA5A5H\u7FFF\u040D\uA5A5@\u7FFF\u0410"+
+        "\uA5A5\006\u7FFF\u0413\u0416\u7FFF\u0419\u041C\uA5A5J\u7FFF\u0420\u0423"+
+        "\u0426\uA5A53\u7FFF\u0429\uA5A5L\u7FFF\u042C\uA5A5(\u7FFF\u0D22\u0D25"+
+        "\uA5A5C\u7FFF\u042F\uA5A5\011\u7FFF\u0432\uA5A5\004\u7FFF\u0435\uA5A5"+
+        "\004\u7FFF\u0438\uA5A5\004\u7FFF\u043B\uA5A5\014\u7FFF\u043E\uA5A5\011"+
+        "\u7FFF\u0441\u7FFF\u0444\u0447\u044A\u044E\u0451\uA5A5\006\u7FFF\u0455"+
+        "\uA5A5\021\u7FFF\u0458\uA5A5\011\u7FFF\u045B\uA5A5\004\u7FFF\u045E\uA5A5"+
+        "\004\u7FFF\u0461\uA5A5\004\u7FFF\u0464\uA5A5\014\u7FFF\u0467\uA5A5F\u7FFF"+
+        "\u0D28\u7FFF\u7FFF\u0D2B\u7FFF\u7FFF\u7FFF\u0D2E\u7FFF\u0D31\u7FFF\u7FFF"+
+        "\u0D34\uA5A5\005\u7FFF\u0D37\u0D3A\u0D3D\u0D40\u0D43\u0D46\u0D49\u0D4C"+
+        "\u0D4F\u0D52\u0D55\u0D58\u0D5B\u0D5E\u0D61\u0D64\u0D68\u0D6C\u0D70\u0D74"+
+        "\u0D78\u0D7B\u0D7E\u0D81\u0D84\u0D87\u0D8B\u0D8E\u0D91\u0D94\u0D97\u0D9A"+
+        "\u0D9D\u0DA1\u0DA5\u0DA8\u0DAB\u0DAE\u0DB1\u0DB4\u0DB7\u7FFF\u0DBA\u7FFF"+
+        "\u0DBD\u7FFF\u0DC0\u0DC3\u0DC6\u0DC9\u0DCC\u0DCF\u0DD2\u0DD5\u0DD8\u0DDB"+
+        "\u0DDE\u7FFF\u0DE1\u7FFF\u0DE4\u7FFF\u0DE7\u0DEA\u0DED\u7FFF\u7FFF\u0DF0"+
+        "\u0DF3\u0DF6\uA5A5\011\u7FFF\u0DF9\u7FFF\u0DFC\u7FFF\u0DFF\u7FFF\u0E02"+
+        "\u7FFF\u0E05\u0E08\u0E0C\u7FFF\u7FFF\u0E0F\u0E12\u0E16\u7FFF\u7FFF\u0E19"+
+        "\u7FFF\u0E1C\u0E1F\u0E22\u0E25\u0E28\u0E2B\u0E2E\u0E31\u0E34\u0E37\u0E3A"+
+        "\u0E3E\u0E42\u0E45\u0E48\u0E4B\u0E4F\u0E52\u0E55\u0E58\u0E5B\u0E5F\u0E63"+
+        "\u0E67\u0E6A\u0E6D\u0E70\u0E74\u0E77\u0E7B\u0E7E\u0E81\u0E84\u0E87\u0E8B"+
+        "\u0E8E\u0E91\u0E94\u0E97\u0E9A\u7FFF\u0E9D\u0EA0\u0EA3\u0EA6\uA5A5\006"+
+        "\u7FFF\u0EA9\u0EAC\u7FFF\u0EAF\u0EB2\u7FFF\u7FFF\u0EB5\u0EB8\u0EBB\u0EBE"+
+        "\u0EC1\u0EC4\u0EC7\u7FFF\u7FFF\u0ECA\u7FFF\u0ECD\uA5A5\007\u7FFF\u0ED0"+
+        "\u0ED3\u0ED7\u0EDA\u0EDD\u0EE0\u0EE3\u0EE6\u0EE9\u0EEC\u0EF0\u0EF3\u0EF6"+
+        "\u0EFA\u0EFD\u0F01\u0F05\u0F09\u0F0D\u0F11\u0F15\u0F18\u0F1B\u0F1E\u0F21"+
+        "\u0F24\u0F27\u0F2A\u0F2E\u0F31\u0F34\u0F37\u0F3A\u0F3D\u0F40\u0F43\u0F46"+
+        "\u0F49\u0F4C\u0F4F\u7FFF\u0F52\u0F55\u0F59\u0F5C\u7FFF\u0F5F\u0F62\u0F65"+
+        "\u0F68\u0F6B\u0F6E\u0F71\u0F74\uA5A5\007\u7FFF\u046A\u046D\u0470\u0473"+
+        "\u0476\u0479\u047C\u047F\u0482\u0486\u048A\u048D\u0490\u0493\u0496\u0499"+
+        "\u049C\u049F\u04A2\u04A5\u04A8\u04AC\u04B0\u04B4\u04B8\u04BB\u04BE\u04C1"+
+        "\u04C4\u04C8\u04CC\u04CF\u04D2\u04D5\u04D8\u04DB\u04DE\u04E1\u04E4\u04E7"+
+        "\u04EA\u04ED\u04F0\u04F3\u04F6\u04F9\u04FC\u0500\u0504\u0507\u050A\u050D"+
+        "\u0510\u0513\u0516\u0519\u051C\u0520\u0524\u0527\u052A\u052D\u0530\u0533"+
+        "\u0536\u0539\u053C\u053F\u0542\u0545\u0548\u054B\u054E\u0551\u0554\u0557"+
+        "\u055A\u055E\u0562\u0566\u056A\u056E\u0572\u0576\u057A\u057D\u0580\u0583"+
+        "\u0586\u0589\u058C\u058F\u0592\u0596\u059A\u059D\u05A0\u05A3\u05A6\u05A9"+
+        "\u05AC\u05B0\u05B4\u05B8\u05BC\u05C0\u05C4\u05C7\u05CA\u05CD\u05D0\u05D3"+
+        "\u05D6\u05D9\u05DC\u05DF\u05E2\u05E5\u05E8\u05EB\u05EE\u05F2\u05F6\u05FA"+
+        "\u05FE\u0601\u0604\u0607\u060A\u060D\u0610\u0613\u0616\u0619\u061C\u061F"+
+        "\u0622\u0625\u0628\u062B\u062E\u0631\u0634\u0637\u063A\u063D\u0640\u0643"+
+        "\u0646\u0649\u064C\u064F\u0652\u0655\u7FFF\u0F77\uA5A5\004\u7FFF\u065B"+
+        "\u065E\u0661\u0664\u0667\u066B\u066F\u0673\u0677\u067B\u067F\u0683\u0687"+
+        "\u068B\u068F\u0693\u0697\u069B\u069F\u06A3\u06A7\u06AB\u06AF\u06B3\u06B7"+
+        "\u06BA\u06BD\u06C0\u06C3\u06C6\u06C9\u06CD\u06D1\u06D5\u06D9\u06DD\u06E1"+
+        "\u06E5\u06E9\u06ED\u06F1\u06F4\u06F7\u06FA\u06FD\u0700\u0703\u0706\u0709"+
+        "\u070D\u0711\u0715\u0719\u071D\u0721\u0725\u0729\u072D\u0731\u0735\u0739"+
+        "\u073D\u0741\u0745\u0749\u074D\u0751\u0755\u0759\u075C\u075F\u0762\u0765"+
+        "\u0769\u076D\u0771\u0775\u0779\u077D\u0781\u0785\u0789\u078D\u0790\u0793"+
+        "\u0796\u0799\u079C\u079F\u07A2\uA5A5\006\u7FFF\u07A5\u07A8\u07AB\u07AF"+
+        "\u07B3\u07B7\u07BB\u07BF\u07C3\u07C6\u07C9\u07CD\u07D1\u07D5\u07D9\u07DD"+
+        "\u07E1\u07E4\u07E7\u07EB\u07EF\u07F3\u7FFF\u7FFF\u07F7\u07FA\u07FD\u0801"+
+        "\u0805\u0809\u7FFF\u7FFF\u080D\u0810\u0813\u0817\u081B\u081F\u0823\u0827"+
+        "\u082B\u082E\u0831\u0835\u0839\u083D\u0841\u0845\u0849\u084C\u084F\u0853"+
+        "\u0857\u085B\u085F\u0863\u0867\u086A\u086D\u0871\u0875\u0879\u087D\u0881"+
+        "\u0885\u0888\u088B\u088F\u0893\u0897\u7FFF\u7FFF\u089B\u089E\u08A1\u08A5"+
+        "\u08A9\u08AD\u7FFF\u7FFF\u08B1\u08B4\u08B7\u08BB\u08BF\u08C3\u08C7\u08CB"+
+        "\u7FFF\u08CF\u7FFF\u08D2\u7FFF\u08D6\u7FFF\u08DA\u08DE\u08E1\u08E4\u08E8"+
+        "\u08EC\u08F0\u08F4\u08F8\u08FC\u08FF\u0902\u0906\u090A\u090E\u0912\u0916"+
+        "\u091A\u091D\u0920\u0923\u0926\u0929\u092C\u092F\u0932\u0935\u0938\u093B"+
+        "\u093E\u0941\u7FFF\u7FFF\u0944\u0948\u094C\u0951\u0956\u095B\u0960\u0965"+
+        "\u096A\u096E\u0972\u0977\u097C\u0981\u0986\u098B\u0990\u0994\u0998\u099D"+
+        "\u09A2\u09A7\u09AC\u09B1\u09B6\u09BA\u09BE\u09C3\u09C8\u09CD\u09D2\u09D7"+
+        "\u09DC\u09E0\u09E4\u09E9\u09EE\u09F3\u09F8\u09FD\u0A02\u0A06\u0A0A\u0A0F"+
+        "\u0A14\u0A19\u0A1E\u0A23\u0A28\u0A2B\u0A2E\u0A32\u0A35\u7FFF\u0A39\u0A3C"+
+        "\u0A40\u0A43\u0A46\u0A49\u0A4C\u0F7A\u0A4F\u0F7D\u0F80\u0F83\u0A54\u0A58"+
+        "\u0A5B\u7FFF\u0A5F\u0A62\u0A66\u0A69\u0A6C\u0A6F\u0A72\u0F87\u0F8B\u0F8F"+
+        "\u0A7E\u0A81\u0A84\u0A88\u7FFF\u7FFF\u0A8C\u0A8F\u0A93\u0A96\u0A99\u0A9C"+
+        "\u7FFF\u0F93\u0F97\u0F9B\u0AA8\u0AAB\u0AAE\u0AB2\u0AB6\u0AB9\u0ABC\u0ABF"+
+        "\u0AC3\u0AC6\u0AC9\u0ACC\u0ACF\u0F9F\u0FA3\u0FA7\u7FFF\u7FFF\u0AD8\u0ADC"+
+        "\u0ADF\u7FFF\u0AE3\u0AE6\u0AEA\u0AED\u0AF0\u0AF3\u0AF6\u0FAA\u0FAD\u7FFF"+
+        "\u0FB0\u0FB2\u0FB4\u0FB6\u0FB8\u0FBA\u0FBC\u0FBE\u0FC0\u0FC2\u0FC4\uA5A5"+
+        "\006\u7FFF\u0FC6\uA5A5\005\u7FFF\u0FC8\uA5A5\014\u7FFF\u0FCB\u0FCD\u0FD0"+
+        "\uA5A5\014\u7FFF\u0FD4\u0FD7\u7FFF\u0FDB\u0FDE\uA5A5\004\u7FFF\u0FE2\u7FFF"+
+        "\u0FE5\uA5A51\u7FFF\u0FE8\u7FFF\u7FFF\u7FFF\u0FEA\u0FEC\u0FEE\u0FF0\u0FF2"+
+        "\u0FF4\u0FF6\u0FF8\u0FFA\u0FFC\u0FFE\u1000\u1002\u1004\u1006\u1008\u100A"+
+        "\u100C\u100E\u1010\u1012\u1014\u1016\u1018\u101A\u101C\u101E\uA5A5\024"+
+        "\u7FFF\u1DA2\uA5A5\004\u7FFF\u1020\uA5A5W\u7FFF\u1023\u1025\u7FFF\u7FFF"+
+        "\u7FFF\u1028\u7FFF\u102A\u102D\u102F\u1031\u1033\u1035\u1037\u1039\u103B"+
+        "\u103D\u103F\u7FFF\u1041\u1043\u7FFF\u1046\u1048\u104A\u104C\u104E\u1050"+
+        "\u7FFF\u7FFF\u1052\u1055\u1059\u7FFF\u105C\u7FFF\u0AFF\u7FFF\u105E\u7FFF"+
+        "\u0B01\u0B03\u1060\u1062\u7FFF\u1064\u1066\u1068\u7FFF\u106A\u106C\u106E"+
+        "\u1070\u1072\u1074\uA5A5\032\u7FFF\u1076\u107A\u107E\u1082\u1086\u108A"+
+        "\u108E\u1092\u1096\u109A\u109E\u10A2\u10A6\u10A9\u10AB\u10AE\u10B2\u10B5"+
+        "\u10B7\u10BA\u10BE\u10C3\u10C6\u10C8\u10CB\u10CF\u10D1\u10D3\u10D5\u10D7"+
+        "\u10D9\u10DC\u10E0\u10E3\u10E5\u10E8\u10EC\u10F1\u10F4\u10F6\u10F9\u10FD"+
+        "\u10FF\u1101\u1103\uA5A5\004\u7FFF\u0B06\uA5A5\004\u7FFF\u0B09\u7FFF\u7FFF"+
+        "\u0B0C\uA5A5\027\u7FFF\u0B0F\u7FFF\u0B12\uA5A5\005\u7FFF\u1105\u1108\u7FFF"+
+        "\u110C\u110F\uA5A5\023\u7FFF\u0B15\u7FFF\u7FFF\u0B18\u7FFF\u0B1B\uA5A5"+
+        "\030\u7FFF\u0B1E\uA5A5\012\u7FFF\u0B21\u7FFF\u7FFF\u0B24\u0B27\u7FFF\u7FFF"+
+        "\u0B2A\u0B2D\u7FFF\u7FFF\u0B30\u0B33\uA5A5\006\u7FFF\u0B36\u0B39\u7FFF"+
+        "\u7FFF\u0B3C\u0B3F\u7FFF\u7FFF\u0B42\u0B45\uA5A5\042\u7FFF\u0B48\u0B4B"+
+        "\u0B4E\u0B51\uA5A50\u7FFF\u0B54\u0B57\u0B5A\u0B5D\uA5A5\006\u7FFF\u0B60"+
+        "\u0B63\u0B66\u0B69\uA5A5)\u7FFF\u0B6C\u0B6E\uA5A5`\u7FFF\u1113\u1115\u1117"+
+        "\u1119\u111B\u111D\u111F\u1121\u1123\u1125\u1127\u112A\u112D\u1130\u1133"+
+        "\u1136\u1139\u113C\u113F\u1142\uA5A56\u7FFF\u1145\u1147\u1149\u114B\u114D"+
+        "\u114F\u1151\u1153\u1155\u1157\u1159\u115B\u115D\u115F\u1161\u1163\u1165"+
+        "\u1167\u1169\u116B\u116D\u116F\u1171\u1173\u1175\u1177\u1179\u117B\u117D"+
+        "\u117F\u1181\u1183\u1185\u1187\u1189\u118B\u118D\u118F\u1191\u1193\u1195"+
+        "\u1197\u1199\u119B\u119D\u119F\u11A1\u11A3\u11A5\u11A7\u11A9\u11AB\u11AD"+
+        "\uA5A5\025\u7FFF\u11AF\uA5A55\u7FFF\u11B1\uA5A5\025\u7FFF\u0B70\u7FFF"+
+        "\u0B73\u7FFF\u0B76\u7FFF\u0B79\u7FFF\u0B7C\u7FFF\u0B7F\u7FFF\u0B82\u7FFF"+
+        "\u0B85\u7FFF\u0B88\u7FFF\u0B8B\u7FFF\u0B8E\u7FFF\u0B91\u7FFF\u7FFF\u0B94"+
+        "\u7FFF\u0B97\u7FFF\u0B9A\uA5A5\006\u7FFF\u0B9D\u0BA0\u7FFF\u0BA3\u0BA6"+
+        "\u7FFF\u0BA9\u0BAC\u7FFF\u0BAF\u0BB2\u7FFF\u0BB5\u0BB8\uA5A5\024\u7FFF"+
+        "\u0BBB\uA5A5\006\u7FFF\u11B3\u11B6\u7FFF\u0BBE\uA5A5\015\u7FFF\u0BC1\u7FFF"+
+        "\u0BC4\u7FFF\u0BC7\u7FFF\u0BCA\u7FFF\u0BCD\u7FFF\u0BD0\u7FFF\u0BD3\u7FFF"+
+        "\u0BD6\u7FFF\u0BD9\u7FFF\u0BDC\u7FFF\u0BDF\u7FFF\u0BE2\u7FFF\u7FFF\u0BE5"+
+        "\u7FFF\u0BE8\u7FFF\u0BEB\uA5A5\006\u7FFF\u0BEE\u0BF1\u7FFF\u0BF4\u0BF7"+
+        "\u7FFF\u0BFA\u0BFD\u7FFF\u0C00\u0C03\u7FFF\u0C06\u0C09\uA5A5\026\u7FFF"+
+        "\u0C0C\u7FFF\u7FFF\u0C0F\u0C12\u0C15\u0C18\u7FFF\u7FFF\u7FFF\u0C1B\uA5A5"+
+        "1\u7FFF\u11B9\u11BB\u11BE\u11C1\u11C3\u11C6\u11C9\u11CB\u11CE\u11D0\u11D3"+
+        "\u11D6\u11D9\u11DC\u11DF\u11E2\u11E5\u11E7\u11E9\u11EC\u11EF\u11F1\u11F4"+
+        "\u11F6\u11F8\u11FB\u11FD\u11FF\u1201\u1203\u1205\u1207\u120A\u120C\u120F"+
+        "\u1211\u1214\u1216\u1219\u121B\u121E\u1222\u1225\u1227\u1229\u122C\u1230"+
+        "\u1233\u1235\u1237\u123A\u123C\u123E\u1241\u1244\u1247\u124A\u124E\u1251"+
+        "\u1255\u1258\u125B\u125E\u1261\u1264\u1267\u126A\u126D\u1271\u1275\u1278"+
+        "\u127B\u127E\u1282\u1285\u1288\u128B\u128E\u1291\u1293\u1296\u1298\u129B"+
+        "\u129E\u12A1\u12A4\u12A6\u12A9\u12AD\u12B0\u12B3\u12B7\u12BA\u12BC\u7FFF"+
+        "\u7FFF\u7FFF\u12BF\u12C1\u12C3\u12C5\u12C7\u12C9\u12CB\u12CD\u12CF\u12D1"+
+        "\u12D3\u12D5\u12D7\u12D9\uA5A5`\u7FFF\u12DB\u12DF\u12E3\u12E7\u12EB\u12EF"+
+        "\u12F3\u12F7\u12FB\u12FF\u1303\u1307\u130B\u130F\u1313\u1318\u131D\u1322"+
+        "\u1327\u132C\u1331\u1336\u133B\u1340\u1345\u134A\u134F\u1354\u1359\u7FFF"+
+        "\u7FFF\u7FFF\u135E\u1362\u1366\u136A\u136E\u1372\u1376\u137A\u137E\u1382"+
+        "\u1386\u138A\u138E\u1392\u1396\u139A\u139E\u13A2\u13A6\u13AA\u13AE\u13B2"+
+        "\u13B6\u13BA\u13BE\u13C2\u13C6\u13CA\u13CE\u13D2\u13D6\u13DA\u13DE\u13E2"+
+        "\u13E6\u13EA\uA5A5\034\u7FFF\u13EE\u13F0\u13F2\u13F4\u13F6\u13F8\u13FA"+
+        "\u13FC\u13FE\u1400\u1402\u1404\u1406\u1408\u140A\u140D\u1410\u1413\u1416"+
+        "\u1419\u141C\u141F\u1422\u1425\u1428\u142B\u142E\u1431\uA5A5\004\u7FFF"+
+        "\u1434\u1436\u1438\u143A\u143C\u143E\u1440\u1442\u1444\u1446\u1448\u144A"+
+        "\u144C\u144E\u1450\u1452\u1454\u1456\u1458\u145A\u145C\u145E\u1460\u1462"+
+        "\u1464\u1466\u1468\u146A\u146C\u146E\u1470\u1472\u1474\u1476\u1478\u147A"+
+        "\u147C\u147E\u1480\u1482\u1484\u1486\u1488\u148A\u148C\u148E\u1490\u1492"+
+        "\u1494\uA5A5\017\u7FFF\u1496\u1499\u149C\u149F\u14A2\u14A5\u14A8\u14AB"+
+        "\u14AE\u14B1\u14B5\u14B9\uA5A5\004\u7FFF\u14BD\u14BF\u14C1\u14C3\u14C5"+
+        "\u14C7\u14C9\u14CB\u14CD\u14CF\u14D1\u14D3\u14D5\u14D7\u14D9\u14DB\u14DD"+
+        "\u14DF\u14E1\u14E3\u14E5\u14E7\u14E9\u14EB\u14ED\u14EF\u14F1\u14F3\u14F5"+
+        "\u14F7\u14F9\u14FB\u14FD\u14FF\u1501\u1503\u1505\u1507\u1509\u150B\u150D"+
+        "\u150F\u1511\u1513\u1515\u1517\u1519\u7FFF\u151B\u1521\u1526\u152C\u1530"+
+        "\u1536\u153A\u153E\u1545\u154A\u154E\u1552\u1556\u155B\u1560\u1565\u156A"+
+        "\u156F\u1574\u1579\u1580\u1583\u158A\u1591\u1597\u159C\u15A3\u15AA\u15AF"+
+        "\u15B3\u15B7\u15BC\u15C1\u15C7\u15CD\u15D1\u15D5\u15DA\u15DE\u15E2\u15E5"+
+        "\u15E8\u15EC\u15F0\u15F7\u15FC\u1602\u1609\u160E\u1612\u1616\u161D\u1622"+
+        "\u1629\u162D\u1633\u1637\u163C\u1640\u1645\u164B\u1650\u1656\u165B\u165E"+
+        "\u1664\u1668\u166C\u1671\u1675\u1679\u167D\u1683\u1688\u168B\u1692\u1696"+
+        "\u169C\u16A1\u16A6\u16AA\u16AE\u16B3\u16B6\u16BB\u16C1\u16C4\u16CB\u16CF"+
+        "\u16D2\u16D5\u16D8\u16DB\u16DE\u16E1\u16E4\u16E7\u16EA\u16ED\u16F1\u16F5"+
+        "\u16F9\u16FD\u1701\u1705\u1709\u170D\u1711\u1715\u1719\u171D\u1721\u1725"+
+        "\u1729\u172D\u1730\u1733\u1737\u173A\uA5A5\004\u7FFF\u173D\u1740\u1743"+
+        "\u1746\u1749\u174E\u1751\u1754\u1757\u175A\u175D\u1760\u1763\u1766\u176A"+
+        "\u176F\u1772\u1775\u1778\u177B\u177E\u1781\u1784\u1788\u178C\u1790\u1794"+
+        "\u1797\u179A\u179D\u17A0\u17A3\u17A6\u17A9\u17AC\u17AF\u17B2\u17B6\u17BA"+
+        "\u17BD\u17C1\u17C5\u17C9\u17CC\u17D0\u17D4\u17D9\u17DC\u17E0\u17E4\u17E8"+
+        "\u17EC\u17F2\u17F9\u17FC\u17FF\u1802\u1805\u1808\u180B\u180E\u1811\u1814"+
+        "\u1817\u181A\u181D\u1820\u1823\u1826\u1829\u182C\u182F\u1834\u1837\u183A"+
+        "\u183D\u1842\u1846\u1849\u184C\u184F\u1852\u1855\u1858\u185B\u185E\u1861"+
+        "\u1864\u1868\u186B\u186E\u1872\u1876\u1879\u187E\u1882\u1885\u1888\u188B"+
+        "\u7FFF\u7FFF\u188E\u1891\u1894\u1897\u189A\u189D\u18A0\u18A3\u18A6\u18A9"+
+        "\u18AD\u18B1\u18B5\u18B9\u18BD\u18C1\u18C5\u18C9\u18CD\u18D1\u18D5\u18D9"+
+        "\u18DD\u18E1\u18E5\u18E9\u18ED\u18F1\u18F5\u18F9\u18FD\u7FFF\u1901\u1904"+
+        "\u1907\u190A\u190E\u1912\u1915\uA5A5\014\u7FFF\u1918\u191B\u191E\u1921"+
+        "\u1924\uA5A5\007\u7FFF\u1927\u192A\u192C\u192E\u1930\u1932\u1934\u1936"+
+        "\u1938\u193A\u193C\u0C1E\u0C21\u0C24\u0C28\u0C2C\u0C2F\u0C32\u0C35\u0C38"+
+        "\u0C3B\u0C3E\u0C41\u0C44\u7FFF\u0C47\u0C4A\u0C4D\u0C50\u0C53\u7FFF\u0C56"+
+        "\u7FFF\u0C59\u0C5C\u7FFF\u0C5F\u0C62\u7FFF\u0C65\u0C68\u0C6B\u0C6E\u0C71"+
+        "\u0C74\u0C77\u0C7A\u0C7D\u193E\u1941\u1943\u1945\u1947\u1949\u194B\u194D"+
+        "\u194F\u1951\u1953\u1955\u1957\u1959\u195B\u195D\u195F\u1961\u1963\u1965"+
+        "\u1967\u1969\u196B\u196D\u196F\u1971\u1973\u1975\u1977\u1979\u197B\u197D"+
+        "\u197F\u1981\u1983\u1985\u1987\u1989\u198B\u198D\u198F\u1991\u1993\u1995"+
+        "\u1997\u1999\u199B\u199D\u199F\u19A1\u19A3\u19A5\u19A7\u19A9\u19AB\u19AD"+
+        "\u19AF\u19B1\u19B3\u19B5\u19B7\u19B9\u19BB\u19BD\u19BF\u19C1\u19C3\u19C5"+
+        "\u19C7\u19C9\u19CB\u19CD\u19CF\u19D1\u19D3\u19D5\u19D7\u19D9\u19DB\u19DD"+
+        "\u19DF\u19E1\u19E3\u19E5\u19E7\u19E9\u19EB\u19ED\u19EF\u19F1\u19F3\u19F5"+
+        "\u19F7\u19F9\u19FB\u19FD\u19FF\u1A01\u1A03\uA5A5!\u7FFF\u1A05\u1A07\u1A09"+
+        "\u1A0B\u1A0D\u1A0F\u1A11\u1A13\u1A15\u1A17\u1A19\u1A1B\u1A1D\u1A1F\u1A21"+
+        "\u1A23\u1A25\u1A27\u1A29\u1A2B\u1A2D\uA5A5\024\u7FFF\u1A2F\u1A31\u1A33"+
+        "\u1A35\uA5A50\u7FFF\u1A37\u1A3A\u1A3C\u1A3E\u1A41\u1A44\u1A46\u1A48\u1A4A"+
+        "\u1A4C\u1A4E\u1A50\u1A52\u1A54\u1A56\u1A58\u1A5A\u1A5C\u1A5E\u1A60\u1A62"+
+        "\uA5A5\004\u7FFF\u1A64\u1A67\u1A6A\u1A6D\u1A70\u1A73\u1A76\u1A79\u1A7B"+
+        "\u1A7D\u7FFF\u1A7F\u1A81\u1A83\u1A85\u1A87\u1A89\u1A8B\u1A8D\u1A8F\u1A91"+
+        "\u1A93\u1A95\u1A97\u1A99\u1A9B\u1A9D\u1A9F\u1AA1\u1AA3\u7FFF\u1AA5\u1AA7"+
+        "\u1AA9\u1AAB\uA5A5\004\u7FFF\u1AAD\u1AB0\u1AB3\u7FFF\u1AB6\u7FFF\u1AB9"+
+        "\u1ABC\u1ABF\u1AC2\u1AC5\u1AC8\u1ACB\u1ACE\u1AD1\u1AD4\u1AD7\u1AD9\u1ADB"+
+        "\u1ADD\u1ADF\u1AE1\u1AE3\u1AE5\u1AE7\u1AE9\u1AEB\u1AED\u1AEF\u1AF1\u1AF3"+
+        "\u1AF5\u1AF7\u1AF9\u1AFB\u1AFD\u1AFF\u1B01\u1B03\u1B05\u1B07\u1B09\u1B0B"+
+        "\u1B0D\u1B0F\u1B11\u1B13\u1B15\u1B17\u1B19\u1B1B\u1B1D\u1B1F\u1B21\u1B23"+
+        "\u1B25\u1B27\u1B29\u1B2B\u1B2D\u1B2F\u1B31\u1B33\u1B35\u1B37\u1B39\u1B3B"+
+        "\u1B3D\u1B3F\u1B41\u1B43\u1B45\u1B47\u1B49\u1B4B\u1B4D\u1B4F\u1B51\u1B53"+
+        "\u1B55\u1B57\u1B59\u1B5B\u1B5D\u1B5F\u1B61\u1B63\u1B65\u1B67\u1B69\u1B6B"+
+        "\u1B6D\u1B6F\u1B71\u1B73\u1B75\u1B77\u1B79\u1B7B\u1B7D\u1B7F\u1B81\u1B83"+
+        "\u1B85\u1B87\u1B89\u1B8B\u1B8D\u1B8F\u1B91\u1B93\u1B95\u1B97\u1B99\u1B9B"+
+        "\u1B9D\u1B9F\u1BA1\u1BA3\u1BA5\u1BA7\u1BA9\u1BAB\u1BAD\u1BAF\u1BB1\u1BB3"+
+        "\u1BB5\u1BB7\u1BB9\u1BBB\u1BBD\u1BBF\uA5A5\013\u7FFF\u1BC1\u1BC3\u1BC5"+
+        "\u1BC7\u1BC9\u1BCB\u1BCD\u1BCF\u1BD1\u1BD3\u1BD5\u1BD7\u1BD9\u1BDB\u1BDD"+
+        "\u1BDF\u1BE1\u1BE3\u1BE5\u1BE7\u1BE9\u1BEB\u1BED\u1BEF\u1BF1\u1BF3\u1BF5"+
+        "\u1BF7\u1BF9\u1BFB\u1BFD\u1BFF\u1C01\u1C03\u1C05\u1C07\u1C09\u1C0B\u1C0D"+
+        "\u1C0F\u1C11\u1C13\u1C15\u1C17\u1C19\u1C1B\u1C1D\u1C1F\u1C21\u1C23\u1C25"+
+        "\u1C27\u1C29\u1C2B\u1C2D\u1C2F\u1C31\u1C33\u1C35\u1C37\u1C39\u1C3B\u1C3E"+
+        "\u1C41\u1C44\u1C46\u1C48\u1C4A\u1C4C\u1C4E\u1C50\u1C52\u1C54\u1C56\u1C58"+
+        "\u1C5A\u1C5C\u1C5E\u1C60\u1C62\u1C64\u1C66\u1C68\u1C6A\u1C6C\u1C6E\u1C70"+
+        "\u1C72\u1C74\u1C76\u1C78\u1C7A\u1C7C\u1C7E\u7FFF\u7FFF\u1C80\u1C82\u1C84"+
+        "\u1C86\u1C88\u1C8A\u1C8C\u1C8E\u1C90\u1C92\u1C94\u1C96\u1C98\u1C9A\u1C9C"+
+        "\u1C9E\u1CA0\u1CA2\u1CA4\u1CA6\u1CA8\u1CAA\u1CAC\u1CAE\u1CB0\u1CB2\u1CB4"+
+        "\u1CB6\u1CB8\u1CBA\u1CBC\u1CBE\u1CC0\u1CC2\u1CC4\u1CC6\u1CC8\u1CCA\u1CCC"+
+        "\u1CCE\u1CD0\u1CD2\u1CD4\u1CD6\u1CD8\u1CDA\u1CDC\u1CDE\u1CE0\u1CE2\u1CE4"+
+        "\u1CE6\u1CE8\u1CEA\u1CEC\u1CEE\u1CF0\u1CF2\u1CF4\u1CF6\u1CF8\u1CFA\u1CFD"+
+        "\u1D00\u1D02\u1D04\u1D07\u1D0A\u1D0C\u1D0F\u1D12\u1D14\u1D17\u1D19\u1D1C"+
+        "\u1D1F\u1D22\u1D25\u1D28\u1D2B\u1D2E\u1D30\u1D32\u1D35\u1D38\u1D3A\u1D3D"+
+        "\u1D3F\u1D41\u1D44\u1D46\u1D48\u1D4A\u1D4C\u7FFF\u7FFF\u7FFF\u1D4E\u1D50"+
+        "\u1D53\u1D55\u1D58\u1D5A\u7FFF\u7FFF\u1D5D\u1D5F\u1D62\u1D64\u1D67\u1D6B"+
+        "\u7FFF\u7FFF\u1D6E\u1D70\u1D72\u1D75\u1D79\u1D7C\u7FFF\u7FFF\u1D7E\u1D80"+
+        "\u1D83\u7FFF\u7FFF\u7FFF\u1D85\u1D87\u1D89\u1D8B\u1D8E\u1D90\u1D92\u7FFF"+
+        "\u1D94\u1D96\u1D98\u1D9A\u1D9C\u1D9E\u1DA0\uA5A5\021\u7FFF"
+        );
+    private static final short kCanonicalIndex[] =
+        Utility.RLEStringToShortArray(
+        "\000\u0200\uA5A5\006\000\u0080\000\000\u00FD\000\u016C\u01B1\u0222\uA5A5"+
+        "\004\000\u02A1\u0320\u039E\u041D\u049C\u04F3\u0541\u0598\u05E6\000\u0635"+
+        "\u0684\u06EC\u076C\uA5A5!\000\u07A6\uA5A5\036\000\u0808\u086F\uA5A5\u0194"+
+        "\000\u08D1\uA5A5\005\000\u0931\000\000\000"
+        );
+    private static final byte kCanonicalValues[] =
+        Utility.RLEStringToByteArray(
+        "\000\u09B1\uA580\u80A5\u1566\u68A5\u045C\u6858\uA505\u5C4A\u4AA5\u045C"+
+        "\u4A4A\uA50B\u5CA5\u0581\uA504\u5CA5\u0866\u5CA5\u1A80\u6A6A\uA51E\u80A5"+
+        "\u0466\uA579\u805C\uA504\u665C\u6666\u665E\u5CA5\u0666\u80A5\u055C\u6666"+
+        "\u5C66\u665E\u6666\u8A8B\u8C8D\u8E8F\u9091\u9293\u8094\u9596\u8097\u8098"+
+        "\u9980\u66A5\u4B80\u9B9C\u9D9E\u9FA0\uA1A2\uA51D\u80A3\uA556\u80A5\u0766"+
+        "\u8080\uA504\u665C\u6680\u8066\u6680\u5C66\u665C\uA512\u80A5\uA5A4\uA539"+
+        "\u8087\uA504\u80A6\uA7A8\uA9AA\uABAC\uADA5\u0480\u8980\u8080\uAEAF\u6666"+
+        "\uA50D\u80B0\uB1A5\u1C80\uB2A5\u3A80\u87A5\u0480\uB3B4\uB5B6\uA508\u8089"+
+        "\uA514\u80B7\uB8A5\u1C80\uB9A5\u3980\u87A5\u0480\uBABB\uA504\u80BC\uBD80"+
+        "\u80BE\uBF89\uA522\u80C0\uC1A5\u0E80\uC3C2\uA539\u8087\uA504\u80C4\uC5C6"+
+        "\uC7C8\u80C9\uCAA5\u0480\u89A5\u3280\uCBA5\u3A80\u8780\u80CC\u80CD\uCECF"+
+        "\uA509\u8089\uA508\u8066\uA540\u80D0\uA50C\u8089\uA53E\u80D1\uD2D3\uA505"+
+        "\u80D4\uD5D6\u80D7\uD8D9\u89A5\u0780\uDADB\uA53F\u80DC\uA506\u80DD\uA505"+
+        "\u80DE\u89A5\u4180\uDFE0\uE1A5\u0980\u89A5\u3280\uE280\u80E3\uE4E5\uE6E7"+
+        "\uE8E9\uA50C\u80EA\uEBEC\uEDEE\uEFF0\u00A5\u3180\uF180\u80F2\uF3F4\uF5F6"+
+        "\uF780\uF8F9\uA50B\u80FA\uFBFC\uFDFE\uFFA5\u3280\u5C5C\uA51B\u8066\u8066"+
+        "\u8058\uA504\u805C\u5CA5\u3180\u0102\u0304\u0506\u0708\u090A\u0B0C\u0D0E"+
+        "\u800F\u1066\u6689\u80A5\u0666\uA504\u80A5\u0686\u8086\u80A5\u1586\u8080"+
+        "\u80A5\u0786\u8086\uA550\u8066\u6681\u81A5\u0466\u8181\u8166\u66A5\u0480"+
+        "\u81A5\u2A80\u5A64\u685E\u6060\uA550\u8088\u88A5\u6580\u9AA5\u6180\uA504"+
+        "\u66A5\u5C80"
+        );
+    // END RUN-LENGTH ENCODED ARRAYS [LIU]
+
+    // START OF GENERATED CODE
+    private static String contents =
+        "\u0041\u0300\u0000\u0041\u0301\u0000\u0041\u0302\u0000\u0041" +
+        "\u0303\u0000\u0041\u0308\u0000\u0041\u030a\u0000\u0043\u0327" +
+        "\u0000\u0045\u0300\u0000\u0045\u0301\u0000\u0045\u0302\u0000" +
+        "\u0045\u0308\u0000\u0049\u0300\u0000\u0049\u0301\u0000\u0049" +
+        "\u0302\u0000\u0049\u0308\u0000\u004e\u0303\u0000\u004f\u0300" +
+        "\u0000\u004f\u0301\u0000\u004f\u0302\u0000\u004f\u0303\u0000" +
+        "\u004f\u0308\u0000\u0055\u0300\u0000\u0055\u0301\u0000\u0055" +
+        "\u0302\u0000\u0055\u0308\u0000\u0059\u0301\u0000\u0061\u0300" +
+        "\u0000\u0061\u0301\u0000\u0061\u0302\u0000\u0061\u0303\u0000" +
+        "\u0061\u0308\u0000\u0061\u030a\u0000\u0063\u0327\u0000\u0065" +
+        "\u0300\u0000\u0065\u0301\u0000\u0065\u0302\u0000\u0065\u0308" +
+        "\u0000\u0069\u0300\u0000\u0069\u0301\u0000\u0069\u0302\u0000" +
+        "\u0069\u0308\u0000\u006e\u0303\u0000\u006f\u0300\u0000\u006f" +
+        "\u0301\u0000\u006f\u0302\u0000\u006f\u0303\u0000\u006f\u0308" +
+        "\u0000\u0075\u0300\u0000\u0075\u0301\u0000\u0075\u0302\u0000" +
+        "\u0075\u0308\u0000\u0079\u0301\u0000\u0079\u0308\u0000\u0041" +
+        "\u0304\u0000\u0061\u0304\u0000\u0041\u0306\u0000\u0061\u0306" +
+        "\u0000\u0041\u0328\u0000\u0061\u0328\u0000\u0043\u0301\u0000" +
+        "\u0063\u0301\u0000\u0043\u0302\u0000\u0063\u0302\u0000\u0043" +
+        "\u0307\u0000\u0063\u0307\u0000\u0043\u030c\u0000\u0063\u030c" +
+        "\u0000\u0044\u030c\u0000\u0064\u030c\u0000\u0045\u0304\u0000" +
+        "\u0065\u0304\u0000\u0045\u0306\u0000\u0065\u0306\u0000\u0045" +
+        "\u0307\u0000\u0065\u0307\u0000\u0045\u0328\u0000\u0065\u0328" +
+        "\u0000\u0045\u030c\u0000\u0065\u030c\u0000\u0047\u0302\u0000" +
+        "\u0067\u0302\u0000\u0047\u0306\u0000\u0067\u0306\u0000\u0047" +
+        "\u0307\u0000\u0067\u0307\u0000\u0047\u0327\u0000\u0067\u0327" +
+        "\u0000\u0048\u0302\u0000\u0068\u0302\u0000\u0049\u0303\u0000" +
+        "\u0069\u0303\u0000\u0049\u0304\u0000\u0069\u0304\u0000\u0049" +
+        "\u0306\u0000\u0069\u0306\u0000\u0049\u0328\u0000\u0069\u0328" +
+        "\u0000\u0049\u0307\u0000\u004a\u0302\u0000\u006a\u0302\u0000" +
+        "\u004b\u0327\u0000\u006b\u0327\u0000\u004c\u0301\u0000\u006c" +
+        "\u0301\u0000\u004c\u0327\u0000\u006c\u0327\u0000\u004c\u030c" +
+        "\u0000\u006c\u030c\u0000\u004e\u0301\u0000\u006e\u0301\u0000" +
+        "\u004e\u0327\u0000\u006e\u0327\u0000\u004e\u030c\u0000\u006e" +
+        "\u030c\u0000\u004f\u0304\u0000\u006f\u0304\u0000\u004f\u0306" +
+        "\u0000\u006f\u0306\u0000\u004f\u030b\u0000\u006f\u030b\u0000" +
+        "\u0052\u0301\u0000\u0072\u0301\u0000\u0052\u0327\u0000\u0072" +
+        "\u0327\u0000\u0052\u030c\u0000\u0072\u030c\u0000\u0053\u0301" +
+        "\u0000\u0073\u0301\u0000\u0053\u0302\u0000\u0073\u0302\u0000" +
+        "\u0053\u0327\u0000\u0073\u0327\u0000\u0053\u030c\u0000\u0073" +
+        "\u030c\u0000\u0054\u0327\u0000\u0074\u0327\u0000\u0054\u030c" +
+        "\u0000\u0074\u030c\u0000\u0055\u0303\u0000\u0075\u0303\u0000" +
+        "\u0055\u0304\u0000\u0075\u0304\u0000\u0055\u0306\u0000\u0075" +
+        "\u0306\u0000\u0055\u030a\u0000\u0075\u030a\u0000\u0055\u030b" +
+        "\u0000\u0075\u030b\u0000\u0055\u0328\u0000\u0075\u0328\u0000" +
+        "\u0057\u0302\u0000\u0077\u0302\u0000\u0059\u0302\u0000\u0079" +
+        "\u0302\u0000\u0059\u0308\u0000\u005a\u0301\u0000\u007a\u0301" +
+        "\u0000\u005a\u0307\u0000\u007a\u0307\u0000\u005a\u030c\u0000" +
+        "\u007a\u030c\u0000\u004f\u031b\u0000\u006f\u031b\u0000\u0055" +
+        "\u031b\u0000\u0075\u031b\u0000\u0041\u030c\u0000\u0061\u030c" +
+        "\u0000\u0049\u030c\u0000\u0069\u030c\u0000\u004f\u030c\u0000" +
+        "\u006f\u030c\u0000\u0055\u030c\u0000\u0075\u030c\u0000\u0055" +
+        "\u0308\u0304\u0000\u0075\u0308\u0304\u0000\u0055\u0308\u0301" +
+        "\u0000\u0075\u0308\u0301\u0000\u0055\u0308\u030c\u0000\u0075" +
+        "\u0308\u030c\u0000\u0055\u0308\u0300\u0000\u0075\u0308\u0300" +
+        "\u0000\u0041\u0308\u0304\u0000\u0061\u0308\u0304\u0000\u0041" +
+        "\u0307\u0304\u0000\u0061\u0307\u0304\u0000\u00c6\u0304\u0000" +
+        "\u00e6\u0304\u0000\u0047\u030c\u0000\u0067\u030c\u0000\u004b" +
+        "\u030c\u0000\u006b\u030c\u0000\u004f\u0328\u0000\u006f\u0328" +
+        "\u0000\u004f\u0328\u0304\u0000\u006f\u0328\u0304\u0000\u01b7" +
+        "\u030c\u0000\u0292\u030c\u0000\u006a\u030c\u0000\u0047\u0301" +
+        "\u0000\u0067\u0301\u0000\u0041\u030a\u0301\u0000\u0061\u030a" +
+        "\u0301\u0000\u00c6\u0301\u0000\u00e6\u0301\u0000\u00d8\u0301" +
+        "\u0000\u00f8\u0301\u0000\u0041\u030f\u0000\u0061\u030f\u0000" +
+        "\u0041\u0311\u0000\u0061\u0311\u0000\u0045\u030f\u0000\u0065" +
+        "\u030f\u0000\u0045\u0311\u0000\u0065\u0311\u0000\u0049\u030f" +
+        "\u0000\u0069\u030f\u0000\u0049\u0311\u0000\u0069\u0311\u0000" +
+        "\u004f\u030f\u0000\u006f\u030f\u0000\u004f\u0311\u0000\u006f" +
+        "\u0311\u0000\u0052\u030f\u0000\u0072\u030f\u0000\u0052\u0311" +
+        "\u0000\u0072\u0311\u0000\u0055\u030f\u0000\u0075\u030f\u0000" +
+        "\u0055\u0311\u0000\u0075\u0311\u0000\u0306\u0307\u0000\u0308" +
+        "\u030d\u0000\u02b9\u0000\u00a8\u030d\u0000\u0391\u030d\u0000" +
+        "\u00b7\u0000\u0395\u030d\u0000\u0397\u030d\u0000\u0399\u030d" +
+        "\u0000\u039f\u030d\u0000\u03a5\u030d\u0000\u03a9\u030d\u0000" +
+        "\u03b9\u0308\u030d\u0000\u0399\u0308\u0000\u03a5\u0308\u0000" +
+        "\u03b1\u030d\u0000\u03b5\u030d\u0000\u03b7\u030d\u0000\u03b9" +
+        "\u030d\u0000\u03c5\u0308\u030d\u0000\u03b9\u0308\u0000\u03c5" +
+        "\u0308\u0000\u03bf\u030d\u0000\u03c5\u030d\u0000\u03c9\u030d" +
+        "\u0000\u03d2\u030d\u0000\u03d2\u0308\u0000\u0415\u0308\u0000" +
+        "\u0413\u0301\u0000\u0406\u0308\u0000\u041a\u0301\u0000\u0423" +
+        "\u0306\u0000\u0418\u0306\u0000\u0438\u0306\u0000\u0435\u0308" +
+        "\u0000\u0433\u0301\u0000\u0456\u0308\u0000\u043a\u0301\u0000" +
+        "\u0443\u0306\u0000\u0474\u030f\u0000\u0475\u030f\u0000\u0416" +
+        "\u0306\u0000\u0436\u0306\u0000\u0410\u0306\u0000\u0430\u0306" +
+        "\u0000\u0410\u0308\u0000\u0430\u0308\u0000\u00c6\u0000\u00e6" +
+        "\u0000\u0415\u0306\u0000\u0435\u0306\u0000\u018f\u0000\u0259" +
+        "\u0000\u018f\u0308\u0000\u0259\u0308\u0000\u0416\u0308\u0000" +
+        "\u0436\u0308\u0000\u0417\u0308\u0000\u0437\u0308\u0000\u01b7" +
+        "\u0000\u0292\u0000\u0418\u0304\u0000\u0438\u0304\u0000\u0418" +
+        "\u0308\u0000\u0438\u0308\u0000\u041e\u0308\u0000\u043e\u0308" +
+        "\u0000\u019f\u0000\u0275\u0000\u019f\u0308\u0000\u0275\u0308" +
+        "\u0000\u0423\u0304\u0000\u0443\u0304\u0000\u0423\u0308\u0000" +
+        "\u0443\u0308\u0000\u0423\u030b\u0000\u0443\u030b\u0000\u0427" +
+        "\u0308\u0000\u0447\u0308\u0000\u042b\u0308\u0000\u044b\u0308" +
+        "\u0000\u0928\u093c\u0000\u0930\u093c\u0000\u0933\u093c\u0000" +
+        "\u0915\u093c\u0000\u0916\u093c\u0000\u0917\u093c\u0000\u091c" +
+        "\u093c\u0000\u0921\u093c\u0000\u0922\u093c\u0000\u092b\u093c" +
+        "\u0000\u092f\u093c\u0000\u09ac\u09bc\u0000\u09c7\u09be\u0000" +
+        "\u09c7\u09d7\u0000\u09a1\u09bc\u0000\u09a2\u09bc\u0000\u09af" +
+        "\u09bc\u0000\u0a16\u0a3c\u0000\u0a17\u0a3c\u0000\u0a1c\u0a3c" +
+        "\u0000\u0a21\u0a3c\u0000\u0a2b\u0a3c\u0000\u0b47\u0b56\u0000" +
+        "\u0b47\u0b3e\u0000\u0b47\u0b57\u0000\u0b21\u0b3c\u0000\u0b22" +
+        "\u0b3c\u0000\u0b2f\u0b3c\u0000\u0b92\u0bd7\u0000\u0bc6\u0bbe" +
+        "\u0000\u0bc7\u0bbe\u0000\u0bc6\u0bd7\u0000\u0c46\u0c56\u0000" +
+        "\u0cbf\u0cd5\u0000\u0cc6\u0cd5\u0000\u0cc6\u0cd6\u0000\u0cc6" +
+        "\u0cc2\u0000\u0cc6\u0cc2\u0cd5\u0000\u0d46\u0d3e\u0000\u0d47" +
+        "\u0d3e\u0000\u0d46\u0d57\u0000\u0e4d\u0e32\u0000\u0ecd\u0eb2" +
+        "\u0000\u0f42\u0fb7\u0000\u0f4c\u0fb7\u0000\u0f51\u0fb7\u0000" +
+        "\u0f56\u0fb7\u0000\u0f5b\u0fb7\u0000\u0f40\u0fb5\u0000\u0f71" +
+        "\u0f72\u0000\u0f74\u0f71\u0000\u0fb2\u0f80\u0000\u0fb2\u0f80" +
+        "\u0f71\u0000\u0fb3\u0f80\u0000\u0fb3\u0f80\u0f71\u0000\u0f80" +
+        "\u0f71\u0000\u0f92\u0fb7\u0000\u0f9c\u0fb7\u0000\u0fa1\u0fb7" +
+        "\u0000\u0fa6\u0fb7\u0000\u0fab\u0fb7\u0000\u0f90\u0fb5\u0000" +
+        "\u0041\u0325\u0000\u0061\u0325\u0000\u0042\u0307\u0000\u0062" +
+        "\u0307\u0000\u0042\u0323\u0000\u0062\u0323\u0000\u0042\u0331" +
+        "\u0000\u0062\u0331\u0000\u0043\u0327\u0301\u0000\u0063\u0327" +
+        "\u0301\u0000\u0044\u0307\u0000\u0064\u0307\u0000\u0044\u0323" +
+        "\u0000\u0064\u0323\u0000\u0044\u0331\u0000\u0064\u0331\u0000" +
+        "\u0044\u0327\u0000\u0064\u0327\u0000\u0044\u032d\u0000\u0064" +
+        "\u032d\u0000\u0045\u0304\u0300\u0000\u0065\u0304\u0300\u0000" +
+        "\u0045\u0304\u0301\u0000\u0065\u0304\u0301\u0000\u0045\u032d" +
+        "\u0000\u0065\u032d\u0000\u0045\u0330\u0000\u0065\u0330\u0000" +
+        "\u0045\u0306\u0327\u0000\u0065\u0306\u0327\u0000\u0046\u0307" +
+        "\u0000\u0066\u0307\u0000\u0047\u0304\u0000\u0067\u0304\u0000" +
+        "\u0048\u0307\u0000\u0068\u0307\u0000\u0048\u0323\u0000\u0068" +
+        "\u0323\u0000\u0048\u0308\u0000\u0068\u0308\u0000\u0048\u0327" +
+        "\u0000\u0068\u0327\u0000\u0048\u032e\u0000\u0068\u032e\u0000" +
+        "\u0049\u0330\u0000\u0069\u0330\u0000\u0049\u0308\u0301\u0000" +
+        "\u0069\u0308\u0301\u0000\u004b\u0301\u0000\u006b\u0301\u0000" +
+        "\u004b\u0323\u0000\u006b\u0323\u0000\u004b\u0331\u0000\u006b" +
+        "\u0331\u0000\u004c\u0323\u0000\u006c\u0323\u0000\u004c\u0323" +
+        "\u0304\u0000\u006c\u0323\u0304\u0000\u004c\u0331\u0000\u006c" +
+        "\u0331\u0000\u004c\u032d\u0000\u006c\u032d\u0000\u004d\u0301" +
+        "\u0000\u006d\u0301\u0000\u004d\u0307\u0000\u006d\u0307\u0000" +
+        "\u004d\u0323\u0000\u006d\u0323\u0000\u004e\u0307\u0000\u006e" +
+        "\u0307\u0000\u004e\u0323\u0000\u006e\u0323\u0000\u004e\u0331" +
+        "\u0000\u006e\u0331\u0000\u004e\u032d\u0000\u006e\u032d\u0000" +
+        "\u004f\u0303\u0301\u0000\u006f\u0303\u0301\u0000\u004f\u0303" +
+        "\u0308\u0000\u006f\u0303\u0308\u0000\u004f\u0304\u0300\u0000" +
+        "\u006f\u0304\u0300\u0000\u004f\u0304\u0301\u0000\u006f\u0304" +
+        "\u0301\u0000\u0050\u0301\u0000\u0070\u0301\u0000\u0050\u0307" +
+        "\u0000\u0070\u0307\u0000\u0052\u0307\u0000\u0072\u0307\u0000" +
+        "\u0052\u0323\u0000\u0072\u0323\u0000\u0052\u0323\u0304\u0000" +
+        "\u0072\u0323\u0304\u0000\u0052\u0331\u0000\u0072\u0331\u0000" +
+        "\u0053\u0307\u0000\u0073\u0307\u0000\u0053\u0323\u0000\u0073" +
+        "\u0323\u0000\u0053\u0301\u0307\u0000\u0073\u0301\u0307\u0000" +
+        "\u0053\u030c\u0307\u0000\u0073\u030c\u0307\u0000\u0053\u0323" +
+        "\u0307\u0000\u0073\u0323\u0307\u0000\u0054\u0307\u0000\u0074" +
+        "\u0307\u0000\u0054\u0323\u0000\u0074\u0323\u0000\u0054\u0331" +
+        "\u0000\u0074\u0331\u0000\u0054\u032d\u0000\u0074\u032d\u0000" +
+        "\u0055\u0324\u0000\u0075\u0324\u0000\u0055\u0330\u0000\u0075" +
+        "\u0330\u0000\u0055\u032d\u0000\u0075\u032d\u0000\u0055\u0303" +
+        "\u0301\u0000\u0075\u0303\u0301\u0000\u0055\u0304\u0308\u0000" +
+        "\u0075\u0304\u0308\u0000\u0056\u0303\u0000\u0076\u0303\u0000" +
+        "\u0056\u0323\u0000\u0076\u0323\u0000\u0057\u0300\u0000\u0077" +
+        "\u0300\u0000\u0057\u0301\u0000\u0077\u0301\u0000\u0057\u0308" +
+        "\u0000\u0077\u0308\u0000\u0057\u0307\u0000\u0077\u0307\u0000" +
+        "\u0057\u0323\u0000\u0077\u0323\u0000\u0058\u0307\u0000\u0078" +
+        "\u0307\u0000\u0058\u0308\u0000\u0078\u0308\u0000\u0059\u0307" +
+        "\u0000\u0079\u0307\u0000\u005a\u0302\u0000\u007a\u0302\u0000" +
+        "\u005a\u0323\u0000\u007a\u0323\u0000\u005a\u0331\u0000\u007a" +
+        "\u0331\u0000\u0068\u0331\u0000\u0074\u0308\u0000\u0077\u030a" +
+        "\u0000\u0079\u030a\u0000\u017f\u0307\u0000\u0041\u0323\u0000" +
+        "\u0061\u0323\u0000\u0041\u0309\u0000\u0061\u0309\u0000\u0041" +
+        "\u0302\u0301\u0000\u0061\u0302\u0301\u0000\u0041\u0302\u0300" +
+        "\u0000\u0061\u0302\u0300\u0000\u0041\u0302\u0309\u0000\u0061" +
+        "\u0302\u0309\u0000\u0041\u0302\u0303\u0000\u0061\u0302\u0303" +
+        "\u0000\u0041\u0302\u0323\u0000\u0061\u0302\u0323\u0000\u0041" +
+        "\u0306\u0301\u0000\u0061\u0306\u0301\u0000\u0041\u0306\u0300" +
+        "\u0000\u0061\u0306\u0300\u0000\u0041\u0306\u0309\u0000\u0061" +
+        "\u0306\u0309\u0000\u0041\u0306\u0303\u0000\u0061\u0306\u0303" +
+        "\u0000\u0041\u0306\u0323\u0000\u0061\u0306\u0323\u0000\u0045" +
+        "\u0323\u0000\u0065\u0323\u0000\u0045\u0309\u0000\u0065\u0309" +
+        "\u0000\u0045\u0303\u0000\u0065\u0303\u0000\u0045\u0302\u0301" +
+        "\u0000\u0065\u0302\u0301\u0000\u0045\u0302\u0300\u0000\u0065" +
+        "\u0302\u0300\u0000\u0045\u0302\u0309\u0000\u0065\u0302\u0309" +
+        "\u0000\u0045\u0302\u0303\u0000\u0065\u0302\u0303\u0000\u0045" +
+        "\u0302\u0323\u0000\u0065\u0302\u0323\u0000\u0049\u0309\u0000" +
+        "\u0069\u0309\u0000\u0049\u0323\u0000\u0069\u0323\u0000\u004f" +
+        "\u0323\u0000\u006f\u0323\u0000\u004f\u0309\u0000\u006f\u0309" +
+        "\u0000\u004f\u0302\u0301\u0000\u006f\u0302\u0301\u0000\u004f" +
+        "\u0302\u0300\u0000\u006f\u0302\u0300\u0000\u004f\u0302\u0309" +
+        "\u0000\u006f\u0302\u0309\u0000\u004f\u0302\u0303\u0000\u006f" +
+        "\u0302\u0303\u0000\u004f\u0302\u0323\u0000\u006f\u0302\u0323" +
+        "\u0000\u004f\u031b\u0301\u0000\u006f\u031b\u0301\u0000\u004f" +
+        "\u031b\u0300\u0000\u006f\u031b\u0300\u0000\u004f\u031b\u0309" +
+        "\u0000\u006f\u031b\u0309\u0000\u004f\u031b\u0303\u0000\u006f" +
+        "\u031b\u0303\u0000\u004f\u031b\u0323\u0000\u006f\u031b\u0323" +
+        "\u0000\u0055\u0323\u0000\u0075\u0323\u0000\u0055\u0309\u0000" +
+        "\u0075\u0309\u0000\u0055\u031b\u0301\u0000\u0075\u031b\u0301" +
+        "\u0000\u0055\u031b\u0300\u0000\u0075\u031b\u0300\u0000\u0055" +
+        "\u031b\u0309\u0000\u0075\u031b\u0309\u0000\u0055\u031b\u0303" +
+        "\u0000\u0075\u031b\u0303\u0000\u0055\u031b\u0323\u0000\u0075" +
+        "\u031b\u0323\u0000\u0059\u0300\u0000\u0079\u0300\u0000\u0059" +
+        "\u0323\u0000\u0079\u0323\u0000\u0059\u0309\u0000\u0079\u0309" +
+        "\u0000\u0059\u0303\u0000\u0079\u0303\u0000\u03b1\u0313\u0000" +
+        "\u03b1\u0314\u0000\u03b1\u0313\u0300\u0000\u03b1\u0314\u0300" +
+        "\u0000\u03b1\u0313\u0301\u0000\u03b1\u0314\u0301\u0000\u03b1" +
+        "\u0313\u0342\u0000\u03b1\u0314\u0342\u0000\u0391\u0313\u0000" +
+        "\u0391\u0314\u0000\u0391\u0313\u0300\u0000\u0391\u0314\u0300" +
+        "\u0000\u0391\u0313\u0301\u0000\u0391\u0314\u0301\u0000\u0391" +
+        "\u0313\u0342\u0000\u0391\u0314\u0342\u0000\u03b5\u0313\u0000" +
+        "\u03b5\u0314\u0000\u03b5\u0313\u0300\u0000\u03b5\u0314\u0300" +
+        "\u0000\u03b5\u0313\u0301\u0000\u03b5\u0314\u0301\u0000\u0395" +
+        "\u0313\u0000\u0395\u0314\u0000\u0395\u0313\u0300\u0000\u0395" +
+        "\u0314\u0300\u0000\u0395\u0313\u0301\u0000\u0395\u0314\u0301" +
+        "\u0000\u03b7\u0313\u0000\u03b7\u0314\u0000\u03b7\u0313\u0300" +
+        "\u0000\u03b7\u0314\u0300\u0000\u03b7\u0313\u0301\u0000\u03b7" +
+        "\u0314\u0301\u0000\u03b7\u0313\u0342\u0000\u03b7\u0314\u0342" +
+        "\u0000\u0397\u0313\u0000\u0397\u0314\u0000\u0397\u0313\u0300" +
+        "\u0000\u0397\u0314\u0300\u0000\u0397\u0313\u0301\u0000\u0397" +
+        "\u0314\u0301\u0000\u0397\u0313\u0342\u0000\u0397\u0314\u0342" +
+        "\u0000\u03b9\u0313\u0000\u03b9\u0314\u0000\u03b9\u0313\u0300" +
+        "\u0000\u03b9\u0314\u0300\u0000\u03b9\u0313\u0301\u0000\u03b9" +
+        "\u0314\u0301\u0000\u03b9\u0313\u0342\u0000\u03b9\u0314\u0342" +
+        "\u0000\u0399\u0313\u0000\u0399\u0314\u0000\u0399\u0313\u0300" +
+        "\u0000\u0399\u0314\u0300\u0000\u0399\u0313\u0301\u0000\u0399" +
+        "\u0314\u0301\u0000\u0399\u0313\u0342\u0000\u0399\u0314\u0342" +
+        "\u0000\u03bf\u0313\u0000\u03bf\u0314\u0000\u03bf\u0313\u0300" +
+        "\u0000\u03bf\u0314\u0300\u0000\u03bf\u0313\u0301\u0000\u03bf" +
+        "\u0314\u0301\u0000\u039f\u0313\u0000\u039f\u0314\u0000\u039f" +
+        "\u0313\u0300\u0000\u039f\u0314\u0300\u0000\u039f\u0313\u0301" +
+        "\u0000\u039f\u0314\u0301\u0000\u03c5\u0313\u0000\u03c5\u0314" +
+        "\u0000\u03c5\u0313\u0300\u0000\u03c5\u0314\u0300\u0000\u03c5" +
+        "\u0313\u0301\u0000\u03c5\u0314\u0301\u0000\u03c5\u0313\u0342" +
+        "\u0000\u03c5\u0314\u0342\u0000\u03a5\u0314\u0000\u03a5\u0314" +
+        "\u0300\u0000\u03a5\u0314\u0301\u0000\u03a5\u0314\u0342\u0000" +
+        "\u03c9\u0313\u0000\u03c9\u0314\u0000\u03c9\u0313\u0300\u0000" +
+        "\u03c9\u0314\u0300\u0000\u03c9\u0313\u0301\u0000\u03c9\u0314" +
+        "\u0301\u0000\u03c9\u0313\u0342\u0000\u03c9\u0314\u0342\u0000" +
+        "\u03a9\u0313\u0000\u03a9\u0314\u0000\u03a9\u0313\u0300\u0000" +
+        "\u03a9\u0314\u0300\u0000\u03a9\u0313\u0301\u0000\u03a9\u0314" +
+        "\u0301\u0000\u03a9\u0313\u0342\u0000\u03a9\u0314\u0342\u0000" +
+        "\u03b1\u0300\u0000\u03b1\u0301\u0000\u03b5\u0300\u0000\u03b5" +
+        "\u0301\u0000\u03b7\u0300\u0000\u03b7\u0301\u0000\u03b9\u0300" +
+        "\u0000\u03b9\u0301\u0000\u03bf\u0300\u0000\u03bf\u0301\u0000" +
+        "\u03c5\u0300\u0000\u03c5\u0301\u0000\u03c9\u0300\u0000\u03c9" +
+        "\u0301\u0000\u03b1\u0313\u0345\u0000\u03b1\u0314\u0345\u0000" +
+        "\u03b1\u0300\u0313\u0345\u0000\u03b1\u0300\u0314\u0345\u0000" +
+        "\u03b1\u0301\u0313\u0345\u0000\u03b1\u0301\u0314\u0345\u0000" +
+        "\u03b1\u0342\u0313\u0345\u0000\u03b1\u0342\u0314\u0345\u0000" +
+        "\u0391\u0313\u0345\u0000\u0391\u0314\u0345\u0000\u0391\u0300" +
+        "\u0313\u0345\u0000\u0391\u0300\u0314\u0345\u0000\u0391\u0301" +
+        "\u0313\u0345\u0000\u0391\u0301\u0314\u0345\u0000\u0391\u0342" +
+        "\u0313\u0345\u0000\u0391\u0342\u0314\u0345\u0000\u03b7\u0313" +
+        "\u0345\u0000\u03b7\u0314\u0345\u0000\u03b7\u0300\u0313\u0345" +
+        "\u0000\u03b7\u0300\u0314\u0345\u0000\u03b7\u0301\u0313\u0345" +
+        "\u0000\u03b7\u0301\u0314\u0345\u0000\u03b7\u0342\u0313\u0345" +
+        "\u0000\u03b7\u0342\u0314\u0345\u0000\u0397\u0313\u0345\u0000" +
+        "\u0397\u0314\u0345\u0000\u0397\u0300\u0313\u0345\u0000\u0397" +
+        "\u0300\u0314\u0345\u0000\u0397\u0301\u0313\u0345\u0000\u0397" +
+        "\u0301\u0314\u0345\u0000\u0397\u0342\u0313\u0345\u0000\u0397" +
+        "\u0342\u0314\u0345\u0000\u03c9\u0313\u0345\u0000\u03c9\u0314" +
+        "\u0345\u0000\u03c9\u0300\u0313\u0345\u0000\u03c9\u0300\u0314" +
+        "\u0345\u0000\u03c9\u0301\u0313\u0345\u0000\u03c9\u0301\u0314" +
+        "\u0345\u0000\u03c9\u0342\u0313\u0345\u0000\u03c9\u0342\u0314" +
+        "\u0345\u0000\u03a9\u0313\u0345\u0000\u03a9\u0314\u0345\u0000" +
+        "\u03a9\u0300\u0313\u0345\u0000\u03a9\u0300\u0314\u0345\u0000" +
+        "\u03a9\u0301\u0313\u0345\u0000\u03a9\u0301\u0314\u0345\u0000" +
+        "\u03a9\u0342\u0313\u0345\u0000\u03a9\u0342\u0314\u0345\u0000" +
+        "\u03b1\u0306\u0000\u03b1\u0304\u0000\u03b1\u0300\u0345\u0000" +
+        "\u03b1\u0345\u0000\u03b1\u0301\u0345\u0000\u03b1\u0342\u0000" +
+        "\u03b1\u0342\u0345\u0000\u0391\u0306\u0000\u0391\u0304\u0000" +
+        "\u0391\u0300\u0000\u0391\u0301\u0000\u0391\u0345\u0000\u0399" +
+        "\u0000\u00a8\u0342\u0000\u03b7\u0300\u0345\u0000\u03b7\u0345" +
+        "\u0000\u03b7\u0301\u0345\u0000\u03b7\u0342\u0000\u03b7\u0342" +
+        "\u0345\u0000\u0395\u0300\u0000\u0395\u0301\u0000\u0397\u0300" +
+        "\u0000\u0397\u0301\u0000\u0397\u0345\u0000\u1fbf\u0300\u0000" +
+        "\u1fbf\u0301\u0000\u1fbf\u0342\u0000\u03b9\u0306\u0000\u03b9" +
+        "\u0304\u0000\u03b9\u0308\u0300\u0000\u03b9\u0308\u0301\u0000" +
+        "\u03b9\u0342\u0000\u03b9\u0308\u0342\u0000\u0399\u0306\u0000" +
+        "\u0399\u0304\u0000\u0399\u0300\u0000\u0399\u0301\u0000\u1ffe" +
+        "\u0300\u0000\u1ffe\u0301\u0000\u1ffe\u0342\u0000\u03c5\u0306" +
+        "\u0000\u03c5\u0304\u0000\u03c5\u0308\u0300\u0000\u03c5\u0308" +
+        "\u0301\u0000\u03c1\u0313\u0000\u03c1\u0314\u0000\u03c5\u0342" +
+        "\u0000\u03c5\u0308\u0342\u0000\u03a5\u0306\u0000\u03a5\u0304" +
+        "\u0000\u03a5\u0300\u0000\u03a5\u0301\u0000\u03a1\u0314\u0000" +
+        "\u00a8\u0300\u0000\u00a8\u0301\u0000\u03c9\u0300\u0345\u0000" +
+        "\u03c9\u0345\u0000\u03bf\u0301\u0345\u0000\u03c9\u0342\u0000" +
+        "\u03c9\u0342\u0345\u0000\u039f\u0300\u0000\u039f\u0301\u0000" +
+        "\u03a9\u0300\u0000\u03a9\u0301\u0000\u03a9\u0345\u0000\u00b4" +
+        "\u0000\u2002\u0000\u2003\u0000\u03a9\u0000\u004b\u0000\u0041" +
+        "\u030a\u0000\u2203\u0338\u0000\u2208\u0338\u0000\u220b\u0338" +
+        "\u0000\u2223\u0338\u0000\u2225\u0338\u0000\u2243\u0338\u0000" +
+        "\u2245\u0338\u0000\u2248\u0338\u0000\u2261\u0338\u0000\u224d" +
+        "\u0338\u0000\u2264\u0338\u0000\u2265\u0338\u0000\u2272\u0338" +
+        "\u0000\u2273\u0338\u0000\u2276\u0338\u0000\u2277\u0338\u0000" +
+        "\u227a\u0338\u0000\u227b\u0338\u0000\u2282\u0338\u0000\u2283" +
+        "\u0338\u0000\u2286\u0338\u0000\u2287\u0338\u0000\u22a2\u0338" +
+        "\u0000\u22a8\u0338\u0000\u22a9\u0338\u0000\u22ab\u0338\u0000" +
+        "\u227c\u0338\u0000\u227d\u0338\u0000\u2291\u0338\u0000\u2292" +
+        "\u0338\u0000\u22b2\u0338\u0000\u22b3\u0338\u0000\u22b4\u0338" +
+        "\u0000\u22b5\u0338\u0000\u3008\u0000\u3009\u0000\u304b\u3099" +
+        "\u0000\u304d\u3099\u0000\u304f\u3099\u0000\u3051\u3099\u0000" +
+        "\u3053\u3099\u0000\u3055\u3099\u0000\u3057\u3099\u0000\u3059" +
+        "\u3099\u0000\u305b\u3099\u0000\u305d\u3099\u0000\u305f\u3099" +
+        "\u0000\u3061\u3099\u0000\u3064\u3099\u0000\u3066\u3099\u0000" +
+        "\u3068\u3099\u0000\u306f\u3099\u0000\u306f\u309a\u0000\u3072" +
+        "\u3099\u0000\u3072\u309a\u0000\u3075\u3099\u0000\u3075\u309a" +
+        "\u0000\u3078\u3099\u0000\u3078\u309a\u0000\u307b\u3099\u0000" +
+        "\u307b\u309a\u0000\u3046\u3099\u0000\u309d\u3099\u0000\u30ab" +
+        "\u3099\u0000\u30ad\u3099\u0000\u30af\u3099\u0000\u30b1\u3099" +
+        "\u0000\u30b3\u3099\u0000\u30b5\u3099\u0000\u30b7\u3099\u0000" +
+        "\u30b9\u3099\u0000\u30bb\u3099\u0000\u30bd\u3099\u0000\u30bf" +
+        "\u3099\u0000\u30c1\u3099\u0000\u30c4\u3099\u0000\u30c6\u3099" +
+        "\u0000\u30c8\u3099\u0000\u30cf\u3099\u0000\u30cf\u309a\u0000" +
+        "\u30d2\u3099\u0000\u30d2\u309a\u0000\u30d5\u3099\u0000\u30d5" +
+        "\u309a\u0000\u30d8\u3099\u0000\u30d8\u309a\u0000\u30db\u3099" +
+        "\u0000\u30db\u309a\u0000\u30a6\u3099\u0000\u30ef\u3099\u0000" +
+        "\u30f0\u3099\u0000\u30f1\u3099\u0000\u30f2\u3099\u0000\u30fd" +
+        "\u3099\u0000\u05e9\u05c1\u0000\u05e9\u05c2\u0000\u05e9\u05bc" +
+        "\u05c1\u0000\u05e9\u05bc\u05c2\u0000\u05d0\u05b7\u0000\u05d0" +
+        "\u05b8\u0000\u05d0\u05bc\u0000\u05d1\u05bc\u0000\u05d2\u05bc" +
+        "\u0000\u05d3\u05bc\u0000\u05d4\u05bc\u0000\u05d5\u05bc\u0000" +
+        "\u05d6\u05bc\u0000\u05d8\u05bc\u0000\u05d9\u05bc\u0000\u05da" +
+        "\u05bc\u0000\u05db\u05bc\u0000\u05dc\u05bc\u0000\u05de\u05bc" +
+        "\u0000\u05e0\u05bc\u0000\u05e1\u05bc\u0000\u05e3\u05bc\u0000" +
+        "\u05e4\u05bc\u0000\u05e6\u05bc\u0000\u05e7\u05bc\u0000\u05e8" +
+        "\u05bc\u0000\u05e9\u05bc\u0000\u05ea\u05bc\u0000\u05d5\u05b9" +
+        "\u0000\u05d1\u05bf\u0000\u05db\u05bf\u0000\u05e4\u05bf\u0000" +
+        "\u0020\u0302\u0000\u0020\u0332\u0000\u0020\u0300\u0000\u0020" +
+        "\u0000\u0020\u0308\u0000\u0061\u0000\u0020\u0304\u0000\u0032" +
+        "\u0000\u0033\u0000\u0020\u0301\u0000\u03bc\u0000\u0020\u0327" +
+        "\u0000\u0031\u0000\u006f\u0000\u0031\u2044\u0034\u0000\u0031" +
+        "\u2044\u0032\u0000\u0033\u2044\u0034\u0000\u0049\u004a\u0000" +
+        "\u0069\u006a\u0000\u004c\u00b7\u0000\u006c\u00b7\u0000\u02bc" +
+        "\u006e\u0000\u0073\u0000\u0044\u005a\u030c\u0000\u0044\u007a" +
+        "\u030c\u0000\u0064\u007a\u030c\u0000\u004c\u004a\u0000\u004c" +
+        "\u006a\u0000\u006c\u006a\u0000\u004e\u004a\u0000\u004e\u006a" +
+        "\u0000\u006e\u006a\u0000\u0044\u005a\u0000\u0044\u007a\u0000" +
+        "\u0064\u007a\u0000\u0068\u0000\u0266\u0000\u006a\u0000\u0072" +
+        "\u0000\u0279\u0000\u027b\u0000\u0281\u0000\u0077\u0000\u0079" +
+        "\u0000\u0020\u0306\u0000\u0020\u0307\u0000\u0020\u030a\u0000" +
+        "\u0020\u0328\u0000\u0020\u0303\u0000\u0020\u030b\u0000\u0263" +
+        "\u0000\u006c\u0000\u0073\u0000\u0078\u0000\u0295\u0000\u0020" +
+        "\u0345\u0000\u0020\u030d\u0000\u0020\u0308\u030d\u0000\u0565" +
+        "\u0582\u0000\u0eab\u0e99\u0000\u0eab\u0ea1\u0000\u1100\u1100" +
+        "\u0000\u1103\u1103\u0000\u1107\u1107\u0000\u1109\u1109\u0000" +
+        "\u110c\u110c\u0000\u1102\u1100\u0000\u1102\u1102\u0000\u1102" +
+        "\u1103\u0000\u1102\u1107\u0000\u1103\u1100\u0000\u1105\u1102" +
+        "\u0000\u1105\u1105\u0000\u1105\u1112\u0000\u1105\u110b\u0000" +
+        "\u1106\u1107\u0000\u1106\u110b\u0000\u1107\u1100\u0000\u1107" +
+        "\u1102\u0000\u1107\u1103\u0000\u1107\u1109\u0000\u1107\u1109" +
+        "\u1100\u0000\u1107\u1109\u1103\u0000\u1107\u1109\u1107\u0000" +
+        "\u1107\u1109\u1109\u0000\u1107\u1109\u110c\u0000\u1107\u110c" +
+        "\u0000\u1107\u110e\u0000\u1107\u1110\u0000\u1107\u1111\u0000" +
+        "\u1107\u110b\u0000\u1107\u1107\u110b\u0000\u1109\u1100\u0000" +
+        "\u1109\u1102\u0000\u1109\u1103\u0000\u1109\u1105\u0000\u1109" +
+        "\u1106\u0000\u1109\u1107\u0000\u1109\u1107\u1100\u0000\u1109" +
+        "\u1109\u1109\u0000\u1109\u110b\u0000\u1109\u110c\u0000\u1109" +
+        "\u110e\u0000\u1109\u110f\u0000\u1109\u1110\u0000\u1109\u1111" +
+        "\u0000\u1109\u1112\u0000\u113c\u113c\u0000\u113e\u113e\u0000" +
+        "\u110b\u1100\u0000\u110b\u1103\u0000\u110b\u1106\u0000\u110b" +
+        "\u1107\u0000\u110b\u1109\u0000\u110b\u1140\u0000\u110b\u110b" +
+        "\u0000\u110b\u110c\u0000\u110b\u110e\u0000\u110b\u1110\u0000" +
+        "\u110b\u1111\u0000\u110c\u110b\u0000\u114e\u114e\u0000\u1150" +
+        "\u1150\u0000\u110e\u110f\u0000\u110e\u1112\u0000\u1111\u1107" +
+        "\u0000\u1111\u110b\u0000\u1112\u1112\u0000\u1161\u1175\u0000" +
+        "\u1163\u1175\u0000\u1165\u1175\u0000\u1167\u1175\u0000\u1169" +
+        "\u1161\u0000\u1169\u1161\u1175\u0000\u1169\u1175\u0000\u116e" +
+        "\u1165\u0000\u116e\u1165\u1175\u0000\u116e\u1175\u0000\u1173" +
+        "\u1175\u0000\u1161\u1169\u0000\u1161\u116e\u0000\u1163\u1169" +
+        "\u0000\u1163\u116d\u0000\u1165\u1169\u0000\u1165\u116e\u0000" +
+        "\u1165\u1173\u0000\u1167\u1169\u0000\u1167\u116e\u0000\u1169" +
+        "\u1165\u0000\u1169\u1165\u1175\u0000\u1169\u1167\u1175\u0000" +
+        "\u1169\u1169\u0000\u1169\u116e\u0000\u116d\u1163\u0000\u116d" +
+        "\u1163\u1175\u0000\u116d\u1167\u0000\u116d\u1169\u0000\u116d" +
+        "\u1175\u0000\u116e\u1161\u0000\u116e\u1161\u1175\u0000\u116e" +
+        "\u1165\u1173\u0000\u116e\u1167\u1175\u0000\u116e\u116e\u0000" +
+        "\u1172\u1161\u0000\u1172\u1165\u0000\u1172\u1165\u1175\u0000" +
+        "\u1172\u1167\u0000\u1172\u1167\u1175\u0000\u1172\u116e\u0000" +
+        "\u1172\u1175\u0000\u1173\u116e\u0000\u1173\u1173\u0000\u1173" +
+        "\u1175\u116e\u0000\u1175\u1161\u0000\u1175\u1163\u0000\u1175" +
+        "\u1169\u0000\u1175\u116e\u0000\u1175\u1173\u0000\u1175\u119e" +
+        "\u0000\u119e\u1165\u0000\u119e\u116e\u0000\u119e\u1175\u0000" +
+        "\u119e\u119e\u0000\u11a8\u11a8\u0000\u11a8\u11ba\u0000\u11ab" +
+        "\u11bd\u0000\u11ab\u11c2\u0000\u11af\u11a8\u0000\u11af\u11b7" +
+        "\u0000\u11af\u11b8\u0000\u11af\u11ba\u0000\u11af\u11c0\u0000" +
+        "\u11af\u11c1\u0000\u11af\u11c2\u0000\u11b8\u11ba\u0000\u11ba" +
+        "\u11ba\u0000\u11a8\u11af\u0000\u11a8\u11ba\u11a8\u0000\u11ab" +
+        "\u11a8\u0000\u11ab\u11ae\u0000\u11ab\u11ba\u0000\u11ab\u11eb" +
+        "\u0000\u11ab\u11c0\u0000\u11ae\u11a8\u0000\u11ae\u11af\u0000" +
+        "\u11af\u11a8\u11ba\u0000\u11af\u11ab\u0000\u11af\u11ae\u0000" +
+        "\u11af\u11ae\u11c2\u0000\u11af\u11af\u0000\u11af\u11b7\u11a8" +
+        "\u0000\u11af\u11b7\u11ba\u0000\u11af\u11b8\u11ba\u0000\u11af" +
+        "\u11b8\u11c2\u0000\u11af\u11b8\u11bc\u0000\u11af\u11ba\u11ba" +
+        "\u0000\u11af\u11eb\u0000\u11af\u11bf\u0000\u11af\u11f9\u0000" +
+        "\u11b7\u11a8\u0000\u11b7\u11af\u0000\u11b7\u11b8\u0000\u11b7" +
+        "\u11ba\u0000\u11b7\u11ba\u11ba\u0000\u11b7\u11eb\u0000\u11b7" +
+        "\u11be\u0000\u11b7\u11c2\u0000\u11b7\u11bc\u0000\u11b8\u11af" +
+        "\u0000\u11b8\u11c1\u0000\u11b8\u11c2\u0000\u11b8\u11bc\u0000" +
+        "\u11ba\u11a8\u0000\u11ba\u11ae\u0000\u11ba\u11af\u0000\u11ba" +
+        "\u11b8\u0000\u11bc\u11a8\u0000\u11bc\u11a8\u11a8\u0000\u11bc" +
+        "\u11bc\u0000\u11bc\u11bf\u0000\u11f0\u11ba\u0000\u11f0\u11eb" +
+        "\u0000\u11c1\u11b8\u0000\u11c1\u11bc\u0000\u11c2\u11ab\u0000" +
+        "\u11c2\u11af\u0000\u11c2\u11b7\u0000\u11c2\u11b8\u0000\u0073" +
+        "\u0307\u0000\u0020\u0313\u0000\u0020\u0313\u0000\u0020\u0342" +
+        "\u0000\u0020\u0308\u0342\u0000\u0020\u0313\u0300\u0000\u0020" +
+        "\u0313\u0301\u0000\u0020\u0313\u0342\u0000\u0020\u0314\u0300" +
+        "\u0000\u0020\u0314\u0301\u0000\u0020\u0314\u0342\u0000\u0020" +
+        "\u0308\u0300\u0000\u0020\u0308\u0301\u0000\u0020\u0300\u0000" +
+        "\u0020\u0301\u0000\u0020\u0314\u0000\u0020\u0000\u0020\u0000" +
+        "\u0020\u0000\u0020\u0000\u0020\u0000\u0020\u0000\u0020\u0000" +
+        "\u0020\u0000\u0020\u0000\u0020\u0000\u0020\u0000\u2010\u0000" +
+        "\u0020\u0333\u0000\u002e\u0000\u002e\u002e\u0000\u002e\u002e" +
+        "\u002e\u0000\u2032\u2032\u0000\u2032\u2032\u2032\u0000\u2035" +
+        "\u2035\u0000\u2035\u2035\u2035\u0000\u0021\u0021\u0000\u0020" +
+        "\u0305\u0000\u0030\u0000\u0034\u0000\u0035\u0000\u0036\u0000" +
+        "\u0037\u0000\u0038\u0000\u0039\u0000\u002b\u0000\u2212\u0000" +
+        "\u003d\u0000\u0028\u0000\u0029\u0000\u006e\u0000\u0030\u0000" +
+        "\u0031\u0000\u0032\u0000\u0033\u0000\u0034\u0000\u0035\u0000" +
+        "\u0036\u0000\u0037\u0000\u0038\u0000\u0039\u0000\u002b\u0000" +
+        "\u2212\u0000\u003d\u0000\u0028\u0000\u0029\u0000\u0052\u0073" +
+        "\u0000\u0043\u0000\u00b0\u0043\u0000\u0190\u0000\u00b0\u0046" +
+        "\u0000\u0067\u0000\u0048\u0000\u0048\u0000\u0048\u0000\u0068" +
+        "\u0000\u0127\u0000\u0049\u0000\u0049\u0000\u004c\u0000\u006c" +
+        "\u0000\u004e\u0000\u004e\u006f\u0000\u0050\u0000\u0050\u0000" +
+        "\u0051\u0000\u0052\u0000\u0052\u0000\u0052\u0000\u0053\u004d" +
+        "\u0000\u0054\u0045\u004c\u0000\u0054\u004d\u0000\u005a\u0000" +
+        "\u005a\u0000\u0042\u0000\u0043\u0000\u0065\u0000\u0045\u0000" +
+        "\u0046\u0000\u004d\u0000\u006f\u0000\u05d0\u0000\u05d1\u0000" +
+        "\u05d2\u0000\u05d3\u0000\u0031\u2044\u0033\u0000\u0032\u2044" +
+        "\u0033\u0000\u0031\u2044\u0035\u0000\u0032\u2044\u0035\u0000" +
+        "\u0033\u2044\u0035\u0000\u0034\u2044\u0035\u0000\u0031\u2044" +
+        "\u0036\u0000\u0035\u2044\u0036\u0000\u0031\u2044\u0038\u0000" +
+        "\u0033\u2044\u0038\u0000\u0035\u2044\u0038\u0000\u0037\u2044" +
+        "\u0038\u0000\u0031\u2044\u0000\u0049\u0000\u0049\u0049\u0000" +
+        "\u0049\u0049\u0049\u0000\u0049\u0056\u0000\u0056\u0000\u0056" +
+        "\u0049\u0000\u0056\u0049\u0049\u0000\u0056\u0049\u0049\u0049" +
+        "\u0000\u0049\u0058\u0000\u0058\u0000\u0058\u0049\u0000\u0058" +
+        "\u0049\u0049\u0000\u004c\u0000\u0043\u0000\u0044\u0000\u004d" +
+        "\u0000\u0069\u0000\u0069\u0069\u0000\u0069\u0069\u0069\u0000" +
+        "\u0069\u0076\u0000\u0076\u0000\u0076\u0069\u0000\u0076\u0069" +
+        "\u0069\u0000\u0076\u0069\u0069\u0069\u0000\u0069\u0078\u0000" +
+        "\u0078\u0000\u0078\u0069\u0000\u0078\u0069\u0069\u0000\u006c" +
+        "\u0000\u0063\u0000\u0064\u0000\u006d\u0000\u222b\u222b\u0000" +
+        "\u222b\u222b\u222b\u0000\u222e\u222e\u0000\u222e\u222e\u222e" +
+        "\u0000\u0031\u0000\u0032\u0000\u0033\u0000\u0034\u0000\u0035" +
+        "\u0000\u0036\u0000\u0037\u0000\u0038\u0000\u0039\u0000\u0031" +
+        "\u0000\u0031\u0030\u0000\u0031\u0032\u0000\u0031\u0033\u0000" +
+        "\u0031\u0034\u0000\u0031\u0035\u0000\u0031\u0036\u0000\u0031" +
+        "\u0037\u0000\u0031\u0038\u0000\u0031\u0039\u0000\u0032\u0030" +
+        "\u0000\u0041\u0000\u0042\u0000\u0043\u0000\u0044\u0000\u0045" +
+        "\u0000\u0046\u0000\u0047\u0000\u0048\u0000\u0049\u0000\u004a" +
+        "\u0000\u004b\u0000\u004c\u0000\u004d\u0000\u004e\u0000\u004f" +
+        "\u0000\u0050\u0000\u0051\u0000\u0052\u0000\u0053\u0000\u0054" +
+        "\u0000\u0055\u0000\u0056\u0000\u0057\u0000\u0058\u0000\u0059" +
+        "\u0000\u005a\u0000\u0061\u0000\u0062\u0000\u0063\u0000\u0064" +
+        "\u0000\u0065\u0000\u0066\u0000\u0067\u0000\u0068\u0000\u0069" +
+        "\u0000\u006a\u0000\u006b\u0000\u006c\u0000\u006d\u0000\u006e" +
+        "\u0000\u006f\u0000\u0070\u0000\u0071\u0000\u0072\u0000\u0073" +
+        "\u0000\u0074\u0000\u0075\u0000\u0076\u0000\u0077\u0000\u0078" +
+        "\u0000\u0079\u0000\u007a\u0000\u0030\u0000\u0020\u0000\u3012" +
+        "\u0000\u0020\u3099\u0000\u0020\u309a\u0000\u1100\u0000\u1100" +
+        "\u1100\u0000\u11a8\u11ba\u0000\u1102\u0000\u11ab\u11bd\u0000" +
+        "\u11ab\u11c2\u0000\u1103\u0000\u1103\u1103\u0000\u1105\u0000" +
+        "\u11af\u11a8\u0000\u11af\u11b7\u0000\u11af\u11b8\u0000\u11af" +
+        "\u11ba\u0000\u11af\u11c0\u0000\u11af\u11c1\u0000\u1105\u1112" +
+        "\u0000\u1106\u0000\u1107\u0000\u1107\u1107\u0000\u1107\u1109" +
+        "\u0000\u1109\u0000\u1109\u1109\u0000\u110b\u0000\u110c\u0000" +
+        "\u110c\u110c\u0000\u110e\u0000\u110f\u0000\u1110\u0000\u1111" +
+        "\u0000\u1112\u0000\u1161\u0000\u1161\u1175\u0000\u1163\u0000" +
+        "\u1163\u1175\u0000\u1165\u0000\u1165\u1175\u0000\u1167\u0000" +
+        "\u1167\u1175\u0000\u1169\u0000\u1169\u1161\u0000\u1169\u1175" +
+        "\u1161\u0000\u1169\u1175\u0000\u116d\u0000\u116e\u0000\u116e" +
+        "\u1165\u0000\u116e\u1175\u1165\u0000\u116e\u1175\u0000\u1172" +
+        "\u0000\u1173\u0000\u1173\u1175\u0000\u1175\u0000\u1160\u0000" +
+        "\u1102\u1102\u0000\u1102\u1103\u0000\u11ab\u11ba\u0000\u11ab" +
+        "\u11eb\u0000\u11af\u11ba\u11a8\u0000\u11af\u11ae\u0000\u11af" +
+        "\u11ba\u11b8\u0000\u11af\u11eb\u0000\u11af\u11f9\u0000\u1106" +
+        "\u1107\u0000\u11b7\u11ba\u0000\u11b7\u11eb\u0000\u1106\u110b" +
+        "\u0000\u1107\u1100\u0000\u1107\u1103\u0000\u1107\u1100\u1109" +
+        "\u0000\u1107\u1103\u1109\u0000\u1107\u110c\u0000\u1107\u1110" +
+        "\u0000\u1107\u110b\u0000\u1107\u110b\u1107\u0000\u1109\u1100" +
+        "\u0000\u1109\u1102\u0000\u1109\u1103\u0000\u1109\u1107\u0000" +
+        "\u1109\u110c\u0000\u1140\u0000\u110b\u110b\u0000\u114c\u0000" +
+        "\u11f0\u11ba\u0000\u11f0\u11eb\u0000\u1111\u110b\u0000\u1112" +
+        "\u1112\u0000\u1159\u0000\u116d\u1163\u0000\u116d\u1175\u1163" +
+        "\u0000\u116d\u1175\u0000\u1172\u1167\u0000\u1172\u1175\u1167" +
+        "\u0000\u1172\u1175\u0000\u119e\u0000\u119e\u1175\u0000\u4e00" +
+        "\u0000\u4e8c\u0000\u4e09\u0000\u56db\u0000\u4e0a\u0000\u4e2d" +
+        "\u0000\u4e0b\u0000\u7532\u0000\u4e59\u0000\u4e19\u0000\u4e01" +
+        "\u0000\u5929\u0000\u5730\u0000\u4eba\u0000\u0028\u1100\u0029" +
+        "\u0000\u0028\u1102\u0029\u0000\u0028\u1103\u0029\u0000\u0028" +
+        "\u1105\u0029\u0000\u0028\u1106\u0029\u0000\u0028\u1107\u0029" +
+        "\u0000\u0028\u1109\u0029\u0000\u0028\u110b\u0029\u0000\u0028" +
+        "\u110c\u0029\u0000\u0028\u110e\u0029\u0000\u0028\u110f\u0029" +
+        "\u0000\u0028\u1110\u0029\u0000\u0028\u1111\u0029\u0000\u0028" +
+        "\u1112\u0029\u0000\u0028\u1100\u1161\u0029\u0000\u0028\u1102" +
+        "\u1161\u0029\u0000\u0028\u1103\u1161\u0029\u0000\u0028\u1105" +
+        "\u1161\u0029\u0000\u0028\u1106\u1161\u0029\u0000\u0028\u1107" +
+        "\u1161\u0029\u0000\u0028\u1109\u1161\u0029\u0000\u0028\u110b" +
+        "\u1161\u0029\u0000\u0028\u110c\u1161\u0029\u0000\u0028\u110e" +
+        "\u1161\u0029\u0000\u0028\u110f\u1161\u0029\u0000\u0028\u1110" +
+        "\u1161\u0029\u0000\u0028\u1111\u1161\u0029\u0000\u0028\u1112" +
+        "\u1161\u0029\u0000\u0028\u110c\u116e\u0029\u0000\u0028\u4e00" +
+        "\u0029\u0000\u0028\u4e8c\u0029\u0000\u0028\u4e09\u0029\u0000" +
+        "\u0028\u56db\u0029\u0000\u0028\u4e94\u0029\u0000\u0028\u516d" +
+        "\u0029\u0000\u0028\u4e03\u0029\u0000\u0028\u516b\u0029\u0000" +
+        "\u0028\u4e5d\u0029\u0000\u0028\u5341\u0029\u0000\u0028\u6708" +
+        "\u0029\u0000\u0028\u706b\u0029\u0000\u0028\u6c34\u0029\u0000" +
+        "\u0028\u6728\u0029\u0000\u0028\u91d1\u0029\u0000\u0028\u571f" +
+        "\u0029\u0000\u0028\u65e5\u0029\u0000\u0028\u682a\u0029\u0000" +
+        "\u0028\u6709\u0029\u0000\u0028\u793e\u0029\u0000\u0028\u540d" +
+        "\u0029\u0000\u0028\u7279\u0029\u0000\u0028\u8ca1\u0029\u0000" +
+        "\u0028\u795d\u0029\u0000\u0028\u52b4\u0029\u0000\u0028\u4ee3" +
+        "\u0029\u0000\u0028\u547c\u0029\u0000\u0028\u5b66\u0029\u0000" +
+        "\u0028\u76e3\u0029\u0000\u0028\u4f01\u0029\u0000\u0028\u8cc7" +
+        "\u0029\u0000\u0028\u5354\u0029\u0000\u0028\u796d\u0029\u0000" +
+        "\u0028\u4f11\u0029\u0000\u0028\u81ea\u0029\u0000\u0028\u81f3" +
+        "\u0029\u0000\u1100\u0000\u1102\u0000\u1103\u0000\u1105\u0000" +
+        "\u1106\u0000\u1107\u0000\u1109\u0000\u110b\u0000\u110c\u0000" +
+        "\u110e\u0000\u110f\u0000\u1110\u0000\u1111\u0000\u1112\u0000" +
+        "\u1100\u1161\u0000\u1102\u1161\u0000\u1103\u1161\u0000\u1105" +
+        "\u1161\u0000\u1106\u1161\u0000\u1107\u1161\u0000\u1109\u1161" +
+        "\u0000\u110b\u1161\u0000\u110c\u1161\u0000\u110e\u1161\u0000" +
+        "\u110f\u1161\u0000\u1110\u1161\u0000\u1111\u1161\u0000\u1112" +
+        "\u1161\u0000\u4e00\u0000\u4e8c\u0000\u4e09\u0000\u56db\u0000" +
+        "\u4e94\u0000\u516d\u0000\u4e03\u0000\u516b\u0000\u4e5d\u0000" +
+        "\u5341\u0000\u6708\u0000\u706b\u0000\u6c34\u0000\u6728\u0000" +
+        "\u91d1\u0000\u571f\u0000\u65e5\u0000\u682a\u0000\u6709\u0000" +
+        "\u793e\u0000\u540d\u0000\u7279\u0000\u8ca1\u0000\u795d\u0000" +
+        "\u52b4\u0000\u79d8\u0000\u7537\u0000\u5973\u0000\u9069\u0000" +
+        "\u512a\u0000\u5370\u0000\u6ce8\u0000\u9805\u0000\u4f11\u0000" +
+        "\u5199\u0000\u6b63\u0000\u4e0a\u0000\u4e2d\u0000\u4e0b\u0000" +
+        "\u5de6\u0000\u53f3\u0000\u533b\u0000\u5b97\u0000\u5b66\u0000" +
+        "\u76e3\u0000\u4f01\u0000\u8cc7\u0000\u5354\u0000\u591c\u0000" +
+        "\u0031\u6708\u0000\u0032\u6708\u0000\u0033\u6708\u0000\u0034" +
+        "\u6708\u0000\u0035\u6708\u0000\u0036\u6708\u0000\u0037\u6708" +
+        "\u0000\u0038\u6708\u0000\u0039\u6708\u0000\u0031\u0030\u6708" +
+        "\u0000\u0031\u0031\u6708\u0000\u0031\u0032\u6708\u0000\u30a2" +
+        "\u0000\u30a4\u0000\u30a6\u0000\u30a8\u0000\u30aa\u0000\u30ab" +
+        "\u0000\u30ad\u0000\u30af\u0000\u30b1\u0000\u30b3\u0000\u30b5" +
+        "\u0000\u30b7\u0000\u30b9\u0000\u30bb\u0000\u30bd\u0000\u30bf" +
+        "\u0000\u30c1\u0000\u30c4\u0000\u30c6\u0000\u30c8\u0000\u30ca" +
+        "\u0000\u30cb\u0000\u30cc\u0000\u30cd\u0000\u30ce\u0000\u30cf" +
+        "\u0000\u30d2\u0000\u30d5\u0000\u30d8\u0000\u30db\u0000\u30de" +
+        "\u0000\u30df\u0000\u30e0\u0000\u30e1\u0000\u30e2\u0000\u30e4" +
+        "\u0000\u30e6\u0000\u30e8\u0000\u30e9\u0000\u30ea\u0000\u30eb" +
+        "\u0000\u30ec\u0000\u30ed\u0000\u30ef\u0000\u30f0\u0000\u30f1" +
+        "\u0000\u30f2\u0000\u30a2\u30cf\u309a\u30fc\u30c8\u0000\u30a2" +
+        "\u30eb\u30d5\u30a1\u0000\u30a2\u30f3\u30d8\u309a\u30a2\u0000" +
+        "\u30a2\u30fc\u30eb\u0000\u30a4\u30cb\u30f3\u30af\u3099\u0000" +
+        "\u30a4\u30f3\u30c1\u0000\u30a6\u30a9\u30f3\u0000\u30a8\u30b9" +
+        "\u30af\u30fc\u30c8\u3099\u0000\u30a8\u30fc\u30ab\u30fc\u0000" +
+        "\u30aa\u30f3\u30b9\u0000\u30aa\u30fc\u30e0\u0000\u30ab\u30a4" +
+        "\u30ea\u0000\u30ab\u30e9\u30c3\u30c8\u0000\u30ab\u30ed\u30ea" +
+        "\u30fc\u0000\u30ab\u3099\u30ed\u30f3\u0000\u30ab\u3099\u30f3" +
+        "\u30de\u0000\u30ad\u3099\u30ab\u3099\u0000\u30ad\u3099\u30cb" +
+        "\u30fc\u0000\u30ad\u30e5\u30ea\u30fc\u0000\u30ad\u3099\u30eb" +
+        "\u30bf\u3099\u30fc\u0000\u30ad\u30ed\u0000\u30ad\u30ed\u30af" +
+        "\u3099\u30e9\u30e0\u0000\u30ad\u30ed\u30e1\u30fc\u30c8\u30eb" +
+        "\u0000\u30ad\u30ed\u30ef\u30c3\u30c8\u0000\u30af\u3099\u30e9" +
+        "\u30e0\u0000\u30af\u3099\u30e9\u30e0\u30c8\u30f3\u0000\u30af" +
+        "\u30eb\u30bb\u3099\u30a4\u30ed\u0000\u30af\u30ed\u30fc\u30cd" +
+        "\u0000\u30b1\u30fc\u30b9\u0000\u30b3\u30eb\u30ca\u0000\u30b3" +
+        "\u30fc\u30db\u309a\u0000\u30b5\u30a4\u30af\u30eb\u0000\u30b5" +
+        "\u30f3\u30c1\u30fc\u30e0\u0000\u30b7\u30ea\u30f3\u30af\u3099" +
+        "\u0000\u30bb\u30f3\u30c1\u0000\u30bb\u30f3\u30c8\u0000\u30bf" +
+        "\u3099\u30fc\u30b9\u0000\u30c6\u3099\u30b7\u0000\u30c8\u3099" +
+        "\u30eb\u0000\u30c8\u30f3\u0000\u30ca\u30ce\u0000\u30ce\u30c3" +
+        "\u30c8\u0000\u30cf\u30a4\u30c4\u0000\u30cf\u309a\u30fc\u30bb" +
+        "\u30f3\u30c8\u0000\u30cf\u309a\u30fc\u30c4\u0000\u30cf\u3099" +
+        "\u30fc\u30ec\u30eb\u0000\u30d2\u309a\u30a2\u30b9\u30c8\u30eb" +
+        "\u0000\u30d2\u309a\u30af\u30eb\u0000\u30d2\u309a\u30b3\u0000" +
+        "\u30d2\u3099\u30eb\u0000\u30d5\u30a1\u30e9\u30c3\u30c8\u3099" +
+        "\u0000\u30d5\u30a3\u30fc\u30c8\u0000\u30d5\u3099\u30c3\u30b7" +
+        "\u30a7\u30eb\u0000\u30d5\u30e9\u30f3\u0000\u30d8\u30af\u30bf" +
+        "\u30fc\u30eb\u0000\u30d8\u309a\u30bd\u0000\u30d8\u309a\u30cb" +
+        "\u30d2\u0000\u30d8\u30eb\u30c4\u0000\u30d8\u309a\u30f3\u30b9" +
+        "\u0000\u30d8\u309a\u30fc\u30b7\u3099\u0000\u30d8\u3099\u30fc" +
+        "\u30bf\u0000\u30db\u309a\u30a4\u30f3\u30c8\u0000\u30db\u3099" +
+        "\u30eb\u30c8\u0000\u30db\u30f3\u0000\u30db\u309a\u30f3\u30c8" +
+        "\u3099\u0000\u30db\u30fc\u30eb\u0000\u30db\u30fc\u30f3\u0000" +
+        "\u30de\u30a4\u30af\u30ed\u0000\u30de\u30a4\u30eb\u0000\u30de" +
+        "\u30c3\u30cf\u0000\u30de\u30eb\u30af\u0000\u30de\u30f3\u30b7" +
+        "\u30e7\u30f3\u0000\u30df\u30af\u30ed\u30f3\u0000\u30df\u30ea" +
+        "\u0000\u30df\u30ea\u30cf\u3099\u30fc\u30eb\u0000\u30e1\u30ab" +
+        "\u3099\u0000\u30e1\u30ab\u3099\u30c8\u30f3\u0000\u30e1\u30fc" +
+        "\u30c8\u30eb\u0000\u30e4\u30fc\u30c8\u3099\u0000\u30e4\u30fc" +
+        "\u30eb\u0000\u30e6\u30a2\u30f3\u0000\u30ea\u30c3\u30c8\u30eb" +
+        "\u0000\u30ea\u30e9\u0000\u30eb\u30d2\u309a\u30fc\u0000\u30eb" +
+        "\u30fc\u30d5\u3099\u30eb\u0000\u30ec\u30e0\u0000\u30ec\u30f3" +
+        "\u30c8\u30b1\u3099\u30f3\u0000\u30ef\u30c3\u30c8\u0000\u0030" +
+        "\u70b9\u0000\u0031\u70b9\u0000\u0032\u70b9\u0000\u0033\u70b9" +
+        "\u0000\u0034\u70b9\u0000\u0035\u70b9\u0000\u0036\u70b9\u0000" +
+        "\u0037\u70b9\u0000\u0038\u70b9\u0000\u0039\u70b9\u0000\u0031" +
+        "\u0030\u70b9\u0000\u0031\u0031\u70b9\u0000\u0031\u0032\u70b9" +
+        "\u0000\u0031\u0033\u70b9\u0000\u0031\u0034\u70b9\u0000\u0031" +
+        "\u0035\u70b9\u0000\u0031\u0036\u70b9\u0000\u0031\u0037\u70b9" +
+        "\u0000\u0031\u0038\u70b9\u0000\u0031\u0039\u70b9\u0000\u0032" +
+        "\u0030\u70b9\u0000\u0032\u0031\u70b9\u0000\u0032\u0032\u70b9" +
+        "\u0000\u0032\u0033\u70b9\u0000\u0032\u0034\u70b9\u0000\u0068" +
+        "\u0050\u0061\u0000\u0064\u0061\u0000\u0041\u0055\u0000\u0062" +
+        "\u0061\u0072\u0000\u006f\u0056\u0000\u0070\u0063\u0000\u5e73" +
+        "\u6210\u0000\u662d\u548c\u0000\u5927\u6b63\u0000\u660e\u6cbb" +
+        "\u0000\u682a\u5f0f\u4f1a\u793e\u0000\u0070\u0041\u0000\u006e" +
+        "\u0041\u0000\u03bc\u0041\u0000\u006d\u0041\u0000\u006b\u0041" +
+        "\u0000\u004b\u0042\u0000\u004d\u0042\u0000\u0047\u0042\u0000" +
+        "\u0063\u0061\u006c\u0000\u006b\u0063\u0061\u006c\u0000\u0070" +
+        "\u0046\u0000\u006e\u0046\u0000\u03bc\u0046\u0000\u03bc\u0067" +
+        "\u0000\u006d\u0067\u0000\u006b\u0067\u0000\u0048\u007a\u0000" +
+        "\u006b\u0048\u007a\u0000\u004d\u0048\u007a\u0000\u0047\u0048" +
+        "\u007a\u0000\u0054\u0048\u007a\u0000\u03bc\u006c\u0000\u006d" +
+        "\u006c\u0000\u0064\u006c\u0000\u006b\u006c\u0000\u0066\u006d" +
+        "\u0000\u006e\u006d\u0000\u03bc\u006d\u0000\u006d\u006d\u0000" +
+        "\u0063\u006d\u0000\u006b\u006d\u0000\u006d\u006d\u0032\u0000" +
+        "\u0063\u006d\u0032\u0000\u006d\u0032\u0000\u006b\u006d\u0032" +
+        "\u0000\u006d\u006d\u0033\u0000\u0063\u006d\u0033\u0000\u006d" +
+        "\u0033\u0000\u006b\u006d\u0033\u0000\u006d\u2215\u0073\u0000" +
+        "\u006d\u2215\u0073\u0032\u0000\u0050\u0061\u0000\u006b\u0050" +
+        "\u0061\u0000\u004d\u0050\u0061\u0000\u0047\u0050\u0061\u0000" +
+        "\u0072\u0061\u0064\u0000\u0072\u0061\u0064\u2215\u0073\u0000" +
+        "\u0072\u0061\u0064\u2215\u0073\u0032\u0000\u0070\u0073\u0000" +
+        "\u006e\u0073\u0000\u03bc\u0073\u0000\u006d\u0073\u0000\u0070" +
+        "\u0056\u0000\u006e\u0056\u0000\u03bc\u0056\u0000\u006d\u0056" +
+        "\u0000\u006b\u0056\u0000\u004d\u0056\u0000\u0070\u0057\u0000" +
+        "\u006e\u0057\u0000\u03bc\u0057\u0000\u006d\u0057\u0000\u006b" +
+        "\u0057\u0000\u004d\u0057\u0000\u006b\u03a9\u0000\u004d\u03a9" +
+        "\u0000\u0061\u002e\u006d\u002e\u0000\u0042\u0071\u0000\u0063" +
+        "\u0063\u0000\u0063\u0064\u0000\u0043\u2215\u006b\u0067\u0000" +
+        "\u0043\u006f\u002e\u0000\u0064\u0042\u0000\u0047\u0079\u0000" +
+        "\u0068\u0061\u0000\u0048\u0050\u0000\u0069\u006e\u0000\u004b" +
+        "\u004b\u0000\u004b\u004d\u0000\u006b\u0074\u0000\u006c\u006d" +
+        "\u0000\u006c\u006e\u0000\u006c\u006f\u0067\u0000\u006c\u0078" +
+        "\u0000\u006d\u0062\u0000\u006d\u0069\u006c\u0000\u006d\u006f" +
+        "\u006c\u0000\u0050\u0048\u0000\u0070\u002e\u006d\u002e\u0000" +
+        "\u0050\u0050\u004d\u0000\u0050\u0052\u0000\u0073\u0072\u0000" +
+        "\u0053\u0076\u0000\u0057\u0062\u0000\u0031\u65e5\u0000\u0032" +
+        "\u65e5\u0000\u0033\u65e5\u0000\u0034\u65e5\u0000\u0035\u65e5" +
+        "\u0000\u0036\u65e5\u0000\u0037\u65e5\u0000\u0038\u65e5\u0000" +
+        "\u0039\u65e5\u0000\u0031\u0030\u65e5\u0000\u0031\u0031\u65e5" +
+        "\u0000\u0031\u0032\u65e5\u0000\u0031\u0033\u65e5\u0000\u0031" +
+        "\u0034\u65e5\u0000\u0031\u0035\u65e5\u0000\u0031\u0036\u65e5" +
+        "\u0000\u0031\u0037\u65e5\u0000\u0031\u0038\u65e5\u0000\u0031" +
+        "\u0039\u65e5\u0000\u0032\u0030\u65e5\u0000\u0032\u0031\u65e5" +
+        "\u0000\u0032\u0032\u65e5\u0000\u0032\u0033\u65e5\u0000\u0032" +
+        "\u0034\u65e5\u0000\u0032\u0035\u65e5\u0000\u0032\u0036\u65e5" +
+        "\u0000\u0032\u0037\u65e5\u0000\u0032\u0038\u65e5\u0000\u0032" +
+        "\u0039\u65e5\u0000\u0033\u0030\u65e5\u0000\u0033\u0031\u65e5" +
+        "\u0000\u0066\u0066\u0000\u0066\u0069\u0000\u0066\u006c\u0000" +
+        "\u0066\u0066\u0069\u0000\u0066\u0066\u006c\u0000\u0073\u0074" +
+        "\u0000\u0073\u0074\u0000\u0574\u0576\u0000\u0574\u0565\u0000" +
+        "\u0574\u056b\u0000\u057e\u0576\u0000\u0574\u056d\u0000\u05f2" +
+        "\u05b7\u0000\u05e2\u0000\u05d0\u0000\u05d3\u0000\u05d4\u0000" +
+        "\u05db\u0000\u05dc\u0000\u05dd\u0000\u05e8\u0000\u05ea\u0000" +
+        "\u002b\u0000\u05d0\u05dc\u0000\u0671\u0000\u0671\u0000\u067b" +
+        "\u0000\u067b\u0000\u067b\u0000\u067b\u0000\u067e\u0000\u067e" +
+        "\u0000\u067e\u0000\u067e\u0000\u0680\u0000\u0680\u0000\u0680" +
+        "\u0000\u0680\u0000\u067a\u0000\u067a\u0000\u067a\u0000\u067a" +
+        "\u0000\u067f\u0000\u067f\u0000\u067f\u0000\u067f\u0000\u0679" +
+        "\u0000\u0679\u0000\u0679\u0000\u0679\u0000\u06a4\u0000\u06a4" +
+        "\u0000\u06a4\u0000\u06a4\u0000\u06a6\u0000\u06a6\u0000\u06a6" +
+        "\u0000\u06a6\u0000\u0684\u0000\u0684\u0000\u0684\u0000\u0684" +
+        "\u0000\u0683\u0000\u0683\u0000\u0683\u0000\u0683\u0000\u0686" +
+        "\u0000\u0686\u0000\u0686\u0000\u0686\u0000\u0687\u0000\u0687" +
+        "\u0000\u0687\u0000\u0687\u0000\u068d\u0000\u068d\u0000\u068c" +
+        "\u0000\u068c\u0000\u068e\u0000\u068e\u0000\u0688\u0000\u0688" +
+        "\u0000\u0698\u0000\u0698\u0000\u0691\u0000\u0691\u0000\u06a9" +
+        "\u0000\u06a9\u0000\u06a9\u0000\u06a9\u0000\u06af\u0000\u06af" +
+        "\u0000\u06af\u0000\u06af\u0000\u06b3\u0000\u06b3\u0000\u06b3" +
+        "\u0000\u06b3\u0000\u06b1\u0000\u06b1\u0000\u06b1\u0000\u06b1" +
+        "\u0000\u06ba\u0000\u06ba\u0000\u06bb\u0000\u06bb\u0000\u06bb" +
+        "\u0000\u06bb\u0000\u06c0\u0000\u06c0\u0000\u06c1\u0000\u06c1" +
+        "\u0000\u06c1\u0000\u06c1\u0000\u06be\u0000\u06be\u0000\u06be" +
+        "\u0000\u06be\u0000\u06d2\u0000\u06d2\u0000\u06d3\u0000\u06d3" +
+        "\u0000\u06ad\u0000\u06ad\u0000\u06ad\u0000\u06ad\u0000\u06c7" +
+        "\u0000\u06c7\u0000\u06c6\u0000\u06c6\u0000\u06c8\u0000\u06c8" +
+        "\u0000\u0677\u0000\u06cb\u0000\u06cb\u0000\u06c5\u0000\u06c5" +
+        "\u0000\u06c9\u0000\u06c9\u0000\u06d0\u0000\u06d0\u0000\u06d0" +
+        "\u0000\u06d0\u0000\u06cc\u0000\u06cc\u0000\u06cc\u0000\u06cc" +
+        "\u0000\u002e\u002e\u0000\u2014\u0000\u2013\u0000\u0020\u0332" +
+        "\u0000\u0020\u0332\u0000\u0028\u0000\u0029\u0000\u007b\u0000" +
+        "\u007d\u0000\u3014\u0000\u3015\u0000\u3010\u0000\u3011\u0000" +
+        "\u300a\u0000\u300b\u0000\u3008\u0000\u3009\u0000\u300c\u0000" +
+        "\u300d\u0000\u300e\u0000\u300f\u0000\u0020\u0305\u0000\u0020" +
+        "\u0305\u0000\u0020\u0305\u0000\u0020\u0305\u0000\u0020\u0332" +
+        "\u0000\u0020\u0332\u0000\u0020\u0332\u0000\u002c\u0000\u3001" +
+        "\u0000\u002e\u0000\u003b\u0000\u003a\u0000\u003f\u0000\u0021" +
+        "\u0000\u2014\u0000\u0028\u0000\u0029\u0000\u007b\u0000\u007d" +
+        "\u0000\u3014\u0000\u3015\u0000\u0023\u0000\u0026\u0000\u002a" +
+        "\u0000\u002b\u0000\u002d\u0000\u003c\u0000\u003e\u0000\u003d" +
+        "\u0000\\\u0000\u0024\u0000\u0025\u0000\u0040\u0000\u0020" +
+        "\u064b\u0000\u0640\u064b\u0000\u0020\u064c\u0000\u0020\u064d" +
+        "\u0000\u0020\u064e\u0000\u0640\u064e\u0000\u0020\u064f\u0000" +
+        "\u0640\u064f\u0000\u0020\u0650\u0000\u0640\u0650\u0000\u0020" +
+        "\u0651\u0000\u0640\u0651\u0000\u0020\u0652\u0000\u0640\u0652" +
+        "\u0000\u0621\u0000\u0622\u0000\u0622\u0000\u0623\u0000\u0623" +
+        "\u0000\u0624\u0000\u0624\u0000\u0625\u0000\u0625\u0000\u0626" +
+        "\u0000\u0626\u0000\u0626\u0000\u0626\u0000\u0627\u0000\u0627" +
+        "\u0000\u0628\u0000\u0628\u0000\u0628\u0000\u0628\u0000\u0629" +
+        "\u0000\u0629\u0000\u062a\u0000\u062a\u0000\u062a\u0000\u062a" +
+        "\u0000\u062b\u0000\u062b\u0000\u062b\u0000\u062b\u0000\u062c" +
+        "\u0000\u062c\u0000\u062c\u0000\u062c\u0000\u062d\u0000\u062d" +
+        "\u0000\u062d\u0000\u062d\u0000\u062e\u0000\u062e\u0000\u062e" +
+        "\u0000\u062e\u0000\u062f\u0000\u062f\u0000\u0630\u0000\u0630" +
+        "\u0000\u0631\u0000\u0631\u0000\u0632\u0000\u0632\u0000\u0633" +
+        "\u0000\u0633\u0000\u0633\u0000\u0633\u0000\u0634\u0000\u0634" +
+        "\u0000\u0634\u0000\u0634\u0000\u0635\u0000\u0635\u0000\u0635" +
+        "\u0000\u0635\u0000\u0636\u0000\u0636\u0000\u0636\u0000\u0636" +
+        "\u0000\u0637\u0000\u0637\u0000\u0637\u0000\u0637\u0000\u0638" +
+        "\u0000\u0638\u0000\u0638\u0000\u0638\u0000\u0639\u0000\u0639" +
+        "\u0000\u0639\u0000\u0639\u0000\u063a\u0000\u063a\u0000\u063a" +
+        "\u0000\u063a\u0000\u0641\u0000\u0641\u0000\u0641\u0000\u0641" +
+        "\u0000\u0642\u0000\u0642\u0000\u0642\u0000\u0642\u0000\u0643" +
+        "\u0000\u0643\u0000\u0643\u0000\u0643\u0000\u0644\u0000\u0644" +
+        "\u0000\u0644\u0000\u0644\u0000\u0645\u0000\u0645\u0000\u0645" +
+        "\u0000\u0645\u0000\u0646\u0000\u0646\u0000\u0646\u0000\u0646" +
+        "\u0000\u0647\u0000\u0647\u0000\u0647\u0000\u0647\u0000\u0648" +
+        "\u0000\u0648\u0000\u0649\u0000\u0649\u0000\u064a\u0000\u064a" +
+        "\u0000\u064a\u0000\u064a\u0000\u0021\u0000\"\u0000\u0023" +
+        "\u0000\u0024\u0000\u0025\u0000\u0026\u0000\u0027\u0000\u0028" +
+        "\u0000\u0029\u0000\u002a\u0000\u002b\u0000\u002c\u0000\u002d" +
+        "\u0000\u002e\u0000\u002f\u0000\u0030\u0000\u0031\u0000\u0032" +
+        "\u0000\u0033\u0000\u0034\u0000\u0035\u0000\u0036\u0000\u0037" +
+        "\u0000\u0038\u0000\u0039\u0000\u003a\u0000\u003b\u0000\u003c" +
+        "\u0000\u003d\u0000\u003e\u0000\u003f\u0000\u0040\u0000\u0041" +
+        "\u0000\u0042\u0000\u0043\u0000\u0044\u0000\u0045\u0000\u0046" +
+        "\u0000\u0047\u0000\u0048\u0000\u0049\u0000\u004a\u0000\u004b" +
+        "\u0000\u004c\u0000\u004d\u0000\u004e\u0000\u004f\u0000\u0050" +
+        "\u0000\u0051\u0000\u0052\u0000\u0053\u0000\u0054\u0000\u0055" +
+        "\u0000\u0056\u0000\u0057\u0000\u0058\u0000\u0059\u0000\u005a" +
+        "\u0000\u005b\u0000\\\u0000\u005d\u0000\u0020\u0302\u0000" +
+        "\u0020\u0332\u0000\u0020\u0300\u0000\u0061\u0000\u0062\u0000" +
+        "\u0063\u0000\u0064\u0000\u0065\u0000\u0066\u0000\u0067\u0000" +
+        "\u0068\u0000\u0069\u0000\u006a\u0000\u006b\u0000\u006c\u0000" +
+        "\u006d\u0000\u006e\u0000\u006f\u0000\u0070\u0000\u0071\u0000" +
+        "\u0072\u0000\u0073\u0000\u0074\u0000\u0075\u0000\u0076\u0000" +
+        "\u0077\u0000\u0078\u0000\u0079\u0000\u007a\u0000\u007b\u0000" +
+        "\u007c\u0000\u007d\u0000\u007e\u0000\u3002\u0000\u300c\u0000" +
+        "\u300d\u0000\u3001\u0000\u30fb\u0000\u30f2\u0000\u30a1\u0000" +
+        "\u30a3\u0000\u30a5\u0000\u30a7\u0000\u30a9\u0000\u30e3\u0000" +
+        "\u30e5\u0000\u30e7\u0000\u30c3\u0000\u30fc\u0000\u30a2\u0000" +
+        "\u30a4\u0000\u30a6\u0000\u30a8\u0000\u30aa\u0000\u30ab\u0000" +
+        "\u30ad\u0000\u30af\u0000\u30b1\u0000\u30b3\u0000\u30b5\u0000" +
+        "\u30b7\u0000\u30b9\u0000\u30bb\u0000\u30bd\u0000\u30bf\u0000" +
+        "\u30c1\u0000\u30c4\u0000\u30c6\u0000\u30c8\u0000\u30ca\u0000" +
+        "\u30cb\u0000\u30cc\u0000\u30cd\u0000\u30ce\u0000\u30cf\u0000" +
+        "\u30d2\u0000\u30d5\u0000\u30d8\u0000\u30db\u0000\u30de\u0000" +
+        "\u30df\u0000\u30e0\u0000\u30e1\u0000\u30e2\u0000\u30e4\u0000" +
+        "\u30e6\u0000\u30e8\u0000\u30e9\u0000\u30ea\u0000\u30eb\u0000" +
+        "\u30ec\u0000\u30ed\u0000\u30ef\u0000\u30f3\u0000\u0020\u3099" +
+        "\u0000\u0020\u309a\u0000\u1160\u0000\u1100\u0000\u1100\u1100" +
+        "\u0000\u11a8\u11ba\u0000\u1102\u0000\u11ab\u11bd\u0000\u11ab" +
+        "\u11c2\u0000\u1103\u0000\u1103\u1103\u0000\u1105\u0000\u11af" +
+        "\u11a8\u0000\u11af\u11b7\u0000\u11af\u11b8\u0000\u11af\u11ba" +
+        "\u0000\u11af\u11c0\u0000\u11af\u11c1\u0000\u1105\u1112\u0000" +
+        "\u1106\u0000\u1107\u0000\u1107\u1107\u0000\u1107\u1109\u0000" +
+        "\u1109\u0000\u1109\u1109\u0000\u110b\u0000\u110c\u0000\u110c" +
+        "\u110c\u0000\u110e\u0000\u110f\u0000\u1110\u0000\u1111\u0000" +
+        "\u1112\u0000\u1161\u0000\u1161\u1175\u0000\u1163\u0000\u1163" +
+        "\u1175\u0000\u1165\u0000\u1165\u1175\u0000\u1167\u0000\u1167" +
+        "\u1175\u0000\u1169\u0000\u1169\u1161\u0000\u1169\u1161\u1175" +
+        "\u0000\u1169\u1175\u0000\u116d\u0000\u116e\u0000\u116e\u1165" +
+        "\u0000\u116e\u1165\u1175\u0000\u116e\u1175\u0000\u1172\u0000" +
+        "\u1173\u0000\u1173\u1175\u0000\u1175\u0000\u00a2\u0000\u00a3" +
+        "\u0000\u00ac\u0000\u0020\u0304\u0000\u00a6\u0000\u00a5\u0000" +
+        "\u20a9\u0000\u2502\u0000\u2190\u0000\u2191\u0000\u2192\u0000" +
+        "\u2193\u0000\u25a0\u0000\u25cb\u0000\u0046\u0072\u0000";
+    private static int maximumDecomposition = 7589;
+    private static int maximumCanonical = 3200;
+    // END OF GENERATED CODE
+
+    /* Instance variables */
+
+    /* The source string being decomposed */
+    private String str = null;
+
+    /* Index of first character to be decomposed */
+    private int getBeginIndex = 0;
+
+    /* Index after last character to be decomposed */
+    private int getEndIndex = 0;
+
+    /* One of the java.text.Collator decomposition mode values */
+    private int decmpMode = 0;
+
+    /* Decompose only for indices into the contents table that are less
+     * than this value.
+     */
+    private int decmpLimit;
+
+    /* index of current character in source string */
+    private int sIndex = 0;
+
+    /* a decomposed and canonicalized piece of the the source string */
+    private StringBuffer parsedStr = null;
+
+    /* index into parsedStr */
+    private int pIndex = 0;
+
+    /* true if previous() called more recently than next() */
+    private boolean backedUp = false;
+
+    /* true if we are decomposing the current input character */
+    private boolean decomposing = false;
+
+    private char prevChar = NULLORDER;
+
+    private static final CompactShortArray startOffsets
+        = new CompactShortArray(kOffsetIndex, kOffsetValues);
+
+    // old canonical class
+    // used since canonical values are 0..255
+    static final byte BASE = (byte)-128;
+    static final CompactByteArray canonicals
+        = new CompactByteArray(kCanonicalIndex, kCanonicalValues);
 }

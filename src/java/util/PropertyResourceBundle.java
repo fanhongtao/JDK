@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyResourceBundle.java	1.7 97/01/29
+ * @(#)PropertyResourceBundle.java	1.8 97/12/05
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -97,24 +97,41 @@ public class PropertyResourceBundle extends ResourceBundle {
      * Implementation of ResourceBundle.getKeys.
      */
     public Enumeration getKeys() {
-	Enumeration result = null;
-	if (parent != null) {
-	    Hashtable temp = new Hashtable();
-	    for (Enumeration parentKeys = parent.getKeys() ;
-		 parentKeys.hasMoreElements() ; /* nothing */) {
-		temp.put(parentKeys.nextElement(), this);
+	    Enumeration result = null;
+	    if (parent != null) {
+            final Enumeration myKeys = lookup.keys();
+            final Enumeration parentKeys = parent.getKeys();
+
+            result = new Enumeration() {
+                public boolean hasMoreElements() {
+                    if (temp == null)
+                        nextElement();
+                    return temp != null;
+                }
+
+                public Object nextElement() {
+                    Object returnVal = temp;
+                    if (myKeys.hasMoreElements())
+                        temp = myKeys.nextElement();
+                    else {
+                        temp = null;
+                        while (temp == null && parentKeys.hasMoreElements()) {
+                            temp = parentKeys.nextElement();
+                            if (lookup.containsKey(temp))
+                                temp = null;
+                        }
+                    }
+                    return returnVal;
+                }
+
+                Object temp = null;
+            };
+	    } else {
+	        result = lookup.keys();
 	    }
-	    for (Enumeration thisKeys = lookup.keys();
-		 thisKeys.hasMoreElements() ; /* nothing */) {
-		temp.put(thisKeys.nextElement(), this);
-	    }
-	    result = temp.keys();
-	} else {
-	    result = lookup.keys();
-	}
         return result;
     }
-    
+
     // ==================privates====================
 
     private Properties lookup = new Properties();

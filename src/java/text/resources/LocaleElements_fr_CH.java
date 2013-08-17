@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_fr_CH.java	1.6 97/02/24
+ * @(#)LocaleElements_fr_CH.java	1.8 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,87 +45,65 @@
 
 package java.text.resources;
 
-public class LocaleElements_fr_CH extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_fr_CH() {
-        super.init(table);
+public class LocaleElements_fr_CH extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "fr_CH" }, // locale id based on iso codes
+            { "LocaleID", "100c" }, // Windows id
+            { "ShortCountry", "CHE" }, // iso-3 abbrev country name
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "'SFr. '#,##0.00;'SFr.-'#,##0.00", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements", 
+                new String[] { 
+                    ".", // decimal separator
+                    "'", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "SFr.", // local currency symbol
+                    "CHF", // intl currency symbol
+                    "." // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "HH.mm.' h' z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "EEEE, d. MMMM yyyy", // full date pattern
+                    "d. MMMM yyyy", // long date pattern
+                    "d MMM yy", // medium date pattern
+                    "dd.MM.yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements", 
+                new String[] { 
+                    "2", // first day of week
+                    "4" // min days in first week
+                }
+            }
+        };
     }
-
-    static String table []={
-        "fr_CH", /*locale id based on iso codes*/
-        "100c", /*Windows id*/
-        "frs", /*iso-3 abbrev lang name*/
-        "CHE", /*iso-3 abbrev country name*/
-        "en_French; de_Französisch; fr_français", /*language names*/
-        "en_Switzerland; de_Schweiz; fr_Suisse; it_Svizzera", /*country names*/
-        "janvier", /*january*/
-        "février", /*february*/
-        "mars", /*march*/
-        "avril", /*april*/
-        "mai", /*may*/
-        "juin", /*june*/
-        "juillet", /*july*/
-        "août", /*august*/
-        "septembre", /*september*/
-        "octobre", /*october*/
-        "novembre", /*november*/
-        "décembre", /*december*/
-        "", /*month 13 if applicable*/
-        "janv.", /*abb january*/
-        "févr.", /*abb february*/
-        "mar", /*abb march*/
-        "avr.", /*abb april*/
-        "mai", /*abb may*/
-        "jun", /*abb june*/
-        "juil.", /*abb july*/
-        "août", /*abb august*/
-        "sept.", /*abb september*/
-        "oct.", /*abb october*/
-        "nov.", /*abb november*/
-        "déc.", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "dimanche", /*Sunday*/
-        "lundi", /*Monday*/
-        "mardi", /*Tuesday*/
-        "mercredi", /*Wednesday*/
-        "jeudi", /*Thursday*/
-        "vendredi", /*Friday*/
-        "samedi", /*Saturday*/
-        "di", /*abb Sunday*/
-        "lu", /*abb Monday*/
-        "ma", /*abb Tuesday*/
-        "me", /*abb Wednesday*/
-        "je", /*abb Thursday*/
-        "ve", /*abb Friday*/
-        "sa", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;ap. J.-C.", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "'Fr. '#,##0.00;'Fr.-'#,##0.00", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ".", /*decimal separator*/
-        "'", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "Fr.", /*local currency symbol*/
-        "CHF", /*intl currency symbol*/
-        ".", /*monetary decimal separator*/
-        "HH.mm.' h' z", /*full time pattern*/
-        "HH:mm:ss z", /*long time pattern*/
-        "HH:mm:ss", /*medium time pattern*/
-        "HH:mm", /*short time pattern*/
-        "EEEE, d. MMMM yyyy", /*full date pattern*/
-        "d. MMMM yyyy", /*long date pattern*/
-        "d MMM yy", /*medium date pattern*/
-        "dd.MM.yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "4", /*min days in first week*/
-        "@"
-    };
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamField.java	1.8 97/02/05
+ * @(#)ObjectStreamField.java	1.9 98/01/09
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,7 +25,7 @@ package java.io;
  * A description of a field in a class.
  *
  * @author  unascribed
- * @version 1.8, 02/05/97
+ * @version 1.9, 01/09/98
  */
 class ObjectStreamField {
     ObjectStreamField(String n, char t, int o, String ts)
@@ -80,8 +80,9 @@ class ObjectStreamField {
 	if (typeString == null && other.typeString == null)
 	    return true;
 
-	/* compare the object types */
-	return typeString.equals(other.typeString);
+	return ObjectStreamClass.compareClassNames(typeString,
+						   other.typeString,
+						   '/');
     }
 
     /**

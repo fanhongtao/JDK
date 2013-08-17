@@ -1,5 +1,5 @@
 /*
- * @(#)KeyEvent.java	1.22 97/02/22
+ * @(#)KeyEvent.java	1.25 97/11/03
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -29,7 +29,7 @@ import java.awt.Toolkit;
 /**
  * The component-level keyboard event.
  *
- * @version 1.22 02/22/97
+ * @version 1.23 08/04/97
  * @author Carl Quinn
  * @author Amy Fowler
  */
@@ -270,6 +270,15 @@ public class KeyEvent extends InputEvent {
         this.keyChar = keyChar;
     }
 
+    /**
+     * Change the modifiers for a KeyEvent.  
+     * <p>
+     * NOTE:  use of this method is not recommended, because many AWT
+     * implementations do not recognize modifier changes.  This is
+     * especially true for KEY_TYPED events where the shift modifier
+     * is changed.
+     * @deprecated, as of JDK1.1.4
+     */
     public void setModifiers(int modifiers) {
         this.modifiers = modifiers;
     }

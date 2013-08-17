@@ -1,5 +1,5 @@
 /*
- * @(#)TextComponent.java	1.29 97/04/21
+ * @(#)TextComponent.java	1.32 98/01/06
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -26,14 +26,29 @@ import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import sun.awt.SunToolkit;
 
 
 /**
- * A TextComponent is a component that allows the editing of some text.
+ * The <code>TextComponent</code> class is the superclass of 
+ * any component that allows the editing of some text. 
+ * <p>
+ * A text component embodies a string of text.  The 
+ * <code>TextComponent</code> class defines a set of methods 
+ * that determine whether or not this text is editable. If the
+ * component is editable, it defines another set of methods
+ * that supports a text insertion caret. 
+ * <p>
+ * In addition, the class defines methods that are used 
+ * to maintain a current <em>selection</em> from the text. 
+ * The text selection, a substring of the component's text, 
+ * is the target of editing operations. It is also referred
+ * to as the <em>selected text</em>.
  *
- * @version	1.29, 04/21/97
+ * @version	1.32, 01/06/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
+ * @since       JDK1.0
  */
 public class TextComponent extends Component {
 
@@ -65,13 +80,26 @@ public class TextComponent extends Component {
     private static final long serialVersionUID = -2214773872412987419L;
 
     /**
-     * Constructs a new TextComponent initialized with the specified text.
-     * Sets the cursor to Cursor.TEXT_CURSOR.
-     * @param text the initial text of the field.
+     * Constructs a new text component initialized with the 
+     * specified text. Sets the value of the cursor to 
+     * <code>Cursor.TEXT_CURSOR</code>.
+     * @param      text the initial text that the component presents.
+     * @see        java.awt.Cursor
+     * @since      JDK1.0
      */
     TextComponent(String text) {
 	this.text = text;
 	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+    }
+
+    boolean areInputMethodsEnabled() {
+	try {
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            return ((SunToolkit) toolkit).enableInputMethodsForTextComponent();
+        } catch (Exception e) {
+            // if something bad happens, just don't enable input methods
+            return false;
+	}
     }
 
     /**
@@ -80,6 +108,7 @@ public class TextComponent extends Component {
      * functionality.
      */
     public void removeNotify() {
+      synchronized(getTreeLock()) {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
 	if (peer != null) {
 	    text = peer.getText();
@@ -87,12 +116,15 @@ public class TextComponent extends Component {
 	    selectionEnd = peer.getSelectionEnd();
 	}
 	super.removeNotify();
+      }
     }
 
     /**
-     * Sets the text of this TextComponent to the specified text.
-     * @param t the new text to be set
-     * @see #getText
+     * Sets the text that is presented by this 
+     * text component to be the specified text. 
+     * @param       t   the new text.
+     * @see         java.awt.TextComponent#getText  
+     * @since       JDK1.0
      */
     public synchronized void setText(String t) {
 	text = t;
@@ -103,8 +135,9 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Returns the text contained in this TextComponent.
-     * @see #setText
+     * Gets the text that is presented by this text component.
+     * @see     java.awt.TextComponent#setText
+     * @since   JDK1.0
      */
     public synchronized String getText() {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
@@ -115,27 +148,38 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Returns the selected text contained in this TextComponent.
-     * @see #setText
+     * Gets the selected text from the text that is
+     * presented by this text component.  
+     * @return      the selected text of this text component.
+     * @see         java.awt.TextComponent#select
+     * @since       JDK1.0
      */
     public synchronized String getSelectedText() {
 	return getText().substring(getSelectionStart(), getSelectionEnd());
     }
 
     /**
-     * Returns the boolean indicating whether this TextComponent is
-     * editable or not.
-     * @see #setEditable
+     * Indicates whether or not this text component is editable.
+     * @return     <code>true</code> if this text component is
+     *                  editable; <code>false</code> otherwise.
+     * @see        java.awt.TextComponent#setEditable
+     * @since      JDK1ble
      */
     public boolean isEditable() {
 	return editable;
     }
 
     /**
-     * Sets the specified boolean to indicate whether or not this
-     * TextComponent should be editable.
-     * @param b the boolean to be set
-     * @see #isEditable
+     * Sets the flag that determines whether or not this
+     * text component is editable.
+     * <p>
+     * If the flag is set to <code>true</code>, this text component 
+     * becomes user editable. If the flag is set to <code>false</code>, 
+     * the user cannot change the text of this text component. 
+     * @param     t   a flag indicating whether this text component 
+     *                      should be user editable.
+     * @see       java.awt.TextComponent#isEditable
+     * @since     JDK1.0
      */
     public synchronized void setEditable(boolean b) {
 	editable = b;
@@ -146,7 +190,12 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Returns the selected text's start position.
+     * Gets the start position of the selected text in 
+     * this text component. 
+     * @return      the start position of the selected text. 
+     * @see         java.awt.TextComponent#setSelectionStart
+     * @see         java.awt.TextComponent#getSelectionEnd
+     * @since       JDK1.0
      */
     public synchronized int getSelectionStart() {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
@@ -157,10 +206,19 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Sets the selection start to the specified position.  The new
-     * starting point is constrained to be before or at the current
-     * selection end.
-     * @param selectionStart the start position of the text
+     * Sets the selection start for this text component to  
+     * the specified position. The new start point is constrained 
+     * to be at or before the current selection end. It also
+     * cannot be set to less than zero, the beginning of the 
+     * component's text.
+     * If the caller supplies a value for <code>selectionStart</code>
+     * that is out of bounds, the method enforces these constraints
+     * silently, and without failure.
+     * @param       selectionStart   the start position of the 
+     *                        selected text.
+     * @see         java.awt.TextComponent#getSelectionStart
+     * @see         java.awt.TextComponent#setSelectionEnd
+     * @since       JDK1.1
      */
     public synchronized void setSelectionStart(int selectionStart) {
 	/* Route through select method to enforce consistent policy
@@ -170,7 +228,12 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Returns the selected text's end position.
+     * Gets the end position of the selected text in 
+     * this text component. 
+     * @return      the end position of the selected text. 
+     * @see         java.awt.TextComponent#setSelectionEnd
+     * @see         java.awt.TextComponent#getSelectionStart
+     * @since       JDK1.0
      */
     public synchronized int getSelectionEnd() {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
@@ -181,10 +244,18 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Sets the selection end to the specified position.  The new
-     * end point is constrained to be at or after the current
-     * selection start.
-     * @param selectionEnd the start position of the text
+     * Sets the selection end for this text component to  
+     * the specified position. The new end point is constrained 
+     * to be at or after the current selection start. It also
+     * cannot be set beyond the end of the component's text.
+     * If the caller supplies a value for <code>selectionEnd</code>
+     * that is out of bounds, the method enforces these constraints
+     * silently, and without failure.
+     * @param       selectionEnd   the end position of the 
+     *                        selected text.
+     * @see         java.awt.TextComponent#getSelectionEnd
+     * @see         java.awt.TextComponent#setSelectionStart
+     * @since       JDK1.1
      */
     public synchronized void setSelectionEnd(int selectionEnd) {
 	/* Route through select method to enforce consistent policy
@@ -194,9 +265,24 @@ public class TextComponent extends Component {
     }
     
     /**
-     * Selects the text found between the specified start and end locations.
-     * @param selectionStart the start position of the text
-     * @param selectionEnd the end position of the text
+     * Selects the text between the specified start and end positions.
+     * <p>
+     * This method sets the start and end positions of the 
+     * selected text, enforcing the restriction that the end 
+     * position must be greater than or equal to the start position.
+     * The start position must be greater than zero, and the 
+     * end position must be less that or equal to the length
+     * of the text component's text. If the caller supplies values
+     * that are inconsistent or out of bounds, the method enforces 
+     * these constraints silently, and without failure.
+     * @param        selectionStart the start position of the 
+     *                             text to select.
+     * @param        selectionEnd the end position of the 
+     *                             text to select.
+     * @see          java.awt.TextComponent#setSelectionStart
+     * @see          java.awt.TextComponent#setSelectionEnd
+     * @see          java.awt.TextComponent#selectAll
+     * @since        JDK1.0
      */
     public synchronized void select(int selectionStart, int selectionEnd) {
 	String text = getText();
@@ -223,7 +309,9 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Selects all the text in the TextComponent.
+     * Selects all the text in this text component.
+     * @see        java.awt.TextComponent@select
+     * @since      JDK1.0
      */
     public synchronized void selectAll() {
 	String text = getText();
@@ -237,11 +325,15 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Sets the position of the text insertion caret for the TextComponent
-     * @param position the position
-     * @exception IllegalArgumentException If position is less than 0.
+     * Sets the position of the text insertion caret for 
+     * this text component.
+     * 
+     * @param        position the position of the text insertion caret.
+     * @exception    IllegalArgumentException if the value supplied
+     *                   for <code>position</code> is less than zero.
+     * @since        JDK1.1
      */
-    public void setCaretPosition(int position) {
+    public synchronized void setCaretPosition(int position) {
 	if (position < 0) {
 	    throw new IllegalArgumentException("position less than zero.");
 	}
@@ -260,11 +352,12 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Returns the position of the text insertion caret for the 
-     * text component.
-     * @return the position of the text insertion caret for the text component.
+     * Gets the position of the text insertion caret for 
+     * this text component.
+     * @return       the position of the text insertion caret.
+     * @since        JDK1.1
      */
-    public int getCaretPosition() {
+    public synchronized int getCaretPosition() {
         TextComponentPeer peer = (TextComponentPeer)this.peer;
 	int position = 0;
 
@@ -341,7 +434,10 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Returns the String of parameters for this TextComponent.
+     * Returns the parameter string representing the state of this text 
+     * component. This string is useful for debugging. 
+     * @return      the parameter string of this text component.
+     * @since       JDK1.0
      */
     protected String paramString() {
 	String str = super.paramString() + ",text=" + getText();

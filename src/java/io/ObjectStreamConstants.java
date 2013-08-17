@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamConstants.java	1.9 97/02/05
+ * @(#)ObjectStreamConstants.java	1.11 98/01/30
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -24,7 +24,7 @@ package java.io;
 /**
  *
  * @author  unascribed
- * @version 1.9, 02/05/97
+ * @version 1.11, 01/30/98
  */
 interface ObjectStreamConstants {
     final static short STREAM_MAGIC = (short)0xaced;

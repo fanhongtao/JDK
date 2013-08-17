@@ -1,5 +1,5 @@
 /*
- * @(#)PatternEntry.java	1.14 97/03/10
+ * @(#)PatternEntry.java	1.16 97/10/28
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -36,7 +36,7 @@ import java.lang.Character;
  * This is to be used with MergeCollation for adding patterns to an
  * existing rule table.
  * @see        MergeCollation
- * @version    1.14 03/10/97
+ * @version    1.16 10/28/97
  * @author     Mark Davis, Helena Shih
  */
 
@@ -61,6 +61,7 @@ class PatternEntry {
      * this method is ill-defined and ignores strength.
      */
     public boolean equals(Object obj) {
+        if (obj == null) return false;
         PatternEntry other = (PatternEntry) obj;
         boolean result = (chars.equals(other.chars) &&
                           extension.equals(other.extension));
@@ -182,7 +183,7 @@ class PatternEntry {
                 newStrength = RESET; break;
             case '\t':
             case '\n':
-            case '\f': 
+            case '\f':
             case '\r':
             case ' ': break; // skip whitespace TODO use Character
             case '/': inChars = false; break;
@@ -204,7 +205,7 @@ class PatternEntry {
                 }
                 if (PatternEntry.isSpecialChar(ch) && (inQuote == false))
                     throw new ParseException
-                        ("Unquoted punctuation character", i);
+                        ("Unquoted punctuation character : " + Integer.toString(ch, 16), i);
                 if (inChars) {
                     newChars.append(ch);
                 } else {
@@ -249,7 +250,7 @@ class PatternEntry {
                 toAddTo.append('\'');
             } else {
                 switch (ch) {
-                    case 0x0010: case '\f': case '\r': 
+                    case 0x0010: case '\f': case '\r':
                     case '\t': case '\n':  case '@':
                     inQuote = true;
                     toAddTo.append('\'');

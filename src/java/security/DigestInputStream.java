@@ -54,7 +54,7 @@ import java.io.ByteArrayInputStream;
  * 
  * @see DigestOutputStream
  *
- * @version 1.25 97/06/20
+ * @version 1.25 00/08/15
  * @author Benjamin Renaud 
  */
 

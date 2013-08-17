@@ -1,5 +1,5 @@
 /*
- * @(#)Frame.java	1.65 97/05/21 Sami Shaio
+ * @(#)Frame.java	1.75 98/11/24 Sami Shaio
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -30,42 +30,101 @@ import java.io.IOException;
 
 
 /**
- * A Frame is a top-level window with a title.
+ * A Frame is a top-level window with a title and a border.
  * The default layout for a frame is BorderLayout.
  *
  * Frames are capable of generating the following types of window events:
  * WindowOpened, WindowClosing, WindowClosed, WindowIconified,
  * WindowDeiconified, WindowActivated, WindowDeactivated.
+ *
+ * @version 	1.75, 11/24/98
+ * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
- *
- * @version 	1.65, 05/21/97
- * @author 	Sami Shaio
+ * @since       JDK1.0
  */
 public class Frame extends Window implements MenuContainer {
 
     /* Note: These are being obsoleted;  programs should use the Cursor class
      * variables going forward. See Cursor and Component.setCursor.
      */
+
+   /**
+    * 
+    */
     public static final int	DEFAULT_CURSOR   		= Cursor.DEFAULT_CURSOR;
+
+
+   /**
+    *
+    */
     public static final int	CROSSHAIR_CURSOR 		= Cursor.CROSSHAIR_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	TEXT_CURSOR 	 		= Cursor.TEXT_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	WAIT_CURSOR	 		= Cursor.WAIT_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	SW_RESIZE_CURSOR	 	= Cursor.SW_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	SE_RESIZE_CURSOR	 	= Cursor.SE_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	NW_RESIZE_CURSOR		= Cursor.NW_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	NE_RESIZE_CURSOR	 	= Cursor.NE_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	N_RESIZE_CURSOR 		= Cursor.N_RESIZE_CURSOR;
+
+   /**
+    *
+    */
     public static final int	S_RESIZE_CURSOR 		= Cursor.S_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	W_RESIZE_CURSOR	 		= Cursor.W_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	E_RESIZE_CURSOR			= Cursor.E_RESIZE_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	HAND_CURSOR			= Cursor.HAND_CURSOR;
+
+   /**
+    * 
+    */
     public static final int	MOVE_CURSOR			= Cursor.MOVE_CURSOR;	
 
     String 	title = "Untitled";
     Image  	icon;
     MenuBar	menuBar;
     boolean	resizable = true;
+    boolean     mbManagement = false;   /* used only by the Motif impl. */
 
     /* 
      * The Windows owned by the Frame.
@@ -81,20 +140,23 @@ public class Frame extends Window implements MenuContainer {
      private static final long serialVersionUID = 2673458971256075116L;
 
     /**
-     * Constructs a new Frame that is initially invisible.
+     * Constructs a new instance of <code>Frame</code> that is 
+     * initially invisible.
      * @see Component#setSize
      * @see Component#setVisible
+     * @since JDK1.0
      */
     public Frame() {
         this("");
     }
 
     /**
-     * Constructs a new, initially invisible Frame with the specified 
-     * title.
+     * Constructs a new, initially invisible <code>Frame</code> object 
+     * with the specified title.
      * @param title the title for the frame
-     * @see Component#setSize
-     * @see Component#setVisible
+     * @see java.awt.Component#setSize
+     * @see java.awt.Component#setVisible
+     * @since JDK1.0
      */
     public Frame(String title) {
 	this.name = base + nameCounter++;
@@ -134,29 +196,37 @@ public class Frame extends Window implements MenuContainer {
     /**
      * Creates the Frame's peer.  The peer allows us to change the look
      * of the Frame without changing its functionality.
+     * @since JDK1.0
      */
     public void addNotify() {
-	peer = getToolkit().createFrame(this);
-    	MenuBar menuBar = this.menuBar;
-	if (menuBar != null) {
-	    menuBar.addNotify();
-	    ((FramePeer)peer).setMenuBar(menuBar);
-	}
-	super.addNotify();
+        synchronized (getTreeLock()) {
+	    if (peer == null)
+			peer = getToolkit().createFrame(this);
+    	    MenuBar menuBar = this.menuBar;
+	    if (menuBar != null) {
+	        menuBar.addNotify();
+	        ((FramePeer)peer).setMenuBar(menuBar);
+	    }
+	    super.addNotify();
+        }
     }
 
     /**
-     * Gets the title of the Frame.
-     * @see #setTitle
+     * Gets the title of the frame.
+     * @return    the title of this frame, or <code>null</code> 
+     *                if this frame doesn't have a title.
+     * @see       java.awt.Frame#setTitle
+     * @since     JDK1.0
      */
     public String getTitle() {
 	return title;
     }
 
     /**
-     * Sets the title for this Frame to the specified title.
-     * @param title the specified title of this Frame
-     * @see #getTitle
+     * Sets the title for this frame to the specified title.
+     * @param    title    the specified title of this frame.
+     * @see      java.awt.Frame#getTitle
+     * @since    JDK1.0
      */
     public synchronized void setTitle(String title) {
 	this.title = title;
@@ -167,16 +237,22 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Returns the icon image for this Frame.
+     * Gets the icon image for this frame.
+     * @return    the icon image for this frame, or <code>null</code> 
+     *                    if this frame doesn't have an icon image.
+     * @see       java.awt.Frame#setIconImage
+     * @since     JDK1.0
      */
     public Image getIconImage() {
 	return icon;
     }
 
     /**
-     * Sets the image to display when this Frame is iconized. Note that
-     * not all platforms support the concept of iconizing a window.
-     * @param image the icon image to be displayed
+     * Sets the image to display when this frame is iconized. 
+     * Not all platforms support the concept of iconizing a window.
+     * @param     image the icon image to be displayed
+     * @see       java.awt.Frame#getIconImage
+     * @since     JDK1.0
      */
     public synchronized void setIconImage(Image image) {
 	this.icon = image;
@@ -187,49 +263,68 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Gets the menu bar for this Frame.
+     * Gets the menu bar for this frame.
+     * @return    the menu bar for this frame, or <code>null</code> 
+     *                   if this frame doesn't have a menu bar.
+     * @see       java.awt.Frame#setMenuBar
+     * @since     JDK1.0
      */
     public MenuBar getMenuBar() {
 	return menuBar;
     }
 
     /**
-     * Sets the menubar for this Frame to the specified menubar.
-     * @param mb the menubar being set
+     * Sets the menu bar for this frame to the specified menu bar.
+     * @param     mb the menu bar being set
+     * @see       java.awt.Frame#getMenuBar
+     * @since     JDK1.0
      */
-    public synchronized void setMenuBar(MenuBar mb) {
-	if (menuBar == mb) {
-	    return;
-	}
-	if ((mb != null) && (mb.parent != null)) {
-	    mb.parent.remove(mb);
-	}
-	if (menuBar != null) {
-	    remove(menuBar);
-	}
-	menuBar = mb;
-	if (menuBar != null) {
-	    menuBar.parent = this;
-
-	    FramePeer peer = (FramePeer)this.peer;
-	    if (peer != null) {
-		menuBar.addNotify();
-		peer.setMenuBar(menuBar);
+    public void setMenuBar(MenuBar mb) {
+        synchronized (getTreeLock()) {
+	    if (menuBar == mb) {
+	        return;
 	    }
-	}
-        invalidate();
+	    if ((mb != null) && (mb.parent != null)) {
+	        mb.parent.remove(mb);
+	    }
+	    if (menuBar != null) {
+	        remove(menuBar);
+	    }
+	    menuBar = mb;
+	    if (menuBar != null) {
+	        menuBar.parent = this;
+
+	        FramePeer peer = (FramePeer)this.peer;
+	        if (peer != null) {
+		    mbManagement = true;
+		    menuBar.addNotify();
+		    peer.setMenuBar(menuBar);
+	        }
+	    }
+            invalidate();
+        }
     }
 
     /**
-     * Returns true if the user can resize the Frame.
+     * Indicates whether this frame is resizable.  
+     * By default, all frames are initially resizable. 
+     * @return    <code>true</code> if the user can resize this frame; 
+     *                        <code>false</code> otherwise.
+     * @see       java.awt.Frame#setResizable
+     * @since     JDK1.0
      */
     public boolean isResizable() {
 	return resizable;
     }
 
     /**
-     * Sets the resizable flag.
-     * @param resizable true if resizable; false otherwise.
+     * Sets the resizable flag, which determines whether 
+     * this frame is resizable. 
+     * By default, all frames are initially resizable. 
+     * @param    resizable   <code>true</code> if this frame is resizable; 
+     *                       <code>false</code> otherwise.
+     * @see      java.awt.Frame#isResizable
+     * @since    JDK1.0
      */
     public synchronized void setResizable(boolean resizable) {
 	this.resizable = resizable;
@@ -240,19 +335,24 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Removes the specified menu bar from this Frame.
+     * Removes the specified menu bar from this frame.
+     * @param    m   the menu component to remove.
+     * @since    JDK1.0
      */
-    public synchronized void remove(MenuComponent m) {
-	if (m == menuBar) {
-	    FramePeer peer = (FramePeer)this.peer;
-	    if (peer != null) {
-		menuBar.removeNotify();
-		menuBar.parent = null;
-		peer.setMenuBar(null);
-	    }
-	    menuBar = null;
-	} else {
-            super.remove(m);
+    public void remove(MenuComponent m) {
+        synchronized (getTreeLock()) {
+	    if (m == menuBar) {
+	        menuBar = null;
+	        FramePeer peer = (FramePeer)this.peer;
+	        if (peer != null) {
+		    mbManagement = true;
+		    peer.setMenuBar(null);
+		    m.removeNotify();
+	        }
+ 		m.parent = null;
+	    } else {
+                super.remove(m);
+            }
         }
     }
 
@@ -262,8 +362,10 @@ public class Frame extends Window implements MenuContainer {
      * are used for the frame.  All components
      * contained by the frame and all windows
      * owned by the frame will also be destroyed.
+     * @since JDK1.0
      */
-    public synchronized void dispose() {
+    public void dispose() {     // synch removed.
+      synchronized (getTreeLock()) {
 	if (ownedWindows != null) {
 	  int ownedWindowCount = ownedWindows.size();
 	  Window ownedWindowCopy[] = new Window[ownedWindowCount];
@@ -276,7 +378,8 @@ public class Frame extends Window implements MenuContainer {
 	    remove(menuBar);
 	    menuBar = null;
 	}
-	super.dispose();
+      }
+      super.dispose();
     }
 
     void postProcessKeyEvent(KeyEvent e) {
@@ -303,7 +406,7 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by Component.setCursor(Cursor).
+     * replaced by <code>Component.setCursor(Cursor)</code>.
      */
     public synchronized void setCursor(int cursorType) {
 	if (cursorType < DEFAULT_CURSOR || cursorType > MOVE_CURSOR) {
@@ -314,7 +417,7 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by Component.getCursor().
+     * replaced by <code>Component.getCursor()</code>.
      */
     public int getCursorType() {
 	return (getCursor().getType());

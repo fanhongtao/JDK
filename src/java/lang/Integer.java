@@ -1,5 +1,5 @@
 /*
- * @(#)Integer.java	1.40 97/02/03
+ * @(#)Integer.java	1.41 97/12/18
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -35,7 +35,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.40, 02/03/97
+ * @version 1.41, 12/18/97
  * @since   JDK1.0
  */
 public final
@@ -60,6 +60,54 @@ class Integer extends Number {
      * @since   JDK1.1
      */
     public static final Class	TYPE = Class.getPrimitiveClass("int");
+
+    /**
+     * All possible chars for representing a number as a String 
+     */
+    final static char[] digits = { 
+	'0' , '1' , '2' , '3' , '4' , '5' , 
+	'6' , '7' , '8' , '9' , 'a' , 'b' , 
+	'c' , 'd' , 'e' , 'f' , 'g' , 'h' , 
+	'i' , 'j' , 'k' , 'l' , 'm' , 'n' , 
+	'o' , 'p' , 'q' , 'r' , 's' , 't' , 
+	'u' , 'v' , 'w' , 'x' , 'y' , 'z' 
+    };
+    
+    /**
+     * Array of chars to lookup the char for the digit in the tenth's 
+     * place for a two digit, base ten number.  The char can be got by 
+     * using the number as the index.
+     */
+    private final static char[] radixTenTenths = {
+	'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 
+	'1', '1', '1', '1', '1', '1', '1', '1', '1', '1', 
+	'2', '2', '2', '2', '2', '2', '2', '2', '2', '2', 
+	'3', '3', '3', '3', '3', '3', '3', '3', '3', '3', 
+	'4', '4', '4', '4', '4', '4', '4', '4', '4', '4', 
+	'5', '5', '5', '5', '5', '5', '5', '5', '5', '5', 
+	'6', '6', '6', '6', '6', '6', '6', '6', '6', '6', 
+	'7', '7', '7', '7', '7', '7', '7', '7', '7', '7', 
+	'8', '8', '8', '8', '8', '8', '8', '8', '8', '8', 
+	'9', '9', '9', '9', '9', '9', '9', '9', '9', '9'
+    };
+    
+    /**
+     * Array of chars to lookup the char for the digit in the unit's 
+     * place for a two digit, base ten number.  The char can be got by 
+     * using the number as the index.
+     */
+    private final static char[] radixTenUnits = {
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    };
 
     /**
      * Creates a string representation of the first argument in the 
@@ -87,20 +135,31 @@ class Integer extends Number {
     public static String toString(int i, int radix) {
 	if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
 	    radix = 10;
-	StringBuffer buf = new StringBuffer(radix >= 8 ? 12 : 33);
+	
+	/* Use the faster version */
+	if (radix == 10) {
+	    return toString(i);
+	}
+	
+	char buf[] = new char[33];
 	boolean negative = (i < 0);
-        if (!negative) {
+	int charPos = 32;
+		
+	if (!negative) {
 	    i = -i;
 	}
+		    
 	while (i <= -radix) {
-	    buf.append(Character.forDigit(-(i % radix), radix));
+	    buf[charPos--] = digits[-(i % radix)];
 	    i = i / radix;
 	}
-	buf.append(Character.forDigit(-i, radix));
+	buf[charPos] = digits[-i];
+
 	if (negative) {
-	    buf.append('-');
+	    buf[--charPos] = '-';
 	}
-        return buf.reverse().toString();
+
+	return new String(buf, charPos, (33 - charPos));
     }
 
     /**
@@ -161,14 +220,16 @@ class Integer extends Number {
      * Convert the integer to an unsigned number.
      */
     private static String toUnsignedString(int i, int shift) {
-	StringBuffer buf = new StringBuffer(shift >= 3 ? 11 : 32);
+	char[] buf = new char[32];
+	int charPos = 32;
 	int radix = 1 << shift;
 	int mask = radix - 1;
 	do {
-	    buf.append(Character.forDigit(i & mask, radix));
+	    buf[--charPos] = digits[i & mask];
 	    i >>>= shift;
 	} while (i != 0);
-	return buf.reverse().toString();
+	
+	return new String(buf, charPos, (32 - charPos));
     }
 
     /**
@@ -180,7 +241,49 @@ class Integer extends Number {
      * @since   JDK1.0
      */
     public static String toString(int i) {
-	return toString(i,10);
+	/** 
+	 * Performance improvements -
+	 *
+	 * 1) Avoid a method call and radix checks by inlining the code for 
+	 *    radix = 10 in this method.
+	 * 2) Use char arrays instead of StringBuffer and avoid calls to
+	 *    Character.forDigit.
+	 * 3) Do computations in positive space to avoid negation each time
+	 *    around the loop.
+	 * 4) Unroll loop by half and use a static array of chars to look-
+	 *    up chars for a digit.
+	 * The other option for 4) was to use a switch statement and assign 
+	 * the char for the current digit.  That was a little slower than 4)
+	 * with most jits. 
+	 * Speed-up = (approximately) 4x on both Solaris and Win32.
+	 */
+	char[] buf = new char[12];
+	boolean negative = (i < 0);
+	int charPos = 12;
+	
+	if (i == Integer.MIN_VALUE) {
+	    return "-2147483648";
+	}
+		
+	if (negative) {
+	    i = -i;
+	}
+	
+	do {
+	    int digit = i%100;
+	    buf[--charPos] = radixTenUnits[digit];
+	    buf[--charPos] = radixTenTenths[digit];
+	    i = i / 100;
+	} while(i != 0);
+	
+	if (buf[charPos] == '0') {
+	    charPos++;
+	}
+	if (negative) {
+	    buf[--charPos] = '-';
+	}
+		
+	return new String(buf , charPos , (12 - charPos));
     }
     
     /**
@@ -207,6 +310,17 @@ class Integer extends Number {
         if (s == null) {
             throw new NumberFormatException("null");
         }
+
+	if (radix < Character.MIN_RADIX) {
+	    throw new NumberFormatException("radix " + radix + 
+					    " less than Character.MIN_RADIX");
+	}
+	
+	if (radix > Character.MAX_RADIX) {
+	    throw new NumberFormatException("radix " + radix + 
+					    " greater than Character.MAX_RADIX");
+	}
+	    
 	int result = 0;
 	boolean negative = false;
 	int i = 0, max = s.length();

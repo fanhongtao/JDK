@@ -33,7 +33,7 @@ package java.security;
  * <li>ExpiredKeyException
  * </ul>
  *
- * @version 1.5, 97/06/20
+ * @version 1.5, 00/08/15
  * @author Benjamin Renaud
  *
  * @see Key

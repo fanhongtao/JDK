@@ -1,5 +1,5 @@
 /*
- * @(#)oobj.h	1.76 97/02/21
+ * @(#)oobj.h	1.78 98/01/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -256,6 +256,10 @@ struct Classjava_lang_Class {
     unsigned short flags;	     /* see the CCF_* macros */
     struct HArrayOfObject   *signers;
     struct   imethodtable   *imethodtable;
+
+    void                    *init_thread; /* EE of initializing thread */    
+
+    ClassClass          *last_subclass_of;
 #ifdef JCOV
     char                    *absolute_source_name;
     int64_t       	     timestamp;
@@ -279,6 +283,7 @@ extern void MakeClassSticky(ClassClass *cb);
 #define cbImplementsCount(cb) ((unhand(cb))->implements_count)
 #define cbInstanceSize(cb)    ((unhand(cb))->instance_size)
 #define cbIntfMethodTable(cb) ((unhand(cb))->imethodtable)
+#define cbLastSubclassOf(cb)  ((unhand(cb))->last_subclass_of)
 #define	cbLoader(cb)	      ((unhand(cb))->loader)
 #define cbMajorVersion(cb)    ((unhand(cb))->major_version)
 #define	cbMethods(cb)         ((unhand(cb))->methods)
@@ -296,6 +301,7 @@ extern void MakeClassSticky(ClassClass *cb);
 #define cbSuperName(cb)       ((unhand(cb))->super_name)
 #define cbThisHash(cb)        ((unhand(cb))->hashinfo.cbhash.thishash)
 #define cbTotalHash(cb)       ((unhand(cb))->hashinfo.cbhash.totalhash)
+#define cbInitThread(cb)      ((unhand(cb))->init_thread)
 
 #ifdef JCOV
 #define cbAbsoluteSourceName(cb) ((unhand(cb))->absolute_source_name)
@@ -318,12 +324,12 @@ extern char *classname2string(char *str, char *dst, int size);
 
 /* ClassClass flags */
 #define CCF_IsSysLock     0x01  /* any instance treated as a "system" lock */
-#define CCF_IsResolved	  0x02	/* been resolved yet? */
+#define CCF_IsResolved	  0x02	/* has <clinit> been run? */
 #define CCF_IsError	  0x04	/* Resolution caused an error */
 #define CCF_IsSoftRef	  0x08	/* whether this is class Ref or subclass */
 #define CCF_IsInitialized 0x10	/* whether this is class has been inited */
-#define CCF_IsLoaded      0x20	/* Is this really the class object or a stub.*/
-#define CCF_IsVerified    0x40	/* Is this really the class object or a stub.*/
+#define CCF_IsLinked      0x20	/* Has symbolic entries been linked */
+#define CCF_IsVerified    0x40	/* has the verifier been run */
 
 #define CCF_IsPrimitive   0x100	/* if pseudo-class for a primitive type */
 #define CCF_IsReferenced  0x200 /* Class is in use */

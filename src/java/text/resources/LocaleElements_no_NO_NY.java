@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_no_NO_NY.java	1.2 97/02/24
+ * @(#)LocaleElements_no_NO_NY.java	1.5 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,93 +45,43 @@
 
 package java.text.resources;
 
-public class LocaleElements_no_NO_NY extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_no_NO_NY() {
-        super.init(table);
+public class LocaleElements_no_NO_NY extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "no_NO_NY" }, // locale id based on iso codes
+            { "LocaleID", "0814" }, // Windows id
+            { "Languages", // language names
+                new String[][] {
+                    { "no", "norsk (nynorsk)" }
+                }
+            },
+            { "DayNames", 
+                new String[] { 
+                    "sundag", // Sunday
+                    "m\u00e5ndag", // Monday
+                    "tysdag", // Tuesday
+                    "onsdag", // Wednesday
+                    "torsdag", // Thursday
+                    "fredag", // Friday
+                    "laurdag" // Saturday
+                }
+            },
+            { "DayAbbreviations", 
+                new String[] { 
+                    "su", // abb Sunday
+                    "m\u00e5", // abb Monday
+                    "ty", // abb Tuesday
+                    "on", // abb Wednesday
+                    "to", // abb Thursday
+                    "fr", // abb Friday
+                    "lau" // abb Saturday
+                }
+            }
+        };
     }
-
-    static String table []={
-        "no_NO_NY", /*locale id based on iso codes*/
-        "0814", /*Windows id*/
-        "non", /*iso-3 abbrev lang name*/
-        "NOR", /*iso-3 abbrev country name*/
-        "en_Norwegian (Nynorsk); de_Norwegisch; fr_norvégien; no_norsk (nynorsk)", /*language names*/
-        "en_Norway; de_Norwegen; fr_Norvège; no_Noreg", /*country names*/
-        "januar", /*january*/
-        "februar", /*february*/
-        "mars", /*march*/
-        "april", /*april*/
-        "mai", /*may*/
-        "juni", /*june*/
-        "juli", /*july*/
-        "august", /*august*/
-        "september", /*september*/
-        "oktober", /*october*/
-        "november", /*november*/
-        "desember", /*december*/
-        "", /*month 13 if applicable*/
-        "jan", /*abb january*/
-        "feb", /*abb february*/
-        "mar", /*abb march*/
-        "apr", /*abb april*/
-        "mai", /*abb may*/
-        "jun", /*abb june*/
-        "jul", /*abb july*/
-        "aug", /*abb august*/
-        "sep", /*abb september*/
-        "okt", /*abb october*/
-        "nov", /*abb november*/
-        "des", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "sundag", /*Sunday*/
-        "måndag", /*Monday*/
-        "tysdag", /*Tuesday*/
-        "onsdag", /*Wednesday*/
-        "torsdag", /*Thursday*/
-        "fredag", /*Friday*/
-        "laurdag", /*Saturday*/
-        "su", /*abb Sunday*/
-        "må", /*abb Monday*/
-        "ty", /*abb Tuesday*/
-        "on", /*abb Wednesday*/
-        "to", /*abb Thursday*/
-        "fr", /*abb Friday*/
-        "lau", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;AD", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "kr #,##0.00;kr#,##0.00-", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        " ", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "kr", /*local currency symbol*/
-        "NOK", /*intl currency symbol*/
-        ",", /*monetary decimal separator*/
-        "'kl 'HH.mm z", /*full time pattern*/
-        "HH:mm:ss z", /*long time pattern*/
-        "HH:mm:ss", /*medium time pattern*/
-        "HH:mm", /*short time pattern*/
-        "d. MMMM yyyy", /*full date pattern*/
-        "d. MMMM yyyy", /*long date pattern*/
-        "dd.MMM.yy", /*medium date pattern*/
-        "dd.MM.yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "4", /*min days in first week*/
-        // Based on "Nordic Cultural Requirements on Information Technology"
-        // STRI TS3, 1st Edition.
-        " & Z < \u00e6, a\u0308 ,  \u00C6, A\u0308" +
-        " < \u00F8, o\u0308, \u00D8, O\u0308" +
-		" < a\u030A , A\u030A, aa , aA, Aa , AA" +
-        " & y, u\u0308 , Y , U\u0308" +
-        " & v, w, V, W "
-    };
 }

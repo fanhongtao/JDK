@@ -1,5 +1,5 @@
 /*
- * @(#)SeedGenerator.java	1.3 96/11/23
+ * @(#)SeedGenerator.java	1.4 97/12/11
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -33,7 +33,7 @@ package java.security;
  * as a seed.  Remarkably, the low order bits of this seed seem to be
  * quite random.
  *
- * @version 1.3, 97/06/20
+ * @version 1.4, 00/08/15
  * @author Josh Bloch
  */
 
@@ -46,6 +46,8 @@ class SeedGenerator {
     private static final int TARGET_SPIN_COUNT = 55000;
     private static final int MIN_SPIN_COUNT = (6*TARGET_SPIN_COUNT)/10;
     private static final int MAX_SPIN_COUNT = 2*TARGET_SPIN_COUNT;
+    private static final int MAX_SLEEP_TIME = 30000;    // 30 seconds
+    private static final int MAX_ATTEMPTS = 5;
 
     /**
      * This method calculates a sleep time that results in ~55000 thread
@@ -54,9 +56,16 @@ class SeedGenerator {
      * approximately one second to execute.  It is called once when the class
      * is loaded, and again if the computed sleep time "stops doing its job."
      * (This will happen if the load on the machine changes drastically.)
+     *
+     * If the machine is heavily loaded, the calculated sleepTime may
+     * turn out to be quite high (possibly hours).  If such a value is
+     * generated, reset sleepTime to a more reasonble time, MAX_SLEEP_TIME;
      */
     private static void setSleepTime() {
 	sleepTime = (1000*TARGET_SPIN_COUNT)/genSeed(1000);
+	if (sleepTime > MAX_SLEEP_TIME)
+	    sleepTime = MAX_SLEEP_TIME;
+
 	Security.debug("Resetting sleep time for seed generation: "
 		       + sleepTime + " ms.");
      }
@@ -78,12 +87,20 @@ class SeedGenerator {
 	 * isn't.  This is necessary to thwart an attack where our adversary
 	 * loads down the machine in order to reduce the quality of the
 	 * seed generation.
+	 *
+	 * Only try this MAX_ATTEMPTS number of times so that we don't
+	 * get into an infinite loop.
 	 */
-	while (candidate < MIN_SPIN_COUNT) {
+	int attempts = 0;
+	while (candidate < MIN_SPIN_COUNT && attempts < MAX_ATTEMPTS) {
 	    Security.debug("Candidate seed too low: "+ candidate +" ms.");
 	    setSleepTime();
 	    candidate = genSeed(sleepTime);
+	    attempts++;
 	}
+
+	if (attempts > MAX_ATTEMPTS)
+	    throw new SecurityException("unable to generate a quality seed");
 
 	/*
 	 * If candidate is way too high, recalculate sleep time, but DO use

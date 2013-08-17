@@ -1,5 +1,5 @@
 /*
- * @(#)sys_api.h	1.62 97/02/17
+ * @(#)sys_api.h	1.63 97/10/07
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -131,11 +131,11 @@ int     sysMonitorDestroy(sys_mon_t *);
 int     sysMonitorEnter(sys_mon_t *);
 bool_t  sysMonitorEntered(sys_mon_t *);
 int     sysMonitorExit(sys_mon_t *);
-int     sysMonitorExitLocked(sys_mon_t *);
 int     sysMonitorNotify(sys_mon_t *);
 int     sysMonitorNotifyAll(sys_mon_t *);
 int 	sysMonitorWait(sys_mon_t *, int, bool_t);
 void    sysMonitorDumpInfo(sys_mon_t *);
+bool_t  sysMonitorInUse(sys_mon_t *);
 
 #define SYS_OK	        0
 #define SYS_ERR	       -1
@@ -193,6 +193,16 @@ extern int sysCanonicalPath(char *path, char *result, int result_len);
 extern DIR* sysOpenDir(const char* path);
 extern int sysCloseDir(DIR* dp);
 extern struct dirent* sysReadDir(DIR* dp);
+
+/*
+ * API support needed for various multiprocessor related syncronization
+ * primitives.  Systems that don't use real threads can just define
+ * these to be 0 in their sysmacros_md.h.
+ */
+
+int sysIsMP();
+void sysMemoryFlush();
+void sysStoreBarrier();
 
 /*
  * Include platform specific macros to override these

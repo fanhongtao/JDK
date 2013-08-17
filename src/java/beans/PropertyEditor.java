@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyEditor.java	1.25 97/01/03  
+ * @(#)PropertyEditor.java	1.26 97/05/26  
  * 
  * Copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -86,6 +86,10 @@ public interface PropertyEditor {
      * <p>
      * If the PropertyEditor doesn't honor paint requests (see isPaintable)
      * this method should be a silent noop.
+     * <p>
+     * The given Graphics object will have the default font, color, etc of
+     * the parent container.  The PropertyEditor may change graphics attributes
+     * such as font and color and doesn't need to restore the old values.
      *
      * @param gfx  Graphics object to paint into.
      * @param box  Rectangle within graphics object into which we should paint.

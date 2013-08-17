@@ -32,7 +32,7 @@ import java.io.*;
  * @see PublicKey
  * @see PrivateKey
  *
- * @version 1.3 97/06/20
+ * @version 1.3 00/08/15
  * @author Benjamin Renaud
  */
 public final class KeyPair { 

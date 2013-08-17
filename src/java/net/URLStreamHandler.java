@@ -1,5 +1,5 @@
 /*
- * @(#)URLStreamHandler.java	1.19 97/02/10
+ * @(#)URLStreamHandler.java	1.21 97/08/11
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -29,22 +29,26 @@ import java.io.OutputStream;
 import java.util.Hashtable;
 
 /**
- * The abstract class <code>URLStreamHandler</code> is the common 
- * superclass for all stream protocol handlers. A stream protocol 
- * handler knows how to make a connection for a particular protocol 
- * type, such as <code>http</code>, <code>ftp</code>, or 
- * <code>gopher</code>. 
- * <p>
- * In most cases, an instance of a <code>URLStreamHandler</code> 
- * subclass is not created directly by an application. Rather, the 
- * first time a protocol name is encountered when constructing a 
- * <code>URL</code>, the appropriate stream protocol handler is 
+ * The abstract class <code>URLStreamHandler</code> is the common
+ * superclass for all stream protocol handlers. A stream protocol
+ * handler knows how to make a connection for a particular protocol
+ * type, such as <code>http</code>, <code>ftp</code>, or
+ * <code>gopher</code>.
+ *
+ * <p>In most cases, an instance of a <code>URLStreamHandler</code>
+ * subclass is not created directly by an application. Rather, the
+ * first time a protocol name is encountered when constructing a
+ * <code>URL</code>, the appropriate stream protocol handler is
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.19, 02/10/97
- * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
- * @since   JDK1.0
+ *
+ * @version 1.21, 08/11/97
+ *
+ * @see java.net.URL#URL(java.lang.String, java.lang.String, int,
+ * java.lang.String)
+ *
+ * @since JDK1.0 
  */
 public abstract class URLStreamHandler {
     /**
@@ -53,38 +57,63 @@ public abstract class URLStreamHandler {
      * This method should be overridden by a subclass.
      *
      * @param      u   the URL that this connects to.
-     * @return     a <code>URLConnection</code> object for the <code>URL</code>.
+     *
+     * @return a <code>URLConnection</code> object for the
+     * <code>URL</code>.
+     *
      * @exception  IOException  if an I/O error occurs while opening the
      *               connection.
-     * @since      JDK1.0
+     * @since JDK1.0 
      */
     abstract protected URLConnection openConnection(URL u) throws IOException;
 
     /** 
      * Parses the string representation of a <code>URL</code> into a 
      * <code>URL</code> object. 
-     * <p>
-     * If there is any inherited context, then it has already been 
-     * copied into the <code>URL</code> argument. 
-     * <p>
-     * The <code>parseURL</code> method of <code>URLStreamHandler</code> 
-     * parses the string representation as if it were an 
-     * <code>http</code> specification. Most URL protocol families have a 
-     * similar parsing. A stream protocol handler for a protocol that has 
-     * a different syntax must override this routine. 
      *
-     * @param   u       the <code>URL</code> to receive the result of parsing
-     *                  the spec.
-     * @param   spec    the <code>String</code> representing the URL that
-     *                  must be parsed.
-     * @param   start   the character index at which to begin parsing. This is
-     *                  just past the '<code>:</code>' (if there is one) that
-     *                  specifies the determination of the protocol name.
-     * @param   limit   the character position to stop parsing at. This is the
-     *                  end of the string or the position of the
-     *                  "<code>#</code>" character, if present. All information
-     *                  after the sharp sign indicates an anchor. 
-     * @since   JDK1.0
+     * <p>If there is any inherited context, then it has already been
+     * copied into the <code>URL</code> argument.
+     *
+     * <p> The <code>parseURL</code> method of
+     * <code>URLStreamHandler</code> parses the string representation
+     * as if it were an <code>http</code> specification. Most URL
+     * protocol families have a similar parsing. A stream protocol
+     * handler for a protocol that has a different syntax must
+     * override this routine.
+     *
+     * <p>If the file component of the URL argument contains a
+     * question mark (as with CGI HTTP URLs), the context is
+     * considered to be the URL's file component up to the first /
+     * before the question mark, not including the question mark or
+     * the directory before it. For example, if the URL was:
+     *
+     * <br><pre>    http://www.foo.com/dir/cgi-bin?foo=bar/baz</pre>
+     *
+     * and the spec argument was
+     *
+     * <br><pre>    quux.html</pre>
+     *
+     * the resulting URL would be:
+     *
+     * <br><pre>    http://www.foo.com/dir/quux.html</pre>.
+     * 
+     *
+     * @param u the <code>URL</code> to receive the result of parsing
+     * the spec.
+     *
+     * @param spec the <code>String</code> representing the URL that
+     * must be parsed.
+     *
+     * @param start the character index at which to begin
+     * parsing. This is just past the '<code>:</code>' (if there is
+     * one) that specifies the determination of the protocol name.
+     *
+     * @param limit the character position to stop parsing at. This is
+     * the end of the string or the position of the "<code>#</code>"
+     * character, if present. All information after the sharp sign
+     * indicates an anchor.
+     *
+     * @since JDK1.0 
      */
     protected void parseURL(URL u, String spec, int start, int limit) {
 	String protocol = u.getProtocol();
@@ -121,16 +150,28 @@ public abstract class URLStreamHandler {
 	    host = "";
 	}
 	if (start < limit) {
+	    /* 
+	     * If the context URL is a CGI URL, the context to be the
+	     * URL's file up to the / before ? character.
+	     */
+	    if (file != null) {
+		int questionMarkIndex = file.indexOf('?');
+		if (questionMarkIndex > -1) {
+		    int lastSlashIndex = 
+			file.lastIndexOf('?', questionMarkIndex);
+		    file = file.substring(0, ++lastSlashIndex);
+		}
+	    }
 	    if (spec.charAt(start) == '/') {
 		file = spec.substring(start, limit);
 	    } else if (file != null && file.length() > 0) {
 		/* relative to the context file - use either 
-		 * Unix separators || platform separators
-		 */
+		 * Unix separators || platform separators */
 		int ind = Math.max(file.lastIndexOf('/'), 
 				   file.lastIndexOf(File.separatorChar));
 
-		file = file.substring(0, ind) + "/" + spec.substring(start, limit);
+		file = file.substring(0, ind) + "/" + spec.substring(start, 
+								     limit);
 	    } else {
 		file = "/" + spec.substring(start, limit);
 	    }
@@ -176,9 +217,9 @@ public abstract class URLStreamHandler {
     }
 
     /**
-     * Sets the fields of the <code>URL</code> argument to the indicated values.
-     * Only classes derived from URLStreamHandler are supposed to be able
-     * to call the set method on a URL.
+     * Sets the fields of the <code>URL</code> argument to the
+     * indicated values.  Only classes derived from URLStreamHandler
+     * are supposed to be able to call the set method on a URL.
      *
      * @param   u         the URL to modify.
      * @param   protocol  the protocol name.
@@ -186,8 +227,11 @@ public abstract class URLStreamHandler {
      * @param   port      the port on the remote machine.
      * @param   file      the file.
      * @param   ref       the reference.
-     * @see     java.net.URL#set(java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)
-     * @since   JDK1.0
+     *
+     * @see java.net.URL#set(java.lang.String, java.lang.String, int,
+     * java.lang.String, java.lang.String)
+     *
+     * @since JDK1.0 
      */
     protected void setURL(URL u, String protocol, String host, int port,
 			  String file, String ref) {

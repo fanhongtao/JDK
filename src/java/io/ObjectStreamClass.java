@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamClass.java	1.30 97/01/27
+ * @(#)ObjectStreamClass.java	1.38 98/01/30
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,11 +36,14 @@ import java.lang.reflect.Modifier;
  * be found using the lookup method.
  *
  * @author  unascribed
- * @version 1.30, 01/27/97
+ * @version 1.38, 01/30/98
  * @since   JDK1.1
  */
 public class ObjectStreamClass implements java.io.Serializable {
-    /** Find the descriptor for a class that can be serialized.  Null
+
+   static final long serialVersionUID = -6120832682080437368L;
+
+   /** Find the descriptor for a class that can be serialized.  Null
      * is returned if the specified class does not implement
      * java.io.Serializable or java.io.Externalizable.
      * @since   JDK1.1
@@ -211,13 +214,49 @@ public class ObjectStreamClass implements java.io.Serializable {
      * for reading.
      */
     void setClass(Class cl) throws InvalidClassException {
+	if (cl == null) {
+
+	    /* There is no local equivalent of this class read from the serialized
+	     * stream. Initialize this class to always discard data associated with
+	     * this class.
+	     */
+	    localClassDesc = null;
+	    ofClass = null;
+	    for (int i = 0; i < fields.length; i++ ) {
+		fields[i].offset = -1; // discard data read from stream.
+	    }
+	    computeFieldSequence();
+	    return;
+	}
 
 	localClassDesc = lookup(cl);
-	
-	if (!cl.getName().equals(name) ||
-	    suid != localClassDesc.suid) {
-	    throw new InvalidClassException(cl.getName(), "Local class not compatible");
+
+	if (localClassDesc == null)
+	    throw new InvalidClassException(cl.getName(), 
+					    "Local class not compatible");
+
+	if (suid != localClassDesc.suid) {
+	    
+	    /* Disregard the serialVersionUID of an array
+	     * when name and cl.Name differ. If resolveClass() returns
+	     * an array with a different package name,
+	     * the serialVersionUIDs will not match since the fully
+	     * qualified array class is used in the
+	     * computation of the array's serialVersionUID. There is
+	     * no way to set a permanent serialVersionUID for an array type.
+	     */
+	    if (! (cl.isArray() && ! cl.getName().equals(name)))
+		throw new InvalidClassException(cl.getName(), 
+		    "Local class not compatible:" + 
+		    " stream classdesc serialVersionUID=" + suid +
+		    " local class serialVersionUID=" + localClassDesc.suid);
 	}
+
+	if (! compareClassNames(name, cl.getName(), '.'))
+	    throw new InvalidClassException(name,
+					    "Incompatible local class name: " +
+					    cl.getName());
+
 	/*
 	 * Test that both implement either serializable or externalizable.
 	 */
@@ -278,12 +317,40 @@ public class ObjectStreamClass implements java.io.Serializable {
 	ofClass = cl;
     }
 
+    /* Compare the base class names of streamName and localName.
+     * 
+     * @return  Return true iff the base class name compare.
+     * @parameter streamName	Fully qualified class name.
+     * @parameter localName	Fully qualified class name.
+     * @parameter pkgSeparator	class names use either '.' or '/'.
+     * 
+     * Only compare base class name to allow package renaming.
+     */
+    static boolean compareClassNames(String streamName,
+					 String localName,
+					 char pkgSeparator) {
+	/* compare the class names, stripping off package names. */
+	int streamNameIndex = streamName.lastIndexOf(pkgSeparator);
+	if (streamNameIndex < 0) 
+	    streamNameIndex = 0;
+
+	int localNameIndex = localName.lastIndexOf(pkgSeparator);
+	if (localNameIndex < 0)
+	    localNameIndex = 0;
+
+	boolean result = streamName.regionMatches(false, streamNameIndex, 
+					localName, localNameIndex,
+					streamName.length() - streamNameIndex);
+	return result;
+    }
+
     /*
      * Compare the types of two class descriptors.
-     * The match if they have the same name and suid
+     * They match if they have the same class name and suid
      */
     boolean typeEquals(ObjectStreamClass other) {
-	return (suid == other.suid) && name.equals(other.name);
+	return (suid == other.suid) &&
+	    compareClassNames(name, other.name, '.');
     }
     
     /*
@@ -314,6 +381,17 @@ public class ObjectStreamClass implements java.io.Serializable {
 	return hasWriteObjectMethod;
     }
     
+    /*
+     * Return true if 'this' Externalizable class was written in block data mode.
+     * Maintain forwards compatibility for JDK 1.1 streams containing non-block data
+     * mode externalizable data.
+     *
+     * @since JDK 1.1.6
+     */
+    boolean hasExternalizableBlockDataMode() {
+	return hasExternalizableBlockData;
+    }
+
     /*
      * Return the ObjectStreamClass of the local class this one is based on.
      */
@@ -483,15 +561,25 @@ public class ObjectStreamClass implements java.io.Serializable {
 	 * For the object types, ('[' and 'L'), a reference to the
 	 * type of the field follows.
 	 */
-	for (int i = 0; i < fields.length; i++ ) {
-	    ObjectStreamField f = fields[i];
-	    s.writeByte(f.type);
-	    s.writeUTF(f.name);
-	    if (!f.isPrimitive()) {
-		s.writeObject(f.typeString);
+
+	/* disable replacement of String objects written
+	 * by ObjectStreamClass. */
+	boolean prevReplaceObject = s.enableReplace;
+	s.enableReplace = false;
+	try {
+	    for (int i = 0; i < fields.length; i++ ) {
+		ObjectStreamField f = fields[i];
+		s.writeByte(f.type);
+		s.writeUTF(f.name);
+		if (!f.isPrimitive()) {
+		    s.writeObject(f.typeString);
+		}
 	    }
+	} finally {
+	    s.enableReplace = prevReplaceObject;
 	}
     }
+
 
     /*
      * Read the version descriptor from the stream.
@@ -507,23 +595,46 @@ public class ObjectStreamClass implements java.io.Serializable {
          * write/read methods.
 	 */
 	byte flags = s.readByte();
-	hasWriteObjectMethod = (flags & ObjectStreamConstants.SC_WRITE_METHOD) != 0;
+
 	serializable = (flags & ObjectStreamConstants.SC_SERIALIZABLE) != 0;
 	externalizable = (flags & ObjectStreamConstants.SC_EXTERNALIZABLE) != 0;
+
+	hasWriteObjectMethod = serializable ?
+	    (flags & ObjectStreamConstants.SC_WRITE_METHOD) != 0 :
+	    false;
+
+	/* MOVED from ObjectStreamConstants, due to failing SignatureTest.
+         * In JDK 1.2, SC_BLOCK_DATA is a constant in ObjectStreamConstants.
+	 * If SC_EXTERNALIZABLE, this bit indicates externalizable data 
+	 * written in block data mode. */
+        final byte SC_BLOCK_DATA = 0x01;  
+
+	hasExternalizableBlockData = externalizable ? 
+	    (flags & SC_BLOCK_DATA) != 0 :
+	    false;
 
 	/* Read the number of fields described.
 	 * For each field read the type byte, the name.
 	 */    
 	int count = s.readShort();
 	fields = new ObjectStreamField[count];
-	for (int i = 0; i < count; i++ ) {
-	    char type = (char)s.readByte();
-	    String name = s.readUTF();
-	    String ftype = null;
-	    if (type == '[' || type == 'L') {
-		ftype = (String)s.readObject();
+
+	/* disable replacement of String objects written
+	 * by ObjectStreamClass. */
+	boolean prevEnableResolve = s.enableResolve;
+	s.enableResolve = false;
+	try {
+	    for (int i = 0; i < count; i++ ) {
+		char type = (char)s.readByte();
+		String name = s.readUTF();
+		String ftype = null;
+		if (type == '[' || type == 'L') {
+		    ftype = (String)s.readObject();
+		}
+		fields[i] = new ObjectStreamField(name, type, -1, ftype);
 	    }
-	    fields[i] = new ObjectStreamField(name, type, -1, ftype);
+	} finally {
+	    s.enableResolve = prevEnableResolve;
 	}
     }
 
@@ -629,6 +740,15 @@ public class ObjectStreamClass implements java.io.Serializable {
     /* True if this class has/had a writeObject method */
     private boolean hasWriteObjectMethod;
     
+    /* In JDK 1.1, external data was not written in block mode.
+     * As of JDK 1.2, external data is written in block data mode. This
+     * flag enables JDK 1.1.6 to distinguish between JDK 1.1 external
+     * data format and JDK 1.2 external data format.
+     *
+     * @since JDK 1.1.6
+     */
+    private boolean hasExternalizableBlockData;
+
     /*
      * ObjectStreamClass that this one was built from.
      */

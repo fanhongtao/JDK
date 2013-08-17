@@ -1,5 +1,5 @@
 /*
- * @(#)PrintWriter.java	1.11 97/01/27
+ * @(#)PrintWriter.java	1.12 97/06/24
  * 
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -77,7 +77,7 @@ public class PrintWriter extends Writer {
 	super(out);
 	this.out = out;
 	this.autoFlush = autoFlush;
-	lineSeparator = System.getProperties().getProperty("line.separator");
+	lineSeparator = System.getProperty("line.separator");
     }
 
     /**

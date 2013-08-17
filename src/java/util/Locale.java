@@ -1,5 +1,5 @@
 /*
- * @(#)Locale.java	1.21 97/01/29
+ * @(#)Locale.java  1.21 97/01/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -40,7 +40,7 @@ import java.io.Serializable;
  * is a locale-sensitive operation--the number should be formatted
  * according to the customs/conventions of the user's native country,
  * region, or culture.
- * 
+ *
  * <P>
  * You create a <code>Locale</code> object using one of the two constructors in
  * this class:
@@ -83,7 +83,7 @@ import java.io.Serializable;
  * using its <code>getAvailableLocales</code> method.
  * <BR><STRONG>Note:</STRONG> When you ask for a resource for a particular
  * locale, you get back the best available match, not necessarily
- * precisely what you asked for. For more information, look at 
+ * precisely what you asked for. For more information, look at
  * <a href="java.util.ResourceBundle.html"><code>ResourceBundle</code></a>.
  *
  * <P>
@@ -251,6 +251,10 @@ public final class Locale implements Cloneable, Serializable {
      */
     static public final Locale CANADA_FRENCH = new Locale("fr","CA","");
 
+    /** serialization ID
+     */
+    static final long serialVersionUID = 9149081749638150636L;
+
     /**
      * Construct a locale from language, country, variant.
      * @param language lowercase two-letter ISO-639 code.
@@ -285,14 +289,8 @@ public final class Locale implements Cloneable, Serializable {
      * for different fields, e.g. in a spreadsheet.
      * <BR>Note that the initial setting will match the host system.
      */
-    public static synchronized Locale getDefault() {
-        if (defaultLocale == null) {
-	    String language = System.getProperty("user.language", "EN");
-	    String region = System.getProperty("user.region", "");
-
-	    defaultLocale = new Locale(language, region);
-	}
-        return defaultLocale;
+    public static Locale getDefault() {
+        return defaultLocale;   // this variable is now initialized at static init time
     }
 
     /**
@@ -302,10 +300,10 @@ public final class Locale implements Cloneable, Serializable {
      * @param newLocale Locale to set to.
      */
     public static synchronized void setDefault(Locale newLocale) {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkPropertyAccess("user.language");
-	}
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPropertyAccess("user.language");
+    }
         defaultLocale = newLocale;
     }
 
@@ -338,8 +336,9 @@ public final class Locale implements Cloneable, Serializable {
     /**
      * Getter for the programmatic name of the entire locale,
      * with the language, country and variant separated by underbars.
+     * Language is always lower case, and country is always uppcer case.
      * If a field is missing, at most one underbar will occur.
-     * Example: "EN", "DE_DE", "EN_US_WIN", "DE_POSIX", "FR_MAC"
+     * Example: "Een, "de_DE", "en_US_WIN", "de_POSIX", "fr_MAC"
      * @see #getDisplayName
      */
     public final String toString() {
@@ -357,152 +356,376 @@ public final class Locale implements Cloneable, Serializable {
 
     /**
      * Getter for the three-letter ISO language abbreviation
-     * of the locale.
+     * of the locale.  Returns the empty string if the locale doesn't specify a language.
      * @exception MissingResourceException Throws MissingResourceException if the
      * three-letter language abbreviation is not available for this locale.
      */
     public String getISO3Language() throws MissingResourceException {
-        ResourceBundle resource
-            = ResourceBundle.getBundle
-            ("java.text.resources.LocaleElements", this);
+        if (language.length() == 0)
+            return "";
+
+        // the call to getISO2Language() will throw a MissingResourceException if
+        // the appropriate locale isn't installed
+        getISO2Language();
+
+        ResourceBundle resource = ResourceBundle.getBundle
+                ("java.text.resources.LocaleElements", this);
         return resource.getString("ShortLanguage");
     }
 
     /**
      * Getter for the three-letter ISO country abbreviation
-     * of the locale.
+     * of the locale.  Returns the empty string if the locale doesn't specify a country.
      * @exception MissingResourceException Throws MissingResourceException if the
      * three-letter language abbreviation is not available for this locale.
      */
     public String getISO3Country() throws MissingResourceException {
-        ResourceBundle resource =
-	    ResourceBundle.getBundle
-	    ("java.text.resources.LocaleElements", this);
+        if (country.length() == 0)
+            return "";
+
+        // the call to getISO2Country() will throw a MissingResourceException if
+        // the appropriate locale isn't installed
+        getISO2Country();
+
+        ResourceBundle resource = ResourceBundle.getBundle
+                ("java.text.resources.LocaleElements", this);
         return resource.getString("ShortCountry");
     }
 
     /**
-     * Getter for the Locale ID, as used in Windows.
-     * @exception MissingResourceException Throws MissingResourceException if there is
-     * no LCID associated with the locale.
+     * Getter for the two-letter ISO language abbreviation
+     * of the locale.  Returns the empty string if the locale doesn't specify a language.
+     * @exception MissingResourceException Throws MissingResourceException if the
+     * two-letter language abbreviation is not available for this locale.
      */
-    // FIXME this should go away completely!
-    private int getLCID() throws MissingResourceException {
-        ResourceBundle resource =
-	    ResourceBundle.getBundle
-	    ("java.text.resources.LocaleElements", this);
-        String lcid = resource.getString("LocaleID");
-        return Integer.parseInt(lcid,16);
+    /*public*/ String getISO2Language() throws MissingResourceException {
+        if (language.length() == 0)
+            return "";
+
+        ResourceBundle resource = ResourceBundle.getBundle
+                ("java.text.resources.LocaleElements", this);
+        String localeID = resource.getString("LocaleString");
+        String result = localeID.substring(0, 2);
+        if (!result.equals(language))
+            throw new MissingResourceException("Requested resource bundle not installed",
+                "LocaleElements", "LocaleString");
+        return result;
     }
 
     /**
-     * Getter for display of field to user.
-     * If the localized name is not found, returns the ISO code.
-     * The desired user language is from the default locale.
+     * Getter for the two-letter ISO country abbreviation
+     * of the locale.  Returns the empty string if the locale doesn't specify a country.
+     * @exception MissingResourceException Throws MissingResourceException if the
+     * two-letter language abbreviation is not available for this locale.
+     */
+    /*public*/ String getISO2Country() throws MissingResourceException {
+        if (country.length() == 0)
+            return "";
+
+        ResourceBundle resource = ResourceBundle.getBundle
+                ("java.text.resources.LocaleElements", this);
+        String localeID = resource.getString("LocaleString");
+        String result = localeID.substring(3, 5);
+        if (!result.equals(country))
+            throw new MissingResourceException("Requested resource bundle not installed",
+                "LocaleElements", "LocaleString");
+        return result;
+    }
+
+    /**
+     * Returns a name for the locale's language that is appropriate for display to the
+     * user.  This will be the name the locale's language localized for the default locale,
+     * if that data is available.  For example, if the locale is fr_FR and the default locale
+     * is en_US, getDisplayLanguage() will return "French"; if the locale is en_US and
+     * the default locale is fr_FR, getDisplayLanguage() will return "anglais".  If the
+     * appropriate name isn't available (say, we don't have a Japanese name for Croatian),
+     * this function falls back on the English name and uses the ISO code as a last-resort
+     * value.  If the locale doesn't specify a language, this function returns the empty string.
      */
     public final String getDisplayLanguage() {
         return getDisplayLanguage(getDefault());
     }
 
     /**
-     * Getter for display of field to user.
-     * If the localized name is not found, returns the ISO codes.
-     * Example: "English (UK)", "Deutch", "Germany"
-     * @param inLocale specifies the desired user language.
+     * Returns a name for the locale's language that is appropriate for display to the
+     * user.  This will be the name the locale's language localized for inLocale,
+     * if that data is available.  For example, if the locale is fr_FR and inLocale
+     * is en_US, getDisplayLanguage() will return "French"; if the locale is en_US and
+     * inLocale is fr_FR, getDisplayLanguage() will return "anglais".  If the
+     * appropriate name isn't available (say, we don't have a Japanese name for Croatian),
+     * this function falls back on the default locale, on the English name, and finally
+     * on the ISO code as a last-resort value.  If the locale doesn't specify a language,
+     * this function returns the empty string.
      */
     public String getDisplayLanguage(Locale inLocale) {
-        try {
-            ResourceBundle resource =
-		ResourceBundle.getBundle
-		("java.text.resources.LocaleElements", this);
-            return findStringMatch((String[][])resource.getObject("Languages"),
-                               inLocale.language, language);
-        } catch (Exception e) {
-            return language;
+        String  langCode = language;
+        if (langCode.length() == 0)
+            return "";
+
+        Locale  workingLocale = (Locale)inLocale.clone();
+        String  result = null;
+        int     phase = 0;
+        boolean done = false;
+
+        if (workingLocale.variant.length() == 0)
+            phase = 1;
+        if (workingLocale.country.length() == 0)
+            phase = 2;
+
+        while (!done) {
+            try {
+                ResourceBundle bundle = ResourceBundle.getBundle(
+                    "java.text.resources.LocaleElements", workingLocale);
+                result = findStringMatch((String[][])bundle.getObject("Languages"),
+                                    langCode, langCode);
+                if (result.length() != 0)
+                    done = true;
+            }
+            catch (Exception e) {
+                // just fall through
+            }
+
+            if (!done) {
+                switch (phase) {
+                    case 0:
+                        workingLocale.variant = "";
+                        break;
+
+                    case 1:
+                        workingLocale.country = "";
+                        break;
+
+                    case 2:
+                        workingLocale = getDefault();
+                        break;
+
+                    case 3:
+                        workingLocale = new Locale("", "", "");
+                        break;
+
+                    default:
+                        return langCode;
+                }
+                phase++;
+            }
         }
+        return result;
     }
 
     /**
-     * Getter for display of field to user.
-     * If the localized name is not found, returns the ISO code.
-     * The default locale is used for the presentation language.
+     * Returns a name for the locale's country that is appropriate for display to the
+     * user.  This will be the name the locale's country localized for the default locale,
+     * if that data is available.  For example, if the locale is fr_FR and the default locale
+     * is en_US, getDisplayCountry() will return "France"; if the locale is en_US and
+     * the default locale is fr_FR, getDisplayLanguage() will return "Etats-Unis".  If the
+     * appropriate name isn't available (say, we don't have a Japanese name for Croatia),
+     * this function falls back on the English name and uses the ISO code as a last-resort
+     * value.  If the locale doesn't specify a country, this function returns the empty string.
      */
     public final String getDisplayCountry() {
         return getDisplayCountry(getDefault());
     }
 
     /**
-     * Getter for display of field to user.
-     * If the localized name is not found, returns the ISO code.
-     * @param inLocale specifies the desired user language.
+     * Returns a name for the locale's country that is appropriate for display to the
+     * user.  This will be the name the locale's country localized for inLocale,
+     * if that data is available.  For example, if the locale is fr_FR and inLocale
+     * is en_US, getDisplayCountry() will return "France"; if the locale is en_US and
+     * inLocale is fr_FR, getDisplayLanguage() will return "Etats-Unis".  If the
+     * appropriate name isn't available (say, we don't have a Japanese name for Croatia),
+     * this function falls back on the default locale, on the English name, and finally
+     * on the ISO code as a last-resort value.  If the locale doesn't specify a country,
+     * this function returns the empty string.
      */
     public String getDisplayCountry(Locale inLocale) {
-        try {
-            ResourceBundle resource =
-		ResourceBundle.getBundle
-		("java.text.resources.LocaleElements",this);
-            return findStringMatch((String[][])resource.getObject("Countries"),
-                               inLocale.language, language);
-        } catch (Exception e) {
-            return country;
+        String  ctryCode = country;
+        if (ctryCode.length() == 0)
+            return "";
+
+        Locale  workingLocale = (Locale)inLocale.clone();
+        String  result = null;
+        int     phase = 0;
+        boolean done = false;
+
+        if (workingLocale.variant.length() == 0)
+            phase = 1;
+        if (workingLocale.country.length() == 0)
+            phase = 2;
+
+        while (!done) {
+            try {
+                ResourceBundle bundle = ResourceBundle.getBundle(
+                    "java.text.resources.LocaleElements", workingLocale);
+                result = findStringMatch((String[][])bundle.getObject("Countries"),
+                                    ctryCode, ctryCode);
+                if (result.length() != 0)
+                    done = true;
+            }
+            catch (Exception e) {
+                // just fall through
+            }
+
+            if (!done) {
+                switch (phase) {
+                    case 0:
+                        workingLocale.variant = "";
+                        break;
+
+                    case 1:
+                        workingLocale.country = "";
+                        break;
+
+                    case 2:
+                        workingLocale = getDefault();
+                        break;
+
+                    case 3:
+                        workingLocale = new Locale("", "", "");
+                        break;
+
+                    default:
+                        return ctryCode;
+                }
+                phase++;
+            }
         }
+        return result;
     }
 
     /**
-     * Getter for display of field to user.
-     * If the localized name is not found, returns the variant code.
-     * The default locale is used for the presentation language.
+     * Returns a name for the locale's variant code that is appropriate for display to the
+     * user.  If possible, the name will be localized for the default locale.  If the locale
+     * doesn't specify a variant code, this function returns the empty string.
      */
     public final String getDisplayVariant() {
         return getDisplayVariant(getDefault());
     }
 
     /**
-     * Getter for display of field to user
-     * If the localized name is not found, returns the variant code.
-     * @param inLocale specifies the desired user language.
+     * Returns a name for the locale's variant code that is appropriate for display to the
+     * user.  If possible, the name will be localized for inLocale.  If the locale
+     * doesn't specify a variant code, this function returns the empty string.
      */
     public String getDisplayVariant(Locale inLocale) {
-        try {
-            ResourceBundle resource =
-		ResourceBundle.getBundle
-		("java.text.resources.LocaleElements", inLocale);
-            String[][] pairedStrings = (String[][])resource.getObject("Variants");
-            if (pairedStrings == null)
-                return variant;
-            return findStringMatch(pairedStrings, inLocale.language, language);
-         } catch (Exception e) {
-            return variant;
+        String  varCode = variant;
+        if (varCode.length() == 0)
+            return "";
+
+        Locale  workingLocale = (Locale)inLocale.clone();
+        String  result = null;
+        int     phase = 0;
+        boolean done = false;
+
+        if (workingLocale.variant.length() == 0)
+            phase = 1;
+        if (workingLocale.country.length() == 0)
+            phase = 2;
+
+        while (!done) {
+            try {
+                ResourceBundle bundle = ResourceBundle.getBundle(
+                    "java.text.resources.LocaleElements", workingLocale);
+                result = findStringMatch((String[][])bundle.getObject("Variants"),
+                                    varCode, varCode);
+                if (result.length() != 0)
+                    done = true;
+            }
+            catch (Exception e) {
+                // just fall through
+            }
+
+            if (!done) {
+                switch (phase) {
+                    case 0:
+                        workingLocale.variant = "";
+                        break;
+
+                    case 1:
+                        workingLocale.country = "";
+                        break;
+
+                    case 2:
+                        workingLocale = getDefault();
+                        break;
+
+                    case 3:
+                        workingLocale = new Locale("", "", "");
+                        break;
+
+                    default:
+                        return varCode;
+                }
+                phase++;
+            }
         }
+        return result;
    }
 
     /**
-     * Getter for display of the entire locale to user.
-     * If the localized name is not found, uses the ISO codes.
-     * The default locale is used for the presentation language.
+     * Returns a name for the locale that is appropriate for display to the
+     * user.  This will be the values returned by getDisplayLanguage(), getDisplayCountry(),
+     * and getDisplayVariant() assembled into a single string.  The display name will have
+     * one of the following forms:<p><blockquote>
+     * language (country, variant)<p>
+     * language (country)<p>
+     * language (variant)<p>
+     * country (variant)<p>
+     * language<p>
+     * country<p>
+     * variant<p></blockquote>
+     * depending on which fields are specified in the locale.  If the language, country,
+     * and variant fields are all empty, this function returns the empty string.
      */
     public final String getDisplayName() {
         return getDisplayName(getDefault());
     }
 
     /**
-     * Getter for display of the entire locale to user.
-     * If the localized name is not found, uses the ISO codes
-     * @param inLocale specifies the desired user language.
+     * Returns a name for the locale that is appropriate for display to the
+     * user.  This will be the values returned by getDisplayLanguage(), getDisplayCountry(),
+     * and getDisplayVariant() assembled into a single string.  The display name will have
+     * one of the following forms:<p><blockquote>
+     * language (country, variant)<p>
+     * language (country)<p>
+     * language (variant)<p>
+     * country (variant)<p>
+     * language<p>
+     * country<p>
+     * variant<p></blockquote>
+     * depending on which fields are specified in the locale.  If the language, country,
+     * and variant fields are all empty, this function returns the empty string.
      */
     public String getDisplayName(Locale inLocale) {
         // TODO: use pattern string from locale data
-        StringBuffer result = new StringBuffer (getDisplayLanguage(inLocale));
+        StringBuffer result = new StringBuffer();
+        String aLanguage = getDisplayLanguage(inLocale);
         String aCountry = getDisplayCountry(inLocale);
         String aVariant = getDisplayVariant(inLocale);
-        if (aCountry.length() != 0 || aVariant.length() != 0) {
-            result.append(" (");
-            result.append(getDisplayCountry(inLocale));
-            if (aCountry.length() != 0 && aVariant.length() != 0)
-                result.append(",");
-            result.append(getDisplayVariant(inLocale));
-            result.append(")");
+        if (aLanguage.length() != 0) {
+            result.append(aLanguage);
+            if (aCountry.length() != 0 || aVariant.length() != 0) {
+                result.append(" (");
+                if (aCountry.length() != 0) {
+                    result.append(aCountry);
+                    if (aVariant.length() != 0)
+                        result.append(",");
+                }
+                if (aVariant.length() != 0)
+                    result.append(aVariant);
+                result.append(")");
+            }
         }
+        else if (aCountry.length() != 0) {
+            result.append(aCountry);
+            if (aVariant.length() != 0) {
+                result.append(" (");
+                result.append(aVariant);
+                result.append(")");
+            }
+        }
+        else if (aVariant.length() != 0)
+            result.append(aVariant);
+
         return result.toString();
     }
 
@@ -529,9 +752,9 @@ public final class Locale implements Cloneable, Serializable {
     public synchronized int hashCode() {
         if (hashcode == -1) {
             hashcode =
-		language.hashCode() ^
-		country.hashCode() ^
-		variant.hashCode();
+        language.hashCode() ^
+        country.hashCode() ^
+        variant.hashCode();
         }
         return hashcode;
     }
@@ -562,9 +785,12 @@ public final class Locale implements Cloneable, Serializable {
     private String country = "";
     private String variant = "";
 
-    private /*FIXME(83) transient*/ int hashcode = -1;        // lazy evaluated
+    // this field really should be transient, but we made the mistake of letting it
+    // ship this way, so now we're stuck with it
+    private int hashcode = -1;        // lazy evaluated
 
-    private static Locale defaultLocale = null;
+    private static Locale defaultLocale = new Locale(System.getProperty("user.language", "EN"),
+            System.getProperty("user.region", ""));
 
     /*
      * Locale needs its own, locale insenitive version of toLowerCase to
@@ -578,7 +804,7 @@ public final class Locale implements Cloneable, Serializable {
         }
         return new String( buf );
     }
-    
+
     /*
      * Locale needs its own, locale insenitive version of toUpperCase to
      * avoid circularity problems between Locale and String.
@@ -591,7 +817,7 @@ public final class Locale implements Cloneable, Serializable {
         }
         return new String( buf );
     }
-    
+
     private String findStringMatch(String[][] languages,
                                    String desiredLanguage, String fallbackLanguage)
     {
@@ -608,24 +834,4 @@ public final class Locale implements Cloneable, Serializable {
                     return languages[i][1];
         return "";
     }
-    /*
-     * Does an equals check, plus an empty field in this means a wildcard;
-     * matches any other field in other.
-     */
-    private boolean matches (Locale other) {
-        //System.out.println("language:" + language + "," + other.language);
-        if (language.length() != 0)
-            if (!language.equals(other.language))
-                return false;
-        //System.out.println("country:" + country + "," + other.country);
-        if (country.length() != 0)
-            if (!country.equals(other.country))
-                return false;
-        //System.out.println("variant:" + variant + "," + other.variant);
-        if (variant.length() != 0)
-            if (!variant.equals(other.variant))
-                return false;
-        return true; // whew, we made it through the guantlet.
-    }
-
 }

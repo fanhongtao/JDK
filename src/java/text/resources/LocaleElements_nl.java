@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_nl.java	1.4 97/02/24
+ * @(#)LocaleElements_nl.java	1.6 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,87 +45,133 @@
 
 package java.text.resources;
 
-public class LocaleElements_nl extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_nl() {
-        super.init(table);
+public class LocaleElements_nl extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "nl_NL" }, // locale id based on iso codes
+            { "LocaleID", "0413" }, // Windows id
+            { "ShortLanguage", "nld" }, // iso-3 abbrev lang name
+            { "ShortCountry", "NLD" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "nl", "Nederlands" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "NL", "Nederland" },
+                    { "BE", "Belgi\u00eb" }
+                }
+            },
+            { "MonthNames", 
+                new String[] { 
+                    "januari", // january
+                    "februari", // february
+                    "maart", // march
+                    "april", // april
+                    "mei", // may
+                    "juni", // june
+                    "juli", // july
+                    "augustus", // august
+                    "september", // september
+                    "oktober", // october
+                    "november", // november
+                    "december", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations", 
+                new String[] { 
+                    "jan", // abb january
+                    "feb", // abb february
+                    "mrt", // abb march
+                    "apr", // abb april
+                    "mei", // abb may
+                    "jun", // abb june
+                    "jul", // abb july
+                    "aug", // abb august
+                    "sep", // abb september
+                    "okt", // abb october
+                    "nov", // abb november
+                    "dec", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames", 
+                new String[] { 
+                    "zondag", // Sunday
+                    "maandag", // Monday
+                    "dinsdag", // Tuesday
+                    "woensdag", // Wednesday
+                    "donderdag", // Thursday
+                    "vrijdag", // Friday
+                    "zaterdag" // Saturday
+                }
+            },
+            { "DayAbbreviations", 
+                new String[] { 
+                    "zo", // abb Sunday
+                    "ma", // abb Monday
+                    "di", // abb Tuesday
+                    "wo", // abb Wednesday
+                    "do", // abb Thursday
+                    "vr", // abb Friday
+                    "za" // abb Saturday
+                }
+            },
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "fl #,##0.00;fl #,##0.00-", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements", 
+                new String[] { 
+                    ",", // decimal separator
+                    ".", // group (thousandsnds) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "fl", // local currency symbol
+                    "NLG", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "H:mm:ss' uur' z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "EEEE d MMMM yyyy", // full date pattern
+                    "d MMMM yyyy", // long date pattern
+                    "d-MMM-yy", // medium date pattern
+                    "d-M-yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements", 
+                new String[] { 
+                    "2", // first day of week
+                    "4" // min days in first week
+                }
+            }
+        };
     }
-
-    static String table []={
-        "nl_NL", /*locale id based on iso codes*/
-        "0413", /*Windows id*/
-        "nld", /*iso-3 abbrev lang name*/
-        "NLD", /*iso-3 abbrev country name*/
-        "en_Dutch; de_Holländisch; fr_hollandais; nl_Nederlands", /*language names*/
-        "en_Netherlands; de_Niederlande; fr_Pays-Bas; nl_Nederland", /*country names*/
-        "januari", /*january*/
-        "februari", /*february*/
-        "maart", /*march*/
-        "april", /*april*/
-        "mei", /*may*/
-        "juni", /*june*/
-        "juli", /*july*/
-        "augustus", /*august*/
-        "september", /*september*/
-        "oktober", /*october*/
-        "november", /*november*/
-        "december", /*december*/
-        "", /*month 13 if applicable*/
-        "jan", /*abb january*/
-        "feb", /*abb february*/
-        "mrt", /*abb march*/
-        "apr", /*abb april*/
-        "mei", /*abb may*/
-        "jun", /*abb june*/
-        "jul", /*abb july*/
-        "aug", /*abb august*/
-        "sep", /*abb september*/
-        "okt", /*abb october*/
-        "nov", /*abb november*/
-        "dec", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "zondag", /*Sunday*/
-        "maandag", /*Monday*/
-        "dinsdag", /*Tuesday*/
-        "woensdag", /*Wednesday*/
-        "donderdag", /*Thursday*/
-        "vrijdag", /*Friday*/
-        "zaterdag", /*Saturday*/
-        "zo", /*abb Sunday*/
-        "ma", /*abb Monday*/
-        "di", /*abb Tuesday*/
-        "wo", /*abb Wednesday*/
-        "do", /*abb Thursday*/
-        "vr", /*abb Friday*/
-        "za", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;AD", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "F #,##0.00;F #,##0.00-", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        ".", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "F", /*local currency symbol*/
-        "NLG", /*intl currency symbol*/
-        ",", /*monetary decimal separator*/
-        "H:mm:ss' uur' z", /*full time pattern*/
-        "H:mm:ss z", /*long time pattern*/
-        "H:mm:ss", /*medium time pattern*/
-        "H:mm", /*short time pattern*/
-        "EEEE d MMMM yyyy", /*full date pattern*/
-        "d MMMM yyyy", /*long date pattern*/
-        "d-MMM-yy", /*medium date pattern*/
-        "d-M-yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "4", /*min days in first week*/
-        ""
-    };
 }

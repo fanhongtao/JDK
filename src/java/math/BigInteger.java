@@ -69,7 +69,7 @@ import java.util.Random;
  *
  *
  * @see BigDecimal
- * @version 	1.7, 97/06/20
+ * @version 	1.7, 00/08/15
  * @author      Josh Bloch
  */
 public class BigInteger extends Number {

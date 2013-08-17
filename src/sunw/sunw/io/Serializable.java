@@ -1,5 +1,5 @@
 /*
- * @(#)Serializable.java	1.4 96/12/19
+ * @(#)Serializable.java	1.5 97/03/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -38,11 +38,11 @@ package sunw.io;
  * that inherit from the real version in java.util and java.io.  These
  * mean that beans developed under JDK 1.0.2 against the sunw.* classes
  * will now continue to work on JDK 1.1 and will (indirectly) inherit
- * from the approrpiate java.* interfaces/classes.
+ * from the appropriate java.* interfaces/classes.
  *
  * @deprecated This is a compatibility type to allow Java Beans that
  * were developed under JDK 1.0.2 to run correctly under JDK 1.1.  The
- * corresponding JDK1.1 type is java.util.Serializable
+ * corresponding JDK1.1 type is java.io.Serializable
  *
  * @see java.io.Serializable
  */

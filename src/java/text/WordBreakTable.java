@@ -1,5 +1,5 @@
 /*
- * @(#)WordBreakTable.java	1.1 96/10/08
+ * @(#)WordBreakTable.java	1.2 97/10/28
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

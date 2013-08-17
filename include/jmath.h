@@ -1,5 +1,5 @@
 /*
- * @(#)jmath.h	1.8 96/11/23
+ * @(#)jmath.h	1.9 98/01/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -24,11 +24,11 @@
  * Math library definitions for all the public functions implemented in libm.a.
  */
 
-#ifndef	_MATH_H_
-#define	_MATH_H_
+#ifndef	_JMATH_H_
+#define	_JMATH_H_
 
 #include <math.h>
 
 #include "jmath_md.h"
 
-#endif /* !_MATH_H_ */
+#endif /* !_JMATH_H_ */

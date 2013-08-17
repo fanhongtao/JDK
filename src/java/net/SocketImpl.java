@@ -1,5 +1,5 @@
 /*
- * @(#)SocketImpl.java	1.22 97/01/25
+ * @(#)SocketImpl.java	1.23 00/08/11
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,7 +36,7 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.22, 01/25/97
+ * @version 1.23, 08/11/00
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {
@@ -226,5 +226,12 @@ public abstract class SocketImpl implements SocketOptions {
     public String toString() {
 	return "Socket[addr=" + getInetAddress() +
 	    ",port=" + getPort() + ",localport=" + getLocalPort()  + "]";
+    }
+
+    void reset() throws IOException {
+	address = null;
+	port = 0;
+	localport = 0;
+	close();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)ServerSocket.java	1.27 97/02/10
+ * @(#)ServerSocket.java	1.28 00/08/11
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,7 +37,7 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.27, 02/10/97
+ * @version 1.28, 08/11/00
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @since   JDK1.0
@@ -199,24 +199,28 @@ class ServerSocket {
      * @since   JDk1.1
      */
     protected final void implAccept(Socket s) throws IOException {
+	SocketImpl si = s.impl;
 	try {
-	    //s.impl.create(true);
-	    s.impl.address = new InetAddress();
-	    s.impl.fd = new FileDescriptor();
-	    impl.accept(s.impl);
+	    s.impl = null;
+	    si.address = new InetAddress();
+	    si.fd = new FileDescriptor();
+	    impl.accept(si);
 	    
 	    SecurityManager security = System.getSecurityManager();
 	    if (security != null) {
-		security.checkAccept(s.getInetAddress().getHostAddress(),
-				     s.getPort());
+		security.checkAccept(si.getInetAddress().getHostAddress(),
+				     si.getPort());
 	    }
 	} catch (IOException e) {
-	    s.close();
+	    si.reset();
+	    s.impl = si;
 	    throw e;
 	} catch (SecurityException e) {
-	    s.close();
+	    si.reset();
+	    s.impl = si;
 	    throw e;
 	}
+	s.impl = si;
     }
 
     /**

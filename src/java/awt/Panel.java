@@ -1,5 +1,5 @@
 /*
- * @(#)Panel.java	1.15 97/01/27
+ * @(#)Panel.java	1.18 98/01/09
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -24,10 +24,17 @@ package java.awt;
 import java.awt.peer.PanelPeer;
 
 /**
- * A Panel Container class. This produces a generic container.
+ * <code>Panel</code> is the simplest container class. A panel   
+ * provides space in which an application can attach any other 
+ * component, including other panels. 
+ * <p>
+ * The default layout manager for a panel is the 
+ * <code>FlowLayout</code> layout manager.
  *
- * @version 	1.15, 01/27/97
+ * @version 	1.18, 01/09/98
  * @author 	Sami Shaio
+ * @see     java.awt.FlowLayout
+ * @since   JDK1.0
  */
 public class Panel extends Container {
     final static LayoutManager panelLayout = new FlowLayout();
@@ -41,8 +48,10 @@ public class Panel extends Container {
      private static final long serialVersionUID = -2728009084054400034L;
 
     /**
-     * Creates a new panel. The default layout for all panels is
-     * FlowLayout.
+     * Creates a new panel using the default layout manager. 
+     * The default layout manager for all panels is the 
+     * <code>FlowLayout</code> class.
+     * @since       JDK1.0
      */
     public Panel() {
 	this(panelLayout);
@@ -50,7 +59,8 @@ public class Panel extends Container {
 
     /**
      * Creates a new panel with the specified layout manager.
-     * @param layout the layout manager for this panel
+     * @param layout the layout manager for this panel.
+     * @since JDK1.1
      */
     public Panel(LayoutManager layout) {
         this.name = base + nameCounter++;
@@ -63,8 +73,11 @@ public class Panel extends Container {
      */
 
     public void addNotify() {
-	peer = getToolkit().createPanel(this);
-	super.addNotify();
+        synchronized (getTreeLock()) {
+	    if (peer == null)
+			peer = getToolkit().createPanel(this);
+	    super.addNotify();
+        }
     }
 
 }

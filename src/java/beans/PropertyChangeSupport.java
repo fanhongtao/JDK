@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyChangeSupport.java	1.11 97/02/03  
+ * @(#)PropertyChangeSupport.java	1.12 97/05/26  
  * 
  * Copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -30,9 +30,8 @@ import java.io.IOException;
 
 /**
  * This is a utility class that can be used by beans that support bound
- * properties.  You can either inherit from this class or you can use 
- * an instance of this class as a member field of your bean and delegate
- * various work to it.
+ * properties.  You can use an instance of this class as a member field
+ * of your bean and delegate various work to it.
  */
 
 public class PropertyChangeSupport implements java.io.Serializable {

@@ -1,5 +1,5 @@
 /*
- * @(#)String.java	1.77 97/02/24
+ * @(#)String.java	1.84 97/12/18
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -73,7 +73,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.77, 02/24/97
+ * @version 1.84, 12/18/97
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -478,8 +478,10 @@ class String implements java.io.Serializable {
  	int j = dstBegin;
  	int n = offset + srcEnd;
  	int i = offset + srcBegin;
+	char[] val = value;   /* avoid getfield opcode */
+
  	while (i < n) {
- 	    dst[j++] = (byte)value[i++];
+ 	    dst[j++] = (byte)val[i++];
  	}
     }
 
@@ -557,12 +559,15 @@ class String implements java.io.Serializable {
      * @see     java.lang.String#equalsIgnoreCase(java.lang.String)
      */
     public boolean equals(Object anObject) {
+	if (this == anObject) {
+	    return true;
+	}
 	if ((anObject != null) && (anObject instanceof String)) {
 	    String anotherString = (String)anObject;
 	    int n = count;
 	    if (n == anotherString.count) {
 		char v1[] = value;
-		char v2[] = anotherString.value;;
+		char v2[] = anotherString.value;
 		int i = offset;
 		int j = anotherString.offset;
 		while (n-- != 0) {
@@ -804,16 +809,17 @@ class String implements java.io.Serializable {
 	int len = count;
 
 	if (len < 16) {
-	    for (int i = len ; i > 0; i--) {
-		h = (h * 37) + val[off++];
-	    }
-	} else {
-	    // only sample some characters
-	    int skip = len / 8;
-	    for (int i = len ; i > 0; i -= skip, off += skip) {
-		h = (h * 39) + val[off];
-	    }
-	}
+ 	    for (int i = len ; i > 0; i--) {
+ 		h = (h * 37) + val[off++];
+ 	    }
+ 	} else {
+ 	    // only sample some characters
+ 	    int skip = len / 8;
+ 	    for (int i = len ; i > 0; i -= skip, off += skip) {
+ 		h = (h * 39) + val[off];
+ 	    }
+ 	}
+
 	return h;
     }
 
@@ -924,28 +930,48 @@ class String implements java.io.Serializable {
      *          <code>-1</code> is returned.
      */
     public int indexOf(String str, int fromIndex) {
-	char v1[] = value;
-	char v2[] = str.value;
-	int max = offset + (count - str.count);
-	if (fromIndex < 0) {
-	    fromIndex = 0;
-	} else if (fromIndex >= count) {
-	    // Note: fromIndex might be near -1>>>1.
+    	char v1[] = value;
+    	char v2[] = str.value;
+    	int max = offset + (count - str.count);
+	if (fromIndex >= count) {
+	    /* Note: fromIndex might be near -1>>>1 */
 	    return -1;
 	}
-      test:
-	for (int i = offset + ((fromIndex < 0) ? 0 : fromIndex); i <= max ; i++) {
-	    int n = str.count;
-	    int j = i;
-	    int k = str.offset;
-	    while (n-- != 0) {
+    	if (fromIndex < 0) {
+    	    fromIndex = 0;
+    	}
+	if (str.count == 0) {
+	    return fromIndex;
+	}
+
+    	int strOffset = str.offset;
+        char first  = v2[strOffset];
+        int i = offset + fromIndex;
+
+    startSearchForFirstChar:
+        while (true) {
+
+	    /* Look for first character. */
+	    while (i <= max && v1[i] != first) {
+		i++;
+	    }
+	    if (i > max) {
+		return -1;
+	    }
+
+	    /* Found first character, now look at the rest of v2 */
+	    int j = i + 1;
+	    int end = j + str.count - 1;
+	    int k = strOffset + 1;
+	    while (j < end) {
 		if (v1[j++] != v2[k++]) {
-		    continue test;
+		    i++;
+		    /* Look for str's first char again. */
+		    continue startSearchForFirstChar;
 		}
 	    }
-	    return i - offset;
-	}
-	return -1;
+	    return i - offset;	/* Found whole string. */
+        }
     }
 
     /**
@@ -979,37 +1005,55 @@ class String implements java.io.Serializable {
      *          <code>-1</code> is returned.
      */
     public int lastIndexOf(String str, int fromIndex) {
-
-	/* Check arguments; return immediately where possible.
-	 * Deliberately not checking for null str, to be consistent with
-	 * with other String methods.
+        /* 
+	 * Check arguments; return immediately where possible. For
+	 * consistency, don't check for null str.
 	 */
+        int rightIndex = count - str.count;
 	if (fromIndex < 0) {
 	    return -1;
-	} else if (fromIndex > count - str.count) {
-	    fromIndex = count - str.count;
 	}
-
+	if (fromIndex > rightIndex) {
+	    fromIndex = rightIndex;
+	}
 	/* Empty string always matches. */
 	if (str.count == 0) {
 	    return fromIndex;
 	}
 
-	/* Find the rightmost substring match. */
 	char v1[] = value;
 	char v2[] = str.value;
+	int strLastIndex = str.offset + str.count - 1;
+	char strLastChar = v2[strLastIndex];
+	int min = offset + str.count - 1;
+	int i = min + fromIndex;
 
-	for (int i = offset + fromIndex; i >= offset; --i) {
-	    int n = str.count;
-	    int thisIndex = i;
-	    int strIndex = str.offset;
-	    while (v1[thisIndex++] == v2[strIndex++]) {
-		if (--n <= 0) {
-		    return i - offset;
+    startSearchForLastChar:
+	while (true) {
+
+	    /* Look for the last character */
+	    while (i >= min && v1[i] != strLastChar) {
+		i--;
+	    }
+	    if (i < min) {
+		return -1;
+	    }
+
+	    /* Found last character, now look at the rest of v2. */
+	    int j = i - 1;
+	    int start = j - (str.count - 1);
+	    int k = strLastIndex - 1;
+
+	    while (j > start) {
+	        if (v1[j--] != v2[k--]) {
+		    i--;
+		    /* Look for str's last char again. */
+		    continue startSearchForLastChar;
 		}
 	    }
+
+	    return start - offset + 1;    /* Found whole string. */
 	}
-	return -1;
     }
 
     /**
@@ -1091,18 +1135,21 @@ class String implements java.io.Serializable {
 	if (oldChar != newChar) {
 	    int len = count;
 	    int i = -1;
+	    char[] val = value; /* avoid getfield opcode */
+	    int off = offset;   /* avoid getfield opcode */
+
 	    while (++i < len) {
-		if (value[offset + i] == oldChar) {
+		if (val[off + i] == oldChar) {
 		    break;
 		}
 	    }
 	    if (i < len) {
 		char buf[] = new char[len];
 		for (int j = 0 ; j < i ; j++) {
-		    buf[j] = value[offset+j];
+		    buf[j] = val[off+j];
 		}
 		while (i < len) {
-		    char c = value[offset + i];
+		    char c = val[off + i];
 		    buf[i] = (c == oldChar) ? newChar : c;
 		    i++;
 		}
@@ -1121,32 +1168,34 @@ class String implements java.io.Serializable {
      * @see     java.lang.String#toUpperCase()
      * @since   JDK1.1
      */
-    public String toLowerCase( Locale locale ) {
-        StringBuffer result = new StringBuffer();
+    public String toLowerCase(Locale locale) {
+        char[] result = new char[count];
         int i;
         int len = count;
+	int off = offset;	   /* avoid getfield opcode */
+	char[] val = value;        /* avoid getfield opcode */
       
         if (locale.getLanguage().equals("tr")) {
             // special loop for Turkey
-            for (i = 0; i < len; ++i) {
-                char ch = value[offset+i];
+	    for (i = 0; i < len; ++i) {
+                char ch = val[off+i];
                 if (ch == 'I') {
-                    result.append('\u0131'); // dotless small i
+                    result[i] = '\u0131'; // dotless small i
                     continue;
                 }
-                if (ch == '\u0130') { // dotted I
-                    result.append('i');// dotted i
+                if (ch == '\u0130') { 	  // dotted I
+                    result[i] = 'i';	  // dotted i
                     continue;
                 }
-                result.append(Character.toLowerCase(ch));
+                result[i] = Character.toLowerCase(ch);
             }
         } else {
             // normal, fast loop
             for (i = 0; i < len; ++i) {
-                result.append(Character.toLowerCase(value[offset+i]));
+                result[i] = Character.toLowerCase(val[off+i]);
             }
         }
-        return result.toString();
+        return new String(result);
     }
 
     /**
@@ -1177,43 +1226,61 @@ class String implements java.io.Serializable {
      * @see     java.lang.String#toLowerCase(char)
      * @since   JDK1.1
      */
-    public String toUpperCase( Locale locale ) {
-        StringBuffer result = new StringBuffer();
+    public String toUpperCase(Locale locale) {
+        char[] result = new char[count]; /* warning: might grow! */
         int i;
-        int len = count;
-     
+	int resultOffset = 0;  /* result might grow, so i+resultOffset
+				* gives correct write location in result
+				*/
+	int len = count;
+        int off = offset;	   /* avoid getfield opcode */
+	char[] val = value;        /* avoid getfield opcode */
         if (locale.getLanguage().equals("tr")) {
             // special loop for Turkey
-            for (i = 0; i < len; ++i) {
-                char ch = value[offset+i];
+	    for (i = 0; i < len; ++i) {
+                char ch = val[off+i];
                 if (ch == 'i') {
-                    result.append('\u0130');// dotted cap i
+		    result[i+resultOffset] = '\u0130';  // dotted cap i
                     continue;
                 }
-                if (ch == '\u0131') { // dotless i
-                    result.append('I'); // cap I
+                if (ch == '\u0131') {                   // dotless i
+                    result[i+resultOffset] = 'I';       // cap I
                     continue;
                 }
-                if (ch == '\u00DF') { // sharp s
-                    result.append("SS");
+                if (ch == '\u00DF') {                   // sharp s
+		    /* Grow result. */
+		    char[] result2 = new char[result.length + 1];
+		    System.arraycopy(result, 0, result2, 0,
+				     i + 1 + resultOffset);
+                    result2[i+resultOffset] = 'S';
+		    resultOffset++;
+		    result2[i+resultOffset] = 'S';
+		    result = result2;
                     continue;
                 }
-                result.append(Character.toUpperCase(ch));
+                result[i+resultOffset] = Character.toUpperCase(ch);
             }
         } else {
             // normal, fast loop
             for (i = 0; i < len; ++i) {
-                char ch = value[offset+i];
+                char ch = val[off+i];
                 if (ch == '\u00DF') { // sharp s
-                    result.append("SS");
+		    /* Grow result. */
+		    char[] result2 = new char[result.length + 1];
+		    System.arraycopy(result, 0, result2, 0,
+				     i + 1 + resultOffset);
+                    result2[i+resultOffset] = 'S';
+		    resultOffset++;
+		    result2[i+resultOffset] = 'S';
+		    result = result2;
                     continue;
                 }
-                result.append(Character.toUpperCase(ch));
+                result[i+resultOffset] = Character.toUpperCase(ch);
             }
         }
-        return result.toString();
-
+        return new String(result);
     }
+    
     /**
      * Converts this string to uppercase. 
      * <p>
@@ -1245,10 +1312,13 @@ class String implements java.io.Serializable {
     public String trim() {
 	int len = count;
 	int st = 0;
-	while ((st < len) && (value[offset + st] <= ' ')) {
+	int off = offset;      /* avoid getfield opcode */
+	char[] val = value;    /* avoid getfield opcode */
+
+	while ((st < len) && (val[off + st] <= ' ')) {
 	    st++;
 	}
-	while ((st < len) && (value[offset + len - 1] <= ' ')) {
+	while ((st < len) && (val[off + len - 1] <= ' ')) {
 	    len--;
 	}
 	return ((st > 0) || (len < count)) ? substring(st, len) : this;
@@ -1271,7 +1341,7 @@ class String implements java.io.Serializable {
      *          the character sequence represented by this string.
      */
     public char[] toCharArray() {
-	int i, max = length();
+	int max = length();
 	char result[] = new char[max];
 	getChars(0, max, result, 0);
 	return result;
@@ -1451,8 +1521,10 @@ class String implements java.io.Serializable {
     int utfLength() {
 	int limit = offset + count;
 	int utflen = 0;
+	char[] val = value;
+
 	for (int i = offset; i < limit; i++) {
-	    int c = value[i];
+	    int c = val[i];
 	    if ((c >= 0x0001) && (c <= 0x007F)) {
 		utflen++;
 	    } else if (c > 0x07FF) {

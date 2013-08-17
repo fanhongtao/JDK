@@ -1,5 +1,5 @@
 /*
- * @(#)interpreter.h	1.115 97/03/03
+ * @(#)interpreter.h	1.119 98/02/10
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -34,6 +34,7 @@
 #include "bool.h"
 #include "config.h"
 #include "jni.h"
+#include "alloc_cache.h"
 
 extern char *progname;
 extern bool_t debugging;
@@ -76,7 +77,7 @@ extern int verifyclasses;
 # define TRACE_METHOD(ee, mb, args_size, type) 
 #endif
 
-extern char *opnames[];
+extern char * const opnames[];
 
 /* Get a constant pool index, from a pc */
 #define GET_INDEX(ptr) (((int)((ptr)[0]) << 8) | (ptr)[1])
@@ -154,6 +155,9 @@ struct execenv {
 	ClassClass    *cb;
 	struct seenclass *next;
     } seenclasses;
+
+    /* Per-thread allocation cache */
+    struct alloc_cache alloc_cache;
 };
 
 typedef struct execenv ExecEnv;
@@ -245,7 +249,7 @@ long get_nbinclasses(void);
 
 bool_t InitializeAlloc(long max, long min);
 HObject *AllocHandle(struct methodtable *, ClassObject *);
-extern struct arrayinfo arrayinfo[];
+extern struct arrayinfo const arrayinfo[];
 extern int64_t TotalObjectMemory(void);
 extern int64_t FreeObjectMemory(void);
 extern int64_t TotalHandleMemory(void);
@@ -346,7 +350,7 @@ HArrayOfChar *MakeString(char *, long);
 ClassClass *FindClass(struct execenv *, char *, bool_t resolve);
 ClassClass *FindStickySystemClass(struct execenv *, char *, bool_t resolve);
 ClassClass *FindClassFromClass(struct execenv *, char *, bool_t resolve, ClassClass *from);
-void RunStaticInitializers(ClassClass *cb);
+bool_t RunStaticInitializers(ClassClass *cb);
 void InitializeInvoker(ClassClass *cb);
 
 bool_t
@@ -431,6 +435,7 @@ ClassClass *createPrimitiveClass(char *name, char sig, unsigned char typecode,
 unsigned Signature2ArgsSize(char *method_signature);
 
 /* from classresolver.c */
+char *LinkClass(ClassClass *cb, char **detail);
 char *InitializeClass(ClassClass * cb, char **detail);
 char *ResolveClass(ClassClass * cb, char **detail);
 ClassClass *FindClass(struct execenv *ee, char *name, bool_t resolve);

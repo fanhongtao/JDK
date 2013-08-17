@@ -27,7 +27,7 @@ package java.security;
  * to a method.
  *
  * @author Benjamin Renaud
- * @version 1.9, 97/06/20
+ * @version 1.9, 00/08/15
  */
 
 public class InvalidParameterException extends IllegalArgumentException {

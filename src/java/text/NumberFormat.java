@@ -1,5 +1,5 @@
 /*
- * @(#)NumberFormat.java	1.22 97/01/29
+ * @(#)NumberFormat.java	1.35 98/02/02
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -31,8 +31,8 @@
 package java.text;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.MissingResourceException;
 import java.text.resources.*;
+import java.util.Hashtable;
 
 /**
  * <code>NumberFormat</code> is the abstract base class for all number
@@ -96,6 +96,26 @@ import java.text.resources.*;
  * encounter an unusual one.
  *
  * <p>
+ * NumberFormat and DecimalFormat are designed such that some controls
+ * work for formatting and others work for parsing.  The following is
+ * the detailed description for each these control methods,
+ * <p>
+ * setParseIntegerOnly : only affects parsing, e.g.
+ * if true,  "3456.78" -> 3456 (and leaves the parse position just after index 6)
+ * if false, "3456.78" -> 3456.78 (and leaves the parse position just after index 8)
+ * This is independent of formatting.  If you want to not show a decimal point
+ * where there might be no digits after the decimal point, use
+ * setDecimalSeparatorAlwaysShown.
+ * <p>
+ * setDecimalSeparatorAlwaysShown : only affects formatting, and only where
+ * there might be no digits after the decimal point, such as with a pattern
+ * like "#,##0.##", e.g.,
+ * if true,  3456.00 -> "3,456."
+ * if false, 3456.00 -> "3456"
+ * This is independent of parsing.  If you want parsing to stop at the decimal
+ * point, use setParseIntegerOnly.
+ *
+ * <p>
  * You can also use forms of the <code>parse</code> and <code>format</code>
  * methods with <code>ParsePosition</code> and <code>FieldPosition</code> to
  * allow you to:
@@ -114,7 +134,7 @@ import java.text.resources.*;
  *
  * <li> If you are using proportional fonts,
  *      instead of padding with spaces, measure the width
- *      of the string in pixels from the start to <code>getEndIndex</code>. 
+ *      of the string in pixels from the start to <code>getEndIndex</code>.
  *      Then move the pen by
  *      (desiredPixelWidth - widthToAlignmentPoint) before drawing the text.
  *      It also works where there is no decimal, but possibly additional
@@ -126,8 +146,9 @@ import java.text.resources.*;
  * @see          ChoiceFormat
  * @version      1.22 29 Jan 1997
  * @author       Mark Davis
+ * @author       Helena Shih
  */
-public abstract class NumberFormat extends Format implements Cloneable {
+public abstract class NumberFormat extends Format implements java.lang.Cloneable {
 
     /**
      * Field constant used to construct a FieldPosition object. Signifies that
@@ -143,7 +164,6 @@ public abstract class NumberFormat extends Format implements Cloneable {
      */
     public static final int FRACTION_FIELD = 1;
 
-
     public final StringBuffer format(Object number,
                                      StringBuffer toAppendTo,
                                      FieldPosition pos)
@@ -154,9 +174,9 @@ public abstract class NumberFormat extends Format implements Cloneable {
         else if (number instanceof Number) {
             return format(((Number)number).longValue(), toAppendTo, pos);
         }
-	else {
-	    throw new IllegalArgumentException("Cannot format given Object as a Number");
-	}
+        else {
+            throw new IllegalArgumentException("Cannot format given Object as a Number");
+        }
     }
 
     public final Object parseObject(String source,
@@ -307,9 +327,22 @@ public abstract class NumberFormat extends Format implements Cloneable {
     /**
      * Returns a percentage format for the specified locale.
      */
-
     public static NumberFormat getPercentInstance(Locale inLocale) {
         return getInstance(inLocale, PERCENTSTYLE);
+    }
+
+    /**
+     * Returns a scientific format for the current default locale.
+     */
+    /*public*/ final static NumberFormat getScientificInstance() {
+        return getInstance(Locale.getDefault(), SCIENTIFICSTYLE);
+    }
+
+    /**
+     * Returns a scientific format for the specified locale.
+     */
+    /*public*/ static NumberFormat getScientificInstance(Locale inLocale) {
+        return getInstance(inLocale, SCIENTIFICSTYLE);
     }
 
 
@@ -325,22 +358,26 @@ public abstract class NumberFormat extends Format implements Cloneable {
      * Overrides hashCode
      */
     public int hashCode() {
-    	return maxIntegerDigits * 37 + maxFractionDigits;
-    	// just enough fields for a reasonable distribution
+        return maxIntegerDigits * 37 + maxFractionDigits;
+        // just enough fields for a reasonable distribution
     }
 
     /**
      * Overrides equals
      */
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (getClass() != obj.getClass()) return false;
-		NumberFormat other = (NumberFormat) obj;
-		return (maxIntegerDigits == other.maxIntegerDigits
-        	&& minIntegerDigits == other.minIntegerDigits
-        	&& maxFractionDigits == other.maxFractionDigits
-        	&& minFractionDigits == other.minFractionDigits
-        	&& parseIntegerOnly == other.parseIntegerOnly);
+        if (obj == null) return false;
+        if (this == obj)
+            return true;
+        if (getClass() != obj.getClass())
+            return false;
+        NumberFormat other = (NumberFormat) obj;
+        return (maxIntegerDigits == other.maxIntegerDigits
+            && minIntegerDigits == other.minIntegerDigits
+            && maxFractionDigits == other.maxFractionDigits
+            && minFractionDigits == other.minFractionDigits
+            && groupingUsed == other.groupingUsed
+            && parseIntegerOnly == other.parseIntegerOnly);
     }
 
     /**
@@ -390,7 +427,7 @@ public abstract class NumberFormat extends Format implements Cloneable {
      * @see #getMaximumIntegerDigits
      */
     public void setMaximumIntegerDigits(int newValue) {
-        maxIntegerDigits = (byte) Math.max(0,Math.min(newValue,127));
+        maxIntegerDigits = (byte) Math.max(0,Math.min(newValue,308));
         if (minIntegerDigits > maxIntegerDigits)
             minIntegerDigits = maxIntegerDigits;
     }
@@ -436,7 +473,7 @@ public abstract class NumberFormat extends Format implements Cloneable {
      * @see #getMaximumFractionDigits
      */
     public void setMaximumFractionDigits(int newValue) {
-        maxFractionDigits = (byte) Math.max(0,Math.min(newValue,127));
+        maxFractionDigits = (byte) Math.max(0,Math.min(newValue,340));
         if (maxFractionDigits < minFractionDigits)
             minFractionDigits = maxFractionDigits;
     }
@@ -469,19 +506,30 @@ public abstract class NumberFormat extends Format implements Cloneable {
     private static NumberFormat getInstance(Locale desiredLocale,
                                            int choice)
     {
-        ResourceBundle resource = ResourceBundle.getBundle
-                                  ("java.text.resources.LocaleElements",
-                                   desiredLocale);
-        String[] numberStrings = resource.getStringArray("NumberPatterns");
+	/* try the cache first */
+	String[] numberPatterns = (String[])cachedLocaleData.get(desiredLocale);
+	if (numberPatterns == null) { /* cache miss */
+	    ResourceBundle resource = ResourceBundle.getBundle
+		("java.text.resources.LocaleElements", desiredLocale);
+	    numberPatterns = resource.getStringArray("NumberPatterns");
+	    /* update cache */
+	    cachedLocaleData.put(desiredLocale, numberPatterns);
+	}
 
-        return new DecimalFormat(numberStrings[choice],
+        return new DecimalFormat(numberPatterns[choice],
                                  new DecimalFormatSymbols(desiredLocale));
     }
+
+    /**
+     * Cache to hold the NumberPatterns of a Locale.
+     */
+    private static final Hashtable cachedLocaleData = new Hashtable(3);
 
     // Constants used by factory methods to specify a style of format.
     private static final int NUMBERSTYLE = 0;
     private static final int CURRENCYSTYLE = 1;
     private static final int PERCENTSTYLE = 2;
+    private static final int SCIENTIFICSTYLE = 3;
 
     private boolean groupingUsed = true;
     private byte    maxIntegerDigits = 40;
@@ -489,4 +537,7 @@ public abstract class NumberFormat extends Format implements Cloneable {
     private byte    maxFractionDigits = 3;    // invariant, >= minFractionDigits
     private byte    minFractionDigits = 0;
     private boolean parseIntegerOnly = false;
+    // Removed "implements Cloneable" clause.  Needs to update serialization
+    // ID for backward compatibility.
+    static final long serialVersionUID = -2308460125733713944L;
 }

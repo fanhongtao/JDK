@@ -63,7 +63,9 @@ public final class Security {
 	} else {
 	    try {
 		FileInputStream fis = new FileInputStream(propFile);
-		props.load(fis);
+		InputStream is = new BufferedInputStream(fis);
+		props.load(is);
+		is.close();
 	    } catch (IOException e) {
 		error("could not load security properties file from " + propFile +
 		      ". using defaults.");

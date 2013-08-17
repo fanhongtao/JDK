@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_sh.java	1.5 97/02/24
+ * @(#)LocaleElements_sh.java	1.9 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,99 +45,147 @@
 
 package java.text.resources;
 
-public class LocaleElements_sh extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_sh() {
-        super.init(table);
+public class LocaleElements_sh extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "sh_YU" }, // locale id based on iso codes
+            { "LocaleID", "081a" }, // Windows id
+            { "ShortLanguage", "srp" }, // iso-3 abbrev lang name
+            { "ShortCountry", "YUG" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "sh", "Srpski" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "YU", "Jugoslavija" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "Januar", // january
+                    "Februar", // february
+                    "Mart", // march
+                    "April", // april
+                    "Maj", // may
+                    "Juni", // june
+                    "Juli", // july
+                    "Avgust", // august
+                    "Septembar", // september
+                    "Oktobar", // october
+                    "Novembar", // november
+                    "Decembar", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "Jan", // abb january
+                    "Feb", // abb february
+                    "Mar", // abb march
+                    "Apr", // abb april
+                    "Maj", // abb may
+                    "Jun", // abb june
+                    "Jul", // abb july
+                    "Avg", // abb august
+                    "Sep", // abb september
+                    "Okt", // abb october
+                    "Nov", // abb november
+                    "Dec", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "Nedelja", // Sunday
+                    "Ponedeljak", // Monday
+                    "Utorak", // Tuesday
+                    "Sreda", // Wednesday
+                    "\u010cetvrtak", // Thursday
+                    "Petak", // Friday
+                    "Subota" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "Ned", // abb Sunday
+                    "Pon", // abb Monday
+                    "Uto", // abb Tuesday
+                    "Sre", // abb Wednesday
+                    "\u010cet", // abb Thursday
+                    "Pet", // abb Friday
+                    "Sub" // abb Saturday
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "p. n. e.",
+                    "n. e."
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "'Din' #,##0.00;-'Din' #,##0.00", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "Din", // local currency symbol
+                    "YUN", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "HH.mm.ss z", // full time pattern
+                    "HH.mm.ss z", // long time pattern
+                    "H.mm.ss", // medium time pattern
+                    "H.mm", // short time pattern
+                    "EEEE, yyyy, MMMM d", // full date pattern
+                    "EEEE, yyyy, MMMM d", // long date pattern
+                    "yyyy.M.d", // medium date pattern
+                    "yy.M.d", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                /* for sh_SP, default sorting except for the following: */
+
+                /* add dz "ligature" between d and d<stroke>. */
+                /* add d<stroke> between d and e. */
+                /* add lj "ligature" between l and l<stroke>. */
+                /* add l<stroke> between l and m. */
+                /* add nj "ligature" between n and o. */
+                /* add z<abovedot> after z.       */
+
+                "& D < dz, Dz, dZ, DZ < \u0111, \u0110"      /* dz + d<stk> */
+                +"& L < lj, Lj, lJ, LJ < \u0142, \u0141"     /* lj + l<stk> */
+                +"& N < nj, Nj, nJ, NJ"                      /* nj ligature */
+                +"& Z < \u017c, \u017b"                      /* z<abovedot> */
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */     "sh_SP",
-		/* Windows id */                       "081a",
-		/* iso-3 abbrev lang name */           "shr",
-		/* iso-3 abbrev country name */        "SPR",
-		/* language names */                   "en_Serbian (Latin); sh_Srpski",
-		/* country names */                    "en_Serbia; sh_Srbija",
-		/* january */                          "Januar",
-		/* february */                         "Februar",
-		/* march */                            "Mart",
-		/* april */                            "April",
-		/* may */                              "Maj",
-		/* june */                             "Juni",
-		/* july */                             "Juli",
-		/* august */                           "Avgust",
-		/* september */                        "Septembar",
-		/* october */                          "Oktobar",
-		/* november */                         "Novembar",
-		/* december */                         "Decembar",
-		/* month 13 if applicable */           "",
-		/* abb january */                      "Jan",
-		/* abb february */                     "Feb",
-		/* abb march */                        "Mar",
-		/* abb april */                        "Apr",
-		/* abb may */                          "Maj",
-		/* abb june */                         "Jun",
-		/* abb july */                         "Jul",
-		/* abb august */                       "Avg",
-		/* abb september */                    "Sep",
-		/* abb october */                      "Okt",
-		/* abb november */                     "Nov",
-		/* abb december */                     "Dec",
-		/* abb month 13 if applicable */       "",
-		/* sunday */                           "Nedelja",
-		/* monday */                           "Ponedeljak",
-		/* tuesday */                          "Utorak",
-		/* wednesday */                        "Sreda",
-		/* thursday */                         "\u10cetvrtak",
-		/* friday */                           "Petak",
-		/* saturday */                         "Subota",
-		/* abb sunday */                       "Ned",
-		/* abb monday */                       "Pon",
-		/* abb tuesday */                      "Uto",
-		/* abb wednesday */                    "Sre",
-		/* abb thursday */                     "\u010cet",
-		/* abb friday */                       "Pet",
-		/* abb saturday */                     "Sub",
-		/* am marker; default is AM */         "AM",
-		/* pm marker; default is PM */         "PM",
-		/* era strings */                      "p. n. e.;n. e.",
-		/* decimal pattern */                  "#,##0.###;-#,##0.###",
-		/* currency pattern */                 "Din #,##0.00;-Din #,##0.00",
-		/* percent pattern */                  "#,##0%",
-		/* decimal separator */                ",",
-		/* group (thousands) separator */      ".",
-		/* list separator */                   "",
-		/* percent sign */                     "%",
-		/* native 0 digit */                   "0",
-		/* pattern digit */                    "#",
-		/* minus sign */                       "-",
-		/* exponential */                      "E",
-		/* local currency symbol */            "Din",
-		/* intl currency symbol */             "YUD",
-		/* monetary decimal separator */       ",",
-		/* Full time pattern */                "H.mm.ss z",
-		/* Long time pattern */                "H.mm.ss z",
-		/* Default time pattern */             "H.mm.ss",
-		/* Short time pattern */               "H.mm",
-		/* Full date pattern */                "EEEE, yyyy, MMMM d",
-		/* Long date pattern */                "yyyy, MMMM d",
-		/* Default date pattern */             "yyyy.M.d",
-		/* Short date pattern */               "yy.M.d",
-		/* Date-Time pattern*/                 "{1} {0}",
-		/* first day of week */                "1",
-		/* min days in first week */           "1",
-		/* for sh_SP, default sorting except for the following: */
-
-		/* add dz "ligature" between d and d<stroke>. */
-		/* add d<stroke> between d and e. */
-		/* add lj "ligature" between l and l<stroke>. */
-		/* add l<stroke> between l and m. */
-		/* add nj "ligature" between n and o. */
-		/* add z<abovedot> after z.       */
-
-		"& D < dz, Dz, dZ, DZ < \u0111, \u0110"      /* dz + d<stk> */
-		+"& L < lj, Lj, lJ, LJ < \u0142, \u0141"     /* lj + l<stk> */
-		+"& N < nj, Nj, nJ, NJ"                      /* nj ligature */
-		+"& Z < \u017c, \u017b"                      /* z<abovedot> */
-    };
 }

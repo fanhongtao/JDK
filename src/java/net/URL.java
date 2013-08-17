@@ -1,5 +1,5 @@
 /*
- * @(#)URL.java	1.42 97/02/21
+ * @(#)URL.java	1.43 97/09/29
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -97,7 +97,7 @@ import java.util.StringTokenizer;
  * specified. The optional anchor is not inherited. 
  *
  * @author  James Gosling
- * @version 1.42, 02/21/97
+ * @version 1.43, 09/29/97
  * @since   JDK1.0
  */
 public final class URL implements java.io.Serializable {
@@ -640,6 +640,7 @@ public final class URL implements java.io.Serializable {
 	if (security != null) {
 	    security.checkSetFactory();
 	}
+	handlers.clear();
 	factory = fac;
     }
 

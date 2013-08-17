@@ -1,5 +1,5 @@
 /*
- * @(#)StringBuffer.java	1.33 97/01/24
+ * @(#)StringBuffer.java	1.34 97/12/16
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -62,7 +62,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.33, 01/24/97
+ * @version 	1.34, 12/16/97
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -142,15 +142,14 @@ public final class StringBuffer implements java.io.Serializable {
     }
 
     /**
-     * Copies the buffer value if it is shared.
+     * Copies the buffer value.  This is normally only called when shared
+     * is true.  It should only be called from a synchronized method.
      */
-    private final void copyWhenShared() {
-	if (shared) {
-	    char newValue[] = new char[value.length];
-	    System.arraycopy(value, 0, newValue, 0, count);
-	    value = newValue;
-	    shared = false;
-	}
+    private final void copy() {
+	char newValue[] = new char[value.length];
+	System.arraycopy(value, 0, newValue, 0, count);
+	value = newValue;
+	shared = false;
     }
 
     /**
@@ -170,19 +169,28 @@ public final class StringBuffer implements java.io.Serializable {
      * @since   JDK1.0
      */
     public synchronized void ensureCapacity(int minimumCapacity) {
-	int maxCapacity = value.length;
-
-	if (minimumCapacity > maxCapacity) {
-	    int newCapacity = (maxCapacity + 1) * 2;
-	    if (minimumCapacity > newCapacity) {
-		newCapacity = minimumCapacity;
-	    }
-
-	    char newValue[] = new char[newCapacity];
-	    System.arraycopy(value, 0, newValue, 0, count);
-	    value = newValue;
-	    shared = false;
+	if (minimumCapacity > value.length) {
+	    expandCapacity(minimumCapacity);
 	}
+    }
+
+    /**
+     * This implements the expansion semantics of ensureCapacity but is
+     * unsynchronized for use internally by methods which are already
+     * synchronized.
+     *
+     * @see java.lang.StringBuffer#ensureCapacity(int)
+     */
+    private void expandCapacity(int minimumCapacity) {
+	int newCapacity = (value.length + 1) * 2;
+	if (minimumCapacity > newCapacity) {
+	    newCapacity = minimumCapacity;
+	}
+	
+	char newValue[] = new char[newCapacity];
+	System.arraycopy(value, 0, newValue, 0, count);
+	value = newValue;
+	shared = false;
     }
 
     /**
@@ -210,15 +218,20 @@ public final class StringBuffer implements java.io.Serializable {
 	if (newLength < 0) {
 	    throw new StringIndexOutOfBoundsException(newLength);
 	}
-	ensureCapacity(newLength);
+	
+	if (newLength > value.length) {
+	    expandCapacity(newLength);
+	}
 
 	if (count < newLength) {
-	    copyWhenShared();
+	    if (shared) copy();
 	    for (; count < newLength; count++) {
 		value[count] = '\0';
 	    }
-	}
-	count = newLength;
+	} else {
+            count = newLength;
+            if (shared) copy();
+        }
     }
 
     /**
@@ -293,7 +306,7 @@ public final class StringBuffer implements java.io.Serializable {
 	if ((index < 0) || (index >= count)) {
 	    throw new StringIndexOutOfBoundsException(index);
 	}
-	copyWhenShared();
+	if (shared) copy();
 	value[index] = ch;
     }
 
@@ -332,10 +345,11 @@ public final class StringBuffer implements java.io.Serializable {
 	}
 
 	int len = str.length();
-	ensureCapacity(count + len);
-	copyWhenShared();
+	int newcount = count + len;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
 	str.getChars(0, len, value, count);
-	count += len;
+	count = newcount;
 	return this;
     }
 
@@ -353,10 +367,11 @@ public final class StringBuffer implements java.io.Serializable {
      */
     public synchronized StringBuffer append(char str[]) {
 	int len = str.length;
-	ensureCapacity(count + len);
-	copyWhenShared();
+	int newcount = count + len;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
 	System.arraycopy(str, 0, value, count, len);
-	count += len;
+	count = newcount;
 	return this;
     }
 
@@ -376,10 +391,11 @@ public final class StringBuffer implements java.io.Serializable {
      * @since   JDK1.0
      */
     public synchronized StringBuffer append(char str[], int offset, int len) {
-	ensureCapacity(count + len);
-	copyWhenShared();
+        int newcount = count + len;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
 	System.arraycopy(str, offset, value, count, len);
-	count += len;
+	count = newcount;
 	return this;
     }
 
@@ -413,8 +429,9 @@ public final class StringBuffer implements java.io.Serializable {
      * @since   JDK1.0
      */
     public synchronized StringBuffer append(char c) {
-	ensureCapacity(count + 1);
-	copyWhenShared();
+        int newcount = count + 1;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
 	value[count++] = c;
 	return this;
     }
@@ -540,11 +557,14 @@ public final class StringBuffer implements java.io.Serializable {
 	    throw new StringIndexOutOfBoundsException();
 	}
 	int len = str.length();
-	ensureCapacity(count + len);
-	copyWhenShared();
+	int newcount = count + len;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
+	else if (shared)
+	    copy();
 	System.arraycopy(value, offset, value, offset + len, count - offset);
 	str.getChars(0, len, value, offset);
-	count += len;
+	count = newcount;
 	return this;
     }
 
@@ -568,11 +588,14 @@ public final class StringBuffer implements java.io.Serializable {
 	    throw new StringIndexOutOfBoundsException();
 	}
 	int len = str.length;
-	ensureCapacity(count + len);
-	copyWhenShared();
+	int newcount = count + len;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
+	else if (shared)
+	    copy();
 	System.arraycopy(value, offset, value, offset + len, count - offset);
 	System.arraycopy(str, 0, value, offset, len);
-	count += len;
+	count = newcount;
 	return this;
     }
 
@@ -622,11 +645,14 @@ public final class StringBuffer implements java.io.Serializable {
      * @since      JDK1.0
      */
     public synchronized StringBuffer insert(int offset, char c) {
-	ensureCapacity(count + 1);
-	copyWhenShared();
+	int newcount = count + 1;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
+	else if (shared)
+	    copy();
 	System.arraycopy(value, offset, value, offset + 1, count - offset);
 	value[offset] = c;
-	count += 1;
+	count = newcount;
 	return this;
     }
 
@@ -742,7 +768,7 @@ public final class StringBuffer implements java.io.Serializable {
      * @since   JDK1.0.2
      */
     public synchronized StringBuffer reverse() {
-	copyWhenShared();
+	if (shared) copy();
 	int n = count - 1;
 	for (int j = (n-1) >> 1; j >= 0; --j) {
 	    char temp = value[j];

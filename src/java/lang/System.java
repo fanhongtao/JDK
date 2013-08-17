@@ -1,5 +1,5 @@
 /*
- * @(#)System.java	1.68 97/06/05
+ * @(#)System.java	1.72 97/11/14
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,7 +37,7 @@ import java.util.StringTokenizer;
  * copying a portion of an array. 
  *
  * @author  Arthur van Hoff 
- * @version 1.68, 06/05/97
+ * @version 1.72, 11/14/97
  * @since   JDK1.0
  */
 public final

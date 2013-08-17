@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.61 97/03/03 Arthur van Hoff
+ * @(#)Window.java	1.72 98/02/19 Arthur van Hoff
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -29,21 +29,26 @@ import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import sun.awt.im.InputContext;
 
 
 /**
- * A Window is a top-level window with no borders and no
+ * A <code>Window</code> object is a top-level window with no borders and no
  * menubar. It could be used to implement a pop-up menu.
- * The default layout for a window is BorderLayout.
- *
+ * The default layout for a window is <code>BorderLayout</code>.
+ * A <code>Window</code> object blocks input to other application 
+ * windows when it is shown.
+ * <p>
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
- * @see WindowEvent
- * @see #addWindowListener
  *
- * @version 	1.61, 03/03/97
+ * @version 	1.72, 02/19/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
+ * @see WindowEvent
+ * @see #addWindowListener
+ * @see java.awt.BorderLayout
+ * @since       JDK1.0
  */
 public class Window extends Container {
     String      warningString;
@@ -51,6 +56,9 @@ public class Window extends Container {
     static final int OPENED = 0x01;
     int state;
     transient WindowListener windowListener;
+    private transient boolean active;
+    
+    transient InputContext inputContext;
 
     private FocusManager focusMgr;
 
@@ -74,11 +82,14 @@ public class Window extends Container {
     }
 
     /**
-     * Constructs a new Window initialized to an invisible state. 
-     *
-     * @param parent the owner of the dialog
-     * @see Component#setSize
-     * @see #show
+     * Constructs a new invisible window.
+     * <p>
+     * The window is not initially visible. Call the <code>show</code> 
+     * method to cause the window to become visible.
+     * @param     parent   the main application frame.
+     * @see       java.awt.Window#show
+     * @see       java.awt.Component#setSize
+     * @since     JDK1.0
      */
     public Window(Frame parent) {
 	this();
@@ -95,14 +106,18 @@ public class Window extends Container {
      * appearance of the Window without changing its functionality.
      */
     public void addNotify() {
+      synchronized (getTreeLock()) {
 	if (peer == null) {
 	    peer = getToolkit().createWindow(this);
 	}
 	super.addNotify();
+      }
     }
 
     /**
-     * Packs the components of the Window.
+     * Causes subcomponents of this window to be laid out at their
+     * preferred size.
+     * @since     JDK1.0
      */
     public void pack() {
 	Container parent = this.parent;
@@ -117,9 +132,14 @@ public class Window extends Container {
     }
 
     /**
-     * Shows the Window. This will bring the window to the
-     * front if the window is already visible.
-     * @see Component#hide
+     * Shows this window, and brings it to the front.
+     * <p>
+     * If this window is not yet visible, <code>show</code> 
+     * makes it visible. If this window is already visible, 
+     * then this method brings it to the front. 
+     * @see       java.awt.Window#toFront
+     * @see       java.awt.Component#setVisible
+     * @since     JDK1.0
      */
     public void show() {
     	Container parent = this.parent;
@@ -153,11 +173,18 @@ public class Window extends Container {
     }
         
     /**
-     * Disposes of the Window. This method must
+     * Disposes of this window. This method must
      * be called to release the resources that
      * are used for the window.
+     * @since JDK1.0
      */
     public void dispose() {
+      synchronized (getTreeLock()) {
+        if (inputContext != null) {
+            InputContext toDispose = inputContext;
+            inputContext = null;
+            toDispose.dispose();
+        }
 	hide();
 	removeNotify();
  	if (parent != null) {
@@ -165,22 +192,33 @@ public class Window extends Container {
 	    parent.removeOwnedWindow(this);
  	} 
         postWindowEvent(WindowEvent.WINDOW_CLOSED);
+      }
     }
 
     /**
+     * Brings this window to the front.
      * Places this window at the top of the stacking order and
      * shows it in front of any other windows.
+     * @see       java.awt.Window#toBack
+     * @since     JDK1.0
      */
     public void toFront() {
     	WindowPeer peer = (WindowPeer)this.peer;
 	if (peer != null) {
 	    peer.toFront();
 	}
-    }
+    //Netscape : If toFron() is called without calling show first
+	else {
+		show();
+	}
+	}
 
     /**
+     * Sends this window to the back.
      * Places this window at the bottom of the stacking order and
      * makes the corresponding adjustment to other visible windows.
+     * @see       java.awt.Window#toFront
+     * @since     JDK1.0
      */
     public void toBack() {
     	WindowPeer peer = (WindowPeer)this.peer;
@@ -191,25 +229,46 @@ public class Window extends Container {
 
     /**
      * Returns the toolkit of this frame.
-     * @see Toolkit
+     * @return    the toolkit of this window.
+     * @see       java.awt.Toolkit
+     * @see       java.awt.Toolkit#getDefaultToolkit()
+     * @see       java.awt.Component#getToolkit()
+     * @since     JDK1.0
      */
     public Toolkit getToolkit() {
 	return Toolkit.getDefaultToolkit();
     }
 
     /**
-     * Gets the warning string for this window. This is
-     * a string that will be displayed somewhere in the
-     * visible area of windows that are not secure.
+     * Gets the warning string that is displayed with this window. 
+     * If this window is insecure, the warning string is displayed 
+     * somewhere in the visible area of the window. A window is 
+     * insecure if there is a security manager, and the security 
+     * manager's <code>checkTopLevelWindow</code> method returns 
+     * <code>false</code> when this window is passed to it as an
+     * argument.
+     * <p>
+     * If the window is secure, then <code>getWarningString</code>
+     * returns <code>null</code>. If the window is insecure, this
+     * methods checks for the system property 
+     * <code>awt.appletWarning</code> 
+     * and returns the string value of that property. 
+     * @return    the warning string for this window.
+     * @see       java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
+     * @since     JDK1.0
      */
     public final String getWarningString() {
 	return warningString;
     }
 
     /** 
-     * Gets the Locale for the window, if it has been set.
-     * If no Locale has been set, then the default Locale 
+     * Gets the <code>Locale</code> object that is associated 
+     * with this window, if the locale has been set.
+     * If no locale has been set, then the default locale 
      * is returned.
+     * @return    the locale that is set for this window.
+     * @see       java.util.Locale
+     * @since     JDK1.1
      */
 
     public Locale getLocale() {
@@ -217,6 +276,21 @@ public class Window extends Container {
 	return Locale.getDefault();
       }
       return this.locale;
+    }
+
+    /**
+     * Gets the input context for this window. A window always has an input context,
+     * which is shared by subcomponents unless they create and set their own.
+     * @see Component#getInputContext
+     */
+
+    synchronized InputContext getInputContext() {
+ 
+        if (inputContext == null) {
+            inputContext = InputContext.getInstance();
+        }
+
+        return inputContext;
     }
 
     /**
@@ -348,7 +422,12 @@ public class Window extends Container {
         }
     }
 
+    boolean isActive() {
+        return active;
+    }
+
     void setFocusOwner(Component c) {
+	//System.out.println("Window.setFocusOwner("+c+"): " + this);
 	focusMgr.setFocusOwner(c);
     }
 
@@ -363,12 +442,16 @@ public class Window extends Container {
      * assigned to them.
      */
     public Component getFocusOwner() {
-        return focusMgr.getFocusOwner();
+	//System.out.println("Window.getFocusOwner(), active:"+active+", owner:"+focusMgr.getFocusOwner());
+        if (active)
+            return focusMgr.getFocusOwner();
+        else
+            return null;
     }
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by transferFocus(Component).
+     * replaced by <code>transferFocus(Component)</code>.
      */
     void nextFocus(Component base) {
 	focusMgr.focusNext(base);
@@ -379,22 +462,32 @@ public class Window extends Container {
      * @param e the event
      */
     void dispatchEventImpl(AWTEvent e) {
+
         switch(e.getID()) {
           case FocusEvent.FOCUS_GAINED:
             setFocusOwner(this);
             break;
           case ComponentEvent.COMPONENT_RESIZED:
-            invalidate();
-            validate();
+            synchronized (getTreeLock()) {
+		invalidate();
+		validate();
+            }
             repaint();
             break;
+
+          case WindowEvent.WINDOW_ACTIVATED:
+            active = true;
 /*
   Calling this messes up focus on Solaris
 
-          case WindowEvent.WINDOW_ACTIVATED:
             focusMgr.activateFocus();
-            break;
 */
+            break;
+
+          case WindowEvent.WINDOW_DEACTIVATED:
+            active = false;
+            break;
+
           default:
             break;
         }
@@ -403,7 +496,7 @@ public class Window extends Container {
 
     /**
      * @deprecated As of JDK version 1.1
-     * replaced by dispatchEvent(AWTEvent).
+     * replaced by <code>dispatchEvent(AWTEvent)</code>.
      */
     public boolean postEvent(Event e) {
         if (handleEvent(e)) {
@@ -455,12 +548,18 @@ public class Window extends Container {
       }
     }
 
-}
+} // class Window
 
 
 class FocusManager implements java.io.Serializable {
     Container focusRoot;
-    Component focusOwner;
+    Component focusOwner; //Bug #4101153 : a backout for b fix made for 
+							//bug # 4092347
+
+    /*
+     * JDK 1.1 serialVersionUID 
+     */
+    static final long serialVersionUID = 2491878825643557906L;
 
     FocusManager(Container cont) {
 	focusRoot = cont;
@@ -473,7 +572,7 @@ class FocusManager implements java.io.Serializable {
      * If no visible, active, focusable components are present,
      * assign focus to the focus root.
      */
-    void activateFocus() {
+    private void activateFocus() {
         boolean assigned = false;
         if (focusOwner != null) {
             if ((assigned = assignFocus(focusOwner, false)) != true) {
@@ -489,11 +588,9 @@ class FocusManager implements java.io.Serializable {
     }                
                 
      
-    void setFocusOwner(Component c) {
+    synchronized void setFocusOwner(Component c) {
         //System.out.println("FocusManager.setFocusOwner: "+c.name);
-	synchronized (Component.LOCK) {
-	    focusOwner = c;
-	}
+        focusOwner = c;
     }
 
     Component getFocusOwner() {
@@ -505,132 +602,127 @@ class FocusManager implements java.io.Serializable {
     }
 
     boolean focusNext(Component base) {
-        synchronized (Component.LOCK) {
-	    Component target = base;
-	    if (target == null || target.parent == null) {
-		return false;
-	    } 
-	    //System.out.println("FocusManager.focusNext: owner="+focusOwner);
-	    do {
-		boolean found = false;
-		Container p = target.parent;
-		Component c;
-		for (int i = 0; i < p.ncomponents; i++) {
-		    c = p.component[i];
-		    if (found) {
-			if (assignFocus(c)) {
-			    return true;
-			}
-			if (c instanceof Container && c.isVisible() && c.isEnabled()) {
-			    if (focusForward((Container)c)) {
-				return true;
-			    }
-			} 	    
-		    } else if (c == target) {
-			found = true;	
-		    }
-		} 
-		target = p;
-	    } while (target != focusRoot);
+        synchronized (focusRoot.getTreeLock()) { // BUGID4067845
+            Component target = base;
+            if (target != null && target.parent != null) {
+                //System.out.println("FocusManager.focusNext: owner="+focusOwner);
+                do {
+                    boolean found = false;
+                    Container p = target.parent;
+                    Component c;
+                    for (int i = 0; i < p.ncomponents; i++) {
+                        c = p.component[i];
+                        if (found) {
+                            if (assignFocus(c)) {
+                                return true;
+                            }
+                            if (c instanceof Container && 
+                        			c.isVisible() && 
+                        			c.isEnabled()) {
+                                if (focusForward((Container)c)) {
+                                    return true;
+                                }
+                            } 	    
+                        } else if (c == target) {
+                            found = true;	
+                        }
+                    } 
+                    target = p;
+                } while (target != focusRoot && target.parent != null);
+    		}
+            // wrap-around
+            if (focusForward(focusRoot)) {
+                return true;
+            }
+    
+            return false;		
+        }
+    } // focusNext()
 
-	    // wrap-around
-	    if (focusForward(focusRoot)) {
-		return true;
-	    }
-
-	    return false;		
-	}
-    }
 
     boolean focusPrevious() {
-	return focusPrevious(focusOwner);
+        return focusPrevious(focusOwner);
     }
     
     boolean focusPrevious(Component base) {
-	synchronized (Component.LOCK) {
-	    Component target = base;
-	    if (target == null || target.parent == null) {
-		return false;
-	    }       
-	    do {
-		boolean found = false;
-		Container p = target.parent;
-		Component c;
-		for (int i = p.ncomponents-1; i >= 0; i--) {
-		    c = p.component[i];
-		    if (found) {
-			if (assignFocus(c)) {
-			    return true;
-			}
-			if (c instanceof Container && c.isVisible() && c.isEnabled()) {
-			    if (focusBackward((Container)c)) {
-				return true;
-			    }
-			} 	    
-		    } else if (c == target) {
-			found = true;	
-		    }
-		} 
-		target = p;
-	    } while (target != focusRoot);
+        synchronized (focusRoot.getTreeLock()) { // BUGID4067845
+            Component target = base;
+            if (target != null && target.parent != null) {
+                do {
+                    boolean found = false;
+                    Container p = target.parent;
+                        Component c;
+                    for (int i = p.ncomponents-1; i >= 0; i--) {
+                        c = p.component[i];
+                        if (found) {
+                            if (assignFocus(c)) {
+                                return true;
+                            }
+                            if (c instanceof Container && 
+                            		c.isVisible() && 
+                            		c.isEnabled()) {
+                                if (focusBackward((Container)c)) {
+                                    return true;
+                                }
+                             } 	    
+                         } else if (c == target) {
+                             found = true;	
+                         }
+                    } 
+                    target = p;
+                } while (target != focusRoot);
 
-	    // wrap-around
-	    if (focusBackward(focusRoot)) {
-		return true;
-	    }
-
-	    return false;		
-	}
+            }
+                            // wrap-around
+            if (focusBackward(focusRoot)) {
+                return true;
+            }
+            return false;		
+        }
     }
 
     boolean assignFocus(Component c) {
         return assignFocus(c, true);
     }
 
-    boolean assignFocus(Component c, boolean requireTraversable) {
-	synchronized (Component.LOCK) {
-	    if (c.isVisible() && c.isEnabled() &&
-                (!requireTraversable || c.isFocusTraversable())) {
-	        //System.out.println("FocusManager.assignFocus: "+c);
-                c.requestFocus();
-		return true;
-	    }
-	    return false;
-	}
+    synchronized boolean assignFocus(Component c, boolean requireTraversable) {
+        if (c.isVisible() && c.isEnabled() &&
+            (!requireTraversable || c.isFocusTraversable())) {
+            //System.out.println("FocusManager.assignFocus: "+c);
+            c.requestFocus();
+            return true;
+        }
+        return false;
     }
 
-    boolean focusForward(Container cont) {
-	synchronized (Component.LOCK) {
-	    for (int i = 0; i < cont.ncomponents; i++) {
-		Component c = cont.component[i];
-		if (assignFocus(c)) {
-		   return true;
-		}
-		if (c instanceof Container && c.isVisible() && c.isEnabled()) {
-		    if (focusForward((Container)c)) {
-			return true;
-		    }
-		} 
-	    }
-	    return false;
-	}
+    synchronized boolean focusForward(Container cont) {
+        for (int i = 0; i < cont.ncomponents; i++) {
+            Component c = cont.component[i];
+            if (assignFocus(c)) {
+                return true;
+            }
+            if (c instanceof Container && c.isVisible() && c.isEnabled()) {
+                if (focusForward((Container)c)) {
+                    return true;
+                }
+            } 
+        }
+        return false;
     }
 
-    boolean focusBackward(Container cont) {
-	synchronized (Component.LOCK) {
-	    for (int i = cont.ncomponents-1; i >= 0; i--) {
-		Component c = cont.component[i];
-		if (assignFocus(c)) {
-		    return true;
-		}
-		if (c instanceof Container && c.isVisible() && c.isEnabled()) {
-		    if (focusBackward((Container)c)) {
-			return true;
-		    }
-		} 
-	    }
-	    return false;
-	}
+    synchronized boolean focusBackward(Container cont) {
+        for (int i = cont.ncomponents-1; i >= 0; i--) {
+            Component c = cont.component[i];
+            if (assignFocus(c)) {
+                return true;
+            }
+            if (c instanceof Container && c.isVisible() && c.isEnabled()) {
+                if (focusBackward((Container)c)) {
+                    return true;
+                }
+            } 
+        }
+        return false;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)DataFlavor.java	1.4 97/03/10
+ * @(#)DataFlavor.java	1.5 98/02/03
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -28,11 +28,41 @@ import java.io.InputStream;
  * Each instance represents the opaque concept of a data format as would
  * appear on a clipboard, during drag and drop, or in a file system.
  *
- * @version 	1.4, 03/10/97
+ * @version 	1.5, 02/03/98
  * @author	Blake Sullivan
  */
 public class DataFlavor {
 
+    static Class ioInputStreamClass = java.io.InputStream.class;
+
+    /*
+     * private initializer
+     */
+
+    static private DataFlavor createConstant(Class rc, String prn) {
+	try {
+	    return new DataFlavor(rc, prn);
+	} catch (Exception e) {
+	    return null;
+	}
+    }
+
+    /*
+     * private initializer
+     */
+
+    static private DataFlavor createConstant(String mt, String prn) {
+	try {
+	    return new DataFlavor(mt, prn);
+	} catch (Exception e) {
+	    return null;
+	}
+    }
+
+   /**
+    * The DataFlavor representing a Java Unicode String class, where:
+    * <p>
+    * representationClass = java.lang.String<br>
    /**
     * The DataFlavor representing a Java Unicode String class, where:
     * <p>
@@ -40,7 +70,7 @@ public class DataFlavor {
     * mimeType            = "application/x-java-serialized-object"        
     * <p> 
     */
-    public static DataFlavor stringFlavor;
+    public final static DataFlavor stringFlavor = createConstant(java.lang.String.class, "Unicode String");
 
    /**
     * The DataFlavor representing plain text with unicode encoding, where:
@@ -49,20 +79,9 @@ public class DataFlavor {
     * mimeType            = "text/plain; charset=unicode"        
     * <p> 
     */
-    public static DataFlavor plainTextFlavor; 
+    public final static DataFlavor plainTextFlavor = createConstant("text/plain;charset=unicode", "Plain Text");
 		
     static final String serializedObjectMimeType = "application/x-java-serialized-object";
-    static Class ioInputStreamClass;
-
-    static {
-	try {
-	    stringFlavor = new DataFlavor(Class.forName("java.lang.String"), "Unicode String");
-	    plainTextFlavor = new DataFlavor("text/plain; charset=unicode", "Plain Text");
-	    ioInputStreamClass = Class.forName("java.io.InputStream");
-	} catch (ClassNotFoundException e) {
-
-	}
-    } 
 
     /* placeholder for caching any platform-specific data for flavor */
     int atom;      

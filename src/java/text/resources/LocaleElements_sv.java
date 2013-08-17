@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_sv.java	1.4 97/02/24
+ * @(#)LocaleElements_sv.java	1.7 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,93 +45,141 @@
 
 package java.text.resources;
 
-public class LocaleElements_sv extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_sv() {
-        super.init(table);
+public class LocaleElements_sv extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "sv_SE" }, // locale id based on iso codes
+            { "LocaleID", "041d" }, // Windows id
+            { "ShortLanguage", "swe" }, // iso-3 abbrev lang name
+            { "ShortCountry", "SWE" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "sv", "svenska" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "SE", "Sverige" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "januari", // january
+                    "februari", // february
+                    "mars", // march
+                    "april", // april
+                    "maj", // may
+                    "juni", // june
+                    "juli", // july
+                    "augusti", // august
+                    "september", // september
+                    "oktober", // october
+                    "november", // november
+                    "december", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "jan", // abb january
+                    "feb", // abb february
+                    "mar", // abb march
+                    "apr", // abb april
+                    "maj", // abb may
+                    "jun", // abb june
+                    "jul", // abb july
+                    "aug", // abb august
+                    "sep", // abb september
+                    "okt", // abb october
+                    "nov", // abb november
+                    "dec", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "s\u00f6ndag", // Sunday
+                    "m\u00e5ndag", // Monday
+                    "tisdag", // Tuesday
+                    "onsdag", // Wednesday
+                    "torsdag", // Thursday
+                    "fredag", // Friday
+                    "l\u00f6rdag" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "s\u00f6", // abb Sunday
+                    "m\u00e5", // abb Monday
+                    "ti", // abb Tuesday
+                    "on", // abb Wednesday
+                    "to", // abb Thursday
+                    "fr", // abb Friday
+                    "l\u00f6" // abb Saturday
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.00 kr;-#,##0.00 kr", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    "\u00a0", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "kr", // local currency symbol
+                    "SEK", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "'kl 'H:mm z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "'den 'd MMMM yyyy", // full date pattern
+                    "'den 'd MMMM yyyy", // long date pattern
+                    "yyyy-MMM-dd", // medium date pattern
+                    "yyyy-MM-dd", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements",
+                new String[] {
+                    "2", // first day of week
+                    "4" // min days in first week
+                }
+            },
+            { "CollationElements",
+                "& Z < \u00e6 , \u00c6 " +                   // Z < ae ligature
+                "< a\u030a , A\u030a , aa , aA , Aa , AA" +  // a-ring, aa ligaure
+                "< a\u0308 , A\u0308 < o\u0308 , O\u0308 " + // a-umlaut < o-umlaut
+                "; u\u030b , U\u030b " +                     // u-double-acute
+                "< o\u030b , O\u030b ; \u00f8 , \u00d8 " +   // o-double-acute < o-stroke
+                "& V ; w , W" +
+                "& Y, u\u0308 , U\u0308"
+            }
+        };
     }
-
-    static String table []={
-        "sv_SE", /*locale id based on iso codes*/
-        "041d", /*Windows id*/
-        "sve", /*iso-3 abbrev lang name*/
-        "SWE", /*iso-3 abbrev country name*/
-        "en_Swedish; de_Schwedisch; fr_suédois; sv_svenska", /*language names*/
-        "en_Sweden; de_Schweden; fr_Suède; sv_Sverige", /*country names*/
-        "januari", /*january*/
-        "februari", /*february*/
-        "mars", /*march*/
-        "april", /*april*/
-        "maj", /*may*/
-        "juni", /*june*/
-        "juli", /*july*/
-        "augusti", /*august*/
-        "september", /*september*/
-        "oktober", /*october*/
-        "november", /*november*/
-        "december", /*december*/
-        "", /*month 13 if applicable*/
-        "jan", /*abb january*/
-        "feb", /*abb february*/
-        "mar", /*abb march*/
-        "apr", /*abb april*/
-        "maj", /*abb may*/
-        "jun", /*abb june*/
-        "jul", /*abb july*/
-        "aug", /*abb august*/
-        "sep", /*abb september*/
-        "okt", /*abb october*/
-        "nov", /*abb november*/
-        "dec", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "söndag", /*Sunday*/
-        "måndag", /*Monday*/
-        "tisdag", /*Tuesday*/
-        "onsdag", /*Wednesday*/
-        "torsdag", /*Thursday*/
-        "fredag", /*Friday*/
-        "lördag", /*Saturday*/
-        "sö", /*abb Sunday*/
-        "må", /*abb Monday*/
-        "ti", /*abb Tuesday*/
-        "on", /*abb Wednesday*/
-        "to", /*abb Thursday*/
-        "fr", /*abb Friday*/
-        "lö", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;AD", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "#,##0.00 kr;-#,##0.00 kr", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        " ", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "kr", /*local currency symbol*/
-        "SEK", /*intl currency symbol*/
-        ",", /*monetary decimal separator*/
-        "'kl 'H:mm z", /*full time pattern*/
-        "HH:mm:ss z", /*long time pattern*/
-        "HH:mm:ss", /*medium time pattern*/
-        "HH:mm", /*short time pattern*/
-        "' den 'd MMMM yyyy", /*full date pattern*/
-        "' den 'd MMMM yyyy", /*long date pattern*/
-        "yyyy-MMM-dd", /*medium date pattern*/
-        "yyyy-MM-dd", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "4", /*min days in first week*/
-        // Based on "Nordic Cultural Requirements on Information Technology"
-        // STRI TS3, 1st Edition.
-        " & Z < \u00e6, a\u0308 ,  \u00C6, A\u0308" +
-        " < \u00F8, o\u0308, \u00D8, O\u0308" +
-		" < a\u030A , A\u030A, aa , aA, Aa , AA" +
-        " & y, u\u0308 , Y , U\u0308" +
-        " & v, w, V, W "
-    };
 }

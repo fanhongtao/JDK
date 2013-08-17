@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleDateFormat.java	1.22 97/03/10
+ * @(#)SimpleDateFormat.java	1.32 00/05/26
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -36,11 +36,15 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.SimpleTimeZone;
 import java.util.GregorianCalendar;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import java.lang.ClassNotFoundException;
+import java.util.Hashtable;
 
 /**
  * <code>SimpleDateFormat</code> is a concrete class for formatting and
  * parsing dates in a locale-sensitive manner. It allows for formatting
- * (millis -> text), parsing (text -> millis), and normalization. 
+ * (date -> text), parsing (text -> date), and normalization.
  *
  * <p>
  * <code>SimpleDateFormat</code> allows you to start by choosing
@@ -54,7 +58,7 @@ import java.util.GregorianCalendar;
  * For more information on using these methods, see
  * <a href="java.text.DateFormat.html"><code>DateFormat</code></a>.
  *
- * <p> 
+ * <p>
  * <strong>Time Format Syntax:</strong>
  * <p>
  * To specify the time format use a <em>time pattern</em> string.
@@ -82,8 +86,8 @@ import java.util.GregorianCalendar;
  * k        hour in day (1~24)      (Number)            24
  * K        hour in am/pm (0~11)    (Number)            0
  * z        time zone               (Text)              Pacific Standard Time
- * '        escape for text
- * ''        single quote                              '
+ * '        escape for text         (Delimiter)
+ * ''       single quote            (Literal)           '
  * </pre>
  * </blockquote>
  * The count of pattern letters determine the format.
@@ -114,7 +118,7 @@ import java.util.GregorianCalendar;
  * "yyyy.MM.dd G 'at' hh:mm:ss z"    ->>  1996.07.10 AD at 15:08:56 PDT
  * "EEE, MMM d, ''yy"                ->>  Wed, July 10, '96
  * "h:mm a"                          ->>  12:08 PM
- * "hh 'o''''clock' a, zzzz"         ->>  12 o'clock PM, Pacific Daylight Time
+ * "hh 'o''clock' a, zzzz"           ->>  12 o'clock PM, Pacific Daylight Time
  * "K:mm a, z"                       ->>  0:00 PM, PST
  * "yyyyy.MMMMM.dd GGG hh:mm aaa"    ->>  1996.July.10 AD 12:08 PM
  * </pre>
@@ -144,6 +148,16 @@ import java.util.GregorianCalendar;
  * happen when formatting the time in PM.
  *
  * <p>
+ * When parsing a date string using the abbreviated year pattern,
+ * SimpleDateFormat must interpret the abbreviated year
+ * relative to some century.  It does this by adjusting dates to be
+ * within 80 years before and 20 years after the time the SimpleDateFormat
+ * instance is created. For example, using a pattern of MM/dd/yy and a
+ * SimpleDateFormat instance created on Jan 1, 1997,  the string
+ * "01/11/12" would be interpreted as Jan 11, 2012 while the string "05/04/64"
+ * would be interpreted as May 4, 1964.
+ *
+ * <p>
  * For time zones that have no names, use strings GMT+hours:minutes or
  * GMT-hours:minutes.
  *
@@ -159,13 +173,28 @@ import java.util.GregorianCalendar;
  * @see          DateFormat
  * @see          DateFormatSymbols
  * @see          DecimalFormat
- * @version      1.22 03/10/97
- * @author       Mark Davis, Chen-Lieh Huang
+ * @version      1.32 05/26/00
+ * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
 
+    // the official serial version ID which says cryptically
+    // which version we're compatible with
+    static final long serialVersionUID = 4774881970558875024L;
+
+    // the internal serial version which says which version was written
+    // - 0 (default) for version up to JDK 1.1.3
+    // - 1 for version from JDK 1.1.4, which includes a new field
+    static final int currentSerialVersion = 1;
+    private int serialVersionOnStream = currentSerialVersion;
+
     private String pattern;
     private DateFormatSymbols formatData;
+
+    // if dates have ambiguous years, we map them into the century starting
+    // at defaultCenturyStart, which may be any date.
+    private Date defaultCenturyStart; // field new in JDK 1.1.4
+    transient private int defaultCenturyStartYear;
 
     private static final int millisPerHour = 60 * 60 * 1000;
     private static final int millisPerMinute = 60 * 1000;
@@ -177,6 +206,12 @@ public class SimpleDateFormat extends DateFormat {
     private static final String GMT = "GMT";
 
     /**
+     * Cache to hold the DateTimePatterns of a Locale.
+     */
+    private static final Hashtable cachedLocaleData = new Hashtable(3);
+
+
+    /**
      * Construct a SimpleDateFormat using the default pattern for the default
      * locale.  <b>Note:</b> Not all locales support SimpleDateFormat; for full
      * generality, use the factory methods in the DateFormat class.
@@ -184,7 +219,7 @@ public class SimpleDateFormat extends DateFormat {
      * @see java.text.DateFormat
      */
     public SimpleDateFormat() {
-	this(SHORT, SHORT + 4, Locale.getDefault());
+        this(SHORT, SHORT + 4, Locale.getDefault());
     }
 
     /**
@@ -194,9 +229,7 @@ public class SimpleDateFormat extends DateFormat {
      */
     public SimpleDateFormat(String pattern)
     {
-	this.pattern = pattern;
-	this.formatData = new DateFormatSymbols();
-	initialize(Locale.getDefault());
+        this(pattern, Locale.getDefault());
     }
 
     /**
@@ -206,9 +239,9 @@ public class SimpleDateFormat extends DateFormat {
      */
     public SimpleDateFormat(String pattern, Locale loc)
     {
-	this.pattern = pattern;
-	this.formatData = new DateFormatSymbols(loc);
-	initialize(loc);
+        this.pattern = pattern;
+        this.formatData = new DateFormatSymbols(loc);
+        initialize(loc);
     }
 
     /**
@@ -217,50 +250,78 @@ public class SimpleDateFormat extends DateFormat {
      */
     public SimpleDateFormat(String pattern, DateFormatSymbols formatData)
     {
-	this.pattern = pattern;
-	this.formatData = formatData;
-	initialize(Locale.getDefault());
+        this.pattern = pattern;
+        this.formatData = (DateFormatSymbols) formatData.clone();
+        initialize(Locale.getDefault());
     }
 
     /* Package-private, called by DateFormat factory methods */
     SimpleDateFormat(int timeStyle, int dateStyle, Locale loc) {
-	ResourceBundle r = ResourceBundle.getBundle
-	    ("java.text.resources.LocaleElements", loc);
-
-	formatData = new DateFormatSymbols(loc);
-	String[] dateTimePatterns = r.getStringArray("DateTimePatterns");
-
-	if ((timeStyle >= 0) && (dateStyle >= 0)) {
-	    Object[] dateTimeArgs = {dateTimePatterns[timeStyle],
-				     dateTimePatterns[dateStyle]};
-	    pattern = MessageFormat.format(dateTimePatterns[8], dateTimeArgs);
+	/* try the cache first */
+	String[] dateTimePatterns = (String[]) cachedLocaleData.get(loc);
+	if (dateTimePatterns == null) { /* cache miss */
+	    ResourceBundle r = ResourceBundle.getBundle
+		("java.text.resources.LocaleElements", loc);
+	    dateTimePatterns = r.getStringArray("DateTimePatterns");
+	    /* update cache */
+	    cachedLocaleData.put(loc, dateTimePatterns);
 	}
-	else if (timeStyle >= 0)
-	    pattern = dateTimePatterns[timeStyle];
-	else if (dateStyle >= 0)
-	    pattern = dateTimePatterns[dateStyle];
-	else
-	    throw new IllegalArgumentException("No date or time style specified");
 
-	initialize(loc);
+        formatData = new DateFormatSymbols(loc);
+        if ((timeStyle >= 0) && (dateStyle >= 0)) {
+            Object[] dateTimeArgs = {dateTimePatterns[timeStyle],
+                                     dateTimePatterns[dateStyle]};
+            pattern = MessageFormat.format(dateTimePatterns[8], dateTimeArgs);
+        }
+        else if (timeStyle >= 0)
+            pattern = dateTimePatterns[timeStyle];
+        else if (dateStyle >= 0)
+            pattern = dateTimePatterns[dateStyle];
+        else
+            throw new IllegalArgumentException("No date or time style specified");
+
+        initialize(loc);
     }
 
     /* Initialize calendar and numberFormat fields */
     private void initialize(Locale loc) {
-	this.calendar = (Calendar.getInstance((SimpleTimeZone)
-					     TimeZone.getTimeZone(formatData.zoneStrings[0][0]),
-					     loc));
-	this.numberFormat = NumberFormat.getInstance(loc);
-	numberFormat.setGroupingUsed(false);
-	if (numberFormat instanceof DecimalFormat)
-	    ((DecimalFormat)numberFormat).setDecimalSeparatorAlwaysShown(false);
-        numberFormat.setParseIntegerOnly(true);	/* So that dd.mm.yy can be parsed */
+        // The format object must be constructed using the symbols for this zone.
+        // However, the calendar should use the current default TimeZone.
+        // If this is not contained in the locale zone strings, then the zone
+        // will be formatted using generic GMT+/-H:MM nomenclature.
+        calendar = Calendar.getInstance(TimeZone.getDefault(), loc);
+        numberFormat = NumberFormat.getInstance(loc);
+        numberFormat.setGroupingUsed(false);
+        if (numberFormat instanceof DecimalFormat)
+            ((DecimalFormat)numberFormat).setDecimalSeparatorAlwaysShown(false);
+        numberFormat.setParseIntegerOnly(true); /* So that dd.mm.yy can be parsed */
+        numberFormat.setMinimumFractionDigits(0); // To prevent "Jan 1.00, 1997.00"
+
+        initializeDefaultCentury();
+    }
+
+    /* Initialize the fields we use to disambiguate ambiguous years. Separate
+     * so we can call it from readObject().
+     */
+    private void initializeDefaultCentury() {
+        calendar.setTime( new Date() );
+        calendar.add( Calendar.YEAR, -80 );
+        parseAmbiguousDatesAsAfter(calendar.getTime());
+    }
+
+    /* Define one-century window into which to disambiguate dates using
+     * two-digit years. Make public in JDK 1.2.
+     */
+    private void parseAmbiguousDatesAsAfter(Date startDate) {
+        defaultCenturyStart = startDate;
+        calendar.setTime(startDate);
+        defaultCenturyStartYear = calendar.get(Calendar.YEAR);
     }
 
     /**
      * Overrides DateFormat
      * <p>Formats a date or time, which is the standard millis
-     * since 24:00 GMT, Jan 1, 1970.
+     * since January 1, 1970, 00:00:00 GMT.
      * <p>Example: using the US locale:
      * "yyyy.MM.dd e 'at' HH:mm:ss zzz" ->> 1996.07.10 AD at 15:08:56 PDT
      * @param date the date-time value to be formatted into a date-time string.
@@ -282,6 +343,7 @@ public class SimpleDateFormat extends DateFormat {
         boolean inQuote = false; // inQuote set true when hits 1st single quote
         char prevCh = 0;
         int count = 0;  // number of time pattern characters repeated
+        int interQuoteCount = 1; // Number of characters between quotes
         for (int i=0; i<pattern.length(); ++i)
         {
             char ch = pattern.charAt(i);
@@ -292,8 +354,9 @@ public class SimpleDateFormat extends DateFormat {
                     // ends with 2nd single quote
                     inQuote = false;
                     if (count == 0)
-                        toAppendTo.append(ch);  // two consecutive quotes: ''
+                        toAppendTo.append(ch);  // two consecutive quotes outside a quote: ''
                     else count = 0;
+                    interQuoteCount = 0;
                 }
                 else
                 {
@@ -313,6 +376,14 @@ public class SimpleDateFormat extends DateFormat {
                                                     pos));
                         count = 0;
                         prevCh = 0;
+                    }
+
+                    // We count characters between quotes so we can recognize
+                    // two single quotes inside a quote.  Example: 'o''clock'.
+                    if (interQuoteCount == 0)
+                    {
+                        toAppendTo.append(ch);
+                        count = 1; // Make it look like we never left.
                     }
                 }
                 else if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z')
@@ -344,6 +415,8 @@ public class SimpleDateFormat extends DateFormat {
                 }
                 else // any other unquoted characters
                     toAppendTo.append(ch);
+
+                ++interQuoteCount;
             }
         }
         // Format the last item in the pattern
@@ -355,13 +428,35 @@ public class SimpleDateFormat extends DateFormat {
         return toAppendTo;
     }
 
+    // Map index into pattern character string to Calendar field number
+    private static final int[] PATTERN_INDEX_TO_CALENDAR_FIELD =
+    {
+        Calendar.ERA, Calendar.YEAR, Calendar.MONTH, Calendar.DATE,
+        Calendar.HOUR_OF_DAY, Calendar.HOUR_OF_DAY, Calendar.MINUTE,
+        Calendar.SECOND, Calendar.MILLISECOND, Calendar.DAY_OF_WEEK,
+        Calendar.DAY_OF_YEAR, Calendar.DAY_OF_WEEK_IN_MONTH,
+        Calendar.WEEK_OF_YEAR, Calendar.WEEK_OF_MONTH,
+        Calendar.AM_PM, Calendar.HOUR, Calendar.HOUR, Calendar.ZONE_OFFSET
+    };
+
+    // Map index into pattern character string to DateFormat field number
+    private static final int[] PATTERN_INDEX_TO_DATE_FORMAT_FIELD = {
+        DateFormat.ERA_FIELD, DateFormat.YEAR_FIELD, DateFormat.MONTH_FIELD,
+        DateFormat.DATE_FIELD, DateFormat.HOUR_OF_DAY1_FIELD,
+        DateFormat.HOUR_OF_DAY0_FIELD, DateFormat.MINUTE_FIELD,
+        DateFormat.SECOND_FIELD, DateFormat.MILLISECOND_FIELD,
+        DateFormat.DAY_OF_WEEK_FIELD, DateFormat.DAY_OF_YEAR_FIELD,
+        DateFormat.DAY_OF_WEEK_IN_MONTH_FIELD, DateFormat.WEEK_OF_YEAR_FIELD,
+        DateFormat.WEEK_OF_MONTH_FIELD, DateFormat.AM_PM_FIELD,
+        DateFormat.HOUR1_FIELD, DateFormat.HOUR0_FIELD,
+        DateFormat.TIMEZONE_FIELD,
+    };
 
     // Private member function that does the real date/time formatting.
     private String subFormat(char ch, int count, int beginOffset,
                              FieldPosition pos)
-    throws IllegalArgumentException
+         throws IllegalArgumentException
     {
-        int     value = 0;
         int     patternCharIndex = -1;
         int     maxIntCount = 10;
         String  current = "";
@@ -369,21 +464,22 @@ public class SimpleDateFormat extends DateFormat {
         if ((patternCharIndex=formatData.patternChars.indexOf(ch)) == -1)
             throw new IllegalArgumentException("Illegal pattern character " +
                                                "'" + ch + "'");
+
+        int field = PATTERN_INDEX_TO_CALENDAR_FIELD[patternCharIndex];
+        int value = calendar.get(field);
+
         switch (patternCharIndex) {
         case 0: // 'G' - ERA
-            value = calendar.get(Calendar.ERA);
             current = formatData.eras[value];
             break;
         case 1: // 'y' - YEAR
-            value = calendar.get(Calendar.YEAR);
             if (count >= 4)
-//                current = zeroPaddingNumber(value, 4, count);
+                //                current = zeroPaddingNumber(value, 4, count);
                 current = zeroPaddingNumber(value, 4, maxIntCount);
             else // count < 4
                 current = zeroPaddingNumber(value, 2, 2); // clip 1996 to 96
             break;
         case 2: // 'M' - MONTH
-            value = calendar.get(Calendar.MONTH);
             if (count >= 4)
                 current = formatData.months[value];
             else if (count == 3)
@@ -391,32 +487,15 @@ public class SimpleDateFormat extends DateFormat {
             else
                 current = zeroPaddingNumber(value+1, count, maxIntCount);
             break;
-        case 3: // 'd' - DATE
-            value = calendar.get(Calendar.DATE);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
         case 4: // 'k' - HOUR_OF_DAY: 1-based.  eg, 23:59 + 1 hour =>> 24:59
-            if ((value=calendar.get(Calendar.HOUR_OF_DAY)) == 0)
+            if (value == 0)
                 current = zeroPaddingNumber(
-                    calendar.getMaximum(Calendar.HOUR_OF_DAY)+1,
-                    count, maxIntCount);
+                                            calendar.getMaximum(Calendar.HOUR_OF_DAY)+1,
+                                            count, maxIntCount);
             else
                 current = zeroPaddingNumber(value, count, maxIntCount);
             break;
-        case 5: // 'H' - HOUR_OF_DAY:0-based.  eg, 23:59 + 1 hour =>> 00:59
-            value = calendar.get(Calendar.HOUR_OF_DAY);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 6: // 'm' - MINUTE
-            value = calendar.get(Calendar.MINUTE);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 7: // 's' - SECOND
-            value = calendar.get(Calendar.SECOND);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
         case 8: // 'S' - MILLISECOND
-            value = calendar.get(Calendar.MILLISECOND);
             if (count > 3)
                 count = 3;
             else if (count == 2)
@@ -426,48 +505,25 @@ public class SimpleDateFormat extends DateFormat {
             current = zeroPaddingNumber(value, count, maxIntCount);
             break;
         case 9: // 'E' - DAY_OF_WEEK
-            value = calendar.get(Calendar.DAY_OF_WEEK);
             if (count >= 4)
                 current = formatData.weekdays[value];
             else // count < 4, use abbreviated form if exists
                 current = formatData.shortWeekdays[value];
             break;
-        case 10:    // 'D' - DAY_OF_YEAR
-            value = calendar.get(Calendar.DAY_OF_YEAR);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 11:   // 'F' - DAY_OF_WEEK_IN_MONTH
-            value = calendar.get(Calendar.DAY_OF_WEEK_IN_MONTH);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 12:    // 'w' - WEEK_OF_YEAR
-            value = calendar.get(Calendar.WEEK_OF_YEAR);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 13:    // 'W' - WEEK_OF_MONTH
-            value = calendar.get(Calendar.WEEK_OF_MONTH);
-            current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
         case 14:    // 'a' - AM_PM
-            value = calendar.get(Calendar.AM_PM);
             current = formatData.ampms[value];
             break;
         case 15: // 'h' - HOUR:1-based.  eg, 11PM + 1 hour =>> 12 AM
-            if ((value=calendar.get(Calendar.HOUR)) == 0)
+            if (value == 0)
                 current = zeroPaddingNumber(
-                    calendar.getLeastMaximum(Calendar.HOUR)+1,
-                    count, maxIntCount);
+                                            calendar.getLeastMaximum(Calendar.HOUR)+1,
+                                            count, maxIntCount);
             else
                 current = zeroPaddingNumber(value, count, maxIntCount);
-            break;
-        case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
-            value = calendar.get(Calendar.HOUR);
-            current = zeroPaddingNumber(value, count, maxIntCount);
             break;
         case 17: // 'z' - ZONE_OFFSET
             int zoneIndex
                 = formatData.getZoneIndex (calendar.getTimeZone().getID());
-
             if (zoneIndex == -1)
             {
                 // For time zones that have no names, use strings
@@ -475,8 +531,8 @@ public class SimpleDateFormat extends DateFormat {
                 // For instance, France time zone uses GMT+01:00.
                 StringBuffer zoneString = new StringBuffer();
 
-                value = calendar.get(Calendar.ZONE_OFFSET)
-                        + calendar.get(Calendar.DST_OFFSET);
+                value = calendar.get(Calendar.ZONE_OFFSET) +
+                    calendar.get(Calendar.DST_OFFSET);
 
                 if (value < 0)
                 {
@@ -486,11 +542,11 @@ public class SimpleDateFormat extends DateFormat {
                 else
                     zoneString.append(GMT_PLUS);
                 zoneString.append(
-                    zeroPaddingNumber((int)(value/millisPerHour), 2, 2));
+                                  zeroPaddingNumber((int)(value/millisPerHour), 2, 2));
                 zoneString.append(':');
                 zoneString.append(
-                    zeroPaddingNumber(
-                        (int)((value%millisPerHour)/millisPerMinute), 2, 2));
+                                  zeroPaddingNumber(
+                                                    (int)((value%millisPerHour)/millisPerMinute), 2, 2));
                 current = zoneString.toString();
             }
             else if (calendar.get(Calendar.DST_OFFSET) != 0)
@@ -509,9 +565,21 @@ public class SimpleDateFormat extends DateFormat {
                     current = formatData.zoneStrings[zoneIndex][2];
             }
             break;
-        }
+        default:
+            // case 3: // 'd' - DATE
+            // case 5: // 'H' - HOUR_OF_DAY:0-based.  eg, 23:59 + 1 hour =>> 00:59
+            // case 6: // 'm' - MINUTE
+            // case 7: // 's' - SECOND
+            // case 10: // 'D' - DAY_OF_YEAR
+            // case 11: // 'F' - DAY_OF_WEEK_IN_MONTH
+            // case 12: // 'w' - WEEK_OF_YEAR
+            // case 13: // 'W' - WEEK_OF_MONTH
+            // case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
+            current = zeroPaddingNumber(value, count, maxIntCount);
+            break;
+        } // switch (patternCharIndex)
 
-        if (pos.field == patternCharIndex) {
+        if (pos.field == PATTERN_INDEX_TO_DATE_FORMAT_FIELD[patternCharIndex]) {
             // set for the first occurence only.
             if (pos.beginIndex == 0 && pos.endIndex == 0) {
                 pos.beginIndex = beginOffset;
@@ -540,23 +608,38 @@ public class SimpleDateFormat extends DateFormat {
     {
         int start = pos.index;
         int oldStart = start;
+        boolean[] ambiguousYear = {false};
+
         calendar.clear(); // Clears all the time fields
 
         boolean inQuote = false; // inQuote set true when hits 1st single quote
         char prevCh = 0;
         int count = 0;
+        int interQuoteCount = 1; // Number of chars between quotes
+
         for (int i=0; i<pattern.length(); ++i)
         {
             char ch = pattern.charAt(i);
+
             if (inQuote)
             {
                 if (ch == '\'')
                 {
                     // ends with 2nd single quote
                     inQuote = false;
-                    if (prevCh == '\'')
-                        // two consecutive quotes
-                        start++;
+                    // two consecutive quotes outside a quote means we have
+                    // a quote literal we need to match.
+                    if (count == 0)
+                    {
+                        if (ch != text.charAt(start))
+                        {
+                            pos.index = oldStart;
+                            return null;
+                        }
+                        ++start;
+                    }
+                    count = 0;
+                    interQuoteCount = 0;
                 }
                 else
                 {
@@ -568,8 +651,8 @@ public class SimpleDateFormat extends DateFormat {
                         pos.index = oldStart; // left unchanged
                         return null;
                     }
-                    start++;
-                    prevCh = ch;
+                    ++count;
+                    ++start;
                 }
             }
             else    // !inQuote
@@ -579,20 +662,41 @@ public class SimpleDateFormat extends DateFormat {
                     inQuote = true;
                     if (count > 0) // handle cases like: e'at'
                     {
-                        if ((start=subParse(text, start, prevCh, count))<0) {
+                        start=subParse(text, start, prevCh, count,
+                                       false, ambiguousYear);
+                        if ( start<0 ) {
                             pos.index = oldStart;
                             return null;
                         }
                         count = 0;
                     }
-                    prevCh = ch;
+
+                    if (interQuoteCount == 0)
+                    {
+                        // This indicates two consecutive quotes inside a quote,
+                        // for example, 'o''clock'.  We need to parse this as
+                        // representing a single quote within the quote.
+                        if (ch != text.charAt(start))
+                        {
+                            pos.index = oldStart;
+                            return null;
+                        }
+                        ++start;
+                        count = 1; // Make it look like we never left
+                    }
                 }
                 else if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z')
                 {
                     // ch is a date-time pattern
                     if (ch != prevCh && count > 0) // e.g., yyyymmdd
                     {
-                        if ((start=subParse(text, start, prevCh, count))<0) {
+                        // This is the only case where we pass in 'true' for
+                        // obeyCount.  That's because the next field directly
+                        // abuts this one, so we have to use the count to know when
+                        // to stop parsing. [LIU]
+                        start = subParse(text, start, prevCh, count, true,
+                                         ambiguousYear);
+                        if (start < 0) {
                             pos.index = oldStart;
                             return null;
                         }
@@ -610,11 +714,13 @@ public class SimpleDateFormat extends DateFormat {
                 {
                     // handle cases like: MM-dd-yy, HH:mm:ss, or yyyy MM dd,
                     // where ch = '-', ':', or ' ', repectively.
-                    if ((start=subParse(text, start, prevCh, count))<0) {
+                    start=subParse(text, start, prevCh, count,
+                                   false, ambiguousYear);
+                    if ( start < 0 ) {
                         pos.index = oldStart;
                         return null;
                     }
-                    if (ch != text.charAt(start)) {
+                    if (start >= text.length() || ch != text.charAt(start)) {
                         // handle cases like: 'MMMM dd' in pattern vs. "janx20"
                         // in time text, where ' ' doesn't match with 'x'.
                         pos.index = oldStart;
@@ -635,43 +741,76 @@ public class SimpleDateFormat extends DateFormat {
                     }
                     start++;
                 }
+
+                ++interQuoteCount;
             }
         }
         // Parse the last item in the pattern
         if (count > 0)
         {
-            if ((start=subParse(text, start, prevCh, count)) < 0) {
+            start=subParse(text, start, prevCh, count,
+                           false, ambiguousYear);
+            if ( start < 0 ) {
                 pos.index = oldStart;
                 return null;
             }
         }
 
+        // At this point the fields of Calendar have been set.  Calendar
+        // will fill in default values for missing fields when the time
+        // is computed.
+
         pos.index = start;
 
+        // This part is a problem:  When we call parsedDate.after, we compute the time.
+        // Take the date April 3 2004 at 2:30 am.  When this is first set up, the year
+        // will be wrong if we're parsing a 2-digit year pattern.  It will be 1904.
+        // April 3 1904 is a Sunday (unlike 2004) so it is the DST onset day.  2:30 am
+        // is therefore an "impossible" time, since the time goes from 1:59 to 3:00 am
+        // on that day.  It is therefore parsed out to fields as 3:30 am.  Then we
+        // add 100 years, and get April 3 2004 at 3:30 am.  Note that April 3 2004 is
+        // a Saturday, so it can have a 2:30 am -- and it should. [LIU]
+        /*
+        Date parsedDate = calendar.getTime();
+        if( ambiguousYear[0] && !parsedDate.after(defaultCenturyStart) ) {
+            calendar.add(Calendar.YEAR, 100);
+            parsedDate = calendar.getTime();
+        }
+        */
+        // Because of the above condition, save off the fields in case we need to readjust.
+        // The procedure we use here is not particularly efficient, but there is no other
+        // way to do this given the API restrictions present in Calendar.  We minimize
+        // inefficiency by only performing this computation when it might apply, that is,
+        // when the two-digit year is equal to the start year, and thus might fall at the
+        // front or the back of the default century.  This only works because we adjust
+        // the year correctly to start with in other cases -- see subParse().
+        Date parsedDate;
+        try {
+            if (ambiguousYear[0]) // If this is true then the two-digit year == the default start year
+            {
+                // We need a copy of the fields, and we need to avoid triggering a call to
+                // complete(), which will recalculate the fields.  Since we can't access
+                // the fields[] array in Calendar, we clone the entire object.  This will
+                // stop working if Calendar.clone() is ever rewritten to call complete().
+                Calendar savedCalendar = (Calendar)calendar.clone();
+                parsedDate = calendar.getTime();
+                if (parsedDate.before(defaultCenturyStart))
+                {
+                    // We can't use add here because that does a complete() first.
+                    savedCalendar.set(Calendar.YEAR, defaultCenturyStartYear + 100);
+                    parsedDate = savedCalendar.getTime();
+                }
+            }
+            else parsedDate = calendar.getTime();
+        }
+        // An IllegalArgumentException will be thrown by Calendar.getTime()
+        // if any fields are out of range, e.g., MONTH == 17.
+        catch (IllegalArgumentException e) {
+            pos.index = oldStart;
+            return null;
+        }
 
-        // If any of yy MM dd hh mm ss SSS is missing, the "default day" --
-        // Jan 1, 1970 -- and the "default time" -- 00:00:00.000 am --
-        // will be used.
-        //
-        if (!calendar.isSet(Calendar.YEAR))
-        {calendar.set(Calendar.YEAR, 1970);}
-        if (!calendar.isSet(Calendar.MONTH))
-        {calendar.set(Calendar.MONTH, 0);}  // January, 0-based
-        if (!calendar.isSet(Calendar.DATE))
-        {calendar.set(Calendar.DATE, 1);}
-        if (!calendar.isSet(Calendar.HOUR_OF_DAY) &&
-            !calendar.isSet(Calendar.HOUR))
-        {calendar.set(Calendar.HOUR_OF_DAY, 0);}
-        if (!calendar.isSet(Calendar.MINUTE))
-        {calendar.set(Calendar.MINUTE, 0);}
-        if (!calendar.isSet(Calendar.SECOND))
-        {calendar.set(Calendar.SECOND, 0);}
-        if (!calendar.isSet(Calendar.MILLISECOND))
-        {calendar.set(Calendar.MILLISECOND, 0);}
- 	if (!calendar.isSet(Calendar.ERA))
- 	{calendar.set(Calendar.ERA,GregorianCalendar.AD);}
-
-        return calendar.getTime();
+        return parsedDate;
     }
 
     /**
@@ -688,28 +827,32 @@ public class SimpleDateFormat extends DateFormat {
         int i = 0;
         int count = data.length;
 
-        if (field == Calendar.DAY_OF_WEEK)
-            i = 1;
-        for (; i<count; i++)
-            if (data[i].length() != 0 &&
-                text.regionMatches(true, start, data[i], 0, data[i].length()))
-                break;
-        if (i < count)
-            calendar.set(field, i);
-        else return -start;
-        return (start + data[i].length());
-    }
+        if (field == Calendar.DAY_OF_WEEK) i = 1;
 
-    /**
-     * Private member function that returns the year of the current century.
-     * For instance, 1900 for 20th century.
-     */
-//    private int getCurrentCenturyYear()
-//    {
-//        Calendar cal = Calendar.getInstance();
-//	      cal.setTime(new Date());
-//        return ((cal.get(Calendar.YEAR)/100) * 100);
-//    }
+        // There may be multiple strings in the data[] array which begin with
+        // the same prefix (e.g., Cerven and Cervenec (June and July) in Czech).
+        // We keep track of the longest match, and return that.  Note that this
+        // unfortunately requires us to test all array elements.
+        int bestMatchLength = 0, bestMatch = -1;
+        for (; i<count; ++i)
+        {
+            int length = data[i].length();
+            // Always compare if we have no match yet; otherwise only compare
+            // against potentially better matches (longer strings).
+            if (length > bestMatchLength &&
+                text.regionMatches(true, start, data[i], 0, length))
+            {
+                bestMatch = i;
+                bestMatchLength = length;
+            }
+        }
+        if (bestMatch >= 0)
+        {
+            calendar.set(field, bestMatch);
+            return start + bestMatchLength;
+        }
+        return -start;
+    }
 
     /**
      * Private member function that converts the parsed date strings into
@@ -718,11 +861,17 @@ public class SimpleDateFormat extends DateFormat {
      * @param start where to start parsing.
      * @param ch the pattern character for the date field text to be parsed.
      * @param count the count of a pattern character.
+     * @param obeyCount if true, then the next field directly abuts this one,
+     * and we should use the count to know when to stop parsing.
+     * @param ambiguousYear return parameter; upon return, if ambiguousYear[0]
+     * is true, then a two-digit year was parsed and may need to be readjusted.
      * @return the new start position if matching succeeded; a negative number
      * indicating matching failure, otherwise.
      */
-    private int subParse(String text, int start, char ch, int count)
+    private int subParse(String text, int start, char ch, int count,
+                         boolean obeyCount, boolean[] ambiguousYear)
     {
+        Number number;
         int value = 0;
         int i;
         ParsePosition pos = new ParsePosition(0);
@@ -731,218 +880,269 @@ public class SimpleDateFormat extends DateFormat {
         if ((patternCharIndex=formatData.patternChars.indexOf(ch)) == -1)
             return -start;
 
-//        numberFormat.setParseIntegerOnly(true);  // so that dd.mm.yy can be parsed.
         pos.index = start;
+
+        int field = PATTERN_INDEX_TO_CALENDAR_FIELD[patternCharIndex];
+
+        // If there are any spaces here, skip over them.  If we hit the end
+        // of the string, then fail.
+        for (;;) {
+            if (pos.index >= text.length()) return -start;
+            char c = text.charAt(pos.index);
+            if (c != ' ' && c != '\t') break;
+            ++pos.index;
+        }
+
+        // We handle a few special cases here where we need to parse
+        // a number value.  We handle further, more generic cases below.  We need
+        // to handle some of them here because some fields require extra processing on
+        // the parsed value.
+        if (patternCharIndex == 4 /*HOUR_OF_DAY1_FIELD*/ ||
+            patternCharIndex == 15 /*HOUR1_FIELD*/ ||
+            (patternCharIndex == 2 /*MONTH_FIELD*/ && count <= 2) ||
+            patternCharIndex == 1 /*YEAR*/)
+        {
+            // It would be good to unify this with the obeyCount logic below,
+            // but that's going to be difficult.
+            if (obeyCount)
+            {
+                if ((start+count) > text.length()) return -start;
+                number = numberFormat.parse(text.substring(0, start+count), pos);
+            }
+            else number = numberFormat.parse(text, pos);
+            if (number == null) return -start;
+            value = number.intValue();
+        }
+
         switch (patternCharIndex)
         {
         case 0: // 'G' - ERA
             return matchString(text, start, Calendar.ERA, formatData.eras);
         case 1: // 'y' - YEAR
-            if (count >= 4)
+            // If there are 4 or more YEAR pattern characters, this indicates
+            // that the year value is to be treated literally, without any
+            // two-digit year adjustments (e.g., from "01" to 2001).  Otherwise
+            // we made adjustments to place the 2-digit year in the proper
+            // century -- unless the given year itself is more than two characters.
+            if (value >= 0 && count <= 2 && (pos.index - start) <= 2)
             {
-                value = (int) Integer.valueOf(
-                            text.substring(start, start+count)).longValue();
-                calendar.set(Calendar.YEAR, value);
+                // Assume for example that the defaultCenturyStart is 6/18/1903.
+                // This means that two-digit years will be forced into the range
+                // 6/18/1903 to 6/17/2003.  As a result, years 00, 01, and 02
+                // correspond to 2000, 2001, and 2002.  Years 04, 05, etc. correspond
+                // to 1904, 1905, etc.  If the year is 03, then it is 2003 if the
+                // other fields specify a date before 6/18, or 1903 if they specify a
+                // date afterwards.  As a result, 03 is an ambiguous year.  All other
+                // two-digit years are unambiguous.
+                int ambiguousTwoDigitYear = defaultCenturyStartYear % 100;
+                ambiguousYear[0] = value == ambiguousTwoDigitYear;
+                value += (defaultCenturyStartYear/100)*100 +
+                    (value < ambiguousTwoDigitYear ? 100 : 0);
             }
-            else // count < 4
-            {
-                value = (int) Integer.valueOf(
-                            text.substring(start, start+2)).longValue();
-//                calendar.set(Calendar.YEAR, value+getCurrentCenturyYear());
-                calendar.set(Calendar.YEAR, value+1900);// hardcoded 1900-based
-            }
-            return (start + count);
-        case 2: { // 'M' - MONTH
+            calendar.set(Calendar.YEAR, value);
+            return pos.index;
+        case 2: // 'M' - MONTH
             if (count <= 2) // i.e., M or MM.
             {
                 // Don't want to parse the month if it is a string
                 // while pattern uses numeric style: M or MM.
-                calendar.set(Calendar.MONTH,
-                             numberFormat.parse(text, pos).intValue() - 1);
+                // [We computed 'value' above.]
+                calendar.set(Calendar.MONTH, value - 1);
                 return pos.index;
             }
-            // count >= 3 // i.e., MMM or MMMM
-            // Want to be able to parse both short and long forms.
-            // Try count == 4 first:
-            int newStart = 0;
-            if ((newStart=matchString(text, start, Calendar.MONTH,
-                formatData.months)) > 0)
-                return newStart;
-            else // count == 4 failed, now try count == 3
-                return matchString(text, start, Calendar.MONTH,
-                formatData.shortMonths);
-            }
-        case 3: // 'd' - DATE
-            calendar.set(Calendar.DATE,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 4: // 'k' - HOUR_OF_DAY: 1-based.  eg, 23:59 + 1 hour =>> 24:59
-            value = numberFormat.parse(text, pos).intValue();
-            if (value == calendar.getMaximum(Calendar.HOUR_OF_DAY)+1)
-                calendar.set(Calendar.HOUR_OF_DAY, 0);
             else
-                calendar.set(Calendar.HOUR_OF_DAY, value);
-            return pos.index;
-        case 5: // 'H' - HOUR_OF_DAY:0-based.  eg, 23:59 + 1 hour =>> 00:59
-            calendar.set(Calendar.HOUR_OF_DAY,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 6: // 'm' - MINUTE
-            calendar.set(Calendar.MINUTE,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 7: // 's' - SECOND
-            calendar.set(Calendar.SECOND,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 8: // 'S' - MILLISECOND
-            // handle ss.SSS using
-            // numberFormat.parse(text, pos).doubleValue()
-            calendar.set(Calendar.MILLISECOND,
-                         numberFormat.parse(text, pos).intValue());
+            {
+                // count >= 3 // i.e., MMM or MMMM
+                // Want to be able to parse both short and long forms.
+                // Try count == 4 first:
+                int newStart = 0;
+                if ((newStart=matchString(text, start, Calendar.MONTH,
+                                          formatData.months)) > 0)
+                    return newStart;
+                else // count == 4 failed, now try count == 3
+                    return matchString(text, start, Calendar.MONTH,
+                                       formatData.shortMonths);
+            }
+        case 4: // 'k' - HOUR_OF_DAY: 1-based.  eg, 23:59 + 1 hour =>> 24:59
+            // [We computed 'value' above.]
+            if (value == calendar.getMaximum(Calendar.HOUR_OF_DAY)+1) value = 0;
+            calendar.set(Calendar.HOUR_OF_DAY, value);
             return pos.index;
         case 9: { // 'E' - DAY_OF_WEEK
             // Want to be able to parse both short and long forms.
             // Try count == 4 (DDDD) first:
             int newStart = 0;
             if ((newStart=matchString(text, start, Calendar.DAY_OF_WEEK,
-                formatData.weekdays)) > 0)
+                                      formatData.weekdays)) > 0)
                 return newStart;
             else // DDDD failed, now try DDD
                 return matchString(text, start, Calendar.DAY_OF_WEEK,
-                formatData.shortWeekdays);
-            }
-        case 10:    // 'D' - DAY_OF_YEAR
-            calendar.set(Calendar.DAY_OF_YEAR,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 11:   // 'F' - DAY_OF_WEEK_IN_MONTH
-            calendar.set(Calendar.DAY_OF_WEEK_IN_MONTH,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 12:    // 'w' - WEEK_OF_YEAR
-            calendar.set(Calendar.WEEK_OF_YEAR,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
-        case 13:    // 'W' - WEEK_OF_MONTH
-            calendar.set(Calendar.WEEK_OF_MONTH,
-                         numberFormat.parse(text, pos).intValue());
-            return pos.index;
+                                   formatData.shortWeekdays);
+        }
         case 14:    // 'a' - AM_PM
             return matchString(text, start, Calendar.AM_PM, formatData.ampms);
         case 15: // 'h' - HOUR:1-based.  eg, 11PM + 1 hour =>> 12 AM
-            value = numberFormat.parse(text, pos).intValue();
-            if (value == calendar.getLeastMaximum(Calendar.HOUR)+1)
-                calendar.set(Calendar.HOUR, 0);
-            else
-                calendar.set(Calendar.HOUR, value);
-            return pos.index;
-        case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
-            calendar.set(Calendar.HOUR,
-                         numberFormat.parse(text, pos).intValue());
+            // [We computed 'value' above.]
+            if (value == calendar.getLeastMaximum(Calendar.HOUR)+1) value = 0;
+            calendar.set(Calendar.HOUR, value);
             return pos.index;
         case 17: // 'z' - ZONE_OFFSET
-            // Want to be able to parse both short and long forms.
-            for (i=0; i<formatData.zoneStrings.length; i++)
+            // First try to parse generic forms such as GMT-07:00. Do this first
+            // in case localized DateFormatZoneData contains the string "GMT"
+            // for a zone; in that case, we don't want to match the first three
+            // characters of GMT+/-HH:MM etc.
             {
-                // Checking long and short zones [1 & 2],
-                // and long and short daylight [3 & 4].
-                int j = 1;
-                for (; j <= 4; ++j)
-                {
-                    if (text.regionMatches(true, start,
-                                       formatData.zoneStrings[i][j], 0,
-                                       formatData.zoneStrings[i][j].length()))
-                        break;
-                }
-                if (j <= 4)
-                {
-                    calendar.set(Calendar.ZONE_OFFSET,
-                                 TimeZone.getTimeZone(
-                                 formatData.zoneStrings[i][0]).getRawOffset());
-                    if (j >= 3)
-                        calendar.set(Calendar.DST_OFFSET, millisPerHour);
-                    return (start + formatData.zoneStrings[i][j].length());
-                }
-            }
-            // For time zones that have no known names, look for strings
-            // of the form:
-            //    GMT[+-]hours:minutes or
-            //    GMT[+-]hhmm or
-            //    GMT.
-            if (text.regionMatches(true,start, GMT, 0, GMT.length()))
-            {
-                calendar.set(Calendar.DST_OFFSET, 0);
+                int sign = 0;
+                int offset;
 
-                pos.index = start + GMT.length();
-                int offsetInMinutes = 0;
-                int sign;
-                
-                if( text.regionMatches(pos.index, "+", 0, 1) ) 
-                    sign = 1;
-                else if( text.regionMatches(pos.index, "-", 0, 1) ) 
-                    sign = -1;
-                else {
-                    calendar.set(Calendar.ZONE_OFFSET, 0 );
-                    return pos.index;
-                }
+                // For time zones that have no known names, look for strings
+                // of the form:
+                //    GMT[+-]hours:minutes or
+                //    GMT[+-]hhmm or
+                //    GMT.
+                if (text.regionMatches(true,start, GMT, 0, GMT.length()))
+                {
+                    calendar.set(Calendar.DST_OFFSET, 0);
 
-                // Look for hours:minutes or hhmm.
-                pos.index++;
-                Number tzNumber = numberFormat.parse(text, pos);
-                if( tzNumber == null ) {
-                    return -start;
-                }
-                if( text.regionMatches(pos.index, ":", 0, 1) ) {
-                    // This is the hours:minutes case
-                    offsetInMinutes = tzNumber.intValue() * 60;
+                    pos.index = start + GMT.length();
+                    
+                    if (pos.index == text.length()) {
+                          calendar.set(Calendar.ZONE_OFFSET, 0 );
+                          return pos.index;
+                    }
+                    else if( text.charAt(pos.index) == '+' )
+                        sign = 1; 
+                    else if( text.charAt(pos.index) == '-' )
+                        sign = -1;
+                    else {
+                        calendar.set(Calendar.ZONE_OFFSET, 0 );
+                        return pos.index;
+                    }
+
+                    // Look for hours:minutes or hhmm.
                     pos.index++;
-                    tzNumber = numberFormat.parse(text, pos);
+                    Number tzNumber = numberFormat.parse(text, pos);
                     if( tzNumber == null ) {
                         return -start;
                     }
-                    offsetInMinutes += tzNumber.intValue();
+                    if( text.charAt(pos.index) == ':' ) {
+                        // This is the hours:minutes case
+                        offset = tzNumber.intValue() * 60;
+                        pos.index++;
+                        tzNumber = numberFormat.parse(text, pos);
+                        if( tzNumber == null ) {
+                            return -start;
+                        }
+                        offset += tzNumber.intValue();
+                    }
+                    else {
+                        // This is the hhmm case.
+                        offset = tzNumber.intValue();
+                        if( offset < 24 )
+                            offset *= 60;
+                        else
+                            offset = offset % 100 + offset / 100 * 60;
+                    }
+
+                    // Fall through for final processing below of 'offset' and 'sign'.
                 }
                 else {
-                    // This is the hhmm case.
-                    int offset = tzNumber.intValue();
+                    // At this point, check for named time zones by looking through
+                    // the locale data from the DateFormatZoneData strings.
+                    // Want to be able to parse both short and long forms.
+                    for (i=0; i<formatData.zoneStrings.length; i++)
+                    {
+                        // Checking long and short zones [1 & 2],
+                        // and long and short daylight [3 & 4].
+                        int j = 1;
+                        for (; j <= 4; ++j)
+                        {
+                            if (text.regionMatches(true, start,
+                                                   formatData.zoneStrings[i][j], 0,
+                                                   formatData.zoneStrings[i][j].length()))
+                                break;
+                        }
+                        if (j <= 4)
+                        {
+                            TimeZone tz = TimeZone.getTimeZone(formatData.zoneStrings[i][0]);
+                            calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
+                            // Must call set() with something -- TODO -- Fix this to
+                            // use the correct DST SAVINGS for the zone.
+                            calendar.set(Calendar.DST_OFFSET, j >= 3 ? millisPerHour : 0);
+                            return (start + formatData.zoneStrings[i][j].length());
+                        }
+                    }
+
+                    // As a last resort, look for numeric timezones of the form
+                    // [+-]hhmm as specified by RFC 822.  This code is actually
+                    // a little more permissive than RFC 822.  It will try to do
+                    // its best with numbers that aren't strictly 4 digits long.
+                    DecimalFormat fmt = new DecimalFormat("+####;-####");
+                    fmt.setParseIntegerOnly(true);
+                    Number tzNumber = fmt.parse( text, pos );
+                    if( tzNumber == null ) {
+                        return -start;   // Wasn't actually a number.
+                    }
+                    offset = tzNumber.intValue();
+                    sign = 1;
+                    if( offset < 0 ) {
+                        sign = -1;
+                        offset = -offset;
+                    }
                     if( offset < 24 )
-                        offsetInMinutes = offset * 60;
+                        offset = offset * 60;
                     else
-                        offsetInMinutes = offset % 100 + offset / 100 * 60;
+                        offset = offset % 100 + offset / 100 * 60;
+
+                    // Fall through for final processing below of 'offset' and 'sign'.
                 }
 
-                calendar.set(Calendar.ZONE_OFFSET,
-                             offsetInMinutes*millisPerMinute*sign);
+                // Do the final processing for both of the above cases.  We only
+                // arrive here if the form GMT+/-... or an RFC 822 form was seen.
+                if (sign != 0)
+                {
+                    offset *= millisPerMinute * sign;
+
+                    if (calendar.getTimeZone().useDaylightTime())
+                    {
+                        calendar.set(Calendar.DST_OFFSET, millisPerHour);
+                        offset -= millisPerHour;
+                    }
+                    calendar.set(Calendar.ZONE_OFFSET, offset);
+
+                    return pos.index;
+                }
+            }
+
+            // All efforts to parse a zone failed.
+            return -start;
+
+        default:
+            // case 3: // 'd' - DATE
+            // case 5: // 'H' - HOUR_OF_DAY:0-based.  eg, 23:59 + 1 hour =>> 00:59
+            // case 6: // 'm' - MINUTE
+            // case 7: // 's' - SECOND
+            // case 8: // 'S' - MILLISECOND
+            // case 10: // 'D' - DAY_OF_YEAR
+            // case 11: // 'F' - DAY_OF_WEEK_IN_MONTH
+            // case 12: // 'w' - WEEK_OF_YEAR
+            // case 13: // 'W' - WEEK_OF_MONTH
+            // case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
+
+            // Handle "generic" fields
+            if (obeyCount)
+            {
+                if ((start+count) > text.length()) return -start;
+                number = numberFormat.parse(text.substring(0, start+count), pos);
+            }
+            else number = numberFormat.parse(text, pos);
+            if (number != null)
+            {
+                calendar.set(field, number.intValue());
                 return pos.index;
             }
-            else {
-                // Look for numeric timezones of the form [+-]hhmm as
-                // specified by RFC 822.  This code is actually a little
-                // more permissive than RFC 822.  It will try to do its
-                // best with numbers that aren't strictly 4 digits long.
-                DecimalFormat fmt
-                    = new DecimalFormat("+####;-####",
-                                        new DecimalFormatSymbols(Locale.US) );
-                Number tzNumber = fmt.parse( text, pos );
-                if( tzNumber == null ) {
-                    return -start;   // Wasn't actually a number.
-                }
-                int offset = tzNumber.intValue();
-                int sign = 1;
-                if( offset < 0 ) {
-                    sign = -1;
-                    offset *= -1;
-                }
-                if( offset < 24 )
-                    offset = offset * 60;
-                else
-                    offset = offset % 100 + offset / 100 * 60;
-                calendar.set(Calendar.ZONE_OFFSET, offset*millisPerMinute*sign);
-                return pos.index;
-            }
+            return -start;
         }
-        return -start;
     }
 
 
@@ -951,47 +1151,47 @@ public class SimpleDateFormat extends DateFormat {
      * corresponding character in the to string.
      */
     private String translatePattern(String pattern, String from, String to) {
-	StringBuffer result = new StringBuffer();
-	boolean inQuote = false;
-	for (int i = 0; i < pattern.length(); ++i) {
-	    char c = pattern.charAt(i);
-	    if (inQuote) {
-		if (c == '\'')
-		    inQuote = false;
-	    }
-	    else {
-		if (c == '\'')
-		    inQuote = true;
-		else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-		    int ci = from.indexOf(c);
-		    if (ci == -1)
-			throw new IllegalArgumentException("Illegal pattern " +
-							   " character '" +
-							   c + "'");
-		    c = to.charAt(ci);
-		}
-	    }
-	    result.append(c);
-	}
-	if (inQuote)
-	    throw new IllegalArgumentException("Unfinished quote in pattern");
-	return result.toString();
+        StringBuffer result = new StringBuffer();
+        boolean inQuote = false;
+        for (int i = 0; i < pattern.length(); ++i) {
+            char c = pattern.charAt(i);
+            if (inQuote) {
+                if (c == '\'')
+                    inQuote = false;
+            }
+            else {
+                if (c == '\'')
+                    inQuote = true;
+                else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                    int ci = from.indexOf(c);
+                    if (ci == -1)
+                        throw new IllegalArgumentException("Illegal pattern " +
+                                                           " character '" +
+                                                           c + "'");
+                    c = to.charAt(ci);
+                }
+            }
+            result.append(c);
+        }
+        if (inQuote)
+            throw new IllegalArgumentException("Unfinished quote in pattern");
+        return result.toString();
     }
 
     /**
      * Return a pattern string describing this date format.
      */
     public String toPattern() {
-	return pattern;
+        return pattern;
     }
 
     /**
      * Return a localized pattern string describing this date format.
      */
     public String toLocalizedPattern() {
-	return translatePattern(pattern,
-				formatData.patternChars,
-				formatData.localPatternChars);
+        return translatePattern(pattern,
+                                formatData.patternChars,
+                                formatData.localPatternChars);
     }
 
     /**
@@ -999,16 +1199,16 @@ public class SimpleDateFormat extends DateFormat {
      */
     public void applyPattern (String pattern)
     {
-	this.pattern = pattern;
+        this.pattern = pattern;
     }
 
     /**
      * Apply the given localized pattern string to this date format.
      */
     public void applyLocalizedPattern(String pattern) {
-	this.pattern = translatePattern(pattern,
-					formatData.localPatternChars,
-					formatData.patternChars);
+        this.pattern = translatePattern(pattern,
+                                        formatData.localPatternChars,
+                                        formatData.patternChars);
     }
 
     /**
@@ -1034,9 +1234,9 @@ public class SimpleDateFormat extends DateFormat {
      * Overrides Cloneable
      */
     public Object clone() {
-    	SimpleDateFormat other = (SimpleDateFormat) super.clone();
-    	other.formatData = (DateFormatSymbols) formatData.clone();
-    	return other;
+        SimpleDateFormat other = (SimpleDateFormat) super.clone();
+        other.formatData = (DateFormatSymbols) formatData.clone();
+        return other;
     }
 
     /**
@@ -1046,7 +1246,7 @@ public class SimpleDateFormat extends DateFormat {
     public int hashCode()
     {
         return pattern.hashCode();
-    	// just enough fields for a reasonable distribution
+        // just enough fields for a reasonable distribution
     }
 
     /**
@@ -1054,9 +1254,26 @@ public class SimpleDateFormat extends DateFormat {
      */
     public boolean equals(Object obj)
     {
-    	if (!super.equals(obj)) return false; // super does class check
+        if (!super.equals(obj)) return false; // super does class check
         SimpleDateFormat that = (SimpleDateFormat) obj;
         return (pattern.equals(that.pattern)
-        		&& formatData.equals(that.formatData));
+                && formatData.equals(that.formatData));
+    }
+
+    /**
+     * Override readObject.
+     */
+    private void readObject(ObjectInputStream stream)
+         throws IOException, ClassNotFoundException {
+             stream.defaultReadObject();
+             if (serialVersionOnStream < 1) {
+                 // didn't have defaultCenturyStart field
+                 initializeDefaultCentury();
+             }
+             else {
+                 // fill in dependent transient field
+                 parseAmbiguousDatesAsAfter(defaultCenturyStart);
+             }
+             serialVersionOnStream = currentSerialVersion;
     }
 }

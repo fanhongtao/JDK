@@ -1,5 +1,5 @@
 /*
- * @(#)InetAddress.java	1.42 97/02/23
+ * @(#)InetAddress.java	1.45 98/10/08
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -32,7 +32,7 @@ import java.util.Hashtable;
  * create a new <code>InetAddress</code> instance. 
  *
  * @author  Chris Warth
- * @version 1.42, 02/23/97
+ * @version 1.45, 10/08/98
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
  * @see     java.net.InetAddress#getByName(java.lang.String)
  * @see     java.net.InetAddress#getLocalHost()
@@ -100,11 +100,11 @@ class InetAddress implements java.io.Serializable {
     }
 
     /**
-     * Returns the hostname for this address.
+     * Returns the fully qualified host name for this address.
      * If the host is equal to null, then this address refers to any
      * of the local machine's available network addresses.
      *
-     * @return  the host name for this IP address.
+     * @return  the fully qualified host name for this address.
      * @since   JDK1.0
      */
     public String getHostName() {
@@ -468,7 +468,8 @@ class InetAddress implements java.io.Serializable {
 		} catch (UnknownHostException e) {
 		    obj  = unknown_array;
 		}
-		addressCache.put(host, obj);
+		if (obj != unknown_array)
+		    addressCache.put(host, obj);
 	    }
 	} /* end synchronized block */
 
@@ -506,27 +507,28 @@ class InetAddress implements java.io.Serializable {
 	    throw new UnknownHostException();
 	}
 
-	/* If the localhost's address is not initialized yet, initialize
-	 * it.  It is no longer initialized in the static initializer 
-	 * (see comment there).
-	 */
-
-	if (localHost.address == -1) {
-	    localHost = getAllByName(localHost.hostName)[0];
-	    /* This puts it in the address cache as well */
-	}
-
-        /* make sure the connection to the host is allowed: if yes,
-	 * return the "real" localHost; if not, return loopback "127.0.0.1"   
-	 */
-	SecurityManager security = System.getSecurityManager();
 	try {
+	    /* If the localhost's address is not initialized yet, initialize
+	     * it.  It is no longer initialized in the static initializer 
+	     * (see comment there).
+	     */
+
+	    if (localHost.address == -1) {
+		localHost = getAllByName(localHost.hostName)[0];
+		/* This puts it in the address cache as well */
+	    }
+
+            /* make sure the connection to the host is allowed: if yes,
+	     * return the "real" localHost; if not, return loopback "127.0.0.1"
+	     */
+	    SecurityManager security = System.getSecurityManager();
 	    if (security != null && !security.getInCheck()) 
 		security.checkConnect(localHost.getHostName(), -1);
+	    return localHost;
+
 	} catch (java.lang.SecurityException e) {
 	    return loopbackHost;
 	}
-	return localHost;
     }
 }
 

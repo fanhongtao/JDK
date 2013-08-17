@@ -1,5 +1,5 @@
 /*
- * @(#)selftest.h	1.5 96/10/28
+ * @(#)selftest.h	1.6 98/01/12
  *
  * Copyright (c) 1994 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -229,7 +229,7 @@ struct longlong
 
 /* 	A list of opcode names, for printing in error messages;
 	defined in opcodes.c in the build directory */
-extern char *opnames[];
+extern char * const opnames[];
 
 /*	Test an expression and print a message if FALSE. 
 	NOTE: opcode names in the failure message will only be correct if the

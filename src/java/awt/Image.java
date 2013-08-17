@@ -1,5 +1,5 @@
 /*
- * @(#)Image.java	1.22 97/02/12
+ * @(#)Image.java	1.23 97/06/16
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -29,80 +29,113 @@ import java.awt.image.AreaAveragingScaleFilter;
 import java.awt.image.ReplicateScaleFilter;
 
 /**
- * The image class is an abstract class. The image must be obtained in a 
- * platform specific way.
+ * The abstract class <code>Image</code> is the superclass of all 
+ * classes that represent graphical images. The image must be 
+ * obtained in a platform-specific manner.
  *
- * @version 	1.22, 02/12/97
+ * @version 	1.23, 06/16/97
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
+ * @since       JDK1.0
  */
 public abstract class Image {
     /**
-     * Gets the actual width of the image.  If the width is not known
-     * yet then the ImageObserver will be notified later and -1 will
-     * be returned.
-     * @see #getHeight
-     * @see ImageObserver
+     * Determines the width of the image. If the width is not yet known, 
+     * this method returns <code>-1</code> and the specified   
+     * <code>ImageObserver</code> object is notified later.
+     * @param     observer   an object waiting for the image to be loaded.
+     * @return    the width of this image, or <code>-1</code> 
+     *                   if the width is not yet known.
+     * @see       java.awt.Image#getHeight
+     * @see       java.awt.image.ImageObserver
+     * @since     JDK1.0
      */
     public abstract int getWidth(ImageObserver observer);
 
     /**
-     * Gets the actual height of the image.  If the height is not known
-     * yet then the ImageObserver will be notified later and -1 will
-     * be returned.
-     * @see #getWidth
-     * @see ImageObserver
+     * Determines the height of the image. If the height is not yet known, 
+     * this method returns <code>-1</code> and the specified  
+     * <code>ImageObserver</code> object is notified later.
+     * @param     observer   an object waiting for the image to be loaded.
+     * @return    the height of this image, or <code>-1</code> 
+     *                   if the height is not yet known.
+     * @see       java.awt.Image#getWidth
+     * @see       java.awt.image.ImageObserver
+     * @since     JDK1.0
      */
     public abstract int getHeight(ImageObserver observer);
 
     /**
      * Gets the object that produces the pixels for the image.
-     * This is used by the Image filtering classes and by the
-     * image conversion and scaling code.
-     * @see ImageProducer
+     * This method is called by the image filtering classes and by 
+     * methods that perform image conversion and scaling.
+     * @return     the image producer that produces the pixels 
+     *                                  for this image.
+     * @see        java.awt.image.ImageProducer
      */
     public abstract ImageProducer getSource();
 
     /**
-     * Gets a graphics object to draw into this image.
-     * This will only work for off-screen images.
-     * @see Graphics
+     * Creates a graphics context for drawing to an off-screen image. 
+     * This method can only be called for off-screen images. 
+     * @return  a graphics context to draw to the off-screen image. 
+     * @see     java.awt.Graphics
+     * @see     java.awt.Component#createImage(int, int)
+     * @since   JDK1.0
      */
     public abstract Graphics getGraphics();
 
     /**
-     * Gets a property of the image by name.  Individual property names
-     * are defined by the various image formats.  If a property is not
-     * defined for a particular image, this method will return the
-     * UndefinedProperty object.  If the properties for this image are
-     * not yet known, then this method will return null and the ImageObserver
-     * object will be notified later.  The property name "comment" should
-     * be used to store an optional comment which can be presented to
-     * the user as a description of the image, its source, or its author.
-     * @see ImageObserver
-     * @see #UndefinedProperty
+     * Gets a property of this image by name. 
+     * <p>
+     * Individual property names are defined by the various image 
+     * formats. If a property is not defined for a particular image, this 
+     * method returns the <code>UndefinedProperty</code> object. 
+     * <p>
+     * If the properties for this image are not yet known, this method 
+     * returns <code>null</code>, and the <code>ImageObserver</code> 
+     * object is notified later. 
+     * <p>
+     * The property name <code>"comment"</code> should be used to store 
+     * an optional comment which can be presented to the application as a 
+     * description of the image, its source, or its author. 
+     * @param       name   a property name.
+     * @param       observer   an object waiting for this image to be loaded.
+     * @return      the value of the named property.
+     * @see         java.awt.image.ImageObserver
+     * @see         java.awt.Image#UndefinedProperty
+     * @since       JDK1.0
      */
     public abstract Object getProperty(String name, ImageObserver observer);
 
     /**
-     * The UndefinedProperty object should be returned whenever a
-     * property which was not defined for a particular image is
-     * fetched.
+     * The <code>UndefinedProperty</code> object should be returned whenever a
+     * property which was not defined for a particular image is fetched.
+     * @since    JDK1.0
      */
     public static final Object UndefinedProperty = new Object();
 
     /**
-     * Returns a scaled version of this image.
-     * A new Image object is returned which will render the image at
-     * the specified width and height by default.  The new Image object
+     * Creates a scaled version of this image.
+     * A new <code>Image</code> object is returned which will render 
+     * the image at the specified <code>width</code> and 
+     * <code>height</code> by default.  The new <code>Image</code> object
      * may be loaded asynchronously even if the original source image
-     * has already been loaded completely.  If either the width or
-     * height is a negative number then a value is substituted to
-     * maintain the aspect ratio of the original image dimensions.
-     * @param width the width to stretch the image to
-     * @param height the height to stretch the image to
+     * has already been loaded completely.  If either the <code>width</code> 
+     * or <code>height</code> is a negative number then a value is 
+     * substituted to maintain the aspect ratio of the original image 
+     * dimensions.
+     * @param width the width to which to scale the image.
+     * @param height the height to which to scale the image.
      * @param hints flags to indicate the type of algorithm to use
-     * for image resampling
+     * for image resampling.
+     * @return     a scaled version of the image.
+     * @see        java.awt.Image#SCALE_DEFAULT
+     * @see        java.awt.Image#SCALE_FAST 
+     * @see        java.awt.Image#SCALE_SMOOTH
+     * @see        java.awt.Image#SCALE_REPLICATE
+     * @see        java.awt.Image#SCALE_AVERAGE 
+     * @since      JDK1.1
      */
     public Image getScaledInstance(int width, int height, int hints) {
 	ImageFilter filter;
@@ -117,28 +150,33 @@ public abstract class Image {
     }
 
     /**
-     * Use the default image scaling algorithm.
+     * Use the default image-scaling algorithm.
+     * @since JDK1.1
      */
     public static final int SCALE_DEFAULT = 1;
 
     /**
-     * Choose an image scaling algorithm that gives higher priority
+     * Choose an image-scaling algorithm that gives higher priority
      * to scaling speed than smoothness of the scaled image.
+     * @since JDK1.1
      */
     public static final int SCALE_FAST = 2;
 
     /**
-     * Choose an image scaling algorithm that gives higher priority
+     * Choose an image-scaling algorithm that gives higher priority
      * to image smoothness than scaling speed.
+     * @since JDK1.1
      */
     public static final int SCALE_SMOOTH = 4;
 
     /**
-     * Use the ReplicateScaleFilter image scaling algorithm.  The
-     * image object is free to substitute a different filter that
-     * performs the same algorithm yet integrates more efficiently
-     * into the image infrastructure supplied by the toolkit.
-     * @see java.awt.image.ReplicateScaleFilter
+     * Use the image scaling algorithm embodied in the 
+     * <code>ReplicateScaleFilter</code> class.  
+     * The <code>Image</code> object is free to substitute a different filter 
+     * that performs the same algorithm yet integrates more efficiently
+     * into the imaging infrastructure supplied by the toolkit.
+     * @see        java.awt.image.ReplicateScaleFilter
+     * @since      JDK1.1
      */
     public static final int SCALE_REPLICATE = 8;
 
@@ -148,6 +186,7 @@ public abstract class Image {
      * performs the same algorithm yet integrates more efficiently
      * into the image infrastructure supplied by the toolkit.
      * @see java.awt.image.AreaAveragingScaleFilter
+     * @since JDK1.1
      */
     public static final int SCALE_AREA_AVERAGING = 16;
 
@@ -159,6 +198,7 @@ public abstract class Image {
      * a state similar to when it was first created so that if it is
      * again rendered, the image data will have to be recreated or
      * fetched again from its source.
+     * @since JDK1.0
      */
     public abstract void flush();
 }

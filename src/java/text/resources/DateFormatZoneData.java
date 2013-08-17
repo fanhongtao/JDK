@@ -1,5 +1,5 @@
  /*
- * @(#)DateFormatZoneData.java	1.5 97/02/24
+ * @(#)DateFormatZoneData.java	1.6 97/10/28
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -49,7 +49,7 @@ import java.util.ListResourceBundle;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.5 02/24/97
+ * @version      1.6 10/28/97
  * @author       Chen-Lieh Huang
  */
 //  US DateFormatZoneData

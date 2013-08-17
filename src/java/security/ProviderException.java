@@ -26,7 +26,7 @@ package java.security;
  * misconfiguration errors), which may be subclassed by Providers to
  * throw specialized, provider-specific runtime errors.
  *
- * @version 1.4, 97/06/20
+ * @version 1.4, 00/08/15
  * @author Benjamin Renaud */
 
 public class ProviderException extends RuntimeException {

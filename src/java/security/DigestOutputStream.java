@@ -46,7 +46,7 @@ import java.io.ByteArrayOutputStream;
  * @see MessageDigest
  * @see DigestInputStream
  *
- * @version 1.19 97/06/20
+ * @version 1.19 00/08/15
  * @author Benjamin Renaud */
 
 public class DigestOutputStream extends FilterOutputStream {

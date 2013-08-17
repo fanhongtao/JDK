@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_hu.java	1.6 97/03/03
+ * @(#)LocaleElements_hu.java	1.9 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,101 +45,159 @@
 
 package java.text.resources;
 
-public class LocaleElements_hu extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_hu() {
-        super.init(table);
+public class LocaleElements_hu extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "hu_HU" }, // locale id based on iso codes
+            { "LocaleID", "040e" }, // Windows id
+            { "ShortLanguage", "hun" }, // iso-3 abbrev lang name
+            { "ShortCountry", "HUN" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "hu", "magyar" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "HU", "Magyarorsz\u00e1g" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "janu\u00e1r", // january
+                    "febru\u00e1r", // february
+                    "m\u00e1rcius", // march
+                    "\u00e1prilis", // april
+                    "m\u00e1jus", // may
+                    "j\u00fanius", // june
+                    "j\u00falius", // july
+                    "augusztus", // august
+                    "szeptember", // september
+                    "okt\u00f3ber", // october
+                    "november", // november
+                    "december", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "jan.", // abb january
+                    "febr.", // abb february
+                    "m\u00e1rc.", // abb march
+                    "\u00e1pr.", // abb april
+                    "m\u00e1j.", // abb may
+                    "j\u00fan.", // abb june
+                    "j\u00fal.", // abb july
+                    "aug.", // abb august
+                    "szept.", // abb september
+                    "okt.", // abb october
+                    "nov.", // abb november
+                    "dec.", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "vas\u00e1rnap", // Sunday
+                    "h\u00e9tf\u0151", // Monday
+                    "kedd", // Tuesday
+                    "szerda", // Wednesday
+                    "cs\u00fct\u00f6rt\u00f6k", // Thursday
+                    "p\u00e9ntek", // Friday
+                    "szombat" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "V", // abb Sunday
+                    "H", // abb Monday
+                    "K", // abb Tuesday
+                    "Sze", // abb Wednesday
+                    "Cs", // abb Thursday
+                    "P", // abb Friday
+                    "Szo" // abb Saturday
+                }
+            },
+            { "AmPmMarkers",
+                new String[] {
+                    "DE", // am marker
+                    "DU" // pm marker
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "i.e.",
+                    "i.u."
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "Ft#,##0.##;-Ft#,##0.##", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    "\u00a0", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "Ft", // local currency symbol
+                    "HUF", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "H:mm:ss z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "yyyy. MMMM d.", // full date pattern
+                    "yyyy. MMMM d.", // long date pattern
+                    "yyyy.MM.dd.", // medium date pattern
+                    "yyyy.MM.dd.", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                /* for HU_HU, default sorting except for the following: */
+                /* add cs "ligature" between c and d. */
+                /* add d<stroke> between d and e. */
+                /* add gy "ligature" between g and h. */
+                /* add ly "ligature" between l and l<stroke>. */
+                /* add l<stroke> between l and m. */
+                /* add sz "ligature" between s and t. */
+                /* add zs "ligature" between z and z<abovedot> */
+                /* add z<abovedot> after z.       */
+                "& C < cs , cS , Cs , CS " // cs ligatures
+                + "& D < \u0111, \u0110 "    // tal : african d < d-stroke
+                + "& G < gy, Gy, gY, GY "    // gy ligatures
+                + "& L < ly, Ly, lY, LY "    // l < ly
+                + "& O < o\u0308 , O\u0308 " // O < o-umlaut
+                + "< o\u030b , O\u030b "     // o-double-accute
+                + "& S < sz , sZ , Sz , SZ " // s < sz ligature
+                + "& U < u\u0308 , U\u0308 " // u < u-umlaut
+                + "< u\u030b , U\u030b "     // u-double-accute
+                + "& Z < zs , zS , Zs , ZS " // stop-stroke < zs ligature
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */        "hu_HU",
-		/* Windows id */                          "040e",
-		/* iso: 3 character lang name */          "hun",
-		/* iso: 3 character country name */       "HUN",
-		/* language names */                      "en_Hungarian; hu_Magyar",
-		/* country names */                       "en_Hungary; hu_Magyarosz\u00E1g",
-		/* january */                             "J\u00e1nu\u00e1r",
-		/* february */                            "Febru\u00e1r",
-		/* march */                               "M\u00e1rcius",
-		/* april */                               "\u00c1prilis",
-		/* may */                                 "M\u00e1jus",
-		/* june */                                "J\u00danius",
-		/* july */                                "J\u00dalius",
-		/* august */                              "Augusztus",
-		/* september */                           "Szeptember",
-		/* october */                             "Okt\u00f3ber",
-		/* november */                            "November",
-		/* december */                            "December",
-		/* month 13 if applicable */              "",
-		/* abb january */                         "J\u00e1n",
-		/* abb february */                        "Febr",
-		/* abb march */                           "M\u00e1rc",
-		/* abb april */                           "\u00c1pr",
-		/* abb may */                             "M\u00e1j",
-		/* abb june */                            "J\u00fan",
-		/* abb july */                            "J\u00fal",
-		/* abb august */                          "Aug",
-		/* abb september */                       "Szept",
-		/* abb october */                         "Okt",
-		/* abb november */                        "Nov",
-		/* abb december */                        "Dec",
-		/* abb month 13 if applicable */          "",
-		/* sunday */                              "Vas\u00e1rnap",
-		/* monday */                              "H\u00e9tf\u00f4",
-		/* tuesday */                             "Kedd",
-		/* wednesday */                           "Szerda",
-		/* thursday */                            "Cs\u00fct\u00f6rt\u00f6k",
-		/* friday */                              "P\u00e9ntek",
-		/* saturday */                            "Szombat",
-		/* abb sunday */                          "V",
-		/* abb monday */                          "HH",
-		/* abb tuesday */                         "KK",
-		/* abb wednesday */                       "Sze",
-		/* abb thursday */                        "Cs",
-		/* abb friday */                          "PP",
-		/* abb saturday */                        "Szo",
-		/* am marker; default is AM */            "AM",
-		/* pm marker; default is PM */            "PM",
-		/* era strings */                         "i.e.;i.u.",
-		/* decimal pattern */                     "#,##0.###;-#,##0.###",
-		/* currency pattern */                    "FT#,##0.##;-FT#,##0.##",
-		/* percent pattern */                     "#,##0%",
-		/* decimal separator */                   ",",
-		/* group (thousands) separator */         " ", // this is a space: \u0020
-		/* list separator  */                     "",
-		/* percent sign */                        "%",
-		/* native 0 digit */                      "0",
-		/* pattern digit */                       "#",
-		/* minus sign */                          "-",
-		/* exponential */                         "E",
-		/* local currency symbol */               "FT",
-		/* intl currency symbol */                "HUF",
-		/* monetary decimal separator */          ",",
-		/* Full time pattern */                   "H:mm:ss z",
-		/* Long time pattern */                   "H:mm:ss z",
-		/* Default time pattern */                "H:mm:ss",
-		/* Short time pattern */                  "H:mm",
-		/* Full date pattern */                   "EEEE, yyyy, MMMM d",
-		/* Long date pattern */                   "yyyy, MMMM d",
-		/* Default date pattern */                "yyyy-M-d",
-		/* Short date pattern */                  "yy-M-d",
-		/* Date-Time pattern */                   "{1} {0}",
-		/* First day of week */                   "1",
-		/* Min days in first week*/               "1",
-		/* for HU_HU, default sorting except for the following: */
-		/* add cs "ligature" between c and d. */
-		/* add d<stroke> between d and e. */
-		/* add gy "ligature" between g and h. */
-		/* add ly "ligature" between l and l<stroke>. */
-		/* add l<stroke> between l and m. */
-		/* add sz "ligature" between s and t. */
-		/* add zs "ligature" between z and z<abovedot> */
-		/* add z<abovedot> after z.       */
-		 "& C < cs, Cs, cS, CS"                        /* cs ligature */
-		+"& D < \u0111, \u0110"                        /* d<stroke> */
-		+"& G < gy, Gy, gY, GY"                        /* gy ligature */
-		+"& L < ly, Ly, lY, LY < \u0142, \u0141"       /* ly ligature */
-		+"& S < sz, Sz, sZ, SZ"                        /* sz ligature */
-		+"& Z < zs, Zs, zS, ZS < \u017c, \u017b"       /* zs ligature */
-    };
 }

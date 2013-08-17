@@ -1,5 +1,5 @@
 /*
- * @(#)HttpURLConnection.java	1.8 97/02/10
+ * @(#)HttpURLConnection.java	1.9 97/06/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -68,7 +68,7 @@ abstract public class HttpURLConnection extends URLConnection {
     
     /**
      * Sets whether HTTP redirects  (requests with response code 3xx) should 
-     * be automatically followed by this class.  False by default.  Applets
+     * be automatically followed by this class.  True by default.  Applets
      * cannot change this variable.
      * @since   JDK1.1
      */

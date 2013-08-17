@@ -1,23 +1,14 @@
 /*
- * @(#)Date.java	1.41 97/03/03
+ * @(#)Date.java	1.50 00/05/26
  *
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- *
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- *
- * CopyrightVersion 1.1_beta
- *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 package java.util;
@@ -25,7 +16,6 @@ package java.util;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import java.util.SimpleTimeZone;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.io.IOException;
@@ -50,7 +40,7 @@ import java.io.ObjectInputStream;
  * coordinated universal time (UTC), it may not do so exactly, 
  * depending on the host environment of the Java Virtual Machine. 
  * Nearly all modern operating systems assume that 1&nbsp;day&nbsp;=
- * 24&nbsp;×&nbsp;60&nbsp;×&nbsp;60&nbsp;= 86400 seconds 
+ * 24&nbsp;&times;&nbsp;60&nbsp;&times;&nbsp;60&nbsp;= 86400 seconds 
  * in all cases. In UTC, however, about once every year or two there 
  * is an extra second, called a "leap second." The leap 
  * second is always added as the last second of the day, and always 
@@ -109,24 +99,45 @@ import java.io.ObjectInputStream;
  *
  * @author  James Gosling
  * @author  Arthur van Hoff
- * @version 1.41, 03/03/97
+ * @author  Alan Liu
+ * @version 1.47, 01/12/98
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
  * @since   JDK1.0
  */
-public
-class Date implements java.io.Serializable, Cloneable {
+public class Date implements java.io.Serializable, Cloneable {
 
+    /* If cal is null, then fastTime indicates the time in millis.
+     * Otherwise, fastTime is ignored, and cal indicates the time.
+     * The cal object is only created if a setXxx call is made to
+     * set a field.  For other operations, staticCal is used instead.
+     */
     private transient Calendar cal;
     private transient long fastTime;
-    private transient boolean modified;
+
+    private static Calendar staticCal;
+    private static Calendar utcCal;
+    private static DateFormat formatter;
+    private static DateFormat gmtFormatter;
+    private static int defaultCenturyStart;
+    private static TimeZone cachedDefaultZone;
 
     /* use serialVersionUID from modified java.util.Date for
      * interoperability with JDK1.1. The Date was modified to write
      * and read only the UTC time.
      */
     private static final long serialVersionUID = 7523967970034938905L;
+
+    static {
+		cachedDefaultZone = TimeZone.getDefault();
+        staticCal = new GregorianCalendar();
+        defaultCenturyStart = staticCal.get(Calendar.YEAR) - 80;
+        utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
+        gmtFormatter = new SimpleDateFormat("d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+        gmtFormatter.setTimeZone(TimeZone.getTimeZone("Africa/Casablanca"));
+    }
 
     /**
      * Allocates a <code>Date</code> object and initializes it so that 
@@ -137,7 +148,7 @@ class Date implements java.io.Serializable, Cloneable {
      * @since   JDK1.0
      */
     public Date() {
-	this(System.currentTimeMillis());
+        this(System.currentTimeMillis());
     }
 
     /**
@@ -152,11 +163,6 @@ class Date implements java.io.Serializable, Cloneable {
     public Date(long date) {
         cal = null;
         fastTime = date;
-        modified = false;
-
-        //cal = new GregorianCalendar(TimeZone.getDefault());
-        //cal.setTimeInMillis(date);
-//	    cal.computeFields();  // done in get(field)
     }
 
     /**
@@ -170,10 +176,12 @@ class Date implements java.io.Serializable, Cloneable {
      * @param   date    the day of the month between 1-31.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(year + 1900, month, date)</code>
+     * or <code>GregorianCalendar(year + 1900, month, date)</code>.
      */
     public Date(int year, int month, int date) {
-	this(year, month, date, 0, 0, 0);
+        this(year, month, date, 0, 0, 0);
     }
 
     /**
@@ -189,10 +197,13 @@ class Date implements java.io.Serializable, Cloneable {
      * @param   min     the minutes between 0-59.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(year + 1900, month, date,
+     * hrs, min)</code> or <code>GregorianCalendar(year + 1900,
+     * month, date, hrs, min)</code>.
      */
     public Date(int year, int month, int date, int hrs, int min) {
-	this(year, month, date, hrs, min, 0);
+        this(year, month, date, hrs, min, 0);
     }
 
     /**
@@ -210,13 +221,24 @@ class Date implements java.io.Serializable, Cloneable {
      * @param   sec     the seconds between 0-59.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(year + 1900, month, date,
+     * hrs, min, sec)</code> or <code>GregorianCalendar(year + 1900,
+     * month, date, hrs, min, sec)</code>.
      */
     public Date(int year, int month, int date, int hrs, int min, int sec) {
-        cal = new GregorianCalendar(year + 1900, month, date, hrs,
-                                    min, sec);
-        cal.complete();    // to normalize field parameters
-        modified = false;
+        cal = null;
+        synchronized (staticCal) {
+			TimeZone defaultZone = TimeZone.getDefault();
+			if (!defaultZone.equals(cachedDefaultZone)) {
+				staticCal.setTimeZone(defaultZone);
+				formatter.setTimeZone(defaultZone);
+				cachedDefaultZone = defaultZone;
+			}
+            staticCal.clear();
+            staticCal.set(year + 1900, month, date, hrs, min, sec);
+            fastTime = staticCal.getTimeInMillis();
+        }
     }
 
     /**
@@ -229,10 +251,11 @@ class Date implements java.io.Serializable, Cloneable {
      * @see     java.text.DateFormat
      * @see     java.util.Date#parse(java.lang.String)
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>DateFormat.parse(String s)</code>.
      */
     public Date(String s) {
-	this(parse(s));
+        this(parse(s));
     }
 
     /**
@@ -245,25 +268,23 @@ class Date implements java.io.Serializable, Cloneable {
      * @param   hrs     the hours between 0-23.
      * @param   min     the minutes between 0-59.
      * @param   sec     the seconds between 0-59.
-     * @return  the number of seconds since January 1, 1970, 00:00:00 GMT for
+     * @return  the number of milliseconds since January 1, 1970, 00:00:00 GMT for
      *          the date and time specified by the arguments. 
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(year + 1900, month, date,
+     * hrs, min, sec)</code> or <code>GregorianCalendar(year + 1900,
+     * month, date, hrs, min, sec)</code>, using a UTC
+     * <code>TimeZone</code>, followed by <code>Calendar.getTime().getTime()</code>.
      */
     public static long UTC(int year, int month, int date,
-			        int hrs, int min, int sec) {
-
-        Calendar cal =
-          new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-        cal.set(Calendar.YEAR, year + 1900);
-        cal.set(Calendar.MONTH, month);
-        cal.set(Calendar.DATE, date);
-        cal.set(Calendar.HOUR_OF_DAY, hrs);
-        cal.set(Calendar.MINUTE, min);
-        cal.set(Calendar.SECOND, sec);
-
-        return cal.getTimeInMillis();
+                           int hrs, int min, int sec) {
+        synchronized (utcCal) {
+            utcCal.clear();
+            utcCal.set(year + 1900, month, date, hrs, min, sec);
+            return utcCal.getTimeInMillis();
+        }
     }
 
     /**
@@ -278,174 +299,196 @@ class Date implements java.io.Serializable, Cloneable {
      * meridian). If no time zone is specified, the local time zone is 
      * assumed. GMT and UTC are considered equivalent. 
      *
+     * If the recognized year number is less than 100, it is
+     * interpreted as an abbreviated year relative to a century of
+     * which dates are within 80 years before and 19 years after
+     * the time when the Date class is initialized.
+     * After adjusting the year number, 1900 is subtracted from
+     * it. For example, if the current year is 1999 then years in
+     * the range 19 to 99 are assumed to mean 1919 to 1999, while
+     * years from 0 to 18 are assumed to mean 2000 to 2018.  Note
+     * that this is slightly different from the interpretation of
+     * years less than 100 that is used in {@link java.text.SimpleDateFormat}. 
+     *
      * @param   s   a string to be parsed as a date.
      * @return  the number of milliseconds since January 1, 1970, 00:00:00 GMT
      *          represented by the string argument.
      * @see     java.text.DateFormat
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>DateFormat.parse(String s)</code>.
      */
     public static long parse(String s) {
-	int year = -1;
-	int mon = -1;
-	int mday = -1;
-	int hour = -1;
-	int min = -1;
-	int sec = -1;
-	int millis = -1;
-	int c = -1;
-	int i = 0;
-	int n = -1;
-	int wst = -1;
-	int tzoffset = -1;
-	int prevc = 0;
-syntax:
-	{
-	    if (s == null)
-		break syntax;
-	    int limit = s.length();
-	    while (i < limit) {
-		c = s.charAt(i);
-		i++;
-		if (c <= ' ' || c == ',')
-		    continue;
-		if (c == '(') {	// skip comments
-		    int depth = 1;
-		    while (i < limit) {
-			c = s.charAt(i);
-			i++;
-			if (c == '(') depth++;
-			else if (c == ')')
-			    if (--depth <= 0)
-			        break;
-		    }
-		    continue;
-		}
-		if ('0' <= c && c <= '9') {
-		    n = c - '0';
-		    while (i < limit && '0' <= (c = s.charAt(i)) && c <= '9') {
-			n = n * 10 + c - '0';
-			i++;
-		    }
-		    if (prevc == '+' || prevc == '-' && year>=0) {
-			// timezone offset
-			if (n < 24)
-			    n = n * 60;	// EG. "GMT-3"
-			else
-			    n = n % 100 + n / 100 * 60;	// eg "GMT-0430"
-			if (prevc == '+')	// plus means east of GMT
-			    n = -n;
-			if (tzoffset != 0 && tzoffset != -1)
-			    break syntax;
-			tzoffset = n;
-		    } else if (n >= 70)
-			if (year >= 0)
-			    break syntax;
-			else if (c <= ' ' || c == ',' || c == '/' || i >= limit)
-			    year = n < 1900 ? n : n - 1900;
-			else
-			    break syntax;
-		    else if (c == ':')
-			if (hour < 0)
-			    hour = (byte) n;
-			else if (min < 0)
-			    min = (byte) n;
-			else
-			    break syntax;
-		    else if (c == '/')
-			if (mon < 0)
-			    mon = (byte) (n - 1);
-			else if (mday < 0)
-			    mday = (byte) n;
-			else
-			    break syntax;
-		    else if (i < limit && c != ',' && c > ' ' && c != '-')
-			break syntax;
-		    else if (hour >= 0 && min < 0)
-			min = (byte) n;
-		    else if (min >= 0 && sec < 0)
-			sec = (byte) n;
-		    else if (mday < 0)
-			mday = (byte) n;
-		    else
-			break syntax;
-		    prevc = 0;
-		} else if (c == '/' || c == ':' || c == '+' || c == '-')
-		    prevc = c;
-		else {
-		    int st = i - 1;
-		    while (i < limit) {
-			c = s.charAt(i);
-			if (!('A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'))
-			    break;
-			i++;
-		    }
-		    if (i <= st + 1)
-			break syntax;
-		    int k;
-		    for (k = wtb.length; --k >= 0;)
-			if (wtb[k].regionMatches(true, 0, s, st, i - st)) {
-			    int action = ttb[k];
-			    if (action != 0) {
-				if (action == 1) {	// pm
-				    if (hour > 12 || hour < 1)
-					break syntax;
-				    else if (hour < 12)
+        int year = Integer.MIN_VALUE;
+        int mon = -1;
+        int mday = -1;
+        int hour = -1;
+        int min = -1;
+        int sec = -1;
+        int millis = -1;
+        int c = -1;
+        int i = 0;
+        int n = -1;
+        int wst = -1;
+        int tzoffset = -1;
+        int prevc = 0;
+    syntax:
+        {
+            if (s == null)
+                break syntax;
+            int limit = s.length();
+            while (i < limit) {
+                c = s.charAt(i);
+                i++;
+                if (c <= ' ' || c == ',')
+                    continue;
+                if (c == '(') { // skip comments
+                    int depth = 1;
+                    while (i < limit) {
+                        c = s.charAt(i);
+                        i++;
+                        if (c == '(') depth++;
+                        else if (c == ')')
+                            if (--depth <= 0)
+                                break;
+                    }
+                    continue;
+                }
+                if ('0' <= c && c <= '9') {
+                    n = c - '0';
+                    while (i < limit && '0' <= (c = s.charAt(i)) && c <= '9') {
+                        n = n * 10 + c - '0';
+                        i++;
+                    }
+                    if (prevc == '+' || prevc == '-' && year != Integer.MIN_VALUE) {
+                        // timezone offset
+                        if (n < 24)
+                            n = n * 60; // EG. "GMT-3"
+                        else
+                            n = n % 100 + n / 100 * 60; // eg "GMT-0430"
+                        if (prevc == '+')   // plus means east of GMT
+                            n = -n;
+                        if (tzoffset != 0 && tzoffset != -1)
+                            break syntax;
+                        tzoffset = n;
+                    } else if (n >= 70)
+                        if (year != Integer.MIN_VALUE)
+                            break syntax;
+                        else if (c <= ' ' || c == ',' || c == '/' || i >= limit)
+                            // year = n < 1900 ? n : n - 1900;
+                            year = n;
+                        else
+                            break syntax;
+                    else if (c == ':')
+                        if (hour < 0)
+                            hour = (byte) n;
+                        else if (min < 0)
+                            min = (byte) n;
+                        else
+                            break syntax;
+                    else if (c == '/')
+                        if (mon < 0)
+                            mon = (byte) (n - 1);
+                        else if (mday < 0)
+                            mday = (byte) n;
+                        else
+                            break syntax;
+                    else if (i < limit && c != ',' && c > ' ' && c != '-')
+                        break syntax;
+                    else if (hour >= 0 && min < 0)
+                        min = (byte) n;
+                    else if (min >= 0 && sec < 0)
+                        sec = (byte) n;
+                    else if (mday < 0)
+                        mday = (byte) n;
+                    // Handle two-digit years < 70 (70-99 handled above).
+                    else if (year == Integer.MIN_VALUE && mon >= 0 && mday >= 0)
+                        year = n;
+                    else
+                        break syntax;
+                    prevc = 0;
+                } else if (c == '/' || c == ':' || c == '+' || c == '-')
+                    prevc = c;
+                else {
+                    int st = i - 1;
+                    while (i < limit) {
+                        c = s.charAt(i);
+                        if (!('A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'))
+                            break;
+                        i++;
+                    }
+                    if (i <= st + 1)
+                        break syntax;
+                    int k;
+                    for (k = wtb.length; --k >= 0;)
+                        if (wtb[k].regionMatches(true, 0, s, st, i - st)) {
+                            int action = ttb[k];
+                            if (action != 0) {
+                                if (action == 1) {  // pm
+                                    if (hour > 12 || hour < 1)
+                                        break syntax;
+                                    else if (hour < 12)
                                         hour += 12;
                                 } else if (action == 14) {  // am
-				    if (hour > 12 || hour < 1)
-					break syntax;
-				    else if (hour == 12)
+                                    if (hour > 12 || hour < 1)
+                                        break syntax;
+                                    else if (hour == 12)
                                         hour = 0;
-                                } else if (action <= 13) {	// month!
-				    if (mon < 0)
-					mon = (byte) (action - 2);
-				    else
-					break syntax;
+                                } else if (action <= 13) {  // month!
+                                    if (mon < 0)
+                                        mon = (byte) (action - 2);
+                                    else
+                                        break syntax;
                                 } else {
-				    tzoffset = action - 10000;
+                                    tzoffset = action - 10000;
                                 }
                             }
-			    break;
-			}
-		    if (k < 0)
-			break syntax;
-		    prevc = 0;
-		}
-	    }
-	    if (year < 0 || mon < 0 || mday < 0)
-		break syntax;
-	    if (sec < 0)
-		sec = 0;
-	    if (min < 0)
-		min = 0;
-	    if (hour < 0)
-		hour = 0;
-	    if (tzoffset == -1)	// no time zone specified, have to use local
-		return new Date (year, mon, mday, hour, min, sec).getTime();
-	    return UTC(year, mon, mday, hour, min, sec) + tzoffset * (60 * 1000);
-	}
-	// syntax error
-	throw new IllegalArgumentException();
+                            break;
+                        }
+                    if (k < 0)
+                        break syntax;
+                    prevc = 0;
+                }
+            }
+            if (year == Integer.MIN_VALUE || mon < 0 || mday < 0)
+                break syntax;
+            // Parse 2-digit years within the correct default century.
+            if (year < 100) {
+                year += (defaultCenturyStart / 100) * 100;
+                if (year < defaultCenturyStart) year += 100;
+            }
+            year -= 1900;
+            if (sec < 0)
+                sec = 0;
+            if (min < 0)
+                min = 0;
+            if (hour < 0)
+                hour = 0;
+            if (tzoffset == -1) // no time zone specified, have to use local
+                return new Date (year, mon, mday, hour, min, sec).getTime();
+            return UTC(year, mon, mday, hour, min, sec) + tzoffset * (60 * 1000);
+        }
+        // syntax error
+        throw new IllegalArgumentException();
     }
     private final static String wtb[] = {
-	"am", "pm",
-	"monday", "tuesday", "wednesday", "thursday", "friday",
-	"saturday", "sunday",
-	"january", "february", "march", "april", "may", "june",
-	"july", "august", "september", "october", "november", "december",
-	"gmt", "ut", "utc", "est", "edt", "cst", "cdt",
-	"mst", "mdt", "pst", "pdt"
-	// this time zone table needs to be expanded
+        "am", "pm",
+        "monday", "tuesday", "wednesday", "thursday", "friday",
+        "saturday", "sunday",
+        "january", "february", "march", "april", "may", "june",
+        "july", "august", "september", "october", "november", "december",
+        "gmt", "ut", "utc", "est", "edt", "cst", "cdt",
+        "mst", "mdt", "pst", "pdt"
+        // this time zone table needs to be expanded
     };
     private final static int ttb[] = {
-	14, 1, 0, 0, 0, 0, 0, 0, 0,
-	2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	10000 + 0, 10000 + 0, 10000 + 0,	// GMT/UT/UTC
-	10000 + 5 * 60, 10000 + 4 * 60,	// EST/EDT
-	10000 + 6 * 60, 10000 + 5 * 60,
-	10000 + 7 * 60, 10000 + 6 * 60,
-	10000 + 8 * 60, 10000 + 7 * 60
+        14, 1, 0, 0, 0, 0, 0, 0, 0,
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+        10000 + 0, 10000 + 0, 10000 + 0,    // GMT/UT/UTC
+        10000 + 5 * 60, 10000 + 4 * 60, // EST/EDT
+        10000 + 6 * 60, 10000 + 5 * 60,
+        10000 + 7 * 60, 10000 + 6 * 60,
+        10000 + 8 * 60, 10000 + 7 * 60
     };
 
     /**
@@ -454,12 +497,11 @@ syntax:
      * @return  the year represented by this date, minus 1900.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.YEAR) - 1900</code>.
      */
     public int getYear() {
-        checkCal();
-        checkModified();
-        return (cal.get(Calendar.YEAR) - 1900);
+        return getField(Calendar.YEAR) - 1900;
     }
 
     /**
@@ -468,14 +510,11 @@ syntax:
      * @param   year    the year value.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(Calendar.YEAR, year + 1900)</code>.
      */
     public void setYear(int year) {
-        checkCal();
-        cal.clear(Calendar.DST_OFFSET);
-        cal.clear(Calendar.ZONE_OFFSET);
-        cal.set(Calendar.YEAR, year + 1900);
-        modified = true;
+        setField(Calendar.YEAR, year + 1900);
     }
 
     /**
@@ -486,12 +525,11 @@ syntax:
      * @return  the month represented by this date.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.MONTH)</code>.
      */
     public int getMonth() {
-        checkCal();
-        checkModified();
-        return cal.get(Calendar.MONTH);
+        return getField(Calendar.MONTH);
     }
 
     /**
@@ -500,14 +538,11 @@ syntax:
      * @param   month   the month value between 0-11.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(Calendar.MONTH, int month)</code>.
      */
     public void setMonth(int month) {
-        checkCal();
-        cal.clear(Calendar.DST_OFFSET);
-        cal.clear(Calendar.ZONE_OFFSET);
-        cal.set(Calendar.MONTH, month);
-        modified = true;
+        setField(Calendar.MONTH, month);
     }
 
     /**
@@ -517,12 +552,12 @@ syntax:
      * @return  the day of the month represented by this date.
      * @see     java.util.Calendar
      * @since   JDK1.0
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.DAY_OF_MONTH)</code>.
      * @deprecated
      */
     public int getDate() {
-        checkCal();
-        checkModified();
-        return cal.get(Calendar.DATE);
+        return getField(Calendar.DATE);
     }
 
     /**
@@ -531,14 +566,11 @@ syntax:
      * @param   date   the day of the month value between 1-31.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(Calendar.DAY_OF_MONTH, int date)</code>.
      */
     public void setDate(int date) {
-        checkCal();
-        cal.clear(Calendar.DST_OFFSET);
-        cal.clear(Calendar.ZONE_OFFSET);
-        cal.set(Calendar.DATE, date);
-        modified = true;
+        setField(Calendar.DATE, date);
     }
 
     /**
@@ -549,12 +581,11 @@ syntax:
      * @return  the day of the week represented by this date.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.DAY_OF_WEEK)</code>.
      */
     public int getDay() {
-        checkCal();
-        checkModified();
-        return cal.get(Calendar.DAY_OF_WEEK) - 1; // SUNDAY is 1 in Calendar
+        return getField(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY;
     }
 
     /**
@@ -565,12 +596,11 @@ syntax:
      * @return  the hour represented by this date.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.HOUR_OF_DAY)</code>.
      */
     public int getHours() {
-        checkCal();
-        checkModified();
-        return cal.get(Calendar.HOUR_OF_DAY);
+        return getField(Calendar.HOUR_OF_DAY);
     }
 
     /**
@@ -579,14 +609,11 @@ syntax:
      * @param   hours   the hour value.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(Calendar.HOUR_OF_DAY, int hours)</code>.
      */
     public void setHours(int hours) {
-        checkCal();
-        cal.clear(Calendar.DST_OFFSET);
-        cal.clear(Calendar.ZONE_OFFSET);
-        cal.set(Calendar.HOUR_OF_DAY, hours);
-        modified = true;
+        setField(Calendar.HOUR_OF_DAY, hours);
     }
 
     /**
@@ -596,12 +623,11 @@ syntax:
      * @return  the number of minutes past the hour represented by this date.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.MINUTE)</code>.
      */
     public int getMinutes() {
-        checkCal();
-        checkModified();
-        return cal.get(Calendar.MINUTE);
+        return getField(Calendar.MINUTE);
     }
 
     /**
@@ -610,14 +636,11 @@ syntax:
      * @param   minutes   the value of the minutes.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(Calendar.MINUTE, int minutes)</code>.
      */
     public void setMinutes(int minutes) {
-        checkCal();
-        cal.clear(Calendar.DST_OFFSET);
-        cal.clear(Calendar.ZONE_OFFSET);
-        cal.set(Calendar.MINUTE, minutes);
-        modified = true;
+        setField(Calendar.MINUTE, minutes);
     }
 
     /**
@@ -629,12 +652,11 @@ syntax:
      * @return  the number of seconds past the minute represented by this date.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.SECOND)</code>.
      */
     public int getSeconds() {
-        checkCal();
-        checkModified();
-        return cal.get(Calendar.SECOND);
+        return getField(Calendar.SECOND);
     }
 
     /**
@@ -643,14 +665,11 @@ syntax:
      * @param   seconds   the seconds value.
      * @see     java.util.Calendar
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.set(Calendar.SECOND, int seconds)</code>. 
      */
     public void setSeconds(int seconds) {
-        checkCal();
-        cal.clear(Calendar.DST_OFFSET);
-        cal.clear(Calendar.ZONE_OFFSET);
-        cal.set(Calendar.SECOND, seconds);
-        modified = true;
+        setField(Calendar.SECOND, seconds);
     }
 
     /**
@@ -662,16 +681,12 @@ syntax:
      * @since   JDK1.0
      */
     public long getTime() {
-        if (cal == null) {
-            return fastTime;
-        }
-        checkModified();
-        return cal.getTimeInMillis();
+        return (cal == null) ? fastTime : cal.getTimeInMillis();
     }
 
     /**
      * Sets this date to represent the specified number of milliseconds 
-     * since January 1, 1970 00:00:00 GMT. 
+     * since January 1, 1970, 00:00:00 GMT. 
      *
      * @param   time   the number of milliseconds.
      * @since   JDK1.0
@@ -679,12 +694,10 @@ syntax:
     public void setTime(long time) {
         if (cal == null) {
             fastTime = time;
-            modified = false;
-            return;
         }
-        cal.setTimeInMillis(time);
-        cal.computeFields();
-        modified = false;
+        else {
+            cal.setTimeInMillis(time);
+        }
     }
 
     /**
@@ -696,7 +709,7 @@ syntax:
      * @since   JDK1.0
      */
     public boolean before(Date when) {
-	return getTime() < when.getTime();
+        return getTime() < when.getTime();
     }
 
     /**
@@ -708,7 +721,7 @@ syntax:
      * @since   JDK1.0
      */
     public boolean after(Date when) {
-	return getTime() > when.getTime();
+        return getTime() > when.getTime();
     }
 
     /**
@@ -728,7 +741,7 @@ syntax:
      * @since   JDK1.0
      */
     public boolean equals(Object obj) {
-	return obj != null && obj instanceof Date &&getTime() == ((Date) obj).getTime();
+        return obj != null && obj instanceof Date && getTime() == ((Date) obj).getTime();
     }
 
     /**
@@ -738,8 +751,8 @@ syntax:
      * @since   JDK1.0
      */
     public int hashCode() {
-	long ht = getTime();
-	return (int) ht ^ (int) (ht >> 32);
+        long ht = getTime();
+        return (int) ht ^ (int) (ht >> 32);
     }
 
     /**
@@ -750,10 +763,16 @@ syntax:
      * @since   JDK1.0
      */
     public String toString() {
-        DateFormat formatter
-            = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-        formatter.setTimeZone(TimeZone.getDefault());
-        return formatter.format(this);
+        synchronized (formatter) {
+			TimeZone defaultZone = TimeZone.getDefault();
+			if (!defaultZone.equals(cachedDefaultZone)) {
+				staticCal.setTimeZone(defaultZone);
+				formatter.setTimeZone(defaultZone);
+				cachedDefaultZone = defaultZone;
+			}
+            formatter.setTimeZone(TimeZone.getDefault());
+            return formatter.format(this);
+        }
     }
 
     /**
@@ -768,7 +787,8 @@ syntax:
      *          conventions.
      * @see     java.text.DateFormat
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>DateFormat.format(Date date)</code>.
      */
     public String toLocaleString() {
         DateFormat formatter
@@ -791,13 +811,14 @@ syntax:
      *          conventions.
      * @see     java.text.DateFormat
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>DateFormat.format(Date date)</code>, using a
+     * GMT <code>TimeZone</code>.
      */
     public String toGMTString() {
-        DateFormat formatter
-            = new SimpleDateFormat("d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
-        formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return formatter.format(this);
+        synchronized (gmtFormatter) {
+            return gmtFormatter.format(this);
+        }
     }
 
     /**
@@ -810,20 +831,23 @@ syntax:
      * @see     java.util.Calendar
      * @see     java.util.TimeZone
      * @since   JDK1.0
-     * @deprecated
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>Calendar.get(Calendar.ZONE_OFFSET) +
+     * Calendar.get(Calendar.DST_OFFSET)</code>.
      */
     public int getTimezoneOffset() {
-        checkCal();
-        checkModified();
-        TimeZone tz = cal.getTimeZone();
-        int offset = tz.getOffset(cal.get(Calendar.ERA),
-                            cal.get(Calendar.YEAR),
-                            cal.get(Calendar.MONTH),
-                            cal.get(Calendar.DATE),
-                            cal.get(Calendar.DAY_OF_WEEK),
-                            cal.get(Calendar.HOUR_OF_DAY) *
-                            cal.get(Calendar.MINUTE) *
-                            cal.get(Calendar.SECOND) * 1000);
+        int offset;
+        if (cal == null) {
+            synchronized (staticCal) {
+                staticCal.setTimeInMillis(getTime());
+                offset = staticCal.get(Calendar.ZONE_OFFSET) +
+                    staticCal.get(Calendar.DST_OFFSET);
+            }
+        }
+        else {
+            offset = cal.get(Calendar.ZONE_OFFSET) +
+                cal.get(Calendar.DST_OFFSET);
+        }
         return -(offset / 1000 / 60);  // convert to minutes
     }
 
@@ -832,9 +856,9 @@ syntax:
      * The UTC time is written to the stream as a long.
      */
     private void writeObject(ObjectOutputStream s)
-        throws IOException
+         throws IOException
     {
-	s.writeLong(getTime());
+        s.writeLong(getTime());
     }
 
     /**
@@ -844,34 +868,41 @@ syntax:
     private void readObject(ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
-	long date = s.readLong();
-	cal = new GregorianCalendar(TimeZone.getDefault());
-	cal.setTimeInMillis(date);
-	cal.computeFields();
-        modified = false;
+        fastTime = s.readLong();
+        // we expect to have cal == null here
     }
 
     /**
-     * if Calendar has not been initialized, do it
-     * Otherwise, do nothing
+     * Return a field for this date by looking it up in a Calendar object.
+     *
+     * @return the field value
+     * @see    java.util.Calendar
+     * @param  field the field to return
      */
-    private void checkCal() {
+    private final int getField(int field) {
         if (cal == null) {
-            cal = new GregorianCalendar(TimeZone.getDefault());
-            cal.setTimeInMillis(fastTime);
-            cal.computeFields();
-            modified = false;
+            synchronized (staticCal) {
+                staticCal.setTimeInMillis(fastTime);
+                return staticCal.get(field);
+            }
+        }
+        else {
+            return cal.get(field);
         }
     }
 
     /**
-     * check to see if the fields have been modified by user.
-     * if so, re-calculate/normalize fields as necessary
+     * Set a field for this day.
+     *
+     * @param field the field to set
+     * @param value the value to set it to
+     * @see java.util.Calendar
      */
-    private void checkModified() {
-        if (modified) {
-            cal.complete();
-            modified = false;
+    private final void setField(int field, int value) {
+        if (cal == null) {
+            cal = new GregorianCalendar();
+            cal.setTimeInMillis(fastTime);
         }
+        cal.set(field, value);
     }
 }

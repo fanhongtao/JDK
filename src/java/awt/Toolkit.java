@@ -1,5 +1,5 @@
 /*
- * @(#)Toolkit.java	1.71 97/01/24
+ * @(#)Toolkit.java	1.72 97/06/23
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -34,132 +34,242 @@ import java.io.File;
 import java.io.FileInputStream;
 
 /**
- * An AWT toolkit. It is used to bind the abstract AWT classes
- * to a particular native toolkit implementation.
+ * This class is the abstract superclass of all actual
+ * implementations of the Abstract Window Toolkit. Subclasses of 
+ * <code>Toolkit</code> are used to bind the various components 
+ * to particular native toolkit implementations.
+ * <p>
+ * Most applications should not call any of the methods in this
+ * class directly. The methods defined by <code>Toolkit</code> are 
+ * the "glue" that joins the platform-independent classes in the 
+ * <code>java.awt</code> package with their counterparts in 
+ * <code>java.awt.peer</code>. Some methods defined by 
+ * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.71, 01/24/97
+ * @version 	1.72, 06/23/97
  * @author	Sami Shaio
  * @author	Arthur van Hoff
+ * @since       JDK1.0
  */
 public abstract class  Toolkit {
 
     /**
-     * Uses the specified Peer interface to create a new Button.
-     * @param target the Button to be created
+     * Creates this toolkit's implementation of <code>Button</code> using 
+     * the specified peer interface.
+     * @param     target the button to be implemented.
+     * @return    this toolkit's implementation of <code>Button</code>.
+     * @see       java.awt.Button
+     * @see       java.awt.peer.ButtonPeer
+     * @since     JDK1.0
      */
     protected abstract ButtonPeer 	createButton(Button target);
 
     /**
-     * Uses the specified Peer interface to create a new TextField.      
-     * @param target the TextField to be created
+     * Creates this toolkit's implementation of <code>TextField</code> using 
+     * the specified peer interface.
+     * @param     target the text field to be implemented.
+     * @return    this toolkit's implementation of <code>TextField</code>.
+     * @see       java.awt.TextField
+     * @see       java.awt.peer.TextFieldPeer
+     * @since     JDK1.0
      */
     protected abstract TextFieldPeer 	createTextField(TextField target);
 
     /**
-     * Uses the specified Peer interface to create a new Label.      
-     * @param target the Label to be created
+     * Creates this toolkit's implementation of <code>Label</code> using 
+     * the specified peer interface.
+     * @param     target the label to be implemented.
+     * @return    this toolkit's implementation of <code>Label</code>.
+     * @see       java.awt.Label
+     * @see       java.awt.peer.LabelPeer
+     * @since     JDK1.0
      */
     protected abstract LabelPeer 	createLabel(Label target);
 
     /**
-     * Uses the specified Peer interface to create a new List.      
-     * @param target the List to be created
+     * Creates this toolkit's implementation of <code>List</code> using 
+     * the specified peer interface.
+     * @param     target the list to be implemented.
+     * @return    this toolkit's implementation of <code>List</code>.
+     * @see       java.awt.List
+     * @see       java.awt.peer.ListPeer
+     * @since     JDK1.0
      */
     protected abstract ListPeer 	createList(List target);
 
     /**
-     * Uses the specified Peer interface to create a new Checkbox.      
-     * @param target the Checkbox to be created
+     * Creates this toolkit's implementation of <code>Checkbox</code> using 
+     * the specified peer interface.
+     * @param     target the check box to be implemented.
+     * @return    this toolkit's implementation of <code>Checkbox</code>.
+     * @see       java.awt.Checkbox
+     * @see       java.awt.peer.CheckboxPeer
+     * @since     JDK1.0
      */
     protected abstract CheckboxPeer 	createCheckbox(Checkbox target);
 
     /**
-     * Uses the specified Peer interface to create a new Scrollbar.      
-     * @param target the Scrollbar to be created
+     * Creates this toolkit's implementation of <code>Scrollbar</code> using 
+     * the specified peer interface.
+     * @param     target the scroll bar to be implemented.
+     * @return    this toolkit's implementation of <code>Scrollbar</code>.
+     * @see       java.awt.Scrollbar
+     * @see       java.awt.peer.ScrollbarPeer
+     * @since     JDK1.0
      */
     protected abstract ScrollbarPeer 	createScrollbar(Scrollbar target);
 
     /**
-     * Uses the specified Peer interface to create a new scrolling container.
-     * @param target the ScrollPane to be created
+     * Creates this toolkit's implementation of <code>ScrollPane</code> using 
+     * the specified peer interface.
+     * @param     target the scroll pane to be implemented.
+     * @return    this toolkit's implementation of <code>ScrollPane</code>.
+     * @see       java.awt.ScrollPane
+     * @see       java.awt.peer.ScrollPanePeer
+     * @since     JDK1.1
      */
     protected abstract ScrollPanePeer     createScrollPane(ScrollPane target);
 
     /**
-     * Uses the specified Peer interface to create a new TextArea.      
-     * @param target the TextArea to be created
+     * Creates this toolkit's implementation of <code>TextArea</code> using 
+     * the specified peer interface.
+     * @param     target the text area to be implemented.
+     * @return    this toolkit's implementation of <code>TextArea</code>.
+     * @see       java.awt.TextArea
+     * @see       java.awt.peer.TextAreaPeer
+     * @since     JDK1.0
      */
     protected abstract TextAreaPeer  	createTextArea(TextArea target);
 
     /**
-     * Uses the specified Peer interface to create a new Choice.      
-     * @param target the Choice to be created
+     * Creates this toolkit's implementation of <code>Choice</code> using 
+     * the specified peer interface.
+     * @param     target the choice to be implemented.
+     * @return    this toolkit's implementation of <code>Choice</code>.
+     * @see       java.awt.Choice
+     * @see       java.awt.peer.ChoicePeer
+     * @since     JDK1.0
      */
     protected abstract ChoicePeer	createChoice(Choice target);
 
     /**
-     * Uses the specified Peer interface to create a new Frame.
-     * @param target the Frame to be created
+     * Creates this toolkit's implementation of <code>Frame</code> using 
+     * the specified peer interface.
+     * @param     target the frame to be implemented.
+     * @return    this toolkit's implementation of <code>Frame</code>.
+     * @see       java.awt.Frame
+     * @see       java.awt.peer.FramePeer
+     * @since     JDK1.0
      */
     protected abstract FramePeer  	createFrame(Frame target);
 
     /**
-     * Uses the specified Peer interface to create a new Canvas.
-     * @param target the Canvas to be created
+     * Creates this toolkit's implementation of <code>Canvas</code> using 
+     * the specified peer interface.
+     * @param     target the canvas to be implemented.
+     * @return    this toolkit's implementation of <code>Canvas</code>.
+     * @see       java.awt.Canvas
+     * @see       java.awt.peer.CanvasPeer
+     * @since     JDK1.0
      */
     protected abstract CanvasPeer 	createCanvas(Canvas target);
 
     /**
-     * Uses the specified Peer interface to create a new Panel.
-     * @param target the Panel to be created
+     * Creates this toolkit's implementation of <code>Panel</code> using 
+     * the specified peer interface.
+     * @param     target the panel to be implemented.
+     * @return    this toolkit's implementation of <code>Panel</code>.
+     * @see       java.awt.Panel
+     * @see       java.awt.peer.PanelPeer
+     * @since     JDK1.0
      */
     protected abstract PanelPeer  	createPanel(Panel target);
 
     /**
-     * Uses the specified Peer interface to create a new Window.
-     * @param target the Window to be created
+     * Creates this toolkit's implementation of <code>Window</code> using 
+     * the specified peer interface.
+     * @param     target the window to be implemented.
+     * @return    this toolkit's implementation of <code>Window</code>.
+     * @see       java.awt.Window
+     * @see       java.awt.peer.WindowPeer
+     * @since     JDK1.0
      */
     protected abstract WindowPeer  	createWindow(Window target);
 
     /**
-     * Uses the specified Peer interface to create a new Dialog.
-     * @param target the Dialog to be created
+     * Creates this toolkit's implementation of <code>Dialog</code> using 
+     * the specified peer interface.
+     * @param     target the dialog to be implemented.
+     * @return    this toolkit's implementation of <code>Dialog</code>.
+     * @see       java.awt.Dialog
+     * @see       java.awt.peer.DialogPeer
+     * @since     JDK1.0
      */
     protected abstract DialogPeer  	createDialog(Dialog target);
 
     /**
-     * Uses the specified Peer interface to create a new MenuBar.
-     * @param target the MenuBar to be created
+     * Creates this toolkit's implementation of <code>MenuBar</code> using 
+     * the specified peer interface.
+     * @param     target the menu bar to be implemented.
+     * @return    this toolkit's implementation of <code>MenuBar</code>.
+     * @see       java.awt.MenuBar
+     * @see       java.awt.peer.MenuBarPeer
+     * @since     JDK1.0
      */
     protected abstract MenuBarPeer  	createMenuBar(MenuBar target);
 
     /**
-     * Uses the specified Peer interface to create a new Menu.
-     * @param target the Menu to be created
+     * Creates this toolkit's implementation of <code>Menu</code> using 
+     * the specified peer interface.
+     * @param     target the menu to be implemented.
+     * @return    this toolkit's implementation of <code>Menu</code>.
+     * @see       java.awt.Menu
+     * @see       java.awt.peer.MenuPeer
+     * @since     JDK1.0
      */
     protected abstract MenuPeer  	createMenu(Menu target);
 
     /**
-     * Uses the specified Peer interface to create a new PopupMenu.
-     * @param target the PopupMenu to be created
+     * Creates this toolkit's implementation of <code>PopupMenu</code> using 
+     * the specified peer interface.
+     * @param     target the popup menu to be implemented.
+     * @return    this toolkit's implementation of <code>PopupMenu</code>.
+     * @see       java.awt.PopupMenu
+     * @see       java.awt.peer.PopupMenuPeer
+     * @since     JDK1.1
      */
     protected abstract PopupMenuPeer	createPopupMenu(PopupMenu target);
 
     /**
-     * Uses the specified Peer interface to create a new MenuItem.
-     * @param target the MenuItem to be created
+     * Creates this toolkit's implementation of <code>MenuItem</code> using 
+     * the specified peer interface.
+     * @param     target the menu item to be implemented.
+     * @return    this toolkit's implementation of <code>MenuItem</code>.
+     * @see       java.awt.MenuItem
+     * @see       java.awt.peer.MenuItemPeer
+     * @since     JDK1.0
      */
     protected abstract MenuItemPeer  	createMenuItem(MenuItem target);
 
     /**
-     * Uses the specified Peer interface to create a new FileDialog.
-     * @param target the FileDialog to be created
+     * Creates this toolkit's implementation of <code>FileDialog</code> using 
+     * the specified peer interface.
+     * @param     target the file dialog to be implemented.
+     * @return    this toolkit's implementation of <code>FileDialog</code>.
+     * @see       java.awt.FileDialog
+     * @see       java.awt.peer.FileDialogPeer
+     * @since     JDK1.0
      */
     protected abstract FileDialogPeer	createFileDialog(FileDialog target);
 
     /**
-     * Uses the specified Peer interface to create a new CheckboxMenuItem.
-     * @param target the CheckboxMenuItem to be created
+     * Creates this toolkit's implementation of <code>CheckboxMenuItem</code> using 
+     * the specified peer interface.
+     * @param     target the checkbox menu item to be implemented.
+     * @return    this toolkit's implementation of <code>CheckboxMenuItem</code>.
+     * @see       java.awt.CheckboxMenuItem
+     * @see       java.awt.peer.CheckboxMenuItemPeer
+     * @since     JDK1.0
      */
     protected abstract CheckboxMenuItemPeer	createCheckboxMenuItem(CheckboxMenuItem target);
 
@@ -175,35 +285,63 @@ public abstract class  Toolkit {
     }
 
     /**
-     * Uses the specified Peer interface to create a new Font.
-     * @param name the font name
-     * @param style style the constant style used
+     * Creates this toolkit's implementation of <code>Font</code> using 
+     * the specified peer interface.
+     * @param     target the font to be implemented.
+     * @return    this toolkit's implementation of <code>Font</code>.
+     * @see       java.awt.Font
+     * @see       java.awt.peer.FontPeer
+     * @since     JDK1.0
      */
     protected abstract FontPeer getFontPeer(String name, int style);
 
     /**
-     * Fills in the provided int array with the current system color values
+     * Fills in the integer array that is supplied as an argument 
+     * with the current system color values.
+     * <p>
+     * This method is called by the method <code>updateSystemColors</code>
+     * in the <code>SystemColor</code> class.
+     * @param     an integer array.
+     * @see       java.awt.SystemColor#updateSystemColors
+     * @since     JDK1.1
      */
     protected void loadSystemColors(int[] systemColors) {
     }
 
     /**
      * Gets the size of the screen.
+     * @return    the size of this toolkit's screen, in pixels.
+     * @since     JDK1.0
      */
     public abstract Dimension getScreenSize();
 
     /**
      * Returns the screen resolution in dots-per-inch.
+     * @return    this toolkit's screen resolution, in dots-per-inch.
+     * @since     JDK1.0
      */
     public abstract int getScreenResolution();
 
     /**
-     * Returns the ColorModel of the screen.
+     * Determines the color model of this toolkit's screen. 
+     * <p>
+     * <code>ColorModel</code> is an abstract class that 
+     * encapsulates the ability to translate between the 
+     * pixel values of an image and its red, green, blue, 
+     * and alpha components. 
+     * <p>
+     * This toolkit method is called by the 
+     * <code>getColorModel</code> method 
+     * of the <code>Component</code> class. 
+     * @return    the color model of this toolkit's screen.
+     * @see       java.awt.image.ColorModel
+     * @see       java.awt.Component#getColorModel
+     * @since     JDK1.0
      */
     public abstract ColorModel getColorModel();
 
     /**
-     * Returns the names of the available fonts.<p>
+     * Returns the names of the available fonts in this toolkit.<p>
      * For 1.1, the following font names are deprecated (the replacement
      * name follows):
      * <ul>
@@ -214,16 +352,26 @@ public abstract class  Toolkit {
      * The ZapfDingbats font is also deprecated in 1.1, but only as a
      * separate fontname.  Unicode defines the ZapfDingbat characters
      * starting at \u2700, and as of 1.1 Java supports those characters.
+     * @return    the names of the available fonts in this toolkit.
+     * @since     JDK1.0
      */
     public abstract String[] getFontList();
 
     /**
-     * Returns the screen metrics of the font.
+     * Gets the screen metrics of the font.
+     * @param     font   a font.
+     * @return    the screen metrics of the specified font in this toolkit.
+     * @since     JDK1.0
      */
     public abstract FontMetrics getFontMetrics(Font font);
 
     /**
-     * Syncs the graphics state; useful when doing animation.
+     * Synchronizes this toolkit's graphics state. Some window systems 
+     * may do buffering of graphics events. 
+     * <p>
+     * This method ensures that the display is up-to-date. It is useful
+     * for animation.
+     * @since     JDK1.0
      */
     public abstract void sync();
 
@@ -233,9 +381,19 @@ public abstract class  Toolkit {
     private static Toolkit toolkit;
 
     /**
-     * Returns the default toolkit. This is controlled by the
-     * "awt.toolkit" property.
-     * @exception AWTError Toolkit not found or could not be instantiated.
+     * Gets the default toolkit. 
+     * <p>
+     * If there is a system property named <code>"awt.toolkit"</code>, 
+     * that property is treated as the name of a class that is a subclass 
+     * of <code>Toolkit</code>. 
+     * <p>
+     * If the system property does not exist, then the default toolkit 
+     * used is the class named <code>"sun.awt.motif.MToolkit"</code>, 
+     * which is a motif implementation of the Abstract Window Toolkit. 
+     * @return    the default toolkit.
+     * @exception  AWTError  if a toolkit could not be found, or 
+     *                 if one could not be accessed or instantiated.
+     * @since     JDK1.0
      */
     public static synchronized Toolkit getDefaultToolkit() {
 	if (toolkit == null) {
@@ -255,43 +413,125 @@ public abstract class  Toolkit {
 
     /**
      * Returns an image which gets pixel data from the specified file.
-     * @param filename the file containing the pixel data in one of
-     * the recognized file formats
+     * @param     filename   the name of a file containing pixel data 
+     *                         in a recognized file format.
+     * @return    an image which gets its pixel data from 
+     *                         the specified file.
+     * @since     JDK1.0
      */
     public abstract Image getImage(String filename);
 
     /**
      * Returns an image which gets pixel data from the specified URL.
-     * @param url the URL to use in fetching the pixel data
+     * @param     url   the URL to use in fetching the pixel data.
+     * @return    an image which gets its pixel data from 
+     *                         the specified URL.
+     * @since     JDK1.0
      */
     public abstract Image getImage(URL url);
 
     /**
-     * Prepares an image for rendering on the default screen at the
-     * specified width and height.
+     * Prepares an image for rendering. 
+     * <p>
+     * If the values of the width and height arguments are both 
+     * <code>-1</code>, this method prepares the image for rendering 
+     * on the default screen; otherwise, this method prepares an image 
+     * for rendering on the default screen at the specified width and height. 
+     * <p>
+     * The image data is downloaded asynchronously in another thread, 
+     * and an appropriately scaled screen representation of the image is 
+     * generated. 
+     * <p>
+     * This method is called by components <code>prepareImage</code> 
+     * methods. 
+     * <p>
+     * Information on the flags returned by this method can be found 
+     * with the definition of the <code>ImageObserver</code> interface. 
+
+     * @param     image      the image for which to prepare a  
+     *                           screen representation.
+     * @param     width      the width of the desired screen 
+     *                           representation, or <code>-1</code>.
+     * @param     height     the height of the desired screen 
+     *                           representation, or <code>-1</code>.
+     * @param     observer   the <code>ImageObserver</code> 
+     *                           object to be notified as the 
+     *                           image is being prepared.
+     * @return    <code>true</code> if the image has already been 
+     *                 fully prepared; <code>false</code> otherwise.
+     * @see       java.awt.Component#prepareImage(java.awt.Image, 
+     *                 java.awt.image.ImageObserver)
+     * @see       java.awt.Component#prepareImage(java.awt.Image, 
+     *                 int, int, java.awt.image.ImageObserver)
+     * @see       java.awt.image.ImageObserver
+     * @since     JDK1.0
      */
     public abstract boolean prepareImage(Image image, int width, int height,
 					 ImageObserver observer);
 
     /**
-     * Returns the status of the construction of the indicated method
-     * at the indicated width and height for the default screen.
+     * Indicates the construction status of a specified image that is
+     * being prepared for display.
+     * <p>
+     * If the values of the width and height arguments are both 
+     * <code>-1</code>, this method returns the construction status of 
+     * a screen representation of the specified image in this toolkit. 
+     * Otherwise, this method returns the construction status of a
+     * scaled representation of the image at the specified width 
+     * and height.
+     * <p>
+     * This method does not cause the image to begin loading. 
+     * An application must call <code>prepareImage</code> to force 
+     * the loading of an image.
+     * <p>
+     * This method is called by the component's <code>checkImage</code>
+     * methods.
+     * <p>
+     * Information on the flags returned by this method can be found
+     * with the definition of the <code>ImageObserver</code> interface.
+     * @param     image   the image whose status is being checked.
+     * @param     width   the width of the scaled version whose status is
+     *                 being checked, or <code>-1</code>.
+     * @param     height  the height of the scaled version whose status
+     *                 is being checked, or <code>-1</code>.
+     * @param     observer   the <code>ImageObserver</code> object to be
+     *                 notified as the image is being prepared.
+     * @return    the bitwise inclusive <strong>OR</strong> of the
+     *                 <code>ImageObserver</code> flags for the 
+     *                 image data that is currently available.
+     * @see       java.awt.Toolkit#prepareImage(java.awt.Image, 
+     *                 int, int, java.awt.image.ImageObserver)
+     * @see       java.awt.Component#checkImage(java.awt.Image, 
+     *                 java.awt.image.ImageObserver)
+     * @see       java.awt.Component#checkImage(java.awt.Image, 
+     *                 int, int, java.awt.image.ImageObserver)
+     * @see       java.awt.image.ImageObserver
+     * @since     JDK1.0
      */
     public abstract int checkImage(Image image, int width, int height,
 				   ImageObserver observer);
 
     /**
      * Creates an image with the specified image producer.
-     * @param producer the image producer to be used
+     * @param     producer the image producer to be used.
+     * @return    an image with the specified image producer.
+     * @see       java.awt.Image
+     * @see       java.awt.image.ImageProducer
+     * @see       java.awt.Component#createImage(java.awt.image.ImageProducer)
+     * @since     JDK1.0
      */
     public abstract Image createImage(ImageProducer producer);
 
     /**
      * Creates an image which decodes the image stored in the specified
      * byte array.
-     * The data must be in some image format supported by the toolkit
-     * (such as GIF or JPEG).
-     * @param imagedata the array of image data in a supported image format
+     * <p>
+     * The data must be in some image format, such as GIF or JPEG, 
+     * that is supported by this toolkit.
+     * @param     imagedata   an array of bytes, representing 
+     *                         image data in a supported image format.
+     * @return    an image.
+     * @since     JDK1.1
      */
     public Image createImage(byte[] imagedata) {
 	return createImage(imagedata, 0, imagedata.length);
@@ -299,41 +539,66 @@ public abstract class  Toolkit {
 
     /**
      * Creates an image which decodes the image stored in the specified
-     * byte array at the specified offset and length.
-     * The data must be in some image format supported by the toolkit
-     * (such as GIF or JPEG).
-     * @param imagedata the array of image data in a supported image format
-     * @param imageoffset the offset of the start of the data in the array
-     * @param imagelength the length of the data in the array
+     * byte array, and at the specified offset and length.
+     * The data must be in some image format, such as GIF or JPEG, 
+     * that is supported by this toolkit. 
+     * @param     imagedata   an array of bytes, representing 
+     *                         image data in a supported image format.
+     * @param     imageoffset  the offset of the beginning 
+     *                         of the data in the array.
+     * @param     imagelength  the length of the data in the array.
+     * @return    an image.
+     * @since     JDK1.1
      */
     public abstract Image createImage(byte[] imagedata,
 				      int imageoffset,
 				      int imagelength);
 
     /**
-     * Returns a PrintJob object which is the result of initiating
-     * a print operation on the toolkit's platform.  Returns null if 
-     * the user cancelled print job.
+     * Gets a <code>PrintJob</code> object which is the result 
+     * of initiating a print operation on the toolkit's platform. 
+     * @return    a <code>PrintJob</code> object, or 
+     *                  <code>null</code> if the user 
+     *                  cancelled the print job.
+     * @see       java.awt.PrintJob
+     * @since     JDK1.1
      */
     public abstract PrintJob getPrintJob(Frame frame, String jobtitle, Properties props);
 
     /**
      * Emits an audio beep.
+     * @since     JDK1.1
      */
     public abstract void beep();
 
     /**
-     * Returns an instance of the "system" clipboard which interfaces with
-     * the clipboard facilities on the native platform.  This clipboard enables
-     * data transfer between java programs and native platform applications
-     * which use these native clipboard facilities.
+     * Gets an instance of the system clipboard which interfaces 
+     * with clipboard facilities provided by the native platform. 
+     * <p>
+     * This clipboard enables data transfer between Java programs 
+     * and native applications which use native clipboard facilities.
+     * @return    an instance of the system clipboard.
+     * @see       java.awt.datatransfer.Clipboard
+     * @since     JDK1.1
      */
     public abstract Clipboard getSystemClipboard();
 
     /**
-     * Return the Event modifier mask appropriate for shortcuts.
-     * Toolkit implementation should override this method if the
-     * CONTROL key isn't the correct key for accelerators.
+     * Determines which modifier key is the appropriate accelerator
+     * key for menu shortcuts.
+     * <p>
+     * Menu shortcuts, which are embodied in the 
+     * <code>MenuShortcut</code> class, are handled by the 
+     * <code>MenuBar</code> class.
+     * <p>
+     * By default, this method returns <code>Event.CTRL_MASK</code>.
+     * Toolkit implementations should override this method if the
+     * <b>Control</b> key isn't the correct key for accelerators.
+     * @return    the modifier mask on the <code>Event</code> class 
+     *                 that is used for menu shortcuts on this toolkit. 
+     * @see       java.awt.MenuBar
+     * @see       java.awt.MenuShortcut
+     * @since     JDK1.1
      */
     public int getMenuShortcutKeyMask() {
         return Event.CTRL_MASK;

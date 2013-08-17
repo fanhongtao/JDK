@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_cs.java	1.5 97/02/28
+ * @(#)LocaleElements_cs.java	1.8 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,95 +45,151 @@
 
 package java.text.resources;
 
-public class LocaleElements_cs extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_cs() {
-        super.init(table);
+public class LocaleElements_cs extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "cs_CZ" }, // locale id based on iso codes
+            { "LocaleID", "0405" }, // Windows id
+            { "ShortLanguage", "cse" }, // iso-3 abbrev lang name
+            { "ShortCountry", "CZE" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "cs", "\u010de\u0161tina" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "CZ", "\u010cesk\u00e1 republika" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "leden", // january
+                    "\u00fanor", // february
+                    "b\u0159ezen", // march
+                    "duben", // april
+                    "kv\u011bten", // may
+                    "\u010derven", // june
+                    "\u010dervenec", // july
+                    "srpen", // august
+                    "z\u00e1\u0159\u00ed", // september
+                    "\u0159\u00edjen", // october
+                    "listopad", // november
+                    "prosinec", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "I", // abb january
+                    "II", // abb february
+                    "III", // abb march
+                    "IV", // abb april
+                    "V", // abb may
+                    "VI", // abb june
+                    "VII", // abb july
+                    "VIII", // abb august
+                    "IX", // abb september
+                    "X", // abb october
+                    "XI", // abb november
+                    "XII", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "Ned\u011ble", // Sunday
+                    "Pond\u011bl\u00ed", // Monday
+                    "\u00dater\u00fd", // Tuesday
+                    "St\u0159eda", // Wednesday
+                    "\u010ctvrtek", // Thursday
+                    "P\u00e1tek", // Friday
+                    "Sobota" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "Ne", // abb Sunday
+                    "Po", // abb Monday
+                    "\u00dat", // abb Tuesday
+                    "St", // abb Wednesday
+                    "\u010ct", // abb Thursday
+                    "P\u00e1", // abb Friday
+                    "So" // abb Saturday
+                }
+            },
+            { "AmPmMarkers",
+                new String[] {
+                    "dop.", // am marker
+                    "odp." // pm marker
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "p\u0159.Kr.",
+                    "po Kr."
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "K\u010d #,##0.##;-#,##0.## K\u010d", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "K\u010d", // local currency symbol
+                    "CZK", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "H:mm:ss z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "EEEE, yyyy, MMMM d", // full date pattern
+                    "EEEE, yyyy, MMMM d", // long date pattern
+                    "yyyy-M-d", // medium date pattern
+                    "yy-M-d", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                /* for CS_CZ, default sorting except for the following: */
+                /* add d<stroke> between d and e. */
+                /* add ch "ligature" between h and i */
+                /* add l<stroke> between l and m. */
+                /* add z<abovedot> after z.       */
+                "& \u0361 ; \u0308 = \u030d"  // & inv-breve ; umlaut = vt-line-above
+                + "& C < c\u030c , C\u030c"  // c < c-caron
+                + "& H < ch , cH , Ch , CH " // h < ch ligatures
+                + "& R < r\u030c , R\u030c"  // r < r-caron
+                + "& S < s\u030c , S\u030c"  // s < s-caron
+                + "& Z < z\u030c , Z\u030c"  // z < z-caron
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */        "cs_CZ",
-		/* Windows id */                          "0405",
-		/* iso: 3 character lang name */          "cse",
-		/* iso: 3 character country name */       "CZE",
-		/* language names */                      "en_Czech; cs_\u01DE\u0161tina",
-		/* country names */                       "en_Czech Republic; cs_\u010Cesk\u00E1_republika",
-		/* january */                             "Leden",
-		/* february */                            "\u00danor",
-		/* march */                               "B\u0159ezen",
-		/* april */                               "Duben",
-		/* may */                                 "Kv\u011bten",
-		/* june */                                "\u010cerven",
-		/* july */                                "\u010cervenec",
-		/* august */                              "Srpen",
-		/* september */                           "Z\u00e1\u0159\u00ed",
-		/* october */                             "\u0158\u00edjen",
-		/* november */                            "Listopad",
-		/* december */                            "Prosinec",
-		/* month 13 if applicable */              "",
-		/* abb january */                         "I",
-		/* abb february */                        "II",
-		/* abb march */                           "III",
-		/* abb april */                           "IV",
-		/* abb may */                             "V",
-		/* abb june */                            "VI",
-		/* abb july */                            "VII",
-		/* abb august */                          "VIII",
-		/* abb september */                       "IX",
-		/* abb october */                         "X",
-		/* abb november */                        "XI",
-		/* abb december */                        "XII",
-		/* abb month 13 if applicable */          "",
-		/* sunday */                              "Ned\u011ble",
-		/* monday */                              "Pond\u011bl\u00ed",
-		/* tuesday */                             "\u00dater\u00fd",
-		/* wednesday */                           "St\u0159eda",
-		/* thursday */                            "\u010Ctvrtek",
-		/* friday */                              "P\u00e1tek",
-		/* saturday */                            "Sobota",
-		/* abb sunday */                          "Ne",
-		/* abb monday */                          "Po",
-		/* abb tuesday */                         "\u00dat",
-		/* abb wednesday */                       "St",
-		/* abb thursday */                        "\u010ct",
-		/* abb friday */                          "P\u00e1",
-		/* abb saturday */                        "So",
-		/* am marker; default is AM */            "AM",
-		/* pm marker; default is PM */            "PM",
-		/* era strings */                         "p\u0159.Kr.;po Kr.",
-		/* decimal pattern */                     "#,##0.###;-#,##0.###",
-		/* currency pattern */                    "K\u010D #,##0.##;-#,##0.## K\u010D",
-		/* percent pattern */                     "#,##0%",
-		/* decimal separator */                   ",",
-		/* group (thousands) separator */         ".",
-		/* list separator  */                     "",
-		/* percent sign */                        "%",
-		/* native 0 digit */                      "0",
-		/* pattern digit */                       "#",
-		/* minus sign */                          "-",
-		/* exponential */                         "E",
-		/* local currency symbol */               "K\u010D",
-		/* intl currency symbol */                "CZK",
-		/* monetary decimal separator */          ",",
-		/* Full time pattern */                   "H:mm:ss z",
-		/* Long time pattern */                   "H:mm:ss z",
-		/* Default time pattern */                "H:mm:ss",
-		/* Short time pattern */                  "H:mm",
-		/* Full date pattern */                   "EEEE, yyyy, MMMM d",
-		/* Long date pattern */                   "yyyy, MMMM d ",
-		/* Default date pattern */                "yyyy-M-d",
-		/* Short date pattern */                  "yy-M-d",
-		/* Date-Time pattern */		       "{1} {0}",
-		/* First day of week */                   "1",
-		/* Min days in first week*/               "1",
-		/* for CS_CZ, default sorting except for the following: */
-		/* add d<stroke> between d and e. */
-		/* add ch "ligature" between h and i */
-		/* add l<stroke> between l and m. */
-		/* add z<abovedot> after z.       */
-		"& D < \u0111, \u0110"                       /* d<stroke> */
-		+"& H < ch, Ch, cH, CH"                      /* ch ligature */
-		+"& L < \u0142, \u0141"                       /* l<stroke> */
-		+"& Z < \u017c, \u017b"                            /* z<abovedot> */
-    };
 }

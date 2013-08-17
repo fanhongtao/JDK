@@ -1,5 +1,5 @@
 /*
- * @(#)threads_md.h	1.24 96/11/23
+ * @(#)threads_md.h	1.25 97/10/07
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -29,6 +29,7 @@
 
 #include <windows.h>
 #include "bool.h"
+#include "sysmacros_md.h"
 
 #define N_TRACED_REGS 7
 
@@ -64,6 +65,8 @@ typedef struct sys_thread {
     void *(*start_proc)(void *);    /* Thread start routine address */
     void *start_parm;		    /* Thread start routine parameter */
     struct sys_thread *next;	    /* Next thread in active thread queue */
+    unsigned int cacheKey;          /* Key for monitor being looked up */
+    void * monitorCache[SYS_TLS_MONCACHE]; /* cache of recently monitors */
 } sys_thread_t;
 
 extern bool_t ThreadsInitialized;

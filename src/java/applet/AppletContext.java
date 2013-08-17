@@ -37,7 +37,7 @@ import java.util.Enumeration;
  * information about its environment. 
  *
  * @author 	Arthur van Hoff
- * @version     1.19, 01/30/97
+ * @version     1.22, 01/09/98
  * @since       JDK1.0
  */
 public interface AppletContext {
@@ -102,16 +102,25 @@ public interface AppletContext {
     /**
      * Requests that the browser or applet viewer show the Web page 
      * indicated by the <code>url</code> argument. The 
-     * <code>target</code> argument indicates where to display the frame. 
+     * <code>target</code> argument indicates in which HTML frame the 
+     * document is to be displayed. 
      * The target argument is interpreted as follows:
      * <p>
      * <center><table border="3"> 
-     * <tr><td><code>"_self"</code>  <td>show in the current frame</tr>
-     * <tr><td><code>"_parent"</code><td>show in the parent frame</tr>
-     * <tr><td><code>"_top"</code>   <td>show in the topmost frame</tr>
-     * <tr><td><code>"_blank"</code> <td>show in a new unnamed
-     *                                   top-level window</tr>
-     * <tr><td>name<td>show in a new top-level window named <i>name</i></tr>
+     * <tr><td><code>"_self"</code>  <td>Show in the window and frame that 
+     *                                   contain the applet.</tr>
+     * <tr><td><code>"_parent"</code><td>Show in the applet's parent frame. If 
+     *                                   the applet's frame has no parent frame, 
+     *                                   acts the same as "_self".</tr>
+     * <tr><td><code>"_top"</code>   <td>Show in the top-level frame of the applet's 
+     *                                   window. If the applet's frame is the 
+     *                                   top-level frame, acts the same as "_self".</tr>
+     * <tr><td><code>"_blank"</code> <td>Show in a new, unnamed
+     *                                   top-level window.</tr>
+     * <tr><td><i>name</i><td>Show in the frame or window named <i>name</i>. If 
+     *                        a target named <i>name</i> does not already exist, a 
+     *                        new top-level window with the specified name is created, 
+     *                        and the document is shown there.</tr>
      * </table> </center>
      * <p>
      * An applet viewer or browser is free to ignore <code>showDocument</code>. 

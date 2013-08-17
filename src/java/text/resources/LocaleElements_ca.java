@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_ca.java	1.4 97/02/24
+ * @(#)LocaleElements_ca.java	1.7 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,92 +45,127 @@
 
 package java.text.resources;
 
-public class LocaleElements_ca extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_ca() {
-        super.init(table);
+public class LocaleElements_ca extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "ca_ES" }, // locale id based on iso codes
+            { "LocaleID", "0403" }, // Windows id
+            { "ShortLanguage", "cat" }, // iso-3 abbrev lang name
+            { "ShortCountry", "ESP" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "ca", "catal\u00e0" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "ES", "Espanya" }
+                }
+            },
+            { "MonthNames", 
+                new String[] { 
+                    "gener", // january
+                    "febrer", // february
+                    "mar\u00e7", // march
+                    "abril", // april
+                    "maig", // may
+                    "juny", // june
+                    "juliol", // july
+                    "agost", // august
+                    "setembre", // september
+                    "octubre", // october
+                    "novembre", // november
+                    "desembre", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations", 
+                new String[] { 
+                    "gen.", // abb january
+                    "feb.", // abb february
+                    "mar\u00e7", // abb march
+                    "abr.", // abb april
+                    "maig", // abb may
+                    "juny", // abb june
+                    "jul.", // abb july
+                    "ag.", // abb august
+                    "set.", // abb september
+                    "oct.", // abb october
+                    "nov.", // abb november
+                    "des.", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames", 
+                new String[] { 
+                    "diumenge", // Sunday
+                    "dilluns", // Monday
+                    "dimarts", // Tuesday
+                    "dimecres", // Wednesday
+                    "dijous", // Thursday
+                    "divendres", // Friday
+                    "dissabte" // Saturday
+                }
+            },
+            { "DayAbbreviations", 
+                new String[] { 
+                    "dg.", // abb Sunday
+                    "dl.", // abb Monday
+                    "dt.", // abb Tuesday
+                    "dc.", // abb Wednesday
+                    "dj.", // abb Thursday
+                    "dv.", // abb Friday
+                    "ds." // abb Saturday
+                }
+            },
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;#,##0.###", // decimal pattern
+                    "Pts #,##0;-Pts #,##0", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements", 
+                new String[] { 
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                       ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "Pts", // local currency symbol
+                    "ESP", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "HH:mm:ss z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "EEEE, d' / 'MMMM' / 'yyyy", // full date pattern
+                    "d' / 'MMMM' / 'yyyy", // long date pattern
+                    "dd/MM/yyyy", // medium date pattern
+                    "dd/MM/yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements", "@" } 
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */     "ca_ES",
-		/* Windows id */                       "0403",
-		/* iso-3 abbrev lang name */           "cat",
-		/* iso-3 abbrev country name */        "ESA",
-		/* language names */                   "en_Catalan",
-		/* country names */                    "en_Spain",
-		/* january */                          "Gener",
-		/* february */                         "Febrer",
-		/* march */                            "Mar\u00e7",
-		/* april */                            "Abril",
-		/* may */                              "Maig",
-		/* june */                             "Juny",
-		/* july */                             "Juliol",
-		/* august */                           "Agost",
-		/* september */                        "Setembre",
-		/* october */                          "Octubre",
-		/* november */                         "Novembre",
-		/* december */                         "Desembre",
-		/* month 13 if applicable */           "",
-		/* abb january */                      "Gn",
-		/* abb february */                     "Fb",
-		/* abb march */                        "M\u00e7",
-		/* abb april */                        "Ab",
-		/* abb may */                          "Mg",
-		/* abb june */                         "Jn",
-		/* abb july */                         "Jl",
-		/* abb august */                       "Ag",
-		/* abb september */                    "St",
-		/* abb october */                      "Oc",
-		/* abb november */                     "Nv",
-		/* abb december */                     "Ds",
-		/* abb month 13 if applicable */       "",
-		/* sunday */                           "Diumenge",
-		/* monday */                           "Dilluns",
-		/* tuesday */                          "Dimarts",
-		/* wednesday */                        "Dimecres",
-		/* thursday */                         "Dijous",
-		/* friday */                           "Divendres",
-		/* saturday */                         "Dissabte",
-		/* abb sunday */                       "Dg",
-		/* abb monday */                       "Dl",
-		/* abb tuesday */                      "Dt",
-		/* abb wednesday */                    "Dc",
-		/* abb thursday */                     "Dj",
-		/* abb friday */                       "Dv",
-		/* abb saturday */                     "Ds",
-		/* am marker; default is AM */         "AM",
-		/* pm marker; default is PM */         "PM",
-		/* era strings */                      "BC;AD",
-		/* decimal pattern */                  "#,##0.###;#,##0.###",
-		/* currency pattern */                 "Pts #,##0;-Pts #,##0",
-		/* percent pattern */                  "#,##0%",
-		/* decimal separator */                ",",
-		/* group (thousands) separator */      ".",
-		/* list separator */                   "",
-		/* percent sign */                     "%",
-		/* native 0 digit */                   "0",
-		/* pattern digit */                    "#",
-		/* minus sign */                       "-",
-		/* exponential */                      "E",
-		/* local currency symbol */            "Pts",
-		/* intl currency symbol */             "ESP",
-		/* monetary decimal separator */       ",",
-		/* Full time pattern */                "H:mm:ss z",
-		/* Long time pattern */                "H:mm:ss z",
-		/* Default time pattern */             "H:mm:ss",
-		/* Short time pattern */               "H:mm",
-		/* Full date pattern */                "EEEE, d, MMMM yyyy",
-		/* Long date pattern */                "d, MMMM yyyy",
-		/* Default date pattern */             "d/M/yyyy",
-		/* Short date pattern */               "d/M/yy",
-		/* Date-Time pattern */		       "{1} {0}",
-		/* first day of week */                "1",
-		/* min days in first week */           "1",
-		/* for CA_ES, accents sorted backwards plus the following: */
-		"@"                                           /* sort accents bkwd */
-		/* the ch, Ch "ligatures" between c and d.                          */
-		/* and the ll "ligatures" between l and m plus the l<dot>l character*/
-		+ "& C < ch, Ch , cH, CH"                              /*ch*/
-		+ "& L < ll, Ll , lL, LL < l\u00b7l, L\u00b7L"         /*ll*/
-    };
 }

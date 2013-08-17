@@ -1,5 +1,5 @@
 /*
- * @(#)UnicodeClassMapping.java	1.5 97/03/07
+ * @(#)UnicodeClassMapping.java	1.7 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
@@ -40,6 +40,8 @@ final class UnicodeClassMapping
 {
     private int mappedValue[];
     private SpecialMapping exceptionChars[];
+    private boolean hasException[];
+    private int asciiValues[];
 
     /**
      * Create a mapping given a mapping from categories and a list
@@ -47,10 +49,14 @@ final class UnicodeClassMapping
      * be sorted in ascending order.
      */
     public UnicodeClassMapping(int mappedValue[],
-                               SpecialMapping exceptionChars[])
+                               SpecialMapping exceptionChars[],
+                               boolean hasException[],
+                               int asciiValues[])
     {
         this.mappedValue = mappedValue;
         this.exceptionChars = exceptionChars;
+        this.hasException = hasException;
+        this.asciiValues = asciiValues;
     }
 
     /**
@@ -60,41 +66,36 @@ final class UnicodeClassMapping
      */
     public int mappedChar(char ch)
     {
-        //This is a special case optimization for ASCII text.  If the
-        //exception lists change to include items in this range, this
-        //should be removed.
-        if ((exceptionChars.length == 0) || ('\u003F' < ch && ch < '\u00A0')) {
-            return mappedValue[Character.getType(ch)];
+        if (ch <= 255)
+            return asciiValues[ch];
+
+        // get an appropriate category based on the character's Unicode class
+        // if there's no entry in the exception table for that Unicode class,
+        // we're done; otherwise we have to look in the exception table for
+        // the character's category (\uffff is treated here as a sentinel
+        // value meaning "end of the string"-- we always look in the exception
+        // table for its category)
+        int    charType = Character.getType(ch);
+        if ((exceptionChars.length == 0) //|| (ch > '\u003f' && ch < '\u00a0')
+                || (!hasException[charType] && ch != '\uffff')) {
+            return mappedValue[charType];
         }
 
         //do binary search of exceptionChars table
         int min = 0;
-        int max = exceptionChars.length;
-	int pos;
-	while ((max - (pos = ((max - min) >> 1) + min)) > 1) {
-            if (ch > exceptionChars[pos].endChar) {
-                min = pos+1;
-            }
-            else {
+        int max = exceptionChars.length - 1;
+        while (max > min) {
+            int pos = (max + min) >> 1;
+            if (ch > exceptionChars[pos].endChar)
+                min = pos + 1;
+            else
                 max = pos;
-            }
         }
         SpecialMapping sm = exceptionChars[min];
-        if (sm.startChar <= ch && ch <= sm.endChar) {
+        if (sm.startChar <= ch && ch <= sm.endChar)
             return sm.newValue;
-        }
-        else if (max < exceptionChars.length) {
-            sm = exceptionChars[max];
-            if (sm.startChar <= ch && ch <= sm.endChar) {
-                return sm.newValue;
-            }
-            else {
-                return mappedValue[Character.getType(ch)];
-            }
-        }
-        else {
-            return mappedValue[Character.getType(ch)];
-        }
+        else
+            return mappedValue[charType];
     }
 }
 

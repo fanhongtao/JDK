@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteObject.java	1.4 96/11/18
+ * @(#)RemoteObject.java	1.6 98/01/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -68,14 +68,23 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * @see		java.util.Hashtable
      */
     public boolean equals(Object obj) {
-	if (ref == null) 
-	    return obj == this;
-
 	if (obj instanceof RemoteObject) {
-	    return ref.remoteEquals(((RemoteObject)obj).ref);
+	    if (ref == null) {
+		return obj == this;
+	    } else {
+		return ref.remoteEquals(((RemoteObject)obj).ref);
+	    }
+	} else if (obj != null) {
+	    /*
+	     * Fix for 4099660: if object is not an instance of RemoteObject,
+	     * use the result of its equals method, to support symmetry if a
+	     * remote object implementation class that does not extend
+	     * RemoteObject wishes to support equality with its stub objects.
+	     */
+	    return obj.equals(this);
+	} else {
+	    return false;
 	}
-
-	return false;
     }
 
     /**

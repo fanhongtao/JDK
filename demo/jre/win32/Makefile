@@ -1,4 +1,4 @@
-# @(#)Makefile	1.9 97/06/09 David Connelly
+# @(#)Makefile	1.12 97/12/01 David Connelly
 #
 # Standalone NMAKE makefile to build the programs 'jre.exe' and 'jrew.exe'
 # for launching Java runtime applications. The program 'jre.exe' can be
@@ -12,7 +12,7 @@
 # Default version of Java runtime to use at startup.
 #
 !ifndef VERSION
-VERSION = 1.1.3
+VERSION = $(RELEASE)
 !endif
 
 #

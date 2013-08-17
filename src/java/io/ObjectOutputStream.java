@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectOutputStream.java	1.29 97/05/02
+ * @(#)ObjectOutputStream.java	1.35 98/02/05
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -22,6 +22,8 @@
 package java.io;
 
 import java.util.Stack;
+
+import sun.io.ObjectOutputStreamDelegate; // RMI over IIOP hook.
 
 /**
  * An ObjectOutputStream writes primitive data types and graphs of
@@ -117,7 +119,7 @@ import java.util.Stack;
  * versioning that occurs.
  *
  * @author	Roger Riggs
- * @version     1.29, 05/02/97
+ * @version     1.35, 02/05/98
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -138,6 +140,22 @@ public class ObjectOutputStream
      * @since     JDK1.1
      */
     public ObjectOutputStream(OutputStream out) throws IOException {
+
+        /*
+         * RMI over IIOP hook. Check if we are a trusted subclass
+         * that has implemented the "sun.io.ObjectOutputStream"
+         * interface. If so, set our private flag that will be
+         * checked in "writeObject", "defaultWriteObject" and
+         * "enableReplaceObject". Note that we don't initialize
+         * private instance variables in this case as an optimization
+         * (subclasses using the hook should have no need for them).
+         */
+        
+        if (this instanceof sun.io.ObjectOutputStreamDelegate && this.getClass().getClassLoader() == null) {
+            isTrustedSubclass = true;
+            return;
+        }
+        
 	this.out = out;
 	dos = new DataOutputStream(this);
 	buf = new byte[1024];	// allocate buffer
@@ -170,6 +188,15 @@ public class ObjectOutputStream
     public final void writeObject(Object obj)
 	throws IOException
     {
+ 	
+	/*
+	 * RMI over IIOP hook. Invoke delegate method if indicated.
+	 */
+	if (isTrustedSubclass) {
+	    ((ObjectOutputStreamDelegate) this).writeObjectDelegate(obj);
+	    return;
+	}
+
 	Object prevObject = currentObject;
 	ObjectStreamClass prevClassDesc = currentClassDesc;
 	boolean oldBlockDataMode = setBlockData(false);
@@ -191,7 +218,7 @@ public class ObjectOutputStream
 		Object altobj = replaceObject(obj);
 		if (obj != altobj) {
 
-		    if (!(altobj instanceof Serializable)) {
+		    if (altobj != null && !(altobj instanceof Serializable)) {
 			String clname = altobj.getClass().getName();
 			throw new NotSerializableException(clname);
 		    }
@@ -221,8 +248,12 @@ public class ObjectOutputStream
 		    obj = altobj;
 		}
 	    }
-	    /* Write out the object as itself */
-	    outputObject(obj);
+	    if (checkSubstitutableSpecialClasses(obj))
+		return;
+	    else {
+		/* Write out the object as itself */
+		outputObject(obj);
+	    }
 	} catch (ObjectStreamException ee) {
 	    if (abortIOException == null) {
 		try {
@@ -297,6 +328,16 @@ public class ObjectOutputStream
 	    return true;
 	}
 
+	return false;
+    }
+
+    /*
+     * Check for special cases of substitutable serializing objects.
+     * These classes are replaceable.
+     */
+    private boolean checkSubstitutableSpecialClasses(Object obj)
+	throws IOException
+    {
 	if (obj instanceof String) {
 	    outputString((String)obj);
 	    return true;
@@ -306,6 +347,7 @@ public class ObjectOutputStream
 	    outputArray(obj);
 	    return true;
 	}
+
 	return false;
     }
 
@@ -317,6 +359,15 @@ public class ObjectOutputStream
      * @since     JDK1.1
      */
     public final void defaultWriteObject() throws IOException {
+ 	
+	/*
+	 * RMI over IIOP hook. Invoke delegate method if indicated.
+	 */
+	if (isTrustedSubclass) {
+	    ((ObjectOutputStreamDelegate) this).defaultWriteObjectDelegate();
+	    return;
+	}
+ 	    
 	if (currentObject == null || currentClassDesc == null)
 	    throw new NotActiveException("defaultWriteObject");
 	
@@ -355,15 +406,30 @@ public class ObjectOutputStream
      * Reset state of things changed by using the stream.
      */
     private void resetStream() throws IOException {
-	wireHandle2Object = new Object[100];
-	wireNextHandle = new int[100];
-	wireHash2Handle = new int[101];
-	for (int i = 0; i < wireHash2Handle.length; i++) {
-	    wireHash2Handle[i] = -1;
+	if (wireHandle2Object == null) {
+	    wireHandle2Object = new Object[100];
+	    wireNextHandle = new int[100];
+	    wireHash2Handle = new int[101];
+	} else {
+
+	    // Storage Optimization for frequent calls to reset method.
+	    // Do not reallocate, only reinitialize.
+	    for (int i = 0; i < nextWireOffset; i++) {
+		wireHandle2Object[i] = null;
+		wireNextHandle[i] = 0;
+	    }
 	}
-	classDescStack = new Stack();
-	nextWireOffset = 0;
-	replaceObjects = null;
+  	nextWireOffset = 0;
+  	for (int i = 0; i < wireHash2Handle.length; i++) {
+  	    wireHash2Handle[i] = -1;
+  	}
+	if (classDescStack == null)
+	    classDescStack = new Stack();
+	else
+	    classDescStack.setSize(0);
+	
+	for (int i = 0; i < nextReplaceOffset; i++)
+	    replaceObjects[i] = null;
 	nextReplaceOffset = 0;
 	setBlockData(true);		/* Re-enable buffering */
     }
@@ -440,6 +506,14 @@ public class ObjectOutputStream
     protected final boolean enableReplaceObject(boolean enable)
 	throws SecurityException
     {
+ 	
+	/*
+	 * RMI over IIOP hook. Invoke delegate method if indicated.
+	 */
+	if (isTrustedSubclass) {
+	  return ((ObjectOutputStreamDelegate) this).enableReplaceObjectDelegate(enable);
+	}
+ 	    
 	boolean previous = enableReplace;
 	if (enable) {
 	    ClassLoader loader = this.getClass().getClassLoader();
@@ -583,7 +657,7 @@ public class ObjectOutputStream
 		byte[] array = (byte[])obj;
 		length = array.length;
 		writeInt(length);
-		write(array, 0, length);
+		writeInternal(array, 0, length, true);
 	    } else if (type == Long.TYPE) {
 		long[] array = (long[])obj;
 		length = array.length;
@@ -893,15 +967,18 @@ public class ObjectOutputStream
 	write(b, 0, b.length);
     }
 
-    /**
+    /*
      * Writes a sub array of bytes. 
      * @param b	the data to be written
      * @param off	the start offset in the data
      * @param len	the number of bytes that are written
+     * @param copyOnWrite do not expose b to overrides of ObjectStream.write,
+     *                    copy the contents of b to a buffer before writing.
      * @exception IOException If an I/O error has occurred.
      * @since     JDK1.1
      */
-    public void write(byte b[], int off, int len) throws IOException {
+    private void writeInternal(byte b[], int off, int len, 
+			       boolean copyOnWrite) throws IOException {
 	if (len < 0)
 	    throw new IndexOutOfBoundsException();
 
@@ -914,6 +991,8 @@ public class ObjectOutputStream
 	if (len <= avail) {
 	    System.arraycopy(b, off, buf, count, len);
 	    count += len;
+	} else if (! blockDataMode && copyOnWrite) {
+	    bufferedWrite(b, off, len);	
 	} else {
 	    drain();
 	    if (blockDataMode) {
@@ -1024,6 +1103,57 @@ public class ObjectOutputStream
 	    drain();
 	buf[count++] = (byte)(data ? 1 : 0);
 
+    }
+
+    /**
+     * Writes a sub array of bytes. 
+     * @param b	the data to be written
+     * @param off	the start offset in the data
+     * @param len	the number of bytes that are written
+     * @exception IOException If an I/O error has occurred.
+     * @since     JDK1.1
+     */
+    public void write(byte b[], int off, int len) throws IOException {
+	writeInternal(b, off, len, false);
+    }
+
+    /* Use write buffering of byte[] b to prevent exposure of
+     * 'b' reference to untrusted overrides of ObjectOutput.write(byte[]).
+     * 
+     * NOTE: Method is only intended for protecting serializable byte []
+     *       fields written by default serialization. Thus, it can 
+     *       never get called while in blockDataMode.
+     */
+    private void bufferedWrite(byte b[], int off, int len) throws IOException {
+	int bufAvail = buf.length - count;
+	int bytesToWrite = len;
+	
+	// Handle case where byte array is larger than available buffer.
+	if (bytesToWrite > bufAvail) {
+
+	    // Logically: fill rest of 'buf' with 'b' and drain.
+	    System.arraycopy(b, off, buf, count, bufAvail);
+	    off += bufAvail;
+	    bytesToWrite -= bufAvail;
+	    out.write(buf, 0, buf.length);
+	    count = 0;
+
+	    // Write out buf.length chunks of byte array.
+	    while (bytesToWrite >= buf.length) {
+		System.arraycopy(b, off, buf, 0, buf.length);
+		out.write(buf, 0, buf.length);
+		off += buf.length;
+		bytesToWrite -= buf.length;
+
+		// Optimization: do not modify or access "count" in this loop.
+	    }
+	}
+
+	// Put remainder of byte array b into buffer. 
+	if (bytesToWrite != 0) {
+	    System.arraycopy(b, off, buf, count, bytesToWrite);
+	    count += bytesToWrite;
+	}
     }
 
     /**
@@ -1201,7 +1331,7 @@ public class ObjectOutputStream
      * Set by enableReplaceObject.
      * The array of replaceObjects and the index of the next insertion.
      */
-    private boolean enableReplace;
+    boolean enableReplace;
     private Object[] replaceObjects;
     private int nextReplaceOffset;
 
@@ -1209,4 +1339,11 @@ public class ObjectOutputStream
      * to writeObject.  Decremented before exit.
      */ 
     private int recursionDepth = 0;
+    
+    /*
+     * RMI over IIOP hook: Flag to indicate if we are
+     * a trusted subclass that has implemented the delegate
+     * interface "sun.io.ObjectOutputStreamDelegate".
+     */
+    private boolean isTrustedSubclass = false;
 }

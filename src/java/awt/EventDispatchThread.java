@@ -1,5 +1,5 @@
 /*
- * @(#)EventDispatchThread.java	1.14 97/03/10  Amy Fowler
+ * @(#)EventDispatchThread.java	1.16 98/11/24  Amy Fowler
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -32,7 +32,7 @@ import java.awt.peer.ActiveEvent;
  * events off the EventQueue and dispatches them to the appropriate
  * AWT components.
  *
- * @version 1.14 03/10/97
+ * @version 1.16 11/24/98
  * @author Tom Ball
  * @author Amy Fowler
  */
@@ -46,7 +46,25 @@ class EventDispatchThread extends Thread {
     }
 
     public void stopDispatching() {
-        doDispatch = false;
+	doDispatch = false;
+	// post an empty event to ensure getNextEvent
+	// is unblocked - rkhan 4/14/98
+	theQueue.postEvent(new EmptyEvent());
+	// wait for the dispatcher to complete
+	if (Thread.currentThread() != this) {
+	    try {
+		join();
+	    } catch(InterruptedException e) {
+	    }
+	}
+    }
+
+    class EmptyEvent extends AWTEvent implements ActiveEvent {
+	public EmptyEvent() {
+	    super(EventDispatchThread.this,0);
+	}
+
+	public void dispatch() {}
     }
 
     public void run() {
@@ -59,14 +77,14 @@ class EventDispatchThread extends Thread {
                 } else {
                     // old code...
                     Object src = event.getSource();
-                    if (src instanceof Component) {
-                        ((Component)src).dispatchEvent(event);
-                    } else if (src instanceof MenuComponent) {
-                        ((MenuComponent)src).dispatchEvent(event);
-                    } else if (event instanceof ActiveEvent) {
+                    if (event instanceof ActiveEvent) {
 			// This could become the sole method of dispatching in time, and 
 			// moved to the event queue's dispatchEvent() method.
 			((ActiveEvent)event).dispatch();
+		    } else if (src instanceof Component) {
+                        ((Component)src).dispatchEvent(event);
+                    } else if (src instanceof MenuComponent) {
+                        ((MenuComponent)src).dispatchEvent(event);
 		    }
                 }
             } catch (ThreadDeath death) {

@@ -1,5 +1,5 @@
 /*
- * @(#)InputStream.java	1.20 97/01/25
+ * @(#)InputStream.java	1.21 98/01/15
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -31,7 +31,7 @@ package java.io;
  * the next byte of input.
  * 
  * @author  Arthur van Hoff
- * @version 1.20, 01/25/97
+ * @version 1.21, 01/15/98
  * @see     java.io.BufferedInputStream
  * @see     java.io.ByteArrayInputStream
  * @see     java.io.DataInputStream
@@ -83,8 +83,8 @@ public abstract class InputStream {
     /**
      * Reads up to <code>len</code> bytes of data from this input stream 
      * into an array of bytes. This method blocks until some input is 
-     * available. If the first argument is <code>null,</code> up to 
-     * <code>len</code> bytes are read and discarded. 
+     * available. If the argument <code>b</code> is <code>null</code>, a  
+     * <code>NullPointerException</code> is thrown.
      * <p>
      * The <code>read</code> method of <code>InputStream</code> reads a 
      * single byte at a time using the read method of zero arguments to 

@@ -1,5 +1,5 @@
 /*
- * @(#)EntryPair.java	1.4 97/01/16
+ * @(#)EntryPair.java	1.5 97/12/05
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -39,4 +39,12 @@ final class EntryPair
 {
     public String entryName;
     public int value = RuleBasedCollator.UNMAPPED;
+
+    public EntryPair() {
+    }
+
+    public EntryPair(String name, int value) {
+        this.entryName = name;
+        this.value = value;
+    }
 }

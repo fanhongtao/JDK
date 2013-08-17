@@ -179,8 +179,8 @@ public abstract class Signature {
 	try {
 	    return (Signature)Security.getImpl(algorithm, "Signature", null);
 	} catch(NoSuchProviderException e) {
-	    throw new InternalError("please send a bug report to " +
-				    "java-security@java.sun.com");
+	    throw new InternalError("please send a bug report via " +
+				    System.getProperty("java.vendor.url.bug"));
 	}
     }
 

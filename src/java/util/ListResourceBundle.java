@@ -1,5 +1,5 @@
 /*
- * @(#)ListResourceBundle.java	1.6 97/01/29
+ * @(#)ListResourceBundle.java	1.8 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -53,55 +53,55 @@ import java.util.Hashtable;
  * <pre>
  * //====================
  * class MyResource extends ListResourceBundle {
- * 	public Object[][] getContents() {
- * 		return contents;
- * 	}
- * 	static final Object[][] contents = {
- * 	// LOCALIZE THIS
- * 		{"s1", "3"},		// starting value in choice field
- * 		{"s2", "MyDisk"},	// starting value in string field
- * 		{"s3", "3 Mar 96"},	// starting value in date field
- * 		{"s4", "The disk '{1}' contained {0} on {2}."},	// initial pattern
- * 		{"s5", "0"},		// first choice number
- * 		{"s6", "no files"},	// first choice value
- * 		{"s7", "1"},		// second choice number
- * 		{"s8", "one file"},	// second choice value
- * 		{"s9", "2"},		// third choice number
- * 		{"s10", "{0}|3 files"},	// third choice value
- * 		{"s11", "format threw an exception: {0}"},	// generic exception message
- * 		{"s12", "ERROR"},	// what to show in field in case of error
- * 		{"s14", "Result"},	// label for formatted stuff
- * 		{"s13", "Dialog"},	// standard font
- * 		{"s15", "Pattern"},	// label for standard pattern
- * 		{"s16", new Dimension(1,5)}	// real object, not just string
- * 	// END OF MATERIAL TO LOCALIZE
- * 	};
+ *  public Object[][] getContents() {
+ *      return contents;
+ *  }
+ *  static final Object[][] contents = {
+ *  // LOCALIZE THIS
+ *      {"s1", "3"},        // starting value in choice field
+ *      {"s2", "MyDisk"},    // starting value in string field
+ *      {"s3", "3 Mar 96"}, // starting value in date field
+ *      {"s4", "The disk '{1}' contained {0} on {2}."}, // initial pattern
+ *      {"s5", "0"},        // first choice number
+ *      {"s6", "no files"}, // first choice value
+ *      {"s7", "1"},        // second choice number
+ *      {"s8", "one file"}, // second choice value
+ *      {"s9", "2"},        // third choice number
+ *      {"s10", "{0}|3 files"}, // third choice value
+ *      {"s11", "format threw an exception: {0}"},  // generic exception message
+ *      {"s12", "ERROR"},   // what to show in field in case of error
+ *      {"s14", "Result"},  // label for formatted stuff
+ *      {"s13", "Dialog"},  // standard font
+ *      {"s15", "Pattern"}, // label for standard pattern
+ *      {"s16", new Dimension(1,5)} // real object, not just string
+ *  // END OF MATERIAL TO LOCALIZE
+ *  };
  * }
  * //====================
  * class MyResource_fr  extends ListResourceBundle {
- * 	public Object[][] getContents() {
- * 		return contents;
-    	}
- * 	static final Object[][] contents = {
- * 	// LOCALIZE THIS
- * 		{"s1", "3"},		// starting value in choice field
- * 		{"s2", "MonDisk"},	// starting value in string field
- * 		{"s3", "3 Mar 96"},	// starting value in date field
- * 		{"s4", "Le disk '{1}' a {0} a {2}."},	// initial pattern
- * 		{"s5", "0"},		// first choice number
- * 		{"s6", "pas de files"},	// first choice value
- * 		{"s7", "1"},		// second choice number
- * 		{"s8", "une file"},	// second choice value
- * 		{"s9", "2"},		// third choice number
- * 		{"s10", "{0}|3 files"},	// third choice value
- * 		{"s11", "Le format a jete une exception: {0}"},	// generic exception message
- * 		{"s12", "ERROR"},	// what to show in field in case of error
- * 		{"s14", "Resulte"},	// label for formatted stuff
- * 		{"s13", "Dialogue"},	// standard font
- * 		{"s15", "Pattern"},	// label for standard pattern
- * 		{"s16", new Dimension(1,3)}	// real object, not just string
- * 	// END OF MATERIAL TO LOCALIZE
- * 	};
+ *  public Object[][] getContents() {
+ *      return contents;
+        }
+ *  static final Object[][] contents = {
+ *  // LOCALIZE THIS
+ *      {"s1", "3"},        // starting value in choice field
+ *      {"s2", "MonDisk"},  // starting value in string field
+ *      {"s3", "3 Mar 96"}, // starting value in date field
+ *      {"s4", "Le disk '{1}' a {0} a {2}."},   // initial pattern
+ *      {"s5", "0"},        // first choice number
+ *      {"s6", "pas de files"}, // first choice value
+ *      {"s7", "1"},        // second choice number
+ *      {"s8", "une file"}, // second choice value
+ *      {"s9", "2"},        // third choice number
+ *      {"s10", "{0}|3 files"}, // third choice value
+ *      {"s11", "Le format a jete une exception: {0}"}, // generic exception message
+ *      {"s12", "ERROR"},   // what to show in field in case of error
+ *      {"s14", "Resulte"}, // label for formatted stuff
+ *      {"s13", "Dialogue"},    // standard font
+ *      {"s15", "Pattern"}, // label for standard pattern
+ *      {"s16", new Dimension(1,3)} // real object, not just string
+ *  // END OF MATERIAL TO LOCALIZE
+ *  };
  * }
  * </pre>
  * </blockquote>
@@ -128,21 +128,38 @@ public abstract class ListResourceBundle extends ResourceBundle {
         if (lookup == null) {
             loadLookup();
         }
-	Enumeration result = null;
-	if (parent != null) {
-	    Hashtable temp = new Hashtable();
-	    for (Enumeration parentKeys = parent.getKeys() ;
-		 parentKeys.hasMoreElements() ; /* nothing */) {
-		temp.put(parentKeys.nextElement(), this);
-	    }
-	    for (Enumeration thisKeys = lookup.keys();
-		 thisKeys.hasMoreElements() ; /* nothing */) {
-		temp.put(thisKeys.nextElement(), this);
-	    }
-	    result = temp.keys();
-	} else {
-	    result = lookup.keys();
-	}
+        Enumeration result = null;
+        if (parent != null) {
+            final Enumeration myKeys = lookup.keys();
+            final Enumeration parentKeys = parent.getKeys();
+
+            result = new Enumeration() {
+                public boolean hasMoreElements() {
+                    if (temp == null)
+                        nextElement();
+                    return temp != null;
+                }
+
+                public Object nextElement() {
+                    Object returnVal = temp;
+                    if (myKeys.hasMoreElements())
+                        temp = myKeys.nextElement();
+                    else {
+                        temp = null;
+                        while (temp == null && parentKeys.hasMoreElements()) {
+                            temp = parentKeys.nextElement();
+                            if (lookup.containsKey(temp))
+                                temp = null;
+                        }
+                    }
+                    return returnVal;
+                }
+
+                Object temp = null;
+            };
+        } else {
+            result = lookup.keys();
+        }
         return result;
     }
 
@@ -159,11 +176,11 @@ public abstract class ListResourceBundle extends ResourceBundle {
      */
     private void loadLookup() {
         Object[][] contents = getContents();
-        lookup = new Hashtable(contents.length);
+        lookup = new Hashtable(Math.max(contents.length, 1));
         for (int i = 0; i < contents.length; ++i) {
             lookup.put(contents[i][0],contents[i][1]);
-        }        
+        }
     }
-    
+
     private Hashtable lookup = null;
 }

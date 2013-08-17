@@ -1,5 +1,5 @@
 /*
- * @(#)EventQueue.java	1.16 97/05/02
+ * @(#)EventQueue.java	1.17 97/06/23
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -30,8 +30,9 @@ import java.awt.event.PaintEvent;
 /**
  * EventQueue is a platform-independent class that queues events, both
  * from the underlying peer classes and from trusted application classes.
+ * There is only one EventQueue for the system.
  *
- * @version 1.16 05/02/97
+ * @version 1.17 06/23/97
  * @author Thomas Ball
  */
 public class EventQueue {
@@ -57,6 +58,21 @@ public class EventQueue {
      * subclass of it.
      */
     public synchronized void postEvent(AWTEvent theEvent) {
+        postEvent(theEvent, false);
+    }
+
+    /**
+     * Post a 1.1-style event at the HEAD of the EventQueue (I.e., this
+     * event will be handled next).
+     *
+     * @param theEvent an instance of java.awt.AWTEvent, or a
+     * subclass of it.
+     */
+    synchronized void postEventAtHead(AWTEvent theEvent) {
+        postEvent(theEvent, true);
+    }
+
+    private synchronized void postEvent(AWTEvent theEvent, boolean atHead) {
         EventQueueItem eqi = new EventQueueItem(theEvent);
         if (queue == null) {
             queue = eqi;
@@ -102,9 +118,16 @@ public class EventQueue {
                     break;
                 }
             }
-            q.next = eqi;
+
+	    // add it to the queue
+	    if (atHead) {
+	        eqi.next = queue;
+		queue = eqi;
+	    } else {
+                q.next = eqi;
+	    }
         }
-    }
+    } // postEvent()
 
     /**
      * Remove an event from the queue and return it.  This method will
@@ -124,7 +147,8 @@ public class EventQueue {
 
     /**
      * Return the first event without removing it.
-     * @return the first AWTEvent
+     * @return the first event, which is either an instance of java.awt.Event
+     * or java.awt.AWTEvent.
      */
     public synchronized AWTEvent peekEvent() {
         return (queue != null) ? queue.event : null;
@@ -133,7 +157,9 @@ public class EventQueue {
     /*
      * Return the first event of the specified type, if any.
      * @param id the id of the type of event desired.
-     * @return the first AwtEvent of the requested type.
+     * @return the first event of the requested type, 
+     * which is either an instance of java.awt.Event
+     * or java.awt.AWTEvent.
      */
     public synchronized AWTEvent peekEvent(int id) {
         EventQueueItem q = queue;

@@ -1,5 +1,5 @@
 /*
- * @(#)File.java	1.49 97/05/04
+ * @(#)File.java	1.50 98/01/28
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -38,7 +38,7 @@ import java.util.Vector;
  * Note that whenever a filename or path is used it is
  * assumed that the host's file naming conventions are used.
  *
- * @version 1.49, 05/04/97
+ * @version 1.50, 01/28/98
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
  * @since   JDK1.0
@@ -204,7 +204,14 @@ class File implements java.io.Serializable {
      * @since   JDK1.0
      */
     public String getAbsolutePath() {
-	return isAbsolute() ? path : System.getProperty("user.dir") + separator + path;
+	if (isAbsolute())
+	    return path;
+
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkPropertyAccess("user.dir");
+	}
+	return System.getProperty("user.dir") + separator + path;
     }
 
     /**
@@ -221,8 +228,14 @@ class File implements java.io.Serializable {
      * @since   JDK1.1
      */
      public String getCanonicalPath() throws IOException {
-	return isAbsolute() ? canonPath(path) :
-	    canonPath(System.getProperty("user.dir") + separator + path);
+	if (isAbsolute())
+	    return canonPath(path);
+
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkPropertyAccess("user.dir");
+	}
+	return canonPath(System.getProperty("user.dir") + separator + path);
     }
 
     /**

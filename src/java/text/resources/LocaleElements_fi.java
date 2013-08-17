@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_fi.java	1.4 97/02/24
+ * @(#)LocaleElements_fi.java	1.7 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,91 +45,140 @@
 
 package java.text.resources;
 
-public class LocaleElements_fi extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_fi() {
-        super.init(table);
+public class LocaleElements_fi extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "fi_FI" }, // locale id based on iso codes
+            { "LocaleID", "040b" }, // Windows id
+            { "ShortLanguage", "fin" }, // iso-3 abbrev lang name
+            { "ShortCountry", "FIN" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "fi", "suomi" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "FI", "Suomi" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "tammikuu", // january
+                    "helmikuu", // february
+                    "maaliskuu", // march
+                    "huhtikuu", // april
+                    "toukokuu", // may
+                    "kes\u00e4kuu", // june
+                    "hein\u00e4kuu", // july
+                    "elokuu", // august
+                    "syyskuu", // september
+                    "lokakuu", // october
+                    "marraskuu", // november
+                    "joulukuu", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "tammi", // abb january
+                    "helmi", // abb february
+                    "maalis", // abb march
+                    "huhti", // abb april
+                    "touko", // abb may
+                    "kes\u00e4", // abb june
+                    "hein\u00e4", // abb july
+                    "elo", // abb august
+                    "syys", // abb september
+                    "loka", // abb october
+                    "marras", // abb november
+                    "joulu", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "sunnuntai", // Sunday
+                    "maanantai", // Monday
+                    "tiistai", // Tuesday
+                    "keskiviikko", // Wednesday
+                    "torstai", // Thursday
+                    "perjantai", // Friday
+                    "lauantai" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "su", // abb Sunday
+                    "ma", // abb Monday
+                    "ti", // abb Tuesday
+                    "ke", // abb Wednesday
+                    "to", // abb Thursday
+                    "pe", // abb Friday
+                    "la" // abb Saturday
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.00 mk;-#,##0.00 mk", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    "\u00a0", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "mk", // local currency symbol
+                    "FIM", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "H:mm:ss z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "d. MMMM'ta 'yyyy", // full date pattern
+                    "d. MMMM'ta 'yyyy", // long date pattern
+                    "d.M.yyyy", // medium date pattern
+                    "d.M.yyyy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements",
+                new String[] {
+                    "2", // first day of week
+                    "4" // min days in first week
+                }
+            },
+            { "CollationElements",
+                "& V ; w , W "
+                + "& Z < a\u030a , A\u030a"   // Z < a-ring
+                + "< a\u0308 , A\u0308 < o\u0308 , O\u0308"
+                + "< o\u030b , O\u030b ; \u00f8 , \u00d8"  // o-double-acute ; o-stroke
+                + "&  Y ; u\u030b, U\u030b "       // nt : y ; u-double-acute
+                + "; u\u0308 , U\u0308"   // nt & tal : y ; u-umlaut
+            }
+        };
     }
-
-    static String table []={
-        "fi_FI", /*locale id based on iso codes*/
-        "040b", /*Windows id*/
-        "fin", /*iso-3 abbrev lang name*/
-        "FIN", /*iso-3 abbrev country name*/
-        "en_Finnish; de_Finnisch; fr_finnois; fi_suomi", /*language names*/
-        "en_Finland; de_Finnland; fr_Finlande; fi_Suomi", /*country names*/
-        "tammikuu", /*january*/
-        "helmikuu", /*february*/
-        "maaliskuu", /*march*/
-        "huhtikuu", /*april*/
-        "toukokuu", /*may*/
-        "kesäkuu", /*june*/
-        "heinäkuu", /*july*/
-        "elokuu", /*august*/
-        "syyskuu", /*september*/
-        "lokakuu", /*october*/
-        "marraskuu", /*november*/
-        "joulukuu", /*december*/
-        "", /*month 13 if applicable*/
-        "tammi", /*abb january*/
-        "helmi", /*abb february*/
-        "maalis", /*abb march*/
-        "huhti", /*abb april*/
-        "touko", /*abb may*/
-        "kesä", /*abb june*/
-        "heinä", /*abb july*/
-        "elo", /*abb august*/
-        "syys", /*abb september*/
-        "loka", /*abb october*/
-        "marras", /*abb november*/
-        "joulu", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "sunnuntai", /*Sunday*/
-        "maanantai", /*Monday*/
-        "tiistai", /*Tuesday*/
-        "keskiviikko", /*Wednesday*/
-        "torstai", /*Thursday*/
-        "perjantai", /*Friday*/
-        "lauantai", /*Saturday*/
-        "su", /*abb Sunday*/
-        "ma", /*abb Monday*/
-        "ti", /*abb Tuesday*/
-        "ke", /*abb Wednesday*/
-        "to", /*abb Thursday*/
-        "pe", /*abb Friday*/
-        "la", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;AD", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "#,##0.00 mk;-#,##0.00 mk", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        " ", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "mk", /*local currency symbol*/
-        "FIM", /*intl currency symbol*/
-        ",", /*monetary decimal separator*/
-        "H:mm:ss z", /*full time pattern*/
-        "H:mm:ss z", /*long time pattern*/
-        "H:mm:ss", /*medium time pattern*/
-        "H:mm", /*short time pattern*/
-        "d. MMMM'ta 'yyyy", /*full date pattern*/
-        "d. MMMM'ta 'yyyy", /*long date pattern*/
-        "dd.MM.yyyy", /*medium date pattern*/
-        "dd.MM.yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "4", /*min days in first week*/
-        " & Z < a\u030A , A\u030A " +      // a-ring and A-ring
-        " < a\u0308 , A\u0308 " +          // a-umlaut and A-umlaut
-        " < o\u0308 , O\u0308 " +          // o-umlaut and O-umlaut
-        " & U < w , W ; v " +              // optional, insert b4 v
-        " & X < u\u0308 , U\u0308 ; y "    // optional, insert b4 y
-    };
 }

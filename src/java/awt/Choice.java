@@ -1,5 +1,5 @@
 /*
- * @(#)Choice.java	1.39 97/03/03 Sami Shaio
+ * @(#)Choice.java	1.44 98/10/12 Sami Shaio
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -30,12 +30,32 @@ import java.io.IOException;
 
 
 /**
- * The Choice class is a pop-up menu of choices. The current choice is
- * displayed as the title of the menu.
- *
- * @version	1.39 03/03/97
+ * The <code>Choice</code> class presents a pop-up menu of choices. 
+ * The current choice is displayed as the title of the menu. 
+ * <p>
+ * The following code example produces a pop-up menu: 
+ * <p>
+ * <hr><blockquote><pre>
+ * Choice ColorChooser = new Choice();
+ * ColorChooser.add("Green");
+ * ColorChooser.add("Red");
+ * ColorChooser.add("Blue");
+ * </pre></blockquote><hr>
+ * <p>
+ * After this choice menu has been added to a panel, 
+ * it appears as follows in its normal state:
+ * <p>
+ * <img src="images-awt/Choice-1.gif"
+ * ALIGN=center HSPACE=10 VSPACE=7> 
+ * <p>
+ * In the picture, <code>"Green"</code> is the current choice. 
+ * Pushing the mouse button down on the object causes a menu to 
+ * appear with the current choice highlighted. 
+ * <p>
+ * @version	1.44 10/12/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
+ * @since       JDK1.0
  */
 public class Choice extends Component implements ItemSelectable {
     /**
@@ -59,7 +79,14 @@ public class Choice extends Component implements ItemSelectable {
      private static final long serialVersionUID = -4075310674757313071L;
 
     /** 
-     * Constructs a new Choice.
+     * Creates a new choice menu. The menu initially has no items in it. 
+     * <p>
+     * By default, the first item added to the choice menu becomes the 
+     * selected item, until a different selection is made by the user  
+     * by calling one of the <code>select</code> methods. 
+     * @see       java.awt.Choice#select(int)
+     * @see       java.awt.Choice#select(java.lang.String)
+     * @since     JDK1.0
      */
     public Choice() {
         this.name = base + nameCounter++;
@@ -69,15 +96,22 @@ public class Choice extends Component implements ItemSelectable {
     /**
      * Creates the Choice's peer.  This peer allows us to change the look
      * of the Choice without changing its functionality.
+     * @see     java.awt.Toolkit#createChoice(java.awt.Choice)
+     * @see     java.awt.Component#getToolkit()
+     * @since   JDK1.0
      */
     public void addNotify() {
-	peer = getToolkit().createChoice(this);
-	super.addNotify();
+        synchronized (getTreeLock()) {
+		if (peer == null)
+	    	peer = getToolkit().createChoice(this);
+	    super.addNotify();
+        }
     }
 
     /**
-     * Returns the number of items in this Choice.
-     * @see #getItem
+     * Returns the number of items in this <code>Choice</code> menu.
+     * @see     java.awt.Choice#getItem
+     * @since   JDK1.1
      */
     public int getItemCount() {
 	return countItems();
@@ -85,25 +119,28 @@ public class Choice extends Component implements ItemSelectable {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by getItemCount().
+     * replaced by <code>getItemCount()</code>.
      */
     public int countItems() {
 	return pItems.size();
     }
 
     /**
-     * Returns the String at the specified index in the Choice.
-     * @param index the index at which to begin
-     * @see #getItemCount
+     * Gets the string at the specified index in this 
+     * <code>Choice</code> menu.
+     * @param      index the index at which to begin.
+     * @see        java.awt.Choice#getItemCount
+     * @since      JDK1.0
      */
     public String getItem(int index) {
 	return (String)pItems.elementAt(index);
     }
 
     /**
-     * Adds an item to this Choice.
-     * @param item the item to be added
-     * @exception NullPointerException If the item's value is equal to null.
+     * Adds an item to this <code>Choice</code> menu.
+     * @param      item    the item to be added
+     * @exception  NullPointerException   if the item's value is <code>null</code>.
+     * @since      JDK1.1
      */
     public synchronized void add(String item) {
 	addItem(item);
@@ -164,9 +201,12 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Remove the first occurrence of item from the choice menu.
-     * @param item  the item to remove from the choice menu
-     * @exception IllegalArgumentException  If the item doesn't exist in the choice menu.
+     * Remove the first occurrence of <code>item</code> 
+     * from the <code>Choice</code> menu.
+     * @param      item  the item to remove from this <code>Choice</code> menu.
+     * @exception  IllegalArgumentException  if the item doesn't 
+     *                     exist in the choice menu.
+     * @since      JDK1.1
      */
     public synchronized void remove(String item) {
     	int index = pItems.indexOf(item);
@@ -179,7 +219,10 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Removes an item from the choice menu.
+     * Removes an item from the choice menu 
+     * at the specified position.
+     * @param      position the position of the item.
+     * @since      JDK1.1
      */
     public synchronized void remove(int position) {
     	pItems.removeElementAt(position);
@@ -197,7 +240,8 @@ public class Choice extends Component implements ItemSelectable {
 
     /**
      * Removes all items from the choice menu.
-     * @see #remove
+     * @see       java.awt.Choice#remove
+     * @since     JDK1.1
      */
     public synchronized void removeAll() {
         int nitems = getItemCount();
@@ -207,8 +251,11 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Returns a String representation of the current choice.
-     * @see #getSelectedIndex
+     * Gets a representation of the current choice as a string.
+     * @return    a string representation of the currently 
+     *                     selected item in this choice menu.
+     * @see       java.awt.Choice#getSelectedIndex
+     * @since     JDK1.0
      */
     public synchronized String getSelectedItem() {
 	return (selectedIndex >= 0) ? getItem(selectedIndex) : null;
@@ -237,14 +284,16 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Selects the item with the specified postion.
-     * @param pos the choice item position
-     * @exception IllegalArgumentException If the choice item position is 
-     * invalid.
-     * @see #getSelectedItem
-     * @see #getSelectedIndex
+     * Sets the selected item in this <code>Choice</code> menu to be the 
+     * item at the specified position. 
+     * @param      pos      the positon of the selected item.
+     * @exception  IllegalArgumentException if the specified
+     *                            position is invalid.
+     * @see        java.awt.Choice#getSelectedItem
+     * @see        java.awt.Choice#getSelectedIndex
+     * @since      JDK1.0
      */
-    public synchronized void select(int pos) {
+    public void select(int pos) {
 	if (pos >= pItems.size()) {
 	    throw new IllegalArgumentException("illegal Choice item position: " + pos);
 	}
@@ -258,10 +307,14 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Selects the item with the specified String.
-     * @param str the specified String
-     * @see #getSelectedItem
-     * @see #getSelectedIndex
+     * Sets the selected item in this <code>Choice</code> menu 
+     * to be the item whose name is equal to the specified string. 
+     * If more than one item matches (is equal to) the specified string, 
+     * the one with the smallest index is selected. 
+     * @param       str     the specified string
+     * @see         java.awt.Choice#getSelectedItem
+     * @see         java.awt.Choice#getSelectedIndex
+     * @since       JDK1.0
      */
     public synchronized void select(String str) {
 	int index = pItems.indexOf(str);
@@ -271,9 +324,13 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Adds the specified item listener to recieve item events from
-     * this choice.
-     * @param l the item listener
+     * Adds the specified item listener to receive item events from
+     * this <code>Choice</code> menu.
+     * @param         l    the item listener.
+     * @see           java.awt.event.ItemEvent
+     * @see           java.awt.event.ItemListener
+     * @see           java.awt.Choice#removeItemListener
+     * @since         JDK1.1
      */ 
     public synchronized void addItemListener(ItemListener l) {
         itemListener = AWTEventMulticaster.add(itemListener, l);
@@ -281,9 +338,13 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Removes the specified item listener so that it no longer
-     * receives item events from this choice.
-     * @param l the item listener
+     * Removes the specified item listener so that it no longer receives 
+     * item events from this <code>Choice</code> menu. 
+     * @param         l    the item listener.
+     * @see           java.awt.event.ItemEvent
+     * @see           java.awt.event.ItemListener
+     * @see           java.awt.Choice#addItemListener
+     * @since         JDK1.1
      */ 
     public synchronized void removeItemListener(ItemListener l) {
         itemListener = AWTEventMulticaster.remove(itemListener, l);
@@ -302,10 +363,14 @@ public class Choice extends Component implements ItemSelectable {
     }        
 
     /**
-     * Processes events on this choice. If the event is an ItemEvent,
-     * it invokes the handleItemEvent method, else it calls its
-     * superclass's processEvent.
-     * @param e the event
+     * Processes events on this choice. If the event is an 
+     * instance of <code>ItemEvent</code>, it invokes the 
+     * <code>processItemEvent</code> method. Otherwise, it calls its
+     * superclass's <code>processEvent</code> method.
+     * @param      e the event.
+     * @see        java.awt.event.ItemEvent
+     * @see        java.awt.Choice#processItemEvent
+     * @since      JDK1.1
      */
     protected void processEvent(AWTEvent e) {
         if (e instanceof ItemEvent) {
@@ -316,15 +381,24 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /** 
-     * Processes item events occurring on this choice by
-     * dispatching them to any registered ItemListener objects.
-     * NOTE: This method will not be called unless item events
-     * are enabled for this component; this happens when one of the
-     * following occurs:
-     * a) An ItemListener object is registered via addItemListener()
-     * b) Item events are enabled via enableEvents()
-     * @see Component#enableEvents
-     * @param e the item event
+     * Processes item events occurring on this <code>Choice</code> 
+     * menu by dispatching them to any registered 
+     * <code>ItemListener</code> objects. 
+     * <p>
+     * This method is not called unless item events are 
+     * enabled for this component. Item events are enabled 
+     * when one of the following occurs:
+     * <p><ul>
+     * <li>An <code>ItemListener</code> object is registered 
+     * via <code>addItemListener</code>.
+     * <li>Item events are enabled via <code>enableEvents</code>.
+     * </ul>
+     * @param       e the item event.
+     * @see         java.awt.event.ItemEvent
+     * @see         java.awt.event.ItemListener
+     * @see         java.awt.Choice#addItemListener
+     * @see         java.awt.Component#enableEvents
+     * @since       JDK1.1
      */  
     protected void processItemEvent(ItemEvent e) {
         if (itemListener != null) {
@@ -333,7 +407,10 @@ public class Choice extends Component implements ItemSelectable {
     }
 
     /**
-     * Returns the parameter String of this Choice.
+     * Returns the parameter string representing the state of this 
+     * choice menu. This string is useful for debugging. 
+     * @return    the parameter string of this <code>Choice</code> menu.
+     * @since     JDK1.0
      */
     protected String paramString() {
 	return super.paramString() + ",current=" + getSelectedItem();

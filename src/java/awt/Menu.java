@@ -1,5 +1,5 @@
 /*
- * @(#)Menu.java	1.37 97/05/05
+ * @(#)Menu.java	1.39 97/12/02
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -27,10 +27,27 @@ import java.awt.peer.MenuPeer;
 import java.awt.event.KeyEvent;
 
 /**
- * A Menu that is a component of a menu bar.
+ * A <code>Menu</code> object is a pull-down menu component 
+ * that is deployed from a menu bar. 
+ * <p>
+ * A menu can optionally be a <i>tear-off</i> menu. A tear-off menu 
+ * can be opened and dragged away from its parent menu bar or menu. 
+ * It remains on the screen after the mouse button has been released. 
+ * The mechanism for tearing off a menu is platform dependent, since 
+ * the look and feel of the tear-off menu is determined by its peer.
+ * On platforms that do not support tear-off menus, the tear-off
+ * property is ignored.
+ * <p>
+ * Each item in a menu must belong to the <code>MenuItem</code> 
+ * class. It can be an instance of <code>MenuItem</code>, a submenu 
+ * (an instance of <code>Menu</code>), or a check box (an instance of 
+ * <code>CheckboxMenuItem</code>).
  *
- * @version 1.37, 05/05/97
+ * @version 1.39, 12/02/97
  * @author Sami Shaio
+ * @see     java.awt.MenuItem
+ * @see     java.awt.CheckboxMenuItem
+ * @since   JDK1.0
  */
 public class Menu extends MenuItem implements MenuContainer {
     Vector		items = new Vector();
@@ -46,35 +63,38 @@ public class Menu extends MenuItem implements MenuContainer {
      private static final long serialVersionUID = -8809584163345499784L;
 
     /** 
-     * Constructs a new Menu with an empty label.  This menu can
-     * not be torn off.
+     * Constructs a new menu with an empty label. This menu is not
+     * a tear-off menu.
+     * @since      JDK1.1
      */
     public Menu() {
 	this("", false);
     }
 
     /** 
-     * Constructs a new Menu with the specified label.  This menu can
-     * not be torn off.
-
-     * @param label the label to be added to this menu 
+     * Constructs a new menu with the specified label. This menu is not
+     * a tear-off menu.
+     * @param       label the menu's label in the menu bar, or in 
+     *                   another menu of which this menu is a submenu.
+     * @since       JDK1.0
      */
     public Menu(String label) {
 	this(label, false);
     }
 
     /** 
-     * Constructs a new Menu with the specified label. If tearOff is
-     * true, the menu can be torn off - the menu will then be displayed
-     * in a separate native dialog.
-     *
-     * NOTE:  tear-off functionality may not be supported by all AWT
-     * implementations.  If a particular implementation doesn't support
-     * tear-offs, this value will be silently ignored.
-     *
-     * @param label the label to be added to this menu
-     * @param tearOff the boolean indicating whether or not the menu will be
-     * able to be torn off.
+     * Constructs a new menu with the specified label. If the 
+     * value of <code>tearOff</code> is <code>true</code>,
+     * the menu can be torn off.
+     * <p>
+     * Tear-off functionality may not be supported by all 
+     * implementations of AWT.  If a particular implementation doesn't 
+     * support tear-off menus, this value is silently ignored.
+     * @param       label the menu's label in the menu bar, or in 
+     *                   another menu of which this menu is a submenu.
+     * @param       tearOff   if <code>true</code>, the menu 
+     *                   is a tear-off menu.
+     * @since       JDK1.0.
      */
     public Menu(String label, boolean tearOff) {
 	super(label);
@@ -87,15 +107,17 @@ public class Menu extends MenuItem implements MenuContainer {
      * appearance of the menu without changing its functionality.
      */
     public void addNotify() {
-	if (peer == null) {
-	    peer = Toolkit.getDefaultToolkit().createMenu(this);
-	}
-	int nitems = getItemCount();
-	for (int i = 0 ; i < nitems ; i++) {
-	    MenuItem mi = getItem(i);
-	    mi.parent = this;
-	    mi.addNotify();
-	}
+        synchronized (getTreeLock()) {
+	    if (peer == null) {
+	        peer = Toolkit.getDefaultToolkit().createMenu(this);
+	    }
+	    int nitems = getItemCount();
+	    for (int i = 0 ; i < nitems ; i++) {
+	        MenuItem mi = getItem(i);
+	        mi.parent = this;
+	        mi.addNotify();
+	    }
+        }
     }
 
     /**
@@ -103,26 +125,33 @@ public class Menu extends MenuItem implements MenuContainer {
      * of the menu without changing its functionality.
      */
     public void removeNotify() {
-	int nitems = getItemCount();
-	for (int i = 0 ; i < nitems ; i++) {
-	    getItem(i).removeNotify();
-	}
-	super.removeNotify();
+        synchronized (getTreeLock()) {
+	    int nitems = getItemCount();
+	    for (int i = 0 ; i < nitems ; i++) {
+	        getItem(i).removeNotify();
+	    }
+	    super.removeNotify();
+        }
     }
 
     /**
-     * Returns true if this is a tear-off menu.  
-     *
-     * NOTE:  tear-off functionality may not be supported by all AWT
-     * implementations.  If a particular implementation doesn't support
-     * tear-offs, this value will be silently ignored.
+     * Indicates whether this menu is a tear-off menu.  
+     * <p>
+     * Tear-off functionality may not be supported by all 
+     * implementations of AWT.  If a particular implementation doesn't 
+     * support tear-off menus, this value is silently ignored.
+     * @return      <code>true</code> if this is a tear-off menu; 
+     *                         <code>false</code> otherwise.
+     * @since       JDK1.0
      */
     public boolean isTearOff() {
 	return tearOff;
     }
 
     /** 
-      * Returns the number of elements in this menu.
+      * Get the number of items in this menu.
+      * @return     the number of items in this menu.
+      * @since      JDK1.1
       */
     public int getItemCount() {
 	return countItems();
@@ -130,85 +159,110 @@ public class Menu extends MenuItem implements MenuContainer {
 
     /** 
      * @deprecated As of JDK version 1.1,
-     * replaced by getItemCount().
+     * replaced by <code>getItemCount()</code>.
      */
     public int countItems() {
 	return items.size();
     }
 
     /**
-     * Returns the item located at the specified index of this menu.
-     * @param index the position of the item to be returned
+     * Gets the item located at the specified index of this menu.
+     * @param     index the position of the item to be returned.
+     * @return    the item located at the specified index.
+     * @since     JDK1.0
      */
     public MenuItem getItem(int index) {
 	return (MenuItem)items.elementAt(index);
     }
 
     /**
-     * Adds the specified item to this menu.
-     * @param mi the item to be added
+     * Adds the specified menu item to this menu. If the 
+     * menu item has been part of another menu, remove it  
+     * from that menu. 
+     * @param       mi   the menu item to be added.
+     * @return      the menu item added.
+     * @see         java.awt.Menu#insert(java.lang.String, int)
+     * @see         java.awt.Menu#insert(java.awt.MenuItem, int)
+     * @since       JDK1.0
      */
-    public synchronized MenuItem add(MenuItem mi) {
-	if (mi.parent != null) {
-	    mi.parent.remove(mi);
-	}
-	items.addElement(mi);
-	mi.parent = this;
-    	MenuPeer peer = (MenuPeer)this.peer;
-	if (peer != null) {
-	    mi.addNotify();
-	    peer.addItem(mi);
-	}
-	return mi;
+    public MenuItem add(MenuItem mi) {
+        synchronized (getTreeLock()) {
+	    if (mi.parent != null) {
+	        mi.parent.remove(mi);
+	    }
+	    items.addElement(mi);
+	    mi.parent = this;
+    	    MenuPeer peer = (MenuPeer)this.peer;
+	    if (peer != null) {
+	        mi.addNotify();
+	        peer.addItem(mi);
+	    }
+	    return mi;
+        }
     }
 
     /**
-     * Adds an item with with the specified label to this menu.
-     * @param label the text on the item
+     * Adds an item with the specified label to this menu. 
+     * @param       label   the text on the item.
+     * @see         java.awt.Menu#insert(java.lang.String, int)
+     * @see         java.awt.Menu#insert(java.awt.MenuItem, int)
+     * @since       JDK1.0
      */
     public void add(String label) {
 	add(new MenuItem(label));
     }
 
     /**
-     * Inserts the MenuItem to this menu at the specified position.
-     * @param menuitem the menu item to be inserted
-     * @param index the position at which the menu item should be inserted
-     * @exception IllegalArgumentException if index is less than 0.
+     * Inserts a menu item into this menu 
+     * at the specified position.
+     * @param         menuitem  the menu item to be inserted.
+     * @param         index     the position at which the menu  
+     *                          item should be inserted.
+     * @see           java.awt.Menu#add(java.lang.String)
+     * @see           java.awt.Menu#add(java.awt.MenuItem)
+     * @exception     IllegalArgumentException if the value of
+     *                    <code>index</code> is less than zero.
+     * @since         JDK1.1
      */
 
-    public synchronized void insert(MenuItem menuitem, int index) {
-	if (index < 0) {
-	    throw new IllegalArgumentException("index less than zero.");
-	}
+    public void insert(MenuItem menuitem, int index) {
+        synchronized(getTreeLock()) {
+	    if (index < 0) {
+	        throw new IllegalArgumentException("index less than zero.");
+	    }
 
-        int nitems = getItemCount();
-	Vector tempItems = new Vector();
+            int nitems = getItemCount();
+	    Vector tempItems = new Vector();
 
-	/* Remove the item at index, nitems-index times 
-	   storing them in a temporary vector in the
-	   order they appear on the menu.
-	   */
-	for (int i = index ; i < nitems; i++) {
-	    tempItems.addElement(getItem(index));
-	    remove(index);
-	}
+	    /* Remove the item at index, nitems-index times 
+	       storing them in a temporary vector in the
+	       order they appear on the menu.
+	     */
+	    for (int i = index ; i < nitems; i++) {
+	        tempItems.addElement(getItem(index));
+	        remove(index);
+	    }
 
-	add(menuitem);
+	    add(menuitem);
 
-	/* Add the removed items back to the menu, they are
-	   already in the correct order in the temp vector.
-	   */
-	for (int i = 0; i < tempItems.size()  ; i++) {
-	    add((MenuItem)tempItems.elementAt(i));
-	}
+	    /* Add the removed items back to the menu, they are
+	       already in the correct order in the temp vector.
+	     */
+	    for (int i = 0; i < tempItems.size()  ; i++) {
+	        add((MenuItem)tempItems.elementAt(i));
+	    }
+        }
     }
 
     /**
-     * Inserts an item with the specified label to this menu 
+     * Inserts a menu item with the specified label into this menu 
      * at the specified position.
-     * @param label the text on the item
-     * @param index the position at which the menu item should be inserted
+     * @param       label the text on the item.
+     * @param       index the position at which the menu item 
+     *                      should be inserted.
+     * @see         java.awt.Menu#add(java.lang.String)
+     * @see         java.awt.Menu#add(java.awt.MenuItem)
+     * @since       JDK1.1
      */
 
     public void insert(String label, int index) {
@@ -217,78 +271,95 @@ public class Menu extends MenuItem implements MenuContainer {
       
     /**
      * Adds a separator line, or a hypen, to the menu at the current position.
+     * @see         java.awt.Menu#insertSeparator(int)
+     * @since       JDK1.0
      */
     public void addSeparator() {
 	add("-");
     }
 
     /**
-     * Inserts a separator at the specified position
-     * @param index the position at which the menu separator should be inserted
-     * @exception IllegalArgumentException if index is less than 0.
+     * Inserts a separator at the specified position.
+     * @param       index the position at which the 
+     *                       menu separator should be inserted.
+     * @exception   IllegalArgumentException if the value of 
+     *                       <code>index</code> is less than 0.
+     * @see         java.awt.Menu#addSeparator
+     * @since       JDK1.1
      */
 
     public void insertSeparator(int index) {
-	if (index < 0) {
-	    throw new IllegalArgumentException("index less than zero.");
-	}
+        synchronized(getTreeLock()) {
+	    if (index < 0) {
+	        throw new IllegalArgumentException("index less than zero.");
+	    }
 
-        int nitems = getItemCount();
-	Vector tempItems = new Vector();
+            int nitems = getItemCount();
+	    Vector tempItems = new Vector();
 
-	/* Remove the item at index, nitems-index times 
-	   storing them in a temporary vector in the
-	   order they appear on the menu.
-	   */
-	for (int i = index ; i < nitems; i++) {
-	    tempItems.addElement(getItem(index));
-	    remove(index);
-	}
+	    /* Remove the item at index, nitems-index times 
+	       storing them in a temporary vector in the
+	       order they appear on the menu.
+	       */
+	    for (int i = index ; i < nitems; i++) {
+	        tempItems.addElement(getItem(index));
+	        remove(index);
+	    }
 
-	addSeparator();
+	    addSeparator();
 
-	/* Add the removed items back to the menu, they are
-	   already in the correct order in the temp vector.
-	   */
-	for (int i = 0; i < tempItems.size()  ; i++) {
-	    add((MenuItem)tempItems.elementAt(i));
-	}
+	    /* Add the removed items back to the menu, they are
+	       already in the correct order in the temp vector.
+	       */
+	    for (int i = 0; i < tempItems.size()  ; i++) {
+	        add((MenuItem)tempItems.elementAt(i));
+	    }
+        }
     }
 
     /**
-     * Deletes the item from this menu at the specified index.
-     * @param index the position of the item to be removed 
+     * Removes the menu item at the specified index from this menu.
+     * @param       index the position of the item to be removed. 
+     * @since       JDK1.0 
      */
-    public synchronized void remove(int index) {
-	MenuItem mi = getItem(index);
-	items.removeElementAt(index);
-    	MenuPeer peer = (MenuPeer)this.peer;
-	if (peer != null) {
-	    mi.removeNotify();
-	    mi.parent = null;
-	    peer.delItem(index);
-	}
+    public void remove(int index) {
+        synchronized (getTreeLock()) {
+	    MenuItem mi = getItem(index);
+	    items.removeElementAt(index);
+    	    MenuPeer peer = (MenuPeer)this.peer;
+	    if (peer != null) {
+	        mi.removeNotify();
+	        mi.parent = null;
+	        peer.delItem(index);
+	    }
+        }
     }
 
     /**
-     * Deletes the specified item from this menu.
-     * @param item the item to be removed from the menu
+     * Removes the specified menu item from this menu.
+     * @param       item the item to be removed from the menu
+     * @since       JDK1.0
      */
-    public synchronized void remove(MenuComponent item) {
-	int index = items.indexOf(item);
-	if (index >= 0) {
-	    remove(index);
-	}
+    public void remove(MenuComponent item) {
+        synchronized(getTreeLock()) {
+	    int index = items.indexOf(item);
+	    if (index >= 0) {
+	         remove(index);
+	    }
+        }
     }
 
     /**
-     * Deletes all items from this menu.
+     * Removes all items from this menu.
+     * @since       JDK1.0.
      */
-    public synchronized void removeAll() {
+    public void removeAll() {
+      synchronized(getTreeLock()) {
         int nitems = getItemCount();
 	for (int i = 0 ; i < nitems ; i++) {
 	    remove(0);
 	}
+      }
     }
 
     /*
@@ -372,7 +443,9 @@ public class Menu extends MenuItem implements MenuContainer {
     }
 
     /**
-     * Returns the String parameter of the menu.
+     * Gets the parameter string representing the state of this menu. 
+     * This string is useful for debugging.
+     * @since      JDK1.0nu.
      */
     public String paramString() {
         String str = ",tearOff=" + tearOff+",isHelpMenu=" + isHelpMenu;

@@ -146,8 +146,8 @@ public abstract class MessageDigest {
 	    return (MessageDigest)Security.getImpl(algorithm, 
 						   "MessageDigest", null);
 	} catch(NoSuchProviderException e) {
-	    throw new InternalError("please send a bug report to " +
-				    "java-security@java.sun.com");
+	    throw new InternalError("please send a bug report via " +
+				    System.getProperty("java.vendor.url.bug"));
 	}
     }
 

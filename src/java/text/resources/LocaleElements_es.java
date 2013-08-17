@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_es.java	1.6 97/02/24
+ * @(#)LocaleElements_es.java	1.10 98/01/14
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,89 +45,151 @@
 
 package java.text.resources;
 
-public class LocaleElements_es extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_es() {
-        super.init(table);
+public class LocaleElements_es extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "es_ES" }, // locale id based on iso codes
+            { "LocaleID", "0c0a" }, // Windows id
+            { "ShortLanguage", "esp" }, // iso-3 abbrev lang name
+            { "ShortCountry", "ESP" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "es", "espa\u00f1ol" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "ES", "Espa\u00f1a" },
+                    { "AR", "Argentina" },
+                    { "BO", "Bolivia" },
+                    { "CL", "Chile" },
+                    { "CO", "Colombia" },
+                    { "CR", "Costa Rica" },
+                    { "DO", "Rep\u00fablica Dominicana" },
+                    { "EC", "Ecuador" },
+                    { "GT", "Guatemala" },
+                    { "HN", "Honduras" },
+                    { "MX", "M\u00e9xico" },
+                    { "NI", "Nicaragua" },
+                    { "PA", "Panam\u00e1" },
+                    { "PE", "Per\u00fa" },
+                    { "PR", "Puerto Rico" },
+                    { "PY", "Paraguay" },
+                    { "SV", "El SalvadorUY" },
+                    { "UY", "Uruguay"  },
+                    { "VE", "Venezuela" }
+                }
+            },
+            { "MonthNames", 
+                new String[] { 
+                    "enero", // january
+                    "febrero", // february
+                    "marzo", // march
+                    "abril", // april
+                    "mayo", // may
+                    "junio", // june
+                    "julio", // july
+                    "agosto", // august
+                    "septiembre", // september
+                    "octubre", // october
+                    "noviembre", // november
+                    "diciembre", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations", 
+                new String[] { 
+                    "ene", // abb january
+                    "feb", // abb february
+                    "mar", // abb march
+                    "abr", // abb april
+                    "may", // abb may
+                    "jun", // abb june
+                    "jul", // abb july
+                    "ago", // abb august
+                    "sep", // abb september
+                    "oct", // abb october
+                    "nov", // abb november
+                    "dic", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames", 
+                new String[] { 
+                    "domingo", // Sunday
+                    "lunes", // Monday
+                    "martes", // Tuesday
+                    "mi\u00e9rcoles", // Wednesday
+                    "jueves", // Thursday
+                    "viernes", // Friday
+                    "s\u00e1bado" // Saturday
+                }
+            },
+            { "DayAbbreviations", 
+                new String[] { 
+                    "dom", // abb Sunday
+                    "lun", // abb Monday
+                    "mar", // abb Tuesday
+                    "mi\u00e9", // abb Wednesday
+                    "jue", // abb Thursday
+                    "vie", // abb Friday
+                    "s\u00e1b" // abb Saturday
+                }
+            },
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.00 Pts;-#,##0.00 Pts", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements", 
+                new String[] { 
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "Pts", // local currency symbol
+                    "ESP", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "HH'H'mm'' z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "EEEE d' de 'MMMM' de 'yyyy", // full date pattern
+                    "d' de 'MMMM' de 'yyyy", // long date pattern
+                    "dd-MMM-yy", // medium date pattern
+                    "d/MM/yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements", 
+                new String[] { 
+                    "2", // first day of week
+                    "1" // min days in first week
+                }
+            },
+            { "CollationElements", "& N < n\u0303, N\u0303 " } 
+        };
     }
-
-    static String table []={
-        "es_ES", /*locale id based on iso codes*/
-        "0c0a", /*Windows id*/
-        "esn", /*iso-3 abbrev lang name*/
-        "ESP", /*iso-3 abbrev country name*/
-        "en_Spanish - Modern Sort; de_Spanisch; fr_espagnol; es_español", /*language names*/
-        "en_Spain; de_Spanien; fr_Espagne; es_España", /*country names*/
-        "enero", /*january*/
-        "febrero", /*february*/
-        "marzo", /*march*/
-        "abril", /*april*/
-        "mayo", /*may*/
-        "junio", /*june*/
-        "julio", /*july*/
-        "agosto", /*august*/
-        "septiembre", /*september*/
-        "octubre", /*october*/
-        "noviembre", /*november*/
-        "diciembre", /*december*/
-        "", /*month 13 if applicable*/
-        "ene", /*abb january*/
-        "feb", /*abb february*/
-        "mar", /*abb march*/
-        "abr", /*abb april*/
-        "may", /*abb may*/
-        "jun", /*abb june*/
-        "jul", /*abb july*/
-        "ago", /*abb august*/
-        "sep", /*abb september*/
-        "oct", /*abb october*/
-        "nov", /*abb november*/
-        "dic", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "domingo", /*Sunday*/
-        "lunes", /*Monday*/
-        "martes", /*Tuesday*/
-        "miércoles", /*Wednesday*/
-        "jueves", /*Thursday*/
-        "viernes", /*Friday*/
-        "sábado", /*Saturday*/
-        "dom", /*abb Sunday*/
-        "lun", /*abb Monday*/
-        "mar", /*abb Tuesday*/
-        "mié", /*abb Wednesday*/
-        "jue", /*abb Thursday*/
-        "vie", /*abb Friday*/
-        "sáb", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;AD", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "#,##0.00 Pts;-#,##0.00 Pts", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        ".", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "Pts", /*local currency symbol*/
-        "ESP", /*intl currency symbol*/
-        ",", /*monetary decimal separator*/
-        "HH'H'mm'' z", /*full time pattern*/
-        "H:mm:ss z", /*long time pattern*/
-        "H:mm:ss", /*medium time pattern*/
-        "H:mm", /*short time pattern*/
-        "EEEE d' de 'MMMM' de 'yyyy", /*full date pattern*/
-        "d' de 'MMMM' de 'yyyy", /*long date pattern*/
-        "dd-MMM-yy", /*medium date pattern*/
-        "d/MM/yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "1", /*min days in first week*/
-        "& C < ch, cH, Ch, CH" +
-        "& L < ll, lL, Ll, LL" +
-        "& N < n\u0303, N\u0303 "
-    };
 }

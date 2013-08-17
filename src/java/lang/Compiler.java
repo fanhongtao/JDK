@@ -1,5 +1,5 @@
 /*
- * @(#)Compiler.java	1.3 97/01/20
+ * @(#)Compiler.java	1.4 98/02/26
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -41,7 +41,7 @@ package java.lang;
  * If no compiler is available, these methods do nothing. 
  *
  * @author  Frank Yellin
- * @version 1.3, 01/20/97
+ * @version 1.4, 02/26/98
  * @see     java.lang.System#getProperty(java.lang.String)
  * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
  * @see     java.lang.System#loadLibrary(java.lang.String)
@@ -53,13 +53,20 @@ public final class Compiler  {
     private static native void initialize();
 
     static { 
+	String library = null;
 	try { 
-	    String library = System.getProperty("java.compiler");
-	    if (library != null) {
+	    library = System.getProperty("java.compiler");
+	    if ((library != null) && (!library.equals("")) && 
+		/* to enable turning off the jit using an env var
+		   on win32, it is not possible to set an env var
+		   to an empty string on win32. */
+		(!library.equals("NONE"))) { 
 		System.loadLibrary(library);
 		initialize();
 		}
-	} catch (Throwable e) { 
+	} catch (UnsatisfiedLinkError e) {
+	    System.err.println("Warning: JIT compiler \"" + library +
+			       "\" not found. Will use interpreter.");
 	}
     }
 

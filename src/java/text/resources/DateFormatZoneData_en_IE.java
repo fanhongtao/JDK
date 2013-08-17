@@ -1,5 +1,5 @@
  /*
- * @(#)DateFormatZoneData_en_IE.java	1.2 97/02/24
+ * @(#)DateFormatZoneData_en_IE.java	1.5 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -49,7 +49,7 @@ import java.util.ListResourceBundle;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.2 02/24/97
+ * @version      1.5 01/12/98
  * @author       Chen-Lieh Huang
  */
 //  Ireland DateFormatZoneData
@@ -64,8 +64,15 @@ public final class DateFormatZoneData_en_IE extends ListResourceBundle
     }
 
     private static final String kZoneStrings[][] = {
-        {"GMT", "Greenwich Mean Time", "GMT",
-        "Ireland Daylight Time", "IDT", "Dublin"}
+        // The first row below is the default TimeZone for this locale.
+        // Zones should have unique names and abbreviations within
+        // this locale.  Names and abbreviations may be identical
+        // if the corresponding zones really are identical.  E.g.:
+        // America/Phoenix and America/Denver both use MST; these
+        // zones differ only in that America/Denver uses MDT as well.
+        // en_IE
+        {"Europe/London", "Greenwich Mean Time", "GMT",
+         "Ireland Summer Time", "IST" /*Dublin*/},
     };
 
     private static final String kLocalPatternChars = "GyMdkHmsSEDFwWahKz";

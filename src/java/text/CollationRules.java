@@ -1,5 +1,5 @@
 /*
- * @(#)CollationRules.java	1.13 97/03/03
+ * @(#)CollationRules.java	1.15 97/10/28
  *
  * (C) Copyright Taligent, Inc. 1996,1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -36,7 +36,7 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.13 03/03/97
+ * @version            1.15 10/28/97
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {
@@ -156,7 +156,6 @@ final class CollationRules {
 
         + "<'\u005f'"        // underline/underscore (spacing)
         + "<\u00af"          // overline or macron (spacing)
-//        + "<\u00ad"        // syllable hyphen (SHY) or soft hyphen
         + "<'\u002c'"        // comma (spacing)
         + "<'\u003b'"        // semicolon
         + "<'\u003a'"        // colon
@@ -194,12 +193,11 @@ final class CollationRules {
         + "<\u00a3"          // pound-sterling sign
         + "<\u00a5"          // yen sign
         + "<'\u002a'"        // asterisk
-        + "<'\\u005c'"       // backslash
+        + "<'\\'"            // backslash
         + "<'\u0026'"        // ampersand
         + "<'\u0023'"        // number sign
         + "<'\u0025'"        // percent sign
         + "<'\u002b'"        // plus sign
-//        + "<\u002d"        // hyphen or minus sign
         + "<\u00b1"          // plus-or-minus sign
         + "<\u00f7"          // divide sign
         + "<\u00d7"          // multiply sign
@@ -239,16 +237,16 @@ final class CollationRules {
         + "<r,R"
         + "<s, S & SS,\u00DF"             // s-zet
         + "<t,T"
-        + "&th, \u00FE & TH, \u00DE"           // thorn
+        + "& TH, \u00DE &TH, \u00FE "     // thorn
         + "<u,U"
         + "<v,V"
         + "<w,W"
         + "<x,X"
         + "<y,Y"
         + "<z,Z"
-        + "&ae,\u00E6"
         + "&AE,\u00C6"                    // ae & AE ligature
-        + "&oe,\u0153"
+        + "&AE,\u00E6"
         + "&OE,\u0152"                    // oe & OE ligature
+        + "&OE,\u0153"
     );
 }

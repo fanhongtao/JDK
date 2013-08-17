@@ -1,5 +1,5 @@
 /*
- * @(#)monitor.h	1.33 96/11/23
+ * @(#)monitor.h	1.34 97/10/07
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -33,7 +33,7 @@
  * Used by the monitor caching machanism to mark monitors as being
  * in-use.
  */
-#define MON_IN_USE			0x1
+#define MON_LOCAL_CACHE_REF		(1 << 0)
 
 /*
  * The monitor data structure:
@@ -51,8 +51,6 @@
 typedef struct monitor_t {
     unsigned int	key;		/* Monitor hash key */
     struct monitor_t   *next;
-    unsigned long	flags;		/* Flags used by the cache */
-    long		use_count;
     char		mid[1];		/* The sys_mon_t */
 } monitor_t, *MID;
 

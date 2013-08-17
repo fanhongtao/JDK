@@ -1,5 +1,5 @@
 /*
- * @(#)CompactShortArray.java	1.8 97/01/27
+ * @(#)CompactShortArray.java	1.9 97/10/28
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -50,7 +50,7 @@ package java.text;
  * @see                CompactIntArray
  * @see                CompactCharArray
  * @see                CompactStringArray
- * @version            1.8 01/27/97
+ * @version            1.9 10/28/97
  * @author             Helena Shih
  */
 final class CompactShortArray implements Cloneable {
@@ -231,6 +231,7 @@ final class CompactShortArray implements Cloneable {
      * as the compact array object obj; false otherwise.
      */
     public boolean equals(Object obj) {
+        if (obj == null) return false;
         if (this == obj)                      // quick check
             return true;
         if (getClass() != obj.getClass())         // same class?

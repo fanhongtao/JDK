@@ -1,5 +1,5 @@
 /*
- * @(#)DateFormat.java	1.20 97/02/05
+ * @(#)DateFormat.java	1.25 98/02/02
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -33,7 +33,6 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.MissingResourceException;
 import java.util.TimeZone;
-import java.util.SimpleTimeZone;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
@@ -43,9 +42,9 @@ import java.text.resources.*;
  * DateFormat is an abstract class for date/time formatting subclasses which
  * formats and parses dates or time in a language-independent manner.
  * The date/time formatting subclass, such as SimpleDateFormat, allows for
- * formatting (i.e., millis -> text), parsing (text -> millis), and
- * normalization. Formats/Parses a date or time, which is the standard millis
- * since 24:00 GMT, Jan 1, 1970
+ * formatting (i.e., date -> text), parsing (text -> date), and
+ * normalization.  The date is represented as a <code>Date</code> object or
+ * as the milliseconds since January 1, 1970, 00:00:00 GMT.
  *
  * <p>DateFormat provides many class methods for obtaining default date/time
  * formatters based on the default or a given loacle and a number of formatting
@@ -117,10 +116,10 @@ import java.text.resources.*;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.20 02/05/97
- * @author       Mark Davis, Chen-Lieh Huang
+ * @version      1.25 02/02/98
+ * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
-public abstract class DateFormat extends Format implements Cloneable {
+public abstract class DateFormat extends Format implements java.lang.Cloneable {
 
     /**
      * The calendar that DateFormat uses to produce the time field values
@@ -236,6 +235,9 @@ public abstract class DateFormat extends Format implements Cloneable {
      */
     public final static int TIMEZONE_FIELD = 17;
 
+    // Proclaim serial compatibility with 1.1 FCS
+    private static final long serialVersionUID = 7218322306649953788L;
+
     /**
      * Overrides Format.
      * Formats a time object into a time string. Examples of time objects
@@ -255,8 +257,8 @@ public abstract class DateFormat extends Format implements Cloneable {
                           toAppendTo, fieldPosition );
         else if (obj instanceof Date)
             return format( (Date)obj, toAppendTo, fieldPosition );
-	else
-	    throw new IllegalArgumentException("Cannot format given Object as a Date");
+        else
+            throw new IllegalArgumentException("Cannot format given Object as a Date");
     }
 
     /**
@@ -303,7 +305,7 @@ public abstract class DateFormat extends Format implements Cloneable {
         ParsePosition pos = new ParsePosition(0);
         Date result = parse(text, pos);
         if (pos.index == 0)
-	    throw new ParseException("Unparseable date: \"" + text + "\"" , 0);
+            throw new ParseException("Unparseable date: \"" + text + "\"" , 0);
         return result;
     }
 
@@ -479,7 +481,7 @@ public abstract class DateFormat extends Format implements Cloneable {
      * date and the time.
      */
     public final static DateFormat getInstance() {
-	return getDateTimeInstance(SHORT, SHORT);
+        return getDateTimeInstance(SHORT, SHORT);
     }
 
     /**
@@ -570,8 +572,8 @@ public abstract class DateFormat extends Format implements Cloneable {
      * Overrides hashCode
      */
     public int hashCode() {
-    	return numberFormat.hashCode();
-    	// just enough fields for a reasonable distribution
+        return numberFormat.hashCode();
+        // just enough fields for a reasonable distribution
     }
 
     /**
@@ -579,10 +581,14 @@ public abstract class DateFormat extends Format implements Cloneable {
      */
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (getClass() != obj.getClass()) return false;
-		DateFormat other = (DateFormat) obj;
-		return (calendar.equals(other.calendar)
-        	&& numberFormat.equals(other.numberFormat));
+        if (obj == null || getClass() != obj.getClass()) return false;
+        DateFormat other = (DateFormat) obj;
+        return (// calendar.equivalentTo(other.calendar) // THIS API DOESN'T EXIST YET!
+                calendar.getFirstDayOfWeek() == other.calendar.getFirstDayOfWeek() &&
+                calendar.getMinimalDaysInFirstWeek() == other.calendar.getMinimalDaysInFirstWeek() &&
+                calendar.isLenient() == other.calendar.isLenient() &&
+                calendar.getTimeZone().equals(other.calendar.getTimeZone()) &&
+                numberFormat.equals(other.numberFormat));
     }
 
     /**
@@ -599,11 +605,11 @@ public abstract class DateFormat extends Format implements Cloneable {
     private static DateFormat get(int timeStyle, /* -1 for no time */
                                   int dateStyle, /* -1 for no date */
                                   Locale loc) {
-	try {
+        try {
             ResourceBundle resource
-		= ResourceBundle.getBundle
-		("java.text.resources.LocaleElements", loc);
-	    return new SimpleDateFormat(timeStyle, dateStyle, loc);
+                = ResourceBundle.getBundle
+                ("java.text.resources.LocaleElements", loc);
+            return new SimpleDateFormat(timeStyle, dateStyle, loc);
 
         } catch (MissingResourceException e) {
             return new SimpleDateFormat("M/d/yy h:mm a");

@@ -1,5 +1,5 @@
 /*
- * @(#)Properties.java	1.29 97/01/28
+ * @(#)Properties.java	1.30 97/12/16
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -40,7 +40,7 @@ import java.util.Hashtable;
  * the property key is not found in the original property list. 
  *
  * @author  Arthur van Hoff
- * @version 1.29, 01/28/97
+ * @version 1.30, 12/16/97
  * @since   JDK1.0
  */
 public
@@ -81,6 +81,14 @@ class Properties extends Hashtable {
      * @since   JDK1.0
      */
     public synchronized void load(InputStream in) throws IOException {
+	/**
+	 * Use char array to collect the key and val chars.  Use an initial
+	 * size of 80 chars and double the array during expansion.  
+	 */
+	int buflen = 80;
+	char[] buf = new char[buflen];
+	int bufindx = 0;
+	
 	in = Runtime.getRuntime().getLocalizedInputStream(in);
 
 	int ch = in.read();
@@ -104,11 +112,19 @@ class Properties extends Hashtable {
 		continue;
 	    }
 
-	    // Read the key
-	    StringBuffer key = new StringBuffer();
+	    /* Read the key into buf */
+	    bufindx = 0;
 	    while ((ch >= 0) && (ch != '=') && (ch != ':') && 
 		   (ch != ' ') && (ch != '\t') && (ch != '\n') && (ch != '\r')) {
-		key.append((char)ch);
+		/* append ch to buf */
+		if (bufindx >= buflen) {
+		    /* expand buf */
+		    buflen *= 2;
+		    char[] nbuf = new char[buflen];
+		    System.arraycopy(buf, 0, nbuf, 0, buf.length);
+		    buf = nbuf;
+		}
+		buf[bufindx++] = (char)ch;
 		ch = in.read();
 	    }
 	    while ((ch == ' ') || (ch == '\t')) {
@@ -120,9 +136,11 @@ class Properties extends Hashtable {
 	    while ((ch == ' ') || (ch == '\t')) {
 		ch = in.read();
 	    }
+	    /* create the key */
+	    String key = new String(buf, 0, bufindx);
 
-	    // Read the value
-	    StringBuffer val = new StringBuffer();
+	    /* Read the value into buf, reuse buf */
+	    bufindx = 0;
 	    while ((ch >= 0) && (ch != '\n') && (ch != '\r')) {
 		int next = 0;
 		if (ch == '\\') {
@@ -168,12 +186,21 @@ class Properties extends Hashtable {
 		} else {
 		    next = in.read();
 		}
-		val.append((char)ch);
+		/* append ch to buf */
+		if (bufindx >= buflen) {
+		    /* expand buf */
+		    buflen *= 2;
+		    char[] nbuf = new char[buflen];
+		    System.arraycopy(buf, 0, nbuf, 0, buf.length);
+		    buf = nbuf;
+		}
+		buf[bufindx++] = (char)ch;
 		ch = next;
 	    }
+	    /* create the val */
+	    String val = new String(buf, 0, bufindx);
 
-	    //System.out.println(key + " = '" + val + "'");
-	    put(key.toString(), val.toString());
+	    put(key, val);
 	}
     }
 

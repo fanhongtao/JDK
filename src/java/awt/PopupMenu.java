@@ -1,5 +1,5 @@
 /*
- * @(#)PopupMenu.java	1.9 97/01/27
+ * @(#)PopupMenu.java	1.11 98/10/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -29,7 +29,7 @@ import java.awt.peer.PopupMenuPeer;
  * A class that implements a menu which can be dynamically popped up
  * at a specified position within a component.
  *
- * @version	1.9 01/27/97
+ * @version	1.11 10/12/98
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
@@ -63,7 +63,8 @@ public class PopupMenu extends Menu {
      * appearance of the popup menu without changing any of the popup menu's 
      * functionality.
      */
-    public synchronized void addNotify() {
+    public void addNotify() {
+      synchronized (getTreeLock()) {
 	if (peer == null) {
 	    peer = Toolkit.getDefaultToolkit().createPopupMenu(this);
 	}
@@ -73,6 +74,7 @@ public class PopupMenu extends Menu {
 	    mi.parent = this;
 	    mi.addNotify();
 	}
+      }
     }
 
    /**
@@ -99,8 +101,11 @@ public class PopupMenu extends Menu {
 	if (peer == null) {
 	    addNotify();
 	}
-	((PopupMenuPeer)peer).show(new Event(origin, 0, Event.MOUSE_DOWN, x, y, 0, 0));
-	
+        synchronized (getTreeLock()) {
+            if (peer != null) {
+                ((PopupMenuPeer)peer).show(
+                    new Event(origin, 0, Event.MOUSE_DOWN, x, y, 0, 0));
+            }
+        }
     }
-
 }

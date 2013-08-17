@@ -1,5 +1,5 @@
 /*
- * @(#)GridLayout.java	1.15 96/11/23
+ * @(#)GridLayout.java	1.17 97/12/02
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -23,11 +23,39 @@
 package java.awt;
 
 /**
- * A layout manager for a container that lays out grids.
+ * The <code>GridLayout</code> class is a layout manager that 
+ * lays out a container's components in a rectangular grid. 
+ * <p>
+ * The container is divided into equal-sized rectangles, 
+ * and one component is placed in each rectangle. 
+ * <p>
+ * For example, the following is an applet that lays out six buttons 
+ * into three rows and two columns: 
+ * <p>
+ * <hr><blockquote><pre>
+ * import java.awt.*;
+ * import java.applet.Applet;
+ * public class ButtonGrid extends Applet {
+ *     public void init() {
+ *         setLayout(new GridLayout(3,2));
+ *         add(new Button("1"));
+ *         add(new Button("2"));
+ *         add(new Button("3"));
+ *         add(new Button("4"));
+ *         add(new Button("5"));
+ *         add(new Button("6"));
+ *     }
+ * }
+ * </pre></blockquote><hr>     
+ * <p>
+ * It produces the following output:
+ * <p>
+ * <img src="images-awt/GridLayout-1.gif" 
+ * ALIGN=center HSPACE=10 VSPACE=7>
  *
- *
- * @version 1.15, 11/23/96
+ * @version 1.17, 12/02/97
  * @author 
+ * @since   JDK1.0
  */
 public class GridLayout implements LayoutManager, java.io.Serializable {
     int hgap;
@@ -38,29 +66,50 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
     /**
      * Creates a grid layout with a default of one column per component,
      * in a single row.
+     * @since JDK1.1
      */
     public GridLayout() {
 	this(1, 0, 0, 0);
     }
 
     /**
-     * Creates a grid layout with the specified rows and columns.
-     * @param rows the rows
-     * @param cols the columns
+     * Creates a grid layout with the specified number of rows and 
+     * columns. All components in the layout are given equal size. 
+     * <p>
+     * One, but not both, of <code>rows</code> and <code>cols</code> can 
+     * be zero, which means that any number of objects can be placed in a 
+     * row or in a column. 
+     * @param     rows   the rows, with the value zero meaning 
+     *                   any number of rows.
+     * @param     cols   the columns, with the value zero meaning 
+     *                   any number of columns.
+     * @since     JDK1.0
      */
     public GridLayout(int rows, int cols) {
 	this(rows, cols, 0, 0);
     }
 
     /**
-     * Creates a grid layout with the specified rows, columns,
-     * horizontal gap, and vertical gap.
-     * @param rows the rows; zero means 'any number.'
-     * @param cols the columns; zero means 'any number.'  Only one of 'rows'
-     * and 'cols' can be zero, not both.
-     * @param hgap the horizontal gap variable
-     * @param vgap the vertical gap variable
-     * @exception IllegalArgumentException If the rows and columns are invalid.
+     * Creates a grid layout with the specified number of rows and 
+     * columns. All components in the layout are given equal size. 
+     * <p>
+     * In addition, the horizontal and vertical gaps are set to the 
+     * specified values. Horizontal gaps are placed at the left and 
+     * right edges, and between each of the columns. Vertical gaps are 
+     * placed at the top and bottom edges, and between each of the rows. 
+     * <p>
+     * One, but not both, of <code>rows</code> and <code>cols</code> can 
+     * be zero, which means that any number of objects can be placed in a 
+     * row or in a column. 
+     * @param     rows   the rows, with the value zero meaning 
+     *                   any number of rows.
+     * @param     cols   the columns, with the value zero meaning 
+     *                   any number of columns.
+     * @param     hgap   the horizontal gap. 
+     * @param     vgap   the vertical gap. 
+     * @exception   IllegalArgumentException  if the of <code>rows</code> 
+     *                   or <code>cols</code> is invalid.
+     * @since     JDK1.0
      */
     public GridLayout(int rows, int cols, int hgap, int vgap) {
 	if ((rows == 0) && (cols == 0)) {
@@ -73,15 +122,20 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Returns the number of rows in this layout.
+     * Gets the number of rows in this layout.
+     * @return    the number of rows in this layout.
+     * @since     JDK1.1
      */
     public int getRows() {
 	return rows;
     }
 
     /**
-     * Sets the number of rows in this layout.
-     * @param rows number of rows in this layout
+     * Sets the number of rows in this layout to the specified value.
+     * @param        rows   the number of rows in this layout.
+     * @exception    IllegalArgumentException  if the value of both 
+     *               <code>rows</code> and <code>cols</code> is set to zero.
+     * @since        JDK1.1
      */
     public void setRows(int rows) {
 	if ((rows == 0) && (this.cols == 0)) {
@@ -91,15 +145,20 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Returns the number of columns in this layout.
+     * Gets the number of columns in this layout.
+     * @return     the number of columns in this layout.
+     * @since      JDK1.1
      */
     public int getColumns() {
 	return cols;
     }
 
     /**
-     * Sets the number of columns in this layout.
-     * @param cols number of columns in this layout
+     * Sets the number of columns in this layout to the specified value.
+     * @param        cols   the number of columns in this layout.
+     * @exception    IllegalArgumentException  if the value of both 
+     *               <code>rows</code> and <code>cols</code> is set to zero.
+     * @since        JDK1.1
      */
     public void setColumns(int cols) {
 	if ((cols == 0) && (this.rows == 0)) {
@@ -109,30 +168,36 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Returns the horizontal gap between components.
+     * Gets the horizontal gap between components.
+     * @return       the horizontal gap between components.
+     * @since        JDK1.1
      */
     public int getHgap() {
 	return hgap;
     }
     
     /**
-     * Sets the horizontal gap between components.
-     * @param hgap the horizontal gap between components
+     * Sets the horizontal gap between components to the specified value.
+     * @param        hgap   the horizontal gap between components.
+     * @since        JDK1.1
      */
     public void setHgap(int hgap) {
 	this.hgap = hgap;
     }
     
     /**
-     * Returns the vertical gap between components.
+     * Gets the vertical gap between components.
+     * @return       the vertical gap between components.
+     * @since        JDK1.1
      */
     public int getVgap() {
 	return vgap;
     }
     
     /**
-     * Sets the vertical gap between components.
-     * @param vgap the vertical gap between components
+     * Sets the vertical gap between components to the specified value.
+     * @param         vgap  the vertical gap between components.
+     * @since        JDK1.1
      */
     public void setVgap(int vgap) {
 	this.vgap = vgap;
@@ -140,26 +205,44 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
 
     /**
      * Adds the specified component with the specified name to the layout.
-     * @param name the name of the component
-     * @param comp the component to be added
+     * @param name the name of the component.
+     * @param comp the component to be added.
+     * @since JDK1.0
      */
     public void addLayoutComponent(String name, Component comp) {
     }
 
     /**
-     * Removes the specified component from the layout. Does not apply.
-     * @param comp the component to be removed
+     * Removes the specified component from the layout. 
+     * @param comp the component to be removed.
+     * @since JDK1.0
      */
     public void removeLayoutComponent(Component comp) {
     }
 
     /** 
-     * Returns the preferred dimensions for this layout given the components
-     * int the specified panel.
-     * @param parent the component which needs to be laid out 
-     * @see #minimumLayoutSize
+     * Determines the preferred size of the container argument using 
+     * this grid layout. 
+     * <p>
+     * The preferred width of a grid layout is the largest preferred 
+     * width of any of the widths in the container times the number of 
+     * columns, plus the horizontal padding times the number of columns 
+     * plus one, plus the left and right insets of the target container. 
+     * <p>
+     * The preferred height of a grid layout is the largest preferred 
+     * height of any of the widths in the container times the number of 
+     * rows, plus the vertical padding times the number of rows plus one, 
+     * plus the top and left insets of the target container. 
+     * 
+     * @param     target   the container in which to do the layout.
+     * @return    the preferred dimensions to lay out the 
+     *                      subcomponents of the specified container.
+     * @see       java.awt.GridLayout#minimumLayoutSize 
+     * @see       java.awt.Container#getPreferredSize()
+     * @since     JDK1.0
      */
     public Dimension preferredLayoutSize(Container parent) {
+      synchronized (parent.getTreeLock()){
 	Insets insets = parent.getInsets();
 	int ncomponents = parent.getComponentCount();
 	int nrows = rows;
@@ -184,15 +267,32 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
 	}
 	return new Dimension(insets.left + insets.right + ncols*w + (ncols-1)*hgap, 
 			     insets.top + insets.bottom + nrows*h + (nrows-1)*vgap);
+      }
     }
 
     /**
-     * Returns the minimum dimensions needed to layout the components 
-     * contained in the specified panel.
-     * @param parent the component which needs to be laid out 
-     * @see #preferredLayoutSize
+     * Determines the minimum size of the container argument using this 
+     * grid layout. 
+     * <p>
+     * The minimum width of a grid layout is the largest minimum width 
+     * of any of the widths in the container times the number of columns, 
+     * plus the horizontal padding times the number of columns plus one, 
+     * plus the left and right insets of the target container. 
+     * <p>
+     * The minimum height of a grid layout is the largest minimum height 
+     * of any of the widths in the container times the number of rows, 
+     * plus the vertical padding times the number of rows plus one, plus 
+     * the top and left insets of the target container. 
+     *  
+     * @param       target   the container in which to do the layout.
+     * @return      the minimum dimensions needed to lay out the 
+     *                      subcomponents of the specified container.
+     * @see         java.awt.GridLayout#preferredLayoutSize
+     * @see         java.awt.Container#doLayout
+     * @since       JDK1.0
      */
     public Dimension minimumLayoutSize(Container parent) {
+      synchronized (parent.getTreeLock()){
 	Insets insets = parent.getInsets();
 	int ncomponents = parent.getComponentCount();
 	int nrows = rows;
@@ -217,14 +317,30 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
 	}
 	return new Dimension(insets.left + insets.right + ncols*w + (ncols-1)*hgap, 
 			     insets.top + insets.bottom + nrows*h + (nrows-1)*vgap);
+      }
     }
 
     /** 
-     * Lays out the container in the specified panel.  
-     * @param parent the specified component being laid out
-     * @see Container
+     * Lays out the specified container using this layout. 
+     * <p>
+     * This method reshapes the components in the specified target 
+     * container in order to satisfy the constraints of the 
+     * <code>GridLayout</code> object. 
+     * <p>
+     * The grid layout manager determines the size of individual 
+     * components by dividing the free space in the container into 
+     * equal-sized portions according to the number of rows and columns 
+     * in the layout. The container's free space equals the container's 
+     * size minus any insets and any specified horizontal or vertical 
+     * gap. All components in a grid layout are given the same size. 
+     *  
+     * @param      target   the container in which to do the layout.
+     * @see        java.awt.Container
+     * @see        java.awt.Container#doLayout
+     * @since      JDK1.0
      */
     public void layoutContainer(Container parent) {
+      synchronized (parent.getTreeLock()) {
 	Insets insets = parent.getInsets();
 	int ncomponents = parent.getComponentCount();
 	int nrows = rows;
@@ -251,10 +367,13 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
 		}
 	    }
 	}
+      }
     }
     
     /**
-     * Returns the String representation of this GridLayout's values.
+     * Returns the string representation of this grid layout's values.
+     * @return     a string representation of this grid layout.
+     * @since      JDK1.0
      */
     public String toString() {
 	return getClass().getName() + "[hgap=" + hgap + ",vgap=" + vgap + 

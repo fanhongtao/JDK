@@ -1,5 +1,5 @@
 /*
- * @(#)AWTException.java	1.7 97/01/27
+ * @(#)AWTException.java	1.8 97/06/17
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,7 +25,7 @@ package java.awt;
 /**
  * Signals that an Absract Window Toolkit exception has occurred.
  *
- * @version 	1.7 01/27/97
+ * @version 	1.8 06/17/97
  * @author 	Arthur van Hoff
  */
 public class AWTException extends Exception {
@@ -36,10 +36,12 @@ public class AWTException extends Exception {
      private static final long serialVersionUID = -1900414231151323879L;
 
     /**
-     * Constructs an AWTException with the specified detail message. 
-     * A detail message is a String that describes this particular
+     * Constructs an instance of <code>AWTException</code> with the 
+     * specified detail message. A detail message is an 
+     * instance of <code>String</code> that describes this particular
      * exception. 
-     * @param msg the detail message
+     * @param   msg     the detail message
+     * @since   JDK1.0
      */
     public AWTException(String msg) {
 	super(msg);

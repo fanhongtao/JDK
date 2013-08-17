@@ -1,5 +1,5 @@
 /*
- * @(#)StringCharacterIterator.java	1.8 97/02/06
+ * @(#)StringCharacterIterator.java	1.15 98/02/02
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -102,7 +102,7 @@ public final class StringCharacterIterator implements CharacterIterator
      */
     public StringCharacterIterator(String text, int pos)
     {
-	this(text, 0, text.length(), pos);
+    this(text, 0, text.length(), pos);
     }
 
     /**
@@ -119,15 +119,15 @@ public final class StringCharacterIterator implements CharacterIterator
             throw new NullPointerException();
         this.text = text;
 
-	if (begin < 0 || begin > end)
+	if (begin < 0 || begin > end || end > text.length())
 	    throw new IllegalArgumentException("Invalid substring range");
 
-	if (pos < begin || pos > end)
-	    throw new IllegalArgumentException("Invalid position");
+        if (pos < begin || pos > end)
+            throw new IllegalArgumentException("Invalid position");
 
-	this.begin = begin;
-	this.end = end;
-	this.pos = pos;
+        this.begin = begin;
+        this.end = end;
+        this.pos = pos;
     }
 
 
@@ -142,8 +142,8 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Set the position to getEndIndex() and return the character at that
-     * position.
+     * Set the position to getEndIndex() and return the
+     * character at that position.
      */
     public char last()
     {
@@ -188,10 +188,12 @@ public final class StringCharacterIterator implements CharacterIterator
      */
     public char next()
     {
-        if (++pos < end) {
+        if (pos < end - 1) {
+            pos++;
             return text.charAt(pos);
         }
         else {
+            pos = end;
             return DONE;
         }
     }
@@ -281,13 +283,13 @@ public final class StringCharacterIterator implements CharacterIterator
      */
     public Object clone()
     {
-    	try {
+        try {
             StringCharacterIterator other
             = (StringCharacterIterator) super.clone();
-        	return other;
+            return other;
         }
         catch (CloneNotSupportedException e) {
-        	throw new InternalError();
+            throw new InternalError();
         }
     }
 

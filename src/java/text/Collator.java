@@ -1,5 +1,5 @@
 /*
- * @(#)Collator.java	1.6 97/02/06
+ * @(#)Collator.java	1.13 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -100,7 +100,7 @@ import java.util.Hashtable;
  * <code>String</code> multiple times. In this case, <code>CollationKey</code>s
  * provide better performance. The <code>CollationKey</code> class converts
  * a <code>String</code> to a series of bits that can be compared bitwise
- * against other <code>CollationKey</code>s. A <code>CollationKey</code> is 
+ * against other <code>CollationKey</code>s. A <code>CollationKey</code> is
  * created by a <code>Collator</code> object for a given <code>String</code>.
  * <br>
  * <strong>Note:</strong> <code>CollationKey</code>s from different
@@ -112,7 +112,7 @@ import java.util.Hashtable;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.6 02/06/97
+ * @version     1.13 01/12/98
  * @author      Helena Shih
  */
 
@@ -149,8 +149,13 @@ public abstract class Collator implements Cloneable, Serializable {
     /**
      * Collator strength value.  When set, all differences are
      * considered significant during comparison. The assignment of strengths
-     * to language features is locale dependant. A common example is for characters
-     * with equivalent Unicode spellings ("\u00E4" vs "a\u0308") to be considered IDENTICAL.
+     * to language features is locale dependant. A common example is for control
+     * characters ("&#092;u0001" vs "&#092;u0002") to be considered equal at the
+     * PRIMARY, SECONDARY, and TERTIARY levels but different at the IDENTICAL
+     * level.  Additionally, differences between pre-composed accents such as
+     * "&#092;u00C0" (A-grave) and combining accents such as "A&#092;u0300"
+     * (A, combining-grave) will be considered significant at the tertiary
+     * level if decomposition is set to NO_DECOMPOSITION.
      */
     public final static int IDENTICAL = 3;
 
@@ -290,10 +295,7 @@ public abstract class Collator implements Cloneable, Serializable {
      */
     public boolean equals(String source, String target)
     {
-        if (compare(source, target) == Collator.EQUAL)
-            return true;
-        else
-            return false;
+        return (compare(source, target) == Collator.EQUAL);
     }
 
     /**
@@ -328,7 +330,8 @@ public abstract class Collator implements Cloneable, Serializable {
     public synchronized void setStrength(int newStrength) {
         if ((newStrength != PRIMARY) &&
             (newStrength != SECONDARY) &&
-            (newStrength != TERTIARY))
+            (newStrength != TERTIARY) &&
+            (newStrength != IDENTICAL))
             throw new IllegalArgumentException("Incorrect comparison level.");
         strength = newStrength;
     }
@@ -404,6 +407,7 @@ public abstract class Collator implements Cloneable, Serializable {
     public boolean equals(Object that)
     {
         if (this == that) return true;
+        if (that == null) return false;
         if (getClass() != that.getClass()) return false;
         Collator other = (Collator) that;
         return ((strength == other.strength) &&
@@ -413,7 +417,7 @@ public abstract class Collator implements Cloneable, Serializable {
     /**
      * Generates the hash code for this Collator.
      */
-    abstract public synchronized int hashCode();
+    abstract public int hashCode();
 
     /**
      * Default constructor.  This constructor is
@@ -453,4 +457,6 @@ public abstract class Collator implements Cloneable, Serializable {
      */
     final static int GREATER = 1;
 
-}
+    // Proclaims serialization compatibility to 1.1.
+    static final long serialVersionUID = -7718728969026499504L;
+ }

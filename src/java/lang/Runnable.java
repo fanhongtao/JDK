@@ -1,5 +1,5 @@
 /*
- * @(#)Runnable.java	1.12 97/01/20
+ * @(#)Runnable.java	1.13 97/08/25
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,7 +36,7 @@ package java.lang;
  * In addition, <code>Runnable</code> provides the means for a class to be
  * active while not subclassing <code>Thread</code>. A class that implements
  * <code>Runnable</code> can run without subclassing <code>Thread</code>
- * by instantiating a ,code>Thread</code> instance and passing itself in
+ * by instantiating a <code>Thread</code> instance and passing itself in
  * as the target.  In most cases, the <code>Runnable</code> interface should
  * be used if you are only planning to override the <code>run()</code>
  * method and no other <code>Thread</code> methods.  
@@ -45,7 +45,7 @@ package java.lang;
  * behavior of the class.
  *
  * @author  Arthur van Hoff
- * @version 1.12, 01/20/97
+ * @version 1.13, 08/25/97
  * @see     java.lang.Thread
  * @since   JDK1.0 * @see 	Thread
  */

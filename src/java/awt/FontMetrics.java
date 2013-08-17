@@ -1,5 +1,5 @@
 /*
- * @(#)FontMetrics.java	1.16 97/02/20
+ * @(#)FontMetrics.java	1.17 97/06/13
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -23,9 +23,10 @@
 package java.awt;
 
 /** 
- * A font metrics object. Note that the implementations of these
- * methods are inefficient, they are usually overridden with more
- * efficient toolkit specific implementations.
+ * A font metrics object, which gives information about the rendering 
+ * of a particular font on a particular screen. Note that the 
+ * implementations of these methods are inefficient, they are usually 
+ * overridden with more efficient toolkit-specific implementations.
  * <p>
  * <b>Note to subclassers</b>: Since many of these methods form closed
  * mutually recursive loops, you must take care that you implement
@@ -42,14 +43,49 @@ package java.awt;
  * <li><a href="#charWidth(char)">charWidth</a>(char ch)
  * <li><a href="#charsWidth(char[], int, int)">charsWidth</a>(char data[], int off, int len)
  * </ul>
- * 
- * @version 	1.16 02/20/97
+ * <p>
+ * <img src="images-awt/FontMetrics-1.gif" border=15 align
+ * ALIGN=right HSPACE=10 VSPACE=7>
+ * When an application asks AWT to place a character at the position 
+ * (<i>x</i>,&nbsp;<i>y</i>), the character is placed so that its 
+ * reference point (shown as the dot in the accompanying image) is 
+ * put at that position. The reference point specifies a horizontal 
+ * line called the <i>baseline</i> of the character. In normal 
+ * printing, the baselines of characters should align. 
+ * <p> 
+ * In addition, every character in a font has an <i>ascent</i>, a 
+ * <i>descent</i>, and an <i>advance width</i>. The ascent is the 
+ * amount by which the character ascends above the baseline. The 
+ * descent is the amount by which the character descends below the 
+ * baseline. The advance width indicates the position at which AWT  
+ * should place the next character. 
+ * <p>
+ * If the current character is placed with its reference point 
+ * at the position (<i>x</i>,&nbsp;<i>y</i>), and 
+ * the character's advance width is <i>w</i>, then the following 
+ * character is placed with its reference point at the position 
+ * (<i>x&nbsp;</i><code>+</code><i>&nbsp;w</i>,&nbsp;<i>y</i>). 
+ * The advance width is often the same as the width of character's 
+ * bounding box, but need not be so. In particular, oblique and 
+ * italic fonts often have characters whose top-right corner extends 
+ * slightly beyond the advance width. 
+ * <p>
+ * An array of characters or a string can also have an ascent, a 
+ * descent, and an advance width. The ascent of the array is the 
+ * maximum ascent of any character in the array. The descent is the 
+ * maximum descent of any character in the array. The advance width 
+ * is the sum of the advance widths of each of the characters in the 
+ * array. 
+ * @version 	1.17 06/13/97
  * @author 	Jim Graham
+ * @see         java.awt.Font
+ * @since       JDK1.0
  */
 public abstract class FontMetrics implements java.io.Serializable {
     /**
      * The actual font.
      * @see #getFont
+     * @since JDK1.0
      */
     protected Font font;
 
@@ -59,48 +95,64 @@ public abstract class FontMetrics implements java.io.Serializable {
     private static final long serialVersionUID = 1681126225205050147L;
 
     /**
-     * Creates a new FontMetrics object with the specified font.
-     * @param font the font
-     * @see Font
+     * Creates a new <code>FontMetrics</code> object for finding out 
+     * height and width information about the specified font and  
+     * specific character glyphs in that font. 
+     * @param     font the font
+     * @see       java.awt.Font
+     * @since     JDK1.0
      */
     protected FontMetrics(Font font) {
 	this.font = font;
     }
 
     /**
-     * Gets the font.
+     * Gets the font described by this font metric.
+     * @return    the font described by this font metric.
+     * @since     JDK1.0
      */
     public Font getFont() {
 	return font;
     }
 
     /**
-     * Gets the standard leading, or line spacing, for the font.  
-     * This is the logical amount of space to be reserved between the
-     * descent of one line of text and the ascent of the next line.
-     * The height metric is calculated to include this extra space.
+     * Determines the <em>standard leading</em> of the font described by 
+     * this font metric. The standard leading (interline spacing) is the 
+     * logical amount of space to be reserved between the descent of one 
+     * line of text and the ascent of the next line. The height metric is 
+     * calculated to include this extra space. 
+     * @return    the standard leading of the font.
+     * @see       java.awt.FontMetrics#getHeight
+     * @see       java.awt.FontMetrics#getAscent
+     * @see       java.awt.FontMetrics#getDescent
+     * @since     JDK1.0
      */
     public int getLeading() {
 	return 0;
     }
 
     /**
-     * Gets the font ascent. The font ascent is the distance from the 
-     * base line to the top of most Alphanumeric characters.  Note,
-     * however, that some characters in the font may extend above
-     * this height.
-     * @see #getMaxAscent
+     * Determines the <em>font ascent</em> of the font described by this 
+     * font metric. The font ascent is the distance from the font's 
+     * baseline to the top of most alphanumeric characters. Some 
+     * characters in the font may extend above the font ascent line. 
+     * @return     the font ascent of the font.
+     * @see        java.awt.FontMetrics#getMaxAscent
+     * @since      JDK1.0
      */
     public int getAscent() {
 	return font.getSize();
     }
 
     /**
-     * Gets the font descent. The font descent is the distance from the 
-     * base line to the bottom of most Alphanumeric characters.  Note,
-     * however, that some characters in the font may extend below this
-     * height.
-     * @see #getMaxDescent
+     * Determines the <em>font descent</em> of the font described by this 
+     * font metric. The font descent is the distance from the font's 
+     * baseline to the bottom of most alphanumeric characters with 
+     * descenders. Some characters in the font may extend below the font 
+     * descent line. 
+     * @return     the font descent of the font.
+     * @see        java.awt.FontMetrics#getMaxDescent
+     * @since      JDK1.0
      */
     public int getDescent() {
 	return 0;
@@ -113,26 +165,35 @@ public abstract class FontMetrics implements java.io.Serializable {
      * guarantee that lines of text spaced at this distance will be
      * disjoint; such lines may overlap if some characters overshoot
      * either the standard ascent or the standard descent metric.
+     * @return    the standard height of the font.
+     * @see       java.awt.FontMetrics#getLeading
+     * @see       java.awt.FontMetrics#getAscent
+     * @see       java.awt.FontMetrics#getDescent
+     * @since     JDK1.0
      */
     public int getHeight() {
 	return getLeading() + getAscent() + getDescent();
     }
 
     /**
-     * Gets the maximum ascent of all characters in this Font.
-     * No character will extend further above the baseline than this 
-     * distance.
-     * @see #getAscent
+     * Determines the maximum ascent of the font described by this font 
+     * metric. No character extends further above the font's baseline 
+     * than this height. 
+     * @return    the maximum ascent of any character in the font.
+     * @see       java.awt.FontMetrics#getAscent
+     * @since     JDK1.0
      */
     public int getMaxAscent() {
 	return getAscent();
     }
 
     /**
-     * Gets the maximum descent of all characters in this Font.
-     * No character will descend futher below the baseline than this
-     * distance.
-     * @see #getDescent
+     * Determines the maximum descent of the font described by this font 
+     * metric. No character extends further below the font's baseline 
+     * than this height. 
+     * @return    the maximum descent of any character in the font.
+     * @see       java.awt.FontMetrics#getDescent
+     * @since     JDK1.0
      */
     public int getMaxDescent() {
 	return getDescent();
@@ -142,7 +203,7 @@ public abstract class FontMetrics implements java.io.Serializable {
      * For backward compatibility only.
      * @see #getMaxDescent
      * @deprecated As of JDK version 1.1.1,
-     * replaced by getMaxDescent().
+     * replaced by <code>getMaxDescent()</code>.
      */
     public int getMaxDecent() {
 	return getMaxDescent();
@@ -152,7 +213,10 @@ public abstract class FontMetrics implements java.io.Serializable {
      * Gets the maximum advance width of any character in this Font. 
      * The advance width is the amount by which the current point is
      * moved from one character to the next in a line of text.
-     * @return -1 if the max advance is not known.
+     * @return    the maximum advance width of any character 
+     *            in the font, or <code>-1</code> if the 
+     *            maximum advance width is not known.
+     * @since     JDK1.0
      */
     public int getMaxAdvance() {
 	return -1;
@@ -163,7 +227,11 @@ public abstract class FontMetrics implements java.io.Serializable {
      * The advance width is the amount by which the current point is
      * moved from one character to the next in a line of text.
      * @param ch the character to be measured
-     * @see #stringWidth
+     * @return    the advance width of the specified <code>char</code> 
+     *                 in the font described by this font metric.
+     * @see       java.awt.FontMetrics#charsWidth
+     * @see       java.awt.FontMetrics#stringWidth
+     * @since     JDK1.0
      */
     public int charWidth(int ch) {
 	return charWidth((char)ch);
@@ -174,7 +242,11 @@ public abstract class FontMetrics implements java.io.Serializable {
      * The advance width is the amount by which the current point is
      * moved from one character to the next in a line of text.
      * @param ch the character to be measured
-     * @see #stringWidth
+     * @return     the advance width of the specified <code>char</code> >
+     *                  in the font described by this font metric.
+     * @see        java.awt.FontMetrics#charsWidth
+     * @see        java.awt.FontMetrics#stringWidth
+     * @since      JDK1.0
      */
     public int charWidth(char ch) {
 	if (ch < 256) {
@@ -190,8 +262,11 @@ public abstract class FontMetrics implements java.io.Serializable {
      * The advance width is the amount by which the current point is
      * moved from one character to the next in a line of text.
      * @param str the String to be measured
-     * @see #charsWidth
-     * @see #bytesWidth
+     * @return    the advance width of the specified string 
+     *                  in the font described by this font metric.
+     * @see       java.awt.FontMetrics#bytesWidth
+     * @see       java.awt.FontMetrics#charsWidth
+     * @since     JDK1.0
      */
     public int stringWidth(String str) {
 	int len = str.length();
@@ -208,8 +283,14 @@ public abstract class FontMetrics implements java.io.Serializable {
      * @param data the array of characters to be measured
      * @param off the start offset of the characters in the array
      * @param len the number of characters to be measured from the array
-     * @see #stringWidth
-     * @see #bytesWidth
+     * @return    the advance width of the subarray of the specified 
+     *               <code>char</code> array in the font described by 
+     *               this font metric.
+     * @see       java.awt.FontMetrics#charWidth(int)
+     * @see       java.awt.FontMetrics#charWidth(char)
+     * @see       java.awt.FontMetrics#bytesWidth
+     * @see       java.awt.FontMetrics#stringWidth
+     * @since     JDK1.0
      */
     public int charsWidth(char data[], int off, int len) {
 	return stringWidth(new String(data, off, len));
@@ -223,8 +304,12 @@ public abstract class FontMetrics implements java.io.Serializable {
      * @param data the array of bytes to be measured
      * @param off the start offset of the bytes in the array
      * @param len the number of bytes to be measured from the array
-     * @see #stringWidth
-     * @see #charsWidth
+     * @return    the advance width of the subarray of the specified 
+     *               <code>byte</code> array in the font described by 
+     *               this font metric.
+     * @see       java.awt.FontMetrics#charsWidth
+     * @see       java.awt.FontMetrics#stringWidth
+     * @since     JDK1.0
      */
     public int bytesWidth(byte data[], int off, int len) {
 	return stringWidth(new String(data, 0, off, len));
@@ -234,6 +319,10 @@ public abstract class FontMetrics implements java.io.Serializable {
      * Gets the advance widths of the first 256 characters in the Font.
      * The advance width is the amount by which the current point is
      * moved from one character to the next in a line of text.
+     * @return    an array giving the advance widths of the 
+     *                 characters in the font 
+     *                 described by this font metric.
+     * @since     JDK1.0
      */
     public int[] getWidths() {
 	int widths[] = new int[256];
@@ -244,7 +333,10 @@ public abstract class FontMetrics implements java.io.Serializable {
     }
 
     /** 
-     * Returns the String representation of this FontMetric's values.
+     * Returns a representation of this <code>FontMetric</code> 
+     * object's values as a string.
+     * @return    a string representation of this font metric.
+     * @since     JDK1.0.
      */
     public String toString() {
 	return getClass().getName() + "[font=" + getFont() + "ascent=" +

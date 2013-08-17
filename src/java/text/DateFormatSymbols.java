@@ -1,5 +1,5 @@
 /*
- * @(#)DateFormatSymbols.java	1.16 97/02/13
+ * @(#)DateFormatSymbols.java	1.20 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -32,6 +32,7 @@ package java.text;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.io.Serializable;
+import java.util.Hashtable;
 
 /**
  * <code>DateFormatSymbols</code> is a public class for encapsulating
@@ -76,7 +77,7 @@ import java.io.Serializable;
  * @see          DateFormat
  * @see          SimpleDateFormat
  * @see          java.util.SimpleTimeZone
- * @version      1.16 02/13/97
+ * @version      1.20 01/12/98
  * @author       Chen-Lieh Huang
  */
 public class DateFormatSymbols implements Serializable, Cloneable {
@@ -144,6 +145,8 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * Localized date-time pattern characters. For example: use 'u' as 'y'.
      */
     String  localPatternChars = null;
+
+    static final long serialVersionUID = -5987973545549424702L;
 
     /**
      * Gets era strings. For example: "AD" and "BC".
@@ -312,17 +315,17 @@ public class DateFormatSymbols implements Serializable, Cloneable {
     public boolean equals(Object obj)
     {
         if (this == obj) return true;
-        if (getClass() != obj.getClass()) return false;
+        if (obj == null || getClass() != obj.getClass()) return false;
         DateFormatSymbols that = (DateFormatSymbols) obj;
         return (Utility.arrayEquals(eras, that.eras)
-        		&& Utility.arrayEquals(months, that.months)
-        		&& Utility.arrayEquals(shortMonths, that.shortMonths)
-        		&& Utility.arrayEquals(weekdays, that.weekdays)
-        		&& Utility.arrayEquals(shortWeekdays, that.shortWeekdays)
-        		&& Utility.arrayEquals(ampms, that.ampms)
-        		&& Utility.arrayEquals(zoneStrings, that.zoneStrings)
-        		&& Utility.arrayEquals(localPatternChars,
-        		                       that.localPatternChars));
+                && Utility.arrayEquals(months, that.months)
+                && Utility.arrayEquals(shortMonths, that.shortMonths)
+                && Utility.arrayEquals(weekdays, that.weekdays)
+                && Utility.arrayEquals(shortWeekdays, that.shortWeekdays)
+                && Utility.arrayEquals(ampms, that.ampms)
+                && Utility.arrayEquals(zoneStrings, that.zoneStrings)
+                && Utility.arrayEquals(localPatternChars,
+                                       that.localPatternChars));
     }
 
     // =======================privates===============================
@@ -331,16 +334,33 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * Useful constant for defining timezone offsets.
      */
     static final int millisPerHour = 60*60*1000;
-
+    
+    /**
+     * Cache to hold the LocaleElements and DateFormatZoneData ResourceBundles
+     * of a Locale.
+     */
+    private static final Hashtable cachedLocaleData = new Hashtable(3);
+    
     private void initializeData(Locale desiredLocale)
     {
-        int i;
-        ResourceBundle resource
-            = ResourceBundle.getBundle
-	    ("java.text.resources.LocaleElements", desiredLocale);
-        ResourceBundle zoneResource
-            = ResourceBundle.getBundle
-	    ("java.text.resources.DateFormatZoneData", desiredLocale);
+	int i;
+	ResourceBundle resource;
+	ResourceBundle zoneResource;
+	/* try the cache first */
+	ResourceBundle[] data = 
+	    (ResourceBundle[]) cachedLocaleData.get(desiredLocale);
+	if (data == null) {   /* cache miss */
+	    data = new ResourceBundle[2];
+	    data[0] = ResourceBundle.getBundle
+		("java.text.resources.LocaleElements", desiredLocale);
+	    data[1] = ResourceBundle.getBundle
+		("java.text.resources.DateFormatZoneData", desiredLocale);
+	    /* update cache */
+	    cachedLocaleData.put(desiredLocale, data);
+	}
+	resource = data[0];
+	zoneResource = data[1];
+
         eras = (String[])resource.getObject("Eras");
         months = resource.getStringArray("MonthNames");
         shortMonths = resource.getStringArray("MonthAbbreviations");
@@ -372,21 +392,10 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      */
     final int getZoneIndex (String ID)
     {
-        int index;
-
-        for (index=0; index<zoneStrings.length; index++)
-            if (ID.regionMatches(true, 0, zoneStrings[index][2], 0,
-                                 zoneStrings[index][2].length()))
-                break;
-        if (index < zoneStrings.length)
-            return index;
-
-        for (index=0; index<zoneStrings.length; index++)
-            if (ID.regionMatches(true, 0, zoneStrings[index][4], 0,
-                                 zoneStrings[index][4].length()))
-                break;
-        if (index < zoneStrings.length)
-            return index;
+        for (int index=0; index<zoneStrings.length; index++)
+        {
+            if (ID.equalsIgnoreCase(zoneStrings[index][0])) return index;
+        }
 
         return -1;
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_sl.java	1.5 97/02/24
+ * @(#)LocaleElements_sl.java	1.9 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,96 +45,152 @@
 
 package java.text.resources;
 
-public class LocaleElements_sl extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_sl() {
-        super.init(table);
+public class LocaleElements_sl extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "sl_SI" }, // locale id based on iso codes
+            { "LocaleID", "0424" }, // Windows id
+            { "ShortLanguage", "slv" }, // iso-3 abbrev lang name
+            { "ShortCountry", "SVN" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "sl", "Sloven\u0161\u010dina" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "SI", "Slovenija" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "januar", // january
+                    "februar", // february
+                    "marec", // march
+                    "april", // april
+                    "maj", // may
+                    "junij", // june
+                    "julij", // july
+                    "avgust", // august
+                    "september", // september
+                    "oktober", // october
+                    "november", // november
+                    "december", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "jan", // abb january
+                    "feb", // abb february
+                    "mar", // abb march
+                    "apr", // abb april
+                    "maj", // abb may
+                    "jun", // abb june
+                    "jul", // abb july
+                    "avg", // abb august
+                    "sep", // abb september
+                    "okt", // abb october
+                    "nov", // abb november
+                    "dec", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "Nedelja", // Sunday
+                    "Ponedeljek", // Monday
+                    "Torek", // Tuesday
+                    "Sreda", // Wednesday
+                    "\u010cetrtek", // Thursday
+                    "Petek", // Friday
+                    "Sobota" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "Ned", // abb Sunday
+                    "Pon", // abb Monday
+                    "Tor", // abb Tuesday
+                    "Sre", // abb Wednesday
+                    "\u010cet", // abb Thursday
+                    "Pet", // abb Friday
+                    "Sob" // abb Saturday
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "pr.n.\u0161.",
+                    "po Kr."
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "tol #,##0.##;-tol #,##0.##", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    ".", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "tol", // local currency symbol
+                    "SIT", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "H:mm:ss z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "EEEE, yyyy, MMMM d", // full date pattern
+                    "EEEE, yyyy, MMMM d", // long date pattern
+                    "yyyy.M.d", // medium date pattern
+                    "y.M.d", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                /* for sl_SI, default sorting except for the following: */
+
+                /* add d<stroke> between d and e. */
+                /* add l<stroke> between l and m. */
+                /* add nj "ligature" between n and o. */
+                /* add z<abovedot> after z.       */
+                "& C < c\u030c , C\u030c "           // C < c-caron
+                + "< c\u0301 , C\u0301 "             // c-acute
+                + "& D < \u01f3 , \u01f2 , \u01f1 "  // dz
+                + "< \u01c6 , \u01c5 , \u01c4 "      // dz-caron
+                + "< \u0111 , \u0110 "               // d-stroke
+                + "& L < \u0142 , \u0141 "           // l < l-stroke
+                + "& N < nj , nJ , Nj , NJ "         // ligature updated
+                + "& S < s\u030c , S\u030c "         // s < s-caron
+                + "< s\u0301, S\u0301 "              // s-acute
+                + "& Z < z\u030c , Z\u030c "         // z < z-caron
+                + "< z\u0301 , Z\u0301 "             // z-acute
+                + "< z\u0307 , Z\u0307 "             // z-dot-above
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */     "sl_SI",
-		/* Windows id */                       "0424",
-		/* iso-3 abbrev lang name */           "slo",
-		/* iso-3 abbrev country name */        "SIO",
-		/* language names */                   "en_Slovene; sl_Sloven\u0161\u010Dina",
-		/* country names */                    "en_Slovenia; sl_Slovenija",
-		/* january */                          "Januar",
-		/* february */                         "Februar",
-		/* march */                            "Marec",
-		/* april */                            "April",
-		/* may */                              "Maj",
-		/* june */                             "Junij",
-		/* july */                             "Julij",
-		/* august */                           "Avgust",
-		/* september */                        "September",
-		/* october */                          "Oktober",
-		/* november */                         "November",
-		/* december */                         "December",
-		/* month 13 if applicable */           "",
-		/* abb january */                      "Jan",
-		/* abb february */                     "Feb",
-		/* abb march */                        "Mar",
-		/* abb april */                        "Apr",
-		/* abb may */                          "Maj",
-		/* abb june */                         "Jun",
-		/* abb july */                         "Jul",
-		/* abb august */                       "Avg",
-		/* abb september */                    "Sep",
-		/* abb october */                      "Okt",
-		/* abb november */                     "Nov",
-		/* abb december */                     "Dec",
-		/* abb month 13 if applicable */       "",
-		/* sunday */                           "Nedelja",
-		/* monday */                           "Ponedeljek",
-		/* tuesday */                          "Torek",
-		/* wednesday */                        "Sreda",
-		/* thursday */                         "\u010cetrtek",
-		/* friday */                           "Petek",
-		/* saturday */                         "Sobota",
-		/* abb sunday */                       "Ned",
-		/* abb monday */                       "Pon",
-		/* abb tuesday */                      "Tor",
-		/* abb wednesday */                    "Sre",
-		/* abb thursday */                     "\u010cet",
-		/* abb friday */                       "Pet",
-		/* abb saturday */                     "Sob",
-		/* am marker; default is AM */         "AM",
-		/* pm marker; default is PM */         "PM",
-		/* era strings */                      "pr.n.\u0161.;po Kr.",
-		/* decimal pattern */                  "#,##0.###;-#,##0.###",
-		/* currency pattern */                 "tol #,##0.##;-tol #,##0.##",
-		/* percent pattern */                  "#,##0%",
-		/* decimal separator */                ",",
-		/* group (thousands) separator */      ".",
-		/* list separator */                   "",
-		/* percent sign */                     "%",
-		/* native 0 digit */                   "0",
-		/* pattern digit */                    "#",
-		/* minus sign */                       "-",
-		/* exponential */                      "E",
-		/* local currency symbol */            "tol",
-		/* intl currency symbol */             "SIT",
-		/* monetary decimal separator */       ",",
-		/* Full time pattern */                "H:mm:ss z",
-		/* Long time pattern */                "H:mm:ss z",
-		/* Default time pattern */             "H:mm:ss",
-		/* Short time pattern */               "H:mm",
-		/* Full date pattern */                "EEEE, yyyy, MMMM d",
-		/* Long date pattern */                "yyyy, MMMM d",
-		/* Default date pattern */             "yyyy.M.d",
-		/* Short date pattern */               "y.M.d",
-		/* Date-Time pattern*/                 "{1} {0}",
-		/* first day of week */                "1",
-		/* min days in first week */           "1",
-		/* for sl_SI, default sorting except for the following: */
-
-		/* add d<stroke> between d and e. */
-		/* add l<stroke> between l and m. */
-		/* add nj "ligature" between n and o. */
-		/* add z<abovedot> after z.       */
-		"& D < \u0111, \u0110"                     /* d<stroke>   */
-		+"& L < \u0142, \u0141"                    /* l<stroke>   */
-		+"& N < nj, Nj, nJ, NJ"                    /* nj ligature */
-		+"& Z < \u017c, \u017b"                    /* z<abovedot> */
-    };
 }

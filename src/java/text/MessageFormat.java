@@ -1,5 +1,5 @@
 /*
- * @(#)MessageFormat.java	1.15 97/01/29
+ * @(#)MessageFormat.java   1.15 97/01/29
  *
  * (C) Copyright Taligent, Inc. 1996,1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996,1997 - All Rights Reserved
@@ -51,7 +51,7 @@ import java.text.Utility;
  * method). The factory methods aren't necessary because <code>MessageFormat</code>
  * doesn't require any complex setup for a given locale. In fact,
  * <code>MessageFormat</code> doesn't implement any locale specific behavior
- * at all. It just needs to be set up on a sentence by sentence basis. 
+ * at all. It just needs to be set up on a sentence by sentence basis.
  *
  * <p>
  * Here are some examples of usage:
@@ -93,7 +93,7 @@ import java.text.Utility;
  * </pre>
  * </blockquote>
  *
- * <p> 
+ * <p>
  * The pattern is of the form:
  * <blockquote>
  * <pre>
@@ -141,8 +141,8 @@ import java.text.Utility;
  * <p>
  * The argument is a number from 0 to 9, which corresponds to the
  * arguments presented in an array to be formatted.
- * 
- * <p> 
+ *
+ * <p>
  * It is ok to have unused arguments in the array.
  * With missing arguments or arguments that are not of the right class for
  * the specified format, a <code>ParseException</code> is thrown.
@@ -205,6 +205,10 @@ import java.text.Utility;
  * <li>format2 affects the second variable {0}
  * <li>and so on.
  * </ul>
+ * <p>
+ * You can use <code>setLocale</code> followed by <code>applyPattern</code>
+ * (and then possibly <code>setFormat</code>) to re-initialize a
+ * <code>MessageFormat</code> with a different locale.
  *
  * @see          java.util.Locale
  * @see          Format
@@ -255,13 +259,14 @@ public class MessageFormat extends Format {
             int formatNumber = 0;
             boolean inQuote = false;
             int braceStack = 0;
+            maxOffset = -1;
             for (int i = 0; i < newPattern.length(); ++i) {
                 char ch = newPattern.charAt(i);
                 if (part == 0) {
                     if (ch == '\'') {
                         if (i + 1 < newPattern.length()
                             && newPattern.charAt(i+1) == '\'') {
-                            segments[part].append(ch);	// handle doubles
+                            segments[part].append(ch);  // handle doubles
                             ++i;
                         } else {
                             inQuote = !inQuote;
@@ -271,7 +276,7 @@ public class MessageFormat extends Format {
                     } else {
                         segments[part].append(ch);
                     }
-                } else  if (inQuote) {				// just copy quotes in parts
+                } else  if (inQuote) {              // just copy quotes in parts
                     segments[part].append(ch);
                     if (ch == '\'') {
                         inQuote = false;
@@ -327,9 +332,9 @@ public class MessageFormat extends Format {
             if (formats[i] == null) {
                 // do nothing, string format
             } else if (formats[i] instanceof DecimalFormat) {
-            	if (formats[i].equals(NumberFormat.getInstance(locale))) {
+                if (formats[i].equals(NumberFormat.getInstance(locale))) {
                     result.append(",number");
-            	} else if (formats[i].equals(
+                } else if (formats[i].equals(
                                              NumberFormat.getCurrencyInstance(locale))) {
                     result.append(",number,currency");
                 } else if (formats[i].equals(
@@ -337,7 +342,7 @@ public class MessageFormat extends Format {
                     result.append(",number,percent");
                 } else if (formats[i].equals(getIntegerFormat(locale))) {
                     result.append(",number,integer");
-            	} else {
+                } else {
                     result.append(",number," +
                                   ((DecimalFormat)formats[i]).toPattern());
                 }
@@ -345,34 +350,34 @@ public class MessageFormat extends Format {
                 if (formats[i].equals(DateFormat.getDateInstance(
                                                                DateFormat.DEFAULT,locale))) {
                     result.append(",date");
-            	} else if (formats[i].equals(DateFormat.getDateInstance(
+                } else if (formats[i].equals(DateFormat.getDateInstance(
                                                                       DateFormat.SHORT,locale))) {
                     result.append(",date,short");
-            	} else if (formats[i].equals(DateFormat.getDateInstance(
+                } else if (formats[i].equals(DateFormat.getDateInstance(
                                                                       DateFormat.DEFAULT,locale))) {
                     result.append(",date,medium");
-            	} else if (formats[i].equals(DateFormat.getDateInstance(
+                } else if (formats[i].equals(DateFormat.getDateInstance(
                                                                       DateFormat.LONG,locale))) {
                     result.append(",date,long");
-            	} else if (formats[i].equals(DateFormat.getDateInstance(
+                } else if (formats[i].equals(DateFormat.getDateInstance(
                                                                       DateFormat.FULL,locale))) {
                     result.append(",date,full");
-            	} else if (formats[i].equals(DateFormat.getTimeInstance(
+                } else if (formats[i].equals(DateFormat.getTimeInstance(
                                                                       DateFormat.DEFAULT,locale))) {
                     result.append(",time");
-            	} else if (formats[i].equals(DateFormat.getTimeInstance(
+                } else if (formats[i].equals(DateFormat.getTimeInstance(
                                                                       DateFormat.SHORT,locale))) {
                     result.append(",time,short");
-            	} else if (formats[i].equals(DateFormat.getTimeInstance(
+                } else if (formats[i].equals(DateFormat.getTimeInstance(
                                                                       DateFormat.DEFAULT,locale))) {
                     result.append(",time,medium");
-            	} else if (formats[i].equals(DateFormat.getTimeInstance(
+                } else if (formats[i].equals(DateFormat.getTimeInstance(
                                                                       DateFormat.LONG,locale))) {
                     result.append(",time,long");
-            	} else if (formats[i].equals(DateFormat.getTimeInstance(
+                } else if (formats[i].equals(DateFormat.getTimeInstance(
                                                                       DateFormat.FULL,locale))) {
                     result.append(",time,full");
-            	} else {
+                } else {
                     result.append(",date,"
                                   + ((SimpleDateFormat)formats[i]).toPattern());
                 }
@@ -380,7 +385,7 @@ public class MessageFormat extends Format {
                 result.append(",choice,"
                               + ((ChoiceFormat)formats[i]).toPattern());
             } else {
-            	//result.append(", unknown");
+                //result.append(", unknown");
             }
             result.append('}');
         }
@@ -396,7 +401,7 @@ public class MessageFormat extends Format {
         try {
             formats = (Format[]) newFormats.clone();
         } catch (Exception e) {
-            return;	// should never occur!
+            return; // should never occur!
         }
     }
 
@@ -405,7 +410,7 @@ public class MessageFormat extends Format {
      * See the class description about format numbering.
      */
     public void setFormat(int variable, Format newFormat) {
-    	formats[variable] = newFormat;
+        formats[variable] = newFormat;
     }
 
     /**
@@ -416,7 +421,7 @@ public class MessageFormat extends Format {
         try {
             return (Format[]) formats.clone();
         } catch (Exception e) {
-            return formats;	// should never occur!
+            return formats; // should never occur!
         }
     }
 
@@ -486,14 +491,19 @@ public class MessageFormat extends Format {
             }
 
             // now use format
-            if (formats[i] == null) {	// string format
+            if (formats[i] == null) {   // string format
                 // if at end, use longest possible match
                 // otherwise uses first match to intervening string
                 // does NOT recursively try all possibilities
                 int tempLength = (i != maxOffset) ? offsets[i+1] : pattern.length();
-                int next = source.indexOf(
-                                          pattern.substring(patternOffset,tempLength),
-                                          sourceOffset);
+
+                int next;
+                if (patternOffset >= tempLength) {
+                    next = source.length();
+                }else{
+                    next = source.indexOf( pattern.substring(patternOffset,tempLength), sourceOffset);
+                }
+
                 if (next < 0) {
                     return null; // leave index as is to signal error
                 } else {
@@ -510,14 +520,14 @@ public class MessageFormat extends Format {
                 }
                 sourceOffset = tempStatus.index; // update
             }
-    	}
-    	int len = pattern.length() - patternOffset;
+        }
+        int len = pattern.length() - patternOffset;
         if (len == 0 || pattern.regionMatches(patternOffset,
                                               source, sourceOffset, len)) {
             status.index = sourceOffset + len;
         } else {
             return null; // leave index as is to signal error
-    	}
+        }
         return resultArray;
     }
 
@@ -531,6 +541,7 @@ public class MessageFormat extends Format {
         Object[] result = parse(source, status);
         if (status.index == 0)  // unchanged, returned object is null
             throw new ParseException("MessageFormat parse error!", 0);
+
         return result;
     }
 
@@ -573,10 +584,10 @@ public class MessageFormat extends Format {
         MessageFormat other = (MessageFormat) obj;
         return (maxOffset == other.maxOffset
                 && pattern.equals(other.pattern)
-        	&& Utility.objectEquals(locale, other.locale)	// does null check
+            && Utility.objectEquals(locale, other.locale)   // does null check
                 && Utility.arrayEquals(offsets,other.offsets)
-        	&& Utility.arrayEquals(argumentNumbers,other.argumentNumbers)
-        	&& Utility.arrayEquals(formats,other.formats));
+            && Utility.arrayEquals(argumentNumbers,other.argumentNumbers)
+            && Utility.arrayEquals(formats,other.formats));
     }
 
     /**
@@ -597,6 +608,15 @@ public class MessageFormat extends Format {
     private int[] offsets = new int[10];
     private int[] argumentNumbers = new int[10];
     private int maxOffset = -1;
+
+    /**
+     * Constructs with the specified pattern.
+     * @see MessageFormat#applyPattern
+     */
+    private MessageFormat(String pattern, Locale loc) {
+        locale = (Locale)loc.clone();
+        applyPattern(pattern);
+    }
 
     /**
      * Internal routine used by format.
@@ -629,7 +649,7 @@ public class MessageFormat extends Format {
                     tryRecursion = formats[i] instanceof ChoiceFormat;
                 } else if (obj instanceof Number) {
                     // format number if can
-                    arg = NumberFormat.getInstance(locale).format(obj);	// fix
+                    arg = NumberFormat.getInstance(locale).format(obj); // fix
                 } else if (obj instanceof Date) {
                     // format a Date if can
                     arg = DateFormat.getDateTimeInstance(DateFormat.SHORT,
@@ -637,15 +657,15 @@ public class MessageFormat extends Format {
                                                        locale).format(obj);//fix
                 } else if (obj instanceof String) {
                     arg = (String) obj;
+
                 } else {
-                    System.out.println("Unknown object of type:" +
-                                       obj.getClass().getName());
-                    throw new IllegalArgumentException("Unknown argument");
+                    arg = obj.toString();
+                    if (arg == null) arg = "null";
                 }
 
                 // recurse if necessary
                 if (tryRecursion && arg.indexOf('{') >= 0) {
-                    MessageFormat temp = new MessageFormat(arg);
+                    MessageFormat temp = new MessageFormat(arg, locale);
                     temp.format(arguments,result,status,recursionProtection);
                 } else {
                     result.append(arg);
@@ -782,7 +802,7 @@ public class MessageFormat extends Format {
             throw new IllegalArgumentException("unknown format type at ");
         }
         formats[offsetNumber] = newFormat;
-        segments[1].setLength(0);	// throw away other segments
+        segments[1].setLength(0);   // throw away other segments
         segments[2].setLength(0);
         segments[3].setLength(0);
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)Polygon.java	1.15 97/01/27
+ * @(#)Polygon.java	1.16 97/06/17
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -22,26 +22,38 @@
 package java.awt;
 
 /**
- * A polygon consists of a list of x and y coordinates.
+ * The <code>Polygon</code> class encapsulates a description of a 
+ * closed, two-dimensional region within a coordinate space. This 
+ * region is bounded by an arbitrary number of line segments, each of 
+ * which is one side of the polygon. Internally, a polygon 
+ * comprises of a list of (<i>x</i>,&nbsp;<i>y</i>) coordinate pairs, 
+ * where each pair defines a <i>vertex</i> of the polygon, and two 
+ * successive pairs are the endpoints of a line that is a side of the 
+ * polygon. The first and final pairs of (<i>x</i>,&nbsp;<i>y</i>) 
+ * points are joined by a line segment that closes the polygon.
  *
- * @version 	1.15, 01/27/97
+ * @version 	1.16, 06/17/97
  * @author 	Sami Shaio
  * @author      Herb Jellinek
+ * @since       JDK1.0
  */
 public class Polygon implements Shape, java.io.Serializable {
 
     /**
      * The total number of points.
+     * @since JDK1.0
      */
     public int npoints = 0;
 
     /**
-     * The array of x coordinates.
+     * The array of <i>x</i> coordinates. 
+     * @since   JDK1.0
      */
     public int xpoints[] = new int[4];
 
     /**
-     * The array of y coordinates.
+     * The array of <i>y</i> coordinates. 
+     * @since   JDK1.0
      */
     public int ypoints[] = new int[4];
     
@@ -57,15 +69,20 @@ public class Polygon implements Shape, java.io.Serializable {
 
     /**
      * Creates an empty polygon.
+     * @since JDK1.0
      */
     public Polygon() {
     }
 
     /**
-     * Constructs and initializes a Polygon from the specified parameters.
-     * @param xpoints the array of x coordinates
-     * @param ypoints the array of y coordinates
-     * @param npoints the total number of points in the Polygon
+     * Constructs and initializes a polygon from the specified 
+     * parameters. 
+     * @param      xpoints   an array of <i>x</i> coordinates.
+     * @param      ypoints   an array of <i>y</i> coordinates.
+     * @param      npoints   the total number of points in the polygon.
+     * @exception  NegativeArraySizeException if the value of
+     *                       <code>npoints</code> is negative.
+     * @since      JDK1.0
      */
     public Polygon(int xpoints[], int ypoints[], int npoints) {
 	this.npoints = npoints;
@@ -76,9 +93,12 @@ public class Polygon implements Shape, java.io.Serializable {
     }
     
     /**
-     * Translates the vertices by deltaX, deltaY.
-     * @param deltaX the amount to move the X coords
-     * @param deltaY the amount to move the Y coords
+     * Translates the vertices by <code>deltaX</code> along the 
+     * <i>x</i> axis and by <code>deltaY</code> along the 
+     * <i>y</i> axis.
+     * @param deltaX the amount to translate along the <i>x</i> axis
+     * @param deltaY the amount to translate along the <i>y</i> axis
+     * @since JDK1.1
      */
     public void translate(int deltaX, int deltaY) {
 	for (int i = 0; i < npoints; i++) {
@@ -124,12 +144,16 @@ public class Polygon implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Appends a point to a polygon.  If inside(x, y) or another
-     * operation that calculates the bounding box has already been
-     * performed, this method updates the bounds accordingly.
-
-     * @param x the x coordinate of the point
-     * @param y the y coordinate of the point
+     * Appends a point to this polygon. 
+     * <p>
+     * If an operation that calculates the bounding box of this polygon
+     * has already been performed, such as <code>getBounds</code> 
+     * or <code>contains</code>, then this method updates the bounding box. 
+     * @param       x   the <i>x</i> coordinate of the point.
+     * @param       y   the <i>y</i> coordinate of the point.
+     * @see         java.awt.Polygon#getBounds
+     * @see         java.awt.Polygon#contains
+     * @since       JDK1.0
      */
     public void addPoint(int x, int y) {
 	if (npoints == xpoints.length) {
@@ -152,8 +176,12 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
-     * Returns the bounding box of the shape.
-     * @return a Rectangle defining the bounds of the Polygon.
+     * Gets the bounding box of this polygon. The bounding box is the
+     * smallest rectangle whose sides are parallel to the <i>x</i> and
+     * <i>y</i> axes of the coordinate space, and that can completely
+     * contain the polygon.
+     * @return      a rectangle that defines the bounds of this polygon.
+     * @since       JDK1.1
      */
     public Rectangle getBounds() {
 	return getBoundingBox();
@@ -161,7 +189,7 @@ public class Polygon implements Shape, java.io.Serializable {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by getBounds().
+     * replaced by <code>getBounds()</code>.
      */
     public Rectangle getBoundingBox() {
 	if (bounds == null) {
@@ -181,13 +209,16 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
-     * Determines whether the point (x,y) is inside the Polygon. Uses
-     * an even-odd insideness rule (also known as an alternating
-     * rule).
-     * @param x the X coordinate of the point to be tested
-     * @param y the Y coordinate of the point to be tested
-     *
-     * <p>Kindly donated by Hanpeter van Vliet <hvvliet@inter.nl.net>.
+     * Determines whether the specified point is contained by this polygon.   
+     * <p>
+     * (The <code>contains</code> method is based on code by 
+     * Hanpeter van Vliet [hvvliet@inter.nl.net].) 
+     * @param      x  the <i>x</i> coordinate of the point to be tested.
+     * @param      y  the <i>y</i> coordinate of the point to be tested.
+     * @return     <code>true</code> if the point (<i>x</i>,&nbsp;<i>y</i>) 
+     *                       is contained by this polygon; 
+     *                       <code>false</code> otherwise.
+     * @since      JDK1.1
      */
     public boolean contains(int x, int y) {
 	return inside(x, y);
@@ -195,7 +226,7 @@ public class Polygon implements Shape, java.io.Serializable {
 
     /**
      * @deprecated As of JDK version 1.1,
-     * replaced by contains(int, int).
+     * replaced by <code>contains(int, int)</code>.
      */
     public boolean inside(int x, int y) {
         if (getBoundingBox().inside(x, y)) {

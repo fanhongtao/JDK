@@ -1,5 +1,5 @@
 /*
- * @(#)URLEncoder.java	1.10 97/01/28
+ * @(#)URLEncoder.java	1.11 97/06/13
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -45,11 +45,12 @@ import java.util.BitSet;
  * </ul>
  *
  * @author  Herb Jellinek
- * @version 1.10, 01/28/97
+ * @version 1.11, 06/13/97
  * @since   JDK1.0
  */
 public class URLEncoder {
     static BitSet dontNeedEncoding;
+    static final int caseDiff = ('a' - 'A');
 
     /* The list of characters that are not encoded have been determined by 
        referencing O'Reilly's "HTML: The Definitive Guide" (page 164). */
@@ -110,8 +111,18 @@ public class URLEncoder {
 		byte[] ba = buf.toByteArray();
 		for (int j = 0; j < ba.length; j++) {
 		    out.write('%');
-		    out.write(Character.forDigit((ba[j] >> 4) & 0xF, 16));
-		    out.write(Character.forDigit(ba[j] & 0xF, 16));
+		    char ch = Character.forDigit((ba[j] >> 4) & 0xF, 16);
+		    // converting to use uppercase letter as part of
+		    // the hex value if ch is a letter.
+		    if (Character.isLetter(ch)) {
+			ch -= caseDiff;
+		    }
+		    out.write(ch);
+		    ch = Character.forDigit(ba[j] & 0xF, 16);
+		    if (Character.isLetter(ch)) {
+			ch -= caseDiff;
+		    }
+		    out.write(ch);
 		}
 		buf.reset();
 	    }

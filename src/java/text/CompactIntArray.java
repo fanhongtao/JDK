@@ -1,5 +1,5 @@
 /*
- * @(#)CompactIntArray.java	1.8 97/01/27
+ * @(#)CompactIntArray.java	1.10 97/10/28
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -51,7 +51,7 @@ package java.text;
  * @see                CompactByteArray
  * @see                CompactCharArray
  * @see                CompactStringArray
- * @version            1.8 01/27/97
+ * @version            1.10 10/28/97
  * @author             Helena Shih
  */
 final class CompactIntArray implements Cloneable {
@@ -160,7 +160,7 @@ final class CompactIntArray implements Cloneable {
             char[] tempIndex;
             int    tempIndexCount;
             int[]  tempArray;
-            short  iBlock, iIndex;
+            int    iBlock, iIndex;
 
             // make temp storage, larger than we need
             tempIndex = new char[UNICODECOUNT];
@@ -182,7 +182,7 @@ final class CompactIntArray implements Cloneable {
 
                 newCount = firstPosition + BLOCKCOUNT;
                 if (newCount > tempIndexCount) {
-                    for (iIndex = (short)tempIndexCount;
+                    for (iIndex = tempIndexCount;
                          iIndex < newCount;
                          ++iIndex) {
                         tempIndex[iIndex] = (char)
@@ -239,6 +239,7 @@ final class CompactIntArray implements Cloneable {
      * as the compact array object obj; false otherwise.
      */
     public boolean equals(Object obj) {
+        if (obj == null) return false;
         if (this == obj)                      // quick check
             return true;
         if (getClass() != obj.getClass())         // same class?

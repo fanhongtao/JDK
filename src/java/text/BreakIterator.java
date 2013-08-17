@@ -1,5 +1,5 @@
 /*
- * @(#)BreakIterator.java	1.13 97/02/06
+ * @(#)BreakIterator.java	1.15 98/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -183,16 +183,16 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
     }
 
     /**
-     * Create a copy of this boundary
+     * Create a copy of this iterator
      * @return A copy of this
      */
     public Object clone()
     {
-    	try {
-        	return super.clone();
+        try {
+            return super.clone();
         }
         catch (CloneNotSupportedException e) {
-        	throw new InternalError();
+            throw new InternalError();
         }
     }
 
@@ -215,7 +215,7 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
      * @return The character index of the last text boundary.
      */
     public abstract int last();
-    
+
     /**
      * Return the nth boundary from the current boundary
      * @param n which boundary to return.  A value of 0
@@ -294,11 +294,11 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
     }
 
     /**
-     * Create BreakIterator for word-breaks using default locale.
+     * Create BreakIterator for word-breaks using specified locale.
      * Returns an instance of a BreakIterator implementing word breaks.
      * WordBreak is usefull for word selection (ex. double click)
      * @param where the local.  If a specific WordBreak is not
-     * avaliable for the specified local, a default WordBreak is returned.
+     * avaliable for the specified locale, a default WordBreak is returned.
      * @return A BreakIterator for word-breaks
      */
     public static BreakIterator getWordInstance(Locale where)
@@ -311,7 +311,7 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
      * Returns an instance of a BreakIterator implementing line breaks. Line
      * breaks are logically possible line breaks, actual line breaks are
      * usually determined based on display width.
-     * LineBreak is usefull for word wrapping text.
+     * LineBreak is useful for word wrapping text.
      * @return A BreakIterator for line-breaks
      * @see java.util.Locale#getDefault
      */
@@ -321,13 +321,13 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
     }
 
     /**
-     * Create BreakIterator for line-breaks using default locale.
+     * Create BreakIterator for line-breaks using specfied locale.
      * Returns an instance of a BreakIterator implementing line breaks. Line
      * breaks are logically possible line breaks, actual line breaks are
      * usually determined based on display width.
-     * LineBreak is usefull for word wrapping text.
+     * LineBreak is useful for word wrapping text.
      * @param where the local.  If a specific LineBreak is not
-     * avaliable for the specified local, a default LineBreak is returned.
+     * avaliable for the specified locale, a default LineBreak is returned.
      * @return A BreakIterator for line-breaks
      */
     public static BreakIterator getLineInstance(Locale where)
@@ -384,7 +384,7 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
     }
 
     /**
-     * Get the set of Locales for which TextBoundaries are installed
+     * Get the set of Locales for which BreakIterators are installed
      * @return available locales
      */
     public static synchronized Locale[] getAvailableLocales()

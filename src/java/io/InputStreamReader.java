@@ -1,5 +1,5 @@
 /*
- * @(#)InputStreamReader.java	1.11 97/01/31
+ * @(#)InputStreamReader.java	1.12 97/06/16
  * 
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -45,7 +45,7 @@ import sun.io.ConversionBufferFullException;
  * @see BufferedReader
  * @see InputStream
  *
- * @version 	1.11, 97/01/31
+ * @version 	1.12, 97/06/16
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -118,8 +118,8 @@ public class InputStreamReader extends Reader {
     private void malfunction() {
 	throw new InternalError("Converter malfunction (" +
 				btc.getCharacterEncoding() +
-				") -- please send a bug report to" +
-				" java-io@java.sun.com");
+				") -- please submit a bug report via " +
+				System.getProperty("java.vendor.url.bug"));
     }
 
     private int convertInto(char cbuf[], int off, int end) throws IOException {

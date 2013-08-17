@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_de_AT.java	1.5 97/02/24
+ * @(#)LocaleElements_de_AT.java	1.9 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,92 +45,84 @@
 
 package java.text.resources;
 
-public class LocaleElements_de_AT extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_de_AT() {
-        super.init(table);
+public class LocaleElements_de_AT extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "de_AT" }, // locale id based on iso codes
+            { "LocaleID", "0c07" }, // Windows id
+            { "ShortCountry", "AUT" }, // iso-3 abbrev country name
+            { "MonthNames", 
+                new String[] { 
+                    "J\u00e4nner", // january
+                    "Februar", // february
+                    "M\u00e4rz", // march
+                    "April", // april
+                    "Mai", // may
+                    "Juni", // june
+                    "Juli", // july
+                    "August", // august
+                    "September", // september
+                    "Oktober", // october
+                    "November", // november
+                    "Dezember", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations", 
+                new String[] { 
+                    "J\u00e4n", // abb january
+                    "Feb", // abb february
+                    "M\u00e4r", // abb march
+                    "Apr", // abb april
+                    "Mai", // abb may
+                    "Jun", // abb june
+                    "Jul", // abb july
+                    "Aug", // abb august
+                    "Sep", // abb september
+                    "Okt", // abb october
+                    "Nov", // abb november
+                    "Dez", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "NumberPatterns", 
+                new String[] { 
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "\u00f6S #,##0.00;-\u00f6S #,##0.00", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "CurrencyElements", 
+                new String[] { 
+                    "\u00f6S", // local currency symbol
+                    "ATS", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns", 
+                new String[] { 
+                    "HH:mm' Uhr 'z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "EEEE, dd. MMMM yyyy", // full date pattern
+                    "dd. MMMM yyyy", // long date pattern
+                    "dd.MM.yyyy", // medium date pattern
+                    "dd.MM.yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements", 
+                new String[] { 
+                    "2", // first day of week
+                    "1" // min days in first week
+                }
+            }
+        };
     }
-
-    static String table []={
-        "de_AT", /*locale id based on iso codes*/
-        "0c07", /*Windows id*/
-        "dea", /*iso-3 abbrev lang name*/
-        "AUT", /*iso-3 abbrev country name*/
-        "en_German; de_Deutsch; fr_allemand", /*language names*/
-        "en_Austria; de_Österreich; fr_Autriche", /*country names*/
-        "Jänner", /*january*/
-        "Februar", /*february*/
-        "März", /*march*/
-        "April", /*april*/
-        "Mai", /*may*/
-        "Juni", /*june*/
-        "Juli", /*july*/
-        "August", /*august*/
-        "September", /*september*/
-        "Oktober", /*october*/
-        "November", /*november*/
-        "Dezember", /*december*/
-        "", /*month 13 if applicable*/
-        "Jän", /*abb january*/
-        "Feb", /*abb february*/
-        "Mär", /*abb march*/
-        "Apr", /*abb april*/
-        "Mai", /*abb may*/
-        "Jun", /*abb june*/
-        "Jul", /*abb july*/
-        "Aug", /*abb august*/
-        "Sep", /*abb september*/
-        "Okt", /*abb october*/
-        "Nov", /*abb november*/
-        "Dez", /*abb december*/
-        "", /*abb month 13 if applicable*/
-        "Sonntag", /*Sunday*/
-        "Montag", /*Monday*/
-        "Dienstag", /*Tuesday*/
-        "Mittwoch", /*Wednesday*/
-        "Donnerstag", /*Thursday*/
-        "Freitag", /*Friday*/
-        "Samstag", /*Saturday*/
-        "So", /*abb Sunday*/
-        "Mo", /*abb Monday*/
-        "Di", /*abb Tuesday*/
-        "Mi", /*abb Wednesday*/
-        "Do", /*abb Thursday*/
-        "Fr", /*abb Friday*/
-        "Sa", /*abb Saturday*/
-        "AM", /*am marker*/
-        "PM", /*pm marker*/
-        "BC;AD", /*era strings*/
-        "#,##0.###;-#,##0.###", /*decimal pattern*/
-        "öS #,##0.00;-öS #,##0.00", /*currency pattern*/
-        "#,##0%", /*percent pattern*/
-        ",", /*decimal separator*/
-        ".", /*group (thousands) separator*/
-        ";", /*list separator*/
-        "%", /*percent sign*/
-        "0", /*native 0 digit*/
-        "#", /*pattern digit*/
-        "-", /*minus sign*/
-        "E", /*exponential*/
-        "öS", /*local currency symbol*/
-        "ATS", /*intl currency symbol*/
-        ",", /*monetary decimal separator*/
-        "HH:mm' Uhr 'z", /*full time pattern*/
-        "HH:mm:ss z", /*long time pattern*/
-        "HH:mm:ss", /*medium time pattern*/
-        "HH:mm", /*short time pattern*/
-        "EEEE, d. MMMM yyyy", /*full date pattern*/
-        "d. MMMM yyyy", /*long date pattern*/
-        "d.M.yyyy", /*medium date pattern*/
-        "d.M.yy", /*short date pattern*/
-        "{1} {0}", /*date-time pattern*/
-        "2", /*first day of week*/
-        "1", /*min days in first week*/
-        " & ae , a\u0308" +
-        " & AE , A\u0308" +
-        " & oe , o\u0308" +
-        " & OE , O\u0308" +
-        " & ue , u\u0308" +
-        " & UE , u\u0308"
-    };
 }

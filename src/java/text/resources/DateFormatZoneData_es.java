@@ -1,5 +1,5 @@
  /*
- * @(#)DateFormatZoneData_es.java	1.3 97/02/24
+ * @(#)DateFormatZoneData_es.java	1.5 97/12/05
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -49,7 +49,7 @@ import java.util.ListResourceBundle;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.3 02/24/97
+ * @version      1.5 12/05/97
  * @author       Chen-Lieh Huang
  */
 //  Spain DateFormatZoneData
@@ -64,8 +64,13 @@ public final class DateFormatZoneData_es extends ListResourceBundle
     }
 
     private static final String kZoneStrings[][] = {
-        {"ECT", "Central European Standard Time", "CEST",
-        "Central European Daylight Time", "CEDT", "Madrid"}
+        // The first row below is the default TimeZone for this locale.
+        // Zones should have unique names and abbreviations within
+        // this locale.  Names and abbreviations may be identical
+        // if the corresponding zones really are identical.  E.g.:
+        // America/Phoenix and America/Denver both use MST; these
+        // zones differ only in that America/Denver uses MDT as well.
+        {"Africa/Casablanca", "GMT", "GMT", "GMT", "GMT"} // To be filled in with localized time zone names
     };
 
     private static final String kLocalPatternChars = "GuMtkHmsSEDFwWahKz";

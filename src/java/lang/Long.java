@@ -1,5 +1,5 @@
 /*
- * @(#)Long.java	1.31 97/02/03
+ * @(#)Long.java	1.32 97/12/18
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -35,7 +35,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.31, 02/03/97
+ * @version 1.32, 12/18/97
  * @since   JDK1.0
  */
 public final
@@ -87,18 +87,26 @@ class Long extends Number {
     public static String toString(long i, int radix) {
         if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
 	    radix = 10;
-	StringBuffer buf = new StringBuffer(radix >= 8 ? 23 : 65);
+	
+	char[] buf = new char[65];
+	int charPos = 64;
 	boolean negative = (i < 0);
-        if (!negative)
+       
+	if (!negative) {
 	    i = -i;
+	}
+	
 	while (i <= -radix) {
-	    buf.append(Character.forDigit((int)(-(i % radix)), radix));
+	    buf[charPos--] = Integer.digits[(int)(-(i % radix))];
 	    i = i / radix;
 	}
-	buf.append(Character.forDigit((int)(-i), radix));
-	if (negative)
-	    buf.append('-');
-        return buf.reverse().toString();
+	buf[charPos] = Integer.digits[(int)(-i)];
+	
+	if (negative) {
+	    buf[--charPos] = '-';
+	}
+
+	return new String(buf, charPos, (65 - charPos));
     }
 
     /**
@@ -159,14 +167,15 @@ class Long extends Number {
      * Convert the integer to an unsigned number.
      */
     private static String toUnsignedString(long i, int shift) {
-	StringBuffer buf = new StringBuffer(shift >= 3 ? 22 : 64);
+	char[] buf = new char[64];
+	int charPos = 64;
 	int radix = 1 << shift;
 	long mask = radix - 1;
 	do {
-	    buf.append(Character.forDigit((int)(i & mask), radix));
+	    buf[--charPos] = Integer.digits[(int)(i & mask)];
 	    i >>>= shift;
 	} while (i != 0);
-        return buf.reverse().toString();
+	return new String(buf, charPos, (64 - charPos));
     }
 
     /**
@@ -205,6 +214,16 @@ class Long extends Number {
         if (s == null) {
             throw new NumberFormatException("null");
         }
+
+	if (radix < Character.MIN_RADIX) {
+	    throw new NumberFormatException("radix " + radix + 
+					    " less than Character.MIN_RADIX");
+	}
+	if (radix > Character.MAX_RADIX) {
+	    throw new NumberFormatException("radix " + radix + 
+					    " greater than Character.MAX_RADIX");
+	}
+
 	long result = 0;
 	boolean negative = false;
 	int i = 0, max = s.length();

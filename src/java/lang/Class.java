@@ -1,5 +1,5 @@
 /*
- * @(#)Class.java	1.52 97/02/10
+ * @(#)Class.java	1.55 97/07/08
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -51,7 +51,7 @@ import java.io.InputStream;
  * </blockquote></pre>
  *
  * @author  unascribed
- * @version 1.52, 02/10/97
+ * @version 1.55, 07/08/97
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
@@ -603,7 +603,7 @@ class Class implements java.io.Serializable {
     }
 
     /**
-     * Find a resource with a given name.  Will return null if no
+     * Finds a resource with a given name.  Will return null if no
      * resource with this name is found.  The rules for searching a
      * resources associated with a given class are implemented by the
      * ClassLoader of the class.<p>
@@ -613,7 +613,12 @@ class Class implements java.io.Serializable {
      * as is.  Otherwise, the name of the package is prepended, after
      * converting "." to "/".
      *
+     * @param   name the string representing the resource to be found
+     * @return  the <code>InputStream</code> object having the 
+     *             specified name, or <code>null</code> if no 
+     *             resource with the specified name is found.
      * @see     java.lang.ClassLoader
+     * @see     java.lang.Class#getResource
      * @since   JDK1.1
      */
     public InputStream getResourceAsStream(String name) {
@@ -627,6 +632,21 @@ class Class implements java.io.Serializable {
     }
 
     /**
+     * Finds a resource with the specified name. The rules for searching 
+     * for resources associated with a given class are implemented by 
+     * the class loader of the class.
+     * <p>
+     * The Class methods delegate to ClassLoader methods, after applying
+     * a naming convention: if the resource name starts with "/", it is used
+     * as is.  Otherwise, the name of the package is prepended, after
+     * converting "." to "/".
+     *
+     * @param   name the string representing the resource to be found.
+     * @return  the <code>URL</code> object having the specified name,  
+     *             or <code>null</code> if no resource with the specified 
+     *             name is found.
+     * @see     java.lang.ClassLoader 
+     * @see     java.lang.Class#getResourceAsStream
      * @since   JDK1.1
      */
     public java.net.URL getResource(String name) {

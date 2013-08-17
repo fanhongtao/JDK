@@ -1,5 +1,5 @@
 /*
- * @(#)KeyPairGenerator.java	1.9 97/02/10
+ * @(#)KeyPairGenerator.java	1.10 97/07/27
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -128,8 +128,8 @@ public abstract class KeyPairGenerator {
 						      "KeyPairGenerator",
 						      null);
 	} catch(NoSuchProviderException e) {
-	    throw new InternalError("please send a bug report " + 
-				    "to java-security@java.sun.com");
+	    throw new InternalError("please send a bug report via " + 
+				    System.getProperty("java.vendor.url.bug"));
 	}
     }
 

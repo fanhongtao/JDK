@@ -1,5 +1,5 @@
 /*
- * @(#)URLConnection.java	1.28 97/03/10
+ * @(#)URLConnection.java	1.31 98/01/23
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -99,14 +99,14 @@ import java.util.StringTokenizer;
  *   <li>getContentType
  *   <li>getDate
  *   <li>getExpiration
- *   <li>getLastModifed
+ *   <li>getLastModified
  * </code></ul>
  * <p>
  * provide convenient access to these fields. The 
  * <code>getContentType</code> method is used by the 
  * <code>getContent</code> method to determine the type of the remote 
  * object; subclasses may find it convenient to override the 
- * <code>getContentType</code> method. 
+ * <code>getContentType</code> method.  
  * <p>
  * In the common case, all of the pre-connection parameters and 
  * general request properties can be ignored: the pre-connection 
@@ -122,7 +122,7 @@ import java.util.StringTokenizer;
  * </code></ul>
  *
  * @author  James Gosling
- * @version 1.28, 03/10/97
+ * @version 1.31, 01/23/98
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -259,12 +259,6 @@ abstract public class URLConnection {
     protected long ifModifiedSince = 0;
 
    /**
-    * @since   JDK1.1
-     */
-    // REMIND: should there be an accessor/mutator function for this?
-    public static FileNameMap fileNameMap;
-
-   /**
      * If <code>false</code>, this connection object has not created a 
      * communications link to the specified URL. If <code>true</code>, 
      * the communications link has been established. 
@@ -272,6 +266,33 @@ abstract public class URLConnection {
      * @since   JDK1.0
      */
     protected boolean connected = false;
+
+   /**
+    * @since   JDK1.1
+    */
+    private static FileNameMap fileNameMap;
+
+    /**
+     * Returns the FileNameMap.
+     *
+     * @returns	the FileNameMap
+     * @since   JDK1.1
+     */
+    public static FileNameMap getFileNameMap() {
+	return fileNameMap;
+    }
+
+    /**
+     * Sets the FileNameMap.
+     *
+     * @param map the FileNameMap to be set
+     * @since   JDK1.1
+     */
+    public static void setFileNameMap(FileNameMap map) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) sm.checkSetFactory();
+	fileNameMap = map;
+    }
 
     /**
      * Opens a communications link to the resource referenced by this 
@@ -396,11 +417,14 @@ abstract public class URLConnection {
     }
 
     /**
-     * Returns the name of the specified header field.
+     * Returns the value of the specified header field. Names of  
+     * header fields to pass to this method can be obtained from 
+     * getHeaderFieldKey.
      *
-     * @param   name   the name of a header field.
+     * @param   name   the name of a header field. 
      * @return  the value of the named header field, or <code>null</code>
      *          if there is no such field in the header.
+     * @see     java.net.URLConnection#getHeaderFieldKey(int)
      * @since   JDK1.0
      */
     public String getHeaderField(String name) {

@@ -1,5 +1,5 @@
 /*
- * @(#)AWTError.java	1.6 97/01/27
+ * @(#)AWTError.java	1.7 97/06/17
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -23,9 +23,9 @@
 package java.awt;
 
 /**
- * An AWT Error.
+ * Thrown when a serious Abstract Window Toolkit error has occurred. 
  *
- * @version 	1.6 01/27/97
+ * @version 	1.7 06/17/97
  * @author 	Arthur van Hoff
  */
 public class AWTError extends Error {
@@ -35,6 +35,12 @@ public class AWTError extends Error {
      */
      private static final long serialVersionUID = -1819846354050686206L;
 
+    /**
+     * Constructs an instance of <code>AWTError</code> with the specified 
+     * detail message. 
+     * @param   msg   the detail message.
+     * @since   JDK1.0
+     */
     public AWTError(String msg) {
 	super(msg);
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_et.java	1.5 97/02/28
+ * @(#)LocaleElements_et.java	1.8 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,88 +45,143 @@
 
 package java.text.resources;
 
-public class LocaleElements_et extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_et() {
-        super.init(table);
+public class LocaleElements_et extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "et_EE" }, // locale id based on iso codes
+            { "LocaleID", "0425" }, // Windows id
+            { "ShortLanguage", "est" }, // iso-3 abbrev lang name
+            { "ShortCountry", "EST" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "et", "Eesti" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "EE", "Eesti" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "Jaanuar", // january
+                    "Veebruar", // february
+                    "M\u00e4rts", // march
+                    "Aprill", // april
+                    "Mai", // may
+                    "Juuni", // june
+                    "Juuli", // july
+                    "August", // august
+                    "September", // september
+                    "Oktoober", // october
+                    "November", // november
+                    "Detsember", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "Jaan", // abb january
+                    "Veebr", // abb february
+                    "M\u00e4rts", // abb march
+                    "Apr", // abb april
+                    "Mai", // abb may
+                    "Juuni", // abb june
+                    "Juuli", // abb july
+                    "Aug", // abb august
+                    "Sept", // abb september
+                    "Okt", // abb october
+                    "Nov", // abb november
+                    "Dets", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "p\u00fchap\u00e4ev", // Sunday
+                    "esmasp\u00e4ev", // Monday
+                    "teisip\u00e4ev", // Tuesday
+                    "kolmap\u00e4ev", // Wednesday
+                    "neljap\u00e4ev", // Thursday
+                    "reede", // Friday
+                    "laup\u00e4ev" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "P", // abb Sunday
+                    "E", // abb Monday
+                    "T", // abb Tuesday
+                    "K", // abb Wednesday
+                    "N", // abb Thursday
+                    "R", // abb Friday
+                    "L" // abb Saturday
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "e.m.a.",
+                    "m.a.j."
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.## kr;-#,##0.## kr", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    "\u00a0", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "kr", // local currency symbol
+                    "EEK", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "H:mm:ss z", // full time pattern
+                    "H:mm:ss z", // long time pattern
+                    "H:mm:ss", // medium time pattern
+                    "H:mm", // short time pattern
+                    "EEEE, d, MMMM yyyy", // full date pattern
+                    "EEEE, d, MMMM yyyy", // long date pattern
+                    "d-M-yyyy", // medium date pattern
+                    "d-M-yy", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                //********* COLLATION INFORMATION *************************************
+                "@"                    /* sort accents bkwd */
+                + "& S < s\u030c, S\u030c "         // s < s-caron
+                + "< z , Z < z\u030c , Z\u030c "    // z sorts between s and t
+                + "& V ; w , W < o\u0303 , O\u0303" // v is equiv. to w b4 o-tilde
+                + "< a\u0308 , A\u0308 < o\u0308 , O\u0308 "
+                + "; w\u0302 , W\u0302"             // w-circumflex
+                + "< u\u0308 , U\u0308"
+                + "& Y < \u01b6 , \u01b5 "          // y < z-stroke
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */     "et_EE",
-		/* Windows id */                       "0425",
-		/* iso-3 abbrev lang name */           "est",
-		/* iso-3 abbrev country name */        "EST",
-		/* language names */                   "en_Estonian; et_Eesti",
-		/* country names */                    "en_Estonia; et_Eesti",
-		/* january */                          "Jaanuar",
-		/* february */                         "Veebruar",
-		/* march */                            "M\u00e4rts",
-		/* april */                            "Aprill",
-		/* may */                              "Mai",
-		/* june */                             "Juuni",
-		/* july */                             "Juuli",
-		/* august */                           "August",
-		/* september */                        "September",
-		/* october */                          "Oktoober",
-		/* november */                         "November",
-		/* december */                         "Detsember",
-		/* month 13 if applicable */           "",
-		/* abb january */                      "Jaan",
-		/* abb february */                     "Veebr",
-		/* abb march */                        "M\u00e4rts",
-		/* abb april */                        "Apr",
-		/* abb may */                          "Mai",
-		/* abb june */                         "Juuni",
-		/* abb july */                         "Juuli",
-		/* abb august */                       "Aug",
-		/* abb september */                    "Sept",
-		/* abb october */                      "Okt",
-		/* abb november */                     "Nov",
-		/* abb december */                     "Dets",
-		/* abb month 13 if applicable */       "",
-		/* sunday */                           "P\u00fchap\u00e4ev",
-		/* monday */                           "Esmasp\u00e4ev",
-		/* tuesday */                          "Teisip\u00e4ev",
-		/* wednesday */                        "Kolmap\u00e4ev",
-		/* thursday */                         "Neljap\u00e4ev",
-		/* friday */                           "Reede",
-		/* saturday */                         "Laup\u00e4ev",
-		/* abb sunday */                       "P",
-		/* abb monday */                       "E",
-		/* abb tuesday */                      "T",
-		/* abb wednesday */                    "K",
-		/* abb thursday */                     "N",
-		/* abb friday */                       "R",
-		/* abb saturday */                     "L",
-		/* am marker; default is AM */         "AM",
-		/* pm marker; default is PM */         "PM",
-		/* era strings */                      "e.m.a.;m.a.j.",
-		/* decimal pattern */                  "#,##0.###;-#,##0.###",
-		/* currency pattern */                 "#,##0.### kr;-#,##0.## kr",
-		/* percent pattern */                  "#,##0%",
-		/* decimal separator */                ",",
-		/* group (thousands) separator */      "\u0020",
-		/* list separator */                   "",
-		/* percent sign */                     "%",
-		/* native 0 digit */                   "0",
-		/* pattern digit */                    "#",
-		/* minus sign */                       "-",
-		/* exponential */                      "E",
-		/* local currency symbol */            "kr",
-		/* intl currency symbol */             "EEK",
-		/* monetary decimal separator */       ",",
-		/* Full time pattern */                "HH:mm:ss z",
-		/* Long time pattern */                "HH:mm:ss z",
-		/* Default time pattern */             "HH:mm:ss",
-		/* Short time pattern */               "HH:mm",
-		/* Full date pattern */                "EEEE, d, MMMM yyyy",
-		/* Long date pattern */                "d, MMMM yyyy",
-		/* Default date pattern */             "d-M-yyyy",
-		/* Short date pattern */               "d-M-yy",
-		/* Date-Time pattern*/                 "{1} {0}",
-		/* first day of week */                "1",
-		/* min days in first week */           "1",
-		//********* COLLATION INFORMATION *************************************
-		"@"                                  /* sort accents backwards */
-    };
 }

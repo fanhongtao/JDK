@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_lv.java	1.4 97/02/24
+ * @(#)LocaleElements_lv.java	1.7 98/01/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -45,93 +45,145 @@
 
 package java.text.resources;
 
-public class LocaleElements_lv extends LocaleData {
+import java.util.ListResourceBundle;
 
-    public LocaleElements_lv() {
-        super.init(table);
+public class LocaleElements_lv extends ListResourceBundle {
+    /**
+     * Overrides ListResourceBundle
+     */
+    public Object[][] getContents() {
+        return new Object[][] {
+            { "LocaleString", "lv_LV" }, // locale id based on iso codes
+            { "LocaleID", "0426" }, // Windows id
+            { "ShortLanguage", "lav" }, // iso-3 abbrev lang name
+            { "ShortCountry", "LVA" }, // iso-3 abbrev country name
+            { "Languages", // language names
+                new String[][] {
+                    { "lv", "Latvie\u0161u" }
+                }
+            },
+            { "Countries", // country names
+                new String[][] {
+                    { "LV", "Latvija" }
+                }
+            },
+            { "MonthNames",
+                new String[] {
+                    "janv\u0101ris", // january
+                    "febru\u0101ris", // february
+                    "marts", // march
+                    "apr\u012blis", // april
+                    "maijs", // may
+                    "j\u016bnijs", // june
+                    "j\u016blijs", // july
+                    "augusts", // august
+                    "septembris", // september
+                    "oktobris", // october
+                    "novembris", // november
+                    "decembris", // december
+                    "" // month 13 if applicable
+                }
+            },
+            { "MonthAbbreviations",
+                new String[] {
+                    "Jan", // abb january
+                    "Feb", // abb february
+                    "Mar", // abb march
+                    "Apr", // abb april
+                    "Maijs", // abb may
+                    "J\u016bn", // abb june
+                    "J\u016bl", // abb july
+                    "Aug", // abb august
+                    "Sep", // abb september
+                    "Okt", // abb october
+                    "Nov", // abb november
+                    "Dec", // abb december
+                    "" // abb month 13 if applicable
+                }
+            },
+            { "DayNames",
+                new String[] {
+                    "sv\u0113tdiena", // Sunday
+                    "pirmdiena", // Monday
+                    "otrdiena", // Tuesday
+                    "tre\u0161diena", // Wednesday
+                    "ceturdien", // Thursday
+                    "piektdiena", // Friday
+                    "sestdiena" // Saturday
+                }
+            },
+            { "DayAbbreviations",
+                new String[] {
+                    "Sv", // abb Sunday
+                    "P", // abb Monday
+                    "O", // abb Tuesday
+                    "T", // abb Wednesday
+                    "C", // abb Thursday
+                    "Pk", // abb Friday
+                    "S" // abb Saturday
+                }
+            },
+            { "Eras",
+                new String[] { // era strings
+                    "pm\u0113",
+                    "m\u0113"
+                }
+            },
+            { "NumberPatterns",
+                new String[] {
+                    "#,##0.###;-#,##0.###", // decimal pattern
+                    "#,##0.## Ls;-#,##0.## Ls", // currency pattern
+                    "#,##0%" // percent pattern
+                }
+            },
+            { "NumberElements",
+                new String[] {
+                    ",", // decimal separator
+                    "\u00a0", // group (thousands) separator
+                    ";", // list separator
+                    "%", // percent sign
+                    "0", // native 0 digit
+                    "#", // pattern digit
+                    "-", // minus sign
+                    "E", // exponential
+                    "\u2030", // per mille
+                    "\u221e", // infinity
+                    "\ufffd" // NaN
+                }
+            },
+            { "CurrencyElements",
+                new String[] {
+                    "Ls", // local currency symbol
+                    "LVL", // intl currency symbol
+                    "," // monetary decimal separator
+                }
+            },
+            { "DateTimePatterns",
+                new String[] {
+                    "HH:mm:ss z", // full time pattern
+                    "HH:mm:ss z", // long time pattern
+                    "HH:mm:ss", // medium time pattern
+                    "HH:mm", // short time pattern
+                    "EEEE, yyyy, d MMMM", // full date pattern
+                    "EEEE, yyyy, d MMMM", // long date pattern
+                    "yyyy.d.M", // medium date pattern
+                    "yy.d.M", // short date pattern
+                    "{1} {0}" // date-time pattern
+                }
+            },
+            { "CollationElements",
+                /* for LV_LV, accents sorted backwards plus the following: */
+
+                "@" /* sort accents bkwd */
+                + "& C < c\u030c , C\u030c "  // C < c-caron
+                + "& G < g\u0327 , G\u0327 "  // G < g-cedilla
+                + "& I < y, Y"                // tal : i < y
+                + "& K < k\u0327 , K\u0327 "  // K < k-cedilla
+                + "& L < l\u0327 , L\u0327 "  // L < l-cedilla
+                + "& N < n\u0327 , N\u0327 "  // N < n-cedilla
+                + "& S < s\u030c , S\u030c "  // S < s-caron
+                + "& Z < z\u030c , Z\u030c "  // Z < z-caron
+            }
+        };
     }
-
-    static String table []={
-		/* locale id based on iso codes */     "lv_LV",
-		/* Windows id */                       "0426",
-		/* iso-3 abbrev lang name */           "",
-		/* iso-3 abbrev country name */        "LVA",
-		/* language names */                   "en_Latvian; lv_Latvie\u0161u",
-		/* country names */                    "en_Latvia; lv_Latvija",
-		/* january */                          "Janv\u0101ris",
-		/* february */                         "Febru\u0101ris",
-		/* march */                            "Marts",
-		/* april */                            "Apr\u012blis",
-		/* may */                              "Maijs",
-		/* june */                             "J\u016bnijs",
-		/* july */                             "J\u016blijs",
-		/* august */                           "Augusts",
-		/* september */                        "Septembris",
-		/* october */                          "Oktobris",
-		/* november */                         "Novembris",
-		/* december */                         "Decembris",
-		/* month 13 if applicable */           "",
-		/* abb january */                      "Jan",
-		/* abb february */                     "Feb",
-		/* abb march */                        "Mar",
-		/* abb april */                        "Apr",
-		/* abb may */                          "Maijs",
-		/* abb june */                         "J\u016bn",
-		/* abb july */                         "J\u016bl",
-		/* abb august */                       "Aug",
-		/* abb september */                    "Sep",
-		/* abb october */                      "Okt",
-		/* abb november */                     "Nov",
-		/* abb december */                     "Dec",
-		/* abb month 13 if applicable */       "",
-		/* sunday */                           "Sv\u0113tdiena",
-		/* monday */                           "Pirmdiena",
-		/* tuesday */                          "Otrdiena",
-		/* wednesday */                        "Tre\u0161diena",
-		/* thursday */                         "Ceturdien",
-		/* friday */                           "Piektdiena",
-		/* saturday */                         "Sestdiena",
-		/* abb sunday */                       "Sv",
-		/* abb monday */                       "P",
-		/* abb tuesday */                      "O",
-		/* abb wednesday */                    "T",
-		/* abb thursday */                     "C",
-		/* abb friday */                       "Pk",
-		/* abb saturday */                     "S",
-		/* am marker; default is AM */         "AM",
-		/* pm marker; default is PM */         "PM",
-		/* era strings */                      "pm\u0113;m\u0113",
-		/* decimal pattern */                  "#,##0.###;-#,##0.###",
-		/* currency pattern */                 "#,##0.## Ls;-#,##0.## Ls",
-		/* percent pattern */                  "#,##0%",
-		/* decimal separator */                ",",
-		/* group (thousands) separator */      "\u0020", // Space.
-		/* list separator */                   "",
-		/* percent sign */                     "%",
-		/* native 0 digit */                   "0",
-		/* pattern digit */                    "#",
-		/* minus sign */                       "-",
-		/* exponential */                      "E",
-		/* local currency symbol */            "Ls",
-		/* intl currency symbol */             "LVL",
-		/* monetary decimal separator */       ",",
-		/* Full time pattern */                "HH:mm:ss z",
-		/* Long time pattern */                "HH:mm:ss z",
-		/* Default time pattern */             "HH:mm:ss",
-		/* Short time pattern */               "HH:mm",
-		/* Full date pattern */                "EEEE, yyyy, d MMMM",
-		/* Long date pattern */                "yyyy, d MMMM",
-		/* Default date pattern */             "yyyy.d.M",
-		/* Short date pattern */               "yy.d.M",
-		/* Date-Time pattern*/                 "{1} {0}",
-		/* first day of week */                "1",
-		/* min days in first week */           "1",
-		/* for LV_LV, accents sorted backwards plus the following: */
-		
-		"@"                                          /* sort accents bkwd */
-		
-		/* y is sorted between i and j.                                     */
-		
-		+"& I < y, Y"                                                 /*   */
-    };
 }

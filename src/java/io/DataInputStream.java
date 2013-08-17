@@ -1,5 +1,5 @@
 /*
- * @(#)DataInputStream.java	1.37 97/02/27
+ * @(#)DataInputStream.java	1.38 97/08/22
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -66,7 +66,7 @@ package java.io;
  * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.37, 02/27/97
+ * @version 1.38, 08/22/97
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -482,7 +482,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *      </code>
      * </ul>
      *
-     * @return     the next line of text from this input stream.
+     * @return     the next line of text from this input stream, or 
+     *             <tt>null</tt> if no bytes are read before end-of-file 
+     *             is reached.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.BufferedReader#readLine()
      * @see        java.io.FilterInputStream#in

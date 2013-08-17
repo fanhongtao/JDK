@@ -82,7 +82,7 @@ import java.security.Principal;
  * @see java.security.acl.Owner
  * @see java.security.acl.Acl#getPermissions
  * 
- * @version 1.12, 97/06/20
+ * @version 1.12, 00/08/15
  * @author Satish Dharmaraj 
  */
 

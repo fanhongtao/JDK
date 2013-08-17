@@ -1,5 +1,5 @@
 /*
- * @(#)ResourceBundle.java	1.15 97/01/29
+ * @(#)ResourceBundle.java	1.22 98/01/20
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -36,10 +36,10 @@ import java.util.Hashtable;
 /**
  *
  * Resource bundles contain locale-specific objects.
- * When your program needs a locale-specific resource, 
+ * When your program needs a locale-specific resource,
  * a <code>String</code> for example, your program can load it
  * from the resource bundle that is appropriate for the
- * current user's locale. In this way, you can write 
+ * current user's locale. In this way, you can write
  * program code that is largely independent of the user's
  * locale isolating most, if not all, of the locale-specific
  * information in resource bundles.
@@ -53,7 +53,7 @@ import java.util.Hashtable;
  * </UL>
  *
  * <P>
- * One resource bundle is, conceptually, a set of related classes that 
+ * One resource bundle is, conceptually, a set of related classes that
  * inherit from <code>ResourceBundle</code>. Each related subclass of
  * <code>ResourceBundle</code> has the same base name plus an additional
  * component that identifies its locale. For example, suppose your resource
@@ -84,7 +84,7 @@ import java.util.Hashtable;
  * method:
  * <blockquote>
  * <pre>
- * ResourceBundle myResources = 
+ * ResourceBundle myResources =
  *      ResourceBundle.getBundle("MyResources", currentLocale);
  * </pre>
  * </blockquote>
@@ -120,13 +120,13 @@ import java.util.Hashtable;
  * to the package where <code>ResourceBundle.getBundle</code> is called.
  *
  * <P>
- * Note: <code>ResourceBundle</code> are used internally in accessing 
+ * Note: <code>ResourceBundle</code> are used internally in accessing
  * <code>NumberFormat</code>s, <code>Collation</code>s, and so on.
  * The lookup strategy is the same.
  *
  * <P>
  * Resource bundles contain key/value pairs. The keys uniquely
- * identify a locale-specific object in the bundle. Here's an 
+ * identify a locale-specific object in the bundle. Here's an
  * example of a <code>ListResourceBundle</code> that contains
  * two key/value pairs:
  * <blockquote>
@@ -286,7 +286,7 @@ abstract public class ResourceBundle {
         return obj;
     }
 
-    
+
     /**
      * Get the appropriate ResourceBundle subclass.
      * @param baseName see class description.
@@ -326,7 +326,7 @@ abstract public class ResourceBundle {
     private static native Class[] getClassContext();
     private static SystemClassLoader systemClassLoader =
         new SystemClassLoader();
-    
+
     /**
      * Get the appropriate ResourceBundle subclass.
      * @param baseName see class description.
@@ -338,7 +338,9 @@ abstract public class ResourceBundle {
     {
         StringBuffer localeName
             = new StringBuffer("_").append(locale.toString());
-        
+        if (locale.toString().equals(""))
+            localeName.setLength(0);
+
         ResourceBundle lookup = findBundle(baseName,localeName,loader,false);
         if(lookup == null) {
             localeName.setLength(0);
@@ -360,12 +362,12 @@ abstract public class ResourceBundle {
             int lastUnderbar = localeName.toString().lastIndexOf('_');
             if( lastUnderbar != -1 ) {
                 localeName.setLength(lastUnderbar);
-                debug("Searching for parent " + baseName + localeName);
+//                debug("Searching for parent " + baseName + localeName);
                 child.setParent( findBundle(baseName,localeName,loader,true) );
             }
             child = child.parent;
         }
-        
+
         return lookup;
     }
 
@@ -380,7 +382,7 @@ abstract public class ResourceBundle {
         this.parent = parent;
     }
 
-    
+
     /**
      * The internal routine that does the real work of finding and loading
      * the right ResourceBundle for a given name and locale.
@@ -390,7 +392,7 @@ abstract public class ResourceBundle {
                                              ClassLoader loader,
                                              boolean includeBase)
     {
-        String localeStr = localeName.toString(); 
+        String localeStr = localeName.toString();
         String baseFileName = baseName.replace('.', '/');
         Object lookup = null;
         String searchName;
@@ -403,25 +405,25 @@ abstract public class ResourceBundle {
             searchName = baseName + localeStr;
 	    String cacheName =
 		"["+Integer.toString(loader.hashCode())+"]" + searchName;
-            
+
             // First, look in the cache.  We may either find the bundle we're
             // looking for or we may find that the bundle was not found by a
             // previous search.
             lookup = cacheList.get(cacheName);
             if( lookup == NOTFOUND ) {
-                debug("Found " + searchName + " in cache as NOTFOUND");
+//                debug("Found " + searchName + " in cache as NOTFOUND");
                 localeName.setLength(0);
                 break searchLoop;
             }
             if( lookup != null ) {
-                debug("Found " + searchName + " in cache");
+//                debug("Found " + searchName + " in cache");
                 localeName.setLength(0);
                 break searchLoop;
             }
             cacheCandidates.addElement( cacheName );
 
             // Next search for a class
-            debug("Searching for " + searchName );
+//            debug("Searching for " + searchName );
             try {
                 lookup = loader.loadClass(searchName).newInstance();
                 break searchLoop;
@@ -429,7 +431,7 @@ abstract public class ResourceBundle {
 
             // Next search for a Properties file.
             searchName = baseFileName + localeStr + ".properties";
-            debug("Searching for " + searchName );
+//            debug("Searching for " + searchName );
             stream = loader.getResourceAsStream(searchName);
             if( stream != null ) {
 		// make sure it is buffered
@@ -455,8 +457,8 @@ abstract public class ResourceBundle {
             // NOTFOUND
             for( int i=0; i<cacheCandidates.size(); i++ ) {
                 cacheList.put(cacheCandidates.elementAt(i), lookup);
-                debug("Adding " + cacheCandidates.elementAt(i) + " to cache"
-                      + ((lookup == NOTFOUND)?" as NOTFOUND.":"."));
+//                debug("Adding " + cacheCandidates.elementAt(i) + " to cache"
+//                      + ((lookup == NOTFOUND)?" as NOTFOUND.":"."));
             }
         }
         else {
@@ -466,8 +468,8 @@ abstract public class ResourceBundle {
             if( includeBase == true ) {
                 for( int i=0; i<cacheCandidates.size(); i++ ) {
                     cacheList.put(cacheCandidates.elementAt(i), NOTFOUND);
-                    debug("Adding " + cacheCandidates.elementAt(i)
-                          + " to cache as NOTFOUND.");
+//                    debug("Adding " + cacheCandidates.elementAt(i)
+//                          + " to cache as NOTFOUND.");
                 }
             }
         }
@@ -478,7 +480,7 @@ abstract public class ResourceBundle {
             return (ResourceBundle)lookup;
     }
 
-                                             
+
     /** Get an object from a ResourceBundle.
      * <STRONG>NOTE: </STRONG>Subclasses must override.
      * @param key see class description.
@@ -491,7 +493,7 @@ abstract public class ResourceBundle {
      * <STRONG>NOTE: </STRONG>Subclasses must override.
      */
     public abstract Enumeration getKeys();
-    
+
     /**
      * For printf debugging.
      */
@@ -501,7 +503,7 @@ abstract public class ResourceBundle {
             System.out.println("ResourceBundle: " + str);
         }
     }
-    
+
     /**
      * The parent bundle is consulted by getObject when this bundle
      * does not contain a particular resource.

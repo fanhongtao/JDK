@@ -1,5 +1,5 @@
 /*
- * @(#)verify.h	1.9 96/11/23
+ * @(#)verify.h	1.10 98/01/12
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -71,7 +71,7 @@ typedef unsigned char 	uchar;
 extern int verify_verbose;
 extern int verify_errors;
 extern char verify_error_message[];
-extern char *opnames[];
+extern char * const opnames[];
 
 /*
  * functions

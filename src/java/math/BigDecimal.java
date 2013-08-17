@@ -47,7 +47,7 @@ package java.math;
  * its precision.
  *
  * @see BigInteger
- * @version 	1.6, 97/06/20
+ * @version 	1.6, 00/08/15
  * @author      Josh Bloch
  */
 public class BigDecimal extends Number {
