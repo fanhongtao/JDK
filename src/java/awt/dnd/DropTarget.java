@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.awt.dnd.peer.DropTargetPeer;
  * wishes
  * to accept drops during Drag and Drop operations. 
  * 
- * @version 	1.35, 02/06/02
+ * @version 	1.38, 04/12/04
  * @since 1.2
  */
 
@@ -48,7 +48,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * default FlavorMap for the system
      */
 
-    static private final FlavorMap defaultFlavorMap = SystemFlavorMap.getDefaultFlavorMap();
+    static private FlavorMap defaultFlavorMap;
 
     /**
      * Construct a new DropTarget given the <code>Component</code> 
@@ -389,6 +389,9 @@ public class DropTarget implements DropTargetListener, Serializable {
      */
 
     public void setFlavorMap(FlavorMap fm) {
+	if (defaultFlavorMap == null) {
+		defaultFlavorMap = SystemFlavorMap.getDefaultFlavorMap();
+	}
 	flavorMap = fm == null ? defaultFlavorMap : fm;
     }
 
@@ -715,7 +718,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * The FlavorMap
      */
 
-    private transient FlavorMap flavorMap = defaultFlavorMap;
+    private transient FlavorMap flavorMap = (defaultFlavorMap == null ? defaultFlavorMap = SystemFlavorMap.getDefaultFlavorMap() : defaultFlavorMap);
 }
 
 

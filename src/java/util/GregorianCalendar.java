@@ -172,7 +172,7 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.56
+ * @version      1.57
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1927,7 +1927,7 @@ public class GregorianCalendar extends Calendar {
 
         // Values differ in Least-Maximum and Maximum should be handled
         // specially.
-        if (isSet(DATE)) {
+	if (stamp[DATE] >= MINIMUM_USER_STAMP) {
             int date = internalGet(DATE);
             if (date < getMinimum(DATE) ||
                 date > monthLength(internalGet(MONTH))) {
@@ -1935,7 +1935,7 @@ public class GregorianCalendar extends Calendar {
             }
         }
 
-        if (isSet(DAY_OF_YEAR)) {
+	if (stamp[DAY_OF_YEAR] >= MINIMUM_USER_STAMP) {
             int days = internalGet(DAY_OF_YEAR);
             if (days < 1 || days > yearLength()) return false;
         }
