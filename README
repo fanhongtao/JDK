@@ -37,7 +37,7 @@ Standard License Terms and Conditions.
                                    README
 
                       Java(TM) 2 SDK, Standard Edition
-                              Version 1.3.0_04
+                              Version 1.3.0_05
 
      For a more extensive HTML version of this file, see README.html.
 
@@ -98,12 +98,12 @@ Features
           J2SE 1.3.0 release.
           http://java.sun.com/j2se/1.3.0/docs/index.html#guide
 
-     This release, J2SE 1.3.0_04, is an update release of J2SE 
+     This release, J2SE 1.3.0_05, is an update release of J2SE 
      1.3.0. J2SE 1.3.0_01 contained new Java Plug-in enhancements, 
      including support for the Netscape Communicator 6 browser. 
-     In addition, J2SE 1.3.0_04 contains fixes for a select list of bugs 
+     In addition, J2SE 1.3.0_05 contains fixes for a select list of bugs 
      See the Release Notes on the Java Software web site for details 
-     about the changes in J2SE 1.3.0_04. 
+     about the changes in J2SE 1.3.0_05. 
 
          http://java.sun.com/j2se/1.3.0/ReleaseNotes.html
 
@@ -123,8 +123,8 @@ Java 2 SDK Documentation
 
      This section describes the documentation provided with the 
      original J2SE 1.3.0 release. That documentation applies to 
-     J2SE 1.3.0_04 as well. For information on the bug fixes in J2SE
-     1.3.0_04, see the online release notes. 
+     J2SE 1.3.0_05 as well. For information on the bug fixes in J2SE
+     1.3.0_05, see the online release notes. 
 
      http://java.sun.com/j2se/1.3.0/ReleaseNotes.html
 
