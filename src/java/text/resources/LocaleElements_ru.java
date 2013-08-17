@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_ru.java	1.11 98/01/13
+ * @(#)LocaleElements_ru.java	1.12 98/10/07
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -169,6 +169,12 @@ public class LocaleElements_ru extends ListResourceBundle {
                     "dd.MM.yyyy", // medium date pattern
                     "dd.MM.yy", // short date pattern
                     "{1} {0}" // date-time pattern
+                }
+            },
+            { "DateTimeElements",
+                new String[] {
+                    "2", // first day of week
+                    "1" // min days in first week
                 }
             },
             { "CollationElements",

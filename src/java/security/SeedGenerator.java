@@ -1,10 +1,10 @@
 /*
- * @(#)SeedGenerator.java	1.7 98/07/27
+ * @(#)SeedGenerator.java	1.10 99/02/09
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -35,7 +35,7 @@ package java.security;
  * machine dependent, some not. This information is then hashed together
  * with the 20 seed bytes.
  *
- * @version 1.7, 00/08/11
+ * @version 1.10, 99/02/09
  * @author Joshua Bloch
  * @author Gadi Guy
  */
@@ -100,11 +100,12 @@ class SeedGenerator implements Runnable {
 			wait();
 		}
 
-		int counter = 0;
+		int counter, quanta;
 		byte v = 0;
 
 		// Spin count must not be under 64000
-		while (counter < 64000) {
+		for (counter = quanta = 0; (counter < 64000) && (quanta < 6);
+							quanta++) {
 
 		    // Start some noisy threads
 		    try {
@@ -198,10 +199,7 @@ class SeedGenerator implements Runnable {
     static byte[] getSystemEntropy() {
 	String s;
 	String[] sa;
-	Class c;
-	Object o;
 	byte b;
-	byte[] ba;
 	Properties p;
 	Enumeration e;
 	File f;
@@ -217,23 +215,19 @@ class SeedGenerator implements Runnable {
 	b =(byte)System.currentTimeMillis();
 	md.update(b);
 
-	// System properties can change from machine to machine
-	p = System.getProperties();
-	e = p.propertyNames();
-	while (e.hasMoreElements()) {
-	    s =(String)e.nextElement();
-	    md.update(s.getBytes());
-	    md.update(p.getProperty(s).getBytes());
-	}
-
 	try {
+	    // System properties can change from machine to machine
+	    p = System.getProperties();
+	    e = p.propertyNames();
+	    while (e.hasMoreElements()) {
+		s =(String)e.nextElement();
+		md.update(s.getBytes());
+		md.update(p.getProperty(s).getBytes());
+	    }
+
 	    md.update(InetAddress.getLocalHost().toString().getBytes());
-	} catch (UnknownHostException uhe) {
-	    md.update((byte)uhe.hashCode());
-	}
 
-	// The temporary dir
-	try {
+	    // The temporary dir
 	    f = new File(p.getProperty("java.io.tmpdir"));
 	    sa = f.list();
 	    for(int i = 0; i < sa.length; i++)
@@ -244,12 +238,27 @@ class SeedGenerator implements Runnable {
 
 	// get Runtime memory stats
 	Runtime rt = Runtime.getRuntime();
-	b =(byte)rt.totalMemory();
-	md.update(b);
-	b =(byte)rt.freeMemory();
-	md.update(b);
+	byte[] memBytes = longToByteArray(rt.totalMemory());
+	md.update(memBytes, 0, memBytes.length);
+	memBytes = longToByteArray(rt.freeMemory());
+	md.update(memBytes, 0, memBytes.length);
 
 	return md.digest();
+    }
+
+    /**
+     * Helper function to convert a long into a byte array (least significant
+     * byte first).
+     */
+    private static byte[] longToByteArray(long l) {
+	byte[] retVal = new byte[8];
+ 
+	for (int i=0; i<8; i++) {
+	    retVal[i] = (byte) l;
+	    l >>= 8;
+	}
+ 
+	return retVal;
     }
 
     /*
@@ -301,8 +310,8 @@ class SeedGenerator implements Runnable {
     private class BogusThread implements Runnable {
 	final public void run() {
 	    try {
-		for(int i = 0; i < 100; i++)
-		   Thread.sleep(10);
+		for(int i = 0; i < 5; i++)
+		   Thread.sleep(50);
 		System.gc();
 	    } catch (Exception e) {
 	    }

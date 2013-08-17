@@ -1,5 +1,5 @@
 /*
- * @(#)ObjID.java	1.7 98/07/01
+ * @(#)ObjID.java	1.9 98/12/21
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -24,6 +24,9 @@ import java.io.ObjectOutput;
  * exported.
  */
 public final class ObjID implements java.io.Serializable {
+
+    private static final long serialVersionUID = -6386392263968365220L;
+
     /** well-known id for the registry */
     public static final int REGISTRY_ID = 0;
     /** well-known id for the distributed garbage collector */
@@ -35,7 +38,7 @@ public final class ObjID implements java.io.Serializable {
     private UID space;
 
     private static long nextNum = 0;
-    private static UID mySpace = new UID();
+    private final static UID mySpace = new UID();
 
     /**
      * Generate unique object identifier.

@@ -1,7 +1,7 @@
 /*
- * @(#)ProviderException.java	1.5 98/07/01
+ * @(#)ProviderException.java	1.7 99/02/09
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -18,7 +18,7 @@ package java.security;
  * misconfiguration errors), which may be subclassed by Providers to
  * throw specialized, provider-specific runtime errors.
  *
- * @version 1.5, 00/08/11
+ * @version 1.7, 99/02/09
  * @author Benjamin Renaud */
 
 public class ProviderException extends RuntimeException {

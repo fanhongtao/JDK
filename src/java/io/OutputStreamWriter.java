@@ -1,5 +1,5 @@
 /*
- * @(#)OutputStreamWriter.java	1.11 98/07/01
+ * @(#)OutputStreamWriter.java	1.12 98/12/14
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -143,6 +143,7 @@ public class OutputStreamWriter extends Writer {
 	    ensureOpen();
 
 	    int ci = off, end = off + len;
+            boolean bufferFlushed = false;
 	    while (ci < end) {
 		boolean bufferFull = false;
 
@@ -153,8 +154,9 @@ public class OutputStreamWriter extends Writer {
 		}
 		catch (ConversionBufferFullException x) {
 		    int nci = ctb.nextCharIndex();
-		    if (nci == ci) {
-			/* Buffer doesn't even hold one character */
+		    if (nci == ci && bufferFlushed) {
+                        /* Buffer has been flushed and still doesn't even
+                           hold one character */
 			throw new CharConversionException("Output buffer too small");
 		    }
 		    ci = nci;
@@ -165,6 +167,7 @@ public class OutputStreamWriter extends Writer {
 		if ((nextByte >= nBytes) || bufferFull) {
 		    out.write(bb, 0, nextByte);
 		    nextByte = 0;
+                    bufferFlushed = true;
 		}
 	    }
 	}

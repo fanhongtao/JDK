@@ -1,7 +1,7 @@
 /*
- * @(#)NoSuchProviderException.java	1.10 98/07/01
+ * @(#)NoSuchProviderException.java	1.12 99/02/09
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -18,7 +18,7 @@ package java.security;
  * This exception is thrown when a particular security provider is
  * requested but is not available in the environment.
  *
- * @version 1.10 00/08/11
+ * @version 1.12 99/02/09
  * @author Benjamin Renaud 
  */
 

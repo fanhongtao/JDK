@@ -1,10 +1,10 @@
 /*
- * @(#)TimeZone.java	1.26 98/02/12
+ * @(#)TimeZone.java	1.29 99/01/25
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1999 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -58,7 +58,7 @@ import java.io.Serializable;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.26 02/12/98
+ * @version      1.29 01/25/99
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  */
 abstract public class TimeZone implements Serializable, Cloneable {
@@ -236,6 +236,13 @@ abstract public class TimeZone implements Serializable, Cloneable {
     /**
      * This array maps from the user.timezone 3-letter ID to a usable
      * TimeZone ID.
+     *
+     * It also contains mappings from zones we don't support to similar zones
+     * that we do support.  These zones DST rules which differ from the zone
+     * they are approximating, but have the same raw offset.
+     *
+     * This table is used only to resolve the user.timezone name to a default
+     * zone.
      */
     private static final String[] idMap =
     {
@@ -253,10 +260,10 @@ abstract public class TimeZone implements Serializable, Cloneable {
         /* "Bangkok Standard Time",          */  "VST",  "Asia/Bangkok",
         /* "China Standard Time",            */  "CTT",  "Asia/Shanghai",
         /* "Tokyo Standard Time",            */  "JST",  "Asia/Tokyo",
-        /* "Cen. Australia Standard Time",   */  "ACT",  "Australia/Adelaide",
+        /* "Cen. Australia Standard Time",   */  "ACT",  "Australia/Darwin",
         /* "Sydney Standard Time",           */  "AET",  "Australia/Sydney",
         /* "Central Pacific Standard Time",  */  "SST",  "Pacific/Guadalcanal",
-        /* "New Zealand Standard Time",      */  "NST",  "Pacific/Auckland",
+        /* "New Zealand Standard Time",      */  "NST",  "Pacific/Fiji",
         /* "Samoa Standard Time",            */  "MIT",  "Pacific/Apia",
         /* "Hawaiian Standard Time",         */  "HST",  "Pacific/Honolulu",
         /* "Alaskan Standard Time",          */  "AST",  "America/Anchorage",
@@ -264,11 +271,20 @@ abstract public class TimeZone implements Serializable, Cloneable {
         /* "US Mountain Standard Time",      */  "MST",  "America/Denver",
         /* "Central Standard Time",          */  "CST",  "America/Chicago",
         /* "Eastern Standard Time",          */  "EST",  "America/New_York",
-        /* "Atlantic Standard Time",         */  "PRT",  "America/Halifax",
+        /* "Atlantic Standard Time",         */  "PRT",  "America/Caracas",
         /* "Newfoundland Standard Time",     */  "CNT",  "America/St_Johns",
         /* "SA Eastern Standard Time",       */  "AGT",  "America/Buenos_Aires",
         /* "E. South America Standard Time", */  "BET",  "America/Sao_Paulo",
-        /* "Azores Standard Time",           */  "CAT",  "Atlantic/Azores",
+        /* "Azores Standard Time",           */  "CAT",  "Atlantic/Cape_Verde",
+
+      /* user.timezone name      approximation (same offset, different rules) */
+        "America/Costa_Rica",   "America/Chicago",   /* GMT-6 */
+        "Asia/Beirut",          "Europe/Istanbul",   /* GMT+2 */
+        "Africa/Johannesburg",  "Africa/Cairo",      /* GMT+2 */
+        "Asia/Jerusalem",       "Europe/Istanbul",   /* GMT+2 */
+        "Europe/Moscow",        "Asia/Riyadh",       /* GMT+3 */
+        "Asia/Vladivostok",     "Australia/Sydney",  /* GMT+10 */
+        "Australia/Hobart",     "Australia/Sydney",  /* GMT+10 */
     };
 
     private static Hashtable idlookup = new Hashtable(idMap.length / 2);

@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_tr.java	1.9 98/01/13
+ * @(#)LocaleElements_tr.java	1.10 98/09/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -64,7 +64,7 @@ public class LocaleElements_tr extends ListResourceBundle {
             },
             { "Countries", // country names
                 new String[][] {
-                    { "tr", "T\u00fcrkiye" }
+                    { "TR", "T\u00fcrkiye" }
                 }
             },
             { "MonthNames",

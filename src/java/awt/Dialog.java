@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.45 00/03/28
+ * @(#)Dialog.java	1.44 00/02/10
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1999 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -17,7 +17,7 @@ import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-
+import sun.awt.AxBridgeHelper;
 
 /**
  * A class that produces a dialog - a window that takes input from the user.
@@ -203,10 +203,28 @@ public class Dialog extends Window {
 	    visible = true;
 	    if (isModal()) {
                 EventDispatchThread dt = null;
+                EventDispatchThread tempEDT = null;
                 if (Thread.currentThread() instanceof EventDispatchThread) {
 	            dt = new EventDispatchThread("AWT-Dispatch-Proxy", 
                                                  Toolkit.getEventQueue());
                     dt.start();
+                } else if (isNewDispatchThreadNeeded()) {
+                    /*
+                     * 4192193:
+                     * this is because our dispatch thread might be blocked in
+                     * a call into ActiveX container, and the ActiveX container
+                     * then calls into Java again to create a modal dialog.
+                     * Our dispatch thread will not wake up until the ActiveX call
+                     * is returned. so we need to create a new temporary dispatch
+                     * thread here.
+                     * also the inside peer.show() the win32 code will
+                     * open up a new message loop for the ActiveX container so that
+                     * any win32 message that was sent to the ActiveX container during
+                     * the modal dialog creation can still be handled.
+                     */ 
+                    tempEDT = new EventDispatchThread("AWT-Dispatch-Proxy",
+                                   Toolkit.getEventQueue());
+                    tempEDT.start();
                 }
                 // For modal case, we most post this event before calling
                 // show, since calling peer.show() will block; this is not
@@ -219,6 +237,16 @@ public class Dialog extends Window {
                 if (dt != null) {
                     dt.stopDispatching();
                 }                
+                if (tempEDT != null) {
+                    /*
+                     * 4192193:
+                     * we can't call join here, because we have been out of peer.show()
+                     * now there is no message loop for the ActiveX container running.
+                     * the other dispatch thread might send a message to the ActiveX
+                     * container. if we do join here we might deadlock.
+                     */
+                    tempEDT.stopDispatchingNoJoin();
+                }
 	    } else {
 		peer.show();
                 if ((state & OPENED) == 0) {
@@ -229,6 +257,12 @@ public class Dialog extends Window {
 	}
     }
 
+    private boolean isNewDispatchThreadNeeded() {
+       Class peerClass = peer.getClass();
+       if (!peerClass.getName().equals("sun.awt.windows.WDialogPeer"))
+           return false; 
+       return sun.awt.AxBridgeHelper.isNewDispatchThreadNeeded(); 
+    }
     /**
      * Indicates whether this dialog window is resizable.
      * @return    <code>true</code> if the user can resize the dialog;

@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInput.java	1.9 98/07/01
+ * @(#)ObjectInput.java	1.11 99/01/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -15,12 +15,12 @@
 package java.io;
 
 /**
- * ObjectInput extends the DataInput interface to include the writing of
+ * ObjectInput extends the DataInput interface to include the reading of
  * objects. DataInput includes methods for the input of primitive types, 
  * ObjectInput extends that interface to include objects, arrays, and Strings.
  *
  * @author  unascribed
- * @version 1.9, 07/01/98
+ * @version 1.11, 01/22/99
  * @see java.io.InputStream
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream

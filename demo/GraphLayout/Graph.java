@@ -55,7 +55,8 @@ class Edge {
 }
 
 
-class GraphPanel extends Panel implements Runnable, MouseListener {
+class GraphPanel extends Panel
+implements Runnable, MouseListener, MouseMotionListener {
     Graph graph;
     int nnodes;
     Node nodes[] = new Node[100];
@@ -70,6 +71,7 @@ class GraphPanel extends Panel implements Runnable, MouseListener {
     GraphPanel(Graph graph) {
 	this.graph = graph;
 	addMouseListener(this);
+	addMouseMotionListener(this);
     }
 
     int findNode(String lbl) {

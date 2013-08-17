@@ -1,5 +1,5 @@
 /*
- * @(#)Thread.java	1.71 98/08/06
+ * @(#)Thread.java	1.73 98/11/11
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -98,7 +98,7 @@ package java.lang;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.71, 08/06/98
+ * @version 1.73, 11/11/98
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -481,7 +481,7 @@ class Thread implements Runnable {
     }
 
     /** 
-     * Forces the thread to stop executing. 
+     * Forces the thread to stop executing.  
      * <p>
      * First, the <code>checkAccess</code> method of this thread is called 
      * with no arguments. This may result in throwing a 
@@ -507,6 +507,21 @@ class Thread implements Runnable {
      * exceptions does not print out a message or otherwise notify the 
      * application if the uncaught exception is an instance of 
      * <code>ThreadDeath</code>. 
+     * <p>
+     * Note: the use of this method is unsafe as it can result in the 
+     * corruption of invariants. Stopping a thread with Thread.stop causes 
+     * it to unlock all of the monitors that it has locked (as a natural 
+     * consequence of the unchecked <code>ThreadDeath</code> exception 
+     * propagating up the stack). If any of the objects previously protected 
+     * by these monitors were in an inconsistent state, the damaged objects 
+     * become visible to other threads potentially resulting in arbitrary 
+     * behaviour. Many uses of <code>stop</code> should be replaced by code 
+     * that simply modifies some volatile variable to indicate that the target
+     * thread should stop running. The target thread should check this 
+     * variable regularly, and return from its run method in an orderly 
+     * fashion if the variable indicates that it is to stop running. If the 
+     * target thread waits for long periods, the interrupt method should be 
+     * used to interrupt the wait.
      *
      * @exception  SecurityException  if the current thread cannot modify
      *               this thread.

@@ -1,5 +1,5 @@
 /*
- * @(#)ConnectException.java	1.4 98/07/01
+ * @(#)ConnectException.java	1.5 98/10/08
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -15,6 +15,8 @@
 package java.rmi;
 
 public class ConnectException extends RemoteException {
+
+    private static final long serialVersionUID = 4863550261346652506L;
 
     /**
      * Create A remote exception with the specified string

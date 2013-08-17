@@ -1,5 +1,5 @@
 /*
- * @(#)MenuItem.java	1.48 98/08/21
+ * @(#)MenuItem.java	1.49 98/12/09
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -53,7 +53,7 @@ import java.io.IOException;
  * does not send any event to the frame until one of its subitems is 
  * selected. 
  *
- * @version 1.48, 08/21/98
+ * @version 1.49, 12/09/98
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent {
@@ -316,6 +316,7 @@ public class MenuItem extends MenuComponent {
      */
     protected final void enableEvents(long eventsToEnable) {
         eventMask |= eventsToEnable;
+	newEventsOnly = true;
     }
 
     /**

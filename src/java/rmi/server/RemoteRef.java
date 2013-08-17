@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteRef.java	1.6 98/07/01
+ * @(#)RemoteRef.java	1.7 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.

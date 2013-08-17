@@ -1,7 +1,7 @@
 /*
- * @(#)String.java	1.85 98/07/01
+ * @(#)String.java	1.87 99/01/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -65,7 +65,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.85, 07/01/98
+ * @version 1.87, 01/22/99
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -1424,7 +1424,7 @@ class String implements java.io.Serializable {
     }
 
     /**
-     * Returns the string representation of the <code>char</code> * argument. 
+     * Returns the string representation of the <code>char</code> argument. 
      *
      * @param   c   a <code>char</code>.
      * @return  a newly allocated string of length <code>1</code> containing

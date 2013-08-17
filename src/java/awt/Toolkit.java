@@ -1,5 +1,5 @@
 /*
- * @(#)Toolkit.java	1.73 98/07/01
+ * @(#)Toolkit.java	1.74 98/12/09
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -38,7 +38,7 @@ import java.io.FileInputStream;
  * <code>java.awt.peer</code>. Some methods defined by 
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.73, 07/01/98
+ * @version 	1.74, 12/09/98
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -372,6 +372,9 @@ public abstract class  Toolkit {
      */
     private static Toolkit toolkit;
 
+    // fix for 4187686 Several class objects are used for synchronization
+    private static Object classLock = new Object();
+
     /**
      * Gets the default toolkit. 
      * <p>
@@ -387,20 +390,23 @@ public abstract class  Toolkit {
      *                 if one could not be accessed or instantiated.
      * @since     JDK1.0
      */
-    public static synchronized Toolkit getDefaultToolkit() {
-	if (toolkit == null) {
-	    String nm = System.getProperty("awt.toolkit", "sun.awt.motif.MToolkit");
-	    try {
-		toolkit = (Toolkit)Class.forName(nm).newInstance();
-	    } catch (ClassNotFoundException e) {
-		throw new AWTError("Toolkit not found: " + nm);
-	    } catch (InstantiationException e) {
-		throw new AWTError("Could not instantiate Toolkit: " + nm);
-	    } catch (IllegalAccessException e) {
-		throw new AWTError("Could not access Toolkit: " + nm);
+    public static Toolkit getDefaultToolkit() {
+	// fix for 4187686 Several class objects are used for synchronization
+	synchronized (classLock) {
+	    if (toolkit == null) {
+		String nm = System.getProperty("awt.toolkit", "sun.awt.motif.MToolkit");
+		try {
+		    toolkit = (Toolkit)Class.forName(nm).newInstance();
+		} catch (ClassNotFoundException e) {
+		    throw new AWTError("Toolkit not found: " + nm);
+		} catch (InstantiationException e) {
+		    throw new AWTError("Could not instantiate Toolkit: " + nm);
+		} catch (IllegalAccessException e) {
+		    throw new AWTError("Could not access Toolkit: " + nm);
+		}
 	    }
+	    return toolkit; 
 	}
-	return toolkit;
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)DigestInputStream.java	1.27 98/08/19
+ * @(#)DigestInputStream.java	1.29 99/02/09
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -46,7 +46,7 @@ import java.io.ByteArrayInputStream;
  * 
  * @see DigestOutputStream
  *
- * @version 1.27 00/08/11
+ * @version 1.29 99/02/09
  * @author Benjamin Renaud 
  */
 

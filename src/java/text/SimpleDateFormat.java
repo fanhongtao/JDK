@@ -1,10 +1,10 @@
 /*
- * @(#)SimpleDateFormat.java	1.34 00/03/28
+ * @(#)SimpleDateFormat.java	1.32 99/03/15
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -179,7 +179,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          DateFormatSymbols
  * @see          DecimalFormat
- * @version      1.34 03/28/00
+ * @version      1.32 03/15/99
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {

@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.51 00/03/28
+ * @(#)Date.java	1.52 00/02/10
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1999 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -107,6 +107,26 @@ import java.io.ObjectInputStream;
  * @since   JDK1.0
  */
 public class Date implements java.io.Serializable, Cloneable {
+    /* DEFAULT ZONE SYNCHRONIZATION: Part of the usage model of Date
+     * is that a Date object behaves like a Calendar object whose zone
+     * is the current default TimeZone.  As a result, we must be
+     * careful about keeping this phantom calendar in sync with the
+     * default TimeZone.  There are three class and instance variables
+     * to watch out for to achieve this.  (1)staticCal. Whenever this
+     * object is used, it must be reset to the default zone. This is a
+     * cheap operation which can be done directly (just a reference
+     * assignment), so we just do it every time. (2)simpleFormatter.
+     * Likewise, the DateFormat object we use to implement toString()
+     * must be reset to the current default zone before use.  Again,
+     * this is a cheap reference assignment. (3)cal. This is a little
+     * more tricky.  Unlike the other cached static objects, cal has
+     * state, and we don't want to monkey with it willy-nilly.  The
+     * correct procedure is to change the zone in a way that doesn't
+     * alter the time of this object.  This means getting the millis
+     * (forcing a fields->time conversion), setting the zone, and then
+     * restoring the millis.  The zone must be set before restoring
+     * the millis.  Since this is an expensive operation, we only do
+     * this when we have to. - liu 1.2b4 - ported to 1.1.8 */
 
     /* If cal is null, then fastTime indicates the time in millis.
      * Otherwise, fastTime is ignored, and cal indicates the time.
@@ -121,7 +141,6 @@ public class Date implements java.io.Serializable, Cloneable {
     private static DateFormat formatter;
     private static DateFormat gmtFormatter;
     private static int defaultCenturyStart;
-    private static TimeZone cachedDefaultZone;
 
     /* use serialVersionUID from modified java.util.Date for
      * interoperability with JDK1.1. The Date was modified to write
@@ -130,7 +149,6 @@ public class Date implements java.io.Serializable, Cloneable {
     private static final long serialVersionUID = 7523967970034938905L;
 
     static {
-		cachedDefaultZone = TimeZone.getDefault();
         staticCal = new GregorianCalendar();
         defaultCenturyStart = staticCal.get(Calendar.YEAR) - 80;
         utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
@@ -229,12 +247,7 @@ public class Date implements java.io.Serializable, Cloneable {
     public Date(int year, int month, int date, int hrs, int min, int sec) {
         cal = null;
         synchronized (staticCal) {
-			TimeZone defaultZone = TimeZone.getDefault();
-			if (!defaultZone.equals(cachedDefaultZone)) {
-				staticCal.setTimeZone(defaultZone);
-				formatter.setTimeZone(defaultZone);
-				cachedDefaultZone = defaultZone;
-			}
+            staticCal.setTimeZone(TimeZone.getDefault());
             staticCal.clear();
             staticCal.set(year + 1900, month, date, hrs, min, sec);
             fastTime = staticCal.getTimeInMillis();
@@ -764,12 +777,6 @@ public class Date implements java.io.Serializable, Cloneable {
      */
     public String toString() {
         synchronized (formatter) {
-			TimeZone defaultZone = TimeZone.getDefault();
-			if (!defaultZone.equals(cachedDefaultZone)) {
-				staticCal.setTimeZone(defaultZone);
-				formatter.setTimeZone(defaultZone);
-				cachedDefaultZone = defaultZone;
-			}
             formatter.setTimeZone(TimeZone.getDefault());
             return formatter.format(this);
         }
@@ -793,7 +800,6 @@ public class Date implements java.io.Serializable, Cloneable {
     public String toLocaleString() {
         DateFormat formatter
             = DateFormat.getDateTimeInstance();
-        formatter.setTimeZone(TimeZone.getDefault());
         return formatter.format(this);
     }
 
@@ -839,12 +845,19 @@ public class Date implements java.io.Serializable, Cloneable {
         int offset;
         if (cal == null) {
             synchronized (staticCal) {
+                staticCal.setTimeZone(TimeZone.getDefault());
                 staticCal.setTimeInMillis(getTime());
                 offset = staticCal.get(Calendar.ZONE_OFFSET) +
                     staticCal.get(Calendar.DST_OFFSET);
             }
         }
         else {
+            TimeZone defaultZone = TimeZone.getDefault();
+            if (!defaultZone.equals(cal.getTimeZone())) {
+                long ms = cal.getTimeInMillis();
+                cal.setTimeZone(defaultZone);
+                cal.setTimeInMillis(ms);
+            }
             offset = cal.get(Calendar.ZONE_OFFSET) +
                 cal.get(Calendar.DST_OFFSET);
         }
@@ -882,11 +895,18 @@ public class Date implements java.io.Serializable, Cloneable {
     private final int getField(int field) {
         if (cal == null) {
             synchronized (staticCal) {
+                staticCal.setTimeZone(TimeZone.getDefault());
                 staticCal.setTimeInMillis(fastTime);
                 return staticCal.get(field);
             }
         }
         else {
+            TimeZone defaultZone = TimeZone.getDefault();
+            if (!defaultZone.equals(cal.getTimeZone())) {
+                long ms = cal.getTimeInMillis();
+                cal.setTimeZone(defaultZone);
+                cal.setTimeInMillis(ms);
+            }
             return cal.get(field);
         }
     }

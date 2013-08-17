@@ -1,5 +1,5 @@
 /*
- * @(#)NumberFormat.java	1.35 98/02/02
+ * @(#)NumberFormat.java	1.36 98/10/05
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.text.resources.*;
 import java.util.Hashtable;
+import java.math.BigInteger;
 
 /**
  * <code>NumberFormat</code> is the abstract base class for all number
@@ -168,11 +169,30 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
                                      StringBuffer toAppendTo,
                                      FieldPosition pos)
     {
-        if (number instanceof Double || number instanceof Float) {
-            return format(((Number)number).doubleValue(), toAppendTo, pos);
-        }
-        else if (number instanceof Number) {
+        if (number instanceof Long ||
+            (number instanceof BigInteger && ((BigInteger)number).bitLength() < 64)) {
             return format(((Number)number).longValue(), toAppendTo, pos);
+        }
+        /* Here is the code that's required to get all the bits we can out of
+         * BigDecimal into a long or double.  In the interests of simplicity, we
+         * don't use this code; we just convert BigDecimal values into doubles.
+         * (Actually, to really do things right, you'd compare against both
+         * Long.MIN_VALUE and Long.MAX_VALUE, since they differ in magnitude.)
+         * Liu 6/98
+         */
+        //  else if (number instanceof BigDecimal) {
+        //      BigDecimal bd = (BigDecimal)number;
+        //      try {
+        //          if (bd.setScale(0, BigDecimal.ROUND_UNNECESSARY).
+        //              abs().compareTo(new BigDecimal("9223372036854775807")) <= 0) {
+        //              return format(((Number)number).longValue(), toAppendTo, pos);
+        //          }
+        //      }
+        //      catch (ArithmeticException e) {}
+        //      return format(((Number)number).doubleValue(), toAppendTo, pos);        
+        //  }
+        else if (number instanceof Number) {
+            return format(((Number)number).doubleValue(), toAppendTo, pos);
         }
         else {
             throw new IllegalArgumentException("Cannot format given Object as a Number");

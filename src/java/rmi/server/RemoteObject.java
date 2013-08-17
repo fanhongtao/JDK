@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteObject.java	1.7 98/07/01
+ * @(#)RemoteObject.java	1.8 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -23,6 +23,8 @@ import java.rmi.UnmarshalException;
  * Object by implementing methods for hashCode, equals, and toString.
  */
 public abstract class RemoteObject implements Remote, java.io.Serializable {
+
+    private static final long serialVersionUID = -3215090123894869218L;
 
     transient protected RemoteRef ref;
     

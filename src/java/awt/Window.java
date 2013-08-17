@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.77 98/08/13
+ * @(#)Window.java	1.78 98/10/06
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -34,7 +34,7 @@ import sun.awt.im.InputContext;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.77, 08/13/98
+ * @version 	1.78, 10/06/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -64,6 +64,7 @@ public class Window extends Container {
 
     Window() {
 	setWarningString();
+	this.cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	this.focusMgr = new FocusManager(this);
 	this.visible = false;
     }
@@ -293,6 +294,23 @@ public class Window extends Container {
         }
 
         return inputContext;
+    }
+
+    /**
+     * Set the cursor image to a predefined cursor.
+     * @param <code>cursor</code> One of the constants defined 
+     *            by the <code>Cursor</code> class. If this parameter is null 
+     *            then the cursor for this window will be set to the type 
+     *            Cursor.DEFAULT_CURSOR .
+     * @see       java.awt.Component#getCursor
+     * @see       java.awt.Cursor
+     * @since     JDK1.1
+     */
+    public synchronized void setCursor(Cursor cursor) {
+        if (cursor == null) {
+	    cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+	}
+	super.setCursor(cursor);
     }
 
     /**

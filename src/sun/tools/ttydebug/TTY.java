@@ -1,5 +1,5 @@
 /*
- * @(#)TTY.java	1.80 98/07/01
+ * @(#)TTY.java	1.81 98/12/02
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -26,9 +26,11 @@ public class TTY implements DebuggerCallback {
     PrintStream console = null;
 
     private static final String progname = "jdb";
-    private static final String version = "98/07/01";
+    private static final String version = "98/12/02";
 
     private String lastArgs = null;
+    
+    private boolean hasRun = false;
     
     private RemoteThread indexToThread(int index) throws Exception {
 	setDefaultThreadGroup();
@@ -285,6 +287,11 @@ public class TTY implements DebuggerCallback {
 	String argv[] = new String[100];
 	int argc = 0;
 
+        if ( hasRun ) {
+            out.println("Cannot restart program in this session");
+            return;
+        }
+
 	if (!t.hasMoreTokens() && lastArgs != null) {
 	    t = new StringTokenizer(lastArgs);
 	    out.println("run " + lastArgs);
@@ -314,6 +321,8 @@ public class TTY implements DebuggerCallback {
 	} else {
 	    out.println("No class name specified.");
 	}
+
+        hasRun = true;
     }
 
     void load(StringTokenizer t) throws Exception {

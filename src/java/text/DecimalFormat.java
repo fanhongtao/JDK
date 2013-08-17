@@ -1,5 +1,5 @@
 /*
- * @(#)DecimalFormat.java	1.37 98/07/07
+ * @(#)DecimalFormat.java	1.39 98/10/05
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -178,7 +178,7 @@ import java.util.Hashtable;
  * @see          java.util.Format
  * @see          java.util.NumberFormat
  * @see          java.util.ChoiceFormat
- * @version      1.37 07/07/98
+ * @version      1.39 10/05/98
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -721,6 +721,7 @@ public class DecimalFormat extends NumberFormat {
                    boolean status[])
     {
         int position = parsePosition.index;
+        int oldStart = parsePosition.index;
         int backup;
 
         // check for positivePrefix; take longest
@@ -763,6 +764,7 @@ public class DecimalFormat extends NumberFormat {
             char exponentChar = symbols.getExponentialSymbol();
             boolean sawDecimal = false;
             boolean sawExponent = false;
+            boolean sawDigit = false;
             int exponent = 0; // Set to the exponent value, if any
 
             // We have to track digitCount ourselves, because digits.count will
@@ -777,6 +779,7 @@ public class DecimalFormat extends NumberFormat {
                 {
                     // Cancel out backup setting (see grouping handler below)
                     backup = -1; // Do this BEFORE continue statement below!!!
+                    sawDigit = true;
 
                     // Handle leading zeros
                     if (digits.count == 0)
@@ -797,6 +800,7 @@ public class DecimalFormat extends NumberFormat {
                 }
                 else if (ch > zero && ch <= nine)
                 {
+                    sawDigit = true;
                     ++digitCount;
                     digits.append((char)(ch + zeroDelta));
 
@@ -813,6 +817,9 @@ public class DecimalFormat extends NumberFormat {
                 }
                 else if (!isExponent && ch == grouping && isGroupingUsed())
                 {
+                    if (sawDecimal) {
+                        break;
+                    }
                     // Ignore grouping characters, if we are using them, but require
                     // that they be followed by a digit.  Otherwise we backup and
                     // reprocess them.
@@ -845,6 +852,15 @@ public class DecimalFormat extends NumberFormat {
 
             // Adjust for exponent, if any
             digits.decimalAt += exponent;
+
+            // If none of the text string was recognized.  For example, parse
+            // "x" with pattern "#0.00" (return index and error index both 0)
+            // parse "$" with pattern "$#0.00". (return index 0 and error index
+            // 1).
+            if (!sawDigit && digitCount == 0) {
+                parsePosition.index = oldStart;
+                return false;
+            }
         }
 
         // check for positiveSuffix
@@ -870,7 +886,9 @@ public class DecimalFormat extends NumberFormat {
             (gotPositive ? positiveSuffix.length() : negativeSuffix.length()); // mark success!
 
         status[STATUS_POSITIVE] = gotPositive;
-
+        if (parsePosition.index == oldStart) {
+            return false;
+        }
         return true;
     }
 

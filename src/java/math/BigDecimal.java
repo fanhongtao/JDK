@@ -1,7 +1,7 @@
 /*
- * @(#)BigDecimal.java	1.8 98/10/28
+ * @(#)BigDecimal.java	1.10 99/02/09
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -39,7 +39,7 @@ package java.math;
  * its precision.
  *
  * @see BigInteger
- * @version 	1.8, 00/08/11
+ * @version 	1.10, 99/02/09
  * @author      Josh Bloch
  */
 public class BigDecimal extends Number {

@@ -1,7 +1,7 @@
 /*
- * @(#)Principal.java	1.13 98/07/01
+ * @(#)Principal.java	1.15 99/02/09
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -25,7 +25,7 @@ package java.security;
  * @see java.security.acl.Acl
  * @see java.security.acl.Group
  *
- * @version 1.13, 00/08/11
+ * @version 1.15, 99/02/09
  * @author Satish Dharmaraj 
  */
 public interface Principal {

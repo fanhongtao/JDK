@@ -1,5 +1,5 @@
 /*
- * @(#)UnicastRemoteObject.java	1.11 98/07/01
+ * @(#)UnicastRemoteObject.java	1.12 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -31,6 +31,7 @@ import java.rmi.*;
  */
 public class UnicastRemoteObject extends RemoteServer {
 
+    private static final long serialVersionUID = 4974527148936298033L;
 
     /**
      * Create and export a new UnicastRemoteObject object using an

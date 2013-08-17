@@ -1,7 +1,7 @@
 /*
- * @(#)BigInteger.java	1.9 98/10/28
+ * @(#)BigInteger.java	1.11 99/02/09
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -61,7 +61,7 @@ import java.util.Random;
  *
  *
  * @see BigDecimal
- * @version 	1.9, 00/08/11
+ * @version 	1.11, 99/02/09
  * @author      Josh Bloch
  */
 public class BigInteger extends Number {

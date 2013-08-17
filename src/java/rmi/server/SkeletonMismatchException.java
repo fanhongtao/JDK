@@ -1,5 +1,5 @@
 /*
- * @(#)SkeletonMismatchException.java	1.3 98/07/01
+ * @(#)SkeletonMismatchException.java	1.4 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -25,6 +25,8 @@ import java.rmi.RemoteException;
  * the stub compiler (RMIC).
  */
 public class SkeletonMismatchException extends RemoteException {
+
+    private static final long serialVersionUID = -7780460454818859281L;
 
     /**
      * Create a new SkeletonMismatchException exception with a descriptive string.  */

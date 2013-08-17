@@ -1,7 +1,7 @@
 /*
- * @(#)List.java	1.60 98/08/13
+ * @(#)List.java	1.62 99/01/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -78,7 +78,7 @@ import java.io.IOException;
  * For multiple-selection scrolling lists, it is considered a better 
  * user interface to use an external gesture (such as clicking on a 
  * button) to trigger the action. 
- * @version 	1.60, 08/13/98
+ * @version 	1.62, 01/22/99
  * @author 	Sami Shaio
  * @see         java.awt.event.ItemEvent
  * @see         java.awt.event.ItemListener
@@ -236,7 +236,8 @@ public class List extends Component implements ItemSelectable {
     }
 
     /**
-     * 
+     * Adds the specified item to the end of scrolling list.
+     * @param item the item to be added.
      */
     public void addItem(String item) {
 	addItem(item, -1);
@@ -257,7 +258,13 @@ public class List extends Component implements ItemSelectable {
     }
 
     /**
-     * 
+     * Adds the specified item to the end of the scrolling list.
+     * The index is zero-based. If value of the index is 
+     * <code>-1</code> then the item is added to the end. 
+     * If value of the index is greater than the number of 
+     * items in the list, the item is added at the end. 
+     * @param       item   the item to be added.
+     * @param       index  the position at which to add the item. 
      */
     public synchronized void addItem(String item, int index) {
 	if (index < -1 || index >= items.size()) {

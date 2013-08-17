@@ -1,14 +1,15 @@
 /*
- * @(#)EventQueue.java	1.23 00/03/28
+ * @(#)EventQueue.java	1.23 98/12/10
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
- * 
  */
 
 package java.awt;
@@ -27,15 +28,23 @@ import java.util.Vector;
  * from the underlying peer classes and from trusted application classes.
  * There is only one EventQueue for the system.
  *
- * @version 1.23 03/28/00
+ * @version 1.23 12/10/98
  * @author Thomas Ball
  */
 public class EventQueue {
 
+
     // From Thread.java
     private static int threadInitNumber;
-    private static synchronized int nextThreadNum() {
-	return threadInitNumber++;
+
+    // fix for 4187686 Several class objects are used for synchronization
+    private static Object classLock = new Object();
+
+    private static int nextThreadNum() {
+	// fix for 4187686 Several class objects are used for synchronization
+	synchronized (classLock) {
+	    return threadInitNumber++;
+	}
     }
 
     private EventQueueItem queue;
@@ -242,32 +251,31 @@ public class EventQueue {
 
         static EventQueueListener add(EventQueueListener a,
                                       EventQueueListener b) {
-	    	if (a == null)  return b;
-	    	if (b == null)  return a;
-	    	return new EventQueueMulticaster(a, b);
+            if (a == null)  return b;
+            if (b == null)  return a;
+            return new EventQueueMulticaster(a, b);
         }
 
-         // #4179773: must overload remove(EventListener) to call our add()
-         // instead of the static addInternal() so we allocate an
-         // EventQueueMulticaster instead of an AWTEventMulticaster.
-         // Note: this method is called by AWTEventMulticaster.removeInternal(),
-         // so its method signature must match AWTEventMulticaster.remove().
-         protected EventListener remove(EventListener oldl) {
-             if (oldl == a)  return b;
-             if (oldl == b)  return a;
-             EventQueueListener a2 = (EventQueueListener)removeInternal(a,oldl);
-             EventQueueListener b2 = (EventQueueListener)removeInternal(b,oldl);
-             if (a2 == a && b2 == b) {
-                 return this;    // it's not here
-             }
-             return add(a2, b2);
-         }
- 
         static EventQueueListener remove(EventQueueListener l,
                                          EventQueueListener oldl) {
             return (EventQueueListener) removeInternal(l, oldl);
         }
 
+        // #4179773: must overload remove(EventListener) to call our add()
+        // instead of the static addInternal() so we allocate an
+        // EventQueueMulticaster instead of an AWTEventMulticaster.
+        // Note: this method is called by AWTEventMulticaster.removeInternal(),
+        // so its method signature must match AWTEventMulticaster.remove().
+        protected EventListener remove(EventListener oldl) {
+            if (oldl == a)  return b;
+            if (oldl == b)  return a;
+            EventQueueListener a2 = (EventQueueListener)removeInternal(a, oldl);
+            EventQueueListener b2 = (EventQueueListener)removeInternal(b, oldl);
+            if (a2 == a && b2 == b) {
+                return this;	// it's not here
+            }
+            return add(a2, b2);
+        }
 
         public void eventPosted(AWTEvent e) {
             ((EventQueueListener)a).eventPosted(e);

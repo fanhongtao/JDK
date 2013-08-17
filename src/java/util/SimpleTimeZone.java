@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleTimeZone.java	1.16 98/01/12
+ * @(#)SimpleTimeZone.java	1.19 98/10/22
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -48,7 +48,7 @@ import java.io.IOException;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.16 01/12/98
+ * @version  1.19 10/22/98
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleTimeZone extends TimeZone {
@@ -121,6 +121,8 @@ public class SimpleTimeZone extends TimeZone {
      *                        see the member description for an example.
      * @param endTime         The daylight savings ending time. Please see the
      *                        member description for an example.
+     * @exception IllegalArgumentException the month, day, dayOfWeek, or time
+     * parameters are out of range for the start or end rule
      */
     public SimpleTimeZone(int rawOffset, String ID,
                           int startMonth, int startDay, int startDayOfWeek, int startTime,
@@ -137,6 +139,8 @@ public class SimpleTimeZone extends TimeZone {
      * be made public at the next API change.  It is identical to the 10-argument
      * constructor, but also takes a dstSavings parameter.
      * @param dstSavings   The amount of time in ms saved during DST.
+     * @exception IllegalArgumentException the month, day, dayOfWeek, or time
+     * parameters are out of range for the start or end rule
      */
     SimpleTimeZone(int rawOffset, String ID,
                    int startMonth, int startDay, int startDayOfWeek, int startTime,
@@ -156,6 +160,9 @@ public class SimpleTimeZone extends TimeZone {
         this.dstSavings     = dstSavings;
         // this.useDaylight    = true; // Set by decodeRules
         decodeRules();
+        if (dstSavings <= 0) {
+            throw new IllegalArgumentException("Illegal DST savings");
+        }
     }
 
     /**
@@ -184,6 +191,8 @@ public class SimpleTimeZone extends TimeZone {
      *                          example.
      * @param time              The daylight savings starting time. Please see
      *                          the member description for an example.
+     * @exception IllegalArgumentException the month, dayOfWeekInMonth,
+     * dayOfWeek, or time parameters are out of range
      */
     public void setStartRule(int month, int dayOfWeekInMonth, int dayOfWeek,
                              int time)
@@ -193,7 +202,7 @@ public class SimpleTimeZone extends TimeZone {
         startDayOfWeek = dayOfWeek;
         startTime = time;
         // useDaylight = true; // Set by decodeRules
-        decodeRules();
+        decodeStartRule();
     }
 
     /**
@@ -211,6 +220,8 @@ public class SimpleTimeZone extends TimeZone {
      *                          see the member description for an example.
      * @param time              The daylight savings ending time. Please see the
      *                          member description for an example.
+     * @exception IllegalArgumentException the month, dayOfWeekInMonth,
+     * dayOfWeek, or time parameters are out of range
      */
     public void setEndRule(int month, int dayOfWeekInMonth, int dayOfWeek,
                            int time)
@@ -220,7 +231,7 @@ public class SimpleTimeZone extends TimeZone {
         endDayOfWeek = dayOfWeek;
         endTime = time;
         // useDaylight = true; // Set by decodeRules
-        decodeRules();
+        decodeEndRule();
     }
 
     /**
@@ -229,8 +240,9 @@ public class SimpleTimeZone extends TimeZone {
      * daylight savings. This is the offset to add *to* UTC to get local time.
      * Gets the time zone offset, for current date, modified in case of daylight
      * savings. This is the offset to add *to* UTC to get local time. Assume
-     * that the start and end month are distinct, and that no rule refers to the
-     * end of February (e.g., last Sunday in February).
+     * that the start and end month are distinct. This method may return incorrect
+     * results for rules that start at the end of February (e.g., last Sunday in
+     * February) or the beginning of March (e.g., March 1).
      *
      * @param era           The era of the given date.
      * @param year          The year in the given date.
@@ -238,12 +250,54 @@ public class SimpleTimeZone extends TimeZone {
      *                      0 for January.
      * @param day           The day-in-month of the given date.
      * @param dayOfWeek     The day-of-week of the given date.
-     * @param milliseconds  The millis in day in <em>standard</em> local time.
+     * @param millis        The milliseconds in day in <em>standard</em> local time.
      * @return              The offset to add *to* GMT to get local time.
+     * @exception IllegalArgumentException the era, month, day,
+     * dayOfWeek, or millis parameters are out of range
      */
     public int getOffset(int era, int year, int month, int day, int dayOfWeek,
                          int millis)
     {
+        if (true) {
+            /* Use this parameter checking code for normal operation.  Only one
+             * of these two blocks should actually get compiled into the class
+             * file.  */
+            if ((era != GregorianCalendar.AD && era != GregorianCalendar.BC)
+                || month < Calendar.JANUARY
+                || month > Calendar.DECEMBER
+                || day < 1
+                || day > maxMonthLength[month]
+                || dayOfWeek < Calendar.SUNDAY
+                || dayOfWeek > Calendar.SATURDAY
+                || millis < 0
+                || millis >= millisPerDay) {
+                throw new IllegalArgumentException();
+            }
+        } else {
+            /* This parameter checking code is better for debugging, but
+             * overkill for normal operation.  Only one of these two blocks
+             * should actually get compiled into the class file.  */
+            if (era != GregorianCalendar.AD && era != GregorianCalendar.BC) {
+                throw new IllegalArgumentException("Illegal era " + era);
+            }
+            if (month < Calendar.JANUARY
+                || month > Calendar.DECEMBER) {
+                throw new IllegalArgumentException("Illegal month " + month);
+            }
+            if (day < 1
+                || day > maxMonthLength[month]) {
+                throw new IllegalArgumentException("Illegal day " + day);
+            }
+            if (dayOfWeek < Calendar.SUNDAY
+                || dayOfWeek > Calendar.SATURDAY) {
+                throw new IllegalArgumentException("Illegal day of week " + dayOfWeek);
+            }
+            if (millis < 0
+                || millis >= millisPerDay) {
+                throw new IllegalArgumentException("Illegal millis " + millis);
+            }
+        }
+
         int result = rawOffset;
 
         // Bail out if we are before the onset of daylight savings time
@@ -456,6 +510,7 @@ public class SimpleTimeZone extends TimeZone {
     private int rawOffset;
     private boolean useDaylight=false; // indicate if this time zone uses DST
     private static final int millisPerHour = 60*60*1000;
+    private static final int millisPerDay  = 24*millisPerHour;
     // WARNING: assumes that no rule is measured from the end of February,
     // since we don't handle leap years. Could handle assuming always
     // Gregorian, since we know they didn't have daylight time when
@@ -465,6 +520,11 @@ public class SimpleTimeZone extends TimeZone {
     // recreate the array each time we create a new time zone.
     private final byte monthLength[] = staticMonthLength;
     private final static byte staticMonthLength[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+    /**
+     * maxMonthLength is used only for range checking.
+     */
+    private final static byte maxMonthLength[] = {31,29,31,30,31,30,31,31,30,31,30,31};
 
     /** 
      * Variables specifying the mode of the start and end rules.
@@ -559,37 +619,121 @@ public class SimpleTimeZone extends TimeZone {
      */
     private void decodeRules()
     {
+        decodeStartRule();
+        decodeEndRule();
+    }
+    
+    /**
+     * Decode the start rule and validate the parameters.  The parameters are
+     * expected to be in encoded form, which represents the various rule modes
+     * by negating or zeroing certain values.  Representation formats are:
+     * <p>
+     * <pre>
+     *            DOW_IN_MONTH  DOM    DOW>=DOM  DOW<=DOM  no DST
+     *            ------------  -----  --------  --------  ----------
+     * month       0..11        same    same      same     don't care
+     * day        -5..5         1..31   1..31    -1..-31   0
+     * dayOfWeek   1..7         0      -1..-7    -1..-7    don't care
+     * time        0..ONEDAY    same    same      same     don't care
+     * </pre>
+     * The range for month does not include UNDECIMBER since this class is
+     * really specific to GregorianCalendar, which does not use that month.
+     * The range for time includes ONEDAY (vs. ending at ONEDAY-1) because the
+     * end rule is an exclusive limit point.  That is, the range of times that
+     * are in DST include those >= the start and < the end.  For this reason,
+     * it should be possible to specify an end of ONEDAY in order to include the
+     * entire day.  Although this is equivalent to time 0 of the following day,
+     * it's not always possible to specify that, for example, on December 31.
+     * While arguably the start range should still be 0..ONEDAY-1, we keep
+     * the start and end ranges the same for consistency.
+     */
+    private void decodeStartRule() {
         useDaylight = (startDay != 0) && (endDay != 0);
-
-    if (startDayOfWeek == 0)
-        startMode = DOM_MODE;
-    else if (startDayOfWeek > 0)
-        startMode = DOW_IN_MONTH_MODE;
-    else
-    {
-        startDayOfWeek = -startDayOfWeek;
-        if (startDay > 0) startMode = DOW_GE_DOM_MODE;
-        else
-        {
-        startDay = -startDay;
-        startMode = DOW_LE_DOM_MODE;
+        if (startDay != 0) {
+            if (startMonth < Calendar.JANUARY || startMonth > Calendar.DECEMBER) {
+                throw new IllegalArgumentException(
+                        "Illegal start month " + startMonth);
+            }
+            if (startTime < 0 || startTime > millisPerDay) {
+                throw new IllegalArgumentException(
+                        "Illegal start time " + startTime);
+            }
+            if (startDayOfWeek == 0) {
+                startMode = DOM_MODE;
+            } else {
+                if (startDayOfWeek > 0) {
+                    startMode = DOW_IN_MONTH_MODE;
+                } else {
+                    startDayOfWeek = -startDayOfWeek;
+                    if (startDay > 0) {
+                        startMode = DOW_GE_DOM_MODE;
+                    } else {
+                        startDay = -startDay;
+                        startMode = DOW_LE_DOM_MODE;
+                    }
+                }
+                if (startDayOfWeek > Calendar.SATURDAY) {
+                    throw new IllegalArgumentException(
+                           "Illegal start day of week " + startDayOfWeek);
+                }
+            }
+            if (startMode == DOW_IN_MONTH_MODE) {
+                if (startDay < -5 || startDay > 5) {
+                    throw new IllegalArgumentException(
+                            "Illegal start day of week in month " + startDay);
+                }
+            } else if (startDay > staticMonthLength[startMonth]) {
+                throw new IllegalArgumentException(
+                        "Illegal start day " + startDay);
+            }
         }
     }
 
-    if (endDayOfWeek == 0)
-        endMode = DOM_MODE;
-    else if (endDayOfWeek > 0)
-        endMode = DOW_IN_MONTH_MODE;
-    else
-    {
-        endDayOfWeek = -endDayOfWeek;
-        if (endDay > 0) endMode = DOW_GE_DOM_MODE;
-        else
-        {
-        endDay = -endDay;
-        endMode = DOW_LE_DOM_MODE;
+    /**
+     * Decode the end rule and validate the parameters.  This method is exactly
+     * analogous to decodeStartRule().
+     * @see decodeStartRule
+     */
+    private void decodeEndRule() {
+        useDaylight = (startDay != 0) && (endDay != 0);
+        if (endDay != 0) {
+            if (endMonth < Calendar.JANUARY || endMonth > Calendar.DECEMBER) {
+                throw new IllegalArgumentException(
+                        "Illegal end month " + endMonth);
+            }
+            if (endTime < 0 || endTime > millisPerDay) {
+                throw new IllegalArgumentException(
+                        "Illegal end time " + endTime);
+            }
+            if (endDayOfWeek == 0) {
+                endMode = DOM_MODE;
+            } else {
+                if (endDayOfWeek > 0) {
+                    endMode = DOW_IN_MONTH_MODE;
+                } else {
+                    endDayOfWeek = -endDayOfWeek;
+                    if (endDay > 0) {
+                        endMode = DOW_GE_DOM_MODE;
+                    } else {
+                        endDay = -endDay;
+                        endMode = DOW_LE_DOM_MODE;
+                    }
+                }
+                if (endDayOfWeek > Calendar.SATURDAY) {
+                    throw new IllegalArgumentException(
+                           "Illegal end day of week " + endDayOfWeek);
+                }
+            }
+            if (endMode == DOW_IN_MONTH_MODE) {
+                if (endDay < -5 || endDay > 5) {
+                    throw new IllegalArgumentException(
+                            "Illegal end day of week in month " + endDay);
+                }
+            } else if (endDay > staticMonthLength[endMonth]) {
+                throw new IllegalArgumentException(
+                        "Illegal end day " + endDay);
+            }
         }
-    }
     }
 
     /** 

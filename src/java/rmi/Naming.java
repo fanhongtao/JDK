@@ -1,5 +1,5 @@
 /*
- * @(#)Naming.java	1.5 98/07/01
+ * @(#)Naming.java	1.6 98/11/30
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -160,13 +160,23 @@ public final class Naming {
     }
 
     /**
-     * Function to cleanup and create the URL.
-     * It checks for and removes the protocol
+     * Creates an HTTP URL from the specified "name" URL to be used in
+     * obtaining a registry reference. It checks for and removes the
+     * "rmi:" protocol if it was specified as part of the "name".
+     *
+     * @exception MalformedURLException if hostname in url contains '#' or
+     *            if incorrect protocol specified
      */
-    private static URL cleanURL(String name) 
+    private static URL cleanURL(String name)
 	throws java.net.MalformedURLException
     {
 	URL url = new URL("file:");
+
+	// Anchors (i.e. '#') are meaningless in rmi URLs - disallow them
+	if (name.indexOf('#') >= 0) {
+	    throw new MalformedURLException
+		("Invalid character, '#', in URL: " + name);
+	}
 
 	// remove the approved protocol
 	if (name.startsWith("rmi:"))
@@ -175,7 +185,7 @@ public final class Naming {
 	// No protocol must remain
 	int colon = name.indexOf(':');
 	if (colon >= 0 && colon < name.indexOf('/') )
-	    throw new java.net.MalformedURLException("Protocol should be rmi:");
+	    throw new java.net.MalformedURLException("No protocol needed");
 
 	url = new URL(url, name);
 	return url;

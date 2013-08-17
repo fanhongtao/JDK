@@ -1,5 +1,5 @@
 /*
- * @(#)CollationElementIterator.java	1.15 97/12/05
+ * @(#)CollationElementIterator.java	1.16 98/10/07
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -86,7 +86,7 @@ import java.util.Vector;
  *
  * @see                Collator
  * @see                RuleBasedCollator
- * @version            1.15 12/05/97
+ * @version            1.16 10/07/98
  * @author             Helena Shih
  */
 public final class CollationElementIterator
@@ -117,12 +117,13 @@ public final class CollationElementIterator
      */
     public void reset()
     {
-        if (text != null)
+        if (text != null) {
             text.reset();
+            text.setDecomposition(ordering.getDecomposition());
+        }
         buffer = null;
         expIndex = 0;
         swapOrder = 0;
-        text.setDecomposition(ordering.getDecomposition());
     }
 
     /**

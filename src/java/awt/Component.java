@@ -1,14 +1,15 @@
 /*
- * @(#)Component.java	1.187 00/03/28
+ * @(#)Component.java	1.191 99/01/22
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
- * 
  */
 package java.awt;
 
@@ -39,7 +40,7 @@ import sun.awt.im.InputContext;
  * lightweight component. A lightweight component is a component that is 
  * not associated with a native opaque window.
  *
- * @version 	1.187 00/03/28
+ * @version 	1.191 99/01/22
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -111,7 +112,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getCursor
      * @see #setCursor
      */
-    Cursor	cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    Cursor	cursor;
 
     /**
      * The locale for the component.
@@ -919,10 +920,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 // Remember the area this component occupied in its parent.
                 int oldParentX = this.x;
                 int oldParentY = this.y;
-                if (parent != null) {
-                    oldParentX += parent.x;
-                    oldParentY += parent.y;
-                }
                 int oldWidth = this.width;
                 int oldHeight = this.height;
 		this.x = x;
@@ -1166,7 +1163,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	    // to the parent.
 	    Graphics g = parent.getGraphics();
 	    g.translate(x,y);
-	    g.setClip(0, 0, width, height);
+	    g.clipRect(0, 0, width, height);
             g.setFont(getFont());
 	    return g;
 	} else {
@@ -1199,7 +1196,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
     /**
      * Set the cursor image to a predefined cursor.
      * @param <code>cursor</code> One of the constants defined 
-     *            by the <code>Cursor</code> class.
+     *            by the <code>Cursor</code> class. If this parameter is null 
+     *            then this component will inherit the cursor of its parent.
      * @see       java.awt.Component#getCursor
      * @see       java.awt.Cursor
      * @since     JDK1.1
@@ -1207,7 +1205,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
     public synchronized void setCursor(Cursor cursor) {
 	this.cursor = cursor;
     	ComponentPeer peer = this.peer;
-	if (peer != null) {
+	if (peer instanceof java.awt.peer.LightweightPeer) {
+	    getNativeContainer().updateCursor(this);
+	} else if (peer != null) {
 	    peer.setCursor(cursor);
 	}
     }
@@ -1267,12 +1267,16 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since     JDK1.0
      */
     public void update(Graphics g) {
-	if ((! (peer instanceof java.awt.peer.LightweightPeer)) && 
-	          (! (this instanceof Label)) && (! (this instanceof TextField))) {
-		g.setColor(getBackground());
-	    g.fillRect(0, 0, width, height);
-	    g.setColor(getForeground());
-	}
+        if ((this instanceof java.awt.Canvas) ||
+            (this instanceof java.awt.Panel)  ||
+            (this instanceof java.awt.Frame)  ||
+            (this instanceof java.awt.Dialog) ||
+            (this instanceof java.awt.Window)) {
+  
+  	    g.setColor(getBackground());
+  	    g.fillRect(0, 0, width, height);
+  	    g.setColor(getForeground());
+  	}
 	paint(g);
     }
 

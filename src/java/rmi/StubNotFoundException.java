@@ -1,5 +1,5 @@
 /*
- * @(#)StubNotFoundException.java	1.3 98/07/01
+ * @(#)StubNotFoundException.java	1.4 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -15,6 +15,9 @@
 package java.rmi;
 
 public class StubNotFoundException extends RemoteException {
+
+    private static final long serialVersionUID = -7088199405468872373L;
+
     /**
      * Create a new StubNotFoundException with a descriptive string.
      */

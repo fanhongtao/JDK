@@ -1,14 +1,15 @@
 /*
- * @(#)ClassLoader.java	1.60 00/03/28
+ * @(#)ClassLoader.java	1.62 00/02/11
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2000 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
- * 
  */
 
 package java.lang;
@@ -86,7 +87,7 @@ import java.util.Hashtable;
  * </pre></blockquote><hr>
  *
  * @author  Arthur van Hoff
- * @version 1.60, 03/28/00
+ * @version 1.62, 02/11/00
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -299,7 +300,7 @@ public abstract class ClassLoader {
                     throws ClassNotFoundException {
 	Class cl;
 	name = name.replace('/', '.');
-	checkLoadClass(name);
+        checkLoadClass(name);
 	cl = (Class)classes.get(name);
 	if (cl == null) {
 	    cl = loadClass(name, false);

@@ -1,5 +1,5 @@
 /*
- * @(#)ResourceBundle.java	1.22 98/01/20
+ * @(#)ResourceBundle.java	1.23 98/10/07
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -425,7 +425,7 @@ abstract public class ResourceBundle {
             // Next search for a class
 //            debug("Searching for " + searchName );
             try {
-                lookup = loader.loadClass(searchName).newInstance();
+                lookup = (ResourceBundle)loader.loadClass(searchName).newInstance();
                 break searchLoop;
             } catch( Exception e ){}
 

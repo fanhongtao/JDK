@@ -1,5 +1,5 @@
 /*
- * @(#)$RCSfile$ $Revision$ $Date$
+ * @(#)LocaleData.java	1.21 98/10/20
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -40,14 +40,16 @@ import java.util.Locale;
  *
  * @author Asmus Freytag
  * @author Mark Davis
- * @version $Revision: 1.15 $ 07/14/98
+ * @version 98/10/20
  */
 
 public class LocaleData {
     // use to get the list of locales that have this data
     public static Locale[] getAvailableLocales(String key)
     {
-        return localeList;  // hard-coded for now
+        Locale[] temp = new Locale[localeList.length];
+        System.arraycopy(localeList, 0, temp, 0, localeList.length);
+        return temp;
     }
 
     // ========== privates ==========

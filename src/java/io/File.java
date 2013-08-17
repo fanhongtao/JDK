@@ -1,5 +1,5 @@
 /*
- * @(#)File.java	1.52 98/07/01
+ * @(#)File.java	1.53 98/10/06
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -30,7 +30,7 @@ import java.util.Vector;
  * Note that whenever a filename or path is used it is
  * assumed that the host's file naming conventions are used.
  *
- * @version 1.52, 07/01/98
+ * @version 1.53, 10/06/98
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
  * @since   JDK1.0
@@ -150,7 +150,7 @@ class File implements java.io.Serializable {
      * @since   JDK1.0
      */
     public File(File dir, String name) {
-	this(dir.getPath(), name);
+	this(dir == null ? (String)null : dir.getPath(), name);
     }
 
     /**

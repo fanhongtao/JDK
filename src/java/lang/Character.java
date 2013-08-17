@@ -1,8 +1,7 @@
-// This file was generated AUTOMATICALLY from a template file Fri Jun 19 11:07:53 PDT 1998
 /*
- * @(#)Character.java	1.44 98/07/10
+ * @(#)Character.java	1.46 99/01/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -45,7 +44,7 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Guy Steele
  * @author  Akira Tanaka
- * @version 1.44 07/10/98
+ * @version 1.46 01/22/99
  * @since   JDK1.0
  */
 public final
@@ -816,7 +815,6 @@ class Character extends Object implements java.io.Serializable {
      * is returned.
      *
      * @param   ch      the character to be converted.
-     * @param   radix   the radix.
      * @return  the numeric value of the character, as a nonnegative int value;
      *          -2 if the character has a numeric value that is not a
      *          nonnegative integer; -1 if the character has no numeric value.

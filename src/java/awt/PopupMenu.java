@@ -1,7 +1,7 @@
 /*
- * @(#)PopupMenu.java	1.13 98/08/21
+ * @(#)PopupMenu.java	1.15 99/03/31
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -21,7 +21,7 @@ import java.awt.peer.PopupMenuPeer;
  * A class that implements a menu which can be dynamically popped up
  * at a specified position within a component.
  *
- * @version	1.13 08/21/98
+ * @version	1.15 03/31/99
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
@@ -43,7 +43,7 @@ public class PopupMenu extends Menu {
 
     /**
      * Creates a new popup menu with the specified name.
-     * @param title the title string for the popup menu
+     * @param label the title string for the popup menu
      */
     public PopupMenu(String label) {
 	super(label);

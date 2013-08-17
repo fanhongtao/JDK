@@ -1,5 +1,5 @@
 /*
- * @(#)NoSuchObjectException.java	1.3 98/07/01
+ * @(#)NoSuchObjectException.java	1.4 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -16,6 +16,8 @@ package java.rmi;
 
 public
 class NoSuchObjectException extends java.rmi.RemoteException {
+
+    private static final long serialVersionUID = 6619395951570472985L;
 
     /**
      * Create a new NoSuchObjectException with a description.

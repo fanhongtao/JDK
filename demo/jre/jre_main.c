@@ -1,14 +1,15 @@
 /*
- * @(#)jre_main.c	1.18 00/03/28
+ * @(#)jre_main.c	1.17 99/01/22
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
- * 
  */
 
 /*
@@ -25,8 +26,7 @@
 #define PROGRAM "jre"
 
 /* Title of this program */
-/* for bug 4235948: VERSION now contains patch version string */
-#if defined(VERSION)
+#ifdef VERSION
 #define TITLE "Java(tm) Runtime Loader Version " VERSION
 #else
 #define TITLE "Java(tm) Runtime Loader"
@@ -47,7 +47,9 @@ jint ParseOptions(int *argcp, char ***argvp, JDK1_1InitArgs *vmargs);
 void AddProperty(char *def);
 void DeleteProperty(const char *name);
 void PrintUsage(void);
+
 jarray NewStringArray(JNIEnv *env, char **cpp, int count);
+jstring NewPlatformString(JNIEnv *env, char *s); /* 4097707 */
 long atoml(char *s);
 
 /* Globals */
@@ -285,26 +287,26 @@ jint ParseOptions(int *argcp, char ***argvp, JDK1_1InitArgs *vmargs)
 	    if (n >= 1000) {
 		vmargs->maxHeapSize = n;
 	    }
-        } else if (strncmp(arg, "maxf", 4) == 0) {
-            float tmpF = atof(arg + 4);
-            if (tmpF >= (float)0 && tmpF <= (float)1) {
-                heapoptsJre.maxHeapFreePercent = tmpF;
-            }
-        } else if (strncmp(arg, "minf", 4) == 0) {
-            float tmpF = atof(arg + 4);
-            if (tmpF >= (float)0 && tmpF <= (float)1) {
-                heapoptsJre.minHeapFreePercent = tmpF;
-            }
-        } else if (strncmp(arg, "maxe", 4) == 0) {
-            jint n = atoml(arg + 4);
-            if (n >= 0) {
-                heapoptsJre.maxHeapExpansion = n;
-            }
-        } else if (strncmp(arg, "mine", 4) == 0) {
-            jint n = atoml(arg + 4);
-            if (n >= 0) {
-                heapoptsJre.minHeapExpansion = n;
-            }
+	} else if (strncmp(arg, "maxf", 4) == 0) {
+	    float tmpF = atof(arg + 4);
+	    if (tmpF >= (float)0 && tmpF <= (float)1) {
+		heapoptsJre.maxHeapFreePercent = tmpF;
+	    }
+	} else if (strncmp(arg, "minf", 4) == 0) {
+	    float tmpF = atof(arg + 4);
+	    if (tmpF >= (float)0 && tmpF <= (float)1) {
+		heapoptsJre.minHeapFreePercent = tmpF;
+	    }
+	} else if (strncmp(arg, "maxe", 4) == 0) {
+	    jint n = atoml(arg + 4);
+	    if (n >= 0) {
+		heapoptsJre.maxHeapExpansion = n;
+	    }
+	} else if (strncmp(arg, "mine", 4) == 0) {
+	    jint n = atoml(arg + 4);
+	    if (n >= 0) {
+		heapoptsJre.minHeapExpansion = n;
+	    }
 	} else if (strcmp(arg, "noasyncgc") == 0) {
 	    vmargs->disableAsyncGC = JNI_TRUE;
 	} else if (strcmp(arg, "noclassgc") == 0) {
@@ -389,6 +391,32 @@ void DeleteProperty(const char *name)
 	}
     }
 }
+/*
+ * Returns a new Java string object for the specified platform string.
+ * Added as part of fix for 4097707.
+ */
+jstring
+NewPlatformString(JNIEnv *env, char *s)
+{
+    int len = strlen(s);
+    jclass cls;
+    jmethodID mid;
+    jbyteArray ary;
+
+    NULL_CHECK(cls = (*env)->FindClass(env, "java/lang/String"));
+    NULL_CHECK(mid = (*env)->GetMethodID(env, cls, "<init>", "([B)V"));
+    ary = (*env)->NewByteArray(env, len);
+    if (ary != 0) {
+	jstring str = 0;
+	(*env)->SetByteArrayRegion(env, ary, 0, len, (jbyte *)s);
+	if (!(*env)->ExceptionOccurred(env)) {
+	    str = (*env)->NewObject(env, cls, mid, ary);
+	}
+	(*env)->DeleteLocalRef(env, ary);
+	return str;
+    }
+    return 0;
+}
 
 /*
  * Creates an array of Java string objects from the specified array of C
@@ -403,10 +431,10 @@ jarray NewStringArray(JNIEnv *env, char **cpp, int count)
     NULL_CHECK(cls = (*env)->FindClass(env, "java/lang/String"));
     NULL_CHECK(ary = (*env)->NewObjectArray(env, count, cls, 0));
     for (i = 0; i < count; i++) {
-	jstring str = (*env)->NewStringUTF(env, *cpp++);
-	NULL_CHECK(str);
-	(*env)->SetObjectArrayElement(env, ary, i, str);
-	(*env)->DeleteLocalRef(env, str);
+       jstring str = NewPlatformString(env, *cpp++); /*4097707*/
+       NULL_CHECK(str); 
+       (*env)->SetObjectArrayElement(env, ary, i, str);
+       (*env)->DeleteLocalRef(env, str); 
     }
     return ary;
 }

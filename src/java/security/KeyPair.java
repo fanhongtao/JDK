@@ -1,7 +1,7 @@
 /*
- * @(#)KeyPair.java	1.4 98/07/01
+ * @(#)KeyPair.java	1.6 99/02/09
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -24,7 +24,7 @@ import java.io.*;
  * @see PublicKey
  * @see PrivateKey
  *
- * @version 1.4 00/08/11
+ * @version 1.6 99/02/09
  * @author Benjamin Renaud
  */
 public final class KeyPair { 

@@ -1,5 +1,5 @@
 /*
- * @(#)UID.java	1.5 98/07/01
+ * @(#)UID.java	1.6 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -20,6 +20,9 @@ import java.io.*;
  * to the the host on which it is generated.
  */
 public final class UID implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1086053664494604050L;
+
     private int unique;
     private long time;
     private short count;

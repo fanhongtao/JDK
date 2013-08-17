@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteServer.java	1.9 98/07/01
+ * @(#)RemoteServer.java	1.10 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -30,6 +30,8 @@ import java.rmi.*;
  */
 public abstract class RemoteServer extends RemoteObject
 {
+    private static final long serialVersionUID = -4100238210092549637L;
+
     private static String logname = "RMI";
     private static LogStream log;
 

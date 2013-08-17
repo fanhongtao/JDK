@@ -1,15 +1,14 @@
 /*
- * @(#)EventDispatchThread.java	1.18 98/07/01
+ * @(#)EventDispatchThread.java	1.20 00/02/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1995-1999 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package java.awt;
@@ -24,7 +23,7 @@ import java.awt.peer.ActiveEvent;
  * events off the EventQueue and dispatches them to the appropriate
  * AWT components.
  *
- * @version 1.18 07/01/98
+ * @version 1.20 02/10/00
  * @author Tom Ball
  * @author Amy Fowler
  */
@@ -37,6 +36,10 @@ class EventDispatchThread extends Thread {
         theQueue = queue;
     }
 
+    void stopDispatchingNoJoin() {
+	doDispatch = false;
+	theQueue.postEvent(new EmptyEvent());
+    }
     public void stopDispatching() {
         doDispatch = false;
 	// fix 4128923

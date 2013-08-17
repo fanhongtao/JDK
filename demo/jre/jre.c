@@ -1,7 +1,7 @@
 /*
- * @(#)jre.c	1.8 00/03/28
+ * @(#)jre.c	1.8 00/02/10
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -40,10 +40,7 @@ jint
 JRE_ParseVersion(const char *ver, char **majorp, char **minorp, char **microp)
 {
     int n1 = 0, n2 = 0, n3 = 0;
-    
-    /* modify sscanf() to process underscore character used in patch
-     * version for bug# 4235948
-     */
+    /* 4235948: jre micro version to match with registry key */
     sscanf(ver, "%*[0-9]%n.%*[0-9]%n.%*[0-9a-zA-Z_]%n", &n1, &n2, &n3);
     if (n1 == 0 || n2 == 0) {
 	return -1;

@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteStub.java	1.8 98/07/01
+ * @(#)RemoteStub.java	1.9 98/08/12
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,6 +21,9 @@ package java.rmi.server;
  * implementation of the remote object.
  */
 abstract public class RemoteStub extends RemoteObject {
+
+    private static final long serialVersionUID = -1585587260594494182L;
+
     /**
      * Constructor for RemoteStub.
      */

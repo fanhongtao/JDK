@@ -1,10 +1,10 @@
 /*
- * @(#)GregorianCalendar.java	1.34 00/03/28
+ * @(#)GregorianCalendar.java	1.40 99/03/08
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1999 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -128,7 +128,7 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.34 03/28/00
+ * @version      1.40 03/08/99
  * @author       David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class GregorianCalendar extends Calendar {
@@ -407,8 +407,10 @@ public class GregorianCalendar extends Calendar {
      * Fields that are completed by this method: ERA, YEAR, MONTH, DATE,
      * DAY_OF_WEEK, DAY_OF_YEAR, WEEK_OF_YEAR, WEEK_OF_MONTH,
      * DAY_OF_WEEK_IN_MONTH.
+     * @param quick if true, only compute the ERA, YEAR, MONTH, DATE,
+     * DAY_OF_WEEK, and DAY_OF_YEAR.
      */
-    private final void timeToFields(long theTime)
+    private final void timeToFields(long theTime, boolean quick)
     {
         int rawYear, year, month, date, dayOfWeek, dayOfYear, weekCount, era = AD;
 
@@ -467,6 +469,8 @@ public class GregorianCalendar extends Calendar {
             + date; // arrays are zero-based, 'month' is one-based
         internalSet(DAY_OF_YEAR, dayOfYear);
 
+        if (quick) return;
+        
         // Compute the week of the year.  Valid week numbers run from 1 to 52
         // or 53, depending on the year, the first day of the week, and the
         // minimal days in the first week.  Days at the start of the year may
@@ -569,7 +573,7 @@ public class GregorianCalendar extends Calendar {
         long localMillis = time + gmtOffset;
 
         // Time to fields takes the wall millis (Standard or DST).
-        timeToFields(localMillis);
+        timeToFields(localMillis, false);
 
         int era = internalGetEra();
         int year = internalGet(YEAR);
@@ -597,7 +601,7 @@ public class GregorianCalendar extends Calendar {
         {
             millisInDay -= millisPerDay;
             localMillis += dstOffset;
-            timeToFields(localMillis);
+            timeToFields(localMillis, false);
         }
 
         // Fill in all time-related fields based on millisInDay.  Call internalSet()
@@ -644,6 +648,14 @@ public class GregorianCalendar extends Calendar {
         return isLeapYear(year) ? LEAP_MONTH_LENGTH[month] : MONTH_LENGTH[month];
     }
 
+    private final int monthLength(int month) {
+        int year = internalGet(YEAR);
+        if (internalGetEra() == BC) {
+            year = 1-year;
+        }
+        return monthLength(month, year);
+    }
+
     private final int yearLength(int year) {
         return isLeapYear(year) ? 366 : 365;
     }
@@ -659,7 +671,7 @@ public class GregorianCalendar extends Calendar {
      * problem call this method to retain the proper month.
      */
     private final void pinDayOfMonth() {
-        int monthLen = monthLength(internalGet(MONTH), internalGet(YEAR));
+        int monthLen = monthLength(internalGet(MONTH));
         int dom = internalGet(DAY_OF_MONTH);
         if (dom > monthLen) set(DAY_OF_MONTH, monthLen);
     }
@@ -686,7 +698,7 @@ public class GregorianCalendar extends Calendar {
         {
             int date = internalGet(DATE);
             return (date >= getMinimum(DATE) &&
-                    date <= monthLength(internalGet(MONTH), internalGet(YEAR)));
+                    date <= monthLength(internalGet(MONTH)));
         }
 
         if (isSet(DAY_OF_YEAR))
@@ -718,6 +730,30 @@ public class GregorianCalendar extends Calendar {
     }
 
     /**
+     * Divide two integers, returning the floor of the quotient, and
+     * the modulus remainder.
+     * <p>
+     * Unlike the built-in division, this is mathematically well-behaved.
+     * E.g., <code>-1/4</code> => 0 and <code>-1%4</code> => -1,
+     * but <code>floorDivide(-1,4)</code> => -1 with <code>remainder[0]</code> => 3.
+     * @param numerator the numerator
+     * @param denominator a divisor which must be > 0
+     * @param remainder an array of at least one element in which the value
+     * <code>numerator mod denominator</code> is returned. Unlike <code>numerator
+     * % denominator</code>, this will always be non-negative.
+     * @return the floor of the quotient.
+     */
+    private static final int floorDivide(long numerator, int denominator, int[] remainder) {
+        if (numerator >= 0) {
+            remainder[0] = (int)(numerator % denominator);
+            return (int)(numerator / denominator);
+        }
+        int quotient = (int)(((numerator + 1) / denominator) - 1);
+        remainder[0] = (int)(numerator - (quotient * denominator));
+        return quotient;
+    }
+
+    /**
      * Return the pseudo-time-stamp for two fields, given their
      * individual pseudo-time-stamps.  If either of the fields
      * is unset, then the aggregate is unset.  Otherwise, the
@@ -742,41 +778,41 @@ public class GregorianCalendar extends Calendar {
         // the time field list have a value of zero.
         long millis = 0;
 
-        int era;
-        if (stamp[ERA] != UNSET)
-            era = internalGet(ERA);
-        else
-            era = AD;
-
-        if (era < BC || era > AD)
-            throw new IllegalArgumentException();
-
         // The year defaults to the epoch start.
         int year = (stamp[YEAR] != UNSET) ? internalGet(YEAR) : 1970;
         int month = 0, date = 0;
 
-        if (era == BC)
-            year = 1 - year;
+        int era = AD;
+        if (stamp[ERA] != UNSET) {
+            era = internalGet(ERA);
+            if (era == BC)
+                year = 1 - year;
+            // Even in lenient mode we disallow ERA values other than AD & BC
+            else if (era != AD)
+                throw new IllegalArgumentException("Invalid era");
+        }
 
         long julian = 0;
 
-    // Find the most recent set of fields specifying the day within
-    // the year.  These may be any of the following combinations:
-    //  MONTH* + DAY_OF_MONTH*
-    //  MONTH* + WEEK_OF_MONTH* + DAY_OF_WEEK
-    //  MONTH* + DAY_OF_WEEK_IN_MONTH* + DAY_OF_WEEK
-    //  DAY_OF_YEAR*
-    //  DAY_OF_WEEK + WEEK_OF_YEAR*
-    // We look for the most recent of the fields marked thus*.  If other
-    // fields are missing, we use their default values, which are those of
-    // the epoch start, or in the case of DAY_OF_WEEK, the first day in
-    // the week.
+        // Find the most recent group of fields specifying the day within
+        // the year.  These may be any of the following combinations:
+        //   MONTH + DAY_OF_MONTH
+        //   MONTH + WEEK_OF_MONTH + DAY_OF_WEEK
+        //   MONTH + DAY_OF_WEEK_IN_MONTH + DAY_OF_WEEK
+        //   DAY_OF_YEAR
+        //   WEEK_OF_YEAR + DAY_OF_WEEK
+        // We look for the most recent of the fields in each group to determine
+        // the age of the group.  For groups involving a week-related field such
+        // as WEEK_OF_MONTH, DAY_OF_WEEK_IN_MONTH, or WEEK_OF_YEAR, both the
+        // week-related field and the DAY_OF_WEEK must be set for the group as a
+        // whole to be considered.  (See bug 4153860 - liu 7/24/98.)
+    int dowStamp = stamp[DAY_OF_WEEK];
     int monthStamp = stamp[MONTH];
     int domStamp = stamp[DAY_OF_MONTH];
-    int womStamp = stamp[WEEK_OF_MONTH];
-    int dowimStamp = stamp[DAY_OF_WEEK_IN_MONTH];
+    int womStamp = aggregateStamp(stamp[WEEK_OF_MONTH], dowStamp);
+    int dowimStamp = aggregateStamp(stamp[DAY_OF_WEEK_IN_MONTH], dowStamp);
     int doyStamp = stamp[DAY_OF_YEAR];
-    int woyStamp = stamp[WEEK_OF_YEAR];
+    int woyStamp = aggregateStamp(stamp[WEEK_OF_YEAR], dowStamp);
 
     int bestStamp = (monthStamp > domStamp) ? monthStamp : domStamp;
     if (womStamp > bestStamp) bestStamp = womStamp;
@@ -1012,11 +1048,31 @@ public class GregorianCalendar extends Calendar {
         /*isSet(DST_OFFSET) && userSetDSTOffset*/) dstOffset = internalGet(DST_OFFSET);
         else
         {
+            /* Normalize the millisInDay to 0..ONE_DAY-1.  If the millis is out
+             * of range, then we must call timeToFields() to recompute our
+             * fields. */
+            int[] normalizedMillisInDay = new int[1];
+            floorDivide(millis, (int)ONE_DAY, normalizedMillisInDay);
+
             // We need to have the month, the day, and the day of the week.
             // Calling timeToFields will compute the MONTH and DATE fields.
-            if (stamp[MONTH] == UNSET || stamp[DATE] == UNSET
-        /*!isSet(MONTH) || !isSet(DATE)*/)
-                timeToFields(millis); // Right - use wall time here
+            // If we're lenient then we need to call timeToFields() to
+            // normalize the year, month, and date numbers.
+            int dow;
+            if (isLenient() || stamp[MONTH] == UNSET || stamp[DATE] == UNSET
+                || millisInDay != normalizedMillisInDay[0]) {
+                timeToFields(millis, true); // Use wall time; true == do quick computation
+                dow = internalGet(DAY_OF_WEEK); // DOW is computed by timeToFields
+                millisInDay = normalizedMillisInDay[0];
+            }
+            else {
+                // It's tempting to try to use DAY_OF_WEEK here, if it
+                // is set, but we CAN'T.  Even if it's set, it might have
+                // been set wrong by the user.  We should rely only on
+                // the Julian day number, which has been computed correctly
+                // using the disambiguation algorithm above. [LIU]
+                dow = julianDayToDayOfWeek(julian);
+            }
 
             // It's tempting to try to use DAY_OF_WEEK here, if it
             // is set, but we CAN'T.  Even if it's set, it might have
@@ -1237,7 +1293,7 @@ public class GregorianCalendar extends Calendar {
         // mar3.
         // NOTE: We could optimize this later by checking for dom <= 28
         // first.  Do this if there appears to be a need. [LIU]
-                int monthLen = monthLength(mon, internalGet(YEAR));
+                int monthLen = monthLength(mon);
         int dom = internalGet(DAY_OF_MONTH);
         if (dom > monthLen) set(DAY_OF_MONTH, monthLen);
         return;
@@ -1340,7 +1396,7 @@ public class GregorianCalendar extends Calendar {
 
                 // Get the day of the week (normalized for locale) for the last
                 // day of the month.
-                int monthLen = monthLength(internalGet(MONTH), internalGet(YEAR));
+                int monthLen = monthLength(internalGet(MONTH));
                 int ldm = (monthLen - internalGet(DAY_OF_MONTH) + dow) % 7;
                 // We know monthLen >= DAY_OF_MONTH so we skip the += 7 step here.
 
@@ -1371,7 +1427,7 @@ public class GregorianCalendar extends Calendar {
                 return;
             }
         case DAY_OF_MONTH:
-            max = monthLength(internalGet(MONTH), internalGet(YEAR));
+            max = monthLength(internalGet(MONTH));
             break;
         case DAY_OF_YEAR:
             {
@@ -1412,7 +1468,7 @@ public class GregorianCalendar extends Calendar {
                 int preWeeks = (internalGet(DAY_OF_MONTH) - 1) / 7;
                 // Find the number of same days of the week after this one
                 // in this month.
-                int postWeeks = (monthLength(internalGet(MONTH), internalGet(YEAR)) -
+                int postWeeks = (monthLength(internalGet(MONTH)) -
                                  internalGet(DAY_OF_MONTH)) / 7;
                 // From these compute the min and gap millis for rolling.
                 long min2 = time - preWeeks * ONE_WEEK;
@@ -1519,7 +1575,7 @@ public class GregorianCalendar extends Calendar {
     {
         return LeastMaxValues[field];
     }
-
+    
     /**
      * Return the ERA.  We need a special method for this because the
      * default ERA is AD, but a zero (unset) ERA is BC.
