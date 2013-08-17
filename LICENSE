@@ -26,14 +26,14 @@ specifically authorized in any Supplemental License Terms,
 you may not make copies of Software, other than a single
 copy of Software for archival purposes.  Unless enforcement
 is prohibited by applicable law, you may not modify,
-decompile, or reverse engineer Software.  You acknowledge
-that Software is not designed, licensed or intended for use
-in the design, construction, operation or maintenance of any
-nuclear facility.  Sun disclaims any express or implied
-warranty of fitness for such uses.  No right, title or
-interest in or to any trademark, service mark, logo or trade
-name of Sun or its licensors is granted under this
-Agreement.
+decompile, or reverse engineer Software.  Licensee
+acknowledges that Licensed Software is not designed or
+intended for use in the design, construction, operation or
+maintenance of any nuclear facility.  Sun Microsystems, Inc.
+disclaims any express or implied warranty of fitness for
+such uses.  No right, title or interest in or to any
+trademark, service mark, logo or trade name of Sun or its
+licensors is granted under this Agreement.
 
 3.  LIMITED WARRANTY.  Sun warrants to you that for a period
 of ninety (90) days from the date of purchase, as evidenced
@@ -115,7 +115,8 @@ be binding, unless in writing and signed by an authorized
 representative of each party.
 
 Java(TM) 2 Software Development Kit (J2SDK), Standard
-Edition, Version 1.2.x SUPPLEMENTAL LICENSE TERMS
+Edition, Version 1.2.x SUPPLEMENTAL
+LICENSE TERMS
 
 These supplemental license terms ("Supplemental Terms") add
 to or modify the terms of the Binary Code License Agreement
@@ -201,9 +202,7 @@ become, or in either party's opinion be likely to become,
 the subject of a claim of infringement of any intellectual
 property right.
 
-For inquiries please contact:  Sun Microsystems, Inc.  901
-San Antonio Road, Palo Alto, California 94303
-(LFI#111103/Form ID#011801)
-
-
+For inquiries please contact:  Sun Microsystems, Inc., 4150
+Network Circle, Santa Clara, California 95054, U.S.A
+(LFI#113341/Form ID#011801)
 

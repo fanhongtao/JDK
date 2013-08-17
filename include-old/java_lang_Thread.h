@@ -9,7 +9,7 @@ struct Hjava_lang_Runnable;
 struct Hjava_lang_ThreadGroup;
 struct Hjava_lang_ClassLoader;
 struct Hjava_security_AccessControlContext;
-struct Hjava_lang_InheritableThreadLocal_Entry;
+struct Hjava_lang_ThreadLocal_ThreadLocalMap;
 
 typedef struct Classjava_lang_Thread {
     struct HArrayOfChar *name;
@@ -25,7 +25,8 @@ typedef struct Classjava_lang_Thread {
     struct Hjava_security_AccessControlContext *inheritedAccessControlContext;
 /* Inaccessible static: threadInitNumber */
 /* Inaccessible static: stopThreadPermission */
-    struct Hjava_lang_InheritableThreadLocal_Entry *values;
+    struct Hjava_lang_ThreadLocal_ThreadLocalMap *threadLocals;
+    struct Hjava_lang_ThreadLocal_ThreadLocalMap *inheritableThreadLocals;
 #undef java_lang_Thread_MIN_PRIORITY
 #define java_lang_Thread_MIN_PRIORITY 1L
 #undef java_lang_Thread_NORM_PRIORITY

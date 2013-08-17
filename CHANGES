@@ -2,11 +2,11 @@
 
                     Java(R) 2 SDK, Standard Edition
                      Java(R) 2 Runtime Environment
-                           JDK/JRE 1.2.2_012
+                           JDK/JRE 1.2.2_013
 
 
 This CHANGES file summarizes the changes between the FCS version of 
-JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_012. For changes
+JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_013. For changes
 in the Java platform since earlier releases, see the the
 following document on the Java Software web site:
 
@@ -17,13 +17,25 @@ following document on the Java Software web site:
 ----------------------------------------------------------------------
 INTRODUCTION
 -----------------------------------------------------------------------
-This is patch 012 of the 1.2.2 version of the Java Development
+This is patch 013 of the 1.2.2 version of the Java Development
 Kit. For each patch release of the 1.2.2 version, 
 it is the Java(R) 2 SDK Windows 95/98/2000/NT production release, and the 
 Solaris(tm) reference implementation of the Java 2 SDK source base.
 
 For the WIN32 production release, the Java(tm) Plug-in product 
 is included with the JRE 1.2.2 software.
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_013
+-----------------------------------------------------------------------
+
+4432072 - Jdk1.2.2_008: Chinese display problem in swing and 
+          java 2d on win2000
+
+4498413 - appletviewer: "network operation" test case fails
+
+4667411 - Need fix for Performance issue with ThreadLocal in 
+          Java 1.2.2_XX 
 
 -----------------------------------------------------------------------
 BUGS FIXED IN PATCH JDK/JRE 1.2.2_012
@@ -386,5 +398,5 @@ please go to this web page:
 
 -----------------------------------------------------------------------
 Copyright (C) 1996-2002 Sun Microsystems, Inc.
-901 San Antonio Rd., Palo Alto, CA 94303 USA
+4150 Network Circle, Santa Clara, CA 95054, U.S.A
 All rights reserved.

@@ -1,5 +1,5 @@
 /*
- * @(#)JFrame.java	1.66 01/11/29
+ * @(#)JFrame.java	1.67 02/05/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -77,7 +77,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.66 11/29/01
+ * @version 1.67 05/01/02
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -228,6 +228,12 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * description: The frame's default close operation.
      */
     public void setDefaultCloseOperation(int operation) {
+	if (operation == 3) {
+	    SecurityManager security = System.getSecurityManager();
+	    if (security != null) {
+		security.checkExit(0);
+	    }
+	}	
         this.defaultCloseOperation = operation;
     }
 

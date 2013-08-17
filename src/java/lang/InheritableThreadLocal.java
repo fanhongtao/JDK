@@ -1,5 +1,5 @@
 /*
- * @(#)InheritableThreadLocal.java	1.3 01/11/29
+ * @(#)InheritableThreadLocal.java	1.4 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,8 +20,8 @@ package java.lang;
  * variable (e.g., User ID, Transaction ID) must be automatically transmitted
  * to any child threads that are created.
  *
- * @author  Josh Bloch
- * @version 1.3 11/29/01
+ * @author  Josh Bloch and Doug Lea
+ * @version 1.4 04/18/02
  * @see ThreadLocal
  * @since JDK1.2
  */
@@ -47,55 +47,23 @@ public class InheritableThreadLocal extends ThreadLocal {
     }
 
     /**
-     * Passes the ThreadLocal values represented by the specified list of
-     * Entries onto the specified child Thread.  (The child's value is
-     * computed from the parent's as per the childValue method.)  This
-     * method is invoked (only) at Thread creation time, by Thread.init.
+     * Get the map associated with a ThreadLocal.
+     *
+     * @param t the current thread
      */
-    static void bequeath(Thread parent, Thread child) {
-        for (Entry e = parent.values; e != null; e = e.next)
-            e.bequeath(child);
+    ThreadLocalMap getMap(Thread t) {
+       return t.inheritableThreadLocals;
     }
 
     /**
-     * Overrides method in ThreadLocal and implements inheritability,
-     * in conjunction with the bequeath method.
+     * Create the map associated with a ThreadLocal.
+     *
+     * @param t the current thread
+     * @param firstValue value for the initial entry of the table.
+     * @param map the map to store.
      */
-    ThreadLocal.Entry newEntry(Object value) {
-        return new Entry(value);
+    void createMap(Thread t, Object firstValue) {
+        t.inheritableThreadLocals = new ThreadLocalMap(this, firstValue);
     }
 
-    /**
-     * The information associated with an (InheritableThreadLocal,Thread) pair.
-     */
-    class Entry extends ThreadLocal.Entry {
-        /**
-         * This constructor places the newly constructed Entry on the
-         * specified thread's values list.
-         */
-        private Entry(Object value, Thread t) {
-            super(value);
-            next = t.values;
-            t.values = this;
-        }
-
-        /**
-         * This constructor places the newly constructed Entry on the
-         * calling thread's values list.
-         */
-        Entry(Object value) {
-            this(value, Thread.currentThread());
-        }
-
-        /**
-         * Passes the ThreadLocal value represented by this Entry on to the
-         * specified child Thread.
-         */
-        void bequeath(Thread child) {
-            Entry e = new Entry(childValue(value), child);
-            map.put(child, e);
-        }
-
-        Entry  next;	// Allows entries to be linked onto a list
-    }
 }

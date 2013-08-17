@@ -1,5 +1,5 @@
 /*
- * @(#)Thread.java	1.98 01/11/29
+ * @(#)Thread.java	1.99 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -95,7 +95,7 @@ import java.security.AccessControlContext;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.98, 11/29/01
+ * @version 1.99, 04/18/02
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -145,11 +145,15 @@ class Thread implements Runnable {
     // static permissions
     private static RuntimePermission stopThreadPermission;
 
-    /* List of InheritableThreadLocal values pertaining to this thread.
-     * This list is maintained by the InheritableThreadLocal class.  We call
-     * InheritableThreadLocal.bequeath on this list at thread creation
-     * time to pass our values on to our child. */
-    InheritableThreadLocal.Entry values = null;
+    /* ThreadLocal values pertaining to this thread. This map is maintained
+     * by the ThreadLocal class. */
+    ThreadLocal.ThreadLocalMap threadLocals = null;
+
+    /*
+     * InheritableThreadLocal values pertaining to this thread. This map is
+     * maintained by the InheritableThreadLocal class.
+     */
+    ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;
 
     /**
      * The minimum priority that a thread can have. 
@@ -263,7 +267,10 @@ class Thread implements Runnable {
 	this.inheritedAccessControlContext = AccessController.getContext();
 	this.target = target;
 	setPriority(priority);
-        InheritableThreadLocal.bequeath(parent, this);
+        if (parent.inheritableThreadLocals != null)
+          this.inheritableThreadLocals =
+            ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);
+
 	g.add(this);
     }
 

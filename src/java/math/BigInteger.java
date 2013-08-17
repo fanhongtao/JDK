@@ -64,7 +64,7 @@ import java.util.Random;
  * interpreted similarly. 
  *
  * @see     BigDecimal
- * @version 1.27, 02/03/20
+ * @version 1.27, 02/06/18
  * @author  Josh Bloch
  * @since JDK1.1
  */

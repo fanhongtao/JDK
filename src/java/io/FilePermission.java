@@ -629,7 +629,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.60 02/03/20
+ * @version 1.60 02/06/18
  *
  * @author Marianne Mueller
  * @author Roland Schemers

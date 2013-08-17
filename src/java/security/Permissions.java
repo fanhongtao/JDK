@@ -333,7 +333,7 @@ final class PermissionsEnumerator implements Enumeration {
  * @see Permission
  * @see Permissions
  *
- * @version 1.40, 02/03/20
+ * @version 1.40, 02/06/18
  *
  * @author Roland Schemers
  */
