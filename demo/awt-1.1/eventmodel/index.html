@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>JDK 1.1 Event Examples</title>
+</head>
+
+<BODY BGCOLOR="#FFFFFF">
+<font size=-1>
+<a href=../index.html>Back to Examples of Using the JDK 1.1 AWT</a>
+<hr>
+</font>
+
+      <h1>JDK 1.1 Event Examples</h1>
+
+      This simple demo contains four applets
+      that get progressively better at handling events.
+      The final result is a simple-minded game.
+
+      <blockquote>
+      <hr>
+      <strong>Note:</strong>
+      You must use a 1.1 browser such as 
+      <a href="/products/HotJava/">HotJava</a>
+      or the 
+      <a href="/products/jdk/1.1/">JDK Applet Viewer</a>
+      to view the event examples.
+      If you have trouble running the examples,
+      <a href="../index.html#howtorun">go here.</a>
+      <hr>
+      </blockquote>
+
+      <p>
+
+      This code was used in Hans Muller's exposition 
+      on 1.1 event handling,
+      which was part of the 
+      <a href="/javaone/track1.html#awt.tut">AWT Advanced Tutorial</a>
+      at JavaOne.
+
+      <p>
+
+      <strong>Note:</strong>
+      The following applets rely on 1.1 code.
+      They <em>do not run</em> in 1.0-based browsers.
+      You can run them in the latest
+      <a href="/products/jdk/CurrentRelease/">JDK</a> Applet Viewer
+      or 
+      <a href="/products/HotJava/">HotJava.</a>
+
+      <h2>Using Anonymous Classes to Implement an Event Listener</h2>
+      The red box at the bottom of the game screen tracks the mouse because
+      the panel that contains is handling <code>MouseMotion</code>
+      events.  The <i>handler</i> is an anonymous class that implements
+      MouseMotionListener.  
+
+      <p>
+      <applet code="Click0" width=600 height=350>
+      </applet>
+
+      <ul>
+      <li> <a href="Click0.java">Click0.java</a>
+      <li> <a href="Box.java">Box.java</a>
+      </ul>
+      <hr>
+      
+
+      <h2>Using a Static Nested Class to Implement an Event Listener</h2>
+
+      Each column of boxes, the <i>targets</i>, at the top of the game
+      screen is a Panel.  By adding a listener that handles enter/exit
+      events to each panel we can make it highlight when the mouse
+      passes over.  In this case we've used instances of a static
+      listener class to handle the enter/exit events.  Unfortunately
+      there's a bug here: the red "puck" isn't tracking the mouse
+      correctly anymore!
+
+      <p>
+      <applet code="Click1" width=600 height=350>
+      </applet>
+      
+      <ul>
+      <li> <a href="Click1.java">Click1.java</a>
+      <li> <a href="Box.java">Box.java</a>
+      <li> <a href="ColumnOfBoxes.java">ColumnOfBoxes.java</a>
+      </ul>
+      <hr>
+
+
+      <h2>Redispatching Events to Another Component</h2>
+
+      The target panels are consuming (and discarding) the MouseMotion
+      events that should be delivered to the game Panel.  To redispatch
+      the events we translate their coordinates to the Panels origin
+      and pass them along with <code>dispatchEvent()</code>.
+
+      <p>
+      <applet code="Click2" width=600 height=350>
+      </applet>
+
+      <ul>
+      <li> <a href="Click2.java">Click2.java</a>
+      <li> <a href="Box.java">Box.java</a>
+      <li> <a href="ColumnOfBoxes.java">ColumnOfBoxes.java</a>
+      </ul>
+      <hr>
+
+      <h2>Complete Example</h2>
+
+      Click the mouse as many times as there are boxes in a column to
+      get a satisfying "beep" and to make the boxes disappear.  To win 
+      the game clear the entire panel.  If you find yourself playing
+      this game more than once, seek professional help immediately.
+
+      <p>
+      <applet code="Click3" width=600 height=350>
+      </applet>
+
+      <ul>
+      <li> <a href="Click3.java">Click3.java</a>
+      <li> <a href="Box.java">Box.java</a>
+      <li> <a href="ColumnOfBoxes.java">ColumnOfBoxes.java</a>
+      </ul>
+      <hr>
+
+      <address><a href="mailto:hmuller@eng.sun.com">Hans Muller</a></address>
+<!-- Created: Tue Mar 11 10:57:41 PST 1997 -->
+<!-- hhmts start -->
+Last modified: Tue Mar 11 11:33:42 PST 
+<!-- hhmts end -->
+  </body>
+</html>
+

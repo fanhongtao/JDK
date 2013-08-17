@@ -1,0 +1,100 @@
+			============================
+			README for Win32 JRE sources
+			============================
+
+Building JRE.EXE
+================
+
+To build jre.exe for Win32 you must first have Microsoft Visual C++
+version 4.2 or later installed and located in your search path.
+In addition, the LIB environment variable must be set to include
+the <msvc>\lib directory and the INCLUDE variable must be set to
+include the directories <msvc>\include, <jdk>\include and
+<jdk>\include\win32, where <msvc> is the location of the MSVC++
+directory and <jdk> is the location of the JDK 1.1.2 directory.
+For example,
+
+	C> set PATH=<msvc>\bin;%PATH%
+	C> set LIB=<msvc>\lib
+	C> set INCLUDE=<jdk>\include;<jdk>\include\win32;<msvc>\include
+
+Then, to build both jre.exe and jrew.exe just type 'nmake' from the
+command line.
+
+You can also use the makefile variable 'VERSION' to specify which
+version of the JRE that jre.exe should use at start up. If not set,
+then JRE version 1.1.2 will be used. If set to a version string,
+then that specified version of the JRE will be used. If set to
+an empty string, then the latest version of the JRE will be used.
+For example,
+
+	C> nmake VERSION=1.1
+
+Will use any 1.1 JRE installed on the system.
+
+	C> nmame VERSION=1.1.2
+
+Will use only JRE 1.1.2 if installed on the system.
+
+	C> nmake VERSION=
+
+Will use the latest version of the JRE installed.
+
+JRE Registry Settings
+=====================
+
+When installed, the JRE creates the following registry key:
+
+    HKEY_LOCAL_MACHINE\Software\JavaSoft\Java Runtime Environment
+
+This key contains the following string value which is set to the
+major.minor version of the JRE installed:
+
+    Name		Default Value
+    ----		-------------
+    CurrentVersion	1.1
+
+In addition, a registry subkey is created using the major.minor version
+of the JRE installed. For example, in release 1.1.2 the following key
+will be created:
+
+    HKEY_LOCAL_MACHINE\Software\JavaSoft\Java Runtime Environment\1.1
+
+This key also contains the following string values which are used by
+the jre.exe and jrew.exe programs to obtain settings information for
+the runtime being used:
+
+    Name		Default Value
+    ----		-------------
+    JavaHome		C:\Program Files\JavaSoft\JRE\1.1
+    RuntimeLib		C:\Program Files\JavaSoft\JRE\1.1\bin\javai.dll
+    MicroVersion	2
+    Compiler		(not set by default)
+
+JavaHome is set to the full path name of the directory in which the JRE
+was installed, RuntimeLib contains the full path name of the Java runtime
+DLL to use, and MicroVersion identifies the particular micro-version of
+the JRE installed. The value Compiler can be optionally set to the library
+name of the JIT compiler DLL to use when running the VM. The JIT compiler
+can be temporarily disabled with the -nojit flag to jre.
+
+By default, the JRE program will use the above registry keys when looking
+for an installed JRE. If specific version of the JRE required (i.e. 1.1.2)
+could not be found using the above registry settings then 'jre.exe' will
+default to the VM (i.e. javai.dll) that is installed in the same directory
+as the 'jre.exe' program itself.
+
+JDK Registry Settings
+=====================
+
+The JDK 1.1.2 release continues to bundle in its own copy of the JRE
+in order to maintain compatiblity with applications that expect all
+of the classes to be in classes.zip. For this reason, when the JDK is
+installed a parallel set of registry keys and values is created under
+the following master key:
+
+    HKEY_LOCAL_MACHINE\Software\JavaSoft\Java Development Kit
+
+This is so that the JRE program as shipped with JRE 1.1.2 can either use
+the separately installed JRE or the JRE bundled in with JDK 1.1.2 if
+present.

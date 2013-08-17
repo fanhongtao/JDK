@@ -1,0 +1,48 @@
+head	1.2;
+access;
+symbols;
+locks
+	bucchere:1.2; strict;
+comment	@# @;
+
+
+1.2
+date	97.06.18.22.41.09;	author bucchere;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.06.18.22.39.31;	author bucchere;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Added the package line (used by switcher).
+@
+text
+@package alternative;
+public class ExampleApplet extends Compatibility {
+    public void init() {
+    filename = "ExampleApplet.gif";
+    super.init();
+    }
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+d7 1
+a7 1
+}
+@

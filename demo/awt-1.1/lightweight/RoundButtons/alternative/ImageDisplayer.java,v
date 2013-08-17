@@ -1,0 +1,77 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	97.06.18.23.30.45;	author bucchere;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.06.18.23.30.20;	author bucchere;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Added package statement (used by switcher).
+@
+text
+@package alternative;
+
+import java.awt.*;
+import java.applet.Applet;
+
+public class ImageDisplayer extends Canvas {
+    Image image;
+    Dimension size;
+    int w, h;
+
+    public ImageDisplayer(Image image, int width, int height) {
+	if (image == null) {
+	    System.err.println("Canvas got invalid image object!");
+	    return;
+	}
+
+	this.image = image;
+
+	w = width;
+	h = height;
+
+	size = new Dimension(w,h);
+    }
+
+    public Dimension preferredSize() {
+ 	return size;
+    }
+
+    public synchronized Dimension minimumSize() {
+	return size;
+    }
+
+    public void paint (Graphics g) {
+	if (image != null) {
+	    g.drawImage(image, 0, 0, this);
+	    g.drawRect(0, 0, w - 1, h - 1);
+	}
+    }
+}
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+@

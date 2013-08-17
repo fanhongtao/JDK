@@ -1,0 +1,75 @@
+<html>
+<head><title>Source files for the ImageMap applet.</title></head>
+<body>
+<h2>Java source code for the ImageMap applets</h2>
+<hr>
+The following source files are used to make the many active areas in the
+two ImageMap examples.  To use the ImageMap, you will need the ImageMap,
+ImageMapArea, and HighlightFilter classes plus whatever specific Area
+classes that you plan to refer to in your parameters.
+<h4>Required classes</h4>
+<dl>
+<dt><a href=ImageMap.java>ImageMap.java</a>
+<dd>ImageMap is the base class for the applet itself.  It is required.
+<dt><a href=ImageMapArea.java>ImageMapArea.java</a>
+<dd>ImageMapArea is the base superclass for the classes that implement
+the individual active areas for the ImageMap class.  It is required.
+<dt><a href=HighlightFilter.java>HighlightFilter.java</a>
+<dd>HighlightFilter is the primary image filter that produces the light
+and dark shading used by many of the individual active area classes.  It
+is required.
+<dt><a href=HighlightArea.java>HighlightArea.java</a>
+<dd>HighlightArea simply highlights the specified rectangle by a specified
+percentage brighter or darker when the mouse enters the area.  It is required.
+<dt><a href=LinkArea.java>LinkArea.java</a>
+<dd>LinkArea goes to a specified URL when the user clicks in it.  It is
+required.
+</dl>
+<h4>Common utility classes</h4>
+<dl>
+<dt><a href=ButtonFilter.java>ButtonFilter.java</a>
+<dd>ButtonFilter implements a generic 3D button shaped image highlight.
+It is needed only if you use one of the area classes below that requires it.
+<dt><a href=RoundButtonFilter.java>RoundButtonFilter.java</a>
+<dd>RoundButtonFilter implements a round variant of the ButtonFilter.
+It is needed only if you use one of the area classes below that requires it.
+</dl>
+<h4>Specific ImageMap active area classes</h4>
+<dl>
+<dt><a href=HighlightArea.java>HighlightArea.java</a>
+<dd>HighlightArea simply highlights the specified rectangle by a specified
+percentage brighter or darker when the mouse enters the area.
+<dt><a href=LinkArea.java>LinkArea.java</a>
+<dd>LinkArea goes to a specified URL when the user clicks in it.
+<dt><a href=NameArea.java>NameArea.java</a>
+<dd>NameArea shows a specified string in the status area of the browser
+when the mouse enters the specified rectangular area.
+<dt><a href=SoundArea.java>SoundArea.java</a>
+<dd>SoundArea plays a specified sound whenever the mouse enters the
+specified rectangular area (unless it is less than 1.5 seconds since
+the mouse last left that area).
+<dt><a href=DelayedSoundArea.java>DelayedSoundArea.java</a>
+<dd>DelayedSoundArea produces a delayed sound at some specified time after
+the mouse enters a subarea of the ImageMap.
+<dt><a href=HrefButtonArea.java>HrefButtonArea.java</a>
+<dd>HrefButtonArea filters the image to produce a square 3D button shape
+which the user can click to visit a specified URL.  This class requires
+the <a href=ButtonFilter.java>ButtonFilter</a> class mentioned above.
+<dt><a href=RoundHrefButtonArea.java>RoundHrefButtonArea.java</a>
+<dd>RoundHrefButtonArea filters the image to produce a round 3D button
+shape which the user can click to visit a specified URL.  This class
+requires the <a href=RoundButtonFilter.java>RoundButtonFilter</a> and
+<a href=ButtonFilter.java>ButtonFilter</a> classes mentioned above.
+<dt><a href=TickerArea.java>TickerArea.java</a>
+<dd>TickerArea scrolls a string from right to left across a specified
+area of the imagemap.
+<dt><a href=AniArea.java>AniArea.java</a>
+<dd>AniArea animates an imageloop over a section of the base image.
+<dt><a href=ClickArea.java>ClickArea.java</a>
+<dd>ClickArea helps in constructing active image areas by printing the
+location of the mouse clicks and rectangle drags in the status area of
+the browser.
+</dl>
+<hr>
+</body>
+</html>

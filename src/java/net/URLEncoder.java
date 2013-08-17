@@ -1,0 +1,122 @@
+/*
+ * @(#)URLEncoder.java	1.10 97/01/28
+ * 
+ * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information of Sun
+ * Microsystems, Inc. ("Confidential Information").  You shall not
+ * disclose such Confidential Information and shall use it only in
+ * accordance with the terms of the license agreement you entered into
+ * with Sun.
+ * 
+ * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
+ * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
+ * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
+ * THIS SOFTWARE OR ITS DERIVATIVES.
+ * 
+ * CopyrightVersion 1.1_beta
+ * 
+ */
+
+package java.net;
+
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.IOException;
+import java.util.BitSet;
+
+/**
+ * The class contains a utility method for converting a 
+ * <code>String</code> into a MIME format called 
+ * "<code>x-www-form-urlencoded</code>" format. 
+ * <p>
+ * To convert a <code>String</code>, each character is examined in turn:
+ * <ul>
+ * <li>The ASCII characters '<code>a</code>' through '<code>z</code>', 
+ *     '<code>A</code>' through '<code>Z</code>', and '<code>0</code>' 
+ *     through '<code>9</code>' remain the same. 
+ * <li>The space character '<code>&nbsp;</code>' is converted into a 
+ *     plus sign '<code>+</code>'. 
+ * <li>All other characters are converted into the 3-character string 
+ *     "<code>%<i>xy</i></code>", where <i>xy</i> is the two-digit
+ *     hexadecimal representation of the lower 8-bits of the character.
+ * </ul>
+ *
+ * @author  Herb Jellinek
+ * @version 1.10, 01/28/97
+ * @since   JDK1.0
+ */
+public class URLEncoder {
+    static BitSet dontNeedEncoding;
+
+    /* The list of characters that are not encoded have been determined by 
+       referencing O'Reilly's "HTML: The Definitive Guide" (page 164). */
+       
+    static {
+	dontNeedEncoding = new BitSet(256);
+	int i;
+	for (i = 'a'; i <= 'z'; i++) {
+	    dontNeedEncoding.set(i);
+	}
+	for (i = 'A'; i <= 'Z'; i++) {
+	    dontNeedEncoding.set(i);
+	}
+	for (i = '0'; i <= '9'; i++) {
+	    dontNeedEncoding.set(i);
+	}
+	dontNeedEncoding.set(' '); /* encoding a space to a + is done in the encode() method */
+	dontNeedEncoding.set('-');
+	dontNeedEncoding.set('_');
+	dontNeedEncoding.set('.');
+	dontNeedEncoding.set('*');
+    }
+
+    /**
+     * You can't call the constructor.
+     */
+    private URLEncoder() { }
+
+    /**
+     * Translates a string into <code>x-www-form-urlencoded</code> format.
+     *
+     * @param   s   <code>String</code> to be translated.
+     * @return  the translated <code>String</code>.
+     * @since   JDK1.0
+     */
+    public static String encode(String s) {
+	int maxBytesPerChar = 10;
+	ByteArrayOutputStream out = new ByteArrayOutputStream(s.length());
+	ByteArrayOutputStream buf = new ByteArrayOutputStream(maxBytesPerChar);
+	OutputStreamWriter writer = new OutputStreamWriter(buf);
+
+	for (int i = 0; i < s.length(); i++) {
+	    int c = (int)s.charAt(i);
+	    if (dontNeedEncoding.get(c)) {
+		if (c == ' ') {
+		    c = '+';
+		}
+		out.write(c);
+	    } else {
+		// convert to external encoding before hex conversion
+		try {
+		    writer.write(c);
+		    writer.flush();
+		} catch(IOException e) {
+		    buf.reset();
+		    continue;
+		}
+		byte[] ba = buf.toByteArray();
+		for (int j = 0; j < ba.length; j++) {
+		    out.write('%');
+		    out.write(Character.forDigit((ba[j] >> 4) & 0xF, 16));
+		    out.write(Character.forDigit(ba[j] & 0xF, 16));
+		}
+		buf.reset();
+	    }
+	}
+
+	return out.toString();
+    }
+}

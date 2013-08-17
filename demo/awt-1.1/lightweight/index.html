@@ -1,0 +1,205 @@
+<html>
+<head>
+<title>
+Lightweight Components
+</title>
+</head>
+
+<BODY BGCOLOR="#FFFFFF">
+<font size=-1>
+<a href="../index.html">Back to Examples of Using the JDK 1.1 AWT</a>
+<hr>
+</font>
+
+<h1>
+Lightweight Components
+</h1>
+
+Starting with the JDK 1.1 Beta 3 release, 
+the AWT supports lightweight components.
+Lightweight components are essential
+in the following situations:
+
+<ul>
+<li> You want to create a custom component
+     that isn't rectangular.
+<li> You want to create a custom component 
+     that's partly (or entirely) transparent.
+<li> You want to use multiple components 
+     that can draw in each others' areas.
+<li> Your program contains many components
+     and would be too inefficient 
+     if implemented with heavyweight components.
+</ul>
+
+<p>
+
+This page tells you 
+<a href=#overview>how to create lightweight components</a>,
+and then gives you links to 
+<a href=#code>examples</a> --
+pages with applets
+that use lightweight components
+(source code included, of course).
+For more details about what lightweight components are
+and how they work, see
+<a href="/products/jdk/1.1/docs/guide/awt/designspec/lightweights.html">Java AWT: Lightweight UI
+Framework</a>.
+
+
+<h2>
+<a name=overview>
+How to Create Lightweight Components
+</a>
+</h2>
+
+To create a lightweight component, 
+you need to create a class that directly extends
+one of the following classes:
+
+<p>
+
+<ul>
+<li> <a href="/products/jdk/1.1/docs/api/java.awt.Component.html"><code>Component</code></a>
+<li> <a href="/products/jdk/1.1/docs/api/java.awt.Container.html"><code>Container</code></a>
+<li> a class that implements a lightweight component --
+     for example, a non-AWT class that is a subclass of 
+     <code>Component</code> or
+     <code>Container</code>
+</ul>
+
+Your class needs to provide
+both the look and the feel of the component.
+You'll typically need to implement
+the following methods:
+
+<ul>
+<li> One or more constructors.
+     If the component responds to any events, 
+     such as mouse clicks,
+     the constructor(s) should invoke
+     the <code>enableEvents</code> method.
+<li> The <code>paint</code> method,
+     so that it draws the component's representation onscreen.
+<li> As appropriate, methods to let 
+     the state of the component be changed programmatically --
+     for example, <code>setText</code>.
+     Besides changing the component's internal state,
+     each of these methods should call the 
+     <code>repaint</code> method
+     if the component's appearance should change.
+     If the component's size should change,
+     then call the <code>invalidate</code> method
+     before calling <code>repaint</code>.
+<li> As appropriate, methods to let
+     listeners be registered and unregistered for the component.
+     For example, a button
+     should implement the <code>addActionListener</code> 
+     and <code>removeActionListener</code> methods,
+     which should add the specified listener using the
+     <code>AWTEventMulticaster add</code> and
+     <code>remove</code> methods, respectively.
+<li> The <code>contains</code> method
+     if the component responds to events
+     to only part of its entire possible drawing area.
+<li> Any appropriate <code>process<em>Xxx</em></code> methods.
+     For example, a button would implement
+     <code>processMouseEvent</code>
+     to change the button's state
+     and to generate <code>actionPerformed</code> messages as appropriate.
+
+</ul>
+
+<p>
+
+Lightweight components place special requirements on
+their containers:
+
+<ul>
+<li> Lightweight components sometimes flash noticeably
+     unless you put them in a container that performs double buffering.
+     See the 
+     <a href=#gauge>Gauge example</a>
+     for an example of a double-buffered container.
+<li> Lightweight components will <em>not</em> appear
+     if their container implements a <code>paint</code>
+     method that doesn't call <code>super.paint</code>.
+     In other words,
+     if you implement a container that performs some drawing --
+     for example, one that draws a box around its display area --
+     make sure the container's <code>paint</code> method
+     invokes <code>super.paint</code>!
+</ul>
+
+<h2>
+<a name=code>
+Code Examples and Applets
+</a>
+</h2>
+
+This section links to four pages,
+each with an example
+that illustrates an aspect of lightweight components.
+Each page includes one applet 
+and links to the applet's source code.
+If you're using a browser that includes support for 1.1beta3,
+then your browser will be able to run
+the applet on each page.
+Otherwise,
+you'll need to use another tool,
+such as the JDK Applet Viewer,
+to view the applet on each page.
+
+<p>
+
+
+      <blockquote>
+      <hr>
+      <strong>Note:</strong>
+      You must use a 1.1 browser such as 
+      <a href="/products/HotJava/">HotJava</a>
+      or the 
+      <a href="/products/jdk/1.1/">JDK Applet Viewer</a>
+      to view the applets on the following pages.
+      If you have trouble running the applets,
+      <a href="../index.html#howtorun">go here.</a>
+      <hr>
+      </blockquote>
+
+<p>
+
+Here are the examples:
+<dl>
+
+<dt> <A HREF="RoundButtons/example.html">Round Button Example</a> 
+<dd> Demonstrates how easy it is to
+     create a lightweight component. 
+<p>
+
+<dt> <A HREF="OpenlookButtons/example.html">Openlook Button Example</a> 
+<dd> Modifies the Round Button example to show
+     a more realistic looking lightweight component.
+<p>
+
+<dt> <A HREF="Spinner/example.html">Spinner Example</a> 
+<dd> Demonstrates how to animate a lightweight component.
+<p>
+
+<dt> <a name=gauge><A HREF="Gauge/example.html">Gauge Example</a> </a>
+<dd> Demonstrates how to animate a lightweight component
+     using double buffering to eliminate flicker.
+</dl>
+
+<p>
+
+
+<hr>
+<font size=-1>
+<a href=../index.html>Back to Examples of Using the JDK 1.1 AWT</a>
+<hr>
+<em>
+By <a href=mailto:kwalrath@eng.sun.com>Kathy Walrath</a>
+</em>
+</font>
+</body>
+</html>
