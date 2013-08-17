@@ -1,5 +1,5 @@
 /*
- * @(#)DateFormatZoneData_en.java	1.9 98/09/10
+ * @(#)DateFormatZoneData_en.java	1.2 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

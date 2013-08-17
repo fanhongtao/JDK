@@ -1,5 +1,5 @@
 /*
- * @(#)Graph.java	1.8 98/10/28
+ * @(#)Graph.java	1.9 98/10/28
  *
  * Copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *

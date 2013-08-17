@@ -11,8 +11,6 @@ struct Hjava_lang_ClassLoader;
 struct Hjava_security_AccessControlContext;
 struct Hjava_lang_InheritableThreadLocal_Entry;
 
-#pragma pack(4)
-
 typedef struct Classjava_lang_Thread {
     struct HArrayOfChar *name;
     int32_t priority;
@@ -36,8 +34,6 @@ typedef struct Classjava_lang_Thread {
 #define java_lang_Thread_MAX_PRIORITY 10L
 } Classjava_lang_Thread;
 HandleTo(java_lang_Thread);
-
-#pragma pack()
 
 #ifdef __cplusplus
 extern "C" {

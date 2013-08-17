@@ -8,8 +8,6 @@ struct Hjava_lang_ThreadGroup;
 struct Hjava_lang_String;
 struct Hjava_lang_Thread;
 
-#pragma pack(4)
-
 typedef struct Classjava_lang_ThreadGroup {
     struct Hjava_lang_ThreadGroup *parent;
     struct Hjava_lang_String *name;
@@ -23,8 +21,6 @@ typedef struct Classjava_lang_ThreadGroup {
     struct HArrayOfObject *groups;
 } Classjava_lang_ThreadGroup;
 HandleTo(java_lang_ThreadGroup);
-
-#pragma pack()
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 /*
- * @(#)ExampleFileView.java	1.8 99/04/23
+ * @(#)ExampleFileView.java	1.9 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -54,7 +54,7 @@ import java.util.Hashtable;
  *    fileView.putIcon("gif", new ImageIcon("images/gifIcon.gif"));
  *    chooser.setFileView(fileView);
  *
- * @version 1.8 04/23/99
+ * @version 1.9 04/23/99
  * @author Jeff Dinkins
  */
 public class ExampleFileView extends FileView {

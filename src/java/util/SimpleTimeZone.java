@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleTimeZone.java	1.32 00/03/08
+ * @(#)SimpleTimeZone.java	1.4 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -48,7 +48,7 @@ import java.io.IOException;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.32 03/08/00
+ * @version  1.31 10/20/99
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleTimeZone extends TimeZone {

@@ -1,5 +1,5 @@
 /*
- * @(#)FieldPosition.java	1.15 98/07/24
+ * @(#)FieldPosition.java	1.2 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

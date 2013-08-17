@@ -1,5 +1,5 @@
 /*
- * @(#)ElementTreePanel.java	1.9 99/04/23
+ * @(#)ElementTreePanel.java	1.10 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -44,7 +44,7 @@ import java.util.*;
  * in the text to update the selected item in the tree.
  *
  * @author Scott Violet
- * @version 1.9 04/23/99
+ * @version 1.10 04/23/99
  */
 public class ElementTreePanel extends JPanel implements CaretListener, DocumentListener, PropertyChangeListener, TreeSelectionListener {
     /** Tree showing the documents element structure. */

@@ -1,5 +1,5 @@
 /*
- * @(#)Metalworks.java	1.6 99/04/23
+ * @(#)Metalworks.java	1.7 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,7 +37,7 @@ import javax.swing.border.*;
 /**
   * This application is a demo of the Metal Look & Feel
   *
-  * @version 1.6 04/23/99
+  * @version 1.7 04/23/99
   * @author Steve Wilson
   */
 public class Metalworks {

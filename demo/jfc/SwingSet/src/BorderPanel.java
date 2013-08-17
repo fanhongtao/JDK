@@ -1,5 +1,5 @@
 /*
- * @(#)BorderPanel.java	1.7 99/04/23
+ * @(#)BorderPanel.java	1.8 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -40,7 +40,7 @@ import javax.swing.event.*;
 import javax.swing.border.*;
 
 /*
- * @version 1.7 04/23/99
+ * @version 1.8 04/23/99
  * @author Dave Kloba
  */
 public class BorderPanel extends JPanel      {

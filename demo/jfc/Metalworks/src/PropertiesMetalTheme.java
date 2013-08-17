@@ -1,5 +1,5 @@
 /*
- * @(#)PropertiesMetalTheme.java	1.5 99/04/23
+ * @(#)PropertiesMetalTheme.java	1.6 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -52,7 +52,7 @@ import java.util.*;
  * This class only loads colors from the properties file,
  * but it could easily be extended to load fonts -  or even icons.
  *
- * @version 1.5 04/23/99
+ * @version 1.6 04/23/99
  * @author Steve Wilson
  */
 public class PropertiesMetalTheme extends DefaultMetalTheme {

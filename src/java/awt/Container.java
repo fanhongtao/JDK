@@ -1,13 +1,10 @@
 /*
- * @(#)Container.java	1.161 00/03/08
+ * @(#)Container.java	1.3 00/01/12
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package java.awt;
@@ -38,7 +35,7 @@ import java.awt.event.WindowEvent;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.161 03/08/00
+ * @version 	1.158 04/22/99
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)
@@ -1244,8 +1241,7 @@ public class Container extends Component {
                 Component window = this;
                 while (!(window instanceof Window))
                     window = window.getParent();
-                if (((Window)window).isActive() ||
-					! (window instanceof Frame || window instanceof Dialog) 				) {
+                if (((Window)window).isActive()) {
                     peer.requestFocus();
 		}
                 Toolkit.getEventQueue().changeKeyEventFocus(this);

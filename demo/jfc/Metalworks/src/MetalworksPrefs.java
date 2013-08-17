@@ -1,5 +1,5 @@
 /*
- * @(#)MetalworksPrefs.java	1.5 99/04/23
+ * @(#)MetalworksPrefs.java	1.6 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -39,7 +39,7 @@ import javax.swing.plaf.metal.*;
 /**
   * This is dialog which allows users to choose preferences
   *
- * @version 1.5 04/23/99
+ * @version 1.6 04/23/99
   * @author Steve Wilson
   */
 public class MetalworksPrefs extends JDialog {

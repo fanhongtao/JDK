@@ -1,5 +1,5 @@
 /*
- * @(#)SoundArea.java	1.9 98/03/18
+ * @(#)SoundArea.java	1.10 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -40,7 +40,7 @@ import java.net.MalformedURLException;
  *
  * @author 	Jim Graham
  * @author 	Chuck McManis
- * @version 	1.9, 03/18/98
+ * @version 	1.10, 03/18/98
  */
 class SoundArea extends ImageMapArea {
     /** The URL of the sound to be played. */

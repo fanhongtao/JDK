@@ -12,8 +12,6 @@ struct Hjava_util_Set;
 struct Hjava_util_HashMap;
 struct Hjava_security_ProtectionDomain;
 
-#pragma pack(4)
-
 typedef struct Classjava_lang_ClassLoader {
     /*boolean*/ int32_t initialized;
     struct Hjava_lang_ClassLoader *parent;
@@ -37,8 +35,6 @@ typedef struct Classjava_lang_ClassLoader {
 /* Inaccessible static: class_00024java_00024lang_00024ClassLoader */
 } Classjava_lang_ClassLoader;
 HandleTo(java_lang_ClassLoader);
-
-#pragma pack()
 
 #ifdef __cplusplus
 extern "C" {

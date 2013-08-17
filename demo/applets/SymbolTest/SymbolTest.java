@@ -1,5 +1,5 @@
 /*
- * @(#)SymbolTest.java	1.2 98/12/10
+ * @(#)SymbolTest.java	1.3 98/12/10
  *
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *

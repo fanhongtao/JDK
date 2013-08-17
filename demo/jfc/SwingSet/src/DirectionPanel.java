@@ -1,5 +1,5 @@
 /*
- * @(#)DirectionPanel.java	1.8 99/04/23
+ * @(#)DirectionPanel.java	1.9 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

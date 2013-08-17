@@ -1,5 +1,5 @@
 /*
- * @(#)TableExample4.java	1.11 99/04/23
+ * @(#)TableExample4.java	1.12 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -34,7 +34,7 @@
  * specialised renderers and editors as well as changing widths and colors
  * for some of the columns in the SwingSet demo table.
  *
- * @version 1.11 04/23/99
+ * @version 1.12 04/23/99
  * @author Philip Milne
  */
 

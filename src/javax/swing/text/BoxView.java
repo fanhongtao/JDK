@@ -1,15 +1,11 @@
 /*
- * @(#)BoxView.java	1.32 99/04/22
+ * @(#)BoxView.java	1.4 00/05/17
  *
- * Copyright 1997-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 package javax.swing.text;
 
@@ -261,6 +257,7 @@ public class BoxView extends CompositeView {
 	}
     }
 
+
     /**
      * Renders using the given rendering surface and area 
      * on that surface.  Only the children that intersect
@@ -278,6 +275,10 @@ public class BoxView extends CompositeView {
 	int x = alloc.x + getLeftInset();
 	int y = alloc.y + getTopInset();
 	Rectangle clip = g.getClipBounds();
+	AttributeSet attr = getAttributes();
+	int firstLineIndent = (int)StyleConstants.getFirstLineIndent(attr);
+	if (firstLineIndent < 0)
+		clip.width += -firstLineIndent;
 	for (int i = 0; i < n; i++) {
 	    alloc.x = x + xOffsets[i];
 	    alloc.y = y + yOffsets[i];

@@ -1,5 +1,5 @@
 /*
- * @(#)ToolTipPanel.java	1.19 99/04/23
+ * @(#)ToolTipPanel.java	1.20 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,7 +36,7 @@ import java.awt.event.*;
 import java.lang.*;
 
 /*
- * @version 1.19 04/23/99
+ * @version 1.20 04/23/99
  * @author Jeff Dinkins
  * @author Peter Korn (accessibility support)
  */

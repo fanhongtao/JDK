@@ -1,5 +1,5 @@
 /*
- * @(#)XYZApp.java	1.8 98/06/29
+ * @(#)XYZApp.java	1.9 98/06/29
  *
  * Copyright (c) 1995-1998 Sun Microsystems, Inc. All Rights Reserved.
  *

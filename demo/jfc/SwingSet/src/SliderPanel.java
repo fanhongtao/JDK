@@ -1,5 +1,5 @@
 /*
- * @(#)SliderPanel.java	1.16 99/04/23
+ * @(#)SliderPanel.java	1.17 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -52,7 +52,7 @@ class SliderListener implements ChangeListener {
 }
 
 /*
- * @version 1.16 04/23/99
+ * @version 1.17 04/23/99
  * @author Dave Kloba
  * @author Peter Korn (accessibility support)
  */

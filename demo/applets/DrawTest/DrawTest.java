@@ -1,5 +1,5 @@
 /*
- * @(#)DrawTest.java	1.6 98/07/07
+ * @(#)DrawTest.java	1.7 98/07/07
  *
  * Copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *

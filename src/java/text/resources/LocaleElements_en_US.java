@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_en_US.java	1.2 98/06/29
+ * @(#)LocaleElements_en_US.java	1.2 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

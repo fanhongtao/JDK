@@ -1,13 +1,10 @@
 /*
- * @(#)DataFlavor.java	1.33 00/03/08
+ * @(#)DataFlavor.java	1.3 00/03/02
  *
  * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -23,7 +20,7 @@ import java.io.IOException;
  * Each instance represents the opaque concept of a data format as would
  * appear on a clipboard, during drag and drop, or in a file system.
  *
- * @version     1, 33
+ * @version     1, 3
  * @author	Blake Sullivan
  * @author	Laurence P. G. Cable
  */
@@ -42,33 +39,34 @@ public class DataFlavor implements Externalizable, Cloneable {
      *
      * @throws ClassNotFoundException
      */
+    
     protected final static Class tryToLoadClass(String className,
 						ClassLoader fallback) 
-        throws ClassNotFoundException
+           throws ClassNotFoundException
     {
-	ClassLoader systemClassLoader = (ClassLoader)
-	    java.security.AccessController.doPrivileged(
+        ClassLoader systemClassLoader = (ClassLoader)
+            java.security.AccessController.doPrivileged(
                 new java.security.PrivilegedAction() {
-		    public Object run() {
-			ClassLoader cl = Thread.currentThread().
-			    getContextClassLoader();
-			return (cl != null)
-			    ? cl
-			    : ClassLoader.getSystemClassLoader();
-		    }
-		    });
-	
-	try {
-	    return Class.forName(className, true, systemClassLoader);
-	} catch (ClassNotFoundException e2) {
-	    if (fallback != null) {
-		return Class.forName(className, true, fallback);
-	    } else {
-		throw new ClassNotFoundException(className);
-	    }
-	}
+                    public Object run() {
+                        ClassLoader cl = Thread.currentThread().
+                            getContextClassLoader();
+                        return (cl != null)
+                            ? cl
+                            : ClassLoader.getSystemClassLoader();
+                    }
+                    });
+
+        try {
+            return Class.forName(className, true, systemClassLoader);
+        } catch (ClassNotFoundException e2) {
+            if (fallback != null) {
+                return Class.forName(className, true, fallback);
+            } else {
+                throw new ClassNotFoundException(className);
+            }
+        }
     }
-    
+
     /*
      * private initializer
      */
@@ -299,8 +297,8 @@ public class DataFlavor implements Externalizable, Cloneable {
     * @param humanPresentableName The human Presentable Name or null
     * @param classLoader The fallback class loader to resolve against
     *
-    * @throws MimeTypeParseException
-    * @throws ClassNotFoundException
+    * @throw MimeTypeParseException
+    * @throw ClassNotFoundException
     *
     * @see tryToLoadClass
     */

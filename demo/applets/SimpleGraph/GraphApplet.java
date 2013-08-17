@@ -1,5 +1,5 @@
 /*
- * @(#)GraphApplet.java	1.3 98/03/18
+ * @(#)GraphApplet.java	1.4 98/03/18
  *
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *

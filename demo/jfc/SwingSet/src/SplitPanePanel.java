@@ -1,5 +1,5 @@
 /*
- * @(#)SplitPanePanel.java	1.14 99/04/23
+ * @(#)SplitPanePanel.java	1.15 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -43,7 +43,7 @@ import java.awt.event.*;
  * you to resize it. Luckily JComponent has methods for setting the
  * preferred/min sizes.
  *
- * @version 1.14 04/23/99
+ * @version 1.15 04/23/99
  * @author Scott Violet
  * @author Peter Korn (accessibility support)
  */

@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyResourceBundle.java	1.15 98/08/11
+ * @(#)PropertyResourceBundle.java	1.2 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

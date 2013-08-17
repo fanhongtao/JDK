@@ -1,5 +1,5 @@
 /*
- * @(#)HighlightFilter.java	1.6 98/03/18
+ * @(#)HighlightFilter.java	1.7 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -44,7 +44,7 @@ import java.net.MalformedURLException;
  * the pixels in the images.
  *
  * @author 	Jim Graham
- * @version 	1.6, 03/18/98
+ * @version 	1.7, 03/18/98
  */
 class HighlightFilter extends RGBImageFilter {
     boolean brighter;

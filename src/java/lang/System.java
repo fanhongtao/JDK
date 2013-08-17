@@ -1,13 +1,10 @@
 /*
- * @(#)System.java	1.100 00/03/08
+ * @(#)System.java	1.3 00/01/12
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -33,7 +30,7 @@ import sun.net.InetAddressCachePolicy;
  * copying a portion of an array. 
  *
  * @author  Arthur van Hoff 
- * @version 1.100, 03/08/00
+ * @version 1.99, 09/20/99
  * @since   JDK1.0
  */
 public final class System {

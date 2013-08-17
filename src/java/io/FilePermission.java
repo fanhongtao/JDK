@@ -1,15 +1,11 @@
 /*
- * @(#)FilePermission.java	1.59 99/04/22
+ * @(#)FilePermission.java	1.3 00/01/12
  *
- * Copyright 1997-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.io;
@@ -636,7 +632,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.59 00/04/06
+ * @version 1.59 99/10/20
  *
  * @author Marianne Mueller
  * @author Roland Schemers

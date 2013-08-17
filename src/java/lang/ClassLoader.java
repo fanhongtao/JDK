@@ -1,13 +1,10 @@
 /*
- * @(#)ClassLoader.java	1.128 00/03/08
+ * @(#)ClassLoader.java	1.4 00/05/19
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -127,7 +124,7 @@ import sun.misc.CompoundEnumeration;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.128, 03/08/00
+ * @version 1.125, 04/22/99
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -290,7 +287,7 @@ public abstract class ClassLoader {
 		if (parent != null) {
 		    c = parent.loadClass(name, false);
 		} else {
-		    c = checkFindBootstrapClass(name);
+		    c = findBootstrapClass0(name);
 		}
 	    } catch (ClassNotFoundException e) {
 	        // If still not found, then call findClass in order
@@ -482,12 +479,6 @@ public abstract class ClassLoader {
 		setSigners(c, certs);
 	}
 	return c;
-    }
-
-    private Class checkFindBootstrapClass(String name)
-	throws ClassNotFoundException {
-	check();
-	return findBootstrapClass(name);
     }
 
     private synchronized void checkCerts(String name, CodeSource cs)
@@ -1110,7 +1101,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.128, 03/08/00
+     * @version 1.4, 05/19/00
      * @see     java.lang.ClassLoader
      * @since   JDK1.2
      */ 

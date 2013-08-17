@@ -1,5 +1,5 @@
 /*
- * @(#)BorderedPanePanel.java	1.6 99/04/23
+ * @(#)BorderedPanePanel.java	1.7 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -40,7 +40,7 @@ import java.io.*;
 /**
  * Borders, borders, everywhere....
  *
- * @version 1.6 04/23/99
+ * @version 1.7 04/23/99
  * @author Jeff Dinkins
  */
 public class BorderedPanePanel extends JPanel

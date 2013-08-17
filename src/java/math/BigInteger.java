@@ -1,15 +1,11 @@
 /*
- * @(#)BigInteger.java	1.26 99/04/22
+ * @(#)BigInteger.java	1.3 00/01/12
  *
- * Copyright 1996-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.math;
@@ -71,7 +67,7 @@ import java.util.Random;
  * interpreted similarly. 
  *
  * @see     BigDecimal
- * @version 1.26, 00/04/06
+ * @version 1.26, 99/10/20
  * @author  Josh Bloch
  * @since JDK1.1
  */

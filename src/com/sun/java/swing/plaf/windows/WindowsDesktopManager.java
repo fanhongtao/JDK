@@ -1,13 +1,10 @@
 /*
- * @(#)WindowsDesktopManager.java	1.10 00/03/08
+ * @(#)WindowsDesktopManager.java	1.3 00/04/11
  *
  * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -36,7 +33,7 @@ import java.util.Vector;
  * and another window is selected, that new window will be maximized.
  *
  * @see javax.swing.DefaultDesktopManager
- * @version 1.10 03/08/00
+ * @version 1.8 08/26/98
  * @author Thomas Ball
  */
 public class WindowsDesktopManager extends DefaultDesktopManager 

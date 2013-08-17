@@ -1,13 +1,10 @@
 /*
- * @(#)ObjectStreamClass.java	1.79 00/03/08
+ * @(#)ObjectStreamClass.java	1.3 00/04/05
  *
  * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -481,12 +478,10 @@ public class ObjectStreamClass implements java.io.Serializable {
 	validateLocalClass(cl);
 
 	/* Disable instance deserialization when one class is serializable 
-	* and the other is not or if both the classes are neither serializable
-	* nor externalizable. 
-	*/
-	if ((serializable != localClassDesc.serializable) ||
-	    (externalizable != localClassDesc.externalizable) || 
-	    (!serializable && !externalizable)) {
+	 * and the other is not. */
+        if ((serializable != localClassDesc.serializable) ||
+            (externalizable != localClassDesc.externalizable) ||
+            (!serializable && !externalizable)) {
 
 	    /* Delay signaling InvalidClassException until trying 
              * to deserialize an instance of this class. Allows
@@ -1040,9 +1035,9 @@ public class ObjectStreamClass implements java.io.Serializable {
 	    String name = (serializable || externalizable) ? 
   		              localClassDesc.getName() : getName();
 	    String stype = (serializable || localClassDesc.serializable) ? 
-  		           "Serializable" : 
-  		           (externalizable || localClassDesc.externalizable) ?
-  		           "Externalizable" : "Serializable or Externalizable";
+                         "Serializable" :
+                          (externalizable || localClassDesc.externalizable) ?
+                          "Externalizable" : "Serializable or Externalizable";
 	    throw new InvalidClassException(name, "is not " + stype);
 	}
     }

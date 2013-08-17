@@ -1,5 +1,5 @@
 /*
- * @(#)TreeCombo.java	1.7 99/04/23
+ * @(#)TreeCombo.java	1.8 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

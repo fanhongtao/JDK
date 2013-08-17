@@ -1,5 +1,5 @@
 /*
- * @(#)Collator.java	1.21 98/11/16
+ * @(#)Collator.java	1.2 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996-1998 -  All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved

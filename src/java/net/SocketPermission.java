@@ -1,15 +1,11 @@
 /*
- * @(#)SocketPermission.java	1.26 99/04/22
+ * @(#)SocketPermission.java	1.5 00/06/21
  *
- * Copyright 1997-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
  
 package java.net;
@@ -313,10 +309,10 @@ implements java.io.Serializable
      */
     private void init(String host, int mask) {
 
-	host = getHost(host);
-
 	if (host == null) 
 		throw new NullPointerException("host can't be null");
+
+        host = getHost(host);
 
 	// Set the integer mask that represents the actions
 
@@ -636,27 +632,7 @@ implements java.io.Serializable
 
 	// return if either one of these NetPerm objects are invalid...
 	if (this.invalid || that.invalid) {
-	    if (!trustProxy)
-		return false;
-
-	    // if we trust the proxy, we see if the original names/IPs passed
-	    // in were equal.
-
-	    String thisHost = getName();
-	    String thatHost = that.getName();
-
-	    int sep = thisHost.indexOf(':');
-	    if (sep != -1)
-		thisHost = thisHost.substring(0, sep);
-
-	    sep = thatHost.indexOf(':');
-	    if (sep != -1)
-		thatHost = thatHost.substring(0, sep);
-
-	    if (thisHost == null) 
-		return false;
-	    else 
-		return thisHost.equalsIgnoreCase(thatHost);
+		return (trustProxy ? inProxyWeTrust(that) : false);
 	}
 
 
@@ -730,9 +706,8 @@ implements java.io.Serializable
 	    return (this.cname.equalsIgnoreCase(that.cname));
 
 	} catch (UnknownHostException uhe) {
-	    // commented out, otherwise the last return is
-	    // flagged as unreachable by the compiler.
-	    // return false;
+		if (trustProxy)
+			return inProxyWeTrust(that);
 	}
 
 	// make sure the first thing that is done here is to return
@@ -740,6 +715,27 @@ implements java.io.Serializable
 
 	return false; 
     }
+
+	private boolean inProxyWeTrust(SocketPermission that) {
+	// if we trust the proxy, we see if the original names/IPs passed
+	// in were equal.
+
+	String thisHost = getName();
+	String thatHost = that.getName();
+
+	int sep = thisHost.indexOf(':');
+	if (sep != -1)
+		thisHost = thisHost.substring(0, sep);
+
+	sep = thatHost.indexOf(':');
+	if (sep != -1)
+		thatHost = thatHost.substring(0, sep);
+
+	if (thisHost == null) 
+		return false;
+	else 
+		return thisHost.equalsIgnoreCase(thatHost);
+	}
 
     /**
      * Checks two SocketPermission objects for equality. 
@@ -991,7 +987,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.26 00/04/06
+ * @version 1.26 99/10/20
  *
  * @author Roland Schemers
  */
@@ -1026,7 +1022,12 @@ implements Serializable
 	if (! (permission instanceof SocketPermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
-	permissions.addElement(permission);
+	if (isReadOnly())
+	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+
+	// optimization to ensure perms most likely to be tested
+	// show up early (4301064)
+	permissions.add(0, permission);
     }
 
     /**

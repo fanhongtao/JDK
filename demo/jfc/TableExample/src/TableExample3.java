@@ -1,5 +1,5 @@
 /*
- * @(#)TableExample3.java	1.9 99/04/23
+ * @(#)TableExample3.java	1.10 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

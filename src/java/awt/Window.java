@@ -1,13 +1,10 @@
 /*
- * @(#)Window.java	1.115 00/03/08
+ * @(#)Window.java	1.2 00/01/12
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package java.awt;
@@ -61,7 +58,6 @@ public class Window extends Container {
      * @see getWarningString()
      */
     String      warningString;
-	boolean		nativeActive;
 
     static final int OPENED = 0x01;
 
@@ -704,7 +700,7 @@ public class Window extends Container {
      * assigned to them.
      */
     public Component getFocusOwner() {
-        if (active || nativeActive)
+        if (active)
             return focusMgr.getFocusOwner();
         else
             return null;

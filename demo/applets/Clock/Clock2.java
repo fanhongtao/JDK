@@ -1,5 +1,5 @@
 /*
- * @(#)Clock2.java	1.5 98/07/09
+ * @(#)Clock2.java	1.6 98/07/09
  *
  * Copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *

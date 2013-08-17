@@ -1,13 +1,10 @@
 /*
- * @(#)EventDispatchThread.java	1.32 00/03/08
+ * @(#)EventDispatchThread.java	1.2 00/01/12
  *
  * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -16,7 +13,7 @@ package java.awt;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
-import java.awt.event.InputEvent;
+
 
 /**
  * EventDispatchThread is a package-private AWT class which takes
@@ -30,7 +27,7 @@ import java.awt.event.InputEvent;
  * secondary event pump will exit automatically as soon as the Condtional
  * evaluate()s to false and an additional Event is pumped and dispatched.
  *
- * @version 1.32 03/08/00
+ * @version 1.30 04/22/99
  * @author Tom Ball
  * @author Amy Fowler
  * @author Fred Ecks
@@ -87,36 +84,16 @@ class EventDispatchThread extends Thread {
     }
 
     void pumpEvents(Conditional cond) {
-        pumpEventsForComponent(cond, null);
-    }
-
-    void pumpEventsForComponent(Conditional cond, Component modalComponent) {
         while (doDispatch && cond.evaluate()) {
-            if (isInterrupted() || !pumpOneEventForComponent(modalComponent)) {
+            if (isInterrupted() || !pumpOneEvent()) {
                 doDispatch = false;
             }
         }
     }
 
     boolean pumpOneEvent() {
-        return pumpOneEventForComponent(null);
-    }
-
-    boolean pumpOneEventForComponent(Component modalComponent) {
         try {
             AWTEvent event = theQueue.getNextEvent();
-            if (modalComponent != null) {
-        	while  (event instanceof InputEvent) { 
-		    Component c = (Component)event.getSource();
-		    // check if c's modalComponent's child
-		    while (c != modalComponent && c != null)
-			c = c.getParent();
-		    if (c != modalComponent)
-			event = theQueue.getNextEvent();
-		    else
-			break;
-		} 
-            } 
             theQueue.dispatchEvent(event);
             return true;
         } catch (ThreadDeath death) {

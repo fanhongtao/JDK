@@ -1,5 +1,5 @@
 /*
- * @(#)CompactStringArray.java	1.12 98/03/18
+ * @(#)CompactStringArray.java	1.2 00/01/12
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

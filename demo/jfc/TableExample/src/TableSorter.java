@@ -1,5 +1,5 @@
 /*
- * @(#)TableSorter.java	1.8 99/04/23
+ * @(#)TableSorter.java	1.9 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -42,7 +42,7 @@
  * which means that it does not move around rows when its comparison 
  * function returns 0 to denote that they are equivalent. 
  *
- * @version 1.8 04/23/99
+ * @version 1.9 04/23/99
  * @author Philip Milne
  */
 

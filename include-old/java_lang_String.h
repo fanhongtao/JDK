@@ -5,8 +5,6 @@
 #ifndef _Included_java_lang_String
 #define _Included_java_lang_String
 
-#pragma pack(4)
-
 typedef struct Classjava_lang_String {
     struct HArrayOfChar *value;
     int32_t offset;
@@ -19,8 +17,6 @@ typedef struct Classjava_lang_String {
 /* Inaccessible static: CASE_INSENSITIVE_ORDER */
 } Classjava_lang_String;
 HandleTo(java_lang_String);
-
-#pragma pack()
 
 #ifdef __cplusplus
 extern "C" {

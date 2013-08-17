@@ -1,21 +1,17 @@
 /*
- * @(#)gc_md.h	1.8 98/09/21
+ * @(#)gc_md.h	1.2 00/01/12
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 #ifndef _JAVASOFT_GC_MD_H_
 #define _JAVASOFT_GC_MD_H_
 
-/*---- Win32 defines for garbage collection ----*/
+/*---- solaris defines for garbage collection ----*/
 
 #ifdef DEBUG
 /* local debug & error checking flag */
@@ -80,6 +76,9 @@
  * space is large), but try to keep PAGE_ALIGNMENT * MIN_XXX_PAGES to a
  * size that the OS will usually be able to allocate.
  *
+ * Solaris has a real memalign, so we set MAX_OBJ_PAGES to 16, which
+ * approximately corresponds to the default heap size when using memory
+ * mapping.
  */
 #define PAGE_ALIGNMENT	    (64 * 1024)  /* page size is the same. */
 
@@ -92,9 +91,10 @@
 #define MIN_OBJ_PAGES (2)	  /* min # of pages to allocate for objects */
 #define MIN_HANDLE_PAGES (2)	  /* min # of pages to allocate for handles */
 #else
-#define MIN_OBJ_PAGES (32)	  /* min # of pages to allocate for objects */
-#define MIN_HANDLE_PAGES (8)	  /* min # of pages to allocate for handles */
+#define MIN_OBJ_PAGES (16)	  /* min # of pages to allocate for objects */
+#define MIN_HANDLE_PAGES (4)	  /* min # of pages to allocate for handles */
 #endif /* LDEBUG */
 
 #endif  /************ END PAGED HEAPS ********************/
+
 #endif /* !_JAVASOFT_GC_MD_H_ */

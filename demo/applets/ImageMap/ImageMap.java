@@ -1,5 +1,5 @@
 /*
- * @(#)ImageMap.java	1.13 98/06/29
+ * @(#)ImageMap.java	1.14 98/06/29
  *
  * Copyright (c) 1995-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -50,7 +50,7 @@ import java.net.MalformedURLException;
  * that can be dynamically loaded over the net.
  *
  * @author 	Jim Graham
- * @version 	1.13, 06/29/98
+ * @version 	1.14, 06/29/98
  */
 public class ImageMap
     extends Applet
