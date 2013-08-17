@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.52 00/02/10
+ * @(#)Date.java	1.53 01/01/22
  *
- * Copyright 1995-1999 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You

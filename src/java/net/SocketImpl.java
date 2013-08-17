@@ -1,15 +1,14 @@
 /*
- * @(#)SocketImpl.java	1.24 00/08/09
+ * @(#)SocketImpl.java	1.25 01/01/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package java.net;
@@ -28,7 +27,7 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.24, 08/09/00
+ * @version 1.25, 01/22/01
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {

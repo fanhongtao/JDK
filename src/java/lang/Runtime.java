@@ -1,15 +1,14 @@
 /*
- * @(#)Runtime.java	1.28 00/04/06
+ * @(#)Runtime.java	1.29 01/01/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package java.lang;
@@ -26,7 +25,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.28, 04/06/00
+ * @version 1.29, 01/22/01
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */

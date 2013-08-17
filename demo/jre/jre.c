@@ -1,7 +1,7 @@
 /*
- * @(#)jre.c	1.8 00/02/10
+ * @(#)jre.c	1.9 01/01/22
  *
- * Copyright 1997-1999 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You

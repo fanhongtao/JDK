@@ -1,7 +1,7 @@
 /*
- * @(#)EventDispatchThread.java	1.20 00/02/10
+ * @(#)EventDispatchThread.java	1.21 01/01/22
  *
- * Copyright 1995-1999 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -23,7 +23,7 @@ import java.awt.peer.ActiveEvent;
  * events off the EventQueue and dispatches them to the appropriate
  * AWT components.
  *
- * @version 1.20 02/10/00
+ * @version 1.21 01/22/01
  * @author Tom Ball
  * @author Amy Fowler
  */
