@@ -57,7 +57,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.20, 01/05/07
+ * @version 1.20, 01/07/26
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {

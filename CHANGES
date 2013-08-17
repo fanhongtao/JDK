@@ -2,11 +2,11 @@
 
                     Java(R) 2 SDK, Standard Edition
                      Java(R) 2 Runtime Environment
-                           JDK/JRE 1.2.2_009
+                           JDK/JRE 1.2.2_010
 
 
 This CHANGES file summarizes the changes between the FCS version of 
-JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_009. For changes
+JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_010. For changes
 in the Java platform since earlier releases, see the the
 following document on the Java Software web site:
 
@@ -17,7 +17,7 @@ following document on the Java Software web site:
 ----------------------------------------------------------------------
 INTRODUCTION
 -----------------------------------------------------------------------
-This is patch 009 of the 1.2.2 version of the Java Development
+This is patch 010 of the 1.2.2 version of the Java Development
 Kit. For each patch release of the 1.2.2 version, 
 it is the Java(R) 2 SDK Windows 95/98/2000/NT production release, and the 
 Solaris(tm) reference implementation of the Java 2 SDK source base.
@@ -26,11 +26,20 @@ For the WIN32 production release, the Java(tm) Plug-in product
 is included with the JRE 1.2.2 software.
 
 -----------------------------------------------------------------------
-BUGS FIXED IN PATCH JDK/JRE 1.2.2_009
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_010
 -----------------------------------------------------------------------
 
 4196823 - The ScrollPane content is horizontally twitched during vertical 
           scrolling
+
+4211817 - JarURLConnection.openConnection() doesn't reflect current jar 
+          file contents
+
+4434185 - Java Plugin1.2.2_00x does not recognize runtime parameters -Xmxn
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_009
+-----------------------------------------------------------------------
 
 4264410 - MultiDitherTest fails with assertion
 
@@ -349,4 +358,3 @@ please go to this web page:
 Copyright (C) 1996-2001 Sun Microsystems, Inc.
 901 San Antonio Rd., Palo Alto, CA 94303 USA
 All rights reserved.
-
