@@ -39,20 +39,20 @@ HandleTo(java_lang_Thread);
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void java_lang_Thread_registerNatives(struct Hjava_lang_Thread *);
+extern int32_t java_lang_Thread_countStackFrames(struct Hjava_lang_Thread *);
 extern struct Hjava_lang_Thread *java_lang_Thread_currentThread(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_yield(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_interrupt0(struct Hjava_lang_Thread *);
+extern /*boolean*/ int32_t java_lang_Thread_isAlive(struct Hjava_lang_Thread *);
+extern /*boolean*/ int32_t java_lang_Thread_isInterrupted(struct Hjava_lang_Thread *,/*boolean*/ int32_t);
+extern void java_lang_Thread_registerNatives(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_resume0(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_setPriority0(struct Hjava_lang_Thread *,int32_t);
 extern void java_lang_Thread_sleep(struct Hjava_lang_Thread *,int64_t);
 extern void java_lang_Thread_start(struct Hjava_lang_Thread *);
-extern /*boolean*/ int32_t java_lang_Thread_isInterrupted(struct Hjava_lang_Thread *,/*boolean*/ int32_t);
-extern /*boolean*/ int32_t java_lang_Thread_isAlive(struct Hjava_lang_Thread *);
-extern int32_t java_lang_Thread_countStackFrames(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_setPriority0(struct Hjava_lang_Thread *,int32_t);
 struct Hjava_lang_Object;
 extern void java_lang_Thread_stop0(struct Hjava_lang_Thread *,struct Hjava_lang_Object *);
 extern void java_lang_Thread_suspend0(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_resume0(struct Hjava_lang_Thread *);
-extern void java_lang_Thread_interrupt0(struct Hjava_lang_Thread *);
+extern void java_lang_Thread_yield(struct Hjava_lang_Thread *);
 #ifdef __cplusplus
 }
 #endif

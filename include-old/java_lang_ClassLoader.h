@@ -42,10 +42,10 @@ extern "C" {
 struct Hjava_lang_String;
 struct Hjava_lang_Class;
 extern struct Hjava_lang_Class *java_lang_ClassLoader_defineClass0(struct Hjava_lang_ClassLoader *,struct Hjava_lang_String *,HArrayOfByte *,int32_t,int32_t,struct Hjava_security_ProtectionDomain *);
-extern void java_lang_ClassLoader_resolveClass0(struct Hjava_lang_ClassLoader *,struct Hjava_lang_Class *);
 extern struct Hjava_lang_Class *java_lang_ClassLoader_findBootstrapClass(struct Hjava_lang_ClassLoader *,struct Hjava_lang_String *);
 extern struct Hjava_lang_Class *java_lang_ClassLoader_findLoadedClass(struct Hjava_lang_ClassLoader *,struct Hjava_lang_String *);
 extern struct Hjava_lang_ClassLoader *java_lang_ClassLoader_getCallerClassLoader(struct Hjava_lang_ClassLoader *);
+extern void java_lang_ClassLoader_resolveClass0(struct Hjava_lang_ClassLoader *,struct Hjava_lang_Class *);
 #ifdef __cplusplus
 }
 #endif
