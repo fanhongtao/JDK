@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.19 02/06/02
+ * @version 1.21 06/06/06
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -50,7 +50,9 @@ public class DefaultListCellRenderer extends JLabel
     implements ListCellRenderer, Serializable
 {
 
-    protected static Border noFocusBorder;
+    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+    private static final Border SAFE_NO_FOCUS_BORDER =
+                                new EmptyBorder(1, 1, 1, 1);
 
     /**
      * Constructs a default renderer object for an item
@@ -58,9 +60,16 @@ public class DefaultListCellRenderer extends JLabel
      */
     public DefaultListCellRenderer() {
 	super();
-       	noFocusBorder = new EmptyBorder(1, 1, 1, 1);
 	setOpaque(true);
-	setBorder(noFocusBorder);
+	setBorder(getNoFocusBorder());
+    }
+
+    private static Border getNoFocusBorder() {
+        if (System.getSecurityManager() != null) {
+            return SAFE_NO_FOCUS_BORDER;
+        } else {
+            return noFocusBorder;
+        }
     }
 
 
@@ -92,7 +101,7 @@ public class DefaultListCellRenderer extends JLabel
 
 	setEnabled(list.isEnabled());
 	setFont(list.getFont());
-	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
+	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : getNoFocusBorder());
 
 	return this;
     }

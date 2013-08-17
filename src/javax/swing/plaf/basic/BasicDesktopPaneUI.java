@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,15 +16,18 @@ import java.awt.Insets;
 import java.awt.Graphics;
 import java.awt.*;
 import java.util.Vector;
+import sun.awt.AppContext;
 
 /**
  * Basic L&F for a desktop.
  *
- * @version 1.37 02/06/02
+ * @version 1.39 06/06/06
  * @author Steve Wilson
  */
 public class BasicDesktopPaneUI extends DesktopPaneUI
 {
+    private static final Object FRAMES_CACHE_KEY =
+               new StringBuffer("BASIC_DESKTOP_PANE_UI.FRAMES_CACHE");
     private static Dimension minSize = new Dimension(0,0);
     private static Dimension maxSize = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
@@ -82,6 +85,18 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     }
 
     public BasicDesktopPaneUI() {
+    }
+
+    private static Vector getCurrentFramesCache() {
+        synchronized (BasicDesktopPaneUI.class) {
+            AppContext appContext = AppContext.getAppContext();
+            Vector framesCache = (Vector) appContext.get(FRAMES_CACHE_KEY);
+            if(framesCache == null) {
+                framesCache = new Vector();
+                appContext.put(FRAMES_CACHE_KEY,framesCache);
+            }
+            return framesCache;
+        }
     }
 
     public void installUI(JComponent c)   {
@@ -213,7 +228,6 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     /*
      * Key binding for accessibility -----------------
      */
-    private static Vector framesCache;
     private static int selectedIndex;
     private NavigateAction nextAction;
     private boolean moving = false;
@@ -225,6 +239,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class OpenAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
+            Vector framesCache = getCurrentFramesCache();
 	    // restore the selected minimized or maximized frame
 	    verifyFramesCache();
 	    JComponent c = 
@@ -263,6 +278,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class CloseAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
+            Vector framesCache = getCurrentFramesCache();
 	    verifyFramesCache();
 	    JComponent c = 
 		(JComponent)framesCache.elementAt(selectedIndex);
@@ -368,6 +384,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class MinimizeAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
+            Vector framesCache = getCurrentFramesCache();
 	    // minimize the selected frame
 	    verifyFramesCache();
 	    JComponent c = 
@@ -393,6 +410,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class MaximizeAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
+            Vector framesCache = getCurrentFramesCache();
 	    // maximize the selected frame
 	    verifyFramesCache();
 	    JComponent c = 
@@ -431,6 +449,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     protected class NavigateAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    // navigate to the next frame
+            Vector framesCache = getCurrentFramesCache(); 
 	    verifyFramesCache();
 	    selectedIndex++;
 	    if (selectedIndex >= framesCache.size()) {
@@ -468,6 +487,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     private class PreviousAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    // navigate to the previous internal frame
+            Vector framesCache = getCurrentFramesCache();
 	    verifyFramesCache();
 	    selectedIndex--;
 	    if (selectedIndex < 0) {
@@ -504,10 +524,11 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     private void verifyFramesCache() {
 
+        Vector framesCache = getCurrentFramesCache();
+
 	// Need to initialize?
 	boolean shouldSetSelection = false;
 	if (framesCache == null) {
-	    framesCache = new Vector();
 	    shouldSetSelection = true;
 	}
 

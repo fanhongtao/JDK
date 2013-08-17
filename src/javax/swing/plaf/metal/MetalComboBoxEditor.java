@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.15 02/06/02
+ * @version 1.17 06/06/06
  * @author Steve Wilson
  */
 public class MetalComboBoxEditor extends BasicComboBoxEditor {
@@ -37,7 +37,8 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
     }
 
     protected static Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
-
+    private static final Insets SAFE_EDITOR_BORDER_INSETS = new Insets( 4, 2, 4, 0 );
+  
     class EditorBorder extends AbstractBorder {
         public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
             g.translate( x, y );
@@ -57,7 +58,11 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
         }
 
         public Insets getBorderInsets( Component c ) {
+            if (System.getSecurityManager() != null) {
+               return SAFE_EDITOR_BORDER_INSETS;
+            } else {
             return editorBorderInsets;
+            }
         }
     }
 

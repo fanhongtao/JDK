@@ -1,4 +1,4 @@
-Sun Microsystems, Inc.  Binary Code License Agreement
+Sun Microsystems, Inc. Binary Code License Agreement
 
 READ THE TERMS OF THIS AGREEMENT AND ANY PROVIDED
 SUPPLEMENTAL LICENSE TERMS (COLLECTIVELY "AGREEMENT")
@@ -114,7 +114,7 @@ of this Agreement.  No modification of this Agreement will
 be binding, unless in writing and signed by an authorized
 representative of each party.
 
-JavaTM 2 Software Development Kit (J2SDK), Standard Edition,
+Java 2 Software Development Kit (J2SDK), Standard Edition,
 Version 1.3.x SUPPLEMENTAL LICENSE TERMS
 
 These supplemental license terms ("Supplemental Terms") add
@@ -127,7 +127,9 @@ inconsistent or conflicting terms in the Binary Code License
 Agreement, or in any license contained within the Software.
 
 1.  Software Internal Use and Development License Grant.
-Subject to the terms and conditions of this Agreement,
+Subject to the terms and conditions of this Agreement and 
+restrictions and exceptions set forth in the Software 
+"README" file incorporated herein by reference,
 including, but not limited to Section 4 (Java Technology
 Restrictions) of these Supplemental Terms, Sun grants you a
 non-exclusive, non-transferable, limited license without
@@ -226,6 +228,15 @@ terminate this Agreement immediately should any Software
 become, or in either party's opinion be likely to become,
 the subject of a claim of infringement of any intellectual
 property right.
+
+8.  Third Party Code. Additional copyright notices and license 
+terms applicable to portions of the Software are set forth in 
+the THIRDPARTYLICENSEREADME. In addition to any terms and 
+conditions of any third party open source/freeware license 
+identified in the THIRDPARTYLICENSEREADME, the disclaimer of 
+warranty and limitation of liability provisions in paragraphs 
+5 and 6 of the Binary Code License Agreement shall apply to all 
+Software in this distribution.
 
 For inquiries please contact:  Sun Microsystems, Inc., 4150
 Network Circle, Santa Clara, California 95054, U.S.A.

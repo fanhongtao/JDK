@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package javax.swing;
 
 
 import java.util.*;
+import sun.awt.AppContext;
 
 
 
@@ -18,7 +19,7 @@ import java.util.*;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.31 02/06/02
+ * @version 1.33 08/18/06
  * @author Dave Moore
  */
 class TimerQueue implements Runnable
@@ -68,7 +69,9 @@ class TimerQueue implements Runnable
                                        "that is already running");
         }
         else {
-            Thread timerThread = new Thread(this, "TimerQueue");
+            final ThreadGroup threadGroup = 
+                AppContext.getAppContext().getThreadGroup();
+            Thread timerThread = new Thread(threadGroup, this, "TimerQueue");
             try {
                 timerThread.setDaemon(true);
             }
