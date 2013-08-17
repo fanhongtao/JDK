@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.139 00/02/02
+ * @(#)Font.java	1.140 01/03/02
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -92,7 +92,7 @@ import java.io.*;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  * @see GraphicsEnvironment#getAllFonts
- * @version 	1.139, 02/02/00
+ * @version 	1.140, 03/02/01
  */
 public class Font implements java.io.Serializable
 {
@@ -1480,7 +1480,8 @@ public class Font implements java.io.Serializable
 	// need char array constructor on textlayout
 	String str = new String(chars, beginIndex, limit - beginIndex);
 	TextLayout tl = new TextLayout(str, this, frc);
-	return new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(), tl.getDescent() + tl.getLeading());
+	return new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(),
+		tl.getDescent() + tl.getAscent() + tl.getLeading());
       }
     }
 

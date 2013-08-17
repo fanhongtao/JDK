@@ -1,5 +1,5 @@
 /*
- * @(#)JTextComponent.java	1.155 01/01/23
+ * @(#)JTextComponent.java	1.155 01/02/26
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -202,7 +202,7 @@ import java.util.Set;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.155 01/23/01
+ * @version 1.155 02/26/01
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -551,16 +551,12 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     public JTextComponent() {
         super();
-	
+	// Will cause the system clipboard state to be updated.
+	canAccessSystemClipboard = true;
+	canAccessSystemClipboard();
 	// enable InputMethodEvent for on-the-spot pre-editing
 	enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
 	needToSendKeyTypedEvent = !isProcessInputMethodEventOverridden();
-	
-
-
-
-
-
 
         caretEvent = new MutableCaretEvent(this);
         addMouseListener(caretEvent);
@@ -1244,9 +1240,11 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * for null selections.
      */
     public void cut() {
-	if (isEditable() && isEnabled()) {
+	Clipboard clipboard;
+
+	if (isEditable() && isEnabled() &&
+	                    (clipboard = getClipboard()) != null) {
 	    try {
-		Clipboard clipboard = getToolkit().getSystemClipboard();
 		int p0 = Math.min(caret.getDot(), caret.getMark());
 		int p1 = Math.max(caret.getDot(), caret.getMark());
 		if (p0 != p1) {
@@ -1270,18 +1268,21 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * Does nothing for null selections.
      */
     public void copy() {
-        try {
-            Clipboard clipboard = getToolkit().getSystemClipboard();
-            int p0 = Math.min(caret.getDot(), caret.getMark());
-            int p1 = Math.max(caret.getDot(), caret.getMark());
-            if (p0 != p1) {
-                Document doc = getDocument();
-                String srcData = doc.getText(p0, p1 - p0);
-                StringSelection contents = new StringSelection(srcData);
-                clipboard.setContents(contents, defaultClipboardOwner);
-            }
-        } catch (BadLocationException e) {
-        }
+	Clipboard clipboard;
+
+	if ((clipboard = getClipboard()) != null) {
+	    try {
+		int p0 = Math.min(caret.getDot(), caret.getMark());
+		int p1 = Math.max(caret.getDot(), caret.getMark());
+		if (p0 != p1) {
+		    Document doc = getDocument();
+		    String srcData = doc.getText(p0, p1 - p0);
+		    StringSelection contents = new StringSelection(srcData);
+		    clipboard.setContents(contents, defaultClipboardOwner);
+		}
+	    } catch (BadLocationException e) {
+	    }
+	}
     }
     
     /**
@@ -1294,17 +1295,21 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @see #replaceSelection
      */ 
     public void paste() {
-	Clipboard clipboard = getToolkit().getSystemClipboard();
-	Transferable content = clipboard.getContents(this);
-	if (isEditable() && isEnabled() && (content != null)) {
-	    try {
-		String dstData = (String)(content.getTransferData(DataFlavor.stringFlavor));
-		replaceSelection(dstData);
-	    } catch (Exception e) {
+	Clipboard clipboard;
+	
+	if (isEditable() && isEnabled() && 
+	    (clipboard = getClipboard()) != null) {
+	    Transferable content = clipboard.getContents(this);
+	    if (content != null) {
+		try {
+		    String dstData = (String)(content.getTransferData(DataFlavor.stringFlavor));
+		    replaceSelection(dstData);
+		} catch (Exception e) {
+		    getToolkit().beep();
+		}
+	    } else {
 		getToolkit().beep();
 	    }
-	} else {
-	    getToolkit().beep();
 	}
     }
 
@@ -1792,6 +1797,44 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    return (((JViewport)getParent()).getHeight() > getPreferredSize().height);
 	}
 	return false;
+    }
+
+    /**
+     * Returns the clipboard to use for cut/copy/paste.
+     */
+    private Clipboard getClipboard() {
+        if (canAccessSystemClipboard()) {
+            return getToolkit().getSystemClipboard();
+        }
+        Clipboard clipboard = (Clipboard)sun.awt.AppContext.getAppContext().
+                                             get(SandboxClipboardKey);
+        if (clipboard == null) {
+            clipboard = new Clipboard("Sandboxed Text Component Clipboard");
+            sun.awt.AppContext.getAppContext().put(SandboxClipboardKey,
+                                                   clipboard);
+        }
+        return clipboard;
+    }
+
+    /**
+     * Returns true if it is safe to access the system Clipboard.
+     */
+    private boolean canAccessSystemClipboard() {
+        if (canAccessSystemClipboard) {
+            SecurityManager sm = System.getSecurityManager();
+
+            if (sm != null) {
+                try {
+                    sm.checkSystemClipboardAccess();
+                    return true;
+                } catch (SecurityException se) {
+                    canAccessSystemClipboard = false;
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
 /////////////////
@@ -2406,6 +2449,17 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     private boolean editable;
     private Insets margin;
     private char focusAccelerator;
+
+    /**
+     * Indicates if it is safe to access the system clipboard. Once false,
+     * access will never be checked again.
+     */
+    private boolean canAccessSystemClipboard;
+    /**
+     * Key used in app context to lookup Clipboard to use if access to
+     * System clipboard is denied.
+     */
+    private static Object SandboxClipboardKey = new Object();
 
     private static ClipboardOwner defaultClipboardOwner = new ClipboardObserver();
 
