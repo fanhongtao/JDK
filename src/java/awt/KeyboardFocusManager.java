@@ -1,5 +1,5 @@
 /*
- * @(#)KeyboardFocusManager.java	1.24 02/01/03
+ * @(#)KeyboardFocusManager.java	1.25 02/03/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -52,7 +52,7 @@ import sun.awt.SunToolkit;
  * ClassLoader.
  *
  * @author David Mendenhall
- * @version 1.24, 01/03/02 
+ * @version 1.25, 03/02/02 
  *
  * @see Window
  * @see Frame
@@ -2000,6 +2000,76 @@ public abstract class KeyboardFocusManager
     static final int SNFH_FAILURE = 0;
     static final int SNFH_SUCCESS_HANDLED = 1;
     static final int SNFH_SUCCESS_PROCEED = 2;
+
+    static boolean processSynchronousLightweightTransfer(Component heavyweight, Component descendant,
+                                                  boolean temporary, boolean focusedWindowChangeAllowed,
+                                                  long time) {
+        Window parentWindow = getContainingWindow(heavyweight);
+        if (parentWindow == null || !parentWindow.syncLWRequests) {
+            return false;
+        }
+        if (descendant == null) {
+            // Focus transfers from a lightweight child back to the
+            // heavyweight Container should be treated like lightweight
+            // focus transfers.
+            descendant = heavyweight;
+        }
+
+        FocusEvent currentFocusOwnerEvent = null;
+        FocusEvent newFocusOwnerEvent = null;
+        Component currentFocusOwner = getCurrentKeyboardFocusManager().
+            getGlobalFocusOwner();        
+
+        synchronized (heavyweightRequests) {
+            HeavyweightFocusRequest hwFocusRequest = (HeavyweightFocusRequest)
+                ((heavyweightRequests.size() > 0)
+                 ? heavyweightRequests.getLast() : null);
+            if (hwFocusRequest == null &&
+                heavyweight == getNativeFocusOwner())
+            {
+
+                if (descendant == currentFocusOwner) {
+                    // Redundant request.
+                    return true;
+                }
+
+                // 'heavyweight' owns the native focus and there are no pending
+                // requests. 'heavyweight' must be a Container and
+                // 'descendant' must not be the focus owner. Otherwise,
+                // we would never have gotten this far.
+                getCurrentKeyboardFocusManager
+                    (SunToolkit.targetToAppContext(descendant)).
+                    enqueueKeyEvents(time, descendant);
+
+                hwFocusRequest =
+                    new HeavyweightFocusRequest(heavyweight, descendant,
+                                                temporary);
+                heavyweightRequests.add(hwFocusRequest);
+
+                if (currentFocusOwner != null) {
+                    currentFocusOwnerEvent =
+                        new FocusEvent(currentFocusOwner,
+                                       FocusEvent.FOCUS_LOST,
+                                       temporary, descendant);
+                }
+                newFocusOwnerEvent =
+                    new FocusEvent(descendant, FocusEvent.FOCUS_GAINED,
+                                   temporary, currentFocusOwner);
+            }
+        }        
+        boolean result = false;
+        synchronized(Component.LOCK) {
+            if (currentFocusOwnerEvent != null && currentFocusOwner != null) {
+                currentFocusOwner.dispatchEvent(currentFocusOwnerEvent);
+                result = true;
+            }
+            if (newFocusOwnerEvent != null && descendant != null) {
+                descendant.dispatchEvent(newFocusOwnerEvent);
+                result = true;
+            }        
+        }
+        return result;
+    }
 
     /**
      * Indicates whether the native implementation should proceed with a

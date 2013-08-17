@@ -1,41 +1,15 @@
 /*
- * @(#)DictionaryBasedBreakIterator.java	1.7 01/12/03
+ * @(#)DictionaryBasedBreakIterator.java	1.8 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)src/classes/sov/java/text/DictionaryBasedBreakIterator.java, hsdev, hs122, 19991106 1.3.1.3
- * ===========================================================================
- * IBM Confidential
- * OCO Source Materials
- *
- * IBM Java(tm)2 SDK, Standard Edition, v 1.2
- *
- * (C) Copyright IBM Corp. 1999
- *
- * The source code for this program is not published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with the U.S.
- * Copyright office.
- * ===========================================================================
- * Change activity:
- *
- * Reason  Date   Origin  Description
- * ------  ----   ------  ----------------------------------------------------
- *         270799         New file.
- * ===========================================================================
- * Module Information:
- *
- * DESCRIPTION: Hindi, Thai, and Bidi enhancements.
- * ===========================================================================
- */
-
-/*
  * @(#)DictionaryBasedBreakIterator.java	1.3 99/05/03
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 2002 - All Rights Reserved
  *
  * The original version of this source code and documentation
  * is copyrighted and owned by Taligent, Inc., a wholly-owned

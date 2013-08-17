@@ -1,5 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.37 01/12/03
+ * @(#)Direct-X-Buffer.java	1.38 02/03/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -196,6 +196,35 @@ class DirectFloatBufferS
 	return Bits.swap(unsafe.getFloat(ix(checkIndex(i))));
     }
 
+    public FloatBuffer get(float[] dst, int offset, int length) {
+
+        if ((length << 2) > Bits.JNI_COPY_TO_ARRAY_THRESHOLD) {
+            checkBounds(offset, length, dst.length);
+            int pos = position();
+            int lim = limit();
+            assert (pos <= lim);
+            int rem = (pos <= lim ? lim - pos : 0);
+            if (length > rem)
+                throw new BufferUnderflowException();
+
+            if (order() != ByteOrder.nativeOrder())
+                Bits.copyToFloatArray(ix(pos), dst,
+                                       offset << 2,
+                                       length << 2);
+            else
+                Bits.copyToByteArray(ix(pos), dst,
+                                     offset << 2,
+                                     length << 2);
+            position(pos + length);
+        } else {
+            super.get(dst, offset, length);
+        }
+        return this;
+
+
+
+    }
+
 
 
     public FloatBuffer put(float x) {
@@ -242,6 +271,33 @@ class DirectFloatBufferS
 	    super.put(src);
 	}
 	return this;
+
+
+
+    }
+
+    public FloatBuffer put(float[] src, int offset, int length) {
+
+        if ((length << 2) > Bits.JNI_COPY_FROM_ARRAY_THRESHOLD) {
+            checkBounds(offset, length, src.length);
+            int pos = position();
+            int lim = limit();
+            assert (pos <= lim);
+            int rem = (pos <= lim ? lim - pos : 0);
+            if (length > rem)
+                throw new BufferOverflowException();
+
+            if (order() != ByteOrder.nativeOrder())
+                Bits.copyFromFloatArray(src, offset << 2,
+                                         ix(pos), length << 2);
+            else
+                Bits.copyFromByteArray(src, offset << 2,
+                                       ix(pos), length << 2);
+            position(pos + length);
+        } else {
+            super.put(src, offset, length);
+        }
+        return this;
 
 
 

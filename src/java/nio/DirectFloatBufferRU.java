@@ -1,5 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.37 01/12/03
+ * @(#)Direct-X-Buffer.java	1.38 02/03/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -198,6 +198,35 @@ class DirectFloatBufferRU
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public FloatBuffer put(float x) {
 
 
@@ -244,6 +273,33 @@ class DirectFloatBufferRU
 
 
 	throw new ReadOnlyBufferException();
+
+    }
+
+    public FloatBuffer put(float[] src, int offset, int length) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        throw new ReadOnlyBufferException();
 
     }
 

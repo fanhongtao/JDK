@@ -273,12 +273,6 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 		    }
 		}
 
-                if (location.x + size.width > sBounds.x + sBounds.width) {
-                    location.x -= size.width;
-                }
-                if (location.y + size.height > sBounds.y + sBounds.height) {
-                    location.y -= (size.height + 20);
-                }
             }
 
 	    // we do not adjust x/y when using awt.Window tips
@@ -300,7 +294,21 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 		    // adjust
 		    location.x -= x;
 		}
-	    }		
+	    }
+
+	    // Fit as much of the tooltip on screen as possible
+	    if (location.x < sBounds.x) {
+		location.x = sBounds.x;
+	    }
+	    else if (location.x - sBounds.x + size.width > sBounds.width) {
+		location.x = sBounds.x + Math.max(0, sBounds.width - size.width);
+	    }
+	    if (location.y < sBounds.y) {
+		location.y = sBounds.y;
+	    }
+	    else if (location.y - sBounds.y + size.height > sBounds.height) {
+		location.y = sBounds.y + Math.max(0, sBounds.height - size.height);
+	    }
 
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
 

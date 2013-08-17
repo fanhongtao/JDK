@@ -1,5 +1,5 @@
 /*
- * @(#)HttpURLConnection.java	1.32 01/12/03
+ * @(#)HttpURLConnection.java	1.33 02/04/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -220,9 +220,72 @@ abstract public class HttpURLConnection extends URLConnection {
      * @return the HTTP Status-Code
      */
     public int getResponseCode() throws IOException {
+	/*
+	 * We're got the response code already
+	 */
+	if (responseCode != -1) {
+	    return responseCode;
+	}
+	
+	/*
+	 * Ensure that we have connected to the server. Record
+	 * exception as we need to re-throw it if there isn't
+	 * a status line.
+	 */
+	Exception exc = null;
+	try {
+	    getInputStream();
+	} catch (Exception e) {
+	    exc = e;
+	}
+	
+	/*
+	 * If we can't a status-line then re-throw any exception
+	 * that getInputStream threw.
+	 */
+	String statusLine = getHeaderField(0);
+	if (statusLine == null) {
+	    if (exc != null) {
+		if (exc instanceof RuntimeException)
+		    throw (RuntimeException)exc;
+		else
+		    throw (IOException)exc;
+	    }
+            return -1;
+        }
+	
+	/*
+	 * Examine the status-line - should be formatted as per
+	 * section 6.1 of RFC 2616 :-
+	 *
+	 * Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
+	 *
+	 * If status line can't be parsed return -1.
+	 */
+	if (statusLine.startsWith("HTTP/1.")) {
+	    int codePos = statusLine.indexOf(' ');
+	    if (codePos > 0) {
+		
+		int phrasePos = statusLine.indexOf(' ', codePos+1);
+		if (phrasePos > 0 && phrasePos < statusLine.length()) {
+		    responseMessage = statusLine.substring(phrasePos+1);
+		}
+		
+		// deviation from RFC 2616 - don't reject status line
+		// if SP Reason-Phrase is not included.
+		if (phrasePos < 0) 
+		    phrasePos = statusLine.length();
+		
+		try {
+		    responseCode = Integer.parseInt
+			(statusLine.substring(codePos+1, phrasePos));     
+		    return responseCode;
+		} catch (NumberFormatException e) { }
+	    }
+	}
 	return -1;
     }
-
+    
     /**
      * Gets the HTTP response message, if any, returned along with the
      * response code from a server.  From responses like:

@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.11 01/12/03
+ * @(#)DefaultKeyboardFocusManager.java	1.12 02/03/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import sun.awt.SunToolkit;
  * Container's FocusTraversalPolicy.
  *
  * @author David Mendenhall
- * @version 1.11, 12/03/01
+ * @version 1.12, 03/02/02
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -583,7 +583,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
             postProcessKeyEvent(e);
         }
 
-        if (getFocusOwner() == null) {
+        if (focusOwner == null) {
             java.awt.peer.ComponentPeer peer = e.getComponent().getPeer();
             if (peer != null) {
                 peer.handleEvent(e);
@@ -711,7 +711,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 	}
     }
     private boolean preDispatchKeyEvent(KeyEvent ke) {
-        ke.setSource(((getFocusOwner() != null) ? getFocusOwner() 
+        Component focusOwner = getFocusOwner();
+        ke.setSource(((focusOwner != null) ? focusOwner
                       : getFocusedWindow()));
         if (ke.getSource() == null) {
             return true;

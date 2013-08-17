@@ -1,11 +1,13 @@
 /*
- * @(#)Random.java	1.36 01/12/03
+ * @(#)Random.java	1.37 02/03/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
+import java.io.*;
+import sun.misc.AtomicLong;
 
 /**
  * An instance of this class is used to generate a stream of 
@@ -31,7 +33,7 @@ package java.util;
  * class <code>Math</code> simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.36, 12/03/01
+ * @version 1.37, 03/06/02
  * @see     java.lang.Math#random()
  * @since   JDK1.0
  */
@@ -47,7 +49,7 @@ class Random implements java.io.Serializable {
      *
      * @serial
      */
-    private long seed;
+    private AtomicLong seed;
 
     private final static long multiplier = 0x5DEECE66DL;
     private final static long addend = 0xBL;
@@ -77,6 +79,7 @@ class Random implements java.io.Serializable {
      * @see     java.util.Random#setSeed(long)
      */
     public Random(long seed) {
+        this.seed = AtomicLong.newAtomicLong(0L);
         setSeed(seed);
     }
 
@@ -97,10 +100,15 @@ class Random implements java.io.Serializable {
      * an overriding method may use all 64 bits of the long argument
      * as a seed value. 
      *
+     * Note: Although the seed value is an AtomicLong, this method
+     *       must still be synchronized to ensure correct semantics
+     *       of haveNextNextGaussian.
+     *
      * @param   seed   the initial seed.
      */
     synchronized public void setSeed(long seed) {
-        this.seed = (seed ^ multiplier) & mask;
+        seed = (seed ^ multiplier) & mask;
+        while(!this.seed.attemptSet(seed));
     	haveNextNextGaussian = false;
     }
 
@@ -128,9 +136,12 @@ class Random implements java.io.Serializable {
      * @return  the next pseudorandom value from this random number generator's sequence.
      * @since   JDK1.1
      */
-    synchronized protected int next(int bits) {
-        long nextseed = (seed * multiplier + addend) & mask;
-        seed = nextseed;
+    protected int next(int bits) {
+        long oldseed, nextseed;
+        do {
+          oldseed = seed.get();
+          nextseed = (oldseed * multiplier + addend) & mask;
+        } while (!seed.attemptUpdate(oldseed, nextseed));
         return (int)(nextseed >>> (48 - bits));
     }
 
@@ -434,4 +445,60 @@ class Random implements java.io.Serializable {
     	    return v1 * multiplier;
         }
     }
+
+    /**
+     * Serializable fields for Random.
+     *
+     * @serialField    seed long;
+     *              seed for random computations
+     * @serialField    nextNextGaussian double;
+     *              next Gaussian to be returned
+     * @serialField      haveNextNextGaussian boolean
+     *              nextNextGaussian is valid
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("seed", Long.TYPE),
+        new ObjectStreamField("nextNextGaussian", Double.TYPE),
+        new ObjectStreamField("haveNextNextGaussian", Boolean.TYPE)
+        };
+
+    /**
+     * Reconstitute the <tt>Random</tt> instance from a stream (that is,
+     * deserialize it). The seed is read in as long for
+     * historical reasons, but it is converted to an AtomicLong.
+     */
+    private void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException {
+
+        ObjectInputStream.GetField fields = s.readFields();
+        long seedVal;
+
+        seedVal = (long) fields.get("seed", -1L);
+        if (seedVal < 0)
+          throw new java.io.StreamCorruptedException(
+                              "Random: invalid seed");
+        seed = AtomicLong.newAtomicLong(seedVal);
+        nextNextGaussian = fields.get("nextNextGaussian", 0.0);
+        haveNextNextGaussian = fields.get("haveNextNextGaussian", false);
+    }
+
+
+    /**
+     * Save the <tt>Random</tt> instance to a stream.
+     * The seed of a Random is serialized as a long for
+     * historical reasons.
+     *
+     */
+    synchronized private void writeObject(ObjectOutputStream s) throws IOException {
+        // set the values of the Serializable fields
+        ObjectOutputStream.PutField fields = s.putFields();
+        fields.put("seed", seed.get());
+        fields.put("nextNextGaussian", nextNextGaussian);
+        fields.put("haveNextNextGaussian", haveNextNextGaussian);
+
+        // save them
+        s.writeFields();
+
+    }
+ 
 }     

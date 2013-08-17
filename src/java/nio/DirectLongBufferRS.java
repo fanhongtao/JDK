@@ -1,5 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.37 01/12/03
+ * @(#)Direct-X-Buffer.java	1.38 02/03/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -198,6 +198,35 @@ class DirectLongBufferRS
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public LongBuffer put(long x) {
 
 
@@ -244,6 +273,33 @@ class DirectLongBufferRS
 
 
 	throw new ReadOnlyBufferException();
+
+    }
+
+    public LongBuffer put(long[] src, int offset, int length) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        throw new ReadOnlyBufferException();
 
     }
 

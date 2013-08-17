@@ -1,5 +1,5 @@
 /*
- * @(#)EventDispatchThread.java	1.42 01/12/03
+ * @(#)EventDispatchThread.java	1.43 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import sun.awt.AWTAutoShutdown;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.42, 12/03/01
+ * @version 1.43, 02/22/02
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -179,6 +179,7 @@ class EventDispatchThread extends Thread {
                             }
                             if (c != modalComponent) {
                                 eventOK = false;
+                                event.consume();
                             }
                         }
                     }

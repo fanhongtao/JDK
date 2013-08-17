@@ -1,5 +1,5 @@
 /*
- * @(#)JTree.java	1.158 01/12/03
+ * @(#)JTree.java	1.159 02/03/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -113,7 +113,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.158, 12/03/01
+ * @version 1.159, 03/08/02
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -3486,8 +3486,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
          *
          */
         public void valueChanged(TreeSelectionEvent e) {
-	    TreePath oldLeadSelectionPath = leadSelectionPath;
-            leadSelectionPath = JTree.this.getLeadSelectionPath();
+	    TreePath oldLeadSelectionPath = e.getOldLeadSelectionPath();
+            leadSelectionPath = e.getNewLeadSelectionPath();
 	    if (oldLeadSelectionPath != leadSelectionPath) {
 		Accessible oldLSA = leadSelectionAccessible;
 		leadSelectionAccessible = (leadSelectionPath != null) 

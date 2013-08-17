@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.169 01/12/03
+ * @(#)Window.java	1.171 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,6 +24,7 @@ import java.util.ResourceBundle;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
+import java.security.PrivilegedAction;
 import javax.accessibility.*;
 import java.beans.PropertyChangeListener;
 import sun.security.action.GetPropertyAction;
@@ -80,7 +81,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.169, 12/03/01
+ * @version 	1.171, 04/09/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -102,6 +103,9 @@ public class Window extends Container implements Accessible {
      * @see #getWarningString
      */
     String      warningString;
+
+    static boolean systemSyncLWRequests = false;
+    boolean     syncLWRequests = false;
 
     static final int OPENED = 0x01;
 
@@ -166,6 +170,14 @@ public class Window extends Container implements Accessible {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+ systemSyncLWRequests = ((Boolean)AccessController.doPrivileged(
+     new PrivilegedAction() {
+                    public Object run() {
+                        return new Boolean("true".equals(System.
+                                                         getProperty("java.awt.syncLWRequests",
+                                                                     "false")));
+                    }
+                })).booleanValue();
     }
 
     /**
@@ -201,6 +213,9 @@ public class Window extends Container implements Accessible {
         if (GraphicsEnvironment.isHeadless()) {
             throw new IllegalArgumentException("headless environment");
         }
+
+        syncLWRequests = systemSyncLWRequests;
+
 	setWarningString();
 	this.cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	this.visible = false;

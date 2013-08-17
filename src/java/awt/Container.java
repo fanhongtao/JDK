@@ -1,5 +1,5 @@
 /*
- * @(#)Container.java	1.222 01/12/03
+ * @(#)Container.java	1.223 02/03/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -51,7 +51,7 @@ import sun.awt.dnd.SunDropTargetEvent;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.222, 12/03/01
+ * @version 	1.223, 03/02/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -326,6 +326,151 @@ public class Container extends Component {
     public Component add(Component comp, int index) {
 	addImpl(comp, null, index);
 	return comp;
+    }
+
+    void setZOrder(Component comp, int index) {
+	synchronized (getTreeLock()) {
+	    /* Check for correct arguments:  index in bounds,
+	     * comp cannot be one of this container's parents,
+	     * and comp cannot be a window.
+	     * comp and container must be on the same GraphicsDevice.
+	     * if comp is container, all sub-components must be on
+	     * same GraphicsDevice.
+	     */
+	    GraphicsConfiguration thisGC = this.getGraphicsConfiguration();
+
+	    if (index > ncomponents || (index < 0 && index != -1)) {
+		throw new IllegalArgumentException(
+			  "illegal component position");
+	    }
+            if (comp instanceof Container) {
+                for (Container cn = this; cn != null; cn=cn.parent) {
+                    if (cn == comp) {
+                        throw new IllegalArgumentException(
+                                     "adding container's parent to itself");
+                    }
+                }
+                if (comp instanceof Window) {
+                    throw new IllegalArgumentException(
+                                  "adding a window to a container");
+                }
+            }
+            if (!(comp.peer instanceof LightweightPeer)) {
+                throw new IllegalArgumentException("should be lightweight component");
+            }
+
+            Container nativeContainer = 
+                (this.peer instanceof LightweightPeer) ? getNativeContainer() : this;
+            if (nativeContainer != comp.getNativeContainer()) {
+                throw new IllegalArgumentException("component should be in the same heavyweight container");
+            }
+            if (thisGC != null) {
+                comp.checkGD(thisGC.getDevice().getIDstring());
+            }
+
+	    /* Reparent the component and tidy up the tree's state. */
+	    if (comp.parent != null) {
+                Container oldParent = comp.parent;
+                /* Search backwards, expect that more recent additions
+                 * are more likely to be removed.
+                 */
+                Component component[] = oldParent.component;
+                int ncomponents = oldParent.ncomponents;
+                for (int i = ncomponents; --i >= 0; ) {
+                    if (component[i] == comp) {
+
+                        if (oldParent.layoutMgr != null) {
+                            oldParent.layoutMgr.removeLayoutComponent(comp);
+                        }
+
+                        oldParent.adjustListeningChildren(AWTEvent.HIERARCHY_EVENT_MASK, 
+       	                    -comp.numListening(AWTEvent.HIERARCHY_EVENT_MASK));
+                        oldParent.adjustListeningChildren(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK,
+                            -comp.numListening(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK));
+                        oldParent.adjustDescendants(-(comp.countHierarchyMembers()));
+
+                        comp.parent = null;
+                        System.arraycopy(oldParent.component, i + 1,
+                                         oldParent.component, i,
+                                         oldParent.ncomponents - i - 1);
+                        component[--oldParent.ncomponents] = null;
+
+                        if (oldParent.valid) {
+                            oldParent.invalidate();
+                        }
+                        if (oldParent.containerListener != null ||
+                            (oldParent.eventMask & AWTEvent.CONTAINER_EVENT_MASK) != 0 ||
+                            Toolkit.enabledOnToolkit(AWTEvent.CONTAINER_EVENT_MASK)) {
+                            ContainerEvent e = new ContainerEvent(oldParent, 
+                                                       ContainerEvent.COMPONENT_REMOVED,
+                                                       comp);
+                            oldParent.dispatchEvent(e);
+                        }
+
+                        comp.createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED, comp,
+				 oldParent, HierarchyEvent.PARENT_CHANGED,
+                                 Toolkit.enabledOnToolkit(AWTEvent.HIERARCHY_EVENT_MASK));
+                        if (oldParent.peer != null && oldParent.layoutMgr == null && oldParent.isVisible()) {
+                            oldParent.updateCursorImmediately();
+                        }
+                    }
+                }
+                if (index > ncomponents) {
+                    throw new IllegalArgumentException("illegal component position");
+                }
+            }
+
+	    /* Add component to list; allocate new array if necessary. */
+	    if (ncomponents == component.length) {
+		Component newcomponents[] = new Component[ncomponents * 2 + 1];
+		System.arraycopy(component, 0, newcomponents, 0, ncomponents);
+		component = newcomponents;
+	    }
+	    if (index == -1 || index == ncomponents) {
+		component[ncomponents++] = comp;
+	    } else {
+		System.arraycopy(component, index, component,
+				 index + 1, ncomponents - index);
+		component[index] = comp;
+		ncomponents++;
+	    }
+	    comp.parent = this;
+
+	    adjustListeningChildren(AWTEvent.HIERARCHY_EVENT_MASK, 
+	        comp.numListening(AWTEvent.HIERARCHY_EVENT_MASK));
+	    adjustListeningChildren(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK,
+		comp.numListening(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK));
+            adjustDescendants(comp.countHierarchyMembers());
+
+	    if (valid) {
+		invalidate();
+	    }
+	    if (peer != null) {
+		comp.addNotify();
+	    }
+	    
+	    /* Notify the layout manager of the added component. */
+	    if (layoutMgr != null) {
+		if (layoutMgr instanceof LayoutManager2) {
+		    ((LayoutManager2)layoutMgr).addLayoutComponent(comp, null);
+		}
+	    }
+            if (containerListener != null || 
+                (eventMask & AWTEvent.CONTAINER_EVENT_MASK) != 0 ||
+                Toolkit.enabledOnToolkit(AWTEvent.CONTAINER_EVENT_MASK)) {
+                ContainerEvent e = new ContainerEvent(this, 
+                                     ContainerEvent.COMPONENT_ADDED,
+                                     comp);
+                dispatchEvent(e);
+            }
+
+	    comp.createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED, comp,
+				       this, HierarchyEvent.PARENT_CHANGED,
+                                       Toolkit.enabledOnToolkit(AWTEvent.HIERARCHY_EVENT_MASK));
+	    if (peer != null && layoutMgr == null && isVisible()) {
+                updateCursorImmediately();
+	    }
+        }
     }
 
     /**
