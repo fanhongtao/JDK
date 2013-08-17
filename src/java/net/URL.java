@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1019,8 +1019,8 @@ public final class URL implements java.io.Serializable {
 	}
 
         // Construct path and query part
-        String path = null;
-        String query = null;
+        path = null;
+        query = null;
         if (file != null) {
 	    // Fix: only do this if hierarchical?
             int q = file.lastIndexOf('?');

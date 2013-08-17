@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.133 02/06/02
+ * @version 1.135 06/27/03
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -997,7 +997,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
 	    "FileChooser.pathLabelMnemonic", new Integer(KeyEvent.VK_P), // 'p'
 	    "FileChooser.filterLabelMnemonic", new Integer (KeyEvent.VK_R), // 'r'
-	    "FileChooser.foldersLabelMnemonic", new Integer (KeyEvent.VK_O), // 'o'
+	    "FileChooser.foldersLabelMnemonic", new Integer (KeyEvent.VK_L), // 'l'
 	    "FileChooser.filesLabelMnemonic", new Integer (KeyEvent.VK_I), // 'i'
 	    "FileChooser.enterFileNameLabelMnemonic", new Integer (KeyEvent.VK_N), // 'n'
 	    "FileChooser.ancestorInputMap", 

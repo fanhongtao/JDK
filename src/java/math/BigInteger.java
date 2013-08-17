@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,7 @@ import java.io.*;
  * interpreted similarly.
  *
  * @see     BigDecimal
- * @version 1.44, 02/06/02
+ * @version 1.46, 06/27/03
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -309,6 +309,8 @@ public class BigInteger extends Number implements Comparable {
 	    firstGroupLen = digitsPerInt[radix];
 	String group = val.substring(cursor, cursor += firstGroupLen);
         mag[mag.length - 1] = Integer.parseInt(group, radix);
+        if (mag[mag.length - 1] < 0)
+            throw new NumberFormatException("Illegal digit");
         
 	// Process remaining digit groups
         int superRadix = intRadix[radix];
@@ -316,6 +318,8 @@ public class BigInteger extends Number implements Comparable {
 	while (cursor < val.length()) {
 	    group = val.substring(cursor, cursor += digitsPerInt[radix]);
 	    groupVal = Integer.parseInt(group, radix);
+            if (groupVal < 0)
+                throw new NumberFormatException("Illegal digit");
             destructiveMulAdd(mag, superRadix, groupVal);
 	}
         // Required for cases where the array was overallocated.

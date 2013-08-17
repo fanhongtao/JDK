@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,9 @@ import java.awt.Dimension;
 import java.lang.reflect.Method;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-
+import java.security.AccessController;
+import java.security.AccessControlContext;
+import java.security.PrivilegedAction;
 
 /**
  * A table of defaults for Swing components.  Applications can set/get
@@ -33,7 +35,7 @@ import java.beans.PropertyChangeEvent;
  * long term persistence.
  *
  * @see UIManager
- * @version 1.40 02/06/02
+ * @version 1.42 06/27/03
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -570,6 +572,7 @@ public class UIDefaults extends Hashtable
      * (since Reflection APIs are used).
      */
     public static class ProxyLazyValue implements LazyValue {
+	private AccessControlContext acc;
 	private String className;
 	private String methodName;
 	private Object[] args;
@@ -626,9 +629,12 @@ public class UIDefaults extends Hashtable
          *		paramaters to the static method in class c
 	 */
 	public ProxyLazyValue(String c, String m, Object[] o) {
+	    acc = AccessController.getContext();
 	    className = c;
 	    methodName = m;
-	    args = o;
+	    if (o != null) {
+		args = (Object[])o.clone();
+	    }
 	}
 
         /**
@@ -638,35 +644,40 @@ public class UIDefaults extends Hashtable
          * @param table  a <code>UIDefaults</code> table
          * @return the created <code>Object</code>
          */
-	public Object createValue(UIDefaults table) {
-	    Object instance = null;
-	    try {
-		Class c = Class.forName(className);
-		if (methodName !=null) {
-		    Class[] types = getClassArray(args);
-		    Method m = c.getMethod(methodName, types);
-		    instance = m.invoke(c, args);
-		} else {
-		    Class[] types = getClassArray(args);
+	public Object createValue(final UIDefaults table) {
+	    // In order to pick up the security policy in effect at the
+            // time of creation we use a doPrivileged with the
+            // AccessControlContext that was in place when this was created.
+	    return AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
 		    try {
-			Constructor constructor = c.getConstructor(types);
-			instance = constructor.newInstance(args);
-		    } catch(Exception e) {
-			System.out.println("Problem with constructor " + className + 
+			Class c = Class.forName(className, true, ClassLoader.getSystemClassLoader());
+			if (methodName !=null) {
+		    	    Class[] types = getClassArray(args);
+		    	    Method m = c.getMethod(methodName, types);
+		    	    return  m.invoke(c, args);
+			} else {
+		    	    Class[] types = getClassArray(args);
+		    	    try {
+			        Constructor constructor = c.getConstructor(types);
+			        return constructor.newInstance(args);
+		            } catch(Exception e) {
+			        System.out.println("Problem with constructor " + className + 
 					   " and args " + printArgs(args) + " : " + 
 					   " and types " + printArgs(types) + " : " + e);
-			Thread.dumpStack();
-		    }
-		}
-	    } catch(Exception e) {
-		System.out.println("Problem creating " + className + 
+			        Thread.dumpStack();
+		            }
+		        }
+	            } catch(Exception e) {
+		        System.out.println("Problem creating " + className + 
 				   " with method " + methodName + 
 				   " and args " + printArgs(args) + " : " + e);
-		Thread.dumpStack();
-	    }	    
-	    return instance;
+		        Thread.dumpStack();
+	            }	    
+	            return null;
+	        }
+	    }, acc);
 	}
-
 	/* 
 	 * Coerce the array of class types provided into one which
 	 * looks the way the Reflection APIs expect.  This is done

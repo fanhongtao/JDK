@@ -45,7 +45,7 @@ import sun.misc.URLClassPath;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.77, 12/02/02
+ * @version 1.78, 06/12/03
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -547,10 +547,17 @@ final class FactoryURLClassLoader extends URLClassLoader {
 	// should go away once we've added support for exported packages.
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-	    int i = name.lastIndexOf('.');
-	    if (i != -1) {
-		sm.checkPackageAccess(name.substring(0, i));
-	    }
+            String cname = name.replace('/', '.');
+            if (cname.startsWith("[")) {
+                int b = cname.lastIndexOf('[') + 2;
+                if (b > 1 && b < cname.length()) {
+                    cname = cname.substring(b);
+                }
+            }
+            int i = cname.lastIndexOf('.');
+            if (i != -1) {
+                sm.checkPackageAccess(cname.substring(0, i));
+            }
 	}
 	return super.loadClass(name, resolve);
     }

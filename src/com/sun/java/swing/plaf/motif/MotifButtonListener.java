@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -16,7 +16,7 @@ import javax.swing.event.*;
  * Button Listener
  * <p>
  *
- * @version 1.14 02/06/02
+ * @version 1.16 06/27/03
  * @author Rich Schiavi
  */
 public class MotifButtonListener extends BasicButtonListener {
@@ -24,22 +24,6 @@ public class MotifButtonListener extends BasicButtonListener {
         super(b);
     }
 
-    public void focusGained(FocusEvent e) { 
-	AbstractButton b = (AbstractButton) e.getSource();
-        if (b instanceof JButton && ((JButton)b).isDefaultCapable()) {
-            // Only change the default button IF the root pane
-            // containing this button has a default set.
-            JRootPane root = SwingUtilities.getRootPane(b);
-            if (root != null) {
-                JButton current = root.getDefaultButton();
-                if (current != null) {
-                    root.setDefaultButton((JButton)b);
-                }
-            }
-        }
-	b.repaint();
-    }
-  
 /*
     // Here for rollover purposes
     public void mouseEntered(MouseEvent e) {

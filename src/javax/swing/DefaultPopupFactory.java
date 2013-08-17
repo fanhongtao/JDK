@@ -517,7 +517,6 @@ class DefaultPopupFactory implements PopupFactory {
 
     public void removeComponent(Component c) {
       this.getContentPane().remove(c);
-      recyclePopup(this);
     }
       
    /**
