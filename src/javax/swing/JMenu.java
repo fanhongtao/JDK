@@ -1,5 +1,5 @@
 /*
- * @(#)JMenu.java	1.164 01/12/03
+ * @(#)JMenu.java	1.165 02/04/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,9 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -69,7 +72,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.164 12/03/01
+ * @version 1.165 04/25/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -348,7 +351,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	int y = 0;
 	JPopupMenu pm = getPopupMenu();
 	// Figure out the sizes needed to caclulate the menu position
-	Dimension screenSize;
 	Dimension s = getSize();
 	Dimension pmSize = pm.getSize();
 	// For the first time the menu is popped up, 
@@ -357,16 +359,35 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	    pmSize = pm.getPreferredSize();
 	}
 	Point position = getLocationOnScreen();
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
         GraphicsConfiguration gc = getGraphicsConfiguration();
-        if (gc == null) {
-            screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Rectangle screenBounds = new Rectangle(toolkit.getScreenSize());
+        GraphicsEnvironment ge =
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gd = ge.getScreenDevices();
+        for(int i = 0; i < gd.length; i++) {
+            if(gd[i].getType() == GraphicsDevice.TYPE_RASTER_SCREEN) {
+                GraphicsConfiguration dgc =
+                    gd[i].getDefaultConfiguration();
+                if(dgc.getBounds().contains(position)) {
+                    gc = dgc;
+                    break;
+                }
+            }
         }
-        else {
-            Rectangle sBounds = gc.getBounds();
 
-            screenSize = sBounds.getSize();
-            position.x -= sBounds.x;
-            position.y -= sBounds.y;
+
+        if (gc != null) {
+            screenBounds = gc.getBounds();
+            // take screen insets (e.g. taskbar) into account
+            Insets screenInsets = toolkit.getScreenInsets(gc);
+
+            screenBounds.width -= 
+                        Math.abs(screenInsets.left + screenInsets.right);
+            screenBounds.height -= 
+                        Math.abs(screenInsets.top + screenInsets.bottom);
+            position.x -= Math.abs(screenInsets.left);
+            position.y -= Math.abs(screenInsets.top);
         }
 	
 	Container parent = getParent();
@@ -378,27 +399,32 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
             if( SwingUtilities.isLeftToRight(this) ) {
                 // First determine x:
                 x = s.width + xOffset;   // Prefer placement to the right
-                if (position.x + x + pmSize.width >= screenSize.width &&
+                if (position.x + x + pmSize.width >= screenBounds.width 
+                                                     + screenBounds.x && 
                     // popup doesn't fit - place it wherever there's more room
-                    screenSize.width - s.width < 2*position.x) {
+                    screenBounds.width - s.width < 2*(position.x
+                                                    - screenBounds.x)) {
 
                     x = 0 - xOffset - pmSize.width;
                 }
             } else {
                 // First determine x:
                 x = 0 - xOffset - pmSize.width; // Prefer placement to the left
-                if (position.x + x < 0 &&
+                if (position.x + x < screenBounds.x &&
                     // popup doesn't fit - place it wherever there's more room
-                    screenSize.width - s.width > 2*position.x) {
+                    screenBounds.width - s.width > 2*(position.x -
+                                                    screenBounds.x)) {
 
                     x = s.width + xOffset;
                 }
             }
             // Then the y:
             y = yOffset;                     // Prefer dropping down
-            if (position.y + y + pmSize.height >= screenSize.height &&
+            if (position.y + y + pmSize.height >= screenBounds.height 
+                                                  + screenBounds.y &&
                 // popup doesn't fit - place it wherever there's more room
-                screenSize.height - s.height < 2*position.y) {
+                screenBounds.height - s.height < 2*(position.y 
+                                                  - screenBounds.y)) {
 
                 y = s.height - yOffset - pmSize.height;
             }
@@ -410,27 +436,31 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
             if( SwingUtilities.isLeftToRight(this) ) {
                 // First determine the x:
                 x = xOffset;                   // Extend to the right
-                if (position.x + x + pmSize.width >= screenSize.width &&
+                if (position.x + x + pmSize.width >= screenBounds.width 
+                                                     + screenBounds.x &&
                     // popup doesn't fit - place it wherever there's more room
-                    screenSize.width - s.width < 2*position.x) {
+                    screenBounds.width - s.width < 2*(position.x 
+                                                    - screenBounds.x)) {
 
                     x = s.width - xOffset - pmSize.width;
                 }
             } else {
                 // First determine the x:
                 x = s.width - xOffset - pmSize.width; // Extend to the left
-                if (position.x + x < 0 &&
+                if (position.x + x < screenBounds.x &&
                     // popup doesn't fit - place it wherever there's more room
-                    screenSize.width - s.width > 2*position.x) {
+                    screenBounds.width - s.width > 2*(position.x
+                                                    - screenBounds.x)) {
 
                     x = xOffset;
                 }
             }
 	    // Then the y:
             y = s.height + yOffset;    // Prefer dropping down
-	    if (position.y + y + pmSize.height >= screenSize.height &&
+	    if (position.y + y + pmSize.height >= screenBounds.height &&
                 // popup doesn't fit - place it wherever there's more room
-                screenSize.height - s.height < 2*position.y) {
+                screenBounds.height - s.height < 2*(position.y 
+                                                  - screenBounds.y)) {
 
 		y = 0 - yOffset - pmSize.height;   // Otherwise drop 'up'
 	    }

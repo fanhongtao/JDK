@@ -1,5 +1,5 @@
 /*
- * @(#)AccessibleBundle.java	1.18 01/12/03
+ * @(#)AccessibleBundle.java	1.19 02/06/28
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,10 +32,13 @@ import java.util.ResourceBundle;
  */
 public abstract class AccessibleBundle {
 
-    private static Hashtable table = null;
+    private static Hashtable table = new Hashtable();
     private final String defaultResourceBundleName 
 	= "com.sun.accessibility.internal.resources.accessibility";
 
+    public AccessibleBundle() {
+    }
+    
     /**
      * The locale independent name of the state.  This is a programmatic 
      * name that is not intended to be read by humans.
@@ -62,9 +65,14 @@ public abstract class AccessibleBundle {
 	loadResourceBundle(resourceBundleName, locale);
 
 	// returns the localized string
-	Object o = table.get(key);
-	if (o != null && o instanceof String) {
-	    return (String)o;
+	Object o = table.get(locale);
+	if (o != null && o instanceof Hashtable) {
+                Hashtable resourceTable = (Hashtable) o;
+                o = resourceTable.get(key);
+                
+                if (o != null && o instanceof String) {
+                    return (String)o;
+                }
 	}
 	return key;
     }
@@ -103,18 +111,23 @@ public abstract class AccessibleBundle {
      */
     private void loadResourceBundle(String resourceBundleName,
 				    Locale locale) {
-	if (table == null) {
+	if (! table.contains(locale)) {
+                
 	    try {
-		table = new Hashtable();
-		ResourceBundle bundle
-		    = ResourceBundle.getBundle(resourceBundleName,
-					       locale);
-		Enumeration iter = bundle.getKeys();
+                Hashtable resourceTable = new Hashtable();
+		
+                ResourceBundle bundle = ResourceBundle.getBundle(resourceBundleName, locale);
+		
+                Enumeration iter = bundle.getKeys();
 		while(iter.hasMoreElements()) {
 		    String key = (String)iter.nextElement();
-		    table.put(key, bundle.getObject(key));
+		    resourceTable.put(key, bundle.getObject(key));
 		}
-	    } catch (MissingResourceException e) {
+
+                table.put(locale, resourceTable);
+	    } 
+            catch (MissingResourceException e) {
+                System.err.println("loadResourceBundle: " + e);
 		// Just return so toDisplayString() returns the
 		// non-localized key.
 		return;

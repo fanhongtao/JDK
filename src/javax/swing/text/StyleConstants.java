@@ -1,5 +1,5 @@
 /*
- * @(#)StyleConstants.java	1.29 01/12/03
+ * @(#)StyleConstants.java	1.30 02/05/14
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import javax.swing.Icon;
  * <p>
  * 
  * @author  Timothy Prinzing
- * @version 1.29 12/03/01
+ * @version 1.30 05/14/02
  */
 public class StyleConstants {
 
@@ -167,7 +167,7 @@ public class StyleConstants {
     /**
      * The amount of space between lines
      * of the paragraph.
-     * Type is float and specifies the size in points.
+     * Type is float and specifies the size as a factor of the line height
      */
     public static final Object LineSpacing = ParagraphConstants.LineSpacing;
 
@@ -377,7 +377,7 @@ public class StyleConstants {
      * @param b specifies true/false for setting the attribute
      */
     public static void setBold(MutableAttributeSet a, boolean b) {
-        a.addAttribute(Bold, new Boolean(b));
+        a.addAttribute(Bold, Boolean.valueOf(b));
     }
 
     /**
@@ -401,7 +401,7 @@ public class StyleConstants {
      * @param b specifies true/false for setting the attribute
      */
     public static void setItalic(MutableAttributeSet a, boolean b) {
-        a.addAttribute(Italic, new Boolean(b));
+        a.addAttribute(Italic, Boolean.valueOf(b));
     }
 
     /**
@@ -470,7 +470,7 @@ public class StyleConstants {
      * @param b specifies true/false for setting the attribute
      */
     public static void setUnderline(MutableAttributeSet a, boolean b) {
-        a.addAttribute(Underline, new Boolean(b));
+        a.addAttribute(Underline, Boolean.valueOf(b));
     }
 
     /**
@@ -480,7 +480,7 @@ public class StyleConstants {
      * @param b specifies true/false for setting the attribute
      */
     public static void setStrikeThrough(MutableAttributeSet a, boolean b) {
-        a.addAttribute(StrikeThrough, new Boolean(b));
+        a.addAttribute(StrikeThrough, Boolean.valueOf(b));
     }
 
     /**
@@ -490,7 +490,7 @@ public class StyleConstants {
      * @param b specifies true/false for setting the attribute
      */
     public static void setSuperscript(MutableAttributeSet a, boolean b) {
-        a.addAttribute(Superscript, new Boolean(b));
+        a.addAttribute(Superscript, Boolean.valueOf(b));
     }
 
     /**
@@ -500,7 +500,7 @@ public class StyleConstants {
      * @param b specifies true/false for setting the attribute
      */
     public static void setSubscript(MutableAttributeSet a, boolean b) {
-        a.addAttribute(Subscript, new Boolean(b));
+        a.addAttribute(Subscript, Boolean.valueOf(b));
     }
 
 
@@ -797,7 +797,7 @@ public class StyleConstants {
         /**
          * The amount of space between lines
          * of the paragraph.
-         * Type is float and specifies the size in points.
+         * Type is float and specifies the size as a factor of the line height
          */
         public static final Object LineSpacing = new ParagraphConstants("LineSpacing");
 

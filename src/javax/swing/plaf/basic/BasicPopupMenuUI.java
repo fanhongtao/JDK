@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.87 01/12/03
+ * @(#)BasicPopupMenuUI.java	1.88 02/06/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,14 +28,29 @@ import java.util.*;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.87 12/03/01
+ * @version 1.88 06/25/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
  */
+
 public class BasicPopupMenuUI extends PopupMenuUI {
     protected JPopupMenu popupMenu = null;
     static MenuKeyboardHelper menuKeyboardHelper = null;
+
+private static boolean checkInvokerEqual(MenuElement present, MenuElement last) {
+        Component invokerPresent = present.getComponent();
+        Component invokerLast = last.getComponent();
+
+        if (invokerPresent instanceof JPopupMenu) {
+        invokerPresent = ((JPopupMenu)invokerPresent).getInvoker();
+        }
+        if (invokerLast instanceof JPopupMenu) {
+        invokerLast = ((JPopupMenu)invokerLast).getInvoker();
+        }
+ 	return (invokerPresent == invokerLast);
+	}
+
 
     public static ComponentUI createUI(JComponent x) {
 	return new BasicPopupMenuUI();
@@ -239,8 +254,16 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 	public void stateChanged(ChangeEvent e) {
 	    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
 	    MenuElement[] p = msm.getSelectedPath();
+	if (lastPathSelected.length != 0 && p.length != 0 ) {
+                      if (!checkInvokerEqual(p[0],lastPathSelected[0])) {
+                           requestRemoveGrab();
+                           lastPathSelected = new MenuElement[0];
+                     } 
 
-	    if (lastPathSelected.length == 0 &&
+ 	}
+
+
+	    if  ( lastPathSelected.length == 0 &&
 		p.length != 0) {
 		// A grab needs to be added
 		Component invoker = p[0].getComponent();
@@ -724,6 +747,22 @@ public class BasicPopupMenuUI extends PopupMenuUI {
          */
         private boolean receivedKeyPressed = false;
 
+
+        void removeItems() {
+        if (lastFocused != null) {
+                        lastFocused.requestFocus();
+                        }
+                        if (invokerRootPane != null) {
+                        invokerRootPane.removeKeyListener(menuKeyboardHelper);
+                        invokerRootPane.setFocusTraversalKeysEnabled(focusTraversalKeysEnabled);
+                        removeUIInputMap(invokerRootPane, menuInputMap);
+                        removeUIActionMap(invokerRootPane, menuActionMap);
+                        }
+
+                        receivedKeyPressed = false;
+
+	}
+
         /**
          * Return the last JPopupMenu in <code>path</code>,
          * or <code>null</code> if none found
@@ -819,7 +858,15 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 return;
             }
 
-	    if (lastPathSelected.length == 0 && p.length != 0) {
+
+	if   (lastPathSelected.length != 0 && p.length != 0 ) {
+		if (!checkInvokerEqual(p[0],lastPathSelected[0])) {
+                    	removeItems();
+                        lastPathSelected = new MenuElement[0];
+                     	}
+
+ 	}
+	    if (lastPathSelected.length == 0  && p.length != 0) {
                 // menu posted
                 if (popup == null) return;
 
@@ -831,7 +878,6 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                     c = c.getParent();
                 }
                 JComponent invoker = (JComponent)c;
-
                 // remember current focus owner
                 lastFocused = KeyboardFocusManager.
                     getCurrentKeyboardFocusManager().getFocusOwner();
@@ -853,18 +899,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             } else if (lastPathSelected.length != 0 && p.length == 0) {
 		// menu hidden -- return focus to where it had been before
                 // and uninstall menu keybindings
-                if (lastFocused != null) {
-                    lastFocused.requestFocus();
-                }
-                if (invokerRootPane != null) {
-                    invokerRootPane.removeKeyListener(menuKeyboardHelper);
-                    invokerRootPane.setFocusTraversalKeysEnabled(
-                                       focusTraversalKeysEnabled);
-                    removeUIInputMap(invokerRootPane, menuInputMap);
-                    removeUIActionMap(invokerRootPane, menuActionMap);
-                }
-
-                receivedKeyPressed = false;
+                	removeItems();
 	    } else {
                 if (popup != lastPopup) {
                     receivedKeyPressed = false;

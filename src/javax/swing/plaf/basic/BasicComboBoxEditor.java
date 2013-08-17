@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxEditor.java	1.22 01/12/03
+ * @(#)BasicComboBoxEditor.java	1.23 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
  * If the text field is used to edit <code>java.lang.Number</code> objects, then
  * its constrained to only accept numbers.
  *
- * @version 1.22 12/03/01
+ * @version 1.23 03/20/02
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -102,6 +102,16 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
         public BorderlessTextField(String value,int n) {
             super(value,n);
         }
+
+ 
+//Added for the fix #4530952
+
+public void setText(String s) {
+             if (getText().equals(s)) {
+                 return;
+             }
+             super.setText(s);
+         }
 
         public void setBorder(Border b) {}
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)ParagraphView.java	1.82 01/12/03
+ * @(#)ParagraphView.java	1.83 02/05/14
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.82 12/03/01
+ * @version 1.83 05/14/02
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
@@ -79,7 +79,7 @@ public class ParagraphView extends FlowView implements TabExpander {
     /**
      * Sets the line spacing.
      *
-     * @param ls the value in points
+     * @param ls the value is a factor of the line height
      */
     protected void setLineSpacing(float ls) {
 	lineSpacing = ls;
@@ -102,8 +102,8 @@ public class ParagraphView extends FlowView implements TabExpander {
 	if (attr != null) {
 	    setParagraphInsets(attr);
 	    setJustification(StyleConstants.getAlignment(attr));
-	    lineSpacing = StyleConstants.getLineSpacing(attr);
-	    firstLineIndent = (int)StyleConstants.getFirstLineIndent(attr);
+            setLineSpacing(StyleConstants.getLineSpacing(attr));
+            setFirstLineIndent(StyleConstants.getFirstLineIndent(attr));
 	}
     }
 
@@ -360,20 +360,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      * @return the new <code>View</code>
      */
     protected View createRow() {
-	Element elem = getElement();
-	Row row = new Row(elem);
-
-	// Adjust for line spacing
-	if(lineSpacing > 1) {
-	    float height = row.getPreferredSpan(View.Y_AXIS);
-	    float addition = (height * lineSpacing) - height;
-	    if(addition > 0) {
-		row.setInsets(row.getTopInset(), row.getLeftInset(),
-			      (short) addition, row.getRightInset());
-	    }
-	}
-
-	return row;
+        return new Row(getElement());
     }
 	
     // --- TabExpander methods ------------------------------------------
@@ -864,6 +851,12 @@ public class ParagraphView extends FlowView implements TabExpander {
 	    }
 	    return -1;
 	}
+        protected short getBottomInset() {
+            return (short)(super.getBottomInset() +
+                           ((minorRequest != null) ? minorRequest.preferred : 0) *
+                           lineSpacing);
+        }
     }
 
 }
+

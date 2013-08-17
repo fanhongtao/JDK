@@ -1,5 +1,5 @@
 /*
- * @(#)JViewport.java	1.102 01/12/03
+ * @(#)JViewport.java	1.104 02/05/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -74,7 +74,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.102 12/03/01
+ * @version 1.104 05/16/02
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -936,7 +936,7 @@ public class JViewport extends JComponent implements Accessible
          */
         int n = getComponentCount();
         for(int i = n - 1; i >= 0; i--) {
-            remove(i);
+           remove(getComponent(i)); 
         }
 
         isViewSizeSet = false;
@@ -1463,7 +1463,11 @@ public class JViewport extends JComponent implements Accessible
 		g.setClip(0, 0, getWidth(), getHeight());
 	    }
 	    g.clipRect(dirty.x, dirty.y, dirty.width, dirty.height);
-	    paintView(g);
+	    clip = g.getClipBounds();
+	    // Only paint the dirty region if it is visible.
+	    if (clip.width > 0 && clip.height > 0) {
+	    	paintView(g);
+	    }
 	}		
     }
 

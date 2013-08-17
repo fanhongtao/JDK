@@ -1,5 +1,5 @@
 /*
- * @(#)WeakHashMap.java	1.19 01/12/03
+ * @(#)WeakHashMap.java	1.20 02/04/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -94,7 +94,7 @@ import java.lang.ref.ReferenceQueue;
  * exception for its correctness:  <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * @version	1.19, 12/03/01
+ * @version	1.20, 04/20/02
  * @author      Doug Lea
  * @author      Josh Bloch
  * @author	Mark Reinhold
@@ -241,18 +241,10 @@ public class WeakHashMap extends AbstractMap implements Map {
     }
 
     /**
-     * Return a hash code for non-null Object x.  
-     */
-    int hash(Object x) {
-        int h = x.hashCode();
-        return h - (h << 7);  // i.e., -127 * h
-    }
-
-    /** 
      * Check for equality of non-null reference x and possibly-null y.  By
      * default uses Object.equals.
      */
-    boolean eq(Object x, Object y) {
+    static boolean eq(Object x, Object y) {
         return x == y || x.equals(y);
     }
 
@@ -340,7 +332,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      */
     public Object get(Object key) {
         Object k = maskNull(key);
-        int h = hash(k);
+        int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int index = indexFor(h, tab.length);
         Entry e = tab[index]; 
@@ -370,7 +362,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      */
     Entry getEntry(Object key) {
         Object k = maskNull(key);
-        int h = hash(k);
+        int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int index = indexFor(h, tab.length);
         Entry e = tab[index]; 
@@ -393,7 +385,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      */
     public Object put(Object key, Object value) {
         Object k = maskNull(key);
-        int h = hash(k);
+        int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int i = indexFor(h, tab.length);
 
@@ -514,7 +506,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      */
     public Object remove(Object key) {
         Object k = maskNull(key);
-        int h = hash(k);
+        int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int i = indexFor(h, tab.length);
         Entry prev = tab[i];
@@ -547,7 +539,7 @@ public class WeakHashMap extends AbstractMap implements Map {
         Entry[] tab = getTable();
         Map.Entry entry = (Map.Entry)o;
         Object k = maskNull(entry.getKey());
-        int h = hash(k);
+        int h = HashMap.hash(k);
         int i = indexFor(h, tab.length);
         Entry prev = tab[i];
         Entry e = prev;

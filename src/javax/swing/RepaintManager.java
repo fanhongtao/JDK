@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.49 01/12/03
+ * @(#)RepaintManager.java	1.50 02/05/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ import sun.security.action.GetPropertyAction;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.49 12/03/01
+ * @version 1.50 05/16/02
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -261,6 +261,12 @@ public class RepaintManager
 		return;
 	    }
 	    if ((p instanceof Window) || (p instanceof Applet)) {
+		// Iconified frames are still visible!
+		if (p instanceof Frame &&
+			(((Frame)p).getExtendedState() & Frame.ICONIFIED) ==
+				Frame.ICONIFIED) {
+			return;
+		}
 		root = p;
 		break;
 	    }

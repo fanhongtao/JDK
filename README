@@ -119,10 +119,10 @@ Redistribution
 
       In addition, the Java Web Start product may be excluded from
       redistributions. The Java Web Start product is contained in a 
-      file named javaws-1_0_1_02-solsparc-int.zip,
-      javaws-1_0_1_02-solx86-int.zip,
-      javaws-1_0_1_02-linux-int.zip, or
-      javaws-1_0_1_02-win-int.exe, depending on the platform. 
+      file named javaws-1_0_1_03-solaris-sparc-i.zip,
+      javaws-1_0_1_03-solaris-i586-i.zip,
+      javaws-1_0_1_03-linux-i586-i.zip, or
+      javaws-1_0_1_03-windows-i586-i.exe, depending on the platform. 
 
 
       Unlimited Strength Java Cryptography Extension
@@ -170,14 +170,15 @@ Redistribution
       only by classes implementing a more recent version of the API 
       as defined by the appropriate standards body. 
 
-      In addition to the packages listed in the document at the above
-      URL, which are part of the Java 2 Platform, Standard Edition
-      (J2SE(TM)) specification, redistributors of Sun's J2SE Reference
-      Implementation are allowed to override classes whose sole
-      purpose is to implement the functionality provided by public 
-      APIs defined in these Endorsed Standards packages. These would
-      include, for example, subsidiary packages in the org.w3c.dom
-      namespace whose purpose is to implement the org.w3c.dom APIs. 
+      In addition to the packages listed in the document at the above 
+      URL, which are part of the Java 2 Platform, Standard Edition 
+      (J2SE(TM)) specification, redistributors of Sun's J2SE 
+      Reference Implementation are allowed to override classes whose 
+      sole purpose is to implement the functionality provided by 
+      public APIs defined in these Endorsed Standards packages.  
+      Redistributors may also override classes in the org.w3c.dom.* 
+      packages, or other classes whose sole purpose is to implement 
+      these APIs. 
 
 
 Sun Java Web Pages
@@ -203,6 +204,6 @@ Sun Java Web Pages
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 
 Inc.  This product includes code licensed from RSA Security.
 
-Copyright  2002 Sun Microsystems, Inc., 901 San Antonio Road, Palo
-Alto, California 94303, U.S.A. All rights reserved.
+Copyright  2002 Sun Microsystems, Inc., 4150 Network Circle,
+Santa Clara, California 95054, U.S.A. All rights reserved.
 

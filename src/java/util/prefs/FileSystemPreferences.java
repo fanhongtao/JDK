@@ -1,5 +1,5 @@
 /*
- * @(#)FileSystemPreferences.java	1.11 01/12/03
+ * @(#)FileSystemPreferences.java	1.12 02/06/24
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import java.security.PrivilegedActionException;
  * (The file lock is obtained only for sync(), flush() and removeNode().)
  *
  * @author  Josh Bloch
- * @version 1.11, 12/03/01
+ * @version 1.12, 06/24/02
  * @see     Preferences
  * @since   1.4
  */
@@ -66,9 +66,13 @@ class FileSystemPreferences extends AbstractPreferences {
         AccessController.doPrivileged( new PrivilegedAction() {
             public Object run() {
             // Attempt to create root dir if it does not yet exist.
-            // Temporary solution until install script issues get resolved
                 if (!systemRootDir.exists()) {
                     if (systemRootDir.mkdirs()) {
+			try {
+			    chmod(systemRootDir.getCanonicalPath(),
+				  USER_RWX_ALL_RX);
+			} catch (IOException e) {
+			}
                         logger.info("Recreated system preferences directory" 
                         + " in " + systemRootDir.getPath());
                     } else {
@@ -77,14 +81,28 @@ class FileSystemPreferences extends AbstractPreferences {
                         systemRootDir = 
                                       new File(System.getProperty("java.home"), 
                                                                 ".systemPrefs");
-                        systemRootDir.mkdirs();
+			if (systemRootDir.exists())
+			    return null;
+			if (systemRootDir.mkdirs()) {
+			    logger.info("Created system preferences directory" +
+					" in java.home.");
+			    try {
+				chmod(systemRootDir.getCanonicalPath(), 
+				      USER_RWX_ALL_RX);
+			    } catch (IOException e) {
+			    }
+			}
+			else
+			    logger.warning("Could not create system preferences"
+					   + " directory. System preferences are unusable."); 
+			
                     }
                 }
                 return null;
             }
         });
     }
-        
+    
     /*
      * Flag, indicating whether systemRoot  directory is writable
      */
@@ -112,9 +130,17 @@ class FileSystemPreferences extends AbstractPreferences {
                       System.getProperty("user.home")), ".java/.userPrefs");
                 // Attempt to create root dir if it does not yet exist.        
                 if (!userRootDir.exists()) {
-                    userRootDir.mkdirs();
-                    logger.warning("Recreated user preferences directory.");             
-                }
+		    if (userRootDir.mkdirs()) {
+			try {
+			    chmod(userRootDir.getCanonicalPath(), USER_RWX);
+			} catch (IOException e) {
+			}
+			logger.info("Created user preferences directory.");
+		    }
+		    else
+			logger.warning("Could not create user preferences " +
+				       "directory. User preferences are unusable.");
+		}
                 return null;
             }
         });
@@ -147,16 +173,12 @@ class FileSystemPreferences extends AbstractPreferences {
      */
     private static final int USER_READ_WRITE = 0600;
     
-    /** 
-     * Unix all write/read permission
-     */
-    private static final int ALL_READ_WRITE = 0666;
+    private static final int USER_RW_ALL_READ = 0644;
+  
+    private static final int USER_RWX_ALL_RX = 0755;
     
-    /** 
-     * Unix all read/write/execute permission
-     */
-    private static final int ALL_READ_WRITE_EXECUTE = 0777;
-    
+    private static final int USER_RWX = 0700;
+ 
     /**
      * The lock file for the user tree.
      */
@@ -173,14 +195,14 @@ class FileSystemPreferences extends AbstractPreferences {
      * Zero, if unlocked. 
      */
 
-     private static long userRootLockHandle = 0;
+     private static int userRootLockHandle = 0;
 
     /** 
      * Unix lock handle for systemRoot.
      * Zero, if unlocked. 
      */
 
-    private static long systemRootLockHandle = 0;
+    private static int systemRootLockHandle = 0;
 
     /**
      * The directory representing this preference node.  There is no guarantee
@@ -260,7 +282,7 @@ class FileSystemPreferences extends AbstractPreferences {
     private static boolean isSystemRootModified = false; 
 
     /** 
-     * Keeps track of userRoot modification time. This time is reset to
+     * Keeps track of systemRoot modification time. This time is reset to
      * zero after system reboot, and is increased by 1 second each time 
      * systemRoot is modified.
      */
@@ -272,9 +294,8 @@ class FileSystemPreferences extends AbstractPreferences {
                 try {
                     // create if does not exist.
                     systemRootModFile.createNewFile();
-                    // Everybody can read/write systemRootModFile.
                     int result = chmod(systemRootModFile.getCanonicalPath(), 
-                                                               ALL_READ_WRITE);
+                                                               USER_RW_ALL_READ);
                     if (result !=0) 
                         logger.warning("Chmod failed on " + 
                                systemRootModFile.getCanonicalPath() +
@@ -615,7 +636,8 @@ class FileSystemPreferences extends AbstractPreferences {
 
     public void removeNode() throws BackingStoreException {
         synchronized (isUserNode()? userLockFile: systemLockFile) {
-            if (!lockFile())
+	    // to remove a node we need an exclusive lock
+            if (!lockFile(false))
                 throw(new BackingStoreException("Couldn't get file lock."));
            try {
                 super.removeNode();
@@ -661,8 +683,19 @@ class FileSystemPreferences extends AbstractPreferences {
     }
     
     public synchronized void sync() throws BackingStoreException {
+	boolean userNode = isUserNode();
+	boolean shared;
+	
+	if (userNode) {
+	    shared = false; /* use exclusive lock for user prefs */
+	} else {
+	    /* if can write to system root, use exclusive lock.
+	       otherwise use shared lock. */
+	    shared = !isSystemRootWritable;
+	}
+             
         synchronized (isUserNode()? userLockFile:systemLockFile) {
-           if (!lockFile())
+	   if (!lockFile(shared))
                throw(new BackingStoreException("Couldn't get file lock."));
            final Long newModTime = 
                 (Long) AccessController.doPrivileged( new PrivilegedAction() {
@@ -822,22 +855,16 @@ class FileSystemPreferences extends AbstractPreferences {
      * returns false.
      * @throws SecurityException if file access denied.
      */
-    private boolean lockFile() throws SecurityException{
+    private boolean lockFile(boolean shared) throws SecurityException{
         boolean usernode = isUserNode();
-        // If we do not own prefs, we cant lock them.
-        if (!(usernode? isUserRootWritable: isSystemRootWritable))
-            return true;        
         int[] result;
         int errorCode = 0;
         File lockFile = (usernode ? userLockFile : systemLockFile);
         long sleepTime = INIT_SLEEP_TIME;
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             try {
-                /* System prefs lock file should be available to everybody who
-                   has a write permission on system prefs root. User prefs 
-                   may be locked by user only. */
-                  int perm = (usernode? USER_READ_WRITE:ALL_READ_WRITE);
-                  result = lockFile0(lockFile.getCanonicalPath(), perm);
+                  int perm = (usernode? USER_READ_WRITE: USER_RW_ALL_READ);
+		  result = lockFile0(lockFile.getCanonicalPath(), perm, shared);
                   
                   errorCode = result[ERROR_CODE];
                   if (result[LOCK_HANDLE] != 0) {
@@ -884,14 +911,15 @@ class FileSystemPreferences extends AbstractPreferences {
      * @param fileName Absolute file name of the lock file.
      * @return Returns a lock handle, used to unlock the file.
      */
-    private static native int[] lockFile0(String fileName, int permission);
+    private static native int[] 
+	    lockFile0(String fileName, int permission, boolean shared);
 
     /**
      * Unlocks file previously locked by lockFile0().
      * @param lockHandle Handle to the file lock.
      * @return Returns zero if OK, UNIX error code if failure.
      */
-    private  static native int unlockFile0(long lockHandle); 
+    private  static native int unlockFile0(int lockHandle); 
     
     /**
      * Changes UNIX file permissions.
@@ -914,13 +942,10 @@ class FileSystemPreferences extends AbstractPreferences {
      * @throws SecurityException if file access denied.
      */
     private void unlockFile() {
-        // If we do not own prefs, we cant lock them
-        boolean usernode = isUserNode();
-        if (!(usernode? isUserRootWritable: isSystemRootWritable))
-            return;
         int result;
+	boolean usernode = isUserNode();
         File lockFile = ( usernode ? userLockFile : systemLockFile);
-        long lockHandle = ( usernode ? userRootLockHandle:systemRootLockHandle);
+	int lockHandle = ( usernode ? userRootLockHandle:systemRootLockHandle);
         if (lockHandle == 0) {
             logger.warning("Unlock: zero lockHandle for " + 
                            (usernode ? "user":"system") + " preferences.)"); 

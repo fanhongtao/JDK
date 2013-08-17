@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.31 01/12/03
+ * @(#)WindowsComboBoxUI.java	1.32 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.31, 12/03/01
+ * @version 1.32, 03/20/02
  * @author Tom Santos
  */
 
@@ -96,7 +96,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 
         public void setItem(Object item) {
             super.setItem(item);
-            selectAll();
+            editor.selectAll();
         }
     }
 

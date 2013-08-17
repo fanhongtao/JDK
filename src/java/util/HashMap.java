@@ -1,5 +1,5 @@
 /*
- * @(#)HashMap.java	1.51 02/01/24
+ * @(#)HashMap.java	1.52 02/04/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -84,7 +84,7 @@ import  java.io.*;
  * @author  Doug Lea
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.51, 01/24/02
+ * @version 1.52, 04/20/02
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -244,17 +244,29 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     }
 
     /**
-     * Returns a hash code for non-null Object x.  
+     * Returns a hash value for the specified object.  In addition to 
+     * the object's own hashCode, this method applies a "supplemental
+     * hash function," which defends against poor quality hash functions.
+     * This is critical because HashMap uses power-of two length 
+     * hash tables.<p>
+     *
+     * The shift distances in this function were chosen as the result
+     * of an automated search over the entire four-dimensional search space.
      */
-    int hash(Object x) {
+    static int hash(Object x) {
         int h = x.hashCode();
-        return h - (h << 7);  // i.e., -127 * h
+
+        h += ~(h << 9);
+        h ^=  (h >>> 14);
+        h +=  (h << 4);
+        h ^=  (h >>> 10);
+        return h;
     }
 
     /** 
      * Check for equality of non-null reference x and possibly-null y. 
      */
-    boolean eq(Object x, Object y) {
+    static boolean eq(Object x, Object y) {
         return x == y || x.equals(y);
     }
 

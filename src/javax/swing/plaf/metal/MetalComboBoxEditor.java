@@ -1,5 +1,5 @@
 /*
- * @(#)MetalComboBoxEditor.java	1.16 01/12/03
+ * @(#)MetalComboBoxEditor.java	1.17 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.16 12/03/01
+ * @version 1.17 03/20/02
  * @author Steve Wilson
  */
 public class MetalComboBoxEditor extends BasicComboBoxEditor {
@@ -35,7 +35,17 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
     public MetalComboBoxEditor() {
         super();
         //editor.removeFocusListener(this);
-        editor = new JTextField("",9);
+  //Added as a fix to Bug #4530952
+
+        editor = new JTextField("",9) {
+                 public void setText(String s) {
+                     if (getText().equals(s)) {
+                         return;
+                     }
+                     super.setText(s);
+                 }
+             };
+
         editor.setBorder( new EditorBorder() );
         //editor.addFocusListener(this);
     }

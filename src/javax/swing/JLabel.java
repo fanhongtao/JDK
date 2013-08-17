@@ -1,5 +1,5 @@
 /*
- * @(#)JLabel.java	1.110 01/12/03
+ * @(#)JLabel.java	1.111 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -78,7 +78,7 @@ import java.util.*;
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.110 12/03/01
+ * @version 1.111 04/11/02
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -872,7 +872,8 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 			       int x, int y, int w, int h) {
         // Don't use getDisabledIcon, will trigger creation of icon if icon
         // not set.
-	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
+	if (!isShowing() ||
+ 	    !SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(disabledIcon, img)) {
 	    return false;
 	}
