@@ -1,8 +1,15 @@
 /*
- * @(#)PropertyDescriptor.java	1.38 01/12/10
+ * @(#)PropertyDescriptor.java	1.46 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -20,9 +27,10 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * Constructs a PropertyDescriptor for a property that follows
      * the standard Java convention by having getFoo and setFoo 
      * accessor methods.  Thus if the argument name is "fred", it will
-     * assume that the reader method is "getFred" and the writer method 
-     * is "setFred".  Note that the property name should start with a lower
-     * case character, which will be capitalized in the method names.
+     * assume that the writer method is "setFred" and the writer method 
+     * is "getFred" (or "isFred" for a boolean property).  Note that the
+     * property name should start with a lower case character, which will
+     * be capitalized in the method names.
      *
      * @param propertyName The programmatic name of the property.
      * @param beanClass The Class object for the target bean.  For
@@ -32,6 +40,9 @@ public class PropertyDescriptor extends FeatureDescriptor {
      */
     public PropertyDescriptor(String propertyName, Class beanClass)
 		throws IntrospectionException {
+	if (propertyName == null || propertyName.length() == 0) {
+	    throw new IntrospectionException("bad property name");
+	}
 	setName(propertyName);
 	String base = capitalize(propertyName);
 	writeMethod = Introspector.findMethod(beanClass, "set" + base, 1);
@@ -65,6 +76,9 @@ public class PropertyDescriptor extends FeatureDescriptor {
     public PropertyDescriptor(String propertyName, Class beanClass,
 		String getterName, String setterName)
 		throws IntrospectionException {
+	if (propertyName == null || propertyName.length() == 0) {
+	    throw new IntrospectionException("bad property name");
+	}
 	setName(propertyName);
 	readMethod = Introspector.findMethod(beanClass, getterName, 0);
 	writeMethod = Introspector.findMethod(beanClass, setterName, 1);
@@ -85,6 +99,9 @@ public class PropertyDescriptor extends FeatureDescriptor {
      */
     public PropertyDescriptor(String propertyName, Method getter, Method setter)
 		throws IntrospectionException {
+	if (propertyName == null || propertyName.length() == 0) {
+	    throw new IntrospectionException("bad property name");
+	}
 	setName(propertyName);
 	readMethod = getter;
 	writeMethod = setter;
@@ -92,6 +109,8 @@ public class PropertyDescriptor extends FeatureDescriptor {
     }
     
     /**
+     * Gets the Class object for the property.
+     *
      * @return The Java type info for the property.  Note that
      * the "Class" object may describe a built-in Java type such as "int".
      * The result may be "null" if this is an indexed property that
@@ -104,6 +123,8 @@ public class PropertyDescriptor extends FeatureDescriptor {
     }
 
     /**
+     * Gets the method that should be used to read the property value.
+     *
      * @return The method that should be used to read the property value.
      * May return null if the property can't be read.
      */
@@ -112,11 +133,35 @@ public class PropertyDescriptor extends FeatureDescriptor {
     }
 
     /**
+     * Sets the method that should be used to read the property value.
+     *
+     * @param getter The new getter method.
+     */
+    public void setReadMethod(Method getter) 
+				throws IntrospectionException {
+	readMethod = getter;
+	findPropertyType(); 
+    }
+
+    /**
+     * Gets the method that should be used to write the property value.
+     * 
      * @return The method that should be used to write the property value.
      * May return null if the property can't be written.
      */
     public Method getWriteMethod() {
-	return (writeMethod);
+	return writeMethod;
+    }
+
+    /**
+     * Sets the method that should be used to write the property value.
+     *
+     * @param setter The new setter method.
+     */
+    public void setWriteMethod(Method setter)
+				throws IntrospectionException {
+	writeMethod = setter;
+	findPropertyType(); 
     }
 
     /**
@@ -126,7 +171,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * @return True if this is a bound property.
      */
     public boolean isBound() {
-	return (bound);
+	return bound;
     }
 
     /**
@@ -146,7 +191,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * @return True if this is a constrained property.
      */
     public boolean isConstrained() {
-	return (constrained);
+	return constrained;
     }
 
     /**
@@ -165,6 +210,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * However if for some reason you want to associate a particular
      * PropertyEditor with a given property, then you can do it with
      * this method.
+     *
      * @param propertyEditorClass  The Class for the desired PropertyEditor.
      */
     public void setPropertyEditorClass(Class propertyEditorClass) {
@@ -172,6 +218,9 @@ public class PropertyDescriptor extends FeatureDescriptor {
     }
 
     /**
+     * Gets any explicit PropertyEditor Class that has been registered
+     * for this property.
+     *
      * @return Any explicit PropertyEditor Class that has been registered
      *		for this property.  Normally this will return "null",
      *		indicating that no special editor has been registered,
@@ -185,26 +234,44 @@ public class PropertyDescriptor extends FeatureDescriptor {
     /*
      * Package-private constructor.
      * Merge two property descriptors.  Where they conflict, give the
-     * second argument (y) priority over the first argumnnt (x).
+     * second argument (y) priority over the first argument (x).
+     *
      * @param x  The first (lower priority) PropertyDescriptor
      * @param y  The second (higher priority) PropertyDescriptor
      */
 
     PropertyDescriptor(PropertyDescriptor x, PropertyDescriptor y) {
 	super(x,y);
-	readMethod = x.readMethod;
-	propertyType = x.propertyType;
-	if (y.readMethod != null) {
-	    readMethod = y.readMethod;
+
+	// Figure out the merged read method.
+	Method xr = x.readMethod;
+	Method yr = y.readMethod;
+	readMethod = xr;
+	// Normally give priority to y's readMethod.
+	if (yr != null) {
+	    readMethod = yr;
 	}
+	// However, if both x and y reference read methods in the same class,
+	// give priority to a boolean "is" method over a boolean "get" method.
+	if (xr != null && yr != null &&
+		   xr.getDeclaringClass() == yr.getDeclaringClass() &&
+		   xr.getReturnType() == boolean.class &&
+		   yr.getReturnType() == boolean.class && 
+		   xr.getName().indexOf("is") == 0 &&
+		   yr.getName().indexOf("get") == 0) {
+	    readMethod = xr;
+	}
+
 	writeMethod = x.writeMethod;
 	if (y.writeMethod != null) {
 	    writeMethod = y.writeMethod;
 	}
+
 	propertyEditorClass = x.propertyEditorClass;
 	if (y.propertyEditorClass != null) {
 	    propertyEditorClass = y.propertyEditorClass;
 	}
+
 	bound = x.bound | y.bound;
 	constrained = x.constrained | y.constrained;
 	try {
@@ -213,6 +280,20 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	    // Given we're merging two valid PDs, this "should never happen".
 	    throw new Error("PropertyDescriptor: internal error while merging PDs");
 	}
+    }
+
+    /*
+     * Package-private dup constructor.
+     * This must isolate the new object from any changes to the old object.
+     */
+    PropertyDescriptor(PropertyDescriptor old) {
+	super(old);
+	readMethod = old.readMethod;;
+	writeMethod = old.writeMethod;
+	propertyEditorClass = old.propertyEditorClass;
+	bound = old.bound;
+	constrained = old.constrained;
+	propertyType = old.propertyType;
     }
 
     private void findPropertyType() throws IntrospectionException {
@@ -243,7 +324,10 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	}
     }
 
-    private String capitalize(String s) {
+    static String capitalize(String s) {
+	if (s.length() == 0) {
+ 	    return s;
+	}
 	char chars[] = s.toCharArray();
 	chars[0] = Character.toUpperCase(chars[0]);
 	return new String(chars);

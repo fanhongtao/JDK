@@ -1,33 +1,40 @@
 /*
- * @(#)Method.java	1.16 01/12/10
+ * @(#)Method.java	1.22 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang.reflect;
 
 /**
- * A Method provides information about, and access to, a single method
+ * A <code>Method</code> provides information about, and access to, a single method
  * on a class or interface.  The reflected method may be a class method
  * or an instance method (including an abstract method).
  *
- * <p>A Method permits widening conversions to occur when matching the
+ * <p>A <code>Method</code> permits widening conversions to occur when matching the
  * actual parameters to invokewith the underlying method's formal
- * parameters, but it throws an IllegalArgumentException if a
+ * parameters, but it throws an <code>IllegalArgumentException</code> if a
  * narrowing conversion would occur.
  *
  * @see Member
  * @see java.lang.Class
  * @see java.lang.Class#getMethods()
- * @see java.lang.Class#getMethod()
+ * @see java.lang.Class#getMethod(String, Class[])
  * @see java.lang.Class#getDeclaredMethods()
- * @see java.lang.Class#getDeclaredMethod()
+ * @see java.lang.Class#getDeclaredMethod(String, Class[])
  *
  * @author Nakul Saraiya
  */
 public final
-class Method implements Member {
+class Method extends AccessibleObject implements Member {
 
     private Class		clazz;
     private int			slot;
@@ -35,6 +42,7 @@ class Method implements Member {
     private Class		returnType;
     private Class[]		parameterTypes;
     private Class[]		exceptionTypes;
+    private int			modifiers;
 
     /**
      * Constructor.  Only the Java Virtual Machine may construct a Method.
@@ -42,16 +50,16 @@ class Method implements Member {
     private Method() {}
 
     /**
-     * Returns the Class object representing the class or interface
-     * that declares the method represented by this Method object.
+     * Returns the <code>Class</code> object representing the class or interface
+     * that declares the method represented by this <code>Method</code> object.
      */
     public Class getDeclaringClass() {
 	return clazz;
     }
 
     /**
-     * Returns the name of the method represented by this Method
-     * object, as a String.
+     * Returns the name of the method represented by this <code>Method</code> 
+     * object, as a <code>String</code>.
      */
     public String getName() {
 	return name;
@@ -59,25 +67,27 @@ class Method implements Member {
 
     /**
      * Returns the Java language modifiers for the method represented
-     * by this Method object, as an integer. The Modifier class should
+     * by this <code>Method</code> object, as an integer. The <code>Modifier</code> class should
      * be used to decode the modifiers.
      *
      * @see Modifier
      */
-    public native int getModifiers();
+    public int getModifiers() {
+	return modifiers;
+    }
 
     /**
-     * Returns a Class object that represents the formal return type
-     * of the method represented by this Method object.
+     * Returns a <code>Class</code> object that represents the formal return type
+     * of the method represented by this <code>Method</code> object.
      */
     public Class getReturnType() {
 	return returnType;
     }
 
     /**
-     * Returns an array of Class objects that represent the formal
+     * Returns an array of <code>Class</code> objects that represent the formal
      * parameter types, in declaration order, of the method
-     * represented by this Method object.  Returns an array of length
+     * represented by this <code>Method</code> object.  Returns an array of length
      * 0 if the underlying method takes no parameters.
      */
     public Class[] getParameterTypes() {
@@ -85,20 +95,21 @@ class Method implements Member {
     }
 
     /**
-     * Returns an array of Class objects that represent the types of
-     * the checked exceptions thrown by the underlying method
-     * represented by this Method object.  Returns an array of length
-     * 0 if the method throws no checked exceptions.
+     * Returns an array of <code>Class</code> objects that represent 
+     * the types of the exceptions declared to be thrown
+     * by the underlying method
+     * represented by this <code>Method</code> object.  Returns an array of length
+     * 0 if the method declares no exceptions in its <code>throws</code> clause.
      */
     public Class[] getExceptionTypes() {
 	return copy(exceptionTypes);
     }
 
     /**
-     * Compares this Method against the specified object.  Returns
-     * true if the objects are the same.  Two Methods are the same if
+     * Compares this <code>Method</code> against the specified object.  Returns
+     * true if the objects are the same.  Two <code>Methods</code> are the same if
      * they were declared by the same class and have the same name
-     * and formal parameter types.
+     * and formal parameter types and return type.
      */
     public boolean equals(Object obj) {
 	if (obj != null && obj instanceof Method) {
@@ -121,7 +132,7 @@ class Method implements Member {
     }
 
     /**
-     * Returns a hashcode for this Method.  The hashcode is computed
+     * Returns a hashcode for this <code>Method</code>.  The hashcode is computed
      * as the exclusive-or of the hashcodes for the underlying
      * method's declaring class name and the method's name.
      */
@@ -130,7 +141,7 @@ class Method implements Member {
     }
 
     /**
-     * Returns a string describing this Method.  The string is
+     * Returns a string describing this <code>Method</code>.  The string is
      * formatted as the method access modifiers, if any, followed by
      * the method return type, followed by a space, followed by the
      * class declaring the method, followed by a period, followed by
@@ -184,7 +195,7 @@ class Method implements Member {
     }
 
     /**
-     * Invokes the underlying method represented by this Method
+     * Invokes the underlying method represented by this <code>Method</code> 
      * object, on the specified object with the specified parameters.
      * Individual parameters are automatically unwrapped to match
      * primitive formal parameters, and both primitive and reference
@@ -194,48 +205,50 @@ class Method implements Member {
      *
      * <p>Method invocation proceeds with the following steps, in order:
      *
-     * <p>If the underlying method is static, then the specified object
+     * <p>If the underlying method is static, then the specified <code>obj</code> 
      * argument is ignored. It may be null.
      *
      * <p>Otherwise, the method is an instance method.  If the specified
      * object argument is null, the invocation throws a
-     * NullPointerException.  Otherwise, if the specified object
+     * <code>NullPointerException</code>.  Otherwise, if the specified object
      * argument is not an instance of the class or interface declaring
-     * the underlying method, the invocation throws an
-     * IllegalArgumentException.
+     * the underlying method (or of a subclass or implementor
+     * thereof) the invocation throws an
+     * <code>IllegalArgumentException</code>.
      *
-     * <p>If this Method object enforces Java language access control and
+     * <p>If this <code>Method</code> object enforces Java language access control and
      * the underlying method is inaccessible, the invocation throws an
-     * IllegalAccessException.
+     * <code>IllegalAccessException</code>.
      *
-     * <p>If the number of actual parameters supplied via args is
+     * <p>If the number of actual parameters supplied via <code>args</code> is
      * different from the number of formal parameters required by the
      * underlying method, the invocation throws an
-     * IllegalArgumentException.
+     * <code>IllegalArgumentException</code>.
      *
-     * <p>For each actual parameter in the supplied args array:
+     * <p>For each actual parameter in the supplied <code>args</code> array:
      *
      * <p>If the corresponding formal parameter has a primitive type, an
      * unwrapping conversion is attempted to convert the object value
      * to a value of a primitive type.  If this attempt fails, the
-     * invocation throws an IllegalArgumentException.
+     * invocation throws an <code>IllegalArgumentException</code>.
      *
      * <p>If, after possible unwrapping, the parameter value cannot be
-     * converted to the corresponding formal parameter type by an
-     * identity or widening conversion, the invocation throws an
-     * IllegalArgumentException.
+     * converted to the corresponding formal parameter type by a
+     * method invocation conversion, the invocation throws an
+     * <code>IllegalArgumentException</code>.
      *
      * <p>If the underlying method is an instance method, it is invoked
      * using dynamic method lookup as documented in The Java Language
      * Specification, section 15.11.4.4; in particular, overriding
      * based on the runtime type of the target object will occur.
      *
-     * <p>If the underlying method is static, it is invoked as exactly
-     * the method on the declaring class.
+     * <p>If the underlying method is static, the class that declared
+     * the method is initialized if it has not already been initialized.
+     * The underlying method is invoked directly.
      *
-     * <p>Control transfers to the underlying method.  If the method
+     * <p>Control transfers to the invoked method.  If the method
      * completes abruptly by throwing an exception, the exception is
-     * placed in an InvocationTargetException and thrown in turn to
+     * placed in an <code>InvocationTargetException</code> and thrown in turn to
      * the caller of invoke.
      *
      * <p>If the method completes normally, the value it returns is
@@ -250,7 +263,10 @@ class Method implements Member {
      *              parameters differ, or if an unwrapping conversion fails.
      * @exception InvocationTargetException if the underlying method
      *              throws an exception.
-     * @exception NullPointerException      if the specified object is null.
+     * @exception NullPointerException      if the specified object is null
+     *             and the method is an instance method.
+     * @exception ExceptionInInitializerError if the initialization
+     *             provoked by this method fails.
      */
     public native Object invoke(Object obj, Object[] args)
 	throws IllegalAccessException, IllegalArgumentException,

@@ -1,111 +1,171 @@
 /*
- * @(#)EventQueue.java	1.24 01/12/10
+ * @(#)EventQueue.java	1.46 98/09/16
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt;
 
-import java.awt.event.FocusEvent;
+import java.awt.event.InvocationEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.PaintEvent;
-import java.awt.event.WindowEvent;
-import java.util.EventListener;
-
-import java.util.Vector;
+import java.awt.ActiveEvent;
+import java.util.EmptyStackException;
+import java.lang.reflect.InvocationTargetException;
+import sun.awt.MagicEvent;
 
 /**
  * EventQueue is a platform-independent class that queues events, both
  * from the underlying peer classes and from trusted application classes.
- * There is only one EventQueue for the system.
+ * There is only one EventQueue for each AppContext.
  *
- * @version 1.24 12/10/01
+ * @version 1.46 09/16/98
  * @author Thomas Ball
+ * @author Fred Ecks
  */
 public class EventQueue {
 
-
     // From Thread.java
     private static int threadInitNumber;
-
-    // fix for 4187686 Several class objects are used for synchronization
-    private static Object classLock = new Object();
-
-    private static int nextThreadNum() {
-	// fix for 4187686 Several class objects are used for synchronization
-	synchronized (classLock) {
-	    return threadInitNumber++;
-	}
+    private static synchronized int nextThreadNum() {
+	return threadInitNumber++;
     }
 
+    /* The actual queue of events, implemented as a linked-list. */
     private EventQueueItem queue;
-    /* The multiplexed EventQueueListener list. */
-    EventQueueListener eventQueueListener;
+ 
+    /* The tail of the list. Maintained so that non-Component source events
+       can be appended to the end of the list without O(n) traversal. */
+    private EventQueueItem queueTail;
+
+    /* The last element in the list which is a priority event. Will be null
+       if the list is empty or there are no priority events in the queue.
+       Priority events are MagicEvents with the PRIORITY_EVENT bit set
+       (high priority). */
+    private EventQueueItem lastPriorityItem;
+
+    /*
+     * The next EventQueue on the stack, or null if this EventQueue is
+     * on the top of the stack.  If nextQueue is non-null, requests to post
+     * an event are forwarded to nextQueue.
+     */
+    private EventQueue nextQueue;
+
+    /*
+     * The previous EventQueue on the stack, or null if this is the
+     * "base" EventQueue.
+     */
+    private EventQueue previousQueue;
+
+    private EventDispatchThread dispatchThread;
+
+    /*
+     * Debugging flag -- set true and recompile to enable checking.
+     */
+    private final static boolean debug = false;
 
     public EventQueue() {
-        queue = null;
+        queue = queueTail = lastPriorityItem = null;
         String name = "AWT-EventQueue-" + nextThreadNum();
-        new EventDispatchThread(name, this).start();
+        dispatchThread = new EventDispatchThread(name, this);
+        dispatchThread.setPriority(Thread.NORM_PRIORITY + 1);
+        dispatchThread.start();
     }
 
     /**
-     * Post a 1.1-style event to the EventQueue.
+     * Post a 1.1-style event to the EventQueue.  If there is an
+     * existing event on the queue with the same ID and event source,
+     * the source component's coalesceEvents method will be called.
      *
      * @param theEvent an instance of java.awt.AWTEvent, or a
      * subclass of it.
      */
     public synchronized void postEvent(AWTEvent theEvent) {
-        EventQueueItem eqi = new EventQueueItem(theEvent);
-	if (queue == null) {
-	    queue = eqi;
-	    notifyAll();
-	} else {
-	    EventQueueItem q = queue;
-	    for (;;) {
-		if (q.id == eqi.id) {
-		    switch (q.id) {
-		      case Event.MOUSE_MOVE:
-		      case Event.MOUSE_DRAG:
-			  // New-style event id's never collide with 
-			  // old-style id's, so if the id's are equal, 
-			  // we can safely cast the queued event to be 
-			  // an old-style one.
-			  MouseEvent e = (MouseEvent)q.event;
-			  if (e.getSource() == ((MouseEvent)theEvent).getSource() &&
-			      e.getModifiers() == ((MouseEvent)theEvent).getModifiers()) {
-			      q.event = eqi.event;// just replace old event
-			      return;
-			  }
-			  break;
-
-		      case PaintEvent.PAINT:
-		      case PaintEvent.UPDATE:
-			  PaintEvent pe = (PaintEvent)q.event;
-			  if (pe.getSource() == theEvent.getSource()) {
-			      Rectangle rect = pe.getUpdateRect();
-			      Rectangle newRect = 
-				  ((PaintEvent)theEvent).getUpdateRect();
-			      if (!rect.equals(newRect)) {
-				  pe.setUpdateRect(rect.union(newRect));
-			      }
-			      return;
-			  }
-			  break;
-
-		    }
-		}
-		if (q.next != null) {
-		    q = q.next;
-		} else {
-		    break;
-		}
+        if (theEvent instanceof MagicEvent) {
+            long flags = ((MagicEvent)theEvent).getFlags();
+	    if ((flags & MagicEvent.PRIORITY_EVENT) != 0) {
+                postEvent(theEvent, true);
+		return;
 	    }
-	    q.next = eqi;
 	}
-	notifyEventQueueListeners(theEvent);
+	
+	postEvent(theEvent, false);
     }
+
+    /*
+     * Inserts an event in the queue, at the proper position. Handles
+     * event coalescing.
+     */
+    private void postEvent(AWTEvent theEvent, boolean priorityEvent) {
+
+        if (nextQueue != null) {
+            // Forward event to top of EventQueue stack.
+            nextQueue.postEvent(theEvent);
+            return;
+        }
+
+        Object source = theEvent.getSource();
+        EventQueueItem eqi = new EventQueueItem(theEvent);
+        if (queue == null) {
+            queue = queueTail = eqi;
+            if (priorityEvent) {
+                lastPriorityItem = eqi;
+            }
+            notifyAll();
+        } else {
+            // For Component source events, traverse the entire list,
+            // trying to coalesce events
+            if (source instanceof Component) {
+                EventQueueItem q = queue;
+                for (;;) {
+                    if (q.id == eqi.id && q.source == source) {
+                        AWTEvent coalescedEvent = 
+                            ((Component)source).coalesceEvents(q.event, 
+                                                               theEvent);
+                        if (coalescedEvent != null) {
+                            q.event = coalescedEvent;
+                            return;
+                        }
+                    }
+                    if (q.next != null) {
+                        q = q.next;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            // The event was not coalesced or has non-Component source.
+            // Insert it into the queue.
+            if (priorityEvent && lastPriorityItem == null) {
+	        // Post at front of queue. Set lastPriorityItem to front of
+	        // queue.
+                eqi.next = queue;
+                queue = lastPriorityItem = eqi;
+            } else if (priorityEvent && lastPriorityItem == queueTail) {
+	        // Post at end of queue. Set lastPriorityItem to end of queue.
+	        queueTail.next = eqi;
+		queueTail = lastPriorityItem = eqi;
+            } else if (priorityEvent) {
+	        // Post after lastPriorityItem. Set lastPriorityItem to new
+	        // item.
+                eqi.next = lastPriorityItem.next;
+                lastPriorityItem.next = eqi;
+                lastPriorityItem = eqi;
+            } else {
+	        // Post at end of queue. lastPriorityItem unchanged.
+                queueTail.next = eqi;
+                queueTail = eqi;
+            }
+        }
+    } // postEvent()
 
     /**
      * Remove an event from the queue and return it.  This method will
@@ -119,25 +179,28 @@ public class EventQueue {
             wait();
         }
         EventQueueItem eqi = queue;
+        if (queue == lastPriorityItem) {
+            lastPriorityItem = null;
+        }
         queue = queue.next;
+	if (queue == null) {
+	    queueTail = null;
+	}
         return eqi.event;
     }
 
     /**
      * Return the first event without removing it.
-     * @return the first event, which is either an instance of java.awt.Event
-     * or java.awt.AWTEvent.
+     * @return the first event
      */
     public synchronized AWTEvent peekEvent() {
         return (queue != null) ? queue.event : null;
     }
 
-    /*
-     * Return the first event of the specified type, if any.
+    /**
+     * Return the first event with the specified id, if any.
      * @param id the id of the type of event desired.
-     * @return the first event of the requested type, 
-     * which is either an instance of java.awt.Event
-     * or java.awt.AWTEvent.
+     * @return the first event of the specified id
      */
     public synchronized AWTEvent peekEvent(int id) {
         EventQueueItem q = queue;
@@ -149,44 +212,171 @@ public class EventQueue {
         return null;
     }
 
-    /* comment out until 1.2...
     /**
-     * Dispatch an event to its source.
-     *
+     * Dispatch an event. The manner in which the event is
+     * dispatched depends upon the type of the event and the
+     * type of the event's source
+     * object:
+     * <p> </p>
+     * <table border>
+     * <tr>
+     *     <th>Event Type</th>
+     *     <th>Source Type</th> 
+     *     <th>Dispatched To</th>
+     * </tr>
+     * <tr>
+     *     <td>ActiveEvent</td>
+     *     <td>Any</td>
+     *     <td>event.dispatch()</td>
+     * </tr>
+     * <tr>
+     *     <td>Other</td>
+     *     <td>Component</td>
+     *     <td>source.dispatchEvent(AWTEvent)</td>
+     * </tr>
+     * <tr>
+     *     <td>Other</td>
+     *     <td>MenuComponent</td>
+     *     <td>source.dispatchEvent(AWTEvent)</td>
+     * </tr>
+     * <tr>
+     *     <td>Other</td>
+     *     <td>Other</td>
+     *     <td>No action (ignored)</td>
+     * </tr>
+     * </table>
+     * <p> </p>
      * @param theEvent an instance of java.awt.AWTEvent, or a
      * subclass of it.
+     */
+    protected void dispatchEvent(AWTEvent event) {
+        Object src = event.getSource();
+        if (event instanceof ActiveEvent) {
+            // This could become the sole method of dispatching in time.
+            ((ActiveEvent)event).dispatch();
+        } else if (src instanceof Component) {
+            ((Component)src).dispatchEvent(event);
+        } else if (src instanceof MenuComponent) {
+            ((MenuComponent)src).dispatchEvent(event);
+        } else {
+            System.err.println("unable to dispatch event: " + event);
+        }
+    }
+
+    /**
+     * Replace the existing EventQueue with the specified one.
+     * Any pending events are transferred to the new EventQueue
+     * for processing by it.
      *
-     *    protected void dispatchEvent(AWTEvent event) {
-     *        Object src = event.getSource();
-     *        if (src instanceof Component) {
-     *            ((Component)src).dispatchEvent(event);
-     *        } else if (src instanceof MenuComponent) {
-     *            ((MenuComponent)src).dispatchEvent(event);
-     *        }
-     *    }
+     * @param an EventQueue (or subclass thereof) instance to be used.
+     * @see      java.awt.EventQueue#pop
      */
+    public synchronized void push(EventQueue newEventQueue) {
+	if (debug) {
+	    System.out.println("EventQueue.push(" + newEventQueue + ")");
+	}
 
-    /*
-     * (Copied from new public 1.2 API)
-     * Adds listener to event queue
+        if (nextQueue != null) {
+            nextQueue.push(newEventQueue);
+            return;
+        }
+
+        synchronized (newEventQueue) {
+	    // Transfer all events forward to new EventQueue.
+	    while (peekEvent() != null) {
+                boolean priority = (lastPriorityItem != null);
+		try {
+		    newEventQueue.postEvent(getNextEvent(), priority);
+		} catch (InterruptedException ie) {
+		    if (debug) {
+			System.err.println("interrupted push:");
+			ie.printStackTrace(System.err);
+		    }
+		}
+	    }
+
+	    newEventQueue.previousQueue = this;
+        }
+	nextQueue = newEventQueue;
+    }
+
+    /**
+     * Stop dispatching events using this EventQueue instance.
+     * Any pending events are transferred to the previous
+     * EventQueue for processing by it.  
+     *
+     * @exception if no previous push was made on this EventQueue.
+     * @see      java.awt.EventQueue#push
      */
-    synchronized void addEventQueueListener(EventQueueListener l) {
-        eventQueueListener = EventQueueMulticaster.add(eventQueueListener, l);
+    protected void pop() throws EmptyStackException {
+	if (debug) {
+	    System.out.println("EventQueue.pop(" + this + ")");
+	}
+
+	// To prevent deadlock, we lock on the previous EventQueue before
+	// this one.  This uses the same locking order as everything else
+	// in EventQueue.java, so deadlock isn't possible.
+	EventQueue prev = previousQueue;
+	synchronized ((prev != null) ? prev : this) {
+	  synchronized(this) {
+            if (nextQueue != null) {
+                nextQueue.pop();
+                return;
+            }
+            if (previousQueue == null) {
+                throw new EmptyStackException();
+            }
+
+	    // Transfer all events back to previous EventQueue.
+	    previousQueue.nextQueue = null;
+	    while (peekEvent() != null) {
+                boolean priority = (lastPriorityItem != null);
+		try {
+		    previousQueue.postEvent(getNextEvent(), priority);
+		} catch (InterruptedException ie) {
+		    if (debug) {
+			System.err.println("interrupted pop:");
+			ie.printStackTrace(System.err);
+		    }
+		}
+	    }
+	    previousQueue = null;
+          }
+        }
+
+	dispatchThread.stopDispatching(); // Must be done outside synchronized
+					  // block to avoid possible deadlock
+    }
+
+    /**
+     * Returns true if the calling thread is the current AWT EventQueue's
+     * dispatch thread.  Use this call the ensure that a given
+     * task is being executed (or not being) on the current AWT
+     * EventDispatchThread.
+     *
+     * @return true if running on the current AWT EventQueue's dispatch thread.
+     */
+    public static boolean isDispatchThread() {
+	EventQueue eq = Toolkit.getEventQueue();
+	EventQueue next = eq.nextQueue;
+	while (next != null) {
+	    eq = next;
+	    next = eq.nextQueue;
+	}
+	return (Thread.currentThread() == eq.dispatchThread);
     }
 
     /*
-     * (Copied from new public 1.2 API)
-     * Removes listener from event queue
+     * Get the EventDispatchThread for this EventQueue.
      */
-    synchronized void removeEventQueueListener(EventQueueListener l) {
-        eventQueueListener = EventQueueMulticaster.remove(eventQueueListener, l);
+    final EventDispatchThread getDispatchThread() {
+	return dispatchThread;
     }
-
 
     /*
      * Change the target of any pending KeyEvents because of a focus change.
      */
-    synchronized void changeKeyEventFocus(Object newSource) {
+    final synchronized void changeKeyEventFocus(Object newSource) {
         EventQueueItem q = queue;
         for (; q != null; q = q.next) {
             if (q.event instanceof KeyEvent) {
@@ -199,89 +389,99 @@ public class EventQueue {
      * Remove any pending events for the specified source object.
      * This method is normally called by the source's removeNotify method.
      */
-    synchronized void removeSourceEvents(Object source) {
+    final synchronized void removeSourceEvents(Object source) {
         EventQueueItem entry = queue;
         EventQueueItem prev = null;
         while (entry != null) {
-            if (entry.event.getSource().equals(source)) {
+            if (entry.source == source) {
+                if (entry == lastPriorityItem) {
+                    lastPriorityItem = prev;
+                }
                 if (prev == null) {
                     queue = entry.next;
                 } else {
                     prev.next = entry.next;
                 }
+            } else {
+                prev = entry;
             }
-            prev = entry;
             entry = entry.next;
         }
+	queueTail = prev;
     }
 
-    /*
-     * Remove any pending events of the given class and id
+    /*   
+     * Remove any pending events of specified id for the specified source.
      */
-    synchronized void removeEvents(Class evClass, int id) {
+    synchronized void removeSourceEvents(Object source, int id) {
         EventQueueItem entry = queue;
         EventQueueItem prev = null;
         while (entry != null) {
-            if (evClass.isInstance(entry.event) && entry.event.getID() == id) {
+            if ((entry.event.getSource().equals(source)) && (entry.id == id)) {
                 if (prev == null) {
                     queue = entry.next;
                 } else {
                     prev.next = entry.next;
                 }
-            }
+            }    
             prev = entry;
             entry = entry.next;
         }
-    }
-
-    static private class EventQueueMulticaster extends AWTEventMulticaster
-        implements EventQueueListener {
-        // Implementation cloned from AWTEventMulticaster.
-
-        EventQueueMulticaster(EventListener a, EventListener b) {
-            super(a, b);
-        }
-
-        static EventQueueListener add(EventQueueListener a,
-                                      EventQueueListener b) {
-            if (a == null)  return b;
-            if (b == null)  return a;
-            return new EventQueueMulticaster(a, b);
-        }
-
-        static EventQueueListener remove(EventQueueListener l,
-                                         EventQueueListener oldl) {
-            return (EventQueueListener) removeInternal(l, oldl);
-        }
-
-        // #4179773: must overload remove(EventListener) to call our add()
-        // instead of the static addInternal() so we allocate an
-        // EventQueueMulticaster instead of an AWTEventMulticaster.
-        // Note: this method is called by AWTEventMulticaster.removeInternal(),
-        // so its method signature must match AWTEventMulticaster.remove().
-        protected EventListener remove(EventListener oldl) {
-            if (oldl == a)  return b;
-            if (oldl == b)  return a;
-            EventQueueListener a2 = (EventQueueListener)removeInternal(a, oldl);
-            EventQueueListener b2 = (EventQueueListener)removeInternal(b, oldl);
-            if (a2 == a && b2 == b) {
-                return this;	// it's not here
-            }
-            return add(a2, b2);
-        }
-
-        public void eventPosted(AWTEvent e) {
-            ((EventQueueListener)a).eventPosted(e);
-            ((EventQueueListener)b).eventPosted(e);
-        }
-    }
-
-    /*
-     * Based on new protected 1.2 API
+    }  
+ 
+    /**
+     * Causes <i>runnable</i> to have its run() method called in the dispatch
+     * thread of the EventQueue.  This will happen after all pending events
+     * are processed.
+     *
+     * @param runnable  the Runnable whose run() method should be executed
+     *                  synchronously on the EventQueue
+     * @see             #invokeAndWait
+     * @since           JDK1.2
      */
-    private void notifyEventQueueListeners(AWTEvent theEvent) {
-        if (eventQueueListener != null) {
-            eventQueueListener.eventPosted(theEvent);
+    public static void invokeLater(Runnable runnable) {
+        Toolkit.getEventQueue().postEvent(
+            new InvocationEvent(Toolkit.getDefaultToolkit(), runnable));
+    }
+
+    /**
+     * Causes <i>runnable</i> to have its run() method called in the dispatch
+     * thread of the EventQueue.  This will happen after all pending events
+     * are processed.  The call blocks until this has happened.  This method
+     * will throw an Error if called from the event dispatcher thread.
+     *
+     * @param runnable  the Runnable whose run() method should be executed
+     *                  synchronously on the EventQueue
+     * @exception       InterruptedException  if another thread has
+     *                  interrupted this thread
+     * @exception       InvocationTargetException  if an exception is thrown
+     *                  when running <i>runnable</i>
+     * @see             #invokeLater
+     * @since           JDK1.2
+     */
+    public static void invokeAndWait(Runnable runnable)
+             throws InterruptedException, InvocationTargetException {
+
+        if (EventQueue.isDispatchThread()) {
+            throw new Error("Cannot call invokeAndWait from the event dispatcher thread");
+        }
+
+	class AWTInvocationLock {}
+        Object lock = new AWTInvocationLock();
+
+        EventQueue queue = Toolkit.getEventQueue();
+        InvocationEvent event = 
+            new InvocationEvent(Toolkit.getDefaultToolkit(), runnable, lock,
+				true);
+
+        synchronized (lock) {
+            Toolkit.getEventQueue().postEvent(event);
+            lock.wait();
+        }
+
+        Exception eventException = event.getException();
+        if (eventException != null) {
+            throw new InvocationTargetException(eventException);
         }
     }
 }
@@ -289,10 +489,12 @@ public class EventQueue {
 class EventQueueItem {
     AWTEvent event;
     int      id;
+    Object   source;
     EventQueueItem next;
 
     EventQueueItem(AWTEvent evt) {
         event = evt;
         id = evt.getID();
+        source = evt.getSource();
     }
 }

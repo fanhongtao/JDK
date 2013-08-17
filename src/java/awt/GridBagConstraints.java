@@ -1,8 +1,15 @@
 /*
- * @(#)GridBagConstraints.java	1.12 01/12/10
+ * @(#)GridBagConstraints.java	1.16 98/09/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -11,7 +18,7 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version 1.12, 12/10/01
+ * @version 1.9, 06/16/97
  * @author Doug Stein
  * @see java.awt.GridBagLayout
  * @since JDK1.0
@@ -27,122 +34,111 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see      java.awt.GridBagConstraints#gridheight
      * @see      java.awt.GridBagConstraints#gridx
      * @see      java.awt.GridBagConstraints#gridy
-     * @since    JDK1.0
      */
   public static final int RELATIVE = -1;
 
    /**
      * Specify that this component is the 
      * last component in its column or row. 
-     * @since   JDK1.0
      */
   public static final int REMAINDER = 0;
 
    /**
      * Do not resize the component. 
-     * @since   JDK1.0
      */
   public static final int NONE = 0;
 
    /**
      * Resize the component both horizontally and vertically. 
-     * @since   JDK1.0
      */
   public static final int BOTH = 1;
 
    /**
      * Resize the component horizontally but not vertically. 
-     * @since   JDK1.0
      */
   public static final int HORIZONTAL = 2;
 
    /**
      * Resize the component vertically but not horizontally. 
-     * @since   JDK1.0
      */
   public static final int VERTICAL = 3;
 
    /**
     * Put the component in the center of its display area.
-    * @since    JDK1.0
     */
   public static final int CENTER = 10;
 
    /**
      * Put the component at the top of its display area,
      * centered horizontally. 
-     * @since   JDK1.0
      */
   public static final int NORTH = 11;
 
     /**
      * Put the component at the top-right corner of its display area. 
-     * @since   JDK1.0
      */
   public static final int NORTHEAST = 12;
 
     /**
      * Put the component on the right side of its display area, 
      * centered vertically.
-     * @since    JDK1.0
      */
   public static final int EAST = 13;
 
     /**
      * Put the component at the bottom-right corner of its display area. 
-     * @since   JDK1.0
      */
   public static final int SOUTHEAST = 14;
 
     /**
      * Put the component at the bottom of its display area, centered 
      * horizontally. 
-     * @since   JDK1.0
      */
   public static final int SOUTH = 15;
 
    /**
      * Put the component at the bottom-left corner of its display area. 
-     * @since   JDK1.0
      */
   public static final int SOUTHWEST = 16;
 
     /**
      * Put the component on the left side of its display area, 
      * centered vertically.
-     * @since    JDK1.0
      */
   public static final int WEST = 17;
 
    /**
      * Put the component at the top-left corner of its display area. 
-     * @since   JDK1.0
      */
   public static final int NORTHWEST = 18;
 
    /**
      * Specifies the cell at the left of the component's display area, 
-     * where the leftmost cell has <code>gridx&nbsp;=&nbsp;0</code>. The value 
+     * where the leftmost cell has <code>gridx=0</code>. The value 
      * <code>RELATIVE</code> specifies that the component be placed just 
      * to the right of the component that was added to the container just 
      * before this component was added. 
      * <p>
      * The default value is <code>RELATIVE</code>. 
-     * @see      java.awt.GridBagConstraints#gridy
-     * @since    JDK1.0
+     * gridx should be a non-negative value.
+     * @serial
+     * @see clone()
+     * @see java.awt.GridBagConstraints#gridy
      */
   public int gridx;
 
    /**
      * Specifies the cell at the top of the component's display area, 
-     * where the topmost cell has <code>gridy&nbsp;=&nbsp;0</code>. The value 
+     * where the topmost cell has <code>gridy=0</code>. The value 
      * <code>RELATIVE</code> specifies that the component be placed just 
      * below the component that was added to the container just before 
      * this component was added. 
      * <p>
-     * The default value is <code>RELATIVE</code>. 
-     * @see      java.awt.GridBagConstraints#gridx
-     * @since    JDK1.0
+     * The default value is <code>RELATIVE</code>.
+     * gridy should be a non-negative value.
+     * @serial
+     * @see clone() 
+     * @see java.awt.GridBagConstraints#gridx
      */
   public int gridy;
 
@@ -154,9 +150,10 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * last one in its row. Use <code>RELATIVE</code> to specify that the 
      * component be the next-to-last one in its row. 
      * <p>
-     * The default value is 1. 
-     * @see      java.awt.GridBagConstraints#gridheight
-     * @since    JDK1.0
+     * gridwidth should be non-negative and the default value is 1.
+     * @serial
+     * @see clone() 
+     * @see java.awt.GridBagConstraints#gridheight
      */
   public int gridwidth;
 
@@ -168,9 +165,10 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * last one in its column. Use <code>RELATIVE</code> to specify that 
      * the component be the next-to-last one in its column. 
      * <p>
-     * The default value is 1.
-     * @see      java.awt.GridBagConstraints#gridwidth
-     * @since    JDK1.0
+     * gridheight should be a non-negative value and the default value is 1.
+     * @serial
+     * @see clone()
+     * @see java.awt.GridBagConstraints#gridwidth
      */
   public int gridheight;
 
@@ -187,9 +185,11 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * If all the weights are zero, all the extra space appears between 
      * the grids of the cell and the left and right edges. 
      * <p>
-     * The default value of this field is <code>0</code>. 
-     * @see      java.awt.GridBagConstraints#weighty
-     * @since    JDK1.0
+     * The default value of this field is <code>0</code>.
+     * weightx should be a non-negative value.
+     * @serial
+     * @see clone() 
+     * @see java.awt.GridBagConstraints#weighty
      */
   public double weightx;
 
@@ -207,8 +207,10 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * the grids of the cell and the top and bottom edges. 
      * <p>
      * The default value of this field is <code>0</code>. 
-     * @see      java.awt.GridBagConstraints#weightx
-     * @since    JDK1.0
+     * weighty should be a non-negative value.
+     * @serial
+     * @see clone()
+     * @see java.awt.GridBagConstraints#weightx
      */
   public double weighty;
 
@@ -220,7 +222,8 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <code>SOUTHEAST<code>, <code>SOUTH<code>, <code>SOUTHWEST<code>, 
      * <code>WEST<code>, and <code>NORTHWEST<code>.
      * The default value is <code>CENTER</code>. 
-     * @since    JDK1.0
+     * @serial
+     * @see clone()
      */
   public int anchor;
 
@@ -246,7 +249,8 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * </ul>
      * <p>
      * The default value is <code>NONE</code>. 
-     * @since   JDK1.0
+     * @serial
+     * @see clone()
      */
   public int fill;
 
@@ -256,7 +260,8 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * display area. 
      * <p>
      * The default value is <code>new Insets(0, 0, 0, 0)</code>. 
-     * @since    JDK1.0
+     * @serial
+     * @see clone()
      */
   public Insets insets;
 
@@ -267,8 +272,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <code>(ipadx&nbsp;*&nbsp;2)</code> pixels. 
      * <p>
      * The default value is <code>0</code>. 
-     * @see      java.awt.GridBagConstraints#ipady
-     * @since    JDK1.0
+     * @serial
+     * @see clone()
+     * @see java.awt.GridBagConstraints#ipady
      */
   public int ipadx;
 
@@ -279,19 +285,55 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <code>(ipady&nbsp;*&nbsp;2)</code> pixels. 
      * <p>
      * The default value is 0. 
-     * @see      java.awt.GridBagConstraints#ipadx
-     * @since    JDK1.0
+     * @serial
+     * @see clone()
+     * @see java.awt.GridBagConstraints#ipadx
      */
   public int ipady;
 
-  int tempX, tempY;
-  int tempWidth, tempHeight;
-  int minWidth, minHeight;
+   /**
+     * Temporary place holder for the x coordinate.
+     * @serial
+     */
+  int tempX;
+   /**
+     * Temporary place holder for the y coordinate.
+     * @serial
+     */
+  int tempY;
+   /**
+     * Temporary place holder for the Width of the component.
+     * @serial
+     */
+  int tempWidth;
+   /**
+     * Temporary place holder for the Height of the component.
+     * @serial
+     */
+  int tempHeight;
+   /**
+     * The minimum width of the component.  It is used to calculate
+     * <code>ipady<code>, where the default will be 0.
+     * @serial
+     * @see ipady
+     */
+  int minWidth;
+   /**
+     * The minimum height of the component. It is used to calculate
+     * <code>ipadx<code>, where the default will be 0.
+     * @serial
+     * @see ipadx
+     */
+  int minHeight;
+
+  /*
+   * JDK 1.1 serialVersionUID 
+   */
+  private static final long serialVersionUID = -1000070633030801713L;
 
    /**
      * Creates a <code>GridBagConstraint</code> object with 
      * all of its fields set to their default value. 
-     * @since    JDK1.0
      */
   public GridBagConstraints () {
     gridx = RELATIVE;
@@ -309,10 +351,61 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
     ipady = 0;
   }
 
+  /**
+    * Creates a <code>GridBagConstraints</code> object with
+    * all of its fields set to the passed-in arguments.
+    * 
+    * Note: Because the use of this constructor hinders readability
+    * of source code, this constructor should only be used by
+    * automatic source code generation tools.
+    * 
+    * @param gridx	The initial gridx value.
+    * @param gridy	The initial gridy value.
+    * @param gridwidth	The initial gridwidth value.
+    * @param gridheight	The initial gridheight value.
+    * @param weightx	The initial weightx value.
+    * @param weighty	The initial weighty value.
+    * @param anchor	The initial anchor value.
+    * @param fill	The initial fill value.
+    * @param insets	The initial insets value.
+    * @param ipadx	The initial ipadx value.
+    * @param ipady	The initial ipady value.
+    * 
+    * @see java.awt.GridBagConstraints#gridx
+    * @see java.awt.GridBagConstraints#gridy
+    * @see java.awt.GridBagConstraints#gridwidth
+    * @see java.awt.GridBagConstraints#gridheight
+    * @see java.awt.GridBagConstraints#weightx
+    * @see java.awt.GridBagConstraints#weighty
+    * @see java.awt.GridBagConstraints#anchor
+    * @see java.awt.GridBagConstraints#fill
+    * @see java.awt.GridBagConstraints#insets
+    * @see java.awt.GridBagConstraints#ipadx
+    * @see java.awt.GridBagConstraints#ipady
+    * 
+    * @since JDK1.2
+    */
+  public GridBagConstraints(int gridx, int gridy,
+                            int gridwidth, int gridheight,
+                            double weightx, double weighty,
+                            int anchor, int fill,
+                            Insets insets, int ipadx, int ipady) {
+    this.gridx = gridx;
+    this.gridy = gridy;
+    this.gridwidth = gridwidth;
+    this.gridheight = gridheight;
+    this.fill = fill;
+    this.ipadx = ipadx;
+    this.ipady = ipady;
+    this.insets = insets;
+    this.anchor  = anchor;
+    this.weightx = weightx;
+    this.weighty = weighty;
+  }
+
    /**
     * Creates a copy of this grid bag constraint.
     * @return     a copy of this grid bag constraint
-    * @since      JDK1.0
     */
   public Object clone () {
       try { 

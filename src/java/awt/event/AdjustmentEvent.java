@@ -1,8 +1,15 @@
 /*
- * @(#)AdjustmentEvent.java	1.13 01/12/10
+ * @(#)AdjustmentEvent.java	1.17 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt.event;
@@ -16,7 +23,7 @@ import java.awt.Event;
  * @see java.awt.Adjustable
  * @see AdjustmentListener
  *
- * @version 1.13 12/10/01
+ * @version 1.17 09/21/98
  * @author Amy Fowler
  */
 public class AdjustmentEvent extends AWTEvent {
@@ -61,8 +68,34 @@ public class AdjustmentEvent extends AWTEvent {
      */
     public static final int TRACK	        = 5;
 
+    /**
+     * The adjustable object that fired the event.
+     *
+     * @serial
+     * @see getAdjustable()
+     */
     Adjustable adjustable;
+
+    /**
+     * <code>value</code> will contain the new value of the
+     * adjustable object.  This value will always be  in a
+     * range associated adjustable object.
+     *
+     * @serial
+     * @see getValue()
+     */
     int value;
+
+    /**
+     * The <code>adjustmentType</code> describes how the adjustable
+     * object value has changed.
+     * This value can be increased/decreased by a block or unit amount
+     * where the block is associated with page increments/decrements,
+     * and a unit is associated with line increments/decrements.
+     *
+     * @serial
+     * @see getAdjustmentType()
+     */
     int adjustmentType;
 
     /*
@@ -71,12 +104,13 @@ public class AdjustmentEvent extends AWTEvent {
      private static final long serialVersionUID = 5700290645205279921L;
 
     /**
-     * Constructs a AdjustmentEvent object with the specified Adjustable source,
+     * Constructs a AdjustmentEvent object with the specified Adjustable 
+     * source, event type, adjustment type, and value.
      * type, and value.
      * @param source the Adjustable object where the event originated
-     * @id the event type
-     * @type the adjustment type 
-     * @value the current value of the adjustment
+     * @param id     the event type
+     * @param type   the adjustment type 
+     * @param value  the current value of the adjustment
      */
     public AdjustmentEvent(Adjustable source, int id, int type, int value) {
         super(source, id);

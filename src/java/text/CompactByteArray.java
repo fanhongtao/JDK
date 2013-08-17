@@ -1,10 +1,10 @@
 /*
- * @(#)CompactByteArray.java	1.10 01/12/10
+ * @(#)CompactByteArray.java	1.14 98/06/11
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -52,7 +52,7 @@ package java.text;
  * @see                CompactIntArray
  * @see                CompactShortArray
  * @see                CompactStringArray
- * @version            1.10 12/10/01
+ * @version            1.14 06/11/98
  * @author             Helena Shih
  */
 final class CompactByteArray implements Cloneable {
@@ -79,11 +79,13 @@ final class CompactByteArray implements Cloneable {
         int i;
         values = new byte[UNICODECOUNT];
         indices = new short[INDEXCOUNT];
+        hashes = new int[INDEXCOUNT];
         for (i = 0; i < UNICODECOUNT; ++i) {
             values[i] = defaultValue;
         }
         for (i = 0; i < INDEXCOUNT; ++i) {
             indices[i] = (short)(i<<BLOCKSHIFT);
+            hashes[i] = 0;
         }
         isCompact = false;
     }
@@ -106,7 +108,7 @@ final class CompactByteArray implements Cloneable {
         }
         indices = indexArray;
         values = newValues;
-        isCompact = false;
+        isCompact = true;
     }
     /**
      * Get the mapped value of a Unicode character.
@@ -129,10 +131,11 @@ final class CompactByteArray implements Cloneable {
         if (isCompact)
             expand();
         values[(int)index] = value;
+        touchBlock(index >> BLOCKSHIFT, value);
     }
     /**
      * Set new values for a range of Unicode character.
-     * @param start the starting offset of the range
+     * @param start the starting offset o of the range
      * @param end the ending offset of the range
      * @param value the new mapped value
      */
@@ -144,6 +147,7 @@ final class CompactByteArray implements Cloneable {
         }
         for (i = start; i <= end; ++i) {
             values[i] = value;
+            touchBlock(i >> BLOCKSHIFT, value);
         }
     }
     /**
@@ -151,53 +155,91 @@ final class CompactByteArray implements Cloneable {
       */
     public void compact()
     {
-        if (isCompact == false) {
-            char[]      tempIndex;
-            int                     tempIndexCount;
-            byte[]          tempArray;
-            short           iBlock, iIndex;
+        if (!isCompact) {
+            int limitCompacted = 0;
+            int iBlockStart = 0;
+            short iUntouched = -1;
 
-            // make temp storage, larger than we need
-            tempIndex = new char[UNICODECOUNT];
-            // set up first block.
-            tempIndexCount = BLOCKCOUNT;
-            for (iIndex = 0; iIndex < BLOCKCOUNT; ++iIndex) {
-                tempIndex[iIndex] = (char)iIndex;
-            }; // endfor (iIndex = 0; .....)
-            indices[0] = (short)0;
+            for (int i = 0; i < indices.length; ++i, iBlockStart += BLOCKCOUNT) {
+                indices[i] = -1;
+                boolean touched = blockTouched(i);
+                if (!touched && iUntouched != -1) {
+                    // If no values in this block were set, we can just set its
+                    // index to be the same as some other block with no values
+                    // set, assuming we've seen one yet.
+                    indices[i] = iUntouched;
+                } else {
+                    int jBlockStart = 0;
+                    int j = 0;
+                    for (j = 0; j < limitCompacted;
+                            ++j, jBlockStart += BLOCKCOUNT) {
+                        if (hashes[i] == hashes[j] && 
+                                arrayRegionMatches(values, iBlockStart,
+                                values, jBlockStart, BLOCKCOUNT)) {
+                            indices[i] = (short)jBlockStart;
+                            break;
+                        }
+                    }
+                    if (indices[i] == -1) {
+                        // we didn't match, so copy & update
+                        System.arraycopy(values, iBlockStart,
+                            values, jBlockStart, BLOCKCOUNT);
+                        indices[i] = (short)jBlockStart;
+                        hashes[j] = hashes[i];
+                        ++limitCompacted;
 
-            // for each successive block, find out its first position
-            // in the compacted array
-            for (iBlock = 1; iBlock < INDEXCOUNT; ++iBlock) {
-                int     newCount, firstPosition, block;
-                block = iBlock<<BLOCKSHIFT;
-                if (DEBUGSMALL) if (block > DEBUGSMALLLIMIT) break;
-                firstPosition = FindOverlappingPosition( block, tempIndex,
-                                                         tempIndexCount );
-
-                newCount = firstPosition + BLOCKCOUNT;
-                if (newCount > tempIndexCount) {
-                    for (iIndex = (short)tempIndexCount;
-                         iIndex < newCount;
-                         ++iIndex) {
-                        tempIndex[iIndex] = (char)
-                                            (iIndex - firstPosition + block);
-                    } // endfor (iIndex = tempIndexCount....)
-                    tempIndexCount = newCount;
-                } // endif (newCount > tempIndexCount)
-                indices[iBlock] = (short)firstPosition;
-            } // endfor (iBlock = 1.....)
-
-            // now allocate and copy the items into the array
-            tempArray = new byte[tempIndexCount];
-            for (iIndex = 0; iIndex < tempIndexCount; ++iIndex) {
-                tempArray[iIndex] = values[tempIndex[iIndex]];
+                        if (!touched) {
+                            // If this is the first untouched block we've seen,
+                            // remember its index.
+                            iUntouched = (short)jBlockStart;
+                        }
+                    }
+                }
             }
-            values = null;
-            values = tempArray;
+            // we are done compacting, so now make the array shorter
+            int newSize = limitCompacted*BLOCKCOUNT;
+            byte[] result = new byte[newSize];
+            System.arraycopy(values, 0, result, 0, newSize);
+            values = result;
             isCompact = true;
-        } // endif (isCompact != false)
+            hashes = null;
+        }
     }
+
+    /**
+     * Convenience utility to compare two arrays of doubles.
+     * @param len the length to compare.
+     * The start indices and start+len must be valid.
+     */
+    final static boolean arrayRegionMatches(byte[] source, int sourceStart,
+                                            byte[] target, int targetStart,
+                                            int len)
+    {
+        int sourceEnd = sourceStart + len;
+        int delta = targetStart - sourceStart;
+        for (int i = sourceStart; i < sourceEnd; i++) {
+            if (source[i] != target[i + delta])
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Remember that a specified block was "touched", i.e. had a value set.
+     * Untouched blocks can be skipped when compacting the array
+     */
+    private final void touchBlock(int i, int value) {
+        hashes[i] = (hashes[i] + (value<<1)) | 1;
+    }
+
+    /**
+     * Query whether a specified block was "touched", i.e. had a value set.
+     * Untouched blocks can be skipped when compacting the array
+     */
+    private final boolean blockTouched(int i) {
+        return hashes[i] != 0;
+    }
+     
     /** For internal use only.  Do not modify the result, the behavior of
       * modified results are undefined.
       */
@@ -221,6 +263,7 @@ final class CompactByteArray implements Cloneable {
             CompactByteArray other = (CompactByteArray) super.clone();
             other.values = (byte[])values.clone();
             other.indices = (short[])indices.clone();
+            if (hashes != null) other.hashes = (int[])hashes.clone();
             return other;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
@@ -259,75 +302,9 @@ final class CompactByteArray implements Cloneable {
         }
         return result;
     }
+
     // --------------------------------------------------------------
     // package private
-    // --------------------------------------------------------------
-    void writeArrays()
-    {
-        int i;
-        int cnt = (values.length > 0) ? values.length :
-            values.length+UNICODECOUNT;
-        System.out.println("{");
-        for (i = 0; i < INDEXCOUNT-1; i++)
-        {
-            System.out.print("(short)"
-                             + ((indices[i] >= 0) ?
-                                (int)indices[i] :
-                                (int)(indices[i]+UNICODECOUNT))
-                             + ", ");
-            if (i != 0)
-                if (i % 10 == 0)
-                    System.out.println();
-        }
-        System.out.println("(short)"
-                           + ((indices[INDEXCOUNT-1] >= 0) ?
-                              (int)indices[i] :
-                              (int)(indices[i]+UNICODECOUNT))
-                           + " }");
-        System.out.println("{");
-        for (i = 0; i < cnt-1; i++)
-        {
-            System.out.print("(byte)" + (int)values[i] + ", ");
-            if (i != 0)
-                if (i % 10 == 0)
-                    System.out.println();
-        }
-        System.out.println("(byte)" + (int)values[cnt-1] + " }");
-    }
-    // Print char Array  : Debug only
-    void printIndex(short start, short count)
-    {
-        int i;
-        for (i = start; i < count; ++i)
-        {
-            System.out.println(i + " -> : " +
-                               (int)((indices[i] >= 0) ?
-                                     indices[i] :
-                                     indices[i] + UNICODECOUNT));
-        }
-        System.out.println();
-    }
-    void printPlainArray(int start,int count, char[] tempIndex)
-    {
-        int iIndex;
-        if (tempIndex != null)
-        {
-            for (iIndex     = start; iIndex < start + count; ++iIndex)
-            {
-                System.out.print(" " + (int)values[tempIndex[iIndex]]);
-            }
-        }
-        else
-        {
-            for (iIndex = start; iIndex < start + count; ++iIndex)
-            {
-                System.out.print(" " + (int)values[iIndex]);
-            }
-        }
-        System.out.println("    Range: start " + start + " , count " + count);
-    }
-    // --------------------------------------------------------------
-    // private
     // --------------------------------------------------------------
     /**
       * Expanding takes the array back to a 65536 element array.
@@ -337,9 +314,12 @@ final class CompactByteArray implements Cloneable {
         int i;
         if (isCompact) {
             byte[]  tempArray;
+            hashes = new int[INDEXCOUNT];
             tempArray = new byte[UNICODECOUNT];
             for (i = 0; i < UNICODECOUNT; ++i) {
-                tempArray[i] = elementAt((char)i);
+                byte value = elementAt((char)i);
+                tempArray[i] = value;
+                touchBlock(i >> BLOCKSHIFT, value);
             }
             for (i = 0; i < INDEXCOUNT; ++i) {
                 indices[i] = (short)(i<<BLOCKSHIFT);
@@ -349,50 +329,12 @@ final class CompactByteArray implements Cloneable {
             isCompact = false;
         }
     }
-    // # of elements in the indexed array
-    private short capacity()
-    {
-        return (short)values.length;
-    }
+
     private byte[] getArray()
     {
         return values;
     }
-    private int
-    FindOverlappingPosition(int start, char[] tempIndex, int tempIndexCount)
-    {
-        int i;
-        short j;
-        short currentCount;
 
-        if (DEBUGOVERLAP && start < DEBUGSHOWOVERLAPLIMIT) {
-            printPlainArray(start, BLOCKCOUNT, null);
-            printPlainArray(0, tempIndexCount, tempIndex);
-        }
-        for (i = 0; i < tempIndexCount; i += BLOCKCOUNT) {
-            currentCount = (short)BLOCKCOUNT;
-            if (i + BLOCKCOUNT > tempIndexCount) {
-                currentCount = (short)(tempIndexCount - i);
-            }
-            for (j = 0; j < currentCount; ++j) {
-                if (values[start + j] != values[tempIndex[i + j]]) break;
-            }
-            if (j == currentCount) break;
-        }
-        if (DEBUGOVERLAP && start < DEBUGSHOWOVERLAPLIMIT) {
-            for (j = 1; j < i; ++j) {
-                System.out.print(" ");
-            }
-            printPlainArray(start, BLOCKCOUNT, null);
-            System.out.println("    Found At: " + i);
-        }
-        return i;
-    }
-    private static  final int DEBUGSHOWOVERLAPLIMIT = 100;
-    private static  final boolean DEBUGTRACE = false;
-    private static  final boolean DEBUGSMALL = false;
-    private static  final boolean DEBUGOVERLAP = false;
-    private static  final int DEBUGSMALLLIMIT = 30000;
     private static  final int BLOCKSHIFT =7;
     private static  final int BLOCKCOUNT =(1<<BLOCKSHIFT);
     private static  final int INDEXSHIFT =(16-BLOCKSHIFT);
@@ -402,4 +344,5 @@ final class CompactByteArray implements Cloneable {
     private byte[] values;  // char -> short (char parameterized short)
     private short indices[];
     private boolean isCompact;
+    private int[] hashes;
 };

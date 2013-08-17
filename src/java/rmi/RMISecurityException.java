@@ -1,38 +1,52 @@
 /*
- * @(#)RMISecurityException.java	1.5 01/12/10
+ * @(#)RMISecurityException.java	1.8 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.rmi;
 
 /**
- * Signals that a security exception has occurred.
+ * An <code>RMISecurityException</code> signals that a security exception
+ * has occurred during the execution of one of
+ * <code>java.rmi.RMISecurityManager</code>'s methods.
+ *
+ * @version 1.8, 09/21/98
+ * @author  Roger Riggs
+ * @since   JDK1.1
+ * @deprecated no replacement.  <code>RMISecurityManager</code> no longer
+ * throws this subclass of <code>java.lang.SecurityException</code>.
  */
 public class RMISecurityException extends java.lang.SecurityException {
 
-    private static final long serialVersionUID = -8433406075740433514L;
+    /* indicate compatibility with JDK 1.1.x version of class */
+     private static final long serialVersionUID = -8433406075740433514L;
 
     /**
-     * Constructs a RMISecurityException with no detail message.
-     * A detail message is a String that describes this particular exception.
+     * Construct an <code>RMISecurityException</code> with a detail message.
+     * @param s the detail message
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public RMISecurityException(String name) {
-	super(System.getProperty("security." + name, "security." + name));
-	System.out.println("*** Security Exception: " + name + " ***");
-	printStackTrace();
+	super(name);
     }
 
     /**
-     * Constructs a RMISecurityException with the specified detail message.
-     * A detail message is a String that describes this particular exception.
+     * Construct an <code>RMISecurityException</code> with a detail message.
      * @param s the detail message
+     * @param arg ignored
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public RMISecurityException(String name, String arg) {
-	super(System.getProperty("security." + name, "security." + name) +
-	      ": " + arg);
-	System.out.println("*** Security Exception: " + name +
-			   ":" + arg + " ***");
-	printStackTrace();
+	this(name);
     }
 }

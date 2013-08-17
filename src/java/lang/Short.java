@@ -1,8 +1,15 @@
 /*
- * @(#)Short.java	1.9 01/12/10
+ * @(#)Short.java	1.15 98/08/03
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -11,30 +18,25 @@ package java.lang;
  * The Short class is the standard wrapper for short values.
  *
  * @author  Nakul Saraiya
- * @version 1.9, 12/10/01
+ * @version 1.15, 08/03/98
  * @see     java.lang.Number
  * @since   JDK1.1
  */
 public final
-class Short extends Number {
+class Short extends Number implements Comparable {
+
     /**
      * The minimum value a Short can have.
-     *
-     * @since   JDK1.1
      */
     public static final short   MIN_VALUE = -32768;
 
     /**
      * The maximum value a Short can have.
-     *
-     * @since   JDK1.1
      */
     public static final short   MAX_VALUE = 32767;
 
     /**
      * The Class object representing the primitive type short.
-     *
-     * @since   JDK1.1
      */
     public static final Class	TYPE = Class.getPrimitiveClass("short");
 
@@ -43,7 +45,6 @@ class Short extends Number {
      * Short. The radix is assumed to be 10.
      *
      * @param s the short to be converted
-     * @since   JDK1.1
      */
     public static String toString(short s) {
 	return Integer.toString((int)s, 10);
@@ -57,7 +58,6 @@ class Short extends Number {
      * @param s		the String containing the short
      * @exception	NumberFormatException If the string does not
      *			contain a parsable short.
-     * @since   JDK1.1
      */
     public static short parseShort(String s) throws NumberFormatException {
 	return parseShort(s, 10);
@@ -72,7 +72,6 @@ class Short extends Number {
      * @param radix	the radix to be used
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
-     * @since   JDK1.1
      */
     public static short parseShort(String s, int radix)
 	throws NumberFormatException {
@@ -91,7 +90,6 @@ class Short extends Number {
      * @param radix 	the radix to be used
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
-     * @since   JDK1.1
      */
     public static Short valueOf(String s, int radix)
 	throws NumberFormatException {
@@ -106,35 +104,82 @@ class Short extends Number {
      * @param s		the String containing the integer
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
-     * @since   JDK1.1
      */
     public static Short valueOf(String s) throws NumberFormatException {
 	return valueOf(s, 10);
     }
 
     /**
-     * Decodes a String into a Short.  The String may represent
-     * decimal, hexadecimal, and octal numbers.
+     * Decodes a <code>String</code> into a <code>Short</code>.  Accepts
+     * decimal, hexadecimal, and octal numbers, in the following formats:
+     * <pre>
+     *     [-]    <decimal constant>
+     *     [-] 0x     <hex constant>
+     *     [-] #      <hex constant>
+     *     [-] 0    <octal constant>
+     * </pre>
      *
-     * @param nm the string to decode
-     * @since   JDK1.1
+     * The constant following an (optional) negative sign and/or "radix
+     * specifier" is parsed as by the <code>Short.parseShort</code> method
+     * with the specified radix (10, 8 or 16).  This constant must be positive
+     * or a NumberFormatException will result.  The result is made negative if
+     * first character of the specified <code>String</code> is the negative
+     * sign.  No whitespace characters are permitted in the
+     * <code>String</code>.
+     *
+     * @param     nm the <code>String</code> to decode.
+     * @return    the <code>Short</code> represented by the specified string.
+     * @exception NumberFormatException  if the <code>String</code> does not
+     *            contain a parsable short.
+     * @see java.lang.Short#parseShort(String, int)
      */
     public static Short decode(String nm) throws NumberFormatException {
-	if (nm.startsWith("0x")) {
-	    return Short.valueOf(nm.substring(2), 16);
+        int radix = 10;
+        int index = 0;
+        boolean negative = false;
+        Short result;
+
+        // Handle minus sign, if present
+        if (nm.startsWith("-")) {
+            negative = true;
+            index++;
+        }
+
+        // Handle radix specifier, if present
+	if (nm.startsWith("0x", index) || nm.startsWith("0X", index)) {
+	    index += 2;
+            radix = 16;
 	}
-	if (nm.startsWith("#")) {
-	    return Short.valueOf(nm.substring(1), 16);
+	else if (nm.startsWith("#", index)) {
+	    index ++;
+            radix = 16;
 	}
-	if (nm.startsWith("0") && nm.length() > 1) {
-	    return Short.valueOf(nm.substring(1), 8);
+	else if (nm.startsWith("0", index) && nm.length() > 1 + index) {
+	    index ++;
+            radix = 8;
 	}
 
-	return Short.valueOf(nm);
+        if (nm.startsWith("-", index))
+            throw new NumberFormatException("Negative sign in wrong position");
+
+        try {
+            result = Short.valueOf(nm.substring(index), radix);
+            result = negative ? new Short((short)-result.shortValue()) :result;
+        } catch (NumberFormatException e) {
+            // If number is Short.MIN_VALUE, we'll end up here. The next line
+            // handles this case, and causes any genuine format error to be
+            // rethrown.
+            String constant = negative ? new String("-" + nm.substring(index))
+                                       : nm.substring(index);
+            result = Short.valueOf(constant, radix);
+        }
+        return result;
     }
 
     /**
      * The value of the Short.
+     *
+     * @serial
      */
     private short value;
 
@@ -142,7 +187,6 @@ class Short extends Number {
      * Constructs a Short object initialized to the specified short value.
      *
      * @param value	the initial value of the Short
-     * @since   JDK1.1
      */
     public Short(short value) {
 	this.value = value;
@@ -155,7 +199,6 @@ class Short extends Number {
      * @param s		the String to be converted to a Short
      * @exception	NumberFormatException If the String does not
      *			contain a parsable short.
-     * @since   JDK1.1
      */
     public Short(String s) throws NumberFormatException {
 	this.value = parseShort(s);
@@ -163,8 +206,6 @@ class Short extends Number {
 
     /**
      * Returns the value of this Short as a byte.
-     *
-     * @since   JDK1.1
      */
     public byte byteValue() {
 	return (byte)value;
@@ -172,8 +213,6 @@ class Short extends Number {
 
     /**
      * Returns the value of this Short as a short.
-     *
-     * @since   JDK1.1
      */
     public short shortValue() {
 	return value;
@@ -181,8 +220,6 @@ class Short extends Number {
 
     /**
      * Returns the value of this Short as an int.
-     *
-     * @since   JDK1.1
      */
     public int intValue() {
 	return (int)value;
@@ -190,8 +227,6 @@ class Short extends Number {
 
     /**
      * Returns the value of this Short as a long.
-     *
-     * @since   JDK1.1
      */
     public long longValue() {
 	return (long)value;
@@ -199,8 +234,6 @@ class Short extends Number {
 
     /**
      * Returns the value of this Short as a float.
-     *
-     * @since   JDK1.1
      */
     public float floatValue() {
 	return (float)value;
@@ -208,8 +241,6 @@ class Short extends Number {
 
     /**
      * Returns the value of this Short as a double.
-     *
-     * @since   JDK1.1
      */
     public double doubleValue() {
 	return (double)value;
@@ -217,8 +248,6 @@ class Short extends Number {
 
     /**
      * Returns a String object representing this Short's value.
-     *
-     * @since   JDK1.1
      */
     public String toString() {
 	return String.valueOf((int)value);
@@ -226,8 +255,6 @@ class Short extends Number {
 
     /**
      * Returns a hashcode for this Short.
-     *
-     * @since   JDK1.1
      */
     public int hashCode() {
 	return (int)value;
@@ -238,7 +265,6 @@ class Short extends Number {
      *
      * @param obj	the object to compare with
      * @return 		true if the objects are the same; false otherwise.
-     * @since   JDK1.1
      */
     public boolean equals(Object obj) {
 	if ((obj != null) && (obj instanceof Short)) {
@@ -246,4 +272,45 @@ class Short extends Number {
 	}
 	return false;
     }
+
+    /**
+     * Compares two Shorts numerically.
+     *
+     * @param   anotherShort   the <code>Short</code> to be compared.
+     * @return  the value <code>0</code> if the argument Short is equal to
+     *          this Short; a value less than <code>0</code> if this Short
+     *          is numerically less than the Short argument; and a
+     *          value greater than <code>0</code> if this Short is
+     *          numerically greater than the Short argument
+     *		(signed comparison).
+     * @since   JDK1.2
+     */
+    public int compareTo(Short anotherShort) {
+	return this.value - anotherShort.value;
+    }
+
+    /**
+     * Compares this Short to another Object.  If the Object is a Short,
+     * this function behaves like <code>compareTo(Short)</code>.  Otherwise,
+     * it throws a <code>ClassCastException</code> (as Shorts are comparable
+     * only to other Shorts).
+     *
+     * @param   o the <code>Object</code> to be compared.
+     * @return  the value <code>0</code> if the argument is a Short
+     *		numerically equal to this Short; a value less than
+     *		<code>0</code> if the argument is a Short numerically
+     *		greater than this Short; and a value greater than
+     *		<code>0</code> if the argument is a Short numerically
+     *		less than this Short.
+     * @exception <code>ClassCastException</code> if the argument is not a
+     *		  <code>Short</code>.
+     * @see     java.lang.Comparable
+     * @since   JDK1.2
+     */
+    public int compareTo(Object o) {
+	return compareTo((Short)o);
+    }
+
+    /** use serialVersionUID from JDK 1.1. for interoperability */
+    private static final long serialVersionUID = 7515723908773894738L;
 }

@@ -1,8 +1,15 @@
 /*
- * @(#)Dictionary.java	1.9 01/12/10
+ * @(#)Dictionary.java	1.13 98/09/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util;
@@ -10,13 +17,20 @@ package java.util;
 /**
  * The <code>Dictionary</code> class is the abstract parent of any 
  * class, such as <code>Hashtable</code>, which maps keys to values. 
+ * Every key and every value is an object. In any one <tt>Dictionary</tt> 
+ * object, every key is associated with at most one value. Given a 
+ * <tt>Dictionary</tt> and a key, the associated element can be looked up. 
  * Any non-<code>null</code> object can be used as a key and as a value.
  * <p>
  * As a rule, the <code>equals</code> method should be used by 
  * implementations of this class to decide if two keys are the same. 
+ * <p>
+ * <strong>NOTE: This class is obsolete.  New implementations should
+ * implement the Map interface, rather than extendidng this class.</strong>
  *
  * @author  unascribed
- * @version 1.9, 12/10/01
+ * @version 1.13, 09/27/98
+ * @see	    java.util.Map
  * @see     java.lang.Object#equals(java.lang.Object)
  * @see     java.lang.Object#hashCode()
  * @see     java.util.Hashtable
@@ -25,53 +39,65 @@ package java.util;
 public abstract
 class Dictionary {
     /**
-     * Returns the number of keys in this dictionary.
+     * Sole constructor.  (For invocation by subclass constructors, typically
+     * implicit.)
+     */
+    public Dictionary() {
+    }
+
+    /**
+     * Returns the number of entries (dinstint keys) in this dictionary.
      *
      * @return  the number of keys in this dictionary.
-     * @since   JDK1.0
      */
     abstract public int size();
 
     /**
-     * Tests if this dictionary maps no keys to value.
+     * Tests if this dictionary maps no keys to value. The general contract 
+     * for the <tt>isEmpty</tt> method is that the result is true if and only 
+     * if this dictionary contains no entries. 
      *
      * @return  <code>true</code> if this dictionary maps no keys to values;
      *          <code>false</code> otherwise.
-     * @since   JDK1.0
      */
     abstract public boolean isEmpty();
 
     /**
-     * Returns an enumeration of the keys in this dictionary.
+     * Returns an enumeration of the keys in this dictionary. The general 
+     * contract for the keys method is that an <tt>Enumeration</tt> object 
+     * is returned that will generate all the keys for which this dictionary 
+     * contains entries. 
      *
      * @return  an enumeration of the keys in this dictionary.
      * @see     java.util.Dictionary#elements()
      * @see     java.util.Enumeration
-     * @since   JDK1.0
      */
     abstract public Enumeration keys();
 
     /**
-     * Returns an enumeration of the values in this dictionary.
-     * the Enumeration methods on the returned object to fetch the elements
-     * sequentially.
+     * Returns an enumeration of the values in this dictionary. The general 
+     * contract for the <tt>elements</tt> method is that an 
+     * <tt>Enumeration</tt> is returned that will generate all the elements 
+     * contained in entries in this dictionary.
      *
      * @return  an enumeration of the values in this dictionary.
      * @see     java.util.Dictionary#keys()
      * @see     java.util.Enumeration
-     * @since   JDK1.0
      */
     abstract public Enumeration elements();
 
     /**
-     * Returns the value to which the key is mapped in this dictionary.
+     * Returns the value to which the key is mapped in this dictionary. 
+     * The general contract for the <tt>isEmpty</tt> method is that if this 
+     * dictionary contains an entry for the specified key, the associated 
+     * value is returned; otherwise, <tt>null</tt> is returned. 
      *
      * @return  the value to which the key is mapped in this dictionary;
      * @param   key   a key in this dictionary.
      *          <code>null</code> if the key is not mapped to any value in
      *          this dictionary.
+     * @exception NullPointerException if the <tt>key</tt> is <tt>null</tt>.
      * @see     java.util.Dictionary#put(java.lang.Object, java.lang.Object)
-     * @since   JDK1.0
      */
     abstract public Object get(Object key);
 
@@ -79,6 +105,14 @@ class Dictionary {
      * Maps the specified <code>key</code> to the specified 
      * <code>value</code> in this dictionary. Neither the key nor the 
      * value can be <code>null</code>.
+     * <p>
+     * If this dictionary already contains an entry for the specified 
+     * <tt>key</tt>, the value already in this dictionary for that 
+     * <tt>key</tt> is returned, after modifying the entry to contain the
+     *  new element. <p>If this dictionary does not already have an entry 
+     *  for the specified <tt>key</tt>, an entry is created for the 
+     *  specified <tt>key</tt> and <tt>value</tt>, and <tt>null</tt> is 
+     *  returned.
      * <p>
      * The <code>value</code> can be retrieved by calling the 
      * <code>get</code> method with a <code>key</code> that is equal to 
@@ -93,7 +127,6 @@ class Dictionary {
      *               <code>value</code> is <code>null</code>.
      * @see        java.lang.Object#equals(java.lang.Object)
      * @see        java.util.Dictionary#get(java.lang.Object)
-     * @since      JDK1.0
      */
     abstract public Object put(Object key, Object value);
 
@@ -106,7 +139,7 @@ class Dictionary {
      * @return  the value to which the <code>key</code> had been mapped in this
      *          dictionary, or <code>null</code> if the key did not have a
      *          mapping.
-     * @since   JDK1.0
+     * @exception NullPointerException if <tt>key</tt> is <tt>null</tt>.
      */
     abstract public Object remove(Object key);
 }

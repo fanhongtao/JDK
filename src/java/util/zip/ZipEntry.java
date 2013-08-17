@@ -1,8 +1,15 @@
 /*
- * @(#)ZipEntry.java	1.19 01/12/10
+ * @(#)ZipEntry.java	1.26 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -12,22 +19,23 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.19, 12/10/01
+ * @version	1.26, 06/29/98
  * @author	David Connelly
  */
 public
-class ZipEntry implements ZipConstants {
+class ZipEntry implements ZipConstants, Cloneable {
     String name;	// entry name
     long time = -1;	// modification time (in DOS time)
     long crc = -1;	// crc-32 of entry data
     long size = -1;	// uncompressed size of entry data
+    long csize = -1;   	// compressed size of entry data
     int method = -1;	// compression method
     byte[] extra;	// optional extra field data for entry
     String comment;	// optional comment string for entry
-    int flag;		// general purpose bit flag
-    int version;	// version of ZIP this entry was made by
-    long csize = -1;   	// compressed size of entry data
-    long offset;	// offset of LOC header from beginning of ZIP file
+    // The following flags are used only by Zip{Input,Output}Stream
+    int flag;		// bit flags
+    int version;	// version needed to extract
+    long offset;	// offset of loc header
 
     /**
      * Compression method for uncompressed entries.
@@ -39,8 +47,15 @@ class ZipEntry implements ZipConstants {
      */
     public static final int DEFLATED = 8;
 
+    static {
+	initIDs();
+    }
+
+    private static native void initIDs();
+
     /**
-     * Creates a new ZIP file entry with the specified name.
+     * Creates a new zip entry with the specified name.
+     *
      * @param name the entry name
      * @exception NullPointerException if the entry name is null
      * @exception IllegalArgumentException if the entry name is longer than
@@ -56,12 +71,40 @@ class ZipEntry implements ZipConstants {
 	this.name = name;
     }
 
-    /*
-     * Creates a new ZIP file entry with no name.
+    /**
+     * Creates a new zip entry with fields taken from the specified
+     * zip entry.
      */
-    ZipEntry() {
+    public ZipEntry(ZipEntry e) {
+	name = e.name;
+	time = e.time;
+	crc = e.crc;
+	size = e.size;
+	csize = e.csize;
+	method = e.method;
+	extra = e.extra;
+	comment = e.comment;
     }
-    
+
+    /*
+     * Creates a new zip entry for the given name with fields initialized
+     * from the specified jzentry data.
+     */
+    ZipEntry(String name, long jzentry) {
+	this.name = name;
+	initFields(jzentry);
+    }
+
+    private native void initFields(long jzentry);
+
+    /*
+     * Creates a new zip entry with fields initialized from the specified
+     * jzentry data.
+     */
+    ZipEntry(long jzentry) {
+	initFields(jzentry);
+    }
+
     /**
      * Returns the name of the entry.
      */
@@ -82,7 +125,7 @@ class ZipEntry implements ZipConstants {
      * Returns the modification time of the entry, or -1 if not specified.
      */
     public long getTime() {
-	return dosToJavaTime(time);
+	return time != -1 ? dosToJavaTime(time) : -1;
     }
 
     /**
@@ -103,6 +146,22 @@ class ZipEntry implements ZipConstants {
      */
     public long getSize() {
 	return size;
+    }
+
+    /**
+     * Returns the size of the compressed entry data, or -1 if not known.
+     * In the case of a stored entry, the compressed size will be the same
+     * as the uncompressed size of the entry.
+     */
+    public long getCompressedSize() {
+	return csize;
+    }
+
+    /**
+     * Sets the size of the compressed entry data.
+     */
+    public void setCompressedSize(long csize) {
+	this.csize = csize;
     }
 
     /**
@@ -178,21 +237,12 @@ class ZipEntry implements ZipConstants {
 	}
 	this.comment = comment;
     }
-  
+
     /**
      * Returns the comment string for the entry, or null if none.
      */
     public String getComment() {
 	return comment;
-    }
-
-    /**
-     * Returns the compressed size of the entry data, or -1 if not known.
-     * In the case of a stored entry, the compressed size will be the same
-     * as the uncompressed size of the entry.
-     */
-    public long getCompressedSize() {
-	return csize;
     }
 
     /**
@@ -235,5 +285,26 @@ class ZipEntry implements ZipConstants {
 	return (year - 1980) << 25 | (d.getMonth() + 1) << 21 |
                d.getDate() << 16 | d.getHours() << 11 | d.getMinutes() << 5 |
                d.getSeconds() >> 1;
+    }
+
+    /**
+     * Returns the hash code value for this entry.
+     */
+    public int hashCode() {
+	return name.hashCode();
+    }
+
+    /**
+     * Returns a copy of this entry.
+     */
+    public Object clone() {
+	try {
+	    ZipEntry e = (ZipEntry)super.clone();
+	    e.extra = (byte[])extra.clone();
+	    return e;
+	} catch (CloneNotSupportedException e) {
+	    // This should never happen, since we are Cloneable
+	    throw new InternalError();
+	}
     }
 }

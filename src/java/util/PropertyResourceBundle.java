@@ -1,24 +1,20 @@
 /*
- * @(#)PropertyResourceBundle.java	1.9 01/12/10
+ * @(#)PropertyResourceBundle.java	1.15 98/08/11
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)PropertyResourceBundle.java	1.9 01/12/10
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -41,18 +37,32 @@ import java.io.InputStream;
 import java.io.IOException;
 
 /**
- * <code>PropertyResourceBundle</code> is an abstract subclass of
+ * <code>PropertyResourceBundle</code> is a concrete subclass of
  * <code>ResourceBundle</code> that manages resources for a locale
  * using a set of static strings from a property file. See
  * <code>ResourceBundle</code> for more information about resource
  * bundles in general.
  *
  * <p>
- * The property file contains the keys that you use in your source code
- * in calls to <code>ResourceBundle.getString</code> and similar methods,
- * and their corresponding values, etc.
- * The name of the property file indicates the resource bundle's family
- * and locale.
+ * Unlike other types of resource bundle, you don't subclass
+ * <code>PropertyResourceBundle</code>.  Instead, you supply properties
+ * files containing the resource data.  <code>ResourceBundle.getBundle()</code>
+ * will automatically look for the appropriate properties file and create a
+ * <code>PropertyResourceBundle</code> that refers to it.  The resource
+ * bundle name that you pass to <code>ResourceBundle.getBundle()</code> is
+ * the file name of the properties file, not the class name of the object that
+ * is returned.
+ *
+ * <p>
+ * For example, if you say <code>ResourceBundle.getBundle("MyResources",
+ * new Locale("fr", "FR"));</code> the resource bundle lookup mechanism
+ * will search the class path for a file called
+ * <code>MyResources_fr_FR.properties</code>.
+ *
+ * <p>
+ * If a real class and a properties file with a particular name both exist,
+ * the class wins; the properties file will only be used if there is no class
+ * with the desired name.
  *
  * <p>
  * In the following example, the keys are of the form "s1"... The actual
@@ -86,7 +96,7 @@ import java.io.IOException;
 public class PropertyResourceBundle extends ResourceBundle {
     /**
      * Creates a property resource
-     * @param file property file to read from.
+     * @param stream property file to read from.
      */
     public PropertyResourceBundle (InputStream stream) throws IOException {
         lookup.load(stream);
@@ -104,8 +114,8 @@ public class PropertyResourceBundle extends ResourceBundle {
      * Implementation of ResourceBundle.getKeys.
      */
     public Enumeration getKeys() {
-	    Enumeration result = null;
-	    if (parent != null) {
+        Enumeration result = null;
+        if (parent != null) {
             final Enumeration myKeys = lookup.keys();
             final Enumeration parentKeys = parent.getKeys();
 
@@ -133,9 +143,9 @@ public class PropertyResourceBundle extends ResourceBundle {
 
                 Object temp = null;
             };
-	    } else {
-	        result = lookup.keys();
-	    }
+        } else {
+            result = lookup.keys();
+        }
         return result;
     }
 

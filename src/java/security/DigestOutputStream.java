@@ -1,8 +1,15 @@
 /*
- * @(#)DigestOutputStream.java	1.23 01/12/10
+ * @(#)DigestOutputStream.java	1.23 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.security;
@@ -15,32 +22,33 @@ import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 
 /**
- * A transparent stream that updates the associated message digest using 
+ * A transparent stream that updates the associated message digest using
  * the bits going through the stream.
  *
- * <p>To complete the message digest computation, call one of the 
- * <code>digest</code> methods on the associated message 
- * digest after your calls to one of this digest ouput stream's <a href = 
- * "#write(int)">write</a> methods.
- *      
- * <p>It is possible to turn this stream on or off (see <a href =
- * "#on">on</a>). When it is on, a call to <code>write</code> results in
- * an update on the message digest.  But when it is off, the message 
+ * <p>To complete the message digest computation, call one of the
+ * <code>digest</code> methods on the associated message
+ * digest after your calls to one of this digest ouput stream's
+ * {@link write(int) write} methods.
+ *
+ * <p>It is possible to turn this stream on or off (see
+ * {@link on(boolean) on}). When it is on, a call to one of the
+ * <code>write</code> methods results in
+ * an update on the message digest.  But when it is off, the message
  * digest is not updated. The default is for the stream to be on.
  *
  * @see MessageDigest
  * @see DigestInputStream
  *
- * @version 1.23 01/12/10
+ * @version 1.23 00/05/10
  * @author Benjamin Renaud */
 
 public class DigestOutputStream extends FilterOutputStream {
-  
+
     private boolean on = true;
 
-    /**  
-     * The message digest associated with this stream.  
-     */  
+    /**
+     * The message digest associated with this stream.
+     */
     protected MessageDigest digest;
 
     /**
@@ -63,33 +71,33 @@ public class DigestOutputStream extends FilterOutputStream {
      */
     public MessageDigest getMessageDigest() {
 	return digest;
-    }    
+    }
 
     /**
      * Associates the specified message digest with this stream.
      *
-     * @param digest the message digest to be associated with this stream.  
+     * @param digest the message digest to be associated with this stream.
      */
     public void setMessageDigest(MessageDigest digest) {
 	this.digest = digest;
     }
 
     /**
-     * Updates the message digest (if the digest function is on) using   
-     * the specified byte, and in any case writes the byte      
+     * Updates the message digest (if the digest function is on) using
+     * the specified byte, and in any case writes the byte
      * to the output stream. That is, if the digest function is on
-     * (see <a href = "#on">on</a>), this method calls
+     * (see {@link on(boolean) on}), this method calls
      * <code>update</code> on the message digest associated with this
      * stream, passing it the byte <code>b</code>. This method then
-     * writes the byte to the output stream, blocking until the byte 
+     * writes the byte to the output stream, blocking until the byte
      * is actually written.
      *
-     * @param b the byte to be used for updating and writing to the    
-     * output stream.    
+     * @param b the byte to be used for updating and writing to the
+     * output stream.
      *
      * @exception IOException if an I/O error occurs.
-     * 
-     * @see MessageDigest#update(byte) 
+     *
+     * @see MessageDigest#update(byte)
      */
     public void write(int b) throws IOException {
 	if (on) {
@@ -102,23 +110,23 @@ public class DigestOutputStream extends FilterOutputStream {
      * Updates the message digest (if the digest function is on) using
      * the specified subarray, and in any case writes the subarray to
      * the output stream. That is, if the digest function is on (see
-     * <a href = "#on">on</a>), this method calls <code>update</code>
+     * {@link on(boolean) on}), this method calls <code>update</code>
      * on the message digest associated with this stream, passing it
-     * the subarray specifications. This method then writes the subarray 
+     * the subarray specifications. This method then writes the subarray
      * bytes to the output stream, blocking until the bytes are actually
      * written.
      *
-     * @param b the array containing the subarray to be used for updating 
+     * @param b the array containing the subarray to be used for updating
      * and writing to the output stream.
      *
-     * @param off the offset into <code>b</code> of the first byte to 
+     * @param off the offset into <code>b</code> of the first byte to
      * be updated and written.
      *
-     * @param len the number of bytes of data to be updated and written 
+     * @param len the number of bytes of data to be updated and written
      * from <code>b</code>, starting at offset <code>off</code>.
      *
      * @exception IOException if an I/O error occurs.
-     * 
+     *
      * @see MessageDigest#update(byte[], int, int)
      */
     public void write(byte[] b, int off, int len) throws IOException {
@@ -130,26 +138,26 @@ public class DigestOutputStream extends FilterOutputStream {
 
     /**
      * Turns the digest function on or off. The default is on.  When
-     * it is on, a call to <a href = "#write">write</a> results in an
+     * it is on, a call to one of the <code>write</code> methods results in an
      * update on the message digest.  But when it is off, the message
      * digest is not updated.
-     *    
+     *
      * @param on true to turn the digest function on, false to turn it
-     * off. 
+     * off.
      */
     public void on(boolean on) {
 	this.on = on;
     }
-	
+
     /**
      * Prints a string representation of this digest output stream and
-     * its associated message digest object.  
+     * its associated message digest object.
      */
      public String toString() {
 	 return "[Digest Output Stream] " + digest.toString();
      }
-}	
+}
 
 
-  
+
 

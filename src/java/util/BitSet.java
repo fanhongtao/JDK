@@ -1,327 +1,496 @@
 /*
- * @(#)BitSet.java	1.28 01/12/10
+ * @(#)BitSet.java	1.34 98/05/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util;
 
+import java.io.*;
+
 /**
- * A set of bits. The set automatically grows as more bits are needed. 
+ * This class implements a vector of bits that grows as needed. Each 
+ * component of the bit set has a <code>boolean</code> value. The 
+ * bits of a <code>BitSet</code> are indexed by nonnegative integers. 
+ * Individual indexed bits can be examined, set, or cleared. One 
+ * <code>BitSet</code> may be used to modify the contents of another 
+ * <code>BitSet</code> through logical AND, logical inclusive OR, and 
+ * logical exclusive OR operations.
+ * <p>
+ * By default, all bits in the set initially have the value 
+ * <code>false</code>. 
+ * <p>
+ * Every bit set has a current size, which is the number of bits 
+ * of space currently in use by the bit set. Note that the size is
+ * related to the implementation of a bit set, so it may change with
+ * implementation. The length of a bit set relates to logical length
+ * of a bit set and is defined independently of implementation.
  *
- * @version 	1.28, 12/10/01
- * @author Arthur van Hoff
+ * @author  Arthur van Hoff
+ * @author  Michael McCloskey
+ * @version 1.34, 05/06/98
+ * @since   JDK1.0
  */
-public final class BitSet implements Cloneable, java.io.Serializable {
-    private final static int BITS_PER_UNIT = 6;
-    private final static int MASK = (1<<BITS_PER_UNIT)-1;
-    private long bits[];
+public class BitSet implements Cloneable, java.io.Serializable {
+    /*
+     * BitSets are packed into arrays of "units."  Currently a unit is a long,
+     * which consists of 64 bits, requiring 6 address bits.  The choice of unit
+     * is determined purely by performance concerns.
+     */
+    private final static int ADDRESS_BITS_PER_UNIT = 6;
+    private final static int BITS_PER_UNIT = 1 << ADDRESS_BITS_PER_UNIT;
+    private final static int BIT_INDEX_MASK = BITS_PER_UNIT - 1;
 
     /**
-     * Convert bitIndex to a subscript into the bits[] array.
+     * The bits in this BitSet.  The ith bit is stored in bits[i/64] at
+     * bit position i % 64 (where bit position 0 refers to the least
+     * significant bit and 63 refers to the most significant bit).
+     *
+     * @serial
      */
-    private static int subscript(int bitIndex) {
-	return bitIndex >> BITS_PER_UNIT;
-    }
-    /**
-     * Convert a subscript into the bits[] array to a (maximum) bitIndex.
-     */
-    private static int bitIndex(int subscript) {
-	return (subscript << BITS_PER_UNIT) + MASK;
-    }
+    private long bits[];  // this should be called unit[]
 
-    private static boolean debugging = (System.getProperty("debug") != null);
+    private transient int unitsInUse; //# of units in logical size
 
-    /** use serialVersionUID from JDK 1.0.2 for interoperability */
+    /* use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 7997698588986878753L;
 
     /**
-     * Creates an empty set.
+     * Given a bit index return unit index containing it.
      */
-    public BitSet() {
-	this(1 << BITS_PER_UNIT);
+    private static int unitIndex(int bitIndex) {
+        return bitIndex >> ADDRESS_BITS_PER_UNIT;
     }
 
     /**
-     * Creates an empty set with the specified size.
-     * @param nbits the size of the set
+     * Given a bit index, return a unit that masks that bit in its unit.
+     */
+    private static long bit(int bitIndex) {
+        return 1L << (bitIndex & BIT_INDEX_MASK);
+    }
+
+    /**
+     * Set the field unitsInUse with the logical size in units of the bit
+     * set.  WARNING:This function assumes that the number of units actually
+     * in use is less than or equal to the current value of unitsInUse!
+     */
+    private void recalculateUnitsInUse() {
+        /* Traverse the bitset until a used unit is found */
+        int i;
+        for (i = unitsInUse-1; i >= 0; i--)
+	    if(bits[i] != 0)
+		break; //this unit is in use!
+
+        unitsInUse = i+1; //the new logical size
+    }
+
+    /**
+     * Creates a new bit set. All bits are initially <code>false</code>.
+     */
+    public BitSet() {
+	this(BITS_PER_UNIT);
+    }
+
+    /**
+     * Creates a bit set whose initial size is large enough to explicitly
+     * represent bits with indices in the range <code>0</code> through
+     * <code>nbits-1</code>. All bits are initially <code>false</code>. 
+     *
+     * @param     nbits   the initial size of the bit set.
+     * @exception NegativeArraySizeException if the specified initial size
+     *               is negative.
      */
     public BitSet(int nbits) {
 	/* nbits can't be negative; size 0 is OK */
-	if (nbits < 0) {
+	if (nbits < 0)
 	    throw new NegativeArraySizeException(Integer.toString(nbits));
-	}
-	/* On wraparound, truncate size; almost certain to o-flo memory. */
-	if (nbits + MASK < 0) {
-	    nbits = Integer.MAX_VALUE - MASK;
-	}
-	/* subscript(nbits + MASK) is the length of the array needed to hold nbits */
-	bits = new long[subscript(nbits + MASK)];
+
+	bits = new long[(unitIndex(nbits-1) + 1)];
     }
 
     /**
-     * Ensures that the BitSet can hold at least an nth bit.
-     * This cannot leave the bits array at length 0.
-     * @param	nth	the 0-origin number of the bit to ensure is there.
+     * Ensures that the BitSet can hold enough units.
+     * @param	unitsRequired the minimum acceptable number of units.
      */
-    private void ensureCapacity(int nth) {
-	/* Doesn't need to be synchronized because it's an internal method. */
-	int required = subscript(nth) + 1;	/* +1 to get length, not index */
-	if (required > bits.length) {
-	    /* Ask for larger of doubled size or required size */
-	    int request = Math.max(2 * bits.length, required);
+    private void ensureCapacity(int unitsRequired) {
+	if (bits.length < unitsRequired) {
+	    /* Allocate larger of doubled size or required size */
+	    int request = Math.max(2 * bits.length, unitsRequired);
 	    long newBits[] = new long[request];
-	    System.arraycopy(bits, 0, newBits, 0, bits.length);
+	    System.arraycopy(bits, 0, newBits, 0, unitsInUse);
 	    bits = newBits;
 	}
     }
 
     /**
-     * Sets a bit.
-     * @param bit the bit to be set
+     * Returns the "logical size" of this <code>BitSet</code>: the index of
+     * the highest set bit in the <code>BitSet</code> plus one.
+     *
+     * @return  the logical size of this <code>BitSet</code>.
+     * @since   JDK1.2
      */
-    public void set(int bit) {
-	if (bit < 0) {
-	    throw new IndexOutOfBoundsException(Integer.toString(bit));
-	}
-	synchronized (this) {
-	    ensureCapacity(bit);
-	    bits[subscript(bit)] |= (1L << (bit & MASK));
-	}
+    public int length() {
+        if (unitsInUse == 0)
+            return 0;
+
+        int highestBit = (unitsInUse - 1) * 64;
+	long highestUnit = bits[unitsInUse - 1];
+	do {
+            highestUnit = highestUnit >>> 1;
+            highestBit++;
+        } while(highestUnit > 0);
+        return highestBit;
     }
 
     /**
-     * Clears a bit.
-     * @param bit the bit to be cleared
+     * Sets the bit specified by the index to <code>true</code>.
+     *
+     * @param     bitIndex   a bit index.
+     * @exception IndexOutOfBoundsException if the specified index is negative.
+     * @since     JDK1.0
      */
-    public void clear(int bit) {
-	if (bit < 0) {
-	    throw new IndexOutOfBoundsException(Integer.toString(bit));
-	}
-	synchronized (this) {
-	    ensureCapacity(bit);
-	    bits[subscript(bit)] &= ~(1L << (bit & MASK));
-	}
+    public void set(int bitIndex) {
+	if (bitIndex < 0)
+	    throw new IndexOutOfBoundsException(Integer.toString(bitIndex));
+
+        int unitIndex = unitIndex(bitIndex);
+        int unitsRequired = unitIndex+1;
+
+        if (unitsInUse < unitsRequired) {
+            ensureCapacity(unitsRequired);
+            bits[unitIndex] |= bit(bitIndex);
+            unitsInUse = unitsRequired;
+        } else {
+            bits[unitIndex] |= bit(bitIndex);
+        }            
     }
 
     /**
-     * Gets a bit.
-     * @param bit the bit to be gotten
+     * Sets the bit specified by the index to <code>false</code>.
+     *
+     * @param     bitIndex   the index of the bit to be cleared.
+     * @exception IndexOutOfBoundsException if the specified index is negative.
+     * @since     JDK1.0
      */
-    public boolean get(int bit) {
-	if (bit < 0) {
-	    throw new IndexOutOfBoundsException(Integer.toString(bit));
-	}
+    public void clear(int bitIndex) {
+	if (bitIndex < 0)
+	    throw new IndexOutOfBoundsException(Integer.toString(bitIndex));
+	int unitIndex = unitIndex(bitIndex);
+	if (unitIndex >= unitsInUse)
+	    return;
+
+	bits[unitIndex] &= ~bit(bitIndex);
+        if (unitIndex == unitsInUse-1)
+            recalculateUnitsInUse();
+    }
+
+    /**
+     * Clears all of the bits in this <code>BitSet</code> whose corresponding
+     * bit is set in the specified <code>BitSet</code>.
+     *
+     * @param     s the <code>BitSet</code> with which to mask this
+     *            <code>BitSet</code>.
+     * @since     JDK1.2
+     */
+    public void andNot(BitSet set) {
+        int unitsInCommon = Math.min(unitsInUse, set.unitsInUse);
+
+	// perform logical (a & !b) on bits in common
+        for (int i=0; i<unitsInCommon; i++) {
+	    bits[i] &= ~set.bits[i];
+        }
+
+        recalculateUnitsInUse();
+    }
+
+    /**
+     * Returns the value of the bit with the specified index. The value 
+     * is <code>true</code> if the bit with the index <code>bitIndex</code> 
+     * is currently set in this <code>BitSet</code>; otherwise, the result 
+     * is <code>false</code>.
+     *
+     * @param     bitIndex   the bit index.
+     * @return    the value of the bit with the specified index.
+     * @exception IndexOutOfBoundsException if the specified index is negative.
+     */
+    public boolean get(int bitIndex) {
+	if (bitIndex < 0)
+	    throw new IndexOutOfBoundsException(Integer.toString(bitIndex));
+
 	boolean result = false;
-	synchronized (this) {
-	    int n = subscript(bit);		/* always positive */
-	    if (n < bits.length) {
-		result = ((bits[n] & (1L << (bit & MASK))) != 0);
-	    }
-	}
+	int unitIndex = unitIndex(bitIndex);
+	if (unitIndex < unitsInUse)
+	    result = ((bits[unitIndex] & bit(bitIndex)) != 0);
+
 	return result;
     }
 
     /**
-     * Logically ANDs this bit set with the specified set of bits.
-     * @param set the bit set to be ANDed with
+     * Performs a logical <b>AND</b> of this target bit set with the 
+     * argument bit set. This bit set is modified so that each bit in it 
+     * has the value <code>true</code> if and only if it both initially 
+     * had the value <code>true</code> and the corresponding bit in the 
+     * bit set argument also had the value <code>true</code>. 
+     *
+     * @param   set   a bit set. 
      */
     public void and(BitSet set) {
-	/*
-	 * Need to synchronize  both this and set.
-	 * This might lead to deadlock if one thread grabs them in one order
-	 * while another thread grabs them the other order.
-	 * Use a trick from Doug Lea's book on concurrency,
-	 * somewhat complicated because BitSet overrides hashCode().
-	 */
-	if (this == set) {
+	if (this == set)
 	    return;
-	}
-	BitSet first = this;
-	BitSet second = set;
-	if (System.identityHashCode(first) > System.identityHashCode(second)) {
-	    first = set;
-	    second = this;
-	}
-	synchronized (first) {
-	    synchronized (second) {
-		int bitsLength = bits.length;
-		int setLength = set.bits.length;
-		int n = Math.min(bitsLength, setLength);
-		for (int i = n ; i-- > 0 ; ) {
-		    bits[i] &= set.bits[i];
-		}
-		for (; n < bitsLength ; n++) {
-		    bits[n] = 0;
-		}
-	    }
-	}
+
+	// perform logical AND on bits in common
+	int oldUnitsInUse = unitsInUse;
+        int i;
+	unitsInUse = Math.min(unitsInUse,set.unitsInUse);
+	for(i=0; i<unitsInUse; i++)
+	    bits[i] &= set.bits[i];
+
+	// clear out units no longer used
+	for( ; i < oldUnitsInUse; i++)
+	    bits[i] = 0;
     }
 
     /**
-     * Logically ORs this bit set with the specified set of bits.
-     * @param set the bit set to be ORed with
+     * Performs a logical <b>OR</b> of this bit set with the bit set 
+     * argument. This bit set is modified so that a bit in it has the 
+     * value <code>true</code> if and only if it either already had the 
+     * value <code>true</code> or the corresponding bit in the bit set 
+     * argument has the value <code>true</code>.
+     *
+     * @param   set   a bit set.
      */
     public void or(BitSet set) {
-	if (this == set) {
+	if (this == set)
 	    return;
-	}
-	/* See the note about synchronization in and(), above. */
-	BitSet first = this;
-	BitSet second = set;
-	if (System.identityHashCode(first) > System.identityHashCode(second)) {
-	    first = set;
-	    second = this;
-	}
-	synchronized (first) {
-	    synchronized (second) {
-		int setLength = set.bits.length;
-		if (setLength > 0) {
-		    ensureCapacity(bitIndex(setLength-1));
-		}
-		for (int i = setLength; i-- > 0 ;) {
-		    bits[i] |= set.bits[i];
-		}
-	    }
-	}
+
+	ensureCapacity(set.unitsInUse);
+
+	// perform logical OR on bits in common
+	int unitsInCommon = Math.min(unitsInUse, set.unitsInUse);
+        int i;
+	for(i=0; i<unitsInCommon; i++)
+	    bits[i] |= set.bits[i];
+
+	// copy any remaining bits
+	for(; i<set.unitsInUse; i++)
+	    bits[i] = set.bits[i];
+
+        if (unitsInUse < set.unitsInUse)
+            unitsInUse = set.unitsInUse;
     }
 
     /**
-     * Logically XORs this bit set with the specified set of bits.
-     * @param set the bit set to be XORed with
+     * Performs a logical <b>XOR</b> of this bit set with the bit set 
+     * argument. This bit set is modified so that a bit in it has the 
+     * value <code>true</code> if and only if one of the following 
+     * statements holds: 
+     * <ul>
+     * <li>The bit initially has the value <code>true</code>, and the 
+     *     corresponding bit in the argument has the value <code>false</code>.
+     * <li>The bit initially has the value <code>false</code>, and the 
+     *     corresponding bit in the argument has the value <code>true</code>. 
+     * </ul>
+     *
+     * @param   set   a bit set.
      */
     public void xor(BitSet set) {
-	/* See the note about synchronization in and(), above. */
-	BitSet first = this;
-	BitSet second = set;
-	if (System.identityHashCode(first) > System.identityHashCode(second)) {
-	    first = set;
-	    second = this;
-	}
-	synchronized (first) {
-	    synchronized (second) {
-		int setLength = set.bits.length;
-		if (setLength > 0) {
-		    ensureCapacity(bitIndex(setLength-1));
-		}
-		for (int i = setLength; i-- > 0 ;) {
-		    bits[i] ^= set.bits[i];
-		}
-	    }
-	}
+        int unitsInCommon;
+
+        if (unitsInUse >= set.unitsInUse) {
+            unitsInCommon = set.unitsInUse;
+        } else {
+            unitsInCommon = unitsInUse;
+
+            int newUnitsInUse = set.unitsInUse;
+            ensureCapacity(newUnitsInUse);
+            unitsInUse = newUnitsInUse;
+        }
+
+	// perform logical XOR on bits in common
+        int i;
+        for (i=0; i<unitsInCommon; i++)
+	    bits[i] ^= set.bits[i];
+
+	// copy any remaining bits
+        for ( ; i<set.unitsInUse; i++)
+            bits[i] = set.bits[i];
+
+        recalculateUnitsInUse();
     }
 
     /**
-     * Gets the hashcode.
+     * Returns a hash code value for this bit set. The has code 
+     * depends only on which bits have been set within this 
+     * <code>BitSet</code>. The algorithm used to compute it may 
+     * be described as follows.<p>
+     * Suppose the bits in the <code>BitSet</code> were to be stored 
+     * in an array of <code>long</code> integers called, say, 
+     * <code>bits</code>, in such a manner that bit <code>k</code> is 
+     * set in the <code>BitSet</code> (for nonnegative values of 
+     * <code>k</code>) if and only if the expression 
+     * <pre>((k&gt;&gt;6) &lt; bits.length) && ((bits[k&gt;&gt;6] & (1L &lt;&lt; (bit & 0x3F))) != 0)</pre>
+     * is true. Then the following definition of the <code>hashCode</code> 
+     * method would be a correct implementation of the actual algorithm:
+     * <pre>
+     * public synchronized int hashCode() {
+     *      long h = 1234;
+     *      for (int i = bits.length; --i &gt;= 0; ) {
+     *           h ^= bits[i] * (i + 1);
+     *      }
+     *      return (int)((h &gt;&gt; 32) ^ h);
+     * }</pre>
+     * Note that the hash code values change if the set of bits is altered.
+     * <p>Overrides the <code>hashCode</code> method of <code>Object</code>.
+     *
+     * @return  a hash code value for this bit set.
      */
     public int hashCode() {
 	long h = 1234;
-	synchronized (this) {
-	    for (int i = bits.length; --i >= 0; ) {
-		h ^= bits[i] * (i + 1);
-	    }
-	}
+	for (int i = bits.length; --i >= 0; )
+            h ^= bits[i] * (i + 1);
+
 	return (int)((h >> 32) ^ h);
     }
     
     /**
-     * Calculates and returns the set's size in bits.
+     * Returns the number of bits of space actually in use by this 
+     * <code>BitSet</code> to represent bit values. 
      * The maximum element in the set is the size - 1st element.
+     *
+     * @return  the number of bits currently in this bit set.
      */
     public int size() {
-	/* This doesn't need to be synchronized, since it just reads a field. */
-	return bits.length << BITS_PER_UNIT;
+	return bits.length << ADDRESS_BITS_PER_UNIT;
     }
 
     /**
      * Compares this object against the specified object.
-     * @param obj the object to compare with
-     * @return true if the objects are the same; false otherwise.
+     * The result is <code>true</code> if and only if the argument is 
+     * not <code>null</code> and is a <code>Bitset</code> object that has 
+     * exactly the same set of bits set to <code>true</code> as this bit 
+     * set. That is, for every nonnegative <code>int</code> index <code>k</code>, 
+     * <pre>((BitSet)obj).get(k) == this.get(k)</pre>
+     * must be true. The current sizes of the two bit sets are not compared. 
+     * <p>Overrides the <code>equals</code> method of <code>Object</code>.
+     *
+     * @param   obj   the object to compare with.
+     * @return  <code>true</code> if the objects are the same;
+     *          <code>false</code> otherwise.
+     * @see     java.util.BitSet#size()
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof BitSet)) {
-	    if (this == obj) {
-		return true;
-	    }
-	    BitSet set = (BitSet) obj;
-	    /* See the note about synchronization in and(), above. */
-	    BitSet first = this;
-	    BitSet second = set;
-	    if (System.identityHashCode(first) > System.identityHashCode(second)) {
-		first = set;
-		second = this;
-	    }
-	    synchronized (first) {
-		synchronized (second) {
-		    int bitsLength = bits.length;
-		    int setLength = set.bits.length;
-		    int n = Math.min(bitsLength, setLength);
-		    for (int i = n ; i-- > 0 ;) {
-			if (bits[i] != set.bits[i]) {
-			    return false;
-			}
-		    }
-		    if (bitsLength > n) {
-			for (int i = bitsLength ; i-- > n ;) {
-			    if (bits[i] != 0) {
-				return false;
-			    }
-			}
-		    } else if (setLength > n) {
-			for (int i = setLength ; i-- > n ;) {
-			    if (set.bits[i] != 0) {
-				return false;
-			    }
-			}
-		    }
-		}
-	    }
+	if (obj == null || !(obj instanceof BitSet))
+	    return false;
+	if (this == obj)
 	    return true;
+
+	BitSet set = (BitSet) obj;
+	int minUnitsInUse = Math.min(unitsInUse, set.unitsInUse);
+
+	// Check units in use by both BitSets
+	for (int i = 0; i < minUnitsInUse; i++)
+	    if (bits[i] != set.bits[i])
+		return false;
+
+	// Check any units in use by only one BitSet (must be 0 in other)
+	if (unitsInUse > minUnitsInUse) {
+	    for (int i = minUnitsInUse; i<unitsInUse; i++)
+		if (bits[i] != 0)
+		    return false;
+	} else {
+	    for (int i = minUnitsInUse; i<set.unitsInUse; i++)
+		if (set.bits[i] != 0)
+		    return false;
 	}
-	return false;
+
+	return true;
     }
 
     /**
-     * Clones the BitSet.
+     * Cloning this <code>BitSet</code> produces a new <code>BitSet</code> 
+     * that is equal to it.
+     * The clone of the bit set is another bit set that has exactly the 
+     * same bits set to <code>true</code> as this bit set and the same 
+     * current size. 
+     * <p>Overrides the <code>clone</code> method of <code>Object</code>.
+     *
+     * @return  a clone of this bit set.
+     * @see     java.util.BitSet#size()
      */
     public Object clone() {
 	BitSet result = null;
-	synchronized (this) {
-	    try {
-		result = (BitSet) super.clone();
-	    } catch (CloneNotSupportedException e) {
-		// this shouldn't happen, since we are Cloneable
-		throw new InternalError();
-	    }
-	    result.bits = new long[bits.length];
-	    System.arraycopy(bits, 0, result.bits, 0, result.bits.length);
+	try {
+	    result = (BitSet) super.clone();
+	} catch (CloneNotSupportedException e) {
+	    throw new InternalError();
 	}
+	result.bits = new long[bits.length];
+	System.arraycopy(bits, 0, result.bits, 0, unitsInUse);
 	return result;
     }
 
     /**
-     * Converts the BitSet to a String.
+     * This override of readObject makes sure unitsInUse is set properly
+     * when deserializing a bitset
+     *
+     */
+    private void readObject(java.io.ObjectInputStream in)
+        throws IOException, ClassNotFoundException {
+        
+        in.defaultReadObject();
+        //assume maximum length then find real length
+        //because recalculateUnitsInUse assumes maintenance
+        //or reduction in logical size
+        unitsInUse = bits.length;
+        recalculateUnitsInUse();
+    }
+
+    /**
+     * Returns a string representation of this bit set. For every index 
+     * for which this <code>BitSet</code> contains a bit in the set 
+     * state, the decimal representation of that index is included in 
+     * the result. Such indeces aer listed in order from lowest to 
+     * highest, separated by ",$nbsp;" (a comma and a space) and 
+     * surrounded by braces, resulting in the usual mathematical 
+     * notation for a set of integers.<p>
+     * Overrides the <code>toString</code> method of <code>Object</code>.
+     * <p>Example:
+     * <pre>
+     * BitSet drPepper = new BitSet();</pre>
+     * Now <code>drPepper.toString()</code> returns "<code>{}</code>".<p>
+     * <pre>
+     * drPepper.set(2);</pre>
+     * Now <code>drPepper.toString()</code> returns "<code>{2}</code>".<p>
+     * <pre>
+     * drPepper.set(4);
+     * drPepper.set(10);</pre>
+     * Now <code>drPepper.toString()</code> returns "<code>{2, 4, 10}</code>".
+     *
+     * @return  a string representation of this bit set.
      */
     public String toString() {
-	StringBuffer buffer = new StringBuffer();
-	boolean needSeparator = false;
+	int numBits = unitsInUse << ADDRESS_BITS_PER_UNIT;
+	StringBuffer buffer = new StringBuffer(8*numBits + 2);
+	String separator = "";
 	buffer.append('{');
-	synchronized (this) {
-	    int limit = size();
-	    for (int i = 0 ; i < limit ; i++) {
-		if (get(i)) {
-		    if (needSeparator) {
-			buffer.append(", ");
-		    } else {
-			needSeparator = true;
-		    }
-		    buffer.append(i);
-		}
+
+	for (int i = 0 ; i < numBits; i++) {
+	    if (get(i)) {
+		buffer.append(separator);
+		separator = ", ";
+	        buffer.append(i);
 	    }
-	}
+        }
+
 	buffer.append('}');
 	return buffer.toString();
     }
 }
-

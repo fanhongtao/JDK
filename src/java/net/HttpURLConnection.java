@@ -1,12 +1,22 @@
 /*
- * @(#)HttpURLConnection.java	1.11 01/12/10
+ * @(#)HttpURLConnection.java	1.16 98/09/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
+
+import java.io.InputStream;
 import java.io.IOException;
+import java.security.Permission;
 
 /**
  * A URLConnection with support for HTTP-specific features. See
@@ -18,20 +28,16 @@ abstract public class HttpURLConnection extends URLConnection {
     /* instance variables */
 
     /**
-     * @since   JDK1.1
      */
     protected String method = "GET";
 
     /**
-     * @since   JDK1.1
      */
     protected int responseCode = -1;
 
     /**
-     * @since   JDK1.1
      */
     protected String responseMessage = null;
-
 
     /* static variables */
 
@@ -45,7 +51,6 @@ abstract public class HttpURLConnection extends URLConnection {
 
     /**
      * Constructor for the URLStreamHandler.
-     * @since   JDK1.1
      */
     protected HttpURLConnection (URL u) {
 	super(u);
@@ -55,7 +60,15 @@ abstract public class HttpURLConnection extends URLConnection {
      * Sets whether HTTP redirects  (requests with response code 3xx) should 
      * be automatically followed by this class.  True by default.  Applets
      * cannot change this variable.
-     * @since   JDK1.1
+     * <p>
+     * If there is a security manager, this method first calls
+     * the security manager's <code>checkSetFactory</code> method 
+     * to ensure the operation is allowed. 
+     * This could result in a SecurityException.
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkSetFactory</code> method doesn't allow the operation.
+     * @see        SecurityManager#checkSetFactory
      */
     public static void setFollowRedirects(boolean set) {
 	SecurityManager sec = System.getSecurityManager();
@@ -67,7 +80,6 @@ abstract public class HttpURLConnection extends URLConnection {
     }
 
     /**
-     * @since   JDK1.1
      */
     public static boolean getFollowRedirects() {
 	return followRedirects;
@@ -88,7 +100,6 @@ abstract public class HttpURLConnection extends URLConnection {
      * 
      * @exception ProtocolException if the method cannot be reset or if
      *              the requested method isn't valid for HTTP.
-     * @since     JDK1.1
      */
     public void setRequestMethod(String method) throws ProtocolException {
 	if (connected) {
@@ -110,7 +121,6 @@ abstract public class HttpURLConnection extends URLConnection {
 
     /**
      * Get the request method.
-     * @since   JDK1.1
      */
     public String getRequestMethod() {
 	return method;
@@ -126,7 +136,6 @@ abstract public class HttpURLConnection extends URLConnection {
      * Returns -1 if none can be discerned
      * from the response (i.e., the response is not valid HTTP).
      * @throws IOException if an error occurred connecting to the server.
-     * @since   JDK1.1
      */
     public int getResponseCode() throws IOException {
 	if (responseCode != -1) {
@@ -164,7 +173,6 @@ abstract public class HttpURLConnection extends URLConnection {
      * Returns null if none could be discerned from the responses 
      * (the result was not valid HTTP).
      * @throws IOException if an error occurred connecting to the server.
-     * @since  JDK1.1
      */
     public String getResponseMessage() throws IOException {
 	getResponseCode();
@@ -173,15 +181,43 @@ abstract public class HttpURLConnection extends URLConnection {
 
     /**
      * Close the connection to the server.
-     * @since JDK1.1
      */
     public abstract void disconnect();
 
     /**
      * Indicates if the connection is going through a proxy.
-     * @since   JDK1.1
      */
     public abstract boolean usingProxy();
+
+    public Permission getPermission() throws IOException {
+	int port = url.getPort();
+	port = port < 0 ? 80 : port;
+	String host = url.getHost() + ":" + port;
+	Permission permission = new SocketPermission(host, "connect");
+	return permission;
+    }
+
+   /**
+    * Returns the error stream if the connection failed
+    * but the server sent useful data nonetheless. The
+    * typical example is when an HTTP server responds
+    * with a 404, which will cause a FileNotFoundException 
+    * to be thrown in connect, but the server sent an HTML
+    * help page with suggestions as to what to do.
+    *
+    * <p>This method will not cause a connection to be initiated.
+    * If there the connection was not connected, or if the server
+    * did not have an error while connecting or if the server did
+    * have an error but there no error data was sent, this method
+    * will return null. This is the default.
+    *
+    * @return an error stream if any, null if there have been
+    * no errors, the connection is not connected or the server
+    * sent no useful data.
+    */
+    public InputStream getErrorStream() {
+	return null;
+    }
 
     /**
      * The response codes for HTTP, as of version 1.1.

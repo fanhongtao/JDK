@@ -1,487 +1,1001 @@
 /*
- * @(#)File.java	1.54 01/12/10
+ * @(#)File.java	1.81 98/11/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
-import java.util.Vector;
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Hashtable;
+import java.util.Random;
+import java.security.AccessController;
+import java.security.AccessControlException;
+import sun.security.action.GetPropertyAction;
+
 
 /**
- * Instances of this class represent the name of a file or directory 
- * on the host file system. A file is specified by a pathname, which 
- * can either be an absolute pathname or a pathname relative to the 
- * current working directory. The pathname must follow the naming 
- * conventions of the host platform. 
- * <p>
- * The <code>File</code> class is intended to provide an abstraction 
- * that deals with most of the machine dependent complexities of 
- * files and pathnames in a machine-independent fashion. 
- * <p>
- * Note that whenever a filename or path is used it is
- * assumed that the host's file naming conventions are used.
+ * An abstract representation of file and directory pathnames.
  *
- * @version 1.54, 12/10/01
- * @author  Arthur van Hoff
- * @author  Jonathan Payne
+ * <p> User interfaces and operating systems use system-dependent <em>pathname
+ * strings</em> to name files and directories.  This class presents an
+ * abstract, system-independent view of hierarchical pathnames.  An
+ * <em>abstract pathname</em> has two components:
+ *
+ * <ol>
+ * <li> An optional system-dependent <em>prefix</em> string,<br>
+ *      such as a disk-drive specifier, <code>"/"</code> for the UNIX root
+ *      directory, or <code>"\\"</code> for a Win32 UNC pathname, and
+ * <li> A sequence of zero or more string <em>names</em>.
+ * </ol>
+ *
+ * Each name in an abstract pathname except for the last denotes a directory;
+ * the last name may denote either a directory or a file.  The <em>empty</em>
+ * abstract pathname has no prefix and an empty name sequence.
+ *
+ * <p> The conversion of a pathname string to or from an abstract pathname is
+ * inherently system-dependent.  When an abstract pathname is converted into a
+ * pathname string, each name is separated from the next by a single copy of
+ * the default <em>separator character</em>.  The default name-separator
+ * character is defined by the system property <code>file.separator</code>, and
+ * is made available in the public static fields <code>{@link
+ * #separator}</code> and <code>{@link #separatorChar}</code> of this class.
+ * When a pathname string is converted into an abstract pathname, the names
+ * within it may be separated by the default name-separator character or by any
+ * other name-separator character that is supported by the underlying system.
+ *
+ * <p> A pathname, whether abstract or in string form, may be either
+ * <em>absolute</em> or <em>relative</em>.  An absolute pathname is complete in
+ * that no other information is required in order to locate the file that it
+ * denotes.  A relative pathname, in contrast, must be interpreted in terms of
+ * information taken from some other pathname.  By default the classes in the
+ * <code>java.io</code> package always resolve relative pathnames against the
+ * current user directory.  This directory is named by the system property
+ * <code>user.dir</code>, and is typically the directory in which the Java
+ * virtual machine was invoked.
+ *
+ * <p> The prefix concept is used to handle root directories on UNIX platforms,
+ * and drive specifiers, root directories and UNC pathnames on Win32 platforms,
+ * as follows:
+ *
+ * <ul>
+ *
+ * <li> For UNIX platforms, the prefix of an absolute pathname is always
+ * <code>"/"</code>.  Relative pathnames have no prefix.  The abstract pathname
+ * denoting the root directory has the prefix <code>"/"</code> and an empty
+ * name sequence.
+ *
+ * <li> For Win32 platforms, the prefix of a pathname that contains a drive
+ * specifier consists of the drive letter followed by <code>":"</code> and
+ * possibly followed by <code>"\"</code> if the pathname is absolute.  The
+ * prefix of a UNC pathname is <code>"\\"</code>; the hostname and the share
+ * name are the first two names in the name sequence.  A relative pathname that
+ * does not specify a drive has no prefix.
+ *
+ * </ul>
+ *
+ * <p> Instances of the <code>File</code> class are immutable; that is, once
+ * created, the abstract pathname represented by a <code>File</code> object
+ * will never change.
+ *
+ * @version 1.79, 98/08/18
+ * @author  unascribed
  * @since   JDK1.0
  */
-public
-class File implements java.io.Serializable {
+
+public class File implements java.io.Serializable, Comparable {
+
     /**
-     * The path of the file. The host's file separator is used.
+     * The FileSystem object representing the platform's local file system.
+     */
+    static private FileSystem fs = FileSystem.getFileSystem();
+
+    /**
+     * This abstract pathname's normalized pathname string.  A normalized
+     * pathname string uses the default name-separator character and does not
+     * contain any duplicate or redundant separators.
+     *
+     * @serial
      */
     private String path;
 
     /**
-     * The system-dependent path separator string. This field is 
-     * initialized to contain the value of the system property 
-     * <code>file.separator</code>. 
-     *
-     * @see     java.lang.System#getProperty(java.lang.String)
-     * @since   JDK1.0
+     * The length of this abstract pathname's prefix, or zero if it has no
+     * prefix.
      */
-    public static final String separator = System.getProperty("file.separator");
+    private transient int prefixLength;
 
     /**
-     * The system-dependent path separator character. This field is 
-     * initialized to contain the first character of the value of the 
-     * system property <code>file.separator</code>. This character 
-     * separates the directory and file components in a filename. 
-     *
-     * @see     java.lang.System#getProperty(java.lang.String)
-     * @since   JDK1.0
+     * Returns the length of this abstract pathname's prefix.
+     * For use by FileSystem classes.
      */
-    public static final char separatorChar = separator.charAt(0);
-    
-    /**
-     * The system-dependent path separator string. This field is 
-     * initialized to contain the value of the system property 
-     * <code>path.separator</code>. 
-     *
-     * @see     java.lang.System#getProperty(java.lang.String)
-     * @since   JDK1.0
-     */
-    public static final String pathSeparator = System.getProperty("path.separator");
+    int getPrefixLength() {
+	return prefixLength;
+    }
 
     /**
-     * The system-dependent path separator character. This field is 
-     * initialized to contain the first character of the value of the 
-     * system property <code>path.separator</code>. This character is 
-     * often used to separate filenames in a sequence of files given as a 
-     * "path list".
+     * The system-dependent default name-separator character.  This field is
+     * initialized to contain the first character of the value of the system
+     * property <code>file.separator</code>.  On UNIX systems the value of this
+     * field is <code>'/'</code>; on Win32 systems it is <code>'\'</code>.
      *
      * @see     java.lang.System#getProperty(java.lang.String)
-     * @since   JDK1.0
      */
-    public static final char pathSeparatorChar = pathSeparator.charAt(0);
-    
+    public static final char separatorChar = fs.getSeparator();
+
     /**
-     * Creates a <code>File</code> instance that represents the file 
-     * whose pathname is the given path argument. 
-     *
-     * @param      path   the file pathname.
-     * @exception  NullPointerException  if the file path is equal to
-     *               <code>null</code>.
-     * @see        java.io.File#getPath()
-     * @since      JDK1.0
+     * The system-dependent default name-separator character, represented as a
+     * string for convenience.  This string contains a single character, namely
+     * <code>{@link #separatorChar}</code>.
      */
-    public File(String path) {
-	if (path == null) {
+    public static final String separator = "" + separatorChar;
+
+    /**
+     * The system-dependent path-separator character.  This field is
+     * initialized to contain the first character of the value of the system
+     * property <code>path.separator</code>.  This character is used to
+     * separate filenames in a sequence of files given as a <em>path list</em>.
+     * On UNIX systems, this character is <code>':'</code>; on Win32 systems it
+     * is <code>';'</code>.
+     *
+     * @see     java.lang.System#getProperty(java.lang.String)
+     */
+    public static final char pathSeparatorChar = fs.getPathSeparator();
+
+    /**
+     * The system-dependent path-separator character, represented as a string
+     * for convenience.  This string contains a single character, namely
+     * <code>{@link #pathSeparatorChar}</code>.
+     */
+    public static final String pathSeparator = "" + pathSeparatorChar;
+
+
+    /* -- Constructors -- */
+
+    /**
+     * Internal constructor for already-normalized pathname strings.
+     */
+    private File(String pathname, int prefixLength) {
+	this.path = pathname;
+	this.prefixLength = prefixLength;
+    }
+
+    /**
+     * Creates a new <code>File</code> instance by converting the given
+     * pathname string into an abstract pathname.  If the given string is
+     * the empty string, then the result is the empty abstract pathname.
+     *
+     * @param   pathname  A pathname string
+     * @throws  NullPointerException
+     *          If the <code>pathname</code> argument is <code>null</code>
+     */
+    public File(String pathname) {
+	if (pathname == null) {
 	    throw new NullPointerException();
 	}
-	this.path = path;
-    }	
+	this.path = fs.normalize(pathname);
+	this.prefixLength = fs.prefixLength(this.path);
+    }
+
+    /* Note: The two-argument File constructors do not interpret an empty
+       parent abstract pathname as the current user directory.  An empty parent
+       instead causes the child to be resolved against the system-dependent
+       directory defined by the FileSystem.getDefaultParent method.  On Unix
+       this default is "/", while on Win32 it is "\\".  This is required for
+       compatibility with the original behavior of this class. */
 
     /**
-     * Creates a <code>File</code> instance whose pathname is the 
-     * pathname of the specified directory, followed by the separator 
-     * character, followed by the <code>name</code> argument. 
+     * Creates a new <code>File</code> instance from a parent pathname string
+     * and a child pathname string.
      *
-     * @param   path   the directory pathname.
-     * @param   name   the file pathname.
-     * @see     java.io.File#getPath()
-     * @see     java.io.File#separator
-     * @since   JDK1.0
+     * <p> If <code>parent</code> is <code>null</code> then the new
+     * <code>File</code> instance is created as if by invoking the
+     * single-argument <code>File</code> constructor on the given
+     * <code>child</code> pathname string.
+     *
+     * <p> Otherwise the <code>parent</code> pathname string is taken to denote
+     * a directory, and the <code>child</code> pathname string is taken to
+     * denote either a directory or a file.  If the <code>child</code> pathname
+     * string is absolute then it is converted into a relative pathname in a
+     * system-dependent way.  If <code>parent</code> is the empty string then
+     * the new <code>File</code> instance is created by converting
+     * <code>child</code> into an abstract pathname and resolving the result
+     * against a system-dependent default directory.  Otherwise each pathname
+     * string is converted into an abstract pathname and the child abstract
+     * pathname is resolved against the parent.
+     *
+     * @param   parent  The parent pathname string
+     * @param   child   The child pathname string
+     * @throws  NullPointerException
+     *          If <code>child</code> is <code>null</code>
      */
-    public File(String path, String name) {
-	if (name == null) {
-	    /* raise exception, per Java Language Spec
-	     * 22.24.6 & 22.24.7
-	     */
+    public File(String parent, String child) {
+	if (child == null) {
 	    throw new NullPointerException();
 	}
-	if (path != null) {
-	    if (path.endsWith(separator)) {
-		this.path = path + name;
+	if (parent != null) {
+	    if (parent.equals("")) {
+		this.path = fs.resolve(fs.getDefaultParent(),
+				       fs.normalize(child));
 	    } else {
-		this.path = path + separator + name;
-	    } 
+		this.path = fs.resolve(fs.normalize(parent),
+				       fs.normalize(child));
+	    }
 	} else {
-	    this.path = name;
+	    this.path = fs.normalize(child);
 	}
+	this.prefixLength = fs.prefixLength(this.path);
     }
 
     /**
-     * Creates a <code>File</code> instance that represents the file 
-     * with the specified name in the specified directory. 
-     * <p>
-     * If the directory argument is <code>null</code>, the resulting 
-     * <code>File</code> instance represents a file in the 
-     * (system-dependent) current directory whose pathname is the 
-     * <code>name</code> argument. Otherwise, the <code>File</code> 
-     * instance represents a file whose pathname is the pathname of the 
-     * directory, followed by the separator character, followed by the 
-     * <code>name</code> argument. 
+     * Creates a new <code>File</code> instance from a parent abstract
+     * pathname and a child pathname string.
      *
-     * @param   dir   the directory.
-     * @param   name   the file pathname.
-     * @see     java.io.File#getPath()
-     * @see     java.io.File#separator
-     * @since   JDK1.0
+     * <p> If <code>parent</code> is <code>null</code> then the new
+     * <code>File</code> instance is created as if by invoking the
+     * single-argument <code>File</code> constructor on the given
+     * <code>child</code> pathname string.
+     *
+     * <p> Otherwise the <code>parent</code> abstract pathname is taken to
+     * denote a directory, and the <code>child</code> pathname string is taken
+     * to denote either a directory or a file.  If the <code>child</code>
+     * pathname string is absolute then it is converted into a relative
+     * pathname in a system-dependent way.  If <code>parent</code> is the empty
+     * abstract pathname then the new <code>File</code> instance is created by
+     * converting <code>child</code> into an abstract pathname and resolving
+     * the result against a system-dependent default directory.  Otherwise each
+     * pathname string is converted into an abstract pathname and the child
+     * abstract pathname is resolved against the parent.
+     *
+     * @param   parent  The parent abstract pathname
+     * @param   child   The child pathname string
+     * @throws  NullPointerException
+     *          If <code>child</code> is <code>null</code>
      */
-    public File(File dir, String name) {
-	this(dir == null ? (String)null : dir.getPath(), name);
+    public File(File parent, String child) {
+	if (child == null) {
+	    throw new NullPointerException();
+	}
+	if (parent != null) {
+	    if (parent.path.equals("")) {
+		this.path = fs.resolve(fs.getDefaultParent(),
+				       fs.normalize(child));
+	    } else {
+		this.path = fs.resolve(parent.path,
+				       fs.normalize(child));
+	    }
+	} else {
+	    this.path = fs.normalize(child);
+	}
+	this.prefixLength = fs.prefixLength(this.path);
     }
 
+
+    /* -- Path-component accessors -- */
+
     /**
-     * Returns the name of the file represented by this object. The name 
-     * is everything in the pathame after the last occurrence of the 
-     * separator character. 
+     * Returns the name of the file or directory denoted by this abstract
+     * pathname.  This is just the last name in the pathname's name
+     * sequence.  If the pathname's name sequence is empty, then the empty
+     * string is returned.
      *
-     * @return  the name of the file (without any directory components)
-     *          represented by this <code>File</code> object.
-     * @see     java.io.File#getPath()
-     * @see     java.io.File#separator
-     * @since   JDK1.0
+     * @return  The name of the file or directory denoted by this abstract
+     *          pathname, or the empty string if this pathname's name sequence
+     *          is empty
      */
     public String getName() {
 	int index = path.lastIndexOf(separatorChar);
-	return (index < 0) ? path : path.substring(index + 1);
+	if (index < prefixLength) return path.substring(prefixLength);
+	return path.substring(index + 1);
     }
 
     /**
-     * Returns the pathname of the file represented by this object.
+     * Returns the pathname string of this abstract pathname's parent, or
+     * <code>null</code> if this pathname does not name a parent directory.
      *
-     * @return  the pathname represented by this <code>File</code> object.
-     * @since   JDK1.0
+     * <p> The <em>parent</em> of an abstract pathname consists of the
+     * pathname's prefix, if any, and each name in the pathname's name
+     * sequence except for the last.  If the name sequence is empty then
+     * the pathname does not name a parent directory.
+     *
+     * @return  The pathname string of the parent directory named by this
+     *          abstract pathname, or <code>null</code> if this pathname
+     *          does not name a parent
+     */
+    public String getParent() {
+	int index = path.lastIndexOf(separatorChar);
+	if (index < prefixLength) {
+	    if ((prefixLength > 0) && (path.length() > prefixLength))
+		return path.substring(0, prefixLength);
+	    return null;
+	}
+	return path.substring(0, index);
+    }
+
+    /**
+     * Returns the abstract pathname of this abstract pathname's parent,
+     * or <code>null</code> if this pathname does not name a parent
+     * directory.
+     *
+     * <p> The <em>parent</em> of an abstract pathname consists of the
+     * pathname's prefix, if any, and each name in the pathname's name
+     * sequence except for the last.  If the name sequence is empty then
+     * the pathname does not name a parent directory.
+     *
+     * @return  The abstract pathname of the parent directory named by this
+     *          abstract pathname, or <code>null</code> if this pathname
+     *          does not name a parent
+     *
+     * @since JDK1.2
+     */
+    public File getParentFile() {
+	String p = this.getParent();
+	if (p == null) return null;
+	return new File(p, this.prefixLength);
+    }
+
+    /**
+     * Converts this abstract pathname into a pathname string.  The resulting
+     * string uses the {@link #separator default name-separator character} to
+     * separate the names in the name sequence.
+     *
+     * @return  The string form of this abstract pathname
      */
     public String getPath() {
 	return path;
     }
 
-    /**
-     * Returns the absolute pathname of the file represented by this object.
-     * If this object represents an absolute pathname, then return the 
-     * pathname. Otherwise, return a pathname that is a concatenation of 
-     * the current user directory, the separator character, and the 
-     * pathname of this file object. 
-     * <p>
-     * The system property <code>user.dir</code> contains the current 
-     * user directory. 
-     *
-     * @return  a system-dependent absolute pathname for this <code>File</code>.
-     * @see     java.io.File#getPath()
-     * @see     java.io.File#isAbsolute()
-     * @see     java.lang.System#getProperty(java.lang.String)
-     * @since   JDK1.0
-     */
-    public String getAbsolutePath() {
-	if (isAbsolute())
-	    return path;
+
+    /* -- Path operations -- */
 
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkPropertyAccess("user.dir");
-	}
-	return System.getProperty("user.dir") + separator + path;
+    /**
+     * Tests whether this abstract pathname is absolute.  The definition of
+     * absolute pathname is system dependent.  On UNIX systems, a pathname is
+     * absolute if its prefix is <code>"/"</code>.  On Win32 systems, a
+     * pathname is absolute if its prefix is a drive specifier followed by
+     * <code>"\\"</code>, or if its prefix is <code>"\\"</code>.
+     *
+     * @return  <code>true</code> if this abstract pathname is absolute,
+     *          <code>false</code> otherwise
+     */
+    public boolean isAbsolute() {
+	return fs.isAbsolute(this);
     }
 
     /**
-     * Returns the canonical form of this <code>File</code> object's pathname.
-     * The precise definition of canonical form is system-dependent, but it
-     * usually specifies an absolute pathname in which all relative references
-     * and references to the current user directory have been completely
-     * resolved.  The canonical form of a pathname of a nonexistent file may
-     * not be defined.
+     * Returns the absolute pathname string of this abstract pathname.
      *
-     * @exception IOException If an I/O error occurs, which is possible because
-     * the construction of the canonical path may require filesystem queries.
+     * <p> If this abstract pathname is already absolute, then the pathname
+     * string is simply returned as if by the <code>{@link #getPath}</code>
+     * method.  If this abstract pathname is the empty abstract pathname then
+     * the pathname string of the current user directory, which is named by the
+     * system property <code>user.dir</code>, is returned.  Otherwise this
+     * pathname is resolved in a system-dependent way.  On UNIX systems, a
+     * relative pathname is made absolute by resolving it against the current
+     * user directory.  On Win32 systems, a relative pathname is made absolute
+     * by resolving it against the current directory of the drive named by the
+     * pathname, if any; if not, it is resolved against the current user
+     * directory.
+     *
+     * @return  The absolute pathname string denoting the same file or
+     *          directory as this abstract pathname
+     *
+     * @see     java.io.File#isAbsolute()
+     */
+    public String getAbsolutePath() {
+	return fs.resolve(this);
+    }
+
+    /**
+     * Returns the absolute form of this abstract pathname.  Equivalent to
+     * <code>new&nbsp;File(this.{@link #getAbsolutePath}())</code>.
+     *
+     * @return  The absolute abstract pathname denoting the same file or
+     *          directory as this abstract pathname
+     *
+     * @since JDK1.2
+     */
+    public File getAbsoluteFile() {
+	return new File(getAbsolutePath());
+    }
+
+    /**
+     * Returns the canonical pathname string of this abstract pathname.
+     *
+     * <p> The precise definition of canonical form is system-dependent, but
+     * canonical forms are always absolute.  Thus if this abstract pathname is
+     * relative it will be converted to absolute form as if by the <code>{@link
+     * #getAbsoluteFile}</code> method.
+     *
+     * <p> Every pathname that denotes an existing file or directory has a
+     * unique canonical form.  Every pathname that denotes a nonexistent file
+     * or directory also has a unique canonical form.  The canonical form of
+     * the pathname of a nonexistent file or directory may be different from
+     * the canonical form of the same pathname after the file or directory is
+     * created.  Similarly, the canonical form of the pathname of an existing
+     * file or directory may be different from the canonical form of the same
+     * pathname after the file or directory is deleted.
+     *
+     * @return  The canonical pathname string denoting the same file or
+     *          directory as this abstract pathname
+     *
+     * @throws  IOException
+     *          If an I/O error occurs, which is possible because the
+     *          construction of the canonical pathname may require
+     *          filesystem queries
      *
      * @since   JDK1.1
      */
-     public String getCanonicalPath() throws IOException {
-	if (isAbsolute())
-	    return canonPath(path);
-
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkPropertyAccess("user.dir");
-	}
-	return canonPath(System.getProperty("user.dir") + separator + path);
+    public String getCanonicalPath() throws IOException {
+	return fs.canonicalize(fs.resolve(this));
     }
 
     /**
-     * Returns the parent part of the pathname of this <code>File</code>
-     * object, or <code>null</code> if the name has no parent part.  The parent
-     * part is generally everything leading up to the last occurrence of the
-     * separator character, although the precise definition is system
-     * dependent.  On UNIX, for example, the parent part of
-     * <code>"/usr/lib"</code> is <code>"/usr"</code>, whose parent part is
-     * <code>"/"</code>, which in turn has no parent.  On Windows platforms,
-     * the parent part of <code>"c:\java"</code> is <code>"c:\"</code>, which
-     * in turn has no parent.
+     * Returns the canonical form of this abstract pathname.  Equivalent to
+     * <code>new&nbsp;File(this.{@link #getCanonicalPath}())</code>.
      *
-     * @see     java.io.File#getPath()
-     * @see     java.io.File#getCanonicalPath()
-     * @see     java.io.File#separator
-     * @since   JDK1.0
+     * @return  The canonical pathname string denoting the same file or
+     *          directory as this abstract pathname
+     *
+     * @throws  IOException
+     *          If an I/O error occurs, which is possible because the
+     *          construction of the canonical pathname may require
+     *          filesystem queries
+     *
+     * @since JDK1.2
      */
-    public String getParent() {
-	/* This is correct for Unix and Win32; other platforms may require a
-           different algorithm */
-	int index = path.lastIndexOf(separatorChar);
-	if (index < 0)
-	    return null;
-	if (!isAbsolute() || (path.indexOf(separatorChar) != index))
-	    return path.substring(0, index);
-	if (index < path.length() - 1)
-	    return path.substring(0, index + 1);
-	return null;
+    public File getCanonicalFile() throws IOException {
+	return new File(getCanonicalPath());
     }
 
-    private native boolean exists0();
-    private native boolean canWrite0();
-    private native boolean canRead0();
-    private native boolean isFile0();
-    private native boolean isDirectory0();
-    private native long lastModified0();
-    private native long length0();
-    private native boolean mkdir0();
-    private native boolean renameTo0(File dest);
-    private native boolean delete0();
-    private native boolean rmdir0(); // remove empty directory
-    private native String[] list0();
-    private native String canonPath(String p) throws IOException;
-
     /**
-     * Tests if this <code>File</code> exists. 
+     * Converts this abstract pathname into a <code>file:</code> URL.  The
+     * exact form of the URL is system-dependent.  If it can be determined that
+     * the file denoted by this abstract pathname is a directory, then the
+     * resulting URL will end with a slash.
      *
-     * @return     <code>true</code> if the file specified by this object
-     *             exists; <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @see     java.net.URL
+     * @since   JDK1.2
      */
-    public boolean exists() {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkRead(path);
+    public URL toURL() throws MalformedURLException {
+	String path = getAbsolutePath();
+	if (File.separatorChar != '/') {
+	    path = path.replace(File.separatorChar, '/');
 	}
-	return exists0();
+	if (!path.startsWith("/")) {
+	    path = "/" + path;
+	}
+	if (!path.endsWith("/") && isDirectory()) {
+	    path = path + "/";
+	}
+	return new URL("file", "", path);
     }
 
-    /**
-     * Tests if the application can write to this file. 
-     *
-     * @return     <code>true</code> if the application is allowed to write to
-     *             a file whose name is specified by this object;
-     *            <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkWrite</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed write access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
-     * @since      JDK1.0
-     */
-    public boolean canWrite() {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkWrite(path);
-	}
-	return canWrite0();
-    }
+
+    /* -- Attribute accessors -- */
 
     /**
-     * Tests if the application can read from the specified file. 
+     * Tests whether the application can read the file denoted by this
+     * abstract pathname.
      *
-     * @return     <code>true</code> if the file specified by this object exists
-     *             and the application can read the file;
-     *             <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @return  <code>true</code> if and only if the file specified by this
+     *          abstract pathname exists <em>and</em> can be read by the
+     *          application; <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      */
     public boolean canRead() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkRead(path);
 	}
-	return canRead0();
+	return fs.checkAccess(this, false);
     }
 
     /**
-     * Tests if the file represented by this <code>File</code> 
-     * object is a "normal" file. 
-     * <p>
-     * A file is "normal" if it is not a directory and, in 
-     * addition, satisfies other system-dependent criteria. Any 
-     * non-directory file created by a Java application is guaranteed to 
-     * be a normal file. 
+     * Tests whether the application can modify to the file denoted by this
+     * abstract pathname.
      *
-     * @return     <code>true</code> if the file specified by this object
-     *             exists and is a "normal" file; <code>false</code> otherwise.
-     * @exception  SecurityException  If a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @return  <code>true</code> if and only if the file system actually
+     *          contains a file denoted by this abstract pathname <em>and</em>
+     *          the application is allowed to write to the file;
+     *          <code>false</code> otherwise.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method denies
+     *          write access to the file
      */
-    public boolean isFile() {
+    public boolean canWrite() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkWrite(path);
+	}
+	return fs.checkAccess(this, true);
+    }
+
+    /**
+     * Tests whether the file denoted by this abstract pathname exists.
+     *
+     * @return  <code>true</code> if and only if the file denoted by this
+     *          abstract pathname exists; <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
+     */
+    public boolean exists() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkRead(path);
 	}
-	return isFile0();
+	return ((fs.getBooleanAttributes(this) & FileSystem.BA_EXISTS) != 0);
     }
 
     /**
-     * Tests if the file represented by this <code>File</code> 
-     * object is a directory. 
+     * Tests whether the file denoted by this abstract pathname is a
+     * directory.
      *
-     * @return     <code>true</code> if this <code>File</code> exists and is a
-     *             directory; <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @return <code>true</code> if and only if the file denoted by this
+     *          abstract pathname exists <em>and</em> is a directory;
+     *          <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      */
     public boolean isDirectory() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkRead(path);
 	}
-	return isDirectory0();
+	return ((fs.getBooleanAttributes(this) & FileSystem.BA_DIRECTORY)
+		!= 0);
     }
 
     /**
-     * Tests if the file represented by this <code>File</code> object is an
-     * absolute pathname. The definition of an absolute pathname is system 
-     * dependent. For example, on UNIX, a pathname is absolute if its 
-     * first character is the separator character. On Windows platforms, 
-     * a pathname is absolute if its first character is an ASCII '&#92;' or 
-     * '/', or if it begins with a letter followed by a colon. 
+     * Tests whether the file denoted by this abstract pathname is a normal
+     * file.  A file is <em>normal</em> if it is not a directory and, in
+     * addition, satisfies other system-dependent criteria.  Any non-directory
+     * file created by a Java application is guaranteed to be a normal file.
      *
-     * @return  <code>true</code> if the pathname indicated by the
-     *          <code>File</code> object is an absolute pathname;
-     *          <code>false</code> otherwise.
-     * @see     java.io.File#getPath()
-     * @see     java.io.File#separator
-     * @since   JDK1.0
+     * @return  <code>true</code> if and only if the file denoted by this
+     *          abstract pathname exists <em>and</em> is a normal file;
+     *          <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      */
-    public native boolean isAbsolute();
+    public boolean isFile() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkRead(path);
+	}
+	return ((fs.getBooleanAttributes(this) & FileSystem.BA_REGULAR) != 0);
+    }
 
     /**
-     * Returns the time that the file represented by this 
-     * <code>File</code> object was last modified. 
-     * <p>
-     * The return value is system dependent and should only be used to 
-     * compare with other values returned by last modified. It should not 
-     * be interpreted as an absolute time. 
+     * Tests whether the file named by this abstract pathname is a hidden
+     * file.  The exact definition of <em>hidden</em> is system-dependent.  On
+     * UNIX systems, a file is considered to be hidden if its name begins with
+     * a period character (<code>'.'</code>).  On Win32 systems, a file is
+     * considered to be hidden if it has been marked as such in the filesystem.
      *
-     * @return     the time the file specified by this object was last modified,
-     *             or <code>0L</code> if the specified file does not exist.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @return  <code>true</code> if and only if the file denoted by this
+     *          abstract pathname is hidden according to the conventions of the
+     *          underlying platform
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
+     *
+     * @since JDK1.2
+     */
+    public boolean isHidden() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkRead(path);
+	}
+	return ((fs.getBooleanAttributes(this) & FileSystem.BA_HIDDEN) != 0);
+    }
+
+    /**
+     * Returns the time that the file denoted by this abstract pathname was
+     * last modified.
+     *
+     * @return  A <code>long</code> value representing the time the file was
+     *          last modified, measured in milliseconds since the epoch
+     *          (00:00:00 GMT, January 1, 1970), or <code>0L</code> if the
+     *          file does not exist or if an I/O error occurs
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      */
     public long lastModified() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkRead(path);
 	}
-	return lastModified0();
+	return fs.getLastModifiedTime(this);
     }
 
     /**
-     * Returns the length of the file represented by this 
-     * <code>File</code> object. 
+     * Returns the length of the file denoted by this abstract pathname.
      *
-     * @return     the length, in bytes, of the file specified by this object,
-     *             or <code>0L</code> if the specified file does not exist.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @return  The length, in bytes, of the file denoted by this abstract
+     *          pathname, or <code>0L</code> if the file does not exist
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      */
     public long length() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkRead(path);
 	}
-	return length0();
+	return fs.getLength(this);
+    }
+
+
+    /* -- File operations -- */
+
+    /**
+     * Atomically creates a new, empty file named by this abstract pathname if
+     * and only if a file with this name does not yet exist.  The check for the
+     * existence of the file and the creation of the file if it does not exist
+     * are a single operation that is atomic with respect to all other
+     * filesystem activities that might affect the file.  This method, in
+     * combination with the <code>{@link #deleteOnExit}</code> method, can
+     * therefore serve as the basis for a simple but reliable cooperative
+     * file-locking protocol.
+     *
+     * @return  <code>true</code> if the named file does not exist and was
+     *          successfully created; <code>false</code> if the named file
+     *          already exists
+     *
+     * @throws  IOException
+     *          If an I/O error occurred
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method denies
+     *          write access to the file
+     *
+     * @since JDK1.2
+     */
+    public boolean createNewFile() throws IOException {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) security.checkWrite(path);
+	return fs.createFileExclusively(path);
     }
 
     /**
-     * Creates a directory whose pathname is specified by this 
-     * <code>File</code> object. 
+     * Deletes the file or directory denoted by this abstract pathname.  If
+     * this pathname denotes a directory, then the directory must be empty in
+     * order to be deleted.
      *
-     * @return     <code>true</code> if the directory could be created;
-     *             <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkWrite</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed write access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
-     * @since      JDK1.0
+     * @return  <code>true</code> if and only if the file or directory is
+     *          successfully deleted; <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkDelete}</code> method denies
+     *          delete access to the file
+     */
+    public boolean delete() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkDelete(path);
+	}
+	return fs.delete(this);
+    }
+
+    /**
+     * Requests that the file or directory denoted by this abstract pathname
+     * be deleted when the virtual machine terminates.  Deletion will be
+     * attempted only for normal termination of the virtual machine, as defined
+     * by the Java Language Specification (12.9).
+     *
+     * <p> Once deletion has been requested, it is not possible to cancel the
+     * request.  This method should therefore be used with care.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkDelete}</code> method denies
+     *          delete access to the file
+     *
+     * @see #delete
+     *
+     * @since JDK1.2
+     */
+    public void deleteOnExit() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkDelete(path);
+	}
+	fs.deleteOnExit(this);
+    }
+
+    /**
+     * Returns an array of strings naming the files and directories in the
+     * directory denoted by this abstract pathname.
+     *
+     * <p> If this abstract pathname does not denote a directory, then this
+     * method returns <code>null</code>.  Otherwise an array of strings is
+     * returned, one for each file or directory in the directory.  Names
+     * denoting the directory itself and the directory's parent directory are
+     * not included in the result.  Each string is a file name rather than a
+     * complete path.
+     *
+     * <p> There is no guarantee that the name strings in the resulting array
+     * will appear in any specific order; they are not, in particular,
+     * guaranteed to appear in alphabetical order.
+     *
+     * @return  An array of strings naming the files and directories in the
+     *          directory denoted by this abstract pathname.  The array will be
+     *          empty if the directory is empty.  Returns <code>null</code> if
+     *          this abstract pathname does not denote a directory, or if an
+     *          I/O error occurs.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the directory
+     */
+    public String[] list() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkRead(path);
+	}
+	return fs.list(this);
+    }
+
+    /**
+     * Returns an array of strings naming the files and directories in the
+     * directory denoted by this abstract pathname that satisfy the specified
+     * filter.  The behavior of this method is the same as that of the
+     * <code>{@link #list()}</code> method, except that the strings in the
+     * returned array must satisfy the filter.  If the given
+     * <code>filter</code> is <code>null</code> then all names are accepted.
+     * Otherwise, a name satisfies the filter if and only if the value
+     * <code>true</code> results when the <code>{@link
+     * FilenameFilter#accept}</code> method of the filter is invoked on this
+     * abstract pathname and the name of a file or directory in the directory
+     * that it denotes.
+     *
+     * @param  filter  A filename filter
+     *
+     * @return  An array of strings naming the files and directories in the
+     *          directory denoted by this abstract pathname that were accepted
+     *          by the given <code>filter</code>.  The array will be empty if
+     *          the directory is empty or if no names were accepted by the
+     *          filter.  Returns <code>null</code> if this abstract pathname
+     *          does not denote a directory, or if an I/O error occurs.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the directory
+     */
+    public String[] list(FilenameFilter filter) {
+	String names[] = list();
+	if ((names == null) || (filter == null)) {
+	    return names;
+	}
+	ArrayList v = new ArrayList();
+	for (int i = 0 ; i < names.length ; i++) {
+	    if (filter.accept(this, names[i])) {
+		v.add(names[i]);
+	    }
+	}
+	return (String[])(v.toArray(new String[0]));
+    }
+
+    /**
+     * Returns an array of abstract pathnames denoting the files in the
+     * directory denoted by this abstract pathname.
+     *
+     * <p> If this abstract pathname does not denote a directory, then this
+     * method returns <code>null</code>.  Otherwise an array of
+     * <code>File</code> objects is returned, one for each file or directory in
+     * the directory.  Pathnames denoting the directory itself and the
+     * directory's parent directory are not included in the result.  Each
+     * resulting abstract pathname is constructed from this abstract pathname
+     * using the <code>{@link #File(java.io.File, java.lang.String)
+     * File(File,&nbsp;String)}</code> constructor.  Therefore if this pathname
+     * is absolute then each resulting pathname is absolute; if this pathname
+     * is relative then each resulting pathname will be relative to the same
+     * directory.
+     *
+     * <p> There is no guarantee that the name strings in the resulting array
+     * will appear in any specific order; they are not, in particular,
+     * guaranteed to appear in alphabetical order.
+     *
+     * @return  An array of abstract pathnames denoting the files and
+     *          directories in the directory denoted by this abstract
+     *          pathname.  The array will be empty if the directory is
+     *          empty.  Returns <code>null</code> if this abstract pathname
+     *          does not denote a directory, or if an I/O error occurs.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the directory
+     *
+     * @since JDK1.2
+     */
+    public File[] listFiles() {
+	String[] ss = list();
+	if (ss == null) return null;
+	int n = ss.length;
+	File[] fs = new File[n];
+	for (int i = 0; i < n; i++) {
+	    fs[i] = new File(this.path, ss[i]);
+	}
+	return fs;
+    }
+
+    /**
+     * Returns an array of abstract pathnames denoting the files and
+     * directories in the directory denoted by this abstract pathname that
+     * satisfy the specified filter.  The behavior of this method is the
+     * same as that of the <code>{@link #listFiles()}</code> method, except
+     * that the pathnames in the returned array must satisfy the filter.
+     * If the given <code>filter</code> is <code>null</code> then all
+     * pathnames are accepted.  Otherwise, a pathname satisfies the filter
+     * if and only if the value <code>true</code> results when the
+     * <code>{@link FilenameFilter#accept}</code> method of the filter is
+     * invoked on this abstract pathname and the name of a file or
+     * directory in the directory that it denotes.
+     *
+     * @param  filter  A filename filter
+     *
+     * @return  An array of abstract pathnames denoting the files and
+     *          directories in the directory denoted by this abstract
+     *          pathname.  The array will be empty if the directory is
+     *          empty.  Returns <code>null</code> if this abstract pathname
+     *          does not denote a directory, or if an I/O error occurs.
+     *          
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the directory
+     *
+     * @since JDK1.2
+     */
+    public File[] listFiles(FilenameFilter filter) {
+	String ss[] = list();
+	if (ss == null) return null;
+	ArrayList v = new ArrayList();
+	for (int i = 0 ; i < ss.length ; i++) {
+	    if ((filter == null) || filter.accept(this, ss[i])) {
+		v.add(new File(this.path, ss[i]));
+	    }
+	}
+	return (File[])(v.toArray(new File[0]));
+    }
+
+    /**
+     * Returns an array of abstract pathnames denoting the files and
+     * directories in the directory denoted by this abstract pathname that
+     * satisfy the specified filter.  The behavior of this method is the
+     * same as that of the <code>{@link #listFiles()}</code> method, except
+     * that the pathnames in the returned array must satisfy the filter.
+     * If the given <code>filter</code> is <code>null</code> then all
+     * pathnames are accepted.  Otherwise, a pathname satisfies the filter
+     * if and only if the value <code>true</code> results when the
+     * <code>{@link FilenameFilter#accept}</code> method of the filter is
+     * invoked on the pathname.
+     *
+     * @param  filter  A filename filter
+     *
+     * @return  An array of abstract pathnames denoting the files and
+     *          directories in the directory denoted by this abstract
+     *          pathname.  The array will be empty if the directory is
+     *          empty.  Returns <code>null</code> if this abstract pathname
+     *          does not denote a directory, or if an I/O error occurs.
+     *          
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the directory
+     *
+     * @since JDK1.2
+     */
+    public File[] listFiles(FileFilter filter) {
+	String ss[] = list();
+	if (ss == null) return null;
+	ArrayList v = new ArrayList();
+	for (int i = 0 ; i < ss.length ; i++) {
+	    File f = new File(this.path, ss[i]);
+	    if ((filter == null) || filter.accept(f)) {
+		v.add(f);
+	    }
+	}
+	return (File[])(v.toArray(new File[0]));
+    }
+
+    /**
+     * Creates the directory named by this abstract pathname.
+     *
+     * @return  <code>true</code> if and only if the directory was
+     *          created; <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method does not
+     *          permit the named directory to be created
      */
     public boolean mkdir() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkWrite(path);
 	}
-	return mkdir0();
+	return fs.createDirectory(this);
     }
 
     /**
-     * Renames the file specified by this <code>File</code> object to 
-     * have the pathname given by the <code>File</code> argument. 
+     * Creates the directory named by this abstract pathname, including any
+     * necessary but nonexistent parent directories.  Note that if this
+     * operation fails it may have succeeded in creating some of the necessary
+     * parent directories.
      *
-     * @param      dest   the new filename.
-     * @return     <code>true</code> if the renaming succeeds;
-     *             <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkWrite</code> method is called both with the
-     *               pathname of this file object and with the pathname of the
-     *               destination target object to see if the application is
-     *               allowed to write to both files.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
-     * @since      JDK1.0
+     * @return  <code>true</code> if and only if the directory was created,
+     *          along with all necessary parent directories; <code>false</code>
+     *          otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method does not
+     *          permit the named directory and all necessary parent directories
+     *          and to be created
+     */
+    public boolean mkdirs() {
+	if (exists()) {
+	    return false;
+	}
+	if (mkdir()) {
+ 	    return true;
+ 	}
+	String parent = getParent();
+	return (parent != null) && (new File(parent).mkdirs() && mkdir());
+    }
+
+    /**
+     * Renames the file denoted by this abstract pathname.
+     *
+     * @param  dest  The new abstract pathname for the named file
+     * 
+     * @return  <code>true</code> if and only if the renaming succeeded;
+     *          <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method denies
+     *          write access to both the old and new pathnames
      */
     public boolean renameTo(File dest) {
 	SecurityManager security = System.getSecurityManager();
@@ -489,159 +1003,375 @@ class File implements java.io.Serializable {
 	    security.checkWrite(path);
 	    security.checkWrite(dest.path);
 	}
-	return renameTo0(dest);
+	return fs.rename(this, dest);
     }
 
     /**
-     * Creates a directory whose pathname is specified by this 
-     * <code>File</code> object, including any necessary parent directories.
+     * Sets the last-modified time of the file or directory named by this
+     * abstract pathname.
      *
-     * @return     <code>true</code> if the directory (or directories) could be
-     *             created; <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkWrite</code> method is called with the pathname
-     *               of each of the directories that is to be created, before
-     *               any of the directories are created.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
-     * @since      JDK1.0
-     */
-    public boolean mkdirs() {
-	if(exists()) {
-	    return false;
-	}
-	if (mkdir()) {
- 	    return true;
- 	}
-
-	String parent = getParent();
-	return (parent != null) && (new File(parent).mkdirs() && mkdir());
-    }
-
-    /**
-     * Returns a list of the files in the directory specified by this
-     * <code>File</code> object. 
+     * <p> All platforms support file-modification times to the nearest second,
+     * but some provide more precision.  The argument will be truncated to fit
+     * the supported precision.  If the operation succeeds and no intervening
+     * operations on the file take place, then the next invocation of the
+     * <code>{@link #lastModified}</code> method will return the (possibly
+     * truncated) <code>time</code> argument that was passed to this method.
      *
-     * @return     an array of file names in the specified directory.
-     *             This list does not include the current directory or the
-     *             parent directory ("<code>.</code>" and "<code>..</code>"
-     *             on Unix systems).
-     * @exception  SecurityException  If a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @param  time  The new last-modified time, measured in milliseconds since
+     *               the epoch (00:00:00 GMT, January 1, 1970)
+     *
+     * @returns <code>true</code> if and only if the operation succeeded;
+     *          <code>false</code> otherwise
+     *
+     * @throws  IllegalArgumentException  If the argument is negative
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method denies
+     *          write access to the named file
+     *
+     * @since JDK1.2
      */
-    public String[] list() {
+    public boolean setLastModified(long time) {
+	if (time < 0) throw new IllegalArgumentException("Negative time");
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
-	    security.checkRead(path);
+	    security.checkWrite(path);
 	}
-	return list0();
+	return fs.setLastModifiedTime(this, time);
     }
 
     /**
-     * Returns a list of the files in the directory specified by this 
-     * <code>File</code> that satisfy the specified filter. 
+     * Marks the file or directory named by this abstract pathname so that
+     * only read operations are allowed.  After invoking this method the file
+     * or directory is guaranteed not to change until it is either deleted or
+     * marked to allow write access.  Whether or not a read-only file or
+     * directory may be deleted depends upon the underlying system.
      *
-     * @param      filter   a filename filter.
-     * @return     an array of file names in the specified directory.
-     *             This list does not include the current directory or the
-     *             parent directory ("<code>.</code>" and "<code>..</code>"
-     *             on Unix systems).
-     * @exception  SecurityException  If a security manager exists, its
-     *               <code>checkRead</code> method is called with the pathname
-     *               of this <code>File</code> to see if the application is
-     *               allowed read access to the file.
-     * @see        java.io.File#getPath()
-     * @see        java.io.FilenameFilter
-     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
-     * @since      JDK1.0
+     * @returns <code>true</code> if and only if the operation succeeded;
+     *          <code>false</code> otherwise
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method denies
+     *          write access to the named file
+     *
+     * @since JDK1.2
      */
-    public String[] list(FilenameFilter filter) {
-	String names[] = list();
-
-	if (names == null) {
-	    return null;
+    public boolean setReadOnly() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkWrite(path);
 	}
+	return fs.setReadOnly(this);
+    }
 
-	// Fill in the Vector
-	Vector v = new Vector();
-	for (int i = 0 ; i < names.length ; i++) {
-	    if ((filter == null) || filter.accept(this, names[i])) {
-		v.addElement(names[i]);
+
+    /* -- Filesystem interface -- */
+
+    /**
+     * List the available filesystem roots.
+     *
+     * <p> A particular Java platform may support zero or more
+     * hierarchically-organized file systems.  Each file system has a
+     * <code>root</code> directory from which all other files in that file
+     * system can be reached.  Windows platforms, for example, have a root
+     * directory for each active drive; UNIX platforms have a single root
+     * directory, namely <code>"/"</code>.  The set of available filesystem
+     * roots is affected by various system-level operations such the insertion
+     * or ejection of removable media and the disconnecting or unmounting of
+     * physical or virtual disk drives.
+     *
+     * <p> This method returns an array of <code>File</code> objects that
+     * denote the root directories of the available filesystem roots.  It is
+     * guaranteed that the canonical pathname of any file physically present on
+     * the local machine will begin with one of the roots returned by this
+     * method.
+     *
+     * <p> The canonical pathname of a file that resides on some other machine
+     * and is accessed via a remote-filesystem protocol such as SMB or NFS may
+     * or may not begin with one of the roots returned by this method.  If the
+     * pathname of a remote file is syntactically indistinguishable from the
+     * pathname of a local file then it will begin with one of the roots
+     * returned by this method.  Thus, for example, <code>File</code> objects
+     * denoting the root directories of the mapped network drives of a Windows
+     * platform will be returned by this method, while <code>File</code>
+     * objects containing UNC pathnames will not be returned by this method.
+     *
+     * <p> Unlike most methods in this class, this method does not throw
+     * security exceptions.  If a security manager exists and its <code>{@link
+     * java.lang.SecurityManager#checkRead}</code> method denies read access to
+     * a particular root directory, then that directory will not appear in the
+     * result.
+     *
+     * @return  An array of <code>File</code> objects denoting the available
+     *          filesystem roots, or <code>null</code> if the set of roots
+     *          could not be determined.  The array will be empty if there are
+     *          no filesystem roots.
+     *
+     * @since JDK1.2
+     */
+    public static File[] listRoots() {
+	return fs.listRoots();
+    }
+
+
+    /* -- Temporary files -- */
+
+    private static final Object tmpFileLock = new Object();
+
+    private static int counter = -1; /* Protected by tmpFileLock */
+
+    private static File generateFile(String prefix, String suffix, File dir)
+	throws IOException
+    {
+	if (counter == -1) {
+	    counter = new Random().nextInt() & 0xffff;
+	}
+	counter++;
+	return new File(dir, prefix + Integer.toString(counter) + suffix);
+    }
+
+    private static String tmpdir; /* Protected by tmpFileLock */
+
+    private static String getTempDir() {
+	if (tmpdir == null) {
+	    GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
+	    tmpdir = ((String) AccessController.doPrivileged(a));
+	}
+	return tmpdir;
+    }
+
+    private static boolean checkAndCreate(String filename, SecurityManager sm)
+	throws IOException
+    {
+	if (sm != null) {
+	    try {
+		sm.checkWrite(filename);
+	    } catch (AccessControlException x) {
+		/* Throwing the original AccessControlException could disclose
+		   the location of the default temporary directory, so we
+		   re-throw a more innocuous SecurityException */
+		throw new SecurityException("Unable to create temporary file");
 	    }
 	}
-
-	// Create the array
-	String files[] = new String[v.size()];
-	v.copyInto(files);
-
-	return files;
+	return fs.createFileExclusively(filename);
     }
 
     /**
-     * Deletes the file specified by this object.  If the target
-     * file to be deleted is a directory, it must be empty for deletion
-     * to succeed.
+     * <p> Creates a new empty file in the specified directory, using the
+     * given prefix and suffix strings to generate its name.  If this method
+     * returns successfully then it is guaranteed that:
      *
-     * @return     <code>true</code> if the file is successfully deleted;
-     *             <code>false</code> otherwise.
-     * @exception  SecurityException  if a security manager exists, its
-     *               <code>checkDelete</code> method is called with the
-     *               pathname of this <code>File</code> to see if the
-     *               application is allowed to delete the file.
-     * @see        java.io.File#getPath()
-     * @see        java.lang.SecurityManager#checkDelete(java.lang.String)
-     * @since      JDK1.0
+     * <ol>
+     * <li> The file denoted by the returned abstract pathname did not exist
+     *      before this method was invoked, and
+     * <li> Neither this method nor any of its variants will return the same
+     *      abstract pathname again in the current invocation of the virtual
+     *      machine.
+     * </ol>
+     *
+     * This method provides only part of a temporary-file facility.  To arrange
+     * for a file created by this method to be deleted automatically, use the
+     * <code>{@link #deleteOnExit}</code> method.
+     *
+     * <p> The <code>prefix</code> argument must be at least three characters
+     * long.  It is recommended that the prefix be a short, meaningful string
+     * such as <code>"hjb"</code> or <code>"mail"</code>.  The
+     * <code>suffix</code> argument may be <code>null</code>, in which case the
+     * suffix <code>".tmp"</code> will be used.
+     *
+     * <p> To create the new file, the prefix and the suffix may first be
+     * adjusted to fit the limitations of the underlying platform.  If the
+     * prefix is too long then it will be truncated, but its first three
+     * characters will always be preserved.  If the suffix is too long then it
+     * too will be truncated, but if it begins with a period character
+     * (<code>'.'</code>) then the period and the first three characters
+     * following it will always be preserved.  Once these adjustments have been
+     * made the name of the new file will be generated by concatenating the
+     * prefix, five or more internally-generated characters, and the suffix.
+     *
+     * <p> If the <code>directory</code> argument is <code>null</code> then the
+     * system-dependent default temporary-file directory will be used.  The
+     * default temporary-file directory is specified by the system property
+     * <code>java.io.tmpdir</code>.  On UNIX systems the default value of this
+     * property is typically <code>"/tmp"</code> or <code>"/var/tmp"</code>; on
+     * Win32 systems it is typically <code>"c:\\temp"</code>.
+     *
+     * @param  prefix     The prefix string to be used in generating the file's
+     *                    name; must be at least three characters long
+     *
+     * @param  suffix     The suffix string to be used in generating the file's
+     *                    name; may be <code>null</code>, in which case the
+     *                    suffix <code>".tmp"</code> will be used
+     *
+     * @param  directory  The directory in which the file is to be created, or
+     *                    <code>null</code> if the default temporary-file
+     *                    directory is to be used
+     *
+     * @return  An abstract pathname denoting a newly-created empty file
+     *
+     * @throws  IllegalArgumentException
+     *          If the <code>prefix</code> argument contains fewer than three
+     *          characters
+     *
+     * @throws  IOException  If a file could not be created
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method does not
+     *          allow a file to be created
+     *
+     * @since JDK1.2
      */
-    public boolean delete() {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkDelete(path);
+    public static File createTempFile(String prefix, String suffix,
+				      File directory)
+        throws IOException
+    {
+	if (prefix == null) throw new NullPointerException();
+	if (prefix.length() < 3)
+	    throw new IllegalArgumentException("Prefix string too short");
+	String s = (suffix == null) ? ".tmp" : suffix;
+	synchronized (tmpFileLock) {
+	    if (directory == null) {
+		directory = new File(getTempDir());
+	    }
+	    SecurityManager sm = System.getSecurityManager();
+	    File f;
+	    do {
+		f = generateFile(prefix, s, directory);
+	    } while (!checkAndCreate(f.getPath(), sm));
+	    return f;
 	}
-	if(isDirectory())
-	    return rmdir0();
-	else
-	    return delete0();
     }
 
     /**
-     * Computes a hashcode for the file.
+     * Creates an empty file in the default temporary-file directory, using
+     * the given prefix and suffix to generate its name.  Invoking this method
+     * is equivalent to invoking <code>{@link #createTempFile(java.lang.String,
+     * java.lang.String, java.io.File)
+     * createTempFile(prefix,&nbsp;suffix,&nbsp;null)}</code>.
      *
-     * @return  a hash code value for this <code>File</code> object.
-     * @since   JDK1.0
+     * @param  prefix     The prefix string to be used in generating the file's
+     *                    name; must be at least three characters long
+     *
+     * @param  suffix     The suffix string to be used in generating the file's
+     *                    name; may be <code>null</code>, in which case the
+     *                    suffix <code>".tmp"</code> will be used
+     *
+     * @return  An abstract pathname denoting a newly-created empty file
+     *
+     * @throws  IllegalArgumentException
+     *          If the <code>prefix</code> argument contains fewer than three
+     *          characters
+     *
+     * @throws  IOException  If a file could not be created
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite}</code> method does not
+     *          allow a file to be created
+     *
+     * @since JDK1.2
      */
-    public int hashCode() {
-	return path.hashCode() ^ 1234321;
+    public static File createTempFile(String prefix, String suffix)
+	throws IOException
+    {
+	return createTempFile(prefix, suffix, null);
+    }
+
+
+    /* -- Basic infrastructure -- */
+
+    /**
+     * Compares two abstract pathnames lexicographically.  The ordering
+     * defined by this method depends upon the underlying system.  On UNIX
+     * systems, alphabetic case is significant in comparing pathnames; on Win32
+     * systems it is not.
+     *
+     * @param   pathname  The abstract pathname to be compared to this abstract
+     *                    pathname
+     * 
+     * @return  Zero if the argument is equal to this abstract pathname, a
+     *		value less than zero if this abstract pathname is
+     *		lexicographically less than the argument, or a value greater
+     *		than zero if this abstract pathname is lexicographically
+     *		greater than the argument
+     *
+     * @since   JDK1.2
+     */
+    public int compareTo(File pathname) {
+	return fs.compare(this, pathname);
     }
 
     /**
-     * Compares this object against the specified object.
-     * Returns <code>true</code> if and only if the argument is 
-     * not <code>null</code> and is a <code>File</code> object whose 
-     * pathname is equal to the pathname of this object. 
+     * Compares this abstract pathname to another object.  If the other object
+     * is an abstract pathname, then this function behaves like <code>{@link
+     * #compareTo(File)}</code>.  Otherwise, it throws a
+     * <code>ClassCastException</code>, since abstract pathnames can only be
+     * compared to abstract pathnames.
      *
-     * @param   obj   the object to compare with.
-     * @return  <code>true</code> if the objects are the same;
-     *          <code>false</code> otherwise.
-     * @since   JDK1.0
+     * @param   o  The <code>Object</code> to be compared to this abstract
+     *             pathname
+     *
+     * @return  If the argument is an abstract pathname, returns zero
+     *          if the argument is equal to this abstract pathname, a value
+     *          less than zero if this abstract pathname is lexicographically
+     *          less than the argument, or a value greater than zero if this
+     *          abstract pathname is lexicographically greater than the
+     *          argument
+     *
+     * @throws  <code>ClassCastException</code> if the argument is not an
+     *		abstract pathname
+     *
+     * @see     java.lang.Comparable
+     * @since   JDK1.2
+     */
+    public int compareTo(Object o) {
+	return compareTo((File)o);
+    }
+
+    /**
+     * Tests this abstract pathname for equality with the given object.
+     * Returns <code>true</code> if and only if the argument is not
+     * <code>null</code> and is an abstract pathname that denotes the same file
+     * or directory as this abstract pathname.  Whether or not two abstract
+     * pathnames are equal depends upon the underlying system.  On UNIX
+     * systems, alphabetic case is significant in comparing pathnames; on Win32
+     * systems it is not.
+     *
+     * @param   obj   The object to be compared with this abstract pathname
+     *
+     * @return  <code>true</code> if and only if the objects are the same;
+     *          <code>false</code> otherwise
      */
     public boolean equals(Object obj) {
 	if ((obj != null) && (obj instanceof File)) {
-	    return path.equals(((File)obj).path);
+	    return compareTo((File)obj) == 0;
 	}
 	return false;
     }
 
     /**
-     * Returns a string representation of this object. 
+     * Computes a hash code for this abstract pathname.  Because equality of
+     * abstract pathnames is inherently system-dependent, so is the computation
+     * of their hash codes.  On UNIX systems, the hash code of an abstract
+     * pathname is equal to the exclusive <em>or</em> of its pathname string
+     * and the decimal value <code>1234321</code>.  On Win32 systems, the hash
+     * code is equal to the exclusive <em>or</em> of its pathname string,
+     * convered to lower case, and the decimal value <code>1234321</code>.
      *
-     * @return  a string giving the pathname of this object. 
-     * @see     java.io.File#getPath()
-     * @since   JDK1.0
+     * @return  A hash code for this abstract pathname
+     */
+    public int hashCode() {
+	return fs.hashCode(this);
+    }
+
+    /**
+     * Returns the pathname string of this abstract pathname.  This is just the
+     * string returned by the <code>{@link #getPath}</code> method.
+     *
+     * @return  The string form of this abstract pathname
      */
     public String toString() {
 	return getPath();
@@ -656,14 +1386,14 @@ class File implements java.io.Serializable {
         throws IOException
     {
 	s.defaultWriteObject();
-	s.writeChar(separatorChar); // Add the separator character
+	s.writeChar(this.separatorChar); // Add the separator character
     }
 
     /**
      * readObject is called to restore this filename.
      * The original separator character is read.  If it is different
-     * than the separator character on this system. The old seperator
-     * is replaced by the current separator.
+     * than the separator character on this system, then the old seperator
+     * is replaced by the local separator.
      */
     private synchronized void readObject(java.io.ObjectInputStream s)
          throws IOException, ClassNotFoundException
@@ -671,9 +1401,12 @@ class File implements java.io.Serializable {
 	s.defaultReadObject();
 	char sep = s.readChar(); // read the previous seperator char
 	if (sep != separatorChar)
-	    path = path.replace(sep, separatorChar);
+	    this.path = this.path.replace(sep, separatorChar);
+	this.path = fs.normalize(this.path);
+	this.prefixLength = fs.prefixLength(this.path);
     }
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 301077366599181567L;
+
 }

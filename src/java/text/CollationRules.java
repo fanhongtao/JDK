@@ -1,10 +1,10 @@
 /*
- * @(#)CollationRules.java	1.17 01/12/10
+ * @(#)CollationRules.java	1.19 98/07/23
  *
  * (C) Copyright Taligent, Inc. 1996,1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -36,11 +36,11 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.17 12/10/01
+ * @version            1.19 07/23/98
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {
-    static String DEFAULTRULES = new String(
+    final static String DEFAULTRULES = new String(
         "" // no FRENCH accent order by default, add in French Delta
         // IGNORABLES (up to first < character)
         // COMPLETELY IGNORE format characters
@@ -188,10 +188,22 @@ final class CollationRules {
         + "<\u00ae"          // registered trademark symbol
         + "<'\u0040'"          // at sign
         + "<\u00a4"          // international currency symbol
+        + "<\u0e3f"          // baht sign
         + "<\u00a2"          // cent sign
+        + "<\u20a1"          // colon sign
+        + "<\u20a2"          // cruzeiro sign
         + "<'\u0024'"        // dollar sign
+        + "<\u20ab"          // dong sign
         + "<\u20ac"          // euro sign
+        + "<\u20a3"          // franc sign
+        + "<\u20a4"          // lira sign
+        + "<\u20a5"          // mill sign
+        + "<\u20a6"          // naira sign
+        + "<\u20a7"          // peseta sign        
         + "<\u00a3"          // pound-sterling sign
+        + "<\u20a8"          // rupee sign
+        + "<\u20aa"          // new shekel sign
+        + "<\u20a9"          // won sign
         + "<\u00a5"          // yen sign
         + "<'\u002a'"        // asterisk
         + "<'\\'"            // backslash

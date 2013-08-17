@@ -1,8 +1,15 @@
 /*
- * @(#)LogStream.java	1.9 01/12/10
+ * @(#)LogStream.java	1.11 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.rmi.server;
 
@@ -10,10 +17,13 @@ import java.io.*;
 import java.util.*;
 
 /**
- * <code>LogStream</code> presents a mechanism for logging errors that are
- * of possible interest to those monitoring the system.
+ * <code>LogStream</code> provides a mechanism for logging errors that are
+ * of possible interest to those monitoring a system.  
  *
- * @author Ann Wollrath (lots of code stolen from Ken Arnold)
+ * @version 1.11, 09/21/98
+ * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
+ * @since   JDK1.1
+ * @deprecated no replacement
  */
 public class LogStream extends PrintStream {
 
@@ -43,6 +53,8 @@ public class LogStream extends PrintStream {
      * method.
      * @param name string identifying messages from this log
      * @out output stream that log messages will be sent to
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     private LogStream(String name, OutputStream out)
     {
@@ -57,6 +69,8 @@ public class LogStream extends PrintStream {
      * Return the LogStream identified by the given name.  If
      * a log corresponding to "name" does not exist, a log using
      * the default stream is created.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public static LogStream log(String name) {
 	LogStream stream;
@@ -72,6 +86,8 @@ public class LogStream extends PrintStream {
 
     /**
      * Return the current default stream for new logs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public static synchronized PrintStream getDefaultStream() {
 	return defaultStream;
@@ -79,6 +95,8 @@ public class LogStream extends PrintStream {
 
     /**
      * Set the default stream for new logs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public static synchronized void setDefaultStream(PrintStream newDefault) {
 	defaultStream = newDefault;
@@ -86,6 +104,8 @@ public class LogStream extends PrintStream {
 
     /**
      * Return the current stream to which output from this log is sent.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public synchronized OutputStream getOutputStream()
     {
@@ -94,6 +114,8 @@ public class LogStream extends PrintStream {
     
     /**
      * Set the stream to which output from this log is sent.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public synchronized void setOutputStream(OutputStream out)
     {
@@ -108,6 +130,8 @@ public class LogStream extends PrintStream {
      * the byte is appended to the internal buffer.  If it is a newline,
      * then the currently buffered line is sent to the log's output
      * stream, prefixed with the appropriate logging information.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public void write(int b)
     {
@@ -149,6 +173,8 @@ public class LogStream extends PrintStream {
 
     /**
      * Write a subarray of bytes.  Pass each through write byte method.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public void write(byte b[], int off, int len)
     {
@@ -160,20 +186,26 @@ public class LogStream extends PrintStream {
 
     /**
      * Return log name as string representation
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public String toString()
     {
 	return name;
     }
 
-    /** constants for logging levels */
+    /** log level constant (no logging) */
     public static final int SILENT  = 0;
+    /** log level constant (brief logging) */
     public static final int BRIEF   = 10;
+    /** log level constant (verbose logging) */
     public static final int VERBOSE = 20;
 
     /**
      * Convert a string name of a logging level to its internal
      * integer representation.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     public static int parseLevel(String s)
     {

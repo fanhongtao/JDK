@@ -1,10 +1,10 @@
 /*
- * @(#)CollationElementIterator.java	1.17 01/12/10
+ * @(#)CollationElementIterator.java	1.24 98/07/27
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -86,7 +86,7 @@ import java.util.Vector;
  *
  * @see                Collator
  * @see                RuleBasedCollator
- * @version            1.17 12/10/01
+ * @version            1.24 07/27/98
  * @author             Helena Shih
  */
 public final class CollationElementIterator
@@ -96,6 +96,7 @@ public final class CollationElementIterator
      * cursor.
      */
     public final static int NULLORDER = 0xffffffff;
+
     /**
      * CollationElementIterator constructor.  This takes the source string and
      * the collation object.  The cursor will walk thru the source string based
@@ -107,10 +108,21 @@ public final class CollationElementIterator
     CollationElementIterator(String sourceText, RuleBasedCollator order) {
         ordering = order;
         if ( sourceText.length() != 0 ) {
-            text = new DecompositionIterator(sourceText, 0,
-                                             sourceText.length(),
-                                             order.getDecomposition());
+            text = new Normalizer(sourceText, order.getDecomposition());
         }
+    }
+
+    /**
+     * CollationElementIterator constructor.  This takes the source string and
+     * the collation object.  The cursor will walk thru the source string based
+     * on the predefined collation rules.  If the source string is empty,
+     * NULLORDER will be returned on the calls to next().
+     * @param sourceText the source string.
+     * @param order the collation object.
+     */
+    CollationElementIterator(CharacterIterator sourceText, RuleBasedCollator order) {
+        ordering = order;
+        text = new Normalizer(sourceText, order.getDecomposition());
     }
     /**
      * Resets the cursor to the beginning of the string.
@@ -133,18 +145,16 @@ public final class CollationElementIterator
      */
     public int next()
     {
-        if (text == null)
+        if (text == null) {
             return NULLORDER;
-        if (text.getDecomposition() != ordering.getDecomposition())
+        } else if (text.getDecomposition() != ordering.getDecomposition()) {
             text.setDecomposition(ordering.getDecomposition());
-        if (buffer != null)
-        {
-            if (expIndex < buffer.length)
-            {
+        }    
+
+        if (buffer != null) {
+            if (expIndex < buffer.length) {
                 return strengthOrder(buffer[expIndex++]);
-            }
-            else
-            {
+            } else {
                 buffer = null;
                 expIndex = 0;
             }
@@ -153,34 +163,74 @@ public final class CollationElementIterator
             swapOrder = 0;
             return order;
         }
+
         char ch = text.next();
-        if (ch == DecompositionIterator.NULLORDER) {
+        if (ch == Normalizer.DONE) {
             return NULLORDER;
         }
 
         int value = ordering.getUnicodeOrder(ch);
-        if (value == RuleBasedCollator.UNMAPPED)
-        {
+        if (value == RuleBasedCollator.UNMAPPED) {
             swapOrder = ch;
             return UNMAPPEDCHARVALUE;
         }
-        else if (value < RuleBasedCollator.CHARINDEX)
-        {
-            return strengthOrder(value);
+        else if (value >= RuleBasedCollator.CONTRACTCHARINDEX) {
+            value = nextContractChar(ch);
         }
-        // contract characters
-        else if (value >= RuleBasedCollator.CONTRACTCHARINDEX)
-        {
-            return strengthOrder(nextContractChar(ch));
-        }
-        else if (value >= RuleBasedCollator.EXPANDCHARINDEX)
-        {
-            buffer = ordering.getExpandValueList(ch);
+        if (value >= RuleBasedCollator.EXPANDCHARINDEX) {
+            buffer = ordering.getExpandValueList(value);
             expIndex = 0;
-            return strengthOrder(buffer[expIndex++]);
+            value = buffer[expIndex++];
         }
-        return NULLORDER;
+        return strengthOrder(value);
     }
+
+    /**
+      * Get the ordering priority of the previous collation element in the string.
+      * @return the previous element's ordering.  Returns NULLORDER if
+      * the beginning of string is reached.
+      */
+    public int previous()
+    {
+        if (text == null) {
+            return NULLORDER;
+        } else if (text.getDecomposition() != ordering.getDecomposition()) {
+            text.setDecomposition(ordering.getDecomposition());
+        }    
+
+        if (buffer != null) {
+            if (expIndex > 0) {
+                return strengthOrder(buffer[--expIndex]);
+            } else {
+                buffer = null;
+                expIndex = 0;
+            }
+        } else if (swapOrder != 0) {
+              int order = swapOrder << 16;
+            swapOrder = 0;
+            return order;
+        }
+        char ch = text.previous();
+        if (ch == Normalizer.DONE) {
+            return NULLORDER;
+        }
+
+        int value = ordering.getUnicodeOrder(ch);
+
+        if (value == RuleBasedCollator.UNMAPPED) {
+            swapOrder = UNMAPPEDCHARVALUE;
+            return ch;
+        } else if (value >= RuleBasedCollator.CONTRACTCHARINDEX) {
+            value = prevContractChar(ch);
+        }
+        if (value >= RuleBasedCollator.EXPANDCHARINDEX) {
+            buffer = ordering.getExpandValueList(value);
+            expIndex = buffer.length;
+            value = buffer[--expIndex];
+        }
+        return strengthOrder(value);
+    }
+
     /**
      * Get the primary order of a collation order.
      * @param order the collation order
@@ -210,17 +260,6 @@ public final class CollationElementIterator
     {
         return ((short)(order &= RuleBasedCollator.TERTIARYORDERMASK));
     }
-    // ============================================================
-    // package private (These need to be made public for searching)
-    // ============================================================
-    /**
-     *  Check if a comparison order is ignorable.
-     *  @return true if a character is ignorable, false otherwise.
-     */
-    final static boolean isIgnorable(int order)
-    {
-        return ((primaryOrder(order) == 0) ? true : false);
-    }
 
     /**
      *  Get the comparison order in the desired strength.  Ignore the other
@@ -241,35 +280,79 @@ public final class CollationElementIterator
     }
 
     /**
-     *  Set the current offset of the character in the processed source string.
-     *  @param newOffset The new offset of the accessed character
-     */
-    final void setOffset(int newOffset)
+      * Sets the position within the source text.
+      *
+      * @param newOffset The new offset relative to the start of the text.
+      */
+    public void setOffset(int newOffset)
     {
         if (text != null)
             text.setOffset(newOffset);
+        buffer = null;
+        expIndex = 0;
+        swapOrder = 0;
     }
 
     /**
-     *  Get the current offset of the character in the processed source string.
-     *  @return The offset of the accessed character
-     */
-    final int getOffset()
+      * Gets the offset of the current character in the  the source text.
+      * That is, the next call to next() will return the Collation element
+      * for this character (possibly including more than one character,
+      * if required by the language).
+      *
+      * @return the returned ofset.
+      */
+    public int getOffset()
     {
-        if (text != null)
-            return text.getOffset();
-        return 0;
+        return (text != null) ? text.getOffset() : 0;
     }
+
+
     /**
-     * Set the iterator string.
-     * @param source the new string.
+      * Return the maximum length of any expansion sequences that end
+      * with the specified comparison order.
+      * @param order a collation order returned by previous or next.
+      * @return the maximum length of any expansion sequences ending
+      *         with the specified order.
+      */
+    public int getMaxExpansion(int order)
+    {
+        return ordering.getMaxExpansion(order);
+    }
+
+    //============================================================
+    // Package-visible methods that should eventually be made public
+    //============================================================
+
+    /**
+     * Set a new string over which to iterate.
+     *
+     * @param str the new source text.
      */
-    void setText(String source)
+    public void setText(String source)
     {
         buffer = null;
         swapOrder = 0;
+        expIndex = 0;
         if (text == null) {
-            text = new DecompositionIterator(source, ordering.getDecomposition());
+            text = new Normalizer(source, ordering.getDecomposition());
+        } else {
+            text.setDecomposition(ordering.getDecomposition());
+            text.setText(source);
+        }
+    }   
+
+    /**
+     * Set a new string over which to iterate.
+     *
+     * @param str the new source text.
+     */
+    public void setText(CharacterIterator source)
+    {
+        buffer = null;
+        swapOrder = 0;
+        expIndex = 0;
+        if (text == null) {
+            text = new Normalizer(source, ordering.getDecomposition());
         } else {
             text.setDecomposition(ordering.getDecomposition());
             text.setText(source);
@@ -279,14 +362,14 @@ public final class CollationElementIterator
     //============================================================
     // privates
     //============================================================
-    private int getEntry(Vector list, String name) {
-        for (int i = 0; i < list.size(); i++) {
-            EntryPair pair = (EntryPair)list.elementAt(i);
-            if (pair.entryName.equals(name)) {
-                return i;
-            }
-        }
-        return RuleBasedCollator.UNMAPPED;
+
+    /**
+     *  Check if a comparison order is ignorable.
+     *  @return true if a character is ignorable, false otherwise.
+     */
+    final static boolean isIgnorable(int order)
+    {
+        return ((primaryOrder(order) == 0) ? true : false);
     }
 
     /**
@@ -298,41 +381,67 @@ public final class CollationElementIterator
      */
     private int nextContractChar(char ch)
     {
-        EntryPair pair = null;
+        // First get the ordering of this single character
         Vector list = ordering.getContractValues(ch);
-        int intValue = 0;
+        EntryPair pair = (EntryPair)list.firstElement();
+        int order = pair.value;
+
+        // Now iterate through the chars following it and
+        // look for the longest match
         key.setLength(0);
         key.append(ch);
-        int n = 0;
-        if ((n = getEntry(list, key.toString())) != RuleBasedCollator.UNMAPPED) {
-            pair = (EntryPair)list.elementAt(n);
-            intValue = pair.value;
-        }
-        while((ch = text.next()) != DecompositionIterator.NULLORDER)
-        {
+
+        while ((ch = text.next()) != Normalizer.DONE) {
             key.append(ch);
-            if ((n = getEntry(list, key.toString())) ==
-                     RuleBasedCollator.UNMAPPED) {
+            int n = RuleBasedCollator.getEntry(list, key.toString(), true);
+            if (n == RuleBasedCollator.UNMAPPED) {
                 ch = text.previous();
                 break;
             }
             pair = (EntryPair)list.elementAt(n);
-            intValue = pair.value;
+            order = pair.value;
         }
-        // if contracting char is also an expanding char
-        if ((intValue  - RuleBasedCollator.EXPANDCHARINDEX) >= 0)
-        {
-            buffer = ordering.getExpandValueList
-                     (intValue - RuleBasedCollator.EXPANDCHARINDEX);
-            expIndex = 0;
-            intValue = buffer[expIndex++];
+        return order;
+    }
+
+    /**
+     * Get the ordering priority of the previous contracting character in the
+     * string.
+     * @param ch the starting character of a contracting character token
+     * @return the next contracting character's ordering.  Returns NULLORDER
+     * if the end of string is reached.
+     */
+    private int prevContractChar(char ch)
+    {
+        // First get the ordering of this single character
+        Vector list = ordering.getContractValues(ch);
+        EntryPair pair = (EntryPair)list.firstElement();
+        int order = pair.value;
+
+        // Now iterate through the chars following it and
+        // look for the longest match
+        key.setLength(0);
+        key.append(ch);
+
+        while ((ch = text.previous()) != Normalizer.DONE) {
+            //System.out.println("prevContract: '" + key + "' --> " + 
+            //                    Integer.toHexString(order) );
+            key.append(ch);
+            int n = RuleBasedCollator.getEntry(list, key.toString(), false);
+            if (n == RuleBasedCollator.UNMAPPED) {
+                //System.out.println("  putting '" + ch + "' back");
+                ch = text.next();
+                break;
+            }
+            pair = (EntryPair)list.elementAt(n);
+            order = pair.value;
         }
-        return intValue;
+        return order;
     }
 
     final static int UNMAPPEDCHARVALUE = 0x7FFF0000;
 
-    private DecompositionIterator text = null;
+    private Normalizer text = null;
     private int[] buffer = null;
     private int expIndex = 0;
     private StringBuffer key = new StringBuffer(5);

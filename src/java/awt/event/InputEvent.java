@@ -1,8 +1,15 @@
 /*
- * @(#)InputEvent.java	1.13 01/12/10
+ * @(#)InputEvent.java	1.19 98/08/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt.event;
@@ -21,7 +28,13 @@ import java.awt.Component;
  * on a Button component will prevent the Button from being
  * activated.
  *
- * @version 1.13 12/10/01
+ * @see KeyEvent
+ * @see KeyAdapter
+ * @see MouseEvent
+ * @see MouseAdapter
+ * @see MouseMotionAdapter
+ *
+ * @version 1.19 08/31/98
  * @author Carl Quinn
  */
 public abstract class InputEvent extends ComponentEvent {
@@ -36,15 +49,20 @@ public abstract class InputEvent extends ComponentEvent {
      */
     public static final int CTRL_MASK = Event.CTRL_MASK;
 
-    /** 
+    /**
      * The meta key modifier constant.
      */
     public static final int META_MASK = Event.META_MASK;
 
-    /** 
+    /**
      * The alt key modifier constant.
      */
     public static final int ALT_MASK = Event.ALT_MASK;
+
+    /**
+     * The alt-graph key modifier constant.
+     */
+    public static final int ALT_GRAPH_MASK = 1 << 5;
 
     /**
      * The mouse button1 modifier constant.
@@ -56,13 +74,41 @@ public abstract class InputEvent extends ComponentEvent {
      */
     public static final int BUTTON2_MASK = Event.ALT_MASK;
 
-    /** 
+    /**
      * The mouse button3 modifier constant.
      */
     public static final int BUTTON3_MASK = Event.META_MASK;
 
+    /**
+     * The input events Time stamp.  The time stamp is in
+     * UTC format that indicates when the input event was
+     * created.
+     *
+     * @serial
+     * @see getWhen()
+     */
     long when;
+    /**
+     * The state of the modifier key at the time the input
+     * event was fired.
+     *
+     * @serial
+     * @see getModifiers()
+     * @see java.awt.event.MouseEvent
+     */
     int modifiers;
+
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	NativeLibLoader.loadLibraries();
+	initIDs();
+    }
+
+    /**
+     * Initialize JNI field and method IDs for fields that may be
+       accessed from C.
+     */
+    private static native void initIDs();
 
     /**
      * Constructs an InputEvent object with the specified source component,
@@ -94,16 +140,23 @@ public abstract class InputEvent extends ComponentEvent {
 
     /**
      * Returns whether or not the Meta modifier is down on this event.
-     */ 
+     */
     public boolean isMetaDown() {
         return (modifiers & Event.META_MASK) != 0;
     }
 
     /**
      * Returns whether or not the Alt modifier is down on this event.
-     */ 
+     */
     public boolean isAltDown() {
         return (modifiers & Event.ALT_MASK) != 0;
+    }
+
+    /**
+     * Returns whether or not the Alt-Graph modifier is down on this event.
+     */
+    public boolean isAltGraphDown() {
+        return (modifiers & InputEvent.ALT_GRAPH_MASK) != 0;
     }
 
 
@@ -136,5 +189,7 @@ public abstract class InputEvent extends ComponentEvent {
     public boolean isConsumed() {
         return consumed;
     }
- 
+
+    // state serialization compatibility with JDK 1.1
+    static final long serialVersionUID = -2482525981698309786L;
 }

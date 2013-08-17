@@ -1,8 +1,15 @@
 /*
- * @(#)ScrollPane.java	1.60 01/12/10
+ * @(#)ScrollPane.java	1.67 98/08/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -33,7 +40,7 @@ import java.io.Serializable;
  * not be set by programs using the scrollpane.
  * <P>
  * If the scrollbar display policy is defined as "never", then the
- * scrollpane can still be programmatically scrolled using the 
+ * scrollpane can still be programmatically scrolled using the
  * setScrollPosition() method and the scrollpane will move and clip
  * the child's contents appropriately.  This policy is useful if the
  * program needs to create and manage its own adjustable controls.
@@ -42,24 +49,36 @@ import java.io.Serializable;
  * properties set by the user outside of the program.
  * <P>
  * The initial size of this container is set to 100x100, but can
- * be reset using setSize(). 
+ * be reset using setSize().
  * <P>
  * Insets are used to define any space used by scrollbars and any
  * borders created by the scroll pane. getInsets() can be used
- * to get the current value for the insets.  If the value of 
+ * to get the current value for the insets.  If the value of
  * scrollbarsAlwaysVisible is false, then the value of the insets
  * will change dynamically depending on whether the scrollbars are
- * currently visible or not.    
+ * currently visible or not.
  *
- * @version     1.60 12/10/01
+ * @version     1.67 08/19/98
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
  */
 public class ScrollPane extends Container {
 
+
     /**
-     * Specifies that horizontal/vertical scrollbar should be shown 
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
+
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+        initIDs();
+    }
+
+    /**
+     * Specifies that horizontal/vertical scrollbar should be shown
      * only when the size of the child exceeds the size of the scrollpane
      * in the horizontal/vertical dimension.
      */
@@ -76,16 +95,41 @@ public class ScrollPane extends Container {
      * regardless of the respective sizes of the scrollpane and child.
      */
     public static final int SCROLLBARS_NEVER = 2;
-
+    /**
+     * There are 3 ways in which a scroll bar can be displayed.
+     * This integer will represent one of these 3 displays -
+     * (SCROLLBARS_ALWAYS, SCROLLBARS_AS_NEEDED, SCROLLBARS_NEVER)
+     *
+     * @serial
+     * @see getScrollbarDisplayPolicy()
+     */
     private int scrollbarDisplayPolicy;
+    /**
+     * An adjustable Vertical Scrollbar.
+     * It is important to not that you must NOT call 3 Adjustable methods
+     * ie : setMinimum(), setMaximum(), setVisibleAmount().
+     *
+     * @serial
+     * @see getVAdjustable()
+     * @see java.awt.Adjustable
+     */
     private ScrollPaneAdjustable vAdjustable;
+    /**
+     * An adjustable Horizontal Scrollbar.
+     * It is important to not that you must NOT call 3 Adjustable method 
+     * ie : setMinimum(), setMaximum(), setVisibleAmount().
+     *
+     * @serial
+     * @see getHAdjustable()
+     * @see java.awt.Adjustable
+     */
     private ScrollPaneAdjustable hAdjustable;
 
     private static final String base = "scrollpane";
     private static int nameCounter = 0;
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
      private static final long serialVersionUID = 7956609840827222915L;
 
@@ -106,18 +150,18 @@ public class ScrollPane extends Container {
 	this.width = 100;
 	this.height = 100;
 	switch (scrollbarDisplayPolicy) {
-	  case SCROLLBARS_NEVER:
-	  case SCROLLBARS_AS_NEEDED:
-	  case SCROLLBARS_ALWAYS:
-	    this.scrollbarDisplayPolicy = scrollbarDisplayPolicy;
-	    break;
-	  default:
-	    throw new IllegalArgumentException("illegal scrollbar display policy");
+	    case SCROLLBARS_NEVER:
+	    case SCROLLBARS_AS_NEEDED:
+	    case SCROLLBARS_ALWAYS:
+		this.scrollbarDisplayPolicy = scrollbarDisplayPolicy;
+		break;
+	    default:
+		throw new IllegalArgumentException("illegal scrollbar display policy");
 	}
 
-	vAdjustable = new ScrollPaneAdjustable(this, new PeerFixer(this), 
+	vAdjustable = new ScrollPaneAdjustable(this, new PeerFixer(this),
 					       Adjustable.VERTICAL);
-	hAdjustable = new ScrollPaneAdjustable(this, new PeerFixer(this), 
+	hAdjustable = new ScrollPaneAdjustable(this, new PeerFixer(this),
 					       Adjustable.HORIZONTAL);
     }
 
@@ -126,16 +170,18 @@ public class ScrollPane extends Container {
      * name is null.
      */
     String constructComponentName() {
-        return base + nameCounter++;
+        synchronized (getClass()) {
+	    return base + nameCounter++;
+	}
     }
 
-    /** 
+    /**
      * Adds the specified component to this scroll pane container.
      * If the scroll pane has an existing child component, that
-     * component is removed and the new one is added.  
-     * @param comp the component to be added 
+     * component is removed and the new one is added.
+     * @param comp the component to be added
      * @param constraints  not applicable
-     * @param index position of child component (must be <= 0) 
+     * @param index position of child component (must be <= 0)
      */
     protected final void addImpl(Component comp, Object constraints, int index) {
     	synchronized (getTreeLock()) {
@@ -145,7 +191,7 @@ public class ScrollPane extends Container {
 	    if (index > 0) {
 		throw new IllegalArgumentException("position greater than 0");
 	    }
-		
+
 	    super.addImpl(comp, constraints, index);
 	}
     }
@@ -204,8 +250,7 @@ public class ScrollPane extends Container {
 
     /**
      * Returns the Adjustable object which represents the state of
-     * the vertical scrollbar. If the scrollbar display policy is "never",
-     * this method returns null.
+     * the vertical scrollbar.
      */
     public Adjustable getVAdjustable() {
         return vAdjustable;
@@ -213,8 +258,7 @@ public class ScrollPane extends Container {
 
     /**
      * Returns the Adjustable object which represents the state of
-     * the horizontal scrollbar.  If the scrollbar display policy is "never",
-     * this method returns null.
+     * the horizontal scrollbar.
      */
     public Adjustable getHAdjustable() {
         return hAdjustable;
@@ -224,16 +268,14 @@ public class ScrollPane extends Container {
      * Scrolls to the specified position within the child component.
      * A call to this method is only valid if the scroll pane contains
      * a child.  Specifying a position outside of the legal scrolling bounds
-     * of the child will scroll to the closest legal position.  
-     * Legal bounds are defined to be the rectangle: 
+     * of the child will scroll to the closest legal position.
+     * Legal bounds are defined to be the rectangle:
      * x = 0, y = 0, width = (child width - view port width),
      * height = (child height - view port height).
      * This is a convenience method which interfaces with the Adjustable
      * objects which represent the state of the scrollbars.
      * @param x the x position to scroll to
      * @param y the y position to scroll to
-     * @exception IllegalArgumentException if specified coordinates are
-     * not within the legal scrolling bounds of the child component.
      */
     public void setScrollPosition(int x, int y) {
     	synchronized (getTreeLock()) {
@@ -249,21 +291,21 @@ public class ScrollPane extends Container {
      * Scrolls to the specified position within the child component.
      * A call to this method is only valid if the scroll pane contains
      * a child and the specified position is within legal scrolling bounds
-     * of the child.  Legal bounds are defined to be the rectangle: 
+     * of the child.  Specifying a position outside of the legal scrolling
+     * bounds of the child will scroll to the closest legal position.
+     * Legal bounds are defined to be the rectangle:
      * x = 0, y = 0, width = (child width - view port width),
      * height = (child height - view port height).
      * This is a convenience method which interfaces with the Adjustable
      * objects which represent the state of the scrollbars.
      * @param p the Point representing the position to scroll to
-     * @exception IllegalArgumentException if specified coordinates are
-     * not within the legal scrolling bounds of the child component.
      */
     public void setScrollPosition(Point p) {
         setScrollPosition(p.x, p.y);
     }
 
     /**
-     * Returns the current x,y position within the child which is displayed 
+     * Returns the current x,y position within the child which is displayed
      * at the 0,0 location of the scrolled panel's view port.
      * This is a convenience method which interfaces with the adjustable
      * objects which represent the state of the scrollbars.
@@ -273,10 +315,10 @@ public class ScrollPane extends Container {
 	if (ncomponents <= 0) {
 	    throw new NullPointerException("child is null");
 	}
-	return new Point(hAdjustable.getValue(), vAdjustable.getValue()); 
+	return new Point(hAdjustable.getValue(), vAdjustable.getValue());
     }
 
-    /** 
+    /**
      * Sets the layout manager for this container.  This method is
      * overridden to prevent the layout mgr from being set.
      * @param mgr the specified layout manager
@@ -299,7 +341,7 @@ public class ScrollPane extends Container {
 
     /**
      * Determine the size to allocate the child component.
-     * If the viewport area is bigger than the childs 
+     * If the viewport area is bigger than the childs
      * preferred size then the child is allocated enough
      * to fill the viewport, otherwise the child is given
      * it's preferred size.
@@ -357,7 +399,7 @@ public class ScrollPane extends Container {
 	return childSize;
     }
 
-    /** 
+    /**
      * @deprecated As of JDK version 1.1,
      * replaced by <code>doLayout()</code>.
      */
@@ -366,9 +408,9 @@ public class ScrollPane extends Container {
 	    Component c = getComponent(0);
 	    Point p = getScrollPosition();
 	    Dimension cs = calculateChildSize();
-	    Dimension vs = getViewportSize();	
+	    Dimension vs = getViewportSize();
 	    Insets i = getInsets();
-	    
+
 	    c.reshape(i.left - p.x, i.top - p.y, cs.width, cs.height);
 	    ScrollPanePeer peer = (ScrollPanePeer)this.peer;
 	    if (peer != null) {
@@ -384,7 +426,7 @@ public class ScrollPane extends Container {
 	}
     }
 
-    /** 
+    /**
      * Prints the component in this scroll pane.
      * @param g the specified Graphics window
      * @see Component#print
@@ -409,7 +451,7 @@ public class ScrollPane extends Container {
     }
 
     /**
-     * Creates the scroll pane's peer. 
+     * Creates the scroll pane's peer.
      */
     public void addNotify() {
         synchronized (getTreeLock()) {
@@ -430,29 +472,28 @@ public class ScrollPane extends Container {
 
 	    if (peer == null)
 	        peer = getToolkit().createScrollPane(this);
-
 	    super.addNotify();
 
             // Bug 4124460. Restore the adjustable values.
-	    if (getComponentCount() > 0) {
+            if (getComponentCount() > 0) {
                 vAdjustable.setValue(vAdjustableValue);
                 hAdjustable.setValue(hAdjustableValue);
             }
 
 	    if (getComponentCount() > 0) {
-		Component comp = getComponent(0);
+	        Component comp = getComponent(0);
 		if (comp.peer instanceof java.awt.peer.LightweightPeer) {
-			// The scrollpane won't work with a windowless child... it assumes
-			// it is moving a child window around so the windowless child is
-			// wrapped with a window.
-			remove(0);
-			Panel child = new Panel();
-			child.setLayout(new BorderLayout());
-			child.add(comp);
-			add(child);
+		    // The scrollpane won't work with a windowless child... it assumes
+		    // it is moving a child window around so the windowless child is
+		    // wrapped with a window.
+		    remove(0);
+		    Panel child = new Panel();
+		    child.setLayout(new BorderLayout());
+		    child.add(comp);
+		    add(child);
 		}
 	    }
-        }
+	}
     }
 
     public String paramString() {
@@ -471,7 +512,7 @@ public class ScrollPane extends Container {
 		sdpStr = "invalid display policy";
 	}
 	Point p = ncomponents > 0? getScrollPosition() : new Point(0,0);
-	Insets i = getInsets();		
+	Insets i = getInsets();
 	return super.paramString()+",ScrollPosition=("+p.x+","+p.y+")"+
 	    ",Insets=("+i.top+","+i.left+","+i.bottom+","+i.right+")"+
 	    ",ScrollbarDisplayPolicy="+sdpStr;
@@ -485,7 +526,7 @@ public class ScrollPane extends Container {
 
 	/**
 	 * Invoked when the value of the adjustable has changed.
-	 */   
+	 */
         public void adjustmentValueChanged(AdjustmentEvent e) {
 	    Adjustable adj = e.getAdjustable();
 	    int value = e.getValue();
@@ -493,7 +534,7 @@ public class ScrollPane extends Container {
 	    if (peer != null) {
 		peer.setValue(adj, value);
 	    }
-	    
+
 	    Component c = scroller.getComponent(0);
 	    switch(adj.getOrientation()) {
 	    case Adjustable.VERTICAL:
@@ -511,6 +552,51 @@ public class ScrollPane extends Container {
     }
 }
 
+/*
+ * In JDK 1.1.1, the pkg private class java.awt.PeerFixer was moved to 
+ * become an inner class of ScrollPane, which broke serialization 
+ * for ScrollPane objects using JDK 1.1.
+ * Instead of moving it back out here, which would break all JDK 1.1.x
+ * releases, we keep PeerFixer in both places. Because of the scoping rules,
+ * the PeerFixer that is used in ScrollPane will be the one that is the
+ * inner class. This pkg private PeerFixer class below will only be used
+ * if JDK1.2 is used to deserialize ScrollPane objects that were serialized
+ * using JDK1.1
+ */
+class PeerFixer implements AdjustmentListener, java.io.Serializable {
+
+    PeerFixer(ScrollPane scroller) {
+	this.scroller = scroller;
+    }
+
+    /**
+     * Invoked when the value of the adjustable has changed.
+     */   
+    public void adjustmentValueChanged(AdjustmentEvent e) {
+	Adjustable adj = e.getAdjustable();
+	int value = e.getValue();
+	ScrollPanePeer peer = (ScrollPanePeer) scroller.peer;
+	if (peer != null) {
+	    peer.setValue(adj, value);
+	}
+
+	Component c = scroller.getComponent(0);
+        switch(adj.getOrientation()) {
+	case Adjustable.VERTICAL:
+	    c.move(c.getLocation().x, -(value));
+	    break;
+	case Adjustable.HORIZONTAL:
+	    c.move(-(value), c.getLocation().y);
+	    break;
+	default:
+	    throw new IllegalArgumentException("Illegal adjustable orientation");
+	}
+    }
+
+    private ScrollPane scroller;
+}
+
+
 
 class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
 
@@ -524,11 +610,21 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
     private int value;
     private AdjustmentListener adjustmentListener;
 
-    private static final String SCROLLPANE_ONLY = 
+    private static final String SCROLLPANE_ONLY =
         "Can be set by scrollpane only";
 
+    /**
+     * Initialize JNI field and method ids
+     */
+    private static native void initIDs();
+
+    static {
+        Toolkit.loadLibraries();
+        initIDs();
+    }
+
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
     private static final long serialVersionUID = -3359745691033257079L;
 
@@ -539,8 +635,8 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
     }
 
     /**
-     * This is called by the scrollpane itself to update the 
-     * min,max,visible values.  The scrollpane is the only one 
+     * This is called by the scrollpane itself to update the
+     * min,max,visible values.  The scrollpane is the only one
      * that should be changing these since it is the source of
      * these values.
      */
@@ -568,7 +664,7 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
 
     public void setMaximum(int max) {
 	throw new AWTError(SCROLLPANE_ONLY);
-    }   
+    }
 
     public int getMaximum() {
         return maximum;
@@ -582,15 +678,15 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
 		peer.setUnitIncrement(this, u);
 	    }
 	}
-    } 
-  
+    }
+
     public int getUnitIncrement() {
         return unitIncrement;
     }
 
     public synchronized void setBlockIncrement(int b) {
         blockIncrement = b;
-    }    
+    }
 
     public int getBlockIncrement() {
         return blockIncrement;
@@ -611,10 +707,10 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
 
         if (v != value) {
 	    value = v;
-	    // Synchronously notify the listeners so that they are 
+	    // Synchronously notify the listeners so that they are
 	    // guaranteed to be up-to-date with the Adjustable before
 	    // it is mutated again.
-	    AdjustmentEvent e = 
+	    AdjustmentEvent e =
 		new AdjustmentEvent(this, AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED,
 				    AdjustmentEvent.TRACK, value);
 	    adjustmentListener.adjustmentValueChanged(e);
@@ -625,11 +721,36 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
         return value;
     }
 
+    /**
+     * Adds the specified adjustment listener to receive adjustment events 
+     * from this ScrollPane.
+     * If l is null, no exception is thrown and no action is performed.
+     *
+     * @param    l   the adjustment listener.
+     * @see      java.awt.event.AdjustmentListener
+     * @see      java.awt.ScrollPane#removeAdjustmentListener
+     */
     public synchronized void addAdjustmentListener(AdjustmentListener l) {
+	if (l == null) {
+	    return;
+	}
 	adjustmentListener = AWTEventMulticaster.add(adjustmentListener, l);
     }
 
+    /**
+     * Removes the specified adjustment listener so that it no longer
+     * receives adjustment events from this button. 
+     * If l is null, no exception is thrown and no action is performed.
+     *
+     * @param         l     the adjustment listener.
+     * @see           java.awt.event.AdjustmentListener
+     * @see           java.awt.Button#addAdjustmentListener
+     * @since         JDK1.1
+     */
     public synchronized void removeAdjustmentListener(AdjustmentListener l){
+	if (l == null) {
+	    return;
+	}
 	adjustmentListener = AWTEventMulticaster.remove(adjustmentListener, l);
     }
 
@@ -642,6 +763,5 @@ class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
 	      "[0.."+maximum+"],"+"val="+value+",vis="+visibleAmount+
                 ",unit="+unitIncrement+",block="+blockIncrement);
     }
-
 }
 

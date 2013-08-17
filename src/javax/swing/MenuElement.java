@@ -1,0 +1,70 @@
+/*
+ * @(#)MenuElement.java	1.6 98/08/26
+ *
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ */
+package javax.swing;
+
+import java.awt.*;
+import java.awt.event.*;
+
+/**
+ * Any component that can be placed into a menu should implement this interface.
+ * This interface is used by MenuSelection to handle selection and navigation in
+ * menu hierarchies.
+ *
+ * @version 1.6 08/26/98
+ * @author Arnaud Weber
+ */
+
+public interface MenuElement {
+    
+    /**
+     * Process a mouse event. event is a MouseEvent with source being the receiving element's component.
+     * path is the path of the receiving element in the menu
+     * hierarchy including the receiving element itself.
+     * manager is the MenuSelectionManager for the menu hierarchy.
+     * This method should process the MouseEvent and change the menu selection if necessary
+     * by using MenuSelectionManager's API
+     * Note: you do not have to forward the event to sub-components. This is done automatically
+     * by the MenuSelectionManager
+     */
+    public void processMouseEvent(MouseEvent event,MenuElement path[],MenuSelectionManager manager);
+
+
+    /**
+     *  Process a key event. 
+     */
+    public void processKeyEvent(KeyEvent event,MenuElement path[],MenuSelectionManager manager);
+
+    /**
+     * Call by the MenuSelection when the MenuElement is added or remove from 
+     * the menu selection.
+     */
+    public void menuSelectionChanged(boolean isIncluded);
+
+    /**
+     * This method should return an array containing the sub-elements for the receiving menu element
+     *
+     * @return an array of MenuElements
+     */
+    public MenuElement[] getSubElements();
+    
+    /**
+     * This method should return the java.awt.Component used to paint the receiving element.
+     * The returned component will be used to convert events and detect if an event is inside
+     * a MenuElement's component.
+     *
+     * @return the Component value
+     */
+    public Component getComponent();
+}
+

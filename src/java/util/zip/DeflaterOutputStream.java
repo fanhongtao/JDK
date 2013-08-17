@@ -1,8 +1,15 @@
 /*
- * @(#)DeflaterOutputStream.java	1.18 01/12/10
+ * @(#)DeflaterOutputStream.java	1.23 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -18,7 +25,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.18, 12/10/01
+ * @version 	1.23, 09/21/98
  * @author 	David Connelly
  */
 public
@@ -39,9 +46,15 @@ class DeflaterOutputStream extends FilterOutputStream {
      * @param out the output stream
      * @param def the compressor ("deflater")
      * @param len the output buffer size
+     * @exception IllegalArgumentException if size is <= 0
      */
     public DeflaterOutputStream(OutputStream out, Deflater def, int size) {
         super(out);
+        if (out == null || def == null) {
+            throw new NullPointerException();
+        } else if (size <= 0) {
+            throw new IllegalArgumentException("buffer size <= 0");
+        }
         this.def = def;
         buf = new byte[size];
     }
@@ -70,7 +83,7 @@ class DeflaterOutputStream extends FilterOutputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void write(int b) throws IOException {
-	byte[] buf = new byte[1];
+        byte[] buf = new byte[1];
 	buf[0] = (byte)(b & 0xff);
 	write(buf, 0, 1);
     }

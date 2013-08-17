@@ -1,8 +1,15 @@
 /*
- * @(#)TooManyListenersException.java	1.3 01/12/10
+ * @(#)TooManyListenersException.java	1.7 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util;
@@ -14,18 +21,18 @@ package java.util;
  * a multicast Event Source.
  * </p>
  * <p>
- * The presence of a <code> throws TooManyListenersException </code> clause
- * on any given concrete implementation of the normally multicast semantic
- * <italic> void add &lt EventListenerType &gt () </italic> event listener
- * registration pattern is used to annotate that interface as implementing
- * a unicast Listener special case, that is, that one and only one Listener
- * may be registered on the particular event listener source concurrently.
+ * The presence of a "throws TooManyListenersException" clause on any given
+ * concrete implementation of the normally multicast "void addXyzEventListener"
+ * event listener registration pattern is used to annotate that interface as
+ * implementing a unicast Listener special case, that is, that one and only
+ * one Listener may be registered on the particular event listener source
+ * concurrently.
  * </p>
  *
  * @see java.util.EventObject
  * @see java.util.EventListener
  * 
- * @version 1.3 01/12/10
+ * @version 1.7 98/09/21
  * @author Laurence P. G. Cable
  */
 

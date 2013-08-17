@@ -1,0 +1,347 @@
+/*
+ * @(#)FrameView.java	1.11 98/09/21
+ *
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ */
+package javax.swing.text.html;
+
+import java.awt.*;
+import java.util.*;
+import java.net.*;
+import java.io.*;
+import javax.swing.*;
+import javax.swing.text.*;
+import javax.swing.event.*;
+
+/**
+ * Implements a FrameView, intended to support the HTML
+ * <FRAME> tag.  Supports the frameborder, scrolling,
+ * marginwidth and marginheight attributes.
+ *
+ * @author    Sunita Mani
+ * @version   1.11, 09/21/98
+ */
+
+class FrameView extends ComponentView implements HyperlinkListener {
+
+
+    JEditorPane htmlPane;
+    JScrollPane scroller;
+    boolean editable;
+    float width;
+    float height;
+    URL src;
+
+    /**
+     * Creates a new Frame.
+     *
+     * @param elem the element to represent.
+     */
+    public FrameView(Element elem) {
+	super(elem);
+    }
+
+    protected Component createComponent() {
+
+	Element elem = getElement();
+	AttributeSet attributes = elem.getAttributes();
+	String srcAtt = (String)attributes.getAttribute(HTML.Attribute.SRC);
+
+	if ((srcAtt != null) && (!srcAtt.equals(""))) {
+	    try {
+		URL base = ((HTMLDocument)elem.getDocument()).getBase();
+		src = new URL(base, srcAtt);
+		htmlPane = new JEditorPane(src);
+		htmlPane.addHyperlinkListener(this);
+		htmlPane.setEditable(editable);
+		HTMLDocument doc = (HTMLDocument)htmlPane.getDocument();
+		doc.setFrameDocumentState(true);
+		setMargin();
+		createScrollPane();
+		setBorder();
+	    } catch (MalformedURLException e) {
+		e.printStackTrace();
+	    } catch (IOException e1) {
+		e1.printStackTrace();
+	    }
+	}
+	return scroller;
+    }
+
+
+    /**
+     * Sets the parent view for the FrameView.
+     * Also determines if the FrameView should be editable
+     * or not based on whether the JTextComponent that
+     * contains it is editable.
+     *
+     * @param parent View
+     */
+    public void setParent(View parent) {
+	if (parent != null) {
+	    JTextComponent t = (JTextComponent)parent.getContainer();
+	    editable = t.isEditable();
+	}
+	super.setParent(parent);
+    }
+    
+
+    /**
+     * Also determines if the FrameView should be editable
+     * or not based on whether the JTextComponent that
+     * contains it is editable. And then proceeds to call
+     * the superclass to do the paint().
+     *
+     * @param parent View
+     * @see text.ComponentView#paint
+     */
+    public void paint(Graphics g, Shape allocation) {
+
+	Container host = getContainer();
+	if (host != null && htmlPane != null &&
+	    htmlPane.isEditable() != ((JTextComponent)host).isEditable()) {
+	    editable = ((JTextComponent)host).isEditable();
+	    htmlPane.setEditable(editable);
+	}
+        super.paint(g, allocation);
+    }
+
+
+    /**
+     * If the marginwidth or marginheight attributes have been specified,
+     * then the JEditorPane's margin's are set to the new values.
+     */
+    private void setMargin() {
+	int margin = 0;
+	Insets in = htmlPane.getMargin();
+	Insets newInsets = new Insets(in.top, in.left, in.right, in.bottom);
+	boolean modified = false;
+	AttributeSet attributes = getElement().getAttributes();
+	String marginStr = (String)attributes.getAttribute(HTML.Attribute.MARGINWIDTH);
+	if (marginStr != null) {
+	    margin = Integer.parseInt(marginStr);
+	    if (margin > 0) {
+		newInsets.left = margin;
+		newInsets.right = margin;
+		modified = true;
+	    }
+	}
+	marginStr = (String)attributes.getAttribute(HTML.Attribute.MARGINHEIGHT);
+	if (marginStr != null) {
+	    margin = Integer.parseInt(marginStr);
+	    if (margin > 0) {
+		newInsets.top = margin;
+		newInsets.bottom = margin;
+		modified = true;
+	    }
+	}
+	if (modified) {
+	    htmlPane.setMargin(newInsets);
+	}
+    }
+
+    /**
+     * If the frameborder attribute has been specified, either in the frame,
+     * or by the frames enclosing frameset, the JScrollPane's setBorder()
+     * method is invoked to achieve the desired look.
+     */
+    private void setBorder() {
+
+	AttributeSet attributes = getElement().getAttributes();
+	String frameBorder = (String)attributes.getAttribute(HTML.Attribute.FRAMEBORDER);
+	if ((frameBorder != null) && 
+	    (frameBorder.equals("no") || frameBorder.equals("0"))) {
+	    // make invisible borders.
+	    scroller.setBorder(null);
+	}
+    }
+
+
+    /**
+     * This method creates the JScrollPane.  The scrollbar policy is determined by
+     * the scrolling attribute.  If not defined, the default is "auto" which 
+     * maps to the scrollbar's being displayed as needed.
+     */
+    private void createScrollPane() {
+	AttributeSet attributes = getElement().getAttributes();
+	String scrolling = (String)attributes.getAttribute(HTML.Attribute.SCROLLING);
+	if (scrolling == null) {
+	    scrolling = "auto";
+	}
+	
+	if (!scrolling.equals("no")) {
+	    if (scrolling.equals("yes")) {
+		scroller = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, 
+					   JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+	    } else {
+		// scrollbars will be displayed if needed
+		//
+		scroller = new JScrollPane();
+	    } 
+	} else {
+	    scroller = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER, 
+				       JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+	}
+
+	JViewport vp = scroller.getViewport();
+	vp.add(htmlPane);
+	vp.setBackingStoreEnabled(true);
+	scroller.setVisible(false);
+	scroller.setMinimumSize(new Dimension(5,5));
+	scroller.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+    }
+
+
+    /**
+     * Finds the outermost FrameSetView.  It then
+     * returns that FrameSetView's container.
+     */
+    private JEditorPane getOutermostJEditorPane() {
+
+	View parent = getParent();
+	FrameSetView frameSetView = null;
+	while (parent != null) {
+	    if (parent instanceof FrameSetView) {
+		frameSetView = (FrameSetView)parent;
+	    }
+	    parent = parent.getParent();
+	}
+	if (frameSetView != null) {
+	    return (JEditorPane)frameSetView.getContainer();
+	}
+	return null;
+    }
+
+
+    /**
+     * Returns true if this frame is contained within
+     * a nested frameset.
+     */
+    private boolean inNestedFrameSet() {
+	FrameSetView parent = (FrameSetView)getParent();
+	return (parent.getParent() instanceof FrameSetView);
+    }
+
+
+    /**
+     * Notification of a change relative to a 
+     * hyperlink. This method searches for the outermost
+     * JEditorPane, and then fires an HTMLFrameHyperlinkEvent
+     * to that frame.  In addition, if the target is _parent,
+     * and there is not nested framesets then the target is
+     * reset to _top.  If the target is _top, in addition to
+     * firing the event to the outermost JEditorPane, this
+     * method also invokes the setPage() method and explicitly
+     * replaces the current document with the destination url.
+     *
+     * @param HyperlinkEvent
+     */
+    public void hyperlinkUpdate(HyperlinkEvent evt) {
+
+	if (!(evt instanceof HTMLFrameHyperlinkEvent)) {
+	    return;
+	}
+
+	HTMLFrameHyperlinkEvent e = (HTMLFrameHyperlinkEvent)evt;
+
+	if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	    JEditorPane c = getOutermostJEditorPane();
+	    String target = e.getTarget();
+
+	    if (e.getTarget().equals("_parent") && !inNestedFrameSet()){ 
+		target = "_top";
+	    }
+
+	    if (c != null && !c.isEditable()) {
+		c.fireHyperlinkUpdate(new HTMLFrameHyperlinkEvent(c,
+								  e.getEventType(), 
+								  e.getURL(), 
+								  e.getDescription(),
+								  getElement(),
+								  target));
+		if (target.equals("_top")) {
+		    try {
+			c.setPage(e.getURL());
+		    } catch (IOException ex) {
+			// Need a way to handle exceptions
+			// ex.printStackTrace();
+		    }
+		}
+	    }
+	}
+    }
+
+    /**
+     * Gives notification from the document that attributes were changed
+     * in a location that this view is responsible for.  Currently this view
+     * handles changes to its SRC attribute.
+     *
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     *
+     */    
+    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+
+	Element elem = getElement();
+	AttributeSet attributes = elem.getAttributes();
+
+	URL oldPage = src;
+
+	String srcAtt = (String)attributes.getAttribute(HTML.Attribute.SRC);
+	URL base = ((HTMLDocument)elem.getDocument()).getBase();
+	try {
+	    src = new URL(base, srcAtt);
+	    if (oldPage.equals(src)) {
+		return;
+	    }
+	    htmlPane.setPage(src);
+	    HTMLDocument newDoc = (HTMLDocument)htmlPane.getDocument();
+	    newDoc.setFrameDocumentState(true);
+	} catch (MalformedURLException e1) {
+	    // Need a way to handle exceptions
+	    //e1.printStackTrace();
+	} catch (IOException e2) {
+	    // Need a way to handle exceptions
+	    //e2.printStackTrace();
+	}
+    }
+
+    /**
+     * Determines the minimum span for this view along an
+     * axis.
+     *
+     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @returns the preferred span.  Given that we do not
+     * support resizing of frames, the minimum span returned
+     * is the same as the preferred span.
+     * 
+     */
+    public float getMinimumSpan(int axis) {
+      return 5;
+    }
+
+    /**
+     * Determines the maximum span for this view along an
+     * axis.
+     *
+     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @returns the preferred span.  Given that we do not
+     * support resizing of frames, the maximum span returned
+     * is the same as the preferred span.
+     * 
+     */
+    public float getMaximumSpan(int axis) {
+	return Integer.MAX_VALUE;
+    }
+
+}
+

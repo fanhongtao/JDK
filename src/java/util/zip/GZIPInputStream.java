@@ -1,8 +1,15 @@
 /*
- * @(#)GZIPInputStream.java	1.16 01/12/10
+ * @(#)GZIPInputStream.java	1.20 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -18,7 +25,7 @@ import java.io.EOFException;
  * the GZIP format.
  *
  * @see		InflaterInputStream
- * @version 	1.16, 12/10/01
+ * @version 	1.20, 09/21/98
  * @author 	David Connelly
  *
  */
@@ -34,11 +41,23 @@ class GZIPInputStream extends InflaterInputStream {
      */
     protected boolean eos;
 
+    private boolean closed = false;
+    
+    /**
+     * Check to make sure that this stream has not been closed
+     */
+    private void ensureOpen() throws IOException {
+	if (closed) {
+	    throw new IOException("Stream closed");
+        }
+    }
+
     /**
      * Creates a new input stream with the specified buffer size.
      * @param in the input stream
      * @param size the input buffer size
      * @exception IOException if an I/O error has occurred
+     * @exception IllegalArgumentException if size is <= 0
      */
     public GZIPInputStream(InputStream in, int size) throws IOException {
 	super(in, new Inflater(true), size);
@@ -67,6 +86,7 @@ class GZIPInputStream extends InflaterInputStream {
      *			      input data is corrupt
      */
     public int read(byte[] buf, int off, int len) throws IOException {
+        ensureOpen();
 	if (eos) {
 	    return -1;
 	}
@@ -88,6 +108,7 @@ class GZIPInputStream extends InflaterInputStream {
 	inf.end();
 	in.close();
 	eos = true;
+        closed = true;
     }
 
     /**

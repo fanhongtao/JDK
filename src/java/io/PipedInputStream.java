@@ -1,26 +1,42 @@
 /*
- * @(#)PipedInputStream.java	1.20 01/12/10
+ * @(#)PipedInputStream.java	1.28 98/07/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 /**
- * A piped input stream is the receiving end of a communications 
- * pipe. Two threads can communicate by having one thread send data 
- * through a piped output stream and having the other thread read the 
- * data through a piped input stream.
+ * A piped input stream should be connected
+ * to a piped output stream; the piped  input
+ * stream then provides whatever data bytes
+ * are written to the piped output  stream.
+ * Typically, data is read from a <code>PipedInputStream</code>
+ * object by one thread  and data is written
+ * to the corresponding <code>PipedOutputStream</code>
+ * by some  other thread. Attempting to use
+ * both objects from a single thread is not
+ * recommended, as it may deadlock the thread.
+ * The piped input stream contains a buffer,
+ * decoupling read operations from write operations,
+ * within limits.
  *
  * @author  James Gosling
- * @version 1.20, 12/10/01
+ * @version 1.28, 07/07/98
  * @see     java.io.PipedOutputStream
  * @since   JDK1.0
  */
 public
 class PipedInputStream extends InputStream {
-    boolean closed = true;
+    boolean closedByWriter = false;
     boolean closedByReader = false;
     boolean connected = false;
 
@@ -32,6 +48,7 @@ class PipedInputStream extends InputStream {
     Thread writeSide;
 
     /**
+     * The size of the pipe's circular input buffer.
      * @since   JDK1.1
      */
     protected static final int PIPE_SIZE = 1024;
@@ -42,60 +59,76 @@ class PipedInputStream extends InputStream {
      */
     protected byte buffer[] = new byte[PIPE_SIZE];
 
-    /*
-     * fill and empty pointers.  in<0 implies the buffer is empty, in==out
-     * implies the buffer is full
-     */
-
     /**
+     * The index of the position in the circular buffer at which the
+     * next byte of data will be stored when received from the connected
+     * piped output stream. <code>in&lt;0</code> implies the buffer is empty,
+     * <code>in==out</code> implies the buffer is full
      * @since   JDK1.1
      */
     protected int in = -1;
 
     /**
+     * The index of the position in the circular buffer at which the next
+     * byte of data will be read by this piped input stream.
      * @since   JDK1.1
      */
     protected int out = 0;
 
     /**
-     * Creates a piped input stream connected to the specified piped 
-     * output stream. 
+     * Creates a <code>PipedInputStream</code> so
+     * that it is connected to the piped output
+     * stream <code>src</code>. Data bytes written
+     * to <code>src</code> will then be  available
+     * as input from this stream.
      *
      * @param      src   the stream to connect to.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public PipedInputStream(PipedOutputStream src) throws IOException {
 	connect(src);
     }
 
     /**
-     * Creates a piped input stream that is not yet connected to a piped 
-     * output stream. It must be connected to a piped output stream, 
-     * either by the receiver or the sender, before being used. 
+     * Creates a <code>PipedInputStream</code> so
+     * that it is not  yet connected. It must be
+     * connected to a <code>PipedOutputStream</code>
+     * before being used.
      *
      * @see     java.io.PipedInputStream#connect(java.io.PipedOutputStream)
      * @see     java.io.PipedOutputStream#connect(java.io.PipedInputStream)
-     * @since   JDK1.0
      */
     public PipedInputStream() {
     }
 
     /**
-     * Connects this piped input stream to a sender. 
+     * Causes this piped input stream to be connected
+     * to the piped  output stream <code>src</code>.
+     * If this object is already connected to some
+     * other piped output  stream, an <code>IOException</code>
+     * is thrown.
+     * <p>
+     * If <code>src</code> is an
+     * unconnected piped output stream and <code>snk</code>
+     * is an unconnected piped input stream, they
+     * may be connected by either the call:
+     * <p>
+     * <pre><code>snk.connect(src)</code> </pre>
+     * <p>
+     * or the call:
+     * <p>
+     * <pre><code>src.connect(snk)</code> </pre>
+     * <p>
+     * The two
+     * calls have the same effect.
      *
      * @param      src   The piped output stream to connect to.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void connect(PipedOutputStream src) throws IOException {
-	if (connected) {
-	    throw new IOException("Pipe already connected");
-	}
 	src.connect(this);
-	connected = true;
     }
-    
+
     /**
      * Receives a byte of data.  This method will block if no input is
      * available.
@@ -104,13 +137,21 @@ class PipedInputStream extends InputStream {
      * @since     JDK1.1
      */
     protected synchronized void receive(int b) throws IOException {
+        if (!connected) {
+            throw new IOException("Pipe not connected");
+        } else if (closedByWriter || closedByReader) {
+	    throw new IOException("Pipe closed");
+	} else if (readSide != null && !readSide.isAlive()) {
+            throw new IOException("Read end dead");
+        }
+
 	writeSide = Thread.currentThread();
 	while (in == out) {
 	    if ((readSide != null) && !readSide.isAlive()) {
 		throw new IOException("Pipe broken");
 	    }
 	    /* full: kick any waiting readers */
-	    notifyAll();	
+	    notifyAll();
 	    try {
 	        wait(1000);
 	    } catch (InterruptedException ex) {
@@ -129,13 +170,13 @@ class PipedInputStream extends InputStream {
 
     /**
      * Receives data into an array of bytes.  This method will
-     * block until some input is available. 
+     * block until some input is available.
      * @param b the buffer into which the data is received
      * @param off the start offset of the data
      * @param len the maximum number of bytes received
      * @return the actual number of bytes received, -1 is
-     *          returned when the end of the stream is reached. 
-     * @exception IOException If an I/O error has occurred. 
+     *          returned when the end of the stream is reached.
+     * @exception IOException If an I/O error has occurred.
      */
     synchronized void receive(byte b[], int off, int len)  throws IOException {
 	while (--len >= 0) {
@@ -148,32 +189,41 @@ class PipedInputStream extends InputStream {
      * received.
      */
     synchronized void receivedLast() {
-	closed = true;
+	closedByWriter = true;
 	notifyAll();
     }
 
     /**
-     * Reads the next byte of data from this piped input stream. The 
-     * value byte is returned as an <code>int</code> in the range 
-     * <code>0</code> to <code>255</code>. If no byte is available 
-     * because this end of the stream has been reached, the value 
-     * <code>-1</code> is returned. This method blocks until input data 
-     * is available, the end of the stream is detected, or an exception 
-     * is thrown. 
+     * Reads the next byte of data from this piped input stream. The
+     * value byte is returned as an <code>int</code> in the range
+     * <code>0</code> to <code>255</code>. If no byte is available
+     * because the end of the stream has been reached, the value
+     * <code>-1</code> is returned. This method blocks until input data
+     * is available, the end of the stream is detected, or an exception
+     * is thrown.
+     * If a thread was providing data bytes
+     * to the connected piped output stream, but
+     * the  thread is no longer alive, then an
+     * <code>IOException</code> is thrown.
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
      * @exception  IOException  if the pipe is broken.
-     * @since      JDK1.0
      */
     public synchronized int read()  throws IOException {
-	if (closedByReader) {
-	    throw new IOException("InputStream closed");
-	}
+        if (!connected) {
+            throw new IOException("Pipe not connected");
+        } else if (closedByReader) {
+	    throw new IOException("Pipe closed");
+	} else if (writeSide != null && !writeSide.isAlive()
+                   && !closedByWriter && (in < 0)) {
+            throw new IOException("Write end dead");
+        }
+
+        readSide = Thread.currentThread();
 	int trials = 2;
 	while (in < 0) {
-	    readSide = Thread.currentThread();
-	    if (closed) { 
+	    if (closedByWriter) {
 		/* closed by writer, return EOF */
 		return -1;
 	    }
@@ -194,15 +244,20 @@ class PipedInputStream extends InputStream {
 	}
 	if (in == out) {
             /* now empty */
-	    in = -1;		
+	    in = -1;
 	}
 	return ret;
     }
 
     /**
-     * Reads up to <code>len</code> bytes of data from this piped input 
-     * stream into an array of bytes. This method blocks until at least one
-     * byte of input is available. 
+     * Reads up to <code>len</code> bytes of data from this piped input
+     * stream into an array of bytes. Less than <code>len</code> bytes
+     * will be read if the end of the data stream is reached. This method
+     * blocks until at least one byte of input is available.
+     * If a thread was providing data bytes
+     * to the connected piped output stream, but
+     * the  thread is no longer alive, then an
+     * <code>IOException</code> is thrown.
      *
      * @param      b     the buffer into which the data is read.
      * @param      off   the start offset of the data.
@@ -211,20 +266,19 @@ class PipedInputStream extends InputStream {
      *             <code>-1</code> if there is no more data because the end of
      *             the stream has been reached.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public synchronized int read(byte b[], int off, int len)  throws IOException {
-
 	if (b == null) {
 	    throw new NullPointerException();
-	} else if (off < 0 || len < 0 || off + len > b.length) {
-	    throw new ArrayIndexOutOfBoundsException();
+	} else if ((off < 0) || (off > b.length) || (len < 0) ||
+		   ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
 	} else if (len == 0) {
 	    return 0;
 	}
 
         /* possibly wait on the first character */
-	int c = read();		
+	int c = read();
 	if (c < 0) {
 	    return -1;
 	}
@@ -238,14 +292,14 @@ class PipedInputStream extends InputStream {
 	    }
 	    if (in == out) {
                 /* now empty */
-		in = -1;	
+		in = -1;
 	    }
 	}
 	return rlen;
     }
 
     /**
-     * Returns the number of bytes that can be read from this input 
+     * Returns the number of bytes that can be read from this input
      * stream without blocking. This method overrides the <code>available</code>
      * method of the parent class.
      *
@@ -264,13 +318,12 @@ class PipedInputStream extends InputStream {
     else
       return in + buffer.length - out;
   }
-    
+
     /**
-     * Closes this piped input stream and releases any system resources 
-     * associated with the stream. 
+     * Closes this piped input stream and releases any system resources
+     * associated with the stream.
      *
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void close()  throws IOException {
 	in = -1;

@@ -1,38 +1,82 @@
 /*
- * @(#)RemoteObject.java	1.9 01/12/10
+ * @(#)RemoteObject.java	1.17 98/08/10
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.rmi.server;
 
 import java.rmi.Remote;
 import java.rmi.UnmarshalException;
+import java.rmi.NoSuchObjectException;
 
 /**
- * The RemoteObject class implements the java.lang.Object behavior for
- * remote objects.  RemoteObject provides the remote semantics of
- * Object by implementing methods for hashCode, equals, and toString.
+ * The <code>RemoteObject</code> class implements the
+ * <code>java.lang.Object</code> behavior for remote objects.
+ * <code>RemoteObject</code> provides the remote semantics of Object by
+ * implementing methods for hashCode, equals, and toString.
+ *
+ * @version 1.17, 08/10/98
+ * @author  Ann Wollrath
+ * @since   JDK1.1
  */
 public abstract class RemoteObject implements Remote, java.io.Serializable {
 
-    private static final long serialVersionUID = -3215090123894869218L;
-
+    /** the objects remote reference */
     transient protected RemoteRef ref;
     
+    /** indicate compatibility with JDK 1.1.x version of class */
+    private static final long serialVersionUID = -3215090123894869218L;
+
     /**
-     * Create a remote object.
+     * Creates a remote object.
+     * @since JDK1.1
      */
     protected RemoteObject() {
 	ref = null;
     }
     
     /**
-     * Create a remote object, initialized with the specified remote reference.
+     * Creates a remote object, initialized with the specified remote
+     * reference.
+     * @since JDK1.1
      */
     protected RemoteObject(RemoteRef newref) {
 	ref = newref;
+    }
+
+    /**
+     * Returns the remote reference for the remote object.
+     * @since JDK1.2
+     */
+    public RemoteRef getRef() {
+	return ref;
+    }
+    
+    /**
+     * Returns the stub for the remote object <code>obj</code> passed
+     * as a parameter. This operation is only valid <i>after</i>
+     * the object has been exported.
+     * @param obj the remote object whose stub is neede
+     * @return the stub for the remote object, <code>obj</code>.
+     * @exception NoSuchObjectException if the stub for the
+     * remote object could not be found.
+     * @since JDK1.2
+     */
+    public static Remote toStub(Remote obj) throws NoSuchObjectException {
+	if (obj instanceof RemoteStub) {
+	    return (RemoteStub)obj; 
+	} else {
+	    return sun.rmi.transport.ObjectTable.getStub(obj);
+	}
     }
 
     /**
@@ -41,6 +85,7 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * (in order to support remote objects as keys in hash tables).
      *
      * @see		java.util.Hashtable
+     * @since JDK1.1
      */
     public int hashCode() {
 	return (ref == null) ? super.hashCode() : ref.remoteHashCode();
@@ -51,9 +96,14 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * Returns a boolean that indicates whether this remote object is
      * equivalent to the specified Object. This method is used when a
      * remote object is stored in a hashtable.
+     * If the specified Object is not itself an instance of RemoteObject,
+     * then this method delegates by returning the result of invoking the
+     * <code>equals</code> method of its parameter with this remote object
+     * as the argument.
      * @param	obj	the Object to compare with
      * @return	true if these Objects are equal; false otherwise.
      * @see		java.util.Hashtable
+     * @since JDK1.1
      */
     public boolean equals(Object obj) {
 	if (obj instanceof RemoteObject) {
@@ -65,7 +115,7 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 	} else if (obj != null) {
 	    /*
 	     * Fix for 4099660: if object is not an instance of RemoteObject,
-	     * use the result of its equals method, to support symmetry if a
+	     * use the result of its equals method, to support symmetry is a
 	     * remote object implementation class that does not extend
 	     * RemoteObject wishes to support equality with its stub objects.
 	     */
@@ -77,9 +127,9 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 
     /**
      * Returns a String that represents the value of this remote object.
+     * @since JDK1.1
      */
-    public String toString()
-    {
+    public String toString() {
 	String classname = this.getClass().getName();
 	return (ref == null) ? classname :
 	    classname + "[" +ref.remoteToString() + "]";
@@ -87,9 +137,16 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 
 
     /**
-     * writeObject for object serialization. Writes out the class name of
-     * the remote reference and delegates to the reference to write out
-     * its representation.
+     * writeObject for object serialization.  Writes out the class
+     * name of the remote reference contained in this class and
+     * delegates to the reference to write out its representation.
+     * 
+     * @serialData Writes out the unqualified class name of the remote
+     * reference field, <code>ref</code>, in <code>UTF-8</code> and
+     * delegates to the <code>ref</code> field to write out its
+     * representation.  Different information will be written to
+     * <code>out</code> depending upon the <code>ref</code> field's
+     * type.  Default serialization is not used. 
      */
     private void writeObject(java.io.ObjectOutputStream out)
 	throws java.io.IOException, java.lang.ClassNotFoundException
@@ -97,25 +154,56 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 	if (ref == null) {
 	    throw new java.rmi.MarshalException("Invalid remote object");
 	} else {
-	    out.writeUTF(ref.getRefClass(out));
-	    ref.writeExternal(out);
+	    String refClassName = ref.getRefClass(out);
+	    if (refClassName == null || refClassName.length() == 0) {
+		/*
+		 * No reference class name specified, so serialize
+		 * remote reference.
+		 */
+		out.writeUTF("");
+		out.writeObject(ref);
+	    } else {
+		/*
+		 * Built-in reference class specified, so delegate
+		 * to reference to write out its external form.
+		 */
+		out.writeUTF(refClassName);
+		ref.writeExternal(out);
+	    }
 	}
-	
     }
 
     /**
-     * readObject for object serialization. Reads in the class name of
-     * the remote reference and delegates to the reference to read in
-     * its representation.
+     * readObject for object serialization. Reads in the unqualified
+     * class name of the remote reference field, <code>ref</code>, in
+     * <code>UTF-8</code> and delegates to the <code>ref</code> field
+     * to read in its representation. The <code>ref</code> field is
+     * read via a direct call to
+     * <code>ref.readExternal(ObjectInputStream in)</code>. Default
+     * serialization is not used.  
      */
     private void readObject(java.io.ObjectInputStream in) 
 	throws java.io.IOException, java.lang.ClassNotFoundException
     {
 	try {
-	    Class refClass = Class.forName(RemoteRef.packagePrefix + "." +
-					   in.readUTF());
-	    ref = (RemoteRef)refClass.newInstance();
-	    ref.readExternal(in);
+	    String refClassName = in.readUTF();
+	    if (refClassName == null || refClassName.length() == 0) {
+		/*
+		 * No reference class name specified, so construct
+		 * remote reference from its serialized form.
+		 */
+		ref = (RemoteRef) in.readObject();
+	    } else {
+		/*
+		 * Built-in reference class specified, so delegate
+		 * to reference to initialize its fields  from its
+		 * external form.
+		 */
+		Class refClass = Class.forName(RemoteRef.packagePrefix + "." +
+					       refClassName);
+		ref = (RemoteRef) refClass.newInstance();
+		ref.readExternal(in);
+	    }
 	} catch (InstantiationException e) {
 	    throw new UnmarshalException("Unable to create remote reference",
 					 e);
@@ -123,5 +211,4 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 	    throw new UnmarshalException("Illegal access creating remote reference");
 	}
     }
-
 }

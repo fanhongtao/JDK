@@ -1,17 +1,20 @@
 /*
- * @(#)TextBoundaryData.java	1.5 01/12/10
+ * @(#)TextBoundaryData.java	1.10 98/07/24
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -36,11 +39,29 @@ package java.text;
  */
 abstract class TextBoundaryData
 {
-    public abstract WordBreakTable forward();
-    public abstract WordBreakTable backward();
-    public abstract UnicodeClassMapping map();
+    private WordBreakTable forwardStateTable = null;
+    private WordBreakTable backwardStateTable = null;
+    private UnicodeClassMapping mappingTable = null;
 
-    // usefull Unicode constant
+    protected TextBoundaryData(WordBreakTable fwd, WordBreakTable bwd, UnicodeClassMapping map) {
+        forwardStateTable = fwd;
+        backwardStateTable = bwd;
+        mappingTable = map;
+    }
+
+    public WordBreakTable forward() {
+        return forwardStateTable;
+    }
+
+    public WordBreakTable backward() {
+        return backwardStateTable;
+    }
+
+    public UnicodeClassMapping map() {
+        return mappingTable;
+    }
+
+    // useful Unicode constants
     protected static final char ASCII_END_OF_TEXT
         = '\u0003';
     protected static final char ASCII_HORIZONTAL_TABULATION
@@ -269,9 +290,15 @@ abstract class TextBoundaryData
         = '\uFA2D';
     protected static final char UNICODE_ZERO_WIDTH_NON_BREAKING_SPACE
         = '\uFEFF';
+    protected static final char FULLWIDTH_EXCLAMATION_MARK
+        = '\uFF01';
+    protected static final char FULLWIDTH_FULL_STOP
+        = '\uFF0E';
+    protected static final char FULLWIDTH_QUESTION_MARK
+        = '\uFF1F';
 
     // SimpleTextBoundary has an internal convention that the not-a-Unicode value
-    // $FFFF is used to signify the end of the string when looking a proper state
+    // $FFFF is used to signify the end of the string when looking up a proper state
     // transition for the end of the string
     protected static final char END_OF_STRING
         = '\uFFFF';

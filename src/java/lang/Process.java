@@ -1,90 +1,133 @@
 /*
- * @(#)Process.java	1.12 01/12/10
+ * @(#)Process.java	1.15 98/08/26
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
 
 import java.io.*;
 
-/** 
- * The <code>exec</code> methods return an 
- * instance of a subclass of <code>Process</code> that can be used to 
- * control the process and obtain information about it. 
+/**
+ * The <code>Runtime.exec</code> methods create a native process and
+ * return an instance of a subclass of <code>Process</code> that can 
+ * be used to control the process and obtain information about it. 
+ *  The class <code>Process</code> provides methods for performing 
+ * input from the process, performing output to the process, waiting 
+ * for the process to complete, checking the exit status of the process, 
+ * and destroying (killing) the process. 
+ * <p>
+ * The <code>Runtime.exec</code> methods may not work well for special
+ * processes on certain native platforms, such as native windowing
+ * processes, daemon processes, Win16/DOS processes on Win32, or shell
+ * scripts. The created subprocess does not have its own terminal or
+ * console. All its standard io (i.e. stdin, stdout, stderr)  operations
+ * will be redirected to the parent process through three streams
+ * (<code>Process.getOutputStream()</code>,
+ * <code>Process.getInputStream()</code>,
+ * <code>Process.getErrorStream()</code>).
+ * The parent process uses these streams to feed input to and get output
+ * from the subprocess. Because some native platforms only provide
+ * limited buffer size for standard input and output streams, failure
+ * to promptly write the input stream or read the output stream of
+ * the subprocess may cause the subprocess to block, and even deadlock.
  * <p>
  * The subprocess is not killed when there are no more references to 
  * the <code>Process</code> object, but rather the subprocess 
  * continues executing asynchronously. 
+ * <p>
+ * There is no requirement that a process represented by a <code>Process</code> 
+ * object execute asynchronously or concurrently with respect to the Java 
+ * process that owns the <code>Process</code> object.
  *
  * @author  unascribed
- * @version 1.12, 12/10/01
+ * @version 1.15, 08/26/98
  * @see     java.lang.Runtime#exec(java.lang.String)
  * @see     java.lang.Runtime#exec(java.lang.String, java.lang.String[])
  * @see     java.lang.Runtime#exec(java.lang.String[])
  * @see     java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
  * @since   JDK1.0
  */
-public abstract class Process 
+public abstract class Process
 {
     /**
      * Gets the output stream of the subprocess.
-     * This stream is usually buffered.
+     * Output to the stream is piped into the standard input stream of 
+     * the process represented by this <code>Process</code> object. 
+     * <p>
+     * Implementation note: It is a good idea for the output stream to 
+     * be buffered.
      *
      * @return  the output stream connected to the normal input of the
      *          subprocess.
-     * @since   JDK1.0
      */
     abstract public OutputStream getOutputStream();
 
-    /** 
+    /**
      * Gets the input stream of the subprocess.
-     * This stream is usually buffered.
+     * The stream obtains data piped from the standard output stream 
+     * of the process represented by this <code>Process</code> object. 
+     * <p>
+     * Implementation note: It is a good idea for the input stream to 
+     * be buffered.
      *
      * @return  the input stream connected to the normal output of the
      *          subprocess.
-     * @since   JDK1.0
      */
     abstract public InputStream getInputStream();
 
     /**
      * Gets the error stream of the subprocess.
-     * This stream is usually unbuffered.
+     * The stream obtains data piped from the error output stream of the 
+     * process represented by this <code>Process</code> object. 
+     * <p>
+     * Implementation note: It is a good idea for the input stream to be 
+     * buffered.
      *
      * @return  the input stream connected to the error stream of the
      *          subprocess.
-     * @since   JDK1.0
      */
     abstract public InputStream getErrorStream();
 
     /**
-     * Waits for the subprocess to complete. This method returns 
+     * causes the current thread to wait, if necessary, until the 
+     * process represented by this <code>Process</code> object has 
+     * terminated. This method returns 
      * immediately if the subprocess has already terminated. If the
      * subprocess has not yet terminated, the calling thread will be
      * blocked until the subprocess exits.
      *
-     * @return     the exit value of the process.
-     * @exception  InterruptedException  if the <code>waitFor</code> was
-     *               interrupted.
-     * @since      JDK1.0
+     * @return     the exit value of the process. By convention, 
+     *             <code>0</code> indicates normal termination.
+     * @exception  InterruptedException  if the current thread is 
+     *             {@link Thread#interrupt() interrupted} by another thread 
+     *             while it is waiting, then the wait is ended and an 
+     *             <code>InterruptedException</code> is thrown.
      */
     abstract public int waitFor() throws InterruptedException;
 
     /**
      * Returns the exit value for the subprocess.
      *
-     * @return  the exit value of the subprocess.
-     * @exception  IllegalThreadStateException  if the subprocess has not yet
-     *               terminated.
-     * @since      JDK1.0
+     * @return  the exit value of the subprocess represented by this 
+     *          <code>Process</code> object. by convention, the value 
+     *          <code>0</code> indicates normal termination.
+     * @exception  IllegalThreadStateException  if the subprocess represented 
+     *             by this <code>Process</code> object has not yet terminated.
      */
     abstract public int exitValue();
 
     /**
-     * Kills the subprocess. 
-     *
-     * @since   JDK1.0
+     * Kills the subprocess. The subprocess represented by this 
+     * <code>Process</code> object is forcibly terminated.
      */
     abstract public void destroy();
 }

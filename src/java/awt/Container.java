@@ -1,20 +1,29 @@
 /*
- * @(#)Container.java	1.157 01/12/10
+ * @(#)Container.java	1.150 00/04/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 package java.awt;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.awt.peer.ActiveEvent;
-import java.awt.peer.ComponentPeer;
 import java.awt.peer.ContainerPeer;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.awt.event.AWTEventListener;
 
 /**
  * A generic Abstract Window Toolkit(AWT) container object is a component 
@@ -25,7 +34,7 @@ import java.io.IOException;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.157, 12/10/01
+ * @version 	1.150 04/19/00
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)
@@ -33,20 +42,32 @@ import java.io.IOException;
  * @see       java.awt.LayoutManager
  * @since     JDK1.0
  */
-public abstract class Container extends Component {
+public class Container extends Component {
 
     /**
      * The number of components in this container.
+	 * This value can be null.
+	 * @serial
+     * @see getComponent()
+     * @see getComponents()
+     * @see getComponentCount()
      */
     int ncomponents;
 
     /** 
      * The components in this container.
+	 * @serial
+     * @see add()
+     * @see getComponents()
      */
     Component component[] = new Component[4];
 
     /** 
      * Layout manager for this container.
+	 * @serial
+     * @see doLayout()
+     * @see setLayout()
+     * @see getLayout()
      */
     LayoutManager layoutMgr;
 
@@ -55,10 +76,16 @@ public abstract class Container extends Component {
      * is native, this dispatcher takes care of forwarding and 
      * retargeting the events to lightweight components contained
      * (if any).
+	 * @serial
      */
     private LightweightDispatcher dispatcher;
 
-    /** Internal, cached size information */
+    /*
+	 * Internal, cached size information.
+	 * @serial
+     * @see getMaximumSize()
+	 * @see getPreferredSize()
+	 */
     private Dimension maxSize;
 
     transient ContainerListener containerListener;
@@ -66,7 +93,19 @@ public abstract class Container extends Component {
     /*
      * JDK 1.1 serialVersionUID 
      */
-     private static final long serialVersionUID = 4613797578919906343L;  
+     private static final long serialVersionUID = 4613797578919906343L;
+
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+	initIDs();
+    }
+
+    /**
+     * Initialize JNI field and method IDs for fields that may be
+       called from C.
+     */
+    private static native void initIDs();
 
     /**
      * Constructs a new Container. Containers can be extended directly, 
@@ -74,7 +113,7 @@ public abstract class Container extends Component {
      * somewhere higher up in the component tree that is native.
      * (such as Frame for example).
      */
-    protected Container() {
+    public Container() {
     }
 
     /** 
@@ -101,7 +140,6 @@ public abstract class Container extends Component {
      * @return     the n<sup>th</sup> component in this container.
      * @exception  ArrayIndexOutOfBoundsException  
      *                 if the n<sup>th</sup> value does not exist.     
-     * @since      JDK1.0
      */
     public Component getComponent(int n) {
 	synchronized (getTreeLock()) {
@@ -115,15 +153,21 @@ public abstract class Container extends Component {
     /**
      * Gets all the components in this container.
      * @return    an array of all the components in this container.     
-     * @since     JDK1.0
      */
     public Component[] getComponents() {
+	return getComponents_NoClientCode();
+    }
+    // NOTE: This method may be called by privileged threads.
+    //       This functionality is implemented in a package-private method 
+    //       to insure that it cannot be overridden by client subclasses. 
+    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
+    final Component[] getComponents_NoClientCode() {
 	synchronized (getTreeLock()) {
 	    Component list[] = new Component[ncomponents];
 	    System.arraycopy(component, 0, list, 0, ncomponents);
 	    return list;
 	}
-    }
+    } // getComponents_NoClientCode()
 
     /**
      * Determines the insets of this container, which indicate the size 
@@ -147,7 +191,7 @@ public abstract class Container extends Component {
     public Insets insets() {
 	if (this.peer != null && this.peer instanceof ContainerPeer) {
 	    ContainerPeer peer = (ContainerPeer)this.peer;
-	    return (Insets)peer.insets().clone();
+	    return peer.insets();
 	}
 	return new Insets(0, 0, 0, 0);
     }
@@ -156,7 +200,6 @@ public abstract class Container extends Component {
      * Adds the specified component to the end of this container. 
      * @param     comp   the component to be added.
      * @return    the component argument.     
-     * @since     JDK1.0
      */
     public Component add(Component comp) {
         addImpl(comp, null, -1);
@@ -181,7 +224,6 @@ public abstract class Container extends Component {
      *                   or <code>-1</code> to insert the component at the end.
      * @return    the component <code>comp</code>
      * @see	  #remove
-     * @since     JDK1.0
      */
     public Component add(Component comp, int index) {
 	addImpl(comp, null, index);
@@ -353,7 +395,6 @@ public abstract class Container extends Component {
      * Removes the specified component from this container.
      * @param comp the component to be removed
      * @see #add
-     * @since JDK1.0
      */
     public void remove(Component comp) {
 	synchronized (getTreeLock()) {
@@ -375,7 +416,6 @@ public abstract class Container extends Component {
      * Removes all the components from this container.
      * @see #add
      * @see #remove
-     * @since JDK1.0
      */
     public void removeAll() {
 	synchronized (getTreeLock()) {
@@ -400,7 +440,7 @@ public abstract class Container extends Component {
 	    }
 	    if (valid) {
 		invalidate();
-	}
+	    }
 	}
     }
 
@@ -408,7 +448,6 @@ public abstract class Container extends Component {
      * Gets the layout manager for this container.  
      * @see #doLayout
      * @see #setLayout
-     * @since JDK1.0
      */
     public LayoutManager getLayout() {
 	return layoutMgr;
@@ -419,7 +458,6 @@ public abstract class Container extends Component {
      * @param mgr the specified layout manager
      * @see #doLayout
      * @see #getLayout
-     * @since JDK1.0
      */
     public void setLayout(LayoutManager mgr) {
 	layoutMgr = mgr;
@@ -476,7 +514,6 @@ public abstract class Container extends Component {
      * have been added to or modified.
      * @see #validate
      * @see Component#invalidate
-     * @since JDK1.0
      */
     public void validate() {
         /* Avoid grabbing lock unless really necessary. */
@@ -525,6 +562,53 @@ public abstract class Container extends Component {
 	valid = true;
     }
 
+    /**
+     * Recursively descends the container tree and invalidates all
+     * contained components.
+     */
+    void invalidateTree() {
+        synchronized (getTreeLock()) {
+	    for (int i = 0; i < ncomponents; ++i) {
+	        Component comp = component[i];
+		if (comp instanceof Container) {
+		    ((Container)comp).invalidateTree();
+		}
+		else {
+		    if (comp.valid) {
+		        comp.invalidate();
+		    }
+		}
+	    }
+	    if (valid) {
+	        invalidate();
+	    }
+	}
+    }
+
+    /**
+     * Sets the font of this container.
+     * @param f The font to become this container's font.
+     * @see Component#getFont
+     * @since JDK1.0
+     */
+    public void setFont(Font f) {
+        boolean shouldinvalidate = false;
+
+	synchronized (this) {
+	    Font oldfont = getFont();
+	    super.setFont(f);
+	    Font newfont = getFont();
+	    if (newfont != oldfont && (oldfont == null ||
+				       !oldfont.equals(newfont))) {
+	        shouldinvalidate = true;
+	    }
+	}
+
+	if (shouldinvalidate) {
+	    invalidateTree();
+	}
+    }
+
     /** 
      * Returns the preferred size of this container.  
      * @return    an instance of <code>Dimension</code> that represents 
@@ -533,7 +617,6 @@ public abstract class Container extends Component {
      * @see       java.awt.Container#getLayout
      * @see       java.awt.LayoutManager#preferredLayoutSize(java.awt.Container)
      * @see       java.awt.Component#getPreferredSize
-     * @since     JDK1.0
      */
     public Dimension getPreferredSize() {
 	return preferredSize();
@@ -679,7 +762,7 @@ public abstract class Container extends Component {
 		    comp.visible == true) {
 
 		    Rectangle cr = comp.getBounds();
-		    if ((clip == null) || cr.intersects(clip)) {
+		    if (( clip == null ) || cr.intersects(clip)) {
 			Graphics cg = g.create(cr.x, cr.y, cr.width, cr.height);
 			cg.setFont(comp.getFont());
 			try {
@@ -706,11 +789,9 @@ public abstract class Container extends Component {
     public void update(Graphics g) {
         if (isShowing()) {
             if (! (peer instanceof java.awt.peer.LightweightPeer)) {
-                g.setColor(getBackground());
-                g.fillRect(0, 0, width, height);
-                g.setColor(getForeground());
+                g.clearRect(0, 0, width, height);
             }
-            super.update(g);
+            paint(g);
         }
     }
 
@@ -727,25 +808,24 @@ public abstract class Container extends Component {
     public void print(Graphics g) {
         super.print(g);  // By default, Component.print() calls paint()
 
-        int ncomponents = this.ncomponents;
+    	int ncomponents = this.ncomponents;
         Component component[] = this.component;
-        Rectangle clip = g.getClipRect();
+	Rectangle clip = g.getClipRect();
 	for (int i = ncomponents - 1 ; i >= 0 ; i--) {
 	    Component comp = component[i];
-	    if (comp != null && 
-		    comp.peer instanceof java.awt.peer.LightweightPeer ) {
+	    if (comp != null &&
+		   comp.peer instanceof java.awt.peer.LightweightPeer) {
 		Rectangle cr = comp.getBounds();
-		if ((clip==null) || cr.intersects(clip)) {
+		if ((clip == null) || cr.intersects(clip)) {
 		    Graphics cg = g.create(cr.x, cr.y, cr.width, cr.height);
-		    cg.setFont(comp.getFont());
 		    try {
 			comp.print(cg);
 		    } finally {
 			cg.dispose();
 		    }
 		}
-            }
-        }
+	    }
+	}
     }
 
     /** 
@@ -753,7 +833,6 @@ public abstract class Container extends Component {
      * @param     g   the graphics context.
      * @see       java.awt.Component#paint
      * @see       java.awt.Component#paintAll
-     * @since     JDK1.0
      */
     public void paintComponents(Graphics g) {
     	int ncomponents = this.ncomponents;
@@ -762,29 +841,33 @@ public abstract class Container extends Component {
 	    Component comp = component[i];
 	    if (comp != null) {
                 Graphics cg = comp.getGraphics();
-                Rectangle parentRect = g.getClipRect();
+		if (cg != null) {
+		    Rectangle parentRect = g.getClipRect();
 
-                // Calculate the clipping region of the child's graphics
-                // context, by taking the intersection of the parent's
-                // clipRect (if any) and the child's bounds, and then 
-                // translating it's coordinates to be relative to the child.
-                if (parentRect != null) {
-                    Rectangle childRect = comp.getBounds();
-                    if (childRect.intersects(parentRect) == false) {
-                        // Child component is completely clipped out: ignore.
-                        continue;
-                    }
-                    Rectangle childClipRect = 
-                        childRect.intersection(parentRect);
-                    childClipRect.translate(-childRect.x, -childRect.y);
-                    cg.clipRect(childClipRect.x, childClipRect.y,
-                                childClipRect.width, childClipRect.height);
-                }
-
-		try {
-		    comp.paintAll(cg);
-		} finally {
-		    cg.dispose();
+		    // Calculate the clipping region of the child's graphics
+		    // context, by taking the intersection of the parent's
+		    // clipRect (if any) and the child's bounds, and then 
+		    // translating it's coordinates to be relative to the
+		    // child.
+		    if (parentRect != null) {
+		        Rectangle childRect = comp.getBounds();
+			if (childRect.intersects(parentRect) == false) {
+			    // Child component is completely clipped out:
+			    // ignore.
+			    continue;
+			}
+			Rectangle childClipRect = 
+			    childRect.intersection(parentRect);
+			childClipRect.translate(-childRect.x, -childRect.y);
+			cg.clipRect(childClipRect.x, childClipRect.y,
+				    childClipRect.width, childClipRect.height);
+		    }
+		    
+		    try {
+		        comp.paintAll(cg);
+		    } finally {
+		      cg.dispose();
+		    }
 		}
 	    }
 	}
@@ -795,43 +878,42 @@ public abstract class Container extends Component {
      * @param     g   the graphics context.
      * @see       java.awt.Component#print
      * @see       java.awt.Component#printAll
-     * @since     JDK1.0
      */
     public void printComponents(Graphics g) {
         int ncomponents = this.ncomponents;
         Component component[] = this.component;
 
-	// A seriously sad hack--
-	// Lightweight components always paint behind peered components,
-	// even if they are at the top of the Z order. We emulate this
-	// behavior by making two printing passes: the first for lightweights;
-	// the second for heavyweights.
+        // A seriously sad hack--
+        // Lightweight components always paint behind peered components,
+        // even if they are at the top of the Z order. We emulate this
+        // behavior by making two printing passes: the first for lightweights;
+        // the second for heavyweights.
 
         for (int i = ncomponents - 1 ; i >= 0 ; i--) {
             Component comp = component[i];
             if (comp != null && 
-		    comp.peer instanceof java.awt.peer.LightweightPeer) {
-	        printOneComponent(g, comp);
+                    comp.peer instanceof java.awt.peer.LightweightPeer) {
+                printOneComponent(g, comp);
             }
         }
         for (int i = ncomponents - 1 ; i >= 0 ; i--) {
             Component comp = component[i];
             if (comp != null && 
-		    !(comp.peer instanceof java.awt.peer.LightweightPeer)) {
-	        printOneComponent(g, comp);
+                    !(comp.peer instanceof java.awt.peer.LightweightPeer)) {
+                printOneComponent(g, comp);
             }
         }
     }
 
     private void printOneComponent(Graphics g, Component comp) {
         Graphics cg = g.create(comp.x, comp.y, comp.width,
-			       comp.height);
-	cg.setFont(comp.getFont());
-	try {
-	    comp.printAll(cg);
-	} finally {
-	    cg.dispose();
-	}
+                               comp.height);
+        cg.setFont(comp.getFont());
+        try {
+            comp.printAll(cg);
+        } finally {
+            cg.dispose();
+        }
     }
 
     /**
@@ -843,15 +925,45 @@ public abstract class Container extends Component {
      */
     void lightweightPrint(Graphics g) {
         super.lightweightPrint(g);
-        printComponents(g);
+        printHeavyweightComponents(g);
+    }
+
+    /**
+     * Prints all the heavyweight subcomponents.
+     */
+    void printHeavyweightComponents(Graphics g) {
+        int ncomponents = this.ncomponents;
+        Component component[] = this.component;
+        for (int i = ncomponents - 1 ; i >= 0 ; i--) {
+            Component comp = component[i];
+            if (comp != null) {
+                if (!(comp.peer instanceof java.awt.peer.LightweightPeer)) {
+                    printOneComponent(g, comp);
+                } else {
+                    Graphics cg = g.create(comp.x, comp.y,
+                                           comp.width, comp.height);
+                    cg.setFont(comp.getFont());
+                    try {
+                        comp.printHeavyweightComponents(cg);
+                    } finally {
+                        cg.dispose();
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Adds the specified container listener to receive container events
      * from this container.
-     * @param l the container listener
+     * If l is null, no exception is thrown and no action is performed.
+     *
+     * @param    l the container listener
      */ 
     public synchronized void addContainerListener(ContainerListener l) {
+	if (l == null) {
+	    return;
+	}
 	containerListener = AWTEventMulticaster.add(containerListener, l);
         newEventsOnly = true;	
     }
@@ -859,9 +971,14 @@ public abstract class Container extends Component {
     /**
      * Removes the specified container listener so it no longer receives
      * container events from this container.
-     * @param l the container listener
+     * If l is null, no exception is thrown and no action is performed.
+     *
+     * @param 	l the container listener
      */ 
     public synchronized void removeContainerListener(ContainerListener l) {
+	if (l == null) {
+	    return;
+	}
 	containerListener = AWTEventMulticaster.remove(containerListener, l);
     }
 
@@ -969,10 +1086,10 @@ public abstract class Container extends Component {
 			return deeper;
 		    }
 		} else {
-                    if ((comp.mouseListener != null) ||
-                        ((comp.eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0) ||
-                        (comp.mouseMotionListener != null) ||
-                        ((comp.eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0)) {
+		    if ((comp.mouseListener != null) || 
+			((comp.eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0) ||
+			(comp.mouseMotionListener != null) ||
+			((comp.eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0)) {
 			// there isn't a deeper target, but this component is a target
 			return comp;
 		    }
@@ -987,88 +1104,18 @@ public abstract class Container extends Component {
 	
 	isPeerOK = (peer instanceof java.awt.peer.LightweightPeer) || includeSelf;
 	isMouseOverMe = contains(x,y);
-        isMouseListener = (mouseListener != null) ||
-                          ((eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0);
-        isMotionListener = (mouseMotionListener != null) ||
-                           ((eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0);
+	isMouseListener = (mouseListener != null) ||
+			  ((eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0);
+	isMotionListener = (mouseMotionListener != null) ||
+			   ((eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0);
 
-        // didn't find a child target, return this component if it's a possible target
-        if ( isMouseOverMe && isPeerOK && (isMouseListener || isMotionListener) ) {
+	// didn't find a child target, return this component if it's a possible target
+	if ( isMouseOverMe && isPeerOK && (isMouseListener || isMotionListener) ) {
 	    return this;
 	}
 	// no possible target
 	return null;
     }
-
-
-    /**
-     * Set the cursor image to a predefined cursor.
-     * @param <code>cursor</code> One of the constants defined
-     *            by the <code>Cursor</code> class.
-     * @see       java.awt.Component#getCursor
-     * @see       java.awt.Cursor
-     * @since     JDK1.1
-     */
-    public synchronized void setCursor(Cursor cursor) {
-        if (dispatcher != null) {
-            Component cursorOn = dispatcher.getCursorOn();
-
-            // if mouse is on a lightweight component, we should not
-            // call setCursor on the nativeContainer
-            if (cursorOn != null) {
-                this.cursor = cursor;
-
-                // it could be that cursorOn will inherit the new cursor
-                dispatcher.updateCursor(cursorOn);
-		return;
-            }
-        }
-        super.setCursor(cursor);
-    }
-
-    /**
-     * Update the cursor is decided by the dispatcher 
-     * This method is used when setCursor on a lightweight  
-     */
-    void updateCursor(Component comp) {
-	if (dispatcher != null) {
-	    dispatcher.updateCursor(comp);
-	}
-    }
-
-    /**
-     * Fetchs the top-most (deepest) lightweight component whose cursor 
-     * should be displayed.
-     */
-    Component getCursorTarget(int x, int y) {
-	int ncomponents = this.ncomponents;
-        Component component[] = this.component;
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = component[i];
-	    if ((comp != null) && (comp.contains(x - comp.x, y - comp.y)) &&
-		(comp.visible == true)) {
-		// found a component that intersects the point, see if there is 
-		// a deeper possibility.
-		if (comp instanceof Container) {
-		    Container child = (Container) comp;
-		    Component deeper = child.getCursorTarget(x - child.x, y - child.y);
-		    if (deeper != null) {
-			return deeper;
-		    }
-		} else {
-		    return comp;
-		}
-	    }
-	}
-	
-        if (contains(x,y) && (peer instanceof java.awt.peer.LightweightPeer)) {
-	    return this;
-	}
-
-	// no possible target
-	return null;
-    }
-
 
     /**
      * This is called by lightweight components that want the containing
@@ -1122,26 +1169,15 @@ public abstract class Container extends Component {
                 // call the peer to set focus to this Container.  This way,
                 // we avoid activating this Window if it's not currently
                 // active.  -fredx, 2-19-98, bug #4111098
-                if ( isContainingWindowActivated() ) {
-		// NOTE: See bug #4133261-- we should look into removing this fix
-		// or at least make hw and lw components behave the same 
-		// -robi 7-30-98
-		    requestFocus();
+                Component window = this;
+                while (!(window instanceof Window))
+                    window = window.getParent();
+                if (((Window)window).isActive()) {
+                    peer.requestFocus();
 		}
+                Toolkit.getEventQueue().changeKeyEventFocus(this);
 	    }
 	}
-    }
-
-    /*
-     * Determines if the top-level window containing 
-     * this component is activated
-     */
-    private boolean isContainingWindowActivated() {
-	Component comp = this;
-	while ( !(comp instanceof Window) ) {
-	    comp = comp.getParent();
-	}
-	return ((Window)comp).isActive();
     }
 
     /**
@@ -1211,13 +1247,86 @@ public abstract class Container extends Component {
 	return getComponentAt(p.x, p.y);
     }
 
+    /**
+     * Locates the visible child component that contains the specified
+     * position.  The top-most child component is returned in the case 
+     * where there is overlap in the components.  If the containing child 
+     * component is a Container, this method will continue searching for 
+     * the deepest nested child component.  Components which are not
+     * visible are ignored during the search.<p>
+     *
+     * The findComponentAt method is different from getComponentAt in
+     * that getComponentAt only searches the Container's immediate
+     * children; if the containing component is a Container, 
+     * findComponentAt will search that child to find a nested component.
+     *
+     * @param x the <i>x</i> coordinate
+     * @param y the <i>y</i> coordinate
+     * @return null if the component does not contain the position.
+     * If there is no child component at the requested point and the 
+     * point is within the bounds of the container the container itself 
+     * is returned.
+     * @see Component#contains
+     * @see getComponentAt
+     * @since JDK1.2
+     */
+    public Component findComponentAt(int x, int y) {
+	if (!contains(x, y)) {
+	    return null;
+	}
+        int ncomponents = this.ncomponents;
+        Component component[] = this.component;
+        for (int i = 0 ; i < ncomponents ; i++) {
+            Component comp = component[i];
+            if (comp != null) {
+                if (comp instanceof Container) {
+                    comp = ((Container)comp).findComponentAt(x - comp.x,
+                                                             y - comp.y);
+                } else {
+                    comp = comp.locate(x - comp.x, y - comp.y);
+                }
+                if (comp != null && comp.isVisible()) {
+                    return comp;
+                }
+            }
+        }
+	return this;
+    }
+
+    /**
+     * Locates the visible child component that contains the specified
+     * point.  The top-most child component is returned in the case 
+     * where there is overlap in the components.  If the containing child 
+     * component is a Container, this method will continue searching for 
+     * the deepest nested child component.  Components which are not
+     * visible are ignored during the search.<p>
+     *
+     * The findComponentAt method is different from getComponentAt in
+     * that getComponentAt only searches the Container's immediate
+     * children; if the containing component is a Container, 
+     * findComponentAt will search that child to find a nested component.
+     *
+     * @param      p   the point.
+     * @return null if the component does not contain the position.
+     * If there is no child component at the requested point and the 
+     * point is within the bounds of the container the container itself 
+     * is returned.
+     * @see Component#contains
+     * @see getComponentAt
+     * @since JDK1.2
+     */
+    public Component findComponentAt(Point p) {
+        return findComponentAt(p.x, p.y);
+    }
+
     /** 
-     * Notifies the container to create a peer. It will also
-     * notify the components contained in this container.
-     * This method should be called by <code>Container.add</code>, 
-     * and not by user code directly.
+     * Makes this Container displayable by connecting it to
+     * a native screen resource.  Making a container displayable will
+     * cause any of its children to be made displayable.
+     * This method is called internally by the toolkit and should
+     * not be called directly by programs.
+     * @see Component#isDisplayable
      * @see #removeNotify
-     * @since JDK1.0
      */
     public void addNotify() {
         synchronized (getTreeLock()) {
@@ -1233,28 +1342,25 @@ public abstract class Container extends Component {
             Component component[] = this.component;
 	    for (int i = 0 ; i < ncomponents ; i++) {
 	        component[i].addNotify();
-	     }
+	    }
         }
     }
 
     /** 
-     * Notifies this container and all of its subcomponents to remove 
-     * their peers. 
-     * This method should be invoked by the container's 
-     * <code>remove</code> method, and not directly by user code.
-     * @see       java.awt.Container#remove(int)
-     * @see       java.awt.Container#remove(java.awt.Component)
-     * @since     JDK1.0
+     * Makes this Container undisplayable by removing its connection
+     * to its native screen resource.  Make a container undisplayable
+     * will cause any of its children to be made undisplayable. 
+     * This method is called by the toolkit internally and should
+     * not be called directly by programs.
+     * @see Component#isDisplayable
+     * @see #addNotify
      */
     public void removeNotify() {
-        synchronized(getTreeLock()) {
-            int ncomponents = this.ncomponents;
+        synchronized (getTreeLock()) {
+	    int ncomponents = this.ncomponents;
             Component component[] = this.component;
 	    for (int i = 0 ; i < ncomponents ; i++) {
 	        component[i].removeNotify();
-	    }
-	    if ( dispatcher != null ) {
-		dispatcher.dispose();
 	    }
 	    super.removeNotify();
         }
@@ -1265,7 +1371,7 @@ public abstract class Container extends Component {
      * this container.
      * @param c the component
      * @return     <code>true</code> if it is an ancestor; 
-     *             <code>true</code> otherwise.
+     *             <code>false</code> otherwise.
      * @since      JDK1.1
      */
     public boolean isAncestorOf(Component c) {
@@ -1286,7 +1392,6 @@ public abstract class Container extends Component {
      * Returns the parameter string representing the state of this 
      * container. This string is useful for debugging. 
      * @return    the parameter string of this container.
-     * @since     JDK1.0
      */
     protected String paramString() {
 	String str = super.paramString();
@@ -1373,13 +1478,50 @@ public abstract class Container extends Component {
 	}
     }
 
+    /**
+     * Package-visible utility to set the orientation of this container
+     * and all components contained within it.
+     * @since JDK1.2
+     * @see java.awt.Window#applyResourceBundle(java.util.ResourceBundle)
+     */
+    void applyOrientation(ComponentOrientation o) {
+        setComponentOrientation(o);
+        
+	    for (int i = 0 ; i < ncomponents ; ++i) {
+    		Component comp = component[i];
+    		if (comp instanceof Container) {
+    		    ((Container)comp).applyOrientation(o);
+    		} else {
+    		    comp.setComponentOrientation(o);
+    		}
+        }
+    }
+    
     /* Serialization support.  A Container is responsible for
      * restoring the parent fields of its component children. 
      */
-
+	/*
+	 * Container Serial Data Version.
+	 * @serial
+	 */
     private int containerSerializedDataVersion = 1;
 
-
+	/**
+    * Writes default serializable fields to stream.  Writes
+    * a list of serializable ItemListener(s) as optional data.
+    * The non-serializable ItemListner(s) are detected and
+    * no attempt is made to serialize them.
+    *
+    * @serialData Null terminated sequence of 0 or more pairs.
+    *             The pair consists of a String and Object.
+    *             The String indicates the type of object and
+    *             is one of the following :
+    *             itemListenerK indicating and ItemListener object.
+    *
+    * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
+    * @see java.awt.Component.itemListenerK
+    */
+	
     private void writeObject(ObjectOutputStream s)
       throws IOException 
     {
@@ -1389,7 +1531,15 @@ public abstract class Container extends Component {
       s.writeObject(null);
     }
 
-
+	/*
+    * Read the ObjectInputStream and if it isnt null
+    * add a listener to receive item events fired
+    * by the component in the container.
+    * Unrecognised keys or values will be Ignored.
+    * @serial
+    * @see removeActionListener()
+    * @see addActionListener()
+    */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException 
     {
@@ -1419,8 +1569,7 @@ public abstract class Container extends Component {
  * 
  * @author Timothy Prinzing
  */
-class LightweightDispatcher implements java.io.Serializable,
-					EventQueueListener {
+class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 
     /*
      * JDK 1.1 serialVersionUID 
@@ -1436,13 +1585,6 @@ class LightweightDispatcher implements java.io.Serializable,
 	focus = null;
 	mouseEventTarget = null;
 	eventMask = 0;
-    }
-
-    /*
-     * Disposes any external resources allocated by the dispatcher
-     */
-    void dispose() {
-	stopListeningForOtherDrags();
     }
 
     /**
@@ -1468,18 +1610,22 @@ class LightweightDispatcher implements java.io.Serializable,
     boolean setFocusRequest(Component c) {
 	boolean peerNeedsRequest = true;
 	Window w = nativeContainer.getWindow();
-	if ((w != null) && (c != null)) {
+	if (w != null && c != null) {
 	    Component focusOwner = w.getFocusOwner();
-	    if (focusOwner == null) {
+            if (focusOwner == null) {
 
-		// No focus in this component
-		focus = c;
+                // No focus in this component
+                focus = c;
 
-	    } else if (focusOwner == nativeContainer) {
+            } else if (focusOwner == nativeContainer) {
 		// This container already has focus, so just 
-		// send FOCUS_GAINED event to lightweight component
+		// send a FOCUS_LOST event to the container
+                // and FOCUS_GAINED event to lightweight component
+
+		nativeContainer.dispatchEvent(new FocusEvent(nativeContainer, FocusEvent.FOCUS_LOST, false));
 		focus = c ;
 		c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
+		
 		peerNeedsRequest = false;
 	    } else if (focusOwner == c) {
 		// lightweight already has the focus
@@ -1491,21 +1637,21 @@ class LightweightDispatcher implements java.io.Serializable,
 		// this so we go ahead and send FOCUS_LOST for the old and FOCUS_GAINED
 		// for the new.
 		if (focus != null) {
-		    focus.dispatchEvent(new FocusEvent(focus, 
-						       FocusEvent.FOCUS_LOST, 
-						       false));
-                }
+                    focus.dispatchEvent(new FocusEvent(focus, 
+                                                FocusEvent.FOCUS_LOST, 
+                                                false));
+		}
 		focus = c ;
-		c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
+                c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
 		peerNeedsRequest = false;
-	    }else { 
+	     } else {
 		//Fix for bug 4095214
 		//Paul Sheehan
-                focus = c ; 
-            } 
+		focus = c;
+	     }
    	}
 	return peerNeedsRequest;
-    } // setFocusRequest()
+    }
 
     /**
      * Dispatches an event to a lightweight sub-component if necessary, and
@@ -1515,37 +1661,26 @@ class LightweightDispatcher implements java.io.Serializable,
      * @param e the event
      */
     boolean dispatchEvent(AWTEvent e) {
-	boolean ret = false;
 	if ((eventMask & PROXY_EVENT_MASK) != 0) {
 	    if ((e instanceof MouseEvent) && 
 		((eventMask & MOUSE_MASK) != 0)) {
 		
 		MouseEvent me = (MouseEvent) e;
-		ret = processMouseEvent(me);
+		return processMouseEvent(me);
 
 	    } else if (e instanceof FocusEvent) {
 		
 		FocusEvent fe = (FocusEvent) e;
-		ret = processFocusEvent(fe);
+		return processFocusEvent(fe);
 
 	    } else if (e instanceof KeyEvent) {
 
 		KeyEvent ke = (KeyEvent) e;
-		ret = processKeyEvent(ke);
+		return processKeyEvent(ke);
 
 	    }
 	}
-
-	if (e instanceof MouseEvent) {
-	    // find out what component the mouse moved in
-	    MouseEvent me = (MouseEvent) e;
-
-	    if (me.getID() == MouseEvent.MOUSE_MOVED) {
-	        cursorOn = nativeContainer.getCursorTarget(me.getX(), me.getY());
-	        updateCursor(cursorOn);
-	    }
-	}
-	return ret;
+	return false;
     }
 
     private boolean processKeyEvent(KeyEvent e) {
@@ -1556,9 +1691,9 @@ class LightweightDispatcher implements java.io.Serializable,
 	    // require the original native event data to be attached to
 	    // the KeyEvent.
 	    Component source = e.getComponent();
-	    e.setSource(focus);
+	    ((AWTEvent)e).setSource(focus);
 	    focus.dispatchEvent(e);
-	    e.setSource(source);
+	    ((AWTEvent)e).setSource(source);
 	    return e.isConsumed();
 	}
 	return false;
@@ -1568,6 +1703,7 @@ class LightweightDispatcher implements java.io.Serializable,
 	if (focus != null) {
 	    int id = e.getID();
 	    FocusEvent retargeted = new FocusEvent(focus, id, e.isTemporary());
+	    ((AWTEvent)e).copyPrivateDataInto(retargeted);
 	    focus.dispatchEvent(retargeted);
 	    if ((id == FocusEvent.FOCUS_LOST) && (e.isTemporary() == false)) {
 		focus = null;
@@ -1598,10 +1734,6 @@ class LightweightDispatcher implements java.io.Serializable,
 		lwOver = (targetOver != nativeContainer) ? targetOver : null;
 		setMouseTarget(lwOver,e);
 	    }
-            if ( id == MouseEvent.MOUSE_CLICKED && isClickOrphaned ) {
-                isClickOrphaned = false;
-                e.consume();
-            }
 	}
 
 	if (mouseEventTarget != null) {
@@ -1618,23 +1750,27 @@ class LightweightDispatcher implements java.io.Serializable,
 		retargetMouseEvent(mouseEventTarget, id, e);
 		break;
 	    case MouseEvent.MOUSE_RELEASED:
-                Component releasedTarget = mouseEventTarget;
+	    {
+		Component releasedTarget = mouseEventTarget;
 		dragging = false;
 		retargetMouseEvent(mouseEventTarget, id, e);
 		lwOver = nativeContainer.getMouseEventTarget(e.getX(), e.getY(),false);
 		setMouseTarget(lwOver, e);
-
-		// fix 4155217 component was hidden or moved in user 
-		// code MOUSE_RELEASED handling
-		isClickOrphaned = lwOver != releasedTarget;
-
-		break;
-	    case MouseEvent.MOUSE_CLICKED:
-                if (!isClickOrphaned) {
-		    retargetMouseEvent(mouseEventTarget, id, e);
-		} else { 
-                    isClickOrphaned = false;
+		if (lwOver != releasedTarget) {
+		// fix 4155217
+		// component was hidden or moved in user code MOUSE_RELEASED handling
+		    isClickOrphaned = true;
 		}
+		break;
+	    }
+	    
+	    case MouseEvent.MOUSE_CLICKED:
+		if (!isClickOrphaned) {
+		// fix 4155217
+		// click event should not be redirected since component has moved or hidden
+		    retargetMouseEvent(mouseEventTarget, id, e);
+		}
+		isClickOrphaned = false;
 		break;
 	    case MouseEvent.MOUSE_ENTERED:
 		break;
@@ -1713,23 +1849,38 @@ class LightweightDispatcher implements java.io.Serializable,
     }
 
     private void startListeningForOtherDrags() {
-	// System.out.println("Adding EventQueueListener");
-	Toolkit.getEventQueue().addEventQueueListener(this);
+	//System.out.println("Adding AWTEventListener");
+	java.security.AccessController.doPrivileged(
+	    new java.security.PrivilegedAction() {
+		public Object run() {
+		    nativeContainer.getToolkit().addAWTEventListener(
+		    	LightweightDispatcher.this,
+			AWTEvent.MOUSE_EVENT_MASK |
+			AWTEvent.MOUSE_MOTION_EVENT_MASK);
+		    return null;
+		}
+	    }
+	);
     }
 
     private void stopListeningForOtherDrags() {
-	// System.out.println("Removing EventQueueListener");
-	Toolkit.getEventQueue().removeEventQueueListener(this);
-	// removed any queued up dragged-over events
-	Toolkit.getEventQueue().removeEvents(MouseEvent.class, LWD_MOUSE_DRAGGED_OVER);
+	//System.out.println("Removing AWTEventListener");
+	java.security.AccessController.doPrivileged(
+	    new java.security.PrivilegedAction() {
+		public Object run() {
+		    nativeContainer.getToolkit().removeAWTEventListener(LightweightDispatcher.this);
+		    return null;
+		}
+	    }
+	);
     }
 
     /*
-     * (Implementation of EventQueueListener)
+     * (Implementation of AWTEventListener)
      * Listen for drag events posted in other hw components so we can
      * track enter/exit regardless of where a drag originated
      */
-    public void eventPosted(AWTEvent e) {
+    public void eventDispatched(AWTEvent e) {
 	boolean isForeignDrag = (e instanceof MouseEvent) &&
 				(e.id == MouseEvent.MOUSE_DRAGGED) &&
 				(e.getSource() != nativeContainer);
@@ -1739,60 +1890,42 @@ class LightweightDispatcher implements java.io.Serializable,
 	    return;
 	}
 
-	// execute trackMouseEnterExit on EventDispatchThread
-	Toolkit.getEventQueue().postEvent(
-		new TrackEnterExitEvent( nativeContainer, (MouseEvent)e )
-	);
-    }
+	MouseEvent	srcEvent = (MouseEvent)e;
+	MouseEvent	me;
 
-    /*
-     * ActiveEvent that calls trackMouseEnterExit as a result of a drag
-     * originating in a 'foreign' hw container. Normally, we'd only be
-     * able to track mouse events in our own hw container.
-     */
-    private class TrackEnterExitEvent extends AWTEvent implements ActiveEvent {
-	MouseEvent	srcEvent;
-	public TrackEnterExitEvent( Component trackSrc, MouseEvent e ) {
-	    super(trackSrc,0);
-	    srcEvent = e;
-	}
+	synchronized (nativeContainer.getTreeLock()) {
+	    Component srcComponent = srcEvent.getComponent();
 
-	public void dispatch() {
-	    MouseEvent	me;
-
-	    synchronized (nativeContainer.getTreeLock()) {
-		Component srcComponent = srcEvent.getComponent();
-    
-		// component may have disappeared since drag event posted
-		// (i.e. Swing hierarchical menus)
-		if ( !srcComponent.isShowing() ||
-		     !nativeContainer.isShowing() ) {
-		    return;
-		}
-    
-		//
-		// create an internal 'dragged-over' event indicating
-		// we are being dragged over from another hw component
-		//
-		me = new MouseEvent(nativeContainer,
-				   LWD_MOUSE_DRAGGED_OVER,
-				   srcEvent.getWhen(),
-				   srcEvent.getModifiers(),
-				   srcEvent.getX(),
-				   srcEvent.getY(),
-				   srcEvent.getClickCount(),
-				   srcEvent.isPopupTrigger());
-		// translate coordinates to this native container
-		Point	ptSrcOrigin = srcComponent.getLocationOnScreen();
-		Point	ptDstOrigin = nativeContainer.getLocationOnScreen();
-		me.translatePoint( ptSrcOrigin.x - ptDstOrigin.x, ptSrcOrigin.y - ptDstOrigin.y );
+	    // component may have disappeared since drag event posted
+	    // (i.e. Swing hierarchical menus)
+	    if ( !srcComponent.isShowing() ||
+		 !nativeContainer.isShowing() ) {
+		return;
 	    }
-	    //System.out.println("Track event: " + me);
-	    // feed the 'dragged-over' event directly to the enter/exit
-	    // code (not a real event so don't pass it to dispatchEvent)
-	    Component targetOver = nativeContainer.getMouseEventTarget(me.getX(), me.getY(), true);
-	    trackMouseEnterExit(targetOver, me);
+
+	    //
+	    // create an internal 'dragged-over' event indicating
+	    // we are being dragged over from another hw component
+	    //
+	    me = new MouseEvent(nativeContainer,
+			       LWD_MOUSE_DRAGGED_OVER,
+			       srcEvent.getWhen(),
+			       srcEvent.getModifiers(),
+			       srcEvent.getX(),
+			       srcEvent.getY(),
+			       srcEvent.getClickCount(),
+			       srcEvent.isPopupTrigger());
+	    ((AWTEvent)srcEvent).copyPrivateDataInto(me);
+	    // translate coordinates to this native container
+	    Point	ptSrcOrigin = srcComponent.getLocationOnScreen();
+	    Point	ptDstOrigin = nativeContainer.getLocationOnScreen();
+	    me.translatePoint( ptSrcOrigin.x - ptDstOrigin.x, ptSrcOrigin.y - ptDstOrigin.y );
 	}
+	//System.out.println("Track event: " + me);
+	// feed the 'dragged-over' event directly to the enter/exit
+	// code (not a real event so don't pass it to dispatchEvent)
+	Component targetOver = nativeContainer.getMouseEventTarget(me.getX(), me.getY(), true);
+	trackMouseEnterExit(targetOver, me);
     }
 
     /**
@@ -1826,6 +1959,7 @@ class LightweightDispatcher implements java.io.Serializable,
                                                    y, 
                                                    e.getClickCount(), 
                                                    e.isPopupTrigger());
+	    ((AWTEvent)e).copyPrivateDataInto(retargeted);
 
 	    if (target == nativeContainer) {
 		// avoid recursively calling LightweightDispatcher...
@@ -1833,55 +1967,18 @@ class LightweightDispatcher implements java.io.Serializable,
 	    } else {
 		target.dispatchEvent(retargeted);
 	    }
+
+            // update cursor if needed.  This is done after the event has
+            // been sent to the target so the target has a chance to change
+            // the cursor after reacting to the event.
+	    Cursor c = target.getCursor();
+	    if (nativeContainer.getCursor() != c) {
+		//System.out.println("Setting cursor to: " + c.getType());
+		nativeContainer.setCursor(c);
+	    }
         }
     }
 	
-    /**
-     * Set the cursor for a lightweight component
-     * Enforce that null cursor means inheriting from parent
-     */
-    void updateCursor(Component comp) {
-
-	// if user wants to change the cursor, we do it even mouse is dragging 
-        // so LightweightDispatcher's dragging state is not checked here
-	if (comp != cursorOn) {
-	   return;
-	}
-
-        if (comp == null) {
-            comp = nativeContainer;
-        }
-        Cursor cursor = comp.getCursor();
-        while (cursor == null && comp != nativeContainer) {
-            comp = comp.getParent();
-
-            if (comp == null) {
-                cursor = nativeContainer.getCursor();
-                break;
-            }
-            cursor = comp.getCursor();
-        }
-
-	if (cursor != lightCursor) {
-	    lightCursor = cursor;
-
-	    // Only change the cursor on the peer, because we want client code to think
-	    // that the Container's cursor only changes in response to setCursor calls.
-	    ComponentPeer ncPeer = nativeContainer.getPeer();
-	    if (ncPeer != null) {
-		ncPeer.setCursor(cursor);
-	    }
-	}
-    }
-
-    /**
-     * get the lightweight component mouse cursor is on
-     * null means the nativeContainer
-     */
-    Component getCursorOn() {
-	return cursorOn;
-    }
-
     // --- member variables -------------------------------
 
     /**
@@ -1907,11 +2004,6 @@ class LightweightDispatcher implements java.io.Serializable,
     private transient Component mouseEventTarget;
 
     /**
-     *  lightweight component the mouse cursor is on 
-     */
-    private transient Component cursorOn;
-
-    /**
      * The last component entered
      */
     private transient Component targetLastEntered;
@@ -1934,11 +2026,13 @@ class LightweightDispatcher implements java.io.Serializable,
     private boolean dragging;
 
     /**
-     * The cursor that is currently displayed for the lightwieght 
-     * components.  Remember this cursor, so we do not need to
-     * change cursor on every mouse event.
+     * The cursor used by the native container that is hosting the
+     * lightweight components.  Since the Cursor used by the lightweight
+     * components overwrites the Cursor set in the native container
+     * we need to stash the native cursor so we can restore it after
+     * the lightweight components are done having their cursor shown.
      */
-    private Cursor lightCursor;
+    private Cursor nativeCursor;
 
     /**
      * The event mask for contained lightweight components.  Lightweight

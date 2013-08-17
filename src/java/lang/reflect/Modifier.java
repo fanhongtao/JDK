@@ -1,8 +1,15 @@
 /*
- * @(#)Modifier.java	1.7 01/12/10
+ * @(#)Modifier.java	1.12 98/08/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang.reflect;
@@ -52,7 +59,7 @@ class Modifier {
     }
 
     /**
-     * Return true if the specifier integer includes the <tt>final</tt>
+     * Return true if the specified integer includes the <tt>final</tt>
      * modifier.
      */
     public static boolean isFinal(int mod) {
@@ -60,7 +67,7 @@ class Modifier {
     }
 
     /**
-     * Return true if the specifier integer includes the <tt>synchronized</tt>
+     * Return true if the specified integer includes the <tt>synchronized</tt>
      * modifier.
      */
     public static boolean isSynchronized(int mod) {
@@ -68,7 +75,7 @@ class Modifier {
     }
 
     /**
-     * Return true if the specifier integer includes the <tt>volatile</tt>
+     * Return true if the specified integer includes the <tt>volatile</tt>
      * modifier.
      */
     public static boolean isVolatile(int mod) {
@@ -108,14 +115,22 @@ class Modifier {
     }
 
     /**
+     * Return true if the specifier integer includes the <tt>strict</tt>
+     * modifier.
+     */
+    public static boolean isStrict(int mod) {
+	return (mod & STRICT) != 0;
+    }
+
+    /**
      * Return a string describing the access modifier flags in
      * the specified modifier. For example:
-     * <pre>
+     * <blockquote><pre>
      *    public final synchronized
      *    private transient volatile
-     * </pre>
+     * </pre></blockquote>
      * The modifier names are return in canonical order, as
-     * specified by <em>The Java Language Specification<em>.
+     * specified by <em>The Java Language Specification</em>.
      */
     public static String toString(int mod) {
 	StringBuffer sb = new StringBuffer();
@@ -136,6 +151,8 @@ class Modifier {
 
 	if ((mod & INTERFACE) != 0)	sb.append("interface ");
 
+	if ((mod & STRICT) != 0)	sb.append("strict ");
+
 	if ((len = sb.length()) > 0)	/* trim trailing space */
 	    return sb.toString().substring(0, len-1);
 	return "";
@@ -145,16 +162,77 @@ class Modifier {
      * Access modifier flag constants from <em>The Java Virtual
      * Machine Specification</em>, Table 4.1.
      */
+
+    /**
+     * The <code>int</code> value representing the <code>public</code> 
+     * modifier.
+     */    
     public static final int PUBLIC           = 0x00000001;
+
+    /**
+     * The <code>int</code> value representing the <code>private</code> 
+     * modifier.
+     */    
     public static final int PRIVATE          = 0x00000002;
+
+    /**
+     * The <code>int</code> value representing the <code>protected</code> 
+     * modifier.
+     */    
     public static final int PROTECTED        = 0x00000004;
+
+    /**
+     * The <code>int</code> value representing the <code>static</code> 
+     * modifier.
+     */    
     public static final int STATIC           = 0x00000008;
+
+    /**
+     * The <code>int</code> value representing the <code>final</code> 
+     * modifier.
+     */    
     public static final int FINAL            = 0x00000010;
+
+    /**
+     * The <code>int</code> value representing the <code>synchronized</code> 
+     * modifier.
+     */    
     public static final int SYNCHRONIZED     = 0x00000020;
+
+    /**
+     * The <code>int</code> value representing the <code>volatile</code> 
+     * modifier.
+     */    
     public static final int VOLATILE         = 0x00000040;
+
+    /**
+     * The <code>int</code> value representing the <code>transient</code> 
+     * modifier.
+     */    
     public static final int TRANSIENT        = 0x00000080;
+
+    /**
+     * The <code>int</code> value representing the <code>native</code> 
+     * modifier.
+     */    
     public static final int NATIVE           = 0x00000100;
+
+    /**
+     * The <code>int</code> value representing the <code>interface</code> 
+     * modifier.
+     */    
     public static final int INTERFACE        = 0x00000200;
+
+    /**
+     * The <code>int</code> value representing the <code>abstract</code> 
+     * modifier.
+     */    
     public static final int ABSTRACT         = 0x00000400;
+
+    /**
+     * The <code>int</code> value representing the <code>strict</code> 
+     * modifier.
+     */    
+    public static final int STRICT           = 0x00000800;
 
 }

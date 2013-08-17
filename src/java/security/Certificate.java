@@ -1,8 +1,15 @@
 /*
- * @(#)Certificate.java	1.17 01/12/10
+ * @(#)Certificate.java	1.26 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
  
 package java.security;
@@ -11,11 +18,11 @@ import java.io.*;
 import java.util.Date;
 
 /**
- * <p>This is an interface of abstract methods for managing an
- * identity certificate. An identity certificate is a guarantee by a
- * principal that a public key is that of another principal.  (A
- * principal represents an entity such as an individual user or a
- * group.)
+ * <p>This is an interface of abstract methods for managing a
+ * variety of identity certificates.
+ * An identity certificate is a guarantee by a principal that
+ * a public key is that of another principal.  (A principal represents
+ * an entity such as an individual user, a group, or a corporation.)
  *
  * <p>In particular, this interface is intended to be a common
  * abstraction for constructs that have different formats but
@@ -37,8 +44,13 @@ import java.util.Date;
  * the duty of the application implementing this interface to verify
  * the certificate and satisfy itself of its validity.
  *
- * @version 	1.14 01/29/97
+ * @version 	1.26 00/05/10
  * @author Benjamin Renaud 
+ * @deprecated A new certificate handling package is created in JDK1.2.
+ *             This Certificate interface is entirely deprecated and
+ *             is here to allow for a smooth transition to the new
+ *             package.
+ * @see java.security.cert.Certificate
  */
 public interface Certificate {
 
@@ -47,7 +59,7 @@ public interface Certificate {
      * guaranteeing that the public key associated with this certificate
      * is that of the principal associated with this certificate. For X.509
      * certificates, the guarantor will typically be a Certificate Authority
-     *  (such as the United States Postal Service or Verisign, Inc.).
+     * (such as the United States Postal Service or Verisign, Inc.).
      *
      * @return the guarantor which guaranteed the principal-key
      * binding.
@@ -129,4 +141,3 @@ public interface Certificate {
      */
     public String toString(boolean detailed);
 }
-

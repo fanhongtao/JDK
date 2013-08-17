@@ -1,11 +1,22 @@
 /*
- * @(#)Character.java	1.47 01/12/10
+ * @(#)Character.java	1.55 98/09/16
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
+// This file was generated AUTOMATICALLY from a template file Fri Jun 19 11:07:53 PDT 1998
+// Hand-merged JDK 1.1.7 Unicode 2.1.2 table changes back into 1.2 source - 7/23/98
+
 package java.lang;
+
 
 /**
  * The Character class wraps a value of the primitive type <code>char</code> 
@@ -21,11 +32,11 @@ package java.lang;
  * a name for every defined Unicode code point. The table also 
  * includes other attributes, such as a decimal value, an uppercase 
  * equivalent, a lowercase equivalent, and/or a titlecase equivalent. 
- * The Unicode attribute table is available on the World Wide Web as 
- * the file:
- * <ul><code>
- *   ftp://unicode.org/pub/MappingTables/UnicodeData1.1.5.txt
- * </code></ul>
+ * The character attribute tables for specific versions of Unicode
+ * are available on the World Wide Web in various subdirectories of:
+ * <blockquote><pre>
+   *   ftp://ftp.unicode.org/Public/
+ * </pre></blockquote>
  * <p>
  * For a more detailed specification of the <code>Character</code> 
  * class, one that encompasses the exact behavior of methods such as 
@@ -37,11 +48,15 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Guy Steele
  * @author  Akira Tanaka
- * @version 1.47 12/10/01
+ * @version 1.55, 98/09/16
  * @since   JDK1.0
  */
-public final
-class Character extends Object implements java.io.Serializable {
+
+public final class Character
+    extends Object
+    implements java.io.Serializable, Comparable
+{
+
     /**
      * The minimum radix available for conversion to and from Strings.  
      * The constant value of this field is the smallest value permitted 
@@ -54,7 +69,6 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#forDigit(int, int)
      * @see     java.lang.Integer#toString(int, int)
      * @see     java.lang.Integer#valueOf(java.lang.String)
-     * @since   JDK1.0
      */
     public static final int MIN_RADIX = 2;
 
@@ -70,7 +84,6 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#forDigit(int, int)
      * @see     java.lang.Integer#toString(int, int)
      * @see     java.lang.Integer#valueOf(java.lang.String)
-     * @since   JDK1.0
      */
     public static final int MAX_RADIX = 36;
 
@@ -89,51 +102,442 @@ class Character extends Object implements java.io.Serializable {
      * @since   JDK1.0.2
      */
     public static final char   MAX_VALUE = '\uffff';
-    
+
     /**
      * The Class object representing the primitive type char.
      *
      * @since   JDK1.1
      */
-    public static final Class   TYPE = Class.getPrimitiveClass("char");
-    
-    /*
+    public static final Class	TYPE = Class.getPrimitiveClass("char");
+
+    /**
      * Public data for enumerated Unicode general category types
      *
      * @since   JDK1.1
      */
     public static final byte
-        UNASSIGNED              = 0,
-        UPPERCASE_LETTER        = 1,
-        LOWERCASE_LETTER        = 2,
-        TITLECASE_LETTER        = 3,
-        MODIFIER_LETTER         = 4,
-        OTHER_LETTER            = 5,
-        NON_SPACING_MARK        = 6,
-        ENCLOSING_MARK          = 7,
-        COMBINING_SPACING_MARK  = 8,
-        DECIMAL_DIGIT_NUMBER    = 9,
-        LETTER_NUMBER           = 10,
-        OTHER_NUMBER            = 11,
-        SPACE_SEPARATOR         = 12,
-        LINE_SEPARATOR          = 13,
-        PARAGRAPH_SEPARATOR     = 14,
-        CONTROL                 = 15,
-        FORMAT                  = 16,
-        PRIVATE_USE             = 18,
-        SURROGATE               = 19,
-        DASH_PUNCTUATION        = 20,
-        START_PUNCTUATION       = 21,
-        END_PUNCTUATION         = 22,
-        CONNECTOR_PUNCTUATION   = 23,
-        OTHER_PUNCTUATION       = 24,
-        MATH_SYMBOL             = 25,
-        CURRENCY_SYMBOL         = 26,
-        MODIFIER_SYMBOL         = 27,
-        OTHER_SYMBOL            = 28;
+	UNASSIGNED		= 0,
+	UPPERCASE_LETTER	= 1,
+	LOWERCASE_LETTER	= 2,
+	TITLECASE_LETTER	= 3,
+	MODIFIER_LETTER		= 4,
+	OTHER_LETTER		= 5,
+	NON_SPACING_MARK	= 6,
+	ENCLOSING_MARK		= 7,
+	COMBINING_SPACING_MARK	= 8,
+	DECIMAL_DIGIT_NUMBER	= 9,
+	LETTER_NUMBER		= 10,
+	OTHER_NUMBER		= 11,
+	SPACE_SEPARATOR		= 12,
+	LINE_SEPARATOR		= 13,
+	PARAGRAPH_SEPARATOR	= 14,
+	CONTROL			= 15,
+	FORMAT			= 16,
+	PRIVATE_USE		= 18,
+	SURROGATE		= 19,
+	DASH_PUNCTUATION	= 20,
+	START_PUNCTUATION	= 21,
+	END_PUNCTUATION		= 22,
+	CONNECTOR_PUNCTUATION	= 23,
+	OTHER_PUNCTUATION	= 24,
+	MATH_SYMBOL		= 25,
+	CURRENCY_SYMBOL		= 26,
+	MODIFIER_SYMBOL		= 27,
+	OTHER_SYMBOL		= 28;
+
+    /**
+     * Instances of this class represent particular subsets of the Unicode
+     * character set.  The only family of subsets defined in the
+     * <code>Character</code> class is <code>{@link Character.UnicodeBlock
+     * UnicodeBlock}</code>.  Other portions of the Java API may define other
+     * subsets for their own purposes.
+     *
+     * @since JDK1.2
+     */
+    public static class Subset  {
+
+	private String name;
+
+	/**
+         * Constructs a new <code>Subset</code> instance.
+	 *
+	 * @param  name  The name of this subset
+         */
+    	protected Subset(String name) {
+	    this.name = name;
+	}
+
+	/**
+	 * Compares two <code>Subset</code> objects for equality.  This
+         * method returns <code>true</code> if and only if <code>x</code> and
+         * <code>y</code> refer to the same object, and because it is final it
+	 * guarantees this for all subclasses.
+	 */
+	public final boolean equals(Object obj) {
+	    return (this == obj);
+	}
+
+	/**
+         * Returns the standard hash code as defined by the <code>{@link
+	 * Object#hashCode}</code> method.  This method is final in order to
+	 * ensure that the <code>equals</code> and <code>hashCode</code>
+	 * methods will be consistent in all subclasses.
+	 */
+	public final int hashCode() {
+	    return super.hashCode();
+	}
+
+	/**
+	 * Returns the name of this subset.
+	 */
+	public final String toString() {
+	    return name;
+	}
+
+    }
+
+    /**
+     * A family of character subsets representing the character blocks defined
+     * by the Unicode 2.0 specification.  Any given character is contained by
+     * at most one Unicode block.
+     *
+     * @since JDK1.2
+     */
+    public static final class UnicodeBlock extends Subset {
+
+	private UnicodeBlock(String name) {
+	    super(name);
+	}
+
+        /** Constant for the Unicode character block of the same name. */
+        public static final UnicodeBlock
+	    BASIC_LATIN
+                = new UnicodeBlock("BASIC_LATIN"),
+	    LATIN_1_SUPPLEMENT
+                = new UnicodeBlock("LATIN_1_SUPPLEMENT"),
+            LATIN_EXTENDED_A
+                = new UnicodeBlock("LATIN_EXTENDED_A"),
+            LATIN_EXTENDED_B
+                = new UnicodeBlock("LATIN_EXTENDED_B"),
+            IPA_EXTENSIONS
+                = new UnicodeBlock("IPA_EXTENSIONS"),
+            SPACING_MODIFIER_LETTERS
+                = new UnicodeBlock("SPACING_MODIFIER_LETTERS"),
+            COMBINING_DIACRITICAL_MARKS
+                = new UnicodeBlock("COMBINING_DIACRITICAL_MARKS"),
+            GREEK
+                = new UnicodeBlock("GREEK"),
+            CYRILLIC
+                = new UnicodeBlock("CYRILLIC"),
+            ARMENIAN
+                = new UnicodeBlock("ARMENIAN"),
+            HEBREW
+                = new UnicodeBlock("HEBREW"),
+            ARABIC
+                = new UnicodeBlock("ARABIC"),
+            DEVANAGARI
+                = new UnicodeBlock("DEVANAGARI"),
+            BENGALI
+                = new UnicodeBlock("BENGALI"),
+            GURMUKHI
+                = new UnicodeBlock("GURMUKHI"),
+            GUJARATI
+                = new UnicodeBlock("GUJARATI"),
+            ORIYA
+                = new UnicodeBlock("ORIYA"),
+            TAMIL
+                = new UnicodeBlock("TAMIL"),
+            TELUGU
+                = new UnicodeBlock("TELUGU"),
+            KANNADA
+                = new UnicodeBlock("KANNADA"),
+            MALAYALAM
+                = new UnicodeBlock("MALAYALAM"),
+            THAI
+                = new UnicodeBlock("THAI"),
+            LAO
+                = new UnicodeBlock("LAO"),
+            TIBETAN
+                = new UnicodeBlock("TIBETAN"),
+            GEORGIAN
+                = new UnicodeBlock("GEORGIAN"),
+            HANGUL_JAMO
+                = new UnicodeBlock("HANGUL_JAMO"),
+            LATIN_EXTENDED_ADDITIONAL
+                = new UnicodeBlock("LATIN_EXTENDED_ADDITIONAL"),
+            GREEK_EXTENDED
+                = new UnicodeBlock("GREEK_EXTENDED"),
+            GENERAL_PUNCTUATION
+                = new UnicodeBlock("GENERAL_PUNCTUATION"),
+            SUPERSCRIPTS_AND_SUBSCRIPTS
+                = new UnicodeBlock("SUPERSCRIPTS_AND_SUBSCRIPTS"),
+            CURRENCY_SYMBOLS
+                = new UnicodeBlock("CURRENCY_SYMBOLS"),
+            COMBINING_MARKS_FOR_SYMBOLS
+                = new UnicodeBlock("COMBINING_MARKS_FOR_SYMBOLS"),
+            LETTERLIKE_SYMBOLS
+                = new UnicodeBlock("LETTERLIKE_SYMBOLS"),
+            NUMBER_FORMS
+                = new UnicodeBlock("NUMBER_FORMS"),
+            ARROWS
+                = new UnicodeBlock("ARROWS"),
+            MATHEMATICAL_OPERATORS
+                = new UnicodeBlock("MATHEMATICAL_OPERATORS"),
+            MISCELLANEOUS_TECHNICAL
+                = new UnicodeBlock("MISCELLANEOUS_TECHNICAL"),
+            CONTROL_PICTURES
+                = new UnicodeBlock("CONTROL_PICTURES"),
+            OPTICAL_CHARACTER_RECOGNITION
+                = new UnicodeBlock("OPTICAL_CHARACTER_RECOGNITION"),
+            ENCLOSED_ALPHANUMERICS
+                = new UnicodeBlock("ENCLOSED_ALPHANUMERICS"),
+            BOX_DRAWING
+                = new UnicodeBlock("BOX_DRAWING"),
+            BLOCK_ELEMENTS
+                = new UnicodeBlock("BLOCK_ELEMENTS"),
+            GEOMETRIC_SHAPES
+                = new UnicodeBlock("GEOMETRIC_SHAPES"),
+            MISCELLANEOUS_SYMBOLS
+                = new UnicodeBlock("MISCELLANEOUS_SYMBOLS"),
+            DINGBATS
+                = new UnicodeBlock("DINGBATS"),
+            CJK_SYMBOLS_AND_PUNCTUATION
+                = new UnicodeBlock("CJK_SYMBOLS_AND_PUNCTUATION"),
+            HIRAGANA
+                = new UnicodeBlock("HIRAGANA"),
+            KATAKANA
+                = new UnicodeBlock("KATAKANA"),
+            BOPOMOFO
+                = new UnicodeBlock("BOPOMOFO"),
+            HANGUL_COMPATIBILITY_JAMO
+                = new UnicodeBlock("HANGUL_COMPATIBILITY_JAMO"),
+            KANBUN
+                = new UnicodeBlock("KANBUN"),
+            ENCLOSED_CJK_LETTERS_AND_MONTHS
+                = new UnicodeBlock("ENCLOSED_CJK_LETTERS_AND_MONTHS"),
+            CJK_COMPATIBILITY
+                = new UnicodeBlock("CJK_COMPATIBILITY"),
+            CJK_UNIFIED_IDEOGRAPHS
+                = new UnicodeBlock("CJK_UNIFIED_IDEOGRAPHS"),
+            HANGUL_SYLLABLES
+                = new UnicodeBlock("HANGUL_SYLLABLES"),
+            SURROGATES_AREA
+                = new UnicodeBlock("SURROGATES_AREA"),
+            PRIVATE_USE_AREA
+                = new UnicodeBlock("PRIVATE_USE_AREA"),
+            CJK_COMPATIBILITY_IDEOGRAPHS
+                = new UnicodeBlock("CJK_COMPATIBILITY_IDEOGRAPHS"),
+            ALPHABETIC_PRESENTATION_FORMS
+                = new UnicodeBlock("ALPHABETIC_PRESENTATION_FORMS"),
+            ARABIC_PRESENTATION_FORMS_A
+                = new UnicodeBlock("ARABIC_PRESENTATION_FORMS_A"),
+            COMBINING_HALF_MARKS
+                = new UnicodeBlock("COMBINING_HALF_MARKS"),
+            CJK_COMPATIBILITY_FORMS
+                = new UnicodeBlock("CJK_COMPATIBILITY_FORMS"),
+            SMALL_FORM_VARIANTS
+                = new UnicodeBlock("SMALL_FORM_VARIANTS"),
+            ARABIC_PRESENTATION_FORMS_B
+                = new UnicodeBlock("ARABIC_PRESENTATION_FORMS_B"),
+            HALFWIDTH_AND_FULLWIDTH_FORMS
+                = new UnicodeBlock("HALFWIDTH_AND_FULLWIDTH_FORMS"),
+            SPECIALS
+                = new UnicodeBlock("SPECIALS");
+
+	private static final char blockStarts[] = {
+	    '\u0000',
+	    '\u0080',
+	    '\u0100',
+	    '\u0180',
+	    '\u0250',
+	    '\u02B0',
+	    '\u0300',
+	    '\u0370',
+	    '\u0400',
+	    '\u0500', // unassigned
+	    '\u0530',
+	    '\u0590',
+	    '\u0600',
+	    '\u0700', // unassigned
+	    '\u0900',
+	    '\u0980',
+	    '\u0A00',
+	    '\u0A80',
+	    '\u0B00',
+	    '\u0B80',
+	    '\u0C00',
+	    '\u0C80',
+	    '\u0D00',
+	    '\u0D80', // unassigned
+	    '\u0E00',
+	    '\u0E80',
+	    '\u0F00',
+	    '\u0FC0', // unassigned
+	    '\u10A0',
+	    '\u1100',
+	    '\u1200', // unassigned
+	    '\u1E00',
+	    '\u1F00',
+	    '\u2000',
+	    '\u2070',
+	    '\u20A0',
+	    '\u20D0',
+	    '\u2100',
+	    '\u2150',
+	    '\u2190',
+	    '\u2200',
+	    '\u2300',
+	    '\u2400',
+	    '\u2440',
+	    '\u2460',
+	    '\u2500',
+	    '\u2580',
+	    '\u25A0',
+	    '\u2600',
+	    '\u2700',
+	    '\u27C0', // unassigned
+	    '\u3000',
+	    '\u3040',
+	    '\u30A0',
+	    '\u3100',
+	    '\u3130',
+	    '\u3190',
+	    '\u3200',
+	    '\u3300',
+	    '\u3400', // unassigned
+	    '\u4E00',
+	    '\uA000', // unassigned
+	    '\uAC00',
+	    '\uD7A4', // unassigned
+	    '\uD800',
+	    '\uE000',
+	    '\uF900',
+	    '\uFB00',
+	    '\uFB50',
+	    '\uFE00', // unassigned
+	    '\uFE20',
+	    '\uFE30',
+	    '\uFE50',
+	    '\uFE70',
+	    '\uFEFF', // special
+	    '\uFF00',
+	    '\uFFF0'
+	};
+
+	private static final UnicodeBlock blocks[] = {
+	    BASIC_LATIN,
+	    LATIN_1_SUPPLEMENT,
+	    LATIN_EXTENDED_A,
+	    LATIN_EXTENDED_B,
+	    IPA_EXTENSIONS,
+	    SPACING_MODIFIER_LETTERS,
+	    COMBINING_DIACRITICAL_MARKS,
+	    GREEK,
+	    CYRILLIC,
+	    null,
+	    ARMENIAN,
+	    HEBREW,
+	    ARABIC,
+	    null,
+	    DEVANAGARI,
+	    BENGALI,
+	    GURMUKHI,
+	    GUJARATI,
+	    ORIYA,
+	    TAMIL,
+	    TELUGU,
+	    KANNADA,
+	    MALAYALAM,
+	    null,
+	    THAI,
+	    LAO,
+	    TIBETAN,
+	    null,
+	    GEORGIAN,
+	    HANGUL_JAMO,
+	    null,
+	    LATIN_EXTENDED_ADDITIONAL,
+	    GREEK_EXTENDED,
+	    GENERAL_PUNCTUATION,
+	    SUPERSCRIPTS_AND_SUBSCRIPTS,
+	    CURRENCY_SYMBOLS,
+	    COMBINING_MARKS_FOR_SYMBOLS,
+	    LETTERLIKE_SYMBOLS,
+	    NUMBER_FORMS,
+	    ARROWS,
+	    MATHEMATICAL_OPERATORS,
+	    MISCELLANEOUS_TECHNICAL,
+	    CONTROL_PICTURES,
+	    OPTICAL_CHARACTER_RECOGNITION,
+	    ENCLOSED_ALPHANUMERICS,
+	    BOX_DRAWING,
+	    BLOCK_ELEMENTS,
+	    GEOMETRIC_SHAPES,
+	    MISCELLANEOUS_SYMBOLS,
+	    DINGBATS,
+	    null,
+	    CJK_SYMBOLS_AND_PUNCTUATION,
+	    HIRAGANA,
+	    KATAKANA,
+	    BOPOMOFO,
+	    HANGUL_COMPATIBILITY_JAMO,
+	    KANBUN,
+	    ENCLOSED_CJK_LETTERS_AND_MONTHS,
+	    CJK_COMPATIBILITY,
+	    null,
+	    CJK_UNIFIED_IDEOGRAPHS,
+	    null,
+	    HANGUL_SYLLABLES,
+	    null,
+	    SURROGATES_AREA,
+	    PRIVATE_USE_AREA,
+	    CJK_COMPATIBILITY_IDEOGRAPHS,
+	    ALPHABETIC_PRESENTATION_FORMS,
+	    ARABIC_PRESENTATION_FORMS_A,
+	    null,
+	    COMBINING_HALF_MARKS,
+	    CJK_COMPATIBILITY_FORMS,
+	    SMALL_FORM_VARIANTS,
+	    ARABIC_PRESENTATION_FORMS_B,
+	    SPECIALS,
+	    HALFWIDTH_AND_FULLWIDTH_FORMS,
+	    SPECIALS
+	};
+
+	/**
+         * Returns the object representing the Unicode block containing the
+         * given character, or <code>null</code> if the character is not a
+         * member of a defined block.
+         *
+         * @param   c  The character in question
+         * @return  The <code>UnicodeBlock</code> instance representing the
+         *          Unicode block of which this character is a member, or
+         *          <code>null</code> if the character is not a member of any
+         *          Unicode block
+         */
+	public static UnicodeBlock of(char c) {
+	    int top, bottom, current;
+	    bottom = 0;
+	    top = blockStarts.length;
+	    current = top/2;
+	    // invariant: top > current >= bottom && ch >= unicodeBlockStarts[bottom]
+	    while (top - bottom > 1) {
+		if (c >= blockStarts[current]) {
+		    bottom = current;
+		} else {
+		    top = current;
+		}
+		current = (top + bottom) / 2;
+	    }
+	    return blocks[current];
+	}
+
+    }
 
     /**
      * The value of the Character.
+     *
+     * @serial
      */
     private char value;
 
@@ -145,29 +549,26 @@ class Character extends Object implements java.io.Serializable {
      * that it represents the primitive <code>value</code> argument. 
      *
      * @param  value   value for the new <code>Character</code> object.
-     * @since   JDK1.0
      */
     public Character(char value) {
-        this.value = value;
+	this.value = value;
     }
 
     /**
      * Returns the value of this Character object.
      * @return  the primitive <code>char</code> value represented by
      *          this object.
-     * @since   JDK1.0
      */
     public char charValue() {
-        return value;
+	return value;
     }
 
     /**
      * Returns a hash code for this Character.
      * @return  a hash code value for this object. 
-     * @since   JDK1.0
      */
     public int hashCode() {
-        return (int)value;
+	return (int)value;
     }
 
     /**
@@ -179,13 +580,12 @@ class Character extends Object implements java.io.Serializable {
      * @param   obj   the object to compare with.
      * @return  <code>true</code> if the objects are the same;
      *          <code>false</code> otherwise.
-     * @since   JDK1.0
      */
     public boolean equals(Object obj) {
-        if ((obj != null) && (obj instanceof Character)) {
-            return value == ((Character)obj).charValue();
-        } 
-        return false;
+	if ((obj != null) && (obj instanceof Character)) {
+	    return value == ((Character)obj).charValue();
+	} 
+	return false;
     }
 
     /**
@@ -196,13 +596,12 @@ class Character extends Object implements java.io.Serializable {
      * by this object. 
      *
      * @return  a string representation of this object.
-     * @since   JDK1.0
      */
     public String toString() {
-        char buf[] = {value};
-        return String.valueOf(buf);
+	char buf[] = {value};
+	return String.valueOf(buf);
     }
- 
+
    /**
      * Determines if the specified character is a lowercase character. 
      * A character is lowercase if it is not in the range 
@@ -238,7 +637,6 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#isLowerCase(char)
      * @see     java.lang.Character#isTitleCase(char)
      * @see     java.lang.Character#toLowerCase(char)
-     * @since   JDK1.0
      */
     public static boolean isLowerCase(char ch) {
         return (A[Y[(X[ch>>6]<<5)|((ch>>1)&0x1F)]|(ch&0x1)] & 0x1F) == LOWERCASE_LETTER;
@@ -353,7 +751,6 @@ class Character extends Object implements java.io.Serializable {
      *          <code>false</code> otherwise.
      * @see     java.lang.Character#digit(char, int)
      * @see     java.lang.Character#forDigit(int, int)
-     * @since   JDK1.0
      */
     public static boolean isDigit(char ch) {
         return (A[Y[(X[ch>>6]<<5)|((ch>>1)&0x1F)]|(ch&0x1)] & 0x1F) == DECIMAL_DIGIT_NUMBER;
@@ -416,7 +813,6 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#isTitleCase(char)
      * @see     java.lang.Character#isUnicodeIdentifierStart(char)
      * @see     java.lang.Character#isUpperCase(char)
-     * @since   JDK1.0
      */
     public static boolean isLetter(char ch) {
         return (((((1 << UPPERCASE_LETTER) |
@@ -521,7 +917,7 @@ class Character extends Object implements java.io.Serializable {
      * <li>  a connecting punctuation character (such as "_").
      * </ul>
      *
-     * @param   ch      the character to be tested.
+     * @param   ch	the character to be tested.
      * @return  true if the character may start a Java identifier;
      *          false otherwise.
      * @see     java.lang.Character#isJavaIdentifierPart(char)
@@ -549,7 +945,7 @@ class Character extends Object implements java.io.Serializable {
      * <li>  an ignorable control character
      * </ul>
      * 
-     * @param   ch      the character to be tested.
+     * @param   ch	the character to be tested.
      * @return  true if the character may be part of a Unicode identifier; 
      *          false otherwise.
      * @see     java.lang.Character#isIdentifierIgnorable(char)
@@ -568,7 +964,7 @@ class Character extends Object implements java.io.Serializable {
      * A character may start a Unicode identifier if and only if
      * it is a letter.
      *
-     * @param   ch      the character to be tested.
+     * @param   ch	the character to be tested.
      * @return  true if the character may start a Unicode identifier;
      *          false otherwise.
      * @see     java.lang.Character#isJavaIdentifierStart(char)
@@ -595,7 +991,7 @@ class Character extends Object implements java.io.Serializable {
      * <li>  an ignorable control character
      * </ul>
      * 
-     * @param   ch      the character to be tested.
+     * @param   ch	the character to be tested.
      * @return  true if the character may be part of a Unicode identifier;
      *          false otherwise.
      * @see     java.lang.Character#isIdentifierIgnorable(char)
@@ -624,8 +1020,8 @@ class Character extends Object implements java.io.Serializable {
      * <tr><td>0xFEFF</td>               <td>zero-width no-break space</td></tr>
      * </table>
      * 
-     * @param   ch      the character to be tested.
-     * @return  true if the character may be part of a Unicode identifier;
+     * @param   ch	the character to be tested.
+     * @return 	true if the character may be part of a Unicode identifier;
      *          false otherwise.
      * @see     java.lang.Character#isJavaIdentifierPart(char)
      * @see     java.lang.Character#isUnicodeIdentifierPart(char)
@@ -657,7 +1053,6 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#isUpperCase(char)
      * @see     java.lang.Character#toTitleCase(char)
      * @see     java.lang.Character#toUpperCase(char)
-     * @since   JDK1.0
      */
     public static char toLowerCase(char ch) {
         int val = A[Y[(X[ch>>6]<<5)|((ch>>1)&0x1F)]|(ch&0x1)];
@@ -685,7 +1080,6 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#isUpperCase(char)
      * @see     java.lang.Character#toLowerCase(char)
      * @see     java.lang.Character#toTitleCase(char)
-     * @since   JDK1.0
      */
     public static char toUpperCase(char ch) {
         int val = A[Y[(X[ch>>6]<<5)|((ch>>1)&0x1F)]|(ch&0x1)];
@@ -781,7 +1175,6 @@ class Character extends Object implements java.io.Serializable {
      *          specified radix.
      * @see     java.lang.Character#forDigit(int, int)
      * @see     java.lang.Character#isDigit(char)
-     * @since   JDK1.0
      */
     public static int digit(char ch, int radix) {
         int value = -1;
@@ -807,11 +1200,11 @@ class Character extends Object implements java.io.Serializable {
      * nonnegative integer (for example, a fractional value), then -2
      * is returned.
      *
-     * @param   ch      the character to be converted.
+     * @param   ch	the character to be converted.
      * @return  the numeric value of the character, as a nonnegative int value;
      *          -2 if the character has a numeric value that is not a
      *          nonnegative integer; -1 if the character has no numeric value.
-     * @see     java.lang.Character#forDigit(char)
+     * @see     java.lang.Character#forDigit(int, int)
      * @see     java.lang.Character#isDigit(char)
      * @since   JDK1.1
      */
@@ -849,30 +1242,33 @@ class Character extends Object implements java.io.Serializable {
      * Determines if the specified character is ISO-LATIN-1 white space. 
      * This method returns <code>true</code> for the following five 
      * characters only: 
-     * <table><code>
-     * <tr><td>'\t'</td>  <td>&#92;u0009</td>  <td>HORIZONTAL TABULATION</td></tr>
-     * <tr><td>'\n'</td>  <td>&#92;u000A</td>  <td>NEW LINE</td></tr>
-     * <tr><td>'\f'</td>  <td>&#92;u000C</td>  <td>FORM FEED</td></tr>
-     * <tr><td>'\r'</td>  <td>&#92;u000D</td>  <td>CARRIAGE RETURN</td></tr>
-     * <tr><td>'&nbsp;&nbsp;'</td>
-     *                    <td>&#92;u0020</td>  <td>SPACE</td></tr>
-     * </code></table>
+     * <table>
+     * <tr><td>'\t'</td>            <td>&#92;u0009</td>
+     *     <td><code>HORIZONTAL TABULATION</code></td></tr>
+     * <tr><td>'\n'</td>            <td>&#92;u000A</td>
+     *     <td><code>NEW LINE</code></td></tr>
+     * <tr><td>'\f'</td>            <td>&#92;u000C</td>
+     *     <td><code>FORM FEED</code></td></tr>
+     * <tr><td>'\r'</td>            <td>&#92;u000D</td>
+     *     <td><code>CARRIAGE RETURN</code></td></tr>
+     * <tr><td>'&nbsp;&nbsp;'</td>  <td>&#92;u0020</td>
+     *     <td><code>SPACE</code></td></tr>
+     * </table>
      *
      * @param      ch   the character to be tested.
      * @return     <code>true</code> if the character is ISO-LATIN-1 white
      *             space; <code>false</code> otherwise.
      * @see        java.lang.Character#isSpaceChar(char)
      * @see        java.lang.Character#isWhitespace(char)
-     * @since      JDK1.0
      * @deprecated Replaced by isWhitespace(char).
      */
     public static boolean isSpace(char ch) {
       return (ch <= 0x0020) &&
-             (((((1L << 0x0009) |
-                 (1L << 0x000A) |
-                 (1L << 0x000C) |
-                 (1L << 0x000D) |
-                 (1L << 0x0020)) >> ch) & 1L) != 0);
+	     (((((1L << 0x0009) |
+		 (1L << 0x000A) |
+		 (1L << 0x000C) |
+		 (1L << 0x000D) |
+		 (1L << 0x0020)) >> ch) & 1L) != 0);
     }
 
     /**
@@ -881,8 +1277,8 @@ class Character extends Object implements java.io.Serializable {
      * it is specified to be a space character by the Unicode 2.0 standard
      * (category "Zs", "Zl, or "Zp" in the Unicode specification data file).
      * 
-     * @param   ch      the character to be tested.
-     * @return  true if the character is a space character; false otherwise.
+     * @param   ch	the character to be tested.
+     * @return 	true if the character is a space character; false otherwise.
      * @see     java.lang.Character#isWhitespace(char)
      * @since   JDK1.1
      */
@@ -913,7 +1309,7 @@ class Character extends Object implements java.io.Serializable {
      * <li> It is &#92;u001F, UNIT SEPARATOR.
      * </ul>
      *
-     * @param   ch      the character to be tested.
+     * @param   ch	the character to be tested.
      * @return  true if the character is a Java whitespace character;
      *          false otherwise.
      * @see     java.lang.Character#isSpaceChar(char)
@@ -929,7 +1325,7 @@ class Character extends Object implements java.io.Serializable {
      * code is in the range &#92;u0000 through &#92;u001F or in the range
      * &#92;u007F through &#92;u009F.
      *
-     * @param   ch      the character to be tested.
+     * @param   ch	the character to be tested.
      * @return  true if the character is an ISO control character;
      *          false otherwise.
      *
@@ -1003,52 +1399,90 @@ class Character extends Object implements java.io.Serializable {
      * @see     java.lang.Character#MIN_RADIX
      * @see     java.lang.Character#MAX_RADIX
      * @see     java.lang.Character#digit(char, int)
-     * @since   JDK1.0
      */
     public static char forDigit(int digit, int radix) {
-        if ((digit >= radix) || (digit < 0)) {
-            return '\0';
-        }
-        if ((radix < MIN_RADIX) || (radix > MAX_RADIX)) {
-            return '\0';
-        }
-        if (digit < 10) {
-            return (char)('0' + digit);
-        } 
-        return (char)('a' - 10 + digit);
+	if ((digit >= radix) || (digit < 0)) {
+	    return '\0';
+	}
+	if ((radix < MIN_RADIX) || (radix > MAX_RADIX)) {
+	    return '\0';
+	}
+	if (digit < 10) {
+	    return (char)('0' + digit);
+	} 
+	return (char)('a' - 10 + digit);
+    }
+
+    /**
+     * Compares two Characters numerically.
+     *
+     * @param   anotherCharacter   the <code>Character</code> to be compared.
+     * @return  the value <code>0</code> if the argument Character is equal to
+     *          this Character; a value less than <code>0</code> if this
+     *          Character is numerically less than the Character argument; and
+     *          a value greater than <code>0</code> if this Character is
+     *          numerically greater than the Character argument (unsigned
+     *		comparison).  Note that this is strictly a numerical
+     *		comparison; it is not locale-dependent.
+     * @since   JDK1.2
+     */
+    public int compareTo(Character anotherCharacter) {
+	return this.value - anotherCharacter.value;
+    }
+
+    /**
+     * Compares this Character to another Object.  If the Object is
+     * a Character, this function behaves like
+     * <code>compareTo(Character)</code>.  Otherwise, it throws a
+     * <code>ClassCastException</code> (as Characters are
+     * comparable only to other Characters).
+     *
+     * @param   o the <code>Object</code> to be compared.
+     * @return  the value <code>0</code> if the argument is a Character
+     *		numerically equal to this Character; a value less than
+     *		<code>0</code> if the argument is a Character numerically
+     *		greater than this Character; and a value greater than
+     *		<code>0</code> if the argument is a Character numerically
+     *		less than this Character.
+     * @exception <code>ClassCastException</code> if the argument is not a
+     *		  <code>Character</code>. 
+     * @see     java.lang.Comparable
+     * @since JDK1.2 */
+    public int compareTo(Object o) {
+	return compareTo((Character)o);
     }
 
     /* The character properties are currently encoded into 32 bits in the following manner:
-       10 bits  signed offset used for converting case
-        1 bit   if 1, adding the signed offset converts the character to lowercase
-        1 bit   if 1, subtracting the signed offset converts the character to uppercase
-        1 bit   if 1, this character has a titlecase equivalent (possibly itself)
-        3 bits  0  may not be part of an identifier
-                1  ignorable control; may continue a Unicode identifier or Java identifier
-                2  may continue a Java identifier but not a Unicode identifier (unused)
-                3  may continue a Unicode identifier or Java identifier
-                4  is a Java whitespace character
-                5  may start or continue a Java identifier;
-                   may continue but not start a Unicode identifier (underscores)
-                6  may start or continue a Java identifier but not a Unicode identifier ($)
-                7  may start or continue a Unicode identifier or Java identifier
-                Thus:
-                   5, 6, 7 may start a Java identifier
-                   1, 2, 3, 5, 6, 7 may continue a Java identifier
-                   7 may start a Unicode identifier
-                   1, 3, 5, 7 may continue a Unicode identifier
-                   1 is ignorable within an identifier
-                   4 is Java whitespace
-        2 bits  0  this character has no numeric property
-                1  adding the digit offset to the character code and then
-                   masking with 0x1F will produce the desired numeric value
-                2  this character has a "strange" numeric value
-                3  a Java supradecimal digit: adding the digit offset to the
-                   character code, then masking with 0x1F, then adding 10
-                   will produce the desired numeric value
-        5 bits  digit offset
-        4 bits  reserved for future use
-        5 bits  character type
+       10 bits	signed offset used for converting case
+	1 bit	if 1, adding the signed offset converts the character to lowercase
+	1 bit	if 1, subtracting the signed offset converts the character to uppercase
+	1 bit   if 1, this character has a titlecase equivalent (possibly itself)
+	3 bits	0  may not be part of an identifier
+		1  ignorable control; may continue a Unicode identifier or Java identifier
+		2  may continue a Java identifier but not a Unicode identifier (unused)
+		3  may continue a Unicode identifier or Java identifier
+		4  is a Java whitespace character
+		5  may start or continue a Java identifier;
+		   may continue but not start a Unicode identifier (underscores)
+		6  may start or continue a Java identifier but not a Unicode identifier ($)
+		7  may start or continue a Unicode identifier or Java identifier
+		Thus:
+		   5, 6, 7 may start a Java identifier
+		   1, 2, 3, 5, 6, 7 may continue a Java identifier
+		   7 may start a Unicode identifier
+		   1, 3, 5, 7 may continue a Unicode identifier
+		   1 is ignorable within an identifier
+		   4 is Java whitespace
+	2 bits	0  this character has no numeric property
+		1  adding the digit offset to the character code and then
+		   masking with 0x1F will produce the desired numeric value
+		2  this character has a "strange" numeric value
+		3  a Java supradecimal digit: adding the digit offset to the
+		   character code, then masking with 0x1F, then adding 10
+		   will produce the desired numeric value
+	5 bits  digit offset
+	4 bits	reserved for future use
+	5 bits	character type
      */
 
   // The following tables and code generated using:
@@ -1479,4 +1913,5 @@ class Character extends Object implements java.io.Serializable {
         }
 
     }
+
 }

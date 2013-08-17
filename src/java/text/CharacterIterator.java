@@ -1,17 +1,20 @@
 /*
- * @(#)CharacterIterator.java	1.8 01/12/10
+ * @(#)CharacterIterator.java	1.13 98/06/11
  *
- * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -34,13 +37,21 @@ package java.text;
 /**
  * This interface defines a protocol for bidirectional iteration over text.
  * The iterator iterates over a bounded sequence of characters.  Characters
- * are indexed with values beginning with the value returned by getBeginIndex and
- * continuing through the value returned by getEndIndex()-1.  The index of the
- * current character can be retrieved by calling getIndex.  Calling setIndex
- * will move the iterator to a new position within the sequence of characters.
- * If at any time the iterator's current index moves outside the range of
- * getBeginIndex and getEndIndex, previous() and next() will return DONE, signaling that
- * the iterator has reached the end of the sequence.
+ * are indexed with values beginning with the value returned by getBeginIndex() and
+ * continuing through the value returned by getEndIndex()-1.
+ * <p>
+ * Iterators maintain a current character index, whose valid range is from
+ * getBeginIndex() to getEndIndex(); the value getEndIndex() is included to allow
+ * handling of zero-length text ranges and for historical reasons.
+ * The current index can be retrieved by calling getIndex() and set directly
+ * by calling setIndex(), first(), and last().
+ * <p>
+ * The methods previous() and next() are used for iteration. They return DONE if
+ * they would move outside the range from getBeginIndex() to getEndIndex() -1,
+ * signaling that the iterator has reached the end of the sequence. DONE is
+ * also returned by other methods to indicate that the current index is
+ * outside this range.
+ *
  * <P>Examples:<P>
  *
  * Traverse the text from start to finish
@@ -55,7 +66,7 @@ package java.text;
  * Traverse the text backwards, from end to start
  * <pre>
  * public void traverseBackward(CharacterIterator iter) {
- *     for(char c = iter.last(); c != CharacterIterator.DONE; c = iter.prev()) {
+ *     for(char c = iter.last(); c != CharacterIterator.DONE; c = iter.previous()) {
  *         processChar(c);
  *     }
  * }
@@ -67,18 +78,21 @@ package java.text;
  * <pre>
  * public void traverseOut(CharacterIterator iter, int pos) {
  *     for (char c = iter.setIndex(pos);
- *          c != CharacterIterator.DONE && notBoundary(c);
- *          c = iter.next()) {}
- * int end = iter.getIndex();
- * for (char c = iter.setIndex(pos);
- *     c != CharacterIterator.DONE && notBoundary(c);
- *     c = iter.prev()) {}
- * int start = iter.getIndex();
- * processSection(start,end);
+ *              c != CharacterIterator.DONE && notBoundary(c);
+ *              c = iter.next()) {
+ *     }
+ *     int end = iter.getIndex();
+ *     for (char c = iter.setIndex(pos);
+ *             c != CharacterIterator.DONE && notBoundary(c);
+ *             c = iter.previous()) {
+ *     }
+ *     int start = iter.getIndex();
+ *     processSection(start, end);
  * }
  * </pre>
  *
  * @see StringCharacterIterator
+ * @see AttributedCharacterIterator
  */
 
 public interface CharacterIterator extends Cloneable
@@ -93,22 +107,23 @@ public interface CharacterIterator extends Cloneable
     public static final char DONE = '\uFFFF';
 
     /**
-     * Set the position to getBeginIndex() and return the character at that
+     * Sets the position to getBeginIndex() and returns the character at that
      * position.
-     * @return the first character in the text
+     * @return the first character in the text, or DONE if the text is empty
      * @see getBeginIndex
      */
     public char first();
 
     /**
-     * Set the position to getEndIndex()-1, return the character at that position.
-     * @return the last character in the text
+     * Sets the position to getEndIndex()-1 (getEndIndex() if the text is empty)
+     * and returns the character at that position.
+     * @return the last character in the text, or DONE if the text is empty
      * @see getEndIndex
      */
     public char last();
 
     /**
-     * Get the character at the current position (as returned by getIndex()).
+     * Gets the character at the current position (as returned by getIndex()).
      * @return the character at the current position or DONE if the current
      * position is off the end of the text.
      * @see getIndex
@@ -116,50 +131,49 @@ public interface CharacterIterator extends Cloneable
     public char current();
 
     /**
-     * Increment the iterator's index by one and return the character
+     * Increments the iterator's index by one and returns the character
      * at the new index.  If the resulting index is greater or equal
      * to getEndIndex(), the current index is reset to getEndIndex() and
      * a value of DONE is returned.
-     * @return the character at the new position or DONE if the current
-     * position is off the end of the text.
+     * @return the character at the new position or DONE if the new
+     * position is off the end of the text range.
      */
     public char next();
 
     /**
-     * Decrement the iterator's index by one and return the character
-     * at the new index.  If the resulting index is
-     * less than getBeginIndex(), the current index is reset to getBeginIndex()
-     * and a value of DONE is returned.
+     * Decrements the iterator's index by one and returns the character
+     * at the new index. If the current index is getBeginIndex(), the index
+     * remains at getBeginIndex() and a value of DONE is returned.
      * @return the character at the new position or DONE if the current
-     * position is off the end of the text.
+     * position is equal to getBeginIndex().
      */
     public char previous();
 
     /**
-     * Set the position to the specified position in the text and return that
+     * Sets the position to the specified position in the text and returns that
      * character.
      * @param position the position within the text.  Valid values range from
-     * getBeginIndex() to getEndIndex() - 1.  An IllegalArgumentException is thrown
+     * getBeginIndex() to getEndIndex().  An IllegalArgumentException is thrown
      * if an invalid value is supplied.
-     * @return the character at the specified position.
+     * @return the character at the specified position or DONE if the specified position is equal to getEndIndex()
      */
     public char setIndex(int position);
 
     /**
-     * Return the start index of the text.
+     * Returns the start index of the text.
      * @return the index at which the text begins.
      */
     public int getBeginIndex();
 
     /**
-     * Return the end index of the text.  This index is the index of the first
+     * Returns the end index of the text.  This index is the index of the first
      * character following the end of the text.
-     * @return the index at which the text end.
+     * @return the index after the last character in the text
      */
     public int getEndIndex();
 
     /**
-     * Return the current index.
+     * Returns the current index.
      * @return the current index.
      */
     public int getIndex();

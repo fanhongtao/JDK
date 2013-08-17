@@ -1,8 +1,15 @@
 /*
- * @(#)Canvas.java	1.19 01/12/10
+ * @(#)Canvas.java	1.21 98/07/10
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -18,7 +25,7 @@ import java.awt.peer.CanvasPeer;
  * component. The <code>paint</code> method must be overridden 
  * in order to perform custom graphics on the canvas.
  *
- * @version 	1.19 12/10/01
+ * @version 	1.21 07/10/98
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -26,6 +33,16 @@ public class Canvas extends Component {
 
     private static final String base = "canvas";
     private static int nameCounter = 0;
+    
+	/*
+    * A reference to a GraphicsConfiguration object
+    * used to describe the characteristics of a graphics
+    * destination.
+    * 
+    * @serial
+    * @see java.awt.GraphicsConfiguration
+    */
+	private GraphicsConfiguration graphicsConfig = null;
 
     /*
      * JDK 1.1 serialVersionUID 
@@ -38,12 +55,26 @@ public class Canvas extends Component {
     public Canvas() {
     }
 
+    /** 
+     * Constructs a new Canvas given a GraphicsConfiguration object.
+     * 
+     * @param config a reference to a GraphicsConfiguration object.
+     *
+     * @see GraphicsConfiguration
+     */
+    public Canvas(GraphicsConfiguration config) {
+        this();
+        graphicsConfig = config;
+    }
+
     /**
      * Construct a name for this component.  Called by getName() when the
      * name is null.
      */
     String constructComponentName() {
-        return base + nameCounter++;
+        synchronized (getClass()) {
+	    return base + nameCounter++;
+	}
     }
 
     /**
@@ -51,15 +82,13 @@ public class Canvas extends Component {
      * user interface of the canvas without changing its functionality.
      * @see     java.awt.Toolkit#createCanvas(java.awt.Canvas)
      * @see     java.awt.Component#getToolkit()
-     * @since   JDK1.0
      */
     public void addNotify() {
         synchronized (getTreeLock()) {
-		if (peer == null)
-	    	peer = getToolkit().createCanvas(this);
-
+	    if (peer == null)
+	        peer = getToolkit().createCanvas(this);
 	    super.addNotify();
-        }
+	}
     }
 
     /**
@@ -74,7 +103,6 @@ public class Canvas extends Component {
      * of this canvas. Its clipping region is the area of the context. 
      * @param      g   the graphics context.
      * @see        java.awt.Graphics
-     * @since      JDK1.0
      */
     public void paint(Graphics g) {
 	g.setColor(getBackground());

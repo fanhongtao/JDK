@@ -1,43 +1,52 @@
 /*
- * @(#)FilterInputStream.java	1.17 01/12/10
+ * @(#)FilterInputStream.java	1.21 98/06/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 /**
- * This class is the superclass of all classes that filter input 
- * streams. These streams sit on top of an already existing input 
- * stream (the <i>underlying</i> input stream), but provide 
- * additional functionality. 
- * <p>
- * The class <code>FilterInputStream</code> itself simply overrides 
- * all methods of <code>InputStream</code> with versions that pass 
- * all requests to the underlying input stream. Subclasses of 
- * <code>FilterInputStream</code> may further override some of these 
- * methods as well as provide additional methods and fields. 
+ * A <code>FilterInputStream</code> contains
+ * some other input stream, which it uses as
+ * its  basic source of data, possibly transforming
+ * the data along the way or providing  additional
+ * functionality. The class <code>FilterInputStream</code>
+ * itself simply overrides all  methods of
+ * <code>InputStream</code> with versions that
+ * pass all requests to the contained  input
+ * stream. Subclasses of <code>FilterInputStream</code>
+ * may further override some of  these methods
+ * and may also provide additional methods
+ * and fields.
  *
  * @author  Jonathan Payne
- * @version 1.17, 12/10/01
+ * @version 1.21, 06/24/98
  * @since   JDK1.0
  */
 public
 class FilterInputStream extends InputStream {
     /**
-     * The underlying input stream. 
-     *
-     * @since   JDK1.0
+     * The input stream to be filtered. 
      */
     protected InputStream in;
 
     /**
-     * Creates an input stream filter built on top of the specified 
-     * input stream. 
+     * Creates a <code>FilterInputStream</code>
+     * by assigning the  argument <code>in</code>
+     * to the field <code>this.in</code> so as
+     * to remember it for later use.
      *
-     * @param   in   the underlying input stream.
-     * @since   JDK1.0
+     * @param   in   the underlying input stream, or <code>null</code> if 
+     *          this instance is to be created without an underlying stream.
      */
     protected FilterInputStream(InputStream in) {
 	this.in = in;
@@ -52,15 +61,13 @@ class FilterInputStream extends InputStream {
      * is available, the end of the stream is detected, or an exception 
      * is thrown. 
      * <p>
-     * The <code>read</code> method of <code>FilterInputStream</code> 
-     * calls the <code>read</code> method of its underlying input stream 
-     * and returns whatever value that method returns. 
+     * This method
+     * simply performs <code>in.read()</code> and returns the result.
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
-     * @since      JDK1.0
      */
     public int read() throws IOException {
 	return in.read();
@@ -71,16 +78,13 @@ class FilterInputStream extends InputStream {
      * input stream into an array of bytes. This method blocks until some 
      * input is available. 
      * <p>
-     * The <code>read</code> method of <code>FilterInputStream</code> 
-     * calls the <code>read</code> method of three arguments with the 
-     * arguments <code>b</code>, <code>0</code>, and 
-     * <code>b.length</code>, and returns whatever value that method returns.
-     * <p>
-     * Note that this method does not call the one-argument 
-     * <code>read</code> method of its underlying stream with the single 
-     * argument <code>b</code>. Subclasses of 
-     * <code>FilterInputStream</code> do not need to override this method 
-     * if they have overridden the three-argument <code>read</code> method.
+     * This method simply performs the call
+     * <code>read(b, 0, b.length)</code> and returns
+     * the  result. It is important that it does
+     * <i>not</i> do <code>in.read(b)</code> instead;
+     * certain subclasses of  <code>FilterInputStream</code>
+     * depend on the implementation strategy actually
+     * used.
      *
      * @param      b   the buffer into which the data is read.
      * @return     the total number of bytes read into the buffer, or
@@ -88,7 +92,6 @@ class FilterInputStream extends InputStream {
      *             the stream has been reached.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#read(byte[], int, int)
-     * @since      JDK1.0
      */
     public int read(byte b[]) throws IOException {
 	return read(b, 0, b.length);
@@ -99,9 +102,8 @@ class FilterInputStream extends InputStream {
      * into an array of bytes. This method blocks until some input is 
      * available. 
      * <p>
-     * The <code>read</code> method of <code>FilterInputStream</code> 
-     * calls the <code>read</code> method of its underlying input stream 
-     * with the same arguments and returns whatever value that method returns.
+     * This method simply performs <code>in.read(b, off, len)</code> 
+     * and returns the result.
      *
      * @param      b     the buffer into which the data is read.
      * @param      off   the start offset of the data.
@@ -111,7 +113,6 @@ class FilterInputStream extends InputStream {
      *             the stream has been reached.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
-     * @since      JDK1.0
      */
     public int read(byte b[], int off, int len) throws IOException {
 	return in.read(b, off, len);
@@ -124,14 +125,12 @@ class FilterInputStream extends InputStream {
      * possibly <code>0</code>. The actual number of bytes skipped is 
      * returned. 
      * <p>
-     * The <code>skip </code>method of <code>FilterInputStream</code> 
-     * calls the <code>skip</code> method of its underlying input stream 
-     * with the same argument, and returns whatever value that method does.
+     * This method
+     * simply performs <code>in.skip(n)</code>.
      *
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public long skip(long n) throws IOException {
 	return in.skip(n);
@@ -141,16 +140,14 @@ class FilterInputStream extends InputStream {
      * Returns the number of bytes that can be read from this input 
      * stream without blocking. 
      * <p>
-     * The <code>available</code> method of 
-     * <code>FilterInputStream</code> calls the <code>available</code> 
-     * method of its underlying input stream and returns whatever value 
-     * that method returns. 
+     * This method
+     * simply performs <code>in.available(n)</code> and
+     * returns the result.
      *
      * @return     the number of bytes that can be read from the input stream
      *             without blocking.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
-     * @since      JDK1.0
      */
     public int available() throws IOException {
 	return in.available();
@@ -158,13 +155,12 @@ class FilterInputStream extends InputStream {
 
     /**
      * Closes this input stream and releases any system resources 
-     * associated with the stream. The <code>close</code> method of 
-     * <code>FilterInputStream</code> calls the <code>close</code> method 
-     * of its underlying input stream. 
+     * associated with the stream. 
+     * This
+     * method simply performs <code>in.close()</code>.
      *
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
-     * @since      JDK1.0
      */
     public void close() throws IOException {
 	in.close();
@@ -179,15 +175,12 @@ class FilterInputStream extends InputStream {
      * allow that many bytes to be read before the mark position gets 
      * invalidated. 
      * <p>
-     * The <code>mark</code> method of <code>FilterInputStream</code> 
-     * calls the <code>mark</code> method of its underlying input stream 
-     * with the <code>readlimit</code> argument. 
+     * This method simply performs <code>in.mark(readlimit)</code>.
      *
      * @param   readlimit   the maximum limit of bytes that can be read before
      *                      the mark position becomes invalid.
      * @see     java.io.FilterInputStream#in
      * @see     java.io.FilterInputStream#reset()
-     * @since   JDK1.0
      */
     public synchronized void mark(int readlimit) {
 	in.mark(readlimit);
@@ -197,8 +190,8 @@ class FilterInputStream extends InputStream {
      * Repositions this stream to the position at the time the 
      * <code>mark</code> method was last called on this input stream. 
      * <p>
-     * The <code>reset</code> method of <code>FilterInputStream</code> 
-     * calls the <code>reset</code> method of its underlying input stream.
+     * This method
+     * simply performs <code>in.reset()</code>.
      * <p>
      * Stream marks are intended to be used in
      * situations where you need to read ahead a little to see what's in
@@ -213,7 +206,6 @@ class FilterInputStream extends InputStream {
      *               mark has been invalidated.
      * @see        java.io.FilterInputStream#in
      * @see        java.io.FilterInputStream#mark(int)
-     * @since      JDK1.0
      */
     public synchronized void reset() throws IOException {
 	in.reset();
@@ -221,10 +213,9 @@ class FilterInputStream extends InputStream {
 
     /**
      * Tests if this input stream supports the <code>mark</code> 
-     * and <code>reset</code> methods. The <code>markSupported</code> 
-     * method of <code>FilterInputStream</code> calls the 
-     * <code>markSupported</code> method of its underlying input stream 
-     * and returns whatever value that method returns. 
+     * and <code>reset</code> methods. 
+     * This method
+     * simply performs <code>in.markSupported()</code>.
      *
      * @return  <code>true</code> if this stream type supports the
      *          <code>mark</code> and <code>reset</code> method;
@@ -232,7 +223,6 @@ class FilterInputStream extends InputStream {
      * @see     java.io.FilterInputStream#in
      * @see     java.io.InputStream#mark(int)
      * @see     java.io.InputStream#reset()
-     * @since   JDK1.0
      */
     public boolean markSupported() {
 	return in.markSupported();

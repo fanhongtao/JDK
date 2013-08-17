@@ -1,8 +1,15 @@
 /*
- * @(#)PropertyEditorManager.java	1.28 01/12/10
+ * @(#)PropertyEditorManager.java	1.36 98/09/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -27,7 +34,7 @@ package java.beans;
  * foo.bah.FredEditor class.  Then it will look for (say) 
  * standardEditorsPackage.FredEditor class.
  * <p>
- * Default PropertyEditors will be provided for the Java builtin types
+ * Default PropertyEditors will be provided for the Java primitive types
  * "boolean", "byte", "short", "int", "long", "float", and "double"; and
  * for the classes java.lang.String. java.awt.Color, and java.awt.Font.
  */
@@ -37,12 +44,24 @@ public class PropertyEditorManager {
     /**
      * Register an editor class to be used to editor values of
      * a given target class.
+     * 
+     * <p>First, if there is a security manager, its <code>checkPropertiesAccess</code> 
+     * method is called. This could result in a SecurityException.
+     * 
      * @param targetType the Class object of the type to be edited
      * @param editorClass the Class object of the editor class.  If
      *	   this is null, then any existing definition will be removed.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkPropertiesAccess</code> method doesn't allow setting
+     *              of system properties.
+     * @see SecurityManager#checkPropertiesAccess
      */
 
     public static void registerEditor(Class targetType, Class editorClass) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPropertiesAccess();
+	}
 	initialize();
 	if (editorClass == null) {
 	    registry.remove(targetType);
@@ -53,12 +72,13 @@ public class PropertyEditorManager {
 
     /**
      * Locate a value editor for a given target type.
+     *
      * @param targetType  The Class object for the type to be edited
      * @return An editor object for the given target class. 
      * The result is null if no suitable editor can be found.
      */
 
-    public static PropertyEditor findEditor(Class targetType) {
+    public static synchronized PropertyEditor findEditor(Class targetType) {
 	initialize();
 	Class editorClass = (Class)registry.get(targetType);
 	if (editorClass != null) {
@@ -75,7 +95,7 @@ public class PropertyEditorManager {
 
 	String editorName = targetType.getName() + "Editor";
 	try {
-	    return instantiate(targetType, editorName);
+	    return (PropertyEditor) Introspector.instantiate(targetType, editorName);
 	} catch (Exception ex) {
 	   // Silently ignore any errors.
 	}
@@ -88,62 +108,59 @@ public class PropertyEditorManager {
 	for (int i = 0; i < searchPath.length; i++) {
 	    String name = searchPath[i] + "." + editorName + "Editor";
 	    try {
-	        return instantiate(targetType, name);
+	        return (PropertyEditor) Introspector.instantiate(targetType, name);
 	    } catch (Exception ex) {
 	       // Silently ignore any errors.
 	    }
 	}
 
 	// We couldn't find a suitable Editor.
-	return (null);
-    }
-
-    private static PropertyEditor instantiate(Class sibling, String className)
-		 throws InstantiationException, IllegalAccessException,
-						ClassNotFoundException {
-	// First check with siblings classloader (if any). 
-	ClassLoader cl = sibling.getClassLoader();
-	if (cl != null) {
-	    try {
-	        Class cls = cl.loadClass(className);
-	    	Object o = cls.newInstance();
-	        PropertyEditor ed = (PropertyEditor)o;
-		return ed;
-	    } catch (Exception ex) {
-	        // Just drop through
-	    }
-        }
-	// Now try the system classloader.
-	Class cls = Class.forName(className);
-	Object o = cls.newInstance();
-        PropertyEditor ed = (PropertyEditor)o;
-	return ed;
+	return null;
     }
 
     /**
+     * Gets the package names that will be searched for property editors.
+     *
      * @return  The array of package names that will be searched in
      *		order to find property editors.
      * <p>     This is initially set to {"sun.beans.editors"}.
      */
 
-    public static String[] getEditorSearchPath() {
-	return searchPath;
+    public static synchronized String[] getEditorSearchPath() {
+	// Return a copy of the searchPath.
+	String result[] = new String[searchPath.length];
+	for (int i = 0; i < searchPath.length; i++) {
+	    result[i] = searchPath[i];
+	}
+	return result;
     }
 
     /**
      * Change the list of package names that will be used for
      *		finding property editors.
+     * 
+     * <p>First, if there is a security manager, its <code>checkPropertiesAccess</code> 
+     * method is called. This could result in a SecurityException.
+     *
      * @param path  Array of package names.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkPropertiesAccess</code> method doesn't allow setting
+     *              of system properties.
+     * @see SecurityManager#checkPropertiesAccess
      */
 
-    public static void setEditorSearchPath(String path[]) {
+    public static synchronized void setEditorSearchPath(String path[]) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPropertiesAccess();
+	}
 	if (path == null) {
 	    path = new String[0];
 	}
 	searchPath = path;
     }
 
-    private static void load(Class targetType, String name) {
+    private static synchronized void load(Class targetType, String name) {
 	String editorName = name;
 	for (int i = 0; i < searchPath.length; i++) {
 	    try {

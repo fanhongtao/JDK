@@ -1,45 +1,49 @@
 /*
- * @(#)Panel.java	1.21 01/12/10
+ * @(#)Panel.java	1.23 98/08/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
 import java.awt.peer.PanelPeer;
 
 /**
- * <code>Panel</code> is the simplest container class. A panel   
- * provides space in which an application can attach any other 
- * component, including other panels. 
+ * <code>Panel</code> is the simplest container class. A panel
+ * provides space in which an application can attach any other
+ * component, including other panels.
  * <p>
- * The default layout manager for a panel is the 
+ * The default layout manager for a panel is the
  * <code>FlowLayout</code> layout manager.
  *
- * @version 	1.21, 12/10/01
+ * @version 	1.23, 08/25/98
  * @author 	Sami Shaio
  * @see     java.awt.FlowLayout
  * @since   JDK1.0
  */
 public class Panel extends Container {
-    final static LayoutManager panelLayout = new FlowLayout();
-
     private static final String base = "panel";
     private static int nameCounter = 0;
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
      private static final long serialVersionUID = -2728009084054400034L;
 
     /**
-     * Creates a new panel using the default layout manager. 
-     * The default layout manager for all panels is the 
+     * Creates a new panel using the default layout manager.
+     * The default layout manager for all panels is the
      * <code>FlowLayout</code> class.
-     * @since       JDK1.0
      */
     public Panel() {
-	this(panelLayout);
+	this(new FlowLayout());
     }
 
     /**
@@ -56,7 +60,9 @@ public class Panel extends Container {
      * name is null.
      */
     String constructComponentName() {
-        return base + nameCounter++;
+        synchronized (getClass()) {
+	    return base + nameCounter++;
+	}
     }
 
     /**
@@ -67,9 +73,9 @@ public class Panel extends Container {
     public void addNotify() {
         synchronized (getTreeLock()) {
 	    if (peer == null)
-			peer = getToolkit().createPanel(this);
+	        peer = getToolkit().createPanel(this);
 	    super.addNotify();
-        }
+	}
     }
 
 }

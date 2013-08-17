@@ -1,8 +1,15 @@
 /*
- * @(#)Serializable.java	1.8 01/12/10
+ * @(#)Serializable.java	1.12 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -14,7 +21,7 @@ package java.io;
  * deserialized.  All subtypes of a serializable class are themselves
  * serializable.  The serialization interface has no methods or fields
  * and serves only to identify the semantics of being serializable. <p>
- * 
+ *
  * To allow subtypes of non-serializable classes to be serialized, the
  * subtype may assume responsibility for saving and restoring the
  * state of the supertype's public, protected, and (if accessible)
@@ -22,7 +29,7 @@ package java.io;
  * the class it extends has an accessible no-arg constructor to
  * initialize the class's state.  It is an error to declare a class
  * Serializable in this case.  The error will be detected at runtime. <p>
- * 
+ *
  * During deserialization, the fields of non-serializable classes will
  * be initialized using the public or protected no-arg constructor of
  * the class.  A no-arg constructor must be accessible to the subclass
@@ -41,7 +48,7 @@ package java.io;
  * private void writeObject(java.io.ObjectOutputStream out)
  *     throws IOException
  * private void readObject(java.io.ObjectInputStream in)
- *     throws IOException, ClassNotFoundException; 
+ *     throws IOException, ClassNotFoundException;
  * </PRE><p>
 
  * The writeObject method is responsible for writing the state of the
@@ -66,8 +73,33 @@ package java.io;
  * ObjectOutputStream using the writeObject method or by using the
  * methods for primitive data types supported by DataOutput. <p>
  *
+ * Serializable classes that need to designate an alternative object to be
+ * used when writing an object to the stream should implement this
+ * special method with the exact signature: <p>
+ *
+ * <PRE>
+ * ANY-ACCESS-MODIFIER Object writeReplace() throws ObjectStreamException;
+ * </PRE><p>
+ *
+ * This writeReplace method is invoked by serialization if the method
+ * exists and it would be accessible from a method defined within the
+ * class of the object being serialized. Thus, the method can have private,
+ * protected and package-private access. Subclass access to this method
+ * follows java accessibility rules. <p>
+ *
+ * Classes that need to designate a replacement when an instance of it
+ * is read from the stream should implement this special method with the
+ * exact signatute.<p>
+ *
+ * <PRE>
+ * ANY-ACCESS-MODIFIER Object readResolve() throws ObjectStreamException;
+ * </PRE><p>
+ *
+ * This readResolve method follows the same invocation rules and
+ * accessibility rules as writeReplace.
+ *
  * @author  unascribed
- * @version 1.8, 12/10/01
+ * @version 1.12, 06/29/98
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput
@@ -76,4 +108,5 @@ package java.io;
  * @since   JDK1.1
  */
 public interface Serializable {
+    static final long serialVersionUID = 1196656838076753133L;
 }

@@ -1,8 +1,15 @@
 /*
- * @(#)CharArrayReader.java	1.9 01/12/10
+ * @(#)CharArrayReader.java	1.12 98/06/05
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -12,7 +19,7 @@ package java.io;
  * character-input stream.
  *
  * @author	Herb Jellinek
- * @version 	1.9, 12/10/01
+ * @version 	1.12, 06/05/98
  * @since       JDK1.1
  */
 public
@@ -32,7 +39,6 @@ class CharArrayReader extends Reader {
     /**
      * Create an CharArrayReader from the specified array of chars.
      * @param buf	Input buffer (not copied)
-     * @since JDK1.1
      */
     public CharArrayReader(char buf[]) {
 	this.buf = buf;
@@ -45,12 +51,16 @@ class CharArrayReader extends Reader {
      * @param buf	Input buffer (not copied)
      * @param offset    Offset of the first char to read
      * @param length	Number of chars to read
-     * @since JDK1.1
      */
     public CharArrayReader(char buf[], int offset, int length) {
+	if ((offset < 0) || (offset > buf.length) || (length < 0) ||
+            ((offset + length) < 0)) {
+	    throw new IllegalArgumentException();
+	}
 	this.buf = buf;
         this.pos = offset;
 	this.count = Math.min(offset + length, buf.length);
+        this.markedPos = offset;
     }
 
     /** Check to make sure that the stream has not been closed */
@@ -63,7 +73,6 @@ class CharArrayReader extends Reader {
      * Read a single character.
      * 
      * @exception   IOException  If an I/O error occurs
-     * @since       JDK1.1
      */
     public int read() throws IOException {
 	synchronized (lock) {
@@ -84,11 +93,17 @@ class CharArrayReader extends Reader {
      * 		the end of the stream has been reached
      * 
      * @exception   IOException  If an I/O error occurs
-     * @since       JDK1.1
      */
     public int read(char b[], int off, int len) throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
+            if ((off < 0) || (off > b.length) || (len < 0) ||
+                ((off + len) > b.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return 0;
+            }
+
 	    if (pos >= count) {
 		return -1;
 	    }
@@ -110,7 +125,6 @@ class CharArrayReader extends Reader {
      * @return	The number of characters actually skipped
      * 
      * @exception   IOException  If an I/O error occurs
-     * @since       JDK1.1
      */
     public long skip(long n) throws IOException {
 	synchronized (lock) {
@@ -131,7 +145,6 @@ class CharArrayReader extends Reader {
      * are always ready to be read.
      *
      * @exception  IOException  If an I/O error occurs
-     * @since       JDK1.1
      */
     public boolean ready() throws IOException {
 	synchronized (lock) {
@@ -142,7 +155,6 @@ class CharArrayReader extends Reader {
 
     /**
      * Tell whether this stream supports the mark() operation, which it does.
-     * @since       JDK1.1
      */
     public boolean markSupported() {
 	return true;
@@ -159,7 +171,6 @@ class CharArrayReader extends Reader {
      *                         ignored.
      *
      * @exception  IOException  If an I/O error occurs
-     * @since       JDK1.1
      */
     public void mark(int readAheadLimit) throws IOException {
 	synchronized (lock) {
@@ -173,7 +184,6 @@ class CharArrayReader extends Reader {
      * never been marked.
      *
      * @exception  IOException  If an I/O error occurs
-     * @since       JDK1.1
      */
     public void reset() throws IOException {
 	synchronized (lock) {
@@ -184,7 +194,6 @@ class CharArrayReader extends Reader {
 
     /**
      * Close the stream.
-     * @since       JDK1.1
      */
     public void close() {
 	buf = null;

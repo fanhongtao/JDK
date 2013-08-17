@@ -1,70 +1,82 @@
 /*
- * @(#)Date.java	1.7 01/12/10
+ * @(#)Date.java	1.18 98/09/30
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.sql;
 
 /**
- * <P>This class is a thin wrapper around java.util.Date that allows
- * JDBC to identify this as a SQL DATE value. It adds formatting and
- * parsing operations to support the JDBC escape syntax for date
- * values.
+ * <P>A thin wrapper around a millisecond value that allows
+ * JDBC to identify this as a SQL DATE.  A milliseconds value represents
+ * the number of milliseconds that have passed since January 1, 1970
+ * 00:00:00.000 GMT.
+ * <p>
+ * To conform with the definition of SQL DATE, the millisecond values 
+ * wrapped by a java.sql.Date instance must be 'normalized' by setting the 
+ * hours, minutes, seconds, and milliseconds to zero in the particular
+ * time zone with which the instance is associated.
  */
 public class Date extends java.util.Date {
 
     /**
-     * Construct a Date  
+     * Constructs a <code>Date</code> object initialized with the given
+	 * year, month, and day.
      *
      * @param year year-1900
      * @param month 0 to 11 
      * @param day 1 to 31
+     * @deprecated instead use the constructor <code>Date(long date)</code>
      */
     public Date(int year, int month, int day) {
 	super(year, month, day);
     }
 
     /**
-     * Construct a Date using a milliseconds time value
+     * Constructs a <code>Date</code> object 
+	 * using a milliseconds time value.  If the given millisecond 
+	 * value contains time information, the driver will set the
+	 * time components to zero.
      *
-     * @param date milliseconds since January 1, 1970, 00:00:00 GMT
+     * @param date milliseconds since January 1, 1970, 00:00:00 GMT.
+				   A negative number indicates the number of milliseconds
+				   before January 1, 1970, 00:00:00 GMT.
      */
     public Date(long date) {
 	// If the millisecond date value contains time info, mask it out.
 	super(date);
-	int year = getYear();
-	int month = getMonth();
-	int day = getDate();
-	super.setTime(0);
-	setYear(year);
-	setMonth(month);
-	setDate(day);
+	
     }
 
     /**
-     * Set a Date using a milliseconds time value
+     * Sets an existing <code>Date</code> object 
+	 * using the given milliseconds time value.  If the given milliseconds 
+	 * value contains time information, the driver will set the
+	 * time components to zero.
      *
-     * @param date milliseconds since January 1, 1970, 00:00:00 GMT
+     * @param date milliseconds since January 1, 1970, 00:00:00 GMT.
+				   A negative number indicates the number of milliseconds
+				   before January 1, 1970, 00:00:00 GMT.
      */
     public void setTime(long date) {
 	// If the millisecond date value contains time info, mask it out.
-	super.setTime(date);
-	int year = getYear();
-	int month = getMonth();
-	int day = getDate();
-	super.setTime(0);
-	setYear(year);
-	setMonth(month);
-	setDate(day);
+	super.setTime(date);	 
     }
 
     /**
-     * Convert a string in JDBC date escape format to a Date value
+     * Converts a string in JDBC date escape format to
+	 * a <code>Date</code> value.
      *
      * @param s date in format "yyyy-mm-dd"
-     * @return corresponding Date
+     * @return a <code>Date</code> object representing the given date
      */
     public static Date valueOf(String s) {
 	int year;
@@ -89,7 +101,7 @@ public class Date extends java.util.Date {
     }
 
     /**
-     * Format a date in JDBC date escape format  
+     * Formats a date in JDBC date escape format.  
      *
      * @return a String in yyyy-mm-dd format
      */
@@ -120,29 +132,71 @@ public class Date extends java.util.Date {
     }
 
     // Override all the time operations inherited from java.util.Date;
+
+   /**
+    * This method is deprecated and should not be used because SQL Date 
+    * values do not have a time component.
+    *
+    * @deprecated
+	* @exception java.lang.IllegalArgumentException if this method is invoked
+    */
     public int getHours() {
 	throw new java.lang.IllegalArgumentException();
     }
 
+   /**
+    * This method is deprecated and should not be used because SQL Date 
+    * values do not have a time component.
+    *
+    * @deprecated
+	* @exception java.lang.IllegalArgumentException if this method is invoked
+    */
     public int getMinutes() {
 	throw new java.lang.IllegalArgumentException();
     }
     
+   /**
+    * This method is deprecated and should not be used because SQL Date 
+    * values do not have a time component.
+    *
+    * @deprecated
+	* @exception java.lang.IllegalArgumentException if this method is invoked
+    */
     public int getSeconds() {
 	throw new java.lang.IllegalArgumentException();
     }
 
+   /**
+    * This method is deprecated and should not be used because SQL Date 
+    * values do not have a time component.
+    *
+    * @deprecated
+	* @exception java.lang.IllegalArgumentException if this method is invoked
+    */
     public void setHours(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
 
+   /**
+    * This method is deprecated and should not be used because SQL Date 
+    * values do not have a time component.
+    *
+    * @deprecated
+	* @exception java.lang.IllegalArgumentException if this method is invoked
+    */
     public void setMinutes(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
 
+   /**
+    * This method is deprecated and should not be used because SQL Date 
+    * values do not have a time component.
+    *
+    * @deprecated
+	* @exception java.lang.IllegalArgumentException if this method is invoked
+    */
     public void setSeconds(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
-
 }
 

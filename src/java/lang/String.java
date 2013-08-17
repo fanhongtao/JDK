@@ -1,18 +1,29 @@
 /*
- * @(#)String.java	1.88 01/12/10
+ * @(#)String.java	1.112 98/09/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
 
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.Comparator;
 import sun.io.ByteToCharConverter;
 import sun.io.CharToByteConverter;
 import java.io.CharConversionException;
 import java.io.UnsupportedEncodingException;
+import java.io.ObjectStreamClass;
+import java.io.ObjectStreamField;
+import java.lang.ref.SoftReference;
 
 /**
  * The <code>String</code> class represents character strings. All 
@@ -58,7 +69,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.88, 12/10/01
+ * @version 1.112, 09/23/98
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -74,7 +85,7 @@ import java.io.UnsupportedEncodingException;
  * @since   JDK1.0
  */
 public final
-class String implements java.io.Serializable {
+class String implements java.io.Serializable, Comparable {
     /** The value is used for character storage. */
     private char value[];
 
@@ -84,19 +95,97 @@ class String implements java.io.Serializable {
     /** The count is the number of characters in the String. */
     private int count;
 
+    /** The cached converter for each thread. 
+     *  Note: These are declared null to minimize the classes
+     *  that String must depend on during initialization
+     */
+    private static ThreadLocal btcConverter = null;
+    private static ThreadLocal ctbConverter = null;
+
+    /**
+     * Returns a <code>ByteToCharConverter</code> that uses the specified
+     * encoding. For efficiency a cache is maintained that holds the last
+     * used converter.
+     *
+     * @param  enc The name of a character encoding
+     * @return     ByteToCharConverter for the specified encoding.
+     * @exception  UnsupportedEncodingException
+     *             If the named encoding is not supported
+     * @since      JDK1.2
+     */
+    private static ByteToCharConverter getBTCConverter(String encoding)
+                                  throws UnsupportedEncodingException {
+        ByteToCharConverter btc = null;
+        if (btcConverter == null)
+            btcConverter = new ThreadLocal();
+        SoftReference ref = (SoftReference)(btcConverter.get());
+        if (ref==null || (btc = (ByteToCharConverter)ref.get())==null ||
+                          !encoding.equals(btc.getCharacterEncoding())) {
+            btc = ByteToCharConverter.getConverter(encoding);
+            btcConverter.set(new SoftReference(btc));
+        } else {
+            btc.reset();
+        }
+        return btc;
+    }
+
+    /**
+     * Returns a <code>CharToByteConverter</code> that uses the specified
+     * encoding. For efficiency a cache is maintained that holds the last
+     * used converter.
+     *
+     * @param  enc The name of a character encoding
+     * @return     CharToByteConverter for the specified encoding.
+     * @exception  UnsupportedEncodingException
+     *             If the named encoding is not supported
+     * @since      JDK1.2
+     */
+    private static CharToByteConverter getCTBConverter(String encoding)
+                                  throws UnsupportedEncodingException {
+        CharToByteConverter ctb = null;
+        if (ctbConverter == null)
+            ctbConverter = new ThreadLocal();
+        SoftReference ref = (SoftReference)(ctbConverter.get());
+        if (ref==null || (ctb = (CharToByteConverter)ref.get())==null ||
+                          !encoding.equals(ctb.getCharacterEncoding())) {
+            ctb = CharToByteConverter.getConverter(encoding);
+            ctbConverter.set(new SoftReference(ctb));
+        } else {
+            ctb.reset();
+        }
+        return ctb;
+    }
+
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = -6849794470754667710L;
 
     /**
-     * Allocates a new <code>String</code> containing no characters. 
+     * Class String is special cased within the Serialization Stream Protocol. 
+     *
+     * A String instance is written intially into an ObjectOutputStream in the 
+     * following format:
+     * <pre>
+     *      <code>TC_STRING</code> (utf String)
+     * </pre>
+     * The String is written by method <code>DataOutput.writeUTF</code>. 
+     * A new handle is generated to  refer to all future references to the
+     * string instance within the stream.
+     */
+    private static final ObjectStreamField[] serialPersistentFields = 
+	ObjectStreamClass.NO_FIELDS;
+
+    /**
+     * Initializes a newly created <code>String</code> object so that it 
+     * represents an empty character sequence. 
      */
     public String() {
 	value = new char[0];
     }
 
     /**
-     * Allocates a new string that contains the same sequence of 
-     * characters as the string argument. 
+     * Initializes a newly created <code>String</code> object so that it 
+     * represents the same sequence of characters as the argument; in other 
+     * words, the newly created string is a copy of the argument string. 
      *
      * @param   value   a <code>String</code>.
      */
@@ -109,9 +198,12 @@ class String implements java.io.Serializable {
     /**
      * Allocates a new <code>String</code> so that it represents the 
      * sequence of characters currently contained in the character array 
-     * argument. 
+     * argument. The contents of the character array are copied; subsequent 
+     * modification of the character array does not affect the newly created 
+     * string. 
      *
      * @param  value   the initial value of the string.
+     * @throws NullPointerException if <code>value</code> is <code>null</code>.
      */
     public String(char value[]) {
 	this.count = value.length;
@@ -124,14 +216,18 @@ class String implements java.io.Serializable {
      * a subarray of the character array argument. The <code>offset</code> 
      * argument is the index of the first character of the subarray and 
      * the <code>count</code> argument specifies the length of the 
-     * subarray. 
+     * subarray. The contents of the subarray are copied; subsequent 
+     * modification of the character array does not affect the newly 
+     * created string. 
      *
      * @param      value    array that is the source of characters.
      * @param      offset   the initial offset.
      * @param      count    the length.
-     * @exception  StringIndexOutOfBoundsException  if the <code>offset</code>
+     * @exception  IndexOutOfBoundsException  if the <code>offset</code>
      *               and <code>count</code> arguments index characters outside
      *               the bounds of the <code>value</code> array.
+     * @exception NullPointerException if <code>value</code> is 
+     *               <code>null</code>.
      */
     public String(char value[], int offset, int count) {
 	if (offset < 0) {
@@ -170,8 +266,10 @@ class String implements java.io.Serializable {
      * @param      hibyte    the top 8 bits of each 16-bit Unicode character.
      * @param      offset    the initial offset.
      * @param      count     the length.
-     * @exception  StringIndexOutOfBoundsException  if the <code>offset</code>
+     * @exception  IndexOutOfBoundsException  if the <code>offset</code>
      *               or <code>count</code> argument is invalid.
+     * @exception NullPointerException if <code>ascii</code> is 
+     *                       <code>null</code>.
      * @see        java.lang.String#String(byte[], int)
      * @see        java.lang.String#String(byte[], int, int, java.lang.String)
      * @see        java.lang.String#String(byte[], int, int)
@@ -223,6 +321,8 @@ class String implements java.io.Serializable {
      *
      * @param      ascii    the bytes to be converted to characters.
      * @param      hibyte   the top 8 bits of each 16-bit Unicode character.
+     * @exception NullPointerException If <code>ascii</code> is 
+     *                      <code>null</code>.
      * @see        java.lang.String#String(byte[], int, int, java.lang.String)
      * @see        java.lang.String#String(byte[], int, int)
      * @see        java.lang.String#String(byte[], java.lang.String)
@@ -232,7 +332,7 @@ class String implements java.io.Serializable {
 	this(ascii, hibyte, 0, ascii.length);
     }
 
-    /**
+   /**
      * Construct a new <code>String</code> by converting the specified
      * subarray of bytes using the specified character-encoding converter.  The
      * length of the new <code>String</code> is a function of the encoding, and
@@ -242,10 +342,20 @@ class String implements java.io.Serializable {
      * @param  offset  Index of the first byte to convert
      * @param  length  Number of bytes to convert
      * @param  btc     A ByteToCharConverter
+     * @exception  IndexOutOfBoundsException  if the <code>offset</code>
+     *               and <code>count</code> arguments index characters outside
+     *               the bounds of the <code>value</code> array.
      */
     private String(byte bytes[], int offset, int length,
 		   ByteToCharConverter btc)
     {
+        if (length < 0)
+            throw new StringIndexOutOfBoundsException("length must be >= 0");
+        if (offset < 0)
+            throw new StringIndexOutOfBoundsException("offset must be >= 0");
+        if (offset > bytes.length-length)
+            throw new StringIndexOutOfBoundsException(offset + count);
+
 	int estCount = btc.getMaxCharsPerByte() * length;
 	value = new char[estCount];
 
@@ -253,8 +363,7 @@ class String implements java.io.Serializable {
 	    count = btc.convert(bytes, offset, offset+length,
 				value, 0, estCount);
 	    count += btc.flush(value, btc.nextCharIndex(), estCount);
-	}
-	catch (CharConversionException x) {
+	} catch (CharConversionException x) {
 	    count = btc.nextCharIndex();
 	}
 
@@ -265,6 +374,7 @@ class String implements java.io.Serializable {
 	    value = trimValue;
 	}
     }
+
 
     /**
      * Construct a new <code>String</code> by converting the specified
@@ -279,12 +389,15 @@ class String implements java.io.Serializable {
      *
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
+     *             IndexOutOfBoundsException  if the <code>offset</code>
+     *               and <code>count</code> arguments index characters outside
+     *               the bounds of the <code>value</code> array.
      * @since      JDK1.1
      */
     public String(byte bytes[], int offset, int length, String enc)
 	throws UnsupportedEncodingException
     {
-	this(bytes, offset, length, ByteToCharConverter.getConverter(enc));
+	this(bytes, offset, length, getBTCConverter(enc));
     }
 
     /**
@@ -336,9 +449,13 @@ class String implements java.io.Serializable {
 
     /**
      * Allocates a new string that contains the sequence of characters 
-     * currently contained in the string buffer argument. 
+     * currently contained in the string buffer argument. The contents of 
+     * the string buffer are copied; subsequent modification of the string 
+     * buffer does not affect the newly created string.
      *
      * @param   buffer   a <code>StringBuffer</code>.
+     * @throws NullPointerException If <code>buffer</code> is 
+     * <code>null</code>.
      */
     public String (StringBuffer buffer) { 
 	synchronized(buffer) { 
@@ -370,13 +487,16 @@ class String implements java.io.Serializable {
 
     /**
      * Returns the character at the specified index. An index ranges
-     * from <code>0</code> to <code>length() - 1</code>.
+     * from <code>0</code> to <code>length() - 1</code>. The first character 
+     * of the sequence is at index <code>0</code>, the next at index 
+     * <code>1</code>, and so on, as for array indexing.
      *
      * @param      index   the index of the character.
      * @return     the character at the specified index of this string.
      *             The first character is at index <code>0</code>.
-     * @exception  StringIndexOutOfBoundsException  if the index is out of
-     *               range.
+     * @exception  IndexOutOfBoundsException  if the <code>index</code> 
+     *             argument is negative or not less than the length of this 
+     *             string.
      */
     public char charAt(int index) {
 	if ((index < 0) || (index >= count)) {
@@ -386,7 +506,8 @@ class String implements java.io.Serializable {
     }
 
     /**
-     * Copies characters from this string into the destination character array. 
+     * Copies characters from this string into the destination character 
+     * array. 
      * <p>
      * The first character to be copied is at index <code>srcBegin</code>; 
      * the last character to be copied is at index <code>srcEnd-1</code> 
@@ -404,8 +525,16 @@ class String implements java.io.Serializable {
      *                        to copy.
      * @param      dst        the destination array.
      * @param      dstBegin   the start offset in the destination array.
-     * @exception StringIndexOutOfBoundsException If srcBegin or srcEnd is out 
-     *              of range, or if srcBegin is greater than the srcEnd.
+     * @exception IndexOutOfBoundsException If any of the following 
+     *            is true:
+     *            <ul><li><code>srcBegin</code> is negative.
+     *            <li><code>srcBegin</code> is greater than <code>srcEnd</code>
+     *            <li><code>srcEnd</code> is greater than the length of this 
+     *                string
+     *            <li><code>dstBegin</code> is negative
+     *            <li><code>dstBegin+(srcEnd-srcBegin)</code> is larger than 
+     *                <code>dst.length</code></ul>
+     * @exception NullPointerException if <code>dst</code> is <code>null</code>
      */
     public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
 	if (srcBegin < 0) {
@@ -417,13 +546,15 @@ class String implements java.io.Serializable {
 	if (srcBegin > srcEnd) {
 	    throw new StringIndexOutOfBoundsException(srcEnd - srcBegin);
 	}
-	System.arraycopy(value, offset + srcBegin, dst, dstBegin, srcEnd - srcBegin);
+	System.arraycopy(value, offset + srcBegin, dst, dstBegin, 
+			 srcEnd - srcBegin);
     }
 
     /**
      * Copies characters from this string into the destination byte 
      * array. Each byte receives the 8 low-order bits of the 
-     * corresponding character. 
+     * corresponding character. The eight high-order bits of each character 
+     * are not copied and do not participate in the transfer in any way.
      * <p>
      * The first character to be copied is at index <code>srcBegin</code>; 
      * the last character to be copied is at index <code>srcEnd-1</code>. 
@@ -447,8 +578,16 @@ class String implements java.io.Serializable {
      *                        to copy.
      * @param      dst        the destination array.
      * @param      dstBegin   the start offset in the destination array.
-     * @exception StringIndexOutOfBoundsException  if srcBegin or srcEnd is out 
-     *              of range, or if srcBegin is greater than srcEnd.
+     * @exception IndexOutOfBoundsException if any of the following 
+     *            is true:
+     *           <ul<li><code>srcBegin</code> is negative 
+     *           <li><code>srcBegin</code> is greater than <code>srcEnd</code> 
+     *           <li><code>srcEnd</code> is greater than the length of this 
+     *            String 
+     *           <li><code>dstBegin</code> is negative 
+     *           <li><code>dstBegin+(srcEnd-srcBegin)</code> is larger than 
+     *            <code>dst.length</code> 
+     * @exception NullPointerException if <code>dst</code> is <code>null</code>
      */
     public void getBytes(int srcBegin, int srcEnd, byte dst[], int dstBegin) {
 	if (srcBegin < 0) {
@@ -481,15 +620,16 @@ class String implements java.io.Serializable {
 	ctb.reset();
 	int estLength = ctb.getMaxBytesPerChar() * count;
 	byte[] result = new byte[estLength];
-	int length;
-
-	try {
-	    length = ctb.convert(value, offset, offset + count,
-				 result, 0, estLength);
-	    length += ctb.flush(result, ctb.nextByteIndex(), estLength);
+	int length = 0;
+	try { 
+	    length += ctb.convertAny(value, offset, (offset + count),
+				     result, 0, estLength);
+	    length += ctb.flushAny(result, ctb.nextByteIndex(), estLength);
 	} catch (CharConversionException e) {
-	    length = ctb.nextByteIndex();
+	    throw new InternalError("Converter malfunction: " +
+				    ctb.getClass().getName());
 	}
+
 
 	if (length < estLength) {
 	    // A short format was used:  Trim the byte array.
@@ -516,7 +656,7 @@ class String implements java.io.Serializable {
     public byte[] getBytes(String enc)
 	throws UnsupportedEncodingException
     {
-	return getBytes(CharToByteConverter.getConverter(enc));
+	return getBytes(getCTBConverter(enc));
     }
 
     /**
@@ -567,32 +707,28 @@ class String implements java.io.Serializable {
     }
 
     /**
-     * Compares this String to another object.
-     * The result is <code>true</code> if and only if the argument is not 
-     * <code>null</code> and is a <code>String</code> object that represents 
-     * the same sequence of characters as this object, where case is ignored. 
+     * Compares this <code>String</code> to another <code>String</code>,
+     * ignoring case considerations.  Two strings are considered equal
+     * ignoring case if they are of the same length, and corresponding
+     * characters in the two strings are equal ignoring case.
      * <p>
-     * Two characters are considered the same, ignoring case, if at 
-     * least one of the following is true: 
-     * <ul>
-     * <li>The two characters are the same (as compared by the <code>==</code> 
-     *     operator). 
-     * <li>Applying the method <code>Character.toUppercase</code> to each 
-     *     character produces the same result. 
-     * <li>Applying the method <code>Character.toLowercase</code> to each 
-     *     character produces the same result. 
-     * </ul>
-     * <p>
-     * Two sequences of characters are the same, ignoring case, if the 
-     * sequences have the same length and corresponding characters are 
-     * the same, ignoring case. 
+     * Two characters <code>c1</code> and <code>c2</code> are considered
+     * the same, ignoring case if at least one of the following is true:
+     * <ul><li>The two characters are the same (as compared by the 
+     * <code>==</code> operator).
+     * <li>Applying the method {@link java.lang.Character#toUppercase(char)} 
+     * to each character produces the same result.
+     * <li>Applying the method {@link java.lang.Character#toLowercase(char) 
+     * to each character produces the same result.</ul>
      *
      * @param   anotherString   the <code>String</code> to compare this
      *                          <code>String</code> against.
-     * @return  <code>true</code> if the <code>String</code>s are equal,
+     * @return  <code>true</code> if the argument is not <code>null</code> 
+     *          and the <code>String</code>s are equal,
      *          ignoring case; <code>false</code> otherwise.
+     * @see     #equals(Object)
      * @see     java.lang.Character#toLowerCase(char)
-     * @see     java.lang.Character#toUpperCase(char)
+     * @see java.lang.Character#toUpperCase(char)
      */
     public boolean equalsIgnoreCase(String anotherString) {
 	return (anotherString != null) && (anotherString.count == count) &&
@@ -602,7 +738,36 @@ class String implements java.io.Serializable {
     /**
      * Compares two strings lexicographically. 
      * The comparison is based on the Unicode value of each character in
-     * the strings. 
+     * the strings. The character sequence represented by this 
+     * <code>String</code> object is compared lexicographically to the 
+     * character sequence represented by the argument string. The result is 
+     * a negative integer if this <code>String</code> object 
+     * lexicographically precedes the argument string. The result is a 
+     * positive integer if this <code>String</code> object lexicographically 
+     * follows the argument string. The result is zero if the strings
+     * are equal; <code>compareTo</code> returns <code>0</code> exactly when 
+     * the {@link #equals(Object)} method would return <code>true</code>. 
+     * <p>
+     * This is the definition of lexicographic ordering. If two strings are 
+     * different, then either they have different characters at some index 
+     * that is a valid index for both strings, or their lengths are different, 
+     * or both. If they have different characters at one or more index 
+     * positions, let <i>k</i> be the smallest such index; then the string
+     * whose character at position <i>k</i> has the smaller value, as 
+     * determined by using the < operator, lexicographically precedes the 
+     * other string. In this case, <code>compareTo</code> returns the 
+     * difference of the two character values at position <code>k</code> in 
+     * the two string -- that is, the value:
+     * <blockquote><pre>
+     * this.charAt(k)-anotherString.charAt(k)
+     * </pre></blockquote>
+     * If there is no index position at which they differ, then the shorter 
+     * string lexicographically precedes the longer string. In this case, 
+     * <code>compareTo</code> returns the difference of the lengths of the 
+     * strings -- that is, the value: 
+     * <blockquote><pre>
+     * this.length()-anotherString.length()
+     * </pre></blockquote>
      *
      * @param   anotherString   the <code>String</code> to be compared.
      * @return  the value <code>0</code> if the argument string is equal to
@@ -610,6 +775,8 @@ class String implements java.io.Serializable {
      *          is lexicographically less than the string argument; and a
      *          value greater than <code>0</code> if this string is
      *          lexicographically greater than the string argument.
+     * @exception java.lang.NullPointerException if <code>anotherString</code> 
+     *          is <code>null</code>.
      */
     public int compareTo(String anotherString) {
 	int len1 = count;
@@ -631,14 +798,106 @@ class String implements java.io.Serializable {
     }
 
     /**
+     * Compares this String to another Object.  If the Object is a String,
+     * this function behaves like <code>compareTo(String)</code>.  Otherwise,
+     * it throws a <code>ClassCastException</code> (as Strings are comparable
+     * only to other Strings).
+     *
+     * @param   o the <code>Object</code> to be compared.
+     * @return  the value <code>0</code> if the argument is a string
+     *		lexicographically equal to this string; a value less than
+     *		<code>0</code> if the argument is a string lexicographically 
+     *		greater than this string; and a value greater than
+     *		<code>0</code> if the argument is a string lexicographically
+     *		less than this string.
+     * @exception <code>ClassCastException</code> if the argument is not a
+     *		  <code>String</code>. 
+     * @see     java.lang.Comparable
+     * @since   JDK1.2
+     */
+    public int compareTo(Object o) {
+	return compareTo((String)o);
+    }
+
+    /**
+     * Returns a Comparator that orders <code>String</code> objects as by
+     * <code>compareToIgnoreCase</code>.
+     * <p>
+     * Note that this Comparator does <em>not</em> take locale into account,
+     * and will result in an unsatisfactory ordering for certain locales.
+     * The java.text package provides <em>Collators</em> to allow
+     * locale-sensitive ordering.
+     *
+     * @return  Comparator for case insensitive comparison of strings
+     * @see     java.text.Collator#compare(String, String)
+     * @since   JDK1.2
+     */
+    public static final Comparator CASE_INSENSITIVE_ORDER = new Comparator() {
+        public int compare(Object o1, Object o2) {
+            String s1 = (String) o1;
+            String s2 = (String) o2;
+            int n1=s1.length(), n2=s2.length();
+            for (int i1=0, i2=0; i1<n1 && i2<n2; i1++, i2++) {
+                char c1 = s1.charAt(i1);
+                char c2 = s2.charAt(i2);
+                if (c1 != c2) {
+                    c1 = Character.toUpperCase(c1);
+                    c2 = Character.toUpperCase(c2);
+                    if (c1 != c2) {
+                        c1 = Character.toLowerCase(c1);
+                        c2 = Character.toLowerCase(c2);
+                        if (c1 != c2)
+                            return c1 - c2;
+                    }
+                }
+            }
+            return n1 - n2;
+        }
+    };
+
+    /**
+     * Compares two strings lexicographically, ignoring case considerations.
+     * This method returns an integer whose sign is that of
+     * <code>this.toUpperCase().toLowerCase().compareTo(
+     * str.toUpperCase().toLowerCase())</code>.
+     * <p>
+     * Note that this method does <em>not</em> take locale into account,
+     * and will result in an unsatisfactory ordering for certain locales.
+     * The java.text package provides <em>collators</em> to allow
+     * locale-sensitive ordering.
+     *
+     * @param   str   the <code>String</code> to be compared.
+     * @return  a negative integer, zero, or a positive integer as the
+     *		the specified String is greater than, equal to, or less
+     *		than this String, ignoring case considerations.
+     * @see     java.text.Collator#compare(String, String)
+     * @since   JDK1.2
+     */
+    public int compareToIgnoreCase(String str) {
+        return CASE_INSENSITIVE_ORDER.compare(this, str);
+    }
+
+    /**
      * Tests if two string regions are equal. 
      * <p>
-     * If <code>toffset</code> or <code>ooffset</code> is negative, or 
-     * if <code>toffset</code>+<code>length</code> is greater than the 
-     * length of this string, or if 
-     * <code>ooffset</code>+<code>length</code> is greater than the 
-     * length of the string argument, then this method returns 
-     * <code>false</code>. 
+     * A substring of this <tt>String</tt> object is compared to a substring 
+     * of the argument other. The result is true if these substrings 
+     * represent identical character sequences. The substring of this 
+     * <tt>String</tt> object to be compared begins at index <tt>toffset</tt> 
+     * and has length <tt>len</tt>. The substring of other to be compared 
+     * begins at index <tt>ooffset</tt> and has length <tt>len</tt>. The 
+     * result is <tt>false</tt> if and only if at least one of the following 
+     * is true: 
+     * <ul><li><tt>toffset</tt> is negative. 
+     * <li><tt>ooffset</tt> is negative. 
+     * <li><tt>toffset+len</tt> is greater than the length of this 
+     * <tt>String</tt> object. 
+     * <li><tt>ooffset+len</tt> is greater than the length of the other 
+     * argument. 
+     * <li>There is some nonnegative integer <i>k</i> less than <tt>len</tt> 
+     * such that: 
+     * <tt>this.charAt(toffset+<i>k</i>)&nbsp;!=&nbsp;other.charAt(ooffset+<i>k</i>)</tt> 
+     * </u>
      *
      * @param   toffset   the starting offset of the subregion in this string.
      * @param   other     the string argument.
@@ -648,15 +907,19 @@ class String implements java.io.Serializable {
      * @return  <code>true</code> if the specified subregion of this string
      *          exactly matches the specified subregion of the string argument;
      *          <code>false</code> otherwise.
+     * @exception java.lang.NullPointerException if <tt>other</tt> is 
+     *          <tt>null</tt>.
      */
-    public boolean regionMatches(int toffset, String other, int ooffset, int len) {
+    public boolean regionMatches(int toffset, String other, int ooffset, 
+				 int len) {
 	char ta[] = value;
 	int to = offset + toffset;
 	int tlim = offset + count;
 	char pa[] = other.value;
 	int po = other.offset + ooffset;
 	// Note: toffset, ooffset, or len might be near -1>>>1.
-	if ((ooffset < 0) || (toffset < 0) || (toffset > count - len) || (ooffset > other.count - len)) {
+	if ((ooffset < 0) || (toffset < 0) || (toffset > (long)count - len)
+	    || (ooffset > (long)other.count - len)) {
 	    return false;
 	}
 	while (len-- > 0) {
@@ -670,12 +933,38 @@ class String implements java.io.Serializable {
     /**
      * Tests if two string regions are equal. 
      * <p>
-     * If <code>toffset</code> or <code>ooffset</code> is negative, or 
-     * if <code>toffset</code>+<code>length</code> is greater than the 
-     * length of this string, or if 
-     * <code>ooffset</code>+<code>length</code> is greater than the 
-     * length of the string argument, then this method returns 
-     * <code>false</code>. 
+     * A substring of this <tt>String</tt> object is compared to a substring 
+     * of the argument <tt>other</tt>. The result is <tt>true</tt> if these 
+     * substrings represent character sequences that are the same, ignoring 
+     * case if and only if <tt>ignoreCase</tt> is true. The substring of
+     * this <tt>String</tt> object to be compared begins at index 
+     * <tt>toffset</tt> and has length <tt>len</tt>. The substring of 
+     * <tt>other</tt> to be compared begins at index <tt>ooffset</tt> and 
+     * has length <tt>len</tt>. The result is <tt>false</tt> if and only if 
+     * at least one of the following is true: 
+     * <ul><li><tt>toffset</tt> is negative. 
+     * <li><tt>ooffset</tt> is negative. 
+     * <li><tt>toffset+len</tt> is greater than the length of this 
+     * <tt>String</tt> object. 
+     * <li><tt>ooffset+len</tt> is greater than the length of the other 
+     * argument. 
+     * <li>There is some nonnegative integer <i>k</i> less than <tt>len</tt> 
+     * such that:
+     * <blockquote><pre>
+     * this.charAt(toffset+k) != other.charAt(ooffset+k) 
+     * </pre></blockquote>
+     * <li><tt>ignoreCase</tt> is <tt>true</tt> and there is some nonnegative 
+     * integer <i>k</i> less than <tt>len</tt> such that: 
+     * <blockquote><pre>
+     * Character.toLowerCase(this.charAt(toffset+k)) !=
+               Character.toLowerCase(other.charAt(ooffset+k))
+     * </pre></blockquote> 
+     * and: 
+     * <blockquote><pre>
+     * Character.toUpperCase(this.charAt(toffset+k)) !=
+     *         Character.toUpperCase(other.charAt(ooffset+k))
+     * </pre></blockquote>
+     * </ul>
      *
      * @param   ignoreCase   if <code>true</code>, ignore case when comparing
      *                       characters.
@@ -700,7 +989,8 @@ class String implements java.io.Serializable {
 	char pa[] = other.value;
 	int po = other.offset + ooffset;
 	// Note: toffset, ooffset, or len might be near -1>>>1.
-	if ((ooffset < 0) || (toffset < 0) || (toffset > count - len) || (ooffset > other.count - len)) {
+	if ((ooffset < 0) || (toffset < 0) || (toffset > (long)count - len) ||
+            (ooffset > (long)other.count - len)) {
 	    return false;
 	}
 	while (len-- > 0) {
@@ -730,13 +1020,23 @@ class String implements java.io.Serializable {
     }
 
     /**
-     * Tests if this string starts with the specified prefix.
+     * Tests if this string starts with the specified prefix beginning 
+     * a specified index.
      *
      * @param   prefix    the prefix.
      * @param   toffset   where to begin looking in the string.
      * @return  <code>true</code> if the character sequence represented by the
      *          argument is a prefix of the substring of this object starting
-     *          at index <code>toffset</code>; <code>false</code> otherwise.
+     *          at index <code>toffset</code>; <code>false</code> otherwise. 
+     *          The result is <code>false</code> if <code>toffset</code> is 
+     *          negative or greater than the length of this 
+     *          <code>String</code> object; otherwise the result is the same 
+     *          as the result of the expression
+     *          <pre>
+     *          this.subString(toffset).startsWith(prefix)
+     *          </pre>
+     * @exception java.lang.NullPointerException if <code>prefix</code> is 
+     *          <code>null</code>.
      */
     public boolean startsWith(String prefix, int toffset) {
 	char ta[] = value;
@@ -763,7 +1063,13 @@ class String implements java.io.Serializable {
      * @param   prefix   the prefix.
      * @return  <code>true</code> if the character sequence represented by the
      *          argument is a prefix of the character sequence represented by
-     *          this string; <code>false</code> otherwise.
+     *          this string; <code>false</code> otherwise.      
+     *          Note also that <code>true</code> will be returned if the 
+     *          argument is an empty string or is equal to this 
+     *          <code>String</code> object as determined by the 
+     *          {@link #equals(Object)} method.
+     * @exception java.lang.NullPointerException if <code>prefix</code> is 
+     *          <code>null</code>.
      * @since   JDK1. 0
      */
     public boolean startsWith(String prefix) {
@@ -776,14 +1082,27 @@ class String implements java.io.Serializable {
      * @param   suffix   the suffix.
      * @return  <code>true</code> if the character sequence represented by the
      *          argument is a suffix of the character sequence represented by
-     *          this object; <code>false</code> otherwise.
+     *          this object; <code>false</code> otherwise. Note that the 
+     *          result will be <code>true</code> if the argument is the 
+     *          empty string or is equal to this <code>String</code> object 
+     *          as determined by the {@link #equals(Object)} method.
+     * @exception java.lang.NullPointerException if <code>suffix</code> is 
+     *          <code>null</code>.
      */
     public boolean endsWith(String suffix) {
 	return startsWith(suffix, count - suffix.count);
     }
 
     /**
-     * Returns a hashcode for this string.
+     * Returns a hashcode for this string. The hashcode for a 
+     * <code>String</code> object is computed as
+     * <blockquote><pre> 
+     * s[0]*31^(n-1) + s[1]*31^(n-2) + ... + s[n-1]
+     * </pre></blockquote>
+     * using <code>int</code> arithmetic, where <code>s[i]</code> is the 
+     * <i>i</i>th character of the string, <code>n</code> is the length of 
+     * the string, and <code>^</code> indicates exponentiation. 
+     * (The hash value of the empty string is zero.)
      *
      * @return  a hash code value for this object. 
      */
@@ -793,24 +1112,23 @@ class String implements java.io.Serializable {
 	char val[] = value;
 	int len = count;
 
-	if (len < 16) {
- 	    for (int i = len ; i > 0; i--) {
- 		h = (h * 37) + val[off++];
- 	    }
- 	} else {
- 	    // only sample some characters
- 	    int skip = len / 8;
- 	    for (int i = len ; i > 0; i -= skip, off += skip) {
- 		h = (h * 39) + val[off];
- 	    }
- 	}
+	for (int i = 0; i < len; i++)
+	    h = 31*h + val[off++];
 
 	return h;
     }
 
     /**
      * Returns the index within this string of the first occurrence of the
-     * specified character.
+     * specified character. If a character with value <code>ch</code> occurs 
+     * in the character sequence represented by this <code>String</code> 
+     * object, then the index of the first such occurrence is returned -- 
+     * that is, the smallest value <i>k</i> such that: 
+     * <blockquote><pre>
+     * this.charAt(<i>k</i>) == ch
+     * </pre></blockquote>
+     * is <code>true</code>. If no such character occurs in this string, 
+     * then <code>-1</code> is returned.
      *
      * @param   ch   a character.
      * @return  the index of the first occurrence of the character in the
@@ -824,6 +1142,23 @@ class String implements java.io.Serializable {
     /**
      * Returns the index within this string of the first occurrence of the
      * specified character, starting the search at the specified index.
+     * <p>
+     * If a character with value <code>ch</code> occurs in the character 
+     * sequence represented by this <code>String</code> object at an index 
+     * no smaller than <code>fromIndex</code>, then the index of the first
+     * such occurrence is returned--that is, the smallest value <i>k</i> 
+     * such that: 
+     * <blockquote><pre>
+     * (this.charAt(<i>k</i>) == ch) && (<i>k</i> >= fromIndex)
+     * </pre></blockquote>
+     * is true. If no such character occurs in this string at or after 
+     * position <code>fromIndex</code>, then <code>-1</code> is returned.
+     * <p>
+     * There is no restriction on the value of <code>fromIndex</code>. If it 
+     * is negative, it has the same effect as if it were zero: this entire 
+     * string may be searched. If it is greater than the length of this 
+     * string, it has the same effect as if it were equal to the length of 
+     * this string: <code>-1</code> is returned.
      *
      * @param   ch          a character.
      * @param   fromIndex   the index to start the search from.
@@ -852,8 +1187,13 @@ class String implements java.io.Serializable {
 
     /**
      * Returns the index within this string of the last occurrence of the
-     * specified character.
-     * The String is searched backwards starting at the last character.
+     * specified character. That is, the index returned is the largest 
+     * value <i>k</i> such that:
+     * <blockquote><pre>
+     * this.charAt(<i>k</i>) == ch
+     * </pre></blockquote>
+     * is true. 
+     * The String is searched backwards starting at the last character. 
      *
      * @param   ch   a character.
      * @return  the index of the last occurrence of the character in the
@@ -866,10 +1206,22 @@ class String implements java.io.Serializable {
 
     /**
      * Returns the index within this string of the last occurrence of the
-     * specified character, searching backward starting at the specified index.
+     * specified character, searching backward starting at the specified 
+     * index. That is, the index returned is the largest value <i>k</i> 
+     * such that:
+     * <blockquote><pre>
+     * this.charAt(k) == ch) && (k <= fromIndex)
+     * </pre></blockquote>
+     * is true.
      *
      * @param   ch          a character.
-     * @param   fromIndex   the index to start the search from.
+     * @param   fromIndex   the index to start the search from. There is no 
+     *          restriction on the value of <code>fromIndex</code>. If it is 
+     *          greater than or equal to the length of this string, it has 
+     *          the same effect as if it were equal to one less than the 
+     *          length of this string: this entire string may be searched. 
+     *          If it is negative, it has the same effect as if it were -1: 
+     *          -1 is returned.
      * @return  the index of the last occurrence of the character in the
      *          character sequence represented by this object that is less
      *          than or equal to <code>fromIndex</code>, or <code>-1</code>
@@ -889,13 +1241,20 @@ class String implements java.io.Serializable {
 
     /**
      * Returns the index within this string of the first occurrence of the
-     * specified substring.
+     * specified substring. The integer returned is the smallest value 
+     * <i>k</i> such that:
+     * <blockquote><pre>
+     * this.startsWith(str, <i>k</i>)
+     * </pre></blockquote>
+     * is <code>true</code>.
      *
      * @param   str   any string.
      * @return  if the string argument occurs as a substring within this
      *          object, then the index of the first character of the first
      *          such substring is returned; if it does not occur as a
      *          substring, <code>-1</code> is returned.
+     * @exception java.lang.NullPointerException if <code>str</code> is 
+     *          <code>null</code>.
      */
     public int indexOf(String str) {
 	return indexOf(str, 0);
@@ -903,7 +1262,18 @@ class String implements java.io.Serializable {
 
     /**
      * Returns the index within this string of the first occurrence of the
-     * specified substring, starting at the specified index.
+     * specified substring, starting at the specified index. The integer 
+     * returned is the smallest value <i>k</i> such that:
+     * <blockquote><pre>
+     * this.startsWith(str, <i>k</i>) && (<i>k</i> >= fromIndex)
+     * </pre></blockquote>
+     * is <code>true</code>.
+     * <p>
+     * There is no restriction on the value of <code>fromIndex</code>. If 
+     * it is negative, it has the same effect as if it were zero: this entire 
+     * string may be searched. If it is greater than the length of this 
+     * string, it has the same effect as if it were equal to the length of 
+     * this string: <code>-1</code> is returned.
      *
      * @param   str         the substring to search for.
      * @param   fromIndex   the index to start the search from.
@@ -913,12 +1283,18 @@ class String implements java.io.Serializable {
      *          of the first such substring is returned. If it does not occur
      *          as a substring starting at <code>fromIndex</code> or beyond,
      *          <code>-1</code> is returned.
+     * @exception java.lang.NullPointerException if <code>str</code> is 
+     *          <code>null</code>
      */
     public int indexOf(String str, int fromIndex) {
     	char v1[] = value;
     	char v2[] = str.value;
     	int max = offset + (count - str.count);
 	if (fromIndex >= count) {
+	    if (count == 0 && fromIndex == 0 && str.count == 0) {
+		/* There is an empty string at index 0 in an empty string. */
+		return 0;
+	    }
 	    /* Note: fromIndex might be near -1>>>1 */
 	    return -1;
 	}
@@ -962,13 +1338,20 @@ class String implements java.io.Serializable {
     /**
      * Returns the index within this string of the rightmost occurrence
      * of the specified substring.  The rightmost empty string "" is
-     * considered to occur at the index value <code>this.length()</code>.
+     * considered to occur at the index value <code>this.length()</code>. 
+     * The returned index is the largest value <i>k</i> such that 
+     * <blockquote><pre>
+     * this.startsWith(str, k)
+     * </pre></blockquote>
+     * is true.
      *
      * @param   str   the substring to search for.
      * @return  if the string argument occurs one or more times as a substring
      *          within this object, then the index of the first character of
      *          the last such substring is returned. If it does not occur as
      *          a substring, <code>-1</code> is returned.
+     * @exception java.lang.NullPointerException  if <code>str</code> is 
+     *          <code>null</code>.
      */
     public int lastIndexOf(String str) {
 	return lastIndexOf(str, count);
@@ -978,16 +1361,27 @@ class String implements java.io.Serializable {
      * Returns the index within this string of the last occurrence of
      * the specified substring.
      * The returned index indicates the start of the substring, and it
-     * must be equal to or less than <code>fromIndex</code>.
-     *
+     * must be equal to or less than <code>fromIndex</code>. That is, 
+     * the index returned is the largest value <i>k</i> such that:
+     * <blockquote><pre>
+     * this.startsWith(str, k) && (k <= fromIndex)
+     * </pre></blockquote>
+     * 
      * @param   str         the substring to search for.
-     * @param   fromIndex   the index to start the search from.
+     * @param   fromIndex   the index to start the search from. There is no 
+     *          restriction on the value of fromIndex. If it is greater than 
+     *          the length of this string, it has the same effect as if it 
+     *          were equal to the length of this string: this entire string 
+     *          may be searched. If it is negative, it has the same effect 
+     *          as if it were -1: -1 is returned.
      * @return  If the string argument occurs one or more times as a substring
      *          within this object at a starting index no greater than
      *          <code>fromIndex</code>, then the index of the first character of
      *          the last such substring is returned. If it does not occur as a
      *          substring starting at <code>fromIndex</code> or earlier,
      *          <code>-1</code> is returned.
+     * @exception java.lang.NullPointerException if <code>str</code> is 
+     *          <code>null</code>.
      */
     public int lastIndexOf(String str, int fromIndex) {
         /* 
@@ -1043,29 +1437,46 @@ class String implements java.io.Serializable {
 
     /**
      * Returns a new string that is a substring of this string. The 
-     * substring begins at the specified index and extends to the end of 
-     * this string. 
+     * substring begins with the character at the specified index and 
+     * extends to the end of this string. <p>
+     * Examples:
+     * <blockquote><pre>
+     * "unhappy".substring(2) returns "happy"
+     * "Harbison".substring(3) returns "bison"
+     * "emptiness".substring(9) returns "" (an empty string)
+     * </pre></blockquote>
      *
      * @param      beginIndex   the beginning index, inclusive.
      * @return     the specified substring.
-     * @exception  StringIndexOutOfBoundsException  if the
-     *             <code>beginIndex</code> is out of range.
+     * @exception  IndexOutOfBoundsException  if 
+     *             <code>beginIndex</code> is negative or larger than the 
+     *             length of this <code>String</code> object.
      */
     public String substring(int beginIndex) {
-	return substring(beginIndex, length());
+	return substring(beginIndex, count);
     }
 
     /**
      * Returns a new string that is a substring of this string. The 
      * substring begins at the specified <code>beginIndex</code> and 
      * extends to the character at index <code>endIndex - 1</code>. 
+     * Thus the length of the substring is <code>endIndex-beginIndex</code>.
+     * <p>
+     * Examples:
+     * <blockquote><pre>
+     * "hamburger".substring(4, 8) returns "urge"
+     * "smiles".substring(1, 5) returns "mile"
+     * </pre></blockquote>
      *
      * @param      beginIndex   the beginning index, inclusive.
      * @param      endIndex     the ending index, exclusive.
      * @return     the specified substring.
-     * @exception  StringIndexOutOfBoundsException  if the
-     *             <code>beginIndex</code> or the <code>endIndex</code> is
-     *             out of range.
+     * @exception  IndexOutOfBoundsException  if the
+     *             <code>beginIndex</code> is negative, or 
+     *             <code>endIndex</code> is larger than the length of 
+     *             this <code>String</code> object, or 
+     *             <code>beginIndex</code> is larger than 
+     *             <code>endIndex</code>.
      */
     public String substring(int beginIndex, int endIndex) {
 	if (beginIndex < 0) {
@@ -1085,12 +1496,23 @@ class String implements java.io.Serializable {
      * Concatenates the specified string to the end of this string. 
      * <p>
      * If the length of the argument string is <code>0</code>, then this 
-     * object is returned. 
+     * <code>String</code> object is returned. Otherwise, a new 
+     * <code>String</code> object is created, representing a character 
+     * sequence that is the concatenation of the character sequence 
+     * represented by this <code>String</code> object and the character 
+     * sequence represented by the argument string.<p>
+     * Examples:
+     * <blockquote><pre>
+     * "cares".concat("s") returns "caress"
+     * "to".concat("get").concat("her") returns "together"
+     * </pre></blockquote>
      *
      * @param   str   the <code>String</code> that is concatenated to the end
      *                of this <code>String</code>.
      * @return  a string that represents the concatenation of this object's
      *          characters followed by the string argument's characters.
+     * @exception java.lang.NullPointerException if <code>str</code> is 
+     *          <code>null</code>.
      */
     public String concat(String str) {
 	int otherLen = str.length();
@@ -1108,8 +1530,24 @@ class String implements java.io.Serializable {
      * <code>oldChar</code> in this string with <code>newChar</code>. 
      * <p>
      * If the character <code>oldChar</code> does not occur in the 
-     * character sequence represented by this object, then this string is 
-     * returned. 
+     * character sequence represented by this <code>String</code> object, 
+     * then a reference to this <code>String</code> object is returned. 
+     * Otherwise, a new <code>String</code> object is created that 
+     * represents a character sequence identical to the character sequence 
+     * represented by this <code>String</code> object, except that every 
+     * occurrence of <code>oldChar</code> is replaced by an occurrence
+     * of <code>newChar</code>. 
+     * <p>
+     * Examples:
+     * <blockquote><pre>
+     * "mesquite in your cellar".replace('e', 'o')
+     *         returns "mosquito in your collar"
+     * "the war of baronets".replace('r', 'y')
+     *         returns "the way of bayonets"
+     * "sparring with a purple porpoise".replace('p', 't')
+     *         returns "starring with a turtle tortoise"
+     * "JonL".replace('q', 'x') returns "JonL" (no change)
+     * </pre></blockquote>
      *
      * @param   oldChar   the old character.
      * @param   newChar   the new character.
@@ -1146,7 +1584,33 @@ class String implements java.io.Serializable {
 
     /**
      * Converts all of the characters in this <code>String</code> to lower
-     * case using the rules of the given locale.
+     * case using the rules of the given <code>Locale</code>.
+     * Usually, the characters are converted by calling 
+     * <code>Character.toLowerCase</code>.  
+     * Exceptions to this rule are listed in
+     * the following table:
+     * <p> </p>
+     * <table border>
+     * <tr>
+     *   <th>Language Code of Locale</th>
+     *   <th>Upper Case</th>
+     *   <th>Lower Case</th>
+     *   <th>Description</th>
+     * </tr>
+     * <tr>
+     *   <td>tr (Turkish)</td>
+     *   <td>&#92;u0130</td>
+     *   <td>&#92;u0069</td>
+     *   <td>capital letter I with dot above -> small letter i</td>
+     * </tr>
+     * <tr>
+     *   <td>tr (Turkish)</td>
+     *   <td>&#92;u0049</td>
+     *   <td>&#92;u0131</td>
+     *   <td>capital letter I -> small letter dotless i </td>
+     * </tr>
+     * </table>
+     *
      * @param locale use the case transformation rules for this locale
      * @return the String, converted to lowercase.
      * @see     java.lang.Character#toLowerCase(char)
@@ -1154,15 +1618,28 @@ class String implements java.io.Serializable {
      * @since   JDK1.1
      */
     public String toLowerCase(Locale locale) {
-        char[] result = new char[count];
-        int i;
-        int len = count;
-	int off = offset;	   /* avoid getfield opcode */
-	char[] val = value;        /* avoid getfield opcode */
-      
+        int     len        = count;
+	int     off        = offset;
+	char[]  val        = value;
+	int     firstUpper;
+	
+	/* Now check if there are any characters that need to be changed. */
+	scan: {
+	    for (firstUpper = 0 ; firstUpper < len ; firstUpper++) {
+		char c = value[off+firstUpper];
+		if (c != Character.toLowerCase(c)) break scan;
+	    }
+	    return this;
+	}
+
+        char[]  result = new char[count];
+
+	/* Just copy the first few lowerCase characters. */
+	System.arraycopy(val, off, result, 0, firstUpper);
+	
         if (locale.getLanguage().equals("tr")) {
             // special loop for Turkey
-	    for (i = 0; i < len; ++i) {
+	    for (int i = firstUpper; i < len; ++i) {
                 char ch = val[off+i];
                 if (ch == 'I') {
                     result[i] = '\u0131'; // dotless small i
@@ -1176,7 +1653,7 @@ class String implements java.io.Serializable {
             }
         } else {
             // normal, fast loop
-            for (i = 0; i < len; ++i) {
+            for (int i = firstUpper; i < len; ++i) {
                 result[i] = Character.toLowerCase(val[off+i]);
             }
         }
@@ -1184,27 +1661,73 @@ class String implements java.io.Serializable {
     }
 
     /**
-     * Converts this <code>String</code> to lowercase. 
+     * Converts all of the characters in this <code>String</code> to lower
+     * case using the rules of the default locale, which is returned
+     * by <code>Locale.getDefault</code>.
      * <p>
      * If no character in the string has a different lowercase version, 
      * based on calling the <code>toLowerCase</code> method defined by 
      * <code>Character</code>, then the original string is returned. 
      * <p>
-     * Otherwise, a new string is allocated, whose length is identical 
-     * to this string, and such that each character that has a different 
-     * lowercase version is mapped to this lowercase equivalent. 
+     * Otherwise, this method creates a new <code>String</code> object that 
+     * represents a character sequence identical in length to the character 
+     * sequence represented by this String object, with every character 
+     * equal to the result of applying the method 
+     * <code>Character.toLowerCase</code> to the corresponding character of 
+     * this <code>String</code> object. 
+     * <p>Examples:
+     * <blockquote><pre>
+     * "French Fries".toLowerCase() returns "french fries"
+     * "<img src="doc-files/capiota.gif"><img src="doc-files/capchi.gif"><img 
+     * src="doc-files/captheta.gif"><img src="doc-files/capupsil.gif"><img 
+     * src="doc-files/capsigma.gif">".toLowerCase() returns "<img 
+     * src="doc-files/iota.gif"><img src="doc-files/chi.gif"><img 
+     * src="doc-files/theta.gif"><img src="doc-files/upsilon.gif"><img 
+     * src="doc-files/sigma1.gif">"
+     * </pre></blockquote>
      *
      * @return  the string, converted to lowercase.
      * @see     java.lang.Character#toLowerCase(char)
      * @see     java.lang.String#toUpperCase()
      */
     public String toLowerCase() {
-        return toLowerCase( Locale.getDefault() );
+        return toLowerCase(Locale.getDefault());
     }
 
     /**
      * Converts all of the characters in this <code>String</code> to upper
      * case using the rules of the given locale.
+     * Usually, the characters are converted by calling
+     * <code>Character.toUpperCase</code>.  
+     * Exceptions to this rule are listed in
+     * the following table:
+     * <p> </p>
+     * <table border>
+     * <tr>
+     *   <th>Language Code of Locale</th>
+     *   <th>Lower Case</th>
+     *   <th>Upper Case</th>
+     *   <th>Description</th>
+     * </tr>
+     * <tr>
+     *   <td>tr (Turkish)</td>
+     *   <td>&#92;u0069</td>
+     *   <td>&#92;u0130</td>
+     *   <td>small letter i -> capital letter I with dot above</td>
+     * </tr>
+     * <tr>
+     *   <td>tr (Turkish)</td>
+     *   <td>&#92;u0131</td>
+     *   <td>&#92;u0049</td>
+     *   <td>small letter dotless i -> capital letter I</td>
+     * </tr>
+     * <tr>
+     *   <td>(all)</td>
+     *   <td>&#92;u00df</td>
+     *   <td>&#92;u0053 &#92;u0053</td>
+     *   <td>small letter sharp s -> two letters: SS</td>
+     * </tr>
+     * </table>
      * @param locale use the case transformation rules for this locale
      * @return the String, converted to uppercase.
      * @see     java.lang.Character#toUpperCase(char)
@@ -1212,17 +1735,30 @@ class String implements java.io.Serializable {
      * @since   JDK1.1
      */
     public String toUpperCase(Locale locale) {
-        char[] result = new char[count]; /* warning: might grow! */
-        int i;
-	int resultOffset = 0;  /* result might grow, so i+resultOffset
-				* gives correct write location in result
-				*/
-	int len = count;
-        int off = offset;	   /* avoid getfield opcode */
-	char[] val = value;        /* avoid getfield opcode */
+	int     len        = count;
+        int     off        = offset;
+	char[]  val        = value;
+	int     firstLower;
+	
+	/* Now check if there are any characters that need changing. */
+	scan: {
+	    for (firstLower = 0 ; firstLower < len ; firstLower++) {
+		char c = value[off+firstLower];
+		if (c != Character.toUpperCase(c)) break scan;
+	    }
+	    return this;
+	}
+	
+        char[]  result       = new char[len]; /* might grow! */
+	int     resultOffset = 0;  /* result grows, so i+resultOffset
+				    * is the write location in result */
+	
+	/* Just copy the first few upperCase characters. */
+	System.arraycopy(val, off, result, 0, firstLower);
+
         if (locale.getLanguage().equals("tr")) {
             // special loop for Turkey
-	    for (i = 0; i < len; ++i) {
+	    for (int i = firstLower; i < len; ++i) {
                 char ch = val[off+i];
                 if (ch == 'i') {
 		    result[i+resultOffset] = '\u0130';  // dotted cap i
@@ -1247,7 +1783,7 @@ class String implements java.io.Serializable {
             }
         } else {
             // normal, fast loop
-            for (i = 0; i < len; ++i) {
+            for (int i = firstLower; i < len; ++i) {
                 char ch = val[off+i];
                 if (ch == '\u00DF') { // sharp s
 		    /* Grow result. */
@@ -1267,30 +1803,61 @@ class String implements java.io.Serializable {
     }
     
     /**
-     * Converts this string to uppercase. 
+     * Converts all of the characters in this <code>String</code> to upper
+     * case using the rules of the default locale, which is returned
+     * by <code>Locale.getDefault</code>.
+     *
      * <p>
      * If no character in this string has a different uppercase version, 
      * based on calling the <code>toUpperCase</code> method defined by 
      * <code>Character</code>, then the original string is returned. 
      * <p>
-     * Otherwise, a new string is allocated, whose length is identical 
-     * to this string, and such that each character that has a different 
-     * uppercase version is mapped to this uppercase equivalent. 
+     * Otherwise, this method creates a new <code>String</code> object 
+     * representing a character sequence identical in length to the 
+     * character sequence represented by this <code>String</code> object and
+     * with every character equal to the result of applying the method
+     * <code>Character.toUpperCase</code> to the corresponding character of 
+     * this <code>String</code> object. <p>
+     * Examples:
+     * <blockquote><pre>
+     * "Fahrvergnügen".toUpperCase() returns "FAHRVERGNÜGEN"
+     * "Visit Ljubinje!".toUpperCase() returns "VISIT LJUBINJE!"
+     * </pre></blockquote>
      *
      * @return  the string, converted to uppercase.
      * @see     java.lang.Character#toUpperCase(char)
      * @see     java.lang.String#toLowerCase()
      */
     public String toUpperCase() {
-        return toUpperCase( Locale.getDefault() );
+        return toUpperCase(Locale.getDefault());
     }
 
     /**
      * Removes white space from both ends of this string. 
      * <p>
-     * All characters that have codes less than or equal to 
-     * <code>'&#92;u0020'</code> (the space character) are considered to be 
-     * white space. 
+     * If this <code>String</code> object represents an empty character 
+     * sequence, or the first and last characters of character sequence 
+     * represented by this <code>String</code> object both have codes 
+     * greater than <code>'&#92;u0020'</code> (the space character), then a 
+     * reference to this <code>String</code> object is returned. 
+     * <p>
+     * Otherwise, if there is no character with a code greater than 
+     * <code>'&#92;u0020'</code> in the string, then a new 
+     * <code>String</code> object representing an empty string is created
+     * and returned.
+     * <p>
+     * Otherwise, let <i>k</i> be the index of the first character in the 
+     * string whose code is greater than <code>'&#92;u0020'</code>, and let 
+     * <i>m</i> be the index of the last character in the string whose code 
+     * is greater than <code>'&#92;u0020'</code>. A new <code>String</code> 
+     * object is created, representing the substring of this string that 
+     * begins with the character at index <i>k</i> and ends with the 
+     * character at index <i>m</i>-that is, the result of 
+     * <code>this.substring(<i>k</i>,&nbsp;<i>m</i>+1)</code>.
+     * <p>
+     * This method may be used to trim 
+     * {@link Character#isSpace(char) whitespace} from the beginning and end 
+     * of a string; in fact, it trims all ASCII control characters as well.
      *
      * @return  this string, with white space removed from the front and end.
      */
@@ -1326,9 +1893,8 @@ class String implements java.io.Serializable {
      *          the character sequence represented by this string.
      */
     public char[] toCharArray() {
-	int max = length();
-	char result[] = new char[max];
-	getChars(0, max, result, 0);
+	char result[] = new char[count];
+	getChars(0, count, result, 0);
 	return result;
     }
 
@@ -1347,7 +1913,9 @@ class String implements java.io.Serializable {
 
     /**
      * Returns the string representation of the <code>char</code> array
-     * argument. 
+     * argument. The contents of the character array are copied; subsequent 
+     * modification of the character array does not affect the newly 
+     * created string. 
      *
      * @param   data   a <code>char</code> array.
      * @return  a newly allocated string representing the same sequence of
@@ -1363,7 +1931,9 @@ class String implements java.io.Serializable {
      * <p>
      * The <code>offset</code> argument is the index of the first 
      * character of the subarray. The <code>count</code> argument 
-     * specifies the length of the subarray. 
+     * specifies the length of the subarray. The contents of the subarray 
+     * are copied; subsequent modification of the character array does not 
+     * affect the newly created string. 
      *
      * @param   data     the character array.
      * @param   offset   the initial offset into the value of the
@@ -1372,6 +1942,12 @@ class String implements java.io.Serializable {
      * @return  a newly allocated string representing the sequence of
      *          characters contained in the subarray of the character array
      *          argument.
+     * @exception NullPointerException if <code>data</code> is 
+     *          <code>null</code>.
+     * @exception IndexOutOfBoundsException if <code>offset</code> is 
+     *          negative, or <code>count</code> is negative, or 
+     *          <code>offset+count</code> is larger than 
+     *          <code>data.length</code>.
      */
     public static String valueOf(char data[], int offset, int count) {
 	return new String(data, offset, count);
@@ -1417,7 +1993,8 @@ class String implements java.io.Serializable {
     }
 
     /**
-     * Returns the string representation of the <code>char</code> argument. 
+     * Returns the string representation of the <code>char</code> 
+     * argument. 
      *
      * @param   c   a <code>char</code>.
      * @return  a newly allocated string of length <code>1</code> containing
@@ -1491,34 +2068,27 @@ class String implements java.io.Serializable {
     /**
      * Returns a canonical representation for the string object. 
      * <p>
-     * If <code>s</code> and <code>t</code> are strings such that 
-     * <code>s.equals(t)</code>, it is guaranteed that<br>
-     * <code>s.intern() == t.intern(). </code> 
+     * A pool of strings, initially empty, is maintained privately by the 
+     * class <code>String</code>. 
+     * <p>
+     * When the intern method is invoked, if the pool already contains a 
+     * string equal to this <code>String</code> object as determined by 
+     * the {@link #equals(Object)} method, then the string from the pool is 
+     * returned. Otherwise, this <code>String</code> object is added to the 
+     * pool and a reference to this <code>String</code> object is returned.
+     * <p>
+     * It follows that for any two strings <code>s</code> and <code>t</code>, 
+     * <code>s.intern()&nbsp;==&nbsp;t.intern()</code> is <code>true</code> 
+     * if and only if <code>s.equals(t)</code> is <code>true</code>.
+     * <p>
+     * All literal strings and string-valued constant expressions are 
+     * interned. String literals are defined in §3.10.5 of the 
+     * <a href="http://java.sun.com/docs/books/jls/html/">Java Language 
+     * Specification</a>
      *
      * @return  a string that has the same contents as this string, but is
      *          guaranteed to be from a pool of unique strings.
      */
     public native String intern();
-
-    /**
-     * Returns the length of this string's UTF encoded form.
-     */
-    int utfLength() {
-	int limit = offset + count;
-	int utflen = 0;
-	char[] val = value;
-
-	for (int i = offset; i < limit; i++) {
-	    int c = val[i];
-	    if ((c >= 0x0001) && (c <= 0x007F)) {
-		utflen++;
-	    } else if (c > 0x07FF) {
-		utflen += 3;
-	    } else {
-		utflen += 2;
-	    }
-	}
-	return utflen;
-    }
 
 }

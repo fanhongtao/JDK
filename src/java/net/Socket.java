@@ -1,8 +1,15 @@
 /*
- * @(#)Socket.java	1.31 01/12/10
+ * @(#)Socket.java	1.42 98/09/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -11,25 +18,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 
 /**
- * This class implements client sockets (also called just 
- * "sockets"). A socket is an endpoint for communication 
- * between two machines. 
+ * This class implements client sockets (also called just
+ * "sockets"). A socket is an endpoint for communication
+ * between two machines.
  * <p>
- * The actual work of the socket is performed by an instance of the 
- * <code>SocketImpl</code> class. An application, by changing 
- * the socket factory that creates the socket implementation, 
- * can configure itself to create sockets appropriate to the local 
- * firewall. 
+ * The actual work of the socket is performed by an instance of the
+ * <code>SocketImpl</code> class. An application, by changing
+ * the socket factory that creates the socket implementation,
+ * can configure itself to create sockets appropriate to the local
+ * firewall.
  *
  * @author  unascribed
- * @version 1.31, 12/10/01
+ * @version 1.42, 09/24/98
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @since   JDK1.0
  */
-public  
+public
 class Socket {
     /**
      * The implementation of this Socket.
@@ -43,7 +52,7 @@ class Socket {
      * @since   JDK1.1
      */
     protected Socket() {
-	impl = (factory != null) ? factory.createSocketImpl() : 
+	impl = (factory != null) ? factory.createSocketImpl() :
 	    new PlainSocketImpl();
     }
 
@@ -51,8 +60,8 @@ class Socket {
      * Creates an unconnected Socket with a user-specified
      * SocketImpl.
      * <P>
-     * The <i>impl</i> parameter is an instance of a <B>SocketImpl</B> 
-     * the subclass wishes to use on the Socket. 
+     * The <i>impl</i> parameter is an instance of a <B>SocketImpl</B>
+     * the subclass wishes to use on the Socket.
      *
      * @since   JDK1.1
      */
@@ -60,21 +69,28 @@ class Socket {
 	this.impl = impl;
     }
 
-    /** 
-     * Creates a stream socket and connects it to the specified port 
-     * number on the named host. 
+    /**
+     * Creates a stream socket and connects it to the specified port
+     * number on the named host.
      * <p>
-     * If the application has specified a server socket factory, that 
-     * factory's <code>createSocketImpl</code> method is called to create 
+     * If the application has specified a server socket factory, that
+     * factory's <code>createSocketImpl</code> method is called to create
      * the actual socket implementation. Otherwise a "plain" socket is created.
+     * <p>
+     * If there is a security manager, its
+     * <code>checkConnect</code> method is called
+     * with the host address and <code>port</code> 
+     * as its arguments. This could result in a SecurityException.
      *
      * @param      host   the host name.
      * @param      port   the port number.
      * @exception  IOException  if an I/O error occurs when creating the socket.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkConnect</code> method doesn't allow the operation.
      * @see        java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
      * @see        java.net.SocketImpl
      * @see        java.net.SocketImplFactory#createSocketImpl()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkConnect
      */
     public Socket(String host, int port)
 	throws UnknownHostException, IOException
@@ -82,77 +98,109 @@ class Socket {
 	this(InetAddress.getByName(host), port, null, 0, true);
     }
 
-    /** 
-     * Creates a stream socket and connects it to the specified port 
-     * number at the specified IP address. 
+    /**
+     * Creates a stream socket and connects it to the specified port
+     * number at the specified IP address.
      * <p>
-     * If the application has specified a socket factory, that factory's 
-     * <code>createSocketImpl</code> method is called to create the 
+     * If the application has specified a socket factory, that factory's
+     * <code>createSocketImpl</code> method is called to create the
      * actual socket implementation. Otherwise a "plain" socket is created.
-     *
+     * <p>
+     * If there is a security manager, its
+     * <code>checkConnect</code> method is called
+     * with the host address and <code>port</code> 
+     * as its arguments. This could result in a SecurityException.
+     * 
      * @param      address   the IP address.
      * @param      port      the port number.
      * @exception  IOException  if an I/O error occurs when creating the socket.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkConnect</code> method doesn't allow the operation.
      * @see        java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
      * @see        java.net.SocketImpl
      * @see        java.net.SocketImplFactory#createSocketImpl()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkConnect
      */
     public Socket(InetAddress address, int port) throws IOException {
 	this(address, port, null, 0, true);
     }
 
-    /** 
+    /**
      * Creates a socket and connects it to the specified remote host on
      * the specified remote port. The Socket will also bind() to the local
      * address and port supplied.
+     * <p>
+     * If there is a security manager, its
+     * <code>checkConnect</code> method is called
+     * with the host address and <code>port</code> 
+     * as its arguments. This could result in a SecurityException.
+     * 
      * @param host the name of the remote host
      * @param port the remote port
      * @param localAddr the local address the socket is bound to
      * @param localPort the local port the socket is bound to
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkConnect</code> method doesn't allow the operation.
+     * @see        SecurityManager#checkConnect
      * @since   JDK1.1
      */
-    public Socket(String host, int port, InetAddress localAddr, 
+    public Socket(String host, int port, InetAddress localAddr,
 		  int localPort) throws IOException {
 	this(InetAddress.getByName(host), port, localAddr, localPort, true);
     }
 
-    /** 
+    /**
      * Creates a socket and connects it to the specified remote address on
      * the specified remote port. The Socket will also bind() to the local
      * address and port supplied.
+     * <p>
+     * If there is a security manager, its
+     * <code>checkConnect</code> method is called
+     * with the host address and <code>port</code> 
+     * as its arguments. This could result in a SecurityException.
+     * 
      * @param address the remote address
      * @param port the remote port
      * @param localAddr the local address the socket is bound to
      * @param localPort the local port the socket is bound to
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkConnect</code> method doesn't allow the operation.
+     * @see        SecurityManager#checkConnect
      * @since   JDK1.1
      */
-    public Socket(InetAddress address, int port, InetAddress localAddr, 
+    public Socket(InetAddress address, int port, InetAddress localAddr,
 		  int localPort) throws IOException {
 		      this(address, port, localAddr, localPort, true);
-    };		     
+    }
 
     /**
-     * Creates a stream socket and connects it to the specified port 
-     * number on the named host. 
+     * Creates a stream socket and connects it to the specified port
+     * number on the named host.
      * <p>
-     * If the stream argument is <code>true</code>, this creates a 
-     * stream socket. If the stream argument is <code>false</code>, it 
-     * creates a datagram socket. 
+     * If the stream argument is <code>true</code>, this creates a
+     * stream socket. If the stream argument is <code>false</code>, it
+     * creates a datagram socket.
      * <p>
-     * If the application has specified a server socket factory, that 
-     * factory's <code>createSocketImpl</code> method is called to create 
+     * If the application has specified a server socket factory, that
+     * factory's <code>createSocketImpl</code> method is called to create
      * the actual socket implementation. Otherwise a "plain" socket is created.
+     * <p>
+     * If there is a security manager, its
+     * <code>checkConnect</code> method is called
+     * with the host address and <code>port</code> 
+     * as its arguments. This could result in a SecurityException.
      *
      * @param      host     the host name.
      * @param      port     the port number.
      * @param      stream   a <code>boolean</code> indicating whether this is
      *                      a stream socket or a datagram socket.
      * @exception  IOException  if an I/O error occurs when creating the socket.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkConnect</code> method doesn't allow the operation.
      * @see        java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
      * @see        java.net.SocketImpl
      * @see        java.net.SocketImplFactory#createSocketImpl()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkConnect
      * @deprecated Use DatagramSocket instead for UDP transport.
      */
     public Socket(String host, int port, boolean stream) throws IOException {
@@ -160,33 +208,40 @@ class Socket {
     }
 
     /**
-     * Creates a socket and connects it to the specified port number at 
-     * the specified IP address. 
+     * Creates a socket and connects it to the specified port number at
+     * the specified IP address.
      * <p>
-     * If the stream argument is <code>true</code>, this creates a 
-     * stream socket. If the stream argument is <code>false</code>, it 
-     * creates a datagram socket. 
+     * If the stream argument is <code>true</code>, this creates a
+     * stream socket. If the stream argument is <code>false</code>, it
+     * creates a datagram socket.
      * <p>
-     * If the application has specified a server socket factory, that 
-     * factory's <code>createSocketImpl</code> method is called to create 
+     * If the application has specified a server socket factory, that
+     * factory's <code>createSocketImpl</code> method is called to create
      * the actual socket implementation. Otherwise a "plain" socket is created.
+     * 
+     * <p>If there is a security manager, its
+     * <code>checkConnect</code> method is called
+     * with <code>host.getHostAddress()</code> and <code>port</code> 
+     * as its arguments. This could result in a SecurityException.
      *
-     * @param      address   the IP address.
+     * @param      host     the IP address.
      * @param      port      the port number.
      * @param      stream    if <code>true</code>, create a stream socket;
      *                       otherwise, create a datagram socket.
      * @exception  IOException  if an I/O error occurs when creating the socket.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkConnect</code> method doesn't allow the operation.
      * @see        java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
      * @see        java.net.SocketImpl
      * @see        java.net.SocketImplFactory#createSocketImpl()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkConnect
      * @deprecated Use DatagramSocket instead for UDP transport.
      */
     public Socket(InetAddress host, int port, boolean stream) throws IOException {
 	this(host, port, null, 0, stream);
     }
-    
-    private Socket(InetAddress address, int port, InetAddress localAddr, 
+
+    private Socket(InetAddress address, int port, InetAddress localAddr,
 		  int localPort, boolean stream) throws IOException {
 	this();
 
@@ -204,7 +259,7 @@ class Socket {
 	}
 
 	try {
-	    impl.create(stream); 
+	    impl.create(stream);
 	    if (localAddr != null || localPort > 0) {
 		if (localAddr == null) {
 		    localAddr = InetAddress.anyLocalAddress;
@@ -222,7 +277,6 @@ class Socket {
      * Returns the address to which the socket is connected.
      *
      * @return  the remote IP address to which this socket is connected.
-     * @since   JDK1.0
      */
     public InetAddress getInetAddress() {
 	return impl.getInetAddress();
@@ -247,7 +301,6 @@ class Socket {
      * Returns the remote port to which this socket is connected.
      *
      * @return  the remote port number to which this socket is connected.
-     * @since   JDK1.0
      */
     public int getPort() {
 	return impl.getPort();
@@ -257,7 +310,6 @@ class Socket {
      * Returns the local port to which this socket is bound.
      *
      * @return  the local port number to which this socket is connected.
-     * @since   JDK1.0
      */
     public int getLocalPort() {
 	return impl.getLocalPort();
@@ -269,10 +321,18 @@ class Socket {
      * @return     an input stream for reading bytes from this socket.
      * @exception  IOException  if an I/O error occurs when creating the
      *               input stream.
-     * @since      JDK1.0
      */
     public InputStream getInputStream() throws IOException {
-	return impl.getInputStream();
+	try {
+	    return (InputStream)
+		AccessController.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws IOException {
+			return impl.getInputStream();
+		    }
+		});
+	} catch (java.security.PrivilegedActionException e) {
+	    throw (IOException) e.getException();
+	}
     }
 
     /**
@@ -281,10 +341,18 @@ class Socket {
      * @return     an output stream for writing bytes to this socket.
      * @exception  IOException  if an I/O error occurs when creating the
      *               output stream.
-     * @since      JDK1.0
      */
     public OutputStream getOutputStream() throws IOException {
-	return impl.getOutputStream();
+	try {
+	    return (OutputStream)
+		AccessController.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws IOException {
+			return impl.getOutputStream();
+		    }
+		});
+	} catch (java.security.PrivilegedActionException e) {
+	    throw (IOException) e.getException();
+	}
     }
 
     /**
@@ -306,15 +374,25 @@ class Socket {
     }
 
     /**
-     * Enable/disable SO_LINGER with the specified linger time.  
-     *
-     * @since   JDK1.1
+     * Enable/disable SO_LINGER with the specified linger time in seconds. 
+     * If the specified timeout value exceeds 65,535 it will be reduced to
+     * 65,535.
+     * 
+     * @param on     whether or not to linger on.
+     * @param linger how to linger for, if on is true.
+     * @exception IllegalArgumentException if the linger value is negative.
+     * @since JDK1.1 
      */
-    public void setSoLinger(boolean on, int val) throws SocketException {
+    public void setSoLinger(boolean on, int linger) throws SocketException {
 	if (!on) {
 	    impl.setOption(SocketOptions.SO_LINGER, new Boolean(on));
 	} else {
-	    impl.setOption(SocketOptions.SO_LINGER, new Integer(val));
+	    if (linger < 0) {
+		throw new IllegalArgumentException("invalid value for SO_LINGER");
+	    }
+            if (linger > 65535)
+                linger = 65535;
+	    impl.setOption(SocketOptions.SO_LINGER, new Integer(linger));
 	}
     }
 
@@ -340,7 +418,7 @@ class Socket {
      *  will block for only this amount of time.  If the timeout expires,
      *  a <B>java.io.InterruptedIOException</B> is raised, though the
      *  Socket is still valid. The option <B>must</B> be enabled
-     *  prior to entering the blocking operation to have effect. The 
+     *  prior to entering the blocking operation to have effect. The
      *  timeout must be > 0.
      *  A timeout of zero is interpreted as an infinite timeout.
      *
@@ -367,10 +445,98 @@ class Socket {
     }
 
     /**
-     * Closes this socket. 
+     * Sets the SO_SNDBUF option to the specified value for this
+     * DatagramSocket. The SO_SNDBUF option is used by the platform's
+     * networking code as a hint for the size to use to allocate set
+     * the underlying network I/O buffers.
+     *
+     * <p>Increasing buffer size can increase the performance of
+     * network I/O for high-volume connection, while decreasing it can
+     * help reduce the backlog of incoming data. For UDP, this sets
+     * the maximum size of a packet that may be sent on this socket.
+     *
+     * <p>Because SO_SNDBUF is a hint, applications that want to
+     * verify what size the buffers were set to should call
+     * <href="#getSendBufferSize>getSendBufferSize</a>.
+     *
+     * @param size the size to which to set the send buffer
+     * size. This value must be greater than 0.
+     *
+     * @exception IllegalArgumentException if the value is 0 or is
+     * negative.
+     */
+    public synchronized void setSendBufferSize(int size)
+    throws SocketException{
+	if (!(size > 0)) {
+	    throw new IllegalArgumentException("negative send size");
+	}
+	impl.setOption(SocketOptions.SO_SNDBUF, new Integer(size));
+    }
+
+    /**
+     * Get value of the SO_SNDBUF option for this socket, that is the
+     * buffer size used by the platform for output on the this Socket.
+     *
+     * @see #setSendBufferSize
+     */
+    public synchronized int getSendBufferSize() throws SocketException {
+	int result = 0;
+	Object o = impl.getOption(SocketOptions.SO_SNDBUF);
+	if (o instanceof Integer) {
+	    result = ((Integer)o).intValue();
+	}
+	return result;
+    }
+
+    /**
+     * Sets the SO_RCVBUF option to the specified value for this
+     * DatagramSocket. The SO_RCVBUF option is used by the platform's
+     * networking code as a hint for the size to use to allocate set
+     * the underlying network I/O buffers.
+     *
+     * <p>Increasing buffer size can increase the performance of
+     * network I/O for high-volume connection, while decreasing it can
+     * help reduce the backlog of incoming data. For UDP, this sets
+     * the maximum size of a packet that may be sent on this socket.
+     *
+     * <p>Because SO_RCVBUF is a hint, applications that want to
+     * verify what size the buffers were set to should call
+     * <href="#getReceiveBufferSize>getReceiveBufferSize</a>.
+     *
+     * @param size the size to which to set the receive buffer
+     * size. This value must be greater than 0.
+     *
+     * @exception IllegalArgumentException if the value is 0 or is
+     * negative.
+     */
+    public synchronized void setReceiveBufferSize(int size)
+    throws SocketException{
+	if (size < 0) {
+	    throw new IllegalArgumentException("invalid receive size");
+	}
+	impl.setOption(SocketOptions.SO_RCVBUF, new Integer(size));
+    }
+
+    /**
+     * Get value of the SO_RCVBUF option for this socket, that is the
+     * buffer size used by the platform for input on the this Socket.
+     *
+     * @see #setReceiveBufferSize
+     */
+    public synchronized int getReceiveBufferSize()
+    throws SocketException{
+	int result = 0;
+	Object o = impl.getOption(SocketOptions.SO_RCVBUF);
+	if (o instanceof Integer) {
+	    result = ((Integer)o).intValue();
+	}
+	return result;
+    }
+
+    /**
+     * Closes this socket.
      *
      * @exception  IOException  if an I/O error occurs when closing this socket.
-     * @since      JDK1.0
      */
     public synchronized void close() throws IOException {
 	impl.close();
@@ -380,11 +546,10 @@ class Socket {
      * Converts this socket to a <code>String</code>.
      *
      * @return  a string representation of this socket.
-     * @since   JDK1.0
      */
     public String toString() {
 	return "Socket[addr=" + impl.getInetAddress() +
-	    ",port=" + impl.getPort() + 
+	    ",port=" + impl.getPort() +
 	    ",localport=" + impl.getLocalPort() + "]";
     }
 
@@ -394,20 +559,27 @@ class Socket {
     private static SocketImplFactory factory;
 
     /**
-     * Sets the client socket implementation factory for the 
-     * application. The factory can be specified only once. 
+     * Sets the client socket implementation factory for the
+     * application. The factory can be specified only once.
      * <p>
-     * When an application creates a new client socket, the socket 
-     * implementation factory's <code>createSocketImpl</code> method is 
-     * called to create the actual socket implementation. 
+     * When an application creates a new client socket, the socket
+     * implementation factory's <code>createSocketImpl</code> method is
+     * called to create the actual socket implementation.
+     * 
+     * <p>If there is a security manager, this method first calls
+     * the security manager's <code>checkSetFactory</code> method 
+     * to ensure the operation is allowed. 
+     * This could result in a SecurityException.
      *
      * @param      fac   the desired factory.
      * @exception  IOException  if an I/O error occurs when setting the
      *               socket factory.
      * @exception  SocketException  if the factory is already defined.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkSetFactory</code> method doesn't allow the operation.
      * @see        java.net.SocketImplFactory#createSocketImpl()
-     * @since      JDK1.0
-     */
+      * @see       SecurityManager#checkSetFactory
+    */
     public static synchronized void setSocketImplFactory(SocketImplFactory fac)
 	throws IOException
     {

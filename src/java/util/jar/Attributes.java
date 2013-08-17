@@ -1,0 +1,460 @@
+/*
+ * @(#)Attributes.java	1.26 98/07/23
+ *
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ */
+
+package java.util.jar;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Collection;
+import java.util.AbstractSet;
+import java.util.Iterator;
+
+/**
+ * The Attributes class maps Manifest attribute names to associated string
+ * values. Attribute names are case-insensitive and restricted to the ASCII
+ * characters in the set [0-9a-zA-Z_-]. Attribute values can contain any
+ * characters and will be UTF8-encoded when written to the output stream.
+ *
+ * @author  David Connelly
+ * @version 1.26, 07/23/98
+ * @see	    Manifest
+ * @since   JDK1.2
+ */
+public class Attributes implements Map, Cloneable {
+    /**
+     * The attribute name-value mappings.
+     */
+    protected Map map;
+
+    /**
+     * Constructs a new, empty Attributes object with default size.
+     */
+    public Attributes() {
+	this(11);
+    }
+
+    /**
+     * Constructs a new, empty Attributes object with the specified
+     * initial size.
+     *
+     * @param size the initial number of attributes
+     */
+    public Attributes(int size) {
+	map = new HashMap(size);
+    }
+
+    /**
+     * Constructs a new Attributes object with the same attribute name-value
+     * mappings as in the specified Attributes.
+     */
+    public Attributes(Attributes attr) {
+	map = new HashMap(attr);
+    }
+
+
+    /**
+     * Returns the value of the specified attribute name, or null if the
+     * attribute name was not found.
+     *
+     * @param name the attribute name
+     */
+    public Object get(Object name) {
+	return map.get(name);
+    }
+
+    /**
+     * Returns the value of the specified attribute name, specified as
+     * a string, or null if the attribute was not found. The attribute
+     * name is case-insensitive.
+     * <p>
+     * This method is defined as:
+     * <pre>
+     *	    return (String)get(new Attributes.Name((String)name));
+     * </pre>
+     *
+     * @param name the attribute name as a string
+     */
+    public String getValue(String name) {
+        return (String)get(new Attributes.Name((String)name));
+    }
+
+    /**
+     * Returns the value of the specified Attributes.Name, or null if the
+     * attribute was not found.
+     * <p>
+     * This method is defined as:
+     * <pre>
+     *     return (String)get(name);
+     * </pre>
+     *
+     * @param name the Attributes.Name object
+     */
+    public String getValue(Name name) {
+	return (String)get(name);
+    }
+
+    /**
+     * Associates the specified value with the specified attribute name
+     * (key) in this Map. If the Map previously contained a mapping for
+     * the attribute name, the old value is replaced.
+     *
+     * @param name the attribute name
+     * @param value the attribute value
+     * @return the previous value of the attribute, or null if none
+     * @exception ClassCastException if the name is not a Attributes.Name
+     *            or the value is not a String
+     */
+    public Object put(Object name, Object value) {
+	return map.put(name, value);
+    }
+
+    /**
+     * Associates the specified value with the specified attribute name,
+     * specified as a String. The attributes name is case-insensitive.
+     * If the Map previously contained a mapping for the attribute name,
+     * the old value is replaced.
+     * <p>
+     * This method is defined as:
+     * <pre>
+     *	    return (String)put(new Attributes.Name(name), value);
+     * </pre>
+     *
+     * @param the attribute name as a string
+     * @param value the attribute value
+     * @exception IllegalArgumentException if the attribute name is invalid
+     */
+    public String putValue(String name, String value) {
+	return (String)put(new Name(name), value);
+    }
+
+    /**
+     * Removes the attribute with the specified name (key) from this Map.
+     * Returns the previous attribute value, or null if none.
+     *
+     * @param name attribute name
+     */
+    public Object remove(Object name) {
+	return map.remove(name);
+    }
+
+    /**
+     * Returns true if this Map maps one or more attribute names (keys)
+     * to the specified value.
+     *
+     * @param value the attribute value
+     */
+    public boolean containsValue(Object value) {
+	return map.containsValue(value);
+    }
+
+    /**
+     * Returns true if this Map contains the specified attribute name (key).
+     *
+     * @param name the attribute name
+     */
+    public boolean containsKey(Object name) {
+	return map.containsKey(name);
+    }
+
+    /**
+     * Copies all of the attribute name-value mappings from the specified
+     * Attributes to this Map. Duplicate mappings will be replaced.
+     *
+     * @param attr the Attributes to be stored in this map
+     */
+    public void putAll(Map attr) {
+	map.putAll(attr);
+    }
+
+    /**
+     * Removes all attributes from this Map.
+     */
+    public void clear() {
+	map.clear();
+    }
+
+    /**
+     * Returns the number of attributes in this Map.
+     */
+    public int size() {
+	return map.size();
+    }
+
+    /**
+     * Returns true if this Map contains no attributes.
+     */
+    public boolean isEmpty() {
+	return map.isEmpty();
+    }
+
+    /**
+     * Returns a Set view of the attribute names (keys) contained in this Map.
+     */
+    public Set keySet() {
+	return map.keySet();
+    }
+
+    /**
+     * Returns a Collection view of the attribute values contained in this Map.
+     */
+    public Collection values() {
+	return map.values();
+    }
+
+    /**
+     * Returns a Collection view of the attribute name-value mappings
+     * contained in this Map.
+     */
+    public Set entrySet() {
+	return map.entrySet();
+    }
+
+    /**
+     * Compares the specified Attributes object with this Map for equality.
+     * Returns true if the given object is also an instance of Attributes
+     * and the two Attributes objects represent the same mappings.
+     *
+     * @param o the Object to be compared
+     * @return true if the specified Object is equal to this Map
+     */
+    public boolean equals(Object o) {
+	return map.equals(o);
+    }
+
+    /**
+     * Returns the hash code value for this Map.
+     */
+    public int hashCode() {
+	return map.hashCode();
+    }
+
+    /**
+     * Returns a copy of the Attributes, implemented as follows:
+     * <pre>
+     *     public Object clone() { return new Attributes(this); }
+     * </pre>
+     * Since the attribute names and values are themselves immutable,
+     * the Attributes returned can be safely modified without affecting
+     * the original.
+     */
+    public Object clone() {
+	return new Attributes(this);
+    }
+
+    /*
+     * Writes the current attributes to the specified data output stream.
+     * XXX Need to handle UTF8 values and break up lines longer than 72 bytes
+     */
+     void write(DataOutputStream os) throws IOException {
+	Iterator it = entrySet().iterator();
+	while (it.hasNext()) {
+	    Map.Entry e = (Map.Entry)it.next();
+            StringBuffer buffer = new StringBuffer(
+                                        ((Name)e.getKey()).toString());
+	    buffer.append(": ");
+	    buffer.append((String)e.getValue());
+	    buffer.append("\r\n");
+            Manifest.make72Safe(buffer);
+            os.writeBytes(buffer.toString());
+	}
+	os.writeBytes("\r\n");
+    }
+
+    /*
+     * Writes the current attributes to the specified data output stream,
+     * make sure to write out the MANIFEST_VERSION or SIGNATURE_VERSION
+     * attributes first.
+     *
+     * XXX Need to handle UTF8 values and break up lines longer than 72 bytes
+     */
+    void writeMain(DataOutputStream out) throws IOException 
+    {
+	// write out the *-Version header first, if it exists
+	String vername = Name.MANIFEST_VERSION.toString();
+	String version = getValue(vername);
+	if (version == null) {
+	    vername = Name.SIGNATURE_VERSION.toString();
+	    version = getValue(vername);
+	}
+
+	if (version != null) {
+	    out.writeBytes(vername+": "+version+"\r\n");
+	}
+
+	// write out all attributes except for the version
+	// we wrote out earlier
+	Iterator it = entrySet().iterator();
+	while (it.hasNext()) {
+	    Map.Entry e = (Map.Entry)it.next();
+	    String name = ((Name)e.getKey()).toString();
+	    if ((version != null) && ! (name.equalsIgnoreCase(vername))) {
+                StringBuffer buffer = new StringBuffer(name);
+		buffer.append(": ");
+		buffer.append((String)e.getValue());
+		buffer.append("\r\n");
+                Manifest.make72Safe(buffer);
+                out.writeBytes(buffer.toString());
+	    }
+	}
+	out.writeBytes("\r\n");
+    }
+
+    /*
+     * Reads attributes from the specified input stream.
+     * XXX Need to handle UTF8 values.
+     */
+    void read(Manifest.FastInputStream is, byte[] lbuf) throws IOException {
+	String name = null, value = null;
+	int len;
+	while ((len = is.readLine(lbuf)) != -1) {
+	    if (lbuf[--len] != '\n') {
+		throw new IOException("line too long");
+	    }
+	    if (len > 0 && lbuf[len-1] == '\r') {
+		--len;
+	    }
+	    if (len == 0) {
+		break;
+	    }
+	    int i = 0;
+	    if (lbuf[0] == ' ') {
+		// continuation of previous line
+		if (name == null) {
+		    throw new IOException("misplaced continuation line");
+		}
+		value = value + new String(lbuf, 0, 1, len-1);
+	    } else {
+                while (lbuf[i++] != ':') {
+                    if (i >= len) {
+                        throw new IOException("invalid header field");
+                    }
+                }
+                if (lbuf[i++] != ' ') {
+                    throw new IOException("invalid header field");
+                }
+                name = new String(lbuf, 0, 0, i - 2);
+                value = new String(lbuf, 0, i, len - i);
+            }
+
+	    try {
+		putValue(name, value);
+	    } catch (IllegalArgumentException e) {
+		throw new IOException("invalid header field name: " + name);
+	    }
+	}
+    }
+
+    /**
+     * The Attributes.Name class represents an attribute name stored in
+     * this Map. Attribute names are case-insensitive and restricted to
+     * the ASCII characters in the set [0-9a-zA-Z_-].
+     */
+    public static class Name {
+	private String name;
+	private int hashCode = -1;
+
+	/**
+	 * Constructs a new attribute name using the given string name.
+	 *
+	 * @param name the attribute string name
+	 * @exception IllegalArgumentException if the attribute name was
+	 *            invalid
+	 * @exception NullPointerException if the attribute name was null
+	 */
+	public Name(String name) {
+	    if (name == null) {
+		throw new NullPointerException("name");
+	    }
+	    if (!isValid(name)) {
+		throw new IllegalArgumentException(name);
+	    }
+	    this.name = name.intern();
+	}
+
+	private static boolean isValid(String name) {
+	    int len = name.length();
+	    if (len > 70) {
+		return false;
+	    }
+	    for (int i = 0; i < len; i++) {
+		if (!isValid(name.charAt(i))) {
+		    return false;
+		}
+	    }
+	    return true;
+	}
+
+	private static boolean isValid(char c) {
+	    return isAlpha(c) || isDigit(c) || c == '_' || c == '-';
+	}
+
+	private static boolean isAlpha(char c) {
+	    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+	}
+
+	private static boolean isDigit(char c) {
+	    return c >= '0' && c <= '9';
+	}
+
+	/**
+	 * Compares this attribute name to another for equality.
+	 * @param o the object to compare
+	 */
+	public boolean equals(Object o) {
+	    if (o instanceof Name) {
+		return name.equalsIgnoreCase(((Name)o).name);
+	    } else {
+		return false;
+	    }
+	}
+      
+	/**
+	 * Computes the hash value for this attribute name.
+	 */
+        public int hashCode() {
+	    if (hashCode == -1) {
+		hashCode = name.toLowerCase().hashCode();
+	    }
+	    return hashCode;
+	}
+
+	/**
+	 * Returns the attribute name as a String.
+	 */
+	public String toString() {
+	    return name;
+	}
+
+	/**
+	 * Some predefined attribute names.
+	 */
+        public static final Name
+	    MANIFEST_VERSION       = new Name("Manifest-Version"),
+	    SIGNATURE_VERSION      = new Name("Signature-Version"),
+	    CONTENT_TYPE           = new Name("Content-Type"),
+	    CLASS_PATH             = new Name("Class-Path"),
+	    MAIN_CLASS		   = new Name("Main-Class"),
+	    SEALED         	   = new Name("Sealed"),
+	    IMPLEMENTATION_TITLE   = new Name("Implementation-Title"),
+	    IMPLEMENTATION_VERSION = new Name("Implementation-Version"),
+	    IMPLEMENTATION_VENDOR  = new Name("Implementation-Vendor"),
+	    SPECIFICATION_TITLE    = new Name("Specification-Title"),
+	    SPECIFICATION_VERSION  = new Name("Specification-Version"),
+	    SPECIFICATION_VENDOR   = new Name("Specification-Vendor");
+    }
+}

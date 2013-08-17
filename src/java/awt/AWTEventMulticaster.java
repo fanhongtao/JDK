@@ -1,8 +1,15 @@
 /*
- * @(#)AWTEventMulticaster.java	1.14 01/12/10
+ * @(#)AWTEventMulticaster.java	1.18 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -42,7 +49,7 @@ import java.io.IOException;
  * }
  * </code></pre>
  *
- * @version 	1.14, 12/10/01
+ * @version 	1.18, 09/21/98
  * @author      John Rose
  * @author 	Amy Fowler
  */
@@ -51,13 +58,16 @@ public class AWTEventMulticaster implements
     ComponentListener, ContainerListener, FocusListener, KeyListener,
     MouseListener, MouseMotionListener, WindowListener,
     ActionListener, ItemListener, AdjustmentListener,
-    TextListener {
+    TextListener, InputMethodListener {
 
     protected final EventListener a, b;
 
     /**
      * Creates an event multicaster instance which chains listener-a
-     * with listener-b.
+     * with listener-b. Input parameters <code>a</code> and <code>b</code> 
+     * should not be <code>null</code>, though implementations may vary in 
+     * choosing whether or not to throw <code>NullPointerException</code> 
+     * in that case.
      * @param a listener-a
      * @param b listener-b
      */ 
@@ -366,6 +376,26 @@ public class AWTEventMulticaster implements
     }
 
     /**
+     * Handles the inputMethodTextChanged event by invoking the
+     * inputMethodTextChanged methods on listener-a and listener-b.
+     * @param e the item event
+     */
+    public void inputMethodTextChanged(InputMethodEvent e) {
+       ((InputMethodListener)a).inputMethodTextChanged(e);
+       ((InputMethodListener)b).inputMethodTextChanged(e);
+    }
+
+    /**
+     * Handles the caretPositionChanged event by invoking the
+     * caretPositionChanged methods on listener-a and listener-b.
+     * @param e the item event
+     */
+    public void caretPositionChanged(InputMethodEvent e) {
+       ((InputMethodListener)a).caretPositionChanged(e);
+       ((InputMethodListener)b).caretPositionChanged(e);
+    }
+ 
+    /**
      * Adds component-listener-a with component-listener-b and
      * returns the resulting multicast listener.
      * @param a component-listener-a
@@ -469,6 +499,16 @@ public class AWTEventMulticaster implements
     }
 
     /**
+     * Adds input-method-listener-a with input-method-listener-b and
+     * returns the resulting multicast listener.
+     * @param a input-method-listener-a
+     * @param b input-method-listener-b
+     */
+     public static InputMethodListener add(InputMethodListener a, InputMethodListener b) {
+        return (InputMethodListener)addInternal(a, b);
+     }
+
+    /**
      * Removes the old component-listener from component-listener-l and
      * returns the resulting multicast listener.
      * @param l component-listener-l
@@ -569,6 +609,16 @@ public class AWTEventMulticaster implements
     }
     public static TextListener remove(TextListener l, TextListener oldl) {
 	return (TextListener) removeInternal(l, oldl);
+    }
+
+    /**
+     * Removes the old input-method-listener from input-method-listener-l and
+     * returns the resulting multicast listener.
+     * @param l input-method-listener-l
+     * @param oldl the input-method-listener being removed
+     */
+    public static InputMethodListener remove(InputMethodListener l, InputMethodListener oldl) {
+        return (InputMethodListener) removeInternal(l, oldl);
     }
 
     /** 

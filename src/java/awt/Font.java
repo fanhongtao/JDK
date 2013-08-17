@@ -1,143 +1,495 @@
 /*
- * @(#)Font.java	1.30 01/12/10
+ * @(#)Font.java	1.118 98/10/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
+
 package java.awt;
 
+import java.awt.font.TextAttribute;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.peer.FontPeer;
-
-/** 
- * A class that produces font objects. 
- *
- * @version 	1.30, 12/10/01
- * @author 	Sami Shaio
- * @author 	Arthur van Hoff
- * @author 	Jim Graham
- * @since       JDK1.0
+import java.text.AttributedCharacterIterator.Attribute;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
+import java.util.Hashtable;
+import sun.awt.font.FontNameAliases;
+import java.util.Map;
+import sun.awt.font.NativeFontWrapper;
+import sun.awt.font.StandardGlyphVector;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.font.GlyphVector;
+import java.awt.font.TransformAttribute;
+import sun.java2d.SunGraphicsEnvironment;
+import sun.java2d.loops.RasterOutputManager;
+import java.lang.StringIndexOutOfBoundsException;
+import java.lang.ArrayIndexOutOfBoundsException;
+/**
+ * The <code>Font</code> class represents fonts.  The capabilities of this
+ * class have been extended over the java.awt.Font class in JDK(tm) 1.1
+ * and earlier releases to provide for developers the ability to utilize
+ * more sophisticated typographic features.
+ * <p>
+ * It is important to present the concepts behind using the words
+ * character and glyph separately. A <b>character</b> is a symbol that
+ * represents items like letters and numbers in a particular writing
+ * system.  For example, <i>lowercase-g</i> is a character. When a 
+ * particular character has been rendered, a shape
+ * now represents this character. This shape is called a <b>glyph</b>.
+ * <p>
+ * Chararcter encoding is a conversion table that maps character codes
+ * to glyph codes in the font.  The character encoding used in the 
+ * Java(tm) 2D API is Unicode.  For more information on Unicode you can
+ * visit the site 
+ * <a href="http://www.unicode.org">http://www.unicode.org</a>.
+ * <p>
+ * Characters and glyphs do not have one-to-one correspondence.  For
+ * example, <i>lowercase-a acute</i> can be represented by two glyphs:
+ * <i>lowercase-a</i> and <i>acute</i>.
+ * Another example is ligatures such as <i>ligature -fi</i> which is a
+ * single glyph representing two characters, <i>f</i> and <i>i</i>.
+ * <p>
+ * A <code>Font</code> is a collection of glyphs. A <code>Font</code> 
+ * can have many faces, such as heavy, medium, oblique, gothic and
+ * regular. All of these faces have similar typographic design.
+ * <p>
+ * There are three different names that you can get from a 
+ * <code>Font</code> object.  The <i>logical font name</i> is the same as
+ * that used by java.awt.Font in JDK 1.1 and earlier releases.
+ * The <i>font face name</i>, or just <i>font name</i> for
+ * short, is the name of a particular font face, like Helvetica Bold. The
+ * <i>family name</i> is the name of the font family that determines the
+ * typographic design across several faces, like Helvetica. The font face
+ * name is the one that should be used to specify fonts. This name
+ * signifies actual fonts in the host system, and does not identify font
+ * names with the shape of font characters as the logical font name does.
+ * <p>
+ * The <code>Font</code> class represents an instance of a font face from
+ * a collection of  font faces that are present in the system resources
+ * of the host system.  As examples, Arial Bold and Courier Bold Italic
+ * are font faces.  There can be several <code>Font</code> objects
+ * associated with a font face, each differing in size, style, transform
+ * and font features.  
+ * The {@link GraphicsEnvironment#getAllFonts() getAllFonts} method 
+ * of the <code>GraphicsEnvironment</code> class returns an
+ * array of all font faces available in the system. These font faces are
+ * returned as <code>Font</code> objects with a size of 1, identity
+ * transform and default font features. These
+ * base fonts can then be used to derive new <code>Font</code> objects
+ * with varying sizes, styles, transforms and font features via the
+ * <code>deriveFont</code> methods in this class.
+ * @see GraphicsEnvironment#getAllFonts
+ * @version 10 Feb 1997
  */
-public class Font implements java.io.Serializable {
+public class Font implements java.io.Serializable
+{
+   
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+        initIDs();
+    }
 
-    /* 
+    /**
+     * A map of font attributes available in this font.
+     * Attributes include things like ligatures and glyph substitution.
+     * @return the attributes map
+     *
+     * @serial
+     * @see getAttributes()
+     */
+    private Hashtable fRequestedAttributes;
+    
+    private static final Map EMPTY_MAP = new Hashtable(5, (float)0.9);
+
+    /*
      * Constants to be used for styles. Can be combined to mix
-     * styles. 
+     * styles.
      */
 
     /**
-     * The plain style constant.  This style can be combined with 
-     * the other style constants for mixed styles.
-     * @since JDK1.0
+     * The plain style constant.
      */
     public static final int PLAIN	= 0;
 
     /**
-     * The bold style constant.  This style can be combined with the 
-     * other style constants for mixed styles.
-     * @since JDK1.0
+     * The bold style constant.  This can be combined with the other style
+     * constants (except PLAIN) for mixed styles.
      */
     public static final int BOLD	= 1;
 
     /**
-     * The italicized style constant.  This style can be combined 
-     * with the other style constants for mixed styles.
-     * @since JDK1.0
+     * The italicized style constant.  This can be combined with the other
+     * style constants (except PLAIN) for mixed styles.
      */
     public static final int ITALIC	= 2;
 
     /**
-     * Private data.
+     * The baseline used in most Roman scripts when laying out text
      */
-    transient private int pData;
+    public static final int ROMAN_BASELINE = 0;
 
-    /** 
-     * The platform specific family name of this font. 
+    /**
+     * The baseline used in ideographic scripts like Chinese, Japanese,
+     * and Korean when laying out text
      */
-    transient private String family;
+    public static final int CENTER_BASELINE = 1;
 
-    /** 
-     * The logical name of this font. 
+    /**
+     * The baseline used in Devanigiri and similar scripts when laying
+     * out text
+     */
+    public static final int HANGING_BASELINE = 2;
+
+    /**
+     * The logical name of this <code>Font</code>, as passed to the
+     * constructor.
      * @since JDK1.0
+     *
+     * @serial
+     * @see #getName
      */
     protected String name;
 
-    /** 
-     * The style of the font. This is the sum of the
-     * constants <code>PLAIN</code>, <code>BOLD</code>, 
-     * or <code>ITALIC</code>. 
+    /**
+     * The style of this <code>Font</code>, as passed to the constructor.
+     * This style can be PLAIN, BOLD, ITALIC, or BOLD+ITALIC.
+     * @since JDK1.0
+     *
+     * @serial
+     * @see #getStyle()
      */
     protected int style;
 
-    /** 
-     * The point size of this font. 
+    /**
+     * The point size of this <code>Font</code>, rounded to integer.
      * @since JDK1.0
+     *
+     * @serial
+     * @see #getSize()
      */
     protected int size;
 
     /**
+     * The point size of this <code>Font</code> in <code>float</code>.
+     *
+     * @serial
+     * @see #getSize()
+     * @see #getSize2D()
+     */
+    protected float pointSize;
+
+    /**
      * The platform specific font information.
      */
-    transient FontPeer peer;
+    private transient FontPeer peer;
+    private transient long pData;       // native JDK1.1 font pointer
+    private transient long pNativeFont; // native JDK1.2 font reference
+
+    // cached values - performance
+    private transient int numGlyphs = -1;
+    private transient int missingGlyph = -1;
+    private static Hashtable fontCache = new Hashtable(5, (float)0.9);
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
-     private static final long serialVersionUID = -4206021311591459213L;
+    private static final long serialVersionUID = -4206021311591459213L;
 
     /**
-     * Gets the peer of the font.
-     * @return  the peer of the font.
+     * Gets the peer of this <code>Font</code>.
+     * @return  the peer of the <code>Font</code>.
      * @since JDK1.1
+     * @deprecated Font rendering is now platform independent.
      */
     public FontPeer getPeer(){
-	return peer;
+	return getPeer_NoClientCode();
+    }
+    // NOTE: This method is called by privileged threads.
+    //       We implement this functionality in a package-private method 
+    //       to insure that it cannot be overridden by client subclasses. 
+    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
+    final FontPeer getPeer_NoClientCode() {
+        if(peer == null) {
+            if (true || RasterOutputManager.usesPlatformFont()) {
+                Toolkit tk = Toolkit.getDefaultToolkit();
+                this.peer = tk.getFontPeer(name, style);
+            }
+        }
+        return peer;
     }
 
-    private void initializeFont()
-    {
-      family = System.getProperty("awt.font." + name.toLowerCase(), name);
-      this.peer = Toolkit.getDefaultToolkit().getFontPeer(name, style);
+    private void initializeFont(Hashtable attributes) {
+        if (this.name == null) {
+            this.name = "Default";
+        }
+        if (attributes == null) {
+            fRequestedAttributes = new Hashtable(5, (float)0.9);
+            fRequestedAttributes.put(TextAttribute.TRANSFORM,
+                        new TransformAttribute(new AffineTransform()));
+            fRequestedAttributes.put(TextAttribute.FAMILY, name);
+            fRequestedAttributes.put(TextAttribute.SIZE, new Float(size));
+            if ((style & BOLD) != 0) {
+                fRequestedAttributes.put(
+                        TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+            }
+            if ((style & ITALIC) != 0) {
+                fRequestedAttributes.put(
+                        TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);
+            }
+        } else {
+            fRequestedAttributes = ffApply(style, attributes);
+        }
+        SunGraphicsEnvironment env =
+            (SunGraphicsEnvironment)GraphicsEnvironment
+                                            .getLocalGraphicsEnvironment();
+        String localName = env.mapFamilyName(this.name, this.style);
+
+        NativeFontWrapper.initializeFont(this, localName, style); // sets pNativeFont
+        // System.out.println("Initializing font: '" + localName + "'.");
     }
 
     /**
-     * Creates a new font with the specified name, style and point size.
-     * @param name the font name
-     * @param style the constant style used
-     * @param size the point size of the font
-     * @see Toolkit#getFontList
+     * Creates a new <code>Font</code> from the specified name, style and
+     * point size.
+     * @param name the font name.  This can be a logical font name or a
+     * font face name. A logical name must be either: Dialog, DialogInput,
+     * Monospaced, Serif, SansSerif, or Symbol.
+     * @param style the style constant for the <code>Font</code>
+     * The style argument is an integer bitmask that may
+     * be PLAIN, or a bitwise union of BOLD and/or ITALIC
+     * (for example, ITALIC or BOLD|ITALIC). Any other 
+     * bits set in the style parameter are ignored.
+     * If the style argument does not conform to one of the expected
+     * integer bitmasks then the style is set to PLAIN.
+     * @param size the point size of the <code>Font</code>
+     * @see GraphicsEnvironment#getAllFonts
+     * @see GraphicsEnvironment#getAvailableFontFamilyNames
      * @since JDK1.0
      */
     public Font(String name, int style, int size) {
 	this.name = name;
 	this.style = style;
 	this.size = size;
-	initializeFont();
+        this.pointSize = size;
+	initializeFont(null);
+    }
+
+    private Font(String name, int style, float sizePts) {
+	this.name = name;
+	this.style = style;
+	this.size = (int)(sizePts + 0.5);
+        this.pointSize = sizePts;
+	initializeFont(null);
     }
 
     /**
-     * Gets the platform specific family name of the font. Use the 
-     * <code>getName</code> method to get the logical name of the font.
-     * @return    a string, the platform specific family name.
-     * @see       java.awt.Font#getName
-     * @since     JDK1.0
+     * Creates a new <code>Font</code> with the specified attributes.
+     * This <code>Font</code> only recognizes keys defined in 
+     * {@link TextAttribute} as attributes. 
+     * @param attributes the attributes to assign to the new
+     *		<code>Font</code>
+     */
+    public Font(Map attributes){
+
+        this.pointSize = 12;
+        this.size = 12;
+
+        if((attributes != null) &&
+           (!attributes.equals(EMPTY_MAP)))
+        {
+            Object obj;
+            fRequestedAttributes = new Hashtable(attributes);
+            if ((obj = attributes.get(TextAttribute.FAMILY)) != null) {
+                this.name = (String)obj;
+            }
+            if ((obj = attributes.get(TextAttribute.WEIGHT)) != null){
+                if(obj.equals(TextAttribute.WEIGHT_BOLD)) {
+                    this.style |= BOLD;
+                }
+            }
+
+            if ((obj = attributes.get(TextAttribute.POSTURE)) != null){
+                if(obj.equals(TextAttribute.POSTURE_OBLIQUE)) {
+                    this.style |= ITALIC;
+                }
+            }
+
+            if ((obj = attributes.get(TextAttribute.SIZE)) != null){
+                this.pointSize = ((Float)obj).floatValue();
+                this.size = (int)(this.pointSize + 0.5);
+            }
+
+            fontCache.put(attributes, this);
+        }
+        initializeFont(fRequestedAttributes);
+    }
+
+     /**
+     * Returns a <code>Font</code> appropriate to this attribute set.
+     * @param attributes the attributes to assign to the new 
+     *		<code>Font</code>
+     * @return a new <code>Font</code> created with the specified
+     * 		attributes.
+     * @since JDK1.2
+     */
+    public static Font getFont(Map attributes) {
+        Font font = (Font)attributes.get(TextAttribute.FONT);
+        if (font != null) {
+            return font;
+        }
+
+        font = (Font)fontCache.get(attributes);
+        if (font != null) {
+            return font;
+        }
+
+        font = new Font(attributes);
+        fontCache.put(attributes, font);
+
+        return font;
+    }
+
+    /**
+     * Returns a copy of the transform associated with this 
+     * <code>Font</code>.
+     * @param an {@link AffineTransform} object representing the
+     *		transform attribute of this <code>Font</code> object.
+     */
+    public AffineTransform getTransform() {
+        Object obj = fRequestedAttributes.get(TextAttribute.TRANSFORM);
+
+        if (obj != null) {
+	    if( obj instanceof TransformAttribute ){
+	          return ((TransformAttribute)obj).getTransform();
+	    }
+	    else {
+	      if ( obj instanceof AffineTransform){
+	         return (AffineTransform)obj;
+	      }
+	    }
+	}else{
+	     obj = new AffineTransform();
+	}
+	return (AffineTransform)obj;
+    }
+
+    /**
+     * Returns the family name of this <code>Font</code>.  For example,
+     * Helvetica could be returned as a family name for the font
+     * face name of Helvetica Bold.
+     * Use <code>getName</code> to get the logical name of the font.
+     * Use <code>getFontName</code> to get the font face name of the font.
+     * @return a <code>String</code> that is the family name of this
+     *		<code>Font</code>.
+     * @see #getName
+     * @see #getFontName
+     * @since JDK1.2
      */
     public String getFamily() {
-	return family;
+	return getFamily_NoClientCode();
+    }
+    // NOTE: This method is called by privileged threads.
+    //       We implement this functionality in a package-private
+    //       method to insure that it cannot be overridden by client
+    //       subclasses. 
+    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
+    final String getFamily_NoClientCode() {
+      return getFamily(Locale.getDefault());
     }
 
     /**
-     * Gets the logical name of the font.
-     * @return    a string, the logical name of the font.
+     * Returns the family name of this <code>Font</code>, localized for
+     * the specified locale. For example, Helvetica could be returned as a
+     * family name for the font face name of Helvetica Bold.
+     * Use <code>getFontName</code> to get the font face name of the font.
+     * @param l locale for which to get the family name
+     * @return a <code>String</code> representing the family name of the
+     *		font, localized for the specified locale.
+     * @see #getFontName
+     * @see java.util.Locale
+     * @since JDK1.2
+     */
+    public String getFamily(Locale l) {
+	short lcid = getLcidFromLocale(l);
+        return NativeFontWrapper.getFamilyName(this, lcid);
+    }
+
+    /**
+     * Returns the postscript name of this <code>Font</code>.
+     * Use <code>getFamily</code> to get the family name of the font.
+     * Use <code>getFontName</code> to get the font face name of the font.
+     * @return a <code>String</code> representing the postscript name of
+     *		this <code>Font</code>.
+     * @since JDK1.2
+     */
+    public String getPSName() {
+	return getFontName();
+    }
+
+    /**
+     * Returns the logical name of this <code>Font</code>.
+     * Use <code>getFamily</code> to get the family name of the font.
+     * Use <code>getFontName</code> to get the font face name of the font.
+     * @return a <code>String</code> representing the logical name of
+     *		this <code>Font</code>.
      * @see #getFamily
-     * @since     JDK1.0
+     * @see #getFontName
+     * @since JDK1.0
      */
     public String getName() {
-	return name;
+	return new String(name);
     }
 
     /**
-     * Gets the style of the font.
-     * @return the style of this font.
+     * Returns the font face name of this <code>Font</code>.  For example,
+     * Helvetica Bold could be returned as a font face name.
+     * Use <code>getFamily</code> to get the family name of the font.
+     * Use <code>getName</code> to get the logical name of the font.
+     * @return a <code>String</code> representing the font face name of 
+     *		this <code>Font</code>.
+     * @see #getFamily
+     * @see #getName
+     * @since JDK1.2
+     */
+    public String getFontName() {
+      return getFontName(Locale.getDefault());
+    }
+
+    /**
+     * Returns the font face name of the <code>Font</code>, localized
+     * for the specified locale. For example, Helvetica Fett could be
+     * returned as the font face name.
+     * Use <code>getFamily</code> to get the family name of the font.
+     * @param l a locale for which to get the font face name
+     * @return a <code>String</code> representing the font face name,
+     *		localized for the specified locale.
+     * @see #getFamily
+     * @see java.util.Locale
+     */
+    public String getFontName(Locale l) {
+	short lcid = getLcidFromLocale(l);
+        return NativeFontWrapper.getFullName(this, lcid);
+    }
+
+    /**
+     * Returns the style of this <code>Font</code>.  The style can be
+     * PLAIN, BOLD, ITALIC, or BOLD+ITALIC.
+     * @return the style of this <code>Font</code>
      * @see #isPlain
      * @see #isBold
      * @see #isItalic
@@ -148,8 +500,25 @@ public class Font implements java.io.Serializable {
     }
 
     /**
-     * Gets the point size of the font.
-     * @return the point size of this font.
+     * Returns the point size of this <code>Font</code>, rounded to
+     * an integer.
+     * Most users are familiar with the idea of using <i>point size</i> to
+     * specify the size of glyphs in a font. This point size defines a
+     * measurement between the baseline of one line to the baseline of the
+     * following line in a single spaced text document. The point size is
+     * based on <i>typographic points</i>, approximately 1/72 of an inch.
+     * <p>
+     * The Java(tm)2D API adopts the convention that one point is
+     * equivalent to one unit in user coordinates.  When using a
+     * normalized transform for converting user space coordinates to
+     * device space coordinates 72 user
+     * space units equal 1 inch in device space.  In this case one point
+     * is 1/72 of an inch.
+     * @return the point size of this <code>Font</code> in 1/72 of an 
+     *		inch units.
+     * @see #getSize2D
+     * @see GraphicsConfiguration#getDefaultTransform
+     * @see GraphicsConfiguration#getNormalizingTransform
      * @since JDK1.0
      */
     public int getSize() {
@@ -157,19 +526,35 @@ public class Font implements java.io.Serializable {
     }
 
     /**
-     * Indicates whether the font's style is plain.
-     * @return     <code>true</code> if the font is neither 
-     *                bold nor italic; <code>false</code> otherwise.
-     * @see        java.awt.Font#getStyle
-     * @since      JDK1.0
+     * Returns the point size of this <code>Font</code> in
+     * <code>float</code> value.
+     * @return the point size of this <code>Font</code> as a
+     * <code>float</code> value.
+     * @see #getSize
+     * @since JDK1.2
+     */
+    public float getSize2D() {
+	return pointSize;
+    }
+
+    /**
+     * Indicates whether or not this <code>Font</code> object's style is
+     * PLAIN.
+     * @return    <code>true</code> if this <code>Font</code> has a
+     * 		  PLAIN sytle;
+     *            <code>false</code> otherwise.
+     * @see       java.awt.Font#getStyle
+     * @since     JDK1.0
      */
     public boolean isPlain() {
 	return style == 0;
     }
 
     /**
-     * Indicates whether the font's style is bold.
-     * @return    <code>true</code> if the font is bold; 
+     * Indicates whether or not this <code>Font</code> object's style is
+     * BOLD.
+     * @return    <code>true</code> if this <code>Font</code> object's
+     *		  style is BOLD;
      *            <code>false</code> otherwise.
      * @see       java.awt.Font#getStyle
      * @since     JDK1.0
@@ -179,8 +564,10 @@ public class Font implements java.io.Serializable {
     }
 
     /**
-     * Indicates whether the font's style is italic.
-     * @return    <code>true</code> if the font is italic; 
+     * Indicates whether or not this <code>Font</code> object's style is
+     * ITALIC.
+     * @return    <code>true</code> if this <code>Font</code> object's
+     *		  style is ITALIC;
      *            <code>false</code> otherwise.
      * @see       java.awt.Font#getStyle
      * @since     JDK1.0
@@ -190,52 +577,124 @@ public class Font implements java.io.Serializable {
     }
 
     /**
-     * Gets a font from the system properties list.
+     * Returns a <code>Font</code> object from the system properties list.
      * @param nm the property name
-     * @see       java.awt.Font#getFont(java.lang.String, java.awt.Font)
-     * @since     JDK1.0
+     * @return a <code>Font</code> object that the property name
+     *		describes.
+     * @since JDK1.2
      */
     public static Font getFont(String nm) {
 	return getFont(nm, null);
     }
 
     /**
-     * Gets the specified font using the name passed in.
-     * @param str the name
+     * Returns the <code>Font</code> that the <code>str</code> 
+     * argument describes.
+     * @param str the name of the font
+     * @return the <code>Font</code> object that <code>str</code>
+     *		describes.
      * @since JDK1.1
      */
     public static Font decode(String str) {
 	String fontName = str;
+	String fontSizeStr;
+	int index;
 	int fontSize = 12;
 	int fontStyle = Font.PLAIN;
+
+        if (str == null) {
+            return new Font("dialog", fontStyle, fontSize);
+        }
 
 	int i = str.indexOf('-');
 	if (i >= 0) {
 	    fontName = str.substring(0, i);
 	    str = str.substring(i+1);
-	    if ((i = str.indexOf('-')) >= 0) {
-		if (str.startsWith("bold-")) {
-		    fontStyle = Font.BOLD;
-		} else if (str.startsWith("italic-")) {
-		    fontStyle = Font.ITALIC;
-		} else if (str.startsWith("bolditalic-")) {
-		    fontStyle = Font.BOLD | Font.ITALIC;
-		}
-		str = str.substring(i + 1);
+	    str = str.toLowerCase(); // name may be in upper/lower causing incorrect style matching
+	    
+	    index = str.indexOf ( "bold-italic" );
+	    if ( index != -1 ) {
+	      fontStyle = Font.BOLD | Font.ITALIC;
+	    }
+	    if ( index == -1 ) {
+	      index = str.indexOf ( "bolditalic" );
+              if (index != -1) {
+                  fontStyle = Font.BOLD | Font.ITALIC;
+              }
+	    }
+	    if ( index == -1 ) {
+	      index = str.indexOf ( "bold" );
+	      if ( index != -1 ) {
+		fontStyle = Font.BOLD;
+              }
+	    }
+	    if ( index == -1 ) {
+	      index = str.indexOf ( "italic" );
+              if (index != -1) {
+                  fontStyle = Font.ITALIC;
+              }
+	    }
+	    index = str.lastIndexOf ( "-" );
+	    if ( index != -1 ) {
+	      str = str.substring(index+1);
 	    }
 	    try {
 		fontSize = Integer.valueOf(str).intValue();
 	    } catch (NumberFormatException e) {
 	    }
+	} else if ( i == -1 ) {
+
+	  fontStyle = Font.PLAIN;
+	  fontSize = 12;
+
+	  str = str.toLowerCase();
+	  index = str.indexOf ( "bolditalic" );
+	  if (index != -1 ) {
+	    fontStyle = Font.BOLD | Font.ITALIC;
+	  }
+	  if ( index == -1 ) {
+	    index = str.indexOf ( "bold italic" );
+	    if ( index != -1 ) {
+	      fontStyle = Font.BOLD | Font.ITALIC;
+	    }
+	  }
+	  if ( index == -1 ) {
+	    index = str.indexOf ("bold");
+   
+	    if ( index != -1 ) {
+	      fontStyle = Font.BOLD;	
+	    }
+	  }
+	  if ( index == -1 ) {
+	    index = str.indexOf  ("italic");
+	    if ( index != -1 )
+	      fontStyle = Font.ITALIC;
+	  }
+
+	  if ( index != -1 ) {  // found a style
+	    fontName = fontName.substring(0, index );
+	    fontName = fontName.trim();
+	  }
+	  index = str.lastIndexOf (" " );
+	  if ( index != -1 ) {
+	     fontSizeStr = str.substring ( index );
+	     fontSizeStr = fontSizeStr.trim();
+	     try {
+		fontSize = Integer.valueOf(fontSizeStr).intValue();
+	     } catch (NumberFormatException e) {
+	     }
+	  }
 	}
 	return new Font(fontName, fontStyle, fontSize);
     }
 
     /**
-     * Gets the specified font from the system properties list.
-     * The first argument is treated as the name of a system property to 
-     * be obtained as if by the method <code>System.getProperty</code>.  
-     * The string value of this property is then interpreted as a font. 
+     * Gets the specified <code>Font</code> from the system properties
+     * list.  As in the <code>getProperty</code> method of 
+     * <code>System</code>, the first
+     * argument is treated as the name of a system property to be
+     * obtained.  The <code>String</code> value of this property is then
+     * interpreted as a <code>Font</code> object. 
      * <p>
      * The property value should be one of the following forms: 
      * <ul>
@@ -255,51 +714,59 @@ public class Font implements java.io.Serializable {
      * If the specified property is not found, the <code>font</code> 
      * argument is returned instead. 
      * @param nm the property name
-     * @param font a default font to return if property <code>nm</code> 
-     *             is not defined
+     * @param font a default <code>Font</code> to return if property
+     * 		<code>nm</code> is not defined
      * @return    the <code>Font</code> value of the property.
-     * @since     JDK1.0
      */
     public static Font getFont(String nm, Font font) {
-	String str = System.getProperty(nm);
-	if (str == null) {
-	    return font;
-	}
-	return Font.decode(str);
+      String str = null;
+      try {
+	str =System.getProperty(nm);
+      } catch(SecurityException e) {
+      }
+      if (str == null) {
+	return font;
+      }
+      return decode ( str );
     }
 
     /**
-     * Returns a hashcode for this font.
-     * @return     a hashcode value for this font.
+     * Returns a hashcode for this <code>Font</code>.
+     * @return     a hashcode value for this <code>Font</code>.
      * @since      JDK1.0
      */
     public int hashCode() {
 	return name.hashCode() ^ style ^ size;
     }
-    
+
     /**
-     * Compares this object to the specifed object.
-     * The result is <code>true</code> if and only if the argument is not 
-     * <code>null</code> and is a <code>Font</code> object with the same 
-     * name, style, and point size as this font. 
-     * @param     obj   the object to compare this font with.
-     * @return    <code>true</code> if the objects are equal; 
-     *            <code>false</code> otherwise.
-     * @since     JDK1.0
+     * Compares this <code>Font</code> object to the specified 
+     * <code>Object</code>.
+     * @param obj the <code>Object</code> to compare.
+     * @return <code>true</code> if the objects are the same; 
+     *		<code>false</code> otherwise.
+     * @since JDK1.0
      */
     public boolean equals(Object obj) {
 	if (obj instanceof Font) {
 	    Font font = (Font)obj;
-	    return (size == font.size) && (style == font.style) && name.equals(font.name);
+	    return  (size == font.size)
+                    && (pointSize == font.pointSize)
+                    && (style == font.style)
+                    && name.equals(font.name);
 	}
 	return false;
     }
 
-    /** 
-     * Converts this object to a String representation. 
-     * @return     a string representation of this object
+    /**
+     * Converts this <code>Font</code> object to a <code>String</code>
+     * representation.
+     * @return     a <code>String</code> representation of this 
+     *		<code>Font</code> object.
      * @since      JDK1.0
      */
+    // NOTE: This method may be called by privileged threads.
+    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
     public String toString() {
 	String	strStyle;
 
@@ -309,34 +776,770 @@ public class Font implements java.io.Serializable {
 	    strStyle = isItalic() ? "italic" : "plain";
 	}
 
-	return getClass().getName() + "[family=" + family + ",name=" + name + ",style=" +
+	return getClass().getName() + "[family=" + getFamily() + ",name=" + name + ",style=" +
 	    strStyle + ",size=" + size + "]";
-    }
+    } // toString()
 
 
     /* Serialization support.  A readObject method is neccessary because
      * the constructor creates the fonts peer, and we can't serialize the
      * peer.  Similarly the computed font "family" may be different
-     * at readObject time than at writeObject time.  An integer version is 
-     * written so that future versions of this class will be able to recognize 
+     * at readObject time than at writeObject time.  An integer version is
+     * written so that future versions of this class will be able to recognize
      * serialized output from this one.
      */
-
+    /**
+     * The font Serializable Data Form.
+     *
+     * @serial
+     */
     private int fontSerializedDataVersion = 1;
 
+    /**
+    * Writes default serializable fields to stream.  Writes
+    * a list of serializable ItemListener(s) as optional data.
+    * The non-serializable ItemListner(s) are detected and
+    * no attempt is made to serialize them.
+    *
+    * @serialData Null terminated sequence of 0 or more pairs.
+    *             The pair consists of a String and Object.
+    *             The String indicates the type of object and
+    *             is one of the following :
+    *             itemListenerK indicating and ItemListener object.
+    *
+    * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
+    * @see java.awt.Component.itemListenerK
+    */
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.lang.ClassNotFoundException,
-	     java.io.IOException 
+	     java.io.IOException
     {
       s.defaultWriteObject();
     }
 
+    /**
+    * Read the ObjectInputStream and if it isnt null
+    * add a listener to receive item events fired
+    * by the Font.
+    * Unrecognised keys or values will be Ignored.
+    * @serial
+    * @see removeActionListener()
+    * @see addActionListener()
+    */
     private void readObject(java.io.ObjectInputStream s)
       throws java.lang.ClassNotFoundException,
-	     java.io.IOException 
+	     java.io.IOException
     {
       s.defaultReadObject();
-      initializeFont();
+      if (pointSize == 0) {
+		pointSize = (float)size;
+ 	  }
+      initializeFont(fRequestedAttributes);
     }
+
+    /**
+     * Returns the number of glyphs in this <code>Font</code>. Glyph codes
+     * for this <code>Font</code> range from 0 to 
+     * <code>getNumGlyphs()</code> - 1.
+     * @return the number of glyphs in this <code>Font</code>.
+     * @since JDK1.2
+     */
+    public int getNumGlyphs() {
+        if (numGlyphs == -1) {
+            numGlyphs = NativeFontWrapper.getNumGlyphs(this);
+        }
+        return numGlyphs;
+    }
+
+    /**
+     * Returns the glyphCode which is used when this <code>Font</code> 
+     * does not have a glyph for a specified unicode.
+     * @return the glyphCode of this <code>Font</code>.
+     * @since JDK1.2
+     */
+    public int getMissingGlyphCode() {
+        if (missingGlyph == -1) {
+            missingGlyph = NativeFontWrapper.getMissingGlyphCode(this);
+        }
+        return missingGlyph;
+    }
+
+    /**
+     * Returns the baseline appropriate for displaying this character.
+     * <p>
+     * Large fonts can support different writing systems, and each system can
+     * use a different baseline.
+     * The character argument determines the writing system to use. Clients
+     * should not assume all characters use the same baseline.
+     *
+     * @param c a character used to identify the writing system
+     * @return the baseline appropriate for the specified character.
+     * @see LineMetrics#getBaselineOffsets
+     * @see #ROMAN_BASELINE
+     * @see #CENTER_BASELINE
+     * @see #HANGING_BASELINE
+     * @since JDK1.2
+     */
+    public byte getBaselineFor(char c) {
+        return NativeFontWrapper.getBaselineFor(this, c);
+    }
+
+    /**
+     * Returns a map of font attributes available in this
+     * <code>Font</code>.  Attributes include things like ligatures and
+     * glyph substitution.
+     * @return the attributes map of this <code>Font</code>.
+     */
+    public Map getAttributes(){
+        return (Map)fRequestedAttributes.clone();
+    }
+
+    /**
+     * Returns the keys of all the attributes supported by this 
+     * <code>Font</code>.  These attributes can be used to derive other
+     * fonts.
+     * @return an array containing the keys of all the attributes
+     *		supported by this <code>Font</code>.
+     * @since JDK1.2
+     */
+    public Attribute[] getAvailableAttributes(){
+        Attribute attributes[] = {
+            TextAttribute.FAMILY,
+            TextAttribute.WEIGHT,
+            TextAttribute.POSTURE,
+            TextAttribute.SIZE
+        };
+
+        return attributes;
+    }
+
+    /**
+     * Creates a new <code>Font</code> object by replicating this
+     * <code>Font</code> object and applying a new style and size.
+     * @param style the style for the new <code>Font</code>
+     * @param size the size for the new <code>Font</code>
+     * @return a new <code>Font</code> object.
+     * @since JDK1.2
+     */
+    public Font deriveFont(int style, float size){
+        return new Font(ffApply(style,
+                            ffApply(size, fRequestedAttributes)));
+    }
+
+    /**
+     * Creates a new <code>Font</code> object by replicating this
+     * <code>Font</code> object and applying a new style and transform.
+     * @param style the style for the new <code>Font</code>
+     * @param trans the <code>AffineTransform</code> associated with the
+     * new <code>Font</code>
+     * @return a new <code>Font</code> object.
+     * @since JDK1.2
+     */
+    public Font deriveFont(int style, AffineTransform trans){
+        return new Font(ffApply(style,
+                            ffApply(trans, fRequestedAttributes)));
+    }
+
+    /**
+     * Creates a new <code>Font</code> object by replicating the current
+     * <code>Font</code> object and applying a new size to it.
+     * @param size the size for the new <code>Font</code>.
+     * @return a new <code>Font</code> object.
+     * @since JDK1.2
+     */
+    public Font deriveFont(float size){
+        return new Font( ffApply(size, fRequestedAttributes));
+    }
+
+    /**
+     * Creates a new <code>Font</code> object by replicating the current
+     * <code>Font</code> object and applying a new transform to it.
+     * @param trans the <code>AffineTransform</code> associated with the
+     * new <code>Font</code>
+     * @return a new <code>Font</code> object.
+     * @since JDK1.2
+     */
+    public Font deriveFont(AffineTransform trans){
+        return new Font(ffApply(trans, fRequestedAttributes));
+    }
+
+    /**
+     * Creates a new <code>Font</code> object by replicating the current
+     * <code>Font</code> object and applying a new style to it.
+     * @param style the style for the new <code>Font</code>
+     * @return a new <code>Font</code> object.
+     * @since JDK1.2
+     */
+    public Font deriveFont(int style){
+        return new Font(ffApply(style, fRequestedAttributes));
+    }
+
+    /**
+     * Creates a new <code>Font</code> object by replicating the current
+     * <code>Font</code> object and applying a new set of font attributes
+     * to it.
+     * @param attributes a map of attributes enabled for the new 
+     * <code>Font</code>
+     * @return a new <code>Font</code> object.
+     * @since JDK1.2
+     */
+    public Font deriveFont(Map attributes) {
+        Hashtable newAttrs = new Hashtable(getAttributes());
+	Attribute validAttribs[] = getAvailableAttributes();
+	Object obj;
+
+	for(int i = 0; i < validAttribs.length; i++){
+	  if ((obj = attributes.get(validAttribs[i])) != null) {
+	    newAttrs.put(validAttribs[i],obj);
+	  } 
+	}
+        return new Font(newAttrs);
+    }
+
+    /**
+     * Checks if this <code>Font</code> has a glyph for the specified
+     * character.
+     * @param c a unicode character code
+     * @return <code>true</code> if this <code>Font</code> can display the
+     *		character; <code>false</code> otherwise.
+     * @since JDK1.2
+     */
+    public boolean canDisplay(char c){
+        return NativeFontWrapper.canDisplay(this, c);
+    }
+
+    /**
+     * Indicates whether or not this <code>Font</code> can display a
+     * specified <code>String</code>.  For strings with Unicode encoding,
+     * it is important to know if a particular font can display the
+     * string. This method returns an offset into the <code>String</code> 
+     * <code>str</code> which is the first character this 
+     * <code>Font</code> cannot display without using the missing glyph
+     * code. If the <code>Font</code> can display all characters, -1 is
+     * returned.
+     * @param str a <code>String</code> object
+     * @return an offset into <code>str</code> that points
+     *		to the first character in <code>str</code> that this
+     *		<code>Font</code> cannot display; or <code>-1</code> if
+     *		this <code>Font</code> can display all characters in
+     *		<code>str</code>.
+     * @since JDK1.2
+     */
+    public int canDisplayUpTo(String str) {
+        return canDisplayUpTo(new StringCharacterIterator(str), 0,
+            str.length());
+    }
+
+    /**
+     * Indicates whether or not this <code>Font</code> can display
+     * the characters in the specified <code>text</code> 
+     * starting at <code>start</code> and ending at 
+     * <code>limit</code>.  This method is a convenience overload.
+     * @param text the specified array of characters
+     * @param start the specified starting offset into the specified array
+     *		of characters
+     * @param limit the specified ending offset into the specified
+     *		array of characters
+     * @since JDK1.2
+     */
+    public int canDisplayUpTo(char[] text, int start, int limit) {
+	while (start < limit && canDisplay(text[start])) {
+	    ++start;
+	}
+
+	return start;
+    }
+
+    /**
+     * Indicates whether or not this <code>Font</code> can display
+     * the specified <code>String</code>.  For strings with Unicode
+     * encoding, it is important to know if a particular font can display
+     * the string. This method returns an offset
+     * into the <code>String</code> <code>str</code> which is the first
+     * character this <code>Font</code> cannot display without using the
+     * missing glyph code . If this <code>Font</code> can display all
+     * characters, <code>-1</code> is returned.
+     * @param text a {@link CharacterIterator} object
+     * @param start the specified starting offset into the specified array
+     *          of characters
+     * @param limit the specified ending offset into the specified
+     *          array of characters
+     * @return an offset into the <code>String</code> object that can be
+     * 		displayed by this <code>Font</code>.
+     * @since JDK1.2
+     */
+    public int canDisplayUpTo(CharacterIterator iter, int start, int limit) {
+        for (char c = iter.setIndex(start);
+             iter.getIndex() < limit && canDisplay(c);
+             c = iter.next()) {
+        }
+
+	return iter.getIndex();
+    }
+
+    /**
+     * Returns the italic angle of this <code>Font</code>.
+     * @return the angle of the ITALIC style of this <code>Font</code>.
+     */
+    public float getItalicAngle(){
+        float ptSize = this.getSize2D();
+        AffineTransform tx = getTransform();
+        tx.scale(ptSize, ptSize);
+        double matrix[] = { tx.getScaleX(), tx.getShearY(),
+                            tx.getShearX(), tx.getScaleY()};
+        return NativeFontWrapper.getItalicAngle(this, matrix, false, false);
+    }
+
+    /**
+    * Metrics from a font for layout of characters along a line
+    * and layout of set of lines.
+    */
+    private final class FontLineMetrics extends LineMetrics {
+        // package private fields
+        int   numchars;
+        float ascent, descent, leading, height;
+        int   baselineIndex;
+        float [] baselineOffsets;
+        float strikethroughOffset, strikethroughThickness;
+        float underlineOffset, underlineThickness;
+
+        public final int getNumChars() {
+            return numchars;
+        }
+
+        public final float getAscent() {
+            return ascent;
+        }
+
+        public final float getDescent() {
+            return descent;
+        }
+
+        public final float getLeading() {
+            return leading;
+        }
+
+        public final float getHeight() {
+            return height;
+        }
+
+        public final int getBaselineIndex() {
+            return baselineIndex;
+        }
+
+        public final float[] getBaselineOffsets() {
+            return baselineOffsets;
+        }
+
+        public final float getStrikethroughOffset() {
+            return strikethroughOffset;
+        }
+
+        public final float getStrikethroughThickness() {
+            return strikethroughThickness;
+        }
+
+        public final float getUnderlineOffset() {
+            return underlineOffset;
+        }
+
+        public final float getUnderlineThickness() {
+            return underlineThickness;
+        }
+    }
+
+    /**
+     * Checks whether or not this <code>Font</code> has uniform 
+     * line metrics.  A logical <code>Font</code> might be a
+     * composite font, which means that it is composed of different
+     * physical fonts to cover different code ranges.  Each of these
+     * fonts might have different <code>LineMetrics</code>.  If the
+     * logical <code>Font</code> is a single
+     * font then the metrics would be uniform. 
+     * @return <code>true</code> if this <code>Font</code> has
+     * uniform line metrics; <code>false</code> otherwise.
+     */
+    public boolean hasUniformLineMetrics() {
+        return false;   // REMIND: always safe, but prevents caller optimize
+    }
+
+    private FontLineMetrics defaultLineMetrics(FontRenderContext frc) {
+        FontLineMetrics flm = new FontLineMetrics();
+
+        double [] matrix = {pointSize, 0, 0, pointSize};
+        float [] metrics = new float[4];
+        NativeFontWrapper.getFontMetrics(this, matrix,
+                                        frc.isAntiAliased(),
+                                        frc.usesFractionalMetrics(),
+                                        metrics);
+
+        flm.ascent      = metrics[0];
+        flm.descent     = metrics[1];
+        flm.leading     = metrics[2];
+        flm.height      = metrics[0] + metrics[1] + metrics[2];
+        flm.baselineIndex       = 0;
+        flm.baselineOffsets     = new float[3];
+        flm.baselineOffsets[0]  = 0;
+
+        flm.strikethroughOffset     = -(flm.ascent / 2);
+        flm.strikethroughThickness  = pointSize / 12.0f;
+
+        flm.underlineOffset     = flm.descent / 3.0f;
+        flm.underlineThickness  = pointSize / 12.0f;
+        return flm;
+    }
+
+    /**
+     * Returns a {@link LineMetrics} object created with the specified
+     * <code>String</code> and {@link FontRenderContext}.
+     * @param str the specified <code>String</code>
+     * @param frc the specified <code>FontRenderContext</code>
+     * @return a <code>LineMetrics</code> object created with the
+     * specified <code>String</code> and {@link FontRenderContext}.
+     */ 
+    public LineMetrics getLineMetrics( String str, FontRenderContext frc) {
+        FontLineMetrics flm = defaultLineMetrics(frc);
+        flm.numchars = str.length();
+        return flm;
+    }
+
+    /**
+     * Returns a <code>LineMetrics</code> object created with the
+     * specified arguments.
+     * @param str the specified <code>String</code>
+     * @param beginIndex the initial offset of <code>str</code> 
+     * @param limit the length of <code>str</code>
+     * @param frc the specified <code>FontRenderContext</code>
+     * @return a <code>LineMetrics</code> object created with the
+     * specified arguments.
+     */
+    public LineMetrics getLineMetrics( String str,
+                                    int beginIndex, int limit,
+                                    FontRenderContext frc) {
+        FontLineMetrics flm = defaultLineMetrics(frc);
+        int numChars = limit - beginIndex;
+        flm.numchars = (numChars < 0)? 0: numChars;
+        return flm;
+    }
+
+    /**
+     * Returns a <code>LineMetrics</code> object created with the
+     * specified arguments.
+     * @param chars an array of characters
+     * @param beginIndex the initial offset of <code>chars</code>
+     * @param limit the length of <code>chars</code>
+     * @param frc the specified <code>FontRenderContext</code>
+     * @return a <code>LineMetrics</code> object created with the
+     * specified arguments.
+     */
+    public LineMetrics getLineMetrics(char [] chars,
+                                    int beginIndex, int limit,
+                                    FontRenderContext frc) {
+        FontLineMetrics flm = defaultLineMetrics(frc);
+        int numChars = limit - beginIndex;
+        flm.numchars = (numChars < 0)? 0: numChars;
+        return flm;
+    }
+
+    /**
+     * Returns a <code>LineMetrics</code> object created with the
+     * specified arguments.
+     * @param ci the specified <code>CharacterIterator</code>
+     * @param beginIndex the initial offset in <code>ci</code>
+     * @param limit the end index of <code>ci</code>
+     * @param frc the specified <code>FontRenderContext</code>
+     * @return a <code>LineMetrics</code> object created with the
+     * specified arguments.
+     */
+    public LineMetrics getLineMetrics(CharacterIterator ci,
+                                    int beginIndex, int limit,
+                                    FontRenderContext frc) {
+        FontLineMetrics flm = defaultLineMetrics(frc);
+        int numChars = limit - beginIndex;
+        flm.numchars = (numChars < 0)? 0: numChars;
+        return flm;
+    }
+
+    /**
+     * Returns the bounds of the specified <code>String</code> in the
+     * specified <code>FontRenderContext</code>.  The bounds is used
+     * to layout the <code>String</code>.
+     * @param str the specified <code>String</code>
+     * @param frc the specified <code>FontRenderContext</code>
+     * @return a {@link Rectangle2D} that is the bounding box of the
+     * specified <code>String</code> in the specified
+     * <code>FontRenderContext</code>.
+     * @see FontRenderContext
+     * @see Font#createGlyphVector
+     * @since JDK1.2
+     */
+    public Rectangle2D getStringBounds( String str, FontRenderContext frc) {
+      GlyphVector  gv  = createGlyphVector(frc,str);
+      //            Rectangle    ga  = (Rectangle)gv.getVisualBounds();
+      Rectangle    ga  = (Rectangle)gv.getLogicalBounds();
+      Rectangle    ret = new Rectangle(0,0,ga.width,ga.height);
+      return ret;
+    }
+
+   /**
+     * Returns the bounds of the specified <code>String</code> in the
+     * specified <code>FontRenderContext</code>.  The bounds is used
+     * to layout the <code>String</code>.
+     * @param str the specified <code>String</code>
+     * @param beginIndex the offset of the beginning of <code>str</code>
+     * @param limit the length of <code>str</code>
+     * @param frc the specified <code>FontRenderContext</code>   
+     * @return a <code>Rectangle2D</code> that is the bounding box of the
+     * specified <code>String</code> in the specified
+     * <code>FontRenderContext</code>.
+     * @see FontRenderContext
+     * @see Font#createGlyphVector
+     * @since JDK1.2
+     */
+    public Rectangle2D getStringBounds( String str,
+                                    int beginIndex, int limit,
+                                    FontRenderContext frc) {
+      if( (beginIndex < str.length()) && ((beginIndex + limit) <= str.length()) ) {
+	String substr = str.substring(beginIndex,beginIndex + limit);
+	return getStringBounds(substr,frc);
+      } 
+      throw new StringIndexOutOfBoundsException();
+    }
+
+   /**
+     * Returns the bounds of the specified array of characters
+     * in the specified <code>FontRenderContext</code>.
+     * The bounds is used to layout the <code>String</code> 
+     * created with the specified array of characters,
+     * <code>beginIndex</code> and <code>limit</code>.
+     * @param chars an array of characters
+     * @param beginIndex the initial offset of the array of
+     * characters
+     * @param limit the length of the array of characters
+     * @param frc the specified <code>FontRenderContext</code>   
+     * @return a <code>Rectangle2D</code> that is the bounding box of the
+     * specified array of characters in the specified
+     * <code>FontRenderContext</code>.
+     * @see FontRenderContext
+     * @see Font#createGlyphVector
+     * @since JDK1.2
+     */
+    public Rectangle2D getStringBounds( char [] chars,
+                                    int beginIndex, int limit,
+                                    FontRenderContext frc) {
+      String str = new String(chars,beginIndex,limit);
+      return getStringBounds(str,frc);
+    }
+
+   /**
+     * Returns the bounds of the characters indexed in the specified
+     * {@link CharacterIterator} in the
+     * specified <code>FontRenderContext</code>.  The bounds is used
+     * to layout the <code>String</code>.
+     * @param ci the specified <code>CharacterIterator</code>
+     * @param beginIndex the initial offset in <code>ci</code>
+     * @param limit the end index of <code>ci</code>
+     * @param frc the specified <code>FontRenderContext</code>   
+     * @return a <code>Rectangle2D</code> that is the bounding box of the
+     * characters indexed in the specified <code>CharacterIterator</code>
+     * in the specified <code>FontRenderContext</code>.
+     * @see FontRenderContext
+     * @see Font#createGlyphVector
+     * @since JDK1.2
+     */
+    public Rectangle2D getStringBounds(CharacterIterator ci,
+                                    int beginIndex, int limit,
+                                    FontRenderContext frc) {
+      if( limit > beginIndex ) {
+	char[]  arr = new char[limit];
+	int     li  = ci.getEndIndex();
+	int     idx = 0;
+
+	if( li < beginIndex ) {
+	  throw new ArrayIndexOutOfBoundsException();
+	}
+
+	if( beginIndex + limit > li ) {
+	  limit = li - beginIndex;
+	}
+	ci.setIndex(beginIndex);
+	for( idx = 0;idx < limit; idx++ ) {
+	  arr[idx] = ci.current();
+	  ci.next();
+	}
+	return getStringBounds(arr,0,arr.length,frc);
+      }
+      throw new ArrayIndexOutOfBoundsException();  
+    }
+
+    /**
+     * Returns the bounds for the character with the maximum
+     * bounds as defined in the specified <code>FontRenderContext</code>.
+     * @param frc the specified <code>FontRenderContext</code>
+     * @return a <code>Rectangle2D</code> that is the bounding box
+     * for the character with the maximum bounds.
+     */
+    public Rectangle2D getMaxCharBounds(FontRenderContext frc) {
+        double [] matrix = {pointSize, 0, 0, pointSize};
+        float [] metrics = new float[4];
+        NativeFontWrapper.getFontMetrics(this, matrix,
+                                        frc.isAntiAliased(),
+                                        frc.usesFractionalMetrics(),
+                                        metrics);
+        return new Rectangle2D.Float(0, 0,
+                                metrics[3],
+                                metrics[0] + metrics[1] + metrics[2]);
+    }
+
+    /**
+     * Returns a new {@link GlyphVector} object created with the 
+     * specified <code>String</code> and the specified 
+     * <code>FontRenderContext</code>.
+     * @param frc the specified <code>FontRenderContext</code>
+     * @param str the specified <code>String</code>
+     * @return a new <code>GlyphVector</code> created with the 
+     * specified <code>String</code> and the specified
+     * <code>FontRenderContext</code>.
+     */
+    public GlyphVector createGlyphVector(FontRenderContext frc, String str)
+    {
+        return (GlyphVector)new StandardGlyphVector(this, str, frc);
+    }
+
+    /**
+     * Returns a new <code>GlyphVector</code> object created with the
+     * specified array of characters and the specified
+     * <code>FontRenderContext</code>.
+     * @param frc the specified <code>FontRenderContext</code>
+     * @param chars the specified array of characters
+     * @return a new <code>GlyphVector</code> created with the
+     * specified array of characters and the specified
+     * <code>FontRenderContext</code>.
+     */
+    public GlyphVector createGlyphVector(FontRenderContext frc, char[] chars)
+    {
+        return (GlyphVector)new StandardGlyphVector(this, chars, frc);
+    }
+
+    /**
+     * Returns a new <code>GlyphVector</code> object created with the
+     * specified <code>CharacterIterator</code> and the specified
+     * <code>FontRenderContext</code>.
+     * @param frc the specified <code>FontRenderContext</code>
+     * @param ci the specified <code>CharacterIterator</code>
+     * @return a new <code>GlyphVector</code> created with the
+     * specified <code>CharacterIterator</code> and the specified
+     * <code>FontRenderContext</code>.
+     */
+    public GlyphVector createGlyphVector(   FontRenderContext frc,
+                                            CharacterIterator ci)
+    {
+        return (GlyphVector)new StandardGlyphVector(this, ci, frc);
+    }
+
+    /**
+     * Returns a new <code>GlyphVector</code> object created with the
+     * specified integer array and the specified
+     * <code>FontRenderContext</code>.
+     * @param frc the specified <code>FontRenderContext</code>
+     * @param glyphcodes the specified integer array
+     * @return a new <code>GlyphVector</code> created with the
+     * specified integer array and the specified
+     * <code>FontRenderContext</code>.
+     */
+    public GlyphVector createGlyphVector(   FontRenderContext frc,
+                                            int [] glyphCodes)
+    {
+        return (GlyphVector)new StandardGlyphVector(this, glyphCodes, frc);
+    }
+
+    private static Hashtable ffApply(String name, Map attributes) {
+        Hashtable rval = new Hashtable(attributes);
+        rval.put(TextAttribute.FAMILY, name);
+        return rval;
+    }
+
+    private static Hashtable ffApply(AffineTransform trans, Map attributes) {
+        Hashtable rval = new Hashtable(attributes);
+        rval.put(TextAttribute.TRANSFORM, new TransformAttribute(trans));
+        return rval;
+    }
+
+    private static Hashtable ffApply(int style, Map attributes) {
+        Hashtable rval = new Hashtable(attributes);
+
+        if ((style & BOLD) != 0) {
+            rval.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+        } else {
+            rval.remove(TextAttribute.WEIGHT);
+        }
+
+        if ((style & ITALIC) != 0) {
+            rval.put(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);
+        } else {
+            rval.remove(TextAttribute.POSTURE);
+        }
+
+        return rval;
+    }
+
+    private static Hashtable ffApply(float size, Map attributes) {
+        Hashtable rval = new Hashtable(attributes);
+        rval.put(TextAttribute.SIZE, new Float(size));
+        return rval;
+    }
+
+    private static Hashtable ffApply(String name, int style,
+                                      float size, Map attributes)
+    {
+        return ffApply(name, ffApply(style, ffApply(size, attributes)));
+    }
+
+    /*
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
+    private native void pDispose();
+
+    /**
+     * Disposes the native <code>Font</code> object.
+     */
+    protected void finalize() throws Throwable {
+        if (this.peer != null) {
+            pDispose();
+        }
+        super.finalize();
+    }
+
+  // Return a Microsoft LCID from the given Locale.
+  // Used when getting localized font data.
+  private static final String systemBundle = 
+			"java.text.resources.LocaleElements";
+  private short getLcidFromLocale(Locale l) {
+
+    short lcid = 0x0409;  // US English - default
+
+    // optimize for common case:
+    if (l.equals(Locale.US)) {
+      return lcid;
+    }
+
+    String lcidAsString;
+    try {
+      ResourceBundle bundle = ResourceBundle.getBundle(systemBundle, l);
+      lcidAsString = bundle.getString("LocaleID");
+    }
+    catch(MissingResourceException e) {
+      return lcid;
+    }
+
+    try {
+      lcid = (short) Integer.parseInt(lcidAsString, 16);
+    }
+    catch(NumberFormatException e) {
+    }
+
+    return lcid;
+  }
 }
 

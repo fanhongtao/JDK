@@ -1,0 +1,5 @@
+	ToolBars
+
+   Toolbar floating/docking behaviour can be controlled using
+the method toolBar.setFloatable(boolean).  For instance, the 
+toolbar above is floatable.

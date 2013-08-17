@@ -1,23 +1,30 @@
 /*
- * @(#)StringBufferInputStream.java	1.18 01/12/10
+ * @(#)StringBufferInputStream.java	1.20 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 /**
- * This class allows an application to create an input stream in 
- * which the bytes read are supplied by the contents of a string. 
- * Applications can also read bytes from a byte array by using a 
- * <code>ByteArrayInputStream</code>. 
+ * This class allows an application to create an input stream in
+ * which the bytes read are supplied by the contents of a string.
+ * Applications can also read bytes from a byte array by using a
+ * <code>ByteArrayInputStream</code>.
  * <p>
  * Only the low eight bits of each character in the string are used by
- * this class. 
+ * this class.
  *
  * @author     Arthur van Hoff
- * @version    1.18, 12/10/01
+ * @version    1.20, 06/29/98
  * @see        java.io.ByteArrayInputStream
  * @see        java.io.StringReader
  * @since      JDK1.0
@@ -28,9 +35,7 @@ package java.io;
 public
 class StringBufferInputStream extends InputStream {
     /**
-     * The string from which bytes are read. 
-     *
-     * @since      JDK1.0
+     * The string from which bytes are read.
      */
     protected String buffer;
 
@@ -38,15 +43,13 @@ class StringBufferInputStream extends InputStream {
      * The index of the next character to read from the input stream buffer.
      *
      * @see        java.io.StringBufferInputStream#buffer
-     * @since      JDK1.0
      */
     protected int pos;
 
     /**
-     * The number of valid characters in the input stream buffer. 
+     * The number of valid characters in the input stream buffer.
      *
      * @see        java.io.StringBufferInputStream#buffer
-     * @since      JDK1.0
      */
     protected int count;
 
@@ -54,7 +57,6 @@ class StringBufferInputStream extends InputStream {
      * Creates a string input stream to read data from the specified string.
      *
      * @param      s   the underlying input buffer.
-     * @since      JDK1.0
      */
     public StringBufferInputStream(String s) {
 	this.buffer = s;
@@ -62,32 +64,31 @@ class StringBufferInputStream extends InputStream {
     }
 
     /**
-     * Reads the next byte of data from this input stream. The value 
-     * byte is returned as an <code>int</code> in the range 
-     * <code>0</code> to <code>255</code>. If no byte is available 
-     * because the end of the stream has been reached, the value 
-     * <code>-1</code> is returned. 
+     * Reads the next byte of data from this input stream. The value
+     * byte is returned as an <code>int</code> in the range
+     * <code>0</code> to <code>255</code>. If no byte is available
+     * because the end of the stream has been reached, the value
+     * <code>-1</code> is returned.
      * <p>
-     * The <code>read</code> method of 
-     * <code>StringBufferInputStream</code> cannot block. It returns the 
-     * low eight bits of the next character in this input stream's buffer. 
+     * The <code>read</code> method of
+     * <code>StringBufferInputStream</code> cannot block. It returns the
+     * low eight bits of the next character in this input stream's buffer.
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
-     * @since      JDK1.0
      */
     public synchronized int read() {
 	return (pos < count) ? (buffer.charAt(pos++) & 0xFF) : -1;
     }
 
     /**
-     * Reads up to <code>len</code> bytes of data from this input stream 
-     * into an array of bytes. 
+     * Reads up to <code>len</code> bytes of data from this input stream
+     * into an array of bytes.
      * <p>
-     * The <code>read</code> method of 
-     * <code>StringBufferInputStream</code> cannot block. It copies the 
-     * low eight bits from the characters in this input stream's buffer into 
-     * the byte array argument. 
+     * The <code>read</code> method of
+     * <code>StringBufferInputStream</code> cannot block. It copies the
+     * low eight bits from the characters in this input stream's buffer into
+     * the byte array argument.
      *
      * @param      b     the buffer into which the data is read.
      * @param      off   the start offset of the data.
@@ -95,9 +96,14 @@ class StringBufferInputStream extends InputStream {
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end of
      *             the stream has been reached.
-     * @since      JDK1.0
      */
     public synchronized int read(byte b[], int off, int len) {
+	if (b == null) {
+	    throw new NullPointerException();
+	} else if ((off < 0) || (off > b.length) || (len < 0) ||
+		   ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	}
 	if (pos >= count) {
 	    return -1;
 	}
@@ -117,12 +123,11 @@ class StringBufferInputStream extends InputStream {
     }
 
     /**
-     * Skips <code>n</code> bytes of input from this input stream. Fewer 
-     * bytes might be skipped if the end of the input stream is reached. 
+     * Skips <code>n</code> bytes of input from this input stream. Fewer
+     * bytes might be skipped if the end of the input stream is reached.
      *
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
-     * @since      JDK1.0
      */
     public synchronized long skip(long n) {
 	if (n < 0) {
@@ -136,22 +141,19 @@ class StringBufferInputStream extends InputStream {
     }
 
     /**
-     * Returns the number of bytes that can be read from the input 
-     * stream without blocking. 
+     * Returns the number of bytes that can be read from the input
+     * stream without blocking.
      *
      * @return     the value of <code>count&nbsp;-&nbsp;pos</code>, which is the
-     *             number of bytes remaining to be read from the input buffer. 
-     * @since      JDK1.0
+     *             number of bytes remaining to be read from the input buffer.
      */
     public synchronized int available() {
 	return count - pos;
     }
 
     /**
-     * Resets the input stream to begin reading from the first character 
-     * of this input stream's underlying buffer. 
-     *
-     * @since      JDK1.0
+     * Resets the input stream to begin reading from the first character
+     * of this input stream's underlying buffer.
      */
     public synchronized void reset() {
 	pos = 0;

@@ -1,10 +1,10 @@
 /*
- * @(#)DateFormatSymbols.java	1.21 01/12/10
+ * @(#)DateFormatSymbols.java	1.30 98/09/23
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -32,6 +32,7 @@ package java.text;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.util.Hashtable;
 
 /**
@@ -51,7 +52,7 @@ import java.util.Hashtable;
  * formatter is created, you may modify its format pattern using the
  * <code>setPattern</code> method. For more information about
  * creating formatters using <code>DateFormat</code>'s factory methods,
- * see <a href="java.text.DateFormat.html"><code>DateFormat</code></a>.
+ * see {@link DateFormat}.
  *
  * <p>
  * If you decide to create a date-time formatter with a specific
@@ -77,7 +78,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          SimpleDateFormat
  * @see          java.util.SimpleTimeZone
- * @version      1.21 12/10/01
+ * @version      1.30 09/23/98
  * @author       Chen-Lieh Huang
  */
 public class DateFormatSymbols implements Serializable, Cloneable {
@@ -109,43 +110,102 @@ public class DateFormatSymbols implements Serializable, Cloneable {
     }
 
     /**
-     * Era strings. For example: "AD" and "BC".
+     * Era strings. For example: "AD" and "BC".  An array of 2 strings,
+     * indexed by <code>Calendar.BC</code> and <code>Calendar.AD</code>.
+     * @serial
      */
     String eras[] = null;
+    
     /**
-     * Month strings. For example: "January", "February", etc.
+     * Month strings. For example: "January", "February", etc.  An array
+     * of 13 strings (some calendars have 13 months), indexed by
+     * <code>Calendar.JANUARY</code>, <code>Calendar.FEBRUARY</code>, etc.
+     * @serial
      */
     String months[] = null;
+    
     /**
-     * Short month strings. For example: "Jan", "Feb", etc.
+     * Short month strings. For example: "Jan", "Feb", etc.  An array of
+     * 13 strings (some calendars have 13 months), indexed by
+     * <code>Calendar.JANUARY</code>, <code>Calendar.FEBRUARY</code>, etc.
+
+     * @serial
      */
     String shortMonths[] = null;
+    
     /**
-     * Weekday strings. For example: "Sunday", "Monday", etc.
+     * Weekday strings. For example: "Sunday", "Monday", etc.  An array
+     * of 8 strings, indexed by <code>Calendar.SUNDAY</code>,
+     * <code>Calendar.MONDAY</code>, etc.
+     * The element <code>weekdays[0]</code> is ignored.
+     * @serial
      */
     String weekdays[] = null;
+    
     /**
-     * Short weekday strings. For example: "Sun", "Mon", etc.
+     * Short weekday strings. For example: "Sun", "Mon", etc.  An array
+     * of 8 strings, indexed by <code>Calendar.SUNDAY</code>,
+     * <code>Calendar.MONDAY</code>, etc.
+     * The element <code>shortWeekdays[0]</code> is ignored.
+     * @serial
      */
     String shortWeekdays[] = null;
+    
     /**
-     * Ampm strings. For example: "AM" and "PM".
+     * AM and PM strings. For example: "AM" and "PM".  An array of
+     * 2 strings, indexed by <code>Calendar.AM</code> and
+     * <code>Calendar.PM</code>.
+     * @serial
      */
     String ampms[] = null;
+    
     /**
-     * The format data of all the timezones in this locale.
+     * Localized names of time zones in this locale.  This is a
+     * two-dimensional array of strings of size <em>n</em> by <em>m</em>,
+     * where <em>m</em> is at least 5.  Each of the <em>n</em> rows is an
+     * entry containing the localized names for a single <code>TimeZone</code>.
+     * Each such row contains (with <code>i</code> ranging from
+     * 0..<em>n</em>-1):
+     * <ul>
+     * <li><code>zoneStrings[i][0]</code> - time zone ID</li>
+     * <li><code>zoneStrings[i][1]</code> - long name of zone in standard
+     * time</li>
+     * <li><code>zoneStrings[i][2]</code> - short name of zone in
+     * standard time</li>
+     * <li><code>zoneStrings[i][3]</code> - long name of zone in daylight
+     * savings time</li>
+     * <li><code>zoneStrings[i][4]</code> - short name of zone in daylight
+     * savings time</li>
+     * </ul>
+     * The zone ID is <em>not</em> localized; it corresponds to the ID
+     * value associated with a system time zone object.  All other entries
+     * are localized names.  If a zone does not implement daylight savings
+     * time, the daylight savings time names are ignored.
+     * @see java.text.resources.DateFormatZoneData
+     * @see java.util.TimeZone
+     * @serial
      */
     String zoneStrings[][] = null;
+    
     /**
      * Unlocalized date-time pattern characters. For example: 'y', 'd', etc.
      * All locales use the same these unlocalized pattern characters.
      */
     static final String  patternChars = "GyMdkHmsSEDFwWahKz";
+    
     /**
-     * Localized date-time pattern characters. For example: use 'u' as 'y'.
+     * Localized date-time pattern characters. For example, a locale may
+     * wish to use 'u' rather than 'y' to represent years in its date format
+     * pattern strings.
+     * This string must be exactly 18 characters long, with the index of
+     * the characters described by <code>DateFormat.ERA_FIELD</code>,
+     * <code>DateFormat.YEAR_FIELD</code>, etc.  Thus, if the string were
+     * "Xz...", then localized patterns would use 'X' for era and 'z' for year.
+     * @serial
      */
     String  localPatternChars = null;
-
+   
+    /* use serialVersionUID from JDK 1.1.4 for interoperability */
     static final long serialVersionUID = -5987973545549424702L;
 
     /**
@@ -198,7 +258,8 @@ public class DateFormatSymbols implements Serializable, Cloneable {
 
     /**
      * Gets weekday strings. For example: "Sunday", "Monday", etc.
-     * @return the weekday strings.
+     * @return the weekday strings. Use <code>Calendar.SUNDAY</code>,
+     * <code>Calendar.MONDAY</code>, etc. to index the result array.
      */
     public String[] getWeekdays() {
         return duplicate(weekdays);
@@ -206,7 +267,9 @@ public class DateFormatSymbols implements Serializable, Cloneable {
 
     /**
      * Sets weekday strings. For example: "Sunday", "Monday", etc.
-     * @param newWeekdays the new weekday strings.
+     * @param newWeekdays the new weekday strings. The array should
+     * be indexed by <code>Calendar.SUNDAY</code>,
+     * <code>Calendar.MONDAY</code>, etc.
      */
     public void setWeekdays(String[] newWeekdays) {
         weekdays = duplicate(newWeekdays);
@@ -214,7 +277,8 @@ public class DateFormatSymbols implements Serializable, Cloneable {
 
     /**
      * Gets short weekday strings. For example: "Sun", "Mon", etc.
-     * @return the short weekday strings.
+     * @return the short weekday strings. Use <code>Calendar.SUNDAY</code>,
+     * <code>Calendar.MONDAY</code>, etc. to index the result array.
      */
     public String[] getShortWeekdays() {
         return duplicate(shortWeekdays);
@@ -222,7 +286,9 @@ public class DateFormatSymbols implements Serializable, Cloneable {
 
     /**
      * Sets short weekday strings. For example: "Sun", "Mon", etc.
-     * @param newShortWeekdays the new short weekday strings.
+     * @param newShortWeekdays the new short weekday strings. The array should
+     * be indexed by <code>Calendar.SUNDAY</code>,
+     * <code>Calendar.MONDAY</code>, etc.
      */
     public void setShortWeekdays(String[] newShortWeekdays) {
         shortWeekdays = duplicate(newShortWeekdays);
@@ -339,29 +405,57 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * Cache to hold the LocaleElements and DateFormatZoneData ResourceBundles
      * of a Locale.
      */
-    private static final Hashtable cachedLocaleData = new Hashtable(3);
-    
+    private static Hashtable cachedLocaleData = new Hashtable(3);
+
+    /* Utility methods for fetching resource bundles */
+    private ResourceBundle getLocaleElements(Locale desiredLocale) {
+    return ResourceBundle.getBundle("java.text.resources.LocaleElements",
+                    desiredLocale);
+    }
+
+    private ResourceBundle getZoneData(Locale desiredLocale) {
+    return ResourceBundle.getBundle("java.text.resources.DateFormatZoneData",
+                    desiredLocale);
+    }
+
+    /**
+     * Look up resource data for the desiredLocale in the cache; update the
+     * cache if necessary.
+     */
+    private ResourceBundle[] cacheLookup(Locale desiredLocale) {
+	ResourceBundle[] rbs = new ResourceBundle[2];
+	SoftReference[] data
+	    = (SoftReference[])cachedLocaleData.get(desiredLocale);
+	if (data == null) {
+	    rbs[0] = getLocaleElements(desiredLocale);
+	    rbs[1] = getZoneData(desiredLocale);
+	    data = new SoftReference[] { new SoftReference(rbs[0]),
+					     new SoftReference(rbs[1]) };
+	    cachedLocaleData.put(desiredLocale, data);
+	} else {
+	    ResourceBundle r;
+	    if ((r = (ResourceBundle)data[0].get()) == null) {
+		r = getLocaleElements(desiredLocale);
+		data[0] = new SoftReference(r);
+	    }
+	    rbs[0] = r;
+	    if ((r = (ResourceBundle)data[1].get()) == null) {
+		r = getZoneData(desiredLocale);
+		data[1] = new SoftReference(r);
+	    }
+	    rbs[1] = r;
+	}
+	return rbs;
+    }
+
     private void initializeData(Locale desiredLocale)
     {
-	int i;
-	ResourceBundle resource;
-	ResourceBundle zoneResource;
-	/* try the cache first */
-	ResourceBundle[] data = 
-	    (ResourceBundle[]) cachedLocaleData.get(desiredLocale);
-	if (data == null) {   /* cache miss */
-	    data = new ResourceBundle[2];
-	    data[0] = ResourceBundle.getBundle
-		("java.text.resources.LocaleElements", desiredLocale);
-	    data[1] = ResourceBundle.getBundle
-		("java.text.resources.DateFormatZoneData", desiredLocale);
-	    /* update cache */
-	    cachedLocaleData.put(desiredLocale, data);
-	}
-	resource = data[0];
-	zoneResource = data[1];
+    int i;
+    ResourceBundle[] rbs = cacheLookup(desiredLocale);
+    ResourceBundle resource = rbs[0];
+    ResourceBundle zoneResource = rbs[1];
 
-        eras = (String[])resource.getObject("Eras");
+    eras = (String[])resource.getObject("Eras");
         months = resource.getStringArray("MonthNames");
         shortMonths = resource.getStringArray("MonthAbbreviations");
         String[] lWeekdays = resource.getStringArray("DayNames");

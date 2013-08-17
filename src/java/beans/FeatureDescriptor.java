@@ -1,8 +1,15 @@
 /*
- * @(#)FeatureDescriptor.java	1.17 01/12/10
+ * @(#)FeatureDescriptor.java	1.22 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -21,10 +28,15 @@ package java.beans;
 public class FeatureDescriptor {
 
 
+    /**
+     * Constructs a <code>FeatureDescriptor</code>.
+     */
     public FeatureDescriptor() {
     }
 
     /**
+     * Gets the programmatic name of this feature.
+     *
      * @return The programmatic name of the property/method/event
      */
     public String getName() {
@@ -32,6 +44,8 @@ public class FeatureDescriptor {
     }
 
     /**
+     * Sets the programmatic name of this feature.
+     *
      * @param name  The programmatic name of the property/method/event
      */
     public void setName(String name) {
@@ -39,6 +53,8 @@ public class FeatureDescriptor {
     }
 
     /**
+     * Gets the localized display name of this feature.
+     *
      * @return The localized display name for the property/method/event.
      *	This defaults to the same as its programmatic name from getName.
      */
@@ -50,6 +66,8 @@ public class FeatureDescriptor {
     }
 
     /**
+     * Sets the localized display name of this feature.
+     *
      * @param displayName  The localized display name for the
      *		property/method/event.
      */
@@ -98,6 +116,29 @@ public class FeatureDescriptor {
     }
 
     /**
+     * The "preferred" flag is used to identify features that are particularly
+     * important for presenting to humans.
+     *
+     * @return True if this feature should be preferentially shown to human users.
+     */
+    public boolean isPreferred() {
+	return preferred;
+    }
+
+    /**
+     * The "preferred" flag is used to identify features that are particularly
+     * important for presenting to humans.
+     *
+     * @param preferred  True if this feature should be preferentially shown
+     *		    	 to human users.
+     */
+    public void setPreferred(boolean preferred) {
+	this.preferred = preferred;
+    }
+
+    /**
+     * Gets the short description of this feature.
+     *
      * @return  A localized short description associated with this 
      *   property/method/event.  This defaults to be the display name.
      */
@@ -120,6 +161,7 @@ public class FeatureDescriptor {
 
     /**
      * Associate a named attribute with this feature.
+     *
      * @param attributeName  The locale-independent name of the attribute
      * @param value  The value.
      */
@@ -132,6 +174,7 @@ public class FeatureDescriptor {
 
     /**
      * Retrieve a named attribute with this feature.
+     *
      * @param attributeName  The locale-independent name of the attribute
      * @return  The value of the attribute.  May be null if
      *	   the attribute is unknown.
@@ -144,6 +187,9 @@ public class FeatureDescriptor {
     }
 
     /**
+     * Gets an enumeration of the locale-independent names of this
+     * feature.
+     *
      * @return  An enumeration of the locale-independent names of any 
      *    attributes that have been registered with setValue.
      */
@@ -160,6 +206,7 @@ public class FeatureDescriptor {
      * The merged hidden and expert flags are formed by or-ing the values.
      * In the event of other conflicts, the second argument (y) is
      * given priority over the first argument (x).
+     *
      * @param x  The first (lower priority) MethodDescriptor
      * @param y  The second (higher priority) MethodDescriptor
      */
@@ -179,6 +226,19 @@ public class FeatureDescriptor {
 	addTable(y.table);
     }
 
+    /*
+     * Package-private dup constructor
+     * This must isolate the new object from any changes to the old object.
+     */
+    FeatureDescriptor(FeatureDescriptor old) {
+	expert = old.expert;
+	hidden = old.hidden;
+	name = old.name;
+	shortDescription = old.shortDescription;
+	displayName = old.displayName;
+	addTable(old.table);
+    }
+
     private void addTable(java.util.Hashtable t) {
 	if (t == null) {
 	    return;
@@ -193,6 +253,7 @@ public class FeatureDescriptor {
 
     private boolean expert;
     private boolean hidden;
+    private boolean preferred;
     private String shortDescription;
     private String name;
     private String displayName;

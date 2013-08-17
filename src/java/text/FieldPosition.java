@@ -1,10 +1,10 @@
 /*
- * @(#)FieldPosition.java	1.9 01/12/10
+ * @(#)FieldPosition.java	1.15 98/07/24
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -51,9 +51,9 @@ package java.text;
  * to perform partial formatting or to get information about the
  * formatted output (such as the position of a field).
  *
- * @version     1.9 12/10/01
+ * @version     1.15 07/24/98
  * @author      Mark Davis
- * @see         java.util.Format
+ * @see         java.text.Format
  */
 public class FieldPosition {
 
@@ -90,39 +90,70 @@ public class FieldPosition {
     }
 
     /**
-     * Retrieve the field identifier.
+     * Retrieves the field identifier.
      */
     public int getField() {
-	return field;
+        return field;
     }
 
     /**
-     * Retrieve the index of the first character in the requested field.
+     * Retrieves the index of the first character in the requested field.
      */
     public int getBeginIndex() {
-	return beginIndex;
+        return beginIndex;
     }
 
     /**
-     * Retrieve the index of the character following the last character in the
+     * Retrieves the index of the character following the last character in the
      * requested field.
      */
     public int getEndIndex() {
-	return endIndex;
+        return endIndex;
     }
 
     /**
-     * Set the begin index.  For use by subclasses of Format.
+     * Sets the begin index.  For use by subclasses of Format.
      */
-    void setBeginIndex(int bi) {
-	beginIndex = bi;
+    public void setBeginIndex(int bi) {
+        beginIndex = bi;
     }
 
     /**
-     * Set the end index.  For use by subclasses of Format.
+     * Sets the end index.  For use by subclasses of Format.
      */
-    void setEndIndex(int ei) {
-	endIndex = ei;
+    public void setEndIndex(int ei) {
+        endIndex = ei;
+    }
+    /**
+     * Overrides equals
+     */
+    public boolean equals(Object obj)
+    {
+        if (obj == null) return false;
+        if (!(obj instanceof FieldPosition))
+            return false;
+        FieldPosition other = (FieldPosition) obj;
+        return (beginIndex == other.beginIndex
+            && endIndex == other.endIndex
+            && field == other.field);
     }
 
+    /**
+     * Returns a hash code for this FieldPosition.
+     * @return a hash code value for this object
+     */
+    public int hashCode() {
+        return (field << 24) | (beginIndex << 16) | endIndex;
+    }
+
+    /**
+     * Return a string representation of this FieldPosition.
+     * @return  a string representation of this object
+     */
+    public String toString() {
+        return getClass().getName() +
+            "[field=" + field +
+            ",beginIndex=" + beginIndex +
+            ",endIndex=" + endIndex + ']';
+    }
 }

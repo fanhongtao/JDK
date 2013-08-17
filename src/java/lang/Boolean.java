@@ -1,8 +1,15 @@
 /*
- * @(#)Boolean.java	1.29 01/12/10
+ * @(#)Boolean.java	1.32 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -20,7 +27,7 @@ package java.lang;
  * <code>boolean</code>. 
  *
  * @author  Arthur van Hoff
- * @version 1.29, 12/10/01
+ * @version 1.29, 07/23/98
  * @since   JDK1.0
  */
 public final
@@ -28,16 +35,12 @@ class Boolean implements java.io.Serializable {
     /** 
      * The <code>Boolean</code> object corresponding to the primitive 
      * value <code>true</code>. 
-     *
-     * @since   JDK1.0
      */
     public static final Boolean TRUE = new Boolean(true);
 
     /** 
      * The <code>Boolean</code> object corresponding to the primitive 
      * value <code>false</code>. 
-     *
-     * @since   JDK1.0
      */
     public static final Boolean FALSE = new Boolean(false);
 
@@ -50,6 +53,8 @@ class Boolean implements java.io.Serializable {
 
     /**
      * The value of the Boolean.
+     *
+     * @serial
      */
     private boolean value;
 
@@ -61,7 +66,6 @@ class Boolean implements java.io.Serializable {
      * <code>value</code> argument. 
      *
      * @param   value   the value of the <code>Boolean</code>.
-     * @since   JDK1.0
      */
     public Boolean(boolean value) {
 	this.value = value;
@@ -72,20 +76,23 @@ class Boolean implements java.io.Serializable {
      * <code>true</code> if the string argument is not <code>null</code> 
      * and is equal, ignoring case, to the string <code>"true"</code>. 
      * Otherwise, allocate a <code>Boolean</code> object representing the 
-     * value <code>false</code>. 
+     * value <code>false</code>. Examples:<p>
+     * <tt>new&nbsp;Boolean("True")</tt> produces a <tt>Boolean</tt> object 
+     * that represents <tt>true</tt>.<br>
+     * <tt>new&nbsp;Boolean("yes")</tt> produces a <tt>Boolean</tt> object 
+     * that represents <tt>false</tt>.
      *
      * @param   s   the string to be converted to a <code>Boolean</code>.
-     * @since   JDK1.0
      */
     public Boolean(String s) {
 	this(toBoolean(s));
     }
 
     /**
-     * Returns the value of this Boolean object as a boolean.
+     * Returns the value of this <tt>Boolean</tt> object as a boolean 
+     * primitive.
      *
      * @return  the primitive <code>boolean</code> value of this object.
-     * @since   JDK1.0
      */
     public boolean booleanValue() {
 	return value;
@@ -94,13 +101,14 @@ class Boolean implements java.io.Serializable {
     /**
      * Returns the boolean value represented by the specified String.
      * A new <code>Boolean</code> object is constructed. This 
-     * <code>Boolean</code> contains the value <code>true</code> if the 
+     * <code>Boolean</code> represents the value <code>true</code> if the 
      * string argument is not <code>null</code> and is equal, ignoring 
-     * case, to the string <code>"true"</code>. 
+     * case, to the string <code>"true"</code>. <p>
+     * Example: <tt>Boolean.valueOf("True")</tt> returns <tt>true</tt>.<br>
+     * Example: <tt>Boolean.valueOf("yes")</tt> returns <tt>false</tt>.
      *
      * @param   s   a string.
      * @return  the <code>Boolean</code> value represented by the string.
-     * @since   JDK1.0
      */
     public static Boolean valueOf(String s) {
 	return new Boolean(toBoolean(s));
@@ -108,22 +116,22 @@ class Boolean implements java.io.Serializable {
 
     /**
      * Returns a String object representing this Boolean's value.
-     * If this object contains the value <code>true</code>, a string equal 
+     * If this object represents the value <code>true</code>, a string equal 
      * to <code>"true"</code> is returned. Otherwise, a string equal to 
      * <code>"false"</code> is returned. 
      *
      * @return  a string representation of this object. 
-     * @since   JDK1.0
      */
     public String toString() {
 	return value ? "true" : "false";
     }
 
     /**
-     * Returns a hash code for this Boolean.
+     * Returns a hash code for this <tt>Boolean</tt> object.
      *
-     * @return  a hash code value for this object.
-     * @since   JDK1.0
+     * @return  the integer <tt>1231</tt> if this object represents 
+     * <tt>true</tt>; returns the integer <tt>1237</tt> if this 
+     * object represents <tt>false</tt>. 
      */
     public int hashCode() {
 	return value ? 1231 : 1237;
@@ -132,12 +140,11 @@ class Boolean implements java.io.Serializable {
     /**
      * Returns <code>true</code> if and only if the argument is not 
      * <code>null</code> and is a <code>Boolean </code>object that 
-     * contains the same <code>boolean</code> value as this object. 
+     * represents the same <code>boolean</code> value as this object. 
      *
      * @param   obj   the object to compare with.
-     * @return  <code>true</code> if the objects are the same;
-     *          <code>false</code> otherwise.
-     * @since   JDK1.0
+     * @return  <code>true</code> if the Boolean objects represent the 
+     *          same value; <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
 	if ((obj != null) && (obj instanceof Boolean)) {
@@ -147,9 +154,10 @@ class Boolean implements java.io.Serializable {
     }
 
     /**
-     * Returns is <code>true</code> if and only if the system property 
+     * Returns <code>true</code> if and only if the system property 
      * named by the argument exists and is equal to the string 
-     * <code>"true"</code>. (Beginning with Java 1.0.2, the test of 
+     * <code>"true"</code>. (Beginning with version 1.0.2 of the 
+     * Java<font size="-2"><sup>TM</sup></font> platform, the test of 
      * this string is case insensitive.) A system property is accessible 
      * through <code>getProperty</code>, a method defined by the 
      * <code>System</code> class. 
@@ -158,12 +166,8 @@ class Boolean implements java.io.Serializable {
      * @return  the <code>boolean</code> value of the system property.
      * @see     java.lang.System#getProperty(java.lang.String)
      * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
-     * @since   JDK1.0
      */
     public static boolean getBoolean(String name) {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null)
-	    sm.checkPropertyAccess(name);
 	return toBoolean(System.getProperty(name));
     }
 

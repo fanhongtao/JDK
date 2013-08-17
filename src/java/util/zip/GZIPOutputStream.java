@@ -1,8 +1,15 @@
 /*
- * @(#)GZIPOutputStream.java	1.12 01/12/10
+ * @(#)GZIPOutputStream.java	1.15 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -13,7 +20,7 @@ import java.io.IOException;
 /**
  * This class implements a stream filter for writing compressed data in
  * the GZIP file format.
- * @version 	1.12, 12/10/01
+ * @version 	1.15, 09/21/98
  * @author 	David Connelly
  *
  */
@@ -34,6 +41,7 @@ class GZIPOutputStream extends DeflaterOutputStream {
      * @param out the output stream
      * @param size the output buffer size
      * @exception IOException If an I/O error has occurred.
+     * @exception IllegalArgumentException if size is <= 0
      */
     public GZIPOutputStream(OutputStream out, int size) throws IOException {
 	super(out, new Deflater(Deflater.DEFAULT_COMPRESSION, true), size);

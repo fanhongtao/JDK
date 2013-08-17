@@ -1,0 +1,174 @@
+/*
+ * @(#)LineView.java	1.10 98/10/01
+ *
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ */
+package javax.swing.text.html;
+
+import java.util.Enumeration;
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+
+/**
+ * A view implementation to display an unwrapped 
+ * preformatted line.<p>
+ * This subclasses ParagraphView, but this really only contains one
+ * Row of text.
+ *
+ * @author  Timothy Prinzing
+ * @version 1.10 10/01/98
+ */
+class LineView extends ParagraphView {
+    /** Last place painted at. */
+    int tabBase;
+
+    /**
+     * Creates a LineView object.
+     *
+     * @param elem the element to wrap in a view
+     */
+    public LineView(Element elem) {
+	super(elem);
+    }
+
+    /**
+     * Preformatted lines are not suppressed if they 
+     * have only whitespace, so they are always visible.
+     */
+    public boolean isVisible() {
+	return true;
+    }
+
+    /**
+     * Determines the minimum span for this view along an
+     * axis.  The preformatted line should refuse to be 
+     * sized less than the preferred size.
+     *
+     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @returns  the minimum span the view can be rendered into.
+     * @see View#getPreferredSpan
+     */
+    public float getMinimumSpan(int axis) {
+	return getPreferredSpan(axis);
+    }
+
+    /**
+     * Gets the resize weight for the specified axis.
+     *
+     * @param axis may be either X_AXIS or Y_AXIS
+     * @return the weight
+     */
+    public int getResizeWeight(int axis) {
+	switch (axis) {
+	case View.X_AXIS:
+	    return 1;
+	case View.Y_AXIS:
+	    return 0;
+	default:
+	    throw new IllegalArgumentException("Invalid axis: " + axis);
+	}
+    }
+
+    /**
+     * Gets the alignment for an axis.
+     *
+     * @param axis may be either X_AXIS or Y_AXIS
+     * @return the alignment
+     */
+    public float getAlignment(int axis) {
+	if (axis == View.X_AXIS) {
+	    return 0;
+	}
+	return super.getAlignment(axis);
+    }
+
+    /**
+     * Lays out the children.  If the layout span has changed,
+     * the rows are rebuilt.  The superclass functionality
+     * is called after checking and possibly rebuilding the
+     * rows.  If the height has changed, the 
+     * <code>preferenceChanged</code> method is called
+     * on the parent since the vertical preference is 
+     * rigid.
+     *
+     * @param width  the width to lay out against >= 0.  This is
+     *   the width inside of the inset area.
+     * @param height the height to lay out against >= 0 (not used
+     *   by paragraph, but used by the superclass).  This
+     *   is the height inside of the inset area.
+     */
+    protected void layout(int width, int height) {
+	super.layout(Integer.MAX_VALUE - 1, height);
+    }
+
+    /**
+     * Returns the next tab stop position given a reference position.
+     * This view implements the tab coordinate system, and calls
+     * <code>getTabbedSpan</code> on the logical children in the process 
+     * of layout to determine the desired span of the children.  The
+     * logical children can delegate their tab expansion upward to
+     * the paragraph which knows how to expand tabs. 
+     * <code>LabelView</code> is an example of a view that delegates
+     * its tab expansion needs upward to the paragraph.
+     * <p>
+     * This is implemented to try and locate a <code>TabSet</code>
+     * in the paragraph element's attribute set.  If one can be
+     * found, its settings will be used, otherwise a default expansion
+     * will be provided.  The base location for for tab expansion
+     * is the left inset from the paragraphs most recent allocation
+     * (which is what the layout of the children is based upon).
+     *
+     * @param x the X reference position
+     * @param tabOffset the position within the text stream
+     *   that the tab occurred at >= 0.
+     * @return the trailing end of the tab expansion >= 0
+     * @see TabSet
+     * @see TabStop
+     * @see LabelView
+     */
+    public float nextTabStop(float x, int tabOffset) {
+	// If the text isn't left justified, offset by 10 pixels!
+	if (getTabSet() == null &&
+	    StyleConstants.getAlignment(getAttributes()) ==
+	    StyleConstants.ALIGN_LEFT) {
+	    return getPreTab(x, tabOffset);
+	}
+	return super.nextTabStop(x, tabOffset);
+    }
+
+    /**
+     * Returns the location for the tab.
+     */
+    protected float getPreTab(float x, int tabOffset) {
+	Document d = getDocument();
+	View v = getViewAtPosition(tabOffset, null);
+	if ((d instanceof StyledDocument) && v != null) {
+	    // Assume f is fixed point.
+	    Font f = ((StyledDocument)d).getFont(v.getAttributes());
+	    FontMetrics fm = Toolkit.getDefaultToolkit().
+		                 getFontMetrics(f);
+	    int width = getCharactersPerTab() * fm.charWidth('W');
+	    int tb = (int)getTabBase();
+	    return (float)((((int)x - tb) / width + 1) * width + tb);
+	}
+	return 10.0f + x;
+    }
+
+    /**
+     * @return number of characters per tab, 8.
+     */
+    protected int getCharactersPerTab() {
+	return 8;
+    }
+}

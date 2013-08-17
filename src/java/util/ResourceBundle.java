@@ -1,24 +1,20 @@
 /*
- * @(#)ResourceBundle.java	1.24 01/12/10
+ * @(#)ResourceBundle.java  1.24 98/01/15
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)ResourceBundle.java	1.24 01/12/10
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -39,6 +35,7 @@ package java.util;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.Hashtable;
+import java.lang.ref.SoftReference;
 
 /**
  *
@@ -82,7 +79,8 @@ import java.util.Hashtable;
  * <P>
  * If there are different resources for different countries, you
  * can make specializations: for example, <code>MyResources_de_CH</code>
- * for Switzerland. If you want to only modify some of the resources
+ * is the German language (de) in Switzerland (CH). If you want to only
+ * modify some of the resources
  * in the specialization, you can do so.
  *
  * <P>
@@ -103,16 +101,27 @@ import java.util.Hashtable;
  *
  * <P>
  * The resource bundle lookup searches for classes with various suffixes
- * on the basis of (1) the desired locale and (2) the default locale (baseclass),
+ * on the basis of (1) the desired locale and (2) the current default locale
+ * as returned by Locale.getDefault(), and (3) the root resource bundle (baseclass),
  * in the following order from lower-level (more specific) to parent-level
  * (less specific):
  * <p> baseclass + "_" + language1 + "_" + country1 + "_" + variant1
  * <BR> baseclass + "_" + language1 + "_" + country1
  * <BR> baseclass + "_" + language1
- * <BR> baseclass
  * <BR> baseclass + "_" + language2 + "_" + country2 + "_" + variant2
  * <BR> baseclass + "_" + language2 + "_" + country2
  * <BR> baseclass + "_" + language2
+ * <BR> baseclass
+ *
+ * <P>
+ * For example, if the current default locale is <TT>en_US</TT>, the locale the caller
+ * is interested in is <TT>fr_CH</TT>, and the resource bundle name is <TT>MyResources</TT>,
+ * resource bundle lookup will search for the following classes, in order:
+ * <BR> <TT>MyResources_fr_CH
+ * <BR> MyResources_fr
+ * <BR> MyResources_en_US
+ * <BR> MyResources_en
+ * <BR> MyResources</TT>
  *
  * <P>
  * The result of the lookup is a class, but that class may be
@@ -186,17 +195,18 @@ import java.util.Hashtable;
  * <P>
  * <STRONG>NOTE:</STRONG> You should always supply a baseclass with
  * no suffixes. This will be the class of "last resort", if a locale
- * is requested that does not exist. For example, below we have a class
- * <code>MyResources</code>. It happens to contain US strings,
- * so we don't have to have an explicit <code>MyResource_en</code> or
- * <code>MyResource_en_US</code>.
+ * is requested that does not exist. In fact, you must provide <I>all</I>
+ * of the classes in any given inheritance chain that you provide a resource
+ * for.  For example, if you provide <TT>MyResources_fr_BE</TT>, you must provide
+ * <I>both</I> <TT>MyResources</TT> <I>and</I> <TT>MyResources_fr</TT> or
+ * the resource bundle lookup won't work right.
  *
  * <P>
  * The JDK provides two subclasses of <code>ResourceBundle</code>,
  * <code>ListResourceBundle</code> and <code>PropertyResourceBundle</code>,
  * that provide a fairly simple way to create resources. (Once serialization
  * is fully integrated, we will provide another
- * way.) As you saw briefly in a prevous example, <code>ListResourceBundle</code>
+ * way.) As you saw briefly in a previous example, <code>ListResourceBundle</code>
  * manages its resource as a List of key/value pairs.
  * <code>PropertyResourceBundle</code> uses a properties file to manage
  * its resources.
@@ -204,29 +214,33 @@ import java.util.Hashtable;
  * <p>
  * If <code>ListResourceBundle</code> or <code>PropertyResourceBundle</code>
  * do not suit your needs, you can write your own <code>ResourceBundle</code>
- * subclass.  Your subclasses must overrde two methods: <code>handleGetObject</code>
+ * subclass.  Your subclasses must override two methods: <code>handleGetObject</code>
  * and <code>getKeys()</code>.
  *
  * <P>
- * The following is a very simple example of a <code>ResourceBundle</code> subclass
- * that manages only a few resources (for a larger number of resources
- * you would probably use a <code>Hashtable</code>). Notice that if the key
- * is not found, <code>handleGetObject</code> must return null. Notice also
- * that you don't need to supply a value if a "parent-level"
+ * The following is a very simple example of a <code>ResourceBundle</code>
+ * subclass, MyResources, that manages two resources (for a larger number of
+ * resources you would probably use a <code>Hashtable</code>). Notice that if
+ * the key is not found, <code>handleGetObject</code> must return null. Notice
+ * also that you don't need to supply a value if a "parent-level"
  * <code>ResourceBundle</code> handles the same
- * key with the same value (look at uk below).
- * <strong><p>Example:</strong>
+ * key with the same value (as in United Kingdom below).  Also notice that because
+ * you specify an <TT>en_GB</TT> resource bundle, you also have to provide a default <TT>en</TT>
+ * resource bundle even though it inherits all its data from the root resource bundle.
+ * <p><strong>Example:</strong>
  * <blockquote>
  * <pre>
+ * // default (English language, United States)
  * abstract class MyResources extends ResourceBundle {
  *     public Object handleGetObject(String key) {
  *         if (key.equals("okKey")) return "Ok";
  *         if (key.equals("cancelKey")) return "Cancel";
- * 	   return null;
+ *     return null;
  *     }
  * }
  *
- * abstract class MyResources_de extends MyResources {
+ * // German language
+ * public class MyResources_de extends MyResources {
  *     public Object handleGetObject(String key) {
  *         if (key.equals("okKey")) return "Gut";
  *         if (key.equals("cancelKey")) return "Vernichten";
@@ -234,11 +248,20 @@ import java.util.Hashtable;
  *     }
  * }
  *
- * abstract class MyResources_uk extends MyResources {
+ * // English language, default (must provide even though all the data is
+ * // in the root locale)
+ * public class MyResources_en extends MyResources {
+ *     public Object handleGetObject(String key) {
+ *         return null;
+ *     }
+ * }
+ *
+ * // English language, United Kingdom (Great Britain)
+ * public class MyResources_en_GB extends MyResources {
  *     public Object handleGetObject(String key) {
  *         // don't need okKey, since parent level handles it.
  *         if (key.equals("cancelKey")) return "Dispose";
- *     	   return null;
+ *         return null;
  *     }
  * }
  * </pre>
@@ -255,6 +278,13 @@ import java.util.Hashtable;
  * @see MissingResourceException
  */
 abstract public class ResourceBundle {
+
+    /**
+     * Sole constructor.  (For invocation by subclass constructors, typically
+     * implicit.)
+     */
+    public ResourceBundle() {
+    }
 
     /**
      * Get an object from a ResourceBundle.
@@ -302,8 +332,8 @@ abstract public class ResourceBundle {
         throws MissingResourceException
     {
         return getBundle(baseName, Locale.getDefault(),
-	    /* must determine loader here, else we break stack invariant */
-	    getLoader());
+        /* must determine loader here, else we break stack invariant */
+        getLoader());
     }
 
 
@@ -315,7 +345,35 @@ abstract public class ResourceBundle {
     public static final ResourceBundle getBundle(String baseName,
                                                          Locale locale)
     {
-	return getBundle(baseName, locale, getLoader());
+        return getBundle(baseName, locale, getLoader());
+    }
+
+    /**
+     * Return the Locale for this ResourceBundle.  (This function can be used after a
+     * call to getBundle() to determine whether the ResourceBundle returned really
+     * corresponds to the requested locale or is a fallback.)
+     */
+    public Locale getLocale() {
+        String className = getClass().getName();
+        int pos = className.indexOf('_');
+        if (pos == -1)
+            return new Locale("", "", "");
+
+        className = className.substring(pos + 1);
+        pos = className.indexOf('_');
+        if (pos == -1)
+            return new Locale(className, "", "");
+
+        String language = className.substring(0, pos);
+        className = className.substring(pos + 1);
+        pos = className.indexOf('_');
+        if (pos == -1)
+            return new Locale(language, className, "");
+
+        String country = className.substring(0, pos);
+        className = className.substring(pos + 1);
+
+        return new Locale(language, country, className);
     }
 
     /*
@@ -324,23 +382,26 @@ abstract public class ResourceBundle {
      * caller's caller.
      */
     private static ClassLoader getLoader() {
-	Class[] stack = getClassContext();
-	/* Magic number 2 identifies our caller's caller */
-	Class c = stack[2];
-	ClassLoader cl = (c == null) ? null : c.getClassLoader();
-	return (cl == null) ? systemClassLoader : cl;
+        Class[] stack = getClassContext();
+        /* Magic number 2 identifies our caller's caller */
+        Class c = stack[2];
+        ClassLoader cl = (c == null) ? null : c.getClassLoader();
+        if (cl == null) {
+            cl = ClassLoader.getSystemClassLoader();
+        }
+        return cl;
     }
+
     private static native Class[] getClassContext();
-    private static SystemClassLoader systemClassLoader =
-        new SystemClassLoader();
 
     /**
      * Get the appropriate ResourceBundle subclass.
      * @param baseName see class description.
      * @param locale see class description.
+     * @param loader the ClassLoader to load the resource from
      */
-    private static synchronized ResourceBundle
-        getBundle(String baseName, Locale locale, ClassLoader loader)
+    public static ResourceBundle getBundle(String baseName, Locale locale,
+                                           ClassLoader loader)
         throws MissingResourceException
     {
         StringBuffer localeName
@@ -369,7 +430,6 @@ abstract public class ResourceBundle {
             int lastUnderbar = localeName.toString().lastIndexOf('_');
             if( lastUnderbar != -1 ) {
                 localeName.setLength(lastUnderbar);
-//                debug("Searching for parent " + baseName + localeName);
                 child.setParent( findBundle(baseName,localeName,loader,true) );
             }
             child = child.parent;
@@ -396,7 +456,7 @@ abstract public class ResourceBundle {
      */
     private static ResourceBundle findBundle(String baseName,
                                              StringBuffer localeName,
-                                             ClassLoader loader,
+                                             final ClassLoader loader,
                                              boolean includeBase)
     {
         String localeStr = localeName.toString();
@@ -410,43 +470,79 @@ abstract public class ResourceBundle {
         searchLoop:
         while (true) {
             searchName = baseName + localeStr;
-	    String cacheName =
-		"["+Integer.toString(loader.hashCode())+"]" + searchName;
+            String cacheName;
+            if (loader != null) {
+                cacheName = "["+Integer.toString(loader.hashCode())+"]";
+            } else {
+                cacheName = "";
+            }
+            cacheName += searchName;
 
             // First, look in the cache.  We may either find the bundle we're
             // looking for or we may find that the bundle was not found by a
             // previous search.
-            lookup = cacheList.get(cacheName);
+            synchronized (cacheList) {
+                SoftReference ref = (SoftReference)(cacheList.get(cacheName));
+                if (ref != null)
+                    lookup = ref.get();
+                else
+                    lookup = null;
+            }
             if( lookup == NOTFOUND ) {
-//                debug("Found " + searchName + " in cache as NOTFOUND");
                 localeName.setLength(0);
                 break searchLoop;
             }
             if( lookup != null ) {
-//                debug("Found " + searchName + " in cache");
                 localeName.setLength(0);
                 break searchLoop;
             }
             cacheCandidates.addElement( cacheName );
 
             // Next search for a class
-//            debug("Searching for " + searchName );
             try {
-                lookup = (ResourceBundle)loader.loadClass(searchName).newInstance();
+                if (loader != null) {
+                    lookup = (ResourceBundle)(loader.loadClass(searchName).newInstance());
+                } else {
+                    lookup = (ResourceBundle)(Class.forName(searchName).newInstance());
+                }
                 break searchLoop;
             } catch( Exception e ){}
 
             // Next search for a Properties file.
             searchName = baseFileName + localeStr + ".properties";
-//            debug("Searching for " + searchName );
-            stream = loader.getResourceAsStream(searchName);
+	    final String resName = searchName;
+	    stream = (InputStream)java.security.AccessController.doPrivileged
+		(new java.security.PrivilegedAction() {
+		    public Object run() {
+			if (loader != null) {
+			    return loader.getResourceAsStream
+							(resName);
+			} else {
+			    return ClassLoader.getSystemResourceAsStream
+							(resName);
+			}
+		    }
+		});
             if( stream != null ) {
-		// make sure it is buffered
-		stream = new java.io.BufferedInputStream(stream);
+                // make sure it is buffered
+                stream = new java.io.BufferedInputStream(stream);
                 try {
                     lookup = (Object)new PropertyResourceBundle( stream );
                     break searchLoop;
-                } catch (Exception e) {}
+                }
+                catch (Exception e) {
+                }
+                finally {
+                    try {
+                        stream.close();
+                    }
+                    catch (Exception e) {
+                        // to avoid propagating an IOException back into the caller
+                        // (I'm assuming this is never going to happen, and if it does,
+                        // I'm obeying the precedent of swallowing exceptions set by the
+                        // existing code above)
+                    }
+                }
             }
 
             //Chop off the last part of the locale name string and try again.
@@ -459,27 +555,21 @@ abstract public class ResourceBundle {
         }
 
 
-        if( lookup != null ) {
-            // Add a positive result to the cache. The result may include
-            // NOTFOUND
-            for( int i=0; i<cacheCandidates.size(); i++ ) {
-                cacheList.put(cacheCandidates.elementAt(i), lookup);
-//                debug("Adding " + cacheCandidates.elementAt(i) + " to cache"
-//                      + ((lookup == NOTFOUND)?" as NOTFOUND.":"."));
-            }
-        }
-        else {
-            // If we searched all the way to the base, then we can add
-            // the NOTFOUND result to the cache.  Otherwise we can say
-            // nothing.
-            if( includeBase == true ) {
+
+        // If we searched all the way to the base, then we can add
+        // the NOTFOUND result to the cache.  Otherwise we can say
+        // nothing.
+        if (lookup == null && includeBase == true)
+            lookup = NOTFOUND;
+
+        if( lookup != null )
+            synchronized (cacheList) {
+                // Add a positive result to the cache. The result may include
+                // NOTFOUND
                 for( int i=0; i<cacheCandidates.size(); i++ ) {
-                    cacheList.put(cacheCandidates.elementAt(i), NOTFOUND);
-//                    debug("Adding " + cacheCandidates.elementAt(i)
-//                          + " to cache as NOTFOUND.");
+                    cacheList.put(cacheCandidates.elementAt(i), new SoftReference(lookup));
                 }
             }
-        }
 
         if( (lookup == NOTFOUND) || (lookup == null) )
             return null;
@@ -504,7 +594,7 @@ abstract public class ResourceBundle {
     /**
      * For printf debugging.
      */
-    private static boolean debugFlag = false;
+    private static final boolean debugFlag = false;
     private static void debug(String str) {
         if( debugFlag ) {
             System.out.println("ResourceBundle: " + str);
@@ -519,27 +609,4 @@ abstract public class ResourceBundle {
 
     private static final Integer NOTFOUND = new Integer(-1);
     private static Hashtable cacheList = new Hashtable();
-}
-
-
-/**
- * The SystemClassLoader loads system classes (those in your classpath).
- * This is an attempt to unify the handling of system classes and ClassLoader
- * classes.
- */
-class SystemClassLoader extends java.lang.ClassLoader {
-
-    protected Class loadClass( String name, boolean resolve )
-        throws ClassNotFoundException
-    {
-        return findSystemClass( name );
-    }
-
-    public InputStream getResourceAsStream(String name) {
-        return ClassLoader.getSystemResourceAsStream(name);
-    }
-
-    public java.net.URL getResource(String name) {
-        return ClassLoader.getSystemResource(name);
-    }
 }

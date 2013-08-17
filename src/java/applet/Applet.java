@@ -1,8 +1,15 @@
 /*
- * @(#)Applet.java	1.44 01/12/10
+ * @(#)Applet.java	1.52 98/03/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.applet;
 
@@ -24,7 +31,7 @@ import java.util.Locale;
  *
  * @author      Arthur van Hoff
  * @author      Chris Warth
- * @version     1.44, 12/10/01
+ * @version     1.52, 03/18/98
  * @since       JDK1.0
  */
 public class Applet extends Panel {
@@ -41,11 +48,13 @@ public class Applet extends Panel {
      */
     transient private AppletStub stub;
 
+    /* version ID for serialized form. */
+    private static final long serialVersionUID = -5836846270535785031L;
+
     /**
      * Sets this applet's stub. This is done automatically by the system. 
      * 
      * @param   stub   the new stub.
-     * @since   JDK1.0
      */
     public final void setStub(AppletStub stub) {
 	this.stub = (AppletStub)stub;
@@ -54,13 +63,12 @@ public class Applet extends Panel {
     /**
      * Determines if this applet is active. An applet is marked active 
      * just before its <code>start</code> method is called. It becomes 
-     * inactive immediately after its <code>stop</code> method is called. 
+     * inactive just before its <code>stop</code> method is called. 
      *
      * @return  <code>true</code> if the applet is active;
      *          <code>false</code> otherwise.
      * @see     java.applet.Applet#start()
      * @see     java.applet.Applet#stop()
-     * @since   JDK1.0
      */
     public boolean isActive() {
 	if (stub != null) {
@@ -74,10 +82,9 @@ public class Applet extends Panel {
      * Gets the document URL. This is the URL of the document in which
      * the applet is embedded.
      *
-     * @return  the <a href="java.net.URL.html#_top_"><code>URL</code></a> of
+     * @return  the {@link URL#_top_} of
      *          the document that contains this applet.
      * @see     java.applet.Applet#getCodeBase()
-     * @since   JDK1.0
      */
     public URL getDocumentBase() {
 	return stub.getDocumentBase();
@@ -86,10 +93,9 @@ public class Applet extends Panel {
     /**
      * Gets the base URL. This is the URL of the applet itself. 
      *
-     * @return  the <a href="java.net.URL.html#_top_"><code>URL</code></a> of
+     * @return  the {@link URL#_top_} of
      *          this applet.
      * @see     java.applet.Applet#getDocumentBase()
-     * @since   JDK1.0
      */
     public URL getCodeBase() {
 	return stub.getCodeBase();
@@ -98,11 +104,11 @@ public class Applet extends Panel {
     /**
      * Returns the value of the named parameter in the HTML tag. For 
      * example, if this applet is specified as
-     * <ul><code>
-     *	&lt;applet code="Clock" width=50 height=50&gt;<br>
-     *  &lt;param name=Color value="blue"&gt;<br>
-     *  &lt;/applet&gt;
-     * </code></ul>
+     * <blockquote><pre>
+     * &lt;applet code="Clock" width=50 height=50&gt;
+     * &lt;param name=Color value="blue"&gt;
+     * &lt;/applet&gt;
+     * </pre></blockquote>
      * <p>
      * then a call to <code>getParameter("Color")</code> returns the 
      * value <code>"blue"</code>. 
@@ -111,7 +117,6 @@ public class Applet extends Panel {
      *
      * @param   name   a parameter name.
      * @return  the value of the named parameter.
-     * @since   JDK1.0
      */
      public String getParameter(String name) {
 	 return stub.getParameter(name);
@@ -125,7 +130,6 @@ public class Applet extends Panel {
      * contains the applet. 
      *
      * @return  the applet's context.
-     * @since   JDK1.0
      */
     public AppletContext getAppletContext() {
 	return stub.getAppletContext();
@@ -136,7 +140,6 @@ public class Applet extends Panel {
      *
      * @param   width    the new requested width for the applet.
      * @param   height   the new requested height for the applet.
-     * @since   JDK1.0
      */
     public void resize(int width, int height) {
 	Dimension d = size();
@@ -152,7 +155,6 @@ public class Applet extends Panel {
      * Requests that this applet be resized. 
      *
      * @param   d   an object giving the new width and height.
-     * @since   JDK1.0
      */    
     public void resize(Dimension d) {
 	resize(d.width, d.height);
@@ -165,7 +167,6 @@ public class Applet extends Panel {
      * its current state. 
      *
      * @param   msg   a string to display in the status window.
-     * @since   JDK1.0
      */
     public void showStatus(String msg) {
 	getAppletContext().showStatus(msg);
@@ -184,7 +185,6 @@ public class Applet extends Panel {
      * @param   url   an absolute URL giving the location of the image.
      * @return  the image at the specified URL.
      * @see     java.awt.Image
-     * @since   JDK1.0
      */
     public Image getImage(URL url) {
 	return getAppletContext().getImage(url);
@@ -206,7 +206,6 @@ public class Applet extends Panel {
      *                 <code>url</code> argument.
      * @return  the image at the specified URL.
      * @see     java.awt.Image
-     * @since   JDK1.0
      */
     public Image getImage(URL url, String name) {
 	try {
@@ -214,6 +213,16 @@ public class Applet extends Panel {
 	} catch (MalformedURLException e) {
 	    return null;
 	}
+    }
+
+    /**
+     * Get an audio clip from the given URL
+     * @param url Points to the audio clip
+     *
+     * @since       JDK1.2
+     */
+    public final static AudioClip newAudioClip(URL url) {
+        return new sun.applet.AppletAudioClip(url);
     }
 
     /**
@@ -227,7 +236,6 @@ public class Applet extends Panel {
      * @param   url  an absolute URL giving the location of the audio clip.
      * @return  the audio clip at the specified URL.
      * @see     java.applet.AudioClip
-     * @since   JDK1.0
      */
     public AudioClip getAudioClip(URL url) {
 	return getAppletContext().getAudioClip(url);
@@ -247,7 +255,6 @@ public class Applet extends Panel {
      *                 <code>url</code> argument.
      * @return  the audio clip at the specified URL.
      * @see     java.applet.AudioClip
-     * @since   JDK1.0
      */
     public AudioClip getAudioClip(URL url, String name) {
 	try {
@@ -267,7 +274,6 @@ public class Applet extends Panel {
      *
      * @return  a string containing information about the author, version, and
      *          copyright of the applet.
-     * @since   JDK1.0
      */
     public String getAppletInfo() {
 	return null;
@@ -278,7 +284,7 @@ public class Applet extends Panel {
      * If no Locale has been set, then the default Locale 
      * is returned.
      *
-     * @return  [Needs to be documented!]
+     * @return  the Locale for the applet
      * @since   JDK1.1
      */
 
@@ -310,7 +316,6 @@ public class Applet extends Panel {
      * <code>Applet</code> class returns <code>null</code>. 
      *
      * @return  an array describing the parameters this applet looks for.
-     * @since   JDK1.0
      */
     public String[][] getParameterInfo() {
 	return null;
@@ -321,7 +326,6 @@ public class Applet extends Panel {
      * happens if the audio clip cannot be found. 
      *
      * @param   url   an absolute URL giving the location of the audio clip.
-     * @since   JDK1.0
      */
     public void play(URL url) {
 	AudioClip clip = getAudioClip(url);
@@ -338,7 +342,6 @@ public class Applet extends Panel {
      *                 audio clip.
      * @param   name   the location of the audio clip, relative to the
      *                 <code>url</code> argument.
-     * @since   JDK1.0
      */
     public void play(URL url, String name) {
 	AudioClip clip = getAudioClip(url, name);
@@ -364,7 +367,6 @@ public class Applet extends Panel {
      * @see     java.applet.Applet#destroy()
      * @see     java.applet.Applet#start()
      * @see     java.applet.Applet#stop()
-     * @since   JDK1.0
      */
     public void init() {
     }
@@ -388,7 +390,6 @@ public class Applet extends Panel {
      * @see     java.applet.Applet#destroy()
      * @see     java.applet.Applet#init()
      * @see     java.applet.Applet#stop()
-     * @since   JDK1.0
      */
     public void start() {
     }
@@ -411,7 +412,6 @@ public class Applet extends Panel {
      *
      * @see     java.applet.Applet#destroy()
      * @see     java.applet.Applet#init()
-     * @since   JDK1.0
      */
     public void stop() {
     }
@@ -434,7 +434,6 @@ public class Applet extends Panel {
      * @see     java.applet.Applet#init()
      * @see     java.applet.Applet#start()
      * @see     java.applet.Applet#stop()
-     * @since   JDK1.0
      */
     public void destroy() {
     }

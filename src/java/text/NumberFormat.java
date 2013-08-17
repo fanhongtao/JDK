@@ -1,10 +1,11 @@
 /*
- * @(#)NumberFormat.java	1.37 01/12/10
+ * @(#)NumberFormat.java	1.41 98/09/21
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -34,6 +35,9 @@ import java.util.ResourceBundle;
 import java.text.resources.*;
 import java.util.Hashtable;
 import java.math.BigInteger;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * <code>NumberFormat</code> is the abstract base class for all number
@@ -139,7 +143,7 @@ import java.math.BigInteger;
  *      Then move the pen by
  *      (desiredPixelWidth - widthToAlignmentPoint) before drawing the text.
  *      It also works where there is no decimal, but possibly additional
- *      characters at the end, e.g. with parentheses in negative
+ *      characters at the end, e.g., with parentheses in negative
  *      numbers: "(12)" for -12.
  * </ol>
  *
@@ -149,7 +153,7 @@ import java.math.BigInteger;
  * @author       Mark Davis
  * @author       Helena Shih
  */
-public abstract class NumberFormat extends Format implements java.lang.Cloneable {
+public abstract class NumberFormat extends Format{
 
     /**
      * Field constant used to construct a FieldPosition object. Signifies that
@@ -240,10 +244,10 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
                                         FieldPosition pos);
 
    /**
-     * Returns a Long if possible (e.g. within range [Long.MIN_VALUE,
-     * Long.MAX_VALUE], and with no decimals), otherwise a Double.
+     * Returns a Long if possible (e.g., within the range [Long.MIN_VALUE,
+     * Long.MAX_VALUE] and with no decimals), otherwise a Double.
      * If IntegerOnly is set, will stop at a decimal
-     * point (or equivalent; e.g. for rational numbers "1 2/3", will stop
+     * point (or equivalent; e.g., for rational numbers "1 2/3", will stop
      * after the 1).
      * Does not throw an exception; if no object can be parsed, index is
      * unchanged!
@@ -262,7 +266,8 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
         ParsePosition parsePosition = new ParsePosition(0);
         Number result = parse(text, parsePosition);
         if (parsePosition.index == 0) {
-            throw new ParseException("Unparseable number: \"" + text + "\"", 0);
+            throw new ParseException("Unparseable number: \"" + text + "\"",
+                parsePosition.errorIndex);
         }
         return result;
     }
@@ -378,7 +383,7 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * Overrides hashCode
      */
     public int hashCode() {
-        return maxIntegerDigits * 37 + maxFractionDigits;
+        return maximumIntegerDigits * 37 + maxFractionDigits;
         // just enough fields for a reasonable distribution
     }
 
@@ -392,10 +397,10 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
         if (getClass() != obj.getClass())
             return false;
         NumberFormat other = (NumberFormat) obj;
-        return (maxIntegerDigits == other.maxIntegerDigits
-            && minIntegerDigits == other.minIntegerDigits
-            && maxFractionDigits == other.maxFractionDigits
-            && minFractionDigits == other.minFractionDigits
+        return (maximumIntegerDigits == other.maximumIntegerDigits
+            && minimumIntegerDigits == other.minimumIntegerDigits
+            && maximumFractionDigits == other.maximumFractionDigits
+            && minimumFractionDigits == other.minimumFractionDigits
             && groupingUsed == other.groupingUsed
             && parseIntegerOnly == other.parseIntegerOnly);
     }
@@ -434,7 +439,7 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * @see #setMaximumIntegerDigits
      */
     public int getMaximumIntegerDigits() {
-        return maxIntegerDigits;
+        return maximumIntegerDigits;
     }
 
     /**
@@ -443,13 +448,15 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * new value for maximumIntegerDigits is less than the current value
      * of minimumIntegerDigits, then minimumIntegerDigits will also be set to
      * the new value.
-
+     * @param newValue the maximum number of integer digits to be shown; if
+     * less than zero, then zero is used. The concrete subclass may enforce an
+     * upper limit to this value appropriate to the numeric type being formatted.
      * @see #getMaximumIntegerDigits
      */
     public void setMaximumIntegerDigits(int newValue) {
-        maxIntegerDigits = (byte) Math.max(0,Math.min(newValue,308));
-        if (minIntegerDigits > maxIntegerDigits)
-            minIntegerDigits = maxIntegerDigits;
+        maximumIntegerDigits = Math.max(0,newValue);
+        if (minimumIntegerDigits > maximumIntegerDigits)
+            minimumIntegerDigits = maximumIntegerDigits;
     }
 
     /**
@@ -458,7 +465,7 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * @see #setMinimumIntegerDigits
      */
     public int getMinimumIntegerDigits() {
-        return minIntegerDigits;
+        return minimumIntegerDigits;
     }
 
     /**
@@ -467,12 +474,15 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * new value for minimumIntegerDigits exceeds the current value
      * of maximumIntegerDigits, then maximumIntegerDigits will also be set to
      * the new value
+     * @param newValue the minimum number of integer digits to be shown; if
+     * less than zero, then zero is used. The concrete subclass may enforce an
+     * upper limit to this value appropriate to the numeric type being formatted.
      * @see #getMinimumIntegerDigits
      */
     public void setMinimumIntegerDigits(int newValue) {
-        minIntegerDigits = (byte) Math.max(0,Math.min(newValue,127));
-        if (minIntegerDigits > maxIntegerDigits)
-            maxIntegerDigits = minIntegerDigits;
+        minimumIntegerDigits = Math.max(0,newValue);
+        if (minimumIntegerDigits > maximumIntegerDigits)
+            maximumIntegerDigits = minimumIntegerDigits;
     }
 
     /**
@@ -481,7 +491,7 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * @see #setMaximumFractionDigits
      */
     public int getMaximumFractionDigits() {
-        return maxFractionDigits;
+        return maximumFractionDigits;
     }
 
     /**
@@ -490,12 +500,15 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * new value for maximumFractionDigits is less than the current value
      * of minimumFractionDigits, then minimumFractionDigits will also be set to
      * the new value.
+     * @param newValue the maximum number of fraction digits to be shown; if
+     * less than zero, then zero is used. The concrete subclass may enforce an
+     * upper limit to this value appropriate to the numeric type being formatted.
      * @see #getMaximumFractionDigits
      */
     public void setMaximumFractionDigits(int newValue) {
-        maxFractionDigits = (byte) Math.max(0,Math.min(newValue,340));
-        if (maxFractionDigits < minFractionDigits)
-            minFractionDigits = maxFractionDigits;
+        maximumFractionDigits = Math.max(0,newValue);
+        if (maximumFractionDigits < minimumFractionDigits)
+            minimumFractionDigits = maximumFractionDigits;
     }
 
     /**
@@ -504,7 +517,7 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * @see #setMinimumFractionDigits
      */
     public int getMinimumFractionDigits() {
-        return minFractionDigits;
+        return minimumFractionDigits;
     }
 
     /**
@@ -513,12 +526,15 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
      * new value for minimumFractionDigits exceeds the current value
      * of maximumFractionDigits, then maximumIntegerDigits will also be set to
      * the new value
+     * @param newValue the minimum number of fraction digits to be shown; if
+     * less than zero, then zero is used. The concrete subclass may enforce an
+     * upper limit to this value appropriate to the numeric type being formatted.
      * @see #getMinimumFractionDigits
      */
     public void setMinimumFractionDigits(int newValue) {
-        minFractionDigits = (byte) Math.max(0,Math.min(newValue,127));
-        if (maxFractionDigits < minFractionDigits)
-            maxFractionDigits = minFractionDigits;
+        minimumFractionDigits = Math.max(0,newValue);
+        if (maximumFractionDigits < minimumFractionDigits)
+            maximumFractionDigits = minimumFractionDigits;
     }
 
     // =======================privates===============================
@@ -526,20 +542,69 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
     private static NumberFormat getInstance(Locale desiredLocale,
                                            int choice)
     {
-	/* try the cache first */
-	String[] numberPatterns = (String[])cachedLocaleData.get(desiredLocale);
-	if (numberPatterns == null) { /* cache miss */
-	    ResourceBundle resource = ResourceBundle.getBundle
-		("java.text.resources.LocaleElements", desiredLocale);
-	    numberPatterns = resource.getStringArray("NumberPatterns");
-	    /* update cache */
-	    cachedLocaleData.put(desiredLocale, numberPatterns);
-	}
+    /* try the cache first */
+    String[] numberPatterns = (String[])cachedLocaleData.get(desiredLocale);
+    if (numberPatterns == null) { /* cache miss */
+        ResourceBundle resource = ResourceBundle.getBundle
+        ("java.text.resources.LocaleElements", desiredLocale);
+        numberPatterns = resource.getStringArray("NumberPatterns");
+        /* update cache */
+        cachedLocaleData.put(desiredLocale, numberPatterns);
+    }
 
         return new DecimalFormat(numberPatterns[choice],
                                  new DecimalFormatSymbols(desiredLocale));
     }
 
+    /**
+     * First, read in the default serializable data.
+     *
+     * Then, if <code>serialVersionOnStream</code> is less than 1, indicating that
+     * the stream was written by JDK 1.1,
+     * set the <code>int</code> fields such as <code>maximumIntegerDigits</code>
+     * to be equal to the <code>byte</code> fields such as <code>maxIntegerDigits</code>,
+     * since the <code>int</code> fields were not present in JDK 1.1.
+     * Finally, set serialVersionOnStream back to the maximum allowed value so that
+     * default serialization will work properly if this object is streamed out again.
+     *
+     * @since JDK 1.2
+     */
+    private void readObject(ObjectInputStream stream)
+         throws IOException, ClassNotFoundException
+    {
+        stream.defaultReadObject();
+        if (serialVersionOnStream < 1) {
+            // Didn't have additional int fields, reassign to use them.
+            maximumIntegerDigits = maxIntegerDigits;
+            minimumIntegerDigits = minIntegerDigits;
+            maximumFractionDigits = maxFractionDigits;
+            minimumFractionDigits = minFractionDigits;
+        }
+        serialVersionOnStream = currentSerialVersion;
+    }
+
+    /**
+     * Write out the default serializable data, after first setting
+     * the <code>byte</code> fields such as <code>maxIntegerDigits</code> to be
+     * equal to the <code>int</code> fields such as <code>maximumIntegerDigits</code>
+     * (or to <code>Byte.MAX_VALUE</code>, whichever is smaller), for compatibility
+     * with the JDK 1.1 version of the stream format.
+     *
+     * @since JDK 1.2
+     */
+    private void writeObject(ObjectOutputStream stream)
+         throws IOException
+    {
+        maxIntegerDigits = (maximumIntegerDigits > Byte.MAX_VALUE) ? Byte.MAX_VALUE :
+            (byte)maximumIntegerDigits;
+        minIntegerDigits = (minimumIntegerDigits > Byte.MAX_VALUE) ? Byte.MAX_VALUE :
+            (byte)minimumIntegerDigits;
+        maxFractionDigits = (maximumFractionDigits > Byte.MAX_VALUE) ? Byte.MAX_VALUE :
+            (byte)maximumFractionDigits;
+        minFractionDigits = (minimumFractionDigits > Byte.MAX_VALUE) ? Byte.MAX_VALUE :
+            (byte)minimumFractionDigits;
+        stream.defaultWriteObject();
+    }
     /**
      * Cache to hold the NumberPatterns of a Locale.
      */
@@ -551,12 +616,166 @@ public abstract class NumberFormat extends Format implements java.lang.Cloneable
     private static final int PERCENTSTYLE = 2;
     private static final int SCIENTIFICSTYLE = 3;
 
+    /**
+     * True if the the grouping (i.e. thousands) separator is used when
+     * formatting and parsing numbers.
+     *
+     * @serial
+     * @see #isGroupingUsed
+     */
     private boolean groupingUsed = true;
+
+    /**
+     * The maximum number of digits allowed in the integer portion of a
+     * number.  <code>maxIntegerDigits</code> must be greater than or equal to
+     * <code>minIntegerDigits</code>.
+     * <p>
+     * <strong>Note:</strong> This field exists only for serialization
+     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * <code>int</code> field <code>maximumIntegerDigits</code> is used instead.
+     * When writing to a stream, <code>maxIntegerDigits</code> is set to
+     * <code>maximumIntegerDigits</code> or <code>Byte.MAX_VALUE</code>,
+     * whichever is smaller.  When reading from a stream, this field is used
+     * only if <code>serialVersionOnStream</code> is less than 1. 
+     *
+     * @serial
+     * @see #getMaximumIntegerDigits
+     */
     private byte    maxIntegerDigits = 40;
+
+    /**
+     * The minimum number of digits allowed in the integer portion of a
+     * number.  <code>minimumIntegerDigits</code> must be less than or equal to
+     * <code>maximumIntegerDigits</code>.
+     * <p>
+     * <strong>Note:</strong> This field exists only for serialization
+     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * <code>int</code> field <code>minimumIntegerDigits</code> is used instead.
+     * When writing to a stream, <code>minIntegerDigits</code> is set to
+     * <code>minimumIntegerDigits</code> or <code>Byte.MAX_VALUE</code>,
+     * whichever is smaller.  When reading from a stream, this field is used
+     * only if <code>serialVersionOnStream</code> is less than 1. 
+     *
+     * @serial
+     * @see #getMinimumIntegerDigits
+     */
     private byte    minIntegerDigits = 1;
+
+    /**
+     * The maximum number of digits allowed in the fractional portion of a
+     * number.  <code>maximumFractionDigits</code> must be greater than or equal to
+     * <code>minimumFractionDigits</code>.
+     * <p>
+     * <strong>Note:</strong> This field exists only for serialization
+     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * <code>int</code> field <code>maximumFractionDigits</code> is used instead.
+     * When writing to a stream, <code>maxFractionDigits</code> is set to
+     * <code>maximumFractionDigits</code> or <code>Byte.MAX_VALUE</code>,
+     * whichever is smaller.  When reading from a stream, this field is used
+     * only if <code>serialVersionOnStream</code> is less than 1. 
+     *
+     * @serial
+     * @see #getMaximumFractionDigits
+     */
     private byte    maxFractionDigits = 3;    // invariant, >= minFractionDigits
+
+    /**
+     * The minimum number of digits allowed in the fractional portion of a
+     * number.  <code>minimumFractionDigits</code> must be less than or equal to
+     * <code>maximumFractionDigits</code>.
+     * <p>
+     * <strong>Note:</strong> This field exists only for serialization
+     * compatibility with JDK 1.1.  In JDK 1.2 and higher, the new
+     * <code>int</code> field <code>minimumFractionDigits</code> is used instead.
+     * When writing to a stream, <code>minFractionDigits</code> is set to
+     * <code>minimumFractionDigits</code> or <code>Byte.MAX_VALUE</code>,
+     * whichever is smaller.  When reading from a stream, this field is used
+     * only if <code>serialVersionOnStream</code> is less than 1. 
+     *
+     * @serial
+     * @see #getMinimumFractionDigits
+     */
     private byte    minFractionDigits = 0;
+
+    /**
+     * True if this format will parse numbers as integers only.
+     *
+     * @serial
+     * @see #isParseIntegerOnly
+     */
     private boolean parseIntegerOnly = false;
+
+    // new fields for 1.2.  byte is too small for integer digits.
+
+    /**
+     * The maximum number of digits allowed in the integer portion of a
+     * number.  <code>maximumIntegerDigits</code> must be greater than or equal to
+     * <code>minimumIntegerDigits</code>.
+     *
+     * @serial
+     * @since JDK 1.2
+     * @see #getMaximumIntegerDigits
+     */
+    private int    maximumIntegerDigits = 40;
+
+    /**
+     * The minimum number of digits allowed in the integer portion of a
+     * number.  <code>minimumIntegerDigits</code> must be less than or equal to
+     * <code>maximumIntegerDigits</code>.
+     *
+     * @serial
+     * @since JDK 1.2
+     * @see #getMinimumIntegerDigits
+     */
+    private int    minimumIntegerDigits = 1;
+
+    /**
+     * The maximum number of digits allowed in the fractional portion of a
+     * number.  <code>maximumFractionDigits</code> must be greater than or equal to
+     * <code>minimumFractionDigits</code>.
+     *
+     * @serial
+     * @since JDK 1.2
+     * @see #getMaximumFractionDigits
+     */
+    private int    maximumFractionDigits = 3;    // invariant, >= minFractionDigits
+
+    /**
+     * The minimum number of digits allowed in the fractional portion of a
+     * number.  <code>minimumFractionDigits</code> must be less than or equal to
+     * <code>maximumFractionDigits</code>.
+     *
+     * @serial
+     * @since JDK 1.2
+     * @see #getMinimumFractionDigits
+     */
+    private int    minimumFractionDigits = 0;
+
+    static final int currentSerialVersion = 1;
+
+    /**
+     * Describes the version of <code>NumberFormat</code> present on the stream.
+     * Possible values are:
+     * <ul>
+     * <li><b>0</b> (or uninitialized): the JDK 1.1 version of the stream format.
+     *     In this version, the <code>int</code> fields such as
+     *     <code>maximumIntegerDigits</code> were not present, and the <code>byte</code>
+     *     fields such as <code>maxIntegerDigits</code> are used instead.
+     *
+     * <li><b>1</b>: the JDK 1.2 version of the stream format.  The values of the
+     *     <code>byte</code> fields such as <code>maxIntegerDigits</code> are ignored,
+     *     and the <code>int</code> fields such as <code>maximumIntegerDigits</code>
+     *     are used instead.
+     * </ul>
+     * When streaming out a <code>NumberFormat</code>, the most recent format
+     * (corresponding to the highest allowable <code>serialVersionOnStream</code>)
+     * is always written.
+     *
+     * @serial
+     * @since JDK 1.2
+     */
+    private int serialVersionOnStream = currentSerialVersion;
+
     // Removed "implements Cloneable" clause.  Needs to update serialization
     // ID for backward compatibility.
     static final long serialVersionUID = -2308460125733713944L;

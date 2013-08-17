@@ -1,10 +1,21 @@
 /*
- * @(#)SystemColor.java	1.9 01/12/10
+ * @(#)SystemColor.java	1.15 98/08/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.ColorModel;
 
 /**
  * A class to encapsulate symbolic colors representing the color
@@ -13,9 +24,9 @@ package java.awt;
  * the actual RGB values of these symbolic colors will also change
  * dynamically.  In order to compare the "current" RGB value of a SystemColor
  * object with a non-symbolic Color object, getRGB() should be used
- * rather than equals(). 
+ * rather than equals().
  *
- * @version 	1.9, 12/10/01
+ * @version 	1.15, 08/31/98
  * @author 	Carl Quinn
  * @author      Amy Fowler
  */
@@ -155,7 +166,7 @@ public final class SystemColor extends Color implements java.io.Serializable {
      * The number of system colors in the array.
      */
     public final static int NUM_COLORS = 26;
-    
+
    /**
      * The color of the desktop background.
      */
@@ -287,7 +298,7 @@ public final class SystemColor extends Color implements java.io.Serializable {
     public final static SystemColor infoText = new SystemColor((byte)INFO_TEXT);
 
     /*
-     * System colors with default initial values, overwritten by toolkit if 
+     * System colors with default initial values, overwritten by toolkit if
      * system values differ and are available.
      */
     private static int[] systemColors = {
@@ -320,7 +331,7 @@ public final class SystemColor extends Color implements java.io.Serializable {
     };
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
     private static final long serialVersionUID = 4503142729533789064L;
 
@@ -352,8 +363,24 @@ public final class SystemColor extends Color implements java.io.Serializable {
      * @see java.awt.Color#getGreen(int)
      * @see java.awt.Color#getRed(int)
      */
+    // NOTE: This method may be called by privileged threads.
+    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
     public int getRGB() {
 	return systemColors[value];
+    }
+
+    /**
+     * Create and return a PaintContext used to generate a solid color
+     * pattern.  This enables a Color object to be used as an argument to
+     * any method requiring an object implementing the Paint interface.
+     * @see Paint
+     * @see PaintContext
+     * @see Graphics2D#setPaint
+     */
+    public PaintContext createContext(ColorModel cm, Rectangle r,
+				      Rectangle2D r2d, AffineTransform xform,
+                                      RenderingHints hints) {
+	return new ColorPaintContext(value, cm);
     }
 
     /**

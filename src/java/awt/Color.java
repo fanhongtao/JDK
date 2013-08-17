@@ -1,114 +1,190 @@
 /*
- * @(#)Color.java	1.35 01/12/10
+ * @(#)Color.java	1.56 98/08/10
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
+
 package java.awt;
 
 import java.io.*;
 import java.lang.*;
+import java.awt.image.ColorModel;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.color.ColorSpace;
 
 /**
- * This class encapsulates colors using the RGB format. In RGB 
- * format, the red, blue, and green components of a color are each 
- * represented by an integer in the range 0-255. The value 0 
- * indicates no contribution from this primary color. The value 255 
- * indicates the maximum intensity of this color component. 
- * <p>
- * Although the <code>Color</code> class is based on the 
- * three-component RGB model, the class provides a set of convenience 
- * methods for converting between RGB and HSB colors. For a 
- * definition of the RGB and HSB color models, see Foley, van&nbsp;Dam, 
- * Feiner, and Hughes, <cite>Computer Graphics: Principles 
- * and Practice</cite>.
+ * A class to encapsulate colors in the default sRGB color space
+ * or colors in arbitrary color spaces identified by a ColorSpace.
+ * Every color has an implicit alpha value of 1.0 or an explicit one
+ * provided in the constructor.  When constructing a Color with an
+ * explicit alpha or getting the color/alpha components of a
+ * Color, the color components are never premultiplied by the alpha
+ * component.
+ * <p>The default color space for the Java 2D API is sRGB, a proposed standard
+ * RGB color space.  For further information on sRGB,
+ * see <A href="http://www.w3.org/pub/WWW/Graphics/Color/sRGB.html">
+ * http://www.w3.org/pub/WWW/Graphics/Color/sRGB.html
+ * </A>.
+ * <p>Eventually this class should supersede java.awt.Color, but for now it
+ * is defined to be part of the java.java2d package, so we can
+ * generate documentation for a single package for review.
  *
- * @version 	1.35, 12/10/01
+ * <p>
+ * @version 	10 Feb 1997
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
- * @since       JDK1.0
+ * @see		ColorSpace
  */
-public class Color implements java.io.Serializable {
+public class Color implements Paint, java.io.Serializable {
     
     /**
-     * The color white.
+     * The color white.  In the default sRGB space.
      */
     public final static Color white 	= new Color(255, 255, 255);
 
     /**
-     * The color light gray.
+     * The color light gray.  In the default sRGB space.
      */
     public final static Color lightGray = new Color(192, 192, 192);
 
     /**
-     * The color gray.
+     * The color gray.  In the default sRGB space.
      */
     public final static Color gray 	= new Color(128, 128, 128);
 
     /**
-     * The color dark gray.
+     * The color dark gray.  In the default sRGB space.
      */
     public final static Color darkGray 	= new Color(64, 64, 64);
 
     /**
-     * The color black.
+     * The color black.  In the default sRGB space.
      */
     public final static Color black 	= new Color(0, 0, 0);
     
     /**
-     * The color red.
+     * The color red.  In the default sRGB space.
      */
     public final static Color red 	= new Color(255, 0, 0);
 
     /**
-     * The color pink.
+     * The color pink.  In the default sRGB space.
      */
     public final static Color pink 	= new Color(255, 175, 175);
 
     /**
-     * The color orange.
+     * The color orange.  In the default sRGB space.
      */
     public final static Color orange 	= new Color(255, 200, 0);
 
     /**
-     * The color yellow.
+     * The color yellow.  In the default sRGB space.
      */
     public final static Color yellow 	= new Color(255, 255, 0);
 
     /**
-     * The color green.
+     * The color green.  In the default sRGB space.
      */
     public final static Color green 	= new Color(0, 255, 0);
 
     /**
-     * The color magenta.
+     * The color magenta.  In the default sRGB space.
      */
     public final static Color magenta	= new Color(255, 0, 255);
 
     /**
-     * The color cyan.
+     * The color cyan.  In the default sRGB space.
      */
     public final static Color cyan 	= new Color(0, 255, 255);
 
     /**
-     * The color blue.
+     * The color blue.  In the default sRGB space.
      */
     public final static Color blue 	= new Color(0, 0, 255);
 
     /**
      * Private data.
      */
-    transient private int pData;
+    transient private long pData;
 
     /**
      * The color value.
+	 * @serial
+	 * @see getRGB()
      */
     int value;
+
+    /**
+     * The color value in the default sRGB ColorSpace as float
+     * components (no alpha).
+     * If null after object construction, this must be an sRGB color
+     * constructed with 8-bit precision, so compute from the int color value.
+     * @serial
+     * @see getRGBColorComponents()
+     * @see getRGBComponents()
+	 */
+    private float frgbvalue[] = null;
+
+    /**
+     * The color value in the native ColorSpace as float components (no alpha).
+     * If null after object construction, this must be an sRGB color
+     * constructed with 8-bit precision, so compute from the int color value.
+     * @serial
+	 * @see getRGBColorComponents()
+	 * @see getRGBComponents()  
+	 */
+    private float fvalue[] = null;
+
+    /**
+     * The alpha value as a float component.
+     * If frgbvalue is null, this is not valid data,
+     * so compute from the int color value.
+	 * @serial
+	 * @see getRGBComponents()
+	 * @see getComponents() 
+     */
+    private float falpha = 0.0f;
+
+    /**
+     * The ColorSpace.  If null, then it's default sRGB.
+	 * @serial
+	 * @see getColor()
+	 * @see getColorSpace()
+	 * @see getColorComponents()
+     */
+    private ColorSpace cs = null;
 
     /*
      * JDK 1.1 serialVersionUID 
      */
      private static final long serialVersionUID = 118526816881161077L;
+
+    /**
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
+
+    static {
+        /** 4112352 - Calling getDefaultToolkit()
+         ** here can cause this class to be accessed before it is fully
+         ** initialized. DON'T DO IT!!!
+         **
+         ** Toolkit.getDefaultToolkit();
+         **/
+
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+        initIDs();
+    }
 
     /**
      * Checks the color integer components supplied for validity.
@@ -117,10 +193,15 @@ public class Color implements java.io.Serializable {
      * @param g the Green component
      * @param b the Blue component
      **/
-    private static void testColorValueRange(int r, int g, int b) {
+    private static void testColorValueRange(int r, int g, int b, int a) {
         boolean rangeError = false;
 	String badComponentString = "";
-	if ( r < 0 || r > 255) {
+	
+	if ( a < 0 || a > 255) {
+	    rangeError = true;
+	    badComponentString = badComponentString + " Alpha";
+	}
+        if ( r < 0 || r > 255) {
 	    rangeError = true;
 	    badComponentString = badComponentString + " Red";
 	}
@@ -145,9 +226,13 @@ public class Color implements java.io.Serializable {
      * @param g the Green component
      * @param b the Blue component
      **/
-    private static void testColorValueRange(float r, float g, float b) {
+    private static void testColorValueRange(float r, float g, float b, float a) {
         boolean rangeError = false;
 	String badComponentString = "";
+	if ( a < 0.0 || a > 1.0) {
+	    rangeError = true;
+	    badComponentString = badComponentString + " Alpha";
+	}
 	if ( r < 0.0 || r > 1.0) {
 	    rangeError = true;
 	    badComponentString = badComponentString + " Red";
@@ -167,109 +252,219 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Creates a color with the specified red, green, and blue 
-     * components. The three arguments must each be in the range 
-     * 0-255. 
-     * <p>
-     * The actual color used in rendering depends on finding the best 
-     * match given the color space available for a given output device. 
-     * @param       r the red component.
-     * @param       g the green component.
-     * @param       b the blue component.
-     * @see         java.awt.Color#getRed.
-     * @see         java.awt.Color#getGreen.
-     * @see         java.awt.Color#getBlue.
-     * @see         java.awt.Color#getRGB.
-     * @since       JDK1.0
+     * Creates an opaque sRGB color with the specified red, green, and blue
+     * values in
+     * the range (0 - 255).  The actual color used in rendering will depend
+     * on finding the best match given the color space available for a
+     * given output device.  Alpha is defaulted to 255.
+     * @param r the red component
+     * @param g the green component
+     * @param b the blue component
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     * @see #getRGB
      */
     public Color(int r, int g, int b) {
-        this(((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF) << 0));
-	testColorValueRange(r,g,b);
+        this(r, g, b, 255);
     }
 
     /**
-     * Creates a color with the specified RGB value, where the red 
-     * component is in bits 16-23 of the argument, the green 
-     * component is in bits 8-15 of the argument, and the blue 
-     * component is in bits 0-7. The value zero indicates no 
-     * contribution from the primary color component. 
-     * <p>
-     * The actual color used in rendering depends on finding the best 
-     * match given the color space available for a given output device. 
-     * @param       rgb   an integer giving the red, green, and blue components.
-     * @see         java.awt.image.ColorModel#getRGBdefault
-     * @see         java.awt.Color#getRed.
-     * @see         java.awt.Color#getGreen.
-     * @see         java.awt.Color#getBlue.
-     * @see         java.awt.Color#getRGB.
-     * @since       JDK1.0
+     * Creates an sRGB color with the specified red, green, blue, and alpha
+     * values in the range (0 - 255).
+     * @param r the red component
+     * @param g the green component
+     * @param b the blue component
+     * @param a the alpha component
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     * @see #getAlpha
+     * @see #getRGB
+     */
+    public Color(int r, int g, int b, int a) {
+        value = ((a & 0xFF) << 24) |
+                ((r & 0xFF) << 16) |
+                ((g & 0xFF) << 8)  |
+                ((b & 0xFF) << 0);
+	testColorValueRange(r,g,b,a);
+    }
+
+    /**
+     * Creates an opaque sRGB color with the specified combined RGB value
+     * consisting
+     * of the red component in bits 16-23, the green component in bits 8-15,
+     * and the blue component in bits 0-7.  The actual color used in
+     * rendering will depend on finding the best match given the color space
+     * available for a given output device.  Alpha is defaulted to 255.
+     * @param rgb the combined RGB components
+     * @see java.awt.image.ColorModel#getRGBdefault
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     * @see #getRGB
      */
     public Color(int rgb) {
-      value = 0xff000000 | rgb;
+        value = 0xff000000 | rgb;
     }
 
     /**
-     * Creates a color with the specified red, green, and blue values, 
-     * where each of the values is in the range 0.0-1.0. The value 
-     * 0.0 indicates no contribution from the primary color component. 
-     * The value 1.0 indicates the maximum intensity of the primary color 
-     * component. 
-     * <p>
-     * The actual color used in rendering depends on finding the best 
-     * match given the color space available for a given output device. 
-     * @param       r the red component
-     * @param       g the red component
-     * @param       b the red component
-     * @see         java.awt.Color#getRed.
-     * @see         java.awt.Color#getGreen.
-     * @see         java.awt.Color#getBlue.
-     * @see         java.awt.Color#getRGB.
-     * @since       JDK1.0
+     * Creates an sRGB color with the specified combined RGBA value consisting
+     * of the alpha component in bits 24-31, the red component in bits 16-23,
+     * the green component in bits 8-15, and the blue component in bits 0-7.
+     * If the hasalpha argument is False, alpha is defaulted to 255.
+     * @param rgba the combined RGBA components
+     * @param hasalpha true if the alpha bits are valid, false otherwise
+     * @see java.awt.image.ColorModel#getRGBdefault
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     * @see #getAlpha
+     * @see #getRGB
+     */
+    public Color(int rgba, boolean hasalpha) {
+        if (hasalpha) {
+            value = rgba;
+        } else {
+            value = 0xff000000 | rgba;
+        }
+    }
+
+    /**
+     * Creates an opaque sRGB color with the specified red, green, and blue
+     * values
+     * in the range (0.0 - 1.0).  Alpha is defaulted to 1.0.  The actual color
+     * used in rendering will depend on finding the best match given the
+     * color space available for a given output device.
+     * @param r the red component
+     * @param g the green component
+     * @param b the blue component
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     * @see #getRGB
      */
     public Color(float r, float g, float b) {
-      this( (int) (r * 255), (int) (g * 255), (int) (b * 255));
-      testColorValueRange(r,g,b);
+        this( (int) (r * 255), (int) (g * 255), (int) (b * 255));
+        testColorValueRange(r,g,b,1.0f);
+        frgbvalue = new float[3];
+        frgbvalue[0] = r;
+        frgbvalue[1] = g;
+        frgbvalue[2] = b;
+        falpha = 1.0f;
+        fvalue = frgbvalue;
     }
 
     /**
-     * Gets the red component of this color. The result is 
-     * an integer in the range 0 to 255. 
-     * @return        the red component of this color.
-     * @see           java.awt.Color#getRGB
-     * @since         JDK1.0
+     * Creates an sRGB color with the specified red, green, blue, and
+     * alpha values in the range (0.0 - 1.0).  The actual color
+     * used in rendering will depend on finding the best match given the
+     * color space available for a given output device.
+     * @param r the red component
+     * @param g the green component
+     * @param b the blue component
+     * @param a the alpha component
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     * @see #getAlpha
+     * @see #getRGB
+     */
+    public Color(float r, float g, float b, float a) {
+        this((int)(r*255), (int)(g*255), (int)(b*255), (int)(a*255));
+        frgbvalue = new float[3];
+        frgbvalue[0] = r;
+        frgbvalue[1] = g;
+        frgbvalue[2] = b;
+        falpha = a;
+        fvalue = frgbvalue;
+    }
+
+    /**
+     * Creates a color in the color space of the supplied ColorSpace
+     * with the color components specified in the float array and the
+     * specified alpha.  The number of components is determined by the
+     * color space type of the ColorSpace (e.g. RGB requires 3
+     * components, CMYK requires 4, etc.).
+     * @param cspace        The ColorSpace to be used to interpret the
+                            components
+     * @param components    An arbitrary number of color components
+     *                      that is compatible with the ColorSpace
+     * @param alpha         Alpha value
+     * @see #getComponents
+     * @see #getColorComponents
+     */
+    public Color(ColorSpace cspace, float components[], float alpha) {
+        boolean rangeError = false;
+        String badComponentString = "";
+        int n = cspace.getNumComponents();
+        fvalue = new float[n];
+        for (int i = 0; i < n; i++) {
+            if (components[i] < 0.0 || components[i] > 1.0) {
+                rangeError = true;
+                badComponentString = badComponentString + "Component " + i
+                                     + " ";
+            } else {
+                fvalue[i] = components[i];
+            }
+        }
+        if (alpha < 0.0 || alpha > 1.0) {
+            rangeError = true;
+            badComponentString = badComponentString + "Alpha";
+        } else {
+            falpha = alpha;
+        }
+        if (rangeError) {
+            throw new IllegalArgumentException(
+                "Color parameter outside of expected range: " +
+                badComponentString);
+        }
+        frgbvalue = cspace.toRGB(fvalue);
+	cs = cspace;
+        value = ((((int)(falpha*255)) & 0xFF) << 24) |
+                ((((int)(frgbvalue[0]*255)) & 0xFF) << 16) |
+                ((((int)(frgbvalue[1]*255)) & 0xFF) << 8)  |
+                ((((int)(frgbvalue[2]*255)) & 0xFF) << 0);
+    }
+
+    /**
+     * Returns the red component.  In the range 0-255 in the default sRGB space.
+     * @see #getRGB
      */
     public int getRed() {
 	return (getRGB() >> 16) & 0xFF;
     }
 
     /**
-     * Gets the green component of this color. The result is 
-     * an integer in the range 0 to 255. 
-     * @return        the green component of this color.
-     * @see           java.awt.Color#getRGB
-     * @since         JDK1.0
+     * Returns the green component.  In the range 0-255 in the default sRGB
+     * space.
+     * @see #getRGB
      */
     public int getGreen() {
 	return (getRGB() >> 8) & 0xFF;
     }
 
     /**
-     * Gets the blue component of this color. The result is 
-     * an integer in the range 0 to 255. 
-     * @return        the blue component of this color.
-     * @see           java.awt.Color#getRGB
-     * @since         JDK1.0
+     * Returns the blue component.  In the range 0-255 in the default sRGB
+     * space.
+     * @see #getRGB
      */
     public int getBlue() {
 	return (getRGB() >> 0) & 0xFF;
     }
 
     /**
-     * Gets the RGB value representing the color in the default RGB ColorModel. 
-     * The red, green, and blue components of the color are each scaled to be 
-     * a value between 0 (abscence of the color) and 255 (complete saturation). 
-     * Bits 24-31 of the returned integer are 0xff, bits 16-23 are the red 
-     * value, bit 8-15 are the green value, and bits 0-7 are the blue value.
+     * Returns the alpha component.  In the range 0-255.
+     * @see #getRGB
+     */
+    public int getAlpha() {
+        return (getRGB() >> 24) & 0xff;
+    }
+
+    /**
+     * Returns the RGB value representing the color in the default sRGB
+     * ColorModel.
+     * (Bits 24-31 are 0xff, 16-23 are red, 8-15 are green, 0-7 are blue).
      * @see java.awt.image.ColorModel#getRGBdefault
      * @see #getRed
      * @see #getGreen
@@ -296,26 +491,26 @@ public class Color implements java.io.Serializable {
      * @since      JDK1.0
      */
     public Color brighter() {
-	int r = getRed();
-	int g = getGreen();
-	int b = getBlue();
+        int r = getRed();
+        int g = getGreen();
+        int b = getBlue();
 
-	/* From 2D group:
+        /* From 2D group:
          * 1. black.brighter() should return grey
-	 * 2. applying brighter to blue will always return blue, brighter
+         * 2. applying brighter to blue will always return blue, brighter
          * 3. non pure color (non zero rgb) will eventually return white
          */
-	int i = (int)(1.0/(1.0-FACTOR));
-	if ( r == 0 && g == 0 && b == 0) {
-	   return new Color(i, i, i);
+        int i = (int)(1.0/(1.0-FACTOR));
+        if ( r == 0 && g == 0 && b == 0) {
+           return new Color(i, i, i);
         }
-	if ( r > 0 && r < i ) r = i;
-	if ( g > 0 && g < i ) g = i;
-	if ( b > 0 && b < i ) b = i;
+        if ( r > 0 && r < i ) r = i;
+        if ( g > 0 && g < i ) g = i;
+        if ( b > 0 && b < i ) b = i;
 
-	return new Color(Math.min((int)(r/FACTOR), 255), 
-			 Math.min((int)(g/FACTOR), 255),
-			 Math.min((int)(b/FACTOR), 255));
+        return new Color(Math.min((int)(r/FACTOR), 255),
+                         Math.min((int)(g/FACTOR), 255),
+                         Math.min((int)(b/FACTOR), 255));
     }
 
     /**
@@ -362,11 +557,13 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Creates a string that represents this color and indicates the 
-     * values of its RGB components. 
-     * @return     a representation of this color as a 
-     *                           <code>String</code> object.
-     * @since      JDK1.0
+     * Returns a string representation of this color. This method 
+     * is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not 
+     * be <code>null</code>.
+     * 
+     * @return  a string representation of this color.
      */
     public String toString() {
         return getClass().getName() + "[r=" + getRed() + ",g=" + getGreen() + ",b=" + getBlue() + "]";
@@ -374,10 +571,10 @@ public class Color implements java.io.Serializable {
 
     /**
      * Converts a string to an integer and returns the 
-     * specified color. This method handles string formats that 
+     * specified opaque color. This method handles string formats that 
      * are used to represent octal and hexidecimal numbers.
      * @param      nm a string that represents 
-     *                            a color as a 24-bit integer.
+     *                            an opaque color as a 24-bit integer.
      * @return     the new color
      * @see        java.lang.Integer#decode
      * @exception  NumberFormatException  if the specified string cannot
@@ -464,7 +661,7 @@ public class Color implements java.io.Serializable {
 
     /**
      * Converts the components of a color, as specified by the HSB 
-     * model, to an equivalent set of values for the RGB model. 
+     * model, to an equivalent set of values for the default RGB model. 
      * <p>
      * The integer that is returned by <code>HSBtoRGB</code> encodes the 
      * value of a color in bits 0&endash;23 of an integer value, the same 
@@ -478,6 +675,7 @@ public class Color implements java.io.Serializable {
      *                            saturation, and brightness.
      * @see       java.awt.Color#getRGB()
      * @see       java.awt.Color#Color(int)
+     * @see       java.awt.image.ColorModel#getRGBdefault()
      * @since     JDK1.0
      */
     public static int HSBtoRGB(float hue, float saturation, float brightness) {
@@ -527,7 +725,7 @@ public class Color implements java.io.Serializable {
     }
 
     /**
-     * Converts the components of a color, as specified by the RGB 
+     * Converts the components of a color, as specified by the default RGB 
      * model, to an equivalent set of values for hue, saturation, and 
      * brightness, the three components of the HSB model. 
      * <p>
@@ -545,6 +743,7 @@ public class Color implements java.io.Serializable {
      *                     the indicated red, green, and blue components.
      * @see       java.awt.Color#getRGB()
      * @see       java.awt.Color#Color(int)
+     * @see       java.awt.image.ColorModel#getRGBdefault()
      * @since     JDK1.0
      */
     public static float[] RGBtoHSB(int r, int g, int b, float[] hsbvals) {
@@ -602,4 +801,241 @@ public class Color implements java.io.Serializable {
     public static Color getHSBColor(float h, float s, float b) {
 	return new Color(HSBtoRGB(h, s, b));
     }
+
+    /**
+     * Returns a float array containing the color and alpha components
+     * of the Color, as represented in the default sRGB color space.
+     * If componentarray is null, an array of length 4 is created for the
+     * return value.  Otherwise, componentarray must have length 4 or greater,
+     * and it will be filled in with the components and returned.
+     * @return the RGBA components in a float array
+     */
+    public float[] getRGBComponents(float[] compArray) {
+        float[] f;
+        if (compArray == null) {
+            f = new float[4];
+        } else {
+            f = compArray;
+        }
+        if (frgbvalue == null) {
+            f[0] = ((float)getRed())/255f;
+            f[1] = ((float)getGreen())/255f;
+            f[2] = ((float)getBlue())/255f;
+            f[3] = ((float)getAlpha())/255f;
+        } else {
+            f[0] = frgbvalue[0];
+            f[1] = frgbvalue[1];
+            f[2] = frgbvalue[2];
+            f[3] = falpha;
+        }
+        return f;
+    }
+
+    /**
+     * Returns a float array containing the color components (no alpha)
+     * of the Color, in the default sRGB color space.
+     * If componentarray is null, an array of length 3 is created for the
+     * return value.  Otherwise, componentarray must have length 3 or greater,
+     * and it will be filled in with the components and returned.
+     * @return the RGB components in a float array
+     */
+    public float[] getRGBColorComponents(float[] compArray) {
+        float[] f;
+        if (compArray == null) {
+            f = new float[3];
+        } else {
+            f = compArray;
+        }
+        if (frgbvalue == null) {
+            f[0] = ((float)getRed())/255f;
+            f[1] = ((float)getGreen())/255f;
+            f[2] = ((float)getBlue())/255f;
+        } else {
+            f[0] = frgbvalue[0];
+            f[1] = frgbvalue[1];
+            f[2] = frgbvalue[2];
+        }
+        return f;
+    }
+
+    /**
+     * Returns a float array containing the color and alpha components
+     * of the Color, in the ColorSpace of the Color.
+     * If componentarray is null, an array with length equal to the number of
+     * components in the associated ColorSpace plus one is created for
+     * the return value.  Otherwise, componentarray must have at least this
+     * length, and it will be filled in with the components and returned.
+     * @return the color and alpha components in a float array
+     */
+    public float[] getComponents(float[] compArray) {
+        if (fvalue == null)
+            return getRGBComponents(compArray);
+        float[] f;
+        int n = fvalue.length;
+        if (compArray == null) {
+            f = new float[n + 1];
+        } else {
+            f = compArray;
+        }
+        for (int i = 0; i < n; i++) {
+            f[i] = fvalue[i];
+        }
+        f[n] = falpha;
+        return f;
+    }
+
+    /**
+     * Returns a float array containing the color components (no alpha)
+     * of the Color, in the ColorSpace of the color.
+     * If componentarray is null, an array with length equal to the number of
+     * components in the associated ColorSpace is created for
+     * the return value.  Otherwise, componentarray must have at least this
+     * length, and it will be filled in with the components and returned.
+     * @return the color components in a float array
+     */
+    public float[] getColorComponents(float[] compArray) {
+        if (fvalue == null)
+            return getRGBColorComponents(compArray);
+        float[] f;
+        int n = fvalue.length;
+        if (compArray == null) {
+            f = new float[n];
+        } else {
+            f = compArray;
+        }
+        for (int i = 0; i < n; i++) {
+            f[i] = fvalue[i];
+        }
+        return f;
+    }
+
+    /**
+     * Returns a float array containing the color and alpha components
+     * of the Color, in the ColorSpace specified by the cspace parameter.
+     * If componentarray is null, an array with length equal to the number of
+     * components in cspace plus one is created for
+     * the return value.  Otherwise, componentarray must have at least this
+     * length, and it will be filled in with the components and returned.
+     * @return the color and alpha components in a float array
+     */
+    public float[] getComponents(ColorSpace cspace, float[] compArray) {
+        if (cs == null) {
+            cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+        }
+        float f[];
+        if (fvalue == null) {
+            f = new float[3];
+            f[0] = ((float)getRed())/255f;
+            f[1] = ((float)getGreen())/255f;
+            f[2] = ((float)getBlue())/255f;
+        } else {
+            f = fvalue;
+        }
+        float tmp[] = cs.toCIEXYZ(f);
+        float tmpout[] = cspace.fromCIEXYZ(tmp);
+        if (compArray == null) {
+            compArray = new float[tmpout.length + 1];
+        }
+        for (int i = 0 ; i < tmpout.length ; i++) {
+            compArray[i] = tmpout[i];
+        }
+        if (fvalue == null) {
+            compArray[tmpout.length] = ((float)getAlpha())/255f;
+        } else {
+            compArray[tmpout.length] = falpha;
+        }
+        return compArray;
+    }
+
+    /**
+     * Returns a float array containing the color components (no alpha)
+     * of the Color, in the ColorSpace specified by the cspace parameter.
+     * If componentarray is null, an array with length equal to the number of
+     * components in cspace is created for
+     * the return value.  Otherwise, componentarray must have at least this
+     * length, and it will be filled in with the components and returned.
+     * @return the color components in a float array
+     */
+    public float[] getColorComponents(ColorSpace cspace, float[] compArray) {
+        if (cs == null) {
+            cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+        }
+        float f[];
+        if (fvalue == null) {
+            f = new float[3];
+            f[0] = ((float)getRed())/255f;
+            f[1] = ((float)getGreen())/255f;
+            f[2] = ((float)getBlue())/255f;
+        } else {
+            f = fvalue;
+        }
+        float tmp[] = cs.toCIEXYZ(f);
+        float tmpout[] = cspace.fromCIEXYZ(tmp);
+        if (compArray == null) {
+            return tmpout;
+        }
+        for (int i = 0 ; i < tmpout.length ; i++) {
+            compArray[i] = tmpout[i];
+        }
+        return compArray;
+    }
+
+    /**
+     * Returns the ColorSpace of the Color.
+     */
+    public ColorSpace getColorSpace() {
+        if (cs == null) {
+            cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+        }
+        return cs;
+    }
+
+    // REMIND: this should really be a Ref!
+	/*
+	* The paint context used to generate a solid color pattern.
+	* @serial
+	* @see createContext()
+	*/
+    private PaintContext theContext;
+
+    /**
+     * Create and return a PaintContext used to generate a solid color
+     * pattern.  This enables a Color object to be used as an argument to
+     * any method requiring an object implementing the Paint interface.
+     * @see Paint
+     * @see PaintContext
+     * @see Graphics2D#setPaint
+     */
+    public synchronized PaintContext createContext(ColorModel cm, Rectangle r,
+						   Rectangle2D r2d,
+						   AffineTransform xform,
+                                                   RenderingHints hints) {
+	PaintContext pc = theContext;
+	if (pc == null) {
+	    pc = new ColorPaintContext(value, cm);
+	    theContext = pc;
+	}
+	return pc;
+    }
+
+    /**
+     * Return the transparency mode for this Color.  This is required in
+     * to implement the Paint interface.
+     * @see Paint
+     * @see Transparency
+     * @see #createContext
+     */
+    public int getTransparency() {
+        int alpha = getAlpha();
+        if (alpha == 0xff) {
+            return Transparency.OPAQUE;
+        }
+        else if (alpha == 0) {
+            return Transparency.BITMASK;
+        }
+        else {
+            return Transparency.TRANSLUCENT;
+        }
+    }
+
 }

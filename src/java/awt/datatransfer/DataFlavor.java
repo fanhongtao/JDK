@@ -1,24 +1,74 @@
 /*
- * @(#)DataFlavor.java	1.7 01/12/10
+ * @(#)DataFlavor.java	1.22 00/04/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 package java.awt.datatransfer;
 
-import java.io.InputStream;
+import java.io.Externalizable;
+import java.io.ObjectOutput;
+import java.io.ObjectInput;
+import java.io.IOException;
+
 
 /**
  * Each instance represents the opaque concept of a data format as would
  * appear on a clipboard, during drag and drop, or in a file system.
  *
- * @version 	1.7, 12/10/01
+ * @version 	1, 22
  * @author	Blake Sullivan
+ * @author	Laurence P. G. Cable
  */
-public class DataFlavor {
 
-    static Class ioInputStreamClass = java.io.InputStream.class;
+public class DataFlavor implements Externalizable, Cloneable {
+
+    static final long serialVersionUID = 8367026044764648243L;
+
+    static final Class ioInputStreamClass = java.io.InputStream.class;
+
+    /**
+     * tried to load a class from: the bootstrap loader, the system loader,
+     * the context loader (if one is present) and finally the loader specified
+     *
+     * @param fallback the fallback loader
+     *
+     * @throws ClassNotFoundException
+     */
+
+    protected final static Class tryToLoadClass(String className, 
+                                              ClassLoader fallback) 
+        throws ClassNotFoundException 
+    {
+      ClassLoader systemClassLoader = (ClassLoader)
+          java.security.AccessController.doPrivileged(
+                new java.security.PrivilegedAction() {
+                  public Object run() {
+                      ClassLoader cl = Thread.currentThread().
+                          getContextClassLoader();
+                      return (cl != null)
+                          ? cl
+                          : ClassLoader.getSystemClassLoader();
+                  }
+                  });
+
+      try {
+          return Class.forName(className, true, systemClassLoader);
+      } catch (ClassNotFoundException e2) {
+          if (fallback != null) {
+              return Class.forName(className, true, fallback);
+          } else {
+              throw new ClassNotFoundException(className);
+          }
+       }
+    }
 
     /*
      * private initializer
@@ -48,14 +98,11 @@ public class DataFlavor {
     * The DataFlavor representing a Java Unicode String class, where:
     * <p>
     * representationClass = java.lang.String<br>
-   /**
-    * The DataFlavor representing a Java Unicode String class, where:
-    * <p>
-    * representationClass = java.lang.String<br>
     * mimeType            = "application/x-java-serialized-object"        
     * <p> 
     */
-    public final static DataFlavor stringFlavor = createConstant(java.lang.String.class, "Unicode String");
+
+    public static final DataFlavor stringFlavor = createConstant(java.lang.String.class, "Unicode String");
 
    /**
     * The DataFlavor representing plain text with unicode encoding, where:
@@ -64,36 +111,86 @@ public class DataFlavor {
     * mimeType            = "text/plain; charset=unicode"        
     * <p> 
     */
-    public final static DataFlavor plainTextFlavor = createConstant("text/plain;charset=unicode", "Plain Text");
-		
-    static final String serializedObjectMimeType = "application/x-java-serialized-object";
 
-    /* placeholder for caching any platform-specific data for flavor */
-    int atom;      
-  
-   /**
-    * Mime type for this DataFlavor.  (See RFC 1521 for an explanation
-    * of Mime types)  The type name is stored internally in the following
-    * cannonical order to make comparisons simpler
-    *   1. type, subtype, and parameter names are converted to lowercase
-    *
-    *   2. parameters are ordered by parameter name
-    *
-    *   3. character set parameter names are converted to lowercase (they
-    *      are the exception to the rule that parameter names should be
-    *      case sensitive
-    *
-    *   4. White space is compressed
-    *
-    */
-    private String mimeType;
-    
-    /** Human-presentable name for this DataFlavor. Localizable. **/
-    private String humanPresentableName;  
-  
-    /** Java class of objects this DataFlavor represents **/
-    private Class representationClass;
-  
+    public static final DataFlavor plainTextFlavor = createConstant("text/plain; charset=unicode", "Plain Text"); 
+		
+
+    /**
+     * a MIME Content-Type of application/x-java-serialized-object represents
+     * a graph of Java object(s) that have been made persistent.
+     *
+     * The representation class associated with this DataFlavor identifies
+     * the Java type of an object returned as a reference from an invocation
+     * java.awt.datatransfer.getTransferData().
+     *
+     */
+
+    public static final String javaSerializedObjectMimeType = "application/x-java-serialized-object";
+
+    /**
+     * To transfer a list of files to/from Java (and the underlying
+     * platform) a DataFlavor of this type/subtype and representation class
+     * of java.util.List is used.
+     *
+     * Each element of the list is required/guaranteed to be of type
+     * java.io.File.
+     */
+
+    public static final DataFlavor javaFileListFlavor = createConstant("application/x-java-file-list;class=java.util.List", null);
+
+    /**
+     * to transfer a reference to an arbitrary Java object reference that
+     * has no associated MIME Content-type, across a Transferable interface
+     * WITHIN THE SAME JVM, a DataFlavor with this type/subtype is used,
+     * with a representationClass equal to the type of the class/interface
+     * being passed across the Transferble.
+     *
+     * The object reference returned from Transferable.getTransferData()
+     * for a DataFlavor with this MIME Content-Type is required to be
+     * an instanceof the representation Class of the DataFlavor.
+     */
+ 
+    public static final String javaJVMLocalObjectMimeType = "application/x-java-jvm-local-objectref";
+
+    /**
+     * In order to pass a live link to a Remote object via a Drag and Drop
+     * ACTION_LINK operation a Mime Content Type of application/x-java-remote-object
+     * should be used, where the representation class of the DataFlavor 
+     * represents the type of the Remote interface to be transferred.
+     */
+
+    public static final String javaRemoteObjectMimeType = "application/x-java-remote-object";
+
+    /**
+     * Construct a fully specified DataFlavor
+     */
+
+    private DataFlavor(String primaryType, String subType, MimeTypeParameterList params, Class representationClass, String humanPresentableName) {
+	super();
+
+	if (params == null) params = new MimeTypeParameterList();
+
+	params.set("class", representationClass.getName());
+	
+	if (humanPresentableName == null) {
+	    humanPresentableName = (String)params.get("humanPresentableName");
+
+	    if (humanPresentableName == null)
+	        humanPresentableName = primaryType + "/" + subType;
+	}
+
+	try {
+	    mimeType = new MimeType(primaryType, subType, params);
+	} catch (MimeTypeParseException mtpe) {
+	    throw new IllegalArgumentException("MimeType Parse Exception: " + mtpe.getMessage());
+	}
+
+	this.representationClass  = representationClass;
+	this.humanPresentableName = humanPresentableName;
+
+	mimeType.removeParameter("humanPresentableName");
+   }
+
    /**
     * Construct a DataFlavor that represents a Java class
     * <p>
@@ -103,12 +200,13 @@ public class DataFlavor {
     * mimeType            = application/x-java-serialized-object        
     * <p>
     * @param representationClass the class used to transfer data in this flavor
-    * @param humanPresentableName the human-readible string used to identify this flavor
+    * @param humanPresentableName the human-readable string used to identify 
+    *                 this flavor.
+    *                 If this parameter is null then the value of the 
+    *                 the MIME Content Type is used.
     */
     public DataFlavor(Class representationClass, String humanPresentableName) {
-	this.mimeType = serializedObjectMimeType;
-	this.representationClass = representationClass;
-      	this.humanPresentableName = humanPresentableName;
+        this("application", "x-java-serialized-object", null, representationClass, humanPresentableName);
     }
 
    /**
@@ -117,9 +215,45 @@ public class DataFlavor {
     * The returned DataFlavor will have the following characteristics:
     * <p>
     * If the mimeType is
-    * "application/x-java-serialized-object; class=<representation class>",
+    * "application/x-java-serialized-object; class=&lt;representation class&gt;",
     * the result is the same as calling
-    * new DataFlavor(Class:forName(<representation class>) as above
+    * new DataFlavor(Class:forName(&lt;representation class&gt;) as above
+    * <p>
+    * otherwise:
+    * <p>
+    * representationClass = InputStream<br>
+    * mimeType            = mimeType         
+    * <p>
+    * @param mimeType the string used to identify the MIME type for this flavor.
+    *                 If the the mimeType does not specify a
+    *                 "class=" parameter, or if the class is not successfully
+    *                 loaded, then an IllegalArgumentException is thrown.
+    * @param humanPresentableName the human-readable string used to identify 
+    *                 this flavor.
+    *                 If this parameter is null then the value of the 
+    *                 the MIME Content Type is used.
+    */
+    public DataFlavor(String mimeType, String humanPresentableName) {
+	super();
+
+	try {
+	    initialize(mimeType, humanPresentableName, this.getClass().getClassLoader());
+	} catch (MimeTypeParseException mtpe) {
+	    throw new IllegalArgumentException("failed to parse:" + mimeType);
+	} catch (ClassNotFoundException cnfe) {
+	    throw new IllegalArgumentException("cant find specified class: " + cnfe.getMessage());
+	}
+    }
+
+   /**
+    * Construct a DataFlavor that represents a MimeType
+    * <p>
+    * The returned DataFlavor will have the following characteristics:
+    * <p>
+    * If the mimeType is
+    * "application/x-java-serialized-object; class=&lt;representation class&gt;",
+    * the result is the same as calling
+    * new DataFlavor(Class:forName(&lt;representation class&gt;) as above
     * <p>
     * otherwise:
     * <p>
@@ -129,17 +263,96 @@ public class DataFlavor {
     * @param mimeType the string used to identify the MIME type for this flavor
     * @param humanPresentableName the human-readible string used to identify this flavor
     */
-    public DataFlavor(String mimeType, String humanPresentableName) {
-	this.mimeType = mimeType;
-	this.representationClass = ioInputStreamClass;
-      	this.humanPresentableName = humanPresentableName;
+
+    public DataFlavor(String mimeType, String humanPresentableName, ClassLoader classLoader)  throws ClassNotFoundException {
+	super();
+	try {
+	    initialize(mimeType, humanPresentableName, classLoader);
+	} catch (MimeTypeParseException mtpe) {
+	    throw new IllegalArgumentException("failed to parse:" + mimeType);
+	}
     }       
   
+   /**
+    * construct a DataFlavor from a Mime Type string.
+    * The string must specify a "class=<fully specified Java class name>"
+    * parameter in order to succeed in constructing a DataFlavor.
+    * 
+    * @param mimeType the string used to identify the MIME type for this flavor.
+    *                 If the the mimeType does not specify a
+    *                 "class=" parameter, or if the class is not successfully
+    *                 loaded, then an IllegalArgumentException is thrown.
+    */
+
+   public DataFlavor(String mimeType) throws ClassNotFoundException {
+	super();
+	try {
+	    initialize(mimeType, null, this.getClass().getClassLoader());
+	} catch (MimeTypeParseException mtpe) {
+	    throw new IllegalArgumentException("failed to parse:" + mimeType);
+	}
+   }
+
+   /**
+    * common initialization code called from various constructors.
+    *
+    * @param mimeType The MIME Content Type (must have a class= param)
+    * @param humanPresentableName The human Presentable Name or null
+    * @param classLoader The fallback class loader to resolve against
+    *
+    * @throws MimeTypeParseException
+    * @throws ClassNotFoundException
+    *
+    * @see tryToLoadClass
+    */
+
+   private void initialize(String mimeType, String humanPresentableName, ClassLoader classLoader) throws MimeTypeParseException, ClassNotFoundException {
+
+        this.mimeType = new MimeType(mimeType); // throws
+
+	String rcn = getParameter("class");
+
+	if (rcn == null) {
+	    if ("application/x-java-serialized-object".equals(this.mimeType.getBaseType()))
+
+	        throw new IllegalArgumentException("no representation class specified for:" + mimeType);
+	    else
+		representationClass = java.io.InputStream.class; // default
+	} else { // got a class name
+	    representationClass = DataFlavor.tryToLoadClass(rcn, classLoader);
+	}
+
+	this.mimeType.setParameter("class", representationClass.getName());
+
+	if (humanPresentableName == null) {
+	    humanPresentableName = this.mimeType.getParameter("humanPresentableName");
+	    if (humanPresentableName == null) 
+      		humanPresentableName = this.mimeType.getPrimaryType() + "/" + this.mimeType.getSubType();
+	}
+
+	this.humanPresentableName = humanPresentableName; // set it.
+
+	this.mimeType.removeParameter("humanPresentableName"); // just in case
+   }
+
+   /**
+    * used by clone implementation
+    */
+
+    private DataFlavor(MimeType mt, Class rc, String hrn, int a) {
+	super();
+
+	mimeType             = mt;
+	representationClass  = rc;
+	humanPresentableName = hrn;
+	atom		     = a;
+    }
+
    /**
     * Returns the MIME type string for this DataFlavor
     */ 
     public String getMimeType() {
-    	return mimeType;
+    	return mimeType.toString();
     }
 
    /**
@@ -160,38 +373,187 @@ public class DataFlavor {
     }
   
    /**
+    * @return the primary MIME type of this DataFlavor
+    */
+
+    public String getPrimaryType() { return mimeType.getPrimaryType(); }
+
+   /**
+    * @return the Sub MIME type of this DataFlavor
+    */
+
+    public String getSubType() { return mimeType.getSubType(); }
+
+   /**
+    * @return the value of the name parameter
+    */
+
+    public String getParameter(String paramName) {
+	return paramName.equals("humanPresentableName") ? humanPresentableName : mimeType.getParameter(paramName);
+    }
+
+   /**
     * Sets the human presentable name for the data format that this
     * DataFlavor represents. This name would be localized for different
     * countries
     */
+
     public void setHumanPresentableName(String humanPresentableName) {
-    	humanPresentableName = humanPresentableName;
+    	this.humanPresentableName = humanPresentableName;
     }
 
+    /**
+     * @return if the objects are equal
+     */
+
+    public boolean equals(Object o) {
+	return ((o instanceof DataFlavor) && equals((DataFlavor)o)) ||
+	       ((o instanceof String)     && equals((String)o));
+	      
+    }
+
+    /**
+     * @return if the DataFlavors represent the same type.
+     */
+
     public boolean equals(DataFlavor dataFlavor) {
-	return (isMimeTypeEqual(dataFlavor) &&
-	 	dataFlavor.getRepresentationClass() == representationClass);
+	return mimeType.match(dataFlavor.mimeType) && representationClass.equals(dataFlavor.getRepresentationClass());
     }
   
+    /**
+     * @return if the String (MimeType) is equal
+     */
+
+    public boolean equals(String s) {
+	return isMimeTypeEqual(s);
+    }
+
     /**
      * Is the string representation of the MIME type passed in equivalent
      * to the MIME type of this DataFlavor.  This may involve adding default
      * attributes for some MIME types (like adding charset=US-ASCII to
      * text/plain MIME types that have no charset parameter specified)
      */
+
     public boolean isMimeTypeEqual(String mimeType) {
-	// This is too simplistic
-	return mimeType.equals(this.mimeType);
+	try {
+	    return this.mimeType.match(new MimeType(mimeType));
+	} catch (MimeTypeParseException mtpe) {
+	    return false; 
+	}
     }
   
     /**
-     * Convenience function equivalent to calling:
-     * isMimeTypeEqual(dataFlavor.getMimeType());
+     * @return if the MimeTypes are equal
      */
+
     public final boolean isMimeTypeEqual(DataFlavor dataFlavor) {
-	return isMimeTypeEqual(dataFlavor.getMimeType());
+	return isMimeTypeEqual(dataFlavor.mimeType);
     }
-    
+
+    /**
+     * @return if the MimeTypes are equal
+     */
+
+    private boolean isMimeTypeEqual(MimeType mtype) {
+	return mimeType.match(mtype);
+    }
+
+   /**
+    * does the DataFlavor represent a serialized object?
+    */
+
+    public boolean isMimeTypeSerializedObject() {
+	return mimeType.equals(javaSerializedObjectMimeType);
+    }
+
+   /**
+    * does the DataFlavor represent a java.io.InputStream
+    */
+
+    public boolean isRepresentationClassInputStream() {
+	return ioInputStreamClass.isAssignableFrom(representationClass);
+    }
+
+   /**
+    * @return true if the representation class can be serialized
+    */
+
+    public boolean isRepresentationClassSerializable() {
+	return java.io.Serializable.class.isAssignableFrom(representationClass);
+    }
+
+   /**
+    * @return true if the representation class is Remote
+    */
+
+    public boolean isRepresentationClassRemote() {
+	return java.rmi.Remote.class.isAssignableFrom(representationClass);
+    }
+
+   /**
+    * @return if the DataFlavor specified represents a Serialized Object
+    */
+
+    public boolean isFlavorSerializedObjectType() {
+	return isRepresentationClassSerializable() && equals(javaSerializedObjectMimeType);
+    }
+
+    /**
+     * @return if the DataFlavor specified represents a Remote Object
+     */
+  
+    public boolean isFlavorRemoteObjectType() {
+	return isRepresentationClassRemote() && isRepresentationClassSerializable() && equals(javaRemoteObjectMimeType);
+    }
+
+  
+   /**
+    * @return if flavor specified represents a List of File objects
+    */
+
+   public boolean isFlavorJavaFileListType() {
+	return java.util.List.class.isAssignableFrom(representationClass) && equals(javaFileListFlavor);
+   }
+
+   /**
+    * Serialize this DataFlavor
+    */
+
+   public synchronized void writeExternal(ObjectOutput os) throws IOException {
+	mimeType.setParameter("humanPresentableName", humanPresentableName);
+	os.writeObject(mimeType);
+	mimeType.removeParameter("humanPresentableName");
+   }
+
+   /**
+    * restore this DataFlavor from an Serialized state
+    */
+
+   public synchronized void readExternal(ObjectInput is) throws IOException , ClassNotFoundException {
+	mimeType = (MimeType)is.readObject();
+
+	humanPresentableName = mimeType.getParameter("humanPresentableName");
+
+	mimeType.removeParameter("humanPresentableName");
+
+	String rcn = mimeType.getParameter("class");
+
+	if (rcn == null) throw new IOException("no class parameter specified in: " + mimeType);
+
+	DataFlavor.tryToLoadClass(rcn, this.getClass().getClassLoader());
+   }
+
+   public DataFlavor() { super(); } // this is here for serialization only.
+
+   /**
+    * @return a clone of this DataFlavor
+    */
+
+   public Object clone() throws CloneNotSupportedException {
+	return new DataFlavor((MimeType)mimeType.clone(), representationClass, humanPresentableName, atom);
+   }
+
    /**
     * Called on DataFlavor for every MIME Type parameter to allow DataFlavor
     * subclasses to handle special parameters like the text/plain charset
@@ -200,6 +562,10 @@ public class DataFlavor {
     * <p>
     * This method is called for each parameter name/value pair and should
     * return the normalized representation of the parameterValue
+    *
+    * This method is never invoked by this implementation from 1.1 onwards
+    *
+    * @deprecated
     */
     protected String normalizeMimeTypeParameter(String parameterName, String parameterValue) {
 	return parameterName+"="+parameterValue;	
@@ -210,9 +576,32 @@ public class DataFlavor {
     * opportunity to change how the normalization of MIME types is accomplished.
     * One possible use would be to add default parameter/value pairs in cases
     * where none are present in the MIME type string passed in
+    *
+    * This method is never invoked by this implementation from 1.1 onwards
+    *
+    * @deprecated
     */
     protected String normalizeMimeType(String mimeType) {
 	return mimeType;	
     }
-}
 
+    /*
+     * fields
+     */
+
+    /* placeholder for caching any platform-specific data for flavor */
+
+    transient int	atom;      
+  
+    /* Mime Type of DataFlavor */
+
+    MimeType		mimeType;
+
+    /** Human-presentable name for this DataFlavor. Localizable. **/
+
+    private String	humanPresentableName;  
+  
+    /** Java class of objects this DataFlavor represents **/
+
+    private Class	representationClass;
+}

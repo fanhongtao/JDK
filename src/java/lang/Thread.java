@@ -1,11 +1,21 @@
 /*
- * @(#)Thread.java	1.74 01/12/10
+ * @(#)Thread.java	1.97 98/11/05
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
+
+import java.security.AccessController;
+import java.security.AccessControlContext;
 
 /**
  * A <i>thread</i> is a thread of execution in a program. The Java 
@@ -31,7 +41,8 @@ package java.lang;
  *     to take place. 
  * <li>All threads that are not daemon threads have died, either by 
  *     returning from the call to the <code>run</code> method or by 
- *     performing the <code>stop</code> method. 
+ *     throwing an exception that propagates beyond the <code>run</code>
+ *     method.
  * </ul>
  * <p>
  * There are two ways to create a new thread of execution. One is to 
@@ -91,7 +102,7 @@ package java.lang;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.74, 12/10/01
+ * @version 1.97, 11/05/98
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -100,11 +111,16 @@ package java.lang;
  */
 public
 class Thread implements Runnable {
+    /* Make sure registerNatives is the first thing <clinit> does. */
+    private static native void registerNatives();
+    static {
+        registerNatives();
+    }
+
     private char	name[];
     private int         priority;
     private Thread	threadQ;
-    private int 	PrivateInfo;
-    private int		eetop;
+    private long	eetop;
 
     /* Whether or not to single_step this thread. */
     private boolean	single_step;
@@ -118,11 +134,14 @@ class Thread implements Runnable {
     /* What will be run. */
     private Runnable target;
 
-    /* The system queue of threads is linked through activeThreadQueue. */
-    private static Thread activeThreadQ;
-
     /* The group of this thread */
     private ThreadGroup	group;
+
+    /* The context ClassLoader for this thread */
+    private ClassLoader contextClassLoader;
+
+    /* The inherited AccessControlContext of this thread */
+    private AccessControlContext inheritedAccessControlContext;
 
     /* For autonumbering anonymous threads. */
     private static int threadInitNumber;
@@ -130,27 +149,27 @@ class Thread implements Runnable {
 	return threadInitNumber++;
     }
 
-    /* The initial segment of the Java stack (not necessarily initialized) */
-    private int	initial_stack_memory;
+    // static permissions
+    private static RuntimePermission stopThreadPermission;
+
+    /* List of InheritableThreadLocal values pertaining to this thread.
+     * This list is maintained by the InheritableThreadLocal class.  We call
+     * InheritableThreadLocal.bequeath on this list at thread creation
+     * time to pass our values on to our child. */
+    InheritableThreadLocal.Entry values = null;
 
     /**
      * The minimum priority that a thread can have. 
-     *
-     * @since   JDK1.0
      */
     public final static int MIN_PRIORITY = 1;
 
    /**
      * The default priority that is assigned to a thread. 
-     *
-     * @since   JDK1.0
      */
     public final static int NORM_PRIORITY = 5;
 
     /**
      * The maximum priority that a thread can have. 
-     *
-     * @since   JDK1.0
      */
     public final static int MAX_PRIORITY = 10;
 
@@ -158,15 +177,12 @@ class Thread implements Runnable {
      * Returns a reference to the currently executing thread object.
      *
      * @return  the currently executing thread.
-     * @since   JDK1.0
      */
     public static native Thread currentThread();
 
     /**
      * Causes the currently executing thread object to temporarily pause 
      * and allow other threads to execute. 
-     *
-     * @since   JDK1.0
      */
     public static native void yield();
 
@@ -176,10 +192,10 @@ class Thread implements Runnable {
      * does not lose ownership of any monitors.
      *
      * @param      millis   the length of time to sleep in milliseconds.
-     * @exception  InterruptedException  if another thread has interrupted
-     *               this thread.
+     * @exception  InterruptedException if another thread has interrupted
+     *             the current thread.  The <i>interrupted status</i> of the
+     *             current thread is cleared when this exception is thrown.
      * @see        java.lang.Object#notify()
-     * @since      JDK1.0
      */
     public static native void sleep(long millis) throws InterruptedException;
 
@@ -190,12 +206,13 @@ class Thread implements Runnable {
      *
      * @param      millis   the length of time to sleep in milliseconds.
      * @param      nanos    0-999999 additional nanoseconds to sleep.
-     * @exception  IllegalArgumentException  if the value of millis is negative
-     *               or the value of nanos is not in the range 0-999999.
-     * @exception  InterruptedException  if another thread has interrupted
-     *               this thread.
+     * @exception  IllegalArgumentException  if the value of millis is 
+     *             negative or the value of nanos is not in the range 
+     *             0-999999.
+     * @exception  InterruptedException if another thread has interrupted
+     *             the current thread.  The <i>interrupted status</i> of the
+     *             current thread is cleared when this exception is thrown.
      * @see        java.lang.Object#notify()
-     * @since      JDK1.0
      */
     public static void sleep(long millis, int nanos) 
     throws InterruptedException {
@@ -249,8 +266,11 @@ class Thread implements Runnable {
 	this.daemon = parent.isDaemon();
 	this.priority = parent.getPriority();
 	this.name = name.toCharArray();
+	this.contextClassLoader = parent.contextClassLoader;
+	this.inheritedAccessControlContext = AccessController.getContext();
 	this.target = target;
 	setPriority(priority);
+        InheritableThreadLocal.bequeath(parent, this);
 	g.add(this);
     }
 
@@ -265,7 +285,7 @@ class Thread implements Runnable {
      * <code>run()</code> method to actually do anything.  An example
      * illustrating this method being used follows:
      * <p><blockquote><pre>
-     *     import java.lang.*; 
+     *     import java.lang.*;
      *
      *     class plain01 implements Runnable {
      *         String name; 
@@ -298,8 +318,8 @@ class Thread implements Runnable {
      *     }
      * </pre></blockquote>
      *
-     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
-     * @since   JDK1.0
+     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup,
+     *          java.lang.Runnable, java.lang.String)
      */
     public Thread() {
 	init(null, null, "Thread-" + nextThreadNum());
@@ -313,8 +333,8 @@ class Thread implements Runnable {
      * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer. 
      *
      * @param   target   the object whose <code>run</code> method is called.
-     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
-     * @since   JDK1.0
+     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, 
+     *          java.lang.Runnable, java.lang.String)
      */
     public Thread(Runnable target) {
 	init(null, target, "Thread-" + nextThreadNum());
@@ -330,9 +350,9 @@ class Thread implements Runnable {
      * @param      group    the thread group.
      * @param      target   the object whose <code>run</code> method is called.
      * @exception  SecurityException  if the current thread cannot create a
-     *               thread in the specified thread group.
-     * @see        java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
-     * @since      JDK1.0
+     *             thread in the specified thread group.
+     * @see        java.lang.Thread#Thread(java.lang.ThreadGroup, 
+     *             java.lang.Runnable, java.lang.String)
      */
     public Thread(ThreadGroup group, Runnable target) {
 	init(group, target, "Thread-" + nextThreadNum());
@@ -343,8 +363,8 @@ class Thread implements Runnable {
      * the same effect as <code>Thread(null, null, name)</code>. 
      *
      * @param   name   the name of the new thread.
-     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
-     * @since   JDK1.0
+     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, 
+     *          java.lang.Runnable, java.lang.String)
      */
     public Thread(String name) {
 	init(null, null, name);
@@ -358,8 +378,8 @@ class Thread implements Runnable {
      * @param      name    the name of the new thread.
      * @exception  SecurityException  if the current thread cannot create a
      *               thread in the specified thread group.
-     * @see        java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
-     * @since   JDK1.0
+     * @see        java.lang.Thread#Thread(java.lang.ThreadGroup, 
+     *          java.lang.Runnable, java.lang.String)
      */
     public Thread(ThreadGroup group, String name) {
 	init(group, null, name);
@@ -371,8 +391,8 @@ class Thread implements Runnable {
      *
      * @param   target   the object whose <code>run</code> method is called.
      * @param   name     the name of the new thread.
-     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
-     * @since   JDK1.0
+     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, 
+     *          java.lang.Runnable, java.lang.String)
      */
     public Thread(Runnable target, String name) {
 	init(null, target, name);
@@ -384,12 +404,13 @@ class Thread implements Runnable {
      * <code>name</code> as its name, and belongs to the thread group 
      * referred to by <code>group</code>.
      * <p>
-     * If <code>group</code> is not <code>null</code>, the 
-     * <code>checkAccess</code> method of that thread group is called with 
-     * no arguments; this may result in throwing a 
-     * <code>SecurityException</code>; if <code>group</code> is 
-     * <code>null</code>, the new process belongs to the same group as 
+     * If <code>group</code> is <code>null</code>, the group is
+     * set to be the same ThreadGroup as 
      * the thread that is creating the new thread. 
+     * 
+     * <p>If there is a security manager, its <code>checkAccess</code> 
+     * method is called with the ThreadGroup as its argument.
+     * This may result in a SecurityException.
      * <p>
      * If the <code>target</code> argument is not <code>null</code>, the 
      * <code>run</code> method of the <code>target</code> is called when 
@@ -417,7 +438,7 @@ class Thread implements Runnable {
      * @see        java.lang.Thread#setDaemon(boolean)
      * @see        java.lang.Thread#setPriority(int)
      * @see        java.lang.ThreadGroup#checkAccess()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkAccess
      */
     public Thread(ThreadGroup group, Runnable target, String name) {
 	init(group, target, name);
@@ -436,7 +457,6 @@ class Thread implements Runnable {
      *               started.
      * @see        java.lang.Thread#run()
      * @see        java.lang.Thread#stop()
-     * @since      JDK1.0
      */
     public synchronized native void start();
 
@@ -450,9 +470,9 @@ class Thread implements Runnable {
      *
      * @see     java.lang.Thread#start()
      * @see     java.lang.Thread#stop()
-     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, java.lang.Runnable, java.lang.String)
+     * @see     java.lang.Thread#Thread(java.lang.ThreadGroup, 
+     *          java.lang.Runnable, java.lang.String)
      * @see     java.lang.Runnable#run()
-     * @since   JDK1.0
      */
     public void run() {
 	if (target != null) {
@@ -474,10 +494,19 @@ class Thread implements Runnable {
     }
 
     /** 
-     * Forces the thread to stop executing.  
+     * Forces the thread to stop executing.
      * <p>
-     * First, the <code>checkAccess</code> method of this thread is called 
-     * with no arguments. This may result in throwing a 
+     * If there is a security manager installed, its <code>checkAccess</code>
+     * method is called with <code>this</code> 
+     * as its argument. This may result in a 
+     * <code>SecurityException</code> being raised (in the current thread). 
+     * <p>
+     * If this thread is different from the current thread (that is, the current
+     * thread is trying to stop a thread other than itself), the
+     * security manager's <code>checkPermission</code> method (with a
+     * <code>RuntimePermission("stopThread")</code> argument) is called in
+     * addition.
+     * Again, this may result in throwing a 
      * <code>SecurityException</code> (in the current thread). 
      * <p>
      * The thread represented by this thread is forced to stop whatever 
@@ -500,45 +529,69 @@ class Thread implements Runnable {
      * exceptions does not print out a message or otherwise notify the 
      * application if the uncaught exception is an instance of 
      * <code>ThreadDeath</code>. 
-     * <p>
-     * Note: the use of this method is unsafe as it can result in the 
-     * corruption of invariants. Stopping a thread with Thread.stop causes 
-     * it to unlock all of the monitors that it has locked (as a natural 
-     * consequence of the unchecked <code>ThreadDeath</code> exception 
-     * propagating up the stack). If any of the objects previously protected 
-     * by these monitors were in an inconsistent state, the damaged objects 
-     * become visible to other threads potentially resulting in arbitrary 
-     * behaviour. Many uses of <code>stop</code> should be replaced by code 
-     * that simply modifies some volatile variable to indicate that the target
-     * thread should stop running. The target thread should check this 
-     * variable regularly, and return from its run method in an orderly 
-     * fashion if the variable indicates that it is to stop running. If the 
-     * target thread waits for long periods, the interrupt method should be 
-     * used to interrupt the wait.
      *
-     * @exception  SecurityException  if the current thread cannot modify
-     *               this thread.
+     * @exception  SecurityException  if the current thread cannot 
+     *               modify this thread.
+     * @see        java.lang.Thread#interrupt()
      * @see        java.lang.Thread#checkAccess()
      * @see        java.lang.Thread#run()
      * @see        java.lang.Thread#start()
      * @see        java.lang.ThreadDeath
-     * @see        java.lang.ThreadGroup#uncaughtException(java.lang.Thread, java.lang.Throwable)
-     * @since      JDK1.0
+     * @see        java.lang.ThreadGroup#uncaughtException(java.lang.Thread,
+     *             java.lang.Throwable)
+     * @see        SecurityManager#checkAccess(Thread)
+     * @see        SecurityManager#checkPermission
+     * @deprecated This method is inherently unsafe.  Stopping a thread with
+     *	     Thread.stop causes it to unlock all of the monitors that it
+     *	     has locked (as a natural consequence of the unchecked
+     *	     <code>ThreadDeath</code> exception propagating up the stack).  If
+     *       any of the objects previously protected by these monitors were in
+     *       an inconsistent state, the damaged objects become visible to
+     *       other threads, potentially resulting in arbitrary behavior.  Many
+     *       uses of <code>stop</code> should be replaced by code that simply
+     *       modifies some variable to indicate that the target thread should
+     *       stop running.  The target thread should check this variable  
+     *       regularly, and return from its run method in an orderly fashion
+     *       if the variable indicates that it is to stop running.  If the
+     *       target thread waits for long periods (on a condition variable,
+     *       for example), the <code>interrupt</code> method should be used to
+     *       interrupt the wait. 
+     *       For more information, see 
+     *       <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *       are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final void stop() {
 	synchronized (this) {
-	    checkAccess();
-	    resume();	// Wake up thread if it was suspended; no-op otherwise
+	    SecurityManager security = System.getSecurityManager();
+	    if (security != null) {
+		checkAccess();
+		if (this != Thread.currentThread()) {
+		    if (stopThreadPermission == null)
+			stopThreadPermission =
+			    new RuntimePermission("stopThread");
+		    security.checkPermission(stopThreadPermission);
+		}
+	    }
+	    resume(); // Wake up thread if it was suspended; no-op otherwise
 	    stop0(new ThreadDeath());
 	}
     }
 
     /**
-     * Forces the thread to stop executing. 
+     * Forces the thread to stop executing.
      * <p>
-     * First, the <code>checkAccess</code> method of this thread is called 
-     * with no arguments. This may result in throwing a 
-     * <code>SecurityException </code>(in the current thread). 
+     * If there is a security manager installed, the <code>checkAccess</code>
+     * method of this thread is called, which may result in a 
+     * <code>SecurityException</code> being raised (in the current thread). 
+     * <p>
+     * If this thread is different from the current thread (that is, the current
+     * thread is trying to stop a thread other than itself) or
+     * <code>obj</code> is not an instance of <code>ThreadDeath</code>, the
+     * security manager's <code>checkPermission</code> method (with the
+     * <code>RuntimePermission("stopThread")</code> argument) is called in
+     * addition.
+     * Again, this may result in throwing a 
+     * <code>SecurityException</code> (in the current thread). 
      * <p>
      * If the argument <code>obj</code> is null, a 
      * <code>NullPointerException</code> is thrown (in the current thread). 
@@ -555,22 +608,48 @@ class Thread implements Runnable {
      * @param      obj   the Throwable object to be thrown.
      * @exception  SecurityException  if the current thread cannot modify
      *               this thread.
+     * @see        java.lang.Thread#interrupt()
      * @see        java.lang.Thread#checkAccess()
      * @see        java.lang.Thread#run()
      * @see        java.lang.Thread#start()
      * @see        java.lang.Thread#stop()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkAccess(Thread)
+     * @see        SecurityManager#checkPermission
+     * @deprecated This method is inherently unsafe.  See {@link #stop}
+     *        (with no arguments) for details.  An additional danger of this
+     *        method is that it may be used to generate exceptions that the
+     *        target thread is unprepared to handle (including checked
+     *        exceptions that the thread could not possibly throw, were it
+     *        not for this method).
+     *        For more information, see 
+     *        <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *        are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
-    public final synchronized void stop(Throwable o) {
-	checkAccess();
-	resume();	// Wake up thread if it was suspended; no-op otherwise
-	stop0(o);
+    public final synchronized void stop(Throwable obj) {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    checkAccess();
+	    if ((this != Thread.currentThread()) ||
+		(!(obj instanceof ThreadDeath))) {
+		if (stopThreadPermission == null)
+		    stopThreadPermission = new RuntimePermission("stopThread");
+		security.checkPermission(stopThreadPermission);
+	    }
+	}
+	resume(); // Wake up thread if it was suspended; no-op otherwise
+	stop0(obj);
     }
 
     /**
      * Interrupts this thread.
-     *
-     * @since   JDK1.0
+     * 
+     * <p>
+     * First the <code>checkAccess</code> method of this thread is called 
+     * with no arguments. This may result in throwing a 
+     * <code>SecurityException</code>. 
+     * 
+     * @exception  SecurityException  if the current thread cannot modify
+     *         this thread.
      */
 	// Note that this method is not synchronized.  Three reasons for this:
 	// 1) It changes the API.
@@ -583,37 +662,35 @@ class Thread implements Runnable {
     }
 
     /**
-     * Tests if the current thread has been interrupted.
-     * Note that <code>interrupted</code> is a static method, while 
-     * <code>isInterrupted</code> is called on the current 
-     * <code>Thread</code> instance. 
+     * Tests whether the current thread has been interrupted.  The
+     * <i>interrupted status</i> of the thread is cleared by this method.  In
+     * other words, if this method were to be called twice in succession, the
+     * second call would return false (unless the current thread were
+     * interrupted again, after the first call had cleared its interrupted
+     * status and before the second call had examined it).
      *
      * @return  <code>true</code> if the current thread has been interrupted;
      *          <code>false</code> otherwise.
-     * @see     java.lang.Thread#isInterrupted()
-     * @since   JDK1.0
+     * @see java.lang.Thread#isInterrupted()
      */
     public static boolean interrupted() {
 	return currentThread().isInterrupted(true);
     }
 
     /**
-     * Tests if the current thread has been interrupted.
-     * Note that <code>isInterrupted</code> 
-     * is called on the current <code>Thread</code> instance; by 
-     * contrast, <code>interrupted</code> is a static method. 
+     * Tests whether this thread has been interrupted.  The <i>interrupted
+     * status</i> of the thread is unaffected by this method.
      *
      * @return  <code>true</code> if this thread has been interrupted;
      *          <code>false</code> otherwise.
      * @see     java.lang.Thread#interrupted()
-     * @since   JDK1.0
      */
     public boolean isInterrupted() {
 	return isInterrupted(false);
     }
 
     /**
-     * Ask if some Thread has been interrupted.  The interrupted state
+     * Tests if some Thread has been interrupted.  The interrupted state
      * is reset or not based on the value of ClearInterrupted that is
      * passed.
      */
@@ -621,10 +698,7 @@ class Thread implements Runnable {
 
     /**
      * Destroys this thread, without any cleanup. Any monitors it has 
-     * locked remain locked. (This method is not implemented in 
-     * Java&nbsp;1.0.2.)
-     *
-     * @since   JDK1.0
+     * locked remain locked. (This method is not implemented.)
      */
     public void destroy() {
 	throw new NoSuchMethodError();
@@ -636,12 +710,11 @@ class Thread implements Runnable {
      *
      * @return  <code>true</code> if this thread is alive;
      *          <code>false</code> otherwise.
-     * @since   JDK1.0
      */
     public final native boolean isAlive();
 
     /**
-     * Suspends this thread. 
+     * Suspends this thread.
      * <p>
      * First, the <code>checkAccess</code> method of this thread is called 
      * with no arguments. This may result in throwing a 
@@ -652,9 +725,17 @@ class Thread implements Runnable {
      *
      * @exception  SecurityException  if the current thread cannot modify
      *               this thread.
-     * @see        java.lang.Thread#checkAccess()
-     * @see        java.lang.Thread#isAlive()
-     * @since      JDK1.0
+     * @see #checkAccess
+     * @deprecated   This method has been deprecated, as it is
+     *   inherently deadlock-prone.  If the target thread holds a lock on the
+     *   monitor protecting a critical system resource when it is suspended, no
+     *   thread can access this resource until the target thread is resumed. If
+     *   the thread that would resume the target thread attempts to lock this
+     *   monitor prior to calling <code>resume</code>, deadlock results.  Such
+     *   deadlocks typically manifest themselves as "frozen" processes.
+     *   For more information, see 
+     *   <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *   are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final void suspend() {
 	checkAccess();
@@ -662,20 +743,24 @@ class Thread implements Runnable {
     }
 
     /**
-     * Resumes a suspended thread. 
+     * Resumes a suspended thread.
      * <p>
      * First, the <code>checkAccess</code> method of this thread is called 
      * with no arguments. This may result in throwing a 
-     * <code>SecurityException</code>(in the current thread). 
+     * <code>SecurityException</code> (in the current thread). 
      * <p>
      * If the thread is alive but suspended, it is resumed and is 
      * permitted to make progress in its execution. 
      *
      * @exception  SecurityException  if the current thread cannot modify this
      *               thread.
-     * @see        java.lang.Thread#checkAccess()
-     * @see        java.lang.Thread#isAlive()
-     * @since      JDK1.0
+     * @see        #checkAccess
+     * @see        java.lang.Thread#suspend()
+     * @deprecated This method exists solely for use with {@link #suspend},
+     *     which has been deprecated because it is deadlock-prone.
+     *     For more information, see 
+     *     <a href="../../../guide/misc/threadPrimitiveDeprecation.html">Why 
+     *     are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final void resume() {
 	checkAccess();
@@ -704,7 +789,6 @@ class Thread implements Runnable {
      * @see        java.lang.Thread#MAX_PRIORITY
      * @see        java.lang.Thread#MIN_PRIORITY
      * @see        java.lang.ThreadGroup#getMaxPriority()
-     * @since      JDK1.0
      */
     public final void setPriority(int newPriority) {
 	checkAccess();
@@ -722,7 +806,6 @@ class Thread implements Runnable {
      *
      * @return  this thread's name.
      * @see     java.lang.Thread#setPriority(int)
-     * @since   JDK1.0
      */
     public final int getPriority() {
 	return priority;
@@ -741,7 +824,6 @@ class Thread implements Runnable {
      *               thread.
      * @see        java.lang.Thread#checkAccess()
      * @see        java.lang.Thread#getName()
-     * @since      JDK1.0
      */
     public final void setName(String name) {
 	checkAccess();
@@ -753,41 +835,50 @@ class Thread implements Runnable {
      *
      * @return  this thread's name.
      * @see     java.lang.Thread#setName(java.lang.String)
-     * @since   JDK1.0
      */
     public final String getName() {
 	return String.valueOf(name);
     }
 
     /**
-     * Returns this thread's thread group.
+     * Returns the thread group to which this thread belongs. 
+     * This method returns null if this thread has died
+     * (been stopped).
      *
      * @return  this thread's thread group.
-     * @since   JDK1.0
      */
     public final ThreadGroup getThreadGroup() {
 	return group;
     }
 
     /**
-     * Returns the current number of active threads in this thread group.
+     * Returns the current number of active threads in this thread's 
+     * thread group.
      *
      * @return  the current number of threads in this thread's thread group.
-     * @since   JDK1.0
      */
     public static int activeCount() {
 	return currentThread().getThreadGroup().activeCount();
     }
 
     /**
-     * Copies into the specified array every active thread in this 
-     * thread group and its subgroups. This method simply calls the 
-     * <code>enumerate</code> method of this thread's thread group with 
-     * the array argument. 
+     * Copies into the specified array every active thread in 
+     * this thread's thread group and its subgroups. This method simply 
+     * calls the <code>enumerate</code> method of this thread's thread 
+     * group with the array argument. 
+     * <p>
+     * First, if there is a security manager, that <code>enumerate</code>
+     * method calls the security
+     * manager's <code>checkAccess</code> method 
+     * with the thread group as its argument. This may result 
+     * in throwing a <code>SecurityException</code>. 
      *
      * @return  the number of threads put into the array.
+     *
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkAccess</code> method doesn't allow the operation.
      * @see     java.lang.ThreadGroup#enumerate(java.lang.Thread[])
-     * @since   JDK1.0
+     * @see     java.lang.SecurityManager#checkAccess(java.lang.ThreadGroup)
      */
     public static int enumerate(Thread tarray[]) {
 	return currentThread().getThreadGroup().enumerate(tarray);
@@ -798,8 +889,11 @@ class Thread implements Runnable {
      * be suspended. 
      *
      * @return     the number of stack frames in this thread.
-     * @exception  IllegalThreadStateException  if this thread is not suspended.
-     * @since      JDK1.0
+     * @exception  IllegalThreadStateException  if this thread is not
+     *             suspended.
+     * @deprecated The definition of this call depends on {@link #suspend},
+     *		   which is deprecated.  Further, the results of this call
+     *		   were never well-defined.
      */
     public native int countStackFrames();
 
@@ -808,11 +902,12 @@ class Thread implements Runnable {
      * die. A timeout of <code>0</code> means to wait forever. 
      *
      * @param      millis   the time to wait in milliseconds.
-     * @exception  InterruptedException  if another thread has interrupted the
-     *               current thread.
-     * @since      JDK1.0
+     * @exception  InterruptedException if another thread has interrupted
+     *             the current thread.  The <i>interrupted status</i> of the
+     *             current thread is cleared when this exception is thrown.
      */
-    public final synchronized void join(long millis) throws InterruptedException {
+    public final synchronized void join(long millis) 
+    throws InterruptedException {
 	long base = System.currentTimeMillis();
 	long now = 0;
 
@@ -844,11 +939,12 @@ class Thread implements Runnable {
      * @param      nanos    0-999999 additional nanoseconds to wait.
      * @exception  IllegalArgumentException  if the value of millis is negative
      *               the value of nanos is not in the range 0-999999.
-     * @exception  InterruptedException  if another thread has interrupted the
-     *               current thread.
-     * @since      JDK1.0
+     * @exception  InterruptedException if another thread has interrupted
+     *             the current thread.  The <i>interrupted status</i> of the
+     *             current thread is cleared when this exception is thrown.
      */
-    public final synchronized void join(long millis, int nanos) throws InterruptedException {
+    public final synchronized void join(long millis, int nanos) 
+    throws InterruptedException {
 
 	if (millis < 0) {
             throw new IllegalArgumentException("timeout value is negative");
@@ -869,9 +965,9 @@ class Thread implements Runnable {
     /**
      * Waits for this thread to die. 
      *
-     * @exception  InterruptedException  if another thread has interrupted the
-     *               current thread.
-     * @since      JDK1.0
+     * @exception  InterruptedException if another thread has interrupted
+     *             the current thread.  The <i>interrupted status</i> of the
+     *             current thread is cleared when this exception is thrown.
      */
     public final void join() throws InterruptedException {
 	join(0);
@@ -882,7 +978,6 @@ class Thread implements Runnable {
      * only for debugging. 
      *
      * @see     java.lang.Throwable#printStackTrace()
-     * @since   JDK1.0
      */
     public static void dumpStack() {
 	new Exception("Stack trace").printStackTrace();
@@ -894,12 +989,19 @@ class Thread implements Runnable {
      * daemon threads. 
      * <p>
      * This method must be called before the thread is started. 
-     *
+      * <p>
+     * This method first calls the <code>checkAccess</code> method 
+     * of this thread 
+     * with no arguments. This may result in throwing a 
+     * <code>SecurityException </code>(in the current thread). 
+    *
      * @param      on   if <code>true</code>, marks this thread as a
      *                  daemon thread.
      * @exception  IllegalThreadStateException  if this thread is active.
+     * @exception  SecurityException  if the current thread cannot modify
+     *               this thread.
      * @see        java.lang.Thread#isDaemon()
-     * @since      JDK1.0
+     * @see          #checkAccess
      */
     public final void setDaemon(boolean on) {
 	checkAccess();
@@ -915,7 +1017,6 @@ class Thread implements Runnable {
      * @return  <code>true</code> if this thread is a daemon thread;
      *          <code>false</code> otherwise.
      * @see     java.lang.Thread#setDaemon(boolean)
-     * @since   JDK1.0
      */
     public final boolean isDaemon() {
 	return daemon;
@@ -928,13 +1029,15 @@ class Thread implements Runnable {
      * If there is a security manager, its <code>checkAccess</code> method 
      * is called with this thread as its argument. This may result in 
      * throwing a <code>SecurityException</code>. 
+     * <p>
+     * Note: This method was mistakenly non-final in JDK 1.1.
+     * It has been made final in JDK 1.2.
      *
      * @exception  SecurityException  if the current thread is not allowed to
      *               access this thread.
      * @see        java.lang.SecurityManager#checkAccess(java.lang.Thread)
-     * @since      JDK1.0
      */
-    public void checkAccess() {
+    public final void checkAccess() {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkAccess(this);
@@ -946,7 +1049,6 @@ class Thread implements Runnable {
      * thread's name, priority, and thread group.
      *
      * @return  a string representation of this thread.
-     * @since   JDK1.0
      */
     public String toString() {
 	if (getThreadGroup() != null) {
@@ -958,10 +1060,83 @@ class Thread implements Runnable {
 	}
     }
 
+    /**    
+     * Returns the context ClassLoader for this Thread. The context
+     * ClassLoader is provided by the creator of the thread for use
+     * by code running in this thread when loading classes and resources.
+     * If not set, the default is the ClassLoader context of the parent
+     * Thread. The context ClassLoader of the primordial thread is
+     * typically set to the class loader used to load the application.
+     *
+     * <p>First, if there is a security manager, and the caller's class
+     * loader is not null and the caller's class loader is not the same as or
+     * an ancestor of the context class loader for the thread whose
+     * context class loader is being requested, then the security manager's
+     * <code>checkPermission</code> 
+     * method is called with a 
+     * <code>RuntimePermission("getClassLoader")</code> permission
+     *  to see if it's ok to get the context ClassLoader.. 
+     *
+     * @return the context ClassLoader for this Thread
+     *
+     * @throws SecurityException
+     *        if a security manager exists and its 
+     *        <code>checkPermission</code> method doesn't allow 
+     *        getting the context ClassLoader.
+     * 
+     * @see SecurityManager#checkPermission
+     * @see java.lang.RuntimePermission
+     * 
+     * @since JDK1.2
+     */
+    public ClassLoader getContextClassLoader() {
+	if (contextClassLoader == null)
+	    return null;
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    ClassLoader ccl = ClassLoader.getCallerClassLoader();
+	    if (ccl != null && ccl != contextClassLoader && 
+                    !contextClassLoader.isAncestor(ccl)) {
+		sm.checkPermission(ClassLoader.getGetClassLoaderPerm());
+	    }
+	}
+	return contextClassLoader;
+    }
+
+    /**   
+     * Sets the context ClassLoader for this Thread. The context
+     * ClassLoader can be set when a thread is created, and allows
+     * the creator of the thread to provide the appropriate class loader
+     * to code running in the thread when loading classes and resources.
+     *
+     * <p>First, if there is a security manager, its <code>checkPermission</code> 
+     * method is called with a 
+     * <code>RuntimePermission("setContextClassLoader")</code> permission
+     *  to see if it's ok to set the context ClassLoader.. 
+     *
+     * @param cl the context ClassLoader for this Thread
+     * 
+     * @exception  SecurityException  if the current thread cannot set the 
+     * context ClassLoader.
+     * 
+     * @see SecurityManager#checkPermission
+     * @see java.lang.RuntimePermission
+     * 
+     * @since JDK1.2 
+     */
+    public void setContextClassLoader(ClassLoader cl) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("setContextClassLoader"));
+	}
+	contextClassLoader = cl;
+    }
+
     /* Some private helper methods */
     private native void setPriority0(int newPriority);
     private native void stop0(Object o);
     private native void suspend0();
     private native void resume0();
     private native void interrupt0();
+
 }

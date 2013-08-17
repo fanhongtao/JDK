@@ -1,8 +1,15 @@
 /*
- * @(#)Math.java	1.26 01/12/10
+ * @(#)Math.java	1.34 98/07/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -24,12 +31,10 @@ import java.util.Random;
  * understood as executed with all floating-point operations 
  * following the rules of Java floating-point arithmetic. 
  * <p>
- * The network library may be found on the World Wide Web at 
- * <ul><code>
- *   http://netlib.att.com/
- * </code></ul>
- * <p>
- * then perform a keyword search for "<code>fdlibm</code>".
+ * The network library may be found on the World Wide Web at:
+ * <blockquote><pre>
+ *   http://sunsite.unc.edu/
+ * </pre></blockquote>
  * <p>
  * The Java math library is defined with respect to the version of 
  * <code>fdlibm</code> dated January 4, 1995. Where 
@@ -39,7 +44,7 @@ import java.util.Random;
  * the letter <code>e</code>). 
  *
  * @author  unascribed
- * @version 1.26, 12/10/01
+ * @version 1.34, 07/23/98
  * @since   JDK1.0
  */
 
@@ -53,16 +58,12 @@ public final class Math {
     /**
      * The <code>double</code> value that is closer than any other to 
      * <code>e</code>, the base of the natural logarithms. 
-     *
-     * @since   JDK1.0
      */
     public static final double E = 2.7182818284590452354;
 
     /**
      * The <code>double</code> value that is closer than any other to 
      * <i>pi</i>, the ratio of the circumference of a circle to its diameter. 
-     *
-     * @since   JDK1.0
      */
     public static final double PI = 3.14159265358979323846;
 
@@ -71,7 +72,6 @@ public final class Math {
      *
      * @param   a   an angle, in radians.
      * @return  the sine of the argument.
-     * @since   JDK1.0
      */
     public static native double sin(double a);
     
@@ -80,7 +80,6 @@ public final class Math {
      *
      * @param   a   an angle, in radians.
      * @return  the cosine of the argument.
-     * @since   JDK1.0
      */
     public static native double cos(double a);
    
@@ -89,7 +88,6 @@ public final class Math {
      *
      * @param   a   an angle, in radians.
      * @return  the tangent of the argument.
-     * @since   JDK1.0
      */
     public static native double tan(double a);
 
@@ -97,9 +95,9 @@ public final class Math {
      * Returns the arc sine of an angle, in the range of -<i>pi</i>/2 through
      * <i>pi</i>/2.
      *
-     * @param   a   an angle, in radians.
+     * @param   a   the <code>double</code> value whose arc sine is to 
+     *              be returned.
      * @return  the arc sine of the argument.
-     * @since   JDK1.0
      */
     public static native double asin(double a);
 
@@ -107,9 +105,9 @@ public final class Math {
      * Returns the arc cosine of an angle, in the range of 0.0 through
      * <i>pi</i>.
      *
-     * @param   a   an angle, in radians.
+     * @param   a   the <code>double</code> value whose arc cosine is to 
+     *              be returned.
      * @return  the arc cosine of the argument.
-     * @since   JDK1.0
      */
     public static native double acos(double a); 
 
@@ -117,11 +115,37 @@ public final class Math {
      * Returns the arc tangent of an angle, in the range of -<i>pi</i>/2
      * through <i>pi</i>/2.
      *
-     * @param   a   an angle, in radians.
+     * @param   a   the <code>double</code> value whose arc tangent is to 
+     *              be returned.
      * @return  the arc tangent of the argument.
-     * @since   JDK1.0
      */
     public static native double atan(double a);
+
+    /**
+     * Converts an angle measured in degrees to the equivalent angle
+     * measured in radians.
+     *
+     * @param   angdeg   an angle, in degrees
+     * @return  the measurement of the angle <code>angdeg</code>
+     *          in radians.
+     * @since   JDK1.2
+     */
+    public static double toRadians(double angdeg) {
+	return angdeg / 180.0 * PI;
+    }
+
+    /**
+     * Converts an angle measured in radians to the equivalent angle
+     * measured in degrees.
+     *
+     * @param   angrad   an angle, in radians
+     * @return  the measurement of the angle <code>angrad</code>
+     *          in degrees.
+     * @since   JDK1.2
+     */
+    public static double toDegrees(double angrad) {
+	return angrad * 180.0 / PI;
+    }
 
     /**
      * Returns the exponential number <i>e</i> (i.e., 2.718...) raised to
@@ -130,7 +154,6 @@ public final class Math {
      * @param   a   a <code>double</code> value.
      * @return  the value <i>e</i><sup>a</sup>, where <i>e</i> is the base of
      *          the natural logarithms.
-     * @since   JDK1.0
      */
     public static native double exp(double a);
 
@@ -141,7 +164,6 @@ public final class Math {
      * @param   a   a number greater than <code>0.0</code>.
      * @return  the value ln&nbsp;<code>a</code>, the natural logarithm of
      *          <code>a</code>.
-     * @since   JDK1.0
      */
     public static native double log(double a);
 
@@ -152,7 +174,6 @@ public final class Math {
      * <!--@return  the value of &radic;&nbsp;<code>a</code>.-->
      * @return  the square root of <code>a</code>.
      *          If the argument is NaN or less than zero, the result is NaN.
-     * @since   JDK1.0
      */
     public static native double sqrt(double a);
 
@@ -171,7 +192,6 @@ public final class Math {
      * @param   f2   the divisor.
      * @return  the remainder when <code>f1</code> is divided by
      *          <code>f2</code>.
-     * @since   JDK1.0
      */
     public static native double IEEEremainder(double f1, double f2);
 
@@ -185,7 +205,6 @@ public final class Math {
      * @return  the smallest (closest to negative infinity) 
      *          <code>double</code> value that is not less than the argument
      *          and is equal to a mathematical integer. 
-     * @since   JDK1.0
      */
     public static native double ceil(double a);
 
@@ -200,7 +219,6 @@ public final class Math {
      * @return  the largest (closest to positive infinity) 
      *          <code>double</code> value that is not greater than the argument
      *          and is equal to a mathematical integer. 
-     * @since   JDK1.0
      */
     public static native double floor(double a);
 
@@ -213,7 +231,6 @@ public final class Math {
      *          values that are mathematical integers are equally close to the
      *          value of the argument, the result is the integer value that
      *          is even.
-     * @since   JDK1.0
      */
     public static native double rint(double a);
 
@@ -221,7 +238,7 @@ public final class Math {
      * Converts rectangular coordinates (<code>b</code>,&nbsp;<code>a</code>)
      * to polar (r,&nbsp;<i>theta</i>).
      * This method computes the phase <i>theta</i> by computing an arc tangent
-     * of <code>b/a</code> in the range of -<i>pi</i> to <i>pi</i>.
+     * of <code>a/b</code> in the range of -<i>pi</i> to <i>pi</i>.
      *
      * @param   a   a <code>double</code> value.
      * @param   b   a <code>double</code> value.
@@ -229,7 +246,6 @@ public final class Math {
      *          (<i>r</i>,&nbsp;<i>theta</i>)
      *          in polar coordinates that corresponds to the point
      *          (<i>b</i>,&nbsp;<i>a</i>) in Cartesian coordinates.
-     * @since   JDK1.0
      */
     public static native double atan2(double a, double b);
 
@@ -247,10 +263,9 @@ public final class Math {
      * @param   b   a <code>double</code> value.
      * @return  the value <code>a<sup>b</sup></code>.
      * @exception ArithmeticException  if (<code>a&nbsp;==&nbsp;0.0</code>) and
-     *              (<code>b&nbsp;&lt;=&nbsp0.0</code>), or
+     *              (<code>b&nbsp;&lt;=&nbsp;0.0</code>), or
      *              if (<code>a&nbsp;&lt;=&nbsp;0.0</code>) and <code>b</code>
      *              is not equal to a whole number.
-     * @since   JDK1.0
      */
     public static native double pow(double a, double b);
 
@@ -270,7 +285,6 @@ public final class Math {
      *          <code>int</code> value.
      * @see     java.lang.Integer#MAX_VALUE
      * @see     java.lang.Integer#MIN_VALUE
-     * @since   JDK1.0
      */
     public static int round(float a) {
 	return (int)floor(a + 0.5f);
@@ -292,7 +306,6 @@ public final class Math {
      *          <code>long</code> value.
      * @see     java.lang.Long#MAX_VALUE
      * @see     java.lang.Long#MIN_VALUE
-     * @since   JDK1.0
      */
     public static long round(double a) {
 	return (long)floor(a + 0.5d);
@@ -301,15 +314,25 @@ public final class Math {
     private static Random randomNumberGenerator;
 
     /**
-     * Returns a random number between <code>0.0</code> and <code>1.0</code>.
-     * Random number generators are often referred to as pseudorandom number 
-     * generators because the numbers produced tend to repeat themselves after
-     * a period of time.
+     * Returns a random number greater than or equal to <code>0.0</code> 
+     * and less than <code>1.0</code>. Returned values are chosen 
+     * pseudorandomly with (approximately) uniform distribution from that 
+     * range. 
+     * <p>
+     * When this method is first called, it creates a single new 
+     * pseudorandom-number generator, exactly as if by the expression 
+     * <blockquote><pre>new java.util.Random</pre></blockquote>
+     * This new pseudorandom-number generator is used thereafter for all 
+     * calls to this method and is used nowhere else. 
+     * <p>
+     * This method is properly synchronized to allow correct use by more 
+     * than one thread. However, if many threads need to generate 
+     * pseudorandom numbers at a great rate, it may reduce contention for 
+     * each thread to have its own pseudorandom-number generator.
      *  
-     * @return  a pseudorandom <code>double</code> between <code>0.0</code>
-     *          and <code>1.0</code>.
+     * @return  a pseudorandom <code>double</code> greater than or equal 
+     * to <code>0.0</code> and less than <code>1.0</code>.
      * @see     java.util.Random#nextDouble()
-     * @since   JDK1.0
      */
     public static synchronized double random() {
         if (randomNumberGenerator == null)
@@ -330,7 +353,6 @@ public final class Math {
      * @param   a   an <code>int</code> value.
      * @return  the absolute value of the argument.
      * @see     java.lang.Integer#MIN_VALUE
-     * @since   JDK1.0
      */
     public static int abs(int a) {
 	return (a < 0) ? -a : a;
@@ -349,7 +371,6 @@ public final class Math {
      * @param   a   a <code>long</code> value.
      * @return  the absolute value of the argument.
      * @see     java.lang.Long#MIN_VALUE
-     * @since   JDK1.0
      */
     public static long abs(long a) {
 	return (a < 0) ? -a : a;
@@ -362,10 +383,9 @@ public final class Math {
      *
      * @param   a   a <code>float</code> value.
      * @return  the absolute value of the argument.
-     * @since   JDK1.0
      */
     public static float abs(float a) {
-	return (a < 0) ? -a : a;
+        return (a <= 0.0F) ? 0.0F - a : a;
     }
   
     /**
@@ -375,10 +395,9 @@ public final class Math {
      *
      * @param   a   a <code>double</code> value.
      * @return  the absolute value of the argument.
-     * @since   JDK1.0
      */
     public static double abs(double a) {
-	return (a < 0) ? -a : a;
+        return (a <= 0.0D) ? 0.0D - a : a;
     }
 
     /**
@@ -387,7 +406,6 @@ public final class Math {
      * @param   a   an <code>int</code> value.
      * @param   b   an <code>int</code> value.
      * @return  the larger of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static int max(int a, int b) {
 	return (a >= b) ? a : b;
@@ -399,7 +417,6 @@ public final class Math {
      * @param   a   a <code>long</code> value.
      * @param   b   a <code>long</code> value.
      * @return  the larger of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static long max(long a, long b) {
 	return (a >= b) ? a : b;
@@ -417,7 +434,6 @@ public final class Math {
      * @param   a   a <code>float</code> value.
      * @param   b   a <code>float</code> value.
      * @return  the larger of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static float max(float a, float b) {
         if (a != a) return a;	// a is NaN
@@ -437,7 +453,6 @@ public final class Math {
      * @param   a   a <code>double</code> value.
      * @param   b   a <code>double</code> value.
      * @return  the larger of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static double max(double a, double b) {
         if (a != a) return a;	// a is NaN
@@ -454,7 +469,6 @@ public final class Math {
      * @param   a   an <code>int</code> value.
      * @param   b   an <code>int</code> value.
      * @return  the smaller of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static int min(int a, int b) {
 	return (a <= b) ? a : b;
@@ -466,7 +480,6 @@ public final class Math {
      * @param   a   a <code>long</code> value.
      * @param   b   a <code>long</code> value.
      * @return  the smaller of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static long min(long a, long b) {
 	return (a <= b) ? a : b;
@@ -481,7 +494,6 @@ public final class Math {
      * @param   a   a <code>float</code> value.
      * @param   b   a <code>float</code> value.
      * @return  the smaller of <code>a</code> and <code>b.</code>
-     * @since   JDK1.0
      */
     public static float min(float a, float b) {
         if (a != a) return a;	// a is NaN
@@ -501,7 +513,6 @@ public final class Math {
      * @param   a   a <code>double</code> value.
      * @param   b   a <code>double</code> value.
      * @return  the smaller of <code>a</code> and <code>b</code>.
-     * @since   JDK1.0
      */
     public static double min(double a, double b) {
         if (a != a) return a;	// a is NaN

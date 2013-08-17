@@ -1,0 +1,105 @@
+/*
+ * @(#)IsindexView.java	1.3 98/08/26
+ *
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ */
+package javax.swing.text.html;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.net.URLEncoder;
+import java.net.MalformedURLException;
+import java.io.IOException;
+import java.net.URL;
+import javax.swing.text.*;
+import javax.swing.*;
+
+
+/**
+ * A view that supports the <ISINDEX> tag.  This is implemented
+ * as a JPanel that contains 
+ *
+ * @author Sunita Mani
+ * @version 1.3, 08/26/98
+ */
+
+class IsindexView extends ComponentView implements ActionListener {
+ 
+    public static final String DEFAULT_PROMPT = "This is a searchable index.  Enter search keywords:";
+    JTextField textField;
+
+    /**
+     * Creates an IsindexView
+     */
+    public IsindexView(Element elem) {
+	super(elem);
+    }
+
+    /**
+     * Creates the components necessary to to implement
+     * this view.  THe component returned is a JPanel,
+     * that contains the PROMPT to the left and JTextField
+     * to the right.
+     */
+    public Component createComponent() {
+	AttributeSet attr = getElement().getAttributes();
+	
+	JPanel panel = new JPanel(new BorderLayout());
+	panel.setBackground(null);
+	
+	String prompt = (String)attr.getAttribute(HTML.Attribute.PROMPT);
+	if (prompt == null) {
+	    prompt = DEFAULT_PROMPT;
+	}
+	JLabel label = new JLabel(prompt);
+
+	textField = new JTextField();
+	textField.addActionListener(this);
+	panel.add(label, BorderLayout.WEST);
+	panel.add(textField, BorderLayout.CENTER);
+	panel.setAlignmentY(1.0f);
+	panel.setOpaque(false);
+	return panel;
+    }
+
+    /**
+     * Responsible for processeing the ActionEvent.
+     * In this case this is hitting enter/return
+     * in the text field.  This will construct the
+     * url from the base url of the document.
+     * To the url is appended a '?' followed by the
+     * contents of the JTextField.  The search 
+     * contents are URLEncoded.
+     */
+    public void actionPerformed(ActionEvent evt) {
+
+	String data = textField.getText();
+	if (data != null) {
+	    data = URLEncoder.encode(data);
+	}
+
+
+	AttributeSet attr = getElement().getAttributes();
+	HTMLDocument hdoc = (HTMLDocument)getElement().getDocument();
+
+	String action = (String) attr.getAttribute(HTML.Attribute.ACTION);
+	if (action == null) {
+	    action = hdoc.getBase().toString();
+	}
+	try {
+	    URL url = new URL(action+"?"+data);
+	    JEditorPane pane = (JEditorPane)getContainer();
+	    pane.setPage(url);
+	} catch (MalformedURLException e1) {
+	} catch (IOException e2) {
+	}
+    }
+}

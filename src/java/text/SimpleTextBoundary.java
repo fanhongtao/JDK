@@ -1,17 +1,20 @@
 /*
- * @(#)SimpleTextBoundary.java	1.16 01/12/10
+ * @(#)SimpleTextBoundary.java	1.23 98/07/27
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -30,20 +33,23 @@
 
 package java.text;
 
+import java.io.IOException;
+
 /**
  * SimpleTextBoundary is an implementation of the BreakIterator
  * protocol.  SimpleTextBoundary uses a state machine to compute breaks.
  * There are currently several subclasses of SimpleTextBoundary that
  * compute breaks for sentences, words, lines, and characters.  They are
  * accessable through static functions of SimpleTextBoundary.
+ *
  * @see BreakIterator
  */
 
 final class SimpleTextBoundary extends BreakIterator
 {
 
-    private int pos;
-    private CharacterIterator text;
+    private transient int pos;
+    private transient CharacterIterator text;
     private TextBoundaryData data;
 
     // internally, the not-a-Unicode value is used as a sentinel value meaning
@@ -229,6 +235,23 @@ final class SimpleTextBoundary extends BreakIterator
     }
 
     /**
+     * Return true if the specified position is a boundary position.
+     * @param offset the offset to check.
+     * @return True if "offset" is a boundary position.
+     */
+    public boolean isBoundary(int offset) {
+        int begin = text.getBeginIndex();
+        if (offset < begin || offset >= text.getEndIndex())
+            throw new IllegalArgumentException(
+              "isBoundary offset out of bounds");
+
+        if (offset == begin)
+            return true;
+        else
+            return following(offset - 1) == offset;
+    }
+
+    /**
      * Return the first boundary after the specified offset
      * @param offset the offset to start
      * @return int the first boundary after offset
@@ -247,6 +270,28 @@ final class SimpleTextBoundary extends BreakIterator
     }
 
     /**
+     * Return the last boundary preceding the specified offset
+     * @param offset the offset to start
+     * @return the last boundary before offset
+     */
+    public int preceding(int offset)
+    {
+        if (offset < text.getBeginIndex() || offset >= text.getEndIndex())
+            throw new IllegalArgumentException("preceding() offset out of bounds");
+        if (offset == text.getBeginIndex())
+            return BreakIterator.DONE;
+        pos = previousSafePosition(offset);
+        int curr = pos;
+        int last;
+        do {
+            last = curr;
+            curr = next();
+        } while (curr < offset && curr != BreakIterator.DONE);
+        pos = last;
+        return last;
+    }
+
+    /**
      * Return the boundary last returned by previous or next
      * @return int the boundary last returned by previous or next
      */
@@ -262,7 +307,9 @@ final class SimpleTextBoundary extends BreakIterator
         int result = text.getBeginIndex();
         int state = data.backward().initialState();
 
-        for (char c = text.setIndex(offset);
+        if (offset == result)
+            ++offset;
+        for (char c = text.setIndex(offset - 1);
              c != CharacterIterator.DONE && !data.backward().isEndState(state);
              c = text.previous()) {
 

@@ -1,8 +1,15 @@
 /*
- * @(#)LineNumberReader.java	1.7 01/12/10
+ * @(#)LineNumberReader.java	1.9 98/03/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -13,7 +20,7 @@ package java.io;
  * is considered to be terminated by any one of a line feed ('\n'), a carriage
  * return ('\r'), or a carriage return followed immediately by a linefeed.
  *
- * @version 	1.7, 01/12/10
+ * @version 	1.9, 98/03/18
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -28,6 +35,9 @@ public class LineNumberReader extends BufferedReader {
 
     /** If the next character is a line feed, skip it */
     private boolean skipLF;
+
+    /** The skipLF flag when the mark was set */
+    private boolean markedSkipLF;
 
     /**
      * Create a new line-numbering reader, using the default input-buffer
@@ -103,7 +113,7 @@ public class LineNumberReader extends BufferedReader {
 	synchronized (lock) {
 	    int n = super.read(cbuf, off, len);
 
-	    for (int i = off; i < off + len; i++) {
+	    for (int i = off; i < off + n; i++) {
 		int c = cbuf[i];
 		if (skipLF) {
 		    skipLF = false;
@@ -136,10 +146,10 @@ public class LineNumberReader extends BufferedReader {
      */
     public String readLine() throws IOException {
 	synchronized (lock) {
-	    String l = super.readLine();
+	    String l = super.readLine(skipLF);
+            skipLF = false;
 	    if (l != null)
 		lineNumber++;
-	    skipLF = false;
 	    return l;
 	}
     }
@@ -166,7 +176,7 @@ public class LineNumberReader extends BufferedReader {
 		skipBuffer = new char[nn];
 	    long r = n;
 	    while (r > 0) {
-		int nc = read(skipBuffer, 0, nn);
+		int nc = read(skipBuffer, 0, (int) Math.min(r, nn));
 		if (nc == -1)
 		    break;
 		r -= nc;
@@ -191,6 +201,7 @@ public class LineNumberReader extends BufferedReader {
 	synchronized (lock) {
 	    super.mark(readAheadLimit);
 	    markedLineNumber = lineNumber;
+            markedSkipLF     = skipLF;
 	}
     }
 
@@ -204,6 +215,7 @@ public class LineNumberReader extends BufferedReader {
 	synchronized (lock) {
 	    super.reset();
 	    lineNumber = markedLineNumber;
+            skipLF     = markedSkipLF;
 	}
     }
 

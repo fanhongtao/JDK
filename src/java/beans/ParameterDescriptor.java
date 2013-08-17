@@ -1,8 +1,15 @@
 /*
- * @(#)ParameterDescriptor.java	1.11 01/12/10
+ * @(#)ParameterDescriptor.java	1.14 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -17,5 +24,19 @@ package java.beans;
  */
 
 public class ParameterDescriptor extends FeatureDescriptor {
+
+    /**
+     * Public default constructor.
+     */
+    public ParameterDescriptor() {
+    }
+
+    /**
+     * Package private dup constructor.
+     * This must isolate the new object from any changes to the old object.
+     */	
+    ParameterDescriptor(ParameterDescriptor old) {
+	super(old);
+    }
 
 }

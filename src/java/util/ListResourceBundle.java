@@ -1,24 +1,20 @@
 /*
- * @(#)ListResourceBundle.java	1.9 01/12/10
+ * @(#)ListResourceBundle.java	1.14 98/09/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)ListResourceBundle.java	1.9 01/12/10
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -34,7 +30,6 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
  */
-
 package java.util;
 import java.util.Hashtable;
 
@@ -48,7 +43,11 @@ import java.util.Hashtable;
  * Subclasses must override <code>getContents</code> and provide an array,
  * where each item in the array is a pair of objects.
  * The first element of each pair is a <code>String</code> key, and the second
- * is the value associated with that key.
+ * is the value associated with that key.  [Right now, there's no error-checking
+ * code to enforce this, so you could specify key-value pairs that have
+ * something other than a String as a key.  But since the interfaces are defined
+ * in terms of String, any value with a key that isn't a String will be
+ * inaccessible.]
  *
  * <p>
  * In the following example, the keys are of the form "s1"... The actual
@@ -117,6 +116,13 @@ import java.util.Hashtable;
  */
 public abstract class ListResourceBundle extends ResourceBundle {
     /**
+     * Sole constructor.  (For invocation by subclass constructors, typically
+     * implicit.)
+     */
+    public ListResourceBundle() {
+    }
+
+    /**
      * Override of ResourceBundle, same semantics
      */
     public final Object handleGetObject(String key) {
@@ -181,12 +187,16 @@ public abstract class ListResourceBundle extends ResourceBundle {
      * We lazily load the lookup hashtable.  This function does the
      * loading.
      */
-    private void loadLookup() {
+    private synchronized void loadLookup() {
+        if (lookup != null)
+            return;
+
         Object[][] contents = getContents();
-        lookup = new Hashtable(Math.max(contents.length, 1));
+        Hashtable temp = new Hashtable(contents.length);
         for (int i = 0; i < contents.length; ++i) {
-            lookup.put(contents[i][0],contents[i][1]);
+            temp.put(contents[i][0],contents[i][1]);
         }
+        lookup = temp;
     }
 
     private Hashtable lookup = null;

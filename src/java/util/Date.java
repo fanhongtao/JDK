@@ -1,8 +1,14 @@
 /*
- * @(#)Date.java	1.54 01/12/10
+ * @(#)Date.java	1.62 00/04/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 package java.util;
@@ -15,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.lang.ref.SoftReference;
 
 /**
  * The class <code>Date</code> represents a specific instant
@@ -60,13 +67,14 @@ import java.io.ObjectInputStream;
  * <i>not</i> adjusted for leap seconds. An interesting source of 
  * further information is the U.S. Naval Observatory, particularly 
  * the Directorate of Time at:
- * <ul><code>
+ * <blockquote><pre>
  *     http://tycho.usno.navy.mil
- * </code></ul>
+ * </pre></blockquote>
  * <p>
  * and their definitions of "Systems of Time" at:
- * <ul><code>http://tycho.usno.navy.mil/systime.html
- * </code></ul>
+ * <blockquote><pre>
+ *     http://tycho.usno.navy.mil/systime.html
+ * </pre></blockquote>
  * <p>
  * In all methods of class <code>Date</code> that accept or return 
  * year, month, date, hours, minutes, and seconds values, the 
@@ -82,9 +90,13 @@ import java.io.ObjectInputStream;
  *     from midnight to 1 a.m. is hour 0, and the hour from noon to 1 
  *     p.m. is hour 12. 
  * <li>A minute is represented by an integer from 0 to 59 in the usual manner.
- * <li>A second is represented by an integer from 0 to 60; the value 60 occurs
- *     only for leap seconds and even then only in Java implementations that
- *     actually track leap seconds correctly.
+ * <li>A second is represented by an integer from 0 to 61; the values 60 and 
+ *     61 occur only for leap seconds and even then only in Java 
+ *     implementations that actually track leap seconds correctly. Because 
+ *     of the manner in which leap seconds are currently introduced, it is 
+ *     extremely unlikely that two leap seconds will occur in the same 
+ *     minute, but this specification follows the date and time conventions 
+ *     for ISO C.
  * </ul>
  * <p>
  * In all cases, arguments given to methods for these purposes need 
@@ -94,13 +106,13 @@ import java.io.ObjectInputStream;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.47, 01/12/98
+ * @version 1.62 04/19/00
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
  * @since   JDK1.0
  */
-public class Date implements java.io.Serializable, Cloneable {
+public class Date implements java.io.Serializable, Cloneable, Comparable {
     /* DEFAULT ZONE SYNCHRONIZATION: Part of the usage model of Date
      * is that a Date object behaves like a Calendar object whose zone
      * is the current default TimeZone.  As a result, we must be
@@ -120,7 +132,7 @@ public class Date implements java.io.Serializable, Cloneable {
      * (forcing a fields->time conversion), setting the zone, and then
      * restoring the millis.  The zone must be set before restoring
      * the millis.  Since this is an expensive operation, we only do
-     * this when we have to. - liu 1.2b4 - ported to 1.1.8 */
+     * this when we have to. - liu 1.2b4 */
 
     /* If cal is null, then fastTime indicates the time in millis.
      * Otherwise, fastTime is ignored, and cal indicates the time.
@@ -130,11 +142,9 @@ public class Date implements java.io.Serializable, Cloneable {
     private transient Calendar cal;
     private transient long fastTime;
 
-    private static Calendar staticCal;
-    private static Calendar utcCal;
-    private static DateFormat formatter;
-    private static DateFormat gmtFormatter;
-    private static int defaultCenturyStart;
+    private static Calendar staticCal = null;
+    private static Calendar utcCal = null;
+    private static int defaultCenturyStart = 0;
 
     /* use serialVersionUID from modified java.util.Date for
      * interoperability with JDK1.1. The Date was modified to write
@@ -142,22 +152,18 @@ public class Date implements java.io.Serializable, Cloneable {
      */
     private static final long serialVersionUID = 7523967970034938905L;
 
-    static {
-        staticCal = new GregorianCalendar();
-        defaultCenturyStart = staticCal.get(Calendar.YEAR) - 80;
-        utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-        formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-        gmtFormatter = new SimpleDateFormat("d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
-        gmtFormatter.setTimeZone(TimeZone.getTimeZone("Africa/Casablanca"));
-    }
-
+    /**
+     * Caches for the DateFormatters used by various toString methods.
+     */
+    private static SoftReference simpleFormatter = null;
+    private static SoftReference gmtFormatter = null;
+    
     /**
      * Allocates a <code>Date</code> object and initializes it so that 
-     * it represents the time at which it was allocated measured to the 
+     * it represents the time at which it was allocated, measured to the 
      * nearest millisecond. 
      *
      * @see     java.lang.System#currentTimeMillis()
-     * @since   JDK1.0
      */
     public Date() {
         this(System.currentTimeMillis());
@@ -165,12 +171,12 @@ public class Date implements java.io.Serializable, Cloneable {
 
     /**
      * Allocates a <code>Date</code> object and initializes it to 
-     * represent the specified number of milliseconds since January 1, 
+     * represent the specified number of milliseconds since the 
+     * standard base time known as "the epoch", namely January 1, 
      * 1970, 00:00:00 GMT. 
      *
      * @param   date   the milliseconds since January 1, 1970, 00:00:00 GMT.
      * @see     java.lang.System#currentTimeMillis()
-     * @since   JDK1.0
      */
     public Date(long date) {
         cal = null;
@@ -187,7 +193,6 @@ public class Date implements java.io.Serializable, Cloneable {
      * @param   month   the month between 0-11.
      * @param   date    the day of the month between 1-31.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(year + 1900, month, date)</code>
      * or <code>GregorianCalendar(year + 1900, month, date)</code>.
@@ -198,9 +203,10 @@ public class Date implements java.io.Serializable, Cloneable {
 
     /**
      * Allocates a <code>Date</code> object and initializes it so that 
-     * it represents the specified hour and minute, local time, of the 
-     * date specified by the <code>year</code>, <code>month</code>,
-     * <code>date</code>, <code>hrs</code>, and <code>min</code> arguments. 
+     * it represents the instant at the start of the minute specified by 
+     * the <code>year</code>, <code>month</code>, <code>date</code>, 
+     * <code>hrs</code>, and <code>min</code> arguments, in the local 
+     * time zone. 
      *
      * @param   year    the year minus 1900.
      * @param   month   the month between 0-11.
@@ -208,7 +214,6 @@ public class Date implements java.io.Serializable, Cloneable {
      * @param   hrs     the hours between 0-23.
      * @param   min     the minutes between 0-59.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(year + 1900, month, date,
      * hrs, min)</code> or <code>GregorianCalendar(year + 1900,
@@ -220,10 +225,10 @@ public class Date implements java.io.Serializable, Cloneable {
 
     /**
      * Allocates a <code>Date</code> object and initializes it so that 
-     * it represents the specified hour, minute, and second, local time 
-     * of the date specified by the <code>year</code>, <code>month</code>,
-     * <code>date</code>, <code>hrs</code>, <code>min</code>, and
-     * <code>sec</code> arguments. 
+     * it represents the instant at the start of the second specified 
+     * by the <code>year</code>, <code>month</code>, <code>date</code>, 
+     * <code>hrs</code>, <code>min</code>, and <code>sec</code> arguments, 
+     * in the local time zone. 
      *
      * @param   year    the year minus 1900.
      * @param   month   the month between 0-11.
@@ -232,7 +237,6 @@ public class Date implements java.io.Serializable, Cloneable {
      * @param   min     the minutes between 0-59.
      * @param   sec     the seconds between 0-59.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(year + 1900, month, date,
      * hrs, min, sec)</code> or <code>GregorianCalendar(year + 1900,
@@ -240,6 +244,8 @@ public class Date implements java.io.Serializable, Cloneable {
      */
     public Date(int year, int month, int date, int hrs, int min, int sec) {
         cal = null;
+        if (staticCal == null)
+            makeStaticCalendars();
         synchronized (staticCal) {
             staticCal.setTimeZone(TimeZone.getDefault());
             staticCal.clear();
@@ -252,12 +258,11 @@ public class Date implements java.io.Serializable, Cloneable {
      * Allocates a <code>Date</code> object and initializes it so that 
      * it represents the date and time indicated by the string 
      * <code>s</code>, which is interpreted as if by the 
-     * <code>parse</code> method. 
+     * {@link Date#parse} method. 
      *
      * @param   s   a string representation of the date.
      * @see     java.text.DateFormat
      * @see     java.util.Date#parse(java.lang.String)
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.parse(String s)</code>.
      */
@@ -266,8 +271,26 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
+     * Return a copy of this object.
+     */
+    public Object clone() {
+        Date d = null;
+        try {
+            d = (Date)super.clone();
+            if (d.cal != null) d.cal = (Calendar)d.cal.clone();
+        } catch (CloneNotSupportedException e) {} // Won't happen
+        return d;
+    }
+    
+    /**
      * Determines the date and time based on the arguments. The 
-     * arguments are interpreted in UTC, not in the local time zone
+     * arguments are interpreted as a year, month, day of the month, 
+     * hour of the day, minute within the hour, and second within the 
+     * minute, exactly as for the <tt>Date</tt> constructor with six 
+     * arguments, except that the arguments are interpreted relative 
+     * to UTC rather than to the local time zone. The time indecated is 
+     * returned represented as the distance, measured in milliseconds, 
+     * of that time from the epoch (00:00:00 GMT on January 1, 1970).
      *
      * @param   year    the year minus 1900.
      * @param   month   the month between 0-11.
@@ -278,7 +301,6 @@ public class Date implements java.io.Serializable, Cloneable {
      * @return  the number of milliseconds since January 1, 1970, 00:00:00 GMT for
      *          the date and time specified by the arguments. 
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(year + 1900, month, date,
      * hrs, min, sec)</code> or <code>GregorianCalendar(year + 1900,
@@ -287,6 +309,8 @@ public class Date implements java.io.Serializable, Cloneable {
      */
     public static long UTC(int year, int month, int date,
                            int hrs, int min, int sec) {
+        if (utcCal == null)
+            makeStaticCalendars();
         synchronized (utcCal) {
             utcCal.clear();
             utcCal.set(year + 1900, month, date, hrs, min, sec);
@@ -295,8 +319,12 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Given a string representing a time, parse it and return the time 
-     * value. This method recognizes most standard syntaxes. 
+     * Attempts to interpret the string <tt>s</tt> as a representation 
+     * of a date and time. If the attempt is successful, the time 
+     * indicated is returned represented as the distance, measured in 
+     * milliseconds, of that time from the epoch (00:00:00 GMT on 
+     * January 1, 1970). If the attempt fails, an 
+     * <tt>IllegalArgumentException</tt> is thrown.
      * <p>
      * It accepts many syntaxes; in particular, it recognizes the IETF 
      * standard date syntax: "Sat, 12 Aug 1995 13:30:00 GMT". It also 
@@ -304,28 +332,109 @@ public class Date implements java.io.Serializable, Cloneable {
      * general use, a time-zone offset should be used: "Sat, 12 Aug 1995 
      * 13:30:00 GMT+0430" (4 hours, 30 minutes west of the Greenwich 
      * meridian). If no time zone is specified, the local time zone is 
-     * assumed. GMT and UTC are considered equivalent. 
-     *
-     * If the recognized year number is less than 100, it is
-     * interpreted as an abbreviated year relative to a century of
-     * which dates are within 80 years before and 19 years after
-     * the time when the Date class is initialized.
-     * After adjusting the year number, 1900 is subtracted from
-     * it. For example, if the current year is 1999 then years in
-     * the range 19 to 99 are assumed to mean 1919 to 1999, while
-     * years from 0 to 18 are assumed to mean 2000 to 2018.  Note
-     * that this is slightly different from the interpretation of
-     * years less than 100 that is used in {@link java.text.SimpleDateFormat}. 
+     * assumed. GMT and UTC are considered equivalent.
+     * <p>
+     * The string <tt>s</tt> is processed from left to right, looking for 
+     * data of interest. Any material in <tt>s</tt> that is within the 
+     * ASCII parenthesis characters <tt>(</tt> and <tt>)</tt> is ignored. 
+     * Parentheses may be nested. Otherwise, the only characters permitted 
+     * within <tt>s</tt> are these ASCII characters:
+     * <blockquote><pre>
+     * abcdefghijklmnopqrstuvwxyz
+     * ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * 0123456789,+-:/</pre></blockquote>
+     * and whitespace characters.<p>
+     * A consecutive sequence of decimal digits is treated as a decimal 
+     * number:<ul>
+     * <li>If a number is preceded by <tt>+</tt> or <tt>-</tt> and a year 
+     *     has already been recognized, then the number is a time-zone 
+     *     offset. If the number is less than 24, it is an offset measured 
+     *     in hours. Otherwise, it is regarded as an offset in minutes, 
+     *     expressed in 24-hour time format without punctuation. A 
+     *     preceding <tt>-</tt> means a westward offset. Time zone offsets 
+     *     are always relative to UTC (Greenwich). Thus, for example, 
+     *     <tt>-5</tt> occurring in the string would mean "five hours west 
+     *     of Greenwich" and <tt>+0430</tt> would mean "four hours and 
+     *     thirty minutes east of Greenwich." It is permitted for the 
+     *     string to specify <tt>GMT</tt>, <tt>UT</tt>, or <tt>UTC</tt> 
+     *     redundantly-for example, <tt>GMT-5</tt> or <tt>utc+0430</tt>.
+     * <li>The number is regarded as a year number if one of the
+     *     following conditions is true:
+     * <ul>
+     *     <li>The number is equal to or greater than 70 and followed by a
+     *         space, comma, slash, or end of string
+     *     <li>The number is less than 70, and both a month and a day of
+     *         the month have already been recognized</li>
+     * </ul>
+     *     If the recognized year number is less than 100, it is
+     *     interpreted as an abbreviated year relative to a century of
+     *     which dates are within 80 years before and 19 years after
+     *     the time when the Date class is initialized.
+     *     After adjusting the year number, 1900 is subtracted from
+     *     it. For example, if the current year is 1999 then years in
+     *     the range 19 to 99 are assumed to mean 1919 to 1999, while
+     *     years from 0 to 18 are assumed to mean 2000 to 2018.  Note
+     *     that this is slightly different from the interpretation of
+     *     years less than 100 that is used in {@link java.text.SimpleDateFormat}.
+     * <li>If the number is followed by a colon, it is regarded as an hour, 
+     *     unless an hour has already been recognized, in which case it is 
+     *     regarded as a minute.
+     * <li>If the number is followed by a slash, it is regarded as a month 
+     *     (it is decreased by 1 to produce a number in the range <tt>0</tt> 
+     *     to <tt>11</tt>), unless a month has already been recognized, in 
+     *     which case it is regarded as a day of the month.
+     * <li>If the number is followed by whitespace, a comma, a hyphen, or 
+     *     end of string, then if an hour has been recognized but not a 
+     *     minute, it is regarded as a minute; otherwise, if a minute has 
+     *     been recognized but not a second, it is regarded as a second; 
+     *     otherwise, it is regarded as a day of the month. </ul><p>
+     * A consecutive sequence of letters is regarded as a word and treated 
+     * as follows:<ul>
+     * <li>A word that matches <tt>AM</tt>, ignoring case, is ignored (but 
+     *     the parse fails if an hour has not been recognized or is less 
+     *     than <tt>1</tt> or greater than <tt>12</tt>).
+     * <li>A word that matches <tt>PM</tt>, ignoring case, adds <tt>12</tt> 
+     *     to the hour (but the parse fails if an hour has not been 
+     *     recognized or is less than <tt>1</tt> or greater than <tt>12</tt>).
+     * <li>Any word that matches any prefix of <tt>SUNDAY, MONDAY, TUESDAY, 
+     *     WEDNESDAY, THURSDAY, FRIDAY</tt>, or <tt>SATURDAY</tt>, ignoring 
+     *     case, is ignored. For example, <tt>sat, Friday, TUE</tt>, and 
+     *     <tt>Thurs</tt> are ignored.
+     * <li>Otherwise, any word that matches any prefix of <tt>JANUARY, 
+     *     FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, 
+     *     OCTOBER, NOVEMBER</tt>, or <tt>DECEMBER</tt>, ignoring case, and 
+     *     considering them in the order given here, is recognized as
+     *     specifying a month and is converted to a number (<tt>0</tt> to 
+     *     <tt>11</tt>). For example, <tt>aug, Sept, april</tt>, and 
+     *     <tt>NOV</tt> are recognized as months. So is <tt>Ma</tt>, which 
+     *     is recognized as <tt>MARCH</tt>, not <tt>MAY</tt>.
+     * <li>Any word that matches <tt>GMT, UT</tt>, or <tt>UTC</tt>, ignoring 
+     *     case, is treated as referring to UTC. 
+     * <li>Any word that matches <tt>EST, CST, MST</tt>, or <tt>PST</tt>, 
+     *     ignoring case, is recognized as referring to the time zone in 
+     *     North America that is five, six, seven, or eight hours west of 
+     *     Greenwich, respectively. Any word that matches <tt>EDT, CDT, 
+     *     MDT</tt>, or <tt>PDT</tt>, ignoring case, is recognized as 
+     *     referring to the same time zone, respectively, during daylight 
+     *     saving time.</ul><p>
+     * Once the entire string s has been scanned, it is converted to a time 
+     * result in one of two ways. If a time zone or time-zone offset has been 
+     * recognized, then the year, month, day of month, hour, minute, and 
+     * second are interpreted in UTC and then the time-zone offset is 
+     * applied. Otherwise, the year, month, day of month, hour, minute, and 
+     * second are interpreted in the local time zone.
      *
      * @param   s   a string to be parsed as a date.
      * @return  the number of milliseconds since January 1, 1970, 00:00:00 GMT
      *          represented by the string argument.
      * @see     java.text.DateFormat
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.parse(String s)</code>.
      */
     public static long parse(String s) {
+        if (staticCal == null)
+            makeStaticCalendars(); // Called only for side-effect of setting defaultCenturyStart
+        
         int year = Integer.MIN_VALUE;
         int mon = -1;
         int mday = -1;
@@ -499,11 +608,13 @@ public class Date implements java.io.Serializable, Cloneable {
     };
 
     /**
-     * Returns the year represented by this date, minus 1900.
+     * Returns a value that is the result of subtracting 1900 from the 
+     * year that contains or begins with the instant in time represented 
+     * by this <code>Date</code> object, as interpreted in the local 
+     * time zone.
      *
      * @return  the year represented by this date, minus 1900.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.YEAR) - 1900</code>.
      */
@@ -512,11 +623,17 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Sets the year of this date to be the specified value plus 1900. 
+     * Sets the year of this <tt>Date</tt> object to be the specified 
+     * value plus 1900. This <code>Date</code> object is modified so 
+     * that it represents a point in time within the specified year, 
+     * with the month, date, hour, minute, and second the same as 
+     * before, as interpreted in the local time zone. (Of course, if 
+     * the date was February 29, for example, and the year is set to a 
+     * non-leap year, then the new date will be treated as if it were 
+     * on March 1.)
      *
      * @param   year    the year value.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.YEAR, year + 1900)</code>.
      */
@@ -525,13 +642,13 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Returns the month represented by this date. The value returned is
-     * between <code>0</code> and <code>11</code>, with the value
-     * <code>0</code> representing January.
+     * Returns a number representing the month that contains or begins 
+     * with the instant in time represented by this <tt>Date</tt> object. 
+     * The value returned is between <code>0</code> and <code>11</code>, 
+     * with the value <code>0</code> representing January.
      *
      * @return  the month represented by this date.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.MONTH)</code>.
      */
@@ -540,11 +657,16 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Sets the month of this date to the specified value. 
+     * Sets the month of this date to the specified value. This 
+     * <tt>Date</tt> object is modified so that it represents a point 
+     * in time within the specified month, with the year, date, hour, 
+     * minute, and second the same as before, as interpreted in the 
+     * local time zone. If the date was October 31, for example, and 
+     * the month is set to June, then the new date will be treated as 
+     * if it were on July 1, because June has only 30 days.
      *
      * @param   month   the month value between 0-11.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.MONTH, int month)</code>.
      */
@@ -553,12 +675,14 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Returns the day of the month represented by this date. The value
-     * returned is between <code>1</code> and <code>31</code>.
+     * Returns the day of the month represented by this <tt>Date</tt> object. 
+     * The value returned is between <code>1</code> and <code>31</code> 
+     * representing the day of the month that contains or begins with the 
+     * instant in time represented by this <tt>Date</tt> object, as 
+     * interpreted in the local time zone.
      *
      * @return  the day of the month represented by this date.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.DAY_OF_MONTH)</code>.
      * @deprecated
@@ -568,11 +692,17 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Sets the day of the month of this date to the specified value. 
+     * Sets the day of the month of this <tt>Date</tt> object to the 
+     * specified value. This <tt>Date</tt> object is modified so that 
+     * it represents a point in time within the specified day of the 
+     * month, with the year, month, hour, minute, and second the same 
+     * as before, as interpreted in the local time zone. If the date 
+     * was April 30, for example, and the date is set to 31, then it 
+     * will be treated as if it were on May 1, because April has only 
+     * 30 days.
      *
      * @param   date   the day of the month value between 1-31.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.DAY_OF_MONTH, int date)</code>.
      */
@@ -581,13 +711,16 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Returns the day of the week represented by this date. The value returned
-     * is between <code>0</code> and <code>6</code>, where <code>0</code>
-     * represents Sunday.
+     * Returns the day of the week represented by this date. The 
+     * returned value (<tt>0</tt> = Sunday, <tt>1</tt> = Monday, 
+     * <tt>2</tt> = Tuesday, <tt>3</tt> = Wednesday, <tt>4</tt> = 
+     * Thursday, <tt>5</tt> = Friday, <tt>6</tt> = Saturday) 
+     * represents the day of the week that contains or begins with 
+     * the instant in time represented by this <tt>Date</tt> object, 
+     * as interpreted in the local time zone.
      *
      * @return  the day of the week represented by this date.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.DAY_OF_WEEK)</code>.
      */
@@ -596,13 +729,14 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Returns the hour represented by this date. The value returned is between
-     * <code>0</code> and <code>23</code>, where <code>0</code> represents
-     * midnight.
+     * Returns the hour represented by this <tt>Date</tt> object. The 
+     * returned value is a number (<tt>0</tt> through <tt>23</tt>) 
+     * representing the hour within the day that contains or begins 
+     * with the instant in time represented by this <tt>Date</tt> 
+     * object, as interpreted in the local time zone.
      *
      * @return  the hour represented by this date.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.HOUR_OF_DAY)</code>.
      */
@@ -611,11 +745,14 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Sets the hour of this date to the specified value. 
+     * Sets the hour of this <tt>Date</tt> object to the specified value. 
+     * This <tt>Date</tt> object is modified so that it represents a point 
+     * in time within the specified hour of the day, with the year, month, 
+     * date, minute, and second the same as before, as interpreted in the 
+     * local time zone.
      *
      * @param   hours   the hour value.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.HOUR_OF_DAY, int hours)</code>.
      */
@@ -624,12 +761,12 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Returns the number of minutes past the hour represented by this date.
+     * Returns the number of minutes past the hour represented by this date, 
+     * as interpreted in the local time zone. 
      * The value returned is between <code>0</code> and <code>59</code>.
      *
      * @return  the number of minutes past the hour represented by this date.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.MINUTE)</code>.
      */
@@ -638,11 +775,14 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Sets the minutes of this date to the specified value. 
+     * Sets the minutes of this <tt>Date</tt> object to the specified value. 
+     * This <tt>Date</tt> object is modified so that it represents a point 
+     * in time within the specified minute of the hour, with the year, month, 
+     * date, hour, and second the same as before, as interpreted in the 
+     * local time zone.
      *
      * @param   minutes   the value of the minutes.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.MINUTE, int minutes)</code>.
      */
@@ -652,13 +792,12 @@ public class Date implements java.io.Serializable, Cloneable {
 
     /**
      * Returns the number of seconds past the minute represented by this date.
-     * The value returned is between <code>0</code> and <code>60</code>. The
-     * value <code>60</code> can only occur on those Java Virtual Machines that
-     * take leap seconds into account.
+     * The value returned is between <code>0</code> and <code>61</code>. The
+     * values <code>60</code> and <code>61</code> can only occur on those 
+     * Java Virtual Machines that take leap seconds into account.
      *
      * @return  the number of seconds past the minute represented by this date.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.SECOND)</code>.
      */
@@ -667,11 +806,14 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Sets the seconds of this date to the specified value. 
+     * Sets the seconds of this <tt>Date</tt> to the specified value. 
+     * This <tt>Date</tt> object is modified so that it represents a 
+     * point in time within the specified second of the minute, with 
+     * the year, month, date, hour, and minute the same as before, as 
+     * interpreted in the local time zone.
      *
      * @param   seconds   the seconds value.
      * @see     java.util.Calendar
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.SECOND, int seconds)</code>. 
      */
@@ -681,22 +823,20 @@ public class Date implements java.io.Serializable, Cloneable {
 
     /**
      * Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT
-     * represented by this date.
+     * represented by this <tt>Date</tt> object.
      *
      * @return  the number of milliseconds since January 1, 1970, 00:00:00 GMT
      *          represented by this date.
-     * @since   JDK1.0
      */
     public long getTime() {
         return (cal == null) ? fastTime : cal.getTimeInMillis();
     }
 
     /**
-     * Sets this date to represent the specified number of milliseconds 
-     * since January 1, 1970, 00:00:00 GMT. 
+     * Sets this <tt>Date</tt> object to represent a point in time that is 
+     * <tt>time</tt> milliseconds after January 1, 1970 00:00:00 GMT. 
      *
      * @param   time   the number of milliseconds.
-     * @since   JDK1.0
      */
     public void setTime(long time) {
         if (cal == null) {
@@ -711,9 +851,10 @@ public class Date implements java.io.Serializable, Cloneable {
      * Tests if this date is before the specified date.
      *
      * @param   when   a date.
-     * @return  <code>true</code> if this date is before the argument date;
+     * @return  <code>true</code> if and only if the instant of time 
+     *            represented by this <tt>Date</tt> object is strictly 
+     *            earlier than the instant represented by <tt>when</tt>;
      *          <code>false</code> otherwise.
-     * @since   JDK1.0
      */
     public boolean before(Date when) {
         return getTime() < when.getTime();
@@ -723,16 +864,17 @@ public class Date implements java.io.Serializable, Cloneable {
      * Tests if this date is after the specified date.
      *
      * @param   when   a date.
-     * @return  <code>true</code> if this date is after the argument date;
+     * @return  <code>true</code> if and only if the instant represented 
+     *          by this <tt>Date</tt> object is strictly later than the 
+     *          instant represented by <tt>when</tt>; 
      *          <code>false</code> otherwise.
-     * @since   JDK1.0
      */
     public boolean after(Date when) {
         return getTime() > when.getTime();
     }
 
     /**
-     * Compares two dates.
+     * Compares two dates for equality.
      * The result is <code>true</code> if and only if the argument is 
      * not <code>null</code> and is a <code>Date</code> object that 
      * represents the same point in time, to the millisecond, as this object.
@@ -745,17 +887,56 @@ public class Date implements java.io.Serializable, Cloneable {
      * @return  <code>true</code> if the objects are the same;
      *          <code>false</code> otherwise.
      * @see     java.util.Date#getTime()
-     * @since   JDK1.0
      */
     public boolean equals(Object obj) {
         return obj != null && obj instanceof Date && getTime() == ((Date) obj).getTime();
     }
 
     /**
-     * Returns a hash code value for this object. 
+     * Compares two Dates for ordering.
+     *
+     * @param   anotherDate   the <code>Date</code> to be compared.
+     * @return  the value <code>0</code> if the argument Date is equal to
+     *          this Date; a value less than <code>0</code> if this Date
+     *          is before the Date argument; and a value greater than
+     *      <code>0</code> if this Date is after the Date argument.
+     * @since   JDK1.2
+     */
+    public int compareTo(Date anotherDate) {
+    long thisTime = this.getTime();
+    long anotherTime = anotherDate.getTime();
+    return (thisTime<anotherTime ? -1 : (thisTime==anotherTime ? 0 : 1));
+    }
+
+    /**
+     * Compares this Date to another Object.  If the Object is a Date,
+     * this function behaves like <code>compareTo(Date)</code>.  Otherwise,
+     * it throws a <code>ClassCastException</code> (as Dates are comparable
+     * only to other Dates).
+     *
+     * @param   o the <code>Object</code> to be compared.
+     * @return  the value <code>0</code> if the argument is a Date
+     *      equal to this Date; a value less than <code>0</code> if the
+     *      argument is a Date after this Date; and a value greater than
+     *      <code>0</code> if the argument is a Date before this Date.
+     * @exception ClassCastException if the argument is not a
+     *        <code>Date</code>. 
+     * @see     java.lang.Comparable
+     * @since   JDK1.2
+     */
+    public int compareTo(Object o) {
+    return compareTo((Date)o);
+    }
+
+    /**
+     * Returns a hash code value for this object. The result is the 
+     * exclusive OR of the two halves of the primitive <tt>long</tt> 
+     * value returned by the {@link Date#getTime} 
+     * method. That is, the hash code is the value of the expression:
+     * <blockquote><pre>
+     * (int)(this.getTime()^(this.getTime() >>> 32))</pre></blockquote>
      *
      * @return  a hash code value for this object. 
-     * @since   JDK1.0
      */
     public int hashCode() {
         long ht = getTime();
@@ -763,13 +944,46 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Creates a canonical string representation of the date. The result 
-     * is of the form <code>"Sat Aug 12 02:30:00 PDT 1995"</code>.
+     * Converts this <code>Date</code> object to a <code>String</code> 
+     * of the form:
+     * <blockquote><pre>
+     * dow mon dd hh:mm:ss zzz yyyy</pre></blockquote>
+     * where:<ul>
+     * <li><tt>dow</tt> is the day of the week (<tt>Sun, Mon, Tue, Wed, 
+     *     Thu, Fri, Sat</tt>).
+     * <li><tt>mon</tt> is the month (<tt>Jan, Feb, Mar, Apr, May, Jun, 
+     *     Jul, Aug, Sep, Oct, Nov, Dec</tt>).
+     * <li><tt>dd</tt> is the day of the month (<tt>01</tt> through 
+     *     <tt>31</tt>), as two decimal digits.
+     * <li><tt>hh</tt> is the hour of the day (<tt>00</tt> through 
+     *     <tt>23</tt>), as two decimal digits.
+     * <li><tt>mm</tt> is the minute within the hour (<tt>00</tt> through 
+     *     <tt>59</tt>), as two decimal digits.
+     * <li><tt>ss</tt> is the second within the minute (<tt>00</tt> through 
+     *     <tt>61</tt>, as two decimal digits.
+     * <li><tt>zzz</tt> is the time zone (and may reflect daylight savings 
+     *     time). Standard time zone abbreviations include those 
+     *     recognized by the method <tt>parse</tt>. If time zone 
+     *     informationi is not available, then <tt>zzz</tt> is empty - 
+     *     that is, it consists of no characters at all.
+     * <li><tt>yyyy</tt> is the year, as four decimal digits.
+     * </ul>
      *
-     * @return   a string representation of this date. 
-     * @since   JDK1.0
+     * @return  a string representation of this date. 
+     * @see     java.util.Date#toLocaleString()
+     * @see     java.util.Date#toGMTString()
      */
     public String toString() {
+	DateFormat formatter = null;
+	if (simpleFormatter != null) {
+	    formatter = (DateFormat)simpleFormatter.get();
+	}
+	if (formatter == null) {
+	    /* No cache yet, or cached formatter GC'd */
+	    formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy",
+					     Locale.US);
+	    simpleFormatter = new SoftReference(formatter);
+	}
         synchronized (formatter) {
             formatter.setTimeZone(TimeZone.getDefault());
             return formatter.format(this);
@@ -777,7 +991,7 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * Creates a string representation of this date in an 
+     * Creates a string representation of this <ttt>Date</tt> object in an 
      * implementation-dependent form. The intent is that the form should 
      * be familiar to the user of the Java application, wherever it may 
      * happen to be running. The intent is comparable to that of the 
@@ -787,50 +1001,89 @@ public class Date implements java.io.Serializable, Cloneable {
      * @return  a string representation of this date, using the locale
      *          conventions.
      * @see     java.text.DateFormat
-     * @since   JDK1.0
+     * @see     java.util.Date#toString()
+     * @see     java.util.Date#toGMTString()
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.format(Date date)</code>.
      */
     public String toLocaleString() {
-        DateFormat formatter
-            = DateFormat.getDateTimeInstance();
-        return formatter.format(this);
+    DateFormat formatter = DateFormat.getDateTimeInstance();
+    return formatter.format(this);
     }
 
     /**
-     * Creates a string representation of this date. The result is of the form:
-     * <ul><code>
-     *     "12 Aug 1995 02:30:00 GMT"
-     * </code></ul>
-     * <p>
-     * in which the day of the month is always one or two digits. The 
-     * other fields have exactly the width shown. The time zone is always 
-     * given as "GMT".
+     * Creates a string representation of this <tt>Date</tt> object of 
+     * the form:
+     * <blockquote<pre>
+     * d mon yyyy hh:mm:ss GMT</pre></blockquote>
+     * where:<ul>
+     * <li><i>d</i> is the day of the month (<tt>1</tt> through <tt>31</tt>), 
+     *     as one or two decimal digits.
+     * <li><i>mon</i> is the month (<tt>Jan, Feb, Mar, Apr, May, Jun, Jul, 
+     *     Aug, Sep, Oct, Nov, Dec</tt>).
+     * <li><i>yyyy</i> i sthe year, as four decimal digits.
+     * <li><i>hh</i> is the hour of the day (<tt>00</tt> through <tt>23</tt>), 
+     *     as two decimal digits.
+     * <li><i>mm</i> is the minute within the hour (<tt>00</tt> through 
+     *     <tt>59</tt>), as two decimal digits.
+     * <li><i>ss</i> is the second within the minute (<tt>00</tt> through 
+     *     <tt>61</tt>), as two decimal digits.
+     * <li><i>GMT</i> is exactly the ASCII letters "<tt>GMT</tt>" to indicate 
+     *     Greenwich Mean Time.
+     * </ul><p>
+     * The result does not depend on the local time zone.
      * 
      * @return  a string representation of this date, using the Internet GMT
      *          conventions.
      * @see     java.text.DateFormat
-     * @since   JDK1.0
+     * @see     java.util.Date#toString()
+     * @see     java.util.Date#toLocaleString()
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.format(Date date)</code>, using a
      * GMT <code>TimeZone</code>.
      */
     public String toGMTString() {
-        synchronized (gmtFormatter) {
-            return gmtFormatter.format(this);
-        }
+    DateFormat formatter = null;
+    if (gmtFormatter != null) {
+        formatter = (DateFormat)gmtFormatter.get();
+    }
+    if (formatter == null) {
+        /* No cache yet, or cached formatter GC'd */
+        formatter = new SimpleDateFormat("d MMM yyyy HH:mm:ss 'GMT'", 
+                         Locale.US);
+            formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+        gmtFormatter = new SoftReference(formatter);
+    }
+        return formatter.format(this);
     }
 
     /**
-     * Returns the local time-zone offset. The time-zone offset is 
-     * the number of minutes that must be added to GMT to give the local 
-     * time zone. This value includes the correction, if necessary, for 
-     * daylight saving time. 
+     * Returns the offset, measured in minutes, for the local time zone 
+     * relative to UTC that is appropriate for the time represented by 
+     * this <tt>Date</tt> object. 
+     * <p>
+     * For example, in Massachusetts, five time zones west of Greenwich:
+     * <blockquote><pre>
+     * new Date(96, 1, 14).getTimezoneOffset() returns 300</pre></blockquote>
+     * because on February 14, 1996, standard time (Eastern Standard Time) 
+     * is in use, which is offset five hours from UTC; but:
+     * <blockquote><pre>
+     * new Date(96, 5, 1).getTimezoneOffset() returns 240</pre></blockquote>
+     * because on May 1, 1996, daylight savings time (Eastern Daylight Time) 
+     * is in use, which is offset only four hours from UTC.<p>
+     * This method produces teh same result as if it computed:
+     * <blockquote><pre>
+     * (this.getTime() - UTC(this.getYear(), 
+     *                       this.getMonth(), 
+     *                       this.getDate(),
+     *                       this.getHours(), 
+     *                       this.getMinutes(), 
+     *                       this.getSeconds())) / (60 * 1000)
+     * </pre></blockquote>
      *
      * @return  the time-zone offset, in minutes, for the current locale.
      * @see     java.util.Calendar
      * @see     java.util.TimeZone
-     * @since   JDK1.0
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.ZONE_OFFSET) +
      * Calendar.get(Calendar.DST_OFFSET)</code>.
@@ -838,6 +1091,8 @@ public class Date implements java.io.Serializable, Cloneable {
     public int getTimezoneOffset() {
         int offset;
         if (cal == null) {
+            if (staticCal == null)
+                makeStaticCalendars();
             synchronized (staticCal) {
                 staticCal.setTimeZone(TimeZone.getDefault());
                 staticCal.setTimeInMillis(getTime());
@@ -849,7 +1104,7 @@ public class Date implements java.io.Serializable, Cloneable {
             TimeZone defaultZone = TimeZone.getDefault();
             if (!defaultZone.equals(cal.getTimeZone())) {
                 long ms = cal.getTimeInMillis();
-                cal.setTimeZone(defaultZone);
+                cal.setTimeZone(TimeZone.getDefault());
                 cal.setTimeInMillis(ms);
             }
             offset = cal.get(Calendar.ZONE_OFFSET) +
@@ -859,8 +1114,11 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * WriteObject is called to save the Date to a stream.
-     * The UTC time is written to the stream as a long.
+     * Save the state of this object to a stream (i.e., serialize it).
+     *
+     * @serialData The value returned by <code>getTime()</code>
+     *		   is emitted (long).  This represents the offset from
+     *             January 1, 1970, 00:00:00 GMT in milliseconds.
      */
     private void writeObject(ObjectOutputStream s)
          throws IOException
@@ -869,8 +1127,7 @@ public class Date implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * readObject is called to restore a date from the stream.
-     * The UTC time is read and the date set from it.
+     * Reconstitute this object from a stream (i.e., deserialize it).
      */
     private void readObject(ObjectInputStream s)
          throws IOException, ClassNotFoundException
@@ -888,6 +1145,8 @@ public class Date implements java.io.Serializable, Cloneable {
      */
     private final int getField(int field) {
         if (cal == null) {
+            if (staticCal == null)
+                makeStaticCalendars();
             synchronized (staticCal) {
                 staticCal.setTimeZone(TimeZone.getDefault());
                 staticCal.setTimeInMillis(fastTime);
@@ -898,7 +1157,7 @@ public class Date implements java.io.Serializable, Cloneable {
             TimeZone defaultZone = TimeZone.getDefault();
             if (!defaultZone.equals(cal.getTimeZone())) {
                 long ms = cal.getTimeInMillis();
-                cal.setTimeZone(defaultZone);
+                cal.setTimeZone(TimeZone.getDefault());
                 cal.setTimeInMillis(ms);
             }
             return cal.get(field);
@@ -918,5 +1177,11 @@ public class Date implements java.io.Serializable, Cloneable {
             cal.setTimeInMillis(fastTime);
         }
         cal.set(field, value);
+    }
+
+    private static void makeStaticCalendars() {
+	staticCal = new GregorianCalendar();
+        utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        defaultCenturyStart = staticCal.get(Calendar.YEAR) - 80;
     }
 }

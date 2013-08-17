@@ -1,8 +1,15 @@
 /*
- * @(#)BufferedWriter.java	1.14 01/12/10
+ * @(#)BufferedWriter.java	1.20 98/08/03
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -40,7 +47,7 @@ package java.io;
  * @see FileWriter
  * @see OutputStreamWriter
  *
- * @version 	1.14, 01/12/10
+ * @version 	1.20, 98/08/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -87,7 +94,9 @@ public class BufferedWriter extends Writer {
 	cb = new char[sz];
 	nChars = sz;
 	nextChar = 0;
-	lineSeparator = System.getProperty("line.separator");
+
+	lineSeparator =	(String) java.security.AccessController.doPrivileged(
+               new sun.security.action.GetPropertyAction("line.separator"));
     }
 
     /** Check to make sure that the stream has not been closed */
@@ -126,6 +135,15 @@ public class BufferedWriter extends Writer {
     }
 
     /**
+     * Our own little min method, to avoid loading java.lang.Math if we've run
+     * out of file descriptors and we're trying to print a stack trace.
+     */
+    private int min(int a, int b) {
+	if (a < b) return a;
+	return b;
+    }
+
+    /**
      * Write a portion of an array of characters.
      *
      * <p> Ordinarily this method stores characters from the given array into
@@ -144,6 +162,12 @@ public class BufferedWriter extends Writer {
     public void write(char cbuf[], int off, int len) throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
+            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
+                ((off + len) > cbuf.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return;
+            } 
 
 	    if (len >= nChars) {
 		/* If the request length exceeds the size of the output buffer,
@@ -156,7 +180,7 @@ public class BufferedWriter extends Writer {
 
 	    int b = off, t = off + len;
 	    while (b < t) {
-		int d = Math.min(nChars - nextChar, t - b);
+		int d = min(nChars - nextChar, t - b);
 		System.arraycopy(cbuf, b, cb, nextChar, d);
 		b += d;
 		nextChar += d;
@@ -181,7 +205,7 @@ public class BufferedWriter extends Writer {
 
 	    int b = off, t = off + len;
 	    while (b < t) {
-		int d = Math.min(nChars - nextChar, t - b);
+		int d = min(nChars - nextChar, t - b);
 		s.getChars(b, b + d, cb, nextChar);
 		b += d;
 		nextChar += d;

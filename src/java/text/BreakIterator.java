@@ -1,17 +1,20 @@
 /*
- * @(#)BreakIterator.java	1.16 01/12/10
+ * @(#)BreakIterator.java	1.22 98/07/24
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -169,11 +172,44 @@ import java.text.resources.*;
  * </pre>
  * </blockquote>
  *
+ * Find the next word
+ * <blockquote>
+ * <pre>
+ * public static int nextWordStartAfter(int pos, String text) {
+ *     BreakIterator wb = BreakIterator.getWordInstance();
+ *     wb.setText(text);
+ *     int last = wb.following(pos);
+ *     int current = wb.next();
+ *     while (current != BreakIterator.DONE) {
+ *         for (int p = last; p < current; p++) {
+ *             if (Character.isLetter(text.charAt(p))
+ *                 return last;
+ *         }
+ *         last = current;
+ *         current = wb.next();
+ *     }
+ *     return BreakIterator.DONE;
+ * }
+ * </pre>
+ * (The iterator returned by BreakIterator.getWordInstance() is unique in that
+ * the break positions it returns don't represent both the start and end of the
+ * thing being iterated over.  That is, a sentence-break iterator returns breaks
+ * that each represent the end of one sentence and the beginning of the next.
+ * With the word-break iterator, the characters between two boundaries might be a
+ * word, or they might be the punctuation or whitespace between two words.  The
+ * above code uses a simple heuristic to determine which boundary is the beginning
+ * of a word: If the characters between this boundary and the next boundary
+ * include at least one letter (this can be an alphabetical letter, a CJK ideograph,
+ * a Hangul syllable, a Kana character, etc.), then the text between this boundary
+ * and the next is a word; otherwise, it's the material between words.)
+ * </blockquote>
+
+ *
  * @see CharacterIterator
  *
  */
 
-public abstract class BreakIterator implements Cloneable, java.io.Serializable
+public abstract class BreakIterator implements Cloneable
 {
     /**
      * Constructor. BreakIterator is stateless and has no default behavior.
@@ -252,6 +288,45 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
     public abstract int following(int offset);
 
     /**
+     * Return the last boundary preceding the specfied offset.
+     * The value returned is always less than the offset or the value
+     * BreakIterator.DONE.
+     * @param offset the offset to begin scanning.  Valid values are
+     * determined by the CharacterIterator passed to setText().
+     * Invalid values cause an IllegalArgumentException to be thrown.
+     * @return The last boundary before the specified offset.
+     */
+    public int preceding(int offset) {
+        // NOTE:  This implementation is here solely because we can't add new
+        // abstract methods to an existing class.  There is almost ALWAYS a
+        // better, faster way to do this.
+        int pos = following(offset);
+        while (pos >= offset && pos != DONE)
+            pos = previous();
+        return pos;
+    }
+
+    /**
+     * Return true if the specified position is a boundary position.
+     * @param offset the offset to check.
+     * @return True if "offset" is a boundary position.
+     */
+    public boolean isBoundary(int offset) {
+        // NOTE: This implementation probably is wrong for most situations
+        // because it fails to take into account the possibility that a
+        // CharacterIterator passed to setText() may not have a begin offset
+        // of 0.  But since the abstract BreakIterator doesn't have that
+        // knowledge, it assumes the begin offset is 0.  If you subclass
+        // BreakIterator, copy the SimpleTextBoundary implementation of this
+        // function into your subclass.  [This should have been abstract at
+        // this level, but it's too late to fix that now.]
+        if (offset == 0)
+            return true;
+        else
+            return following(offset - 1) == offset;
+    }
+
+    /**
      * Return character index of the text boundary that was most recently
      * returned by next(), previous(), first(), or last()
      * @return The boundary most recently returned.
@@ -321,7 +396,7 @@ public abstract class BreakIterator implements Cloneable, java.io.Serializable
     }
 
     /**
-     * Create BreakIterator for line-breaks using specfied locale.
+     * Create BreakIterator for line-breaks using specified locale.
      * Returns an instance of a BreakIterator implementing line breaks. Line
      * breaks are logically possible line breaks, actual line breaks are
      * usually determined based on display width.

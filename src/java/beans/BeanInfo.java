@@ -1,8 +1,15 @@
 /*
- * @(#)BeanInfo.java	1.20 01/12/10
+ * @(#)BeanInfo.java	1.22 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -34,6 +41,8 @@ package java.beans;
 public interface BeanInfo {
 
     /**
+     * Gets the beans <code>BeanDescriptor</code>.
+     * 
      * @return  A BeanDescriptor providing overall information about
      * the bean, such as its displayName, its customizer, etc.  May
      * return null if the information should be obtained by automatic
@@ -42,6 +51,8 @@ public interface BeanInfo {
     BeanDescriptor getBeanDescriptor();
     
     /**
+     * Gets the beans <code>EventSetDescriptor</code>s.
+     * 
      * @return  An array of EventSetDescriptors describing the kinds of 
      * events fired by this bean.  May return null if the information
      * should be obtained by automatic analysis.
@@ -58,6 +69,8 @@ public interface BeanInfo {
     int getDefaultEventIndex();
 
     /**
+     * Gets the beans <code>PropertyDescriptor</code>s.
+     * 
      * @return An array of PropertyDescriptors describing the editable
      * properties supported by this bean.  May return null if the
      * information should be obtained by automatic analysis.
@@ -80,6 +93,8 @@ public interface BeanInfo {
     int getDefaultPropertyIndex();
 
     /**
+     * Gets the beans <code>MethodDescriptor</code>s.
+     * 
      * @return An array of MethodDescriptors describing the externally
      * visible methods supported by this bean.  May return null if
      * the information should be obtained by automatic analysis.

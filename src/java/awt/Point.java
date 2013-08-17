@@ -1,29 +1,47 @@
 /*
- * @(#)Point.java	1.15 01/12/10
+ * @(#)Point.java	1.22 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
+
 package java.awt;
 
+import java.awt.geom.Point2D;
+
 /**
- * The <code>Point</code> class represents a location in a
- * two-dimensional (<i>x</i>,&nbsp;<i>y</i>) coordinate space.
+ * A point representing a location in (x, y) coordinate space, specified
+ * in integer precision.
  *
- * @version 	1.15, 12/10/01
+ * @version 	1.22, 09/21/98
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
-public class Point implements java.io.Serializable {
+public class Point extends Point2D implements java.io.Serializable {
     /**
-     * The <i>x</i> coordinate. 
-     * @since   JDK1.0
+     * The <i>x</i> coordinate.
+     * If no <i>x</i> coordinate is set it will default to '0'.
+     *
+     * @serial
+     * @see getLocation()
+     * @see Move()
      */
     public int x;
 
     /**
      * The <i>y</i> coordinate. 
-     * @since   JDK1.0
+     * If no <i>y</i> coordinate is set it will default to '0'.
+     *
+     * @serial
+     * @see getLocation()
+     * @see Move()
      */
     public int y;
 
@@ -35,8 +53,6 @@ public class Point implements java.io.Serializable {
     /**
      * Constructs and initializes a point at the origin 
      * (0,&nbsp;0) of the coordinate space. 
-     * @param       x   the <i>x</i> coordinate.
-     * @param       y   the <i>y</i> coordinate.
      * @since       JDK1.1
      */
     public Point() {
@@ -58,11 +74,24 @@ public class Point implements java.io.Serializable {
      * (<i>x</i>,&nbsp;<i>y</i>) location in the coordinate space. 
      * @param       x   the <i>x</i> coordinate.
      * @param       y   the <i>y</i> coordinate.
-     * @since       JDK1.0
      */
     public Point(int x, int y) {
 	this.x = x;
 	this.y = y;
+    }
+
+    /**
+     * Returns the X coordinate of the point in double precision.
+     */
+    public double getX() {
+	return x;
+    }
+
+    /**
+     * Returns the Y coordinate of the point in double precision.
+     */
+    public double getY() {
+	return y;
     }
 
     /**
@@ -110,13 +139,20 @@ public class Point implements java.io.Serializable {
     }	
 
     /**
+     * Sets the location of this point to the specified float coordinates.
+     */
+    public void setLocation(double x, double y) {
+	this.x = (int) Math.round(x);
+	this.y = (int) Math.round(y);
+    }
+
+    /**
      * Moves this point to the specificed location in the 
      * (<i>x</i>,&nbsp;<i>y</i>) coordinate plane. This method
      * is identical with <code>setLocation(int,&nbsp;int)</code>.
      * @param       x  the <i>x</i> coordinate of the new location.
      * @param       y  the <i>y</i> coordinate of the new location.
      * @see         java.awt.Component#setLocation(int, int)
-     * @since       JDK1.0
      */
     public void move(int x, int y) {
 	this.x = x;
@@ -133,21 +169,11 @@ public class Point implements java.io.Serializable {
      *                            along the <i>x</i> axis.
      * @param       dy    the distance to move this point 
      *                            along the <i>y</i> axis.
-     * @since       JDK1.0
      */
     public void translate(int x, int y) {
 	this.x += x;
 	this.y += y;
     }	
-
-    /**
-     * Returns the hashcode for this point.
-     * @return      a hash code for this point.
-     * @since       JDK1.0
-     */
-    public int hashCode() {
-	return x ^ (y*31);
-    }
 
     /**
      * Determines whether two points are equal. Two instances of
@@ -158,22 +184,23 @@ public class Point implements java.io.Serializable {
      * @return     <code>true</code> if the object to be compared is
      *                     an instance of <code>Point</code> and has
      *                     the same values; <code>false</code> otherwise.
-     * @since      JDK1.0
      */
     public boolean equals(Object obj) {
 	if (obj instanceof Point) {
 	    Point pt = (Point)obj;
 	    return (x == pt.x) && (y == pt.y);
 	}
-	return false;
+	return super.equals(obj);
     }
 
     /**
-     * Returns a representation of this point and its location
-     * in the (<i>x</i>,&nbsp;<i>y</i>) coordinate space as a string.
-     * @return    a string representation of this point, 
-     *                 including the values of its member fields.
-     * @since     JDK1.0
+     * Returns a string representation of this point and its location 
+     * in the (<i>x</i>,&nbsp;<i>y</i>) coordinate space. This method is 
+     * intended to be used only for debugging purposes, and the content 
+     * and format of the returned string may vary between implementations. 
+     * The returned string may be empty but may not be <code>null</code>.
+     * 
+     * @return  a string representation of this point.
      */
     public String toString() {
 	return getClass().getName() + "[x=" + x + ",y=" + y + "]";

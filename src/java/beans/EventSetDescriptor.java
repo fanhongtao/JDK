@@ -1,8 +1,15 @@
 /*
- * @(#)EventSetDescriptor.java	1.41 01/12/10
+ * @(#)EventSetDescriptor.java	1.46 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -93,8 +100,12 @@ public class EventSetDescriptor extends FeatureDescriptor {
 	setName(eventSetName);
 	listenerMethods = new Method[listenerMethodNames.length];
 	for (int i = 0; i < listenerMethods.length; i++) {
+	    String listenerName = listenerMethodNames[i];
+	    if (listenerName == null) {
+		throw new NullPointerException();
+	    }
 	    listenerMethods[i] = Introspector.findMethod(listenerType,
-					listenerMethodNames[i], 1);
+							listenerName, 1);
 	}
 
 	this.addMethod = Introspector.findMethod(sourceClass,
@@ -163,6 +174,8 @@ public class EventSetDescriptor extends FeatureDescriptor {
     }
 
     /** 
+     * Gets the Class object for the target interface.
+     *
      * @return The Class object for the target interface that will
      * get invoked when the event is fired.
      */
@@ -171,6 +184,8 @@ public class EventSetDescriptor extends FeatureDescriptor {
     }
 
     /** 
+     * Gets the methods of the target listener interface.
+     *
      * @return An array of Method objects for the target methods
      * within the target listener interface that will get called when
      * events are fired.
@@ -188,6 +203,8 @@ public class EventSetDescriptor extends FeatureDescriptor {
 
 
     /** 
+     * Gets the <code>MethodDescriptor</code>s of the target listener interface.
+     *
      * @return An array of MethodDescriptor objects for the target methods
      * within the target listener interface that will get called when
      * events are fired.
@@ -206,6 +223,8 @@ public class EventSetDescriptor extends FeatureDescriptor {
     }
 
     /** 
+     * Gets the method used to add event listeners.
+     *
      * @return The method used to register a listener at the event source.
      */
     public Method getAddListenerMethod() {
@@ -213,7 +232,9 @@ public class EventSetDescriptor extends FeatureDescriptor {
     }
 
     /** 
-     * @return The method used to register a listener at the event source.
+     * Gets the method used to remove event listeners.
+     *
+     * @return The method used to remove a listener at the event source.
      */
     public Method getRemoveListenerMethod() {
 	return removeMethod;
@@ -265,6 +286,7 @@ public class EventSetDescriptor extends FeatureDescriptor {
      * Package-private constructor
      * Merge two event set descriptors.  Where they conflict, give the
      * second argument (y) priority over the first argument (x).
+     *
      * @param x  The first (lower priority) EventSetDescriptor
      * @param y  The second (higher priority) EventSetDescriptor
      */
@@ -285,6 +307,34 @@ public class EventSetDescriptor extends FeatureDescriptor {
 	if (!x.inDefaultEventSet || !y.inDefaultEventSet) {
 	    inDefaultEventSet = false;
 	}
+    }
+
+    /*
+     * Package-private dup constructor
+     * This must isolate the new object from any changes to the old object.
+     */
+    EventSetDescriptor(EventSetDescriptor old) {
+	super(old);
+	if (old.listenerMethodDescriptors != null) {
+	    int len = old.listenerMethodDescriptors.length;
+	    listenerMethodDescriptors = new MethodDescriptor[len];
+	    for (int i = 0; i < len; i++) {
+		listenerMethodDescriptors[i] = new MethodDescriptor(
+					old.listenerMethodDescriptors[i]);
+	    }
+	}
+	if (old.listenerMethods != null) {
+	    int len = old.listenerMethods.length;
+	    listenerMethods = new Method[len];
+	    for (int i = 0; i < len; i++) {
+		listenerMethods[i] = old.listenerMethods[i];
+	    }
+	}
+	addMethod = old.addMethod;
+	removeMethod = old.removeMethod;
+	unicast = old.unicast;
+	listenerType = old.listenerType;
+	inDefaultEventSet = old.inDefaultEventSet;
     }
 
     private Class listenerType;

@@ -1,31 +1,39 @@
 /*
- * @(#)PrintStream.java	1.12 01/12/10
+ * @(#)PrintStream.java	1.18 98/07/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 
 /**
- * Print values and objects to an output stream, using the platform's default
- * character encoding to convert characters into bytes.
+ * A <code>PrintStream</code> adds functionality to another output stream,
+ * namely the ability to print representations of various data values
+ * conveniently.  Two other features are provided as well.  Unlike other output
+ * streams, a <code>PrintStream</code> never throws an
+ * <code>IOException</code>; instead, exceptional situations merely set an
+ * internal flag that can be tested via the <code>checkError</code> method.
+ * Optionally, a <code>PrintStream</code> can be created so as to flush
+ * automatically; this means that the <code>flush</code> method is
+ * automatically invoked after a byte array is written, one of the
+ * <code>println</code> methods is invoked, or a newline character or byte
+ * (<code>'\n'</code>) is written.
  *
- * <p> If automatic flushing is enabled at creation time, then the stream will
- * be flushed each time a line is terminated or a newline character is written.
+ * <p> All characters printed by a <code>PrintStream</code> are converted into
+ * bytes using the platform's default character encoding.  The <code{@link
+ * PrintWriter}</code> class should be used in situations that require writing
+ * characters rather than bytes.
  *
- * <p> Methods in this class never throw I/O exceptions.  Client code may
- * inquire as to whether any errors have occurred by invoking the
- * <code>checkError</code> method.
- *
- * <p><b>Note:</b> <i>This class is provided primarily for use in debugging,
- * and for compatibility with existing code; new code should use the
- * PrintWriter class.</i>
- *
- * @see        java.io.PrintWriter
- *
- * @version    1.12, 12/10/01
+ * @version    1.18, 98/07/31
  * @author     Frank Yellin
  * @author     Mark Reinhold
  * @since      JDK1.0
@@ -44,40 +52,34 @@ public class PrintStream extends FilterOutputStream {
     private OutputStreamWriter charOut;
 
     /**
-     * Create a new print stream.
-     *
-     * @deprecated As of JDK&nbsp;1.1, the preferred way to print text is
-     * via the PrintWriter class.  Consider replacing code of the<br>
-     * form &nbsp;<code>    PrintStream p = new PrintStream(out);</code><br>
-     * with &nbsp;<code>    PrintWriter p = new PrintWriter(out);</code>
-     *
-     * @see java.io.PrintWriter#PrintWriter(java.io.OutputStream)
+     * Create a new print stream.  This stream will not flush automatically.
      *
      * @param  out        The output stream to which values and objects will be
      *                    printed
+     *
+     * @see java.io.PrintWriter#PrintWriter(java.io.OutputStream)
      */
     public PrintStream(OutputStream out) {
 	this(out, false);
     }
 
     /**
-     * Create a new PrintStream.
-     *
-     * @deprecated As of JDK&nbsp;1.1, the preferred way to print text is
-     * via the PrintWriter class.  Consider replacing code of the<br>
-     * form &nbsp;<code>    PrintStream p = new PrintStream(out, autoFlush);</code><br>
-     * with &nbsp;<code>    PrintWriter p = new PrintWriter(out, autoFlush);</code>
-     *
-     * @see java.io.PrintWriter#PrintWriter(java.io.OutputStream, boolean)
+     * Create a new print stream.
      *
      * @param  out        The output stream to which values and objects will be
      *                    printed
      * @param  autoFlush  A boolean; if true, the output buffer will be flushed
-     *                    whenever a line is terminated or a newline character
-     *                    (<code>'\n'</code>) is written
+     *                    whenever a byte array is written, one of the
+     *                    <code>println</code> methods is invoked, or a newline
+     *                    character or byte (<code>'\n'</code>) is written
+     *
+     * @see java.io.PrintWriter#PrintWriter(java.io.OutputStream, boolean)
      */
     public PrintStream(OutputStream out, boolean autoFlush) {
 	super(out);
+	if (out == null) {
+	    throw new NullPointerException("Null output stream");
+	}
 	this.autoFlush = autoFlush;
 	this.charOut = new OutputStreamWriter(this);
 	this.textOut = new BufferedWriter(this.charOut);
@@ -134,12 +136,22 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Flush the stream and check its error state.  Errors are cumulative;
-     * once the stream encounters an error, this routine will continue to
-     * return true on all successive calls.
+     * Flush the stream and check its error state.  The internal error state
+     * is set to <code>true</code> when the underlying output stream throws an
+     * <code>IOException</code> other than <code>InterruptedIOException</code>,
+     * and when the <code>setError</code> method is invoked.  If an operation
+     * on the underlying output stream throws an
+     * <code>InterruptedIOException</code>, then the <code>PrintStream</code>
+     * converts the exception back into an interrupt by doing:
+     * <pre>
+     *     Thread.currentThread().interrupt();
+     * </pre>
+     * or the equivalent.
      *
-     * @return True if the print stream has encountered an error, either on the
-     * underlying output stream or during a format conversion, otherwise false.
+     * @return True if and only if this stream has encountered an
+     *         <code>IOException</code> other than
+     *         <code>InterruptedIOException</code>, or the
+     *         <code>setError</code> method has been invoked
      */
     public boolean checkError() {
 	if (out != null)
@@ -147,7 +159,11 @@ public class PrintStream extends FilterOutputStream {
 	return trouble;
     }
 
-    /** Indicate that an error has occurred. */
+    /**
+     * Set the error state of the stream to <code>true</code>.
+     *
+     * @since JDK1.1
+     */
     protected void setError() {
 	trouble = true;
     }
@@ -159,9 +175,9 @@ public class PrintStream extends FilterOutputStream {
      */
 
     /**
-     * Write a byte, blocking if necessary.  If the character is a newline and
-     * automatic flushing is enabled, the stream's <code>flush</code> method
-     * will be called.
+     * Write the specified byte to this stream.  If the byte is a newline and
+     * automatic flushing is enabled then the <code>flush</code> method will be
+     * invoked.
      *
      * <p> Note that the byte is written as given; to write a character that
      * will be translated according to the platform's default character
@@ -190,7 +206,14 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Write a portion of a byte array, blocking if necessary.
+     * Write <code>len</code> bytes from the specified byte array starting at
+     * offset <code>off</code> to this stream.  If automatic flushing is
+     * enabled then the <code>flush</code> method will be invoked.
+     *
+     * <p> Note that the bytes will be written as given; to write characters
+     * that will be translated according to the platform's default character
+     * encoding, use the <code>print(char)</code> or <code>println(char)</code>
+     * methods.
      *
      * @param  buf   A byte array
      * @param  off   Offset from which to start taking bytes
@@ -283,9 +306,10 @@ public class PrintStream extends FilterOutputStream {
     /* Methods that do not terminate lines */
 
     /**
-     * Print a boolean value.  If the given value is true, then the string
-     * <code>"true"</code> is written to the underlying output stream;
-     * otherwise, the string <code>"false"</code> is written.
+     * Print a boolean value.  The string produced by <code>{@link
+     * java.lang.String#valueOf(boolean)} is translated into bytes according to
+     * the platform's default character encoding, and these bytes are written
+     * in exactly the manner of the <code>{@link #write(int)} method.
      *
      * @param      b   The <code>boolean</code> to be printed
      */
@@ -295,7 +319,9 @@ public class PrintStream extends FilterOutputStream {
 
     /**
      * Print a character.  The character is translated into one or more bytes
-     * according to the platform's default character encoding.
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}
+     * method.
      *
      * @param      c   The <code>char</code> to be printed
      */
@@ -304,9 +330,10 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print an integer.  The string printed is the same as that returned by
-     * the <code>toString</code> method of the <code>Integer</code> class when
-     * invoked on the given <code>int</code> value.
+     * Print an integer.  The string produced by <code>{@link
+     * java.lang.String#valueOf(int)} is translated into bytes according to the
+     * platform's default character encoding, and these bytes are written in
+     * exactly the manner of the <code>{@link #write(int)} method.
      *
      * @param      i   The <code>int</code> to be printed
      * @see        java.lang.Integer#toString(int)
@@ -316,9 +343,10 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a long integer.  The string printed is the same as that returned
-     * by the <code>toString</code> method of the <code>Long</code> class when
-     * invoked on the given <code>long</code> value.
+     * Print a long integer.  The string produced by <code>{@link
+     * java.lang.String#valueOf(long)} is translated into bytes according to
+     * the platform's default character encoding, and these bytes are written
+     * in exactly the manner of the <code>{@link #write(int)} method.
      *
      * @param      l   The <code>long</code> to be printed
      * @see        java.lang.Long#toString(long)
@@ -328,9 +356,10 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a floating-point number.  The string printed is the same as that
-     * returned by the <code>toString</code> method of the <code>Float</code>
-     * class when invoked on the given <code>float</code> value.
+     * Print a floating-point number.  The string produced by <code>{@link
+     * java.lang.String#valueOf(float)} is translated into bytes according to
+     * the platform's default character encoding, and these bytes are written
+     * in exactly the manner of the <code>{@link #write(int)} method.
      *
      * @param      f   The <code>float</code> to be printed
      * @see        java.lang.Float#toString(float)
@@ -340,10 +369,11 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a double-precision floating-point number.  The string printed is
-     * the same as that returned by the <code>toString</code> method of the
-     * <code>Double</code> class when invoked on the given <code>double</code>
-     * value.
+     * Print a double-precision floating-point number.  The string produced by
+     * <code>{@link java.lang.String#valueOf(double)} is translated into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}
+     * method.
      *
      * @param      d   The <code>double</code> to be printed
      * @see        java.lang.Double#toString(double)
@@ -354,19 +384,24 @@ public class PrintStream extends FilterOutputStream {
 
     /**
      * Print an array of characters.  The characters are converted into bytes
-     * according to the platform's default character encoding.
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}
+     * method.
      *
      * @param      s   The array of chars to be printed
+     * 
+     * @throws  NullPointerException  If <code>s</code> is <code>null</code>
      */
     public void print(char s[]) {
 	write(s);
     }
 
     /**
-     * Print a string.  If the argument is <code>null</code>, the string
-     * <code>"null"</code> is written to the underlying output stream.
-     * Otherwise, the string's characters are converted into bytes according to
-     * the platform's default character encoding.
+     * Print a string.  If the argument is <code>null</code> then the string
+     * <code>"null"</code> is printed.  Otherwise, the string's characters are
+     * converted into bytes according to the platform's default character
+     * encoding, and these bytes are written in exactly the manner of the
+     * <code>{@link #write(int)} method.
      *
      * @param      s   The <code>String</code> to be printed
      */
@@ -378,8 +413,11 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print an object.  The string printed is the same as that returned by the
-     * given object's <code>toString</code> method.
+     * Print an object.  The string produced by the <code>{@link
+     * java.lang.String#valueOf(Object)} method is translated into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}
+     * method.
      *
      * @param      obj   The <code>Object</code> to be printed
      * @see        java.lang.Object#toString()
@@ -392,8 +430,8 @@ public class PrintStream extends FilterOutputStream {
     /* Methods that do terminate lines */
 
     /**
-     * Finish the current line by writing a line separator.  The line
-     * separator string is defined by the system property
+     * Terminate the current line by writing the line separator string.  The
+     * line separator string is defined by the system property
      * <code>line.separator</code>, and is not necessarily a single newline
      * character (<code>'\n'</code>).
      */
@@ -402,9 +440,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a boolean, and then finish the line.
-     *
-     * @see #print(boolean)
+     * Print a boolean and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(boolean)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(boolean x) {
 	synchronized (this) {
@@ -414,9 +452,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a character, and then finish the line.
-     *
-     * @see #print(char)
+     * Print a character and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(char)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(char x) {
 	synchronized (this) {
@@ -426,9 +464,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print an integer, and then finish the line.
-     *
-     * @see #print(int)
+     * Print an integer and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(int)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(int x) {
 	synchronized (this) {
@@ -438,9 +476,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a long, and then finish the line.
-     *
-     * @see #print(long)
+     * Print a long and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(long)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(long x) {
 	synchronized (this) {
@@ -450,9 +488,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a float, and then finish the line.
-     *
-     * @see #print(float)
+     * Print a float and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(float)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(float x) {
 	synchronized (this) {
@@ -462,9 +500,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a double, and then finish the line.
-     *
-     * @see #print(double)
+     * Print a double and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(double)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(double x) {
 	synchronized (this) {
@@ -474,9 +512,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print an array of characters, and then finish the line.
-     *
-     * @see #print(char[])
+     * Print an array of characters and then terminate the line.  This method
+     * behaves as though it invokes <code>{@link #print(char[])} and then
+     * <code>{@link #println()}</code>.
      */
     public void println(char x[]) {
 	synchronized (this) {
@@ -486,9 +524,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print a String, and then finish the line.
-     *
-     * @see #print(String)
+     * Print a String and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(String)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(String x) {
 	synchronized (this) {
@@ -498,9 +536,9 @@ public class PrintStream extends FilterOutputStream {
     }
 
     /**
-     * Print an Object, and then finish the line.
-     *
-     * @see #print(Object)
+     * Print an Object and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(Object)} and then <code>{@link
+     * #println()}</code>.
      */
     public void println(Object x) {
 	synchronized (this) {

@@ -1,8 +1,15 @@
 /*
- * @(#)FloatingDecimal.java	1.11 01/12/10
+ * @(#)FloatingDecimal.java	1.14 98/07/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -13,6 +20,10 @@ class FloatingDecimal{
     int		decExponent;
     char	digits[];
     int		nDigits;
+    int		bigIntExp;
+    int		bigIntNBits;
+    boolean	mustSetRoundDir = false;
+    int		roundDir; // set by doubleValue
 
     private	FloatingDecimal( boolean negSign, int decExponent, char []digits, int n,  boolean e )
     {
@@ -37,6 +48,10 @@ class FloatingDecimal{
     static final long	expOne	 = ((long)expBias)<<expShift; // exponent of 1.0
     static final int	maxSmallBinExp = 62;
     static final int	minSmallBinExp = -( 63 / 3 );
+    static final int	maxDecimalDigits = 15;
+    static final int	maxDecimalExponent = 308;
+    static final int	minDecimalExponent = -324;
+    static final int	bigDecimalExponent = 324; // i.e. abs(minDecimalExponent)
 
     static final long	highbyte = 0xff00000000000000L;
     static final long	highbit  = 0x8000000000000000L;
@@ -48,6 +63,12 @@ class FloatingDecimal{
     static final int	singleExpShift	=   23;
     static final int	singleFractHOB	=   1<<singleExpShift;
     static final int	singleExpBias	=   127;
+    static final int	singleMaxDecimalDigits = 7;
+    static final int	singleMaxDecimalExponent = 38;
+    static final int	singleMinDecimalExponent = -45;
+
+    static final int	intDecimalDigits = 9;
+
 
     /*
      * count number of bits from high-order 1 bit to low-order 1 bit,
@@ -55,7 +76,7 @@ class FloatingDecimal{
      */
     private static int
     countBits( long v ){
-	// 
+	//
 	// the strategy is to shift until we get a non-zero sign bit
 	// then shift until we have no bits left, counting the difference.
 	// we do byte shifting as a hack. Hope it helps.
@@ -86,7 +107,7 @@ class FloatingDecimal{
      */
     private static FDBigInt b5p[];
 
-    private static FDBigInt
+    private static synchronized FDBigInt
     big5pow( int p ){
 	if ( p < 0 )
 	    throw new RuntimeException( "Assertion botch: negative power of 5");
@@ -104,7 +125,7 @@ class FloatingDecimal{
 	else if ( p < long5pow.length )
 	    return b5p[p] = new FDBigInt( long5pow[p] );
 	else {
-	    // construct the damn thing.
+	    // construct the value.
 	    // recursively.
 	    int q, r;
 	    // in order to compute 5^p,
@@ -114,25 +135,146 @@ class FloatingDecimal{
 	    q = p >> 1;
 	    r = p - q;
 	    FDBigInt bigq =  b5p[q];
-	    if ( bigq == null ) 
+	    if ( bigq == null )
 		bigq = big5pow ( q );
 	    if ( r < small5pow.length ){
 		return (b5p[p] = bigq.mult( small5pow[r] ) );
 	    }else{
 		FDBigInt bigr = b5p[ r ];
-		if ( bigr == null ) 
+		if ( bigr == null )
 		    bigr = big5pow( r );
 		return (b5p[p] = bigq.mult( bigr ) );
 	    }
 	}
     }
 
+    //
+    // a common operation
+    //
+    private static FDBigInt
+    multPow52( FDBigInt v, int p5, int p2 ){
+	if ( p5 != 0 ){
+	    if ( p5 < small5pow.length ){
+		v = v.mult( small5pow[p5] );
+	    } else {
+		v = v.mult( big5pow( p5 ) );
+	    }
+	}
+	if ( p2 != 0 ){
+	    v.lshiftMe( p2 );
+	}
+	return v;
+    }
+
+    //
+    // another common operation
+    //
+    private static FDBigInt
+    constructPow52( int p5, int p2 ){
+	FDBigInt v = new FDBigInt( big5pow( p5 ) );
+	if ( p2 != 0 ){
+	    v.lshiftMe( p2 );
+	}
+	return v;
+    }
+
     /*
-     * This is the easy subcase -- 
+     * Make a floating double into a FDBigInt.
+     * This could also be structured as a FDBigInt
+     * constructor, but we'd have to build a lot of knowledge
+     * about floating-point representation into it, and we don't want to.
+     *
+     * AS A SIDE EFFECT, THIS METHOD WILL SET THE INSTANCE VARIABLES
+     * bigIntExp and bigIntNBits
+     *
+     */
+    private FDBigInt
+    doubleToBigInt( double dval ){
+	long lbits = Double.doubleToLongBits( dval ) & ~signMask;
+	int binexp = (int)(lbits >>> expShift);
+	lbits &= fractMask;
+	if ( binexp > 0 ){
+	    lbits |= fractHOB;
+	} else {
+	    if ( lbits == 0L )
+		throw new RuntimeException("Assertion botch: doubleToBigInt(0.0)");
+	    binexp +=1;
+	    while ( (lbits & fractHOB ) == 0L){
+		lbits <<= 1;
+		binexp -= 1;
+	    }
+	}
+	binexp -= expBias;
+	int nbits = countBits( lbits );
+	/*
+	 * We now know where the high-order 1 bit is,
+	 * and we know how many there are.
+	 */
+	int lowOrderZeros = expShift+1-nbits;
+	lbits >>>= lowOrderZeros;
+
+	bigIntExp = binexp+1-nbits;
+	bigIntNBits = nbits;
+	return new FDBigInt( lbits );
+    }
+
+    /*
+     * Compute a number that is the ULP of the given value,
+     * for purposes of addition/subtraction. Generally easy.
+     * More difficult if subtracting and the argument
+     * is a normalized a power of 2, as the ULP changes at these points.
+     */
+    private static double
+    ulp( double dval, boolean subtracting ){
+	long lbits = Double.doubleToLongBits( dval ) & ~signMask;
+	int binexp = (int)(lbits >>> expShift);
+	double ulpval;
+	if ( subtracting && ( binexp >= expShift ) && ((lbits&fractMask) == 0L) ){
+	    // for subtraction from normalized, powers of 2,
+	    // use next-smaller exponent
+	    binexp -= 1;
+	}
+	if ( binexp > expShift ){
+	    ulpval = Double.longBitsToDouble( ((long)(binexp-expShift))<<expShift );
+	} else if ( binexp == 0 ){
+	    ulpval = Double.MIN_VALUE;
+	} else {
+	    ulpval = Double.longBitsToDouble( 1L<<(binexp-1) );
+	}
+	if ( subtracting ) ulpval = - ulpval;
+
+	return ulpval;
+    }
+
+    /*
+     * Round a double to a float.
+     * In addition to the fraction bits of the double,
+     * look at the class instance variable roundDir,
+     * which should help us avoid double-rounding error.
+     * roundDir was set in hardValueOf if the estimate was
+     * close enough, but not exact. It tells us which direction
+     * of rounding is preferred.
+     */
+    float
+    stickyRound( double dval ){
+	long lbits = Double.doubleToLongBits( dval );
+	long binexp = lbits & expMask;
+	if ( binexp == 0L || binexp == expMask ){
+	    // what we have here is special.
+	    // don't worry, the right thing will happen.
+	    return (float) dval;
+	}
+	lbits += (long)roundDir; // hack-o-matic.
+	return (float)Double.longBitsToDouble( lbits );
+    }
+
+
+    /*
+     * This is the easy subcase --
      * all the significant bits, after scaling, are held in lvalue.
      * negSign and decExponent tell us what processing and scaling
      * has already been done. Exceptional cases have already been
-     * stripped out. 
+     * stripped out.
      * In particular:
      * lvalue is a finite number (not Inf, nor NaN)
      * lvalue > 0L (not zero, nor negative).
@@ -296,7 +438,7 @@ class FloatingDecimal{
 		fractBits <<= 1;
 		binExp -= 1;
 	    }
-	    nSignificantBits = expShift + binExp; // recall binExp is  - shift count.
+	    nSignificantBits = expShift + binExp +1; // recall binExp is  - shift count.
 	    binExp += 1;
 	} else {
 	    fractBits |= fractHOB;
@@ -356,7 +498,7 @@ class FloatingDecimal{
 		fractBits <<= 1;
 		binExp -= 1;
 	    }
-	    nSignificantBits = singleExpShift + binExp; // recall binExp is  - shift count.
+	    nSignificantBits = singleExpShift + binExp +1; // recall binExp is  - shift count.
 	    binExp += 1;
 	} else {
 	    fractBits |= singleFractHOB;
@@ -457,13 +599,13 @@ class FloatingDecimal{
 	 *
 	 * First, scale the mantissa bits such that 1 <= d2 < 2.
 	 * We are then going to estimate
-	 *	    log10(d2) ~=~  (d2-1.5)/1.5 + log(1.5) 
-	 * and so we can estimate 
+	 *	    log10(d2) ~=~  (d2-1.5)/1.5 + log(1.5)
+	 * and so we can estimate
 	 *      log10(d) ~=~ log10(d2) + binExp * log10(2)
 	 * take the floor and call it decExp.
 	 * FIXME -- use more precise constants here. It costs no more.
 	 */
-	double d2 = Double.longBitsToDouble( 
+	double d2 = Double.longBitsToDouble(
 	    expOne | ( fractBits &~ fractHOB ) );
 	decExp = (int)Math.floor(
 	    (d2-1.5D)*0.289529654D + 0.176091259 + (double)binExp * 0.301029995663981 );
@@ -488,7 +630,7 @@ class FloatingDecimal{
 	 * bits from the mantissa of d ( hidden 1 added if necessary) followed
 	 * by (expShift+1-nFractBits) zeros. In the interest of compactness,
 	 * I will shift out those zeros before turning fractBits into a
-	 * FDBigInt. The resulting whole number will be 
+	 * FDBigInt. The resulting whole number will be
 	 * 	d * 2^(nFractBits-1-binExp).
 	 */
 	fractBits >>>= (expShift+1-nFractBits);
@@ -508,7 +650,7 @@ class FloatingDecimal{
 	    M2 -= 1;
 
 	if ( M2 < 0 ){
-	    // oops. 
+	    // oops.
 	    // since we cannot scale M down far enough,
 	    // we must scale the other values up.
 	    B2 -= M2;
@@ -672,25 +814,9 @@ class FloatingDecimal{
 	     * We really must do FDBigInt arithmetic.
 	     * Fist, construct our FDBigInt initial values.
 	     */
-	    Bval = new FDBigInt( fractBits  );
-	    if ( B5 != 0 ){
-		if ( B5 < small5pow.length ){
-		    Bval = Bval.mult( small5pow[B5] );
-		} else {
-		    Bval = Bval.mult( big5pow( B5 ) );
-		}
-	    }
-	    if ( B2 != 0 ){
-		Bval.lshiftMe( B2 );
-	    }
-	    Sval = new FDBigInt( big5pow( S5 ) );
-	    if ( S2 != 0 ){
-		Sval.lshiftMe( S2 );
-	    }
-	    Mval = new FDBigInt( big5pow( M5 ) );
-	    if ( M2 != 0 ){
-		Mval.lshiftMe( M2 );
-	    }
+	    Bval = multPow52( new FDBigInt( fractBits  ), B5, B2 );
+	    Sval = constructPow52( S5, S2 );
+	    Mval = constructPow52( M5, M2 );
 
 
 	    // normalize so that division works better
@@ -852,6 +978,714 @@ class FloatingDecimal{
 	return new String(result, 0, i);
     }
 
+    public static FloatingDecimal
+    readJavaFormatString( String in ) throws NumberFormatException {
+	boolean isNegative = false;
+	boolean signSeen   = false;
+	int     decExp;
+	char	c;
+
+    parseNumber:
+	try{
+	    in = in.trim(); // don't fool around with white space.
+			   // throws NullPointerException if null
+	    int	l = in.length();
+	    if ( l == 0 ) throw new NumberFormatException("empty String");
+	    int	i = 0;
+	    switch ( c = in.charAt( i ) ){
+	    case '-':
+		isNegative = true;
+		//FALLTHROUGH
+	    case '+':
+		i++;
+		signSeen = true;
+	    }
+	    // Would handle NaN and Infinity here, but it isn't
+	    // part of the spec!
+	    //
+	    char[] digits = new char[ l ];
+	    int    nDigits= 0;
+	    boolean decSeen = false;
+	    int	decPt = 0;
+	    int	nLeadZero = 0;
+	    int	nTrailZero= 0;
+	digitLoop:
+	    while ( i < l ){
+		switch ( c = in.charAt( i ) ){
+		case '0':
+		    if ( nDigits > 0 ){
+			nTrailZero += 1;
+		    } else {
+			nLeadZero += 1;
+		    }
+		    break; // out of switch.
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		    while ( nTrailZero > 0 ){
+			digits[nDigits++] = '0';
+			nTrailZero -= 1;
+		    }
+		    digits[nDigits++] = c;
+		    break; // out of switch.
+		case '.':
+		    if ( decSeen ){
+			// already saw one ., this is the 2nd.
+			throw new NumberFormatException("multiple points");
+		    }
+		    decPt = i;
+		    if ( signSeen ){
+			decPt -= 1;
+		    }
+		    decSeen = true;
+		    break; // out of switch.
+		default:
+		    break digitLoop;
+		}
+		i++;
+	    }
+	    /*
+	     * At this point, we've scanned all the digits and decimal
+	     * point we're going to see. Trim off leading and trailing
+	     * zeros, which will just confuse us later, and adjust
+	     * our initial decimal exponent accordingly.
+	     * To review:
+	     * we have seen i total characters.
+	     * nLeadZero of them were zeros before any other digits.
+	     * nTrailZero of them were zeros after any other digits.
+	     * if ( decSeen ), then a . was seen after decPt characters
+	     * ( including leading zeros which have been discarded )
+	     * nDigits characters were neither lead nor trailing
+	     * zeros, nor point
+	     */
+	    /*
+	     * special hack: if we saw no non-zero digits, then the
+	     * answer is zero!
+	     * Unfortunately, we feel honor-bound to keep parsing!
+	     */
+	    if ( nDigits == 0 ){
+		digits = zero;
+		nDigits = 1;
+		if ( nLeadZero == 0 ){
+		    // we saw NO DIGITS AT ALL,
+		    // not even a crummy 0!
+		    // this is not allowed.
+		    break parseNumber; // go throw exception
+		}
+
+	    }
+
+	    /* Our initial exponent is decPt, adjusted by the number of
+	     * discarded zeros. Or, if there was no decPt,
+	     * then its just nDigits adjusted by discarded trailing zeros.
+	     */
+	    if ( decSeen ){
+		decExp = decPt - nLeadZero;
+	    } else {
+		decExp = nDigits+nTrailZero;
+	    }
+
+	    /*
+	     * Look for 'e' or 'E' and an optionally signed integer.
+	     */
+	    if ( (i < l) &&  ((c = in.charAt(i) )=='e') || (c == 'E') ){
+		int expSign = 1;
+		int expVal  = 0;
+		int reallyBig = Integer.MAX_VALUE / 10;
+		boolean expOverflow = false;
+		switch( in.charAt(++i) ){
+		case '-':
+		    expSign = -1;
+		    //FALLTHROUGH
+		case '+':
+		    i++;
+		}
+		int expAt = i;
+	    expLoop:
+		while ( i < l  ){
+		    if ( expVal >= reallyBig ){
+			// the next character will cause integer
+			// overflow.
+			expOverflow = true;
+		    }
+		    switch ( c = in.charAt(i++) ){
+		    case '0':
+		    case '1':
+		    case '2':
+		    case '3':
+		    case '4':
+		    case '5':
+		    case '6':
+		    case '7':
+		    case '8':
+		    case '9':
+			expVal = expVal*10 + ( (int)c - (int)'0' );
+			continue;
+		    default:
+			i--;	       // back up.
+			break expLoop; // stop parsing exponent.
+		    }
+		}
+		int expLimit = bigDecimalExponent+nDigits+nTrailZero;
+		if ( expOverflow || ( expVal > expLimit ) ){
+		    //
+		    // The intent here is to end up with
+		    // infinity or zero, as appropriate.
+		    // The reason for yielding such a small decExponent,
+		    // rather than something intuitive such as
+		    // expSign*Integer.MAX_VALUE, is that this value
+		    // is subject to further manipulation in
+		    // doubleValue() and floatValue(), and I don't want
+		    // it to be able to cause overflow there!
+		    // (The only way we can get into trouble here is for
+		    // really outrageous nDigits+nTrailZero, such as 2 billion. )
+		    //
+		    decExp = expSign*expLimit;
+		} else {
+		    // this should not overflow, since we tested
+		    // for expVal > (MAX+N), where N >= abs(decExp)
+		    decExp = decExp + expSign*expVal;
+		}
+
+		// if we saw something not a digit ( or end of string )
+		// after the [Ee][+-], without seeing any digits at all
+		// this is certainly an error. If we saw some digits,
+		// but then some trailing garbage, that might be ok.
+		// so we just fall through in that case.
+		// HUMBUG
+                if ( i == expAt ) 
+		    break parseNumber; // certainly bad
+	    }
+	    /*
+	     * We parsed everything we could.
+	     * If there are leftovers, then this is not good input!
+	     */
+	    if ( i < l &&
+                ((i != l - 1) ||
+                (in.charAt(i) != 'f' &&
+                 in.charAt(i) != 'F' &&
+                 in.charAt(i) != 'd' &&
+                 in.charAt(i) != 'D'))) {
+                break parseNumber; // go throw exception
+            }
+
+	    return new FloatingDecimal( isNegative, decExp, digits, nDigits,  false );
+	} catch ( StringIndexOutOfBoundsException e ){ }
+	throw new NumberFormatException( in );
+    }
+
+    /*
+     * Take a FloatingDecimal, which we presumably just scanned in,
+     * and find out what its value is, as a double.
+     *
+     * AS A SIDE EFFECT, SET roundDir TO INDICATE PREFERRED
+     * ROUNDING DIRECTION in case the result is really destined
+     * for a single-precision float.
+     */
+
+    public double
+    doubleValue(){
+	int	kDigits = Math.min( nDigits, maxDecimalDigits+1 );
+	long	lValue;
+	double	dValue;
+	double  rValue, tValue;
+
+	roundDir = 0;
+
+	/*
+	 * convert the lead kDigits to a long integer.
+	 */
+	// (special performance hack: start to do it using int)
+	int iValue = (int)digits[0]-(int)'0';
+	int iDigits = Math.min( kDigits, intDecimalDigits );
+	for ( int i=1; i < iDigits; i++ ){
+	    iValue = iValue*10 + (int)digits[i]-(int)'0';
+	}
+	lValue = (long)iValue;
+	for ( int i=iDigits; i < kDigits; i++ ){
+	    lValue = lValue*10L + (long)((int)digits[i]-(int)'0');
+	}
+	dValue = (double)lValue;
+	int exp = decExponent-kDigits;
+	/*
+	 * lValue now contains a long integer with the value of
+	 * the first kDigits digits of the number.
+	 * dValue contains the (double) of the same.
+	 */
+
+	if ( nDigits <= maxDecimalDigits ){
+	    /*
+	     * possibly an easy case.
+	     * We know that the digits can be represented
+	     * exactly. And if the exponent isn't too outrageous,
+	     * the whole thing can be done with one operation,
+	     * thus one rounding error.
+	     */
+	    if ( exp == 0 ) return (isNegative)? -dValue : dValue; // small floating integer
+	    else if ( exp >= 0 ){
+		if ( exp <= maxSmallTen ){
+		    /*
+		     * Can get the answer with one operation,
+		     * thus one roundoff.
+		     */
+		    rValue = dValue * small10pow[exp];
+		    if ( mustSetRoundDir ){
+			tValue = rValue / small10pow[exp];
+			roundDir = ( tValue ==  dValue ) ? 0
+			          :( tValue < dValue ) ? 1
+			          : -1;
+		    }
+		    return (isNegative)? -rValue : rValue;
+		}
+		int slop = maxDecimalDigits - kDigits;
+		if ( exp <= maxSmallTen+slop ){
+		    /*
+		     * We can multiply dValue by 10^(slop)
+		     * and it is still "small" and exact.
+		     * Then we can multiply by 10^(exp-slop)
+		     * with one rounding.
+		     */
+		    dValue *= small10pow[slop];
+		    rValue = dValue * small10pow[exp-slop];
+
+		    if ( mustSetRoundDir ){
+			tValue = rValue / small10pow[exp-slop];
+			roundDir = ( tValue ==  dValue ) ? 0
+				  :( tValue < dValue ) ? 1
+				  : -1;
+		    }
+		    return (isNegative)? -rValue : rValue;
+		}
+		/*
+		 * Else we have a hard case with a positive exp.
+		 */
+	    } else {
+		if ( exp >= -maxSmallTen ){
+		    /*
+		     * Can get the answer in one division.
+		     */
+		    rValue = dValue / small10pow[-exp];
+		    tValue = rValue * small10pow[-exp];
+		    if ( mustSetRoundDir ){
+			roundDir = ( tValue ==  dValue ) ? 0
+				  :( tValue < dValue ) ? 1
+				  : -1;
+		    }
+		    return (isNegative)? -rValue : rValue;
+		}
+		/*
+		 * Else we have a hard case with a negative exp.
+		 */
+	    }
+	}
+
+	/*
+	 * Harder cases:
+	 * The sum of digits plus exponent is greater than
+	 * what we think we can do with one error.
+	 *
+	 * Start by approximating the right answer by,
+	 * naively, scaling by powers of 10.
+	 */
+	if ( exp > 0 ){
+	    if ( decExponent > maxDecimalExponent+1 ){
+		/*
+		 * Lets face it. This is going to be
+		 * Infinity. Cut to the chase.
+		 */
+		return (isNegative)? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+	    }
+	    if ( (exp&15) != 0 ){
+		dValue *= small10pow[exp&15];
+	    }
+	    if ( (exp>>=4) != 0 ){
+		int j;
+		for( j = 0; exp > 1; j++, exp>>=1 ){
+		    if ( (exp&1)!=0)
+			dValue *= big10pow[j];
+		}
+		/*
+		 * The reason for the weird exp > 1 condition
+		 * in the above loop was so that the last multiply
+		 * would get unrolled. We handle it here.
+		 * It could overflow.
+		 */
+		double t = dValue * big10pow[j];
+		if ( Double.isInfinite( t ) ){
+		    /*
+		     * It did overflow.
+		     * Look more closely at the result.
+		     * If the exponent is just one too large,
+		     * then use the maximum finite as our estimate
+		     * value. Else call the result infinity
+		     * and punt it.
+		     * ( I presume this could happen because
+		     * rounding forces the result here to be
+		     * an ULP or two larger than
+		     * Double.MAX_VALUE ).
+		     */
+		    t = dValue / 2.0;
+		    t *= big10pow[j];
+		    if ( Double.isInfinite( t ) ){
+			return (isNegative)? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+		    }
+		    t = Double.MAX_VALUE;
+		}
+		dValue = t;
+	    }
+	} else if ( exp < 0 ){
+	    exp = -exp;
+	    if ( decExponent < minDecimalExponent-1 ){
+		/*
+		 * Lets face it. This is going to be
+		 * zero. Cut to the chase.
+		 */
+		return (isNegative)? -0.0 : 0.0;
+	    }
+	    if ( (exp&15) != 0 ){
+		dValue /= small10pow[exp&15];
+	    }
+	    if ( (exp>>=4) != 0 ){
+		int j;
+		for( j = 0; exp > 1; j++, exp>>=1 ){
+		    if ( (exp&1)!=0)
+			dValue *= tiny10pow[j];
+		}
+		/*
+		 * The reason for the weird exp > 1 condition
+		 * in the above loop was so that the last multiply
+		 * would get unrolled. We handle it here.
+		 * It could underflow.
+		 */
+		double t = dValue * tiny10pow[j];
+		if ( t == 0.0 ){
+		    /*
+		     * It did underflow.
+		     * Look more closely at the result.
+		     * If the exponent is just one too small,
+		     * then use the minimum finite as our estimate
+		     * value. Else call the result 0.0
+		     * and punt it.
+		     * ( I presume this could happen because
+		     * rounding forces the result here to be
+		     * an ULP or two less than
+		     * Double.MIN_VALUE ).
+		     */
+		    t = dValue * 2.0;
+		    t *= tiny10pow[j];
+		    if ( t == 0.0 ){
+			return (isNegative)? -0.0 : 0.0;
+		    }
+		    t = Double.MIN_VALUE;
+		}
+		dValue = t;
+	    }
+	}
+
+	/*
+	 * dValue is now approximately the result.
+	 * The hard part is adjusting it, by comparison
+	 * with FDBigInt arithmetic.
+	 * Formulate the EXACT big-number result as
+	 * bigD0 * 10^exp
+	 */
+	FDBigInt bigD0 = new FDBigInt( lValue, digits, kDigits, nDigits );
+	exp   = decExponent - nDigits;
+
+    correctionLoop:
+	while(true){
+	    /* AS A SIDE EFFECT, THIS METHOD WILL SET THE INSTANCE VARIABLES
+	     * bigIntExp and bigIntNBits
+	     */
+	    FDBigInt bigB = doubleToBigInt( dValue );
+
+	    /*
+	     * Scale bigD, bigB appropriately for
+	     * big-integer operations.
+	     * Naively, we multipy by powers of ten
+	     * and powers of two. What we actually do
+	     * is keep track of the powers of 5 and
+	     * powers of 2 we would use, then factor out
+	     * common divisors before doing the work.
+	     */
+	    int B2, B5; // powers of 2, 5 in bigB
+	    int	D2, D5;	// powers of 2, 5 in bigD
+	    int Ulp2;   // powers of 2 in halfUlp.
+	    if ( exp >= 0 ){
+		B2 = B5 = 0;
+		D2 = D5 = exp;
+	    } else {
+		B2 = B5 = -exp;
+		D2 = D5 = 0;
+	    }
+	    if ( bigIntExp >= 0 ){
+		B2 += bigIntExp;
+	    } else {
+		D2 -= bigIntExp;
+	    }
+	    Ulp2 = B2;
+	    // shift bigB and bigD left by a number s. t.
+	    // halfUlp is still an integer.
+	    int hulpbias;
+	    if ( bigIntExp+bigIntNBits <= -expBias+1 ){
+		// This is going to be a denormalized number
+		// (if not actually zero).
+		// half an ULP is at 2^-(expBias+expShift+1)
+		hulpbias = bigIntExp+ expBias + expShift;
+	    } else {
+		hulpbias = expShift + 2 - bigIntNBits;
+	    }
+	    B2 += hulpbias;
+	    D2 += hulpbias;
+	    // if there are common factors of 2, we might just as well
+	    // factor them out, as they add nothing useful.
+	    int common2 = Math.min( B2, Math.min( D2, Ulp2 ) );
+	    B2 -= common2;
+	    D2 -= common2;
+	    Ulp2 -= common2;
+	    // do multiplications by powers of 5 and 2
+	    bigB = multPow52( bigB, B5, B2 );
+	    FDBigInt bigD = multPow52( new FDBigInt( bigD0 ), D5, D2 );
+	    //
+	    // to recap:
+	    // bigB is the scaled-big-int version of our floating-point
+	    // candidate.
+	    // bigD is the scaled-big-int version of the exact value
+	    // as we understand it.
+	    // halfUlp is 1/2 an ulp of bigB, except for special cases
+	    // of exact powers of 2
+	    //
+	    // the plan is to compare bigB with bigD, and if the difference
+	    // is less than halfUlp, then we're satisfied. Otherwise,
+	    // use the ratio of difference to halfUlp to calculate a fudge
+	    // factor to add to the floating value, then go 'round again.
+	    //
+	    FDBigInt diff;
+	    int cmpResult;
+	    boolean overvalue;
+	    if ( (cmpResult = bigB.cmp( bigD ) ) > 0 ){
+		overvalue = true; // our candidate is too big.
+		diff = bigB.sub( bigD );
+		if ( (bigIntNBits == 1) && (bigIntExp > -expBias) ){
+		    // candidate is a normalized exact power of 2 and
+		    // is too big. We will be subtracting.
+		    // For our purposes, ulp is the ulp of the
+		    // next smaller range.
+		    Ulp2 -= 1;
+		    if ( Ulp2 < 0 ){
+			// rats. Cannot de-scale ulp this far.
+			// must scale diff in other direction.
+			Ulp2 = 0;
+			diff.lshiftMe( 1 );
+		    }
+		}
+	    } else if ( cmpResult < 0 ){
+		overvalue = false; // our candidate is too small.
+		diff = bigD.sub( bigB );
+	    } else {
+		// the candidate is exactly right!
+		// this happens with surprising fequency
+		break correctionLoop;
+	    }
+	    FDBigInt halfUlp = constructPow52( B5, Ulp2 );
+	    if ( (cmpResult = diff.cmp( halfUlp ) ) < 0 ){
+		// difference is small.
+		// this is close enough
+		roundDir = overvalue ? -1 : 1;
+		break correctionLoop;
+	    } else if ( cmpResult == 0 ){
+		// difference is exactly half an ULP
+		// round to some other value maybe, then finish
+		dValue += 0.5*ulp( dValue, overvalue );
+		// should check for bigIntNBits == 1 here??
+		roundDir = overvalue ? -1 : 1;
+		break correctionLoop;
+	    } else {
+		// difference is non-trivial.
+		// could scale addend by ratio of difference to
+		// halfUlp here, if we bothered to compute that difference.
+		// Most of the time ( I hope ) it is about 1 anyway.
+		dValue += ulp( dValue, overvalue );
+		if ( dValue == 0.0 || dValue == Double.POSITIVE_INFINITY )
+		     break correctionLoop; // oops. Fell off end of range.
+		continue; // try again.
+	    }
+
+	}
+	return (isNegative)? -dValue : dValue;
+    }
+
+    /*
+     * Take a FloatingDecimal, which we presumably just scanned in,
+     * and find out what its value is, as a float.
+     * This is distinct from doubleValue() to avoid the extremely
+     * unlikely case of a double rounding error, wherein the converstion
+     * to double has one rounding error, and the conversion of that double
+     * to a float has another rounding error, IN THE WRONG DIRECTION,
+     * ( because of the preference to a zero low-order bit ).
+     */
+
+    public float
+    floatValue(){
+	int	kDigits = Math.min( nDigits, singleMaxDecimalDigits+1 );
+	int	iValue;
+	float	fValue;
+
+	/*
+	 * convert the lead kDigits to an integer.
+	 */
+	iValue = (int)digits[0]-(int)'0';
+	for ( int i=1; i < kDigits; i++ ){
+	    iValue = iValue*10 + (int)digits[i]-(int)'0';
+	}
+	fValue = (float)iValue;
+	int exp = decExponent-kDigits;
+	/*
+	 * iValue now contains an integer with the value of
+	 * the first kDigits digits of the number.
+	 * fValue contains the (float) of the same.
+	 */
+
+	if ( nDigits <= singleMaxDecimalDigits ){
+	    /*
+	     * possibly an easy case.
+	     * We know that the digits can be represented
+	     * exactly. And if the exponent isn't too outrageous,
+	     * the whole thing can be done with one operation,
+	     * thus one rounding error.
+	     */
+	    if ( exp == 0 ) return (isNegative)? -fValue : fValue; // small floating integer
+	    else if ( exp >= 0 ){
+		if ( exp <= singleMaxSmallTen ){
+		    /*
+		     * Can get the answer with one operation,
+		     * thus one roundoff.
+		     */
+		    fValue *= singleSmall10pow[exp];
+		    return (isNegative)? -fValue : fValue;
+		}
+		int slop = singleMaxDecimalDigits - kDigits;
+		if ( exp <= singleMaxSmallTen+slop ){
+		    /*
+		     * We can multiply dValue by 10^(slop)
+		     * and it is still "small" and exact.
+		     * Then we can multiply by 10^(exp-slop)
+		     * with one rounding.
+		     */
+		    fValue *= singleSmall10pow[slop];
+		    fValue *= singleSmall10pow[exp-slop];
+		    return (isNegative)? -fValue : fValue;
+		}
+		/*
+		 * Else we have a hard case with a positive exp.
+		 */
+	    } else {
+		if ( exp >= -singleMaxSmallTen ){
+		    /*
+		     * Can get the answer in one division.
+		     */
+		    fValue /= singleSmall10pow[-exp];
+		    return (isNegative)? -fValue : fValue;
+		}
+		/*
+		 * Else we have a hard case with a negative exp.
+		 */
+	    }
+	} else if ( (decExponent >= nDigits) && (nDigits+decExponent <= maxDecimalDigits) ){
+	    /*
+	     * In double-precision, this is an exact floating integer.
+	     * So we can compute to double, then shorten to float
+	     * with one round, and get the right answer.
+	     *
+	     * First, finish accumulating digits.
+	     * Then convert that integer to a double, multiply
+	     * by the appropriate power of ten, and convert to float.
+	     */
+	    long lValue = (long)iValue;
+	    for ( int i=kDigits; i < nDigits; i++ ){
+		lValue = lValue*10L + (long)((int)digits[i]-(int)'0');
+	    }
+	    double dValue = (double)lValue;
+	    exp = decExponent-nDigits;
+	    dValue *= small10pow[exp];
+	    fValue = (float)dValue;
+	    return (isNegative)? -fValue : fValue;
+
+	}
+	/*
+	 * Harder cases:
+	 * The sum of digits plus exponent is greater than
+	 * what we think we can do with one error.
+	 *
+	 * Start by weeding out obviously out-of-range
+	 * results, then convert to double and go to
+	 * common hard-case code.
+	 */
+	if ( decExponent > singleMaxDecimalExponent+1 ){
+	    /*
+	     * Lets face it. This is going to be
+	     * Infinity. Cut to the chase.
+	     */
+	    return (isNegative)? Float.NEGATIVE_INFINITY : Float.POSITIVE_INFINITY;
+	} else if ( decExponent < singleMinDecimalExponent-1 ){
+	    /*
+	     * Lets face it. This is going to be
+	     * zero. Cut to the chase.
+	     */
+	    return (isNegative)? -0.0f : 0.0f;
+	}
+
+	/*
+	 * Here, we do 'way too much work, but throwing away
+	 * our partial results, and going and doing the whole
+	 * thing as double, then throwing away half the bits that computes
+	 * when we convert back to float.
+	 *
+	 * The alternative is to reproduce the whole multiple-precision
+	 * algorythm for float precision, or to try to parameterize it
+	 * for common usage. The former will take about 400 lines of code,
+	 * and the latter I tried without success. Thus the semi-hack
+	 * answer here.
+	 */
+	mustSetRoundDir = true;
+	double dValue = doubleValue();
+	return stickyRound( dValue );
+    }
+
+
+    /*
+     * All the positive powers of 10 that can be
+     * represented exactly in double/float.
+     */
+    private static final double small10pow[] = {
+	1.0e0,
+	1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5,
+	1.0e6, 1.0e7, 1.0e8, 1.0e9, 1.0e10,
+	1.0e11, 1.0e12, 1.0e13, 1.0e14, 1.0e15,
+	1.0e16, 1.0e17, 1.0e18, 1.0e19, 1.0e20,
+	1.0e21, 1.0e22
+    };
+
+    private static final float singleSmall10pow[] = {
+	1.0e0f,
+	1.0e1f, 1.0e2f, 1.0e3f, 1.0e4f, 1.0e5f,
+	1.0e6f, 1.0e7f, 1.0e8f, 1.0e9f, 1.0e10f
+    };
+
+    private static final double big10pow[] = {
+	1e16, 1e32, 1e64, 1e128, 1e256 };
+    private static final double tiny10pow[] = {
+	1e-16, 1e-32, 1e-64, 1e-128, 1e-256 };
+
+    private static final int maxSmallTen = small10pow.length-1;
+    private static final int singleMaxSmallTen = singleSmall10pow.length-1;
+
     private static final int small5pow[] = {
 	1,
 	5,
@@ -868,6 +1702,7 @@ class FloatingDecimal{
 	5*5*5*5*5*5*5*5*5*5*5*5,
 	5*5*5*5*5*5*5*5*5*5*5*5*5
     };
+
 
     private static final long long5pow[] = {
 	1L,
@@ -933,6 +1768,7 @@ class FloatingDecimal{
     private static final char infinity[] = { 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y' };
     private static final char notANumber[] = { 'N', 'a', 'N' };
     private static final char zero[] = { '0', '0', '0', '0', '0', '0', '0', '0' };
+
 }
 
 /*
@@ -943,9 +1779,6 @@ class FDBigInt {
     int	nWords; // number of words used
     int data[]; // value: data[0] is least significant
 
-    private static boolean debugging = false;
-
-    public static void setDebugging( boolean d ) { debugging = d; }
 
     public FDBigInt( int v ){
 	nWords = 1;
@@ -968,6 +1801,35 @@ class FDBigInt {
     private FDBigInt( int [] d, int n ){
 	data = d;
 	nWords = n;
+    }
+
+    public FDBigInt( long seed, char digit[], int nd0, int nd ){
+	int n= (nd+8)/9;	// estimate size needed.
+	if ( n < 2 ) n = 2;
+	data = new int[n];	// allocate enough space
+	data[0] = (int)seed;	// starting value
+	data[1] = (int)(seed>>>32);
+	nWords = (data[1]==0) ? 1 : 2;
+	int i = nd0;
+	int limit = nd-5;	// slurp digits 5 at a time.
+	int v;
+	while ( i < limit ){
+	    int ilim = i+5;
+	    v = (int)digit[i++]-(int)'0';
+	    while( i <ilim ){
+		v = 10*v + (int)digit[i++]-(int)'0';
+	    }
+	    multaddMe( 100000, v); // ... where 100000 is 10^5.
+	}
+	int factor = 1;
+	v = 0;
+	while ( i < nd ){
+	    v = 10*v + (int)digit[i++]-(int)'0';
+	    factor *= 10;
+	}
+	if ( factor != 1 ){
+	    multaddMe( factor, v );
+	}
     }
 
     /*
@@ -1095,6 +1957,31 @@ class FDBigInt {
 	} else {
 	    r[nWords] = (int)p;
 	    return new FDBigInt( r, nWords+1 );
+	}
+    }
+
+    /*
+     * Multiply a FDBigInt by an int and add another int.
+     * Result is computed in place.
+     * Hope it fits!
+     */
+    public void
+    multaddMe( int iv, int addend ) {
+	long v = iv;
+	long p;
+
+	// unroll 0th iteration, doing addition.
+	p = v * ((long)data[0]&0xffffffffL) + ((long)addend&0xffffffffL);
+	data[0] = (int)p;
+	p >>>= 32;
+	for( int i=1; i < nWords; i++ ) {
+	    p += v * ((long)data[i]&0xffffffffL);
+	    data[i] = (int)p;
+	    p >>>= 32;
+	}
+	if ( p != 0L){
+	    data[nWords] = (int)p; // will fail noisily if illegal!
+	    nWords++;
 	}
     }
 
@@ -1293,7 +2180,7 @@ class FDBigInt {
 		/*
 		 * Originally the following line read
 		 * "if ( sum !=0 && sum != -1 )"
-		 * but that would be wrong, because of the 
+		 * but that would be wrong, because of the
 		 * treatment of the two values as entirely unsigned,
 		 * it would be impossible for a carry-out to be interpreted
 		 * as -1 -- it would have to be a single-bit carry-out, or

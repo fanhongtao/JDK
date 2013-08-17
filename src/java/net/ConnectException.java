@@ -1,8 +1,15 @@
 /*
- * @(#)ConnectException.java	1.7 01/12/10
+ * @(#)ConnectException.java	1.8 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -22,7 +29,6 @@ public class ConnectException extends SocketException {
      * A detail message is a String that gives a specific 
      * description of this error.
      * @param msg the detail message
-     * @since   JDK1.1
      */
     public ConnectException(String msg) {
 	super(msg);
@@ -30,7 +36,6 @@ public class ConnectException extends SocketException {
 
     /**
      * Construct a new ConnectException with no detailed message.
-     * @since   JDK1.1
      */
     public ConnectException() {}
 }

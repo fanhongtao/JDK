@@ -1,8 +1,15 @@
 /*
- * @(#)Adler32.java	1.12 01/12/10
+ * @(#)Adler32.java	1.19 98/07/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -13,7 +20,7 @@ package java.util.zip;
  * can be computed much faster.
  *
  * @see		Checksum
- * @version 	1.12, 12/10/01
+ * @version 	1.19, 07/24/98
  * @author 	David Connelly
  */
 public
@@ -24,26 +31,42 @@ class Adler32 implements Checksum {
      * Loads the ZLIB library.
      */
     static {
-	System.loadLibrary("zip");
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("zip"));
     }
+
+    /**
+     * Creates a new Adler32 class.
+     */
+    public Adler32() {
+    }
+   
 
     /**
      * Updates checksum with specified byte.
      */
     public void update(int b) {
-	update1(b);
+	adler = update(adler, b);
     }
 
     /**
      * Updates checksum with specified array of bytes.
      */
-    public native void update(byte[] b, int off, int len);
+    public void update(byte[] b, int off, int len) {
+	if (b == null) {
+	    throw new NullPointerException();
+	}
+	if (off < 0 || len < 0 || off + len > b.length) {
+	    throw new ArrayIndexOutOfBoundsException();
+	}
+	adler = updateBytes(adler, b, off, len);
+    }
 
     /**
      * Updates checksum with specified array of bytes.
      */
     public void update(byte[] b) {
-	update(b, 0, b.length);
+	adler = updateBytes(adler, b, 0, b.length);
     }
 
     /**
@@ -60,5 +83,7 @@ class Adler32 implements Checksum {
 	return (long)adler & 0xffffffffL;
     }
 
-    private native void update1(int b);
+    private native static int update(int adler, int b);
+    private native static int updateBytes(int adler, byte[] b, int off,
+					  int len);
 }

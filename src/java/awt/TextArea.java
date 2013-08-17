@@ -1,21 +1,28 @@
 /*
- * @(#)TextArea.java	1.43 01/12/10
+ * @(#)TextArea.java	1.50 98/08/13
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
 import java.awt.peer.TextAreaPeer;
 
 /**
- * A <code>TextArea</code> object is a multi-line region 
- * that displays text. It can be set to allow editing or 
+ * A <code>TextArea</code> object is a multi-line region
+ * that displays text. It can be set to allow editing or
  * to be read-only.
  * <p>
  * The following image shows the appearance of a text area:
  * <p>
- * <img src="images-awt/TextArea-1.gif" 
+ * <img src="doc-files/TextArea-1.gif"
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * This text area could be created by the following line of code:
@@ -24,7 +31,7 @@ import java.awt.peer.TextAreaPeer;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.43, 12/10/01
+ * @version	1.50, 08/13/98
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -32,11 +39,25 @@ public class TextArea extends TextComponent {
 
     /**
      * The number of rows in the TextArea.
+     * The number of Rows will determine the text area's
+     * height and the number of rows is not limited.
+     * Should be non negative.
+     *
+     * @serial
+     * @see getRows()
+     * @see setRows()
      */
     int	rows;
 
     /**
      * The number of columns in the TextArea.
+     * The number of columns will determine the text area's
+     * width and the number of columns is not limited.
+     * Should be non negative.
+     *
+     * @serial
+     * @see getColumns()
+     * @see setColumns()
      */
     int	columns;
 
@@ -68,21 +89,38 @@ public class TextArea extends TextComponent {
     public static final int SCROLLBARS_NONE = 3;
 
     /**
-     * Determines which scrollbars are created for the 
-     * text area.
+     * Determines which scrollbars are created for the
+     * text area. It can be one of four values :
+     * <code>SCROLLBARS_BOTH</code> = both scrollbars.<BR>
+     * <code>SCROLLBARS_HORIZONTAL_ONLY</code> = Horizontal bar only.<BR>
+     * <code>SCROLLBARS_VERTICAL_ONLY</code> = Vertical bar only.<BR>
+     * <code>SCROLLBARS_NONE</code> = No scrollbars.<BR>
+     *
+     * @serial
+     * @see getScrollbarVisibility()
      */
     private int scrollbarVisibility;
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
      private static final long serialVersionUID = 3692302836626095722L;
+
+    /**
+     * Initialize JNI field and method ids
+     */
+    private static native void initIDs();
+
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+	initIDs();
+    }
 
     /**
      * Constructs a new text area.
      * This text area is created with both vertical and
      * horizontal scroll bars.
-     * @since     JDK1.0
      */
     public TextArea() {
 	this("", 0, 0, SCROLLBARS_BOTH);
@@ -92,21 +130,23 @@ public class TextArea extends TextComponent {
      * Constructs a new text area with the specified text.
      * This text area is created with both vertical and
      * horizontal scroll bars.
-     * @param     text the text to be displayed. 
-     * @since     JDK1.0 
+     * @param     text the text to be displayed.
      */
     public TextArea(String text) {
 	this(text, 0, 0, SCROLLBARS_BOTH);
     }
 
     /**
-     * Constructs a new empty TextArea with the specified number of
-     * rows and columns.
+     * Constructs a new empty text area with the specified number of
+     * rows and columns. The text area is created with scrollbar 
+     * visibility equal to {@link #SCROLLBARS_BOTH}, so both 
+     * vertical and horizontal scrollbars will be visible for this 
+     * text area.
      * @param rows the number of rows
      * @param columns the number of columns
      */
     public TextArea(int rows, int columns) {
-	this("", rows, columns);
+	this("", rows, columns, SCROLLBARS_BOTH);
     }
 
     /**
@@ -117,16 +157,15 @@ public class TextArea extends TextComponent {
      * @param     text      the text to be displayed.
      * @param     rows      the number of rows.
      * @param     columns   the number of columns.
-     * @since     JDK1.0
      */
     public TextArea(String text, int rows, int columns) {
         this(text, rows, columns, SCROLLBARS_BOTH);
     }
 
     /**
-     * Constructs a new text area with the specified text, 
+     * Constructs a new text area with the specified text,
      * and with the rows, columns, and scroll bar visibility
-     * as specified. 
+     * as specified.
      * <p>
      * The <code>TextArea</code> class defines several constants
      * that can be supplied as values for the
@@ -134,11 +173,14 @@ public class TextArea extends TextComponent {
      * <code>SCROLLBARS_BOTH</code>, 
      * <code>SCROLLBARS_VERTICAL_ONLY</code>, 
      * <code>SCROLLBARS_HORIZONTAL_ONLY</code>, 
-     * and <code>SCROLLBARS_NEITHER</code>. 
+     * and <code>SCROLLBARS_NONE</code>. Any other value for the 
+     * <code>scrollbars</code> argument is invalid and will result in 
+     * this text area being created with scrollbar visibility equal to 
+     * the default value of {@link #SCROLLBARS_BOTH}.
      * @param     text the text to be displayed.
      * @param     rows the number of rows.
      * @param     columns the number of columns.
-     * @param     scrollbars a constant that determines what 
+     * @param     scrollbars a constant that determines what
      *                scrollbars are created to view the text area.
      * @since     JDK1.1
      */
@@ -146,7 +188,10 @@ public class TextArea extends TextComponent {
 	super(text);
 	this.rows = rows;
 	this.columns = columns;
-	this.scrollbarVisibility = scrollbars;
+        if ((scrollbars >= SCROLLBARS_BOTH) && (scrollbars <= SCROLLBARS_NONE)) 
+       	    this.scrollbarVisibility = scrollbars;
+        else 
+            this.scrollbarVisibility = SCROLLBARS_BOTH;
     }
 
     /**
@@ -154,7 +199,9 @@ public class TextArea extends TextComponent {
      * name is null.
      */
     String constructComponentName() {
-        return base + nameCounter++;
+        synchronized (getClass()) {
+	    return base + nameCounter++;
+	}
     }
 
     /**
@@ -163,11 +210,11 @@ public class TextArea extends TextComponent {
      * functionality.
      */
     public void addNotify() {
-      synchronized (getTreeLock()) {
-	if (peer == null)
-		peer = getToolkit().createTextArea(this);
-	super.addNotify();
-      }
+        synchronized (getTreeLock()) {
+	    if (peer == null)
+	        peer = getToolkit().createTextArea(this);
+	    super.addNotify();
+	}
     }
 
     /**
@@ -219,7 +266,7 @@ public class TextArea extends TextComponent {
     }
 
     /**
-     * Replaces text between the indicated start and end positions 
+     * Replaces text between the indicated start and end positions
      * with the specified replacement text.
      * @param     str      the text to use as the replacement.
      * @param     start    the start position.
@@ -280,7 +327,6 @@ public class TextArea extends TextComponent {
      * @return    the number of columns in the text area.
      * @see       java.awt.TextArea#setColumns
      * @see       java.awt.TextArea#getRows
-     * @since     JDK1.0
      */
     public int getColumns() {
 	return columns;
@@ -308,17 +354,17 @@ public class TextArea extends TextComponent {
 
     /**
      * Gets an enumerated value that indicates which scroll bars
-     * the text area uses. 
+     * the text area uses.
      * <p>
-     * The <code>TextArea</code> class defines four integer constants 
-     * that are used to specify which scroll bars are available. 
-     * <code>TextArea</code> has one constructor that gives the 
+     * The <code>TextArea</code> class defines four integer constants
+     * that are used to specify which scroll bars are available.
+     * <code>TextArea</code> has one constructor that gives the
      * application discretion over scroll bars.
      * @return     an integer that indicates which scroll bars are used.
-     * @see        java.awt.TextArea#SCROLLBARS_BOTH 
+     * @see        java.awt.TextArea#SCROLLBARS_BOTH
      * @see        java.awt.TextArea#SCROLLBARS_VERTICAL_ONLY
      * @see        java.awt.TextArea#SCROLLBARS_HORIZONTAL_ONLY
-     * @see        java.awt.TextArea#SCROLLBARS_NEITHER
+     * @see        java.awt.TextArea#SCROLLBARS_NONE
      * @see        java.awt.TextArea#TextArea(java.lang.String, int, int, int)
      * @since      JDK1.1
      */
@@ -328,12 +374,12 @@ public class TextArea extends TextComponent {
 
 
     /**
-     * Determines the preferred size of a text area with the specified 
-     * number of rows and columns. 
+     * Determines the preferred size of a text area with the specified
+     * number of rows and columns.
      * @param     rows   the number of rows.
      * @param     cols   the number of columns.
-     * @return    the preferred dimensions required to display 
-     *                       the text area with the specified 
+     * @return    the preferred dimensions required to display
+     *                       the text area with the specified
      *                       number of rows and columns.
      * @see       java.awt.Component#getPreferredSize
      * @since     JDK1.1
@@ -356,7 +402,7 @@ public class TextArea extends TextComponent {
     }
 
     /**
-     * Determines the preferred size of this text area.  
+     * Determines the preferred size of this text area.
      * @return    the preferred dimensions needed for this text area.
      * @see       java.awt.Component#getPreferredSize
      * @since     JDK1.1
@@ -372,18 +418,18 @@ public class TextArea extends TextComponent {
     public Dimension preferredSize() {
         synchronized (getTreeLock()) {
 	    return ((rows > 0) && (columns > 0)) ? 
-		       preferredSize(rows, columns) :
-		       super.preferredSize();
+			preferredSize(rows, columns) :
+			super.preferredSize();
         }
     }
 
     /**
-     * Determines the minimum size of a text area with the specified 
+     * Determines the minimum size of a text area with the specified
      * number of rows and columns.
      * @param     rows   the number of rows.
      * @param     cols   the number of columns.
-     * @return    the minimum dimensions required to display 
-     *                       the text area with the specified 
+     * @return    the minimum dimensions required to display
+     *                       the text area with the specified
      *                       number of rows and columns.
      * @see       java.awt.Component#getMinimumSize
      * @since     JDK1.1
@@ -406,7 +452,7 @@ public class TextArea extends TextComponent {
     }
 
     /**
-     * Determines the minimum size of this text area. 
+     * Determines the minimum size of this text area.
      * @return    the preferred dimensions needed for this text area.
      * @see       java.awt.Component#getPreferredSize
      * @since     JDK1.1
@@ -422,8 +468,8 @@ public class TextArea extends TextComponent {
     public Dimension minimumSize() {
         synchronized (getTreeLock()) {
 	    return ((rows > 0) && (columns > 0)) ? 
-		       minimumSize(rows, columns) :
-		       super.minimumSize();
+			minimumSize(rows, columns) :
+			super.minimumSize();
         }
     }
 
@@ -431,7 +477,6 @@ public class TextArea extends TextComponent {
      * Returns the parameter string representing the state of
      * this text area. This string is useful for debugging.
      * @return      the parameter string of this text area.
-     * @since       JDK1.0
      */
     protected String paramString() {
 	String sbVisStr;
@@ -451,9 +496,9 @@ public class TextArea extends TextComponent {
 	    default:
 		sbVisStr = "invalid display policy";
 	}
-      
-	return super.paramString() + ",rows=" + rows + 
-	    ",columns=" + columns + 
+
+	return super.paramString() + ",rows=" + rows +
+	    ",columns=" + columns +
 	  ", scrollbarVisibility=" + sbVisStr;
     }
 

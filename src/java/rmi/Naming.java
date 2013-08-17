@@ -1,8 +1,15 @@
 /*
- * @(#)Naming.java	1.7 01/12/10
+ * @(#)Naming.java	1.10 98/07/12
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.rmi;
 
@@ -11,30 +18,66 @@ import java.net.URL;
 import java.net.MalformedURLException;
 
 /**
- * This is the bootstrap mechanism for obtaining references to remote
- * objects based on Uniform Resource Locator (URL) syntax.  The URL
- * for a remote object is specified using the usual host, port and
- * name:
- *<br>	rmi://host:port/name
- *<br>	host = host name of registry  (defaults to current host)
- *<br>	port = port number of registry (defaults to the registry port number)
- *<br>  name = name for remote object
+ * The <code>Naming</code> class provides methods for storing and obtaining
+ * references to remote objects in the remote object registry. The
+ * <code>Naming</code> class's methods take, as one of their arguments, a name
+ * that is URL formatted <code>java.lang.String</code> of the form:
+ *
+ * <PRE>
+ *    //host:port/name
+ * </PRE>
+ * 
+ * <P>where <code>host</code> is the host (remote or local) where the registry
+ * is located, <code>port</code> is the port number on which the registry
+ * accepts calls, and where <code>name</code> is a simple string uninterpreted
+ * by the registry. Both <code>host</code> and <code>port</code> are optional.
+ * If <code>host</code> is omitted, the host defaults to the local host. If
+ * <code>port</code> is omitted, then the port defaults to 1099, the
+ * "well-known" port that RMI's registry, <code>rmiregistry</code>, uses.
+ *
+ * <P><em>Binding</em> a name for a remote object is associating or
+ * registering a name for a remote object that can be used at a later time to
+ * look up that remote object.  A remote object can be associated with a name
+ * using the <code>Naming</code> class's <code>bind</code> or
+ * <code>rebind</code> methods.
+ *
+ * <P>Once a remote object is registered (bound) with the RMI registry on the
+ * local host, callers on a remote (or local) host can lookup the remote
+ * object by name, obtain its reference, and then invoke remote methods on the
+ * object.  A registry may be shared by all servers running on a host or an
+ * individual server process may create and use its own registry if desired
+ * (see <code>java.rmi.registry.LocateRegistry.createRegistry</code> method
+ * for details).
+ *
+ * @version 1.10, 07/12/98
+ * @author  Ann Wollrath
+ * @author  Roger Riggs
+ * @since   JDK1.1
+ * @see     java.rmi.registry.Registry
+ * @see     java.rmi.registry.LocateRegistry
+ * @see     java.rmi.registry.LocateRegistry#createRegistry(int)
  */
 public final class Naming {
-    /*
+    /**
      * Disallow anyone from creating one of these
      */
     private Naming() {}
 
     /**
-     * Returns the remote object for the URL.
-     * @exception RemoteException If registry could not be contacted.
-     * @exception NotBoundException If name is not currently bound.
+     * Returns a reference, a stub, for the remote object associated
+     * with the specified <code>name</code>.
+     *
+     * @param name a URL-formatted name for the remote object
+     * @return a reference for a remote object
+     * @exception NotBoundException if name is not currently bound
+     * @exception RemoteException if registry could not be contacted
+     * @exception AccessException if this operation is not permitted (if
+     * originating from a non-local host, for example)
+     * @since JDK1.1
      */
     public static Remote lookup(String name)
 	throws NotBoundException,
 	    java.net.MalformedURLException,
-	    UnknownHostException,
 	    RemoteException
     {
 	URL url = cleanURL(name);
@@ -45,16 +88,23 @@ public final class Naming {
 	    return registry;
 	return registry.lookup(file);
     }
-    
+
     /**
-     * Binds the name to the specified remote object.
-     * @exception RemoteException If registry could not be contacted.
-     * @exception AlreadyBoundException If name is already bound.
+     * Binds the specified <code>name</code> to a remote object.
+     *
+     * @param name a URL-formatted name for the remote object
+     * @param obj a reference for the remote object (usually a stub)
+     * @exception AlreadyBoundException if name is already bound
+     * @exception MalformedURLException if the name is not an appropriately
+     *  formatted URL
+     * @exception RemoteException if registry could not be contacted
+     * @exception AccessException if this operation is not permitted (if
+     * originating from a non-local host, for example)
+     * @since JDK1.1
      */
     public static void bind(String name, Remote obj)
 	throws AlreadyBoundException,
 	    java.net.MalformedURLException,
-	    UnknownHostException,
 	    RemoteException
     {
 	URL url = cleanURL(name);
@@ -65,17 +115,24 @@ public final class Naming {
 
 	registry.bind(getName(url), obj);
     }
-    
+
     /**
-     * Unbind the name.
-     * @exception RemoteException If registry could not be contacted.
-     * @exception NotBoundException If name is not currently bound.
+     * Destroys the binding for the specified name that is associated
+     * with a remote object.
+     *
+     * @param name a URL-formatted name associated with a remote object
+     * @exception NotBoundException if name is not currently bound
+     * @exception MalformedURLException if the name is not an appropriately
+     *  formatted URL
+     * @exception RemoteException if registry could not be contacted
+     * @exception AccessException if this operation is not permitted (if
+     * originating from a non-local host, for example)
+     * @since JDK1.1
      */
     public static void unbind(String name)
 	throws RemoteException,
 	    NotBoundException,
-	    java.net.MalformedURLException,
-	    UnknownHostException
+	    java.net.MalformedURLException
     {
 	URL url = cleanURL(name);
 	Registry registry = getRegistry(url);
@@ -84,13 +141,20 @@ public final class Naming {
     }
 
     /** 
-     * Rebind the name to a new object; replaces any existing binding.
-     * @exception RemoteException If registry could not be contacted.
+     * Rebinds the specified name to a new remote object. Any existing
+     * binding for the name is replaced.
+     *
+     * @param name a URL-formatted name associated with the remote object
+     * @param obj new remote object to associate with the name
+     * @exception MalformedURLException if the name is not an appropriately
+     *  formatted URL
+     * @exception RemoteException if registry could not be contacted
+     * @exception AccessException if this operation is not permitted (if
+     * originating from a non-local host, for example)
+     * @since JDK1.1
      */
     public static void rebind(String name, Remote obj)
-	throws RemoteException,
-	    java.net.MalformedURLException,
-	    UnknownHostException
+	throws RemoteException, java.net.MalformedURLException
     {
 	URL url = cleanURL(name);
 	Registry registry = getRegistry(url);
@@ -100,16 +164,22 @@ public final class Naming {
 
 	registry.rebind(getName(url), obj);
     }
-    
+
     /**
-     * Returns an array of strings of the URLs in the registry.
-     * The array contains a snapshot of the names present in the registry.
-     * @exception RemoteException If registry could not be contacted.
+     * Returns an array of the names bound in the registry.  The names are
+     * URL-formatted strings. The array contains a snapshot of the names
+     * present in the registry at the time of the call.
+     *
+     * @param name a URL-formatted name that specifies the remote registry
+     * @return an array of names (in the appropriate URL format) bound
+     *  in the registry
+     * @exception MalformedURLException if the name is not an appropriately
+     *  formatted URL
+     * @exception RemoteException if registry could not be contacted.
+     * @since JDK1.1
      */
     public static String[] list(String name)
-	throws RemoteException,
-	    java.net.MalformedURLException,
-	    UnknownHostException
+	throws RemoteException, java.net.MalformedURLException
     {
 	URL url = cleanURL(name);
 	Registry registry = getRegistry(url);
@@ -131,10 +201,11 @@ public final class Naming {
 	return names;
     }
 
-    /** Function to find registry from URL
+    /**
+     * Returns a registry reference obtained from information in the URL.
      */
     private static Registry getRegistry(URL url)
-	throws RemoteException, UnknownHostException
+	throws RemoteException
     {
 	String host = url.getHost();
 	int port = url.getPort();
@@ -142,7 +213,8 @@ public final class Naming {
 	return LocateRegistry.getRegistry(host, port);
     }
 
-    /** Function to extract only the name from the URL.
+    /**
+     * Extracts only the name portion from the specified URL.
      */
     private static String getName(URL url)
     {
@@ -163,7 +235,7 @@ public final class Naming {
     private static URL cleanURL(String name)
 	throws java.net.MalformedURLException
     {
-	URL url = new URL("file:");
+	URL url = new URL("http:");
 
 	// Anchors (i.e. '#') are meaningless in rmi URLs - disallow them
 	if (name.indexOf('#') >= 0) {

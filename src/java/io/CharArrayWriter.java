@@ -1,8 +1,15 @@
 /*
- * @(#)CharArrayWriter.java	1.8 01/12/10
+ * @(#)CharArrayWriter.java	1.11 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -13,12 +20,12 @@ package java.io;
  * can be retrieved using toCharArray() and toString().
  *
  * @author	Herb Jellinek
- * @version 	1.8, 12/10/01
+ * @version 	1.11, 06/29/98
  * @since       JDK1.1
  */
 public
 class CharArrayWriter extends Writer {
-    /** 
+    /**
      * The buffer where data is stored.
      */
     protected char buf[];
@@ -37,15 +44,19 @@ class CharArrayWriter extends Writer {
 
     /**
      * Creates a new CharArrayWriter with the specified initial size.
-     * @since   JDK1.1
+     *
+     * @exception IllegalArgumentException if initialSize is negative
      */
     public CharArrayWriter(int initialSize) {
+        if (initialSize < 0) {
+            throw new IllegalArgumentException("Negative initial size: "
+					       + initialSize);
+        }
 	buf = new char[initialSize];
     }
 
     /**
      * Writes a character to the buffer.
-     * @since   JDK1.1
      */
     public void write(int c) {
 	synchronized (lock) {
@@ -65,9 +76,14 @@ class CharArrayWriter extends Writer {
      * @param c	the data to be written
      * @param off	the start offset in the data
      * @param len	the number of chars that are written
-     * @since   JDK1.1
      */
     public void write(char c[], int off, int len) {
+	if ((off < 0) || (off > c.length) || (len < 0) ||
+            ((off + len) > c.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return;
+	}
 	synchronized (lock) {
 	    int newcount = count + len;
 	    if (newcount > buf.length) {
@@ -85,7 +101,6 @@ class CharArrayWriter extends Writer {
      * @param  str  String to be written from
      * @param  off  Offset from which to start reading characters
      * @param  len  Number of characters to be written
-     * @since   JDK1.1
      */
     public void write(String str, int off, int len) {
 	synchronized (lock) {
@@ -103,7 +118,6 @@ class CharArrayWriter extends Writer {
     /**
      * Writes the contents of the buffer to another character stream.
      * @param out	the output stream to write to
-     * @since   JDK1.1
      */
     public void writeTo(Writer out) throws IOException {
 	synchronized (lock) {
@@ -114,7 +128,6 @@ class CharArrayWriter extends Writer {
     /**
      * Resets the buffer so that you can use it again without
      * throwing away the already allocated buffer.
-     * @since   JDK1.1
      */
     public void reset() {
 	count = 0;
@@ -122,7 +135,6 @@ class CharArrayWriter extends Writer {
 
     /**
      * Returns a copy of the input data.
-     * @since   JDK1.1
      */
     public char toCharArray()[] {
 	synchronized (lock) {
@@ -134,7 +146,6 @@ class CharArrayWriter extends Writer {
 
     /**
      * Returns the current size of the buffer.
-     * @since   JDK1.1
      */
     public int size() {
 	return count;
@@ -143,7 +154,6 @@ class CharArrayWriter extends Writer {
     /**
      * Converts input data to a string.
      * @return the string.
-     * @since   JDK1.1
      */
     public String toString() {
 	synchronized (lock) {
@@ -153,14 +163,13 @@ class CharArrayWriter extends Writer {
 
     /**
      * Flush the stream.
-     * @since   JDK1.1
      */
     public void flush() { }
 
     /**
      * Close the stream.  This method does not release the buffer, since its
      * contents might still be required.
-     * @since   JDK1.1
      */
     public void close() { }
+
 }

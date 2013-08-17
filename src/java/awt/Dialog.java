@@ -1,8 +1,15 @@
 /*
- * @(#)Dialog.java	1.46 01/12/10
+ * @(#)Dialog.java	1.53 98/08/12
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -11,33 +18,86 @@ import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-import sun.awt.AxBridgeHelper;
+
 
 /**
- * A class that produces a dialog - a window that takes input from the user.
+ * A Dialog is a top-level window with a title and a border
+ * that is typically used to take some form of input from the user.
+ *
+ * The size of the dialog includes any area designated for the
+ * border.  The dimensions of the border area can be obtained 
+ * using the <code>getInsets</code> method, however, since 
+ * these dimensions are platform-dependent, a valid insets
+ * value cannot be obtained until the dialog is made displayable
+ * by either calling <code>pack</code> or <code>show</code>. 
+ * Since the border area is included in the overall size of the
+ * dialog, the border effectively obscures a portion of the dialog,
+ * constraining the area available for rendering and/or displaying
+ * subcomponents to the rectangle which has an upper-left corner
+ * location of <code>(insets.left, insets.top)</code>, and has a size of
+ * <code>width - (insets.left + insets.right)</code> by 
+ * <code>height - (insets.top + insets.bottom)</code>. 
+ * <p>
  * The default layout for a dialog is BorderLayout.
  * <p>
+ * A dialog must have either a frame or another dialog defined as its
+ * owner when it's constructed.  When the owner window of a visible dialog
+ * is hidden or minimized, the dialog will automatically be hidden
+ * from the user. When the owner window is subsequently re-opened, then
+ * the dialog is made visible to the user again.
+ * <p>
+ * A dialog can be either modeless (the default) or modal.  A modal
+ * dialog is one which blocks input to all other toplevel windows
+ * in the app context, except for any windows created with the dialog
+ * as their owner. 
+ * <p>
  * Dialogs are capable of generating the following window events:
- * WindowOpened, WindowClosing, WindowClosed, WindowActivated, WindowDeactivated.
+ * WindowOpened, WindowClosing, WindowClosed, WindowActivated,
+ * WindowDeactivated.
+ *
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.38, 12/03/97
+ * @version 	1.53, 08/12/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
 public class Dialog extends Window {
-    boolean	resizable = true;
+
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+        initIDs();
+    }
 
     /**
-     * Sets to true if the Dialog is modal.  A modal
-     * Dialog grabs all the input to the parent frame from the user.
+     * A dialogs resizable property. Will be true
+     * if the Dialog is to be resizable, otherwise
+     * it will be false.
+     *
+     * @serial
+     * @see setResizable()
+     */
+    boolean resizable = true;
+    /**
+     * Will be true if the Dialog is modal,
+     * otherwise the dialog will be modeless.
+     * A modal Dialog grabs all the input to
+     * the owner frame from the user.
+     *
+     * @serial
+     * @see isModal()
+     * @see setModal()
      */
     boolean modal;
-
     /**
-     * The title of the Dialog.
+     * Specifies the title of the Dialog.
+     * This field can be null.
+     *
+     * @serial
+     * @see getTitle()
+     * @see setTitle()
      */
     String title;
 
@@ -45,57 +105,117 @@ public class Dialog extends Window {
     private static int nameCounter = 0;
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
     private static final long serialVersionUID = 5920926903803293709L;
 
     /**
-     * Constructs an initially invisible Dialog with an empty title.
-     * @param parent the owner of the dialog
+     * Constructs an initially invisible, non-modal Dialog with 
+     * an empty title and the specified owner frame.
+     * @param owner the owner of the dialog
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
      * @see Component#setSize
      * @see Component#setVisible
-     * @since JDK1.0
      */
-    public Dialog(Frame parent) {
-	this(parent, "", false);
+    public Dialog(Frame owner) {
+	this(owner, "", false);
     }
 
     /**
-     * Constructs an initially invisible Dialog with an empty title.
-     * A modal Dialog grabs all the input to the parent frame from the user.
-     * @param parent the owner of the dialog
-     * @param modal if true, dialog blocks input to the parent window when shown
+     * Constructs an initially invisible Dialog with an empty title,
+     * the specified owner frame and modality.
+     * @param owner the owner of the dialog
+     * @param modal if true, dialog blocks input to other app windows when shown
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
      */
-    public Dialog(Frame parent, boolean modal) {
-	this(parent, "", modal);
+    public Dialog(Frame owner, boolean modal) {
+	this(owner, "", modal);
     }
 
     /**
-     * Constructs an initially invisible Dialog with a title. 
-     * @param parent the owner of the dialog
-     * @param title the title of the dialog
+     * Constructs an initially invisible, non-modal Dialog with 
+     * the specified owner frame and title. 
+     * @param owner the owner of the dialog
+     * @param title the title of the dialog. A <code>null</code> value
+     *        will be accepted without causing a NullPointerException
+     *        to be thrown.
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
      * @see Component#setSize
      * @see Component#setVisible
-     * @since JDK1.0
      */
-    public Dialog(Frame parent, String title) {
-	this(parent, title, false);
+    public Dialog(Frame owner, String title) {
+	this(owner, title, false);
     }
 
     /**
-     * Constructs an initially invisible Dialog with a title. 
-     * A modal Dialog grabs all the input to the parent frame from the user.
-     * @param parent the owner of the dialog
-     * @param title the title of the dialog
-     * @param modal if true, dialog blocks input to the parent window when shown
+     * Constructs an initially invisible Dialog with the
+     * specified owner frame, title, and modality. 
+     * @param owner the owner of the dialog
+     * @param title the title of the dialog. A <code>null</code> value
+     *        will be accepted without causing a NullPointerException
+     *        to be thrown.
+     * @param modal if true, dialog blocks input to other app windows when shown
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
      * @see Component#setSize
      * @see Component#setVisible
-     * @since JDK1.0
      */
-    public Dialog(Frame parent, String title, boolean modal) {
-	super(parent);
-	if (parent == null) {
-	    throw new IllegalArgumentException("null parent frame");
+    public Dialog(Frame owner, String title, boolean modal) {
+	super(owner);
+	if (owner == null) {
+	    throw new IllegalArgumentException("null owner frame");
+	}
+	this.title = title;
+	this.modal = modal;
+    }
+
+
+    /**
+     * Constructs an initially invisible, non-modal Dialog with 
+     * an empty title and the specified owner dialog.
+     * @param owner the owner of the dialog
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
+     * @since JDK1.2
+     */
+    public Dialog(Dialog owner) {
+	this(owner, "", false);
+    }
+
+    /**
+     * Constructs an initially invisible, non-modal Dialog 
+     * with the specified owner dialog and title. 
+     * @param owner the owner of the dialog
+     * @param title the title of the dialog. A <code>null</code> value
+     *        will be accepted without causing a NullPointerException
+     *        to be thrown.
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
+     * @since JDK1.2
+     */
+    public Dialog(Dialog owner, String title) {
+	this(owner, title, false);
+    }
+
+    /**
+     * Constructs an initially invisible Dialog with the
+     * specified owner dialog, title, and modality. 
+     * @param owner the owner of the dialog
+     * @param title the title of the dialog. A <code>null</code> value
+     *        will be accepted without causing a NullPointerException to
+     *        be thrown.
+     * @param modal if true, dialog blocks input to other app windows when shown
+     * @exception java.lang.IllegalArgumentException if <code>owner</code>
+     *            is <code>null</code>
+     * @since JDK1.2
+     */
+    public Dialog(Dialog owner, String title, boolean modal) {
+	super(owner);
+	if (owner == null) {
+	    throw new IllegalArgumentException("null owner dialog");
 	}
 	this.title = title;
 	this.modal = modal;
@@ -106,39 +226,46 @@ public class Dialog extends Window {
      * name is null.
      */
     String constructComponentName() {
-        return base + nameCounter++;
+        synchronized (getClass()) {
+	    return base + nameCounter++;
+	}
     }
 
     /**
-     * Creates the dialog's peer.  The peer allows us to change the appearance
-     * of the frame without changing its functionality.
-     * @since JDK1.0
+     * Makes this Dialog displayable by connecting it to
+     * a native screen resource.  Making a dialog displayable will
+     * cause any of its children to be made displayable.
+     * This method is called internally by the toolkit and should
+     * not be called directly by programs.
+     * @see Component#isDisplayable
+     * @see #removeNotify
      */
     public void addNotify() {
-        synchronized (getTreeLock()) {
-            if (peer == null) {
-                peer = getToolkit().createDialog(this);
-            }
-            super.addNotify();
-        }
+	synchronized (getTreeLock()) {
+	    if (peer == null) {
+	        peer = getToolkit().createDialog(this);
+	    }
+	    super.addNotify();
+	}
     }
 
     /**
-     * Indicates whether the dialog is modal.  
-     * A modal dialog grabs all input from the user.
-     * @return    <code>true</code> if this dialog window is modal; 
-     *            <code>false</code> otherwise. 
-     * @see       java.awt.Dialog#setModal    
-     * @since     JDK1.0
+     * Indicates whether the dialog is modal.
+     * When a modal Dialog is made visible, user input will be
+     * blocked to the other windows in the app context, except for
+     * any windows created with this dialog as their owner.
+     *   
+     * @return    <code>true</code> if this dialog window is modal;
+     *            <code>false</code> otherwise.
+     * @see       java.awt.Dialog#setModal
      */
     public boolean isModal() {
 	return modal;
     }
 
     /**
-     * Specifies whether this dialog is modal.  A modal
-     * Dialog grabs all the input to the parent frame from the user.
-     * @see       java.awt.Dialog#isModal 
+     * Specifies whether this dialog should be modal.  
+     * @see       java.awt.Dialog#isModal
      * @since     JDK1.1
      */
     public void setModal(boolean b) {
@@ -146,10 +273,11 @@ public class Dialog extends Window {
     }
 
     /**
-     * Gets the title of the dialog.
-     * @return    the title of this dialog window.
+     * Gets the title of the dialog. The title is displayed in the
+     * dialog's border.
+     * @return    the title of this dialog window. The title may be
+     *            <code>null</code>.
      * @see       java.awt.Dialog#setTitle
-     * @since     JDK1.0
      */
     public String getTitle() {
 	return title;
@@ -157,9 +285,8 @@ public class Dialog extends Window {
 
     /**
      * Sets the title of the Dialog.
-     * @param title the new title being given to the dialog
+     * @param title the title displayed in the dialog's border
      * @see #getTitle
-     * @since JDK1.0
      */
     public synchronized void setTitle(String title) {
 	this.title = title;
@@ -170,56 +297,67 @@ public class Dialog extends Window {
     }
 
    /**
-     * Shows the dialog. This will bring the dialog to the
-     * front if the dialog is already visible.  If the dialog is
-     * modal, this call will block input to the parent window
-     * until the dialog is taken down
-     * by calling hide or dispose. It is permissible to show modal
-     * dialogs from the event dispatching thread because the toolkit
+     * Makes the Dialog visible. If the dialog and/or its owner
+     * are not yet displayable, both are made displayable.  The 
+     * dialog will be validated prior to being made visible.  
+     * If the dialog is already visible, this will bring the dialog 
+     * to the front.
+     * <p>
+     * If the dialog is modal, this call will block until the 
+     * dialog is hidden by calling <code>hide</code> or <code>dispose</code>. 
+     * It is permissible to show modal dialogs from the event 
+     * dispatching thread because the toolkit
      * will ensure that another dispatching thread will run while
-     * the one which invoked show is blocked. 
+     * the one which invoked this method is blocked. 
      * @see Component#hide
-     * @since JDK1.0
+     * @see Component#isDisplayable
+     * @see Component#validate
+     * @see java.awt.Dialog#isModal
      */
     public void show() {
-      synchronized(getTreeLock()) {
-        if (parent != null && parent.getPeer() == null) {
-            parent.addNotify();
-        }
-	if (peer == null) {
-	    addNotify();
+	synchronized(getTreeLock()) {
+            if (parent != null && parent.getPeer() == null) {
+            	parent.addNotify();
+            }
+	    if (peer == null) {
+		addNotify();
+	    }
 	}
-      }
 	validate();	    
 	if (visible) {
 	    toFront();
 	} else {
 	    visible = true;
 	    if (isModal()) {
-                EventDispatchThread dt = null;
-                EventDispatchThread tempEDT = null;
-                if (Thread.currentThread() instanceof EventDispatchThread) {
-	            dt = new EventDispatchThread("AWT-Dispatch-Proxy", 
-                                                 Toolkit.getEventQueue());
-                    dt.start();
-                } else if (isNewDispatchThreadNeeded()) {
-                    /*
-                     * 4192193:
-                     * this is because our dispatch thread might be blocked in
-                     * a call into ActiveX container, and the ActiveX container
-                     * then calls into Java again to create a modal dialog.
-                     * Our dispatch thread will not wake up until the ActiveX call
-                     * is returned. so we need to create a new temporary dispatch
-                     * thread here.
-                     * also the inside peer.show() the win32 code will
-                     * open up a new message loop for the ActiveX container so that
-                     * any win32 message that was sent to the ActiveX container during
-                     * the modal dialog creation can still be handled.
-                     */ 
-                    tempEDT = new EventDispatchThread("AWT-Dispatch-Proxy",
-                                   Toolkit.getEventQueue());
-                    tempEDT.start();
-                }
+		EventQueue modalQueue = null;
+		EventQueue currentQueue = Toolkit.getEventQueue();
+		synchronized (currentQueue) {
+		    if (currentQueue.isDispatchThread()) {
+		        modalQueue = (EventQueue)
+			    java.security.AccessController.doPrivileged(
+			        new java.security.PrivilegedAction() {
+			            public Object run() {
+				        EventQueue eventQueue;
+					String eqName = Toolkit.getProperty(
+					    "AWT.EventQueueClass",
+					    "java.awt.EventQueue");
+					try {
+					    eventQueue = (EventQueue)
+					        Class.forName(eqName).
+					        newInstance();
+					} catch (Exception e) {
+					    System.err.println(
+					        "Failed loading " + eqName +
+						": " + e);
+					    eventQueue = new EventQueue();
+					}
+					return eventQueue;
+				    }
+			    });
+			currentQueue.push(modalQueue);
+		    }
+		}
+
                 // For modal case, we most post this event before calling
                 // show, since calling peer.show() will block; this is not
                 // ideal, as the window isn't yet visible on the screen...
@@ -228,21 +366,16 @@ public class Dialog extends Window {
                     state |= OPENED;
                 }
 		peer.show(); // blocks until dialog brought down
-                if (dt != null) {
-                    dt.stopDispatching();
-                }                
-                if (tempEDT != null) {
-                    /*
-                     * 4192193:
-                     * we can't call join here, because we have been out of peer.show()
-                     * now there is no message loop for the ActiveX container running.
-                     * the other dispatch thread might send a message to the ActiveX
-                     * container. if we do join here we might deadlock.
-                     */
-                    tempEDT.stopDispatchingNoJoin();
-                }
+		if (modalQueue != null) {
+		    // If we wait for currentQueue.pop() to call
+		    // stopDispatching(), we deadlock waiting for the
+		    // disposal to complete, as it waits to post an event.
+		    // So, we explicitly call stopDispatching() here.
+		    modalQueue.getDispatchThread().stopDispatching();
+		    currentQueue.pop();
+		}
 	    } else {
-		peer.show();
+	        peer.show();
                 if ((state & OPENED) == 0) {
                     postWindowEvent(WindowEvent.WINDOW_OPENED);
                     state |= OPENED;
@@ -251,43 +384,47 @@ public class Dialog extends Window {
 	}
     }
 
-    private boolean isNewDispatchThreadNeeded() {
-       Class peerClass = peer.getClass();
-       if (!peerClass.getName().equals("sun.awt.windows.WDialogPeer"))
-           return false; 
-       return sun.awt.AxBridgeHelper.isNewDispatchThreadNeeded(); 
-    }
     /**
-     * Indicates whether this dialog window is resizable.
+     * Indicates whether this dialog is resizable by the user.
      * @return    <code>true</code> if the user can resize the dialog;
      *            <code>false</code> otherwise.
      * @see       java.awt.Dialog#setResizable
-     * @since     JDK1.0
      */
     public boolean isResizable() {
 	return resizable;
     }
 
     /**
-     * Sets the resizable flag.
-     * @param     resizable <code>true</code> if the user can 
+     * Sets whether this dialog is resizable by the user.
+     * @param     resizable <code>true</code> if the user can
      *                 resize this dialog; <code>false</code> otherwise.
      * @see       java.awt.Dialog#isResizable
-     * @since     JDK1.0
      */
-    public synchronized void setResizable(boolean resizable) {
-	this.resizable = resizable;
-	DialogPeer peer = (DialogPeer)this.peer;
-	if (peer != null) {
-	    peer.setResizable(resizable);
-	}
+    public void setResizable(boolean resizable) {
+        boolean testvalid = false;
+
+        synchronized (this) {
+            this.resizable = resizable;
+            DialogPeer peer = (DialogPeer)this.peer;
+            if (peer != null) {
+                peer.setResizable(resizable);
+                testvalid = true;
+            }
+        }
+
+        // On some platforms, changing the resizable state affects
+        // the insets of the Dialog. If we could, we'd call invalidate()
+        // from the peer, but we need to guarantee that we're not holding
+        // the Dialog lock when we call invalidate().
+        if (testvalid && valid) {
+            invalidate();
+        }
     }
 
     /**
-     * Returns the parameter string representing the state of this 
-     * dialog window. This string is useful for debugging. 
+     * Returns the parameter string representing the state of this
+     * dialog window. This string is useful for debugging.
      * @return    the parameter string of this dialog window.
-     * @since     JDK1.0
      */
     protected String paramString() {
 	String str = super.paramString() + (modal ? ",modal" : ",modeless");
@@ -296,4 +433,9 @@ public class Dialog extends Window {
 	}
 	return str;
     }
+
+    /**
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
 }

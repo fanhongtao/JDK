@@ -1,8 +1,15 @@
 /*
- * @(#)Writer.java	1.10 01/12/10
+ * @(#)Writer.java	1.16 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -25,12 +32,22 @@ package java.io;
  * @see   StringWriter
  * @see Reader
  *
- * @version 	1.10, 01/12/10
+ * @version 	1.16, 98/09/21
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
 
 public abstract class Writer {
+
+    /**
+     * Temporary buffer used to hold writes of strings and single characters
+     */
+    private char[] writeBuffer;
+
+    /**
+     * Size of writeBuffer, must be >= 1
+     */
+    private final int writeBufferSize = 1024;
 
     /**
      * The object used to synchronize operations on this stream.  For
@@ -54,6 +71,9 @@ public abstract class Writer {
      * synchronize on the given object.
      */
     protected Writer(Object lock) {
+	if (lock == null) {
+	    throw new NullPointerException();
+	}
 	this.lock = lock;
     }
 
@@ -69,9 +89,11 @@ public abstract class Writer {
      */
     public void write(int c) throws IOException {
 	synchronized (lock) {
-	    char cb[] = new char[1];
-	    cb[0] = (char) c;
-	    write(cb, 0, 1);
+	    if (writeBuffer == null){
+		writeBuffer = new char[writeBufferSize];
+	    }
+	    writeBuffer[0] = (char) c;
+	    write(writeBuffer, 0, 1);
 	}
     }
 
@@ -119,8 +141,16 @@ public abstract class Writer {
      */
     public void write(String str, int off, int len) throws IOException {
 	synchronized (lock) {
-	    char cbuf[] = new char[len];
-	    str.getChars(off, len, cbuf, 0);
+	    char cbuf[];
+	    if (len <= writeBufferSize) {
+		if (writeBuffer == null) {
+		    writeBuffer = new char[writeBufferSize];
+		}
+		cbuf = writeBuffer;
+	    } else {	// Don't permanently allocate very large buffers.
+		cbuf = new char[len];
+	    }
+	    str.getChars(off, (off + len), cbuf, 0);
 	    write(cbuf, 0, len);
 	}
     }

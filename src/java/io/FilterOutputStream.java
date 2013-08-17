@@ -1,8 +1,15 @@
 /*
- * @(#)FilterOutputStream.java	1.17 01/12/10
+ * @(#)FilterOutputStream.java	1.25 98/08/26
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -10,8 +17,9 @@ package java.io;
 /**
  * This class is the superclass of all classes that filter output 
  * streams. These streams sit on top of an already existing output 
- * stream (the <i>underlying</i> output stream), but provide 
- * additional functionality. 
+ * stream (the <i>underlying</i> output stream) which it uses as its 
+ * basic sink of data, but possibly transforming the data along the 
+ * way or providing additional functionality. 
  * <p>
  * The class <code>FilterOutputStream</code> itself simply overrides 
  * all methods of <code>OutputStream</code> with versions that pass 
@@ -20,15 +28,13 @@ package java.io;
  * methods as well as provide additional methods and fields. 
  *
  * @author  Jonathan Payne
- * @version 1.17, 12/10/01
+ * @version 1.25, 08/26/98
  * @since   JDK1.0
  */
 public
 class FilterOutputStream extends OutputStream {
     /**
-     * The underlying output stream. 
-     *
-     * @since   JDK1.0
+     * The underlying output stream to be filtered. 
      */
     protected OutputStream out;
 
@@ -36,8 +42,10 @@ class FilterOutputStream extends OutputStream {
      * Creates an output stream filter built on top of the specified 
      * underlying output stream. 
      *
-     * @param   out   the underlying output stream.
-     * @since   JDK1.0
+     * @param   out   the underlying output stream to be assigned to 
+     *                the field <tt>this.out</tt> for later use, or 
+     *                <code>null</code> if this instance is to be 
+     *                created without an underlying stream.
      */
     public FilterOutputStream(OutputStream out) {
 	this.out = out;
@@ -47,11 +55,13 @@ class FilterOutputStream extends OutputStream {
      * Writes the specified <code>byte</code> to this output stream. 
      * <p>
      * The <code>write</code> method of <code>FilterOutputStream</code> 
-     * calls the <code>write</code> method of its underlying output stream. 
+     * calls the <code>write</code> method of its underlying output stream, 
+     * that is, it performs <tt>out.write(b)</tt>.
+     * <p>
+     * Implements the abstract <tt>write</tt> method of <tt>OutputStream</tt>. 
      *
      * @param      b   the <code>byte</code>.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void write(int b) throws IOException {
 	out.write(b);
@@ -72,7 +82,6 @@ class FilterOutputStream extends OutputStream {
      * @param      b   the data to be written.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterOutputStream#write(byte[], int, int)
-     * @since      JDK1.0
      */
     public void write(byte b[]) throws IOException {
 	write(b, 0, b.length);
@@ -97,11 +106,10 @@ class FilterOutputStream extends OutputStream {
      * @param      len   the number of bytes to write.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterOutputStream#write(int)
-     * @since      JDK1.0
      */
     public void write(byte b[], int off, int len) throws IOException {
 	for (int i = 0 ; i < len ; i++) {
-	    out.write(b[off + i]);
+	    write(b[off + i]);
 	}
     }
 
@@ -110,11 +118,10 @@ class FilterOutputStream extends OutputStream {
      * to be written out to the stream. 
      * <p>
      * The <code>flush</code> method of <code>FilterOutputStream</code> 
-     * calls the <code>flush</code> method of its underlying output stream.
+     * calls the <code>flush</code> method of its underlying output stream. 
      *
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterOutputStream#out
-     * @since      JDK1.0
      */
     public void flush() throws IOException {
 	out.flush();
@@ -131,7 +138,6 @@ class FilterOutputStream extends OutputStream {
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterOutputStream#flush()
      * @see        java.io.FilterOutputStream#out
-     * @since      JDK1.0
      */
     public void close() throws IOException {
 	try {

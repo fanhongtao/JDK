@@ -1,14 +1,21 @@
 /*
- * @(#)SQLWarning.java	1.7 01/12/10
+ * @(#)SQLWarning.java	1.15 98/09/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.sql;
 
 /**
- * <P>The SQLWarning class provides information on a database access
+ * <P>An exception that provides information on  database access
  * warnings. Warnings are silently chained to the object whose method
  * caused it to be reported.
  *
@@ -19,11 +26,12 @@ package java.sql;
 public class SQLWarning extends SQLException {
 
     /**
-     * Construct a fully specified SQLWarning.
+     * Constructs a fully-specified <code>SQLWarning</code> object
+	 * initialized with the given values.
      *
      * @param reason a description of the warning 
      * @param SQLState an XOPEN code identifying the warning
-     * @param vendorCode a database vendor specific warning code
+     * @param vendorCode a database vendor-specific warning code
      */
      public SQLWarning(String reason, String SQLstate, int vendorCode) {
 	super(reason, SQLstate, vendorCode);
@@ -34,8 +42,9 @@ public class SQLWarning extends SQLException {
 
 
     /**
-     * Construct an SQLWarning with a reason and SQLState;
-     * vendorCode defaults to 0.
+     * Constructs an <code>SQLWarning</code> object
+     * with the given reason and SQLState;
+     * the vendorCode defaults to 0.
      *
      * @param reason a description of the warning 
      * @param SQLState an XOPEN code identifying the warning
@@ -47,8 +56,9 @@ public class SQLWarning extends SQLException {
     }
 
     /**
-     * Construct an SQLWarning with a reason; SQLState defaults to
-     * null and vendorCode defaults to 0.
+     * Constructs an <code>SQLWarning</code> object
+     * with the given value for a reason; SQLState defaults to
+     * null, and vendorCode defaults to 0.
      *
      * @param reason a description of the warning 
      */
@@ -58,8 +68,9 @@ public class SQLWarning extends SQLException {
     }
 
     /**
-     * Construct an SQLWarning ; reason defaults to null, SQLState
-     * defaults to null and vendorCode defaults to 0.
+     * Constructs a default <code>SQLWarning</code> object.
+     * The reason defaults to null, SQLState
+     * defaults to null, and vendorCode defaults to 0.
      *
      */
     public SQLWarning() {
@@ -69,7 +80,7 @@ public class SQLWarning extends SQLException {
 
 
     /**
-     * Get the warning chained to this one
+     * Retrieves the warning chained to this <code>SQLWarning</code> object.
      *
      * @return the next SQLException in the chain, null if none
      */
@@ -85,9 +96,9 @@ public class SQLWarning extends SQLException {
     }
 
     /**
-     * Add an SQLWarning to the end of the chain.
+     * Adds an <code>SQLWarning</code> object to the end of the chain.
      *
-     * @param w the new end of the SQLException chain
+     * @param w the new end of the <code>SQLException</code> chain
      */
     public void setNextWarning(SQLWarning w) {
 	setNextException(w);

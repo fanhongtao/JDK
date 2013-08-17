@@ -1,8 +1,15 @@
 /*
- * @(#)SocketImpl.java	1.26 01/12/10
+ * @(#)SocketImpl.java	1.25 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -21,35 +28,27 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.26, 12/10/01
+ * @version 1.25, 09/21/98
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {
     /**
      * The file descriptor object for this socket. 
-     *
-     * @since   JDK1.0
      */
     protected FileDescriptor fd;
     
     /**
      * The IP address of the remote end of this socket. 
-     *
-     * @since   JDK1.0
      */
     protected InetAddress address;
    
     /**
      * The port number on the remote host to which this socket is connected. 
-     *
-     * @since   JDK1.0
      */
     protected int port;
 
     /**
      * The local port number to which this socket is connected. 
-     *
-     * @since   JDK1.0
      */
     protected int localport;   
 
@@ -60,7 +59,6 @@ public abstract class SocketImpl implements SocketOptions {
      *                      otherwise, create a datagram socket.
      * @exception  IOException  if an I/O error occurs while creating the
      *               socket.
-     * @since      JDK1.0
      */
     protected abstract void create(boolean stream) throws IOException;
 
@@ -71,7 +69,6 @@ public abstract class SocketImpl implements SocketOptions {
      * @param      port   the port number.
      * @exception  IOException  if an I/O error occurs when connecting to the
      *               remote host.
-     * @since      JDK1.0
      */
     protected abstract void connect(String host, int port) throws IOException;
 
@@ -82,7 +79,6 @@ public abstract class SocketImpl implements SocketOptions {
      * @param      port      the port number.
      * @exception  IOException  if an I/O error occurs when attempting a
      *               connection.
-     * @since      JDK1.0
      */
     protected abstract void connect(InetAddress address, int port) throws IOException;
 
@@ -92,7 +88,6 @@ public abstract class SocketImpl implements SocketOptions {
      * @param      host   the IP address of the remote host.
      * @param      port   the port number.
      * @exception  IOException  if an I/O error occurs when binding this socket.
-     * @since      JDK1.0
      */
     protected abstract void bind(InetAddress host, int port) throws IOException;
 
@@ -104,7 +99,6 @@ public abstract class SocketImpl implements SocketOptions {
      *
      * @param      backlog   the maximum length of the queue.
      * @exception  IOException  if an I/O error occurs when creating the queue.
-     * @since      JDK1.0
      */
     protected abstract void listen(int backlog) throws IOException;
 
@@ -114,7 +108,6 @@ public abstract class SocketImpl implements SocketOptions {
      * @param      s   the accepted connection.
      * @exception  IOException  if an I/O error occurs when accepting the
      *               connection.
-     * @since   JDK1.0
      */
     protected abstract void accept(SocketImpl s) throws IOException;
 
@@ -124,7 +117,6 @@ public abstract class SocketImpl implements SocketOptions {
      * @return     a stream for reading from this socket.
      * @exception  IOException  if an I/O error occurs when creating the
      *               input stream.
-     * @since      JDK1.0
     */
     protected abstract InputStream getInputStream() throws IOException;
 
@@ -134,7 +126,6 @@ public abstract class SocketImpl implements SocketOptions {
      * @return     an output stream for writing to this socket.
      * @exception  IOException  if an I/O error occurs when creating the
      *               output stream.
-     * @since      JDK1.0
      */
     protected abstract OutputStream getOutputStream() throws IOException;
 
@@ -146,7 +137,6 @@ public abstract class SocketImpl implements SocketOptions {
      *             without blocking.
      * @exception  IOException  if an I/O error occurs when determining the
      *               number of bytes available.
-     * @since      JDK1.0
      */
     protected abstract int available() throws IOException;
 
@@ -154,7 +144,6 @@ public abstract class SocketImpl implements SocketOptions {
      * Closes this socket. 
      *
      * @exception  IOException  if an I/O error occurs when closing this socket.
-     * @since      JDK1.0
      */
     protected abstract void close() throws IOException;
 
@@ -163,7 +152,6 @@ public abstract class SocketImpl implements SocketOptions {
      *
      * @return  the value of this socket's <code>fd</code> field.
      * @see     java.net.SocketImpl#fd
-     * @since   JDK1.0
      */
     protected FileDescriptor getFileDescriptor() {
 	return fd;
@@ -174,7 +162,6 @@ public abstract class SocketImpl implements SocketOptions {
      *
      * @return  the value of this socket's <code>address</code> field.
      * @see     java.net.SocketImpl#address
-     * @since   JDK1.0
      */
     protected InetAddress getInetAddress() {
 	return address;
@@ -185,7 +172,6 @@ public abstract class SocketImpl implements SocketOptions {
      *
      * @return  the value of this socket's <code>port</code> field.
      * @see     java.net.SocketImpl#port
-     * @since   JDK1.0
      */
     protected int getPort() {
 	return port;
@@ -196,7 +182,6 @@ public abstract class SocketImpl implements SocketOptions {
      *
      * @return  the value of this socket's <code>localport</code> field.
      * @see     java.net.SocketImpl#localport
-     * @since   JDK1.0
      */
     protected int getLocalPort() {
 	return localport;
@@ -206,17 +191,9 @@ public abstract class SocketImpl implements SocketOptions {
      * Returns the address and port of this socket as a <code>String</code>.
      *
      * @return  a string representation of this socket.
-     * @since   JDK1.0
      */
     public String toString() {
 	return "Socket[addr=" + getInetAddress() +
 	    ",port=" + getPort() + ",localport=" + getLocalPort()  + "]";
-    }
-
-    void reset() throws IOException {
-	address = null;
-	port = 0;
-	localport = 0;
-	close();
     }
 }

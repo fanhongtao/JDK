@@ -1,8 +1,15 @@
 /*
- * @(#)RemoteCall.java	1.8 01/12/10
+ * @(#)RemoteCall.java	1.10 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.rmi.server;
@@ -13,9 +20,18 @@ import java.io.StreamCorruptedException;
 import java.io.IOException;
 
 /**
- * RemoteCall is an abstraction used solely by the implementation
- * (stubs and skeletons of remote objects) to carry out a call to a
- * remote object.
+ * <code>RemoteCall</code> is an abstraction used solely by the RMI runtime
+ * (in conjunction with stubs and skeletons of remote objects) to carry out a
+ * call to a remote object.  The <code>RemoteCall</code> interface is
+ * deprecated in JDK1.2 since it is only used by deprecated methods of
+ * <code>java.rmi.server.RemoteRef</code>.
+ *
+ * @version 1.10, 09/21/98
+ * @since   JDK1.1
+ * @author  Ann Wollrath
+ * @author  Roger Riggs
+ * @see     java.rmi.server.RemoteRef
+ * @deprecated no replacement.
  */
 public interface RemoteCall {
 
@@ -24,6 +40,8 @@ public interface RemoteCall {
      * into.
      *
      * @exception java.io.IOException if an I/O error occurs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     ObjectOutput getOutputStream()  throws IOException;
     
@@ -32,6 +50,8 @@ public interface RemoteCall {
      * the stream.
      *
      * @exception java.io.IOException if an I/O error occurs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     void releaseOutputStream()  throws IOException;
 
@@ -40,6 +60,8 @@ public interface RemoteCall {
      * results/arguments from.
      *
      * @exception java.io.IOException if an I/O error occurs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     ObjectInput getInputStream()  throws IOException;
 
@@ -49,6 +71,8 @@ public interface RemoteCall {
      * the channel early.
      *
      * @exception java.io.IOException if an I/O error occurs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     void releaseInputStream() throws IOException;
 
@@ -61,6 +85,8 @@ public interface RemoteCall {
      * exceptional return.
      * @exception java.io.IOException              if an I/O error occurs.
      * @exception java.io.StreamCorruptedException If already been called.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     ObjectOutput getResultStream(boolean success) throws IOException,
 	StreamCorruptedException;
@@ -69,6 +95,8 @@ public interface RemoteCall {
      * Do whatever it takes to execute the call.
      *
      * @exception java.lang.Exception if a general exception occurs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     void executeCall() throws Exception;
 
@@ -76,6 +104,8 @@ public interface RemoteCall {
      * Allow cleanup after the remote call has completed.
      *
      * @exception java.io.IOException if an I/O error occurs.
+     * @since JDK1.1
+     * @deprecated no replacement
      */
     void done() throws IOException;
 }

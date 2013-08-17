@@ -1,10 +1,11 @@
 /*
- * @(#)ParseException.java	1.6 01/12/10
+ * @(#)ParseException.java	1.12 98/10/02
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -31,12 +32,12 @@
 package java.text;
 
 /**
- * Signals that an error has been has been reached unexpectedly
+ * Signals that an error has been reached unexpectedly
  * while parsing.
- * @see java.io.Exception
- * @see java.util.Format
- * @see java.util.FieldPosition
- * @version     1.6, 12/10/01
+ * @see java.lang.Exception
+ * @see java.text.Format
+ * @see java.text.FieldPosition
+ * @version     1.12, 10/02/98
  * @author      Mark Davis
  */
 public
@@ -62,5 +63,10 @@ class ParseException extends Exception {
     }
 
     //============ privates ============
+    /**
+     * The zero-based character offset into the string being parsed at which
+     * the error was found during parsing.
+     * @serial
+     */
     private int errorOffset;
 }

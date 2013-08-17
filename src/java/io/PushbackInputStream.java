@@ -1,29 +1,41 @@
 /*
- * @(#)PushbackInputStream.java	1.18 01/12/10
+ * @(#)PushbackInputStream.java	1.25 98/04/30
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 /**
- * This class is an input stream filter that provides a buffer into which data
- * can be "unread."  An application may unread data at any time by pushing it
- * back into the buffer, as long as the buffer has sufficient room.  Subsequent
- * reads will read all of the pushed-back data in the buffer before reading
- * from the underlying input stream.
- *
- * <p>
- * This functionality is useful when a fragment of code should read 
- * an indefinite number of data bytes that are delimited by 
- * particular byte values. After reading the terminating byte the
- * code fragment can push it back, so that the next read 
- * operation on the input stream will re-read that byte.
+ * A <code>PushbackInputStream</code> adds
+ * functionality to another input stream, namely
+ * the  ability to "push back" or "unread"
+ * one byte. This is useful in situations where
+ * it is  convenient for a fragment of code
+ * to read an indefinite number of data bytes
+ * that  are delimited by a particular byte
+ * value; after reading the terminating byte,
+ * the  code fragment can "unread" it, so that
+ * the next read operation on the input stream
+ * will reread the byte that was pushed back.
+ * For example, bytes representing the  characters
+ * constituting an identifier might be terminated
+ * by a byte representing an  operator character;
+ * a method whose job is to read just an identifier
+ * can read until it  sees the operator and
+ * then push the operator back to be re-read.
  *
  * @author  David Connelly
  * @author  Jonathan Payne
- * @version 1.18, 12/10/01
+ * @version 1.25, 04/30/98
  * @since   JDK1.0
  */
 public
@@ -45,21 +57,43 @@ class PushbackInputStream extends FilterInputStream {
     protected int pos;
 
     /**
-     * Creates a new pushback input stream with a pushback buffer
-     * of the specified size.
+     * Check to make sure that this stream has not been closed
+     */
+    private void ensureOpen() throws IOException {
+	if (in == null)
+	    throw new IOException("Stream closed");
+    }
+
+    /**
+     * Creates a <code>PushbackInputStream</code>
+     * with a pushback buffer of the specified <code>size</code>,
+     * and saves its  argument, the input stream
+     * <code>in</code>, for later use. Initially,
+     * there is no pushed-back byte  (the field
+     * <code>pushBack</code> is initialized to
+     * <code>-1</code>).
      *
      * @param  in    the input stream from which bytes will be read.
      * @param  size  the size of the pushback buffer.
+     * @exception IllegalArgumentException if size is <= 0
      * @since  JDK1.1
      */
     public PushbackInputStream(InputStream in, int size) {
 	super(in);
+        if (size <= 0) {
+            throw new IllegalArgumentException("size <= 0");
+        }
 	this.buf = new byte[size];
 	this.pos = size;
     }
 
     /**
-     * Creates a new pushback input stream with a one-byte pushback buffer.
+     * Creates a <code>PushbackInputStream</code>
+     * and saves its  argument, the input stream
+     * <code>in</code>, for later use. Initially,
+     * there is no pushed-back byte  (the field
+     * <code>pushBack</code> is initialized to
+     * <code>-1</code>).
      *
      * @param   in   the input stream from which bytes will be read.
      */
@@ -86,6 +120,7 @@ class PushbackInputStream extends FilterInputStream {
      * @see        java.io.InputStream#read()
      */
     public int read() throws IOException {
+        ensureOpen();
 	if (pos < buf.length) {
 	    return buf[pos++] & 0xff;
 	}
@@ -106,11 +141,19 @@ class PushbackInputStream extends FilterInputStream {
      *             <code>-1</code> if there is no more data because the end of
      *             the stream has been reached.
      * @exception  IOException  if an I/O error occurs.
+     * @see        java.io.InputStream#read(byte[], int, int)
      */
     public int read(byte[] b, int off, int len) throws IOException {
-	if (len <= 0) {
+        ensureOpen();
+        if ((off < 0) || (off > b.length) || (len < 0) ||
+            ((off + len) > b.length) || ((off + len) < 0)) {
+            throw new IndexOutOfBoundsException();
+        }
+
+	if (len == 0) {
 	    return 0;
 	}
+
 	int avail = buf.length - pos;
 	if (avail > 0) {
 	    if (len < avail) {
@@ -142,6 +185,7 @@ class PushbackInputStream extends FilterInputStream {
      *			      buffer for the byte.
      */
     public void unread(int b) throws IOException {
+        ensureOpen();
 	if (pos == 0) {
 	    throw new IOException("Push back buffer is full");
 	}
@@ -162,6 +206,7 @@ class PushbackInputStream extends FilterInputStream {
      * @since     JDK1.1
      */
     public void unread(byte[] b, int off, int len) throws IOException {
+        ensureOpen();
 	if (len > pos) {
 	    throw new IOException("Push back buffer is full");
 	}
@@ -194,9 +239,50 @@ class PushbackInputStream extends FilterInputStream {
      *             without blocking.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
+     * @see        java.io.InputStream#available()
      */
     public int available() throws IOException {
-	return pos + super.available();
+        ensureOpen();
+	return (buf.length - pos) + super.available();
+    }
+
+    /**
+     * Skips over and discards <code>n</code> bytes of data from this 
+     * input stream. The <code>skip</code> method may, for a variety of 
+     * reasons, end up skipping over some smaller number of bytes, 
+     * possibly zero.  If <code>n</code> is negative, no bytes are skipped.
+     * 
+     * <p> The <code>skip</code> method of <code>PushbackInputStream</code>
+     * first skips over the bytes in the pushback buffer, if any.  It then
+     * calls the <code>skip</code> method of the underlying input stream if
+     * more bytes need to be skipped.  The actual number of bytes skipped
+     * is returned.
+     *
+     * @param      n   the number of bytes to be skipped.
+     * @return     the actual number of bytes skipped.
+     * @exception  IOException  if an I/O error occurs.
+     * @see        java.io.FilterInputStream#in
+     * @see        java.io.InputStream#skip(long n)
+     * @since      JDK1.2
+     */
+    public long skip(long n) throws IOException {
+        ensureOpen();
+	if (n <= 0) {
+	    return 0;
+	}
+
+	long pskip = buf.length - pos;
+	if (pskip > 0) {
+	    if (n < pskip) {
+		pskip = n;
+	    }
+	    pos += pskip;
+	    n -= pskip;
+	}
+	if (n > 0) {
+	    pskip += super.skip(n);
+	}
+	return pskip;
     }
 
     /**
@@ -210,6 +296,20 @@ class PushbackInputStream extends FilterInputStream {
      */
     public boolean markSupported() {
 	return false;
+    }
+
+    /**
+     * Closes this input stream and releases any system resources 
+     * associated with the stream. 
+     *
+     * @exception  IOException  if an I/O error occurs.
+     */
+    public synchronized void close() throws IOException {
+        if (in == null)
+            return;
+        in.close();
+        in = null;
+        buf = null;
     }
 
 }

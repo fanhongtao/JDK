@@ -1,10 +1,11 @@
 /*
- * @(#)ParsePosition.java	1.7 01/12/10
+ * @(#)ParsePosition.java	1.14 98/07/24
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -37,14 +38,14 @@ package java.text;
  * The <code>parseObject</code> method in the various <code>Format</code>
  * classes requires a <code>ParsePosition</code> object as an argument.
  *
- * <p> 
+ * <p>
  * By design, as you parse through a string with different formats,
  * you can use the same <code>ParsePosition</code>, since the index parameter
  * records the current position.
  *
- * @version     1.7 12/10/01
+ * @version     1.14 07/24/98
  * @author      Mark Davis
- * @see         java.util.Format
+ * @see         java.text.Format
  */
 
 public class ParsePosition {
@@ -56,6 +57,7 @@ public class ParsePosition {
      * with each call setting index up for the next one.
      */
     int index = 0;
+    int errorIndex = -1;
 
     /**
      * Retrieve the current parse position.  On input to a parse method, this
@@ -63,14 +65,14 @@ public class ParsePosition {
      * is the index of the character following the last character parsed.
      */
     public int getIndex() {
-	return index;
+        return index;
     }
 
     /**
      * Set the current parse position.
      */
     public void setIndex(int index) {
-	this.index = index;
+        this.index = index;
     }
 
     /**
@@ -79,5 +81,51 @@ public class ParsePosition {
     public ParsePosition(int index) {
         this.index = index;
     }
+    /**
+     * Set the index at which a parse error occurred.  Formatters
+     * should set this before returning an error code from their
+     * parseObject method.  The default value is -1 if this is not set.
+     */
+    public void setErrorIndex(int ei)
+    {
+        errorIndex = ei;
+    }
 
+    /**
+     * Retrieve the index at which an error occurred, or -1 if the
+     * error index has not been set.
+     */
+    public int getErrorIndex()
+    {
+        return errorIndex;
+    }
+    /**
+     * Overrides equals
+     */
+    public boolean equals(Object obj)
+    {
+        if (obj == null) return false;
+        if (!(obj instanceof ParsePosition))
+            return false;
+        ParsePosition other = (ParsePosition) obj;
+        return (index == other.index && errorIndex == other.errorIndex);
+    }
+
+    /**
+     * Returns a hash code for this ParsePosition.
+     * @return a hash code value for this object
+     */
+    public int hashCode() {
+        return (errorIndex << 16) | index;
+    }
+
+    /**
+     * Return a string representation of this ParsePosition.
+     * @return  a string representation of this object
+     */
+    public String toString() {
+        return getClass().getName() +
+            "[index=" + index +
+            ",errorIndex=" + errorIndex + ']';
+    }
 }

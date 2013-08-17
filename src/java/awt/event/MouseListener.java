@@ -1,8 +1,15 @@
 /*
- * @(#)MouseListener.java	1.8 01/12/10
+ * @(#)MouseListener.java	1.10 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt.event;
@@ -10,9 +17,29 @@ package java.awt.event;
 import java.util.EventListener;
 
 /**
- * The listener interface for receiving mouse events on a component.
+ * The listener interface for receiving "interesting" mouse events 
+ * (press, release, click, enter, and exit) on a component.
+ * (To track mouse moves and mouse drags, use the MouseMotionListener.)
+ * <P>
+ * The class that is interested in processing a mouse event
+ * either implements this interface (and all the methods it
+ * contains) or extends the abstract <code>MouseAdapter</code> class
+ * (overriding only the methods of interest).
+ * <P>
+ * The listener object created from that class is then registered with a
+ * component using the component's <code>addMouseListener</code> 
+ * method. A mouse event is generated when the mouse is pressed, released
+ * clicked (pressed and released). A mouse event is also generated when
+ * the mouse cursor enters or leaves a component. When a mouse event
+ * occurs the relevant method in the listener object is invoked, and 
+ * the <code>MouseEvent</code> is passed to it.
  *
- * @version 1.8 12/10/01
+ * @see MouseAdapter
+ * @see MouseEvent
+ * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/mouselistener.html">Tutorial: Writing a Mouse Listener</a>
+ * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
+ *
+ * @version 1.7 08/02/97
  * @author Carl Quinn
  */
 public interface MouseListener extends EventListener {

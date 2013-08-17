@@ -1,13 +1,22 @@
 /*
- * @(#)Introspector.java	1.74 01/12/10
+ * @(#)Introspector.java	1.91 98/09/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
 
 import java.lang.reflect.*;
+import java.security.*;
+
 
 /**
  * The Introspector class provides a standard way for tools to learn about
@@ -48,10 +57,14 @@ import java.lang.reflect.*;
 
 public class Introspector {
 
+    // Flags that can be used to control getBeanInfo:
+    public final static int USE_ALL_BEANINFO           = 1;
+    public final static int IGNORE_IMMEDIATE_BEANINFO  = 2;
+    public final static int IGNORE_ALL_BEANINFO        = 3;
+
     //======================================================================
     // 				Public methods
     //======================================================================
-
 
     /**
      * Introspect on a Java bean and learn about all its properties, exposed
@@ -63,12 +76,40 @@ public class Introspector {
      *              introspection.
      */
     public static BeanInfo getBeanInfo(Class beanClass) throws IntrospectionException {
-	BeanInfo bi = (BeanInfo)beanInfoCache.get(beanClass);
+	GenericBeanInfo bi = (GenericBeanInfo)beanInfoCache.get(beanClass);
 	if (bi == null) {
-	    bi = (new Introspector(beanClass, null)).getBeanInfo();
+	    bi = (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
 	    beanInfoCache.put(beanClass, bi);
 	}
-	return bi;
+
+	// Make an independent copy of the BeanInfo.
+	return new GenericBeanInfo(bi);
+    }
+
+    /**
+     * Introspect on a Java bean and learn about all its properties, exposed
+     * methods, and events, subnject to some comtrol flags.
+     *
+     * @param beanClass  The bean class to be analyzed.
+     * @param flags  Flags to control the introspection.
+     *     If flags == USE_ALL_BEANINFO then we use all of the BeanInfo
+     *	 	classes we can discover.
+     *     If flags == IGNORE_IMMEDIATE_BEANINFO then we ignore any
+     *           BeanInfo associated with the specified beanClass.
+     *     If flags == IGNORE_ALL_BEANINFO then we ignore all BeanInfo
+     *           associated with the specified beanClass or any of its
+     *		 parent classes.
+     * @return  A BeanInfo object describing the target bean.
+     * @exception IntrospectionException if an exception occurs during
+     *              introspection.
+     */
+    public static BeanInfo getBeanInfo(Class beanClass, int flags)
+						throws IntrospectionException {
+	// We don't use the cache.
+	GenericBeanInfo bi = (new Introspector(beanClass, null, flags)).getBeanInfo();
+
+	// Make an independent copy of the BeanInfo.
+	return new GenericBeanInfo(bi);
     }
 
     /**
@@ -84,7 +125,10 @@ public class Introspector {
      */
     public static BeanInfo getBeanInfo(Class beanClass,	Class stopClass)
 						throws IntrospectionException {
-	return (new Introspector(beanClass, stopClass)).getBeanInfo();
+	GenericBeanInfo bi = (new Introspector(beanClass, stopClass, USE_ALL_BEANINFO)).getBeanInfo();
+
+	// Make an independent copy of the BeanInfo.
+	return new GenericBeanInfo(bi);
     }
 
     /**
@@ -114,31 +158,83 @@ public class Introspector {
     }
 
     /**
+     * Gets the list of package names that will be used for
+     *		finding BeanInfo classes.
+     *
      * @return  The array of package names that will be searched in
      *		order to find BeanInfo classes.
      * <p>     This is initially set to {"sun.beans.infos"}.
      */
 
-    public static String[] getBeanInfoSearchPath() {
-	return searchPath;
+    public static synchronized String[] getBeanInfoSearchPath() {
+	// Return a copy of the searchPath.
+	String result[] = new String[searchPath.length];
+	for (int i = 0; i < searchPath.length; i++) {
+	    result[i] = searchPath[i];
+	}
+	return result;
     }
 
     /**
      * Change the list of package names that will be used for
      *		finding BeanInfo classes.
+     * 
+     * <p>First, if there is a security manager, its <code>checkPropertiesAccess</code> 
+     * method is called. This could result in a SecurityException.
+     * 
      * @param path  Array of package names.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkPropertiesAccess</code> method doesn't allow setting
+     *              of system properties.
+     * @see SecurityManager#checkPropertiesAccess
      */
 
-    public static void setBeanInfoSearchPath(String path[]) {
+    public static synchronized void setBeanInfoSearchPath(String path[]) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPropertiesAccess();
+	}
 	searchPath = path;
     }
 
+
+    /**
+     * Flush all of the Introspector's internal caches.  This method is
+     * not normally required.  It is normally only needed by advanced
+     * tools that update existing "Class" objects in-place and need
+     * to make the Introspector re-analyze existing Class objects.
+     */
+
+    public static void flushCaches() {
+	beanInfoCache.clear();
+	declaredMethodCache.clear();
+    }
+
+    /**
+     * Flush the Introspector's internal cached information for a given class.
+     * This method is not normally required.  It is normally only needed
+     * by advanced tools that update existing "Class" objects in-place
+     * and need to make the Introspector re-analyze an existing Class object.
+     *
+     * Note that only the direct state associated with the target Class
+     * object is flushed.  We do not flush state for other Class objects
+     * with the same name, nor do we flush state for any related Class
+     * objects (such as subclasses), even though their state may include
+     * information indirectly obtained from the target Class object.
+     *
+     * @param clz  Class object to be flushed.
+     */
+
+    public static void flushFromCaches(Class clz) {
+	beanInfoCache.remove(clz);
+	declaredMethodCache.remove(clz);
+    }
 
     //======================================================================
     // 			Private implementation methods
     //======================================================================
 
-    private Introspector(Class beanClass, Class stopClass)
+    private Introspector(Class beanClass, Class stopClass, int flags)
 					    throws IntrospectionException {
 	this.beanClass = beanClass;
 
@@ -156,15 +252,28 @@ public class Introspector {
 	    }
 	}
 
-	informant = findInformant(beanClass);
+        if (flags == USE_ALL_BEANINFO) {
+	    informant = findInformant(beanClass);
+        }
 
-	if (beanClass.getSuperclass() != stopClass) {
-	    if (stopClass == null) {
-	        superBeanInfo = Introspector.getBeanInfo(
-				beanClass.getSuperclass());
+	Class superClass = beanClass.getSuperclass();
+	if (superClass != stopClass) {
+	    int newFlags = flags;
+	    if (newFlags == IGNORE_IMMEDIATE_BEANINFO) {
+		newFlags = USE_ALL_BEANINFO;
+	    }
+	    if (stopClass == null && newFlags == USE_ALL_BEANINFO) {
+		// We avoid going through getBeanInfo as we don't need
+		// it do copy the BeanInfo.
+		superBeanInfo = (BeanInfo)beanInfoCache.get(superClass);
+		if (superBeanInfo == null) {
+		    Introspector ins = new Introspector(superClass, null, USE_ALL_BEANINFO);
+	    	    superBeanInfo = ins.getBeanInfo();
+	    	    beanInfoCache.put(superClass, superBeanInfo);
+		}
 	    } else {
-	        superBeanInfo = Introspector.getBeanInfo(
-				beanClass.getSuperclass(), stopClass);
+		Introspector ins = new Introspector(superClass, stopClass, newFlags);
+	        superBeanInfo = ins.getBeanInfo();
 	    }
 	}
 	if (informant != null) {
@@ -176,7 +285,7 @@ public class Introspector {
     }
 
    
-    private BeanInfo getBeanInfo() throws IntrospectionException {
+    private GenericBeanInfo getBeanInfo() throws IntrospectionException {
 
 	// the evaluation order here is import, as we evaluate the
 	// event sets and locate PropertyChangeListeners before we
@@ -193,7 +302,7 @@ public class Introspector {
 	
     }
 
-    private BeanInfo findInformant(Class beanClass) {
+    private static synchronized BeanInfo findInformant(Class beanClass) {
 	String name = beanClass.getName() + "BeanInfo";
         try {
 	    return (java.beans.BeanInfo)instantiate(beanClass, name);
@@ -272,15 +381,18 @@ public class Introspector {
 
 	    // Apply some reflection to the current class.
 
-	    // First get an array of all the beans methods at this level
-	    Method methodList[] = getDeclaredMethods(beanClass);
+	    // First get an array of all the public methods at this level
+	    Method methodList[] = getPublicDeclaredMethods(beanClass);
 
 	    // Now analyze each method.
 	    for (int i = 0; i < methodList.length; i++) {
 	        Method method = methodList[i];
-	        // skip static and non-public methods.
+		if (method == null) {
+		    continue;
+		}
+	        // skip static methods.
 		int mods = method.getModifiers();
-		if (Modifier.isStatic(mods) || !Modifier.isPublic(mods)) {
+		if (Modifier.isStatic(mods)) {
 		    continue;
 		}
 	        String name = method.getName();
@@ -433,17 +545,20 @@ public class Introspector {
 
 	    // Apply some reflection to the current class.
 
-	    // Get an array of all the beans methods at this level
-	    Method methodList[] = getDeclaredMethods(beanClass);
+	    // Get an array of all the public beans methods at this level
+	    Method methodList[] = getPublicDeclaredMethods(beanClass);
 
 	    // Find all suitable "add" and "remove" methods.
 	    java.util.Hashtable adds = new java.util.Hashtable();
 	    java.util.Hashtable removes = new java.util.Hashtable();
 	    for (int i = 0; i < methodList.length; i++) {
 	        Method method = methodList[i];
-	        // skip static and non-public methods.
+		if (method == null) {
+		    continue;
+		}
+	        // skip static methods.
 		int mods = method.getModifiers();
-		if (Modifier.isStatic(mods) || !Modifier.isPublic(mods)) {
+		if (Modifier.isStatic(mods)) {
 		    continue;
 		}
 	        String name = method.getName();
@@ -534,8 +649,8 @@ public class Introspector {
     }
 
     void addEvent(EventSetDescriptor esd) {
-	String key = esd.getName();
-	if (key.equals("propertyChange")) {
+	String key = esd.getName() + esd.getListenerType();
+	if (esd.getName().equals("propertyChange")) {
 	    propertyChangeSource = true;
 	}
 	EventSetDescriptor old = (EventSetDescriptor)events.get(key);
@@ -588,13 +703,12 @@ public class Introspector {
 	    // Apply some reflection to the current class.
 
 	    // First get an array of all the beans methods at this level
-	    Method methodList[] = getDeclaredMethods(beanClass);
+	    Method methodList[] = getPublicDeclaredMethods(beanClass);
 
 	    // Now analyze each method.
 	    for (int i = 0; i < methodList.length; i++) {
 	        Method method = methodList[i];
-	        // skip non-public methods.
-		if (!Modifier.isPublic(method.getModifiers())) {
+		if (method == null) {
 		    continue;
 		}
 		MethodDescriptor md = new MethodDescriptor(method);
@@ -694,39 +808,55 @@ public class Introspector {
     }
 
     private boolean isEventHandler(Method m) throws IntrospectionException {
-	// Right now we assume that a method is an event handler if it
-	// has a single argument, whose type name includes the word
-	// "Event".  The real answer is that the argument type should
-	// inherit from java.util.Event or somesuch, but we're not quite
-	// there yet.
+	// We assume that a method is an event handler if it has a single
+        // argument, whose type inherit from java.util.Event.
+
 	try {
 	    Class argTypes[] = m.getParameterTypes();
 	    if (argTypes.length != 1) {
-		return (false);
+		return false;
 	    }
-	    String type = "" + argTypes[0];
-	    if (type.indexOf("Event") >= 0) {
-		return (true);
+	    if (isSubclass(argTypes[0], java.util.EventObject.class)) {
+		return true;
 	    } else {
-		return (false);
+		return false;
 	    }
-	    
 	} catch (Exception ex) {
 	    throw new IntrospectionException("Unexpected reflection exception: " + ex);
 	}
     }
 
-    private static synchronized Method[] getDeclaredMethods(Class clz) {
-	// Looking up Class.getDeclaredMethods is realtively expensive,
+    /*
+     * Internal method to return *public* methods within a class.
+     */
+
+    private static synchronized Method[] getPublicDeclaredMethods(Class clz) {
+	// Looking up Class.getDeclaredMethods is relatively expensive,
 	// so we cache the results.
-	if (declaredMethodCache == null) {
-	   declaredMethodCache = new java.util.Hashtable();
+	final Class fclz = clz;
+	Method[] result = (Method[])declaredMethodCache.get(fclz);
+	if (result != null) {
+	    return result;
 	}
-	Method[] result = (Method[])declaredMethodCache.get(clz);
-	if (result == null) {
-	    result = clz.getDeclaredMethods();
-	    declaredMethodCache.put(clz, result);
-	}
+
+	// We have to raise privilege for getDeclaredMethods
+	result = (Method[]) AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
+		    return fclz.getDeclaredMethods();
+		}
+	    });
+
+
+	// Null out any non-public methods.
+	for (int i = 0; i < result.length; i++) {
+	    Method method = result[i];
+	    int mods = method.getModifiers();
+	    if (!Modifier.isPublic(mods)) {
+	 	result[i] = null;
+	    }
+        }    
+	// Add it to the cache.
+	declaredMethodCache.put(clz, result);
 	return result;
     }
 
@@ -735,24 +865,23 @@ public class Introspector {
     //======================================================================
 
     /**
-     * Find a target methodName on a given class.
+     * Internal support for finding a target methodName on a given class.
      */
-
-    static Method findMethod(Class cls, String methodName, int argCount) 
-			throws IntrospectionException {
-	if (methodName == null) {
-	    return null;
-	}
+    private static Method internalFindMethod(Class start, String methodName,
+								 int argCount) {
 
 	// For overriden methods we need to find the most derived version.
-	// So we start with the given cls and walk up the superclass chain.
-	while (cls != null) {
-            Method methods[] = getDeclaredMethods(cls);
+	// So we start with the given class and walk up the superclass chain.
+	for (Class cl = start; cl != null; cl = cl.getSuperclass()) {
+            Method methods[] = getPublicDeclaredMethods(cl);
 	    for (int i = 0; i < methods.length; i++) {
 	        Method method = methods[i];
-	        // skip static and non-public methods.
+		if (method == null) {
+		    continue;
+		}
+	        // skip static methods.
 		int mods = method.getModifiers();
-		if (Modifier.isStatic(mods) || !Modifier.isPublic(mods)) {
+		if (Modifier.isStatic(mods)) {
 		    continue;
 		}
 	        if (method.getName().equals(methodName) &&
@@ -760,7 +889,34 @@ public class Introspector {
 	            return method;
  	        }
 	    }
-	    cls = cls.getSuperclass();
+	}
+
+	// Now check any inherited interfaces.  This is necessary both when
+	// the argument class is itself an interface, and when the argument
+	// class is an abstract class.
+	Class ifcs[] = start.getInterfaces();
+	for (int i = 0 ; i < ifcs.length; i++) {
+	    Method m = internalFindMethod(ifcs[i], methodName, argCount);
+	    if (m != null) {
+		return m;
+	    }
+	}
+
+	return null;
+    }
+
+    /**
+     * Find a target methodName on a given class.
+     */
+    static Method findMethod(Class cls, String methodName, int argCount) 
+			throws IntrospectionException {
+	if (methodName == null) {
+	    return null;
+	}
+
+	Method m = internalFindMethod(cls, methodName, argCount);
+	if (m != null ) {
+	    return m;
 	}
 
 	// We failed to find a suitable method
@@ -770,7 +926,8 @@ public class Introspector {
 
     /**
      * Return true if class a is either equivalent to class b, or
-     * if class a is a subclass of class b.
+     * if class a is a subclass of class b, i.e. if a either "extends"
+     * or "implements" b.
      * Note tht either or both "Class" objects may represent interfaces.
      */
     static  boolean isSubclass(Class a, Class b) {
@@ -832,6 +989,19 @@ public class Introspector {
 	    }
         }
 	// Now try the system classloader.
+	try {
+	    cl = ClassLoader.getSystemClassLoader();
+	    if (cl != null) {
+	        Class cls = cl.loadClass(className);
+		return cls.newInstance();
+	    }
+        } catch (Exception ex) {
+	    // We're not allowed to access the system class loader or
+	    // the class creation failed.
+	    // Drop through.
+	}
+
+	// Now try the bootstrap classloader.
 	Class cls = Class.forName(className);
 	return cls.newInstance();
     }
@@ -854,7 +1024,7 @@ public class Introspector {
     private java.util.Hashtable methods = new java.util.Hashtable();
 
     // Cache of Class.getDeclaredMethods:
-    private static java.util.Hashtable declaredMethodCache;
+    private static java.util.Hashtable declaredMethodCache = new java.util.Hashtable();
 
     // properties maps from String names to PropertyDescriptors
     private java.util.Hashtable properties = new java.util.Hashtable();
@@ -886,6 +1056,45 @@ class GenericBeanInfo extends SimpleBeanInfo {
 	this.defaultProperty = defaultProperty;
 	this.methods = methods;
 	this.targetBeanInfo = targetBeanInfo;
+    }
+
+    /**
+     * Package-private dup constructor
+     * This must isolate the new object from any changes to the old object.
+     */
+    GenericBeanInfo(GenericBeanInfo old) {
+
+	beanDescriptor = new BeanDescriptor(old.beanDescriptor);
+	if (old.events != null) {
+	    int len = old.events.length;
+	    events = new EventSetDescriptor[len];
+	    for (int i = 0; i < len; i++) {
+		events[i] = new EventSetDescriptor(old.events[i]);
+	    }
+	}
+	defaultEvent = old.defaultEvent;
+	if (old.properties != null) {
+	    int len = old.properties.length;
+	    properties = new PropertyDescriptor[len];
+	    for (int i = 0; i < len; i++) {
+		PropertyDescriptor oldp = old.properties[i];
+		if (oldp instanceof IndexedPropertyDescriptor) {
+		    properties[i] = new IndexedPropertyDescriptor(
+					(IndexedPropertyDescriptor) oldp);
+		} else {
+		    properties[i] = new PropertyDescriptor(oldp);
+		}
+	    }
+	}
+	defaultProperty = old.defaultProperty;
+	if (old.methods != null) {
+	    int len = old.methods.length;
+	    methods = new MethodDescriptor[len];
+	    for (int i = 0; i < len; i++) {
+		methods[i] = new MethodDescriptor(old.methods[i]);
+	    }
+	}
+	targetBeanInfo = old.targetBeanInfo;
     }
 
     public PropertyDescriptor[] getPropertyDescriptors() {

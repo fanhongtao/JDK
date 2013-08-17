@@ -1,29 +1,37 @@
 /*
- * @(#)DatabaseMetaData.java	1.10 01/12/10
+ * @(#)DatabaseMetaData.java	1.20 98/09/29
+ * 
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 
 package java.sql;
 
 /**
- * This class provides information about the database as a whole.
+ * Comprehensive information about the database as a whole.
  *
- * <P>Many of the methods here return lists of information in ResultSets.
+ * <P>Many of the methods here return lists of information in 
+ * the form of <code>ResultSet</code> objects.
  * You can use the normal ResultSet methods such as getString and getInt 
  * to retrieve the data from these ResultSets.  If a given form of
- * metadata is not available, these methods should throw a SQLException.
+ * metadata is not available, these methods should throw an SQLException.
  *
  * <P>Some of these methods take arguments that are String patterns.  These
  * arguments all have names such as fooPattern.  Within a pattern String, "%"
  * means match any substring of 0 or more characters, and "_" means match
  * any one character. Only metadata entries matching the search pattern 
- * are returned. If a search pattern argument is set to a null ref, it means 
- * that argument's criteria should be dropped from the search.
+ * are returned. If a search pattern argument is set to a null ref, 
+ * that argument's criteria will be dropped from the search.
  * 
- * <P>A SQLException will be thrown if a driver does not support a meta
+ * <P>An <code>SQLException</code> will be thrown if a driver does not support a meta
  * data method.  In the case of methods that return a ResultSet,
  * either a ResultSet (which may be empty) is returned or a
  * SQLException is thrown.
@@ -37,8 +45,8 @@ public interface DatabaseMetaData {
      * Can all the procedures returned by getProcedures be called by the
      * current user?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean allProceduresAreCallable() throws SQLException;
 
@@ -46,16 +54,16 @@ public interface DatabaseMetaData {
      * Can all the tables returned by getTable be SELECTed by the
      * current user?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean allTablesAreSelectable() throws SQLException;
 
     /**
      * What's the url for this database?
      *
-     * @return the url or null if it can't be generated
-     * @exception SQLException if a database-access error occurs.
+     * @return the url or null if it cannot be generated
+     * @exception SQLException if a database access error occurs
      */
 	String getURL() throws SQLException;
 
@@ -63,47 +71,47 @@ public interface DatabaseMetaData {
      * What's our user name as known to the database?
      *
      * @return our database user name
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getUserName() throws SQLException;
 
     /**
      * Is the database in read-only mode?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean isReadOnly() throws SQLException;
 
     /**
      * Are NULL values sorted high?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean nullsAreSortedHigh() throws SQLException;
 
     /**
      * Are NULL values sorted low?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean nullsAreSortedLow() throws SQLException;
 
     /**
      * Are NULL values sorted at the start regardless of sort order?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean nullsAreSortedAtStart() throws SQLException;
 
     /**
      * Are NULL values sorted at the end regardless of sort order?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean nullsAreSortedAtEnd() throws SQLException;
 
@@ -111,7 +119,7 @@ public interface DatabaseMetaData {
      * What's the name of this database product?
      *
      * @return database product name
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getDatabaseProductName() throws SQLException;
 
@@ -119,7 +127,7 @@ public interface DatabaseMetaData {
      * What's the version of this database product?
      *
      * @return database version
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getDatabaseProductVersion() throws SQLException;
 
@@ -127,7 +135,7 @@ public interface DatabaseMetaData {
      * What's the name of this JDBC driver?
      *
      * @return JDBC driver name
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getDriverName() throws SQLException;
 
@@ -135,7 +143,7 @@ public interface DatabaseMetaData {
      * What's the version of this JDBC driver?
      *
      * @return JDBC driver version
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getDriverVersion() throws SQLException;
 
@@ -156,8 +164,8 @@ public interface DatabaseMetaData {
     /**
      * Does the database store tables in a local file?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean usesLocalFiles() throws SQLException;
 
@@ -165,7 +173,7 @@ public interface DatabaseMetaData {
      * Does the database use a file for each table?
      *
      * @return true if the database uses a local file for each table
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	boolean usesLocalFilePerTable() throws SQLException;
 
@@ -173,10 +181,10 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case unquoted SQL identifiers as
      * case sensitive and as a result store them in mixed case?
      *
-     * A JDBC-Compliant driver will always return false.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver will always return false.
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsMixedCaseIdentifiers() throws SQLException;
 
@@ -184,8 +192,8 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case unquoted SQL identifiers as
      * case insensitive and store them in upper case?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean storesUpperCaseIdentifiers() throws SQLException;
 
@@ -193,8 +201,8 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case unquoted SQL identifiers as
      * case insensitive and store them in lower case?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean storesLowerCaseIdentifiers() throws SQLException;
 
@@ -202,8 +210,8 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case unquoted SQL identifiers as
      * case insensitive and store them in mixed case?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean storesMixedCaseIdentifiers() throws SQLException;
 
@@ -211,10 +219,10 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case quoted SQL identifiers as
      * case sensitive and as a result store them in mixed case?
      *
-     * A JDBC-Compliant driver will always return true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver will always return true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsMixedCaseQuotedIdentifiers() throws SQLException;
 
@@ -222,8 +230,8 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case quoted SQL identifiers as
      * case insensitive and store them in upper case?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean storesUpperCaseQuotedIdentifiers() throws SQLException;
 
@@ -231,8 +239,8 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case quoted SQL identifiers as
      * case insensitive and store them in lower case?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean storesLowerCaseQuotedIdentifiers() throws SQLException;
 
@@ -240,8 +248,8 @@ public interface DatabaseMetaData {
      * Does the database treat mixed case quoted SQL identifiers as
      * case insensitive and store them in mixed case?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean storesMixedCaseQuotedIdentifiers() throws SQLException;
 
@@ -249,55 +257,63 @@ public interface DatabaseMetaData {
      * What's the string used to quote SQL identifiers?
      * This returns a space " " if identifier quoting isn't supported.
      *
-     * A JDBC-Compliant driver always uses a double quote character.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> 
+	 * driver always uses a double quote character.
      *
      * @return the quoting string
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getIdentifierQuoteString() throws SQLException;
 
     /**
-     * Get a comma separated list of all a database's SQL keywords
+     * Gets a comma-separated list of all a database's SQL keywords
      * that are NOT also SQL92 keywords.
      *
      * @return the list 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getSQLKeywords() throws SQLException;
 
     /**
-     * Get a comma separated list of math functions.
+     * Gets a comma-separated list of math functions.  These are the 
+     * X/Open CLI math function names used in the JDBC function escape 
+     * clause.
      *
      * @return the list
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getNumericFunctions() throws SQLException;
 
     /**
-     * Get a comma separated list of string functions.
+     * Gets a comma-separated list of string functions.  These are the 
+     * X/Open CLI string function names used in the JDBC function escape 
+     * clause.
      *
      * @return the list
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getStringFunctions() throws SQLException;
 
     /**
-     * Get a comma separated list of system functions.
+     * Gets a comma-separated list of system functions.  These are the 
+     * X/Open CLI system function names used in the JDBC function escape 
+     * clause.
      *
      * @return the list
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getSystemFunctions() throws SQLException;
 
     /**
-     * Get a comma separated list of time and date functions.
+     * Gets a comma-separated list of time and date functions.
      *
      * @return the list
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getTimeDateFunctions() throws SQLException;
 
     /**
+	 * Gets the string that can be used to escape wildcard characters.
      * This is the string that can be used to escape '_' or '%' in
      * the string pattern style catalog search parameters.
      *
@@ -306,16 +322,16 @@ public interface DatabaseMetaData {
      * more characters.
      *
      * @return the string used to escape wildcard characters
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getSearchStringEscape() throws SQLException;
 
     /**
-     * Get all the "extra" characters that can be used in unquoted
+     * Gets all the "extra" characters that can be used in unquoted
      * identifier names (those beyond a-z, A-Z, 0-9 and _).
      *
      * @return the string containing the extra characters 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getExtraNameCharacters() throws SQLException;
 
@@ -325,16 +341,16 @@ public interface DatabaseMetaData {
     /**
      * Is "ALTER TABLE" with add column supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsAlterTableWithAddColumn() throws SQLException;
 
     /**
      * Is "ALTER TABLE" with drop column supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsAlterTableWithDropColumn() throws SQLException;
 
@@ -345,28 +361,28 @@ public interface DatabaseMetaData {
      * computed columns or to provide alias names for columns as
      * required.
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsColumnAliasing() throws SQLException;
 
     /**
      * Are concatenations between NULL and non-NULL values NULL?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean nullPlusNonNullIsNull() throws SQLException;
 
     /**
      * Is the CONVERT function between SQL types supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsConvert() throws SQLException;
 
@@ -375,8 +391,8 @@ public interface DatabaseMetaData {
      *
      * @param fromType the type to convert from
      * @param toType the type to convert to     
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      * @see Types
      */
 	boolean supportsConvert(int fromType, int toType) throws SQLException;
@@ -384,10 +400,10 @@ public interface DatabaseMetaData {
     /**
      * Are table correlation names supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsTableCorrelationNames() throws SQLException;
 
@@ -395,40 +411,40 @@ public interface DatabaseMetaData {
      * If table correlation names are supported, are they restricted
      * to be different from the names of the tables?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsDifferentTableCorrelationNames() throws SQLException;
 
     /**
      * Are expressions in "ORDER BY" lists supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsExpressionsInOrderBy() throws SQLException;
 
     /**
-     * Can an "ORDER BY" clause use columns not in the SELECT?
+     * Can an "ORDER BY" clause use columns not in the SELECT statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsOrderByUnrelated() throws SQLException;
 
     /**
      * Is some form of "GROUP BY" clause supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsGroupBy() throws SQLException;
 
     /**
      * Can a "GROUP BY" clause use columns not in the SELECT?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsGroupByUnrelated() throws SQLException;
 
@@ -436,26 +452,26 @@ public interface DatabaseMetaData {
      * Can a "GROUP BY" clause add columns not in the SELECT
      * provided it specifies all the columns in the SELECT?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsGroupByBeyondSelect() throws SQLException;
 
     /**
      * Is the escape character in "LIKE" clauses supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsLikeEscapeClause() throws SQLException;
 
     /**
      * Are multiple ResultSets from a single execute supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsMultipleResultSets() throws SQLException;
 
@@ -463,94 +479,94 @@ public interface DatabaseMetaData {
      * Can we have multiple transactions open at once (on different
      * connections)?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsMultipleTransactions() throws SQLException;
 
     /**
      * Can columns be defined as non-nullable?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsNonNullableColumns() throws SQLException;
 
     /**
      * Is the ODBC Minimum SQL grammar supported?
      *
-     * All JDBC-Compliant drivers must return true.
+     * All JDBC Compliant<sup><font size=-2>TM</font></sup> drivers must return true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsMinimumSQLGrammar() throws SQLException;
 
     /**
      * Is the ODBC Core SQL grammar supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCoreSQLGrammar() throws SQLException;
 
     /**
      * Is the ODBC Extended SQL grammar supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsExtendedSQLGrammar() throws SQLException;
 
     /**
      * Is the ANSI92 entry level SQL grammar supported?
      *
-     * All JDBC-Compliant drivers must return true.
+     * All JDBC Compliant<sup><font size=-2>TM</font></sup> drivers must return true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsANSI92EntryLevelSQL() throws SQLException;
 
     /**
      * Is the ANSI92 intermediate SQL grammar supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsANSI92IntermediateSQL() throws SQLException;
 
     /**
      * Is the ANSI92 full SQL grammar supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsANSI92FullSQL() throws SQLException;
 
     /**
      * Is the SQL Integrity Enhancement Facility supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsIntegrityEnhancementFacility() throws SQLException;
 
     /**
      * Is some form of outer join supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsOuterJoins() throws SQLException;
 
     /**
      * Are full nested outer joins supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsFullOuterJoins() throws SQLException;
 
@@ -558,8 +574,8 @@ public interface DatabaseMetaData {
      * Is there limited support for outer joins?  (This will be true
      * if supportFullOuterJoins is true.)
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsLimitedOuterJoins() throws SQLException;
 
@@ -567,7 +583,7 @@ public interface DatabaseMetaData {
      * What's the database vendor's preferred term for "schema"?
      *
      * @return the vendor term
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getSchemaTerm() throws SQLException;
 
@@ -575,7 +591,7 @@ public interface DatabaseMetaData {
      * What's the database vendor's preferred term for "procedure"?
      *
      * @return the vendor term
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getProcedureTerm() throws SQLException;
 
@@ -583,7 +599,7 @@ public interface DatabaseMetaData {
      * What's the database vendor's preferred term for "catalog"?
      *
      * @return the vendor term
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getCatalogTerm() throws SQLException;
 
@@ -592,7 +608,7 @@ public interface DatabaseMetaData {
      * (Otherwise it appears at the end)
      *
      * @return true if it appears at the start 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	boolean isCatalogAtStart() throws SQLException;
 
@@ -600,87 +616,87 @@ public interface DatabaseMetaData {
      * What's the separator between catalog and table name?
      *
      * @return the separator string
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	String getCatalogSeparator() throws SQLException;
 
     /**
      * Can a schema name be used in a data manipulation statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSchemasInDataManipulation() throws SQLException;
 
     /**
      * Can a schema name be used in a procedure call statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSchemasInProcedureCalls() throws SQLException;
 
     /**
      * Can a schema name be used in a table definition statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSchemasInTableDefinitions() throws SQLException;
 
     /**
      * Can a schema name be used in an index definition statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSchemasInIndexDefinitions() throws SQLException;
 
     /**
      * Can a schema name be used in a privilege definition statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSchemasInPrivilegeDefinitions() throws SQLException;
 
     /**
      * Can a catalog name be used in a data manipulation statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCatalogsInDataManipulation() throws SQLException;
 
     /**
      * Can a catalog name be used in a procedure call statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCatalogsInProcedureCalls() throws SQLException;
 
     /**
      * Can a catalog name be used in a table definition statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCatalogsInTableDefinitions() throws SQLException;
 
     /**
      * Can a catalog name be used in an index definition statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCatalogsInIndexDefinitions() throws SQLException;
 
     /**
      * Can a catalog name be used in a privilege definition statement?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException;
 
@@ -688,24 +704,24 @@ public interface DatabaseMetaData {
     /**
      * Is positioned DELETE supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsPositionedDelete() throws SQLException;
 
     /**
      * Is positioned UPDATE supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsPositionedUpdate() throws SQLException;
 
     /**
      * Is SELECT for UPDATE supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSelectForUpdate() throws SQLException;
 
@@ -713,106 +729,110 @@ public interface DatabaseMetaData {
      * Are stored procedure calls using the stored procedure escape
      * syntax supported?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsStoredProcedures() throws SQLException;
 
     /**
      * Are subqueries in comparison expressions supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSubqueriesInComparisons() throws SQLException;
 
     /**
      * Are subqueries in 'exists' expressions supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSubqueriesInExists() throws SQLException;
 
     /**
      * Are subqueries in 'in' statements supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSubqueriesInIns() throws SQLException;
 
     /**
      * Are subqueries in quantified expressions supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsSubqueriesInQuantifieds() throws SQLException;
 
     /**
      * Are correlated subqueries supported?
      *
-     * A JDBC-Compliant driver always returns true.
+     * A JDBC Compliant<sup><font size=-2>TM</font></sup> driver always returns true.
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsCorrelatedSubqueries() throws SQLException;
 
     /**
      * Is SQL UNION supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsUnion() throws SQLException;
 
     /**
      * Is SQL UNION ALL supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsUnionAll() throws SQLException;
 
     /**
      * Can cursors remain open across commits? 
      * 
-     * @return true if cursors always remain open; false if they might not remain open
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if cursors always remain open;
+	 *       <code>false</code> if they might not remain open
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsOpenCursorsAcrossCommit() throws SQLException;
 
     /**
      * Can cursors remain open across rollbacks?
      * 
-     * @return true if cursors always remain open; false if they might not remain open
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if cursors always remain open;
+	 *       <code>false</code> if they might not remain open
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsOpenCursorsAcrossRollback() throws SQLException;
 
     /**
      * Can statements remain open across commits?
      * 
-     * @return true if statements always remain open; false if they might not remain open
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if statements always remain open;
+	 *       <code>false</code> if they might not remain open
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsOpenStatementsAcrossCommit() throws SQLException;
 
     /**
      * Can statements remain open across rollbacks?
      * 
-     * @return true if statements always remain open; false if they might not remain open
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if statements always remain open;
+	 *       <code>false</code> if they might not remain open
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsOpenStatementsAcrossRollback() throws SQLException;
 
@@ -827,120 +847,135 @@ public interface DatabaseMetaData {
     /**
      * How many hex characters can you have in an inline binary literal?
      *
-     * @return max literal length
-     * @exception SQLException if a database-access error occurs.
+     * @return max binary literal length in hex characters;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxBinaryLiteralLength() throws SQLException;
 
     /**
      * What's the max length for a character literal?
      *
-     * @return max literal length
-     * @exception SQLException if a database-access error occurs.
+     * @return max literal length;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxCharLiteralLength() throws SQLException;
 
     /**
      * What's the limit on column name length?
      *
-     * @return max literal length
-     * @exception SQLException if a database-access error occurs.
+     * @return max column name length;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxColumnNameLength() throws SQLException;
 
     /**
      * What's the maximum number of columns in a "GROUP BY" clause?
      *
-     * @return max number of columns
-     * @exception SQLException if a database-access error occurs.
+     * @return max number of columns;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxColumnsInGroupBy() throws SQLException;
 
     /**
      * What's the maximum number of columns allowed in an index?
      *
-     * @return max columns
-     * @exception SQLException if a database-access error occurs.
+     * @return max number of columns;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxColumnsInIndex() throws SQLException;
 
     /**
      * What's the maximum number of columns in an "ORDER BY" clause?
      *
-     * @return max columns
-     * @exception SQLException if a database-access error occurs.
+     * @return max number of columns;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxColumnsInOrderBy() throws SQLException;
 
     /**
      * What's the maximum number of columns in a "SELECT" list?
      *
-     * @return max columns
-     * @exception SQLException if a database-access error occurs.
+     * @return max number of columns;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxColumnsInSelect() throws SQLException;
 
     /**
      * What's the maximum number of columns in a table?
      *
-     * @return max columns
-     * @exception SQLException if a database-access error occurs.
+     * @return max number of columns;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxColumnsInTable() throws SQLException;
 
     /**
      * How many active connections can we have at a time to this database?
      *
-     * @return max connections
-     * @exception SQLException if a database-access error occurs.
+     * @return max number of active connections;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxConnections() throws SQLException;
 
     /**
      * What's the maximum cursor name length?
      *
-     * @return max cursor name length in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max cursor name length in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxCursorNameLength() throws SQLException;
 
     /**
      * What's the maximum length of an index (in bytes)?	
      *
-     * @return max index length in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max index length in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxIndexLength() throws SQLException;
 
     /**
      * What's the maximum length allowed for a schema name?
      *
-     * @return max name length in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max name length in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxSchemaNameLength() throws SQLException;
 
     /**
      * What's the maximum length of a procedure name?
      *
-     * @return max name length in bytes 
-     * @exception SQLException if a database-access error occurs.
+     * @return max name length in bytes; 
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxProcedureNameLength() throws SQLException;
 
     /**
      * What's the maximum length of a catalog name?
      *
-     * @return max name length in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max name length in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxCatalogNameLength() throws SQLException;
 
     /**
      * What's the maximum length of a single row?
      *
-     * @return max row size in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max row size in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxRowSize() throws SQLException;
 
@@ -948,16 +983,17 @@ public interface DatabaseMetaData {
      * Did getMaxRowSize() include LONGVARCHAR and LONGVARBINARY
      * blobs?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean doesMaxRowSizeIncludeBlobs() throws SQLException;
 
     /**
      * What's the maximum length of a SQL statement?
      *
-     * @return max length in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max length in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxStatementLength() throws SQLException;
 
@@ -965,32 +1001,36 @@ public interface DatabaseMetaData {
      * How many active statements can we have open at one time to this
      * database?
      *
-     * @return the maximum 
-     * @exception SQLException if a database-access error occurs.
+     * @return the maximum number of statements that can be open at one time;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxStatements() throws SQLException;
 
     /**
      * What's the maximum length of a table name?
      *
-     * @return max name length in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max name length in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxTableNameLength() throws SQLException;
 
     /**
-     * What's the maximum number of tables in a SELECT?
+     * What's the maximum number of tables in a SELECT statement?
      *
-     * @return the maximum
-     * @exception SQLException if a database-access error occurs.
+     * @return the maximum number of tables allowed in a SELECT statement;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxTablesInSelect() throws SQLException;
 
     /**
      * What's the maximum length of a user name?
      *
-     * @return max name length  in bytes
-     * @exception SQLException if a database-access error occurs.
+     * @return max user name length  in bytes;
+	 *      a result of zero means that there is no limit or the limit is not known
+     * @exception SQLException if a database access error occurs
      */
 	int getMaxUserNameLength() throws SQLException;
 
@@ -998,29 +1038,30 @@ public interface DatabaseMetaData {
 
     /**
      * What's the database's default transaction isolation level?  The
-     * values are defined in java.sql.Connection.
+     * values are defined in <code>java.sql.Connection</code>.
      *
      * @return the default isolation level 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see Connection
      */
 	int getDefaultTransactionIsolation() throws SQLException;
 
     /**
-     * Are transactions supported? If not, commit is a noop and the
+     * Are transactions supported? If not, invoking the method
+	 * <code>commit</code> is a noop and the
      * isolation level is TRANSACTION_NONE.
      *
-     * @return true if transactions are supported 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if transactions are supported; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsTransactions() throws SQLException;
 
     /**
-     * Does the database support the given transaction isolation level?
+     * Does this database support the given transaction isolation level?
      *
-     * @param level the values are defined in java.sql.Connection
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @param level the values are defined in <code>java.sql.Connection</code>
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      * @see Connection
      */
 	boolean supportsTransactionIsolationLevel(int level)
@@ -1030,8 +1071,8 @@ public interface DatabaseMetaData {
      * Are both data definition and data manipulation statements
      * within a transaction supported?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsDataDefinitionAndDataManipulationTransactions()
 							 throws SQLException;
@@ -1039,8 +1080,8 @@ public interface DatabaseMetaData {
      * Are only data manipulation statements within a transaction
      * supported?
      *
-     * @return true if so
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
      */
 	boolean supportsDataManipulationTransactionsOnly()
 							throws SQLException;
@@ -1048,23 +1089,23 @@ public interface DatabaseMetaData {
      * Does a data definition statement within a transaction force the
      * transaction to commit?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean dataDefinitionCausesTransactionCommit()
 							throws SQLException;
     /**
      * Is a data definition statement within a transaction ignored?
      *
-     * @return true if so 
-     * @exception SQLException if a database-access error occurs.
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
      */
 	boolean dataDefinitionIgnoredInTransactions()
 							throws SQLException;
 
 
     /**
-     * Get a description of stored procedures available in a
+     * Gets a description of the stored procedures available in a
      * catalog.
      *
      * <P>Only procedure descriptions matching the schema and
@@ -1094,27 +1135,41 @@ public interface DatabaseMetaData {
      * without a schema
      * @param procedureNamePattern a procedure name pattern 
      * @return ResultSet - each row is a procedure description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
 	ResultSet getProcedures(String catalog, String schemaPattern,
 			String procedureNamePattern) throws SQLException;
 
     /**
-     * PROCEDURE_TYPE - May return a result.
+	 * A possible value for column <code>PROCEDURE_TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getProcedures</code>.
+	 * <p> Indicates that it is not known whether the procedure returns
+	 * a result.
      */
 	int procedureResultUnknown	= 0;
+
     /**
-     * PROCEDURE_TYPE - Does not return a result.
+	 * A possible value for column <code>PROCEDURE_TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getProcedures</code>.
+	 * <p> Indicates that the procedure does not return
+	 * a result.
      */
 	int procedureNoResult		= 1;
+
     /**
-     * PROCEDURE_TYPE - Returns a result.
+	 * A possible value for column <code>PROCEDURE_TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getProcedures</code>.
+	 * <p> Indicates that the procedure returns
+	 * a result.
      */
 	int procedureReturnsResult	= 2;
 
     /**
-     * Get a description of a catalog's stored procedure parameters
+     * Gets a description of a catalog's stored procedure parameters
      * and result columns.
      *
      * <P>Only descriptions matching the schema, procedure and
@@ -1140,7 +1195,8 @@ public interface DatabaseMetaData {
      *      <LI> procedureColumnResult - result column in ResultSet
      *      </UL>
      *  <LI><B>DATA_TYPE</B> short => SQL type from java.sql.Types
-     *	<LI><B>TYPE_NAME</B> String => SQL type name
+     *	<LI><B>TYPE_NAME</B> String => SQL type name, for a UDT type the
+     *  type name is fully qualified
      *	<LI><B>PRECISION</B> int => precision
      *	<LI><B>LENGTH</B> int => length in bytes of data
      *	<LI><B>SCALE</B> short => scale
@@ -1164,9 +1220,9 @@ public interface DatabaseMetaData {
      * without a schema 
      * @param procedureNamePattern a procedure name pattern 
      * @param columnNamePattern a column name pattern 
-     * @return ResultSet - each row is a stored procedure parameter or 
-     *      column description 
-     * @exception SQLException if a database-access error occurs.
+     * @return ResultSet - each row describes a stored procedure parameter or 
+     *      column
+     * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
 	ResultSet getProcedureColumns(String catalog,
@@ -1175,52 +1231,89 @@ public interface DatabaseMetaData {
 			String columnNamePattern) throws SQLException;
 
     /**
-     * COLUMN_TYPE - nobody knows.
+	 * Indicates that type of the column is unknown.
+	 * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
 	int procedureColumnUnknown = 0;
 
     /**
-     * COLUMN_TYPE - IN parameter.
+	 * Indicates that the column stores IN parameters.
+	 * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
 	int procedureColumnIn = 1;
 
     /**
-     * COLUMN_TYPE - INOUT parameter.
+	 * Indicates that the column stores INOUT parameters.
+	 * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
 	int procedureColumnInOut = 2;
 
     /**
-     * COLUMN_TYPE - OUT parameter.
+	 * Indicates that the column stores OUT parameters.
+	 * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
 	int procedureColumnOut = 4;
     /**
-     * COLUMN_TYPE - procedure return value.
+	 * Indicates that the column stores return values.
+	 * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
 	int procedureColumnReturn = 5;
 
     /**
-     * COLUMN_TYPE - result column in ResultSet.
+	 * Indicates that the column stores results.
+	 * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
 	int procedureColumnResult = 3;
 
     /**
-     * TYPE NULLABLE - does not allow NULL values.
+	 * Indicates that <code>NULL</code> values are not allowed.
+	 * A possible value for the column
+     * <code>NULLABLE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
     int procedureNoNulls = 0;
 
     /**
-     * TYPE NULLABLE - allows NULL values.
+	 * Indicates that <code>NULL</code> values are allowed.
+	 * A possible value for the column
+     * <code>NULLABLE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
     int procedureNullable = 1;
 
     /**
-     * TYPE NULLABLE - nullability unknown.
+	 * Indicates that whether <code>NULL</code> values are allowed
+	 * is unknown.
+	 * A possible value for the column
+     * <code>NULLABLE</code>
+	 * in the <code>ResultSet</code> 
+	 * returned by the method <code>getProcedureColumns</code>.
      */
     int procedureNullableUnknown = 2;
 
 
     /**
-     * Get a description of tables available in a catalog.
+     * Gets a description of tables available in a catalog.
      *
      * <P>Only table descriptions matching the catalog, schema, table
      * name and type criteria are returned.  They are ordered by
@@ -1247,14 +1340,14 @@ public interface DatabaseMetaData {
      * @param tableNamePattern a table name pattern 
      * @param types a list of table types to include; null returns all types 
      * @return ResultSet - each row is a table description
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
 	ResultSet getTables(String catalog, String schemaPattern,
 		String tableNamePattern, String types[]) throws SQLException;
 
     /**
-     * Get the schema names available in this database.  The results
+     * Gets the schema names available in this database.  The results
      * are ordered by schema name.
      *
      * <P>The schema column is:
@@ -1264,12 +1357,12 @@ public interface DatabaseMetaData {
      *
      * @return ResultSet - each row has a single String column that is a
      * schema name 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getSchemas() throws SQLException;
 
     /**
-     * Get the catalog names available in this database.  The results
+     * Gets the catalog names available in this database.  The results
      * are ordered by catalog name.
      *
      * <P>The catalog column is:
@@ -1279,12 +1372,12 @@ public interface DatabaseMetaData {
      *
      * @return ResultSet - each row has a single String column that is a
      * catalog name 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getCatalogs() throws SQLException;
 
     /**
-     * Get the table types available in this database.  The results
+     * Gets the table types available in this database.  The results
      * are ordered by table type.
      *
      * <P>The table type is:
@@ -1296,12 +1389,13 @@ public interface DatabaseMetaData {
      *
      * @return ResultSet - each row has a single String column that is a
      * table type 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getTableTypes() throws SQLException;
 
     /**
-     * Get a description of table columns available in a catalog.
+     * Gets a description of table columns available in 
+	 * the specified catalog.
      *
      * <P>Only column descriptions matching the catalog, schema, table
      * and column name criteria are returned.  They are ordered by
@@ -1314,7 +1408,8 @@ public interface DatabaseMetaData {
      *	<LI><B>TABLE_NAME</B> String => table name
      *	<LI><B>COLUMN_NAME</B> String => column name
      *	<LI><B>DATA_TYPE</B> short => SQL type from java.sql.Types
-     *	<LI><B>TYPE_NAME</B> String => Data source dependent type name
+     *	<LI><B>TYPE_NAME</B> String => Data source dependent type name,
+     *  for a UDT the type name is fully qualified
      *	<LI><B>COLUMN_SIZE</B> int => column size.  For char or date
      *	    types this is the maximum number of characters, for numeric or
      *	    decimal types this is precision.
@@ -1347,29 +1442,41 @@ public interface DatabaseMetaData {
      * @param tableNamePattern a table name pattern 
      * @param columnNamePattern a column name pattern 
      * @return ResultSet - each row is a column description
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
 	ResultSet getColumns(String catalog, String schemaPattern,
 		String tableNamePattern, String columnNamePattern)
 					throws SQLException;
     /**
-     * COLUMN NULLABLE - might not allow NULL values.
+	 * Indicates that the column might not allow NULL values.
+	 * A possible value for the column
+     * <code>NULLABLE</code>
+	 * in the <code>ResultSet</code> returned by the method
+	 * <code>getColumns</code>.
      */
     int columnNoNulls = 0;
 
     /**
-     * COLUMN NULLABLE - definitely allows NULL values.
+	 * Indicates that the column definitely allows <code>NULL</code> values.
+	 * A possible value for the column
+     * <code>NULLABLE</code>
+	 * in the <code>ResultSet</code> returned by the method
+	 * <code>getColumns</code>.
      */
     int columnNullable = 1;
 
     /**
-     * COLUMN NULLABLE - nullability unknown.
+	 * Indicates that the nullability of columns is unknown.
+	 * A possible value for the column
+     * <code>NULLABLE</code>
+	 * in the <code>ResultSet</code> returned by the method
+	 * <code>getColumns</code>.
      */
     int columnNullableUnknown = 2;
 
     /**
-     * Get a description of the access rights for a table's columns.
+     * Gets a description of the access rights for a table's columns.
      *
      * <P>Only privileges matching the column name criteria are
      * returned.  They are ordered by COLUMN_NAME and PRIVILEGE.
@@ -1394,14 +1501,14 @@ public interface DatabaseMetaData {
      * @param table a table name
      * @param columnNamePattern a column name pattern 
      * @return ResultSet - each row is a column privilege description
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
 	ResultSet getColumnPrivileges(String catalog, String schema,
 		String table, String columnNamePattern) throws SQLException;
 
     /**
-     * Get a description of the access rights for each table available
+     * Gets a description of the access rights for each table available
      * in a catalog. Note that a table privilege applies to one or
      * more columns in the table. It would be wrong to assume that
      * this priviledge applies to all columns (this may be true for
@@ -1430,14 +1537,14 @@ public interface DatabaseMetaData {
      * without a schema
      * @param tableNamePattern a table name pattern 
      * @return ResultSet - each row is a table privilege description
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
      */
 	ResultSet getTablePrivileges(String catalog, String schemaPattern,
 				String tableNamePattern) throws SQLException;
 
     /**
-     * Get a description of a table's optimal set of columns that
+     * Gets a description of a table's optimal set of columns that
      * uniquely identifies a row. They are ordered by SCOPE.
      *
      * <P>Each column description has the following columns:
@@ -1450,7 +1557,8 @@ public interface DatabaseMetaData {
      *      </UL>
      *	<LI><B>COLUMN_NAME</B> String => column name
      *	<LI><B>DATA_TYPE</B> short => SQL data type from java.sql.Types
-     *	<LI><B>TYPE_NAME</B> String => Data source dependent type name
+     *	<LI><B>TYPE_NAME</B> String => Data source dependent type name,
+     *  for a UDT the type name is fully qualified
      *	<LI><B>COLUMN_SIZE</B> int => precision
      *	<LI><B>BUFFER_LENGTH</B> int => not used
      *	<LI><B>DECIMAL_DIGITS</B> short	 => scale
@@ -1470,43 +1578,71 @@ public interface DatabaseMetaData {
      * @param scope the scope of interest; use same values as SCOPE
      * @param nullable include columns that are nullable?
      * @return ResultSet - each row is a column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getBestRowIdentifier(String catalog, String schema,
 		String table, int scope, boolean nullable) throws SQLException;
 	
     /**
-     * BEST ROW SCOPE - very temporary, while using row.
+	 * Indicates that the scope of the best row identifier is
+	 * very temporary, lasting only while the
+	 * row is being used.
+	 * A possible value for the column
+     * <code>SCOPE</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getBestRowIdentifier</code>.
      */
 	int bestRowTemporary   = 0;
 
     /**
-     * BEST ROW SCOPE - valid for remainder of current transaction.
+	 * Indicates that the scope of the best row identifier is
+	 * the remainder of the current transaction.
+	 * A possible value for the column
+     * <code>SCOPE</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getBestRowIdentifier</code>.
      */
 	int bestRowTransaction = 1;
 
     /**
-     * BEST ROW SCOPE - valid for remainder of current session.
+	 * Indicates that the scope of the best row identifier is
+	 * the remainder of the current session.
+	 * A possible value for the column
+     * <code>SCOPE</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getBestRowIdentifier</code>.
      */
 	int bestRowSession     = 2;
 
     /**
-     * BEST ROW PSEUDO_COLUMN - may or may not be pseudo column.
+	 * Indicates that the best row identifier may or may not be a pseudo column.
+	 * A possible value for the column
+     * <code>PSEUDO_COLUMN</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getBestRowIdentifier</code>.
      */
 	int bestRowUnknown	= 0;
 
     /**
-     * BEST ROW PSEUDO_COLUMN - is NOT a pseudo column.
+	 * Indicates that the best row identifier is NOT a pseudo column.
+	 * A possible value for the column
+     * <code>PSEUDO_COLUMN</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getBestRowIdentifier</code>.
      */
 	int bestRowNotPseudo	= 1;
 
     /**
-     * BEST ROW PSEUDO_COLUMN - is a pseudo column.
+	 * Indicates that the best row identifier is a pseudo column.
+	 * A possible value for the column
+     * <code>PSEUDO_COLUMN</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getBestRowIdentifier</code>.
      */
 	int bestRowPseudo	= 2;
 
     /**
-     * Get a description of a table's columns that are automatically
+     * Gets a description of a table's columns that are automatically
      * updated when any value in a row is updated.  They are
      * unordered.
      *
@@ -1533,28 +1669,40 @@ public interface DatabaseMetaData {
      * @param schema a schema name; "" retrieves those without a schema
      * @param table a table name
      * @return ResultSet - each row is a column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getVersionColumns(String catalog, String schema,
 				String table) throws SQLException;
 	
     /**
-     * VERSION COLUMNS PSEUDO_COLUMN - may or may not be pseudo column.
+	 * Indicates that this version column may or may not be a pseudo column.
+	 * A possible value for the column
+     * <code>PSEUDO_COLUMN</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getVersionColumns</code>.
      */
 	int versionColumnUnknown	= 0;
 
     /**
-     *  VERSION COLUMNS PSEUDO_COLUMN - is NOT a pseudo column.
+	 * Indicates that this version column is NOT a pseudo column.
+	 * A possible value for the column
+     * <code>PSEUDO_COLUMN</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getVersionColumns</code>.
      */
 	int versionColumnNotPseudo	= 1;
 
     /**
-     *  VERSION COLUMNS PSEUDO_COLUMN - is a pseudo column.
+	 * Indicates that this version column is a pseudo column.
+	 * A possible value for the column
+     * <code>PSEUDO_COLUMN</code>
+	 * in the <code>ResultSet</code> object
+	 * returned by the method <code>getVersionColumns</code>.
      */
 	int versionColumnPseudo	= 2;
 
     /**
-     * Get a description of a table's primary key columns.  They
+     * Gets a description of a table's primary key columns.  They
      * are ordered by COLUMN_NAME.
      *
      * <P>Each primary key column description has the following columns:
@@ -1569,17 +1717,17 @@ public interface DatabaseMetaData {
      *
      * @param catalog a catalog name; "" retrieves those without a
      * catalog; null means drop catalog name from the selection criteria
-     * @param schema a schema name pattern; "" retrieves those
+     * @param schema a schema name; "" retrieves those
      * without a schema
      * @param table a table name
      * @return ResultSet - each row is a primary key column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getPrimaryKeys(String catalog, String schema,
 				String table) throws SQLException;
 
     /**
-     * Get a description of the primary key columns that are
+     * Gets a description of the primary key columns that are
      * referenced by a table's foreign key columns (the primary keys
      * imported by a table).  They are ordered by PKTABLE_CAT,
      * PKTABLE_SCHEM, PKTABLE_NAME, and KEY_SEQ.
@@ -1639,64 +1787,121 @@ public interface DatabaseMetaData {
      *
      * @param catalog a catalog name; "" retrieves those without a
      * catalog; null means drop catalog name from the selection criteria
-     * @param schema a schema name pattern; "" retrieves those
+     * @param schema a schema name; "" retrieves those
      * without a schema
      * @param table a table name
      * @return ResultSet - each row is a primary key column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getExportedKeys 
      */
 	ResultSet getImportedKeys(String catalog, String schema,
 				String table) throws SQLException;
 
     /**
-     * IMPORT KEY UPDATE_RULE and DELETE_RULE - for update, change
-     * imported key to agree with primary key update; for delete,
-     * delete rows that import a deleted key.
+	 * A possible value for the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code> in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>For the column <code>UPDATE_RULE</code>,
+	 * it indicates that
+	 * when the primary key is updated, the foreign key (imported key)
+	 * is changed to agree with it.
+	 * <P>For the column <code>DELETE_RULE</code>,
+	 * it indicates that
+	 * when the primary key is deleted, rows that imported that key
+	 * are deleted.
      */
 	int importedKeyCascade	= 0;
 
     /**
-     * IMPORT KEY UPDATE_RULE and DELETE_RULE - do not allow update or
-     * delete of primary key if it has been imported.  
+	 * A possible value for the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code> in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>For the column <code>UPDATE_RULE</code>, it indicates that
+	 * a primary key may not be updated if it has been imported by
+	 * another table as a foreign key.
+	 * <P>For the column <code>DELETE_RULE</code>, it indicates that
+	 * a primary key may not be deleted if it has been imported by
+	 * another table as a foreign key.
      */
 	int importedKeyRestrict = 1;
 
     /**
-     * IMPORT KEY UPDATE_RULE and DELETE_RULE - change imported key to
-     * NULL if its primary key has been updated or deleted.
+	 * A possible value for the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code> in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>For the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code>,
+	 * it indicates that
+	 * when the primary key is updated or deleted, the foreign key (imported key)
+	 * is changed to <code>NULL</code>.
      */
 	int importedKeySetNull  = 2;
 
     /**
-     * IMPORT KEY UPDATE_RULE and DELETE_RULE - do not allow update or
-     * delete of primary key if it has been imported.  
+	 * A possible value for the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code> in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>For the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code>,
+	 * it indicates that
+	 * if the primary key has been imported, it cannot be updated or deleted.
      */
 	int importedKeyNoAction = 3;
 
     /**
-     * IMPORT KEY UPDATE_RULE and DELETE_RULE - change imported key to
-     * default values if its primary key has been updated or deleted.
+	 * A possible value for the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code> in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>For the columns <code>UPDATE_RULE</code>
+	 * and <code>DELETE_RULE</code>,
+	 * it indicates that
+	 * if the primary key is updated or deleted, the foreign key (imported key)
+	 * is set to the default value.
      */
 	int importedKeySetDefault  = 4;
 
     /**
-     * IMPORT KEY DEFERRABILITY - see SQL92 for definition
+	 * A possible value for the column <code>DEFERRABILITY</code>
+	 * in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>Indicates deferrability.  See SQL-92 for a definition.
      */
 	int importedKeyInitiallyDeferred  = 5;
 
     /**
-     * IMPORT KEY DEFERRABILITY - see SQL92 for definition
+	 * A possible value for the column <code>DEFERRABILITY</code>
+	 * in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>Indicates deferrability.  See SQL-92 for a definition.
      */
 	int importedKeyInitiallyImmediate  = 6;
 
     /**
-     * IMPORT KEY DEFERRABILITY - see SQL92 for definition
+	 * A possible value for the column <code>DEFERRABILITY</code>
+	 * in the
+	 * <code>ResultSet</code> objects returned by the methods
+	 * <code>getImportedKeys</code>,  <code>getExportedKeys</code>,
+	 * and <code>getCrossReference</code>.
+	 * <P>Indicates deferrability.  See SQL-92 for a definition.
      */
 	int importedKeyNotDeferrable  = 7;
 
     /**
-     * Get a description of the foreign key columns that reference a
+     * Gets a description of the foreign key columns that reference a
      * table's primary key columns (the foreign keys exported by a
      * table).  They are ordered by FKTABLE_CAT, FKTABLE_SCHEM,
      * FKTABLE_NAME, and KEY_SEQ.
@@ -1756,18 +1961,18 @@ public interface DatabaseMetaData {
      *
      * @param catalog a catalog name; "" retrieves those without a
      * catalog; null means drop catalog name from the selection criteria
-     * @param schema a schema name pattern; "" retrieves those
+     * @param schema a schema name; "" retrieves those
      * without a schema
      * @param table a table name
      * @return ResultSet - each row is a foreign key column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getImportedKeys 
      */
 	ResultSet getExportedKeys(String catalog, String schema,
 				String table) throws SQLException;
 
     /**
-     * Get a description of the foreign key columns in the foreign key
+     * Gets a description of the foreign key columns in the foreign key
      * table that reference the primary key columns of the primary key
      * table (describe how one table imports another's key.) This
      * should normally return a single foreign key/primary key pair
@@ -1830,16 +2035,16 @@ public interface DatabaseMetaData {
      *
      * @param primaryCatalog a catalog name; "" retrieves those without a
      * catalog; null means drop catalog name from the selection criteria
-     * @param primarySchema a schema name pattern; "" retrieves those
+     * @param primarySchema a schema name; "" retrieves those
      * without a schema
      * @param primaryTable the table name that exports the key
      * @param foreignCatalog a catalog name; "" retrieves those without a
      * catalog; null means drop catalog name from the selection criteria
-     * @param foreignSchema a schema name pattern; "" retrieves those
+     * @param foreignSchema a schema name; "" retrieves those
      * without a schema
      * @param foreignTable the table name that imports the key
      * @return ResultSet - each row is a foreign key column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #getImportedKeys 
      */
 	ResultSet getCrossReference(
@@ -1848,7 +2053,7 @@ public interface DatabaseMetaData {
 		) throws SQLException;
 
     /**
-     * Get a description of all the standard SQL types supported by
+     * Gets a description of all the standard SQL types supported by
      * this database. They are ordered by DATA_TYPE and then by how
      * closely the data type maps to the corresponding JDBC SQL type.
      *
@@ -1891,47 +2096,75 @@ public interface DatabaseMetaData {
      *  </OL>
      *
      * @return ResultSet - each row is a SQL type description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getTypeInfo() throws SQLException;
 	
     /**
-     * TYPE NULLABLE - does not allow NULL values.
+	 * A possible value for column <code>NULLABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that a <code>NULL</code> value is NOT allowed for this
+	 * data type.
      */
     int typeNoNulls = 0;
 
     /**
-     * TYPE NULLABLE - allows NULL values.
+	 * A possible value for column <code>NULLABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that a <code>NULL</code> value is allowed for this
+	 * data type.
      */
     int typeNullable = 1;
 
     /**
-     * TYPE NULLABLE - nullability unknown.
+	 * A possible value for column <code>NULLABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that it is not known whether a <code>NULL</code> value 
+	 * is allowed for this data type.
      */
     int typeNullableUnknown = 2;
 
     /**
-     * TYPE INFO SEARCHABLE - No support.
+	 * A possible value for column <code>SEARCHABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that <code>WHERE</code> search clauses are not supported
+	 * for this type.
      */
 	int typePredNone = 0;
 
     /**
-     * TYPE INFO SEARCHABLE - Only supported with WHERE .. LIKE.
+	 * A possible value for column <code>SEARCHABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that the only <code>WHERE</code> search clause that can
+	 * be based on this type is <code>WHERE . . .LIKE</code>.
      */
 	int typePredChar = 1;
 
     /**
-     * TYPE INFO SEARCHABLE -  Supported except for WHERE .. LIKE.
+	 * A possible value for column <code>SEARCHABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that one can base all <code>WHERE</code> search clauses 
+	 * except <code>WHERE . . .LIKE</code> on this data type.
      */
 	int typePredBasic = 2;
 
     /**
-     * TYPE INFO SEARCHABLE - Supported for all WHERE ...
+	 * A possible value for column <code>SEARCHABLE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getTypeInfo</code>.
+	 * <p>Indicates that all <code>WHERE</code> search clauses can be 
+	 * based on this type.
      */
 	int typeSearchable  = 3;
 
     /**
-     * Get a description of a table's indices and statistics. They are
+     * Gets a description of a table's indices and statistics. They are
      * ordered by NON_UNIQUE, TYPE, INDEX_NAME, and ORDINAL_POSITION.
      *
      * <P>Each index column description has the following columns:
@@ -1972,7 +2205,7 @@ public interface DatabaseMetaData {
      *
      * @param catalog a catalog name; "" retrieves those without a
      * catalog; null means drop catalog name from the selection criteria
-     * @param schema a schema name pattern; "" retrieves those without a schema
+     * @param schema a schema name; "" retrieves those without a schema
      * @param table a table name  
      * @param unique when true, return only indices for unique values; 
      *     when false, return indices regardless of whether unique or not 
@@ -1980,31 +2213,246 @@ public interface DatabaseMetaData {
      *     or out of data values; when false, results are requested to be 
      *     accurate
      * @return ResultSet - each row is an index column description 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
 	ResultSet getIndexInfo(String catalog, String schema, String table,
 			boolean unique, boolean approximate)
 					throws SQLException;
 
     /**
-     * INDEX INFO TYPE - this identifies table statistics that are
-     * returned in conjuction with a table's index descriptions
+	 * A possible value for column <code>TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getIndexInfo</code>.
+	 * <P>Indicates that this column contains table statistics that
+	 * are returned in conjunction with a table's index descriptions.
      */
 	short tableIndexStatistic = 0;
 
     /**
-     * INDEX INFO TYPE - this identifies a clustered index
+	 * A possible value for column <code>TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getIndexInfo</code>.
+	 * <P>Indicates that this table index is a clustered index.
      */
 	short tableIndexClustered = 1;
 
     /**
-     * INDEX INFO TYPE - this identifies a hashed index
+	 * A possible value for column <code>TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getIndexInfo</code>.
+	 * <P>Indicates that this table index is a hashed index.
      */
 	short tableIndexHashed    = 2;
 
     /**
-     * INDEX INFO TYPE - this identifies some other form of index
+	 * A possible value for column <code>TYPE</code> in the
+	 * <code>ResultSet</code> object returned by the method
+	 * <code>getIndexInfo</code>.
+	 * <P>Indicates that this table index is not a clustered
+	 * index, a hashed index, or table statistics;
+	 * it is something other than these.
      */
 	short tableIndexOther     = 3;
- }
+
+    //--------------------------JDBC 2.0-----------------------------
+
+    /**
+     * JDBC 2.0
+     *
+     * Does the database support the given result set type?
+     *
+     * @param type defined in <code>java.sql.ResultSet</code>
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
+     * @see Connection
+     */
+    boolean supportsResultSetType(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Does the database support the concurrency type in combination
+     * with the given result set type?
+     *
+     * @param type defined in <code>java.sql.ResultSet</code>
+     * @param concurrency type defined in <code>java.sql.ResultSet</code>
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
+     * @see Connection
+     */
+    boolean supportsResultSetConcurrency(int type, int concurrency)
+      throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether a result set's own updates are visible.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return <code>true</code> if updates are visible for the result set type;
+	 *        <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean ownUpdatesAreVisible(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether a result set's own deletes are visible.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return <code>true</code> if deletes are visible for the result set type;
+	 *        <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean ownDeletesAreVisible(int type) throws SQLException;
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether a result set's own inserts are visible.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return <code>true</code> if inserts are visible for the result set type;
+	 *        <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean ownInsertsAreVisible(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether updates made by others are visible.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return <code>true</code> if updates made by others
+	 * are visible for the result set type;
+	 *        <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean othersUpdatesAreVisible(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether deletes made by others are visible.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return <code>true</code> if deletes made by others
+	 * are visible for the result set type;
+	 *        <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean othersDeletesAreVisible(int type) throws SQLException;
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether inserts made by others are visible.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return true if updates are visible for the result set type
+     * @return <code>true</code> if inserts made by others
+	 * are visible for the result set type;
+	 *        <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean othersInsertsAreVisible(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether or not a visible row update can be detected by 
+     * calling the method <code>ResultSet.rowUpdated</code>.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return <code>true</code> if changes are detected by the result set type;
+	 *         <code>false</code> otherwise
+     * @exception SQLException if a database access error occurs
+     */
+    boolean updatesAreDetected(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether or not a visible row delete can be detected by 
+     * calling ResultSet.rowDeleted().  If deletesAreDetected()
+     * returns false, then deleted rows are removed from the result set.
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return true if changes are detected by the resultset type
+     * @exception SQLException if a database access error occurs
+     */
+    boolean deletesAreDetected(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Indicates whether or not a visible row insert can be detected
+     * by calling ResultSet.rowInserted().
+     *
+     * @param result set type, i.e. ResultSet.TYPE_XXX
+     * @return true if changes are detected by the resultset type
+     * @exception SQLException if a database access error occurs
+     */
+    boolean insertsAreDetected(int type) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+	 * Indicates whether the driver supports batch updates.
+     * @return true if the driver supports batch updates; false otherwise
+     */
+    boolean supportsBatchUpdates() throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Gets a description of the user-defined types defined in a particular
+     * schema.  Schema-specific UDTs may have type JAVA_OBJECT, STRUCT, 
+     * or DISTINCT.
+     *
+     * <P>Only types matching the catalog, schema, type name and type  
+     * criteria are returned.  They are ordered by DATA_TYPE, TYPE_SCHEM 
+     * and TYPE_NAME.  The type name parameter may be a fully-qualified 
+     * name.  In this case, the catalog and schemaPattern parameters are
+     * ignored.
+     *
+     * <P>Each type description has the following columns:
+     *  <OL>
+     *	<LI><B>TYPE_CAT</B> String => the type's catalog (may be null)
+     *	<LI><B>TYPE_SCHEM</B> String => type's schema (may be null)
+     *	<LI><B>TYPE_NAME</B> String => type name
+     *  <LI><B>CLASS_NAME</B> String => Java class name
+     *	<LI><B>DATA_TYPE</B> String => type value defined in java.sql.Types.  
+     *  One of JAVA_OBJECT, STRUCT, or DISTINCT
+     *	<LI><B>REMARKS</B> String => explanatory comment on the type
+     *  </OL>
+     *
+     * <P><B>Note:</B> If the driver does not support UDTs, an empty
+     * result set is returned.
+     *
+     * @param catalog a catalog name; "" retrieves those without a
+     * catalog; null means drop catalog name from the selection criteria
+     * @param schemaPattern a schema name pattern; "" retrieves those
+     * without a schema
+     * @param typeNamePattern a type name pattern; may be a fully-qualified
+     * name
+     * @param types a list of user-named types to include (JAVA_OBJECT, 
+     * STRUCT, or DISTINCT); null returns all types 
+     * @return ResultSet - each row is a type description
+     * @exception SQLException if a database access error occurs
+     */
+    ResultSet getUDTs(String catalog, String schemaPattern, 
+		      String typeNamePattern, int[] types) 
+      throws SQLException;
+
+    /**
+     * JDBC 2.0
+	 * Retrieves the connection that produced this metadata object.
+     *
+     * @return the connection that produced this metadata object
+     */
+    Connection getConnection() throws SQLException;
+}
+
+
 

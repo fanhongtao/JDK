@@ -1,8 +1,15 @@
 /*
- * @(#)PlainSocketImpl.java	1.27 01/12/10
+ * @(#)PlainSocketImpl.java	1.32 98/07/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -20,7 +27,7 @@ import java.io.ByteArrayOutputStream;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.27, 12/10/01
+ * @version 1.32, 07/07/98
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -49,7 +56,8 @@ class PlainSocketImpl extends SocketImpl
      * Load net library into runtime.
      */
     static {
-	System.loadLibrary("net");
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("net"));
 	initProto();
     }
 
@@ -62,11 +70,11 @@ class PlainSocketImpl extends SocketImpl
 	socketCreate(stream);
     }
 
-    /** 
+    /**
      * Creates a socket and connects it to the specified port on
      * the specified host.
      * @param host the specified host
-     * @param port the specified port 
+     * @param port the specified port
      */
     protected void connect(String host, int port)
         throws UnknownHostException, IOException
@@ -90,7 +98,7 @@ class PlainSocketImpl extends SocketImpl
 	throw pending;
     }
 
-    /** 
+    /**
      * Creates a socket and connects it to the specified address on
      * the specified port.
      * @param address the address
@@ -122,34 +130,42 @@ class PlainSocketImpl extends SocketImpl
 	boolean on = true;
 	switch (opt) {
 	    /* check type safety b4 going native.  These should never
-	     * fail, since only java.Socket* has access to 
+	     * fail, since only java.Socket* has access to
 	     * PlainSocketImpl.setOption().
 	     */
-	    case SO_LINGER:
-		if (val == null || (!(val instanceof Integer) && !(val instanceof Boolean)))
-		    throw new SocketException("Bad parameter for option");
-		if (val instanceof Boolean) { 
-		    /* true only if disabling - enabling should be Integer */
-		    on = false;
-		}
-		break;
-	    case SO_TIMEOUT:
-		if (val == null || (!(val instanceof Integer)))
-		    throw new SocketException("Bad parameter for SO_TIMEOUT");
-		int tmp = ((Integer) val).intValue();
-		if (tmp < 0)
-		    throw new IllegalArgumentException("timeout < 0");
-		timeout = tmp;
-		return;
-	    case SO_BINDADDR:
-		throw new SocketException("Cannot re-bind socket");
-	    case TCP_NODELAY:
-		if (val == null || !(val instanceof Boolean))
-		    throw new SocketException("bad parameter for TCP_NODELAY");
-		on = ((Boolean)val).booleanValue();
-		break;
-	    default:
-		throw new SocketException("unrecognized TCP option: " + opt);
+	case SO_LINGER:
+	    if (val == null || (!(val instanceof Integer) && !(val instanceof Boolean)))
+		throw new SocketException("Bad parameter for option");
+	    if (val instanceof Boolean) {
+		/* true only if disabling - enabling should be Integer */
+		on = false;
+	    }
+	    break;
+	case SO_TIMEOUT:
+	    if (val == null || (!(val instanceof Integer)))
+		throw new SocketException("Bad parameter for SO_TIMEOUT");
+	    int tmp = ((Integer) val).intValue();
+	    if (tmp < 0)
+		throw new IllegalArgumentException("timeout < 0");
+	    timeout = tmp;
+	    return;
+	case SO_BINDADDR:
+	    throw new SocketException("Cannot re-bind socket");
+	case TCP_NODELAY:
+	    if (val == null || !(val instanceof Boolean))
+		throw new SocketException("bad parameter for TCP_NODELAY");
+	    on = ((Boolean)val).booleanValue();
+	    break;
+	case SO_SNDBUF:
+	case SO_RCVBUF:
+	    if (val == null || !(val instanceof Integer) ||
+		!(((Integer)val).intValue() > 0)) {
+		throw new SocketException("bad parameter for SO_SNDBUF " +
+					  "or SO_RCVBUF");
+	    }
+	    break;
+	default:
+	    throw new SocketException("unrecognized TCP option: " + opt);
 	}
 	socketSetOption(opt, on, val);
     }
@@ -176,15 +192,20 @@ class PlainSocketImpl extends SocketImpl
 	    InetAddress in = new InetAddress();
 	    in.address = ret;
 	    return in;
-	}
+	case SO_SNDBUF:
+        case SO_RCVBUF:
+	    return new Integer(ret);
 	// should never get here
-	return null;
+	default:
+	    return null;
+	}
     }
 
     /**
      * Connect to the SOCKS server using the SOCKS connection protocol.
      */
-    private void doSOCKSConnect(InetAddress address, int port) throws IOException {
+    private void doSOCKSConnect(InetAddress address, int port)
+    throws IOException {
 	connectToSocksServer();
 
 	sendSOCKSCommandPacket(COMMAND_CONNECT, address, port);
@@ -204,26 +225,30 @@ class PlainSocketImpl extends SocketImpl
 	    throw new SocketException("User name does not match identd name");
 	}
     }
-    
+
 
     /**
      * Read the response from the socks server.  Return the result code.
      */
     private int getSOCKSReply() throws IOException {
 	InputStream in = getInputStream();
-
-	// REMIND: this could deal with reading < 8 bytes and buffering
-	// them up.
-
 	byte response[] = new byte[8];
+        int bytesReceived = 0;
+        int len = response.length;
 
-	int code;
-	if ((code = in.read(response)) != response.length) {
-	    throw new SocketException("Malformed reply from SOCKS server");
+	for (int attempts = 0; bytesReceived<len &&  attempts<3; attempts++) {
+	    int count = in.read(response, bytesReceived, len - bytesReceived);
+	    if (count < 0)
+		throw new SocketException("Malformed reply from SOCKS server");
+	    bytesReceived += count;
 	}
 
-	if (response[0] != 0) { // should be version 0
-	    throw new SocketException("Malformed reply from SOCKS server");
+ 	if (bytesReceived != len) {
+ 	    throw new SocketException("Reply from SOCKS server has bad length: " + bytesReceived);
+  	}
+
+	if (response[0] != 0) { // should be version0 
+	    throw new SocketException("Reply from SOCKS server has bad version " + response[0]);
 	}
 
 	return response[1];	// the response code
@@ -236,7 +261,15 @@ class PlainSocketImpl extends SocketImpl
      */
     private void connectToSocksServer() throws IOException {
 
-	String socksServerString = System.getProperty(socksServerProp);
+	String socksServerString = null;
+	String socksPortString = null;
+
+	socksServerString = (String) java.security.AccessController.doPrivileged(
+               new sun.security.action.GetPropertyAction(socksServerProp));
+	socksPortString = (String) java.security.AccessController.doPrivileged(
+               new sun.security.action.GetPropertyAction(socksPortProp,
+							 socksDefaultPortStr));
+
 	if (socksServerString == null) {
 	    // REMIND: this is too trusting of its (internal) callers --
 	    // needs to robustly assert that SOCKS are in fact being used,
@@ -247,16 +280,13 @@ class PlainSocketImpl extends SocketImpl
 
 	InetAddress socksServer = InetAddress.getByName(socksServerString);
 
-	String socksPortString = System.getProperty(socksPortProp,
-						    socksDefaultPortStr);
-
 	int socksServerPort;
 	try {
 	    socksServerPort = Integer.parseInt(socksPortString);
 	} catch (Exception e) {
 	    throw new SocketException("Bad port number format");
 	}
-	
+
 	doConnect(socksServer, socksServerPort);
     }
 
@@ -299,7 +329,7 @@ class PlainSocketImpl extends SocketImpl
      */
     private void sendSOCKSCommandPacket(int command, InetAddress address,
 					int port) throws IOException {
-	
+
         byte commandPacket[] = makeCommandPacket(command, address, port);
 	OutputStream out = getOutputStream();
 
@@ -310,9 +340,9 @@ class PlainSocketImpl extends SocketImpl
      * Create and return a SOCKS V4 command packet.
      */
     private byte[] makeCommandPacket(int command, InetAddress address,
-					int port) { 
+					int port) {
 
-	// base packet size = 8, + 1 null byte 
+	// base packet size = 8, + 1 null byte
 	ByteArrayOutputStream byteStream = new ByteArrayOutputStream(8 + 1);
 
 	byteStream.write(SOCKS_PROTO_VERS);
@@ -325,7 +355,9 @@ class PlainSocketImpl extends SocketImpl
 	byte addressBytes[] = address.getAddress();
 	byteStream.write(addressBytes, 0, addressBytes.length);
 
-	String userName = System.getProperty("user.name");
+	String userName = (String) java.security.AccessController.doPrivileged(
+               new sun.security.action.GetPropertyAction("user.name"));
+
 	byte userNameBytes[] = new byte[userName.length()];
 	userName.getBytes(0, userName.length(), userNameBytes, 0);
 
@@ -341,16 +373,18 @@ class PlainSocketImpl extends SocketImpl
      * be used).
      */
     private boolean usingSocks() {
-	return (System.getProperty(socksServerProp) != null);
+	String ssp = (String) java.security.AccessController.doPrivileged(
+               new sun.security.action.GetPropertyAction(socksServerProp));
+	return (ssp != null);
     }
-    
+
 
     /**
      * Binds the socket to the specified address of the specified local port.
      * @param address the address
      * @param port the port
      */
-    protected synchronized void bind(InetAddress address, int lport) 
+    protected synchronized void bind(InetAddress address, int lport)
 	throws IOException
     {
 	socketBind(address, lport);
@@ -390,6 +424,8 @@ class PlainSocketImpl extends SocketImpl
      * Returns the number of bytes that can be read without blocking.
      */
     protected synchronized int available() throws IOException {
+        if (fd == null)
+            throw new IOException("Stream closed.");
 	return socketAvailable();
     }
 
@@ -424,7 +460,7 @@ class PlainSocketImpl extends SocketImpl
     private native void socketClose()
 	throws IOException;
     private static native void initProto();
-    private native void socketSetOption(int cmd, boolean on, Object value) 
+    private native void socketSetOption(int cmd, boolean on, Object value)
 	throws SocketException;
     private native int socketGetOption(int opt) throws SocketException;
 }

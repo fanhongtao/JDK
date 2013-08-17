@@ -1,8 +1,15 @@
 /*
- * @(#)StringReader.java	1.7 01/12/10
+ * @(#)StringReader.java	1.12 98/07/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -11,7 +18,7 @@ package java.io;
 /**
  * A character stream whose source is a string.
  *
- * @version 	1.7, 01/12/10
+ * @version 	1.12, 98/07/08
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -69,6 +76,12 @@ public class StringReader extends Reader {
     public int read(char cbuf[], int off, int len) throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
+            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
+                ((off + len) > cbuf.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return 0;
+            }
 	    if (next >= length)
 		return -1;
 	    int n = Math.min(length - next, len);
@@ -95,11 +108,17 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Tell whether this stream is ready to be read.  String readers are
-     * always ready to be read.
+     * Tell whether this stream is ready to be read.
+     *
+     * @return True if the next read() is guaranteed not to block for input
+     *
+     * @exception  IOException  If the stream is closed
      */
-    public boolean ready() {
-	return true;
+    public boolean ready() throws IOException {
+        synchronized (lock) {
+        ensureOpen();
+        return true;
+        }
     }
 
     /**
@@ -116,11 +135,16 @@ public class StringReader extends Reader {
      * @param  readAheadLimit  Limit on the number of characters that may be
      *                         read while still preserving the mark.  Because
      *                         the stream's input comes from a string, there
-     *                         is no actual limit, so this argument is ignored.
+     *                         is no actual limit, so this argument must not
+     *                         be negative, but is otherwise ignored.
      *
+     * @exception  IllegalArgumentException  If readAheadLimit is < 0
      * @exception  IOException  If an I/O error occurs
      */
     public void mark(int readAheadLimit) throws IOException {
+	if (readAheadLimit < 0){
+	    throw new IllegalArgumentException("Read-ahead limit < 0");
+	}
 	synchronized (lock) {
 	    ensureOpen();
 	    mark = next;

@@ -1,63 +1,87 @@
 /*
- * @(#)Rectangle.java	1.29 01/12/10
+ * @(#)Rectangle.java	1.45 98/10/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt;
 
+import java.awt.geom.Rectangle2D;
+
 /**
- * A rectangle specifies an area in a coordinate space that is 
- * defined by the rectangle's top-left point (<i>x</i>,&nbsp;<i>y</i>) 
+ * A <code>Rectangle</code> specifies an area in a coordinate space that is 
+ * enclosed by the <code>Rectangle</code> object's top-left point 
+ * (<i>x</i>,&nbsp;<i>y</i>) 
  * in the coordinate space, its width, and its height. 
  * <p>
- * A rectangle's <code>width</code> and <code>height</code> are 
- * public fields. The constructors that allow you to create a 
- * rectangle, and the methods that allow you to modify one, do not 
- * prevent you from setting a negative value for width or height. 
+ * A <code>Rectangle</code> object's <code>width</code> and
+ * <code>height</code> are <code>public</code> fields. The constructors 
+ * that create a <code>Rectangle</code>, and the methods that can modify 
+ * one, do not prevent setting a negative value for width or height. 
  * <p>
- * A rectangle whose width or height is negative is considered 
- * empty, and all methods defined by the <code>Rectangle</code> class  
- * behave accordingly. If the rectangle is empty, then the method 
- * <code>isEmpty</code> returns <code>true</code>. No point can be 
- * contained by or inside an empty rectangle, however the values of 
- * <code>width</code> and <code>height</code> are still valid. An 
- * empty rectangle still has a location in the coordinate space, and 
- * methods that change its size or location remain valid. The 
- * behavior of methods that operate on more than one rectangle is 
- * undefined if any of the participating rectangles has a negative 
+ * A <code>Rectangle</code> whose width or height is negative is considered 
+ * empty. If the <code>Rectangle</code> is empty, then the  
+ * <code>isEmpty</code> method returns <code>true</code>. No point can be 
+ * contained by or inside an empty <code>Rectangle</code>.  The 
+ * values of <code>width</code> and <code>height</code>, however, are still 
+ * valid.  An empty <code>Rectangle</code> still has a location in the 
+ * coordinate space, and methods that change its size or location remain 
+ * valid. The behavior of methods that operate on more than one 
+ * <code>Rectangle</code> is undefined if any of the participating 
+ * <code>Rectangle</code> objects has a negative 
  * <code>width</code> or <code>height</code>. These methods include 
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.29, 12/10/01
+ * @version 	1.39, 06/24/98
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
-public class Rectangle implements Shape, java.io.Serializable {
+public class Rectangle extends Rectangle2D
+    implements Shape, java.io.Serializable
+{
 
     /**
-     * The <i>x</i> coordinate of the rectangle.
-     * @since     JDK1.0
+     * The <i>x</i> coordinate of the <code>Rectangle</code>.
+     *
+     * @serial
+     * @see #setLocation(int, int) 
+     * @see #getLocation()
      */
     public int x;
 
     /**
-     * The <i>y</i> coordinate of the rectangle.
-     * @since     JDK1.0
+     * The <i>y</i> coordinate of the <code>Rectangle</code>.
+     * 
+     * @serial
+     * @see #setLocation(int, int)
+     * @see #getLocation()
      */
     public int y;
 
     /**
-     * The width of the rectangle.
+     * The width of the <code>Rectangle</code>.
+     * @serial
+     * @see #setSize(int, int)
+     * @see #getSize()
      * @since     JDK1.0.
      */
     public int width;
 
     /**
-     * The height of the rectangle.
-     * @since     JDK1.0
+     * The height of the <code>Rectangle</code>.
+     * 
+     * @serial
+     * @see #setSize(int, int)
+     * @see #getSize()
      */
     public int height;
 
@@ -65,20 +89,32 @@ public class Rectangle implements Shape, java.io.Serializable {
      * JDK 1.1 serialVersionUID 
      */
      private static final long serialVersionUID = -4345857070255674764L;
+       
+    /**
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
+    
+    static {
+        /* ensure that the necessary native libraries are loaded */
+        Toolkit.loadLibraries();
+        initIDs();
+    }
 
     /**
-     * Constructs a new rectangle whose top-left corner is at (0,&nbsp;0) 
-     * in the coordinate space, and whose width and height are zero. 
-     * @since     JDK1.0
+     * Constructs a new <code>Rectangle</code> whose top-left corner 
+     * is at (0,&nbsp;0) in the coordinate space, and whose width and 
+     * height are both zero. 
      */
     public Rectangle() {
     	this(0, 0, 0, 0);
     }
 
     /**
-     * Constructs a new rectangle, initialized to match the values of
-     * the specificed rectangle.
-     * @param r  a rectangle from which to copy initial values.
+     * Constructs a new <code>Rectangle</code>, initialized to match 
+     * the values of the specificed <code>Rectangle</code>.
+     * @param r  the <code>Rectangle</code> from which to copy initial values
+     *           to a newly constructed <code>Rectangle</code>
      * @since JDK1.1
      */
     public Rectangle(Rectangle r) {
@@ -86,14 +122,13 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Constructs a new rectangle whose top-left corner is specified as
+     * Constructs a new <code>Rectangle</code> whose top-left corner is 
+     * specified as
      * (<code>x</code>,&nbsp;<code>y</code>) and whose width and height 
      * are specified by the arguments of the same name. 
-     * @param     x   the <i>x</i> coordinate.
-     * @param     y   the <i>y</i> coordinate.
-     * @param     width    the width of the rectangle.
-     * @param     height   the height of the rectangle.
-     * @since     JDK1.0
+     * @param     x,&nbsp;y the specified coordinates
+     * @param     width    the width of the <code>Rectangle</code>
+     * @param     height   the height of the <code>Rectangle</code>
      */
     public Rectangle(int x, int y, int width, int height) {
 	this.x = x;
@@ -103,57 +138,94 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Constructs a new rectangle whose top-left corner is at (0,&nbsp;0) 
-     * in the coordinate space, and whose width and height are specified 
-     * by the arguments of the same name. 
-     * @param     width    the width of the rectangle.
-     * @param     height   the height of the rectangle.
-     * @since     JDK1.0
+     * Constructs a new <code>Rectangle</code> whose top-left corner 
+     * is at (0,&nbsp;0) in the coordinate space, and whose width and 
+     * height are specified by the arguments of the same name. 
+     * @param width the width of the <code>Rectangle</code>
+     * @param height the height of the <code>Rectangle</code>
      */
     public Rectangle(int width, int height) {
 	this(0, 0, width, height);
     }
 
     /**
-     * Constructs a new rectangle whose top-left corner is specified 
-     * by the <code>point</code> argument, and whose width and height  
-     * are specified by the <code>dimension</code> argument. 
-     * @param     p   a point, the top-left corner of the rectangle.
-     * @param     d   a dimension, representing the width and height.
-     * @since     JDK1.0 
+     * Constructs a new <code>Rectangle</code> whose top-left corner is 
+     * specified by the {@link Point} argument, and
+     * whose width and height are specified by the 
+     * {@link Dimension} argument. 
+     * @param p a <code>Point</code> that is the top-left corner of 
+     * the <code>Rectangle</code>
+     * @param d a <code>Dimension</code>, representing the 
+     * width and height of the <code>Rectangle</code>
      */
     public Rectangle(Point p, Dimension d) {
 	this(p.x, p.y, d.width, d.height);
     }
     
     /**
-     * Constructs a new rectangle whose top-left corner is the  
-     * specified point, and whose width and height are zero. 
-     * @param     p   the top left corner of the rectangle.
-     * @since     JDK1.0
+     * Constructs a new <code>Rectangle</code> whose top-left corner is the  
+     * specified <code>Point</code>, and whose width and height are both zero. 
+     * @param p a <code>Point</code> that is the top left corner 
+     * of the <code>Rectangle</code>
      */
     public Rectangle(Point p) {
 	this(p.x, p.y, 0, 0);
     }
     
     /**
-     * Constructs a new rectangle whose top left corner is  
+     * Constructs a new <code>Rectangle</code> whose top left corner is  
      * (0,&nbsp;0) and whose width and height are specified  
-     * by the <code>dimension</code> argument. 
-     * @param     d   a dimension, specifying width and height.
-     * @since     JDK1.0
+     * by the <code>Dimension</code> argument. 
+     * @param d a <code>Dimension</code>, specifying width and height
      */
     public Rectangle(Dimension d) {
 	this(0, 0, d.width, d.height);
     }
 
     /**
-     * Gets the bounding rectangle of this rectangle.
+     * Returns the X coordinate of the bounding <code>Rectangle</code> in 
+     * <code>double</code> precision.
+     * @return the x coordinate of the bounding <code>Rectangle</code>. 
+     */
+    public double getX() {
+	return x;
+    }
+
+    /**
+     * Returns the Y coordinate of the bounding <code>Rectangle</code> in 
+     * <code>double</code> precision.
+     * @return the y coordinate of the bounding <code>Rectangle</code>.    
+     */
+    public double getY() {
+	return y;
+    }
+
+    /**
+     * Returns the width of the bounding <code>Rectangle</code> in 
+     * <code>double</code> precision.
+     * @return the width of the bounding <code>Rectangle</code>. 
+     */
+    public double getWidth() {
+	return width;
+    }
+
+    /**
+     * Returns the height of the bounding <code>Rectangle</code> in 
+     * <code>double</code> precision.
+     * @return the height of the bounding <code>Rectangle</code>. 
+     */
+    public double getHeight() {
+	return height;
+    }
+
+    /**
+     * Gets the bounding <code>Rectangle</code> of this <code>Rectangle</code>.
      * <p>
      * This method is included for completeness, to parallel the
-     * <code>getBounds</code> method of <code>Component</code>.
-     * @return    a new rectangle, equal to the bounding rectangle 
-     *                for this rectangle.
+     * <code>getBounds</code> method of 
+     * {@link Component}.
+     * @return    a new <code>Rectangle</code>, equal to the 
+     * bounding <code>Rectangle</code> for this <code>Rectangle</code>.
      * @see       java.awt.Component#getBounds
      * @since     JDK1.1
      */
@@ -162,37 +234,61 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Sets the bounding rectangle of this rectangle to match 
-     * the specified rectangle.
+     * Return the high precision bounding box of this rectangle.
+     * @since JDK1.2
+     */
+    public Rectangle2D getBounds2D() {
+	return new Rectangle(x, y, width, height);
+    }
+
+    /**
+     * Sets the bounding <code>Rectangle</code> of this <code>Rectangle</code> 
+     * to match the specified <code>Rectangle</code>.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setBounds</code> method of <code>Component</code>.
-     * @param     r   a rectangle.
+     * @param r the specified <code>Rectangle</code>
      * @see       java.awt.Component#setBounds(java.awt.Rectangle)
      * @since     JDK1.1
      */
     public void setBounds(Rectangle r) {
 	setBounds(r.x, r.y, r.width, r.height);
-    }	
+    }
 
     /**
-     * Sets the bounding rectangle of this rectangle to the specified 
-     * values for <code>x</code>, <code>y</code>, <code>width</code>, 
+     * Sets the bounding <code>Rectangle</code> of this 
+     * <code>Rectangle</code> to the specified 
+     * <code>x</code>, <code>y</code>, <code>width</code>, 
      * and <code>height</code>.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setBounds</code> method of <code>Component</code>.
-     * @param     x       the new <i>x</i> coordinate for the top-left
-     *                    corner of this rectangle.
-     * @param     y       the new <i>y</i> coordinate for the top-left
-     *                    corner of this rectangle.
-     * @param     width   the new width for this rectangle.
-     * @param     height  the new height for this rectangle.
+     * @param x,&nbsp;y the new coordinates for the top-left
+     *                    corner of this <code>Rectangle</code>
+     * @param width the new width for this <code>Rectangle</code>
+     * @param height the new height for this <code>Rectangle</code>
      * @see       java.awt.Component#setBounds(int, int, int, int)
      * @since     JDK1.1
      */
     public void setBounds(int x, int y, int width, int height) {
     	reshape(x, y, width, height);
+    }	
+
+    /**
+     * Sets the bounds of this <code>Rectangle</code> to the specified 
+     * <code>x</code>, <code>y</code>, <code>width</code>, 
+     * and <code>height</code>.
+     * This method is included for completeness, to parallel the
+     * <code>setBounds</code> method of <code>Component</code>.
+     * @param width the new width for the <code>Dimension</code> object
+     * @param height  the new height for the <code>Dimension</code> object
+     */
+    public void setRect(double x, double y, double width, double height) {
+	int x0 = (int) Math.floor(x);
+	int y0 = (int) Math.floor(y);
+	int x1 = (int) Math.ceil(x+width);
+	int y1 = (int) Math.ceil(y+height);
+	setBounds(x0, y0, x1-x0, y1-y0);
     }	
 
     /**
@@ -207,10 +303,12 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Returns the location of this rectangle.
+     * Returns the location of this <code>Rectangle</code>.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>getLocation</code> method of <code>Component</code>.
+     * @return the <code>Point</code> that is the top-left corner of
+     *			this <code>Rectangle</code>. 
      * @see       java.awt.Component#getLocation
      * @since     JDK1.1
      */
@@ -219,11 +317,12 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Moves the rectangle to the specified location.
+     * Moves this <code>Rectangle</code> to the specified location.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setLocation</code> method of <code>Component</code>.
-     * @param     p  the new location for the point.
+     * @param p the <code>Point</code> specifying the new location
+     *                for this <code>Rectangle</code>
      * @see       java.awt.Component#setLocation(java.awt.Point)
      * @since     JDK1.1
      */
@@ -232,12 +331,11 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Moves the rectangle to the specified location.
+     * Moves this <code>Rectangle</code> to the specified location.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setLocation</code> method of <code>Component</code>.
-     * @param     x  the <i>x</i> coordinate of the new location.
-     * @param     y  the <i>y</i> coordinate of the new location.
+     * @param x,&nbsp;y the coordinates of the new location
      * @see       java.awt.Component#setLocation(int, int)
      * @since     JDK1.1
      */
@@ -255,16 +353,15 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Translates the rectangle the indicated distance,
-     * to the right along the <i>x</i> coordinate axis, and 
-     * downward along the <i>y</i> coordinate axis.
-     * @param     dx   the distance to move the rectangle 
-     *                 along the <i>x</i> axis.
-     * @param     dy   the distance to move the rectangle 
-     *                 along the <i>y</i> axis.
+     * Translates this <code>Rectangle</code> the indicated distance,
+     * to the right along the x coordinate axis, and 
+     * downward along the y coordinate axis.
+     * @param dx the distance to move this <code>Rectangle</code> 
+     *                 along the x axis
+     * @param dy the distance to move this <code>Rectangle</code> 
+     *                 along the y axis
      * @see       java.awt.Rectangle#setLocation(int, int)
      * @see       java.awt.Rectangle#setLocation(java.awt.Point)
-     * @since     JDK1.0
      */
     public void translate(int x, int y) {
 	this.x += x;
@@ -272,11 +369,13 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Gets the size (width and height) of this rectangle.
+     * Gets the size of this <code>Rectangle</code>, represented by 
+     * the returned <code>Dimension</code>.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>getSize</code> method of <code>Component</code>.
-     * @return    a dimension, representing the size.
+     * @return a <code>Dimension</code>, representing the size of
+     *            this <code>Rectangle</code>.
      * @see       java.awt.Component#getSize
      * @since     JDK1.1
      */
@@ -285,11 +384,12 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Sets the size of this rectangle to match the specified dimension.
+     * Sets the size of this <code>Rectangle</code> to match the 
+     * specified <code>Dimension</code>.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setSize</code> method of <code>Component</code>.
-     * @param d  the new size for the Dimension object
+     * @param d the new size for the <code>Dimension</code> object
      * @see       java.awt.Component#setSize(java.awt.Dimension)
      * @since     JDK1.1
      */
@@ -298,12 +398,13 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Sets the size of this rectangle to the specified width and height.
+     * Sets the size of this <code>Rectangle</code> to the specified 
+     * width and height.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setSize</code> method of <code>Component</code>.
-     * @param     width    the new width for this rectangle object.
-     * @param     height   the new height for this rectangle object.
+     * @param width the new width for this <code>Rectangle</code>
+     * @param height the new height for this <code>Rectangle</code>
      * @see       java.awt.Component#setSize(int, int)
      * @since     JDK1.1
      */
@@ -321,10 +422,12 @@ public class Rectangle implements Shape, java.io.Serializable {
     }	
 
     /**
-     * Checks whether this rectangle contains the specified point.
-     * @param p the point (location) to test.
-     * @return    <code>true</code> if the point 
-     *            (<i>x</i>,&nbsp;<i>y</i>) is inside this rectangle; 
+     * Checks whether or not this <code>Rectangle</code> contains the 
+     * specified <code>Point</code>.
+     * @param p the <code>Point</code> to test
+     * @return    <code>true</code> if the <code>Point</code> 
+     *            (<i>x</i>,&nbsp;<i>y</i>) is inside this 
+     * 		  <code>Rectangle</code>; 
      *            <code>false</code> otherwise.
      * @since     JDK1.1
      */
@@ -333,17 +436,59 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Checks whether this rectangle contains the point
-     * at the specified location (<i>x</i>,&nbsp;<i>y</i>).
-     * @param     x   the <i>x</i> coordinate.
-     * @param     y   the <i>y</i> coordinate.
+     * Checks whether or not this <code>Rectangle</code> contains the 
+     * point at the specified location
+     * (<i>x</i>,&nbsp;<i>y</i>).
+     * @param  x,&nbsp;y  the specified coordinates
      * @return    <code>true</code> if the point 
-     *            (<i>x</i>,&nbsp;<i>y</i>) is inside this rectangle; 
+     *            (<i>x</i>,&nbsp;<i>y</i>) is inside this 
+     *		  <code>Rectangle</code>; 
      *            <code>false</code> otherwise.
      * @since     JDK1.1
      */
     public boolean contains(int x, int y) {
 	return inside(x, y);
+    }
+
+    /**
+     * Checks whether or not this <code>Rectangle</code> entirely contains 
+     * the specified <code>Rectangle</code>.
+     * @param     r   the specified <code>Rectangle</code>
+     * @return    <code>true</code> if the <code>Rectangle</code> 
+     *            is contained entirely inside this <code>Rectangle</code>; 
+     *            <code>false</code> otherwise.
+     * @since     JDK1.1
+     */
+    public boolean contains(Rectangle r) {
+	return contains(r.x, r.y, r.width, r.height);
+    }
+
+    /**
+     * Checks whether this <code>Rectangle</code> entirely contains 
+     * the <code>Rectangle</code>
+     * at the specified location (<i>X</i>,&nbsp;<i>Y</i>) with the
+     * specified dimensions (<i>W</i>,&nbsp;<i>H</i>).
+     * @param     x,&nbsp;y  the specified coordinates
+     * @param     W   the width of the <code>Rectangle</code>
+     * @param     H   the height of the <code>Rectangle</code>
+     * @return    <code>true</code> if the <code>Rectangle</code> specified by
+     *            (<i>X</i>,&nbsp;<i>Y</i>,&nbsp;<i>W</i>,&nbsp;<i>H</i>)
+     *            is entirely enclosed inside this <code>Rectangle</code>; 
+     *            <code>false</code> otherwise.
+     * @since     JDK1.1
+     */
+    public boolean contains(int X, int Y, int W, int H) {
+	int width = this.width;
+	int height = this.height;
+	if (width <= 0 || height <= 0 || W <= 0 || H <= 0) {
+	    return false;
+	}
+	int x = this.x;
+	int y = this.y;
+	return (X >= x &&
+		Y >= y &&
+		X + W <= x + width &&
+		Y + H <= y + height);
     }
 
     /**
@@ -355,14 +500,13 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Determines whether this rectangle and the specified rectangle  
-     * intersect. Two rectangles intersect if their intersection is 
-     * nonempty. 
-     * @param     r   a rectangle.
-     * @return    <code>true</code> if the specified rectangle 
-     *            and this rectangle insersect; 
+     * Determines whether or not this <code>Rectangle</code> and the specified 
+     * <code>Rectangle</code> intersect. Two rectangles intersect if 
+     * their intersection is nonempty. 
+     * @param r the specified <code>Rectangle</code>
+     * @return    <code>true</code> if the specified <code>Rectangle</code> 
+     *            and this <code>Rectangle</code> insersect; 
      *            <code>false</code> otherwise.
-     * @since     JDK1.0
      */
     public boolean intersects(Rectangle r) {
 	return !((r.x + r.width <= x) ||
@@ -372,13 +516,13 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Computes the intersection of this rectangle with the 
-     * specified rectangle. Returns a new rectangle that 
-     * represents the intersection of the two rectangles.
-     * @param     r   a rectangle.
-     * @return    the largest rectangle contained in both the 
-     *            specified rectangle and in this rectangle.
-     * @since   JDK1.0
+     * Computes the intersection of this <code>Rectangle</code> with the 
+     * specified <code>Rectangle</code>. Returns a new <code>Rectangle</code> 
+     * that represents the intersection of the two rectangles.
+     * @param     r   the specified <code>Rectangle</code>
+     * @return    the largest <code>Rectangle</code> contained in both the 
+     *            specified <code>Rectangle</code> and in 
+     *		  this<code>Rectangle</code>.
      */
     public Rectangle intersection(Rectangle r) {
 	int x1 = Math.max(x, r.x);
@@ -389,13 +533,14 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Computes the union of this rectangle with the 
-     * specified rectangle. Returns a new rectangle that 
-     * represents the union of the two rectangles.
-     * @param     r   a rectangle.
-     * @return    the smallest rectangle containing both the specified 
-     *            rectangle and this rectangle.
-     * @since     JDK1.0
+     * Computes the union of this <code>Rectangle</code> with the 
+     * specified <code>Rectangle</code>. Returns a new 
+     * <code>Rectangle</code> that 
+     * represents the union of the two rectangles
+     * @param r the specified <code>Rectangle</code>
+     * @return    the smallest <code>Rectangle</code> containing both 
+     *		  the specified <code>Rectangle</code> and this 
+     *		  <code>Rectangle</code>.
      */
     public Rectangle union(Rectangle r) {
 	int x1 = Math.min(x, r.x);
@@ -407,21 +552,20 @@ public class Rectangle implements Shape, java.io.Serializable {
 
     /**
      * Adds a point, specified by the integer arguments <code>newx</code>
-     * and <code>newy</code>, to this rectangle. The resulting rectangle is
-     * the smallest rectangle that contains both the original rectangle 
-     * and the specified point.
+     * and <code>newy</code>, to this <code>Rectangle</code>. The 
+     * resulting <code>Rectangle</code> is
+     * the smallest <code>Rectangle</code> that contains both the 
+     * original <code>Rectangle</code> and the specified point.
      * <p>
-     * After adding a point, a call to <code>contains<code> with the 
-     * added point as an argument will not necessarily return 
+     * After adding a point, a call to <code>contains</code> with the 
+     * added point as an argument does not necessarily return
      * <code>true</code>. The <code>contains</code> method does not 
      * return <code>true</code> for points on the right or bottom 
-     * edges of a rectangle. Therefore if the added point falls on 
-     * the left or bottom edge of the enlarged rectangle, 
-     * <code>contains</code> will return <code>false</code> for that point.
-     * 
-     * @param     newx   the <i>x</i> coordinate of the new point.
-     * @param     newy   the <i>y</i> coordinate of the new point.
-     * @since     JDK1.0
+     * edges of a <code>Rectangle</code>. Therefore, if the added point 
+     * falls on the right or bottom edge of the enlarged 
+     * <code>Rectangle</code>, <code>contains</code> returns 
+     * <code>false</code> for that point.
+     * @param newx,&nbsp;newy   the coordinates of the new point
      */
     public void add(int newx, int newy) {
 	int x1 = Math.min(x, newx);
@@ -435,30 +579,32 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Adds the point <code>pt</code> to this rectangle. The resulting 
-     * rectangle is the smallest rectangle that contains both the 
-     * original rectangle and the specified point.
+     * Adds the specified <code>Point</code> to this 
+     * <code>Rectangle</code>. The resulting <code>Rectangle</code> 
+     * is the smallest <code>Rectangle</code> that contains both the 
+     * original <code>Rectangle</code> and the specified 
+     * <code>Point</code>.
      * <p>
-     * After adding a point, a call to <code>contains<code> with the 
-     * added point as an argument will not necessarily return 
-     * <code>true</code>. The <code>contains</code> method does not 
-     * return <code>true</code> for points on the right or bottom 
-     * edges of a rectangle. Therefore if the added point falls on 
-     * the left or bottom edge of the enlarged rectangle, 
-     * <code>contains</code> will return <code>false</code> for that point.
-     * 
-     * @param     pt the new point to add to the rectangle.
-     * @since     JDK1.0
+     * After adding a <code>Point</code>, a call to <code>contains</code> 
+     * with the added <code>Point</code> as an argument does not 
+     * necessarily return <code>true</code>. The <code>contains</code> 
+     * method does not return <code>true</code> for points on the right 
+     * or bottom edges of a <code>Rectangle</code>. Therefore if the added 
+     * <code>Point</code> falls on the right or bottom edge of the 
+     * enlarged <code>Rectangle</code>, <code>contains</code> returns 
+     * <code>false</code> for that <code>Point</code>.
+     * @param pt the new <code>Point</code> to add to this 
+     *           <code>Rectangle</code>
      */
     public void add(Point pt) {
 	add(pt.x, pt.y);
     }
 
     /**
-     * Adds a rectangle to this rectangle. The resulting rectangle is
-     * the union of the two rectangles. 
-     * @param     a rectangle.
-     * @since     JDK1.0
+     * Adds a <code>Rectangle</code> to this <code>Rectangle</code>. 
+     * The resulting <code>Rectangle</code> is the union of the two
+     * rectangles. 
+     * @param  r the specified <code>Rectangle</code>
      */
     public void add(Rectangle r) {
 	int x1 = Math.min(x, r.x);
@@ -472,13 +618,13 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Grows the rectangle both horizontally and vertically.
+     * Resizes the <code>Rectangle</code> both horizontally and vertically.
      * <p>
-     * This method modifies the rectangle so that it is 
+     * This method modifies the <code>Rectangle</code> so that it is 
      * <code>h</code> units larger on both the left and right side, 
      * and <code>v</code> units larger at both the top and bottom. 
      * <p>
-     * The new rectangle has (<code>x&nbsp;-&nbsp;h</code>, 
+     * The new <code>Rectangle</code> has (<code>x&nbsp;-&nbsp;h</code>, 
      * <code>y&nbsp;-&nbsp;v</code>) as its top-left corner, a 
      * width of 
      * <code>width</code>&nbsp;<code>+</code>&nbsp;<code>2h</code>, 
@@ -486,13 +632,13 @@ public class Rectangle implements Shape, java.io.Serializable {
      * <code>height</code>&nbsp;<code>+</code>&nbsp;<code>2v</code>. 
      * <p>
      * If negative values are supplied for <code>h</code> and 
-     * <code>v</code>, the size of the rectangle decreases accordingly. 
+     * <code>v</code>, the size of the <code>Rectangle</code> 
+     * decreases accordingly. 
      * The <code>grow</code> method does not check whether the resulting 
      * values of <code>width</code> and <code>height</code> are 
      * non-negative. 
-     * @param     h   the horizontal expansion.
-     * @param     v   the vertical expansion.
-     * @since     JDK1.0
+     * @param h the horizontal expansion
+     * @param v the vertical expansion
      */
     public void grow(int h, int v) {
 	x -= h;
@@ -502,49 +648,117 @@ public class Rectangle implements Shape, java.io.Serializable {
     }
 
     /**
-     * Determines whether this rectangle is empty. A rectangle is empty if 
-     * its width or its height is less than or equal to zero. 
-     * @return     <code>true</code> if this rectangle is empty; 
+     * Determines whether or not this <code>Rectangle</code> is empty. A 
+     * <code>Rectangle</code> is empty if its width or its height is less 
+     * than or equal to zero. 
+     * @return     <code>true</code> if this <code>Rectangle</code> is empty; 
      *             <code>false</code> otherwise.
-     * @since      JDK1.0
      */
     public boolean isEmpty() {
 	return (width <= 0) || (height <= 0);
     }
 
     /**
-     * Returns the hashcode for this rectangle.
-     * @return     the hashcode for this rectangle.
-     * @since      JDK1.0
+     * Determines where the specified coordinates lie with respect
+     * to this <code>Rectangle</code>.  
+     * This method computes a binary OR of the appropriate mask values
+     * indicating, for each side of this <code>Rectangle</code>, 
+     * whether or not the specified coordinates are on the same side of the
+     * edge as the rest of this <code>Rectangle</code>.
+     * @param x,&nbsp;y the specified coordinates
+     * @return the logical OR of all appropriate out codes.
+     * @see #OUT_LEFT
+     * @see #OUT_TOP
+     * @see #OUT_RIGHT
+     * @see #OUT_BOTTOM
+     * @since JDK1.2
      */
-    public int hashCode() {
-	return x ^ (y*37) ^ (width*43) ^ (height*47);
+    public int outcode(double x, double y) {
+	int out = 0;
+	if (this.width <= 0) {
+	    out |= OUT_LEFT | OUT_RIGHT;
+	} else if (x < this.x) {
+	    out |= OUT_LEFT;
+	} else if (x > this.x + this.width) {
+	    out |= OUT_RIGHT;
+	}
+	if (this.height <= 0) {
+	    out |= OUT_TOP | OUT_BOTTOM;
+	} else if (y < this.y) {
+	    out |= OUT_TOP;
+	} else if (y > this.y + this.height) {
+	    out |= OUT_BOTTOM;
+	}
+	return out;
+    }
+
+    /**
+     * Returns a new {@link Rectangle2D} object
+     * representing the intersection of this <code>Rectangle</code> with the 
+     * specified <code>Rectangle2D</code>.
+     * @param r the <code>Rectangle2D</code> to be intersected 
+     * 			with this <code>Rectangle</code>
+     * @return    the largest <code>Rectangle2D</code> contained in both the 
+     *            specified <code>Rectangle2D</code> and in 
+     *		  this <code>Rectangle</code>.
+     * @since JDK1.2
+     */
+    public Rectangle2D createIntersection(Rectangle2D r) {
+	if (r instanceof Rectangle) {
+	    return intersection((Rectangle) r);
+	}
+	Rectangle2D dest = new Rectangle2D.Double();
+	Rectangle2D.intersect(this, r, dest);
+	return dest;
+    }
+
+    /**
+     * Returns a new <code>Rectangle2D</code> object representing the
+     * union of this <code>Rectangle</code> with the specified 
+     * <code>Rectangle2D</code>.
+     * @param r the <code>Rectangle2D</code> to be combined with
+     *           this <code>Rectangle</code>
+     * @return    the smallest <code>Rectangle2D</code> containing 
+     * 		  both the specified <code>Rectangle2D</code> and this 
+     *            <code>Rectangle</code>.
+     * @since JDK1.2
+     */
+    public Rectangle2D createUnion(Rectangle2D r) {
+	if (r instanceof Rectangle) {
+	    return union((Rectangle) r);
+	}
+	Rectangle2D dest = new Rectangle2D.Double();
+	Rectangle2D.union(this, r, dest);
+	return dest;
     }
 
     /**
      * Checks whether two rectangles are equal.
      * <p>
-     * The result is <kbd>true</kbd> if and only if the argument is not 
-     * <kbd>null</kbd> and is a <kbd>Rectangle</kbd> object that has the 
-     * same top-left corner, width, and height as this rectangle. 
-     * @param     obj   the object to compare with.
+     * The result is <code>true</code> if and only if the argument is not 
+     * <code>null</code> and is a <code>Rectangle</code> object that has the 
+     * same top-left corner, width, and height as this <code>Rectangle</code>. 
+     * @param obj the <code>Object</code> to compare with
+     *                this <code>Rectangle</code>
      * @return    <code>true</code> if the objects are equal; 
      *            <code>false</code> otherwise.
-     * @since     JDK1.0
      */
     public boolean equals(Object obj) {
 	if (obj instanceof Rectangle) {
 	    Rectangle r = (Rectangle)obj;
-	    return (x == r.x) && (y == r.y) && (width == r.width) && (height == r.height);
+	    return ((x == r.x) &&
+		    (y == r.y) &&
+		    (width == r.width) &&
+		    (height == r.height));
 	}
-	return false;
+	return super.equals(obj);
     }
 
     /**
-     * Returns a string representation of this rectangle 
-     * and its values.
-     * @return     a string representation of this rectangle.
-     * @since      JDK1.0
+     * Returns a <code>String</code> representing this 
+     * <code>Rectangle</code> and its values.
+     * @return a <code>String</code> representing this 
+     *               <code>Rectangle</code> object's coordinate and size values.
      */
     public String toString() {
 	return getClass().getName() + "[x=" + x + ",y=" + y + ",width=" + width + ",height=" + height + "]";

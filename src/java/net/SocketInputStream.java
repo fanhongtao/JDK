@@ -1,8 +1,15 @@
 /*
- * @(#)SocketInputStream.java	1.17 01/12/10
+ * @(#)SocketInputStream.java	1.20 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -15,12 +22,16 @@ import java.io.FileInputStream;
  * SocketInputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.17, 12/10/01
+ * @version     1.20, 09/21/98
  * @author	Jonathan Payne
  * @author	Arthur van Hoff
  */
 class SocketInputStream extends FileInputStream
 {
+    static {
+        init();
+    }
+    
     private boolean eof;
     private SocketImpl impl;
     private byte temp[] = new byte[1];
@@ -74,6 +85,8 @@ class SocketInputStream extends FileInputStream
 	if (eof) {
 	    return -1;
 	}
+        if (length == 0)
+            return 0;
 	int n = socketRead(b, off, length);
 	if (n <= 0) {
 	    eof = true;
@@ -139,5 +152,10 @@ class SocketInputStream extends FileInputStream
      * Overrides finalize, the fd is closed by the Socket.
      */
     protected void finalize() {}
+
+    /**
+     * Perform class load-time initializations.
+     */
+    private native static void init();
 }
 

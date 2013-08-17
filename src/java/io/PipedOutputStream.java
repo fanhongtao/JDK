@@ -1,8 +1,15 @@
 /*
- * @(#)PipedOutputStream.java	1.16 01/12/10
+ * @(#)PipedOutputStream.java	1.21 98/04/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -10,13 +17,16 @@ package java.io;
 import java.io.*;
 
 /**
- * A piped output stream is the sending end of a communications 
- * pipe. Two threads can communicate by having one thread send data 
- * through a piped output stream and having the other thread read the 
- * data through a piped input stream. 
+ * A piped output stream can be connected to a piped input stream 
+ * to create a communications pipe. The piped output stream is the 
+ * sending end of the pipe. Typically, data is written to a 
+ * <code>PipedOutputStream</code> object by one thread and data is 
+ * read from the connected <code>PipedInputStream</code> by some 
+ * other thread. Attempting to use both objects from a single thread 
+ * is not recommended as it may deadlock the thread.
  *
  * @author  James Gosling
- * @version 1.16, 12/10/01
+ * @version 1.21, 04/09/98
  * @see     java.io.PipedInputStream
  * @since   JDK1.0
  */
@@ -28,15 +38,14 @@ class PipedOutputStream extends OutputStream {
 	   pipes within a thread?) or using finalization (but it may be a
 	   long time until the next GC). */
     private PipedInputStream sink;
-    boolean connected = false;
 
     /**
      * Creates a piped output stream connected to the specified piped 
-     * input stream. 
+     * input stream. Data bytes written to this stream will then be 
+     * available as input from <code>snk</code>.
      *
      * @param      snk   The piped input stream to connect to.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public PipedOutputStream(PipedInputStream snk)  throws IOException {
 	connect(snk);
@@ -49,51 +58,81 @@ class PipedOutputStream extends OutputStream {
      *
      * @see     java.io.PipedInputStream#connect(java.io.PipedOutputStream)
      * @see     java.io.PipedOutputStream#connect(java.io.PipedInputStream)
-     * @since   JDK1.0
      */
     public PipedOutputStream() {
     }
     
     /**
-     * Connects this piped output stream to a receiver. 
+     * Connects this piped output stream to a receiver. If this object
+     * is already connected to some other piped input stream, an 
+     * <code>IOException</code> is thrown.
+     * <p>
+     * If <code>snk</code> is an unconnected piped input stream and 
+     * <code>src</code> is an unconnected piped output stream, they may 
+     * be connected by either the call:
+     * <blockquote><pre>
+     * src.connect(snk)</pre></blockquote>
+     * or the call:
+     * <blockquote><pre>
+     * snk.connect(src)</pre></blockquote>
+     * The two calls have the same effect.
      *
-     * @param      snk   the piped output stream to connect to.
+     * @param      snk   the piped input stream to connect to.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
-    public void connect(PipedInputStream snk) throws IOException {
-	if (connected || snk.connected) {
+    public synchronized void connect(PipedInputStream snk) throws IOException {
+        if (snk == null) {
+            throw new NullPointerException();
+        } else if (sink != null || snk.connected) {
 	    throw new IOException("Already connected");
 	}
 	sink = snk;
-	snk.closed = false;
 	snk.in = -1;
 	snk.out = 0;
-	connected = true;
+        snk.connected = true;
     }
 
     /**
-     * Writes the specified <code>byte</code> to the piped output stream.
+     * Writes the specified <code>byte</code> to the piped output stream. 
+     * If a thread was reading data bytes from the connected piped input 
+     * stream, but the thread is no longer alive, then an 
+     * <code>IOException</code> is thrown.
+     * <p>
+     * Implements the <code>write</code> method of <code>OutputStream</code>.
      *
      * @param      b   the <code>byte</code> to be written.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void write(int b)  throws IOException {
+        if (sink == null) {
+            throw new IOException("Pipe not connected");
+        }
 	sink.receive(b);
     }
 
     /**
      * Writes <code>len</code> bytes from the specified byte array 
      * starting at offset <code>off</code> to this piped output stream. 
+     * If a thread was reading data bytes from the connected piped input 
+     * stream, but the thread is no longer alive, then an 
+     * <code>IOException</code> is thrown.
      *
      * @param      b     the data.
      * @param      off   the start offset in the data.
      * @param      len   the number of bytes to write.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void write(byte b[], int off, int len) throws IOException {
+        if (sink == null) {
+            throw new IOException("Pipe not connected");
+        } else if (b == null) {
+	    throw new NullPointerException();
+	} else if ((off < 0) || (off > b.length) || (len < 0) ||
+		   ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return;
+	} 
 	sink.receive(b, off, len);
     }
 
@@ -103,7 +142,6 @@ class PipedOutputStream extends OutputStream {
      * This will notify any readers that bytes are waiting in the pipe.
      *
      * @exception IOException if an I/O error occurs.
-     * @since     JDK1.0
      */
     public synchronized void flush() throws IOException {
 	if (sink != null) {
@@ -115,10 +153,10 @@ class PipedOutputStream extends OutputStream {
 
     /**
      * Closes this piped output stream and releases any system resources 
-     * associated with this stream. 
+     * associated with this stream. This stream may no longer be used for 
+     * writing bytes.
      *
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void close()  throws IOException {
 	if (sink != null) {

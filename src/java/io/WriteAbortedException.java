@@ -1,8 +1,15 @@
 /*
- * @(#)WriteAbortedException.java	1.5 01/12/10
+ * @(#)WriteAbortedException.java	1.8 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -10,35 +17,34 @@ package java.io;
 /*
  *
  * @author  unascribed
- * @version 1.5, 12/10/01
+ * @version 1.8, 06/29/98
  * @since   JDK1.1
  */
 public class WriteAbortedException extends ObjectStreamException {
-    /*
-     * @since   JDK1.1
+    /**
+     * Exception that was caught while writing the ObjectStream.
+     * @serial
      */
     public Exception detail;
 
     /**
-     * A WriteAbortedException is thrown during a read when one of the
-     * ObjectStreamExceptions was thrown during writing.  The exception
-     * that terminated the write can be found in the detail field.
-     * The stream is reset to it's initial state, all references to
-     * objects already deserialized are discarded.
-     * @since   JDK1.1
+     * Thrown during a read operation when one of the
+     * ObjectStreamExceptions was thrown during a write operation.
+     * The exception that terminated the write can be found in the detail
+     * field. The stream is reset to it's initial state andd all references
+     * to objects already deserialized are discarded.
      */
-    public WriteAbortedException(String s, Exception ex) { 
-	super(s); 
+    public WriteAbortedException(String s, Exception ex) {
+	super(s);
 	detail = ex;
     }
 
     /**
-     * Produce the message, include the message from the nested
-     * exception if there is one.
-     * @since   JDK1.1
+     * Produce the message and include the message from the nested
+     * exception, if there is one.
      */
     public String getMessage() {
-	if (detail == null) 
+	if (detail == null)
 	    return super.getMessage();
 	else
 	    return super.getMessage() + "; " + detail.toString();

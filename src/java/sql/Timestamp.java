@@ -1,8 +1,15 @@
 /*
- * @(#)Timestamp.java	1.14 01/12/10
+ * @(#)Timestamp.java	1.29 98/09/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.sql;
@@ -16,18 +23,35 @@ package java.sql;
  *
  * <P><B>Note:</B> This type is a composite of a java.util.Date and a
  * separate nanos value. Only integral seconds are stored in the
- * java.util.Date component. The fractional seconds - the nanos - are
- * separate. The getTime method will only return integral seconds. If
- * a time value that includes the fractional seconds is desired you
+ * <code>java.util.Date</code> component. The fractional seconds - the nanos - are
+ * separate. The <code>getTime</code> method will return only integral seconds. If
+ * a time value that includes the fractional seconds is desired, you
  * must convert nanos to milliseconds (nanos/1000000) and add this to
- * the getTime value. Also note that the hashcode() method uses the
- * underlying java.util.Data implementation and therefore does not
- * include nanos in its computation.  
+ * the <code>getTime</code> value.  The
+ * <code>Timestamp.equals(Object)</code> method never returns 
+ * true when passed a value of type <code>java.util.Date</code>
+ * because the nanos component of a date is unknown.
+ * As a result, the <code>Timestamp.equals(Object)</code>
+ * method is not symmetric with respect to the
+ * <code>java.util.Date.equals(Object)</code>
+ * method.  Also, the <code>hashcode</code> method uses the underlying 
+ * <code>java.util.Data</code> 
+ * implementation and therefore does not include nanos in its computation.  
+ * 
+ * Due to the differences between the <code>Timestamp</code> class
+ * and the <code>java.util.Date</code>
+ * class mentioned above, it is recommended that code not view
+ * <code>Timestamp</code> values generically as an instance of
+ * <code>java.util.Date</code>.  The
+ * inheritance relationship between <code>Timestamp</code>
+ * and <code>java.util.Date</code> really 
+ * denotes implementation inheritance, and not type inheritance.  
  */
 public class Timestamp extends java.util.Date {
 
     /**
-     * Construct a Timestamp Object
+     * Constructs a <code>Timestamp</code> object initialized
+	 * with the given values.
      *
      * @param year year-1900
      * @param month 0 to 11 
@@ -36,6 +60,7 @@ public class Timestamp extends java.util.Date {
      * @param minute 0 to 59
      * @param second 0 to 59
      * @param nano 0 to 999,999,999
+     * @deprecated instead use the constructor <code>Timestamp(long millis)</code>
      */
     public Timestamp(int year, int month, int date, 
 		     int hour, int minute, int second, int nano) {
@@ -47,11 +72,15 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Construct a Timestamp using a milliseconds time value. The
+     * Constructs a <code>Timestamp</code> object 
+     * using a milliseconds time value. The
      * integral seconds are stored in the underlying date value; the
-     * fractional seconds are stored in the nanos value.
+     * fractional seconds are stored in the <code>nanos</code> field of
+	 * the <code>Timestamp</code> object.
      *
-     * @param time milliseconds since January 1, 1970, 00:00:00 GMT 
+     * @param time milliseconds since January 1, 1970, 00:00:00 GMT.
+	 *        A negative number is the number of milliseconds before 
+	 *         January 1, 1970, 00:00:00 GMT.
      */
     public Timestamp(long time) {
 	super((time/1000)*1000);
@@ -62,13 +91,19 @@ public class Timestamp extends java.util.Date {
 	}
     }
 
+	/**
+	 * @serial
+	 */
     private int nanos;
 
     /**
-     * Convert a string in JDBC timestamp escape format to a Timestamp value
+     * Converts a string in JDBC timestamp escape format to a
+	 * <code>Timestamp</code> value.
      *
-     * @param s timestamp in format "yyyy-mm-dd hh:mm:ss.fffffffff"
-     * @return corresponding Timestamp
+     * @param s timestamp in format <code>yyyy-mm-dd hh:mm:ss.fffffffff</code>
+     * @return corresponding <code>Timestamp</code> value
+	 * @exception java.lang.IllegalArgumentException if the given argument
+	 * does not have the format <code>yyyy-mm-dd hh:mm:ss.fffffffff</code>
      */
     public static Timestamp valueOf(String s) {
 	String date_s;
@@ -155,9 +190,10 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Format a timestamp in JDBC timestamp escape format
+     * Formats a timestamp in JDBC timestamp escape format.
      *
-     * @return a String in yyyy-mm-dd hh:mm:ss.fffffffff format
+     * @return a String in <code>yyyy-mm-dd hh:mm:ss.fffffffff</code> format
+	 * @overrides toString in class <code>java.util.Date</code>
      */
     public String toString () {
 	int year = super.getYear() + 1900;
@@ -227,18 +263,21 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Get the Timestamp's nanos value
+     * Gets this <code>Timestamp</code> object's <code>nanos</code> value.
      *
-     * @return the Timestamp's fractional seconds component
+     * @return this <code>Timestamp</code> object's fractional seconds component
      */
     public int getNanos() {
 	return nanos;
     }
 
     /**
-     * Set the Timestamp's nanos value
+     * Sets this <code>Timestamp</code> object's <code>nanos</code> value
+	 * to the given value.
      *
      * @param n the new fractional seconds component
+	 * @exception java.lang.IllegalArgumentException if the given argument
+	 *            is greater than 999999999 or less than 0
      */
     public void setNanos(int n) {
 	if (n > 999999999 || n < 0) {
@@ -248,13 +287,14 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Test Timestamp values for equality
+     * Tests to see if this <code>Timestamp</code> object is
+	 * equal to the given <code>Timestamp</code> object.
      *
-     * @param ts the Timestamp value to compare with
+     * @param ts the <code>Timestamp</code> value to compare with
      */
     public boolean equals(Timestamp ts) {
 	if (super.equals(ts)) {
-	    if (nanos == ts.nanos) {
+	    if  (nanos == ts.nanos) {
 		return true;
 	    } else {
 		return false;
@@ -265,9 +305,34 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Is this timestamp earlier than the timestamp argument?
+     * Tests to see if this <code>Timestamp</code> object is
+	 * equal to the given object.
+     *
+     * This version of the method <code>equals</code> has been added
+	 * to fix the incorrect 
+     * signature of <code>Timestamp.equals(Timestamp)</code> and preserve backward 
+     * compatibility with existing class files.
+     *
+     * Note: This method is not symmetric with respect to the 
+     * <code>equals(Object)</code> method in the base class.
+     *
+     * @param ts the Object value to compare with
+     */
+    public boolean equals(java.lang.Object ts) {
+      if (ts instanceof Timestamp) {
+	return this.equals((Timestamp)ts);
+      } else {
+	return false;
+      }
+    }
+
+    /**
+     * Indicates whether this <code>Timestamp</code> object is
+	 * earlier than the given <code>Timestamp</code> object.
      *
      * @param ts the Timestamp value to compare with
+	 * @return <code>true</code> if this <code>Timestamp</code> object is earlier;
+	 *        <code>false</code> otherwise
      */
     public boolean before(Timestamp ts) {
 	if (super.before(ts)) {
@@ -286,9 +351,13 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
+     * Indicates whether this <code>Timestamp</code> object is
+	 * later than the given <code>Timestamp</code> object.
      * Is this timestamp later than the timestamp argument?
      *
      * @param ts the Timestamp value to compare with
+	 * @return <code>true</code> if this <code>Timestamp</code> object is later;
+	 *        <code>false</code> otherwise
      */
     public boolean after(Timestamp ts) {
 	if (super.after(ts)) {
@@ -305,5 +374,8 @@ public class Timestamp extends java.util.Date {
 	    }
 	}
     }
+
+    static final long serialVersionUID = 2745179027874758501L;
+
 }
 

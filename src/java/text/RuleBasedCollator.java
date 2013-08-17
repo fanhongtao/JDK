@@ -1,10 +1,10 @@
 /*
- * @(#)RuleBasedCollator.java	1.22 01/12/10
+ * @(#)RuleBasedCollator.java	1.25 98/07/24
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -31,15 +31,13 @@
 package java.text;
 
 import java.util.Vector;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
 
 /**
  * The <code>RuleBasedCollator</code> class is a concrete subclass of
- * <code>Collator</code> that provides a simple, data-driven, table collator.
- * With this class you can create a customized table-based <code>Collator</code>.
- * <code>RuleBasedCollator</code> maps characters to sort keys.
+ * <code>Collator</code> that provides a simple, data-driven, table
+ * collator.  With this class you can create a customized table-based
+ * <code>Collator</code>.  <code>RuleBasedCollator</code> maps
+ * characters to sort keys.
  *
  * <p>
  * <code>RuleBasedCollator</code> has the following restrictions
@@ -49,8 +47,6 @@ import java.io.IOException;
  *     whole collator object.
  * <li>All non-mentioned Unicode characters are at the end of the
  *     collation order.
- * <li>Private use characters are treated as identical.  The private
- *     use area in Unicode is <code>0xE800</code>-<code>0xF8FF</code>.
  * </ol>
  *
  * <p>
@@ -62,12 +58,13 @@ import java.io.IOException;
  *    < reset > < text-argument >
  * </pre>
  * The following demonstrates how to create your own collation rules:
- * <UL Type=round>
+ * <UL Type=disc>
  *    <LI><strong>Text-Argument</strong>: A text-argument is any sequence of
- *        characters, excluding special characters (that is, whitespace
- *        characters and the characters used in modifier, relation and reset).
- *        If those characters are desired, you can put them in single quotes
- *        (e.g. ampersand => '&').  Note that unquoted white space characters
+ *        characters, excluding special characters (that is, common
+ *        whitespace characters [0009-000D, 0020] and rule syntax characters
+ *        [0021-002F, 003A-0040, 005B-0060, 007B-007E]). If those
+ *        characters are desired, you can put them in single quotes
+ *        (e.g. ampersand => '&'). Note that unquoted white space characters
  *        are ignored; e.g. <code>b c</code> is treated as <code>bc</code>.
  *    <LI><strong>Modifier</strong>: There is a single modifier
  *        which is used to specify that all accents (secondary differences) are
@@ -112,10 +109,9 @@ import java.io.IOException;
  * instead, "e" is sorted as if it were expanded to two characters: "a"
  * followed by an "e". This difference appears in natural languages: in
  * traditional Spanish "ch" is treated as though it contracts to a single
- * character (expressed as "c < ch < d"), while in traditional German "ä"
- * (a-umlaut) is treated as though it expands to two characters (expressed as
- * "a & ae ; ä < b").
- *
+ * character (expressed as "c < ch < d"), while in traditional German
+ * "a" (a-umlaut) is treated as though it expanded to two characters
+ * (expressed as "a,A < b,B ... & ae,a & AE,A").
  * <p>
  * <strong>Ignorable Characters</strong>
  * <p>
@@ -129,17 +125,29 @@ import java.io.IOException;
  *
  * <p><strong>Normalization and Accents</strong>
  * <p>
- * The <code>Collator</code> object automatically normalizes text internally
- * to separate accents from base characters where possible. This is done both when
- * processing the rules, and when comparing two strings. <code>Collator</code>
- * also uses the Unicode canonical mapping to ensure that combining sequences
- * are sorted properly (for more information, see
- * <A HREF="http://www.aw.com/devpress">The Unicode Standard, Version 2.0</A>.)</P>
+ * <code>RuleBasedCollator</code> automatically processes its rule table to
+ * include both pre-composed and combining-character versions of
+ * accented characters.  Even if the provided rule string contains only
+ * base characters and separate combining accent characters, the pre-composed
+ * accented characters matching all canonical combinations of characters from
+ * the rule string will be entered in the table.
+ * <p>
+ * This allows you to use a RuleBasedCollator to compare accented strings
+ * even when the collator is set to NO_DECOMPOSITION.  There are two caveats,
+ * however.  First, if the strings to be collated contain combining
+ * sequences that may not be in canonical order, you should set the collator to
+ * CANONICAL_DECOMPOSITION or FULL_DECOMPOSITION to enable sorting of
+ * combining sequences.  Second, if the strings contain characters with
+ * compatibility decompositions (such as full-width and half-width forms),
+ * you must use FULL_DECOMPOSITION, since the rule tables only include
+ * canonical mappings.
+ * For more information, see
+ * <A HREF="http://www.aw.com/devpress">The Unicode Standard, Version 2.0</A>.)
  *
  * <p><strong>Errors</strong>
  * <p>
  * The following are errors:
- * <UL Type=round>
+ * <UL Type=disc>
  *     <LI>A text-argument contains unquoted punctuation symbols
  *        (e.g. "a < b-c < d").
  *     <LI>A relation or reset character not followed by a text-argument
@@ -259,7 +267,7 @@ import java.io.IOException;
  *
  * @see        Collator
  * @see        CollationElementIterator
- * @version    1.22 12/10/01
+ * @version    1.25 07/24/98
  * @author     Helena Shih
  */
 public class RuleBasedCollator extends Collator{
@@ -307,6 +315,25 @@ public class RuleBasedCollator extends Collator{
     }
 
     /**
+     * RuleBasedCollator constructor.  This takes the table rules and builds
+     * a collation table out of them.  Please see RuleBasedCollator class
+     * description for more details on the collation rule syntax.
+     * @see java.util.Locale
+     * @param rules the collation rules to build the collation table from.
+     * @param decomp the decomposition strength used to build the
+     * collation table and to perform comparisons.
+     * @exception ParseException A format exception
+     * will be thrown if the build process of the rules fails. For
+     * example, build rule "a < ? < d" will cause the constructor to
+     * throw the ParseException because the '?' is not quoted.
+     */
+    RuleBasedCollator(String rules, int decomp) throws ParseException {
+        setStrength(Collator.TERTIARY);
+        setDecomposition(decomp);
+        build(rules);
+    }
+
+    /**
      * Gets the table-based rules for the collation object.
      * @return returns the collation rules that the table collation object
      * was created from.
@@ -326,6 +353,15 @@ public class RuleBasedCollator extends Collator{
      * @see java.text.CollationElementIterator
      */
     public CollationElementIterator getCollationElementIterator(String source) {
+        return new CollationElementIterator( source, this );
+    }
+
+    /**
+     * Return a CollationElementIterator for the given String.
+     * @see java.text.CollationElementIterator
+     */
+    public CollationElementIterator getCollationElementIterator(
+                                                CharacterIterator source) {
         return new CollationElementIterator( source, this );
     }
 
@@ -358,18 +394,29 @@ public class RuleBasedCollator extends Collator{
 
         int result = Collator.EQUAL;
         strengthResult = Collator.IDENTICAL;
-        CollationElementIterator targetCursor
-            = new CollationElementIterator(target, this);
-        CollationElementIterator sourceCursor
-            = new CollationElementIterator(source, this);
+        
+        if (sourceCursor == null) {
+            sourceCursor = getCollationElementIterator(source);
+        } else {
+            sourceCursor.setText(source);
+        }
+        if (targetCursor == null) {
+            targetCursor = getCollationElementIterator(target);
+        } else {
+            targetCursor.setText(target);
+        }
+        
         int sOrder = 0, tOrder = 0;
-        int savedSOrder = 0, savedTOrder = 0;
-        boolean skipSecCheck = false;
+        
+        boolean initialCheckSecTer = getStrength() >= Collator.SECONDARY;
+        boolean checkSecTer = initialCheckSecTer;
+        boolean checkTertiary = getStrength() >= Collator.TERTIARY;
+
         boolean gets = true, gett = true;
+        
         while(true) {
             // Get the next collation element in each of the strings, unless
             // we've been requested to skip it.
-            int pSOrder = 0, pTOrder = 0;
             if (gets) sOrder = sourceCursor.next(); else gets = true;
             if (gett) tOrder = targetCursor.next(); else gett = true;
 
@@ -380,21 +427,33 @@ public class RuleBasedCollator extends Collator{
 
             // When we hit the end of one of the strings, we're going to need to remember
             // the last element in each string, in order to decide if there
-            savedSOrder = sOrder;
-            savedTOrder = tOrder;
+            //savedSOrder = sOrder;
+            //savedTOrder = tOrder;
+
+            int pSOrder = CollationElementIterator.primaryOrder(sOrder);
+            int pTOrder = CollationElementIterator.primaryOrder(tOrder);
 
             // If there's no difference at this position, we can skip it
-            if (sOrder == tOrder)
+            if (sOrder == tOrder) {
+                if (isFrenchSec && pSOrder != 0) {
+                    if (!checkSecTer) {
+                        // in french, a secondary difference more to the right is stronger,
+                        // so accents have to be checked with each base element
+                        checkSecTer = initialCheckSecTer;
+                        // but tertiary differences are less important than the first 
+                        // secondary difference, so checking tertiary remains disabled
+                        checkTertiary = false;
+                    }
+                }
                 continue;
+            }
 
             // Compare primary differences first.
-            pSOrder = CollationElementIterator.primaryOrder(sOrder);
-            pTOrder = CollationElementIterator.primaryOrder(tOrder);
             if ( pSOrder != pTOrder )
             {
                 if (sOrder == 0) {
-                    // The entire source element is ignorable.  Skip to the
-                    //next source element, but don't fetch another target element.
+                    // The entire source element is ignorable.
+                    // Skip to the next source element, but don't fetch another target element.
                     gett = false;
                     continue;
                 }
@@ -403,131 +462,118 @@ public class RuleBasedCollator extends Collator{
                     continue;
                 }
 
-                // Neither the source or target order is totally ignorable,
-                // but it's still possible for the primary component of one of the
-                // elements to be ignorable, e.g. for a combining accent mark
+                // The source and target elements aren't ignorable, but it's still possible
+                // for the primary component of one of the elements to be ignorable....
 
-                if (pSOrder == 0)    // primary order in source is ignorable
+                if (pSOrder == 0)  // primary order in source is ignorable
                 {
-                    if (pTOrder == 0)  // primary order in target is ignorable
-                    {
-                        // check the secondary/tertiary weight when both are ignorable chars.
-                        result = checkSecTerDiff(sOrder, tOrder, result, false);
-
-                        // We already checked the secondary weights, so don't do it again
-                        skipSecCheck = true;
-                        continue;                   // both advances
+                    // The source's primary is ignorable, but the target's isn't.  We treat ignorables
+                    // as a secondary difference, so remember that we found one.
+                    if (checkSecTer) {
+                        result = Collator.GREATER;  // (strength is SECONDARY)
+                        checkSecTer = false;
                     }
-                    else
-                    {
-                        //
-                        // The source's primary is ignorable, but the target's isn't.  We treat
-                        // ignorables as a secondary difference, so remember that we found one.
-                        // BUT, for French secondary ordering we might have already found a secondary
-                        // difference in the ignorables attached to this base char.  If we have, we
-                        // don't need to mark a difference here.
-                        //
-                        if ((!isFrenchSec &&
-                             (result == Collator.EQUAL || strengthResult > Collator.SECONDARY)) ||
-                            (isFrenchSec && !skipSecCheck))
-                        {
-                            strengthResult = Collator.SECONDARY;
-                            result = Collator.GREATER;
-                        }
-                        // Skip to the next source element, but don't fetch another target element.
-                        gett = false;
-                        skipSecCheck = false;
-                        continue;
-                    }
+                    // Skip to the next source element, but don't fetch another target element.
+                    gett = false;
                 }
                 else if (pTOrder == 0)
                 {
                     // record differences - see the comment above.
-                    if ((!isFrenchSec &&
-                         (result == Collator.EQUAL || strengthResult > Collator.SECONDARY)) ||
-                        (isFrenchSec && !skipSecCheck))
-                     {
-                        result = Collator.LESS;
-                        strengthResult = Collator.SECONDARY;
+                    if (checkSecTer) {
+                        result = Collator.LESS;  // (strength is SECONDARY)
+                        checkSecTer = false;
                     }
+                    // Skip to the next source element, but don't fetch another target element.
                     gets = false;
-                    skipSecCheck = false;
-                    continue;
+                } else {
+                    // Neither of the orders is ignorable, and we already know that the primary
+                    // orders are different because of the (pSOrder != pTOrder) test above.
+                    // Record the difference and stop the comparison.
+                    if (pSOrder < pTOrder) {
+                        return Collator.LESS;  // (strength is PRIMARY)
+                    } else {
+                        return Collator.GREATER;  // (strength is PRIMARY)
+                    }
                 }
-                //
-                // Neither of the orders is ignorable, and we already know that the primary
-                // orders are different because of the (pSOrder != pTOrder) test above.
-                // Record the difference and stop the comparison.
-                //
-                if (pSOrder < pTOrder)
-                    result = Collator.LESS;
-                else
-                    result = Collator.GREATER;
-                break;
-            }
-            else {
-                //
-                // The primary orders are the same, but we need to continue to check
-                // for secondary or tertiary differences.
-                //
-                result = checkSecTerDiff(sOrder, tOrder, result, skipSecCheck);
-                if (isFrenchSec &&
-                    CollationElementIterator.isIgnorable(sOrder) &&
-                    CollationElementIterator.isIgnorable(tOrder))
-                    skipSecCheck = true;
-                else
-                    skipSecCheck = false;
-            }
+            } else { // else of if ( pSOrder != pTOrder )
+                // primary order is the same, but complete order is different. So there
+                // are no base elements at this point, only ignorables (Since the strings are
+                // normalized)
+
+                if (checkSecTer) {
+                    // a secondary or tertiary difference may still matter
+                    short secSOrder = CollationElementIterator.secondaryOrder(sOrder);
+                    short secTOrder = CollationElementIterator.secondaryOrder(tOrder);
+                    if (secSOrder != secTOrder) {
+                        // there is a secondary difference
+                        result = (secSOrder < secTOrder) ? Collator.LESS : Collator.GREATER;
+                                                // (strength is SECONDARY)
+                        checkSecTer = false; 
+                        // (even in french, only the first secondary difference within
+                        //  a base character matters)
+                    } else {
+                        if (checkTertiary) {
+                            // a tertiary difference may still matter
+                            short terSOrder = CollationElementIterator.tertiaryOrder(sOrder);
+                            short terTOrder = CollationElementIterator.tertiaryOrder(tOrder);
+                            if (terSOrder != terTOrder) {
+                                // there is a tertiary difference
+                                result = (terSOrder < terTOrder) ? Collator.LESS : Collator.GREATER;
+                                                // (strength is TERTIARY)
+                                checkTertiary = false;
+                            }
+                        }
+                    }
+                } // if (checkSecTer)
+
+            }  // if ( pSOrder != pTOrder )
         } // while()
 
         if (sOrder != CollationElementIterator.NULLORDER) {
-            if (tOrder == CollationElementIterator.NULLORDER) {
-                // The source string hasn't not reached the end and target string has...
-                do {
-                    if (CollationElementIterator.primaryOrder(sOrder) != 0) {
-                        // We found a non-ignorable base character in the source string.
-                        // This is a primary difference, so the source is greater
-                        return 1;
-                    } else if (CollationElementIterator.secondaryOrder(sOrder) != 0) {
-                        //
-                        // If the last character in the target string was a base character,
-                        // or if we haven't found any secondary differences yet,
-                        // we still need to look at accent marks in the source string, because
-                        // they can affect the result in languages with reversed (French)
-                        // secondary ordering.
-                        //
-                        if (!CollationElementIterator.isIgnorable(savedTOrder) ||
-                            strengthResult > Collator.SECONDARY)
-                            result = checkSecTerDiff(sOrder, 0, result, false);
-                        else
-                            continue;
+            // (tOrder must be CollationElementIterator::NULLORDER,
+            //  since this point is only reached when sOrder or tOrder is NULLORDER.)
+            // The source string has more elements, but the target string hasn't.
+            do {
+                if (CollationElementIterator.primaryOrder(sOrder) != 0) {
+                    // We found an additional non-ignorable base character in the source string.
+                    // This is a primary difference, so the source is greater
+                    return Collator.GREATER; // (strength is PRIMARY)
+                }
+                else if (CollationElementIterator.secondaryOrder(sOrder) != 0) {
+                    // Additional secondary elements mean the source string is greater
+                    if (checkSecTer) {
+                        result = Collator.GREATER;  // (strength is SECONDARY)
+                        checkSecTer = false;
                     }
-                } while ((sOrder = sourceCursor.next()) != CollationElementIterator.NULLORDER);
-            }
+                } 
+            } while ((sOrder = sourceCursor.next()) != CollationElementIterator.NULLORDER);
         }
         else if (tOrder != CollationElementIterator.NULLORDER) {
-            // See comments above.
+            // The target string has more elements, but the source string hasn't.
             do {
-                if (CollationElementIterator.primaryOrder(tOrder) != 0) {
-                    return -1;
-                } else if (CollationElementIterator.secondaryOrder(tOrder) != 0) {
-                    if (!CollationElementIterator.isIgnorable(savedSOrder) ||
-                        strengthResult > Collator.SECONDARY)
-                        result = checkSecTerDiff(0, tOrder, result, false);
-                    else
-                        continue;
-                }
+                if (CollationElementIterator.primaryOrder(tOrder) != 0)
+                    // We found an additional non-ignorable base character in the target string.
+                    // This is a primary difference, so the source is less
+                    return Collator.LESS; // (strength is PRIMARY)
+                else if (CollationElementIterator.secondaryOrder(tOrder) != 0) {
+                    // Additional secondary elements in the target mean the source string is less
+                    if (checkSecTer) {
+                        result = Collator.LESS;  // (strength is SECONDARY)
+                        checkSecTer = false;
+                    }
+                } 
             } while ((tOrder = targetCursor.next()) != CollationElementIterator.NULLORDER);
         }
 
         // For IDENTICAL comparisons, we use a bitwise character comparison
         // as a tiebreaker if all else is equal
         if (result == 0 && getStrength() == IDENTICAL) {
-            result = DecompositionIterator.decompose(source,getDecomposition())
-                .compareTo(DecompositionIterator.decompose(target,getDecomposition()));
+            result = Normalizer.decompose(source,getDecomposition())
+                .compareTo(Normalizer.decompose(target,getDecomposition()));
         }
         return result;
     }
+
     /**
      * Transforms the string into a series of characters that can be compared
      * with CollationKey.compareTo. This overrides java.text.Collator.getCollationKey.
@@ -550,7 +596,7 @@ public class RuleBasedCollator extends Collator{
         // Here's a hypothetical example, with the collation element represented as
         // a three-digit number, one digit for primary, one for secondary, etc.
         //
-        // String:              A     a     B    é <--(e-acute)
+        // String:              A     a     B   \u00e9 <--(e-acute)
         // Collation Elements: 101   100   201  510
         //
         // Collation Key:      1125<null>0001<null>1010
@@ -567,9 +613,16 @@ public class RuleBasedCollator extends Collator{
         //
         if (source == null)
             return null;
-        primResult.setLength(0);
-        secResult.setLength(0);
-        terResult.setLength(0);
+        
+        if (primResult == null) {
+            primResult = new StringBuffer();
+            secResult = new StringBuffer();
+            terResult = new StringBuffer();
+        } else {
+            primResult.setLength(0);
+            secResult.setLength(0);
+            terResult.setLength(0);
+        }
         int order = 0;
         boolean compareSec = (getStrength() >= Collator.SECONDARY);
         boolean compareTer = (getStrength() >= Collator.TERTIARY);
@@ -577,8 +630,11 @@ public class RuleBasedCollator extends Collator{
         int terOrder = CollationElementIterator.NULLORDER;
         int preSecIgnore = 0;
 
-        CollationElementIterator sourceCursor = new
-            CollationElementIterator(source, this);
+        if (sourceCursor == null) {
+            sourceCursor = getCollationElementIterator(source);
+        } else {
+            sourceCursor.setText(source);
+        }
 
         // walk through each character
         while ((order = sourceCursor.next()) !=
@@ -640,7 +696,7 @@ public class RuleBasedCollator extends Collator{
 
         if (getStrength() == IDENTICAL) {
             primResult.append((char)0);
-            primResult.append(DecompositionIterator.decompose(source,getDecomposition()));
+            primResult.append(Normalizer.decompose(source,getDecomposition()));
         }
         return new CollationKey(source, primResult.toString());
     }
@@ -649,9 +705,11 @@ public class RuleBasedCollator extends Collator{
      */
     public Object clone() {
         RuleBasedCollator other = (RuleBasedCollator) super.clone();
-        other.primResult = new StringBuffer(MAXTOKENLEN);
-        other.secResult = new StringBuffer(MAXTOKENLEN);
-        other.terResult = new StringBuffer(MAXTOKENLEN);
+        other.primResult = null;
+        other.secResult = null;
+        other.terResult = null;
+        other.sourceCursor = null;
+        other.targetCursor = null;
         other.key = new StringBuffer(MAXKEYSIZE);
         return other;
     }
@@ -687,7 +745,6 @@ public class RuleBasedCollator extends Collator{
      */
     private void build(String pattern) throws ParseException
     {
-        int aStrength = Collator.IDENTICAL;
         boolean isSource = true;
         int i = 0;
         String expChars;
@@ -705,7 +762,7 @@ public class RuleBasedCollator extends Collator{
         // When there are multiple combining characters attached to a base character,
         // the combining characters must be in their canonical order
         //
-        pattern = DecompositionIterator.decompose(pattern, getDecomposition());
+        pattern = Normalizer.decompose(pattern, getDecomposition());
 
         // Build the merged collation entries
         // Since rules can be specified in any order in the string
@@ -715,7 +772,8 @@ public class RuleBasedCollator extends Collator{
         // "C < CH" rule in just before the "C < D" rule.
         //
         mPattern = new MergeCollation(pattern);
-
+        int order = 0;
+        
         // Now walk though each entry and add it to my own tables
         for (i = 0; i < mPattern.getCount(); ++i)
         {
@@ -727,71 +785,115 @@ public class RuleBasedCollator extends Collator{
                     isFrenchSec = true;
                     groupChars = groupChars.substring(0, groupChars.length()-1);
                 }
+
+                order = increment(entry.getStrength(), order);
                 expChars = entry.getExtension();
+
                 if (expChars.length() != 0) {
-                    addExpandOrder(groupChars, expChars, entry.getStrength());
+                    addExpandOrder(groupChars, expChars, order);
                 } else if (groupChars.length() > 1) {
-                    addContractOrder(groupChars, entry.getStrength());
-                    lastChar = groupChars.charAt(0);
+                    addContractOrder(groupChars, order);
                 } else {
                     char ch = groupChars.charAt(0);
-                    addOrder(ch, entry.getStrength());
-                    lastChar = ch;
+                    addOrder(ch, order);
                 }
             }
         }
+        
+        addComposedChars();
+        
         commit();
         mapping.compact();
     }
+
+    /** Add expanding entries for pre-composed unicode characters so that this
+     * collator can be used reasonably well with decomposition turned off.
+     */
+    private void addComposedChars() throws ParseException {
+        StringBuffer buf = new StringBuffer(1);
+
+        // Iterate through all of the pre-composed characters in Unicode
+        Normalizer.DecompIterator iter =
+                        Normalizer.getDecompositions(CANONICAL_DECOMPOSITION);
+        
+        while (iter.hasNext()) {
+            char c = iter.next();
+            
+            if (getCharOrder(c) == UNMAPPED) {
+                // 
+                // We don't already have an ordering for this pre-composed character.
+                //
+                // First, see if the decomposed string is already in our
+                // tables as a single contracting-string ordering.
+                // If so, just map the precomposed character to that order.
+                //
+                // TODO: What we should really be doing here is trying to find the
+                // longest initial substring of the decomposition that is present
+                // in the tables as a contracting character sequence, and find its
+                // ordering.  Then do this recursively with the remaining chars
+                // so that we build a list of orderings, and add that list to
+                // the expansion table. 
+                // That would be more correct but also significantly slower, so
+                // I'm not totally sure it's worth doing.
+                //
+                String s = iter.decomposition();
+                int contractOrder = getContractOrder(s);
+                if (contractOrder != UNMAPPED) {
+                    addOrder(c, contractOrder);
+                } else {
+                    //
+                    // We don't have a contracting ordering for the entire string
+                    // that results from the decomposition, but if we have orders
+                    // for each individual character, we can add an expanding
+                    // table entry for the pre-composed character 
+                    //
+                    boolean allThere = true;
+                    for (int i = 0; i < s.length(); i++) {
+                        if (getCharOrder(s.charAt(i)) == UNMAPPED) {
+                            allThere = false;
+                            break;
+                        }
+                    }
+                    if (allThere) {
+                        buf.setLength(0);
+                        buf.append(c);
+                        addExpandOrder(buf.toString(), s, UNMAPPED);
+                    }
+                }
+            }
+        }
+    }
+    
     /**
      * Look up for unmapped values in the expanded character table.
+     *
+     * When the expanding character tables are built by addExpandOrder,
+     * it doesn't know what the final ordering of each character
+     * in the expansion will be.  Instead, it just puts the raw character
+     * code into the table, adding CHARINDEX as a flag.  Now that we've
+     * finished building the mapping table, we can go back and look up
+     * that character to see what its real collation order is and
+     * stick that into the expansion table.  That lets us avoid doing
+     * a two-stage lookup later.
      */
     private final void commit()
     {
-    // When the expanding character tables are built by addExpandOrder,
-    // it doesn't know what the final ordering of each character
-    // in the expansion will be.  Instead, it just puts the raw character
-    // code into the table, adding CHARINDEX as a flag.  Now that we've
-    // finished building the mapping table, we can go back and look up
-    // that character to see what its real collation order is and
-    // stick that into the expansion table.  That lets us avoid doing
-    // a two-stage lookup later.
-
-        if (expandTable != null)
-        {
-            for (int i = 0; i < expandTable.size(); i++)
-            {
+        if (expandTable != null) {
+            for (int i = 0; i < expandTable.size(); i++) {
                 int[] valueList = (int [])expandTable.elementAt(i);
-                for (int j = 0; j < valueList.length; j++)
-                {
-                    if ((valueList[j] < EXPANDCHARINDEX) &&
-                             (valueList[j] > CHARINDEX))
-                    {
-                        // found a expanding character
-                        // the expanding char value is not filled in yet
-                        char ch = (char)(valueList[j] - CHARINDEX);
+                for (int j = 0; j < valueList.length; j++) {
+                    int order = valueList[j];
+                    if (order < EXPANDCHARINDEX && order > CHARINDEX) {
+                        // found a expanding character that isn't filled in yet
+                        char ch = (char)(order - CHARINDEX);
 
                         // Get the real values for the non-filled entry
-                        int realValue = mapping.elementAt(ch);
+                        int realValue = getCharOrder(ch);
 
-                        if (realValue == UNMAPPED)
-                        {
-                            // The real value is still unmapped, maybe it's an ignorable
-                            // char
-                            valueList[j] = IGNORABLEMASK & valueList[j-1];
-                        }
-                        else if (realValue >= CONTRACTCHARINDEX)
-                        {
-                                // if the entry is actually pointing to a contracting char
-                            EntryPair pair = null;
-                            Vector groupList = (Vector)
-                                contractTable.elementAt(realValue
-                                                        - CONTRACTCHARINDEX);
-                            pair = (EntryPair)groupList.firstElement();
-                            valueList[j] = pair.value;
-                        }
-                        else
-                        {
+                        if (realValue == UNMAPPED) {
+                            // The real value is still unmapped, maybe it's ignorable
+                            valueList[j] = IGNORABLEMASK & ch;
+                        } else {
                             // just fill in the value
                             valueList[j] = realValue;
                         }
@@ -836,7 +938,7 @@ public class RuleBasedCollator extends Collator{
      *  Adds a character and its designated order into the collation table.
      */
     private final void addOrder(char ch,
-                                int aStrength)
+                                int anOrder)
     {
         // See if the char already has an order in the mapping table
         int order = mapping.elementAt(ch);
@@ -848,73 +950,93 @@ public class RuleBasedCollator extends Collator{
 
             key.setLength(0);
             key.append(ch);
-            addContractOrder(key.toString(), aStrength);
+            addContractOrder(key.toString(), anOrder);
         } else {
             // add the entry to the mapping table,
             // the same later entry replaces the previous one
-            currentOrder = increment(aStrength, currentOrder);
-            mapping.setElementAt(ch, currentOrder);
+            mapping.setElementAt(ch, anOrder);
         }
     }
+
+    private final void addContractOrder(String groupChars, int anOrder) {
+        addContractOrder(groupChars, anOrder, true);
+    }
+    
     /**
      *  Adds the contracting string into the collation table.
      */
-    private final void addContractOrder(String groupChars,
-                                  int   aStrength)
+    private final void addContractOrder(String groupChars, int anOrder,
+                                          boolean fwd)
     {
         if (contractTable == null) {
             contractTable = new Vector(INITIALTABLESIZE);
         }
 
-        // Figure out what ordering to give this new entry
-        if (aStrength != IDENTICAL) {
-            currentOrder = increment(aStrength, currentOrder);
-        }
-
         // See if the initial character of the string already has a contract table.
         int entry = mapping.elementAt(groupChars.charAt(0));
         Vector entryTable = getContractValues(entry - CONTRACTCHARINDEX);
-
-        if (entryTable != null) {
-            int index = getEntry(entryTable, groupChars);
-
-            if (index != UNMAPPED) {
-                // If there was already a contracting table for this character,
-                // we simply want to add (or replace) this string in it
-                EntryPair pair = (EntryPair) entryTable.elementAt(index);
-                pair.value = currentOrder;
-            } else {
-                entryTable.addElement(new EntryPair(groupChars, currentOrder));
-            }
-        }
-        else
-        {
-            // We need to create a new table of contract entries
-            entryTable = new Vector(INITIALTABLESIZE);
+        
+        if (entryTable == null) {
+            // We need to create a new table of contract entries for this base char
             int tableIndex = CONTRACTCHARINDEX + contractTable.size();
-
-            // Always add the initial character's current ordering first.
-            entryTable.addElement(new EntryPair(groupChars.substring(0,1), entry));
-
-            // And add the new one
-            entryTable.addElement(new EntryPair(groupChars, currentOrder));
-
-            // Finally, add the new value table to the main contract table
-            // and update this character's mapping to point to it.
+            entryTable = new Vector(INITIALTABLESIZE);
             contractTable.addElement(entryTable);
+
+            // Add the initial character's current ordering first. then
+            // update its mapping to point to this contract table
+            entryTable.addElement(new EntryPair(groupChars.substring(0,1), entry));
             mapping.setElementAt(groupChars.charAt(0), tableIndex);
+        }
+        
+        // Now add (or replace) this string in the table
+        int index = getEntry(entryTable, groupChars, fwd);
+        if (index != UNMAPPED) {
+            EntryPair pair = (EntryPair) entryTable.elementAt(index);
+            pair.value = anOrder;
+        } else {
+            entryTable.addElement(new EntryPair(groupChars, anOrder, fwd));
+        }
+        
+        // If this was a forward mapping for a contracting string, also add a
+        // reverse mapping for it, so that CollationElementIterator.previous
+        // can work right
+        if (fwd) {
+            addContractOrder(new StringBuffer(groupChars).reverse().toString(),
+                             anOrder, false);
         }
     }
 
-    private final int getEntry(Vector list, String name) {
+    /**
+     * If the given string has been specified as a contracting string
+     * in this collation table, return its ordering.
+     * Otherwise return UNMAPPED.
+     */
+    private int getContractOrder(String groupChars)
+    {
+        int result = UNMAPPED;
+        if (contractTable != null) {
+            Vector entryTable = getContractValues(groupChars.charAt(0));
+            if (entryTable != null) {
+                int index = getEntry(entryTable, groupChars, true);
+                if (index != UNMAPPED) {
+                    EntryPair pair = (EntryPair) entryTable.elementAt(index);
+                    result = pair.value;
+                }
+            }
+        }
+        return result;
+    }
+    
+    final static int getEntry(Vector list, String name, boolean fwd) {
         for (int i = 0; i < list.size(); i++) {
             EntryPair pair = (EntryPair)list.elementAt(i);
-            if (pair.entryName.equals(name)) {
+            if (pair.fwd == fwd && pair.entryName.equals(name)) {
                 return i;
             }
         }
         return UNMAPPED;
     }
+    
     /**
      *  Get the entry of hash table of the contracting string in the collation
      *  table.
@@ -938,149 +1060,113 @@ public class RuleBasedCollator extends Collator{
         }
     }
 
+    private final int getCharOrder(char ch) {
+        int order = mapping.elementAt(ch);
+        
+        if (order >= CONTRACTCHARINDEX) {
+            Vector groupList = getContractValues(order - CONTRACTCHARINDEX);
+            EntryPair pair = (EntryPair)groupList.firstElement();
+            order = pair.value;
+        }
+        return order;
+    }
+    
     /**
      *  Adds the expanding string into the collation table.
      */
     private final void addExpandOrder(String contractChars,
                                 String expandChars,
-                                int   aStrength) throws ParseException
+                                int anOrder) throws ParseException
     {
-        EntryPair pair = new EntryPair();
-
-        // Make a expanding char table if there's not one.
-        if (expandTable == null)
-        {
-            expandTable = new Vector(INITIALTABLESIZE);
+        // Create an expansion table entry
+        int tableIndex = addExpansion(anOrder, expandChars);
+        
+        // And add its index into the main mapping table
+        if (contractChars.length() > 1) {
+            addContractOrder(contractChars, tableIndex);
+        } else {
+            addOrder(contractChars.charAt(0), tableIndex);
         }
-
-        // For expanding characters, what we stick into the main mapping table
-        // is the character's index in the expand table, plus a flag to indicate
-        // that it's an  expanding character.
-        int tmpValue = EXPANDCHARINDEX + expandTable.size();
-
-        // need to check if the entry is key or not later
-        key.setLength(0);
-        int keyValue = UNMAPPED;
-
-        if (contractChars.length() > 1)
-        {
-            // This entry is actually a string of characters that contract
-            // and then expand back into a different string.
-            // First, we have to make sure that the entry is in the contract table
-            //
-            addContractOrder(contractChars, aStrength);
-
-            // Remember the character we just added, so that the code in build() can use it
-            // to decide where to put the next character.
-            lastChar = contractChars.charAt(0);
-
-            // Now that there's a contracting-table entry for this key, set its value
-            // to the expanding character sequence
-            Vector list = getContractValues(contractChars.charAt(0));
-            int entry = UNMAPPED;
-            entry = getEntry(list, contractChars);
-            if (entry != UNMAPPED) {
-                pair = (EntryPair)list.elementAt(entry);
-                // Remember what this entry's old value was, for use below.
-                keyValue = pair.value;
-            }
-            pair.entryName = contractChars;
-            pair.value = tmpValue;
-        }
-        else
-        {
-            // There's no contraction involved, just a single character expanding
-            // into several other characters.
-
-            char ch = contractChars.charAt(0);
-            if ((keyValue = mapping.elementAt(ch)) == UNMAPPED) {
-                // This character doesn't have an entry in the mapping table yet,
-                // so make one for it.
-                addOrder(ch, aStrength);
-                lastChar = ch;
-                // Remember the ordering that we just created for this character...
-                keyValue = mapping.elementAt(lastChar);
-            } else {
-                // This character already had an ordering, which we don't want to disturb,
-                // so create a new one to use.
-                keyValue = increment(aStrength, mapping.elementAt(lastChar));
-            }
-            mapping.setElementAt(ch, tmpValue);
-        }
-
-        // Create a list of the collation orders that this expands into...
-        int[] valueList = new int[expandChars.length()+1];
-        valueList[0] = keyValue;
-
-        for (int i = 0; i < expandChars.length(); i++)
-        {
-            int mapValue = mapping.elementAt(expandChars.charAt(i));
-            if (mapValue >= CONTRACTCHARINDEX)
-            {
-                // if the expanding char is also a contracting char, look up the value
-                key.append(expandChars.charAt(i));
-                int foundValue = CHARINDEX + expandChars.charAt(i);
-                Vector list = getContractValues(expandChars.charAt(i));
-                if (list != null) {
-                    int entry = UNMAPPED;
-                    entry = getEntry(list, key.toString());
-                    if (entry != UNMAPPED) {
-                        pair = (EntryPair)list.elementAt(entry);
-                        foundValue = pair.value;
-                    }
-                }
-                key.setLength(0);
-                valueList[i+1] = foundValue;
-            }
-            else if (mapValue != UNMAPPED)
-            {
-                // can't find it in the table, will be filled in by commit().
-                valueList[i+1] = mapValue;
-            }
-            else
-            {
-                valueList[i+1] = CHARINDEX + (int)(expandChars.charAt(i));
-            }
-        }
-        // Add the expanding char list into the table, finally.
-        expandTable.addElement(valueList);
     }
 
     /**
-     *  Get the entry of hash table of the expanding string in the collation
-     *  table.
-     *  @param ch the starting character of the expanding string
+     * Create a new entry in the expansion table that contains the orderings
+     * for the given characers.  If anOrder is valid, it is added to the
+     * beginning of the expanded list of orders.
      */
-    final int[] getExpandValueList(char ch)
-    {
-        int expIndex = mapping.elementAt(ch);
-        if ((expIndex >= EXPANDCHARINDEX) &&
-            (expIndex < CONTRACTCHARINDEX))
-        {
-            int tmpIndex = expIndex - EXPANDCHARINDEX;
-            return (int[])expandTable.elementAt(tmpIndex);
+    private int addExpansion(int anOrder, String expandChars) {
+        if (expandTable == null) {
+            expandTable = new Vector(INITIALTABLESIZE);
         }
-        else
-        {
-            return null;
+        
+        // If anOrder is valid, we want to add it at the beginning of the list
+        int offset = (anOrder == UNMAPPED) ? 0 : 1;
+        
+        int[] valueList = new int[expandChars.length() + offset];
+        if (offset == 1) {
+            valueList[0] = anOrder;
         }
+
+        for (int i = 0; i < expandChars.length(); i++) {
+            char ch = expandChars.charAt(i);
+            int mapValue = getCharOrder(ch);
+            
+            if (mapValue != UNMAPPED) {
+                valueList[i+offset] = mapValue;
+            } else {
+                // can't find it in the table, will be filled in by commit().
+                valueList[i+offset] = CHARINDEX + (int)ch;
+            }
+        }
+
+        // Add the expanding char list into the expansion table.
+        int tableIndex = EXPANDCHARINDEX + expandTable.size();
+        expandTable.addElement(valueList);
+        
+        return tableIndex;
     }
+    
+    /**
+      * Return the maximum length of any expansion sequences that end
+      * with the specified comparison order.
+      *
+      * @param order a collation order returned by previous or next.
+      * @return the maximum length of any expansion seuences ending
+      *         with the specified order.
+      *
+      * @see CollationElementIterator#getMaxExpansion
+      */
+    int getMaxExpansion(int order)
+    {
+        int result = 1;
+        
+        if (expandTable != null) {
+            // Right now this does a linear search through the entire
+            // expandsion table.  If a collator had a large number of expansions,
+            // this could cause a performance problem, but in practise that
+            // rarely happens
+            for (int i = 0; i < expandTable.size(); i++) {
+                int[] valueList = (int [])expandTable.elementAt(i);
+                int length = valueList.length;
+                
+                if (length > result && valueList[length-1] == order) {
+                    result = length;
+                }
+            }
+        }
+
+        return result;
+    }
+    
     /**
      *  Get the entry of hash table of the expanding string in the collation
      *  table.
      *  @param idx the index of the expanding string value list
      */
-    final int[] getExpandValueList(int idx)
-    {
-        if (idx < expandTable.size())
-        {
-            return (int[])expandTable.elementAt(idx);
-        }
-        else
-        {
-            return null;
-        }
+    final int[] getExpandValueList(int order) {
+        return (int[])expandTable.elementAt(order - EXPANDCHARINDEX);
     }
+
     /**
      *  Get the comarison order of a character from the collation table.
      *  @return the comparison order of a character.
@@ -1090,46 +1176,6 @@ public class RuleBasedCollator extends Collator{
         return mapping.elementAt(ch);
     }
 
-    /**
-     * Check for the secondary and tertiary differences of source and
-     * target comparison orders.
-     * @return Collator.LESS if sOrder < tOrder; EQUAL if sOrder == tOrder;
-     * Collator.GREATER if sOrder > tOrder.
-     */
-    private final int checkSecTerDiff(int sOrder,
-                                      int tOrder,
-                                      int result,
-                                      boolean skipSecCheck)
-    {
-        int endResult = result;
-        if (CollationElementIterator.secondaryOrder(sOrder) !=
-            CollationElementIterator.secondaryOrder(tOrder))
-        {
-            if ((!isFrenchSec &&
-                 (result == Collator.EQUAL || strengthResult > Collator.SECONDARY)) ||
-                (isFrenchSec && !skipSecCheck))
-             {
-                strengthResult = Collator.SECONDARY;
-                if (CollationElementIterator.secondaryOrder(sOrder) <
-                    CollationElementIterator.secondaryOrder(tOrder))
-                    endResult = Collator.LESS;
-                else
-                    endResult = Collator.GREATER;
-            }
-        }
-        else if ((CollationElementIterator.tertiaryOrder(sOrder) !=
-                  CollationElementIterator.tertiaryOrder(tOrder)) &&
-                 (endResult == Collator.EQUAL))
-        {
-            strengthResult = Collator.TERTIARY;
-            if (CollationElementIterator.tertiaryOrder(sOrder) <
-                CollationElementIterator.tertiaryOrder(tOrder))
-                endResult = Collator.LESS;
-            else
-                endResult = Collator.GREATER;
-        }
-        return endResult;
-    }
     /**
      * Reverse a string.
      */
@@ -1151,12 +1197,11 @@ public class RuleBasedCollator extends Collator{
     // Proclaim compatibility with 1.1
     static final long serialVersionUID = 2822366911447564107L;
 
-    static int CHARINDEX = 0x70000000;  // need look up in .commit()
-    static int EXPANDCHARINDEX = 0x7E000000; // Expand index follows
-    static int CONTRACTCHARINDEX = 0x7F000000;  // contract indexes follow
-    static int UNMAPPED = 0xFFFFFFFF;
+    final static int CHARINDEX = 0x70000000;  // need look up in .commit()
+    final static int EXPANDCHARINDEX = 0x7E000000; // Expand index follows
+    final static int CONTRACTCHARINDEX = 0x7F000000;  // contract indexes follow
+    final static int UNMAPPED = 0xFFFFFFFF;
 
-    private final static int SHORT_MAX_VALUE = 32767;
     private final static int PRIMARYORDERINCREMENT = 0x00010000;
     private final static int MAXIGNORABLE = 0x00010000;
     private final static int SECONDARYORDERINCREMENT = 0x00000100;
@@ -1170,31 +1215,33 @@ public class RuleBasedCollator extends Collator{
     private final static int IGNORABLEMASK = 0x0000ffff;
     private final static int INITIALTABLESIZE = 20;
     private final static int MAXKEYSIZE = 5;
-    static int PRIMARYORDERSHIFT = 16;
-    static int SECONDARYORDERSHIFT = 8;
+    final static int PRIMARYORDERSHIFT = 16;
+    final static int SECONDARYORDERSHIFT = 8;
     private final static int MAXTOKENLEN = 256;
-    private final static int MAXRULELEN = 512;
     private final static int COLLATIONKEYOFFSET = 1;
 
     // these data members are reconstructed by readObject()
-    private boolean isFrenchSec = false;
-    private String ruleTable = null;
+    private transient boolean isFrenchSec = false;
+    private transient String ruleTable = null;
 
-    private CompactIntArray mapping = null;
-    private Vector   contractTable = null;
-    private Vector   expandTable = null;
+    private transient CompactIntArray mapping = null;
+    private transient Vector   contractTable = null;
+    private transient Vector   expandTable = null;
 
     // transients, only used in build or processing
     private transient MergeCollation mPattern = null;
     private transient boolean isOverIgnore = false;
-    private transient int currentOrder = 0;
     private transient short maxSecOrder = 0;
     private transient short maxTerOrder = 0;
-    private transient char lastChar;
     private transient StringBuffer key = new StringBuffer(MAXKEYSIZE);
     private transient int strengthResult = Collator.IDENTICAL;
-    private transient StringBuffer primResult = new StringBuffer(MAXTOKENLEN);
-    private transient StringBuffer secResult = new StringBuffer(MAXTOKENLEN);
-    private transient StringBuffer terResult = new StringBuffer(MAXTOKENLEN);
+    
+    // Internal objects that are cached across calls so that they don't have to
+    // be created/destroyed on every call to compare() and getCollationKey()
+    private transient StringBuffer primResult = null;
+    private transient StringBuffer secResult = null;
+    private transient StringBuffer terResult = null;
+    private transient CollationElementIterator sourceCursor = null;
+    private transient CollationElementIterator targetCursor = null;
 }
 

@@ -1,10 +1,11 @@
 /*
- * @(#)Format.java	1.16 01/12/10
+ * @(#)Format.java	1.24 98/07/10
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -103,14 +104,14 @@ import java.io.Serializable;
  * position in the formatted result. These constants should be named
  * <code><em>item</em>_FIELD</code> where <code><em>item</em></code> identifies
  * the field. For examples of these constants, see <code>ERA_FIELD</code> and its
- * friends in <a href="java.text.DateFormat.html"><code>DateFormat</code></a>.
+ * friends in {@link DateFormat}.
  *
  * @see          java.text.ParsePosition
  * @see          java.text.FieldPosition
  * @see          java.text.NumberFormat
  * @see          java.text.DateFormat
  * @see          java.text.MessageFormat
- * @version      1.16 12/10/01
+ * @version      1.24 07/10/98
  * @author       Mark Davis
  */
 public abstract class Format implements Serializable, Cloneable {
@@ -122,7 +123,7 @@ public abstract class Format implements Serializable, Cloneable {
      * @exception IllegalArgumentException when the Format cannot format the
      * type of object.
      * @see          MessageFormat
-     * @see java.text.Format#format
+     * @see java.text.Format#format(Object, StringBuffer, FieldPosition)
      */
     public final String format (Object obj) {
         return format(obj, new StringBuffer(), new FieldPosition(0)).toString();
@@ -139,7 +140,7 @@ public abstract class Format implements Serializable, Cloneable {
      * formatting for objects such as the MessageFormat.
      * @param obj    The object to format
      * @param toAppendTo    where the text is to be appended
-     * @param status    On input: an alignment field, if desired.
+     * @param pos    On input: an alignment field, if desired.
      * On output: the offsets of the alignment field.
      * @return       the value passed in as toAppendTo (this allows chaining,
      * as with StringBuffer.append())
@@ -149,8 +150,8 @@ public abstract class Format implements Serializable, Cloneable {
      * @see java.text.FieldPosition
      */
     public abstract StringBuffer format(Object obj,
-					StringBuffer toAppendTo,
-					FieldPosition pos);
+                    StringBuffer toAppendTo,
+                    FieldPosition pos);
 
     /**
      * Parses a string to produce an object.
@@ -161,7 +162,7 @@ public abstract class Format implements Serializable, Cloneable {
      *       String format (double obj);
      *       Number parse (String str);
      * </pre>
-     * @param ParsePosition Input-Output parameter.
+     * @param status Input-Output parameter.
      * <p>Before calling, set status.index to the offset you want to start
      * parsing at in the source.
      * After calling, status.index is the end of the text you parsed.
@@ -197,7 +198,8 @@ public abstract class Format implements Serializable, Cloneable {
         ParsePosition status = new ParsePosition(0);
         Object result = parseObject(source, status);
         if (status.index == 0) {
-            throw new ParseException("Format.parseObject(String) failed", 0);
+            throw new ParseException("Format.parseObject(String) failed",
+                status.errorIndex);
         }
         return result;
     }

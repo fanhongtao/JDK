@@ -1,8 +1,15 @@
 /*
- * @(#)MethodDescriptor.java	1.18 01/12/10
+ * @(#)MethodDescriptor.java	1.21 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -17,6 +24,9 @@ import java.lang.reflect.*;
 public class MethodDescriptor extends FeatureDescriptor {
 
     /**
+     * Constructs a <code>MethodDescriptor</code> from a
+     * <code>Method</code>.
+     *
      * @param method    The low-level method information.
      */
     public MethodDescriptor(Method method) {
@@ -26,6 +36,10 @@ public class MethodDescriptor extends FeatureDescriptor {
 
 
     /**
+     * Constructs a <code>MethodDescriptor</code> from a
+     * <code>Method</code> providing descriptive information for each
+     * of the method's parameters.
+     *
      * @param method    The low-level method information.
      * @param parameterDescriptors  Descriptive information for each of the
      *		 		method's parameters.
@@ -38,6 +52,8 @@ public class MethodDescriptor extends FeatureDescriptor {
     }
 
     /**
+     * Gets the method that this MethodDescriptor encapsualtes. 
+     *
      * @return The low-level description of the method
      */
     public Method getMethod() {
@@ -46,6 +62,9 @@ public class MethodDescriptor extends FeatureDescriptor {
 
 
     /**
+     * Gets the ParameterDescriptor for each of this MethodDescriptor's
+     * method's parameters.
+     *
      * @return The locale-independent names of the parameters.  May return
      *		a null array if the parameter names aren't known.
      */
@@ -67,6 +86,22 @@ public class MethodDescriptor extends FeatureDescriptor {
 	parameterDescriptors = x.parameterDescriptors;
 	if (y.parameterDescriptors != null) {
 	    parameterDescriptors = y.parameterDescriptors;
+	}
+    }
+
+    /*
+     * Package-private dup constructor
+     * This must isolate the new object from any changes to the old object.
+     */
+    MethodDescriptor(MethodDescriptor old) {
+	super(old);
+	method = old.method;	
+	if (old.parameterDescriptors != null) {
+	    int len = old.parameterDescriptors.length;
+	    parameterDescriptors = new ParameterDescriptor[len];
+	    for (int i = 0; i < len ; i++) {
+	        parameterDescriptors[i] = new ParameterDescriptor(old.parameterDescriptors[i]);
+	    }
 	}
     }
 

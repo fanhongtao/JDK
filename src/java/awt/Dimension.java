@@ -1,14 +1,25 @@
 /*
- * @(#)Dimension.java	1.15 01/12/10
+ * @(#)Dimension.java	1.21 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
+
 package java.awt;
+
+import java.awt.geom.Dimension2D;
 
 /**
  * The <code>Dimension</code> class encapsulates the width and 
- * height of a component in a single object. The class is 
+ * height of a component (in integer precision) in a single object. 
+ * The class is 
  * associated with certain properties of components. Several methods 
  * defined by the <code>Component</code> class and the 
  * <code>LayoutManager</code> interface return a 
@@ -22,22 +33,30 @@ package java.awt;
  * negative, the behavior of some methods defined by other objects is 
  * undefined. 
  * 
- * @version 	1.15, 12/10/01
+ * @version 	1.21, 09/21/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see         java.awt.Component
  * @see         java.awt.LayoutManager
  * @since       JDK1.0
  */
-public class Dimension implements java.io.Serializable {
+public class Dimension extends Dimension2D implements java.io.Serializable {
     
     /**
-     * The width dimension.
+     * The width dimension. Negative values can be used. 
+     *
+     * @serial
+     * @see getSize()
+     * @see setSize()
      */
     public int width;
 
     /**
-     * The height dimension.
+     * The height dimension. Negative values can be used. 
+     *
+     * @serial
+     * @see getSize()
+     * @see setSize()
      */
     public int height;
 
@@ -46,10 +65,20 @@ public class Dimension implements java.io.Serializable {
      */
      private static final long serialVersionUID = 4723952579491349524L;
 
+    /**
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
+
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+        initIDs();
+    }
+
     /** 
      * Creates an instance of <code>Dimension</code> with a width 
      * of zero and a height of zero. 
-     * @since   JDK1.0
      */
     public Dimension() {
 	this(0, 0);
@@ -61,7 +90,6 @@ public class Dimension implements java.io.Serializable {
      * @param    d   the specified dimension for the 
      *               <code>width</code> and 
      *               <code>height</code> values.
-     * @since    JDK1.0
      */
     public Dimension(Dimension d) {
 	this(d.width, d.height);
@@ -72,11 +100,35 @@ public class Dimension implements java.io.Serializable {
      * specified height.
      * @param width the specified width dimension
      * @param height the specified height dimension
-     * @since JDK1.0
      */
     public Dimension(int width, int height) {
 	this.width = width;
 	this.height = height;
+    }
+
+    /**
+     * Returns the width of this dimension in double precision.
+     */
+    public double getWidth() {
+	return width;
+    }
+
+    /**
+     * Returns the height of this dimension in double precision.
+     */
+    public double getHeight() {
+	return height;
+    }
+
+    /**
+     * Set the size of this Dimension object to the specified width
+     * and height in double precision.
+     * @param width  the new width for the Dimension object
+     * @param height  the new height for the Dimension object
+     */
+    public void setSize(double width, double height) {
+	width = (int) Math.ceil(width);
+	height = (int) Math.ceil(height);
     }
 
     /**
@@ -134,12 +186,15 @@ public class Dimension implements java.io.Serializable {
     }
 
     /**
-     * Returns a string that represents this 
-     * <code>Dimension</code> object's values.
-     * @return     a string representation of this dimension, 
-     *                  including the values of <code>width</code> 
-     *                  and <code>height</code>.
-     * @since      JDK1.0
+     * Returns a string representation of the values of this 
+     * <code>Dimension</code> object's <code>height</code> and 
+     * <code>width</code> fields. This method is intended to be used only 
+     * for debugging purposes, and the content and format of the returned 
+     * string may vary between implementations. The returned string may be 
+     * empty but may not be <code>null</code>.
+     * 
+     * @return  a string representation of this <code>Dimension</code> 
+     *          object.
      */
     public String toString() {
 	return getClass().getName() + "[width=" + width + ",height=" + height + "]";

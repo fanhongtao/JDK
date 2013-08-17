@@ -1,10 +1,10 @@
 /*
- * @(#)SimpleDateFormat.java	1.33 01/12/10
+ * @(#)SimpleDateFormat.java	1.43 00/04/19
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -56,7 +56,7 @@ import java.util.Hashtable;
  * with a default format pattern. You may modify the format pattern
  * using the <code>applyPattern</code> methods as desired.
  * For more information on using these methods, see
- * <a href="java.text.DateFormat.html"><code>DateFormat</code></a>.
+ * {@link DateFormat}.
  *
  * <p>
  * <strong>Time Format Syntax:</strong>
@@ -93,7 +93,7 @@ import java.util.Hashtable;
  * The count of pattern letters determine the format.
  * <p>
  * <strong>(Text)</strong>: 4 or more pattern letters--use full form,
- * &lt 4--use short or abbreviated form if one exists.
+ * &lt; 4--use short or abbreviated form if one exists.
  * <p>
  * <strong>(Number)</strong>: the minimum number of digits. Shorter
  * numbers are zero-padded to this amount. Year is handled specially;
@@ -124,18 +124,18 @@ import java.util.Hashtable;
  * </pre>
  * </blockquote>
  * <strong>Code Sample:</strong>
- * <pre>
  * <blockquote>
+ * <pre>
  * SimpleTimeZone pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, "PST");
  * pdt.setStartRule(DateFields.APRIL, 1, DateFields.SUNDAY, 2*60*60*1000);
  * pdt.setEndRule(DateFields.OCTOBER, -1, DateFields.SUNDAY, 2*60*60*1000);
- *
+ * <br>
  * // Format the current time.
  * SimpleDateFormat formatter
- *     = new SimpleDateFormat ("yyyy.mm.dd e 'at' hh:mm:ss a zzz");
+ *     = new SimpleDateFormat ("yyyy.MM.dd G 'at' hh:mm:ss a zzz");
  * Date currentTime_1 = new Date();
  * String dateString = formatter.format(currentTime_1);
- *
+ * <br>
  * // Parse the previous string back into a Date.
  * ParsePosition pos = new ParsePosition(0);
  * Date currentTime_2 = formatter.parse(dateString, pos);
@@ -156,12 +156,6 @@ import java.util.Hashtable;
  * SimpleDateFormat instance created on Jan 1, 1997,  the string
  * "01/11/12" would be interpreted as Jan 11, 2012 while the string "05/04/64"
  * would be interpreted as May 4, 1964.
- * During parsing, only strings consisting of exactly two digits, as defined by
- * <code>Character.isDigit(char)</code>, will be parsed into the default century.
- * Any other numeric string, such as a one digit string, a three or more digit
- * string, or a two digit string that isn't all digits (for example, "-1"), is
- * interpreted literally.  So "01/02/3" or "01/02/003" are parsed, using the
- * same pattern, as Jan 2, 3 AD.  Likewise, "01/02/-3" is parsed as Jan 2, 4 BC.
  *
  * <p>
  * For time zones that have no names, use strings GMT+hours:minutes or
@@ -179,7 +173,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          DateFormatSymbols
  * @see          DecimalFormat
- * @version      1.33 12/10/01
+ * @version      1.29 01/15/98
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
@@ -192,14 +186,47 @@ public class SimpleDateFormat extends DateFormat {
     // - 0 (default) for version up to JDK 1.1.3
     // - 1 for version from JDK 1.1.4, which includes a new field
     static final int currentSerialVersion = 1;
+
+    /**
+     * The version of the serialized data on the stream.  Possible values:
+     * <ul>
+     * <li><b>0</b> or not present on stream: JDK 1.1.3.  This version
+     * has no <code>defaultCenturyStart</code> on stream.
+     * <li><b>1</b> JDK 1.1.4 or later.  This version adds
+     * <code>defaultCenturyStart</code>.
+     * </ul>
+     * When streaming out this class, the most recent format
+     * and the highest allowable <code>serialVersionOnStream</code>
+     * is written.
+     * @serial
+     * @since JDK1.1.4
+     */
     private int serialVersionOnStream = currentSerialVersion;
 
+    /**
+     * The pattern string of this formatter.  This is always a non-localized
+     * pattern.  May not be null.  See class documentation for details.
+     * @serial
+     */
     private String pattern;
+
+    /**
+     * The symbols used by this formatter for week names, month names,
+     * etc.  May not be null.
+     * @serial
+     * @see java.text.DateFormatSymbols
+     */
     private DateFormatSymbols formatData;
 
-    // if dates have ambiguous years, we map them into the century starting
-    // at defaultCenturyStart, which may be any date.
-    private Date defaultCenturyStart; // field new in JDK 1.1.4
+    /**
+     * We map dates with two-digit years into the century starting at
+     * <code>defaultCenturyStart</code>, which may be any date.  May
+     * not be null.
+     * @serial
+     * @since JDK1.1.4
+     */
+    private Date defaultCenturyStart;
+
     transient private int defaultCenturyStartYear;
 
     private static final int millisPerHour = 60 * 60 * 1000;
@@ -214,8 +241,7 @@ public class SimpleDateFormat extends DateFormat {
     /**
      * Cache to hold the DateTimePatterns of a Locale.
      */
-    private static final Hashtable cachedLocaleData = new Hashtable(3);
-
+    private static Hashtable cachedLocaleData = new Hashtable(3);
 
     /**
      * Construct a SimpleDateFormat using the default pattern for the default
@@ -263,15 +289,15 @@ public class SimpleDateFormat extends DateFormat {
 
     /* Package-private, called by DateFormat factory methods */
     SimpleDateFormat(int timeStyle, int dateStyle, Locale loc) {
-	/* try the cache first */
-	String[] dateTimePatterns = (String[]) cachedLocaleData.get(loc);
-	if (dateTimePatterns == null) { /* cache miss */
-	    ResourceBundle r = ResourceBundle.getBundle
-		("java.text.resources.LocaleElements", loc);
-	    dateTimePatterns = r.getStringArray("DateTimePatterns");
-	    /* update cache */
-	    cachedLocaleData.put(loc, dateTimePatterns);
-	}
+    /* try the cache first */
+    String[] dateTimePatterns = (String[]) cachedLocaleData.get(loc);
+    if (dateTimePatterns == null) { /* cache miss */
+        ResourceBundle r = ResourceBundle.getBundle
+        ("java.text.resources.LocaleElements", loc);
+        dateTimePatterns = r.getStringArray("DateTimePatterns");
+        /* update cache */
+        cachedLocaleData.put(loc, dateTimePatterns);
+    }
 
         formatData = new DateFormatSymbols(loc);
         if ((timeStyle >= 0) && (dateStyle >= 0)) {
@@ -300,7 +326,7 @@ public class SimpleDateFormat extends DateFormat {
         numberFormat.setGroupingUsed(false);
         if (numberFormat instanceof DecimalFormat)
             ((DecimalFormat)numberFormat).setDecimalSeparatorAlwaysShown(false);
-        numberFormat.setParseIntegerOnly(true); /* So that dd.mm.yy can be parsed */
+        numberFormat.setParseIntegerOnly(true); /* So that dd.MM.yy can be parsed */
         numberFormat.setMinimumFractionDigits(0); // To prevent "Jan 1.00, 1997.00"
 
         initializeDefaultCentury();
@@ -316,7 +342,7 @@ public class SimpleDateFormat extends DateFormat {
     }
 
     /* Define one-century window into which to disambiguate dates using
-     * two-digit years. Make public in JDK 1.2.
+     * two-digit years.
      */
     private void parseAmbiguousDatesAsAfter(Date startDate) {
         defaultCenturyStart = startDate;
@@ -325,17 +351,37 @@ public class SimpleDateFormat extends DateFormat {
     }
 
     /**
+     * Sets the 100-year period 2-digit years will be interpreted as being in
+     * to begin on the date the user specifies.
+     * @param startDate During parsing, two digit years will be placed in the range
+     * <code>startDate</code> to <code>startDate + 100 years</code>.
+     */
+    public void set2DigitYearStart(Date startDate) {
+        parseAmbiguousDatesAsAfter(startDate);
+    }
+
+    /**
+     * Returns the beginning date of the 100-year period 2-digit years are interpreted
+     * as being within.
+     * @return the start of the 100-year period into which two digit years are
+     * parsed
+     */
+    public Date get2DigitYearStart() {
+        return defaultCenturyStart;
+    }
+
+    /**
      * Overrides DateFormat
      * <p>Formats a date or time, which is the standard millis
      * since January 1, 1970, 00:00:00 GMT.
      * <p>Example: using the US locale:
-     * "yyyy.MM.dd e 'at' HH:mm:ss zzz" ->> 1996.07.10 AD at 15:08:56 PDT
+     * "yyyy.MM.dd G 'at' HH:mm:ss zzz" ->> 1996.07.10 AD at 15:08:56 PDT
      * @param date the date-time value to be formatted into a date-time string.
      * @param toAppendTo where the new date-time text is to be appended.
      * @param pos the formatting position. On input: an alignment field,
      * if desired. On output: the offsets of the alignment field.
      * @return the formatted date-time string.
-     * @see java.util.DateFormat
+     * @see java.text.DateFormat
      */
     public StringBuffer format(Date date, StringBuffer toAppendTo,
                                FieldPosition pos)
@@ -346,90 +392,43 @@ public class SimpleDateFormat extends DateFormat {
         // Convert input date to time field list
         calendar.setTime(date);
 
-        boolean inQuote = false; // inQuote set true when hits 1st single quote
-        char prevCh = 0;
-        int count = 0;  // number of time pattern characters repeated
-        int interQuoteCount = 1; // Number of characters between quotes
-        for (int i=0; i<pattern.length(); ++i)
-        {
+        boolean inQuote = false; // true when between single quotes
+        char prevCh = 0; // previous pattern character
+        int count = 0;  // number of time prevCh repeated
+        for (int i=0; i<pattern.length(); ++i) {
             char ch = pattern.charAt(i);
-            if (inQuote)
-            {
-                if (ch == '\'')
-                {
-                    // ends with 2nd single quote
-                    inQuote = false;
-                    if (count == 0)
-                        toAppendTo.append(ch);  // two consecutive quotes outside a quote: ''
-                    else count = 0;
-                    interQuoteCount = 0;
-                }
-                else
-                {
-                    toAppendTo.append(ch);
-                    count++;
-                }
+            // Use subFormat() to format a repeated pattern character
+            // when a different pattern or non-pattern character is seen
+            if (ch != prevCh && count > 0) {
+                toAppendTo.append(
+                        subFormat(prevCh, count, toAppendTo.length(), pos));
+                count = 0;
             }
-            else // !inQuote
-            {
-                if (ch == '\'')
-                {
-                    inQuote = true;
-                    if (count > 0) // handle cases like: yyyy'....
-                    {
-                        toAppendTo.append(subFormat(prevCh, count,
-                                                    toAppendTo.length(),
-                                                    pos));
-                        count = 0;
-                        prevCh = 0;
-                    }
-
-                    // We count characters between quotes so we can recognize
-                    // two single quotes inside a quote.  Example: 'o''clock'.
-                    if (interQuoteCount == 0)
-                    {
-                        toAppendTo.append(ch);
-                        count = 1; // Make it look like we never left.
-                    }
+            if (ch == '\'') {
+                // Consecutive single quotes are a single quote literal,
+                // either outside of quotes or between quotes
+                if ((i+1)<pattern.length() && pattern.charAt(i+1) == '\'') {
+                    toAppendTo.append('\'');
+                    ++i;
+                } else {
+                    inQuote = !inQuote;
                 }
-                else if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z')
-                {
-                    // ch is a date-time pattern
-                    if (ch != prevCh && count > 0) //handle cases: eg, yyyyMMdd
-                    {
-                        toAppendTo.append(subFormat(prevCh, count,
-                                                    toAppendTo.length(),
-                                                    pos));
-                        prevCh = ch;
-                        count = 1;
-                    }
-                    else
-                    {
-                        if (ch != prevCh)
-                            prevCh = ch;
-                        count++;
-                    }
-                }
-                else if (count > 0) // handle cases like: MM-dd-yy or HH:mm:ss
-                {
-                    toAppendTo.append(subFormat(prevCh, count,
-                                                toAppendTo.length(),
-                                                pos));
-                    toAppendTo.append(ch);
-                    prevCh = 0;
-                    count = 0;
-                }
-                else // any other unquoted characters
-                    toAppendTo.append(ch);
-
-                ++interQuoteCount;
+            } else if (!inQuote
+                       && (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z')) {
+                // ch is a date-time pattern character to be interpreted
+                // by subFormat(); count the number of times it is repeated
+                prevCh = ch;
+                ++count;
+            }
+            else {
+                // Append quoted characters and unquoted non-pattern characters
+                toAppendTo.append(ch);
             }
         }
-        // Format the last item in the pattern
-        if (count > 0)
-        {
-            toAppendTo.append(subFormat(prevCh, count,
-                                        toAppendTo.length(), pos));
+        // Format the last item in the pattern, if any
+        if (count > 0) {
+            toAppendTo.append(
+                    subFormat(prevCh, count, toAppendTo.length(), pos));
         }
         return toAppendTo;
     }
@@ -608,7 +607,7 @@ public class SimpleDateFormat extends DateFormat {
 
     /**
      * Overrides DateFormat
-     * @see java.util.DateFormat
+     * @see java.text.DateFormat
      */
     public Date parse(String text, ParsePosition pos)
     {
@@ -637,9 +636,10 @@ public class SimpleDateFormat extends DateFormat {
                     // a quote literal we need to match.
                     if (count == 0)
                     {
-                        if (ch != text.charAt(start))
+                        if (start >= text.length() || ch != text.charAt(start))
                         {
                             pos.index = oldStart;
+                            pos.errorIndex = start;
                             return null;
                         }
                         ++start;
@@ -650,11 +650,12 @@ public class SimpleDateFormat extends DateFormat {
                 else
                 {
                     // pattern uses text following from 1st single quote.
-                    if (ch != text.charAt(start)) {
+                    if (start >= text.length() || ch != text.charAt(start)) {
                         // Check for cases like: 'at' in pattern vs "xt"
                         // in time text, where 'a' doesn't match with 'x'.
                         // If fail to match, return null.
                         pos.index = oldStart; // left unchanged
+                        pos.errorIndex = start;
                         return null;
                     }
                     ++count;
@@ -668,9 +669,11 @@ public class SimpleDateFormat extends DateFormat {
                     inQuote = true;
                     if (count > 0) // handle cases like: e'at'
                     {
+                        int startOffset = start;
                         start=subParse(text, start, prevCh, count,
                                        false, ambiguousYear);
                         if ( start<0 ) {
+                            pos.errorIndex = startOffset;
                             pos.index = oldStart;
                             return null;
                         }
@@ -682,8 +685,10 @@ public class SimpleDateFormat extends DateFormat {
                         // This indicates two consecutive quotes inside a quote,
                         // for example, 'o''clock'.  We need to parse this as
                         // representing a single quote within the quote.
-                        if (ch != text.charAt(start))
+                        int startOffset = start;
+                        if (start >= text.length() ||  ch != text.charAt(start))
                         {
+                            pos.errorIndex = startOffset;
                             pos.index = oldStart;
                             return null;
                         }
@@ -694,8 +699,9 @@ public class SimpleDateFormat extends DateFormat {
                 else if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z')
                 {
                     // ch is a date-time pattern
-                    if (ch != prevCh && count > 0) // e.g., yyyymmdd
+                    if (ch != prevCh && count > 0) // e.g., yyyyMMdd
                     {
+                        int startOffset = start;
                         // This is the only case where we pass in 'true' for
                         // obeyCount.  That's because the next field directly
                         // abuts this one, so we have to use the count to know when
@@ -703,6 +709,7 @@ public class SimpleDateFormat extends DateFormat {
                         start = subParse(text, start, prevCh, count, true,
                                          ambiguousYear);
                         if (start < 0) {
+                            pos.errorIndex = startOffset;
                             pos.index = oldStart;
                             return null;
                         }
@@ -720,15 +727,18 @@ public class SimpleDateFormat extends DateFormat {
                 {
                     // handle cases like: MM-dd-yy, HH:mm:ss, or yyyy MM dd,
                     // where ch = '-', ':', or ' ', repectively.
+                    int startOffset = start;
                     start=subParse(text, start, prevCh, count,
                                    false, ambiguousYear);
                     if ( start < 0 ) {
+                        pos.errorIndex = startOffset;
                         pos.index = oldStart;
                         return null;
                     }
                     if (start >= text.length() || ch != text.charAt(start)) {
                         // handle cases like: 'MMMM dd' in pattern vs. "janx20"
                         // in time text, where ' ' doesn't match with 'x'.
+                        pos.errorIndex = start;
                         pos.index = oldStart;
                         return null;
                     }
@@ -738,10 +748,11 @@ public class SimpleDateFormat extends DateFormat {
                 }
                 else // any other unquoted characters
                 {
-                    if (ch != text.charAt(start)) {
+                    if (start >= text.length() || ch != text.charAt(start)) {
                         // handle cases like: 'MMMM   dd' in pattern vs.
                         // "jan,,,20" in time text, where "   " doesn't
                         // match with ",,,".
+                        pos.errorIndex = start;
                         pos.index = oldStart;
                         return null;
                     }
@@ -754,10 +765,12 @@ public class SimpleDateFormat extends DateFormat {
         // Parse the last item in the pattern
         if (count > 0)
         {
+            int startOffset = start;
             start=subParse(text, start, prevCh, count,
                            false, ambiguousYear);
             if ( start < 0 ) {
                 pos.index = oldStart;
+                pos.errorIndex = startOffset;
                 return null;
             }
         }
@@ -812,6 +825,7 @@ public class SimpleDateFormat extends DateFormat {
         // An IllegalArgumentException will be thrown by Calendar.getTime()
         // if any fields are out of range, e.g., MONTH == 17.
         catch (IllegalArgumentException e) {
+            pos.errorIndex = start;
             pos.index = oldStart;
             return null;
         }
@@ -908,6 +922,7 @@ public class SimpleDateFormat extends DateFormat {
             (patternCharIndex == 2 /*MONTH_FIELD*/ && count <= 2) ||
             patternCharIndex == 1 /*YEAR*/)
         {
+            int parseStart = pos.getIndex(); // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
             // It would be good to unify this with the obeyCount logic below,
             // but that's going to be difficult.
             if (obeyCount)
@@ -916,7 +931,10 @@ public class SimpleDateFormat extends DateFormat {
                 number = numberFormat.parse(text.substring(0, start+count), pos);
             }
             else number = numberFormat.parse(text, pos);
-            if (number == null) return -start;
+            if (number == null
+                // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                || pos.getIndex() == parseStart)
+                return -start;
             value = number.intValue();
         }
 
@@ -1009,18 +1027,15 @@ public class SimpleDateFormat extends DateFormat {
                 //    GMT[+-]hours:minutes or
                 //    GMT[+-]hhmm or
                 //    GMT.
-                if (text.regionMatches(true,start, GMT, 0, GMT.length()))
+                if ((text.length() - start) > GMT.length() &&
+                    text.regionMatches(true, start, GMT, 0, GMT.length()))
                 {
                     calendar.set(Calendar.DST_OFFSET, 0);
 
                     pos.index = start + GMT.length();
-                    
-                    if (pos.index == text.length()) {
-                          calendar.set(Calendar.ZONE_OFFSET, 0 );
-                          return pos.index;
-                    }
-                    else if( text.charAt(pos.index) == '+' )
-                        sign = 1; 
+
+                    if( text.charAt(pos.index) == '+' )
+                        sign = 1;
                     else if( text.charAt(pos.index) == '-' )
                         sign = -1;
                     else {
@@ -1030,16 +1045,24 @@ public class SimpleDateFormat extends DateFormat {
 
                     // Look for hours:minutes or hhmm.
                     pos.index++;
+                    // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                    int parseStart = pos.getIndex();
                     Number tzNumber = numberFormat.parse(text, pos);
-                    if( tzNumber == null ) {
+                    if( tzNumber == null
+                        // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                        || pos.getIndex() == parseStart) {
                         return -start;
                     }
                     if( text.charAt(pos.index) == ':' ) {
                         // This is the hours:minutes case
                         offset = tzNumber.intValue() * 60;
                         pos.index++;
+                        // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                        parseStart = pos.getIndex();
                         tzNumber = numberFormat.parse(text, pos);
-                        if( tzNumber == null ) {
+                        if( tzNumber == null
+                            // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                            || pos.getIndex() == parseStart) {
                             return -start;
                         }
                         offset += tzNumber.intValue();
@@ -1088,8 +1111,12 @@ public class SimpleDateFormat extends DateFormat {
                     // its best with numbers that aren't strictly 4 digits long.
                     DecimalFormat fmt = new DecimalFormat("+####;-####");
                     fmt.setParseIntegerOnly(true);
+                    // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                    int parseStart = pos.getIndex();
                     Number tzNumber = fmt.parse( text, pos );
-                    if( tzNumber == null ) {
+                    if( tzNumber == null
+                        // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                        || pos.getIndex() == parseStart) {
                         return -start;   // Wasn't actually a number.
                     }
                     offset = tzNumber.intValue();
@@ -1138,6 +1165,8 @@ public class SimpleDateFormat extends DateFormat {
             // case 13: // 'W' - WEEK_OF_MONTH
             // case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
 
+            // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+            int parseStart = pos.getIndex();
             // Handle "generic" fields
             if (obeyCount)
             {
@@ -1145,8 +1174,9 @@ public class SimpleDateFormat extends DateFormat {
                 number = numberFormat.parse(text.substring(0, start+count), pos);
             }
             else number = numberFormat.parse(text, pos);
-            if (number != null)
-            {
+            if (number != null
+                // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
+                && pos.getIndex() != parseStart) {
                 calendar.set(field, number.intValue());
                 return pos.index;
             }

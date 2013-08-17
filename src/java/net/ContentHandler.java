@@ -1,8 +1,15 @@
 /*
- * @(#)ContentHandler.java	1.9 01/12/10
+ * @(#)ContentHandler.java	1.10 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -27,7 +34,7 @@ import java.io.IOException;
  * <code>getContent</code> method is called to create the object. 
  *
  * @author  James Gosling
- * @version 1.9, 12/10/01
+ * @version 1.10, 09/21/98
  * @see     java.net.ContentHandler#getContent(java.net.URLConnection)
  * @see     java.net.ContentHandlerFactory
  * @see     java.net.URL#getContent()
@@ -45,7 +52,6 @@ abstract public class ContentHandler {
      * @param      urlc   a URL connection.
      * @return     the object read by the <code>ContentHandler</code>.
      * @exception  IOException  if an I/O error occurs while reading the object.
-     * @since      JDK1.0
      */
     abstract public Object getContent(URLConnection urlc) throws IOException;
 }

@@ -1,17 +1,20 @@
 /*
- * @(#)LineBreakData.java	1.9 01/12/10
+ * @(#)LineBreakData.java	1.12 98/07/24
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -69,6 +72,10 @@ final class LineBreakData extends TextBoundaryData
     private static final byte SI = (byte)0x80;
     private static final byte STOP = (byte) 0;
     private static final byte SI_STOP = (byte)SI + STOP;
+
+    public LineBreakData() {
+        super(kLineForward, kLineBackward, kLineMap);
+    }
 
     private static final byte kLineForwardData[] =
     {
@@ -293,6 +300,9 @@ final class LineBreakData extends TextBoundaryData
         new SpecialMapping(CJK_COMPATIBILITY_F900,
                            CJK_COMPATIBILITY_FA2D, jwrd),
         new SpecialMapping(UNICODE_ZERO_WIDTH_NON_BREAKING_SPACE, nbsp),
+        new SpecialMapping(FULLWIDTH_EXCLAMATION_MARK, postJwrd),
+        new SpecialMapping(FULLWIDTH_FULL_STOP, postJwrd),
+        new SpecialMapping(FULLWIDTH_QUESTION_MARK, postJwrd),
         new SpecialMapping(END_OF_STRING, EOS)
     };
 
@@ -369,48 +379,33 @@ final class LineBreakData extends TextBoundaryData
             blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
         //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
             blank,  blank,  blank,  blank,  blank,  blank,  blank,  blank,
-        //  nbsp   ¡         ¢         £         ¤         ¥         ¦
+        //  nbsp      inv-!     cents     pounds    currency  yen       broken-bar  section
             nbsp,  nonBlank, postJwrd, currency, currency, currency, nonBlank, nonBlank,
-        //  ¨         ©         ª         «        ¬         ­   ®         ¯
+        //  umlaut    copyright super-a   gui-left  not       soft-hyph registered  macron
             nonBlank, nonBlank, nonBlank, preJwrd, nonBlank, op, nonBlank, nonBlank,
-        //  °         ±         ²         ³         ´         µ         ¶         ·
+        //  degree    +/-       super-2   super-3   acute     micro     paragraph  bullet
             postJwrd, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  ¸         ¹         º         »         ¼         ½         ¾         ¿
+        //  cedilla   super-1   super-o   gui-right 1/4       1/2       3/4      inv-?
             nonBlank, nonBlank, nonBlank, postJwrd, digit,    digit,    digit,    nonBlank,
-        //  À         Á         Â         Ã         Ä         Å         Æ         Ç
+        //  A-grave   A-acute   A-hat     A-tilde   A-umlaut A-ring    AE        C-cedilla
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  È         É         Ê         Ë         Ì         Í         Î         Ï
+        //  E-grave   E-acute   E-hat     E-umlaut  I-grave   I-acute   I-hat    I-umlaut
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  Ð         Ñ         Ò         Ó         Ô         Õ         Ö         ×
+        //  Edh       N-tilde   O-grave   O-acute   O-hat     O-tilde   O-umlaut times
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  Ø         Ù         Ú         Û         Ü         Ý         Þ         ß
+        //  O=slash   U-grave   U-acute   U-hat     U-umlaut  Y-acute   Thorn    ess-zed
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  à         á         â         ã         ä         å         æ         ç
+        //  a-grave   a-acute   a-hat     a-tilde   a-umlaut  a-ring    ae       c-cedilla
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  è         é         ê         ë         ì         í         î         ï
+        //  e-grave   e-acute   e-hat     e-umlaut  i-grave   i-acute   i-hat    i-umlaut
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  ð         ñ         ò         ó         ô         õ         ö         ÷
+        //  edh       n-tilde   o-grave   o-acute   o-hat     o-tilde   o-umlaut  over
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank,
-        //  ø         ù         ú         û         ü         ý         þ         ÿ
+        //  o-slash   u-grave   u-acute   u-hat     u-umlaut  y-acute   thorn    y=umlaut
             nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank, nonBlank
     };
 
     private static final UnicodeClassMapping kLineMap
         = new UnicodeClassMapping(kRawMapping, kExceptionChar, LineExceptionFlags,
         kLineAsciiValues);
-
-    public WordBreakTable forward()
-    {
-        return kLineForward;
-    }
-
-    public WordBreakTable backward()
-    {
-        return kLineBackward;
-    }
-
-    public UnicodeClassMapping map()
-    {
-        return kLineMap;
-    }
 }

@@ -1,10 +1,10 @@
 /*
- * @(#)CompactStringArray.java	1.10 01/12/10
+ * @(#)CompactStringArray.java	1.12 98/03/18
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -51,7 +51,7 @@ package java.text;
  * @see                CompactByteArray
  * @see                CompactIntArray
  * @see                CompactCharArray
- * @version            1.10 12/10/01
+ * @version            1.12 03/18/98
  * @author             Helena Shih
  */
 final class CompactStringArray implements Cloneable {

@@ -1,17 +1,20 @@
 /*
- * @(#)SentenceBreakData.java	1.10 01/12/10
+ * @(#)SentenceBreakData.java	1.17 98/08/11
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -60,90 +63,86 @@ final class SentenceBreakData extends TextBoundaryData
     private static final byte number = 10;
 
     private static final byte quote = 11;
-
-    private static final byte sent_cr = 12;
-    private static final byte nsm = 13;
-    private static final byte EOS = 14;
+    private static final byte nsm = 12;
+    private static final byte EOS = 13;
 
     // digit
-    private static final int COL_COUNT = 15;
+    private static final int COL_COUNT = 14;
 
     private static final byte SI = (byte)0x80;
     private static final byte STOP = (byte) 0;
     private static final byte SI_STOP = (byte)SI + STOP;
+
+    public SentenceBreakData() {
+        super(kSentenceForward, kSentenceBackward, kSentenceMap);
+    }
 
     private static final byte kSentenceForwardData[] =
     {
         // other       space          terminator     ambTerm
         // open        close          CJK            PB
         // lower       upper          digit          Quote
-        // cr          nsm            EOS
+        // nsm            EOS
 
         // 0
         STOP,          STOP,          STOP,          STOP,
         STOP,          STOP,          STOP,          STOP,
         STOP,          STOP,          STOP,          STOP,
-        STOP,          STOP,          STOP,
+        STOP,          STOP,
 
         // 1
         (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+2),  (byte)(SI+5),
         (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+4),
-        (byte)(SI+1),  (byte)(SI+8),  (byte)(SI+9),  (byte)(SI+1),
-        (byte)(SI+10), (byte)(SI+1),  SI_STOP,
+        (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+1),
+        (byte)(SI+1),  SI_STOP,
 
         // 2
         SI_STOP,       (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+5),
-        (byte)(SI+1),  (byte)(SI+2),  SI_STOP,       (byte)(SI+4),
+        SI_STOP,       (byte)(SI+2),  SI_STOP,       (byte)(SI+4),
         SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+2),
-        (byte)(SI+10), (byte)(SI+2),  SI_STOP,
+        (byte)(SI+2),  SI_STOP,
 
         // 3
         SI_STOP,       (byte)(SI+3),  SI_STOP,       SI_STOP,
         SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+4),
         SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
-        (byte)(SI+10), (byte)(SI+3),  SI_STOP,
+        (byte)(SI+3),  SI_STOP,
 
         // 4
         SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
         SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
         SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
-        SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,
 
         // 5
-        SI_STOP,       (byte)(SI+6),  (byte)(SI+2),  (byte)(SI+5),
+        (byte)(SI+1),  (byte)(SI+6),  (byte)(SI+2),  (byte)(SI+5),
         (byte)(SI+1),  (byte)(SI+5),  SI_STOP,       (byte)(SI+4),
-        (byte)(SI+1),  SI_STOP,       SI_STOP,       (byte)(SI+5),
-        (byte)(SI+10), (byte)(SI+5),  SI_STOP,
+        (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+5),
+        (byte)(SI+5),  SI_STOP,
 
         // 6
         SI_STOP,       (byte)(SI+6),  SI_STOP,       SI_STOP,
         (byte)(SI+7),  (byte)(SI+1),  SI_STOP,       (byte)(SI+4),
         (byte)(SI+1),  SI_STOP,       (byte)(SI+1),  SI_STOP,
-        (byte)(SI+10), (byte)(SI+6),  SI_STOP,
+        (byte)(SI+6),  SI_STOP,
 
         // 7
         SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
         (byte)(7),     SI_STOP,       SI_STOP,       SI_STOP,
         (byte)(SI+1),  STOP,          SI_STOP,       SI_STOP,
-        SI_STOP,       (byte)(SI+7),  SI_STOP,
+        (byte)(SI+7),  SI_STOP,
 
         // 8
         (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+2),  (byte)(SI+8),
-        (byte)(SI+1),  (byte)(SI+5),  SI_STOP,       (byte)(SI+4),
+        (byte)(SI+1),  (byte)(SI+5),  (byte)(SI+1),  (byte)(SI+4),
         (byte)(SI+1),  (byte)(SI+8),  (byte)(SI+9),  (byte)(SI+5),
-        (byte)(SI+10), (byte)(SI+8),  SI_STOP,
+        (byte)(SI+8),  SI_STOP,
 
         // 9
         (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+2),  (byte)(SI+9),
-        (byte)(SI+1),  (byte)(SI+5),  SI_STOP,       (byte)(SI+4),
+        (byte)(SI+1),  (byte)(SI+5),  (byte)(SI+1),  (byte)(SI+4),
         (byte)(SI+1),  (byte)(SI+1),  (byte)(SI+9),  (byte)(SI+5),
-        (byte)(SI+10), (byte)(SI+9),  SI_STOP,
-
-        // 10
-        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
-        SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+4),
-        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
-        SI_STOP,       SI_STOP,       SI_STOP
+        (byte)(SI+9),  SI_STOP
     };
 
     private static final WordBreakTable kSentenceForward
@@ -154,37 +153,37 @@ final class SentenceBreakData extends TextBoundaryData
         // other       space          terminator     ambTerm
         // open        close          CJK            PB
         // lower       upper          digit          quote
-        // cr          nsm            EOS
+        // nsm            EOS
 
         // 0
         STOP,          STOP,          STOP,          STOP,
         STOP,          STOP,          STOP,          STOP,
         STOP,          STOP,          STOP,          STOP,
-        STOP,          STOP,          STOP,
+        STOP,          STOP,
 
         // 1
         (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+2),
         (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+3),  STOP,
         (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+2),
-        (byte)(SI+2),  (byte)(SI+1),  STOP,
+        (byte)(SI+1),  STOP,
 
         // 2
         (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+2),
         (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+3),  STOP,
         (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+2),
-        STOP,          (byte)(SI+2),  STOP,
+        (byte)(SI+2),  STOP,
 
         // 3
         (byte)(SI+2),  (byte)(SI+4),  (byte)(SI+2),  (byte)(SI+2),
         (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+3),  STOP,
         (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+2),
-        STOP,          (byte)(SI+3),  STOP,
+        (byte)(SI+3),  STOP,
 
         // 4
         (byte)(SI+2),  (byte)(SI+4),  SI_STOP,       SI_STOP,
         (byte)(SI+2),  (byte)(SI+2),  (byte)(SI+3),  STOP,
         (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+2),  (byte)(SI+2),
-        STOP,          (byte)(SI+4),  STOP
+        (byte)(SI+4),  STOP
     };
 
     private static final WordBreakTable kSentenceBackward
@@ -223,7 +222,7 @@ final class SentenceBreakData extends TextBoundaryData
         other,        // OTHER_SYMBOL           = 28;
     };
 
-    private static SpecialMapping kExceptionChar[] =
+    private static final SpecialMapping kExceptionChar[] =
     {
         //note: the ranges in this table must be sorted in ascending order
         //as required by the UnicodeClassMapping class.
@@ -251,6 +250,9 @@ final class SentenceBreakData extends TextBoundaryData
         new SpecialMapping(UNICODE_LOW_BOUND_HAN, UNICODE_HIGH_BOUND_HAN, cjk),
         new SpecialMapping(CJK_COMPATIBILITY_F900, CJK_COMPATIBILITY_FA2D,cjk),
         new SpecialMapping(UNICODE_ZERO_WIDTH_NON_BREAKING_SPACE, other),
+        new SpecialMapping(FULLWIDTH_EXCLAMATION_MARK, terminator),
+        new SpecialMapping(FULLWIDTH_FULL_STOP, ambiguosTerm),
+        new SpecialMapping(FULLWIDTH_QUESTION_MARK, terminator),
         new SpecialMapping(END_OF_STRING, EOS)
     };
 
@@ -327,49 +329,34 @@ final class SentenceBreakData extends TextBoundaryData
             other,  other,  other,  other,  other,  other,  other,  other,
         //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
             other,  other,  other,  other,  other,  other,  other,  other,
-        //  nbsp    ¡       ¢       £       ¤       ¥       ¦
+        //  nbsp      inv-!     cents     pounds    currency  yen       broken-bar  section
             other,  other,  other,  other,  other,  other,  other,  other,
-        //  ¨       ©       ª          «            ¬      ­      ®      ¯
+        //  umlaut    copyright super-a   gui-left  not       soft-hyph registered  macron
             other,  other,  lowerCase, openBracket, other, other, other, other,
-        //  °       ±       ²       ³       ´       µ          ¶      ·
+        //  degree    +/-       super-2   super-3   acute     micro     paragraph  bullet
             other,  other,  number, number, other,  lowerCase, other, other,
-        //  ¸       ¹          º      »             ¼       ½       ¾       ¿
+        //  cedilla   super-1   super-o   gui-right 1/4       1/2       3/4      inv-?
             other,  lowerCase, other, closeBracket, number, number, number, other,
-        //  À          Á          Â          Ã          Ä          Å          Æ          Ç
+        //  A-grave   A-acute   A-hat     A-tilde   A-umlaut A-ring    AE        C-cedilla
             upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, upperCase,
-        //  È          É          Ê          Ë          Ì          Í          Î          Ï
+        //  E-grave   E-acute   E-hat     E-umlaut  I-grave   I-acute   I-hat    I-umlaut
             upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, upperCase,
-        //  Ð          Ñ          Ò          Ó          Ô          Õ          Ö          ×
+        //  Edh       N-tilde   O-grave   O-acute   O-hat     O-tilde   O-umlaut times
             upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, other,
-        //  Ø          Ù          Ú          Û          Ü          Ý          Þ          ß
+        //  O=slash   U-grave   U-acute   U-hat     U-umlaut  Y-acute   Thorn    ess-zed
             upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, upperCase, lowerCase,
-        //  à          á          â          ã          ä          å          æ          ç
+        //  a-grave   a-acute   a-hat     a-tilde   a-umlaut  a-ring    ae       c-cedilla
             lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase,
-        //  è          é          ê          ë          ì          í          î          ï
+        //  e-grave   e-acute   e-hat     e-umlaut  i-grave   i-acute   i-hat    i-umlaut
             lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase,
-        //  ð          ñ          ò          ó          ô          õ          ö          ÷
+        //  edh       n-tilde   o-grave   o-acute   o-hat     o-tilde   o-umlaut  over
             lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, other,
-        //  ø          ù          ú          û          ü          ý          þ          ÿ
+        //  o-slash   u-grave   u-acute   u-hat     u-umlaut  y-acute   thorn    y=umlaut
             lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase, lowerCase
     };
 
     private static final UnicodeClassMapping kSentenceMap
         = new UnicodeClassMapping(kRawMapping, kExceptionChar, SentenceExceptionFlags,
         kSentenceAsciiValues);
-
-    public WordBreakTable forward()
-    {
-        return kSentenceForward;
-    }
-
-    public WordBreakTable backward()
-    {
-        return kSentenceBackward;
-    }
-
-    public UnicodeClassMapping map()
-    {
-        return kSentenceMap;
-    }
 }
 

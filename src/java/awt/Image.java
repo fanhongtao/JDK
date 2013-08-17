@@ -1,8 +1,15 @@
 /*
- * @(#)Image.java	1.25 01/12/10
+ * @(#)Image.java	1.26 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -18,7 +25,7 @@ import java.awt.image.ReplicateScaleFilter;
  * classes that represent graphical images. The image must be 
  * obtained in a platform-specific manner.
  *
- * @version 	1.25, 12/10/01
+ * @version 	1.26, 09/21/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -33,7 +40,6 @@ public abstract class Image {
      *                   if the width is not yet known.
      * @see       java.awt.Image#getHeight
      * @see       java.awt.image.ImageObserver
-     * @since     JDK1.0
      */
     public abstract int getWidth(ImageObserver observer);
 
@@ -46,7 +52,6 @@ public abstract class Image {
      *                   if the height is not yet known.
      * @see       java.awt.Image#getWidth
      * @see       java.awt.image.ImageObserver
-     * @since     JDK1.0
      */
     public abstract int getHeight(ImageObserver observer);
 
@@ -66,7 +71,6 @@ public abstract class Image {
      * @return  a graphics context to draw to the off-screen image. 
      * @see     java.awt.Graphics
      * @see     java.awt.Component#createImage(int, int)
-     * @since   JDK1.0
      */
     public abstract Graphics getGraphics();
 
@@ -89,14 +93,12 @@ public abstract class Image {
      * @return      the value of the named property.
      * @see         java.awt.image.ImageObserver
      * @see         java.awt.Image#UndefinedProperty
-     * @since       JDK1.0
      */
     public abstract Object getProperty(String name, ImageObserver observer);
 
     /**
      * The <code>UndefinedProperty</code> object should be returned whenever a
      * property which was not defined for a particular image is fetched.
-     * @since    JDK1.0
      */
     public static final Object UndefinedProperty = new Object();
 
@@ -183,7 +185,6 @@ public abstract class Image {
      * a state similar to when it was first created so that if it is
      * again rendered, the image data will have to be recreated or
      * fetched again from its source.
-     * @since JDK1.0
      */
     public abstract void flush();
 }

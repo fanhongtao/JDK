@@ -1,8 +1,15 @@
 /*
- * @(#)PrintWriter.java	1.14 01/12/10
+ * @(#)PrintWriter.java	1.19 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -23,7 +30,7 @@ package java.io;
  * <p> Methods in this class never throw I/O exceptions.  The client may
  * inquire as to whether any errors have occurred by invoking checkError().
  *
- * @version 	1.11, 97/01/27
+ * @version 	1.19, 98/06/29
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1
@@ -31,7 +38,14 @@ package java.io;
 
 public class PrintWriter extends Writer {
 
-    private Writer out;
+    /**
+     * The underlying character-output stream of this
+     * <code>PrintWriter</code>.
+     *
+     * @since JDK1.2
+     */
+    protected Writer out;
+
     private boolean autoFlush = false;
     private boolean trouble = false;
 
@@ -62,7 +76,8 @@ public class PrintWriter extends Writer {
 	super(out);
 	this.out = out;
 	this.autoFlush = autoFlush;
-	lineSeparator = System.getProperty("line.separator");
+	lineSeparator = (String) java.security.AccessController.doPrivileged(
+               new sun.security.action.GetPropertyAction("line.separator"));
     }
 
     /**
@@ -238,42 +253,110 @@ public class PrintWriter extends Writer {
 
     /* Methods that do not terminate lines */
 
-    /** Print a boolean. */
+    /**
+     * Print a boolean value.  The string produced by <code>{@link
+     * java.lang.String#valueOf(boolean)}</code> is translated into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link
+     * #write(int)}</code> method.
+     *
+     * @param      b   The <code>boolean</code> to be printed
+     */
     public void print(boolean b) {
 	write(b ? "true" : "false");
     }
 
-    /** Print a character. */
+    /**
+     * Print a character.  The character is translated into one or more bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link
+     * #write(int)}</code> method.
+     *
+     * @param      c   The <code>char</code> to be printed
+     */
     public void print(char c) {
 	write(String.valueOf(c));
     }
 
-    /** Print an integer. */
+    /**
+     * Print an integer.  The string produced by <code>{@link
+     * java.lang.String#valueOf(int)}</code> is translated into bytes according
+     * to the platform's default character encoding, and these bytes are
+     * written in exactly the manner of the <code>{@link #write(int)}</code>
+     * method.
+     *
+     * @param      i   The <code>int</code> to be printed
+     * @see        java.lang.Integer#toString(int)
+     */
     public void print(int i) {
 	write(String.valueOf(i));
     }
 
-    /** Print a long. */
+    /**
+     * Print a long integer.  The string produced by <code>{@link
+     * java.lang.String#valueOf(long)}</code> is translated into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}</code>
+     * method.
+     *
+     * @param      l   The <code>long</code> to be printed
+     * @see        java.lang.Long#toString(long)
+     */
     public void print(long l) {
 	write(String.valueOf(l));
     }
 
-    /** Print a float. */
+    /**
+     * Print a floating-point number.  The string produced by <code>{@link
+     * java.lang.String#valueOf(float)}</code> is translated into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}</code>
+     * method.
+     *
+     * @param      f   The <code>float</code> to be printed
+     * @see        java.lang.Float#toString(float)
+     */
     public void print(float f) {
 	write(String.valueOf(f));
     }
 
-    /** Print a double. */
+    /**
+     * Print a double-precision floating-point number.  The string produced by
+     * <code>{@link java.lang.String#valueOf(double)}</code> is translated into
+     * bytes according to the platform's default character encoding, and these
+     * bytes are written in exactly the manner of the <code>{@link
+     * #write(int)}</code> method.
+     *
+     * @param      d   The <code>double</code> to be printed
+     * @see        java.lang.Double#toString(double)
+     */
     public void print(double d) {
 	write(String.valueOf(d));
     }
 
-    /** Print an array of chracters. */
+    /**
+     * Print an array of characters.  The characters are converted into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}</code>
+     * method.
+     *
+     * @param      s   The array of chars to be printed
+     *
+     * @throws  NullPointerException  If <code>s</code> is <code>null</code>
+     */
     public void print(char s[]) {
 	write(s);
     }
 
-    /** Print a String. */
+    /**
+     * Print a string.  If the argument is <code>null</code> then the string
+     * <code>"null"</code> is printed.  Otherwise, the string's characters are
+     * converted into bytes according to the platform's default character
+     * encoding, and these bytes are written in exactly the manner of the
+     * <code>{@link #write(int)}</code> method.
+     *
+     * @param      s   The <code>String</code> to be printed
+     */
     public void print(String s) {
 	if (s == null) {
 	    s = "null";
@@ -281,7 +364,16 @@ public class PrintWriter extends Writer {
 	write(s);
     }
 
-    /** Print an object. */
+    /**
+     * Print an object.  The string produced by the <code>{@link
+     * java.lang.String#valueOf(Object)}</code> method is translated into bytes
+     * according to the platform's default character encoding, and these bytes
+     * are written in exactly the manner of the <code>{@link #write(int)}</code>
+     * method.
+     *
+     * @param      obj   The <code>Object</code> to be printed
+     * @see        java.lang.Object#toString()
+     */
     public void print(Object obj) {
 	write(String.valueOf(obj));
     }
@@ -289,82 +381,121 @@ public class PrintWriter extends Writer {
 
     /* Methods that do terminate lines */
 
-    /** Finish the line. */
+    /**
+     * Terminate the current line by writing the line separator string.  The
+     * line separator string is defined by the system property
+     * <code>line.separator</code>, and is not necessarily a single newline
+     * character (<code>'\n'</code>).
+     */
     public void println() {
-	synchronized (lock) {
-	    newLine();
-	}
+	newLine();
     }
 
-    /** Print a boolean, and then finish the line. */
+    /**
+     * Print a boolean value and then terminate the line.  This method behaves
+     * as though it invokes <code>{@link #print(boolean)}</code> and then
+     * <code>{@link #println()}</code>.
+     */
     public void println(boolean x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print a character, and then finish the line. */
+    /**
+     * Print a character and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(char)}</code> and then <code>{@link
+     * #println()}</code>.
+     */
     public void println(char x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print an integer, and then finish the line. */
+    /**
+     * Print an integer and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(int)}</code> and then <code>{@link
+     * #println()}</code>.
+     */
     public void println(int x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print a long, and then finish the line. */
+    /**
+     * Print a long integer and then terminate the line.  This method behaves
+     * as though it invokes <code>{@link #print(long)}</code> and then
+     * <code>{@link #println()}</code>.
+     */
     public void println(long x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print a float, and then finish the line. */
+    /**
+     * Print a floating-point number and then terminate the line.  This method
+     * behaves as though it invokes <code>{@link #print(float)}</code> and then
+     * <code>{@link #println()}</code>.
+     */
     public void println(float x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print a double, and then finish the line. */
+    /**
+     * Print a double-precision floating-point number and then terminate the
+     * line.  This method behaves as though it invokes <code>{@link
+     * #print(double)}</code> and then <code>{@link #println()}</code>.
+     */
     public void println(double x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print an array of characters, and then finish the line. */
+    /**
+     * Print an array of characters and then terminate the line.  This method
+     * behaves as though it invokes <code>{@link #print(char[])}</code> and then
+     * <code>{@link #println()}</code>.
+     */
     public void println(char x[]) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print a String, and then finish the line. */
+    /**
+     * Print a String and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(String)}</code> and then
+     * <code>{@link #println()}</code>.
+     */
     public void println(String x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 
-    /** Print an Object, and then finish the line. */
+    /**
+     * Print an Object and then terminate the line.  This method behaves as
+     * though it invokes <code>{@link #print(Object)}</code> and then
+     * <code>{@link #println()}</code>.
+     */
     public void println(Object x) {
 	synchronized (lock) {
 	    print(x);
-	    newLine();
+	    println();
 	}
     }
 

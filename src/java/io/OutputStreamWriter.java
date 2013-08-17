@@ -1,8 +1,15 @@
 /*
- * @(#)OutputStreamWriter.java	1.13 01/12/10
+ * @(#)OutputStreamWriter.java	1.22 98/08/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -49,8 +56,11 @@ public class OutputStreamWriter extends Writer {
     private OutputStream out;
 
     private static final int defaultByteBufferSize = 8192;
+    /* bb is a temporary output buffer into which bytes are written. */
     private byte bb[];
+    /* nextByte is where the next byte will be written into bb */
     private int nextByte = 0;
+    /* nBytes is the buffer size = defaultByteBufferSize in this class */
     private int nBytes = 0;
 
     /**
@@ -86,6 +96,8 @@ public class OutputStreamWriter extends Writer {
      */
     private OutputStreamWriter(OutputStream out, CharToByteConverter ctb) {
 	super(out);
+	if (out == null) 
+	    throw new NullPointerException("out is null");
 	this.out = out;
 	this.ctb = ctb;
 	bb = new byte[defaultByteBufferSize];
@@ -93,8 +105,12 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Return the name of the encoding being used by this stream.  May return
-     * null if the stream has been closed.
+     * Returns the canonical name of the character encoding being used by 
+     * this stream.  If this <code>OutputStreamWriter</code> was created 
+     * with the {@link #OutputStreamWriter(OutputStream, String)} constructor, 
+     * the returned encoding name, being canonical, may differ from the 
+     * encoding name passed to the constructor.  May return <code>null</code> 
+     * if the stream has been closed.
      */
     public String getEncoding() {
 	synchronized (lock) {
@@ -134,33 +150,37 @@ public class OutputStreamWriter extends Writer {
     public void write(char cbuf[], int off, int len) throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
-
+            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
+                ((off + len) > cbuf.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return;
+            }
 	    int ci = off, end = off + len;
-            boolean bufferFlushed = false;
+	    boolean bufferFlushed = false; 
 	    while (ci < end) {
 		boolean bufferFull = false;
-
 		try {
-		    nextByte += ctb.convert(cbuf, ci, end,
+		    nextByte += ctb.convertAny(cbuf, ci, end,
 					    bb, nextByte, nBytes);
 		    ci = end;
 		}
 		catch (ConversionBufferFullException x) {
 		    int nci = ctb.nextCharIndex();
-		    if (nci == ci && bufferFlushed) {
-                        /* Buffer has been flushed and still doesn't even
-                           hold one character */
-			throw new CharConversionException("Output buffer too small");
+		    if ((nci == ci) && bufferFlushed) {
+			/* If the buffer has been flushed and it 
+			   still does not hold even one character */
+			throw new 
+			    CharConversionException("Output buffer too small");
 		    }
 		    ci = nci;
 		    bufferFull = true;
 		    nextByte = ctb.nextByteIndex();
-		}
-
+		} 
 		if ((nextByte >= nBytes) || bufferFull) {
 		    out.write(bb, 0, nextByte);
 		    nextByte = 0;
-                    bufferFlushed = true;
+		    bufferFlushed = true;
 		}
 	    }
 	}
@@ -192,7 +212,7 @@ public class OutputStreamWriter extends Writer {
 
 	    for (;;) {
 		try {
-		    nextByte += ctb.flush(bb, nextByte, nBytes);
+		    nextByte += ctb.flushAny(bb, nextByte, nBytes);
 		}
 		catch (ConversionBufferFullException x) {
 		    nextByte = ctb.nextByteIndex();

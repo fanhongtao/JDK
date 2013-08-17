@@ -1,8 +1,15 @@
 /*
- * @(#)Visibility.java	1.7 01/12/10
+ * @(#)Visibility.java	1.9 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -21,6 +28,8 @@ package java.beans;
 public interface Visibility {
 
     /**
+     * Determines whether this bean needs a GUI.
+     *
      * @return True if the bean absolutely needs a GUI available in
      *		order to get its work done.
      */
@@ -37,6 +46,8 @@ public interface Visibility {
     void okToUseGui();
 
     /**
+     * Determines whether this bean is avoiding using a GUI.
+     *
      * @return true if the bean is currently avoiding use of the Gui.
      *   e.g. due to a call on dontUseGui().
      */

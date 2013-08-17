@@ -1,10 +1,10 @@
 /*
- * @(#)Collator.java	1.15 01/12/10
+ * @(#)Collator.java	1.21 98/11/16
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996-1998 -  All Rights Reserved
+ * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -30,7 +30,6 @@
 
 package java.text;
 
-import java.io.Serializable;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -105,18 +104,18 @@ import java.util.Hashtable;
  * <br>
  * <strong>Note:</strong> <code>CollationKey</code>s from different
  * <code>Collator</code>s can not be compared. See the class description
- * for <a href="java.text.CollationKey.html"><code>CollationKey</code></a>
+ * for {@link CollationKey}
  * for an example using <code>CollationKey</code>s.
  *
  * @see         RuleBasedCollator
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.15 12/10/01
+ * @version     1.21 11/16/98
  * @author      Helena Shih
  */
 
-public abstract class Collator implements Cloneable, Serializable {
+public abstract class Collator implements java.util.Comparator, Cloneable {
     /**
      * Collator strength value.  When set, only PRIMARY differences are
      * considered significant during comparison. The assignment of strengths
@@ -174,6 +173,11 @@ public abstract class Collator implements Cloneable, Serializable {
      * set, characters that are canonical variants according to Unicode 2.0
      * will be decomposed for collation. This is the default setting and
      * should be used to get correct collation of accented characters.
+     * <p>
+     * CANONICAL_DECOMPOSITION corresponds to Normalization Form D as
+     * described in 
+     * <a href="http://www.unicode.org/unicode/reports/tr15/">Unicode 
+     * Technical Report #15</a>.
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
      */
@@ -188,6 +192,11 @@ public abstract class Collator implements Cloneable, Serializable {
      * full-width ASCII and Katakana characters are then collated together.
      * FULL_DECOMPOSITION is the most complete and therefore the slowest
      * decomposition mode.
+     * <p>
+     * FULL_DECOMPOSITION corresponds to Normalization Form DC as
+     * described in 
+     * <a href="http://www.unicode.org/unicode/reports/tr15/">Unicode 
+     * Technical Report #15</a>.
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
      */
@@ -216,26 +225,29 @@ public abstract class Collator implements Cloneable, Serializable {
         RuleBasedCollator result = null;
         result = (RuleBasedCollator) cache.get(desiredLocale);
         if (result != null) {
-            return (Collator)result.clone();  // make the world safe
+                 return (Collator)result.clone();  // make the world safe
         }
 
         // Load the resource of the desired locale from resource
         // manager.
-        String colString;
+        String colString = "";
+        int decomp = CANONICAL_DECOMPOSITION;
+        
         try {
             ResourceBundle resource = ResourceBundle.getBundle
                                       ("java.text.resources.LocaleElements",
                                        desiredLocale);
 
             colString = resource.getString("CollationElements");
+            decomp = ((Integer)resource.getObject("CollationDecomp")).intValue();
         } catch (MissingResourceException e) {
-            // return default US collation
-            colString = "";
+            // Use default values
         }
         try
         {
             result = new RuleBasedCollator( CollationRules.DEFAULTRULES +
-                                            colString );
+                                            colString,
+                                            decomp );
         }
         catch(ParseException foo)
         {
@@ -246,8 +258,13 @@ public abstract class Collator implements Cloneable, Serializable {
                 // do nothing
             }
         }
+        // Now that RuleBasedCollator adds expansions for pre-composed characters
+        // into their decomposed equivalents, the default collators don't need
+        // to have decomposition turned on.  Laura, 5/5/98, bug 4114077
+        result.setDecomposition(NO_DECOMPOSITION);
+        
         cache.put(desiredLocale,result);
-        return result;
+        return (Collator)result.clone();
     }
 
     /**
@@ -270,6 +287,25 @@ public abstract class Collator implements Cloneable, Serializable {
      * @see java.text.Collator#getCollationKey
      */
     public abstract int compare(String source, String target);
+
+    /**
+     * Compares its two arguments for order.  Returns a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal
+     * to, or greater than the second.
+     * <p>
+     * This implementation merely returns
+     *  <code> compare((String)o1, (String)o2) </code>.
+     * 
+     * @return a negative integer, zero, or a positive integer as the
+     *         first argument is less than, equal to, or greater than the
+     *         second. 
+     * @exception ClassCastException the arguments cannot be cast to Strings.
+     * @see Comparator
+     * @since   JDK1.2
+     */
+    public int compare(Object o1, Object o2) {
+    return compare((String)o1, (String)o2);
+    }
 
     /**
      * Transforms the String into a series of bits that can be compared bitwise

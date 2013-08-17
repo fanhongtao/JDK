@@ -1,8 +1,15 @@
 /*
- * @(#)VMID.java	1.10 01/12/10
+ * @(#)VMID.java	1.12 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.rmi.dgc;
@@ -16,14 +23,11 @@ import java.rmi.server.UID;
  * machines.  VMIDs are used by the distributed garbage collector
  * to identify client VMs.
  *
- * @version	1.10, 12/10/01
+ * @version	1.12, 06/29/98
  * @author	Ann Wollrath
  * @author	Peter Jones
  */
 public final class VMID implements java.io.Serializable {
-
-    /** use serialVersionUID from prebeta for interoperability */
-    private static final long serialVersionUID = -538642295484486218L;
 
     /** array of bytes uniquely identifying this host */
     private static byte[] localAddr;
@@ -50,11 +54,18 @@ public final class VMID implements java.io.Serializable {
 	}
     }
 
-    /** array of bytes uniquely identifying host created on */
+    /**
+     * @serial array of bytes uniquely identifying host created on
+     */
     private byte[] addr;
 
-    /** unique identifier with respect to host created on */
+    /**
+     * @serial unique identifier with respect to host created on
+     */
     private UID uid;
+
+    /** indicate compatibility with JDK 1.1.x version of class */
+    private static final long serialVersionUID = -538642295484486218L;
 
     /**
      * Create a new VMID.  Each new VMID returned from this constructor

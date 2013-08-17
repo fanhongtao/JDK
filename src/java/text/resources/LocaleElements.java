@@ -1,17 +1,20 @@
 /*
- * @(#)LocaleElements.java	1.22 01/12/10
+ * @(#)LocaleElements.java	1.26 98/07/24
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -37,7 +40,7 @@
  * Date Created: Wed Aug 21 15:47:57  1996
  *
  *     Locale Elements and Patterns:  last update 10/23/96
- *
+ * Manual update 5/15/98
  *
  */
 
@@ -46,6 +49,7 @@
 package java.text.resources;
 
 import java.util.ListResourceBundle;
+import java.awt.ComponentOrientation;
 
 public class LocaleElements extends ListResourceBundle {
     /**
@@ -53,10 +57,10 @@ public class LocaleElements extends ListResourceBundle {
      */
     public Object[][] getContents() {
         return new Object[][] {
-            { "LocaleString", "en_US" }, // locale id based on iso codes
+            { "LocaleString", "en" }, // locale id based on iso codes
             { "LocaleID", "0409" }, // Windows id
             { "ShortLanguage", "eng" }, // iso-3 abbrev lang name
-            { "ShortCountry", "USA" }, // iso-3 abbrev country name
+            { "ShortCountry", "" }, // iso-3 abbrev country name
             { "Languages", // language names
                 new String[][] {
                     { "ab", "Abkhazian" },
@@ -103,13 +107,16 @@ public class LocaleElements extends ListResourceBundle {
                     { "gn", "Guarani" },
                     { "gu", "Gujarati" },
                     { "ha", "Hausa" },
+                    { "he", "Hebrew" },
                     { "iw", "Hebrew" },
                     { "hi", "Hindi" },
                     { "hu", "Hungarian" },
                     { "is", "Icelandic" },
+                    { "id", "Indonesian" },
                     { "in", "Indonesian" },
                     { "ia", "Interlingua" },
                     { "ie", "Interlingue" },
+                    { "iu", "Inukitut" },
                     { "ik", "Inupiak" },
                     { "ga", "Irish" },
                     { "it", "Italian" },
@@ -184,6 +191,7 @@ public class LocaleElements extends ListResourceBundle {
                     { "tr", "Turkish" },
                     { "tk", "Turkmen" },
                     { "tw", "Twi" },
+                    { "ug", "Uighur" },
                     { "uk", "Ukrainian" },
                     { "ur", "Urdu" },
                     { "uz", "Uzbek" },
@@ -193,7 +201,9 @@ public class LocaleElements extends ListResourceBundle {
                     { "wo", "Wolof" },
                     { "xh", "Xhosa" },
                     { "ji", "Yiddish" },
+                    { "yi", "Yiddish" },
                     { "yo", "Yoruba" },
+                    { "za", "Zhuang" },
                     { "zu", "Zulu" }
                 }
             },
@@ -225,7 +235,7 @@ public class LocaleElements extends ListResourceBundle {
                     { "BA", "Bosnia and Herzegovina" },
                     { "BW", "Botswana" },
                     { "BR", "Brazil" },
-                    { "BN", "Brunei Darussalam" },
+                    { "BN", "Brunei" },
                     { "BG", "Bulgaria" },
                     { "BF", "Burkina Faso" },
                     { "BI", "Burundi" },
@@ -241,7 +251,8 @@ public class LocaleElements extends ListResourceBundle {
                     { "KM", "Comoros" },
                     { "CG", "Congo" },
                     { "CR", "Costa Rica" },
-                    { "CI", "Cote D'ivoire" },
+                    // Ivory Coast is older usage; Cd'I is now in common use in English
+                    { "CI", "C\u00F4te d'Ivoire" },
                     { "HR", "Croatia" },
                     { "CU", "Cuba" },
                     { "CY", "Cyprus" },
@@ -302,7 +313,7 @@ public class LocaleElements extends ListResourceBundle {
                     { "LB", "Lebanon" },
                     { "LS", "Lesotho" },
                     { "LR", "Liberia" },
-                    { "LY", "Libyan Arab Jamahiriya" },
+                    { "LY", "Libya" },
                     { "LI", "Liechtenstein" },
                     { "LT", "Lithuania" },
                     { "LU", "Luxembourg" },
@@ -347,7 +358,7 @@ public class LocaleElements extends ListResourceBundle {
                     { "PR", "Puerto Rico" },
                     { "QA", "Qatar" },
                     { "RO", "Romania" },
-                    { "RU", "Russian Federation" },
+                    { "RU", "Russia" },
                     { "RW", "Rwanda" },
                     { "SA", "Saudi Arabia" },
                     { "SN", "Senegal" },
@@ -388,7 +399,7 @@ public class LocaleElements extends ListResourceBundle {
                     { "VU", "Vanuatu" },
                     { "VA", "Vatican" },
                     { "VE", "Venezuela" },
-                    { "VN", "Viet Nam" },
+                    { "VN", "Vietnam" }, // One word
                     { "VG", "British Virgin Islands" },
                     { "VI", "U.S. Virgin Islands" },
                     { "EH", "Western Sahara" },
@@ -400,11 +411,15 @@ public class LocaleElements extends ListResourceBundle {
                 }
             },
             { "%%EURO", "Euro" }, // Euro variant display name
+            { "%%B", "Bokm\u00e5l" }, // Nowegain variant display name
+            { "%%NY", "Nynorsk" },  // Nowegian variant display name
             { "LocaleNamePatterns",
                 /* Formats for the display name of a locale, for a list of
                  * items, and for composing two items in a list into one item.
                  * The list patterns are used in the variant name and in the
                  * full display name.
+                 *
+                 * This is the language-neutral form of this resource.
                  */
                 new String[] {
                     "{0,choice,0#|1#{1}|2#{1} ({2})}", // Display name
@@ -412,8 +427,8 @@ public class LocaleElements extends ListResourceBundle {
                     "{0},{1}" // List composition
                 }
             },
-            { "MonthNames", 
-                new String[] { 
+            { "MonthNames",
+                new String[] {
                     "January", // january
                     "February", // february
                     "March", // march
@@ -429,8 +444,8 @@ public class LocaleElements extends ListResourceBundle {
                     "" // month 13 if applicable
                 }
             },
-            { "MonthAbbreviations", 
-                new String[] { 
+            { "MonthAbbreviations",
+                new String[] {
                     "Jan", // abb january
                     "Feb", // abb february
                     "Mar", // abb march
@@ -446,8 +461,8 @@ public class LocaleElements extends ListResourceBundle {
                     "" // abb month 13 if applicable
                 }
             },
-            { "DayNames", 
-                new String[] { 
+            { "DayNames",
+                new String[] {
                     "Sunday", // Sunday
                     "Monday", // Monday
                     "Tuesday", // Tuesday
@@ -457,8 +472,8 @@ public class LocaleElements extends ListResourceBundle {
                     "Saturday" // Saturday
                 }
             },
-            { "DayAbbreviations", 
-                new String[] { 
+            { "DayAbbreviations",
+                new String[] {
                     "Sun", // abb Sunday
                     "Mon", // abb Monday
                     "Tue", // abb Tuesday
@@ -468,27 +483,27 @@ public class LocaleElements extends ListResourceBundle {
                     "Sat" // abb Saturday
                 }
             },
-            { "AmPmMarkers", 
-                new String[] { 
+            { "AmPmMarkers",
+                new String[] {
                     "AM", // am marker
                     "PM" // pm marker
                 }
             },
-            { "Eras", 
+            { "Eras",
                 new String[] { // era strings
-                    "BC", 
-                    "AD" 
+                    "BC",
+                    "AD"
                 }
             },
-            { "NumberPatterns", 
-                new String[] { 
+            { "NumberPatterns",
+                new String[] {
                     "#,##0.###;-#,##0.###", // decimal pattern
-                    "$#,##0.00;($#,##0.00)", // currency pattern
+                    "\u00a4 #,##0.00;-\u00a4 #,##0.00", // currency pattern
                     "#,##0%" // percent pattern
                 }
             },
-            { "NumberElements", 
-                new String[] { 
+            { "NumberElements",
+                new String[] {
                     ".", // decimal separator
                     ",", // group (thousands) separator
                     ";", // list separator
@@ -502,33 +517,36 @@ public class LocaleElements extends ListResourceBundle {
                     "\ufffd" // NaN
                 }
             },
-            { "CurrencyElements", 
-                new String[] { 
-                    "$", // local currency symbol
-                    "USD", // intl currency symbol
-                    "." // monetary decimal separator
+            { "CurrencyElements",  // NOTE:  These currency symbols are generic currency symbols;
+                                   // the root locale is supposed to contain language-specific
+                                   // information only.
+                new String[] {
+                    "\u00a4", // local currency symbol
+                    "XXX", // intl currency symbol
+                    "" // monetary decimal separator
                 }
             },
-            { "DateTimePatterns", 
-                new String[] { 
-                    "h:mm:ss 'o''''clock' a z", // full time pattern
+            { "DateTimePatterns",
+                new String[] {
+                    "h:mm:ss a z", // full time pattern
                     "h:mm:ss a z", // long time pattern
                     "h:mm:ss a", // medium time pattern
                     "h:mm a", // short time pattern
                     "EEEE, MMMM d, yyyy", // full date pattern
                     "MMMM d, yyyy", // long date pattern
-                    "dd-MMM-yy", // medium date pattern
+                    "MMM d, yyyy", // medium date pattern
                     "M/d/yy", // short date pattern
                     "{1} {0}" // date-time pattern
                 }
             },
-            { "DateTimeElements", 
-                new String[] { 
+            { "DateTimeElements",
+                new String[] {
                     "1", // first day of week
                     "1" // min days in first week
                 }
             },
-            { "CollationElements", "" } 
+            { "CollationElements", "" },
+            { "Orientation", ComponentOrientation.LEFT_TO_RIGHT },
         };
     }
 }

@@ -1,43 +1,45 @@
 /*
- * @(#)Principal.java	1.16 01/12/10
+ * @(#)Principal.java	1.16 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.security;
 
 /**
- * This interface represents a principal. A principal can be an
- * individual, a corporation, a program thread; anything which can
- * have an identity. See the <a href="../guide/security/Acl.html">ACL
- * white paper</a> for more information.
+ * This interface represents the abstract notion of a principal, which
+ * can be used to represent any entity, such as an individual, a
+ * corporation, and a login id.
  *
- * @see Identity
- * @see Certificate
- * @see java.security.acl.Acl
- * @see java.security.acl.Group
+ * @see java.security.cert.X509Certificate
  *
- * @version 1.16, 01/12/10
- * @author Satish Dharmaraj 
- */
+ * @version 1.16, 00/05/10
+ * @author Li Gong */
 public interface Principal {
 
     /**
      * Compares this principal to the specified object.  Returns true
      * if the object passed in matches the principal represented by
-     * the implementation of this interface.  
+     * the implementation of this interface.
      *
-     * @param another the principal to compare with.
-     * 
-     * @return true if
-     * the principal passed in is the same as that encapsulated by
-     * this principal, false otherwise.
+     * @param another principal to compare with.
+     *
+     * @return true if the principal passed in is the same as that
+     * encapsulated by this principal, and false otherwise.
+
      */
     public boolean equals(Object another);
-    
+
     /**
-     * Returns a string representation of this principal.  
+     * Returns a string representation of this principal.
      *
      * @return a string representation of this principal.
      */
@@ -50,7 +52,7 @@ public interface Principal {
      */
     public int hashCode();
 
-    /**  
+    /**
      * Returns the name of this principal.
      *
      * @return the name of this principal.

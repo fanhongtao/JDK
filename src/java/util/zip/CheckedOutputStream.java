@@ -1,8 +1,15 @@
 /*
- * @(#)CheckedOutputStream.java	1.10 01/12/10
+ * @(#)CheckedOutputStream.java	1.12 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -17,7 +24,7 @@ import java.io.IOException;
  * the output data.
  *
  * @see		Checksum
- * @version 	1.10, 12/10/01
+ * @version 	1.12, 09/21/98
  * @author 	David Connelly
  */
 public

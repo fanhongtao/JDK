@@ -1,22 +1,29 @@
 /*
- * @(#)FilenameFilter.java	1.16 01/12/10
+ * @(#)FilenameFilter.java	1.18 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 /**
- * Instances of classes that implement this interface are used to 
- * filter filenames. These instances are used to filter directory 
- * listings in the <code>list</code> method of class 
- * <code>File</code>, and by the Abstract Window Toolkit's file 
- * dialog component. 
+ * Instances of classes that implement this interface are used to
+ * filter filenames. These instances are used to filter directory
+ * listings in the <code>list</code> method of class
+ * <code>File</code>, and by the Abstract Window Toolkit's file
+ * dialog component.
  *
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
- * @version 1.16, 12/10/01
+ * @version 1.18, 06/29/98
  * @see     java.awt.FileDialog#setFilenameFilter(java.io.FilenameFilter)
  * @see     java.io.File
  * @see     java.io.File#list(java.io.FilenameFilter)
@@ -29,9 +36,8 @@ interface FilenameFilter {
      *
      * @param   dir    the directory in which the file was found.
      * @param   name   the name of the file.
-     * @return  <code>true</code> if the name should be included in the file
-     *          list; <code>false</code> otherwise.
-     * @since   JDK1.0
+     * @return  <code>true</code> if and only if the name should be
+     * included in the file list; <code>false</code> otherwise.
      */
     boolean accept(File dir, String name);
 }

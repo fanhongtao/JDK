@@ -1,8 +1,15 @@
 /*
- * @(#)ObjectOutput.java	1.8 01/12/10
+ * @(#)ObjectOutput.java	1.10 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -13,7 +20,7 @@ package java.io;
  * extends that interface to include objects, arrays, and Strings.
  *
  * @author  unascribed
- * @version 1.8, 12/10/01
+ * @version 1.10, 09/21/98
  * @see java.io.InputStream
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
@@ -26,7 +33,6 @@ public interface ObjectOutput extends DataOutput {
      * written.
      *
      * @exception IOException Any of the usual Input/Output related exceptions.
-     * @since     JDK1.1
      */
     public void writeObject(Object obj)
       throws IOException;
@@ -36,7 +42,6 @@ public interface ObjectOutput extends DataOutput {
      * written.
      * @param b	the byte
      * @exception IOException If an I/O error has occurred.
-     * @since     JDK1.1
      */
     public void write(int b) throws IOException;
 
@@ -45,17 +50,15 @@ public interface ObjectOutput extends DataOutput {
      * are actually written.
      * @param b	the data to be written
      * @exception IOException If an I/O error has occurred.
-     * @since     JDK1.1
      */
     public void write(byte b[]) throws IOException;
 
     /**
-     * Writes a sub array of bytes. 
+     * Writes a sub array of bytes.
      * @param b	the data to be written
      * @param off	the start offset in the data
      * @param len	the number of bytes that are written
      * @exception IOException If an I/O error has occurred.
-     * @since     JDK1.1
      */
     public void write(byte b[], int off, int len) throws IOException;
 
@@ -63,7 +66,6 @@ public interface ObjectOutput extends DataOutput {
      * Flushes the stream. This will write any buffered
      * output bytes.
      * @exception IOException If an I/O error has occurred.
-     * @since     JDK1.1
      */
     public void flush() throws IOException;
 
@@ -72,7 +74,6 @@ public interface ObjectOutput extends DataOutput {
      * to release any resources associated with the
      * stream.
      * @exception IOException If an I/O error has occurred.
-     * @since     JDK1.1
      */
     public void close() throws IOException;
 }

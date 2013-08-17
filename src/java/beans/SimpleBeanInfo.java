@@ -1,8 +1,15 @@
 /*
- * @(#)SimpleBeanInfo.java	1.19 01/12/10
+ * @(#)SimpleBeanInfo.java	1.22 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -96,11 +103,30 @@ public class SimpleBeanInfo implements BeanInfo {
      *		"wombat.gif".
      * @return  an image object.  May be null if the load failed.
      */
-    public java.awt.Image loadImage(String resourceName) {
+    public java.awt.Image loadImage(final String resourceName) {
 	try {
-	    java.net.URL url = getClass().getResource(resourceName);
+	    final Class c = getClass();
+	    java.awt.image.ImageProducer ip = (java.awt.image.ImageProducer)
+		java.security.AccessController.doPrivileged(
+		new java.security.PrivilegedAction() {
+		    public Object run() {
+			java.net.URL url;
+			if ((url = c.getResource(resourceName)) == null) {
+			    return null;
+			} else {
+			    try {
+				return url.getContent();
+			    } catch (java.io.IOException ioe) {
+				return null;
+			    }
+			}
+		    }
+	    });
+
+	    if (ip == null)
+		return null;
 	    java.awt.Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
-	    return tk.createImage((java.awt.image.ImageProducer) url.getContent());
+	    return tk.createImage(ip);
 	} catch (Exception ex) {
 	    return null;
 	}

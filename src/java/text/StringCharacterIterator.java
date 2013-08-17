@@ -1,17 +1,20 @@
 /*
- * @(#)StringCharacterIterator.java	1.16 01/12/10
+ * @(#)StringCharacterIterator.java	1.16 98/05/11
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -36,47 +39,7 @@ package java.text;
  * The <code>StringCharacterIterator</code> class iterates over the
  * entire <code>String</code>.
  *
- * <P>
- * <strong>Examples</strong>:
- *
- * <P>
- * Traverse the text from start to finish
- * <blockquote>
- * <pre>
- * public void traverseForward(CharacterIterator iter) {
- *     for (char c = iter.first(); c != CharacterIterator.DONE; c = iter.next()) {
- *         processChar(c);
- *     }
- * }
- * </pre>
- * </blockquote>
- * Traverse the text backwards, from end to start
- * <blockquote>
- * <pre>
- * public void traverseBackward(CharacterIterator iter) {
- *     for (char c = iter.last(); c != CharacterIterator.DONE; c = iter.prev()) {
- *         processChar(c);
- *     }
- * }
- * </pre>
- * </blockquote>
- *
- * Traverse both forward and backward from a given position in the text.
- * <blockquote>
- * <pre>
- * public void traverseOut(CharacterIterator iter, int pos) {
- *     for (char c = iter.setIndex(pos);
- *          c != CharacterIterator.DONE && notBoundary(c);
- *          c = iter.next()) {}
- *     int end = iter.getIndex();
- *     for (char c = iter.setIndex(pos);
- *          c != CharacterIterator.DONE && notBoundary(c);
- *          c = iter.prev()) {}
- *     int start = iter.getIndex();
- *     processSection(iter.getText.subString(start,end);
- * }
- * </pre>
- * </blockquote>
+ * @see CharacterIterator
  */
 
 public final class StringCharacterIterator implements CharacterIterator
@@ -84,10 +47,11 @@ public final class StringCharacterIterator implements CharacterIterator
     private String text;
     private int begin;
     private int end;
+    // invariant: begin <= pos <= end
     private int pos;
 
     /**
-     * Construct an iterator with an initial index of 0.
+     * Constructs an iterator with an initial index of 0.
      */
     public StringCharacterIterator(String text)
     {
@@ -95,7 +59,7 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Construct an iterator with the specified initial index.
+     * Constructs an iterator with the specified initial index.
      *
      * @param  text   The String to be iterated over
      * @param  pos    Initial iterator position
@@ -106,7 +70,7 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Construct an iterator over the given range of the given string, with the
+     * Constructs an iterator over the given range of the given string, with the
      * index set at the specified position.
      *
      * @param  text   The String to be iterated over
@@ -119,8 +83,8 @@ public final class StringCharacterIterator implements CharacterIterator
             throw new NullPointerException();
         this.text = text;
 
-	if (begin < 0 || begin > end || end > text.length())
-	    throw new IllegalArgumentException("Invalid substring range");
+        if (begin < 0 || begin > end || end > text.length())
+            throw new IllegalArgumentException("Invalid substring range");
 
         if (pos < begin || pos > end)
             throw new IllegalArgumentException("Invalid position");
@@ -130,43 +94,62 @@ public final class StringCharacterIterator implements CharacterIterator
         this.pos = pos;
     }
 
+    /**
+     * Reset this iterator to point to a new string.  This package-visible
+     * method is used by other java.text classes that want to avoid allocating
+     * new StringCharacterIterator objects every time their setText method
+     * is called.
+     *
+     * @param  text   The String to be iterated over
+     */
+    public void setText(String text) {
+        if (text == null)
+            throw new NullPointerException();
+        this.text = text;
+        this.begin = 0;
+        this.end = text.length();
+        this.pos = 0;
+    }
 
     /**
-     * Set the position to getBeginIndex() and return the character at that
-     * position.
+     * Implements CharacterIterator.first() for String.
+     * @see CharacterIterator#first
      */
     public char first()
     {
         pos = begin;
-        return text.charAt(pos);
+        return current();
     }
 
     /**
-     * Set the position to getEndIndex() and return the
-     * character at that position.
+     * Implements CharacterIterator.last() for String.
+     * @see CharacterIterator#last
      */
     public char last()
     {
-        pos = end - 1;
-        return text.charAt(pos);
-    }
+        if (end != begin) {
+            pos = end - 1;
+        } else {
+            pos = end;
+        }
+        return current();
+     }
 
     /**
-     * Set the position to specified position in the text and return that
-     * character.
+     * Implements CharacterIterator.setIndex() for String.
+     * @see CharacterIterator#setIndex
      */
     public char setIndex(int p)
     {
-	if (p < begin || p >= end)
+    if (p < begin || p > end)
             throw new IllegalArgumentException("Invalid index");
         pos = p;
-        return text.charAt(p);
+        return current();
     }
 
     /**
-     * Get the character at the current position (as returned by getIndex()).
-     * @return the character at the current position or DONE if the current
-     * position is off the end of the text.
+     * Implements CharacterIterator.current() for String.
+     * @see CharacterIterator#current
      */
     public char current()
     {
@@ -179,12 +162,8 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Increment the iterator's index by one and return the character
-     * at the new index.  If the resulting index is greater or equal
-     * to getEndIndex(), the current index is reset to getEndIndex() and
-     * a value of DONE is returned.
-     * @return the character at the new position or DONE if the current
-     * position is off the end of the text.
+     * Implements CharacterIterator.next() for String.
+     * @see CharacterIterator#next
      */
     public char next()
     {
@@ -199,17 +178,14 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Decrement the iterator's index by one and return the character
-     * at the new index.  If the resulting index is
-     * less than getBeginIndex(), the current index is reset to getBeginIndex()
-     * and a value of DONE is returned.
-     * @return the character at the new position or DONE if the current
-     * position is off the end of the text.
+     * Implements CharacterIterator.previous() for String.
+     * @see CharacterIterator#previous
      */
     public char previous()
     {
         if (pos > begin) {
-            return text.charAt(--pos);
+            pos--;
+            return text.charAt(pos);
         }
         else {
             return DONE;
@@ -217,8 +193,8 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Return the start index of the text.
-     * @return the index at which the text begins.
+     * Implements CharacterIterator.getBeginIndex() for String.
+     * @see CharacterIterator#getBeginIndex
      */
     public int getBeginIndex()
     {
@@ -226,9 +202,8 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Return the end index of the text.  This index is the index of the
-     * first character following the end of the text.
-     * @return the index at which the text end.
+     * Implements CharacterIterator.getEndIndex() for String.
+     * @see CharacterIterator#getEndIndex
      */
     public int getEndIndex()
     {
@@ -236,8 +211,8 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Return the current index.
-     * @return the current index.
+     * Implements CharacterIterator.getIndex() for String.
+     * @see CharacterIterator#getIndex
      */
     public int getIndex()
     {
@@ -269,7 +244,7 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Compute a hashcode for this enumeration
+     * Computes a hashcode for this iterator.
      * @return A hash code
      */
     public int hashCode()
@@ -278,7 +253,7 @@ public final class StringCharacterIterator implements CharacterIterator
     }
 
     /**
-     * Create a copy of this boundary
+     * Creates a copy of this iterator.
      * @return A copy of this
      */
     public Object clone()

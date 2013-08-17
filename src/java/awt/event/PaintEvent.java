@@ -1,8 +1,15 @@
 /*
- * @(#)PaintEvent.java	1.8 01/12/10
+ * @(#)PaintEvent.java	1.11 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt.event;
@@ -20,7 +27,7 @@ import java.awt.Rectangle;
  * should continue to override paint/update methods in order
  * render themselves properly.
  *
- * @version 1.8 12/10/01
+ * @version 1.11 09/21/98
  * @author Amy Fowler
  */
 public class PaintEvent extends ComponentEvent {
@@ -45,6 +52,16 @@ public class PaintEvent extends ComponentEvent {
      */
     public static final int UPDATE = PAINT_FIRST + 1; //801
 
+    /**
+     * This is the rectangle that represents the area on the source
+     * component that requires a repaint.
+     * This rectangle should be non null.
+     *
+     * @serial
+     * @see java.awt.Rectangle
+     * @see setUpdateRect()
+     * @see getUpdateRect()
+     */
     Rectangle updateRect;
 
     /*
@@ -55,9 +72,9 @@ public class PaintEvent extends ComponentEvent {
     /**
      * Constructs a PaintEvent object with the specified source component
      * and type.
-     * @param source the object where the event originated
-     * @id the event type
-     * @updateRect the rectangle area which needs to be repainted
+     * @param source     the object where the event originated
+     * @param id         the event type
+     * @param updateRect the rectangle area which needs to be repainted
      */
     public PaintEvent(Component source, int id, Rectangle updateRect) {
         super(source, id);

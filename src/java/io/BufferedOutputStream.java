@@ -1,8 +1,15 @@
 /*
- * @(#)BufferedOutputStream.java	1.22 01/12/10
+ * @(#)BufferedOutputStream.java	1.25 98/04/30
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -11,37 +18,36 @@ package java.io;
  * The class implements a buffered output stream. By setting up such 
  * an output stream, an application can write bytes to the underlying 
  * output stream without necessarily causing a call to the underlying 
- * system for each byte written. The data is written into a buffer, 
- * and then written to the underlying stream if the buffer reaches 
- * its capacity, the buffer output stream is closed, or the buffer 
- * output stream is explicity flushed. 
+ * system for each byte written. The data is written into an internal 
+ * buffer, and then written to the underlying stream if the buffer 
+ * reaches its capacity, the buffer output stream is closed, or the 
+ * buffer output stream is explicitly flushed. 
  *
  * @author  Arthur van Hoff
- * @version 1.22, 12/10/01
+ * @version 1.25, 04/30/98
  * @since   JDK1.0
  */
 public 
 class BufferedOutputStream extends FilterOutputStream {
     /**
-     * The buffer where data is stored. 
-     *
-     * @since   JDK1.0
+     * The internal buffer where data is stored. 
      */
     protected byte buf[];
 
     /**
-     * The number of valid bytes in the buffer. 
-     *
-     * @since   JDK1.0
+     * The number of valid bytes in the buffer. This value is always 
+     * in the range <tt>0</tt> through <tt>buf.length</tt>; elements 
+     * <tt>buf[0]</tt> through <tt>buf[count-1]</tt> contain valid 
+     * byte data.
      */
     protected int count;
     
     /**
      * Creates a new buffered output stream to write data to the 
-     * specified underlying output stream with a default 512-byte buffer size.
+     * specified underlying output stream with a default 512-byte 
+     * buffer size.
      *
      * @param   out   the underlying output stream.
-     * @since   JDK1.0
      */
     public BufferedOutputStream(OutputStream out) {
 	this(out, 512);
@@ -49,14 +55,18 @@ class BufferedOutputStream extends FilterOutputStream {
 
     /**
      * Creates a new buffered output stream to write data to the 
-     * specified underlying output stream with the specified buffer size. 
+     * specified underlying output stream with the specified buffer 
+     * size. 
      *
      * @param   out    the underlying output stream.
      * @param   size   the buffer size.
-     * @since   JDK1.0
+     * @exception IllegalArgumentException if size <= 0.
      */
     public BufferedOutputStream(OutputStream out, int size) {
 	super(out);
+        if (size <= 0) {
+            throw new IllegalArgumentException("Buffer size <= 0");
+        }
 	buf = new byte[size];
     }
 
@@ -73,7 +83,6 @@ class BufferedOutputStream extends FilterOutputStream {
      *
      * @param      b   the byte to be written.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public synchronized void write(int b) throws IOException {
 	if (count >= buf.length) {

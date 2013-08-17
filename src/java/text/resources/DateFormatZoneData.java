@@ -1,17 +1,20 @@
- /*
- * @(#)DateFormatZoneData.java	1.7 01/12/10
+/*
+ * @(#)DateFormatZoneData.java	1.11 98/09/10
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -49,7 +52,7 @@ import java.util.ListResourceBundle;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.7 12/10/01
+ * @version      1.11 09/10/98
  * @author       Chen-Lieh Huang
  */
 //  US DateFormatZoneData
@@ -60,36 +63,32 @@ public final class DateFormatZoneData extends ListResourceBundle
      * Overrides ListResourceBundle
      */
     public Object[][] getContents() {
-        return contents;
+        return new Object[][] {
+            {"zoneStrings",
+                new String[][] {
+                    {"PST", "Pacific Standard Time", "PST",
+                    "Pacific Daylight Time", "PDT", "San Francisco"},
+                    {"MST", "Mountain Standard Time", "MST",
+                    "Mountain Daylight Time", "MDT", "Denver"},
+                    {"PNT", "Mountain Standard Time", "MST",
+                    "Mountain Standard Time", "MST", "Phoenix"},
+                    {"CST", "Central Standard Time", "CST",
+                    "Central Daylight Time", "CDT", "Chicago"},
+                    {"EST", "Eastern Standard Time", "EST",
+                    "Eastern Daylight Time", "EDT", "New York"},
+                    // IET is the ID for Indiana Eastern Standard Time timezone.
+                    {"IET", "Eastern Standard Time", "EST",
+                    "Eastern Standard Time", "EST", "Indianapolis"},
+                    // PRT is the ID for Puerto Rico and US Virgin Islands Time timezone.
+                    {"PRT", "Atlantic Standard Time", "AST",
+                    "Atlantic Daylight Time", "ADT", "Halifax"},
+                    {"HST", "Hawaii Standard Time", "HST",
+                    "Hawaii Daylight Time", "HDT", "Honolulu"},
+                    {"AST", "Alaska Standard Time", "AST",
+                    "Alaska Daylight Time", "ADT", "Anchorage"}
+                }
+            },
+            {"localPatternChars", "GyMdkHmsSEDFwWahKz"},
+        };
     }
-
-    private static final String kZoneStrings[][] = {
-        {"PST", "Pacific Standard Time", "PST",
-        "Pacific Daylight Time", "PDT", "San Francisco"},
-        {"MST", "Mountain Standard Time", "MST",
-        "Mountain Daylight Time", "MDT", "Denver"},
-        {"PNT", "Mountain Standard Time", "MST",
-        "Mountain Standard Time", "MST", "Phoenix"},
-        {"CST", "Central Standard Time", "CST",
-        "Central Daylight Time", "CDT", "Chicago"},
-        {"EST", "Eastern Standard Time", "EST",
-        "Eastern Daylight Time", "EDT", "New York"},
-        // IET is the ID for Indiana Eastern Standard Time timezone.
-        {"IET", "Eastern Standard Time", "EST",
-        "Eastern Standard Time", "EST", "Indianapolis"},
-        // PRT is the ID for Puerto Rico and US Virgin Islands Time timezone.
-        {"PRT", "Atlantic Standard Time", "AST",
-        "Atlantic Daylight Time", "ADT", "Halifax"},
-        {"HST", "Hawaii Standard Time", "HST",
-        "Hawaii Daylight Time", "HDT", "Honolulu"},
-        {"AST", "Alaska Standard Time", "AST",
-        "Alaska Daylight Time", "ADT", "Anchorage"}
-    };
-
-    private static final String kLocalPatternChars = "GyMdkHmsSEDFwWahKz";
-
-    static final Object[][] contents = {
-        {"zoneStrings",         kZoneStrings},
-        {"localPatternChars",   kLocalPatternChars},
-    };
 }

@@ -1,19 +1,26 @@
 /*
- * @(#)PropertyEditorSupport.java	1.8 01/12/10
+ * @(#)PropertyEditorSupport.java	1.12 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
+
+import java.beans.*;
 
 /**
  * This is a support class to help build property editors.
  * <p>
  * It can be used either as a base class or as a delagatee.
  */
-
-import java.beans.*;
 
 public class PropertyEditorSupport implements PropertyEditor {
 
@@ -27,10 +34,14 @@ public class PropertyEditorSupport implements PropertyEditor {
 
     /**
      * Constructor for use when a PropertyEditor is delegating to us.
+     *
      * @param source  The source to use for any events we fire.
      */
 
     protected PropertyEditorSupport(Object source) {
+	if (source == null) {
+	   throw new NullPointerException();
+	}
 	this.source = source;
     }
 
@@ -47,6 +58,8 @@ public class PropertyEditorSupport implements PropertyEditor {
     }
 
     /**
+     * Gets the value of the property.
+     *
      * @return The value of the property.
      */
 
@@ -57,6 +70,8 @@ public class PropertyEditorSupport implements PropertyEditor {
     //----------------------------------------------------------------------
 
     /**
+     * Determines whether the class will honor the painValue method.
+     *
      * @return  True if the class will honor the paintValue method.
      */
 
@@ -98,6 +113,9 @@ public class PropertyEditorSupport implements PropertyEditor {
     //----------------------------------------------------------------------
 
     /**
+     * Gets the property value as a string suitable for presentation
+     * to a human to edit.
+     *
      * @return The property value as a string suitable for presentation
      *       to a human to edit.
      * <p>   Returns "null" is the value can't be expressed as a string.
@@ -112,10 +130,11 @@ public class PropertyEditorSupport implements PropertyEditor {
     }
 
     /**
-     * Set the property value by parsing a given String.  May raise
+     * Sets the property value by parsing a given String.  May raise
      * java.lang.IllegalArgumentException if either the String is
      * badly formatted or if this kind of property can't be expressed
      * as text.
+     *
      * @param text  The string to be parsed.
      */
     public void setAsText(String text) throws java.lang.IllegalArgumentException {
@@ -165,6 +184,8 @@ public class PropertyEditorSupport implements PropertyEditor {
     }
 
     /**
+     * Determines whether the propertyEditor can provide a custom editor.
+     *
      * @return  True if the propertyEditor can provide a custom editor.
      */
     public boolean supportsCustomEditor() {

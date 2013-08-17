@@ -1,8 +1,15 @@
 /*
- * @(#)ZipInputStream.java	1.12 01/12/10
+ * @(#)ZipInputStream.java	1.21 98/07/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -18,7 +25,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.12, 12/10/01
+ * @version	1.21, 07/24/98
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -29,6 +36,20 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 
     private static final int STORED = ZipEntry.STORED;
     private static final int DEFLATED = ZipEntry.DEFLATED;
+    
+    private boolean closed = false;
+    // this flag is set to true after EOF has reached for
+    // one entry
+    private boolean entryEOF = false;
+    
+    /**
+     * Check to make sure that this stream has not been closed
+     */
+    private void ensureOpen() throws IOException {
+	if (closed) {
+	    throw new IOException("Stream closed");
+        }
+    }
 
     /**
      * Creates a new ZIP input stream.
@@ -45,6 +66,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * @exception IOException if an I/O error has occurred
      */
     public ZipEntry getNextEntry() throws IOException {
+        ensureOpen();
 	if (entry != null) {
 	    closeEntry();
 	}
@@ -56,6 +78,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	if (entry.method == STORED) {
 	    remaining = entry.size;
 	}
+        entryEOF = false;
 	return entry;
     }
 
@@ -66,9 +89,31 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * @exception IOException if an I/O error has occurred
      */
     public void closeEntry() throws IOException {
+        ensureOpen();
 	while (read(tmpbuf, 0, tmpbuf.length) != -1) ;
+        entryEOF = true;
     }
-    
+
+    /**
+     * Returns 0 after EOF has reached for the current entry data,
+     * otherwise always return 1.
+     * <p>
+     * Programs should not count on this method to return the actual number
+     * of bytes that could be read without blocking.
+     *
+     * @return     1 before EOF and 0 after EOF has reached for current entry.
+     * @exception  IOException  if an I/O error occurs.
+     * 
+     */
+    public int available() throws IOException {
+        ensureOpen();
+        if (entryEOF) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     /**
      * Reads from the current ZIP entry into an array of bytes. Blocks until
      * some input is available.
@@ -81,6 +126,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * @exception IOException if an I/O error has occurred
      */
     public int read(byte[] b, int off, int len) throws IOException {
+        ensureOpen();
 	if (entry == null) {
 	    return -1;
 	}
@@ -89,6 +135,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    len = super.read(b, off, len);
 	    if (len == -1) {
 		readEnd(entry);
+                entryEOF = true;
 		entry = null;
 	    } else {
 		crc.update(b, off, len);
@@ -96,6 +143,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    return len;
 	case STORED:
 	    if (remaining <= 0) {
+                entryEOF = true;
 		entry = null;
 		return -1;
 	    }
@@ -120,16 +168,23 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * @return the actual number of bytes skipped
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
+     * @exception IllegalArgumentException if n < 0
      */
     public long skip(long n) throws IOException {
-	if (n <= 0) {
-	    return 0;
-	}
-	n = Math.min(n, Integer.MAX_VALUE);
+        if (n < 0) {
+            throw new IllegalArgumentException("negative skip length");
+        }
+        ensureOpen();
+	int max = (int)Math.min(n, Integer.MAX_VALUE);
 	int total = 0;
-	while (total < n) {
-	    int len = read(tmpbuf, 0, (int)n - total);
+	while (total < max) {
+	    int len = max - total;
+	    if (len > tmpbuf.length) {
+		len = tmpbuf.length;
+	    }
+	    len = read(tmpbuf, 0, len);
 	    if (len == -1) {
+                entryEOF = true;
 		break;
 	    }
 	    total += len;
@@ -143,6 +198,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      */
     public void close() throws IOException {
 	in.close();
+        closed = true;
     }
 
     /*
@@ -157,7 +213,15 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	if (get32(tmpbuf, 0) != LOCSIG) {
 	    return null;
 	}
-	ZipEntry e = new ZipEntry();
+	// get the entry name and create the ZipEntry first
+	int len = get16(tmpbuf, LOCNAM);
+	if (len == 0) {
+	    throw new ZipException("missing entry name");
+	}
+	byte[] b = new byte[len];
+	readFully(b, 0, len);
+	ZipEntry e = createZipEntry(getUTF8String(b, 0, len));
+	// now get the remaining fields for the entry
 	e.version = get16(tmpbuf, LOCVER);
 	e.flag = get16(tmpbuf, LOCFLG);
 	if ((e.flag & 1) == 1) {
@@ -176,13 +240,6 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    e.csize = get32(tmpbuf, LOCSIZ);
 	    e.size = get32(tmpbuf, LOCLEN);
 	}
-	int len = get16(tmpbuf, LOCNAM);
-	if (len == 0) {
-	    throw new ZipException("missing entry name");
-	}
-	byte[] b = new byte[len];
-	readFully(b, 0, len);
-	e.name = new String(b, 0, 0, len);
 	len = get16(tmpbuf, LOCEXT);
 	if (len > 0) {
 	    b = new byte[len];
@@ -190,6 +247,81 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    e.extra = b;
 	}
 	return e;
+    }
+
+    /*
+     * Fetches a UTF8-encoded String from the specified byte array.
+     */
+    private static String getUTF8String(byte[] b, int off, int len) {
+	// First, count the number of characters in the sequence
+	int count = 0;
+	int max = off + len;
+	int i = off;
+	while (i < max) {
+	    int c = b[i++] & 0xff;
+	    switch (c >> 4) {
+	    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+		// 0xxxxxxx
+		count++;
+		break;
+	    case 12: case 13:
+		// 110xxxxx 10xxxxxx
+		if ((int)(b[i++] & 0xc0) != 0x80) {
+		    throw new IllegalArgumentException();
+		}
+		count++;
+		break;
+	    case 14:
+		// 1110xxxx 10xxxxxx 10xxxxxx
+		if (((int)(b[i++] & 0xc0) != 0x80) ||
+		    ((int)(b[i++] & 0xc0) != 0x80)) {
+		    throw new IllegalArgumentException();
+		}
+		count++;
+		break;
+	    default:
+		// 10xxxxxx, 1111xxxx
+		throw new IllegalArgumentException();
+	    }
+	}
+	if (i != max) {
+	    throw new IllegalArgumentException();
+	}
+	// Now decode the characters...
+	char[] cs = new char[count];
+	i = 0;
+	while (off < max) {
+	    int c = b[off++] & 0xff;
+	    switch (c >> 4) {
+	    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+		// 0xxxxxxx
+		cs[i++] = (char)c;
+		break;
+	    case 12: case 13:
+		// 110xxxxx 10xxxxxx
+		cs[i++] = (char)(((c & 0x1f) << 6) | (b[off++] & 0x3f));
+		break;
+	    case 14:
+		// 1110xxxx 10xxxxxx 10xxxxxx
+		int t = (b[off++] & 0x3f) << 6;
+		cs[i++] = (char)(((c & 0x0f) << 12) | t | (b[off++] & 0x3f));
+		break;
+	    default:
+		// 10xxxxxx, 1111xxxx
+		throw new IllegalArgumentException();
+	    }
+	}
+	return new String(cs, 0, count);
+    }
+
+    /**
+     * Creates a new <code>ZipEntry</code> object for the specified
+     * entry name.
+     *
+     * @param name the ZIP file entry name
+     */
+    protected ZipEntry createZipEntry(String name) {
+	return new ZipEntry(name);
     }
 
     /*

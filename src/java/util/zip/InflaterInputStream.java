@@ -1,8 +1,15 @@
 /*
- * @(#)InflaterInputStream.java	1.17 01/12/10
+ * @(#)InflaterInputStream.java	1.23 98/07/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
@@ -18,7 +25,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.17, 12/10/01
+ * @version 	1.23, 07/28/98
  * @author 	David Connelly
  */
 public
@@ -38,15 +45,35 @@ class InflaterInputStream extends FilterInputStream {
      */
     protected int len;
 
+    private boolean closed = false;
+    // this flag is set to true after EOF has reached
+    private boolean reachEOF = false;
+    
+    /**
+     * Check to make sure that this stream has not been closed
+     */
+    private void ensureOpen() throws IOException {
+	if (closed) {
+	    throw new IOException("Stream closed");
+        }
+    }
+
+
     /**
      * Creates a new input stream with the specified decompressor and
      * buffer size.
      * @param in the input stream
      * @param inf the decompressor ("inflater")
      * @param size the input buffer size
+     * @exception IllegalArgumentException if size is <= 0
      */
     public InflaterInputStream(InputStream in, Inflater inf, int size) {
 	super(in);
+        if (in == null || inf == null) {
+            throw new NullPointerException();
+        } else if (size <= 0) {
+            throw new IllegalArgumentException("buffer size <= 0");
+        }
 	this.inf = inf;
 	buf = new byte[size];
     }
@@ -75,7 +102,8 @@ class InflaterInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public int read() throws IOException {
-	byte[] b = new byte[1];
+	ensureOpen();
+        byte[] b = new byte[1];
 	return read(b, 0, 1) == -1 ? -1 : b[0] & 0xff;
     }
 
@@ -91,6 +119,7 @@ class InflaterInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public int read(byte[] b, int off, int len) throws IOException {
+	ensureOpen();
 	if (len <= 0) {
 	    return 0;
 	}
@@ -98,6 +127,7 @@ class InflaterInputStream extends FilterInputStream {
 	    int n;
 	    while ((n = inf.inflate(b, off, len)) == 0) {
 		if (inf.finished() || inf.needsDictionary()) {
+                    reachEOF = true;
 		    return -1;
 		}
 		if (inf.needsInput()) {
@@ -112,18 +142,47 @@ class InflaterInputStream extends FilterInputStream {
     }
 
     /**
+     * Returns 0 after EOF has reached, otherwise always return 1.
+     * <p>
+     * Programs should not count on this method to return the actual number
+     * of bytes that could be read without blocking.
+     *
+     * @return     1 before EOF and 0 after EOF.
+     * @exception  IOException  if an I/O error occurs.
+     * 
+     */
+    public int available() throws IOException {
+        ensureOpen();
+        if (reachEOF) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    /**
      * Skips specified number of bytes of uncompressed data.
      * @param n the number of bytes to skip
      * @return the actual number of bytes skipped.
      * @exception IOException if an I/O error has occurred
+     * @exception IllegalArgumentException if n < 0
      */
     public long skip(long n) throws IOException {
+        if (n < 0) {
+            throw new IllegalArgumentException("negative skip length");
+        }
+	ensureOpen();
+	int max = (int)Math.min(n, Integer.MAX_VALUE);
+	int total = 0;
 	byte[] b = new byte[512];
-	long total = 0;
-	while (total < n) {
-	    long len = n - total;
-	    len = read(b, 0, len < b.length ? (int)len : b.length);
+	while (total < max) {
+	    int len = max - total;
+	    if (len > b.length) {
+		len = b.length;
+	    }
+	    len = read(b, 0, len);
 	    if (len == -1) {
+                reachEOF = true;
 		break;
 	    }
 	    total += len;
@@ -132,10 +191,20 @@ class InflaterInputStream extends FilterInputStream {
     }
 
     /**
+     * Closes the input stream.
+     * @exception IOException if an I/O error has occurred
+     */
+    public void close() throws IOException {
+	in.close();
+        closed = true;
+    }
+
+    /**
      * Fills input buffer with more data to decompress.
      * @exception IOException if an I/O error has occurred
      */
     protected void fill() throws IOException {
+	ensureOpen();
 	len = in.read(buf, 0, buf.length);
 	if (len == -1) {
 	    throw new EOFException("Unexpected end of ZLIB input stream");

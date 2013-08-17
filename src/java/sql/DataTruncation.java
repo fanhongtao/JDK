@@ -1,26 +1,35 @@
 /*
- * @(#)DataTruncation.java	1.7 01/12/10
+ * @(#)DataTruncation.java	1.16 98/09/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.sql;
 
 /**
- * <P>When JDBC unexpectedly truncates a data value, it reports a
+ * An exception that reports a
  * DataTruncation warning (on reads) or throws a DataTruncation exception
- * (on writes).
+ * (on writes) when JDBC unexpectedly truncates a data value.
  *
- * <P>The SQLstate for a DataTruncation is "01004".
+ * <P>The SQLstate for a <code>DataTruncation</code> is <code>01004</code>.
  */
 
 public class DataTruncation extends SQLWarning {
 
     /**
-     * <P>Create a DataTruncation object. The SQLState is initialized
-     * to 01004, the reason is set to "Data truncation" and the
-     * vendorCode is set to the SQLException default.
+     * Creates a <code>DataTruncation</code> object 
+	 * with the SQLState initialized
+     * to 01004, the reason set to "Data truncation", the
+     * vendorCode set to the SQLException default, and
+	 * the other fields set to the given values.
      *
      * @param index The index of the parameter or column value
      * @param parameter true if a parameter value was truncated
@@ -45,40 +54,42 @@ public class DataTruncation extends SQLWarning {
     }
 
     /**
-     * Get the index of the column or parameter that was truncated.
+     * Retrieves the index of the column or parameter that was truncated.
      *
      * <P>This may be -1 if the column or parameter index is unknown, in 
-     * which case the "parameter" and "read" fields should be ignored.
+     * which case the <code>parameter</code> and <code>read</code> fields should be ignored.
      *
-     * @return the index of the truncated paramter or column value.
+     * @return the index of the truncated paramter or column value
      */
     public int getIndex() {
 	return index;
     }
 
     /**
-     * Is this a truncated parameter value?
+     * Indicates whether the value truncated was a parameter value or
+	 * a column value.
      *
-     * @return True if the value was a parameter; false if it was a column value.
+     * @return <code>true</code> if the value truncated was a parameter;
+	 *         <code>false</code> if it was a column value
      */
     public boolean getParameter() {
 	return parameter;
     }
 
     /**
-     * Was this a read truncation?
+     * Indicates whether or not the value was truncated on a read.
      *
-     * @return True if the value was truncated when read from the database; false
-     * if the data was truncated on a write.
+     * @return <code>true</code> if the value was truncated when read from
+	 *         the database; <code>false</code> if the data was truncated on a write
      */
     public boolean getRead() {
 	return read;
     }
 
     /**
-     * Get the number of bytes of data that should have been transferred.
+     * Gets the number of bytes of data that should have been transferred.
      * This number may be approximate if data conversions were being
-     * performed.  The value may be "-1" if the size is unknown.
+     * performed.  The value may be <code>-1</code> if the size is unknown.
      *
      * @return the number of bytes of data that should have been transferred
      */
@@ -87,8 +98,8 @@ public class DataTruncation extends SQLWarning {
     }
 
     /**
-     * Get the number of bytes of data actually transferred.
-     * The value may be "-1" if the size is unknown.
+     * Gets the number of bytes of data actually transferred.
+     * The value may be <code>-1</code> if the size is unknown.
      *
      * @return the number of bytes of data actually transferred
      */
@@ -96,10 +107,29 @@ public class DataTruncation extends SQLWarning {
 	return transferSize;
     }
 
+	/**
+   	* @serial
+	*/
     private int index;
+
+	/**
+	* @serial
+	*/
     private boolean parameter;
+
+	/**
+	* @serial
+	*/
     private boolean read;	
+
+	/**
+	* @serial
+	*/
     private int dataSize;
+
+	/**
+	* @serial
+	*/
     private int transferSize;
 
 }

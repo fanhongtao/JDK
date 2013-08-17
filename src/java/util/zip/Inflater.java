@@ -1,51 +1,62 @@
 /*
- * @(#)Inflater.java	1.20 01/12/10
+ * @(#)Inflater.java	1.31 98/10/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util.zip;
 
 /**
  * This class provides support for general purpose decompression using
- * the popular ZLIB compression library. The ZLIB compression library
- * was initially developed as part of the PNG graphics standard and is
- * not protected by patents. It is fully described in RFCs 1950, 1951,
- * and 1952, which can be found at 
- * <a href="http://info.internet.isi.edu:80/in-notes/rfc/files/">
- * http://info.internet.isi.edu:80/in-notes/rfc/files/
- * </a> in the files rfc1950.txt (zlib format),
- * rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
- * 
+ * popular ZLIB compression library. The ZLIB compression library was
+ * initially developed as part of the PNG graphics standard and is not
+ * protected by patents. It is fully described in the specifications at 
+ * the <a href="package-summary.html#package_description">java.util.zip
+ * package description</a>.
+ *
  * @see		Deflater
- * @version 	1.20, 12/10/01
+ * @version 	1.31, 10/29/98
  * @author 	David Connelly
  *
  */
 public
 class Inflater {
-    private int strm;
+    private long strm;
     private byte[] buf = new byte[0];
     private int off, len;
     private boolean finished;
-    private boolean needsDictionary;
+    private boolean needDict;
 
     /*
      * Loads the ZLIB library.
      */
     static {
-	System.loadLibrary("zip");
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("zip"));
+	initIDs();
     }
 
     /**
      * Creates a new decompressor. If the parameter 'nowrap' is true then
-     * the ZLIB header and checksum fields will not be used in order to
-     * support the compression format used by both GZIP and PKZIP.
+     * the ZLIB header and checksum fields will not be used. This provides
+     * compatibility with the compression format used by both GZIP and PKZIP.
+     * <p>
+     * Note: When using the 'nowrap' option it is also necessary to provide
+     * an extra "dummy" byte as input. This is required by the ZLIB native
+     * library in order to support certain optimizations.
+     *
      * @param nowrap if true then support GZIP compatible compression
      */
     public Inflater(boolean nowrap) {
-	init(nowrap);
+	strm = init(nowrap);
     }
 
     /**
@@ -98,7 +109,16 @@ class Inflater {
      * @see Inflater#needsDictionary
      * @see Inflater#getAdler
      */
-    public synchronized native void setDictionary(byte[] b, int off, int len);
+    public synchronized void setDictionary(byte[] b, int off, int len) {
+	if (strm == 0 || b == null) {
+	    throw new NullPointerException();
+	}
+	if (off < 0 || len < 0 || off + len > b.length) {
+	    throw new ArrayIndexOutOfBoundsException();
+	}
+	setDictionary(strm, b, off, len);
+	needDict = false;
+    }
 
     /**
      * Sets the preset dictionary to the given array of bytes. Should be
@@ -136,7 +156,7 @@ class Inflater {
      * @see InflatesetDictionary
      */
     public synchronized boolean needsDictionary() {
-	return needsDictionary;
+	return needDict;
     }
 
     /**
@@ -162,8 +182,17 @@ class Inflater {
      * @see Inflater#needsInput
      * @see Inflater#needsDictionary
      */
-    public synchronized native int inflate(byte[] b, int off, int len)
-	    throws DataFormatException;
+    public synchronized int inflate(byte[] b, int off, int len)
+	throws DataFormatException
+    {
+	if (b == null) {
+	    throw new NullPointerException();
+	}
+	if (off < 0 || len < 0 || off + len > b.length) {
+	    throw new ArrayIndexOutOfBoundsException();
+	}
+	return inflateBytes(b, off, len);
+    }
 
     /**
      * Uncompresses bytes into specified buffer. Returns actual number
@@ -185,34 +214,76 @@ class Inflater {
     /**
      * Returns the ADLER-32 value of the uncompressed data.
      */
-    public synchronized native int getAdler();
+    public synchronized int getAdler() {
+	if (strm == 0) {
+	    throw new NullPointerException();
+	}
+	return getAdler(strm);
+    }
 
     /**
      * Returns the total number of bytes input so far.
      */
-    public synchronized native int getTotalIn();
+    public synchronized int getTotalIn() {
+	if (strm == 0) {
+	    throw new NullPointerException();
+	}
+	return getTotalIn(strm);
+    }
 
     /**
      * Returns the total number of bytes output so far.
      */
-    public synchronized native int getTotalOut();
+    public synchronized int getTotalOut() {
+	if (strm == 0) {
+	    throw new NullPointerException();
+	}
+	return getTotalOut(strm);
+    }
 
     /**
      * Resets inflater so that a new set of input data can be processed.
      */
-    public synchronized native void reset();
+    public synchronized void reset() {
+	if (strm == 0) {
+	    throw new NullPointerException();
+	}
+	reset(strm);
+	finished = false;
+	needDict = false;
+	off = len = 0;
+    }
 
     /**
-     * Discards unprocessed input and frees internal data.
+     * Closes the decompressor and discards any unprocessed input.
+     * This method should be called when the decompressor is no longer
+     * being used, but will also be called automatically by the finalize()
+     * method. Once this method is called, the behavior of the Inflater
+     * object is undefined.
      */
-    public synchronized native void end();
+    public synchronized void end() {
+	if (strm != 0) {
+	    end(strm);
+	    strm = 0;
+	}
+    }
 
     /**
-     * Frees the decompressor when garbage is collected.
+     * Closes the decompressor when garbage is collected.
      */
     protected void finalize() {
 	end();
     }
 
-    private native void init(boolean nowrap);
+    private native static void initIDs();
+    private native static long init(boolean nowrap);
+    private native static void setDictionary(long strm, byte[] b, int off,
+					     int len);
+    private native int inflateBytes(byte[] b, int off, int len)
+	    throws DataFormatException;
+    private native static int getAdler(long strm);
+    private native static int getTotalIn(long strm);
+    private native static int getTotalOut(long strm);
+    private native static void reset(long strm);
+    private native static void end(long strm);
 }

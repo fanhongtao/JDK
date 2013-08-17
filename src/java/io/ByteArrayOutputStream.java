@@ -1,8 +1,15 @@
 /*
- * @(#)ByteArrayOutputStream.java	1.25 01/12/10
+ * @(#)ByteArrayOutputStream.java	1.39 98/09/30
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -16,7 +23,7 @@ package java.io;
  * <code>toString()</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.25, 12/10/01
+ * @version 1.27, 10/20/97
  * @since   JDK1.0
  */
 
@@ -33,6 +40,19 @@ public class ByteArrayOutputStream extends OutputStream {
     protected int count;
 
     /**
+     * Flag indicating whether the stream has been closed.
+     */
+    private boolean isClosed = false;
+
+    /** Check to make sure that the stream has not been closed */
+    private void ensureOpen() {
+        /* This method does nothing for now.  Once we add throws clauses
+	 * to the I/O methods in this class, it will throw an IOException
+	 * if the stream has been closed.
+	 */
+    }
+
+    /**
      * Creates a new byte array output stream. The buffer capacity is 
      * initially 32 bytes, though its size increases if necessary. 
      */
@@ -45,8 +65,13 @@ public class ByteArrayOutputStream extends OutputStream {
      * the specified size, in bytes. 
      *
      * @param   size   the initial size.
+     * @exception  IllegalArgumentException if size is negative.
      */
     public ByteArrayOutputStream(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("Negative initial size: "
+                                               + size);
+        }
 	buf = new byte[size];
     }
 
@@ -56,6 +81,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @param   b   the byte to be written.
      */
     public synchronized void write(int b) {
+	ensureOpen();
 	int newcount = count + 1;
 	if (newcount > buf.length) {
 	    byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
@@ -75,14 +101,21 @@ public class ByteArrayOutputStream extends OutputStream {
      * @param   len   the number of bytes to write.
      */
     public synchronized void write(byte b[], int off, int len) {
-	int newcount = count + len;
-	if (newcount > buf.length) {
-	    byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
-	    System.arraycopy(buf, 0, newbuf, 0, count);
-	    buf = newbuf;
+	ensureOpen();
+	if ((off < 0) || (off > b.length) || (len < 0) ||
+            ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return;
 	}
-	System.arraycopy(b, off, buf, count, len);
-	count = newcount;
+        int newcount = count + len;
+        if (newcount > buf.length) {
+            byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
+            System.arraycopy(buf, 0, newbuf, 0, count);
+            buf = newbuf;
+        }
+        System.arraycopy(b, off, buf, count, len);
+        count = newcount;
     }
 
     /**
@@ -106,6 +139,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @see     java.io.ByteArrayInputStream#count
      */
     public synchronized void reset() {
+	ensureOpen();
 	count = 0;
     }
 
@@ -159,9 +193,9 @@ public class ByteArrayOutputStream extends OutputStream {
      * copied into it. Each character <i>c</i> in the resulting string is 
      * constructed from the corresponding element <i>b</i> in the byte 
      * array such that:
-     * <ul><code>
+     * <blockquote><pre>
      *     c == (char)(((hibyte &amp; 0xff) &lt;&lt; 8) | (b &amp; 0xff))
-     * </code></ul>
+     * </pre></blockquote>
      *
      * @deprecated This method does not properly convert bytes into characters.
      * As of JDK&nbsp;1.1, the preferred way to do this is via the
@@ -177,6 +211,17 @@ public class ByteArrayOutputStream extends OutputStream {
      */
     public String toString(int hibyte) {
 	return new String(buf, hibyte, 0, count);
+    }
+
+    /**
+     * Closes this output stream and releases any system resources 
+     * associated with this stream. A closed stream cannot perform 
+     * output operations and cannot be reopened.
+     * <p>
+     *
+     */
+    public synchronized void close() throws IOException {
+	isClosed = true;
     }
 
 }

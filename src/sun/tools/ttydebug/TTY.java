@@ -1,8 +1,15 @@
 /*
- * @(#)TTY.java	1.82 01/12/10
+ * @(#)TTY.java	1.85 98/06/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package sun.tools.ttydebug;
@@ -19,11 +26,9 @@ public class TTY implements DebuggerCallback {
     PrintStream console = null;
 
     private static final String progname = "jdb";
-    private static final String version = "01/12/10";
+    private static final String version = "98/06/23";
 
     private String lastArgs = null;
-    
-    private boolean hasRun = false;
     
     private RemoteThread indexToThread(int index) throws Exception {
 	setDefaultThreadGroup();
@@ -77,6 +82,7 @@ public class TTY implements DebuggerCallback {
 	    out.println(stack[0].toString());
             currentThread = t;
 	} else {
+            currentThread = null; // Avoid misleading results on future "where"
 	    out.println("Invalid thread specified in breakpoint.");
 	}
         printPrompt();
@@ -91,11 +97,23 @@ public class TTY implements DebuggerCallback {
     }
 
     public void threadDeathEvent(RemoteThread t) throws Exception {
-	out.println("\n" + t.getName() + " died.");
         if (t == currentThread) {
+            String currentThreadName;
+            
+            // Be careful getting the thread name. If this event happens
+            // as part of VM termination, it may be too late to get the 
+            // information, and an exception will be thrown.
+            try {
+               currentThreadName = " \"" + t.getName() + "\"";
+            } catch (Exception e) {
+               currentThreadName = "";
+            }
+                 
             currentThread = null;
+            out.println();
+            out.println("Current thread" + currentThreadName + " died. Execution continuing...");
+            printPrompt();
         }
-        printPrompt();
     }
 
     public void quitEvent() throws Exception {
@@ -280,11 +298,6 @@ public class TTY implements DebuggerCallback {
 	String argv[] = new String[100];
 	int argc = 0;
 
-        if ( hasRun ) {
-            out.println("Cannot restart program in this session");
-            return;
-        }
-
 	if (!t.hasMoreTokens() && lastArgs != null) {
 	    t = new StringTokenizer(lastArgs);
 	    out.println("run " + lastArgs);
@@ -314,8 +327,6 @@ public class TTY implements DebuggerCallback {
 	} else {
 	    out.println("No class name specified.");
 	}
-
-        hasRun = true;
     }
 
     void load(StringTokenizer t) throws Exception {
@@ -515,8 +526,9 @@ public class TTY implements DebuggerCallback {
     }
     
     void ignoreException(StringTokenizer t) throws Exception {
+        String exceptionList[] = debugger.getExceptionCatchList();
+
  	if (!t.hasMoreTokens()) {
-	    String exceptionList[] = debugger.getExceptionCatchList();
 	    for (int i = 0; i < exceptionList.length; i++) {
 		out.print("  " + exceptionList[i]);
 		if ((i & 4) == 3 || (i == exceptionList.length - 1)) {
@@ -527,7 +539,20 @@ public class TTY implements DebuggerCallback {
 	    String idClass = t.nextToken();
 	    try {
 		RemoteClass cls = getClassFromToken(idClass);
-		cls.ignoreExceptions();
+
+                /* Display an error if exception not currently caught */
+                boolean caught = false;
+                for (int i = 0; i < exceptionList.length; i++) {
+                    if (idClass.equals(exceptionList[i])) {
+                        caught = true;
+                        break;
+                    }
+                }
+                if (!caught) {
+                    out.println("Exception not currently caught: " + idClass);
+                } else {
+                    cls.ignoreExceptions();
+                }
 	    } catch (Exception e) {
 		out.println("Invalid exception class name: " + idClass);
 	    }
@@ -713,6 +738,173 @@ public class TTY implements DebuggerCallback {
 	}
     }
 
+    
+    /* 
+     * Compare a method's argument types with a Vector of type names.
+     * Return true if each argument type has a name identical to the corresponding
+     * string in the vector and if the number of arguments in the method matches
+     * the number of names passed
+     */
+    private boolean compareArgTypes(RemoteField method, Vector nameVector) {
+        String nameString = method.getTypedName();
+
+        // Skip to the argument types and tokenize them
+        int index = nameString.indexOf("(");
+        if (index == -1) {
+            throw new IllegalArgumentException("Method expected");
+        }
+        StringTokenizer tokens = new StringTokenizer(nameString.substring(index),
+                                                     "(,) \t\n\r");
+
+        // If argument counts differ, we can stop here
+        if (tokens.countTokens() != nameVector.size()) {
+            return false;
+        }
+
+        // Compare each argument type's name
+        Enumeration enum = nameVector.elements();
+        while (tokens.hasMoreTokens()) {
+            String comp1 = (String)enum.nextElement();
+            String comp2 = tokens.nextToken();
+            if (! comp1.equals(comp2)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /*
+     * Remove unneeded spaces and expand class names to fully qualified names,
+     * if necessary and possible.
+     */
+    private String normalizeArgTypeName(String name) throws Exception {
+        /* 
+         * Separate the type name from any array modifiers, stripping whitespace
+         * after the name ends
+         */
+        int i = 0;
+        StringBuffer typePart = new StringBuffer();
+        StringBuffer arrayPart = new StringBuffer();
+        name = name.trim();
+        while (i < name.length()) {
+            char c = name.charAt(i);
+            if (Character.isWhitespace(c) || c == '[') {
+                break;      // name is complete
+            }
+            typePart.append(c);
+            i++;
+        }
+        while (i < name.length()) {
+            char c = name.charAt(i);
+            if ( (c == '[') || (c == ']') ) {
+                arrayPart.append(c);
+            } else if (!Character.isWhitespace(c)) {
+                throw new IllegalArgumentException("Invalid argument type name");
+            }
+            i++;
+        }
+        name = typePart.toString();
+
+        /*
+         * When there's no sign of a package name already, try to expand the 
+         * the name to a fully qualified class name
+         */
+        if (name.indexOf('.') == -1) {
+            try {
+                RemoteClass argClass = getClassFromToken(name);
+                name = argClass.getName();
+            } catch (IllegalArgumentException e) {
+                // We'll try the name as is 
+            }
+        }
+        name += arrayPart.toString();
+        return name;
+    }
+
+    /* 
+     * Attempt an unambiguous match of the method name and argument specification to 
+     * to a method. If no arguments are specified, the method must not be overloaded.
+     * Otherwise, the argument types much match exactly 
+     */
+    RemoteField findMatchingMethod(RemoteClass clazz, String methodName, 
+                                   String argSpec) throws Exception {
+        if ( (argSpec.length() > 0) &&
+             (!argSpec.startsWith("(") || !argSpec.endsWith(")")) ) {
+            out.println("Invalid method specification: '" + methodName + argSpec + "'");
+            return null;
+        }
+
+        // Parse the argument string once before looping below.
+        StringTokenizer tokens = new StringTokenizer(argSpec, "(,)");
+        Vector argTypeNames = new Vector();
+        String name = null;
+        try {
+            while (tokens.hasMoreTokens()) {
+                name = tokens.nextToken();
+                name = normalizeArgTypeName(name);
+                argTypeNames.addElement(name);
+            }
+        } catch (IllegalArgumentException e) {
+            out.println("Invalid Argument Type: '" + name + "'");
+            return null;
+        }
+
+        // Check each method in the class for matches
+        RemoteField methods[] = clazz.getMethods();
+        RemoteField firstMatch = null;  // first method with matching name
+        RemoteField exactMatch = null;  // (only) method with same name & sig
+        int matchCount = 0;             // > 1 implies overload
+        for (int i = 0; i < methods.length; i++) {
+            RemoteField candidate = methods[i];
+
+            if (candidate.getName().equals(methodName)) {
+                matchCount++;
+
+                // Remember the first match in case it is the only one
+                if (matchCount == 1) {
+                    firstMatch = candidate;
+                }
+
+                // If argument types were specified, check against candidate
+                if (! argSpec.equals("") 
+                        && compareArgTypes(candidate, argTypeNames) == true) {
+                    exactMatch = candidate;
+                    break;
+                }
+            }
+        }
+
+        // Determine method for breakpoint
+        RemoteField method = null;
+        if (exactMatch != null) {
+            // Name and signature match
+            method = exactMatch;
+        } else if (argSpec.equals("") && (matchCount > 0)) {
+
+            // At least one name matched and no arg types were specified
+            if (matchCount == 1) {
+                method = firstMatch;       // Only one match; safe to use it
+            } else {
+                // Method is overloaded, but no arg types were specified
+                out.println(clazz.getName() + "." + methodName + 
+                            " is overloaded, use one of the following:");
+                for (int i = 0; i < methods.length; i++) {
+                    if (methodName.equals(methods[i].getName())) {
+                        out.println("  " + methods[i].getTypedName());
+                    }
+                }
+            }
+        } else {
+            // No match with unspecified args or no exact match with specified args
+            out.println("Class " + clazz.getName() +
+                        " doesn't have a method " + 
+                        methodName + argSpec);
+        }
+        return method;
+    }
+
     void stop(StringTokenizer t) throws Exception {
 	if (!t.hasMoreTokens()) {
 	    listBreakpoints();
@@ -729,7 +921,7 @@ public class TTY implements DebuggerCallback {
 		stopAt = false;
 	    } else {
 		out.println("Usage: stop at <class>:<line_number> or");
-		out.println("       stop in <class>.<method_name>");
+		out.println("       stop in <class>.<method_name>[(argument_type,...)]");
 		return;
 	    }
 
@@ -748,7 +940,7 @@ public class TTY implements DebuggerCallback {
 				       ":" + lineno);
 		}
 	    } else {
-		idClass = t.nextToken(": \t\n\r");
+		idClass = t.nextToken(":( \t\n\r");
                 RemoteClass cls = null;
                 String idMethod = null;
 
@@ -770,43 +962,29 @@ public class TTY implements DebuggerCallback {
                 if (idMethod == null) {
                     idMethod = t.nextToken();
                 }
-                RemoteField method;
+
+                String argSpec;
                 try {
-                    method = cls.getMethod(idMethod);
+                    argSpec = t.nextToken("").trim();
+                } catch (NoSuchElementException e) {
+                    argSpec = "";     // No argument types specified
+                }
+                RemoteField method = findMatchingMethod(cls, idMethod, argSpec);
 
-                    /*
-                     * Prevent a breakpoint on overloaded method, since there
-                     * is, currently,  no way to choose among the overloads.
-                     */
-                    RemoteField[] allMethods = cls.getMethods();
-                    for (int i = 0; i < allMethods.length; i++) {
-                        if (allMethods[i].getName().equals(idMethod)
-                                        && (allMethods[i] != method)) {
-                            out.println(cls.getName() + "." + idMethod 
-                                + " is overloaded. Use the 'stop at' command to " 
-                                + "set a breakpoint in one of the overloads");
-                            return;
-                            
-                        }
+                if (method != null) {
+                    // Set the breakpoint
+                    String err = cls.setBreakpointMethod(method);
+                    if (err.length() > 0) {
+                        out.println(err);
+                    } else {
+                        out.println("Breakpoint set in " + cls.getName() +
+                                    "." + idMethod + argSpec);
                     }
-
-
-                } catch (NoSuchMethodException nsme) {
-		    out.println("Class " + cls.getName() +
-				       " doesn't have a method " + idMethod);
-		    return;
-		}
-		String err = cls.setBreakpointMethod(method);
-		if (err.length() > 0) {
-		    out.println(err);
-		} else {
-		    out.println("Breakpoint set in " + cls.getName() +
-				       "." + idMethod);
-		}
+                }
 	    }
 	} catch (NoSuchElementException e) {
 		out.println("Usage: stop at <class>:<line_number> or");
-		out.println("       stop in <class>.<method_name>");
+		out.println("       stop in <class>.<method_name>[(argument_type,...)]");
 	} catch (NumberFormatException e) {
 	    out.println("Invalid line number.");
 	} catch (IllegalArgumentException e) {
@@ -825,7 +1003,7 @@ public class TTY implements DebuggerCallback {
 	String idMethod = null;
 	RemoteClass cls = null;
 	try {
-	    idClass = t.nextToken(": \t\n\r");
+	    idClass = t.nextToken(":( \t\n\r");
 	    try {
 	        cls = getClassFromToken(idClass);
             } catch (IllegalArgumentException e) {
@@ -839,22 +1017,24 @@ public class TTY implements DebuggerCallback {
                 idMethod = idClass.substring(idot + 1);
                 idClass = idClass.substring(0, idot);
                 cls = getClassFromToken(idClass);
-                RemoteField method;
+
+                String argSpec;
                 try {
-                    method = cls.getMethod(idMethod);
-                } catch (NoSuchMethodException nsme) {
-		    out.println("\"" + idMethod + 
-				"\" is not a valid method name of class " +
-				cls.getName());
-		    return;
-		}
-		String err = cls.clearBreakpointMethod(method);
-	        if (err.length() > 0) {
-		    out.println(err);
-	        } else {
-		    out.println("Breakpoint cleared at " + 
-				cls.getName() + "." + idMethod);
-		}
+                    argSpec = t.nextToken("").trim();
+                } catch (NoSuchElementException nse) {
+                    argSpec = "";     // No argument types specified
+                }
+                RemoteField method = findMatchingMethod(cls, idMethod, argSpec);
+
+                if (method != null) {
+                    String err = cls.clearBreakpointMethod(method);
+                    if (err.length() > 0) {
+                        out.println(err);
+                    } else {
+                        out.println("Breakpoint cleared at " + 
+                                    cls.getName() + "." + idMethod + argSpec);
+                    }
+                }
 		return;
             }
 
@@ -870,10 +1050,10 @@ public class TTY implements DebuggerCallback {
 	    }
 	} catch (NoSuchElementException e) {
 	    out.println("Usage: clear <class>:<line_number>");
-	    out.println("   or: clear <class>.<method>");
+	    out.println("   or: clear <class>.<method>[(argument_type,...)]");
 	} catch (NumberFormatException e) {
 	    out.println("Usage: clear <class>:<line_number>");
-	    out.println("   or: clear <class>.<method>");
+	    out.println("   or: clear <class>.<method>[(argument_type,...)]");
 	} catch (IllegalArgumentException e) {
 	    out.println("\"" + idClass +
 			       "\" is not a valid id or class name.");
@@ -895,6 +1075,11 @@ public class TTY implements DebuggerCallback {
 	    out.println("Thread is not running (no stack).");
 	    return;
 	}
+
+        if (frame.getPC() == -1) {
+            out.println("Current method is native");
+            return;
+        }
 	
 	int lineno;
 	if (t.hasMoreTokens()) {
@@ -1175,9 +1360,16 @@ public class TTY implements DebuggerCallback {
 		}
 		lastField = idToken;
 
-                /* Rather than calling RemoteObject.getFieldValue(), we do this so that
-                 * we can report an error if the field doesn't exist. */
-                {
+                if (obj instanceof RemoteArray) {
+                    if (idToken.equals("length")) {
+                        int size = ((RemoteArray)obj).getSize();
+                        rv = new RemoteInt(size);
+                    } else {
+                        return "\"" + idToken + "\" is not a valid array field";
+                    }
+                } else {
+                    /* Rather than calling RemoteObject.getFieldValue(), we do this so 
+                     * that we can report an error if the field doesn't exist. */
 	            RemoteField fields[] = ((RemoteObject)obj).getFields();
                     boolean found = false;
                     for (int i = fields.length-1; i >= 0; i--)
@@ -1186,7 +1378,6 @@ public class TTY implements DebuggerCallback {
                             found = true;
                             break;
                         }
-
                     if (!found) {
                         if (could_be_local_or_class)
                             /* expr is used here instead of idToken, because:
@@ -1308,11 +1499,12 @@ public class TTY implements DebuggerCallback {
 	    out.println("locals                    -- print all local variables in current stack frame\n");
 	    out.println("classes                   -- list currently known classes");
 	    out.println("methods <class id>        -- list a class's methods\n");
-	    out.println("stop in <class id>.<method> -- set a breakpoint in a method");
+	    out.println("stop in <class id>.<method>[(argument_type,...)] -- set a breakpoint in a method");
 	    out.println("stop at <class id>:<line> -- set a breakpoint at a line");
 	    out.println("up [n frames]             -- move up a thread's stack");
 	    out.println("down [n frames]           -- move down a thread's stack");
-	    out.println("clear <class id>:<line>   -- clear a breakpoint");
+	    out.println("clear <class id>.<method>[(argument_type,...)]   -- clear a breakpoint in a method");
+	    out.println("clear <class id>:<line>   -- clear a breakpoint at a line");
 	    out.println("step                      -- execute current line");
 	    out.println("step up                   -- execute until the current method returns to its caller");  // SAS GVH step out
 	    out.println("stepi                     -- execute current instruction");
@@ -1491,32 +1683,25 @@ public class TTY implements DebuggerCallback {
     }
 
     private static void usage() {
-        System.out.println("Usage: " + progname + " <options> <classes>");
+        String separator = System.getProperty("path.separator");
+        System.out.println("Usage: " + progname + " <options> <class> <arguments>");
         System.out.println();
         System.out.println("where options include:");
         System.out.println("    -help             print out this message and exit");
         System.out.println("    -version          print out the build version and exit");
         System.out.println("    -host <hostname>  host machine of interpreter to attach to");
         System.out.println("    -password <psswd> password of interpreter to attach to (from -debug)");
-        System.out.println("options forwarded to debuggee process:");
-        System.out.println("    -v -verbose       turn on verbose mode");
-        System.out.println("    -debug            enable remote JAVA debugging");
-        System.out.println("    -noasyncgc        don't allow asynchronous garbage collection");
-        System.out.println("    -verbosegc        print a message when garbage collection occurs");
-        System.out.println("    -noclassgc        disable class garbage collection");
-        System.out.println("    -cs -checksource  check if source is newer when loading classes");
-        System.out.println("    -ss<number>       set the maximum native stack size for any thread");
-        System.out.println("    -oss<number>      set the maximum Java stack size for any thread");
-        System.out.println("    -ms<number>       set the initial Java heap size");
-        System.out.println("    -mx<number>       set the maximum Java heap size");
-        System.out.println("    -D<name>=<value>  set a system property");
-        System.out.println("    -classpath <directories separated by colons>");
-        System.out.println("                      list directories in which to look for classes");
-        System.out.println("    -prof[:<file>]    output profiling data to ./java.prof or ./<file>");
-        System.out.println("    -verify           verify all classes when read in");
-        System.out.println("    -verifyremote     verify classes read in over the network [default]");
-        System.out.println("    -noverify         do not verify any class");
         System.out.println("    -dbgtrace         print info for debugging " + progname);
+        System.out.println();
+        System.out.println("options forwarded to debuggee process:");
+        System.out.println("    -D<name>=<value>  set a system property");
+        System.out.println("    -classpath <directories separated by \"" + 
+                           separator + "\">");
+        System.out.println("                      list directories in which to look for classes");
+        System.out.println("    -X<option>        non-standard debuggee VM option");
+        System.out.println();
+        System.out.println("<class> is the name of the class to begin debugging");
+        System.out.println("<arguments> are the arguments passed to the main() method of <class>");
         System.out.println();
         System.out.println("For command help type 'help' at " + progname + " prompt");
     }
@@ -1542,15 +1727,25 @@ public class TTY implements DebuggerCallback {
 	    String token = argv[i];
 	    if (token.equals("-dbgtrace")) {
 		verbose = true;
-	    } else if (token.equals("-cs") || token.equals("-checksource") ||
-		       token.equals("-noasyncgc") || token.equals("-prof") ||
-		       token.equals("-v") || token.equals("-verbose") ||
-		       token.equals("-verify") || token.equals("-noverify") ||
-		       token.equals("-verifyremote") ||
-		       token.equals("-verbosegc") ||
-		       token.startsWith("-ms") || token.startsWith("-mx") ||
-		       token.startsWith("-ss") || token.startsWith("-oss") ||
-		       token.startsWith("-D")) {
+            } else if (token.equals("-X")) {
+                System.out.println(
+                       "Use 'java -X' to see the available non-standard options");
+                System.out.println();
+                usage();
+                System.exit(1);
+	    } else if (
+                   // Standard VM options passed on
+ 	           token.startsWith("-D") ||
+                   // NonStandard options passed on
+                   token.startsWith("-X") ||
+                   // Old-style options (These should remain in place as long as
+                   //  the standard VM accepts them)
+		   token.equals("-noasyncgc") || token.equals("-prof") ||
+		   token.equals("-verify") || token.equals("-noverify") ||
+		   token.equals("-verifyremote") ||
+		   token.startsWith("-ms") || token.startsWith("-mx") ||
+		   token.startsWith("-ss") || token.startsWith("-oss") ) {
+
 		javaArgs += token + " ";
 	    } else if (token.equals("-classpath")) {
 		if (i == (argv.length - 1)) {

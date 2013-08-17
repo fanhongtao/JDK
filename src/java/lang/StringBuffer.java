@@ -1,18 +1,31 @@
 /*
- * @(#)StringBuffer.java	1.37 01/12/10
+ * @(#)StringBuffer.java	1.45 98/10/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
 
 /**
  * A string buffer implements a mutable sequence of characters. 
+ * A string buffer is like a {@link String}, but can be modified. At any 
+ * point in time it contains some particular sequence of characters, but 
+ * the length and content of the sequence can be changed through certain 
+ * method calls.
  * <p>
  * String buffers are safe for use by multiple threads. The methods 
  * are synchronized where necessary so that all the operations on any 
- * particular instance behave as if they occur in some serial order. 
+ * particular instance behave as if they occur in some serial order 
+ * that is consistent with the order of the method calls made by each of 
+ * the individual threads involved. 
  * <p>
  * String buffers are used by the compiler to implement the binary 
  * string concatenation operator <code>+</code>. For example, the code:
@@ -23,7 +36,12 @@ package java.lang;
  * <p><blockquote><pre>
  *     x = new StringBuffer().append("a").append(4).append("c")
  *                           .toString()
- * </pre></blockquote><p>
+ * </pre></blockquote>
+ * which creates a new string buffer (initially empty), appends the string
+ * representation of each operand to the string buffer in turn, and then
+ * converts the contents of the string buffer to a string. Overall, this avoids
+ * creating many temporary strings.
+ * <p>
  * The principal operations on a <code>StringBuffer</code> are the 
  * <code>append</code> and <code>insert</code> methods, which are 
  * overloaded so as to accept data of any type. Each effectively 
@@ -40,6 +58,10 @@ package java.lang;
  * <code>z.insert(4, "le")</code> would alter the string buffer to 
  * contain "<code>starlet</code>". 
  * <p>
+ * In general, if sb refers to an instance of a <code>StringBuffer</code>, 
+ * then <code>sb.append(x)</code> has the same effect as 
+ * <code>sb.insert(sb.length(),&nbsp;x)</code>.
+ * <p>
  * Every string buffer has a capacity. As long as the length of the 
  * character sequence contained in the string buffer does not exceed 
  * the capacity, it is not necessary to allocate a new internal 
@@ -47,20 +69,32 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.37, 12/10/01
+ * @version 	1.45, 10/27/98
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
  */
  
 public final class StringBuffer implements java.io.Serializable {
-    /** The value is used for character storage. */
+    /**
+     * The value is used for character storage.
+     * 
+     * @serial
+     */
     private char value[];
 
-    /** The count is the number of characters in the buffer. */
+    /** 
+     * The count is the number of characters in the buffer.
+     * 
+     * @serial
+     */
     private int count;
 
-    /** A flag indicating whether the buffer is shared */
+    /**
+     * A flag indicating whether the buffer is shared 
+     *
+     * @serial
+     */
     private boolean shared;
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
@@ -69,8 +103,6 @@ public final class StringBuffer implements java.io.Serializable {
     /**
      * Constructs a string buffer with no characters in it and an 
      * initial capacity of 16 characters. 
-     *
-     * @since   JDK1.0
      */
     public StringBuffer() {
 	this(16);
@@ -83,7 +115,6 @@ public final class StringBuffer implements java.io.Serializable {
      * @param      length   the initial capacity.
      * @exception  NegativeArraySizeException  if the <code>length</code>
      *               argument is less than <code>0</code>.
-     * @since      JDK1.0
      */
     public StringBuffer(int length) {
 	value = new char[length];
@@ -92,12 +123,12 @@ public final class StringBuffer implements java.io.Serializable {
 
     /**
      * Constructs a string buffer so that it represents the same 
-     * sequence of characters as the string argument. The initial 
-     * capacity of the string buffer is <code>16</code> plus the length 
-     * of the string argument. 
+     * sequence of characters as the string argument; in other
+     * words, the initial contents of the string buffer is a copy of the 
+     * argument string. The initial capacity of the string buffer is 
+     * <code>16</code> plus the length of the string argument. 
      *
      * @param   str   the initial contents of the buffer.
-     * @since   JDK1.0
      */
     public StringBuffer(String str) {
 	this(str.length() + 16);
@@ -107,8 +138,8 @@ public final class StringBuffer implements java.io.Serializable {
     /**
      * Returns the length (character count) of this string buffer.
      *
-     * @return  the number of characters in this string buffer.
-     * @since   JDK1.0
+     * @return  the length of the sequence of characters currently 
+     *          represented by this string buffer.
      */
     public int length() {
 	return count;
@@ -120,7 +151,6 @@ public final class StringBuffer implements java.io.Serializable {
      * characters; beyond which an allocation will occur.
      *
      * @return  the current capacity of this string buffer.
-     * @since   JDK1.0
      */
     public int capacity() {
 	return value.length;
@@ -151,7 +181,6 @@ public final class StringBuffer implements java.io.Serializable {
      * method takes no action and simply returns.
      *
      * @param   minimumCapacity   the minimum desired capacity.
-     * @since   JDK1.0
      */
     public synchronized void ensureCapacity(int minimumCapacity) {
 	if (minimumCapacity > value.length) {
@@ -180,9 +209,17 @@ public final class StringBuffer implements java.io.Serializable {
 
     /**
      * Sets the length of this String buffer.
-     * If the <code>newLength</code> argument is less than the current 
-     * length of the string buffer, the string buffer is truncated to 
-     * contain exactly the number of characters given by the 
+     * This string buffer is altered to represent a new character sequence 
+     * whose length is specified by the argument. For every nonnegative 
+     * index <i>k</i> less than <code>newLength</code>, the character at 
+     * index <i>k</i> in the new character sequence is the same as the 
+     * character at index <i>k</i> in the old sequence if <i>k</i> is less 
+     * than the length of the old character sequence; otherwise, it is the 
+     * null character <code>'\u0000'</code>. 
+     *  
+     * In other words, if the <code>newLength</code> argument is less than 
+     * the current length of the string buffer, the string buffer is 
+     * truncated to contain exactly the number of characters given by the 
      * <code>newLength</code> argument. 
      * <p>
      * If the <code>newLength</code> argument is greater than or equal 
@@ -194,10 +231,9 @@ public final class StringBuffer implements java.io.Serializable {
      * to <code>0</code>. 
      *
      * @param      newLength   the new length of the buffer.
-     * @exception  StringIndexOutOfBoundsException  if the
-     *               <code>newLength</code> argument is invalid.
+     * @exception  IndexOutOfBoundsException  if the
+     *               <code>newLength</code> argument is negative.
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public synchronized void setLength(int newLength) {
 	if (newLength < 0) {
@@ -220,9 +256,9 @@ public final class StringBuffer implements java.io.Serializable {
     }
 
     /**
-     * Returns the character at a specific index in this string buffer. 
-     * <p>
-     * The first character of a string buffer is at index 
+     * The specified character of the sequence currently represented by 
+     * the string buffer, as indicated by the <code>index</code> argument, 
+     * is returned. The first character of a string buffer is at index 
      * <code>0</code>, the next at index <code>1</code>, and so on, for 
      * array indexing. 
      * <p>
@@ -231,9 +267,9 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      index   the index of the desired character.
      * @return     the character at the specified index of this string buffer.
-     * @exception  StringIndexOutOfBoundsException  if the index is invalid.
+     * @exception  IndexOutOfBoundsException  if <code>index</code> is 
+     *             negative or greater than or equal to <code>length()</code>.
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public synchronized char charAt(int index) {
 	if ((index < 0) || (index >= count)) {
@@ -246,21 +282,29 @@ public final class StringBuffer implements java.io.Serializable {
      * Characters are copied from this string buffer into the 
      * destination character array <code>dst</code>. The first character to 
      * be copied is at index <code>srcBegin</code>; the last character to 
-     * be copied is at index <code>srcEnd-1.</code> The total number of 
+     * be copied is at index <code>srcEnd-1</code>. The total number of 
      * characters to be copied is <code>srcEnd-srcBegin</code>. The 
      * characters are copied into the subarray of <code>dst</code> starting 
      * at index <code>dstBegin</code> and ending at index:
      * <p><blockquote><pre>
-     *     dstbegin + (srcEnd-srcBegin) - 1
+     * dstbegin + (srcEnd-srcBegin) - 1
      * </pre></blockquote>
      *
      * @param      srcBegin   start copying at this offset in the string buffer.
      * @param      srcEnd     stop copying at this offset in the string buffer.
      * @param      dst        the array to copy the data into.
      * @param      dstBegin   offset into <code>dst</code>.
-     * @exception  StringIndexOutOfBoundsException  if there is an invalid
-     *               index into the buffer.
-     * @since      JDK1.0
+     * @exception  NullPointerException if <code>dst</code> is 
+     *             <code>null</code>.
+     * @exception  IndexOutOfBoundsException  if any of the following is true:
+     *             <ul><li><code>srcBegin</code> is negative
+     *             <li>the <code>srcBeing</code> argument is greater than 
+     *             the <code>srcEnd</code> argument.
+     *             <li><code>srcEnd</code> is greater than 
+     *             <code>this.length()</code>, the current length of this 
+     *             string buffer.
+     *             <li><code>dstBegin+srcEnd-srcBegin</code> is greater than 
+     *             <code>dst.length</code></ul>
      */
     public synchronized void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
 	if ((srcBegin < 0) || (srcBegin >= count)) {
@@ -271,21 +315,30 @@ public final class StringBuffer implements java.io.Serializable {
 	}
 	if (srcBegin < srcEnd) {
 	    System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
+	} else {
+	    if (srcBegin > srcEnd) {
+		throw new StringIndexOutOfBoundsException
+		    ("StringBuffer.getChars(): begin > end");
+	    }
+	    /* We do nothing when srcBegin == srcEnd. */
 	}
     }
 
     /**
      * The character at the specified index of this string buffer is set 
-     * to <code>ch</code>. 
+     * to <code>ch</code>. The string buffer is altered to represent a new 
+     * character sequence that is identical to the old character sequence, 
+     * except that it contains the character <code>ch</code> at position 
+     * <code>index</code>. 
      * <p>
      * The offset argument must be greater than or equal to 
      * <code>0</code>, and less than the length of this string buffer. 
      *
      * @param      index   the index of the character to modify.
      * @param      ch      the new character.
-     * @exception  StringIndexOutOfBoundsException  if the index is invalid.
+     * @exception  IndexOutOfBoundsException  if <code>index</code> is 
+     *             negative or greater than or equal to <code>length()</code>.
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public synchronized void setCharAt(int index, char ch) {
 	if ((index < 0) || (index >= count)) {
@@ -304,10 +357,9 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   obj   an <code>Object</code>.
-     * @return  this string buffer.
+     * @return  a reference to this <code>StringBuffer</code> object.
      * @see     java.lang.String#valueOf(java.lang.Object)
      * @see     java.lang.StringBuffer#append(java.lang.String)
-     * @since   JDK1.0
      */
     public synchronized StringBuffer append(Object obj) {
 	return append(String.valueOf(obj));
@@ -319,10 +371,19 @@ public final class StringBuffer implements java.io.Serializable {
      * The characters of the <code>String</code> argument are appended, in 
      * order, to the contents of this string buffer, increasing the 
      * length of this string buffer by the length of the argument. 
+     * If <code>str</code> is <code>null</code>, then the four characters 
+     * <code>"null"</code> are appended to this string buffer.
+     * <p>
+     * Let <i>n</i> be the length of the old character sequence, the one 
+     * contained in the string buffer just prior to execution of the 
+     * <code>append</code> method. Then the character at index <i>k</i> in 
+     * the new character sequence is equal to the character at index <i>k</i> 
+     * in the old character sequence, if <i>k</i> is less than <i>n</i>; 
+     * otherwise, it is equal to the character at index <i>k-n</i> in the 
+     * argument <code>str</code>.
      *
      * @param   str   a string.
-     * @return  this string buffer.
-     * @since   JDK1.0
+     * @return  a reference to this <code>StringBuffer</code>.
      */
     public synchronized StringBuffer append(String str) {
 	if (str == null) {
@@ -345,10 +406,14 @@ public final class StringBuffer implements java.io.Serializable {
      * The characters of the array argument are appended, in order, to 
      * the contents of this string buffer. The length of this string 
      * buffer increases by the length of the argument. 
+     * <p>
+     * The overall effect is exactly as if the argument were converted to 
+     * a string by the method {@link String#valueOf(char[])} and the 
+     * characters of that string were then {@link #append(String) appended} 
+     * to this <code>StringBuffer</code> object.
      *
      * @param   str   the characters to be appended.
-     * @return  this string buffer.
-     * @since   JDK1.0
+     * @return  a reference to this <code>StringBuffer</code> object.
      */
     public synchronized StringBuffer append(char str[]) {
 	int len = str.length;
@@ -368,12 +433,16 @@ public final class StringBuffer implements java.io.Serializable {
      * index <code>offset</code>, are appended, in order, to the contents 
      * of this string buffer. The length of this string buffer increases 
      * by the value of <code>len</code>. 
+     * <p>
+     * The overall effect is exactly as if the arguments were converted to 
+     * a string by the method {@link String#valueOf(char[],int,int)} and the
+     * characters of that string were then {@link #append(String) appended} 
+     * to this <code>StringBuffer</code> object.
      *
      * @param   str      the characters to be appended.
      * @param   offset   the index of the first character to append.
      * @param   len      the number of characters to append.
-     * @return  this string buffer.
-     * @since   JDK1.0
+     * @return  a reference to this <code>StringBuffer</code> object.
      */
     public synchronized StringBuffer append(char str[], int offset, int len) {
         int newcount = count + len;
@@ -393,10 +462,9 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   b   a <code>boolean</code>.
-     * @return  this string buffer.
+     * @return  a reference to this <code>StringBuffer</code>.
      * @see     java.lang.String#valueOf(boolean)
      * @see     java.lang.StringBuffer#append(java.lang.String)
-     * @since   JDK1.0
      */
     public StringBuffer append(boolean b) {
 	return append(String.valueOf(b));
@@ -408,10 +476,14 @@ public final class StringBuffer implements java.io.Serializable {
      * <p>
      * The argument is appended to the contents of this string buffer. 
      * The length of this string buffer increases by <code>1</code>. 
+     * <p>
+     * The overall effect is exactly as if the argument were converted to 
+     * a string by the method {@link String#valueOf(char)} and the character 
+     * in that string were then {@link #append(String) appended} to this 
+     * <code>StringBuffer</code> object.
      *
      * @param   ch   a <code>char</code>.
-     * @return  this string buffer.
-     * @since   JDK1.0
+     * @return  a reference to this <code>StringBuffer</code> object.
      */
     public synchronized StringBuffer append(char c) {
         int newcount = count + 1;
@@ -430,10 +502,9 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   i   an <code>int</code>.
-     * @return  this string buffer.
+     * @return  a reference to this <code>StringBuffer</code> object.
      * @see     java.lang.String#valueOf(int)
      * @see     java.lang.StringBuffer#append(java.lang.String)
-     * @since   JDK1.0
      */
     public StringBuffer append(int i) {
 	return append(String.valueOf(i));
@@ -448,10 +519,9 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   l   a <code>long</code>.
-     * @return  this string buffer.
+     * @return  a referenct to this <code>StringBuffer</code> object.
      * @see     java.lang.String#valueOf(long)
      * @see     java.lang.StringBuffer#append(java.lang.String)
-     * @since   JDK1.0
      */
     public StringBuffer append(long l) {
 	return append(String.valueOf(l));
@@ -466,10 +536,9 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   f   a <code>float</code>.
-     * @return  this string buffer.
+     * @return  a reference to this <code>StringBuffer</code> object.
      * @see     java.lang.String#valueOf(float)
      * @see     java.lang.StringBuffer#append(java.lang.String)
-     * @since   JDK1.0
      */
     public StringBuffer append(float f) {
 	return append(String.valueOf(f));
@@ -484,13 +553,192 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   d   a <code>double</code>.
-     * @return  this string buffer.
+     * @return  a reference to this <code>StringBuffer</code> object.
      * @see     java.lang.String#valueOf(double)
      * @see     java.lang.StringBuffer#append(java.lang.String)
-     * @since   JDK1.0
      */
     public StringBuffer append(double d) {
 	return append(String.valueOf(d));
+    }
+
+    /**
+     * Removes the characters in a substring of this <code>StringBuffer</code>.
+     * The substring begins at the specified <code>start</code> and extends to
+     * the character at index <code>end - 1</code> or to the end of the
+     * <code>StringBuffer</code> if no such character exists. If
+     * <code>start</code> is equal to <code>end</code>, no changes are made.
+     *
+     * @param      start  The beginning index, inclusive.
+     * @param      end    The ending index, exclusive.
+     * @return     This string buffer.
+     * @exception  StringIndexOutOfBoundsException  if <code>start</code>
+     *             is negative, greater than <code>length()</code>, or
+     *		   greater than <code>end</code>.
+     * @since      JDK1.2
+     */
+    public synchronized StringBuffer delete(int start, int end) {
+	if (start < 0)
+	    throw new StringIndexOutOfBoundsException(start);
+	if (end > count)
+	    end = count;
+	if (start > end)
+	    throw new StringIndexOutOfBoundsException();
+
+        int len = end - start;
+        if (len > 0) {
+            if (shared)
+                copy();
+            System.arraycopy(value, start+len, value, start, count-end);
+            count -= len;
+        }
+        return this;
+    }
+
+    /**
+     * Removes the character at the specified position in this
+     * <code>StringBuffer</code> (shortening the <code>StringBuffer</code>
+     * by one character).
+     *
+     * @param       index  Index of character to remove
+     * @return      This string buffer.
+     * @exception   StringIndexOutOfBoundsException  if the <code>index</code>
+     *		    is negative or greater than or equal to
+     *		    <code>length()</code>.
+     * @since       JDK1.2
+     */
+    public synchronized StringBuffer deleteCharAt(int index) {
+        if ((index < 0) || (index >= count))
+	    throw new StringIndexOutOfBoundsException();
+	if (shared)
+	    copy();
+	System.arraycopy(value, index+1, value, index, count-index-1);
+	count--;
+        return this;
+    }
+
+    /**
+     * Replaces the characters in a substring of this <code>StringBuffer</code>
+     * with characters in the specified <code>String</code>. The substring
+     * begins at the specified <code>start</code> and extends to the character
+     * at index <code>end - 1</code> or to the end of the
+     * <code>StringBuffer</code> if no such character exists. First the
+     * characters in the substring are removed and then the specified
+     * <code>String</code> is inserted at <code>start</code>. (The
+     * <code>StringBuffer</code> will be lengthened to accommodate the
+     * specified String if necessary.)
+     * 
+     * @param      start    The beginning index, inclusive.
+     * @param      end      The ending index, exclusive.
+     * @param      str   String that will replace previous contents.
+     * @return     This string buffer.
+     * @exception  StringIndexOutOfBoundsException  if <code>start</code>
+     *             is negative, greater than <code>length()</code>, or
+     *		   greater than <code>end</code>.
+     * @since      JDK1.2
+     */ 
+    public synchronized StringBuffer replace(int start, int end, String str) {
+        if (start < 0)
+	    throw new StringIndexOutOfBoundsException(start);
+	if (end > count)
+	    end = count;
+	if (start > end)
+	    throw new StringIndexOutOfBoundsException();
+
+	int len = str.length();
+	int newCount = count + len - (end - start);
+	if (newCount > value.length)
+	    expandCapacity(newCount);
+	else if (shared)
+	    copy();
+
+        System.arraycopy(value, end, value, start + len, count - end);
+        str.getChars(0, len, value, start);
+        count = newCount;
+        return this;
+    }
+
+    /**
+     * Returns a new <code>String</code> that contains a subsequence of
+     * characters currently contained in this <code>StringBuffer</code>.The 
+     * substring begins at the specified index and extends to the end of the
+     * <code>StringBuffer</code>.
+     * 
+     * @param      start    The beginning index, inclusive.
+     * @return     The new string.
+     * @exception  StringIndexOutOfBoundsException  if <code>start</code> is
+     *             less than zero, or greater than the length of this
+     *             <code>StringBuffer</code>.
+     * @since      JDK1.2
+     */
+    public String substring(int start) {
+        return substring(start, count);
+    }
+
+    /**
+     * Returns a new <code>String</code> that contains a subsequence of
+     * characters currently contained in this <code>StringBuffer</code>. The 
+     * substring begins at the specified <code>start</code> and 
+     * extends to the character at index <code>end - 1</code>. An
+     * exception is thrown if 
+     *
+     * @param      start    The beginning index, inclusive.
+     * @param      end      The ending index, exclusive.
+     * @return     The new string.
+     * @exception  StringIndexOutOfBoundsException  if <code>start</code>
+     *             or <code>end</code> are negative or greater than
+     *		   <code>length()</code>, or <code>start</code> is
+     *		   greater than <code>end</code>.
+     * @since      JDK1.2 
+     */
+    public synchronized String substring(int start, int end) {
+	if (start < 0)
+	    throw new StringIndexOutOfBoundsException(start);
+	if (end > count)
+	    throw new StringIndexOutOfBoundsException(end);
+	if (start > end)
+	    throw new StringIndexOutOfBoundsException(end - start);
+        return new String(value, start, end - start);
+    }
+
+    /**
+     * Inserts the string representation of a subarray of the <code>str</code>
+     * array argument into this string buffer. The subarray begins at the
+     * specified <code>offset</code> and extends <code>len</code> characters.
+     * The characters of the subarray are inserted into this string buffer at
+     * the position indicated by <code>index</code>. The length of this
+     * <code>StringBuffer</code> increases by <code>len</code> characters.
+     *
+     * @param      index    position at which to insert subarray.
+     * @param      str       A character array.
+     * @param      offset   the index of the first character in subarray to
+     *		   to be inserted.
+     * @param      len      the number of characters in the subarray to
+     *		   to be inserted.
+     * @return     This string buffer.
+     * @exception  StringIndexOutOfBoundsException  if <code>index</code>
+     *             is negative or greater than <code>length()</code>, or
+     *		   <code>offset</code> or <code>len</code> are negative, or
+     *		   <code>(offset+len)</code> is greater than
+     *		   <code>str.length</code>.
+     * @since JDK1.2
+     */
+    public synchronized StringBuffer insert(int index, char str[], int offset,
+                                                                   int len) {
+        if ((index < 0) || (index > count))
+	    throw new StringIndexOutOfBoundsException();
+	if ((offset < 0) || (offset + len > str.length))
+	    throw new StringIndexOutOfBoundsException(offset);
+	if (len < 0)
+	    throw new StringIndexOutOfBoundsException(len);
+	int newCount = count + len;
+	if (newCount > value.length)
+	    expandCapacity(newCount);
+	else if (shared)
+	    copy();
+	System.arraycopy(value, index, value, index + len, count - index);
+	System.arraycopy(str, offset, value, index, len);
+	count = newCount;
+	return this;
     }
 
     /**
@@ -508,12 +756,11 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      offset   the offset.
      * @param      b        an <code>Object</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(java.lang.Object)
      * @see        java.lang.StringBuffer#insert(int, java.lang.String)
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public synchronized StringBuffer insert(int offset, Object obj) {
 	return insert(offset, String.valueOf(obj));
@@ -523,23 +770,41 @@ public final class StringBuffer implements java.io.Serializable {
      * Inserts the string into this string buffer. 
      * <p>
      * The characters of the <code>String</code> argument are inserted, in 
-     * order, into this string buffer at the indicated offset. The length 
-     * of this string buffer is increased by the length of the argument. 
+     * order, into this string buffer at the indicated offset, moving up any 
+     * characters originally above that position and increasing the length 
+     * of this string buffer by the length of the argument. If 
+     * <code>str</code> is <code>null</code>, then the four characters 
+     * <code>"null"</code> are inserted into this string buffer.
      * <p>
+     * The character at index <i>k</i> in the new character sequence is 
+     * equal to:
+     * <ul>
+     * <li>the character at index <i>k</i> in the old character sequence, if 
+     * <i>k</i> is less than <code>offset</code> 
+     * <li>the character at index <i>k</i><code>-offset</code> in the 
+     * argument <code>str</code>, if <i>k</i> is not less than 
+     * <code>offset</code> but is less than <code>offset+str.length()</code> 
+     * <li>the character at index <i>k</i><code>-str.length()</code> in the 
+     * old character sequence, if <i>k</i> is not less than 
+     * <code>offset+str.length()</code>
+     * </ul><p>
      * The offset argument must be greater than or equal to 
      * <code>0</code>, and less than or equal to the length of this 
      * string buffer. 
      *
      * @param      offset   the offset.
      * @param      str      a string.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public synchronized StringBuffer insert(int offset, String str) {
 	if ((offset < 0) || (offset > count)) {
 	    throw new StringIndexOutOfBoundsException();
+	}
+
+	if (str == null) {
+	    str = String.valueOf(str);
 	}
 	int len = str.length();
 	int newcount = count + len;
@@ -561,12 +826,18 @@ public final class StringBuffer implements java.io.Serializable {
      * contents of this string buffer at the position indicated by 
      * <code>offset</code>. The length of this string buffer increases by 
      * the length of the argument. 
+     * <p>
+     * The overall effect is exactly as if the argument were converted to 
+     * a string by the method {@link String#valueOf(char[])} and the 
+     * characters of that string were then 
+     * {@link #insert(int,String) inserted} into this 
+     * <code>StringBuffer</code>  object at the position indicated by
+     * <code>offset</code>.
      *
      * @param      offset   the offset.
      * @param      ch       a character array.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
-     * @since      JDK1.0
      */
     public synchronized StringBuffer insert(int offset, char str[]) {
 	if ((offset < 0) || (offset > count)) {
@@ -599,12 +870,11 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      offset   the offset.
      * @param      b        a <code>boolean</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(boolean)
      * @see        java.lang.StringBuffer#insert(int, java.lang.String)
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public StringBuffer insert(int offset, boolean b) {
 	return insert(offset, String.valueOf(b));
@@ -618,16 +888,21 @@ public final class StringBuffer implements java.io.Serializable {
      * buffer at the position indicated by <code>offset</code>. The length 
      * of this string buffer increases by one. 
      * <p>
+     * The overall effect is exactly as if the argument were converted to 
+     * a string by the method {@link String#valueOf(char)} and the character 
+     * in that string were then {@link #insert(int, String) inserted} into 
+     * this <code>StringBuffer</code> object at the position indicated by
+     * <code>offset</code>.
+     * <p>
      * The offset argument must be greater than or equal to 
      * <code>0</code>, and less than or equal to the length of this 
      * string buffer. 
      *
      * @param      offset   the offset.
      * @param      ch       a <code>char</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public synchronized StringBuffer insert(int offset, char c) {
 	int newcount = count + 1;
@@ -656,12 +931,11 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      offset   the offset.
      * @param      b        an <code>int</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(int)
      * @see        java.lang.StringBuffer#insert(int, java.lang.String)
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public StringBuffer insert(int offset, int i) {
 	return insert(offset, String.valueOf(i));
@@ -673,8 +947,8 @@ public final class StringBuffer implements java.io.Serializable {
      * <p>
      * The second argument is converted to a string as if by the method 
      * <code>String.valueOf</code>, and the characters of that 
-     * string are then inserted into this string buffer at the indicated 
-     * offset. 
+     * string are then inserted into this string buffer at the position 
+     * indicated by <code>offset</code>. 
      * <p>
      * The offset argument must be greater than or equal to 
      * <code>0</code>, and less than or equal to the length of this 
@@ -682,12 +956,11 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      offset   the offset.
      * @param      b        a <code>long</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(long)
      * @see        java.lang.StringBuffer#insert(int, java.lang.String)
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public StringBuffer insert(int offset, long l) {
 	return insert(offset, String.valueOf(l));
@@ -708,12 +981,11 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      offset   the offset.
      * @param      b        a <code>float</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(float)
      * @see        java.lang.StringBuffer#insert(int, java.lang.String)
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public StringBuffer insert(int offset, float f) {
 	return insert(offset, String.valueOf(f));
@@ -734,12 +1006,11 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @param      offset   the offset.
      * @param      b        a <code>double</code>.
-     * @return     this string buffer.
+     * @return     a reference to this <code>StringBuffer</code> object.
      * @exception  StringIndexOutOfBoundsException  if the offset is invalid.
      * @see        java.lang.String#valueOf(double)
      * @see        java.lang.StringBuffer#insert(int, java.lang.String)
      * @see        java.lang.StringBuffer#length()
-     * @since      JDK1.0
      */
     public StringBuffer insert(int offset, double d) {
 	return insert(offset, String.valueOf(d));
@@ -748,8 +1019,14 @@ public final class StringBuffer implements java.io.Serializable {
     /**
      * The character sequence contained in this string buffer is 
      * replaced by the reverse of the sequence. 
+     * <p>
+     * Let <i>n</i> be the length of the old character sequence, the one 
+     * contained in the string buffer just prior to execution of the 
+     * <code>reverse</code> method. Then the character at index <i>k</i> in 
+     * the new character sequence is equal to the character at index 
+     * <i>n-k-1</i> in the old character sequence.
      *
-     * @return  this string buffer.
+     * @return  a reference to this <codeStringBuffer</code> object..
      * @since   JDK1.0.2
      */
     public synchronized StringBuffer reverse() {
@@ -770,9 +1047,17 @@ public final class StringBuffer implements java.io.Serializable {
      * string buffer. This <code>String</code> is then returned. Subsequent 
      * changes to the string buffer do not affect the contents of the 
      * <code>String</code>. 
+     * <p>
+     * Implementation advice: This method can be coded so as to create a new
+     * <code>String</code> object without allocating new memory to hold a 
+     * copy of the character sequence. Instead, the string can share the 
+     * memory used by the string buffer. Any subsequent operation that alters 
+     * the content or capacity of the string buffer must then make a copy of 
+     * the internal buffer at that time. This strategy is effective for 
+     * reducing the amount of memory allocated by a string concatenation 
+     * operation when it is implemented using a string buffer.
      *
      * @return  a string representation of the string buffer.
-     * @since   JDK1.0
      */
     public String toString() {
 	return new String(this);

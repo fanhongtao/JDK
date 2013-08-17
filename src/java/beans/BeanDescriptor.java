@@ -1,8 +1,15 @@
 /*
- * @(#)BeanDescriptor.java	1.12 01/12/10
+ * @(#)BeanDescriptor.java	1.15 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -19,6 +26,7 @@ public class BeanDescriptor extends FeatureDescriptor {
 
     /**
      * Create a BeanDescriptor for a bean that doesn't have a customizer.
+     *
      * @param beanClass  The Class object of the Java class that implements
      *		the bean.  For example sun.beans.OurButton.class.
      */
@@ -28,6 +36,7 @@ public class BeanDescriptor extends FeatureDescriptor {
 
     /**
      * Create a BeanDescriptor for a bean that has a customizer.
+     *
      * @param beanClass  The Class object of the Java class that implements
      *		the bean.  For example sun.beans.OurButton.class.
      * @param customizerClass  The Class object of the Java class that implements
@@ -44,6 +53,8 @@ public class BeanDescriptor extends FeatureDescriptor {
     }
 
     /**
+     * Gets the bean's Class object.
+     *
      * @return The Class object for the bean.
      */
     public Class getBeanClass() {
@@ -51,11 +62,23 @@ public class BeanDescriptor extends FeatureDescriptor {
     }
 
     /**
+     * Gets the Class object for the bean's customizer.
+     *
      * @return The Class object for the bean's customizer.  This may
      * be null if the bean doesn't have a customizer.
      */
     public Class getCustomizerClass() {
 	return customizerClass;
+    }
+
+    /*
+     * Package-private dup constructor
+     * This must isolate the new object from any changes to the old object.
+     */
+    BeanDescriptor(BeanDescriptor old) {
+	super(old);
+	beanClass = old.beanClass;
+	customizerClass = old.customizerClass;
     }
 
     private Class beanClass;

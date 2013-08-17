@@ -1,8 +1,14 @@
 /*
- * @(#)Runtime.java	1.30 01/12/10
+ * @(#)Runtime.java	1.49 00/04/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 package java.lang;
@@ -10,7 +16,7 @@ package java.lang;
 import java.io.*;
 import java.util.StringTokenizer;
 
-/*
+/**
  * Every Java application has a single instance of class 
  * <code>Runtime</code> that allows the application to interface with 
  * the environment in which the application is running. The current 
@@ -19,19 +25,21 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.30, 12/10/01
+ * @version 1.49, 04/19/00
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
+
 public class Runtime {
     private static Runtime currentRuntime = new Runtime();
       
     /**
      * Returns the runtime object associated with the current Java application.
-     *
+     * Most of the methods of class <code>Runtime</code> are instance 
+     * methods and must be invoked with respect to the current runtime object. 
+     * 
      * @return  the <code>Runtime</code> object associated with the current
      *          Java application.
-     * @since   JDK1.0
      */
     public static Runtime getRuntime() { 
 	return currentRuntime;
@@ -48,19 +56,23 @@ public class Runtime {
      * Terminates the currently running Java Virtual Machine. This 
      * method never returns normally. 
      * <p>
-     * If there is a security manager, its <code>checkExit</code> method 
-     * is called with the status as its argument. This may result in a 
-     * security exception. 
+     * First, if there is a security manager, its <code>checkExit</code> 
+     * method is called with the status as its argument. This may result 
+     * in a security exception. 
      * <p>
      * The argument serves as a status code; by convention, a nonzero 
      * status code indicates abnormal termination. 
+     * <p>
+     * The method {@link System#exit(int)} is the conventional and 
+     * convenient means of invoking this method.
      *
-     * @param      status   exit status.
-     * @exception  SecurityException  if the current thread cannot exit with
-     *               the specified status.
+     * @param      status   exit status. By convention, a nonzero status 
+     *             code indicates abnormal termination.
+     * @throws  SecurityException
+     *        if a security manager exists and its <code>checkExit</code> 
+     *        method doesn't allow exit with the specified status.
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkExit(int)
-     * @since      JDK1.0
      */
     public void exit(int status) {
 	SecurityManager security = System.getSecurityManager();
@@ -70,34 +82,45 @@ public class Runtime {
 	exitInternal(status);
     }
 
+    /* Wormhole for calling java.lang.ref.Finalizer.setRunFinalizersOnExit */
+    private static native void runFinalizersOnExit0(boolean value);
+
     /**
      * Enable or disable finalization on exit; doing so specifies that the
      * finalizers of all objects that have finalizers that have not yet been
      * automatically invoked are to be run before the Java runtime exits.
-     * By default, finalization on exit is disabled.  An invocation of
-     * the runFinalizersOnExit method is permitted only if the caller is
-     * allowed to exit, and is otherwise rejected by the security manager.
-     * @see Runtime#gc
-     * @see Runtime#exit
+     * By default, finalization on exit is disabled.
+     * 
+     * <p>If there is a security manager, 
+     * its <code>checkExit</code> method is first called
+     * with 0 as its argument to ensure the exit is allowed. 
+     * This could result in a SecurityException.
+     *
+     * @deprecated  This method is inherently unsafe.  It may result in
+     * 	    finalizers being called on live objects while other threads are
+     *      concurrently manipulating those objects, resulting in erratic
+     *	    behavior or deadlock.
+     * 
+     * @throws  SecurityException
+     *        if a security manager exists and its <code>checkExit</code> 
+     *        method doesn't allow the exit.
+     *
+     * @see     java.lang.Runtime#exit(int)
+     * @see     java.lang.Runtime#gc()
+     * @see     java.lang.SecurityManager#checkExit(int)
      * @since   JDK1.1
      */
     public static void runFinalizersOnExit(boolean value) {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
-	    try { security.checkExit(0); }
-	    catch (SecurityException e) {
+	    try {
+		security.checkExit(0); 
+	    } catch (SecurityException e) {
 		throw new SecurityException("runFinalizersOnExit");
 	    }
 	}
 	runFinalizersOnExit0(value);
     }
-
-    /*
-     * Private variable holding the boolean determining whether to finalize
-     * on exit.  The default value of the variable is false.  See the comment
-     * on Runtime.runFinalizersOnExit for constraints on modifying this.
-     */
-    private static native void runFinalizersOnExit0(boolean value);
 
     /* Helper for exec
      */
@@ -108,15 +131,21 @@ public class Runtime {
      * Executes the specified string command in a separate process. 
      * <p>
      * The <code>command</code> argument is parsed into tokens and then 
-     * executed as a command in a separate process. This method has 
-     * exactly the same effect as <code>exec(command, null)</code>. 
+     * executed as a command in a separate process. The token parsing is 
+     * done by a {@link java.util.StringTokenizer} created by the call:
+     * <blockquote><pre>
+     * new StringTokenizer(command)
+     * </pre></blockquote> 
+     * with no further modifications of the character categories. 
+     * This method has exactly the same effect as 
+     * <code>exec(command, null)</code>. 
      *
      * @param      command   a specified system command.
      * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if the current thread cannot create a
-     *             subprocess.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
      * @see        java.lang.Runtime#exec(java.lang.String, java.lang.String[])
-     * @since      JDK1.0
+     * @see     java.lang.SecurityManager#checkExec(java.lang.String)
      */
     public Process exec(String command) throws IOException {
 	return exec(command, null);
@@ -127,17 +156,26 @@ public class Runtime {
      * specified environment. 
      * <p>
      * This method breaks the <code>command</code> string into tokens and 
-     * creates a new array <code>cmdarray</code> containing the tokens; it 
-     * then performs the call <code>exec(cmdarray, envp)</code>. 
+     * creates a new array <code>cmdarray</code> containing the tokens in the 
+     * order that they were produced by the string tokenizer; it 
+     * then performs the call <code>exec(cmdarray, envp)</code>. The token
+     * parsing is done by a {@link java.util.StringTokenizer} created by 
+     * the call: 
+     * <blockquote><pre>
+     * new StringTokenizer(command)
+     * </pre></blockquote>
+     * with no further modification of the character categories. 
      *
      * @param      command   a specified system command.
-     * @param      envp      array containing environment in format
-     *                       <i>name</i>=<i>value</i>
+     * @param      envp      array of strings, each element of which 
+     *                       has environment variable settings in format
+     *                       <i>name</i>=<i>value</i>.
      * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if the current thread cannot create a
-     *               subprocess.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
+     * @see        java.lang.Runtime#exec(java.lang.String[])
      * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
-     * @since      JDK1.0
+     * @see        java.lang.SecurityManager#checkExec(java.lang.String)
      */
     public Process exec(String command, String envp[]) throws IOException {
 	int count = 0;
@@ -153,11 +191,7 @@ public class Runtime {
  	while (st.hasMoreTokens()) {
  		cmdarray[count++] = st.nextToken();
  	}
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkExec(cmdarray[0]);
-	}
-	return execInternal(cmdarray, envp);
+	return exec(cmdarray, envp);
     }
 
     /**
@@ -166,14 +200,19 @@ public class Runtime {
      * The command specified by the tokens in <code>cmdarray</code> is 
      * executed as a command in a separate process. This has exactly the 
      * same effect as <code>exec(cmdarray, null)</code>. 
+     * <p>
+     * If there is a security manager, its <code>checkExec</code> 
+     * method is called with the first component of the array 
+     * <code>cmdarray</code> as its argument. This may result in a security 
+     * exception. 
      *
      * @param      cmdarray   array containing the command to call and
      *                        its arguments.
      * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if the current thread cannot create a
-     *               subprocess.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
      * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
-     * @since      JDK1.0
+     * @see        java.lang.SecurityManager#checkExec(java.lang.String)
      */
     public Process exec(String cmdarray[]) throws IOException {
 	return exec(cmdarray, null);
@@ -183,32 +222,51 @@ public class Runtime {
      * Executes the specified command and arguments in a separate process
      * with the specified environment. 
      * <p>
-     * If there is a security manager, its <code>checkExec</code> method 
-     * is called with the first component of the array 
+     * If there is a security manager, its <code>checkExec</code> 
+     * method is called with the first component of the array 
      * <code>cmdarray</code> as its argument. This may result in a security 
      * exception. 
      * <p>
      * Given an array of strings <code>cmdarray</code>, representing the 
      * tokens of a command line, and an array of strings <code>envp</code>, 
-     * representing an "environment" that defines system 
-     * properties, this method creates a new process in which to execute 
-     * the specified command. 
+     * representing "environment" variable settings, this method creates 
+     * a new process in which to execute the specified command. 
      *
      * @param      cmdarray   array containing the command to call and
      *                        its arguments.
-     * @param      envp       array containing environment in format
+     * @param      envp       array of strings, each element of which 
+     *                        has environment variable settings in format
      *                        <i>name</i>=<i>value</i>.
      * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if the current thread cannot create a
-     *               subprocess.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
+     * @exception  NullPointerException if <code>cmdarray</code> is 
+     *             <code>null</code>.
+     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an 
+     *             empty array (has length <code>0</code>).
+     * @see     java.lang.Process
      * @see     java.lang.SecurityException
      * @see     java.lang.SecurityManager#checkExec(java.lang.String)
-     * @since   JDK1.0
      */
     public Process exec(String cmdarray[], String envp[]) throws IOException {
         cmdarray = (String[])cmdarray.clone();
         envp = (envp != null ? (String[])envp.clone() : null);
- 
+
+        if (cmdarray.length == 0) {
+            throw new IndexOutOfBoundsException();            
+        }
+        for (int i = 0; i < cmdarray.length; i++) {
+            if (cmdarray[i] == null) {
+                throw new NullPointerException();
+            }
+        }
+        if (envp != null) {
+            for (int i = 0; i < envp.length; i++) {
+                if (envp[i] == null) {
+                    throw new NullPointerException();
+                }
+            }
+        }
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkExec(cmdarray[0]);
@@ -217,23 +275,25 @@ public class Runtime {
     }
 
     /**
-     * Returns the amount of free memory in the system. The value returned
-     * by this method is always less than the value returned by the
-     * <code>totalMemory</code> method. Calling the <code>gc</code> method may
-     * result in increasing the value returned by <code>freeMemory.</code>
+     * Returns the amount of free memory in the system. Calling the 
+     * <code>gc</code> method may result in increasing the value returned 
+     * by <code>freeMemory.</code>
      *
      * @return  an approximation to the total amount of memory currently
      *          available for future allocated objects, measured in bytes.
-     * @since   JDK1.0
      */
     public native long freeMemory();
 
     /**
      * Returns the total amount of memory in the Java Virtual Machine. 
-     *
-     * @return  the total amount of memory currently available for allocating
-     *          objects, measured in bytes.
-     * @since   JDK1.0
+     * The value returned by this method may vary over time, depending on 
+     * the host environment.
+     * <p>
+     * Note that the amount of memory required to hold an object of any 
+     * given type may be implementation-dependent.
+     * 
+     * @return  the total amount of memory currently available for current 
+     *          and future objects, measured in bytes.
      */
     public native long totalMemory();
 
@@ -243,16 +303,20 @@ public class Runtime {
      * effort toward recycling unused objects in order to make the memory 
      * they currently occupy available for quick reuse. When control 
      * returns from the method call, the Java Virtual Machine has made 
-     * its best effort to recycle all unused objects. 
+     * its best effort to recycle all discarded objects. 
      * <p>
      * The name <code>gc</code> stands for "garbage 
      * collector". The Java Virtual Machine performs this recycling 
-     * process automatically as needed even if the <code>gc</code> method 
-     * is not invoked explicitly. 
-     *
-     * @since   JDK1.0
+     * process automatically as needed, in a separate thread, even if the 
+     * <code>gc</code> method is not invoked explicitly.
+     * <p>
+     * The method {@link System#gc()} is hte conventional and convenient 
+     * means of invoking this method. 
      */
     public native void gc();
+
+    /* Wormhole for calling java.lang.ref.Finalizer.runFinalization */
+    private static native void runFinalization0();
 
     /**
      * Runs the finalization methods of any objects pending finalization.
@@ -264,93 +328,55 @@ public class Runtime {
      * complete all outstanding finalizations. 
      * <p>
      * The Java Virtual Machine performs the finalization process 
-     * automatically as needed if the <code>runFinalization</code> method 
-     * is not invoked explicitly. 
+     * automatically as needed, in a separate thread, if the 
+     * <code>runFinalization</code> method is not invoked explicitly. 
+     * <p>
+     * The method {@link System#runFinalization()} is the conventional 
+     * and convenient means of invoking this method.
      *
      * @see     java.lang.Object#finalize()
-     * @since   JDK1.0
      */
-    public native void runFinalization();
+    public void runFinalization() {
+	runFinalization0();
+    }
 
     /**
      * Enables/Disables tracing of instructions.
      * If the <code>boolean</code> argument is <code>true</code>, this 
-     * method asks the Java Virtual Machine to print out a detailed trace 
-     * of each instruction in the Java Virtual Machine as it is executed. 
+     * method suggests that the Java Virtual Machine emit debugging 
+     * information for each instruction in the Java Virtual Machine as it 
+     * is executed. The format of this information, and the file or other 
+     * output stream to which it is emitted, depends on the host environment. 
      * The virtual machine may ignore this request if it does not support 
      * this feature. The destination of the trace output is system 
      * dependent. 
      * <p>
      * If the <code>boolean</code> argument is <code>false</code>, this 
      * method causes the Java Virtual Machine to stop performing the 
-     * detailed instruction trace it is performing. 
+     * detailed instruction trace it is performing.
      *
      * @param   on   <code>true</code> to enable instruction tracing;
      *               <code>false</code> to disable this feature.
-     * @since   JDK1.0
      */
     public native void traceInstructions(boolean on);
 
     /**
      * Enables/Disables tracing of method calls.
      * If the <code>boolean</code> argument is <code>true</code>, this 
-     * method asks the Java Virtual Machine to print out a detailed trace 
-     * of each method in the Java Virtual Machine as it is called. The 
+     * method suggests that the Java Virtual Machine emit debugging 
+     * information for each method in the Java Virtual Machine as it is 
+     * called. The format of this information, and the file or other output 
+     * stream to which it is emitted, depends on the host environment. The 
      * virtual machine may ignore this request if it does not support 
-     * this feature. The destination of the trace output is system dependent. 
+     * this feature.  
      * <p>
-     * If the <code>boolean</code> argument is <code>false</code>, this 
-     * method causes the Java Virtual Machine to stop performing the 
-     * detailed method trace it is performing. 
+     * Calling this method with argument false suggests that the Java 
+     * Virtual Machine cease emitting per-call debugging information.
      *
      * @param   on   <code>true</code> to enable instruction tracing;
      *               <code>false</code> to disable this feature.
-     * @since   JDK1.0
      */
     public native void traceMethodCalls(boolean on);
-
-    /**
-     * Initializes the linker and returns the search path for shared libraries.
-     */
-    private synchronized native String initializeLinkerInternal();
-    private native String buildLibName(String pathname, String filename);
-
-    /* Helper for load and loadLibrary */
-    private native int loadFileInternal(String filename);
-
-    /** The paths searched for libraries */
-    private String paths[];
-
-    private void initializeLinker() {
-	String ldpath = initializeLinkerInternal();
-	char c = System.getProperty("path.separator").charAt(0);
-	int ldlen = ldpath.length();
-	int i, j, n;
-	// Count the separators in the path
-	i = ldpath.indexOf(c);
-	n = 0;
-	while (i >= 0) {
-	    n++;
-	    i = ldpath.indexOf(c, i+1);
-	}
-
-	// allocate the array of paths - n :'s = n + 1 path elements
-	paths = new String[n + 1];
-
-	// Fill the array with paths from the ldpath
-	n = i = 0;
-	j = ldpath.indexOf(c);
-	while (j >= 0) {
-	    if (j - i > 0) {
-		paths[n++] = ldpath.substring(i, j);
-	    } else if (j - i == 0) { 
-		paths[n++] = ".";
-	    }
-	    i = j + 1;
-	    j = ldpath.indexOf(c, i);
-	}
-	paths[n] = ldpath.substring(i, ldlen);
-    }
 
     /**
      * Loads the specified filename as a dynamic library. The filename 
@@ -359,74 +385,91 @@ public class Runtime {
      * ".so" (for example
      * <code>Runtime.getRuntime().load("/home/avh/lib/libX11.so");</code>).
      * <p>
-     * If there is a security manager, its <code>checkLink</code> method 
-     * is called with the <code>filename</code> as its argument. This may 
-     * result in a security exception. 
+     * First, if there is a security manager, its <code>checkLink</code> 
+     * method is called with the <code>filename</code> as its argument. 
+     * This may result in a security exception. 
+     * <p>
+     * This is similar to the method {@link #loadLibrary(String)}, but it 
+     * accepts a general file name as an argument rathan than just a library 
+     * name, allowing any file of native code to be loaded.
+     * <p>
+     * The method {@link System#load(String)} is the conventional and 
+     * convenient means of invoking this method.
      *
      * @param      filename   the file to load.
-     * @exception  SecurityException     if the current thread cannot load the
-     *               specified dynamic library.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkLink</code> method doesn't allow 
+     *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the file does not exist.
      * @see        java.lang.Runtime#getRuntime()
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
-     * @since      JDK1.0
      */
-    public synchronized void load(String filename) {
+    public void load(String filename) {
+        load0(System.getCallerClass(), filename);
+    }
+
+    synchronized void load0(Class fromClass, String filename) {
 	SecurityManager security = System.getSecurityManager();
-	int ret;
 	if (security != null) {
 	    security.checkLink(filename);
 	}
-	ret = loadFileInternal(filename);
-	if (ret == -1) {
-	    throw new OutOfMemoryError();
-	} else if (ret == 0) {
-	    throw new UnsatisfiedLinkError(filename);
-	}   /* else load was successful; return */
+	if (!(new File(filename).isAbsolute())) {
+	    throw new UnsatisfiedLinkError(
+	        "Expecting an absolute path of the library: " + filename);
+	}
+	ClassLoader.loadLibrary(fromClass, filename, true);
     }
 
     /**
-     * Loads the dynamic library with the specified library name. The 
+     * Loads the dynamic library with the specified library name. 
+     * A file containing native code is loaded from the local file system 
+     * from a place where library files are conventionally obtained. The 
+     * details of this process are implementation-dependent. The 
      * mapping from a library name to a specific filename is done in a 
      * system-specific manner. 
      * <p>
      * First, if there is a security manager, its <code>checkLink</code> 
-     * method is called with the <code>filename</code> as its argument. 
+     * method is called with the <code>libname</code> as its argument. 
      * This may result in a security exception. 
+     * <p>
+     * The method {@link System#loadLibrary(String)} is the conventional 
+     * and convenient means of invoking this method. If native
+     * methods are to be used in the implementation of a class, a standard 
+     * strategy is to put the native code in a library file (call it 
+     * <code>LibFile</code>) and then to put a static initializer:
+     * <blockquote><pre>
+     * static { System.loadLibrary("LibFile"); }
+     * </pre></blockquote>
+     * within the class declaration. When the class is loaded and 
+     * initialized, the necessary native code implementation for the native 
+     * methods will then be loaded as well. 
      * <p>
      * If this method is called more than once with the same library 
      * name, the second and subsequent calls are ignored. 
      *
      * @param      libname   the name of the library.
-     * @exception  SecurityException     if the current thread cannot load the
-     *               specified dynamic library.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkLink</code> method doesn't allow 
+     *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the library does not exist.
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
-     * @since      JDK1.0
      */
-    public synchronized void loadLibrary(String libname) {
+    public void loadLibrary(String libname) {
+        loadLibrary0(System.getCallerClass(), libname); 
+    }
+
+    synchronized void loadLibrary0(Class fromClass, String libname) {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkLink(libname);
 	}
-        if (paths == null) {
-            initializeLinker();
+	if (libname.indexOf((int)File.separatorChar) != -1) {
+	    throw new UnsatisfiedLinkError(
+    "Directory separator should not appear in library name: " + libname);
 	}
-	for (int i = 0 ; i < paths.length ; i++) {
-	    int ret;
-	    String tempname = buildLibName(paths[i], libname);
-	    ret = loadFileInternal(tempname);
-	    if (ret == -1) {
-		throw new OutOfMemoryError();
-	    } else if (ret == 1) {	// Loaded or found it already loaded
-		return;
-	    }
-	}
-	// Oops, it failed
-        throw new UnsatisfiedLinkError("no " + libname + 
-					   " in shared library path");
+	ClassLoader.loadLibrary(fromClass, libname, false);
     }
 
     /**

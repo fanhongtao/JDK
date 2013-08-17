@@ -1,8 +1,15 @@
 /*
- * @(#)Throwable.java	1.34 01/12/10
+ * @(#)Throwable.java	1.38 98/08/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -15,6 +22,17 @@ package java.lang;
  * <code>throw</code> statement. Similarly, only this class or one of 
  * its subclasses can be the argument type in a <code>catch</code> 
  * clause. 
+ * <p>
+ * Instances of two subclasses, {@link java.lang.Error} and 
+ * {@link java.lang.Exception}, are conventionally used to indicate 
+ * that exceptional situations have occurred. Typically, these instances 
+ * are freshly created in the context of the exceptional situation so 
+ * as to include relevant information (such as stack trace data).
+ * <p>
+ * By convention, class <code>Throwable</code> and its subclasses have 
+ * two constructors, one that takes no arguments and one that takes a 
+ * <code>String</code> argument that can be used to produce an error 
+ * message.
  * <p>
  * A <code>Throwable</code> class contains a snapshot of the 
  * execution stack of its thread at the time it was created. It can 
@@ -47,6 +65,8 @@ public class Throwable implements java.io.Serializable {
      * Specific details about the Throwable.  For example,
      * for FileNotFoundThrowables, this contains the name of
      * the file that could not be found.
+     *
+     * @serial
      */
     private String detailMessage;
 
@@ -54,21 +74,21 @@ public class Throwable implements java.io.Serializable {
     private static final long serialVersionUID = -3042686055658047285L;
 
     /**
-     * Constructs a new <code>Throwable</code> with no detail message. 
-     * The stack trace is automatically filled in. 
-     *
-     * @since   JDK1.0
+     * Constructs a new <code>Throwable</code> with <code>null</code> as 
+     * its error message string. Also, the method 
+     * {@link #fillInStackTrace()} is called for this object. 
      */
     public Throwable() {
 	fillInStackTrace();
     }
 
     /**
-     * Constructs a new <code>Throwable</code> with the specified detail 
-     * message. The stack trace is automatically filled in. 
+     * Constructs a new <code>Throwable</code> with the specified error 
+     * message. Also, the method {@link @fillInStackTrace()} is called for 
+     * this object.
      *
-     * @param   message   the detail message.
-     * @since   JDK1.0
+     * @param   message   the error message. The error message is saved for 
+     *          later retrieval by the {@link @getMessage()} method.
      */
     public Throwable(String message) {
 	fillInStackTrace();
@@ -76,12 +96,13 @@ public class Throwable implements java.io.Serializable {
     }
 
     /**
-     * Returns the detail message of this throwable object.
+     * Returns the errort message string of this throwable object.
      *
-     * @return  the detail message of this <code>Throwable</code>,
-     *          or <code>null</code> if this <code>Throwable</code> does not
-     *          have a detail message.
-     * @since   JDK1.0
+     * @return  the error message string of this <code>Throwable</code> 
+     *          object if it was {@link #Throwable(String) created} with an 
+     *          error message string; or <code>null</code> if it was 
+     *          {@link #Throwable() created} with no error message. 
+     *            
      */
     public String getMessage() {
 	return detailMessage;
@@ -102,37 +123,78 @@ public class Throwable implements java.io.Serializable {
 
     /**
      * Returns a short description of this throwable object.
+     * If this <code>Throwable</code> object was 
+     * {@link #Throwable(String) created} with an error message string, 
+     * then the result is the concatenation of three strings: 
+     * <ul>
+     * <li>The name of the actual class of this object 
+     * <li>": " (a colon and a space) 
+     * <li>The result of the {@link #getMessage} method for this object 
+     * </ul>
+     * If this <code>Throwable</code> object was {@link #Throwable() created} 
+     * with no error message string, then the name of the actual class of 
+     * this object is returned.
      *
      * @return  a string representation of this <code>Throwable</code>.
-     * @since   JDK1.0
      */
     public String toString() {
 	String s = getClass().getName();
-	String message = getMessage();
+	String message = getLocalizedMessage();
 	return (message != null) ? (s + ": " + message) : s;
     }
 
     /**
      * Prints this <code>Throwable</code> and its backtrace to the 
-     * standard error stream. 
+     * standard error stream. This method prints a stack trace for this 
+     * <code>Throwable</code> object on the error output stream that is 
+     * the value of the field <code>System.err</code>. The first line of 
+     * output contains the result of the {@link #toString()} method for 
+     * this object. Remaining lines represent data previously recorded by 
+     * the method {@link #fillInStackTrace()}. The format of this 
+     * information depends on the implementation, but the following 
+     * example may be regarded as typical: 
+     * <blockquote><pre>
+     * java.lang.NullPointerException
+     *         at MyClass.mash(MyClass.java:9)
+     *         at MyClass.crunch(MyClass.java:6)
+     *         at MyClass.main(MyClass.java:3)
+     * </pre></blockquote>
+     * This example was produced by running the program: 
+     * <blockquote><pre>
+     * 
+     * class MyClass {
+     * 
+     *     public static void main(String[] argv) {
+     *         crunch(null);
+     *     }
+     *     static void crunch(int[] a) {
+     *         mash(a);
+     *     }
+     * 
+     *     static void mash(int[] b) {
+     *         System.out.println(b[0]);
+     *     }
+     * }
+     * </pre></blockquote>
      *
      * @see     java.lang.System#err
-     * @since   JDK1.0
      */
     public void printStackTrace() { 
-        System.err.println(this);
-	printStackTrace0(System.err);
+	synchronized (System.err) {
+	    System.err.println(this);
+	    printStackTrace0(System.err);
+	}
     }
 
     /**
      * Prints this <code>Throwable</code> and its backtrace to the 
      * specified print stream. 
-     *
-     * @since   JDK1.0
      */
     public void printStackTrace(java.io.PrintStream s) { 
-        s.println(this);
-	printStackTrace0(s);
+	synchronized (s) {
+	    s.println(this);
+	    printStackTrace0(s);
+	}
     }
 
     /**
@@ -142,16 +204,20 @@ public class Throwable implements java.io.Serializable {
      * @since   JDK1.1
      */
     public void printStackTrace(java.io.PrintWriter s) { 
-        s.println(this);
-	printStackTrace0(s);
+	synchronized (s) {
+	    s.println(this);
+	    printStackTrace0(s);
+	}
     }
 
     /* The given object must have a void println(char[]) method */
     private native void printStackTrace0(Object s);
 
     /**
-     * Fills in the execution stack trace. This method is useful when an 
-     * application is re-throwing an error or exception. For example: 
+     * Fills in the execution stack trace. This method records within this 
+     * <code>Throwable</code> object information about the current state of 
+     * the stack frames for the current thread. This method is useful when 
+     * an application is re-throwing an error or exception. For example: 
      * <p><blockquote><pre>
      *     try {
      *         a = b / c;
@@ -163,7 +229,6 @@ public class Throwable implements java.io.Serializable {
      *
      * @return  this <code>Throwable</code> object.
      * @see     java.lang.Throwable#printStackTrace()
-     * @since   JDK1.0
      */
     public native Throwable fillInStackTrace();
 

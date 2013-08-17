@@ -1,8 +1,15 @@
 /*
- * @(#)PropertyChangeEvent.java	1.23 01/12/10
+ * @(#)PropertyChangeEvent.java	1.28 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -13,7 +20,7 @@ package java.beans;
  * argument to the PropertyChangeListener and VetoableChangeListener methods.
  * <P>
  * Normally PropertyChangeEvents are accompanied by the name and the old
- * and new value of the changed property.  If the new value is a builtin
+ * and new value of the changed property.  If the new value is a primitive
  * type (such as int or boolean) it must be wrapped as the 
  * corresponding java.lang.* Object type (such as Integer or Boolean).
  * <P>
@@ -28,6 +35,8 @@ package java.beans;
 public class PropertyChangeEvent extends java.util.EventObject {
 
     /**
+     * Constructs a new <code>PropertyChangeEvent</code>.
+     *
      * @param source  The bean that fired the event.
      * @param propertyName  The programmatic name of the property
      *		that was changed.
@@ -43,6 +52,8 @@ public class PropertyChangeEvent extends java.util.EventObject {
     }
 
     /**
+     * Gets the programmatic name of the property that was changed.
+     *
      * @return  The programmatic name of the property that was changed.
      *		May be null if multiple properties have changed.
      */
@@ -51,6 +62,8 @@ public class PropertyChangeEvent extends java.util.EventObject {
     }
     
     /**
+     * Sets the new value for the property, expressed as an Object.
+     *
      * @return  The new value for the property, expressed as an Object.
      *		May be null if multiple properties have changed.
      */
@@ -59,6 +72,8 @@ public class PropertyChangeEvent extends java.util.EventObject {
     }
 
     /**
+     * Gets the old value for the property, expressed as an Object.
+     *
      * @return  The old value for the property, expressed as an Object.
      *		May be null if multiple properties have changed.
      */
@@ -67,6 +82,8 @@ public class PropertyChangeEvent extends java.util.EventObject {
     }
 
     /**
+     * Sets the propagationId object for the event.
+     *
      * @param propagationId  The propagationId object for the event.
      */
     public void setPropagationId(Object propagationId) {
@@ -87,8 +104,28 @@ public class PropertyChangeEvent extends java.util.EventObject {
 	return propagationId;
     }
 
+    /**
+     * name of the property that changed.  May be null, if not known.
+     * @serial
+     */
     private String propertyName;
+
+    /**
+     * New value for property.  May be null if not known.
+     * @serial
+     */
     private Object newValue;
+
+    /**
+     * Previous value for property.  May be null if not known.
+     * @serial
+     */
     private Object oldValue;
+
+    /**
+     * Propagation ID.  May be null.
+     * @serial
+     * @see #getPropagationId.
+     */
     private Object propagationId;
 }

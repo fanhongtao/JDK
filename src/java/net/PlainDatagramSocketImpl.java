@@ -1,8 +1,15 @@
 /*
- * @(#)PlainDatagramSocketImpl.java	1.11 01/12/10
+ * @(#)PlainDatagramSocketImpl.java	1.18 98/07/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -15,7 +22,7 @@ import java.io.InterruptedIOException;
  * Concrete datagram and multicast socket implementation base class.
  * Note: This is not a public class, so that applets cannot call
  * into the implementation directly and hence cannot bypass the
- * security checks present in the DatagramSocket and MulticastSocket 
+ * security checks present in the DatagramSocket and MulticastSocket
  * classes.
  *
  * @author Pavani Diwanji
@@ -31,7 +38,9 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      * Load net library into runtime.
      */
     static {
-	System.loadLibrary("net");
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("net"));
+	init();
     }
 
     /**
@@ -45,7 +54,8 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
     /**
      * Binds a datagram socket to a local port.
      */
-    protected synchronized native void bind(int lport, InetAddress laddr) throws SocketException;
+    protected synchronized native void bind(int lport, InetAddress laddr)
+        throws SocketException;
 
     /**
      * Sends a datagram packet. The packet contains the data and the
@@ -64,7 +74,19 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      * Receive the datagram packet.
      * @param Packet Received.
      */
-    protected synchronized native void receive(DatagramPacket p) throws IOException;
+    protected synchronized native void receive(DatagramPacket p)
+        throws IOException;
+
+    /**
+     * Set the TTL (time-to-live) option.
+     * @param TTL to be set.
+     */
+    protected native void setTimeToLive(int ttl) throws IOException;
+
+    /**
+     * Get the TTL (time-to-live) option.
+     */
+    protected native int getTimeToLive() throws IOException;
 
     /**
      * Set the TTL (time-to-live) option.
@@ -99,19 +121,19 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
 	}
     }
 
-    protected synchronized void finalize() {
+    protected void finalize() {
 	close();
     }
 
     /**
-     * set a value - since we only support (setting) binary options 
+     * set a value - since we only support (setting) binary options
      * here, o must be a Boolean
      */
 
      public void setOption(int optID, Object o) throws SocketException {
 	 switch (optID) {
 	    /* check type safety b4 going native.  These should never
-	     * fail, since only java.Socket* has access to 
+	     * fail, since only java.Socket* has access to
 	     * PlainSocketImpl.setOption().
 	     */
 	 case SO_TIMEOUT:
@@ -119,7 +141,7 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
 		 throw new SocketException("bad argument for SO_TIMEOUT");
 	     }
 	     int tmp = ((Integer) o).intValue();
-	     if (tmp < 0) 
+	     if (tmp < 0)
 		 throw new IllegalArgumentException("timeout < 0");
 	     timeout = tmp;
 	     return;
@@ -128,9 +150,17 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
 	 case SO_REUSEADDR:
 	     if (o == null || !(o instanceof Integer)) {
 		 throw new SocketException("bad argument for SO_REUSEADDR");
-	     } 
+	     }
 	     break;
-	 case IP_MULTICAST_IF: 
+	 case SO_RCVBUF:
+	 case SO_SNDBUF:
+	     if (o == null || !(o instanceof Integer) ||
+		 ((Integer)o).intValue() < 0) {
+		 throw new SocketException("bad argument for SO_SNDBUF or " +
+					   "SO_RCVBUF");
+	     }
+	     break;
+	 case IP_MULTICAST_IF:
 	     if (o == null || !(o instanceof InetAddress))
 		 throw new SocketException("bad argument for IP_MULTICAST_IF");
 	     break;
@@ -145,24 +175,33 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      */
 
     public Object getOption(int optID) throws SocketException {
+	Integer result = null;
 	if (optID == SO_TIMEOUT) {
-	    return new Integer(timeout);
-	}
-	int ret = socketGetOption(optID);
-
-	if (optID == SO_BINDADDR || optID == IP_MULTICAST_IF) {
-	    InetAddress in = new InetAddress();
-	    in.address = ret;
-	    return in;
+	    result = new Integer(timeout);
 	} else {
-	    return null;
+	    int ret = socketGetOption(optID);
+
+	    if (optID == SO_BINDADDR || optID == IP_MULTICAST_IF) {
+		InetAddress in = new InetAddress();
+		in.address = ret;
+		return in;
+	    } else if (optID == SO_RCVBUF || optID == SO_SNDBUF) {
+		result = new Integer(ret);
+	    }
 	}
+	return result;
     }
-	
+
     private native void datagramSocketCreate() throws SocketException;
     private native void datagramSocketClose();
-    private native void socketSetOption(int opt, Object val) throws SocketException;
+    private native void socketSetOption(int opt, Object val)
+        throws SocketException;
     private native int socketGetOption(int opt) throws SocketException;
-    
+
+    /**
+     * Perform class load-time initializations.
+     */
+    private native static void init();
+
 }
 

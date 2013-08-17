@@ -1,8 +1,15 @@
 /*
- * @(#)Externalizable.java	1.8 01/12/10
+ * @(#)Externalizable.java	1.12 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -11,27 +18,34 @@ import java.io.ObjectOutput;
 import java.io.ObjectInput;
 
 /**
- * Externalization allows a class to specify the methods to be used to
- * write the object's contents to a stream and to read them back.  The
- * Externalizable interface's writeExternal and readExternal methods
- * are implemented by a class to
- * give the class complete control over the format and contents of the
- * stream for an object and its supertypes. These methods must explicitly
- * coordinate with the supertype to save its state. <br>
+ * Only the identity of the class of an Externalizable instance is
+ * written in the serialization stream and it is the responsibility
+ * of the class to save and restore the contents of its instances.
+ *
+ * The writeExternal and readExternal methods of the Externalizable
+ * interface are implemented by a class to give the class complete
+ * control over the format and contents of the stream for an object
+ * and its supertypes. These methods must explicitly
+ * coordinate with the supertype to save its state. These methods supercede
+ * customized implementations of writeObject and readObject methods.<br>
  *
  * Object Serialization uses the Serializable and Externalizable
- * interfaces.  Object persistence mechanisms may use them also.  Each
+ * interfaces.  Object persistence mechanisms can use them as well.  Each
  * object to be stored is tested for the Externalizable interface. If
- * the object supports it, the writeExternal method is called. If the
+ * the object supports Externalizable, the writeExternal method is called. If the
  * object does not support Externalizable and does implement
- * Serializable the object should be saved using
- * ObjectOutputStream. <br> When an Externalizable object is to be
+ * Serializable, the object is saved using
+ * ObjectOutputStream. <br> When an Externalizable object is
  * reconstructed, an instance is created using the public no-arg
- * constructor and the readExternal method called.  Serializable
- * objects are restored by reading them from an ObjectInputStream.
+ * constructor, then the readExternal method called.  Serializable
+ * objects are restored by reading them from an ObjectInputStream.<br>
+ *
+ * An Externalizable instance can designate a substitution object via
+ * the writeReplace and readResolve methods documented in the Serializable
+ * interface.<br>
  *
  * @author  unascribed
- * @version 1.8, 12/10/01
+ * @version 1.12, 06/29/98
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput
@@ -43,10 +57,16 @@ public interface Externalizable extends java.io.Serializable {
     /**
      * The object implements the writeExternal method to save its contents
      * by calling the methods of DataOutput for its primitive values or
-     * calling the writeObject method of ObjectOutput for objects, strings
+     * calling the writeObject method of ObjectOutput for objects, strings,
      * and arrays.
+     *
+     * @serialData Overriding methods should use this tag to describe
+     *             the data layout of this Externalizable object.
+     *             List the sequence of element types and, if possible,
+     *             relate the element to a public/protected field and/or
+     *             method of this Externalizable class.
+     *
      * @exception IOException Includes any I/O exceptions that may occur
-     * @since     JDK1.1
      */
     void writeExternal(ObjectOutput out) throws IOException;
 
@@ -58,7 +78,6 @@ public interface Externalizable extends java.io.Serializable {
      * and with the same types as were written by writeExternal.
      * @exception ClassNotFoundException If the class for an object being
      *              restored cannot be found.
-     * @since     JDK1.1
      */
     void readExternal(ObjectInput in) throws IOException, ClassNotFoundException;
 }

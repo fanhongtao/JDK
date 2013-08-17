@@ -1,10 +1,10 @@
 /*
- * @(#)EntryPair.java	1.6 01/12/10
+ * @(#)EntryPair.java	1.9 98/04/22
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -38,13 +38,15 @@ package java.text;
 final class EntryPair
 {
     public String entryName;
-    public int value = RuleBasedCollator.UNMAPPED;
-
-    public EntryPair() {
-    }
-
+    public int value;
+    public boolean fwd;
+    
     public EntryPair(String name, int value) {
+        this(name, value, true);
+    }
+    public EntryPair(String name, int value, boolean fwd) {
         this.entryName = name;
         this.value = value;
+        this.fwd = fwd;
     }
 }

@@ -1,21 +1,28 @@
 /*
- * @(#)Connection.java	1.7 01/12/10
+ * @(#)Connection.java	1.19 98/09/29
+ * 
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.sql;
 
 /**
- * <P>A Connection represents a session with a specific
+ * <P>A connection (session) with a specific
  * database. Within the context of a Connection, SQL statements are
  * executed and results are returned.
  *
  * <P>A Connection's database is able to provide information
  * describing its tables, its supported SQL grammar, its stored
- * procedures, the capabilities of this connection, etc. This
- * information is obtained with the getMetaData method.
+ * procedures, the capabilities of this connection, and so on. This
+ * information is obtained with the <code>getMetaData</code> method.
  *
  * <P><B>Note:</B> By default the Connection automatically commits
  * changes after executing each statement. If auto commit has been
@@ -30,17 +37,27 @@ package java.sql;
 public interface Connection {
 
     /**
+	 * Creates a <code>Statement</code> object for sending
+	 * SQL statements to the database.
      * SQL statements without parameters are normally
      * executed using Statement objects. If the same SQL statement 
      * is executed many times, it is more efficient to use a 
      * PreparedStatement
      *
+     * JDBC 2.0
+     *
+     * Result sets created using the returned Statement will have
+     * forward-only type, and read-only concurrency, by default.
+     *
      * @return a new Statement object 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     Statement createStatement() throws SQLException;
 
     /**
+	 * Creates a <code>PreparedStatement</code> object for sending
+	 * parameterized SQL statements to the database.
+	 * 
      * A SQL statement with or without IN parameters can be
      * pre-compiled and stored in a PreparedStatement object. This
      * object can then be used to efficiently execute this statement
@@ -48,62 +65,78 @@ public interface Connection {
      *
      * <P><B>Note:</B> This method is optimized for handling
      * parametric SQL statements that benefit from precompilation. If
-     * the driver supports precompilation, prepareStatement will send
+     * the driver supports precompilation,
+	 * the method <code>prepareStatement</code> will send
      * the statement to the database for precompilation. Some drivers
      * may not support precompilation. In this case, the statement may
-     * not be sent to the database until the PreparedStatement is
-     * executed.  This has no direct affect on users; however, it does
+     * not be sent to the database until the <code>PreparedStatement</code> is
+     * executed.  This has no direct effect on users; however, it does
      * affect which method throws certain SQLExceptions.
+     *
+     * JDBC 2.0
+     *
+     * Result sets created using the returned PreparedStatement will have
+     * forward-only type and read-only concurrency, by default.
      *
      * @param sql a SQL statement that may contain one or more '?' IN
      * parameter placeholders
      * @return a new PreparedStatement object containing the
      * pre-compiled statement 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     PreparedStatement prepareStatement(String sql)
 	    throws SQLException;
 
     /**
-     * A SQL stored procedure call statement is handled by creating a
-     * CallableStatement for it. The CallableStatement provides
+	 * Creates a <code>CallableStatement</code> object for calling
+	 * database stored procedures.
+     * The CallableStatement provides
      * methods for setting up its IN and OUT parameters, and
-     * methods for executing it.
+     * methods for executing the call to a stored procedure.
      *
      * <P><B>Note:</B> This method is optimized for handling stored
      * procedure call statements. Some drivers may send the call
-     * statement to the database when the prepareCall is done; others
+     * statement to the database when the method <code>prepareCall</code>
+	 * is done; others
      * may wait until the CallableStatement is executed. This has no
-     * direct affect on users; however, it does affect which method
+     * direct effect on users; however, it does affect which method
      * throws certain SQLExceptions.
+     *
+     * JDBC 2.0
+     *
+     * Result sets created using the returned CallableStatement will have
+     * forward-only type and read-only concurrency, by default.
      *
      * @param sql a SQL statement that may contain one or more '?'
      * parameter placeholders. Typically this  statement is a JDBC
      * function call escape string.
      * @return a new CallableStatement object containing the
      * pre-compiled SQL statement 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     CallableStatement prepareCall(String sql) throws SQLException;
 						
     /**
+	 * Converts the given SQL statement into the system's native SQL grammar.
      * A driver may convert the JDBC sql grammar into its system's
-     * native SQL grammar prior to sending it; nativeSQL returns the
+     * native SQL grammar prior to sending it; this method returns the
      * native form of the statement that the driver would have sent.
      *
      * @param sql a SQL statement that may contain one or more '?'
      * parameter placeholders
      * @return the native form of this statement
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     String nativeSQL(String sql) throws SQLException;
 
     /**
+	 * Sets this connection's auto-commit mode.
      * If a connection is in auto-commit mode, then all its SQL
      * statements will be executed and committed as individual
      * transactions.  Otherwise, its SQL statements are grouped into
-     * transactions that are terminated by either commit() or
-     * rollback().  By default, new connections are in auto-commit
+     * transactions that are terminated by a call to either
+	 * the method <code>commit</code> or the method <code>rollback</code>.
+	 * By default, new connections are in auto-commit
      * mode.
      *
      * The commit occurs when the statement completes or the next
@@ -112,188 +145,298 @@ public interface Connection {
      * the last row of the ResultSet has been retrieved or the
      * ResultSet has been closed. In advanced cases, a single
      * statement may return multiple results as well as output
-     * parameter values. Here the commit occurs when all results and
-     * output param values have been retrieved.
+     * parameter values. In these cases the commit occurs when all results and
+     * output parameter values have been retrieved.
      *
      * @param autoCommit true enables auto-commit; false disables
      * auto-commit.  
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     void setAutoCommit(boolean autoCommit) throws SQLException;
 
     /**
-     * Get the current auto-commit state.
+     * Gets the current auto-commit state.
      *
-     * @return Current state of auto-commit mode.
-     * @exception SQLException if a database-access error occurs.
+     * @return the current state of auto-commit mode
+     * @exception SQLException if a database access error occurs
      * @see #setAutoCommit 
      */
     boolean getAutoCommit() throws SQLException;
 
     /**
-     * Commit makes all changes made since the previous
+     * Makes all changes made since the previous
      * commit/rollback permanent and releases any database locks
-     * currently held by the Connection. This method should only be
-     * used when auto commit has been disabled.
+     * currently held by the Connection. This method should be
+     * used only when auto-commit mode has been disabled.
      *
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #setAutoCommit 
      */
     void commit() throws SQLException;
 
     /**
-     * Rollback drops all changes made since the previous
+     * Drops all changes made since the previous
      * commit/rollback and releases any database locks currently held
-     * by the Connection. This method should only be used when auto
+     * by this Connection. This method should be used only when auto-
      * commit has been disabled.
      *
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see #setAutoCommit 
      */
     void rollback() throws SQLException;
 
     /**
-     * In some cases, it is desirable to immediately release a
-     * Connection's database and JDBC resources instead of waiting for
-     * them to be automatically released; the close method provides this
-     * immediate release. 
+     * Releases a Connection's database and JDBC resources
+	 * immediately instead of waiting for
+     * them to be automatically released.
      *
      * <P><B>Note:</B> A Connection is automatically closed when it is
      * garbage collected. Certain fatal errors also result in a closed
      * Connection.
      *
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
-    void close() throws SQLException;;
+    void close() throws SQLException;
 
     /**
      * Tests to see if a Connection is closed.
      *
      * @return true if the connection is closed; false if it's still open
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
-    boolean isClosed() throws SQLException;;
+    boolean isClosed() throws SQLException;
 
     //======================================================================
     // Advanced features:
 
     /**
+	 * Gets the metadata regarding this connection's database.
      * A Connection's database is able to provide information
      * describing its tables, its supported SQL grammar, its stored
-     * procedures, the capabilities of this connection, etc. This
+     * procedures, the capabilities of this connection, and so on. This
      * information is made available through a DatabaseMetaData
      * object.
      *
      * @return a DatabaseMetaData object for this Connection 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
-    DatabaseMetaData getMetaData() throws SQLException;;
+    DatabaseMetaData getMetaData() throws SQLException;
 
     /**
-     * You can put a connection in read-only mode as a hint to enable 
+     * Puts this connection in read-only mode as a hint to enable 
      * database optimizations.
      *
-     * <P><B>Note:</B> setReadOnly cannot be called while in the
+     * <P><B>Note:</B> This method cannot be called while in the
      * middle of a transaction.
      *
      * @param readOnly true enables read-only mode; false disables
      * read-only mode.  
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     void setReadOnly(boolean readOnly) throws SQLException;
 
     /**
      * Tests to see if the connection is in read-only mode.
      *
-     * @return true if connection is read-only
-     * @exception SQLException if a database-access error occurs.
+     * @return true if connection is read-only and false otherwise
+     * @exception SQLException if a database access error occurs
      */
     boolean isReadOnly() throws SQLException;
 
     /**
-     * A sub-space of this Connection's database may be selected by setting a
-     * catalog name. If the driver does not support catalogs it will
+     * Sets a catalog name in order to select 	
+     * a subspace of this Connection's database in which to work.
+     * If the driver does not support catalogs, it will
      * silently ignore this request.
      *
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     void setCatalog(String catalog) throws SQLException;
 
     /**
-     * Return the Connection's current catalog name.
+     * Returns the Connection's current catalog name.
      *
      * @return the current catalog name or null
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     String getCatalog() throws SQLException;
 
     /**
-     * Transactions are not supported. 
+     * Indicates that transactions are not supported. 
      */
     int TRANSACTION_NONE	     = 0;
 
     /**
      * Dirty reads, non-repeatable reads and phantom reads can occur.
+     * This level allows a row changed by one transaction to be read
+     * by another transaction before any changes in that row have been
+     * committed (a "dirty read").  If any of the changes are rolled back, 
+     * the second transaction will have retrieved an invalid row.
      */
     int TRANSACTION_READ_UNCOMMITTED = 1;
 
     /**
      * Dirty reads are prevented; non-repeatable reads and phantom
-     * reads can occur.
+     * reads can occur.  This level only prohibits a transaction
+     * from reading a row with uncommitted changes in it.
      */
     int TRANSACTION_READ_COMMITTED   = 2;
 
     /**
      * Dirty reads and non-repeatable reads are prevented; phantom
-     * reads can occur.     
+     * reads can occur.  This level prohibits a transaction from
+     * reading a row with uncommitted changes in it, and it also
+     * prohibits the situation where one transaction reads a row,
+     * a second transaction alters the row, and the first transaction
+     * rereads the row, getting different values the second time
+     * (a "non-repeatable read").
      */
     int TRANSACTION_REPEATABLE_READ  = 4;
 
     /**
      * Dirty reads, non-repeatable reads and phantom reads are prevented.
+     * This level includes the prohibitions in
+     * TRANSACTION_REPEATABLE_READ and further prohibits the 
+     * situation where one transaction reads all rows that satisfy
+     * a WHERE condition, a second transaction inserts a row that
+     * satisfies that WHERE condition, and the first transaction
+     * rereads for the same condition, retrieving the additional
+     * "phantom" row in the second read.
      */
     int TRANSACTION_SERIALIZABLE     = 8;
 
     /**
-     * You can call this method to try to change the transaction
-     * isolation level using one of the TRANSACTION_* values.
+     * Attempts to change the transaction
+     * isolation level to the one given.
+	 * The constants defined in the interface <code>Connection</code>
+	 * are the possible transaction isolation levels.
      *
-     * <P><B>Note:</B> setTransactionIsolation cannot be called while
+     * <P><B>Note:</B> This method cannot be called while
      * in the middle of a transaction.
      *
      * @param level one of the TRANSACTION_* isolation values with the
      * exception of TRANSACTION_NONE; some databases may not support
      * other values
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      * @see DatabaseMetaData#supportsTransactionIsolationLevel 
      */
     void setTransactionIsolation(int level) throws SQLException;
 
     /**
-     * Get this Connection's current transaction isolation mode.
+     * Gets this Connection's current transaction isolation level.
      *
      * @return the current TRANSACTION_* mode value
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     int getTransactionIsolation() throws SQLException;
 
     /**
-     * The first warning reported by calls on this Connection is
-     * returned.  
+     * Returns the first warning reported by calls on this Connection.
      *
      * <P><B>Note:</B> Subsequent warnings will be chained to this
      * SQLWarning.
      *
      * @return the first SQLWarning or null 
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     SQLWarning getWarnings() throws SQLException;
 
     /**
-     * After this call, getWarnings returns null until a new warning is
+     * Clears all warnings reported for this <code>Connection</code> object.	
+     * After a call to this method, the method <code>getWarnings</code>
+	 * returns null until a new warning is
      * reported for this Connection.  
      *
-     * @exception SQLException if a database-access error occurs.
+     * @exception SQLException if a database access error occurs
      */
     void clearWarnings() throws SQLException;
+
+
+    //--------------------------JDBC 2.0-----------------------------
+
+    /**
+     * JDBC 2.0
+     *
+	 * Creates a <code>Statement</code> object that will generate
+	 * <code>ResultSet</code> objects with the given type and concurrency.
+     * This method is the same as the <code>createStatement</code> method
+	 * above, but it allows the default result set
+     * type and result set concurrency type to be overridden.
+     *
+     * @param resultSetType a result set type; see ResultSet.TYPE_XXX
+     * @param resultSetConcurrency a concurrency type; see ResultSet.CONCUR_XXX
+     * @return a new Statement object 
+     * @exception SQLException if a database access error occurs
+     */
+    Statement createStatement(int resultSetType, int resultSetConcurrency) 
+      throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+	 * Creates a <code>PreparedStatement</code> object that will generate
+	 * <code>ResultSet</code> objects with the given type and concurrency.
+     * This method is the same as the <code>prepareStatement</code> method
+	 * above, but it allows the default result set
+     * type and result set concurrency type to be overridden.
+     *
+     * @param resultSetType a result set type; see ResultSet.TYPE_XXX
+     * @param resultSetConcurrency a concurrency type; see ResultSet.CONCUR_XXX
+     * @return a new PreparedStatement object containing the
+     * pre-compiled SQL statement 
+     * @exception SQLException if a database access error occurs
+     */
+     PreparedStatement prepareStatement(String sql, int resultSetType, 
+					int resultSetConcurrency)
+       throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+	 * Creates a <code>CallableStatement</code> object that will generate
+	 * <code>ResultSet</code> objects with the given type and concurrency.
+     * This method is the same as the <code>prepareCall</code> method
+	 * above, but it allows the default result set
+     * type and result set concurrency type to be overridden.
+     *
+     * @param resultSetType a result set type; see ResultSet.TYPE_XXX
+     * @param resultSetConcurrency a concurrency type; see ResultSet.CONCUR_XXX
+     * @return a new CallableStatement object containing the
+     * pre-compiled SQL statement 
+     * @exception SQLException if a database access error occurs
+     */
+    CallableStatement prepareCall(String sql, int resultSetType, 
+				 int resultSetConcurrency) throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Gets the type map object associated with this connection.
+     * Unless the application has added an entry to the type map,
+	 * the map returned will be empty.
+	 *
+	 * @return the <code>java.util.Map</code> object associated 
+	 *         with this <code>Connection</code> object
+     */
+    java.util.Map getTypeMap() throws SQLException;
+
+    /**
+     * JDBC 2.0
+     *
+     * Installs the given type map as the type map for
+     * this connection.  The type map will be used for the
+	 * custom mapping of SQL structured types and distinct types.
+	 *
+	 * @param the <code>java.util.Map</code> object to install
+	 *        as the replacement for this <code>Connection</code>
+	 *        object's default type map
+     */
+    void setTypeMap(java.util.Map map) throws SQLException;
 }
+
+
+
+
+
+
+

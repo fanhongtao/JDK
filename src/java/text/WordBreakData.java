@@ -1,17 +1,20 @@
 /*
- * @(#)WordBreakData.java	1.9 01/12/10
+ * @(#)WordBreakData.java	1.13 98/07/24
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
- *   The original version of this source code and documentation is copyrighted
- * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
- * materials are provided under terms of a License Agreement between Taligent
- * and Sun. This technology is protected by multiple US and International
- * patents. This notice and attribution to Taligent may not be removed.
- *   Taligent is a registered trademark of Taligent, Inc.
+ * The original version of this source code and documentation
+ * is copyrighted and owned by Taligent, Inc., a wholly-owned
+ * subsidiary of IBM. These materials are provided under terms
+ * of a License Agreement between Taligent and Sun. This technology
+ * is protected by multiple US and International patents.
+ *
+ * This notice and attribution to Taligent may not be removed.
+ * Taligent is a registered trademark of Taligent, Inc.
  *
  * Permission to use, copy, modify, and distribute this software
  * and its documentation for NON-COMMERCIAL purposes and without
@@ -60,6 +63,10 @@ final class WordBreakData extends TextBoundaryData
     private static final byte SI = (byte)0x80;
     private static final byte STOP = (byte) 0;
     private static final byte SI_STOP = (byte)SI + STOP;
+
+    public WordBreakData() {
+        super(kWordForward, kWordBackward, kWordMap);
+    }
 
     private static final byte kWordForwardData[] =
     {
@@ -279,7 +286,7 @@ final class WordBreakData extends TextBoundaryData
         BREAK,     // MODIFIER_SYMBOL        = 27,
         BREAK      // OTHER_SYMBOL           = 28
     };
-    private static SpecialMapping kExceptionChar[] =
+    private static final SpecialMapping kExceptionChar[] =
     {
         //note: the ranges in this table must be sorted in ascending order
         //as required by the UnicodeClassMapping class.
@@ -303,6 +310,7 @@ final class WordBreakData extends TextBoundaryData
                            PUNCTUATION_PARAGRAPH_SEPARATOR, lf),
         new SpecialMapping(PER_MILLE_SIGN, postNum),
         new SpecialMapping(PER_TEN_THOUSAND_SIGN, postNum),
+        new SpecialMapping(IDEOGRAPHIC_ITERATION_MARK, kanji),
         new SpecialMapping(HIRAGANA_LETTER_SMALL_A, HIRAGANA_LETTER_VU, hira),
         new SpecialMapping(COMBINING_KATAKANA_HIRAGANA_VOICED_SOUND_MARK,
                            HIRAGANA_SEMIVOICED_SOUND_MARK, diacrit),
@@ -321,7 +329,7 @@ final class WordBreakData extends TextBoundaryData
         false,          // kUppercaseLetter         = 1,
         false,          // kLowercaseLetter         = 2,
         false,          // kTitlecaseLetter         = 3,
-        false,          // kModifierLetter          = 4,
+        true,           // kModifierLetter          = 4,
         true,           // kOtherLetter             = 5,
         true,           // kNonSpacingMark          = 6,
         false,          // kEnclosingMark           = 7,
@@ -389,49 +397,34 @@ final class WordBreakData extends TextBoundaryData
             BREAK,  BREAK,  BREAK,  BREAK,  BREAK,  BREAK,  BREAK,  BREAK,
         //  ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl    ctrl
             BREAK,  BREAK,  BREAK,  BREAK,  BREAK,  BREAK,  BREAK,  BREAK,
-        //  nbsp    ¡       ¢       £       ¤       ¥       ¦
+        //  nbsp      inv-!     cents     pounds    currency  yen       broken-bar  section
             blank,  BREAK,  postNum, preNum, preNum, preNum, BREAK,  BREAK,
-        //  ¨       ©       ª       «       ¬       ­       ®       ¯
+        //  umlaut    copyright super-a   gui-left  not       soft-hyph registered  macron
             BREAK,  BREAK,  letter, BREAK,  BREAK,  midLetter, BREAK, BREAK,
-        //  °       ±       ²       ³       ´       µ       ¶       ·
+        //  degree    +/-       super-2   super-3   acute     micro     paragraph  bullet
             BREAK,  BREAK,  number, number, BREAK,  letter, BREAK,  BREAK,
-        //  ¸       ¹       º       »       ¼       ½       ¾       ¿
+        //  cedilla   super-1   super-o   gui-right 1/4       1/2       3/4      inv-?
             BREAK,  letter, BREAK,  BREAK,  number, number, number, BREAK,
-        //  À       Á       Â       Ã       Ä       Å       Æ       Ç
+        //  A-grave   A-acute   A-hat     A-tilde   A-umlaut A-ring    AE        C-cedilla
             letter, letter, letter, letter, letter, letter, letter, letter,
-        //  È       É       Ê       Ë       Ì       Í       Î       Ï
+        //  E-grave   E-acute   E-hat     E-umlaut  I-grave   I-acute   I-hat    I-umlaut
             letter, letter, letter, letter, letter, letter, letter, letter,
-        //  Ð       Ñ       Ò       Ó       Ô       Õ       Ö       ×
+        //  Edh       N-tilde   O-grave   O-acute   O-hat     O-tilde   O-umlaut times
             letter, letter, letter, letter, letter, letter, letter, BREAK,
-        //  Ø       Ù       Ú       Û       Ü       Ý       Þ       ß
+        //  O-slash   U-grave   U-acute   U-hat     U-umlaut  Y-acute   Thorn    ess-zed
             letter, letter, letter, letter, letter, letter, letter, letter,
-        //  à       á       â       ã       ä       å       æ       ç
+        //  a-grave   a-acute   a-hat     a-tilde   a-umlaut  a-ring    ae       c-cedilla
             letter, letter, letter, letter, letter, letter, letter, letter,
-        //  è       é       ê       ë       ì       í       î       ï
+        //  e-grave   e-acute   e-hat     e-umlaut  i-grave   i-acute   i-hat    i-umlaut
             letter, letter, letter, letter, letter, letter, letter, letter,
-        //  ð       ñ       ò       ó       ô       õ       ö       ÷
+        //  edh       n-tilde   o-grave   o-acute   o-hat     o-tilde   o-umlaut  over
             letter, letter, letter, letter, letter, letter, letter, BREAK,
-        //  ø       ù       ú       û       ü       ý       þ       ÿ
+        //  o-slash   u-grave   u-acute   u-hat     u-umlaut  y-acute   thorn    y-umlaut
             letter, letter, letter, letter, letter, letter, letter, letter
     };
 
     private static final UnicodeClassMapping kWordMap
         = new UnicodeClassMapping(kRawMapping, kExceptionChar, WordExceptionFlags,
         kWordAsciiValues);
-
-    public WordBreakTable forward()
-    {
-        return kWordForward;
-    }
-
-    public WordBreakTable backward()
-    {
-        return kWordBackward;
-    }
-
-    public UnicodeClassMapping map()
-    {
-        return kWordMap;
-    }
 }
 

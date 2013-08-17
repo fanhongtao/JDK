@@ -1,8 +1,15 @@
 /*
- * @(#)IdentityScope.java	1.35 01/12/10
+ * @(#)IdentityScope.java	1.43 98/09/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
  
 package java.security;
@@ -36,8 +43,15 @@ import java.util.Properties;
  * @see Principal
  * @see Key
  *
- * @version 	1.31, 01/27/97
- * @author Benjamin Renaud */
+ * @version 1.43 00/05/10
+ * @author Benjamin Renaud
+ *
+ * @deprecated This class is no longer used. Its functionality has been
+ * replaced by <code>java.security.KeyStore</code>, the
+ * <code>java.security.cert</code> package, and
+ * <code>java.security.Principal</code>.
+ */
+
 public abstract 
 class IdentityScope extends Identity {
 
@@ -47,7 +61,12 @@ class IdentityScope extends Identity {
     // initialize the system scope
     private static void initializeSystemScope() {
 
-	String classname = Security.getProperty("system.scope");
+	String classname = (String) AccessController.doPrivileged(
+						       new PrivilegedAction() {
+	    public Object run() {
+		return Security.getProperty("system.scope");
+	    }
+	});
 
 	if (classname == null) {
 	    return;
@@ -96,10 +115,7 @@ class IdentityScope extends Identity {
     }
 
     /**
-     * Returns the system's identity scope. See the
-     * "System Identity Scope" section in the <a href=
-     * "../guide/security/CryptoSpec.html#SysIdScope">
-     * Java Cryptography Architecture API Specification &amp; Reference </a>.
+     * Returns the system's identity scope.
      * 
      * @return the system's identity scope.
      */
@@ -112,15 +128,23 @@ class IdentityScope extends Identity {
 
 
     /**
-     * Sets the system's identity scope. See the
-     * "System Identity Scope" section in the <a href=
-     * "../guide/security/CryptoSpec.html#SysIdScope">
-     * Java Cryptography Architecture API Specification &amp; Reference </a>.
+     * Sets the system's identity scope.
      *
+     * <p>First, if there is a security manager, its 
+     * <code>checkSecurityAccess</code> 
+     * method is called with <code>"setSystemScope"</code> 
+     * as its argument to see if it's ok to set the identity scope. 
+     * 
      * @param scope the scope to set.
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * setting the identity scope.
+     * 
+     * @see SecurityManager#checkSecurityAccess
      */
     protected static void setSystemScope(IdentityScope scope) {
-	staticCheck("set.system.scope");
+	check("setSystemScope");
 	IdentityScope.scope = scope;
     }
 
@@ -206,4 +230,12 @@ class IdentityScope extends Identity {
     public String toString() {
 	return super.toString() + "[" + size() + "]";
     }
+
+    private static void check(String directive) {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkSecurityAccess(directive);
+	}
+    }
+
 }

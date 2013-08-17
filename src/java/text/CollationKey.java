@@ -1,10 +1,10 @@
 /*
- * @(#)CollationKey.java	1.4 97/01/28
+ * @(#)CollationKey.java	1.11 98/03/18
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -68,15 +68,15 @@ package java.text;
  * keys[1] = myCollator.getCollationKey("Dick");
  * keys[2] = myCollator.getCollationKey("Harry");
  * sort( keys );
- * <nsbr>
+ * <br>
  * //...
- * <nsbr>
+ * <br>
  * // Inside body of sort routine, compare keys this way
  * if( keys[i].compareTo( keys[j] ) > 0 )
  *    // swap keys[i] and keys[j]
- * <nsbr>
+ * <br>
  * //...
- * <nsbr>
+ * <br>
  * // Finally, when we've returned from sort.
  * System.out.println( keys[0].getSourceString() );
  * System.out.println( keys[1].getSourceString() );
@@ -90,7 +90,7 @@ package java.text;
  * @author       Helena Shih
  */
 
-public final class CollationKey {
+public final class CollationKey implements Comparable {
     /**
      * Compare this CollationKey to the target CollationKey. The collation rules of the
      * Collator object which created these keys are applied. <strong>Note:</strong>
@@ -109,6 +109,24 @@ public final class CollationKey {
         else if (result >= Collator.GREATER)
             return Collator.GREATER;
         return Collator.EQUAL;
+    }
+
+    /**
+     * Compares this CollationKey with the specified Object for order.  Returns
+     * a negative integer, zero, or a positive integer as this CollationKey
+     * is less than, equal to, or greater than the given Object.
+     * 
+     * @param   o the Object to be compared.
+     * @return  a negative integer, zero, or a positive integer as this
+     *		Collation Key is less than, equal to, or greater than the given
+     *		Object. 
+     * @exception ClassCastException the specified Object is not a
+     *		  CollationKey.
+     * @see   Comparable
+     * @since JDK1.2
+     */
+    public int compareTo(Object o) {
+ 	return compareTo((CollationKey)o);
     }
 
     /**

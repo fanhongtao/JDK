@@ -1,10 +1,10 @@
 /*
- * @(#)CompactShortArray.java	1.10 01/12/10
+ * @(#)CompactShortArray.java	1.15 98/06/11
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -50,7 +50,7 @@ package java.text;
  * @see                CompactIntArray
  * @see                CompactCharArray
  * @see                CompactStringArray
- * @version            1.10 12/10/01
+ * @version            1.15 06/11/98
  * @author             Helena Shih
  */
 final class CompactShortArray implements Cloneable {
@@ -78,13 +78,17 @@ final class CompactShortArray implements Cloneable {
         int i;
         values = new short[UNICODECOUNT];
         indices = new short[INDEXCOUNT];
+        hashes = new int[INDEXCOUNT];
         for (i = 0; i < UNICODECOUNT; ++i) {
             values[i] = defaultValue;
         }
         for (i = 0; i < INDEXCOUNT; ++i) {
             indices[i] = (short)(i<<BLOCKSHIFT);
+            hashes[i] = 0;
         }
         isCompact = false;
+        
+        this.defaultValue = defaultValue;
     }
     /**
      * Constructor for CompactShortArray.
@@ -93,7 +97,8 @@ final class CompactShortArray implements Cloneable {
      * @exception IllegalArgumentException If the index is out of range.
      */
     public CompactShortArray(short indexArray[],
-                             short newValues[])
+                             short newValues[],
+                             short defaultValue)
     {
         int i;
         if (indexArray.length != INDEXCOUNT)
@@ -105,7 +110,10 @@ final class CompactShortArray implements Cloneable {
         }
         indices = indexArray;
         values = newValues;
+        isCompact = true;
+        this.defaultValue = defaultValue;
     }
+    
     /**
      * Get the mapped value of a Unicode character.
      * @param index the character to get the mapped value with
@@ -126,10 +134,12 @@ final class CompactShortArray implements Cloneable {
     {
         if (isCompact)
             expand();
-        values[(int)index] = value;
+         values[(int)index] = value;
+        touchBlock(index >> BLOCKSHIFT, value);
     }
     /**
      * Set new values for a range of Unicode character.
+ 
      * @param start the starting offset of the range
      * @param end the ending offset of the range
      * @param value the new mapped value
@@ -142,6 +152,7 @@ final class CompactShortArray implements Cloneable {
         }
         for (i = start; i <= end; ++i) {
             values[i] = value;
+            touchBlock(i >> BLOCKSHIFT, value);
         }
     }
     /**
@@ -149,53 +160,90 @@ final class CompactShortArray implements Cloneable {
       */
     public void compact()
     {
-        if (isCompact == false) {
-            char[]      tempIndex;
-            int                     tempIndexCount;
-            short[]         tempArray;
-            short           iBlock, iIndex;
+        if (!isCompact) {
+            int limitCompacted = 0;
+            int iBlockStart = 0;
+            short iUntouched = -1;
 
-            // make temp storage, larger than we need
-            tempIndex = new char[UNICODECOUNT];
-            // set up first block.
-            tempIndexCount = BLOCKCOUNT;
-            for (iIndex = 0; iIndex < BLOCKCOUNT; ++iIndex) {
-                tempIndex[iIndex] = (char)iIndex;
-            }; // endfor (iIndex = 0; .....)
-            indices[0] = (short)0;
+            for (int i = 0; i < indices.length; ++i, iBlockStart += BLOCKCOUNT) {
+                indices[i] = -1;
+                boolean touched = blockTouched(i);
+                if (!touched && iUntouched != -1) {
+                    // If no values in this block were set, we can just set its
+                    // index to be the same as some other block with no values
+                    // set, assuming we've seen one yet.
+                    indices[i] = iUntouched;
+                } else {
+                    int jBlockStart = 0;
+                    int j = 0;
+                    for (j = 0; j < limitCompacted;
+                            ++j, jBlockStart += BLOCKCOUNT) {
+                        if (hashes[i] == hashes[j] && 
+                                arrayRegionMatches(values, iBlockStart,
+                                values, jBlockStart, BLOCKCOUNT)) {
+                            indices[i] = (short)jBlockStart;
+                        }
+                    }
+                    if (indices[i] == -1) {
+                        // we didn't match, so copy & update
+                        System.arraycopy(values, iBlockStart,
+                            values, jBlockStart, BLOCKCOUNT);
+                        indices[i] = (short)jBlockStart;
+                        hashes[j] = hashes[i];
+                        ++limitCompacted;
 
-            // for each successive block, find out its first position
-            // in the compacted array
-            for (iBlock = 1; iBlock < INDEXCOUNT; ++iBlock) {
-                int     newCount, firstPosition, block;
-                block = iBlock<<BLOCKSHIFT;
-                if (DEBUGSMALL) if (block > DEBUGSMALLLIMIT) break;
-                firstPosition = FindOverlappingPosition(block, tempIndex,
-                                                        tempIndexCount);
-
-                newCount = firstPosition + BLOCKCOUNT;
-                if (newCount > tempIndexCount) {
-                    for (iIndex = (short)tempIndexCount;
-                         iIndex < newCount;
-                         ++iIndex) {
-                        tempIndex[iIndex]
-                            = (char)(iIndex - firstPosition + block);
-                    } // endfor (iIndex = tempIndexCount....)
-                    tempIndexCount = newCount;
-                } // endif (newCount > tempIndexCount)
-                indices[iBlock] = (short)firstPosition;
-            } // endfor (iBlock = 1.....)
-
-            // now allocate and copy the items into the array
-            tempArray = new short[tempIndexCount];
-            for (iIndex = 0; iIndex < tempIndexCount; ++iIndex) {
-                tempArray[iIndex] = values[tempIndex[iIndex]];
+                        if (!touched) {
+                            // If this is the first untouched block we've seen,
+                            // remember its index.
+                            iUntouched = (short)jBlockStart;
+                        }
+                    }
+                }
             }
-            values = null;
-            values = tempArray;
+            // we are done compacting, so now make the array shorter
+            int newSize = limitCompacted*BLOCKCOUNT;
+            short[] result = new short[newSize];
+            System.arraycopy(values, 0, result, 0, newSize);
+            values = result;
             isCompact = true;
-        } // endif (isCompact != false)
+            hashes = null;
+        }
     }
+
+    /**
+     * Convenience utility to compare two arrays of doubles.
+     * @param len the length to compare.
+     * The start indices and start+len must be valid.
+     */
+    final static boolean arrayRegionMatches(short[] source, int sourceStart,
+                                            short[] target, int targetStart,
+                                            int len)
+    {
+        int sourceEnd = sourceStart + len;
+        int delta = targetStart - sourceStart;
+        for (int i = sourceStart; i < sourceEnd; i++) {
+            if (source[i] != target[i + delta])
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Remember that a specified block was "touched", i.e. had a value set.
+     * Untouched blocks can be skipped when compacting the array
+     */
+    private final void touchBlock(int i, int value) {
+        hashes[i] = (hashes[i] + (value<<1)) | 1;
+    }
+
+    /**
+     * Query whether a specified block was "touched", i.e. had a value set.
+     * Untouched blocks can be skipped when compacting the array
+     */
+    private final boolean blockTouched(int i) {
+        return hashes[i] != 0;
+    }
+     
     /** For internal use only.  Do not modify the result, the behavior of
       * modified results are undefined.
       */
@@ -203,6 +251,7 @@ final class CompactShortArray implements Cloneable {
     {
         return indices;
     }
+
     /** For internal use only.  Do not modify the result, the behavior of
       * modified results are undefined.
       */
@@ -256,71 +305,104 @@ final class CompactShortArray implements Cloneable {
         }
         return result;
     }
-    // --------------------------------------------------------------
-    // package private
-    // --------------------------------------------------------------
-    void writeArrays()
-    {
-        int i;
-        int cnt = ((values.length > 0) ? values.length :
-                   (values.length + UNICODECOUNT));
-        System.out.println("{");
-        for (i = 0; i < INDEXCOUNT-1; i++)
-        {
-            System.out.print("(short)" + (int)((getIndexArrayValue(i) >= 0) ?
-                (int)getIndexArrayValue(i) :
-                (int)(getIndexArrayValue(i)+UNICODECOUNT)) + ", ");
-            if (i != 0)
-                if (i % 10 == 0)
-                    System.out.println();
+
+
+    //------------------------------------------------------------------------
+    /**
+     * An iterator over the indices and values in this compact array,
+     * The next() method returns each successive index that was used to store
+     * a value in the array, and the shortValue() method returns each
+     * corresponding value.
+     */ 
+    public class Iterator {
+        Iterator() {
+            compact();
         }
-        System.out.println("(short)" +
-                           (int)((getIndexArrayValue(INDEXCOUNT-1) >= 0) ?
-                                 (int)getIndexArrayValue(i) :
-                                 (int)(getIndexArrayValue(i)+UNICODECOUNT)) +
-                           " }");
-        System.out.println("{");
-        for (i = 0; i < cnt-1; i++)
-        {
-            System.out.print("(short)" + (int)getArrayValue(i) + ", ");
-            if (i != 0)
-                if (i % 10 == 0)
-                    System.out.println();
-        }
-        System.out.println("(short)" + (int)getArrayValue(cnt-1) + " }");
-    }
-    // Print char Array  : Debug only
-    void printIndex(short start, short count)
-    {
-        int i;
-        for (i = start; i < count; ++i)
-        {
-            System.out.println(i + " -> : " +
-                               (int)((indices[i] >= 0) ?
-                                     indices[i] :
-                                     indices[i] + UNICODECOUNT));
-        }
-        System.out.println();
-    }
-    void printPlainArray(int start,int count, char[] tempIndex)
-    {
-        int iIndex;
-        if (tempIndex != null)
-        {
-            for (iIndex     = start; iIndex < start + count; ++iIndex)
-            {
-                System.out.print(" " + (int)getArrayValue(tempIndex[iIndex]));
+        
+        // Find the next character in the array
+        public boolean hasNext() {
+            nextIndex = index;
+            boolean done = true;
+            
+            if (index != nextIndex) {
+                // hasNext has already been called, and there's a new
+                // index waiting to be returned
+                return true;
             }
-        }
-        else
-        {
-            for (iIndex = start; iIndex < start + count; ++iIndex)
-            {
-                System.out.print(" " + (int)getArrayValue(iIndex));
+            
+            while (++nextIndex < Character.MAX_VALUE) {
+                //
+                // See if we're at the start of a new block.  If so, there are
+                // some optimizations we can try
+                //
+                if ((nextIndex & BLOCKMASK) == 0) {
+                    int blockIndex = nextIndex >> BLOCKSHIFT;
+                    
+                    if (indices[blockIndex] == iUntouched) {
+                        // This block wasn't touched; we can skip it and go
+                        // to the beginning of the next one.  The -1 is to
+                        // compensate for the ++nextIndex in the loop condition
+                        //System.out.println("skipping block " + blockIndex);
+                        nextIndex += BLOCKCOUNT - 1;
+                        continue;
+                    }
+                    else if (iUntouched == -1 && !touched) {
+                        // Remember the index of the first untouched block we
+                        // find, so we can skip any others with the same index
+                        iUntouched = indices[blockIndex - 1];
+                        
+                        //System.out.println("Block " + (blockIndex-1) + " was untouched");
+                    } else {
+                        // Keep track of whether the next block was touched at all
+                        touched = false;
+                    }
+                }
+                nextValue = elementAt((char)nextIndex);
+                
+                if (nextValue != defValue) {
+                    touched = true;     // Remember this block was touched
+                    break;              // Return all non-default values
+                }
             }
+            
+            return nextIndex < Character.MAX_VALUE; 
         }
-        System.out.println("    Range: start " + start + " , count " + count);
+        
+        public char next() {
+            if (index == nextIndex && !hasNext()) {
+                throw new ArrayIndexOutOfBoundsException();
+            }
+            index = nextIndex;
+            value = nextValue;
+            
+            return (char)index;
+        }
+        
+        public short shortValue() {
+            return value;
+        }
+        
+        // Privates....
+        int nextIndex = -1;
+        int index = -1;
+
+        short nextValue;
+        short value;
+        
+        short iUntouched = -1;
+        boolean touched = true;
+        
+        short defValue = defaultValue;
     }
+    
+    /**
+     * Return an iterator over all of the indices and values for the data
+     * in this compact array
+     */
+    public Iterator getIterator() {
+        return new Iterator();
+    }
+    
     // --------------------------------------------------------------
     // private
     // --------------------------------------------------------------
@@ -344,62 +426,16 @@ final class CompactShortArray implements Cloneable {
             isCompact = false;
         }
     }
-    // # of elements in the indexed array
-    private short capacity()
-    {
-        return (short)values.length;
-    }
-    private short getArrayValue(int n)
-    {
-        return values[n];
-    }
-    private short getIndexArrayValue(int n)
-    {
-        return indices[n];
-    }
-    private int
-    FindOverlappingPosition(int start, char[] tempIndex, int tempIndexCount)
-    {
-        int i;
-        short j;
-        short currentCount;
 
-        if (DEBUGOVERLAP && start < DEBUGSHOWOVERLAPLIMIT) {
-            printPlainArray(start, BLOCKCOUNT, null);
-            printPlainArray(0, tempIndexCount, tempIndex);
-        }
-        for (i = 0; i < tempIndexCount; i += BLOCKCOUNT) {
-            currentCount = (short)BLOCKCOUNT;
-            if (i + BLOCKCOUNT > tempIndexCount) {
-                currentCount = (short)(tempIndexCount - i);
-            }
-            for (j = 0; j < currentCount; ++j) {
-                if (values[start + j] != values[tempIndex[i + j]]) break;
-            }
-            if (j == currentCount) break;
-        }
-        if (DEBUGOVERLAP && start < DEBUGSHOWOVERLAPLIMIT) {
-            for (j = 1; j < i; ++j) {
-                System.out.print(" ");
-            }
-            printPlainArray(start, BLOCKCOUNT, null);
-            System.out.println("    Found At: " + i);
-        }
-        return i;
-    }
-
-    private static  final int DEBUGSHOWOVERLAPLIMIT = 100;
-    private static  final boolean DEBUGTRACE = false;
-    private static  final boolean DEBUGSMALL = false;
-    private static  final boolean DEBUGOVERLAP = false;
-    private static  final int DEBUGSMALLLIMIT = 30000;
-    private static  final int BLOCKSHIFT =7;
-    private static  final int BLOCKCOUNT =(1<<BLOCKSHIFT);
-    private static  final int INDEXSHIFT =(16-BLOCKSHIFT);
-    private static  final int INDEXCOUNT =(1<<INDEXSHIFT);
-    private static  final int BLOCKMASK = BLOCKCOUNT - 1;
+    static  final int BLOCKSHIFT =7;
+    static  final int BLOCKCOUNT =(1<<BLOCKSHIFT);
+    static  final int INDEXSHIFT =(16-BLOCKSHIFT);
+    static  final int INDEXCOUNT =(1<<INDEXSHIFT);
+    static  final int BLOCKMASK = BLOCKCOUNT - 1;
 
     private short values[];  // char -> short (char parameterized short)
     private short indices[];
+    private int[] hashes;
     private boolean isCompact;
+    short defaultValue;
 };

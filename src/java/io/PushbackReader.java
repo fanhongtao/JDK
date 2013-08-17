@@ -1,8 +1,15 @@
 /*
- * @(#)PushbackReader.java	1.9 01/12/10
+ * @(#)PushbackReader.java	1.12 98/07/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -12,7 +19,7 @@ package java.io;
  * A character-stream reader that allows characters to be pushed back into the
  * stream.
  *
- * @version 	1.9, 01/12/10
+ * @version 	1.12, 98/07/07
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -30,9 +37,13 @@ public class PushbackReader extends FilterReader {
      *
      * @param   in   The reader from which characters will be read
      * @param	size The size of the pushback buffer
+     * @exception IllegalArgumentException if size is <= 0
      */
     public PushbackReader(Reader in, int size) {
 	super(in);
+        if (size <= 0) {
+            throw new IllegalArgumentException("size <= 0");
+        }
 	this.buf = new char[size];
 	this.pos = size;
     }
@@ -85,27 +96,36 @@ public class PushbackReader extends FilterReader {
     public int read(char cbuf[], int off, int len) throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
-
-	    if (len <= 0)
-		return 0;
-	    int avail = buf.length - pos;
-	    if (avail > 0) {
-		if (len < avail)
-		    avail = len;
-		System.arraycopy(buf, pos, cbuf, off, avail);
-		pos += avail;
-		off += avail;
-		len -= avail;
-	    }
-	    if (len > 0) {
-		len = super.read(cbuf, off, len);
-		if (len == -1) {
-		    return (avail == 0) ? -1 : avail;
-		}
-		return avail + len;
-	    }
-	    return avail;
-	}
+            try {
+                if (len <= 0) {
+                    if (len < 0) {
+                        throw new IndexOutOfBoundsException();
+                    } else if ((off < 0) || (off > cbuf.length)) {
+                        throw new IndexOutOfBoundsException();
+                    }
+                    return 0;
+                }
+                int avail = buf.length - pos;
+                if (avail > 0) {
+                    if (len < avail)
+                        avail = len;
+                    System.arraycopy(buf, pos, cbuf, off, avail);
+                    pos += avail;
+                    off += avail;
+                    len -= avail;
+                }
+                if (len > 0) {
+                    len = super.read(cbuf, off, len);
+                    if (len == -1) {
+                        return (avail == 0) ? -1 : avail;
+                    }
+                    return avail + len;
+                }
+                return avail;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                throw new IndexOutOfBoundsException();
+            }
+        }
     }
 
     /**
@@ -174,6 +194,26 @@ public class PushbackReader extends FilterReader {
 	    ensureOpen();
 	    return (pos < buf.length) || super.ready();
 	}
+    }
+
+    /**
+     * Mark the present position in the stream. The <code>mark</code>
+     * for class <code>PushbackReader</code> always throws an exception.
+     *
+     * @exception  IOException  Always, since mark is not supported
+     */
+    public void mark(int readAheadLimit) throws IOException {
+	throw new IOException("mark/reset not supported");
+    }
+
+    /**
+     * Reset the stream. The <code>reset</code> method of 
+     * <code>PushbackReader</code> always throws an exception.
+     *
+     * @exception  IOException  Always, since reset is not supported
+     */
+    public void reset() throws IOException {
+	throw new IOException("mark/reset not supported");
     }
 
     /**

@@ -1,8 +1,15 @@
 /*
- * @(#)Graphics.java	1.44 01/12/10
+ * @(#)Graphics.java	1.49 98/07/22
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -10,6 +17,7 @@ import java.io.*;
 import java.lang.*;
 import java.util.*;
 import java.awt.image.ImageObserver;
+import java.text.AttributedCharacterIterator;
 
 /**
  * The <code>Graphics</code> class is the abstract base class for 
@@ -29,7 +37,7 @@ import java.awt.image.ImageObserver;
  * <li>The current font.
  * <li>The current logical pixel operation function (XOR or Paint).
  * <li>The current XOR alternation color 
- *     (see <a href="#setXORMode"><code>setXORMode</code></a>).
+ *     (see {@link Graphics#setXORMode}).
  * </ul>
  * <p>
  * Coordinates are infinitely thin and lie between the pixels of the
@@ -63,7 +71,7 @@ import java.awt.image.ImageObserver;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.44, 12/10/01
+ * @version 	1.49, 07/22/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -87,7 +95,6 @@ public abstract class Graphics {
      * <code>getGraphics</code> on a component. 
      * @see        java.awt.Graphics#create()
      * @see        java.awt.Component#getGraphics
-     * @since      JDK1.0
      */
     protected Graphics() {
     }
@@ -97,7 +104,6 @@ public abstract class Graphics {
      * a copy of this <code>Graphics</code> object.
      * @return     a new graphics context that is a copy of 
      *                       this graphics context.
-     * @since      JDK1.0
      */
     public abstract Graphics create();
 
@@ -133,7 +139,6 @@ public abstract class Graphics {
      * @return     a new graphics context.
      * @see        java.awt.Graphics#translate
      * @see        java.awt.Graphics#clipRect
-     * @since      JDK1.0
      */
     public Graphics create(int x, int y, int width, int height) {
 	Graphics g = create();
@@ -152,7 +157,6 @@ public abstract class Graphics {
      * to this new origin.
      * @param  x   the <i>x</i> coordinate.
      * @param  y   the <i>y</i> coordinate.
-     * @since   JDK1.0
      */
     public abstract void translate(int x, int y);
 
@@ -161,7 +165,6 @@ public abstract class Graphics {
      * @return    this graphics context's current color.
      * @see       java.awt.Color
      * @see       java.awt.Graphics#setColor
-     * @since     JDK1.0
      */
     public abstract Color getColor();
 
@@ -172,7 +175,6 @@ public abstract class Graphics {
      * @param     c   the new rendering color.
      * @see       java.awt.Color
      * @see       java.awt.Graphics#getColor
-     * @since     JDK1.0
      */
     public abstract void setColor(Color c);
 
@@ -182,7 +184,6 @@ public abstract class Graphics {
      * This sets the logical pixel operation function to the paint or
      * overwrite mode.  All subsequent rendering operations will
      * overwrite the destination with the current color. 
-     * @since   JDK1.0
      */
     public abstract void setPaintMode();
 
@@ -200,7 +201,6 @@ public abstract class Graphics {
      * in an unpredictable but reversible manner; if the same figure is 
      * drawn twice, then all pixels are restored to their original values. 
      * @param     c1 the XOR alternation color
-     * @since     JDK1.0
      */
     public abstract void setXORMode(Color c1);
 
@@ -209,7 +209,6 @@ public abstract class Graphics {
      * @return    this graphics context's current font.
      * @see       java.awt.Font
      * @see       java.awt.Graphics#setFont
-     * @since     JDK1.0
      */
     public abstract Font getFont();
 
@@ -222,7 +221,6 @@ public abstract class Graphics {
      * @see     java.awt.Graphics#drawChars(java.lang.String, int, int)
      * @see     java.awt.Graphics#drawString(byte[], int, int, int, int)
      * @see     java.awt.Graphics#drawBytes(char[], int, int, int, int)
-     * @since   JDK1.0
     */
     public abstract void setFont(Font font);
 
@@ -233,7 +231,6 @@ public abstract class Graphics {
      * @see       java.awt.Graphics#getFont
      * @see       java.awt.FontMetrics
      * @see       java.awt.Graphics#getFontMetrics(Font)
-     * @since     JDK1.0
      */
     public FontMetrics getFontMetrics() {
 	return getFontMetrics(getFont());
@@ -246,7 +243,6 @@ public abstract class Graphics {
      * @see       java.awt.Graphics#getFont
      * @see       java.awt.FontMetrics
      * @see       java.awt.Graphics#getFontMetrics()
-     * @since     JDK1.0
      */
     public abstract FontMetrics getFontMetrics(Font f);
 
@@ -339,7 +335,6 @@ public abstract class Graphics {
      * @param       height the height of the source rectangle.
      * @param       dx the horizontal distance to copy the pixels.
      * @param       dy the vertical distance to copy the pixels.
-     * @since       JDK1.0
      */
     public abstract void copyArea(int x, int y, int width, int height,
 				  int dx, int dy);
@@ -352,7 +347,6 @@ public abstract class Graphics {
      * @param   y1  the first point's <i>y</i> coordinate.
      * @param   x2  the second point's <i>x</i> coordinate.
      * @param   y2  the second point's <i>y</i> coordinate.
-     * @since   JDK1.0
      */
     public abstract void drawLine(int x1, int y1, int x2, int y2);
 
@@ -372,9 +366,8 @@ public abstract class Graphics {
      *                         of the rectangle to be filled.
      * @param         width   the width of the rectangle to be filled.
      * @param         height   the height of the rectangle to be filled.
-     * @see           java.awt.Graphics#fillRect
      * @see           java.awt.Graphics#clearRect
-     * @since         JDK1.0
+     * @see           java.awt.Graphics#drawRect
      */
     public abstract void fillRect(int x, int y, int width, int height);
 
@@ -393,7 +386,6 @@ public abstract class Graphics {
      * @param         height   the height of the rectangle to be drawn.
      * @see          java.awt.Graphics#fillRect
      * @see          java.awt.Graphics#clearRect
-     * @since        JDK1.0
      */
     public void drawRect(int x, int y, int width, int height) {
 	if ((width < 0) || (height < 0)) {
@@ -428,7 +420,6 @@ public abstract class Graphics {
      * @see         java.awt.Graphics#setColor(java.awt.Color)
      * @see         java.awt.Graphics#setPaintMode
      * @see         java.awt.Graphics#setXORMode(java.awt.Color)
-     * @since       JDK1.0
      */
     public abstract void clearRect(int x, int y, int width, int height);
 
@@ -447,7 +438,6 @@ public abstract class Graphics {
      * @param      arcHeight the vertical diameter of the arc 
      *                    at the four corners.
      * @see        java.awt.Graphics#fillRoundRect
-     * @since      JDK1.0
      */
     public abstract void drawRoundRect(int x, int y, int width, int height,
 				       int arcWidth, int arcHeight);
@@ -467,7 +457,6 @@ public abstract class Graphics {
      * @param       arcHeight the vertical diameter 
      *                     of the arc at the four corners.
      * @see         java.awt.Graphics#drawRoundRect
-     * @since       JDK1.0
      */
     public abstract void fillRoundRect(int x, int y, int width, int height,
 				       int arcWidth, int arcHeight);
@@ -490,7 +479,6 @@ public abstract class Graphics {
      *                      appears to be raised above the surface 
      *                      or sunk into the surface.
      * @see         java.awt.Graphics#fill3DRect
-     * @since       JDK1.0
      */
     public void draw3DRect(int x, int y, int width, int height,
 			   boolean raised) {
@@ -521,7 +509,6 @@ public abstract class Graphics {
      *                      rectangle appears to be raised above the surface 
      *                      or etched into the surface.
      * @see         java.awt.Graphics#draw3DRect
-     * @since       JDK1.0
      */
     public void fill3DRect(int x, int y, int width, int height,
 			   boolean raised) {
@@ -550,7 +537,7 @@ public abstract class Graphics {
      * <p> 
      * The oval covers an area that is 
      * <code>width&nbsp;+&nbsp;1</code> pixels wide 
-     * and <code>height&nbsp;+&nbsp;1<code> pixels tall. 
+     * and <code>height&nbsp;+&nbsp;1</code> pixels tall. 
      * @param       x the <i>x</i> coordinate of the upper left 
      *                     corner of the oval to be drawn.
      * @param       y the <i>y</i> coordinate of the upper left 
@@ -558,7 +545,6 @@ public abstract class Graphics {
      * @param       width the width of the oval to be drawn.
      * @param       height the height of the oval to be drawn.
      * @see         java.awt.Graphics#fillOval
-     * @since       JDK1.0
      */
     public abstract void drawOval(int x, int y, int width, int height);
 
@@ -572,7 +558,6 @@ public abstract class Graphics {
      * @param       width the width of the oval to be filled.
      * @param       height the height of the oval to be filled.
      * @see         java.awt.Graphics#drawOval
-     * @since       JDK1.0
      */
     public abstract void fillOval(int x, int y, int width, int height);
 
@@ -594,6 +579,14 @@ public abstract class Graphics {
      * The resulting arc covers an area 
      * <code>width&nbsp;+&nbsp;1</code> pixels wide
      * by <code>height&nbsp;+&nbsp;1</code> pixels tall.
+     * <p>
+     * The angles are specified relative to the non-square extents of
+     * the bounding rectangle such that 45 degrees always falls on the
+     * line from the center of the ellipse to the upper right corner of
+     * the bounding rectangle. As a result, if the bounding rectangle is
+     * noticeably longer in one axis than the other, the angles to the
+     * start and end of the arc segment will be skewed farther along the
+     * longer axis of the bounds.
      * @param        x the <i>x</i> coordinate of the 
      *                    upper-left corner of the arc to be drawn.
      * @param        y the <i>y</i>  coordinate of the 
@@ -604,7 +597,6 @@ public abstract class Graphics {
      * @param        arcAngle the angular extent of the arc, 
      *                    relative to the start angle.
      * @see         java.awt.Graphics#fillArc
-     * @since       JDK1.0
      */
     public abstract void drawArc(int x, int y, int width, int height,
 				 int startAngle, int arcAngle);
@@ -626,6 +618,14 @@ public abstract class Graphics {
      * The resulting arc covers an area 
      * <code>width&nbsp;+&nbsp;1</code> pixels wide
      * by <code>height&nbsp;+&nbsp;1</code> pixels tall.
+     * <p>
+     * The angles are specified relative to the non-square extents of
+     * the bounding rectangle such that 45 degrees always falls on the
+     * line from the center of the ellipse to the upper right corner of
+     * the bounding rectangle. As a result, if the bounding rectangle is
+     * noticeably longer in one axis than the other, the angles to the
+     * start and end of the arc segment will be skewed farther along the
+     * longer axis of the bounds.
      * @param        x the <i>x</i> coordinate of the 
      *                    upper-left corner of the arc to be filled.
      * @param        y the <i>y</i>  coordinate of the 
@@ -636,7 +636,6 @@ public abstract class Graphics {
      * @param        arcAngle the angular extent of the arc, 
      *                    relative to the start angle.
      * @see         java.awt.Graphics#drawArc
-     * @since       JDK1.0
      */
     public abstract void fillArc(int x, int y, int width, int height,
 				 int startAngle, int arcAngle);
@@ -674,7 +673,6 @@ public abstract class Graphics {
      * @param        nPoints   a the total number of points.
      * @see          java.awt.Graphics#fillPolygon
      * @see          java.awt.Graphics#drawPolyline
-     * @since        JDK1.0
      */
     public abstract void drawPolygon(int xPoints[], int yPoints[],
 				     int nPoints);
@@ -685,7 +683,6 @@ public abstract class Graphics {
      * @param        p the polygon to draw.
      * @see          java.awt.Graphics#fillPolygon
      * @see          java.awt.Graphics#drawPolyline
-     * @since        JDK1.0
      */
     public void drawPolygon(Polygon p) {
 	drawPolygon(p.xpoints, p.ypoints, p.npoints);
@@ -710,7 +707,6 @@ public abstract class Graphics {
      * @param        yPoints   a an array of <code>y</code> coordinates.
      * @param        nPoints   a the total number of points.
      * @see          java.awt.Graphics#drawPolygon(int[], int[], int)
-     * @since        JDK1.0
      */
     public abstract void fillPolygon(int xPoints[], int yPoints[],
 				     int nPoints);
@@ -723,7 +719,6 @@ public abstract class Graphics {
      * even-odd fill rule, also known as the alternating rule.
      * @param        p the polygon to fill.
      * @see          java.awt.Graphics#drawPolygon(int[], int[], int)
-     * @since        JDK1.0
      */
     public void fillPolygon(Polygon p) {
 	fillPolygon(p.xpoints, p.ypoints, p.npoints);
@@ -739,9 +734,23 @@ public abstract class Graphics {
      * @param       y        the <i>y</i> coordinate.
      * @see         java.awt.Graphics#drawBytes
      * @see         java.awt.Graphics#drawChars
-     * @since       JDK1.0
      */
     public abstract void drawString(String str, int x, int y);
+
+    /** 
+     * Draws the text given by the specified iterator, using this 
+     * graphics context's current color. The iterator has to specify a font
+     * for each character. The baseline of the 
+     * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
+     * graphics context's coordinate system. 
+     * @param       iterator the iterator whose text is to be drawn
+     * @param       x        the <i>x</i> coordinate.
+     * @param       y        the <i>y</i> coordinate.
+     * @see         java.awt.Graphics#drawBytes
+     * @see         java.awt.Graphics#drawChars
+     */
+   public abstract void drawString(AttributedCharacterIterator iterator,
+                                    int x, int y);
 
     /** 
      * Draws the text given by the specified character array, using this 
@@ -755,7 +764,6 @@ public abstract class Graphics {
      * @param y the <i>y</i> coordinate of the baseline of the text
      * @see         java.awt.Graphics#drawBytes
      * @see         java.awt.Graphics#drawString
-     * @since       JDK1.0
      */
     public void drawChars(char data[], int offset, int length, int x, int y) {
 	drawString(new String(data, offset, length), x, y);
@@ -773,7 +781,6 @@ public abstract class Graphics {
      * @param y the <i>y</i> coordinate of the baseline of the text
      * @see         java.awt.Graphics#drawChars
      * @see         java.awt.Graphics#drawString
-     * @since       JDK1.0
      */
     public void drawBytes(byte data[], int offset, int length, int x, int y) {
 	drawString(new String(data, 0, offset, length), x, y);
@@ -802,7 +809,6 @@ public abstract class Graphics {
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
-     * @since    JDK1.0
      */
     public abstract boolean drawImage(Image img, int x, int y, 
 				      ImageObserver observer);
@@ -839,7 +845,6 @@ public abstract class Graphics {
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
-     * @since    JDK1.0
      */
     public abstract boolean drawImage(Image img, int x, int y,
 				      int width, int height, 
@@ -874,7 +879,6 @@ public abstract class Graphics {
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
-     * @since    JDK1.0
      */
     public abstract boolean drawImage(Image img, int x, int y, 
 				      Color bgcolor,
@@ -917,7 +921,6 @@ public abstract class Graphics {
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
-     * @since    JDK1.0
      */
     public abstract boolean drawImage(Image img, int x, int y,
 				      int width, int height, 
@@ -1061,14 +1064,12 @@ public abstract class Graphics {
      * @see         java.awt.Component#update
      * @see         java.awt.Component#getGraphics
      * @see         java.awt.Graphics#create
-     * @since       JDK1.0
      */
     public abstract void dispose();
 
     /**
      * Disposes of this graphics context once it is no longer referenced.
      * @see #dispose
-     * @since JDK1.0
      */
     public void finalize() {
 	dispose();
@@ -1078,7 +1079,6 @@ public abstract class Graphics {
      * Returns a <code>String</code> object representing this 
      *                        <code>Graphics</code> object's value.
      * @return       a string representation of this graphics context.
-     * @since        JDK1.0
      */
     public String toString() {	
 	return getClass().getName() + "[font=" + getFont() + ",color=" + getColor() + "]";
@@ -1090,5 +1090,42 @@ public abstract class Graphics {
      */
     public Rectangle getClipRect() {
 	return getClipBounds();
+    }
+
+    /**
+     * Returns true if the specified rectangular area intersects 
+     * the bounding rectangle of the current clipping area.
+     * The coordinates in the rectangle are relative to the coordinate
+     * system origin of this graphics context.
+     *
+     * @param x the x coordinate of the rectangle to test against the clip
+     * @param y the y coordinate of the rectangle to test against the clip
+     * @param width the width of the rectangle to test against the clip
+     * @param height the height of the rectangle to test against the clip
+     */
+    public boolean hitClip(int x, int y, int width, int height) {
+        // FIXME: 1.2 beta3 placeholder, replace for beta4
+        return new Rectangle(x,y,width,height).intersects(getClipBounds());
+    }
+
+    /**
+     * Returns the bounding rectangle of the current clipping area.
+     * The coordinates in the rectangle are relative to the coordinate
+     * system origin of this graphics context.  This method differs
+     * getClipBounds() in that an existing rectangle is used instead
+     * of allocating a new one.
+     * @param  r    the rectangle where the current clipping area is
+     *              copied to.  Any current values in this rectangle are
+     *              overwritten.
+     * @return      the bounding rectangle of the current clipping area.
+     */
+    public Rectangle getClipBounds(Rectangle r) {
+        // FIXME: 1.2 beta3 placeholder, replace for beta4
+        Rectangle clipRect = getClipBounds();
+        r.x = clipRect.x;
+        r.y = clipRect.y;
+        r.width = clipRect.width;
+        r.height = clipRect.height;
+        return r;
     }
 }

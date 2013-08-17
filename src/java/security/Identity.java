@@ -1,8 +1,15 @@
 /*
- * @(#)Identity.java	1.29 01/12/10
+ * @(#)Identity.java	1.51 98/09/24
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
  
 package java.security;
@@ -32,34 +39,51 @@ import java.util.*;
  * @see Signer
  * @see Principal
  *
- * @version 	1.24, 01/27/97
- * @author Benjamin Renaud 
+ * @version 1.51
+ * @author Benjamin Renaud
+ * @deprecated This class is no longer used. Its functionality has been
+ * replaced by <code>java.security.KeyStore</code>, the
+ * <code>java.security.cert</code> package, and
+ * <code>java.security.Principal</code>.
  */
-public abstract 
-class Identity implements Principal, Serializable {
+
+public abstract class Identity implements Principal, Serializable {
+
+    /** use serialVersionUID from JDK 1.1.x for interoperability */
+    private static final long serialVersionUID = 3609922007826600659L;
 
     /**
      * The name for this identity.
+     *
+     * @serial
      */
     private String name;
 
     /**
      * The public key for this identity.
+     *
+     * @serial
      */
     private PublicKey publicKey;
 
     /**
      * Generic, descriptive information about the identity.
+     *
+     * @serial
      */
     String info = "No further information available.";
 
     /**
      * The scope of the identity.
+     *
+     * @serial
      */
     IdentityScope scope;
 
     /**
      * The certificates for this identity.
+     *
+     * @serial
      */
     Vector certificates;
 
@@ -125,15 +149,25 @@ class Identity implements Principal, Serializable {
      * Sets this identity's public key. The old key and all of this
      * identity's certificates are removed by this operation. 
      *
+     * <p>First, if there is a security manager, its <code>checkSecurityAccess</code> 
+     * method is called with <code>"setIdentityPublicKey"</code> 
+     * as its argument to see if it's ok to set the public key. 
+     * 
      * @param key the public key for this identity.
      *
      * @exception KeyManagementException if another identity in the 
      * identity's scope has the same public key, or if another exception occurs.  
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * setting the public key.
+     * 
+     * @see SecurityManager#checkSecurityAccess
      */
     /* Should we throw an exception if this is already set? */
     public void setPublicKey(PublicKey key) throws KeyManagementException {
-	
-	check("set.public.key");
+
+	check("setIdentityPublicKey");
 	this.publicKey = key;
 	certificates = new Vector();
     }
@@ -141,12 +175,21 @@ class Identity implements Principal, Serializable {
     /**
      * Specifies a general information string for this identity.
      *
+     * <p>First, if there is a security manager, its <code>checkSecurityAccess</code> 
+     * method is called with <code>"setIdentityInfo"</code> 
+     * as its argument to see if it's ok to specify the information string. 
+     * 
      * @param info the information string.
-     *
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * setting the information string.
+     * 
      * @see #getInfo
+     * @see SecurityManager#checkSecurityAccess
      */
     public void setInfo(String info) {
-	check("set.info");
+	check("setIdentityInfo");
 	this.info = info;
     }
 
@@ -167,16 +210,26 @@ class Identity implements Principal, Serializable {
      * the identity does not have a public key, the identity's
      * public key is set to be that specified in the certificate.
      *
+     * <p>First, if there is a security manager, its <code>checkSecurityAccess</code> 
+     * method is called with <code>"addIdentityCertificate"</code> 
+     * as its argument to see if it's ok to add a certificate. 
+     * 
      * @param certificate the certificate to be added.
      *
      * @exception KeyManagementException if the certificate is not valid,
      * if the public key in the certificate being added conflicts with
      * this identity's public key, or if another exception occurs.
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * adding a certificate.
+     * 
+     * @see SecurityManager#checkSecurityAccess
      */
     public void addCertificate(Certificate certificate)
     throws KeyManagementException {
 
-	check("add.certificate");
+	check("addIdentityCertificate");
 
 	if (certificates == null) {
 	    certificates = new Vector();
@@ -205,14 +258,24 @@ class Identity implements Principal, Serializable {
     /**
      * Removes a certificate from this identity.
      *
+     * <p>First, if there is a security manager, its <code>checkSecurityAccess</code> 
+     * method is called with <code>"removeIdentityCertificate"</code> 
+     * as its argument to see if it's ok to remove a certificate. 
+     * 
      * @param certificate the certificate to be removed.
      *
      * @exception KeyManagementException if the certificate is
      * missing, or if another exception occurs.
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * removing a certificate.
+     * 
+     * @see SecurityManager#checkSecurityAccess
      */
     public void removeCertificate(Certificate certificate)
     throws KeyManagementException {
-	check("remove.certificate");
+	check("removeIdentityCertificate");
 	if (certificates != null) {
 	    certificates.removeElement(certificate);
 	}
@@ -238,8 +301,8 @@ class Identity implements Principal, Serializable {
      * This first tests to see if the entities actually refer to the same
      * object, in which case it returns true. Next, it checks to see if
      * the entities have the same name and the same scope. If they do, 
-     * the method returns true. Otherwise, it calls <a href = 
-     * "#identityEquals">identityEquals</a>, which subclasses should 
+     * the method returns true. Otherwise, it calls 
+     * {@link #identityEquals(Identity) identityEquals}, which subclasses should 
      * override.
      *
      * @param identity the object to test for equality with this identity.  
@@ -256,7 +319,9 @@ class Identity implements Principal, Serializable {
 
 	if (identity instanceof Identity) {
 	    Identity i = (Identity)identity;
-	    if (i.getScope() == scope && i.getName().equals(name)) {
+	    if ((scope != null) && 
+		(i.getScope() == scope) && 
+		i.getName().equals(name)) {
 		return true;
 	    } else {
 		return identityEquals(i);	    
@@ -298,11 +363,21 @@ class Identity implements Principal, Serializable {
      * Returns a short string describing this identity, telling its
      * name and its scope (if any).
      *
+     * <p>First, if there is a security manager, its <code>checkSecurityAccess</code> 
+     * method is called with <code>"printIdentity"</code> 
+     * as its argument to see if it's ok to return the string. 
+     *
      * @return information about this identity, such as its name and the  
      * name of its scope (if any).
+     * 
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * returning a string describing this identity.
+     * 
+     * @see SecurityManager#checkSecurityAccess
      */
     public String toString() {
-	check("print");
+	check("printIdentity");
 	String printable = name;
 	if (scope != null) {
 	    printable += "[" + scope.getName() + "]";
@@ -315,13 +390,22 @@ class Identity implements Principal, Serializable {
      * optionally more details than that provided by the
      * <code>toString</code> method without any arguments.
      *
+     * <p>First, if there is a security manager, its <code>checkSecurityAccess</code> 
+     * method is called with <code>"printIdentity"</code> 
+     * as its argument to see if it's ok to return the string. 
+     *
      * @param detailed whether or not to provide detailed information.  
      *
      * @return information about this identity. If <code>detailed</code>
      * is true, then this method returns more information than that 
      * provided by the <code>toString</code> method without any arguments.
      *
+     * @exception  SecurityException  if a security manager exists and its  
+     * <code>checkSecurityAccess</code> method doesn't allow 
+     * returning a string describing this identity.
+     * 
      * @see #toString
+     * @see SecurityManager#checkSecurityAccess
      */
     public String toString(boolean detailed) {
 	String out = toString();
@@ -380,11 +464,7 @@ class Identity implements Principal, Serializable {
 	return scopedName.hashCode();
     }
 
-    void check(String directive) {
-	staticCheck(this.getClass().getName() + "." + directive + "." +fullName());
-    }
-
-    static void staticCheck(String directive) {
+    private static void check(String directive) {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkSecurityAccess(directive);

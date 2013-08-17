@@ -1,8 +1,15 @@
 /*
- * @(#)ServerSocket.java	1.32 01/12/10
+ * @(#)ServerSocket.java	1.32 98/10/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -22,7 +29,7 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.32, 12/10/01
+ * @version 1.32, 10/02/98
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @since   JDK1.0
@@ -55,14 +62,25 @@ class ServerSocket {
      * If the application has specified a server socket factory, that 
      * factory's <code>createSocketImpl</code> method is called to create 
      * the actual socket implementation. Otherwise a "plain" socket is created.
+     * <p>
+     * If there is a security manager, 
+     * its <code>checkListen</code> method is called
+     * with the <code>port</code> argument
+     * as its argument to ensure the operation is allowed. 
+     * This could result in a SecurityException.
      *
      * @param      port  the port number, or <code>0</code> to use any
      *                   free port.
+     * 
      * @exception  IOException  if an I/O error occurs when opening the socket.
+     * @exception  SecurityException
+     * if a security manager exists and its <code>checkListen</code> 
+     * method doesn't allow the operation.
+     * 
      * @see        java.net.SocketImpl
      * @see        java.net.SocketImplFactory#createSocketImpl()
      * @see        java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
-     * @since      JDK1.0
+     * @see        SecurityManager#checkListen
      */
     public ServerSocket(int port) throws IOException {
 	this(port, 50, null);
@@ -74,22 +92,33 @@ class ServerSocket {
      * free port. 
      * <p>
      * The maximum queue length for incoming connection indications (a 
-     * request to connect) is set to the <code>count</code> parameter. If 
+     * request to connect) is set to the <code>backlog</code> parameter. If 
      * a connection indication arrives when the queue is full, the 
      * connection is refused. 
      * <p>
      * If the application has specified a server socket factory, that 
      * factory's <code>createSocketImpl</code> method is called to create 
      * the actual socket implementation. Otherwise a "plain" socket is created.
+     * <p>
+     * If there is a security manager, 
+     * its <code>checkListen</code> method is called
+     * with the <code>port</code> argument
+     * as its argument to ensure the operation is allowed. 
+     * This could result in a SecurityException.
      *
      * @param      port     the specified port, or <code>0</code> to use
      *                      any free port.
      * @param      backlog  the maximum length of the queue.
+     * 
      * @exception  IOException  if an I/O error occurs when opening the socket.
+     * @exception  SecurityException
+     * if a security manager exists and its <code>checkListen</code> 
+     * method doesn't allow the operation.
+     * 
      * @see        java.net.SocketImpl
      * @see        java.net.SocketImplFactory#createSocketImpl()
      * @see        java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
-     * @since      JDK1.0
+     * @see        SecurityManager#checkListen
      */
     public ServerSocket(int port, int backlog) throws IOException {
 	this(port, backlog, null);
@@ -103,14 +132,27 @@ class ServerSocket {
      * If <i>bindAddr</i> is null, it will default accepting
      * connections on any/all local addresses.
      * The port must be between 0 and 65535, inclusive.
+     * 
+     * <P>If there is a security manager, this method 
+     * calls its <code>checkListen</code> method
+     * with the <code>port</code> argument
+     * as its argument to ensure the operation is allowed. 
+     * This could result in a SecurityException.
+     * 
      * <P>
      * @param port the local TCP port
      * @param backlog the listen backlog
      * @param bindAddr the local InetAddress the server will bind to
+     * 
+     * @throws  SecurityException
+     *        if a security manager exists and its <code>checkListen</code> 
+     *        method doesn't allow the operation.
+     * 
      * @see SocketConstants
      * @see SocketOption
      * @see SocketImpl
-     * @see   JDK1.1
+     * @see SecurityManager#checkListen
+     * @since   JDK1.1
      */
     public ServerSocket(int port, int backlog, InetAddress bindAddr) throws IOException {
     	this();
@@ -145,7 +187,6 @@ class ServerSocket {
      *
      * @return  the address to which this socket is connected,
      *          or <code>null</code> if the socket is not yet connected.
-     * @since   JDK1.0
      */
     public InetAddress getInetAddress() {
 	return impl.getInetAddress();
@@ -155,7 +196,6 @@ class ServerSocket {
      * Returns the port on which this socket is listening.
      *
      * @return  the port number to which this socket is listening.
-     * @since   JDK1.0
      */
     public int getLocalPort() {
 	return impl.getLocalPort();
@@ -165,9 +205,19 @@ class ServerSocket {
      * Listens for a connection to be made to this socket and accepts 
      * it. The method blocks until a connection is made. 
      *
+     * <p>A new Socket <code>s</code> is created and, if there is a security manager, 
+     * the security manager's <code>checkAccept</code> method is called
+     * with <code>s.getInetAddress().getHostAddress()</code> and
+     * <code>s.getPort()</code>
+     * as its arguments to ensure the operation is allowed. 
+     * This could result in a SecurityException.
+     * 
      * @exception  IOException  if an I/O error occurs when waiting for a
      *               connection.
-     * @since      JDK1.0
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkListen</code> method doesn't allow the operation.
+     * 
+     * @see SecurityManager#checkAccept
      */
     public Socket accept() throws IOException {
 	Socket s = new Socket();
@@ -181,12 +231,11 @@ class ServerSocket {
      * will typically hand this method an <i>empty</i> FooSocket().  On
      * return from implAccept the FooSocket will be connected to a client.
      *
-     * @since   JDk1.1
+     * @since   JDK1.1
      */
     protected final void implAccept(Socket s) throws IOException {
-	SocketImpl si = s.impl;
+	SocketImpl si = new PlainSocketImpl();
 	try {
-	    s.impl = null;
 	    si.address = new InetAddress();
 	    si.fd = new FileDescriptor();
 	    impl.accept(si);
@@ -197,22 +246,23 @@ class ServerSocket {
 				     si.getPort());
 	    }
 	} catch (IOException e) {
-	    si.reset();
-	    s.impl = si;
+	    si.close();
 	    throw e;
 	} catch (SecurityException e) {
-	    si.reset();
-	    s.impl = si;
+	    si.close();
 	    throw e;
 	}
-	s.impl = si;
+	s.impl.address = si.address;
+	s.impl.fd = si.fd;
+	s.impl.port = si.port;
+	s.impl.localport = si.localport;
+	si.fd = null;
     }
 
     /**
      * Closes this socket. 
      *
      * @exception  IOException  if an I/O error occurs when closing the socket.
-     * @since      JDK1.0
      */
     public void close() throws IOException {
 	impl.close();
@@ -254,7 +304,6 @@ class ServerSocket {
      * this socket as a <code>String</code>.
      *
      * @return  a string representation of this socket.
-     * @since   JDK1.0
      */
     public String toString() {
 	return "ServerSocket[addr=" + impl.getInetAddress() + 
@@ -274,13 +323,20 @@ class ServerSocket {
      * When an application creates a new server socket, the socket 
      * implementation factory's <code>createSocketImpl</code> method is 
      * called to create the actual socket implementation. 
+     * <p>
+     * If there is a security manager, this method first calls
+     * the security manager's <code>checkSetFactory</code> method 
+     * to ensure the operation is allowed. 
+     * This could result in a SecurityException.
      *
      * @param      fac   the desired factory.
      * @exception  IOException  if an I/O error occurs when setting the
      *               socket factory.
      * @exception  SocketException  if the factory has already been defined.
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkSetFactory</code> method doesn't allow the operation.
      * @see        java.net.SocketImplFactory#createSocketImpl()
-     * @since      JDK1.0
+     * @see        SecurityManager#checkSetFactory
      */
     public static synchronized void setSocketFactory(SocketImplFactory fac) throws IOException {
 	if (factory != null) {

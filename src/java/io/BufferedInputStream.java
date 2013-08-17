@@ -1,57 +1,107 @@
 /*
- * @(#)BufferedInputStream.java	1.28 01/12/10
+ * @(#)BufferedInputStream.java	1.36 98/08/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
 
 /**
- * The class implements a buffered input stream. By setting up such 
- * an input stream, an application can read bytes from a stream 
- * without necessarily causing a call to the underlying system for 
- * each byte read. The data is read by blocks into a buffer; 
- * subsequent reads can access the data directly from the buffer. 
+ * A <code>BufferedInputStream</code> adds
+ * functionality to another input stream-namely,
+ * the ability to buffer the input and to
+ * support the <code>mark</code> and <code>reset</code>
+ * methods. When  the <code>BufferedInputStream</code>
+ * is created, an internal buffer array is
+ * created. As bytes  from the stream are read
+ * or skipped, the internal buffer is refilled
+ * as necessary  from the contained input stream,
+ * many bytes at a time. The <code>mark</code>
+ * operation  remembers a point in the input
+ * stream and the <code>reset</code> operation
+ * causes all the  bytes read since the most
+ * recent <code>mark</code> operation to be
+ * reread before new bytes are  taken from
+ * the contained input stream.
  *
  * @author  Arthur van Hoff
- * @version 1.28, 12/10/01
+ * @version 1.36, 08/18/98
  * @since   JDK1.0
  */
 public
 class BufferedInputStream extends FilterInputStream {
+
+    private static int defaultBufferSize = 2048;
+
     /**
-     * The buffer where data is stored. 
-     *
-     * @since   JDK1.0
+     * The internal buffer array where the data is stored. When necessary,
+     * it may be replaced by another array of
+     * a different size.
      */
     protected byte buf[];
 
     /**
      * The index one greater than the index of the last valid byte in 
      * the buffer. 
-     *
-     * @since   JDK1.0
+     * This value is always
+     * in the range <code>0</code> through <code>buf.length</code>;
+     * elements <code>buf[0]</code>  through <code>buf[count-1]
+     * </code>contain buffered input data obtained
+     * from the underlying  input stream.
      */
     protected int count;
 
     /**
      * The current position in the buffer. This is the index of the next 
      * character to be read from the <code>buf</code> array. 
+     * <p>
+     * This value is always in the range <code>0</code>
+     * through <code>count</code>. If it is less
+     * than <code>count</code>, then  <code>buf[pos]</code>
+     * is the next byte to be supplied as input;
+     * if it is equal to <code>count</code>, then
+     * the  next <code>read</code> or <code>skip</code>
+     * operation will require more bytes to be
+     * read from the contained  input stream.
      *
      * @see     java.io.BufferedInputStream#buf
-     * @since   JDK1.0
      */
     protected int pos;
     
     /**
      * The value of the <code>pos</code> field at the time the last 
-     * <code>mark</code> method was called. The value of this field is 
-     * <code>-1</code> if there is no current mark. 
+     * <code>mark</code> method was called.
+     * <p>
+     * This value is always
+     * in the range <code>-1</code> through <code>pos</code>.
+     * If there is no marked position in  the input
+     * stream, this field is <code>-1</code>. If
+     * there is a marked position in the input
+     * stream,  then <code>buf[markpos]</code>
+     * is the first byte to be supplied as input
+     * after a <code>reset</code> operation. If
+     * <code>markpos</code> is not <code>-1</code>,
+     * then all bytes from positions <code>buf[markpos]</code>
+     * through  <code>buf[pos-1]</code> must remain
+     * in the buffer array (though they may be
+     * moved to  another place in the buffer array,
+     * with suitable adjustments to the values
+     * of <code>count</code>,  <code>pos</code>,
+     * and <code>markpos</code>); they may not
+     * be discarded unless and until the difference
+     * between <code>pos</code> and <code>markpos</code>
+     * exceeds <code>marklimit</code>.
      *
      * @see     java.io.BufferedInputStream#mark(int)
      * @see     java.io.BufferedInputStream#pos
-     * @since   JDK1.0
      */
     protected int markpos = -1;
 
@@ -59,34 +109,53 @@ class BufferedInputStream extends FilterInputStream {
      * The maximum read ahead allowed after a call to the 
      * <code>mark</code> method before subsequent calls to the 
      * <code>reset</code> method fail. 
+     * Whenever the difference between <code>pos</code>
+     * and <code>markpos</code> exceeds <code>marklimit</code>,
+     * then the  mark may be dropped by setting
+     * <code>markpos</code> to <code>-1</code>.
      *
      * @see     java.io.BufferedInputStream#mark(int)
      * @see     java.io.BufferedInputStream#reset()
-     * @since   JDK1.0
      */
     protected int marklimit;
 
     /**
-     * Creates a new buffered input stream to read data from the 
-     * specified input stream with a default 512-byte buffer size. 
-     *
-     * @param   in   the underlying input stream.
-     * @since   JDK1.0
+     * Check to make sure that this stream has not been closed
      */
-    public BufferedInputStream(InputStream in) {
-	this(in, 2048);
+    private void ensureOpen() throws IOException {
+	if (in == null)
+	    throw new IOException("Stream closed");
     }
 
     /**
-     * Creates a new buffered input stream to read data from the 
-     * specified input stream with the specified buffer size. 
+     * Creates a <code>BufferedInputStream</code>
+     * and saves its  argument, the input stream
+     * <code>in</code>, for later use. An internal
+     * buffer array is created and  stored in <code>buf</code>.
+     *
+     * @param   in   the underlying input stream.
+     */
+    public BufferedInputStream(InputStream in) {
+	this(in, defaultBufferSize);
+    }
+
+    /**
+     * Creates a <code>BufferedInputStream</code>
+     * with the specified buffer size,
+     * and saves its  argument, the input stream
+     * <code>in</code>, for later use.  An internal
+     * buffer array of length  <code>size</code>
+     * is created and stored in <code>buf</code>.
      *
      * @param   in     the underlying input stream.
      * @param   size   the buffer size.
-     * @since   JDK1.0
+     * @exception IllegalArgumentException if size <= 0.
      */
     public BufferedInputStream(InputStream in, int size) {
 	super(in);
+        if (size <= 0) {
+            throw new IllegalArgumentException("Buffer size <= 0");
+        }
 	buf = new byte[size];
     }
 
@@ -117,32 +186,24 @@ class BufferedInputStream extends FilterInputStream {
 		System.arraycopy(buf, 0, nbuf, 0, pos);
 		buf = nbuf;
 	    }
+        count = pos;
 	int n = in.read(buf, pos, buf.length - pos);
-	count = n <= 0 ? pos : n + pos;
+        if (n > 0)
+            count = n + pos;
     }
 
     /**
-     * Reads the next byte of data from this buffered input stream. The 
-     * value byte is returned as an <code>int</code> in the range 
-     * <code>0</code> to <code>255</code>. If no byte is available 
-     * because the end of the stream has been reached, the value 
-     * <code>-1</code> is returned. This method blocks until input data 
-     * is available, the end of the stream is detected, or an exception 
-     * is thrown. 
-     * <p>
-     * The <code>read</code> method of <code>BufferedInputStream</code> 
-     * returns the next byte of data from its buffer if the buffer is not 
-     * empty. Otherwise, it refills the buffer from the underlying input 
-     * stream and returns the next character, if the underlying stream 
-     * has not returned an end-of-stream indicator. 
+     * See
+     * the general contract of the <code>read</code>
+     * method of <code>InputStream</code>.
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
-     * @since      JDK1.0
      */
     public synchronized int read() throws IOException {
+        ensureOpen();
 	if (pos >= count) {
 	    fill();
 	    if (pos >= count)
@@ -152,43 +213,22 @@ class BufferedInputStream extends FilterInputStream {
     }
 
     /**
-     * Reads bytes into a portion of an array.  This method will block until
-     * some input is available, an I/O error occurs, or the end of the stream
-     * is reached.
-     *
-     * <p> If this stream's buffer is not empty, bytes are copied from it into
-     * the array argument.  Otherwise, the buffer is refilled from the
-     * underlying input stream and, unless the stream returns an end-of-stream
-     * indication, the array argument is filled with characters from the
-     * newly-filled buffer.
-     *
-     * <p> As an optimization, if the buffer is empty, the mark is not valid,
-     * and <code>len</code> is at least as large as the buffer, then this
-     * method will read directly from the underlying stream into the given
-     * array.  Thus redundant <code>BufferedInputStream</code>s will not copy
-     * data unnecessarily.
-     *
-     * @param      b     destination buffer.
-     * @param      off   offset at which to start storing bytes.
-     * @param      len   maximum number of bytes to read.
-     * @return     the number of bytes read, or <code>-1</code> if the end of
-     *             the stream has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * Read characters into a portion of an array, reading from the underlying
+     * stream at most once if necessary.
      */
-    public synchronized int read(byte b[], int off, int len) throws IOException {
+    private int read1(byte[] b, int off, int len) throws IOException {
 	int avail = count - pos;
 	if (avail <= 0) {
-	    /* If the requested length is larger than the buffer, and if there
-	       is no mark/reset activity, do not bother to copy the bytes into
-	       the local buffer.  In this way buffered streams will cascade
-	       harmlessly. */
+	    /* If the requested length is at least as large as the buffer, and
+	       if there is no mark/reset activity, do not bother to copy the
+	       bytes into the local buffer.  In this way buffered streams will
+	       cascade harmlessly. */
 	    if (len >= buf.length && markpos < 0) {
 		return in.read(b, off, len);
 	    }
 	    fill();
 	    avail = count - pos;
-	    if (avail <= 0)
-		return -1;
+	    if (avail <= 0) return -1;
 	}
 	int cnt = (avail < len) ? avail : len;
 	System.arraycopy(buf, pos, b, off, cnt);
@@ -197,39 +237,91 @@ class BufferedInputStream extends FilterInputStream {
     }
 
     /**
-     * Skips over and discards <code>n</code> bytes of data from the 
-     * input stream. The <code>skip</code> method may, for a variety of 
-     * reasons, end up skipping over some smaller number of bytes, 
-     * possibly zero. The actual number of bytes skipped is returned. 
-     * <p>
-     * The <code>skip</code> method of <code>BufferedInputStream</code> 
-     * compares the number of bytes it has available in its buffer, 
-     * <i>k</i>, where <i>k</i>&nbsp;= <code>count&nbsp;- pos</code>, 
-     * with <code>n</code>. If <code>n</code>&nbsp;&le;&nbsp;<i>k</i>, 
-     * then the <code>pos</code> field is incremented by <code>n</code>. 
-     * Otherwise, the <code>pos</code> field is incremented to have the 
-     * value <code>count</code>, and the remaining bytes are skipped by 
-     * calling the <code>skip</code> method on the underlying input 
-     * stream, supplying the argument <code>n&nbsp;-</code>&nbsp;<i>k</i>. 
+     * Reads bytes from this byte-input stream into the specified byte array,
+     * starting at the given offset.
+     *
+     * <p> This method implements the general contract of the corresponding
+     * <code>{@link InputStream#read(byte[], int, int) read}</code> method of
+     * the <code>{@link InputStream}</code> class.  As an additional
+     * convenience, it attempts to read as many bytes as possible by repeatedly
+     * invoking the <code>read</code> method of the underlying stream.  This
+     * iterated <code>read</code> continues until one of the following
+     * conditions becomes true: <ul>
+     *
+     *   <li> The specified number of bytes have been read,
+     *
+     *   <li> The <code>read</code> method of the underlying stream returns
+     *   <code>-1</code>, indicating end-of-file, or
+     *
+     *   <li> The <code>available</code> method of the underlying stream
+     *   returns zero, indicating that further input requests would block.
+     *
+     * </ul> If the first <code>read</code> on the underlying stream returns
+     * <code>-1</code> to indicate end-of-file then this method returns
+     * <code>-1</code>.  Otherwise this method returns the number of bytes
+     * actually read.
+     *
+     * <p> Subclasses of this class are encouraged, but not required, to
+     * attempt to read as many bytes as possible in the same fashion.
+     *
+     * @param      b     destination buffer.
+     * @param      off   offset at which to start storing bytes.
+     * @param      len   maximum number of bytes to read.
+     * @return     the number of bytes read, or <code>-1</code> if the end of
+     *             the stream has been reached.
+     * @exception  IOException  if an I/O error occurs.
+     */
+    public synchronized int read(byte b[], int off, int len)
+	throws IOException
+    {
+        ensureOpen();
+	if ((off < 0) || (off > b.length) || (len < 0) ||
+            ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
+	    return 0;
+	}
+
+	int n = read1(b, off, len);
+	if (n <= 0) return n;
+	while ((n < len) && (in.available() > 0)) {
+	    int n1 = read1(b, off + n, len - n);
+	    if (n1 <= 0) break;
+	    n += n1;
+	}
+	return n;
+    }
+
+    /**
+     * See the general contract of the <code>skip</code>
+     * method of <code>InputStream</code>.
      *
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public synchronized long skip(long n) throws IOException {
-	if (n < 0) {
+        ensureOpen();
+	if (n <= 0) {
 	    return 0;
 	}
 	long avail = count - pos;
-
-	if (avail >= n) {
-	    pos += n;
-	    return n;
-	}
-
-	pos += avail;
-	return avail + in.skip(n - avail);
+     
+        if (avail <= 0) {
+            // If no mark position set then don't keep in buffer
+            if (markpos <0) 
+                return in.skip(n);
+            
+            // Fill in buffer to save bytes for reset
+            fill();
+            avail = count - pos;
+            if (avail <= 0)
+                return 0;
+        }
+        
+        long skipped = (avail < n) ? avail : n;
+        pos += skipped;
+        return skipped;
     }
 
     /**
@@ -247,26 +339,19 @@ class BufferedInputStream extends FilterInputStream {
      *             stream without blocking.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
-     * @since      JDK1.0
      */
     public synchronized int available() throws IOException {
+        ensureOpen();
 	return (count - pos) + in.available();
     }
 
-    /**
-     * Marks the current position in this input stream. A subsequent 
-     * call to the <code>reset</code> method repositions the stream at 
-     * the last marked position so that subsequent reads re-read the same 
-     * bytes. 
-     * <p>
-     * The <code>readlimit</code> argument tells the input stream to 
-     * allow that many bytes to be read before the mark position gets 
-     * invalidated. 
+    /** 
+     * See the general contract of the <code>mark</code>
+     * method of <code>InputStream</code>.
      *
      * @param   readlimit   the maximum limit of bytes that can be read before
      *                      the mark position becomes invalid.
      * @see     java.io.BufferedInputStream#reset()
-     * @since   JDK1.0
      */
     public synchronized void mark(int readlimit) {
 	marklimit = readlimit;
@@ -274,25 +359,21 @@ class BufferedInputStream extends FilterInputStream {
     }
 
     /**
-     * Repositions this stream to the position at the time the 
-     * <code>mark</code> method was last called on this input stream. 
+     * See the general contract of the <code>reset</code>
+     * method of <code>InputStream</code>.
      * <p>
-     * If the stream has not been marked, or if the mark has been invalidated,
-     * an IOException is thrown. Stream marks are intended to be used in
-     * situations where you need to read ahead a little to see what's in
-     * the stream. Often this is most easily done by invoking some
-     * general parser. If the stream is of the type handled by the
-     * parser, it just chugs along happily. If the stream is not of
-     * that type, the parser should toss an exception when it fails. If an
-     * exception gets tossed within readlimit bytes, the parser will allow the
-     * outer code to reset the stream and to try another parser.
+     * If <code>markpos</code> is <code>-1</code>
+     * (no mark has been set or the mark has been
+     * invalidated), an <code>IOException</code>
+     * is thrown. Otherwise, <code>pos</code> is
+     * set equal to <code>markpos</code>.
      *
      * @exception  IOException  if this stream has not been marked or
      *               if the mark has been invalidated.
      * @see        java.io.BufferedInputStream#mark(int)
-     * @since      JDK1.0
      */
     public synchronized void reset() throws IOException {
+        ensureOpen();
 	if (markpos < 0)
 	    throw new IOException("Resetting to invalid mark");
 	pos = markpos;
@@ -308,10 +389,22 @@ class BufferedInputStream extends FilterInputStream {
      *          the <code>mark</code> and <code>reset</code> methods.
      * @see     java.io.InputStream#mark(int)
      * @see     java.io.InputStream#reset()
-     * @since   JDK1.0
-
      */
     public boolean markSupported() {
 	return true;
+    }
+
+    /**
+     * Closes this input stream and releases any system resources 
+     * associated with the stream. 
+     *
+     * @exception  IOException  if an I/O error occurs.
+     */
+    public synchronized void close() throws IOException {
+        if (in == null)
+            return;
+        in.close();
+        in = null;
+        buf = null;
     }
 }

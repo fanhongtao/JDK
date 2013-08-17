@@ -1,10 +1,10 @@
 /*
- * @(#)DateFormat.java	1.26 01/12/10
+ * @(#)DateFormat.java	1.32 98/09/23
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -105,7 +105,7 @@ import java.text.resources.*;
  * <p>You can also use forms of the parse and format methods with
  * ParsePosition and FieldPosition to
  * allow you to
- * <ul><li>pregressively parse through pieces of a string.
+ * <ul><li>progressively parse through pieces of a string.
  * <li>align any particular field, or find out where it is for selection
  * on the screen.
  * </ul>
@@ -116,23 +116,25 @@ import java.text.resources.*;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.26 12/10/01
+ * @version      1.32 09/23/98
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
-public abstract class DateFormat extends Format implements java.lang.Cloneable {
+public abstract class DateFormat extends Format {
 
     /**
-     * The calendar that DateFormat uses to produce the time field values
-     * needed to implement date/time formatting.  Subclasses should initialize
-     * this to the default calendar for the locale associated with this
-     * DateFormat.
+     * The calendar that <code>DateFormat</code> uses to produce the time field
+     * values needed to implement date and time formatting.  Subclasses should
+     * initialize this to a calendar appropriate for the locale associated with
+     * this <code>DateFormat</code>.
+     * @serial
      */
     protected Calendar calendar;
 
     /**
-     * The number formatter that DateFormat uses to format numbers in dates
-     * and times.  Subclasses should initialize this to the default number
-     * format for the locale associated with this DateFormat.
+     * The number formatter that <code>DateFormat</code> uses to format numbers
+     * in dates and times.  Subclasses should initialize this to a number format
+     * appropriate for the locale associated with this <code>DateFormat</code>.
+     * @serial
      */
     protected NumberFormat numberFormat;
 
@@ -244,20 +246,34 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
      * are a time value expressed in milliseconds and a Date object.
      * @param obj must be a Number or a Date.
      * @param toAppendTo the string buffer for the returning time string.
-     * @param status the formatting status. On input: an alignment field,
-     * if desired. On output: the offsets of the alignment field.
      * @return the formatted time string.
-     * @see java.util.Format
+     * @param fieldPosition keeps track of the position of the field
+     * within the returned string.
+     * On input: an alignment field,
+     * if desired. On output: the offsets of the alignment field. For
+     * example, given a time text "1996.07.10 AD at 15:08:56 PDT",
+     * if the given fieldPosition is DateFormat.YEAR_FIELD, the
+     * begin index and end index of fieldPosition will be set to
+     * 0 and 4, respectively.
+     * Notice that if the same time field appears
+     * more than once in a pattern, the fieldPosition will be set for the first
+     * occurence of that time field. For instance, formatting a Date to
+     * the time string "1 PM PDT (Pacific Daylight Time)" using the pattern
+     * "h a z (zzzz)" and the alignment field DateFormat.TIMEZONE_FIELD,
+     * the begin index and end index of fieldPosition will be set to
+     * 5 and 8, respectively, for the first occurence of the timezone
+     * pattern character 'z'.
+     * @see java.text.Format
      */
     public final StringBuffer format(Object obj, StringBuffer toAppendTo,
                                      FieldPosition fieldPosition)
     {
-        if (obj instanceof Number)
+        if (obj instanceof Date)
+            return format( (Date)obj, toAppendTo, fieldPosition );
+        else if (obj instanceof Number)
             return format( new Date(((Number)obj).longValue()),
                           toAppendTo, fieldPosition );
-        else if (obj instanceof Date)
-            return format( (Date)obj, toAppendTo, fieldPosition );
-        else
+        else 
             throw new IllegalArgumentException("Cannot format given Object as a Date");
     }
 
@@ -265,17 +281,20 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
      * Formats a Date into a date/time string.
      * @param date a Date to be formatted into a date/time string.
      * @param toAppendTo the string buffer for the returning date/time string.
-     * @param status the formatting status. On input: an alignment field,
+     * @param fieldPosition keeps track of the position of the field
+     * within the returned string.
+     * On input: an alignment field,
      * if desired. On output: the offsets of the alignment field. For
      * example, given a time text "1996.07.10 AD at 15:08:56 PDT",
-     * if the given status.field is DateFormat.YEAR_FIELD, the offsets
-     * status.beginIndex and status.getEndIndex will be set to 0 and 4,
-     * respectively. Notice that if the same time field appears
-     * more than once in a pattern, the status will be set for the first
+     * if the given fieldPosition is DateFormat.YEAR_FIELD, the
+     * begin index and end index of fieldPosition will be set to
+     * 0 and 4, respectively.
+     * Notice that if the same time field appears
+     * more than once in a pattern, the fieldPosition will be set for the first
      * occurence of that time field. For instance, formatting a Date to
      * the time string "1 PM PDT (Pacific Daylight Time)" using the pattern
      * "h a z (zzzz)" and the alignment field DateFormat.TIMEZONE_FIELD,
-     * the offsets status.beginIndex and status.getEndIndex will be set to
+     * the begin index and end index of fieldPosition will be set to
      * 5 and 8, respectively, for the first occurence of the timezone
      * pattern character 'z'.
      * @return the formatted date/time string.
@@ -296,6 +315,10 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
     /**
      * Parse a date/time string.
      *
+     * @param text  The date/time string to be parsed
+     *
+     * @return      A Date, or null if the input could not be parsed
+     *
      * @exception  ParseException  If the given string cannot be parsed as a date.
      *
      * @see #parse(String, ParsePosition)
@@ -305,7 +328,8 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
         ParsePosition pos = new ParsePosition(0);
         Date result = parse(text, pos);
         if (pos.index == 0)
-            throw new ParseException("Unparseable date: \"" + text + "\"" , 0);
+            throw new ParseException("Unparseable date: \"" + text + "\"" ,
+                pos.errorIndex);
         return result;
     }
 
@@ -390,7 +414,7 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
      * for the given locale.
      * @param style the given formatting style. For example,
      * SHORT for "h:mm a" in the US locale.
-     * @param inLocale the given locale.
+     * @param aLocale the given locale.
      * @return a time formatter.
      */
     public final static DateFormat getTimeInstance(int style,
@@ -428,7 +452,7 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
      * for the given locale.
      * @param style the given formatting style. For example,
      * SHORT for "M/d/yy" in the US locale.
-     * @param inLocale the given locale.
+     * @param aLocale the given locale.
      * @return a date formatter.
      */
     public final static DateFormat getDateInstance(int style,
@@ -467,7 +491,7 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
      * for the given locale.
      * @param dateStyle the given date formatting style.
      * @param timeStyle the given time formatting style.
-     * @param inLocale the given locale.
+     * @param aLocale the given locale.
      * @return a date/time formatter.
      */
     public final static DateFormat
@@ -496,6 +520,7 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
     /**
      * Set the calendar to be used by this date format.  Initially, the default
      * calendar for the specified or default locale is used.
+     * @param newCalendar the new Calendar to be used by the date format
      */
     public void setCalendar(Calendar newCalendar)
     {
@@ -553,6 +578,7 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
      * lenient parsing, the parser may use heuristics to interpret inputs that
      * do not precisely match this object's format.  With strict parsing,
      * inputs must match this object's format.
+     * @param lenient when true, parsing is lenient
      * @see java.util.Calendar#setLenient
      */
     public void setLenient(boolean lenient)
@@ -606,9 +632,6 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
                                   int dateStyle, /* -1 for no date */
                                   Locale loc) {
         try {
-            ResourceBundle resource
-                = ResourceBundle.getBundle
-                ("java.text.resources.LocaleElements", loc);
             return new SimpleDateFormat(timeStyle, dateStyle, loc);
 
         } catch (MissingResourceException e) {
@@ -616,6 +639,8 @@ public abstract class DateFormat extends Format implements java.lang.Cloneable {
         }
     }
 
-    protected DateFormat() { }
-
+    /**
+     * Create a new date format.
+     */
+    protected DateFormat() {}
 }

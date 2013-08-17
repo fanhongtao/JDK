@@ -1,8 +1,15 @@
 /*
- * @(#)Number.java	1.22 01/12/10
+ * @(#)Number.java	1.23 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -19,7 +26,7 @@ package java.lang;
  *
  * @author	Lee Boynton
  * @author	Arthur van Hoff
- * @version 1.22, 12/10/01
+ * @version 1.23, 09/21/98
  * @see     java.lang.Byte
  * @see     java.lang.Double
  * @see     java.lang.Float
@@ -35,7 +42,6 @@ public abstract class Number implements java.io.Serializable {
      *
      * @return  the numeric value represented by this object after conversion
      *          to type <code>int</code>.
-     * @since   JDK1.0
      */
     public abstract int intValue();
 
@@ -45,7 +51,6 @@ public abstract class Number implements java.io.Serializable {
      *
      * @return  the numeric value represented by this object after conversion
      *          to type <code>long</code>.
-     * @since   JDK1.0
      */
     public abstract long longValue();
 
@@ -55,7 +60,6 @@ public abstract class Number implements java.io.Serializable {
      *
      * @return  the numeric value represented by this object after conversion
      *          to type <code>float</code>.
-     * @since   JDK1.0
      */
     public abstract float floatValue();
 
@@ -65,7 +69,6 @@ public abstract class Number implements java.io.Serializable {
      *
      * @return  the numeric value represented by this object after conversion
      *          to type <code>double</code>.
-     * @since   JDK1.0
      */
     public abstract double doubleValue();
 

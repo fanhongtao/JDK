@@ -1,8 +1,15 @@
 /*
- * @(#)InputStreamReader.java	1.14 01/12/10
+ * @(#)InputStreamReader.java	1.20 98/08/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -30,7 +37,7 @@ import sun.io.ConversionBufferFullException;
  * @see BufferedReader
  * @see InputStream
  *
- * @version 	1.14, 01/12/10
+ * @version 	1.20, 98/08/06
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -76,14 +83,20 @@ public class InputStreamReader extends Reader {
      */
     private InputStreamReader(InputStream in, ByteToCharConverter btc) {
 	super(in);
+	if (in == null) 
+	    throw new NullPointerException("input stream is null");
 	this.in = in;
 	this.btc = btc;
 	bb = new byte[defaultByteBufferSize];
     }
 
     /**
-     * Return the name of the encoding being used by this stream.  May return
-     * null if the stream has been closed.
+     * Returns the canonical name of the character encoding being used by 
+     * this stream.  If this <code>InputStreamReader</code> was created 
+     * with the {@link #InputStreamReader(InputStream, String)} constructor, 
+     * the returned encoding name, being canonical, may differ from the 
+     * encoding name passed to the constructor.  May return <code>null</code> 
+     * if the stream has been closed.
      */
     public String getEncoding() {
 	synchronized (lock) {
@@ -151,6 +164,7 @@ public class InputStreamReader extends Reader {
 	    }
 
 	    if (nBytes == -1) {
+                nBytes = 0; /* Allow file to grow */
 		nc += flushInto(cbuf, off + nc, end);
 		if (nc == 0)
 		    return -1;
@@ -162,7 +176,6 @@ public class InputStreamReader extends Reader {
 		nc += convertInto(cbuf, off + nc, end);
 	    }
 	}
-
 	return nc;
     }
 
@@ -217,6 +230,12 @@ public class InputStreamReader extends Reader {
     public int read(char cbuf[], int off, int len) throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
+            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
+                ((off + len) > cbuf.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return 0;
+            }
 	    return fill(cbuf, off, off + len);
 	}
     }

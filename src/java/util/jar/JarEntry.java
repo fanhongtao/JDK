@@ -1,0 +1,87 @@
+/*
+ * @(#)JarEntry.java	1.12 98/07/14
+ *
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ */
+
+package java.util.jar;
+
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.security.cert.Certificate;
+
+/**
+ * This class is used to represent a JAR file entry.
+ */
+public
+class JarEntry extends ZipEntry {
+    Attributes attr;
+    Certificate[] certs;
+
+    /**
+     * Creates a new <code>JarEntry</code> for the specified JAR file
+     * entry name.
+     *
+     * @param the JAR file entry name
+     * @exception NullPointerException if the entry name is <code>null</code>
+     * @exception IllegalArgumentException if the entry name is longer than
+     *            0xFFFF bytes.
+     */
+    public JarEntry(String name) {
+	super(name);
+    }
+
+    /**
+     * Creates a new <code>JarEntry</code> with fields taken from the
+     * specified <code>ZipEntry</code> object.
+     */
+    public JarEntry(ZipEntry ze) {
+	super(ze);
+    }
+
+    /**
+     * Creates a new <code>JarEntry</code> with fields taken from the
+     * specified <code>JarEntry</code> object.
+     *
+     * @param je the <code>JarEntry</code> to copy
+     */
+    public JarEntry(JarEntry je) {
+	this((ZipEntry)je);
+	this.attr = je.attr;
+	this.certs = je.certs;
+    }
+
+    /**
+     * Returns the <code>Manifest</code> <code>Attributes</code> for this
+     * entry, or <code>null</code> if none.
+     */
+    public Attributes getAttributes() throws IOException {
+	return attr;
+    }
+
+    /**
+     * Returns the <code>Certificate</code> objects for this entry, or
+     * <code>null</code> if none. This method can only be called once
+     * the <code>JarEntry</code> has been completely verified by reading
+     * from the entry input stream until the end of the stream has been
+     * reached. Otherwise, this method will return <code>null</code>.
+     *
+     * <p>The returned certificate array comprises all the signer certificates
+     * that were used to verify this entry. Each signer certificate is
+     * followed by its supporting certificate chain (which may be empty).
+     * Each signer certificate and its supporting certificate chain are ordered
+     * bottom-to-top (i.e., with the signer certificate first and the (root)
+     * certificate authority last).
+     */
+    public Certificate[] getCertificates() {
+	return certs;
+    }
+}

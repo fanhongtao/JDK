@@ -1,8 +1,15 @@
 /*
- * @(#)PropertyEditor.java	1.28 01/12/10
+ * @(#)PropertyEditor.java	1.31 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -38,7 +45,7 @@ package java.beans;
 public interface PropertyEditor {
 
     /**
-     * Set (or change) the object that is to be edited.  Builtin types such
+     * Set (or change) the object that is to be edited.  Primitive types such
      * as "int" must be wrapped as the corresponding object type such as
      * "java.lang.Integer".
      *
@@ -50,7 +57,9 @@ public interface PropertyEditor {
     void setValue(Object value);
 
     /**
-     * @return The value of the property.  Builtin types such as "int" will
+     * Gets the property value.
+     *
+     * @return The value of the property.  Primitive types such as "int" will
      * be wrapped as the corresponding object type such as "java.lang.Integer".
      */
 
@@ -59,6 +68,8 @@ public interface PropertyEditor {
     //----------------------------------------------------------------------
 
     /**
+     * Determines whether this property editor is paintable.
+     *
      * @return  True if the class will honor the paintValue method.
      */
 
@@ -99,6 +110,8 @@ public interface PropertyEditor {
     //----------------------------------------------------------------------
 
     /**
+     * Gets the property value as text.
+     * 
      * @return The property value as a human editable string.
      * <p>   Returns null if the value can't be expressed as an editable string.
      * <p>   If a non-null value is returned, then the PropertyEditor should
@@ -151,6 +164,8 @@ public interface PropertyEditor {
     java.awt.Component getCustomEditor();
 
     /**
+     * Determines whether this property editor supports a custom editor.
+     *
      * @return  True if the propertyEditor can provide a custom editor.
      */
     boolean supportsCustomEditor();

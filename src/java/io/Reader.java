@@ -1,8 +1,15 @@
 /*
- * @(#)Reader.java	1.10 01/12/10
+ * @(#)Reader.java	1.16 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -26,7 +33,7 @@ package java.io;
  * @see StringReader
  * @see Writer
  *
- * @version 	1.10, 01/12/10
+ * @version 	1.16, 98/09/21
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -55,6 +62,9 @@ public abstract class Reader {
      * synchronize on the given object.
      */
     protected Reader(Object lock) {
+	if (lock == null) {
+	    throw new NullPointerException();
+	}
 	this.lock = lock;
     }
 
@@ -127,13 +137,15 @@ public abstract class Reader {
      * @exception  IOException  If an I/O error occurs
      */
     public long skip(long n) throws IOException {
+	if (n < 0L) 
+	    throw new IllegalArgumentException("skip value is negative");
 	int nn = (int) Math.min(n, maxSkipBufferSize);
 	synchronized (lock) {
 	    if ((skipBuffer == null) || (skipBuffer.length < nn))
 		skipBuffer = new char[nn];
 	    long r = n;
 	    while (r > 0) {
-		int nc = read(skipBuffer, 0, nn);
+		int nc = read(skipBuffer, 0, (int)Math.min(r, nn));
 		if (nc == -1)
 		    break;
 		r -= nc;

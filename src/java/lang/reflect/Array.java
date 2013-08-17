@@ -1,18 +1,25 @@
 /*
- * @(#)Array.java	1.5 01/12/10
+ * @(#)Array.java	1.7 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang.reflect;
 
 /**
- * The Array class provides static methods to dynamically create and
+ * The <code>Array</code> class provides static methods to dynamically create and
  * access Java arrays.
  *
- * <p>Array permits widening conversions to occur during a get or set
- * operation, but throws an IllegalArgumentException if a narrowing
+ * <p><code>Array</code> permits widening conversions to occur during a get or set
+ * operation, but throws an <code>IllegalArgumentException</code> if a narrowing
  * conversion would occur.
  *
  * @author Nakul Saraiya
@@ -28,19 +35,22 @@ class Array {
     /**
      * Creates a new array with the specified component type and
      * length.
-
-     * The effect is that of the equivalent array creation expression:
+     * Invoking this method is equivalent to creating an array
+     * as follows:
+     * <blockquote>
      * <pre>
-     *    new componentType[length]
+     * int[] x = {length];
+     * Array.newInstance[componentType, x];
      * </pre>
+     * </blockquote>
      *
-     * @param componentType the Class object representing the
+     * @param componentType the <code>Class</code> object representing the
      * component type of the new array
      * @param length the length of the new array
      * @return the new array
      * @exception NullPointerException if the specified
-     * componentType parameter is null
-     * @exception NegativeArraySizeException if the specified length
+     * <code>componentType</code> parameter is null
+     * @exception NegativeArraySizeException if the specified <code>length</code> 
      * is negative
      */
     public static Object newInstance(Class componentType, int length)
@@ -49,27 +59,36 @@ class Array {
     }
 
     /**
-     * Creates a new array with the specified component type and
-     * dimensions.
+     * Creates a new array
+     * with the specified component type and dimensions. 
+     * If <code>componentType</code>
+     * represents a non-array class or interface, the new array
+     * has <code>dimensions.length</code> dimensions and&nbsp;
+     * <code>componentType&nbsp;</code> as its component type. If
+     * <code>componentType</code> represents an array class, the
+     * number of dimensions of the new array is equal to the sum
+     * of <code>dimensions.length</code> and the number of
+     * dimensions of <code>componentType</code>. In this case, the
+     * component type of the new array is the component type of
+     * <code>componentType</code>.
+     * 
+     * <p>The number of dimensions of the new array must not
+     * exceed the number of array dimensions supported by the
+     * implementation (typically 255).
      *
-     * <p>The effect is that of the equivalent array creation expression:
-     * <pre>
-     *    new componentType[dimensions[0]][dimensions[1]]...
-     * </pre>
-     *
-     * @param componentType the Class object representing the component
+     * @param componentType the <code>Class</code> object representing the component
      * type of the new array
-     * @param dimensions an array of ints representing the dimensions of
+     * @param dimensions an array of <code>int</code> types representing the dimensions of
      * the new array
      * @return the new array
      * @exception NullPointerException if the specified 
-     * componentType argument is null
-     * @exception IllegalArgumentException if the specified dimensions
+     * <code>componentType</code> argument is null
+     * @exception IllegalArgumentException if the specified <code>dimensions</code> 
      * argument is a zero-dimensional array, or if the number of
      * requested dimensions exceeds the limit on the number of array dimensions 
      * supported by the implementation (typically 255).
      * @exception NegativeArraySizeException if any of the components in
-     * the specified dimension argument is negative.
+     * the specified <code>dimensions</code> argument is negative.
      */
     public static Object newInstance(Class componentType, int[] dimensions)
 	throws IllegalArgumentException, NegativeArraySizeException {
@@ -77,7 +96,7 @@ class Array {
     }
 
     /**
-     * Returns the length of the specified array object, as an int.
+     * Returns the length of the specified array object, as an <code>int</code>.
      *
      * @param array the array
      * @return the length of the array
@@ -99,7 +118,7 @@ class Array {
      * @exception NullPointerException If the specified object is null
      * @exception IllegalArgumentException If the specified object is not
      * an array
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      */
@@ -108,7 +127,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a boolean.
+     * array object, as a <code>boolean</code>.
      *
      * @param array the array
      * @param index the index
@@ -117,7 +136,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -127,7 +146,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a byte.
+     * array object, as a <code>byte</code>.
      *
      * @param array the array
      * @param index the index
@@ -136,7 +155,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -146,7 +165,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a char.
+     * array object, as a <code>char</code>.
      *
      * @param array the array
      * @param index the index
@@ -155,7 +174,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -165,7 +184,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a short.
+     * array object, as a <code>short</code>.
      *
      * @param array the array
      * @param index the index
@@ -174,7 +193,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -184,7 +203,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as an int.
+     * array object, as an <code>int</code>.
      *
      * @param array the array
      * @param index the index
@@ -193,7 +212,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -203,7 +222,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a long.
+     * array object, as a <code>long</code>.
      *
      * @param array the array
      * @param index the index
@@ -212,7 +231,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -222,7 +241,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a float.
+     * array object, as a <code>float</code>.
      *
      * @param array the array
      * @param index the index
@@ -231,7 +250,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -241,7 +260,7 @@ class Array {
 
     /**
      * Returns the value of the indexed component in the specified
-     * array object, as a double.
+     * array object, as a <code>double</code>.
      *
      * @param array the array
      * @param index the index
@@ -250,7 +269,7 @@ class Array {
      * @exception IllegalArgumentException If the specified object is not
      * an array, or if the indexed element cannot be converted to the
      * return type by an identity or widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to the
      * length of the specified array
      * @see Array#get
@@ -273,7 +292,7 @@ class Array {
      * is not an array, or if the array component type is primitive and
      * the specified value cannot be converted to the primitive type by
      * a combination of unwrapping and identity or widening conversions
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      */
@@ -282,7 +301,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified boolean value.
+     * object to the specified <code>boolean</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -292,7 +311,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -302,7 +321,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified boolean value.
+     * object to the specified <code>boolean</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -312,7 +331,7 @@ class Array {
       * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -322,7 +341,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified byte value.
+     * object to the specified <code>byte</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -332,7 +351,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -342,7 +361,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified short value.
+     * object to the specified <code>short</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -352,7 +371,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -362,7 +381,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified int value.
+     * object to the specified <code>int</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -372,7 +391,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -382,7 +401,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified long value.
+     * object to the specified <code>long</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -392,7 +411,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -402,7 +421,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified float value.
+     * object to the specified <code>float</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -412,7 +431,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set
@@ -422,7 +441,7 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified double value.
+     * object to the specified <code>double</code> value.
      * @param array the array
      * @param index the index into the array
      * @param value the new value of the indexed component
@@ -432,7 +451,7 @@ class Array {
      * is not an array, or if the the specified value cannot be converted
      * to the underlying array's component type by an identity or a
      * primitive widening widening conversion
-     * @exception ArrayIndexOutOfBoundsException If the specified index
+     * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
      * @see Array#set

@@ -1,25 +1,28 @@
 /*
- * @(#)EventDispatchThread.java	1.22 01/12/10
+ * @(#)EventDispatchThread.java	1.26 98/08/11
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt;
-
-import java.awt.event.MouseEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.PaintEvent;
-import java.awt.peer.ActiveEvent;
 
 /**
  * EventDispatchThread is a package-private AWT class which takes
  * events off the EventQueue and dispatches them to the appropriate
  * AWT components.
  *
- * @version 1.22 12/10/01
+ * @version 1.26 08/11/98
  * @author Tom Ball
  * @author Amy Fowler
+ * @author Fred Ecks
  */
 class EventDispatchThread extends Thread {
     private EventQueue theQueue;
@@ -30,17 +33,17 @@ class EventDispatchThread extends Thread {
         theQueue = queue;
     }
 
-    void stopDispatchingNoJoin() {
-	doDispatch = false;
-	theQueue.postEvent(new EmptyEvent());
-    }
     public void stopDispatching() {
+	// Note: We stop dispatching via a flag rather than using
+	// Thread.interrupt() because we can't guarantee that the wait()
+	// we interrupt will be EventQueue.getNextEvent()'s.  -fredx 8-11-98
+
         doDispatch = false;
-	// fix 4128923
-	// post an empty event to ensure getNextEvent
-	// is unblocked - rkhan 4/14/98
-	// TODO: Look into using Thread.interrupt() instead
+
+	// fix 4122683, 4128923
+	// Post an empty event to ensure getNextEvent is unblocked
 	theQueue.postEvent(new EmptyEvent());
+
 	// wait for the dispatcher to complete
 	if (Thread.currentThread() != this) {
 	    try {
@@ -59,27 +62,16 @@ class EventDispatchThread extends Thread {
     }
 
     public void run() {
-       while (doDispatch) {
+       while (doDispatch && !isInterrupted()) {
             try {
                 AWTEvent event = theQueue.getNextEvent();
-                if (false) {
-                    // Not until 1.2...
-                    // theQueue.dispatchEvent(event);
-                } else {
-                    // old code...
-                    Object src = event.getSource();
-                    if (event instanceof ActiveEvent) {
-			// This could become the sole method of dispatching in time, and 
-			// moved to the event queue's dispatchEvent() method.
-			((ActiveEvent)event).dispatch();
-		    } else if (src instanceof Component) {
-                        ((Component)src).dispatchEvent(event);
-                    } else if (src instanceof MenuComponent) {
-                        ((MenuComponent)src).dispatchEvent(event);
-		    }
-                }
+                theQueue.dispatchEvent(event);
             } catch (ThreadDeath death) {
                 return;
+
+	    } catch (InterruptedException interruptedException) {
+		return; // AppContext.dispose() interrupts all
+			// Threads in the AppContext
 
             } catch (Throwable e) {
                 System.err.println(
@@ -88,4 +80,10 @@ class EventDispatchThread extends Thread {
             }
         }
     }
+
+    boolean isDispatching(EventQueue eq) {
+	return theQueue.equals(eq);
+    }
+
+    EventQueue getEventQueue() { return theQueue; }
 }

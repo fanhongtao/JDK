@@ -1,8 +1,15 @@
 /*
- * @(#)PixelGrabber.java	1.9 01/12/10
+ * @(#)PixelGrabber.java	1.13 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt.image;
@@ -51,7 +58,7 @@ import java.awt.Image;
  *
  * @see ColorModel#getRGBdefault
  *
- * @version 	1.9, 12/10/01
+ * @version 	1.13, 06/29/98
  * @author 	Jim Graham
  */
 public class PixelGrabber implements ImageConsumer {
@@ -71,10 +78,10 @@ public class PixelGrabber implements ImageConsumer {
     private boolean grabbing;
     private int flags;
 
-    private final int GRABBEDBITS = (ImageObserver.FRAMEBITS
-				     | ImageObserver.ALLBITS);
-    private final int DONEBITS = (GRABBEDBITS
-				  | ImageObserver.ERROR);
+    private static final int GRABBEDBITS = (ImageObserver.FRAMEBITS
+					    | ImageObserver.ALLBITS);
+    private static final int DONEBITS = (GRABBEDBITS
+					 | ImageObserver.ERROR);
 
     /**
      * Create a PixelGrabber object to grab the (x, y, w, h) rectangular
@@ -201,7 +208,7 @@ public class PixelGrabber implements ImageConsumer {
      * delivered.
      * @return true if the pixels were successfully grabbed, false on
      * abort, error or timeout
-     * @exception InterruptedException 
+     * @exception InterruptedException
      *            Another thread has interrupted this thread.
      */
     public boolean grabPixels() throws InterruptedException {
@@ -216,8 +223,8 @@ public class PixelGrabber implements ImageConsumer {
      * to arrive before timing out
      * @return true if the pixels were successfully grabbed, false on
      * abort, error or timeout
-     * @exception InterruptedException 
-     *            Another thread has interrupted this thread. 
+     * @exception InterruptedException
+     *            Another thread has interrupted this thread.
      */
     public synchronized boolean grabPixels(long ms)
 	throws InterruptedException
@@ -311,7 +318,8 @@ public class PixelGrabber implements ImageConsumer {
      * in the default RGB ColorModel at any time if the source image
      * uses more than one ColorModel to deliver the data, the ColorModel
      * object returned by this method may change over time until the
-     * image grab is complete.
+     * image grab is complete and may not reflect any of the ColorModel
+     * objects that was used by the ImageProducer to deliver the pixels.
      * @return the ColorModel object used for storing the pixels
      * @see #getStatus
      * @see ColorModel#getRGBdefault
@@ -323,6 +331,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The setDimensions method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public void setDimensions(int width, int height) {
 	if (dstW < 0) {
@@ -345,6 +359,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The setHints method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public void setHints(int hints) {
 	return;
@@ -353,6 +373,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The setProperties method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public void setProperties(Hashtable props) {
 	return;
@@ -361,6 +387,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The setColorModel method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public void setColorModel(ColorModel model) {
 	return;
@@ -388,6 +420,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The setPixels method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public void setPixels(int srcX, int srcY, int srcW, int srcH,
 			  ColorModel model,
@@ -457,6 +495,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The setPixels method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public void setPixels(int srcX, int srcY, int srcW, int srcH,
 			  ColorModel model,
@@ -528,6 +572,12 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * The imageComplete method is part of the ImageConsumer API which
      * this class must implement to retrieve the pixels.
+     * <p>
+     * Note: This method is intended to be called by the ImageProducer
+     * of the Image whose pixels are being grabbed.  Developers using
+     * this class to retrieve pixels from an image should avoid calling
+     * this method directly since that operation could result in problems
+     * with retrieving the requested pixels.
      */
     public synchronized void imageComplete(int status) {
 	grabbing = false;

@@ -1,243 +1,487 @@
-/*
- * @(#)CallableStatement.java	1.9 01/12/10
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
+	/*
+	 * @(#)CallableStatement.java	1.17 98/05/08
+	 * 
+	 * Copyright 1996-1998 by Sun Microsystems, Inc.,
+	 * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+	 * All rights reserved.
+	 *
+	 * This software is the confidential and proprietary information
+	 * of Sun Microsystems, Inc. ("Confidential Information").  You
+	 * shall not disclose such Confidential Information and shall use
+	 * it only in accordance with the terms of the license agreement
+	 * you entered into with Sun.
+	 */
 
-package java.sql;
+	package java.sql;
 
-import java.math.BigDecimal;
+	import java.math.BigDecimal;
+	import java.util.Calendar;
 
-/**
- * <P>CallableStatement is used to execute SQL stored procedures.
- *
- * <P>JDBC provides a stored procedure SQL escape that allows stored
- * procedures to be called in a standard way for all RDBMS's. This
- * escape syntax has one form that includes a result parameter and one
- * that does not. If used, the result parameter must be registered as
- * an OUT parameter. The other parameters may be used for input,
- * output or both. Parameters are refered to sequentially, by
- * number. The first parameter is 1.
- *
- * <P><CODE>
- * {?= call <procedure-name>[<arg1>,<arg2>, ...]}<BR>
- * {call <procedure-name>[<arg1>,<arg2>, ...]}
- * </CODE>
- *    
- * <P>IN parameter values are set using the set methods inherited from
- * PreparedStatement. The type of all OUT parameters must be
- * registered prior to executing the stored procedure; their values
- * are retrieved after execution via the get methods provided here.
- *
- * <P>A Callable statement may return a ResultSet or multiple
- * ResultSets. Multiple ResultSets are handled using operations
- * inherited from Statement.
- *
- * <P>For maximum portability, a call's ResultSets and update counts
- * should be processed prior to getting the values of output
- * parameters.
- *
- * @see Connection#prepareCall
- * @see ResultSet 
- */
-public interface CallableStatement extends PreparedStatement {
+	/**
+	 * The interface used to execute SQL 
+	 * stored procedures.  JDBC provides a stored procedure 
+	 * SQL escape that allows stored procedures to be called in a standard 
+	 * way for all RDBMSs. This escape syntax has one form that includes 
+	 * a result parameter and one that does not. If used, the result 
+	 * parameter must be registered as an OUT parameter. The other parameters
+	 * can be used for input, output or both. Parameters are referred to 
+	 * sequentially, by number. The first parameter is 1.
+	 * <P>
+	 * <blockquote><pre>
+	 *   {?= call &lt;procedure-name&gt;[&lt;arg1&gt;,&lt;arg2&gt;, ...]}
+	 *   {call &lt;procedure-name&gt;[&lt;arg1&gt;,&lt;arg2&gt;, ...]}
+	 * </pre></blockquote>
+	 * <P>
+	 * IN parameter values are set using the set methods inherited from
+	 * {@link PreparedStatement}.  The type of all OUT parameters must be
+	 * registered prior to executing the stored procedure; their values
+	 * are retrieved after execution via the <code>get</code> methods provided here.
+	 * <P>
+	 * A <code>CallableStatement</code> can return one {@link ResultSet} or 
+	 * multiple <code>ResultSet</code> objets.  Multiple 
+	 * <code>ResultSet</code> objects are handled using operations
+	 * inherited from {@link Statement}.
+	 * <P>
+	 * For maximum portability, a call's <code>ResultSet</code> objects and 
+	 * update counts should be processed prior to getting the values of output
+	 * parameters.
+	 *
+	 * @see Connection#prepareCall
+	 * @see ResultSet 
+	 */
+	public interface CallableStatement extends PreparedStatement {
 
-    /**
-     * Before executing a stored procedure call, you must explicitly
-     * call registerOutParameter to register the java.sql.Type of each
-     * out parameter.
-     *
-     * <P><B>Note:</B> When reading the value of an out parameter, you
-     * must use the getXXX method whose Java type XXX corresponds to the
-     * parameter's registered SQL type.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2,...
-     * @param sqlType SQL type code defined by java.sql.Types;
-     * for parameters of type Numeric or Decimal use the version of
-     * registerOutParameter that accepts a scale value
-     * @exception SQLException if a database-access error occurs.
-     * @see Type 
-     */
-    void registerOutParameter(int parameterIndex, int sqlType)
-	    throws SQLException;
+		/**
+		 * Registers the OUT parameter in ordinal position 
+		 * <code>parameterIndex</code> to the JDBC type 
+		 * <code>sqlType</code>.  All OUT parameters must be registered
+		 * before a stored procedure is executed.
+		 * <p>
+		 * The JDBC type specified by <code>sqlType</code> for an OUT
+		 * parameter determines the Java type that must be used
+		 * in the <code>get</code> method to read the value of that parameter.
+		 * <p>
+		 * If the JDBC type expected to be returned to this output parameter
+		 * is specific to this particular database, <code>sqlType</code>
+		 * should be <code>java.sql.Types.OTHER</code>.  The method 
+		 * {@link #getObject} retrieves the value.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @param sqlType the JDBC type code defined by <code>java.sql.Types</code>.
+		 * If the parameter is of type Numeric or Decimal, the version of
+		 * <code>registerOutParameter</code> that accepts a scale value 
+		 * should be used.
+		 * @exception SQLException if a database access error occurs
+		 * @see Types 
+		 */
+		void registerOutParameter(int parameterIndex, int sqlType)
+			throws SQLException;
 
-    /**
-     * Use this version of registerOutParameter for registering
-     * Numeric or Decimal out parameters.
-     *
-     * <P><B>Note:</B> When reading the value of an out parameter, you
-     * must use the getXXX method whose Java type XXX corresponds to the
-     * parameter's registered SQL type.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @param sqlType use either java.sql.Type.NUMERIC or java.sql.Type.DECIMAL
-     * @param scale a value greater than or equal to zero representing the 
-     *              desired number of digits to the right of the decimal point
-     * @exception SQLException if a database-access error occurs.
-     * @see Type 
-     */
-    void registerOutParameter(int parameterIndex, int sqlType, int scale)
-	    throws SQLException;
+		/**
+		 * Registers the parameter in ordinal position
+		 * <code>parameterIndex</code> to be of JDBC type
+		 * <code>sqlType</code>.  This method must be called
+		 * before a stored procedure is executed.
+		 * <p>
+		 * The JDBC type specified by <code>sqlType</code> for an OUT
+		 * parameter determines the Java type that must be used
+		 * in the <code>get</code> method to read the value of that parameter.
+		 * <p>
+		 * This version of <code>registerOutParameter</code> should be
+		 * used when the parameter is of JDBC type <code>NUMERIC</code>
+		 * or <code>DECIMAL</code>.
+		 * @param parameterIndex the first parameter is 1, the second is 2,
+		 * and so on
+		 * @param sqlType SQL type code defined by <code>java.sql.Types</code>.
+		 * @param scale the desired number of digits to the right of the
+		 * decimal point.  It must be greater than or equal to zero.
+		 * @exception SQLException if a database access error occurs
+		 * @see Types 
+		 */
+		void registerOutParameter(int parameterIndex, int sqlType, int scale)
+			throws SQLException;
 
-    /**
-     * An OUT parameter may have the value of SQL NULL; wasNull reports 
-     * whether the last value read has this special value.
-     *
-     * <P><B>Note:</B> You must first call getXXX on a parameter to
-     * read its value and then call wasNull() to see if the value was
-     * SQL NULL.
-     *
-     * @return true if the last parameter read was SQL NULL 
-     * @exception SQLException if a database-access error occurs.
-     */
-    boolean wasNull() throws SQLException;
+		/**
+		 * Indicates whether or not the last OUT parameter read had the value of
+		 * SQL NULL.  Note that this method should be called only after
+		 * calling the <code>get</code> method; otherwise, there is no value to use in 
+		 * determining whether it is <code>null</code> or not.
+		 * @return <code>true</code> if the last parameter read was SQL NULL;
+		 * <code>false</code> otherwise. 
+		 * @exception SQLException if a database access error occurs
+		 */
+		boolean wasNull() throws SQLException;
 
-    /**
-     * Get the value of a CHAR, VARCHAR, or LONGVARCHAR parameter as a Java String.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is null
-     * @exception SQLException if a database-access error occurs.
-     */
-    String getString(int parameterIndex) throws SQLException;
+		/**
+		 * Retrieves the value of a JDBC <code>CHAR</code>, <code>VARCHAR</code>, 
+		 * or <code>LONGVARCHAR</code> parameter as a <code>String</code> in 
+		 * the Java programming language.
+		 * <p>
+		 * For the fixed-length type JDBC CHAR, the <code>String</code> object
+		 * returned has exactly the same value the JDBC CHAR value had in the
+		 * database, including any padding added by the database.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value. If the value is SQL NULL, the result 
+		 * is <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		String getString(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a BIT parameter as a Java boolean.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is false
-     * @exception SQLException if a database-access error occurs.
-     */
-    boolean getBoolean(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC BIT parameter as a <code>boolean</code> 
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is <code>false</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		boolean getBoolean(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a TINYINT parameter as a Java byte.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is 0
-     * @exception SQLException if a database-access error occurs.
-     */
-    byte getByte(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC TINYINT parameter as a <code>byte</code> 
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is 0.
+		 * @exception SQLException if a database access error occurs
+		 */
+		byte getByte(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a SMALLINT parameter as a Java short.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is 0
-     * @exception SQLException if a database-access error occurs.
-     */
-    short getShort(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC SMALLINT parameter as a <code>short</code>
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is 0.
+		 * @exception SQLException if a database access error occurs
+		 */
+		short getShort(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of an INTEGER parameter as a Java int.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is 0
-     * @exception SQLException if a database-access error occurs.
-     */
-    int getInt(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC INTEGER parameter as an <code>int</code>
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is 0.
+		 * @exception SQLException if a database access error occurs
+		 */
+		int getInt(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a BIGINT parameter as a Java long.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is 0
-     * @exception SQLException if a database-access error occurs.
-     */
-    long getLong(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC BIGINT parameter as a <code>long</code>
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is 0.
+		 * @exception SQLException if a database access error occurs
+		 */
+		long getLong(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a FLOAT parameter as a Java float.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is 0
-     * @exception SQLException if a database-access error occurs.
-     */
-    float getFloat(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC FLOAT parameter as a <code>float</code>
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is 0.
+		 * @exception SQLException if a database access error occurs
+		 */
+		float getFloat(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a DOUBLE parameter as a Java double.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is 0
-     * @exception SQLException if a database-access error occurs.
-     */
-    double getDouble(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC DOUBLE parameter as a <code>double</code>
+		 * in the Java programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2,
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is 0.
+		 * @exception SQLException if a database access error occurs
+		 */
+		double getDouble(int parameterIndex) throws SQLException;
 
-    /** 
-     * Get the value of a NUMERIC parameter as a java.math.BigDecimal object.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     *
-     * @param scale a value greater than or equal to zero representing the
-     * desired number of digits to the right of the decimal point 
-     *
-     * @return the parameter value; if the value is SQL NULL, the result is
-     * null 
-     * @exception SQLException if a database-access error occurs.
-     */
-    BigDecimal getBigDecimal(int parameterIndex, int scale) 
-    throws SQLException;
+		/** 
+		 * Gets the value of a JDBC <code>NUMERIC</code> parameter as a 
+		 * <code>java.math.BigDecimal</code> object with scale digits to
+		 * the right of the decimal point.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @param scale the number of digits to the right of the decimal point 
+		 * @return the parameter value.  If the value is SQL NULL, the result is
+		 * <code>null</code>. 
+		 * @exception SQLException if a database access error occurs
+		 * @deprecated
+		 */
+		BigDecimal getBigDecimal(int parameterIndex, int scale)
+		  throws SQLException;
 
-    /**
-     * Get the value of a SQL BINARY or VARBINARY parameter as a Java byte[]
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is null
-     * @exception SQLException if a database-access error occurs.
-     */
-    byte[] getBytes(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC <code>BINARY</code> or <code>VARBINARY</code> 
+		 * parameter as an array of <code>byte</code> vlaures in the Java 
+		 * programming language.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result is 
+		 *  <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		byte[] getBytes(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a SQL DATE parameter as a java.sql.Date object
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is null
-     * @exception SQLException if a database-access error occurs.
-     */
-    java.sql.Date getDate(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a JDBC <code>DATE</code> parameter as a 
+		 * <code>java.sql.Date</code> object.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		java.sql.Date getDate(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a SQL TIME parameter as a java.sql.Time object.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is null
-     * @exception SQLException if a database-access error occurs.
-     */
-    java.sql.Time getTime(int parameterIndex) throws SQLException;
+		/**
+		 * Get the value of a JDBC <code>TIME</code> parameter as a 
+		 * <code>java.sql.Time</code> object.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		java.sql.Time getTime(int parameterIndex) throws SQLException;
 
-    /**
-     * Get the value of a SQL TIMESTAMP parameter as a java.sql.Timestamp object.
-     *
-     * @param parameterIndex the first parameter is 1, the second is 2, ...
-     * @return the parameter value; if the value is SQL NULL, the result is null
-     * @exception SQLException if a database-access error occurs.
-     */
-    java.sql.Timestamp getTimestamp(int parameterIndex) 
-	    throws SQLException;
+		/**
+		 * Gets the value of a JDBC <code>TIMESTAMP</code> parameter as a 
+		 * <code>java.sql.Timestamp</code> object.
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value.  If the value is SQL NULL, the result 
+		 * is <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		java.sql.Timestamp getTimestamp(int parameterIndex) 
+			throws SQLException;
 
-    //----------------------------------------------------------------------
-    // Advanced features:
+		//----------------------------------------------------------------------
+		// Advanced features:
 
 
-    /**
-     * Get the value of a parameter as a Java object.
-     *
-     * <p>This method returns a Java object whose type coresponds to the SQL
-     * type that was registered for this parameter using registerOutParameter.
-     *
-     * <p>Note that this method may be used to read
-     * datatabase-specific, abstract data types. This is done by
-     * specifying a targetSqlType of java.sql.types.OTHER, which
-     * allows the driver to return a database-specific Java type.
-     *
-     * @param parameterIndex The first parameter is 1, the second is 2, ...
-     * @return A java.lang.Object holding the OUT parameter value.
-     * @exception SQLException if a database-access error occurs.
-     * @see Types 
-     */
-    Object getObject(int parameterIndex) throws SQLException;
+		/**
+		 * Gets the value of a parameter as an object in the Java 
+		 * programming language.
+		 * <p>
+		 * This method returns a Java object whose type corresponds to the JDBC
+		 * type that was registered for this parameter using the method
+		 * <code>registerOutParameter</code>.  By registering the target JDBC
+		 * type as <code>java.sql.Types.OTHER</code>, this method can be used
+		 * to read database-specific abstract data types.
+		 * @param parameterIndex The first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return A <code>java.lang.Object</code> holding the OUT parameter value.
+		 * @exception SQLException if a database access error occurs
+		 * @see Types 
+		 */
+		Object getObject(int parameterIndex) throws SQLException;
 
+
+		//--------------------------JDBC 2.0-----------------------------
+
+		/**
+		 * JDBC 2.0
+		 *
+		 * Gets the value of a JDBC <code>NUMERIC</code> parameter as a 
+		 * <code>java.math.BigDecimal</code> object with as many digits to the
+		 * right of the decimal point as the value contains.
+		 * @param parameterIndex the first parameter is 1, the second is 2,
+		 * and so on
+		 * @return the parameter value in full precision.  If the value is 
+		 * SQL NULL, the result is <code>null</code>. 
+		 * @exception SQLException if a database access error occurs
+		 */
+		BigDecimal getBigDecimal(int parameterIndex) throws SQLException;
+
+		/**
+		 * JDBC 2.0
+		 *
+		 * Returns an object representing the value of OUT parameter 
+		 * <code>i</code> and uses <code>map</code> for the custom
+		 * mapping of the parameter value.
+		 * <p>
+		 * This method returns a Java object whose type corresponds to the
+		 * JDBC type that was registered for this parameter using the method
+		 * <code>registerOutParameter</code>.  By registering the target
+		 * JDBC type as <code>java.sql.Types.OTHER</code>, this method can
+		 * be used to read database-specific abstract data types.  
+		 * @param i the first parameter is 1, the second is 2, and so on
+		 * @param map the mapping from SQL type names to Java classes
+		 * @return a java.lang.Object holding the OUT parameter value.
+		 * @exception SQLException if a database access error occurs
+		 */
+		 Object  getObject (int i, java.util.Map map) throws SQLException;
+
+		/**
+		 * JDBC 2.0
+		 *
+		 * Gets the value of a JDBC <code>REF(&lt;structured-type&gt;)</code>
+		 * parameter as a {@link Ref} object in the Java programming language.
+		 * @param i the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @return the parameter value as a <code>Ref</code> object in the
+		 * Java programming language.  If the value was SQL NULL, the value
+		 * <code>null</code> is returned.
+		 * @exception SQLException if a database access error occurs
+		 */
+		 Ref getRef (int i) throws SQLException;
+
+		/**
+		 * JDBC 2.0
+		 *
+		 * Gets the value of a JDBC <code>BLOB</code> parameter as a
+		 * {@link Blob} object in the Java programming language.
+		 * @param i the first parameter is 1, the second is 2, and so on
+		 * @return the parameter value as a <code>Blob</code> object in the
+		 * Java programming language.  If the value was SQL NULL, the value
+		 * <code>null</code> is returned.
+		 * @exception SQLException if a database access error occurs
+		 */
+		 Blob getBlob (int i) throws SQLException;
+
+		/**
+		 * JDBC 2.0
+		 *
+		 * Gets the value of a JDBC <code>CLOB</code> parameter as a
+		 * <code>Clob</code> object in the Java programming language.
+		 * @param i the first parameter is 1, the second is 2, and
+		 * so on
+		 * @return the parameter value as a <code>Clob</code> object in the
+		 * Java programming language.  If the value was SQL NULL, the
+		 * value <code>null</code> is returned.
+		 * @exception SQLException if a database access error occurs
+		 */
+		 Clob getClob (int i) throws SQLException;
+
+		/**
+		 * JDBC 2.0
+		 *
+		 * Gets the value of a JDBC <code>ARRAY</code> parameter as an
+		 * {@link Array} object in the Java programming language.
+		 * @param i the first parameter is 1, the second is 2, and 
+		 * so on
+		 * @return the parameter value as an <code>Array</code> object in
+		 * the Java programming language.  If the value was SQL NULL, the
+		 * value <code>null</code> is returned.
+		 * @exception SQLException if a database access error occurs
+		 */
+		 Array getArray (int i) throws SQLException;
+
+		/**
+		 * Gets the value of a JDBC <code>DATE</code> parameter as a 
+		 * <code>java.sql.Date</code> object, using
+		 * the given <code>Calendar</code> object
+		 * to construct the date.
+		 * With a <code>Calendar</code> object, the driver
+		 * can calculate the date taking into account a custom timezone and locale.
+		 * If no <code>Calendar</code> object is specified, the driver uses the
+		 * default timezone and locale.
+		 *
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @param cal the <code>Calendar</code> object the driver will use
+		 *            to construct the date
+		 * @return the parameter value.  If the value is SQL NULL, the result is 
+		 * <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		java.sql.Date getDate(int parameterIndex, Calendar cal) 
+		  throws SQLException;
+
+		/**
+		 * Gets the value of a JDBC <code>TIME</code> parameter as a 
+		 * <code>java.sql.Time</code> object, using
+		 * the given <code>Calendar</code> object
+		 * to construct the time.
+		 * With a <code>Calendar</code> object, the driver
+		 * can calculate the time taking into account a custom timezone and locale.
+		 * If no <code>Calendar</code> object is specified, the driver uses the
+		 * default timezone and locale.
+		 *
+		 * @param parameterIndex the first parameter is 1, the second is 2,
+		 * and so on
+		 * @param cal the <code>Calendar</code> object the driver will use
+		 *            to construct the time
+		 * @return the parameter value; if the value is SQL NULL, the result is 
+		 * <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		java.sql.Time getTime(int parameterIndex, Calendar cal) 
+		  throws SQLException;
+
+		/**
+		 * Gets the value of a JDBC <code>TIMESTAMP</code> parameter as a
+		 * <code>java.sql.Timestamp</code> object, using
+		 * the given <code>Calendar</code> object to construct
+		 * the <code>Timestamp</code> object.
+		 * With a <code>Calendar</code> object, the driver
+		 * can calculate the timestamp taking into account a custom timezone and locale.
+		 * If no <code>Calendar</code> object is specified, the driver uses the
+		 * default timezone and locale.
+		 *
+		 *
+		 * @param parameterIndex the first parameter is 1, the second is 2, 
+		 * and so on
+		 * @param cal the <code>Calendar</code> object the driver will use
+		 *            to construct the timestamp
+		 * @return the parameter value.  If the value is SQL NULL, the result is 
+		 * <code>null</code>.
+		 * @exception SQLException if a database access error occurs
+		 */
+		java.sql.Timestamp getTimestamp(int parameterIndex, Calendar cal) 
+		  throws SQLException;
+
+
+        /**
+         * JDBC 2.0
+         *
+         * Registers the designated output parameter.  This version of 
+		 * the method <code>registerOutParameter</code>
+         * should be used for a user-named or REF output parameter.  Examples
+         * of user-named types include: STRUCT, DISTINCT, JAVA_OBJECT, and
+         * named array types.
+         *
+         * Before executing a stored procedure call, you must explicitly
+         * call <code>registerOutParameter</code> to register the type from
+		 * <code>java.sql.Types</code> for each
+         * OUT parameter.  For a user-named parameter the fully-qualified SQL
+         * type name of the parameter should also be given, while a REF
+         * parameter requires that the fully-qualified type name of the
+         * referenced type be given.  A JDBC driver that does not need the
+         * type code and type name information may ignore it.   To be portable,
+         * however, applications should always provide these values for
+         * user-named and REF parameters.
+         *
+         * Although it is intended for user-named and REF parameters,
+         * this method may be used to register a parameter of any JDBC type.
+         * If the parameter does not have a user-named or REF type, the
+         * typeName parameter is ignored.
+         *
+         * <P><B>Note:</B> When reading the value of an out parameter, you
+         * must use the <code>getXXX</code> method whose Java type XXX corresponds to the
+         * parameter's registered SQL type.
+         *
+         * @param parameterIndex the first parameter is 1, the second is 2,...
+         * @param sqlType a value from {@link java.sql.Types}
+         * @param typeName the fully-qualified name of an SQL structured type
+         * @exception SQLException if a database-access error occurs
+         * @see Types
+         */
+        void registerOutParameter (int paramIndex, int sqlType, String typeName)
+          throws SQLException;
 }
+
+
+
 

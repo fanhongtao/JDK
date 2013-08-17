@@ -1,10 +1,11 @@
 /*
- * @(#)DigitList.java	1.14 01/12/10
+ * @(#)DigitList.java	1.18 98/08/12
  *
- * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc.
+ * All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -56,7 +57,7 @@ package java.text;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.14 12/10/01
+ * @version      1.18 08/12/98
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {
@@ -175,7 +176,11 @@ final class DigitList implements Cloneable {
         // Trim trailing zeros.  This does not change the represented value.
         while (count > 0 && digits[count - 1] == (byte)'0') --count;
 
-        if (count == 0) return true;
+        if (count == 0) {
+            // Positive zero fits into a long, but negative zero can only
+            // be represented as a double. - bug 4162852
+            return isPositive;
+        }
 
         if (decimalAt < count || decimalAt > MAX_COUNT) return false;
 
@@ -228,6 +233,7 @@ final class DigitList implements Cloneable {
      */
     final void set(double source, int maximumDigits, boolean fixedPoint)
     {
+        if (source == 0) source = 0;
         // Generate a representation of the form DDDDD, DDDDD.DDDDD, or
         // DDDDDE+/-DDDDD.
         String rep = Double.toString(source);
@@ -378,7 +384,7 @@ final class DigitList implements Cloneable {
                     {
                         // We have all 9's, so we increment to a single digit
                         // of one and adjust the exponent.
-                        digits[0] = '1';
+                        digits[0] = (byte) '1';
                         ++decimalAt;
                         maximumDigits = 0; // Adjust the count
                         break;

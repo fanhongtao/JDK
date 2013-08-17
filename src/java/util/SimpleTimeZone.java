@@ -1,17 +1,10 @@
 /*
- * @(#)SimpleTimeZone.java	1.20 01/12/10
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)SimpleTimeZone.java	1.20 01/12/10
+ * @(#)SimpleTimeZone.java	1.32 00/04/19
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -55,7 +48,7 @@ import java.io.IOException;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.20 12/10/01
+ * @version  1.32 04/19/00
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleTimeZone extends TimeZone {
@@ -73,7 +66,7 @@ public class SimpleTimeZone extends TimeZone {
     {
         this.rawOffset = rawOffset;
         setID (ID);
-    dstSavings = millisPerHour; // In case user sets rules later
+        dstSavings = millisPerHour; // In case user sets rules later
     }
 
     /**
@@ -118,7 +111,8 @@ public class SimpleTimeZone extends TimeZone {
      *                        description for an example.
      * @param startDayOfWeek  The daylight savings starting day-of-week. Please
      *                        see the member description for an example.
-     * @param startTime       The daylight savings starting time. Please see the
+     * @param startTime       The daylight savings starting time in local wall
+     *                        time, which is standard time in this case. Please see the
      *                        member description for an example.
      * @param endMonth        The daylight savings ending month. Month is
      *                        0-based. eg, 0 for January.
@@ -126,7 +120,8 @@ public class SimpleTimeZone extends TimeZone {
      *                        Please see the member description for an example.
      * @param endDayOfWeek    The daylight savings ending day-of-week. Please
      *                        see the member description for an example.
-     * @param endTime         The daylight savings ending time. Please see the
+     * @param endTime         The daylight savings ending time in local wall time,
+     *                        which is daylight time in this case. Please see the
      *                        member description for an example.
      * @exception IllegalArgumentException the month, day, dayOfWeek, or time
      * parameters are out of range for the start or end rule
@@ -142,17 +137,16 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
-     * Constructor.  This constructor is package private at this point.  It will
-     * be made public at the next API change.  It is identical to the 10-argument
+     * Constructor.  This constructor is identical to the 10-argument
      * constructor, but also takes a dstSavings parameter.
      * @param dstSavings   The amount of time in ms saved during DST.
      * @exception IllegalArgumentException the month, day, dayOfWeek, or time
      * parameters are out of range for the start or end rule
      */
-    SimpleTimeZone(int rawOffset, String ID,
-                   int startMonth, int startDay, int startDayOfWeek, int startTime,
-                   int endMonth, int endDay, int endDayOfWeek, int endTime,
-                   int dstSavings)
+    public SimpleTimeZone(int rawOffset, String ID,
+                          int startMonth, int startDay, int startDayOfWeek, int startTime,
+                          int endMonth, int endDay, int endDayOfWeek, int endTime,
+                          int dstSavings)
     {
         setID(ID);
         this.rawOffset      = rawOffset;
@@ -196,7 +190,8 @@ public class SimpleTimeZone extends TimeZone {
      * @param dayOfWeek         The daylight savings starting day-of-week.
      *                          Please see the member description for an
      *                          example.
-     * @param time              The daylight savings starting time. Please see
+     * @param time              The daylight savings starting time in local wall
+     *                          time, which is standard time in this case. Please see
      *                          the member description for an example.
      * @exception IllegalArgumentException the month, dayOfWeekInMonth,
      * dayOfWeek, or time parameters are out of range
@@ -213,6 +208,45 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
+     * Sets the DST start rule to a fixed date within a month.
+     *
+     * @param month         The month in which this rule occurs (0-based).
+     * @param dayOfMonth    The date in that month (1-based).
+     * @param time          The time of that day (number of millis after midnight)
+     *                      when DST takes effect in local wall time, which is
+     *                      standard time in this case.
+     * @exception IllegalArgumentException the month,
+     * dayOfMonth, or time parameters are out of range
+     */
+    public void setStartRule(int month, int dayOfMonth, int time) {
+        setStartRule(month, dayOfMonth, 0, time);
+    }
+
+    /**
+     * Sets the DST start rule to a weekday before or after a give date within
+     * a month, e.g., the first Monday on or after the 8th.
+     *
+     * @param month         The month in which this rule occurs (0-based).
+     * @param dayOfMonth    A date within that month (1-based).
+     * @param dayOfWeek     The day of the week on which this rule occurs.
+     * @param time          The time of that day (number of millis after midnight)
+     *                      when DST takes effect in local wall time, which is
+     *                      standard time in this case.
+     * @param after         If true, this rule selects the first dayOfWeek on
+     *                      or after dayOfMonth.  If false, this rule selects
+     *                      the last dayOfWeek on or before dayOfMonth.
+     * @exception IllegalArgumentException the month, dayOfMonth,
+     * dayOfWeek, or time parameters are out of range
+     */
+    public void setStartRule(int month, int dayOfMonth, int dayOfWeek, int time, boolean after)
+    {
+        if (after)
+            setStartRule(month, dayOfMonth, -dayOfWeek, time);
+        else
+            setStartRule(month, -dayOfMonth, -dayOfWeek, time);
+    }
+
+    /**
      * Sets the daylight savings ending rule. For example, Daylight Savings Time
      * ends at the last (-1) Sunday in October, at 2 AM in standard time.
      * Therefore, you can set the end rule by calling:
@@ -225,7 +259,8 @@ public class SimpleTimeZone extends TimeZone {
      *                          description for an example.
      * @param dayOfWeek         The daylight savings ending day-of-week. Please
      *                          see the member description for an example.
-     * @param time              The daylight savings ending time. Please see the
+     * @param time              The daylight savings ending time in local wall time,
+     *                          which is daylight time in this case. Please see the
      *                          member description for an example.
      * @exception IllegalArgumentException the month, dayOfWeekInMonth,
      * dayOfWeek, or time parameters are out of range
@@ -242,6 +277,46 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
+     * Sets the DST end rule to a fixed date within a month.
+     *
+     * @param month         The month in which this rule occurs (0-based).
+     * @param dayOfMonth    The date in that month (1-based).
+     * @param time          The time of that day (number of millis after midnight)
+     *                      when DST ends in local wall time, which is daylight
+     *                      time in this case.
+     * @exception IllegalArgumentException the month,
+     * dayOfMonth, or time parameters are out of range
+     */
+    public void setEndRule(int month, int dayOfMonth, int time)
+    {
+        setEndRule(month, dayOfMonth, 0, time);
+    }
+
+    /**
+     * Sets the DST end rule to a weekday before or after a give date within
+     * a month, e.g., the first Monday on or after the 8th.
+     *
+     * @param month         The month in which this rule occurs (0-based).
+     * @param dayOfMonth    A date within that month (1-based).
+     * @param dayOfWeek     The day of the week on which this rule occurs.
+     * @param time          The time of that day (number of millis after midnight)
+     *                      when DST ends in local wall time, which is daylight
+     *                      time in this case.
+     * @param after         If true, this rule selects the first dayOfWeek on
+     *                      or after dayOfMonth.  If false, this rule selects
+     *                      the last dayOfWeek on or before dayOfMonth.
+     * @exception IllegalArgumentException the month, dayOfMonth,
+     * dayOfWeek, or time parameters are out of range
+     */
+    public void setEndRule(int month, int dayOfMonth, int dayOfWeek, int time, boolean after)
+    {
+        if (after)
+            setEndRule(month, dayOfMonth, -dayOfWeek, time);
+        else
+            setEndRule(month, -dayOfMonth, -dayOfWeek, time);
+    }
+
+    /**
      * Overrides TimeZone
      * Gets offset, for current date, modified in case of
      * daylight savings. This is the offset to add *to* UTC to get local time.
@@ -249,7 +324,9 @@ public class SimpleTimeZone extends TimeZone {
      * savings. This is the offset to add *to* UTC to get local time. Assume
      * that the start and end month are distinct. This method may return incorrect
      * results for rules that start at the end of February (e.g., last Sunday in
-     * February) or the beginning of March (e.g., March 1).
+     * February) or the beginning of March (e.g., March 1). To avoid such
+     * inaccuracies, use <code>Calendar.get(ZONE_OFFSET) +
+     * Calendar.get(DST_OFFSET)</code> instead.
      *
      * @param era           The era of the given date.
      * @param year          The year in the given date.
@@ -265,6 +342,47 @@ public class SimpleTimeZone extends TimeZone {
     public int getOffset(int era, int year, int month, int day, int dayOfWeek,
                          int millis)
     {
+        // Check the month before indexing into staticMonthLength. This
+	// duplicates the test that occurs in the 7-argument getOffset(),
+	// however, this is unavoidable. We don't mind because this method, in
+	// fact, should not be called; internal code should always call the
+	// 7-argument getOffset(), and outside code should use Calendar.get(int
+	// field) with fields ZONE_OFFSET and DST_OFFSET. We can't get rid of
+	// this method because it's public API. - liu 8/10/98
+        if (month < Calendar.JANUARY
+            || month > Calendar.DECEMBER) {
+            throw new IllegalArgumentException("Illegal month " + month);
+        }
+        int monthLength = 0;
+        if ((era == GregorianCalendar.AD) && isLeapYear(year)) {
+            monthLength = staticLeapMonthLength[month];
+        } else {
+            monthLength = staticMonthLength[month];
+        }
+        return getOffset(era, year, month, day, dayOfWeek, millis,
+                       monthLength);
+    }
+
+    /**
+     * Gets offset, for current date, modified in case of
+     * daylight savings. This is the offset to add <em>to</em> UTC to get local time.
+     * Gets the time zone offset, for current date, modified in case of daylight
+     * savings. This is the offset to add *to* UTC to get local time. Assume
+     * that the start and end month are distinct.
+     * @param era           The era of the given date.
+     * @param year          The year in the given date.
+     * @param month         The month in the given date. Month is 0-based. e.g.,
+     *                      0 for January.
+     * @param day           The day-in-month of the given date.
+     * @param dayOfWeek     The day-of-week of the given date.
+     * @param millis        The milliseconds in day in <em>standard</em> local time.
+     * @param monthLength   The length of the given month in days.
+     * @return              The offset to add *to* GMT to get local time.
+     * @exception IllegalArgumentException the era, month, day,
+     * dayOfWeek, millis, or monthLength parameters are out of range
+     */
+    int getOffset(int era, int year, int month, int day, int dayOfWeek,
+                  int millis, int monthLength) {
         if (true) {
             /* Use this parameter checking code for normal operation.  Only one
              * of these two blocks should actually get compiled into the class
@@ -273,11 +391,13 @@ public class SimpleTimeZone extends TimeZone {
                 || month < Calendar.JANUARY
                 || month > Calendar.DECEMBER
                 || day < 1
-                || day > maxMonthLength[month]
+                || day > monthLength
                 || dayOfWeek < Calendar.SUNDAY
                 || dayOfWeek > Calendar.SATURDAY
                 || millis < 0
-                || millis >= millisPerDay) {
+                || millis >= millisPerDay
+                || monthLength < 28
+                || monthLength > 31) {
                 throw new IllegalArgumentException();
             }
         } else {
@@ -292,7 +412,7 @@ public class SimpleTimeZone extends TimeZone {
                 throw new IllegalArgumentException("Illegal month " + month);
             }
             if (day < 1
-                || day > maxMonthLength[month]) {
+                || day > monthLength) {
                 throw new IllegalArgumentException("Illegal day " + day);
             }
             if (dayOfWeek < Calendar.SUNDAY
@@ -302,6 +422,10 @@ public class SimpleTimeZone extends TimeZone {
             if (millis < 0
                 || millis >= millisPerDay) {
                 throw new IllegalArgumentException("Illegal millis " + millis);
+            }
+            if (monthLength < 28
+                || monthLength > 31) {
+                throw new IllegalArgumentException("Illegal month length " + monthLength);
             }
         }
 
@@ -314,16 +438,41 @@ public class SimpleTimeZone extends TimeZone {
         // month are different.
         boolean southern = (startMonth > endMonth);
 
-        // Compare the date to the starting and ending rules.  For the ending
-        // rule comparison, we add the dstSavings to the millis passed in to convert
-        // them from standard to wall time.  +1 = date>rule, -1 = date<rule, 0 =
-        // date==rule.
-        int startCompare = compareToRule(month, day, dayOfWeek, millis,
+        // Compare the date to the starting and ending rules.+1 = date>rule, -1
+        // = date<rule, 0 = date==rule.
+        int startCompare = compareToRule(month, monthLength, day, dayOfWeek, millis,
                                          startMode, startMonth, startDayOfWeek,
                                          startDay, startTime);
-        int endCompare = compareToRule(month, day, dayOfWeek, millis + dstSavings,
+        int endCompare = 0;
+
+        /* We don't always have to compute endCompare.  For many instances,
+         * startCompare is enough to determine if we are in DST or not.  In the
+         * northern hemisphere, if we are before the start rule, we can't have
+         * DST.  In the southern hemisphere, if we are after the start rule, we
+         * must have DST.  This is reflected in the way the next if statement
+         * (not the one immediately following) short circuits. */
+        if (southern != (startCompare >= 0)) {
+            /* For the ending rule comparison, we add the dstSavings to the millis
+             * passed in to convert them from standard to wall time.  We then must
+             * normalize the millis to the range 0..millisPerDay-1. */
+            millis += dstSavings; // Assume dstSavings > 0
+            while (millis >= millisPerDay) {
+                millis -= millisPerDay;
+                ++day;
+                dayOfWeek = 1 + (dayOfWeek % 7); // Assume dayOfWeek is one-based
+                if (day > monthLength) {
+                    day = 1;
+                    /* When incrementing the month, it is desirible to overflow
+                     * from DECEMBER to DECEMBER+1, since we use the result to
+                     * compare against a real month. Wraparound of the value
+                     * leads to bug 4173604. */
+                    ++month;
+                }
+            }
+            endCompare = compareToRule(month, monthLength, day, dayOfWeek, millis,
                                        endMode, endMonth, endDayOfWeek,
                                        endDay, endTime);
+        }
 
         // Check for both the northern and southern hemisphere cases.  We
         // assume that in the northern hemisphere, the start rule is before the
@@ -340,13 +489,13 @@ public class SimpleTimeZone extends TimeZone {
      * Compare a given date in the year to a rule. Return 1, 0, or -1, depending
      * on whether the date is after, equal to, or before the rule date. The
      * millis are compared directly against the ruleMillis, so any
-     * standard-daylight adjustments must be handled by the caller. Assume that
-     * no rule references the end of February (e.g., last Sunday in February).
+     * standard-daylight adjustments must be handled by the caller.
      *
      * @return  1 if the date is after the rule date, -1 if the date is before
      *          the rule date, or 0 if the date is equal to the rule date.
      */
-    private static int compareToRule(int month, int dayOfMonth, int dayOfWeek, int millis,
+    private static int compareToRule(int month, int monthLen, int dayOfMonth,
+                                     int dayOfWeek, int millis,
                                      int ruleMode, int ruleMonth, int ruleDayOfWeek,
                                      int ruleDay, int ruleMillis)
     {
@@ -366,8 +515,6 @@ public class SimpleTimeZone extends TimeZone {
                     (7 + ruleDayOfWeek - (dayOfWeek - dayOfMonth + 1)) % 7;
             else // Assume ruleDay < 0 here
             {
-                int monthLen = staticMonthLength[month];
-
                 ruleDayOfMonth = monthLen + (ruleDay + 1) * 7 -
                     (7 + (dayOfWeek + monthLen - dayOfMonth) - ruleDayOfWeek) % 7;
             }
@@ -412,6 +559,29 @@ public class SimpleTimeZone extends TimeZone {
     public void setRawOffset(int offsetMillis)
     {
         this.rawOffset = offsetMillis;
+    }
+
+    /**
+     * Sets the amount of time in ms that the clock is advanced during DST.
+     * @param millisSavedDuringDST the number of milliseconds the time is
+     * advanced with respect to standard time when the daylight savings rules
+     * are in effect. A positive number, typically one hour (3600000).
+     */
+    public void setDSTSavings(int millisSavedDuringDST) {
+        dstSavings = millisSavedDuringDST;
+        if (dstSavings <= 0) {
+            throw new IllegalArgumentException("Illegal DST savings");
+        }
+    }
+
+    /**
+     * Returns the amount of time in ms that the clock is advanced during DST.
+     * @return the number of milliseconds the time is
+     * advanced with respect to standard time when the daylight savings rules
+     * are in effect. A positive number, typically one hour (3600000).
+     */
+    public int getDSTSavings() {
+        return dstSavings;
     }
 
     /**
@@ -469,21 +639,35 @@ public class SimpleTimeZone extends TimeZone {
 
         SimpleTimeZone that = (SimpleTimeZone) obj;
 
-        return this.getID().equals(that.getID()) &&
-            rawOffset == that.rawOffset &&
+        return getID().equals(that.getID()) &&
+            hasSameRules(that);
+    }
+
+    /**
+     * Return true if this zone has the same rules and offset as another zone.
+     * @param other the TimeZone object to be compared with
+     * @return true if the given zone has the same rules and offset as this one
+     */
+    public boolean hasSameRules(TimeZone other) {
+        if (this == other) return true;
+        if (!(other instanceof SimpleTimeZone)) return false;
+        SimpleTimeZone that = (SimpleTimeZone) other;
+        return rawOffset == that.rawOffset &&
             useDaylight == that.useDaylight &&
-            dstSavings == that.dstSavings &&
-            startMode == that.startMode &&
-            startMonth == that.startMonth &&
-            startDay == that.startDay &&
-            startDayOfWeek == that.startDayOfWeek &&
-            startTime == that.startTime &&
-            endMode == that.endMode &&
-            endMonth == that.endMonth &&
-            endDay == that.endDay &&
-            endDayOfWeek == that.endDayOfWeek &&
-            endTime == that.endTime &&
-            startYear == that.startYear;
+            (!useDaylight
+             // Only check rules if using DST
+             || (dstSavings == that.dstSavings &&
+                 startMode == that.startMode &&
+                 startMonth == that.startMonth &&
+                 startDay == that.startDay &&
+                 startDayOfWeek == that.startDayOfWeek &&
+                 startTime == that.startTime &&
+                 endMode == that.endMode &&
+                 endMonth == that.endMonth &&
+                 endDay == that.endDay &&
+                 endDayOfWeek == that.endDayOfWeek &&
+                 endTime == that.endTime &&
+                 startYear == that.startYear));
     }
 
     /**
@@ -511,40 +695,228 @@ public class SimpleTimeZone extends TimeZone {
 
     // =======================privates===============================
 
-    private int startMonth, startDay, startDayOfWeek, startTime;
-    private int endMonth, endDay, endDayOfWeek, endTime;
+    /**
+     * The month in which daylight savings time starts.  This value must be
+     * between <code>Calendar.JANUARY</code> and
+     * <code>Calendar.DECEMBER</code> inclusive.  This value must not equal
+     * <code>endMonth</code>.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
+    private int startMonth;
+
+    /**
+     * This field has two possible interpretations:
+     * <dl>
+     * <dt><code>startMode == DOW_IN_MONTH</code></dt>
+     * <dd>
+     * <code>startDay</code> indicates the day of the month of
+     * <code>startMonth</code> on which daylight
+     * savings time starts, from 1 to 28, 30, or 31, depending on the
+     * <code>startMonth</code>.
+     * </dd>
+     * <dt><code>startMode != DOW_IN_MONTH</code></dt>
+     * <dd>
+     * <code>startDay</code> indicates which <code>startDayOfWeek</code> in th
+     * month <code>startMonth</code> daylight
+     * savings time starts on.  For example, a value of +1 and a
+     * <code>startDayOfWeek</code> of <code>Calendar.SUNDAY</code> indicates the
+     * first Sunday of <code>startMonth</code>.  Likewise, +2 would indicate the
+     * second Sunday, and -1 the last Sunday.  A value of 0 is illegal.
+     * </dd>
+     * </ul>
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
+    private int startDay;
+
+    /**
+     * The day of the week on which daylight savings time starts.  This value
+     * must be between <code>Calendar.SUNDAY</code> and
+     * <code>Calendar.SATURDAY</code> inclusive.
+     * <p>If <code>useDaylight</code> is false or
+     * <code>startMode == DAY_OF_MONTH</code>, this value is ignored.
+     * @serial
+     */
+    private int startDayOfWeek;
+
+    /**
+     * The time in milliseconds after midnight at which daylight savings
+     * time starts.  This value is expressed as <em>wall time</em>, which means
+     * it is compared to <em>standard</em> time for the daylight savings start.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
+    private int startTime;
+
+    /**
+     * The month in which daylight savings time ends.  This value must be
+     * between <code>Calendar.JANUARY</code> and
+     * <code>Calendar.UNDECIMBER</code>.  This value must not equal
+     * <code>startMonth</code>.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
+    private int endMonth;
+
+    /**
+     * This field has two possible interpretations:
+     * <dl>
+     * <dt><code>endMode == DOW_IN_MONTH</code></dt>
+     * <dd>
+     * <code>endDay</code> indicates the day of the month of
+     * <code>endMonth</code> on which daylight
+     * savings time ends, from 1 to 28, 30, or 31, depending on the
+     * <code>endMonth</code>.
+     * </dd>
+     * <dt><code>endMode != DOW_IN_MONTH</code></dt>
+     * <dd>
+     * <code>endDay</code> indicates which <code>endDayOfWeek</code> in th
+     * month <code>endMonth</code> daylight
+     * savings time ends on.  For example, a value of +1 and a
+     * <code>endDayOfWeek</code> of <code>Calendar.SUNDAY</code> indicates the
+     * first Sunday of <code>endMonth</code>.  Likewise, +2 would indicate the
+     * second Sunday, and -1 the last Sunday.  A value of 0 is illegal.
+     * </dd>
+     * </ul>
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
+    private int endDay;
+
+    /**
+     * The day of the week on which daylight savings time ends.  This value
+     * must be between <code>Calendar.SUNDAY</code> and
+     * <code>Calendar.SATURDAY</code> inclusive.
+     * <p>If <code>useDaylight</code> is false or
+     * <code>endMode == DAY_OF_MONTH</code>, this value is ignored.
+     * @serial
+     */
+    private int endDayOfWeek;
+
+    /**
+     * The time in milliseconds after midnight at which daylight savings
+     * time ends.  This value is expressed as <em>wall time</em>, which means
+     * it is compared to <em>daylight</em> time for the daylight savings end.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
+    private int endTime;
+
+    /**
+     * The year in which daylight savings time is first observed.  This is an AD
+     * value.  If this value is less than 1 then daylight savings is observed
+     * for all AD years.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     */
     private int startYear;
+
+    /**
+     * The offset in milliseconds between this zone and GMT.  Negative offsets
+     * are to the west of Greenwich.  To obtain local <em>standard</em> time,
+     * add the offset to GMT time.  To obtain local wall time it may also be
+     * necessary to add <code>dstSavings</code>.
+     * @serial
+     */
     private int rawOffset;
+
+    /**
+     * A boolean value which is true if and only if this zone uses daylight
+     * savings time.  If this value is false, several other fields are ignored.
+     * @serial
+     */
     private boolean useDaylight=false; // indicate if this time zone uses DST
+
     private static final int millisPerHour = 60*60*1000;
     private static final int millisPerDay  = 24*millisPerHour;
-    // WARNING: assumes that no rule is measured from the end of February,
-    // since we don't handle leap years. Could handle assuming always
-    // Gregorian, since we know they didn't have daylight time when
-    // Gregorian calendar started.
-    // monthLength was non-static in JDK 1.1, so we have to keep it that way
-    // to maintain serialization compatibility. However, there's no need to
-    // recreate the array each time we create a new time zone.
+
+    /**
+     * This field was serialized in JDK 1.1, so we have to keep it that way
+     * to maintain serialization compatibility. However, there's no need to
+     * recreate the array each time we create a new time zone.
+     * @serial An array of bytes containing the values {31, 28, 31, 30, 31, 30,
+     * 31, 31, 30, 31, 30, 31}.  This is ignored as of JDK 1.2, however, it must
+     * be streamed out for compatibility with JDK 1.1.
+     */
     private final byte monthLength[] = staticMonthLength;
     private final static byte staticMonthLength[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    private final static byte staticLeapMonthLength[] = {31,29,31,30,31,30,31,31,30,31,30,31};
+    /**
+     * The year of the gregorianCutover, with 0 representing
+     * 1 BC, -1 representing 2 BC, etc.
+     */
+    private transient int gregorianCutoverYear = 1582;
 
     /**
-     * maxMonthLength is used only for range checking.
+     * Variables specifying the mode of the start rule.  Takes the following
+     * values:
+     * <dl>
+     * <dt><code>DOM_MODE</code></dt>
+     * <dd>
+     * Exact day of week; e.g., March 1.
+     * </dd>
+     * <dt><code>DOW_IN_MONTH_MODE</code></dt>    
+     * <dd>
+     * Day of week in month; e.g., last Sunday in March.
+     * </dd>
+     * <dt><code>DOW_GE_DOM_MODE</code></dt>
+     * <dd>
+     * Day of week after day of month; e.g., Sunday on or after March 15.
+     * </dd>
+     * <dt><code>DOW_LE_DOM_MODE</code></dt>
+     * <dd>
+     * Day of week before day of month; e.g., Sunday on or before March 15.
+     * </dd>
+     * </dl>
+     * The setting of this field affects the interpretation of the
+     * <code>startDay</code> field.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     * @since JDK1.1.4
      */
-    private final static byte maxMonthLength[] = {31,29,31,30,31,30,31,31,30,31,30,31};
-
-    /** 
-     * Variables specifying the mode of the start and end rules.
-     */
-    private int startMode, endMode; // fields new in JDK 1.1.4
+    private int startMode;
 
     /**
-     * A positive value indicating the amount of time saved during DST in ms.
-     * Typically one hour; sometimes 30 minutes.
+     * Variables specifying the mode of the end rule.  Takes the following
+     * values:
+     * <dl>
+     * <dt><code>DOM_MODE</code></dt>
+     * <dd>
+     * Exact day of week; e.g., March 1.
+     * </dd>
+     * <dt><code>DOW_IN_MONTH_MODE</code></dt>    
+     * <dd>
+     * Day of week in month; e.g., last Sunday in March.
+     * </dd>
+     * <dt><code>DOW_GE_DOM_MODE</code></dt>
+     * <dd>
+     * Day of week after day of month; e.g., Sunday on or after March 15.
+     * </dd>
+     * <dt><code>DOW_LE_DOM_MODE</code></dt>
+     * <dd>
+     * Day of week before day of month; e.g., Sunday on or before March 15.
+     * </dd>
+     * </dl>
+     * The setting of this field affects the interpretation of the
+     * <code>endDay</code> field.
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     * @since JDK1.1.4
      */
-    private int dstSavings; // field new in JDK 1.1.4
+    private int endMode;
 
-    /** 
+    /**
+     * A positive value indicating the amount of time saved during DST in
+     * milliseconds.
+     * Typically one hour (3600000); sometimes 30 minutes (1800000).
+     * <p>If <code>useDaylight</code> is false, this value is ignored.
+     * @serial
+     * @since JDK1.1.4
+     */
+    private int dstSavings;
+
+    /**
      * Constants specifying values of startMode and endMode.
      */
     private static final int DOM_MODE          = 1; // Exact day of month, "Mar 1"
@@ -559,6 +931,26 @@ public class SimpleTimeZone extends TimeZone {
     // - 0 (default) for version up to JDK 1.1.3
     // - 1 for version from JDK 1.1.4, which includes 3 new fields
     static final int currentSerialVersion = 1;
+
+    /**
+     * The version of the serialized data on the stream.  Possible values:
+     * <dl>
+     * <dt><b>0</b> or not present on stream</dt>
+     * <dd>
+     * JDK 1.1.3 or earlier.
+     * </dd>
+     * <dt><b>1</b></dt>
+     * <dd>
+     * JDK 1.1.4 or later.  Includes three new fields: <code>startMode</code>,
+     * <code>endMode</code>, and <code>dstSavings</code>.
+     * </dd>
+     * </dl>
+     * When streaming out this class, the most recent format
+     * and the highest allowable <code>serialVersionOnStream</code>
+     * is written.
+     * @serial
+     * @since JDK1.1.4
+     */
     private int serialVersionOnStream = currentSerialVersion;
 
     //----------------------------------------------------------------------
@@ -629,7 +1021,7 @@ public class SimpleTimeZone extends TimeZone {
         decodeStartRule();
         decodeEndRule();
     }
-    
+
     /**
      * Decode the start rule and validate the parameters.  The parameters are
      * expected to be in encoded form, which represents the various rule modes
@@ -743,7 +1135,7 @@ public class SimpleTimeZone extends TimeZone {
         }
     }
 
-    /** 
+    /**
      * Make rules compatible to 1.1 FCS code.  Since 1.1 FCS code only understands
      * day-of-week-in-month rules, we must modify other modes of rules to their
      * approximate equivalent in 1.1 FCS terms.  This method is used when streaming
@@ -796,6 +1188,18 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
+     * Determines if the given year is a leap year. Returns true if the
+     * given year is a leap year.
+     * @param year the given year.
+     * @return true if the given year is a leap year; false otherwise.
+     */
+    private boolean isLeapYear(int year) {
+        return year >= gregorianCutoverYear ?
+            ((year%4 == 0) && ((year%100 != 0) || (year%400 == 0))) : // Gregorian
+            (year%4 == 0); // Julian
+    }
+
+    /**
      * Pack the start and end rules into an array of bytes.  Only pack
      * data which is not preserved by makeRulesCompatible.
      */
@@ -822,11 +1226,20 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
-     * Write object out to a serialization stream.  Note that we write out two
-     * formats, a 1.1 FCS-compatible format, using DOW_IN_MONTH_MODE rules,
-     * in the "required" section, followed by the full rules, in packed format,
-     * in the "optional" section.  The optional section will be ignored by 1.1
-     * FCS code upon stream in.
+     * Save the state of this object to a stream (i.e., serialize it).
+     *
+     * @serialData We write out two formats, a JDK 1.1 compatible format, using
+     * <code>DOW_IN_MONTH_MODE</code> rules, in the required section, followed
+     * by the full rules, in packed format, in the optional section.  The
+     * optional section will be ignored by JDK 1.1 code upon stream in.
+     * <p> Contents of the optional section: The length of a byte array is
+     * emitted (int); this is 4 as of this release. The byte array of the given
+     * length is emitted. The contents of the byte array are the true values of
+     * the fields <code>startDay</code>, <code>startDayOfWeek</code>,
+     * <code>endDay</code>, and <code>endDayOfWeek</code>.  The values of these
+     * fields in the required section are approximate values suited to the rule
+     * mode <code>DOW_IN_MONTH_MODE</code>, which is the only mode recognized by
+     * JDK 1.1.
      */
     private void writeObject(ObjectOutputStream stream)
          throws IOException
@@ -850,8 +1263,10 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
-     * Read this object out to a serialization stream.  We handle both 1.1 FCS
-     * binary formats, and full formats with a packed byte array.
+     * Reconstitute this object from a stream (i.e., deserialize it).
+     *
+     * We handle both JDK 1.1
+     * binary formats and full formats with a packed byte array.
      */
     private void readObject(ObjectInputStream stream)
          throws IOException, ClassNotFoundException

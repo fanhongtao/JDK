@@ -1,8 +1,15 @@
 /*
- * @(#)Insets.java	1.15 01/12/10
+ * @(#)Insets.java	1.20 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt;
@@ -13,7 +20,7 @@ package java.awt;
  * at each of its edges. The space can be a border, a blank space, or 
  * a title. 
  *
- * @version 	1.15, 12/10/01
+ * @version 	1.20, 09/21/98
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see         java.awt.LayoutManager
@@ -24,25 +31,41 @@ public class Insets implements Cloneable, java.io.Serializable {
 
     /**
      * The inset from the top.
-     * @since JDK1.0
+     * This value is added to the Top of the rectangle
+     * to yield a new location for the Top.
+     *
+     * @serial
+     * @see clone()
      */
     public int top;
 
     /**
      * The inset from the left.
-     * @since JDK1.0
+     * This value is added to the left of the rectangle
+     * to yield a new location for the left edge.
+     *
+     * @serial
+     * @see clone()
      */
     public int left;
 
     /**
      * The inset from the bottom.
-     * @since JDK1.0
+     * This value is added to the Bottom of the rectangle
+     * to yield a new location for the Bottom.
+     *
+     * @serial
+     * @see clone()
      */
     public int bottom;
 
     /**
      * The inset from the right.
-     * @since JDK1.0
+     * This value is added to the Right of the rectangle
+     * to yield a new location for the Right edge.
+     *
+     * @serial
+     * @see clone()
      */
     public int right;
 
@@ -50,6 +73,12 @@ public class Insets implements Cloneable, java.io.Serializable {
      * JDK 1.1 serialVersionUID 
      */
     private static final long serialVersionUID = -2272572637695466749L;
+  
+    static {
+        /* ensure that the necessary native libraries are loaded */
+	Toolkit.loadLibraries();
+	initIDs();
+    }
 
     /**
      * Creates and initializes a new <code>Insets</code> object with the 
@@ -58,7 +87,6 @@ public class Insets implements Cloneable, java.io.Serializable {
      * @param       left   the inset from the left.
      * @param       bottom   the inset from the bottom.
      * @param       right   the inset from the right.
-     * @since       JDK1.0
      */
     public Insets(int top, int left, int bottom, int right) {
 	this.top = top;
@@ -86,11 +114,13 @@ public class Insets implements Cloneable, java.io.Serializable {
     }
 
     /**
-     * Returns a <code>String</code> object representing this 
-     * <code>Insets</code> object's values.
-     * @return    a string representation of this <code>Insets</code> object, 
-     *                           including the values of its member fields.
-     * @since     JDK1.0
+     * Returns a string representation of this <code>Insets</code> object. 
+     * This method is intended to be used only for debugging purposes, and 
+     * the content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     * 
+     * @return  a string representation of this <code>Insets</code> object.
      */
     public String toString() {
 	return getClass().getName() + "[top="  + top + ",left=" + left + ",bottom=" + bottom + ",right=" + right + "]";
@@ -99,7 +129,6 @@ public class Insets implements Cloneable, java.io.Serializable {
     /**
      * Create a copy of this object.
      * @return     a copy of this <code>Insets</code> object.
-     * @since      JDK1.0
      */
     public Object clone() { 
 	try { 
@@ -109,4 +138,9 @@ public class Insets implements Cloneable, java.io.Serializable {
 	    throw new InternalError();
 	}
     }
+    /**
+     * Initialize JNI field and method IDs
+     */
+    private static native void initIDs();
+
 }

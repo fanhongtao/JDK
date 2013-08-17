@@ -1,8 +1,15 @@
 /*
- * @(#)TextComponent.java	1.36 01/12/10
+ * @(#)TextComponent.java	1.48 98/08/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -30,7 +37,7 @@ import sun.awt.SunToolkit;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.36, 12/10/01
+ * @version	1.44, 08/11/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -39,23 +46,48 @@ public class TextComponent extends Component {
 
     /**
      * The value of the text.
+     * A null value is the same as "".
+     *
+     * @serial
+     * @see setText()
+     * @see getText()
      */
     String text;
 
     /**
      * A boolean indicating whether or not this TextComponent is editable.
+     * It will be <code>true</code> if the text componet
+     * is editable and <code>false</code> if not.
+     *
+     * @serial
+     * @see isEditable()
      */
     boolean editable = true;
 
     /**
-     * The selection start.
+     * The selection refers to the selected text, and the selectionStart
+     * is the start position of the selected text.
+     *
+     * @serial
+     * @see getSelectionStart()
+     * @see setSelectionStart()
      */
     int selectionStart;
 
     /**
-     * The selection end.
+     * The selection refers to the selected text, and the selectionEnd
+     * is the end position of the selected text.
+     *
+     * @serial
+     * @see getSelectionEnd()
+     * @see setSelectionEnd()
      */
     int selectionEnd;
+
+    /**
+     * true if this TextComponent has access to the System clipboard
+     */
+    transient private boolean canAccessClipboard;
 
     transient protected TextListener textListener;
 
@@ -68,25 +100,29 @@ public class TextComponent extends Component {
      * Constructs a new text component initialized with the 
      * specified text. Sets the value of the cursor to 
      * <code>Cursor.TEXT_CURSOR</code>.
-     * The insertion caret is initially placed before the first 
-     * character and the text is left justified.
      * @param      text the initial text that the component presents.
      * @see        java.awt.Cursor
-     * @since      JDK1.0
      */
     TextComponent(String text) {
-	this.text = text;
+	this.text = (text != null) ? text : "";
 	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+	enableInputMethodsIfNecessary();
+	checkSystemClipboardAccess();
+    }
+
+    private void enableInputMethodsIfNecessary() {
+	try {
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            enableInputMethods(((SunToolkit) toolkit).enableInputMethodsForTextComponent());
+        } catch (Exception e) {
+            // if something bad happens, just don't enable input methods
+	}
     }
 
     boolean areInputMethodsEnabled() {
-	try {
-            Toolkit toolkit = Toolkit.getDefaultToolkit();
-            return ((SunToolkit) toolkit).enableInputMethodsForTextComponent();
-        } catch (Exception e) {
-            // if something bad happens, just don't enable input methods
-            return false;
-	}
+        // TextComponent handles key events without touching the eventMask or
+        // having a key listener, so just check whether the flag is set
+        return (eventMask & AWTEvent.INPUT_METHODS_ENABLED_MASK) != 0;
     }
 
     /**
@@ -95,36 +131,36 @@ public class TextComponent extends Component {
      * functionality.
      */
     public void removeNotify() {
-      synchronized(getTreeLock()) {
-	TextComponentPeer peer = (TextComponentPeer)this.peer;
-	if (peer != null) {
-	    text = peer.getText();
-	    selectionStart = peer.getSelectionStart();
-	    selectionEnd = peer.getSelectionEnd();
+        synchronized (getTreeLock()) {
+	    TextComponentPeer peer = (TextComponentPeer)this.peer;
+	    if (peer != null) {
+	        text = peer.getText();
+		selectionStart = peer.getSelectionStart();
+		selectionEnd = peer.getSelectionEnd();
+	    }
+	    super.removeNotify();
 	}
-	super.removeNotify();
-      }
     }
 
     /**
      * Sets the text that is presented by this 
      * text component to be the specified text. 
      * @param       t   the new text.
+     *                  If this parameter is <code>null</code> then
+     *                  the text is set to the empty  string "".
      * @see         java.awt.TextComponent#getText  
-     * @since       JDK1.0
      */
     public synchronized void setText(String t) {
-	text = t;
+	text = (t != null) ? t : "";
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
 	if (peer != null) {
-	    peer.setText(t);
+	    peer.setText(text);
 	}
     }
 
     /**
      * Gets the text that is presented by this text component.
      * @see     java.awt.TextComponent#setText
-     * @since   JDK1.0
      */
     public synchronized String getText() {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
@@ -139,7 +175,6 @@ public class TextComponent extends Component {
      * presented by this text component.  
      * @return      the selected text of this text component.
      * @see         java.awt.TextComponent#select
-     * @since       JDK1.0
      */
     public synchronized String getSelectedText() {
 	return getText().substring(getSelectionStart(), getSelectionEnd());
@@ -166,7 +201,6 @@ public class TextComponent extends Component {
      * @param     t   a flag indicating whether this text component 
      *                      should be user editable.
      * @see       java.awt.TextComponent#isEditable
-     * @since     JDK1.0
      */
     public synchronized void setEditable(boolean b) {
 	editable = b;
@@ -182,7 +216,6 @@ public class TextComponent extends Component {
      * @return      the start position of the selected text. 
      * @see         java.awt.TextComponent#setSelectionStart
      * @see         java.awt.TextComponent#getSelectionEnd
-     * @since       JDK1.0
      */
     public synchronized int getSelectionStart() {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
@@ -220,7 +253,6 @@ public class TextComponent extends Component {
      * @return      the end position of the selected text. 
      * @see         java.awt.TextComponent#setSelectionEnd
      * @see         java.awt.TextComponent#getSelectionStart
-     * @since       JDK1.0
      */
     public synchronized int getSelectionEnd() {
 	TextComponentPeer peer = (TextComponentPeer)this.peer;
@@ -255,35 +287,40 @@ public class TextComponent extends Component {
      * Selects the text between the specified start and end positions.
      * <p>
      * This method sets the start and end positions of the 
-     * selected text, enforcing the restriction that the end 
-     * position must be greater than or equal to the start position.
-     * The start position must be greater than zero, and the 
-     * end position must be less that or equal to the length
-     * of the text component's text. If the caller supplies values
-     * that are inconsistent or out of bounds, the method enforces 
-     * these constraints silently, and without failure.
-     * @param        selectionStart the start position of the 
-     *                             text to select.
-     * @param        selectionEnd the end position of the 
-     *                             text to select.
+     * selected text, enforcing the restriction that the start position 
+     * must be greater than or equal to zero.  The end position must be 
+     * greater than or equal to the start position, and less than or 
+     * equal to the length of the text component's text.  The 
+     * character positions are indexed starting with zero.  
+     * The length of the selection is endPosition-startPosition, so the 
+     * character at endPosition is not selected.  
+     * If the start and end positions of the selected text are equal,  
+     * all text is deselected.   
+     * If the caller supplies values that are inconsistent or out of 
+     * bounds, the method enforces these constraints silently, and 
+     * without failure.
+     * @param        selectionStart the zero-based index of the first 
+                       character to be selected.  
+     * @param        selectionEnd the zero-based end position of the 
+                       text to be selected. The character at 
+                       selectionEnd is not selected. 
      * @see          java.awt.TextComponent#setSelectionStart
      * @see          java.awt.TextComponent#setSelectionEnd
      * @see          java.awt.TextComponent#selectAll
-     * @since        JDK1.0
      */
     public synchronized void select(int selectionStart, int selectionEnd) {
 	String text = getText();
 	if (selectionStart < 0) {
 	    selectionStart = 0;
 	}
+	if (selectionStart > text.length()) {
+	    selectionStart = text.length();
+	}
 	if (selectionEnd > text.length()) {
 	    selectionEnd = text.length();
 	}
 	if (selectionEnd < selectionStart) {
 	    selectionEnd = selectionStart;
-	}
-	if (selectionStart > selectionEnd) {
-	    selectionStart = selectionEnd;
 	}
 
 	this.selectionStart = selectionStart;
@@ -298,7 +335,6 @@ public class TextComponent extends Component {
     /**
      * Selects all the text in this text component.
      * @see        java.awt.TextComponent@select
-     * @since      JDK1.0
      */
     public synchronized void selectAll() {
 	String text = getText();
@@ -357,9 +393,14 @@ public class TextComponent extends Component {
     /**
      * Adds the specified text event listener to recieve text events 
      * from this textcomponent.
+     * If l is null, no exception is thrown and no action is performed.
+     *
      * @param l the text event listener
      */ 
     public synchronized void addTextListener(TextListener l) {
+	if (l == null) {
+	    return;
+	}
 	textListener = AWTEventMulticaster.add(textListener, l);
         newEventsOnly = true;
     }
@@ -367,8 +408,17 @@ public class TextComponent extends Component {
     /**
      * Removes the specified text event listener so that it no longer
      * receives text events from this textcomponent
-     */ 
+     * If l is null, no exception is thrown and no action is performed.
+     *
+     * @param         	l     the text listener.
+     * @see           	java.awt.event.TextListener
+     * @see           	java.awt.Button#addTextListener
+     * @since         	JDK1.1
+     */
     public synchronized void removeTextListener(TextListener l) {
+	if (l == null) {
+	    return;
+	}
 	textListener = AWTEventMulticaster.remove(textListener, l);
     }
 
@@ -424,7 +474,6 @@ public class TextComponent extends Component {
      * Returns the parameter string representing the state of this text 
      * component. This string is useful for debugging. 
      * @return      the parameter string of this text component.
-     * @since       JDK1.0
      */
     protected String paramString() {
 	String str = super.paramString() + ",text=" + getText();
@@ -434,16 +483,49 @@ public class TextComponent extends Component {
 	return str + ",selection=" + getSelectionStart() + "-" + getSelectionEnd();
     }
 
+    /**
+     * Assigns a valid value to the canAccessClipboard instance variable.
+     */
+    private void checkSystemClipboardAccess() {
+        canAccessClipboard = true;
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    try {
+	        sm.checkSystemClipboardAccess();
+	    }
+	    catch (SecurityException e) {
+	        canAccessClipboard = false;
+	    }
+	}
+    }
 
     /* 
      * Serialization support.  Since the value of the fields
      * selectionStart, and selectionEnd, and text aren't neccessarily
      * up to date we sync them up with the peer before serializing.
      */
-
+    /**
+     * The textComponent SerializedDataVersion.
+     *
+     * @serial
+     */
     private int textComponentSerializedDataVersion = 1;
 
-
+    /**
+     * Writes default serializable fields to stream.  Writes
+     * a list of serializable ItemListener(s) as optional data.
+     * The non-serializable ItemListner(s) are detected and
+     * no attempt is made to serialize them.
+     *
+     * @serialData Null terminated sequence of 0 or more pairs.
+     *             The pair consists of a String and Object.
+     *             The String indicates the type of object and
+     *             is one of the following :
+     *             itemListenerK indicating and ItemListener object.
+     *
+     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component.itemListenerK
+     */
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.io.IOException 
     {
@@ -459,21 +541,31 @@ public class TextComponent extends Component {
       s.writeObject(null);
     }
 
-
+    /**
+     * Read the ObjectInputStream and if it isnt null
+     * add a listener to receive item events fired
+     * by the TextComponent.
+     * Unrecognised keys or values will be Ignored.
+     * 
+     * @see removeActionListener()
+     * @see addActionListener()
+     */
     private void readObject(ObjectInputStream s)
-      throws ClassNotFoundException, IOException 
+        throws ClassNotFoundException, IOException 
     {
-      s.defaultReadObject();
+        s.defaultReadObject();
 
-      Object keyOrNull;
-      while(null != (keyOrNull = s.readObject())) {
-	String key = ((String)keyOrNull).intern();
+        Object keyOrNull;
+        while(null != (keyOrNull = s.readObject())) {
+	    String key = ((String)keyOrNull).intern();
 
-	if (textListenerK == key) 
-	  addTextListener((TextListener)(s.readObject()));
+	    if (textListenerK == key) 
+	        addTextListener((TextListener)(s.readObject()));
 
-	else // skip value for unrecognized key
-	  s.readObject();
-      }
+	    else // skip value for unrecognized key
+	        s.readObject();
+        }
+	enableInputMethodsIfNecessary();
+	checkSystemClipboardAccess();
     }
 }

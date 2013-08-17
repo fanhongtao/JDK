@@ -1,20 +1,27 @@
 /*
- * @(#)Constructor.java	1.15 01/12/10
+ * @(#)Constructor.java	1.20 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang.reflect;
 
 /**
- * Constructor provides information about, and access to, a single
+ * <code>Constructor</code> provides information about, and access to, a single
  * constructor for a class.
  *
- * <p>Constructor permits widening conversions to occur when matching the
+ * <p><code>Constructor</code> permits widening conversions to occur when matching the
  * actual parameters to newInstance() with the underlying
  * constructor's formal parameters, but throws an
- * IllegalArgumentException if a narrowing conversion would occur.
+ * <code>IllegalArgumentException</code> if a narrowing conversion would occur.
  *
  * @see Member
  * @see java.lang.Class
@@ -25,12 +32,13 @@ package java.lang.reflect;
  * @author	Nakul Saraiya
  */
 public final
-class Constructor implements Member {
+class Constructor extends AccessibleObject implements Member {
 
     private Class		clazz;
     private int			slot;
     private Class[]		parameterTypes;
     private Class[]		exceptionTypes;
+    private int			modifiers;
 
     /**
      * Constructor.  Only the Java Virtual Machine may construct
@@ -39,8 +47,8 @@ class Constructor implements Member {
     private Constructor() {}
 
     /**
-     * Returns the Class object representing the class that declares
-     * the constructor represented by this Constructor object.
+     * Returns the <code>Class</code> object representing the class that declares
+     * the constructor represented by this <code>Constructor</code> object.
      */
     public Class getDeclaringClass() {
 	return clazz;
@@ -48,7 +56,7 @@ class Constructor implements Member {
 
     /**
      * Returns the name of this constructor, as a string.  This is
-     * always the same as the name of the constructor's declaring
+     * always the same as the simple name of the constructor's declaring
      * class.
      */
     public String getName() {
@@ -57,17 +65,19 @@ class Constructor implements Member {
 
     /**
      * Returns the Java language modifiers for the constructor
-     * represented by this Constructor object, as an integer. The
-     * Modifier class should be used to decode the modifiers.
+     * represented by this <code>Constructor</code> object, as an integer. The
+     * <code>Modifier</code> class should be used to decode the modifiers.
      *
      * @see Modifier
      */
-    public native int getModifiers();
+    public int getModifiers() {
+	return modifiers;
+    }
 
     /**
-     * Returns an array of Class objects that represent the formal
+     * Returns an array of <code>Class</code> objects that represent the formal
      * parameter types, in declaration order, of the constructor
-     * represented by this Constructor object.  Returns an array of
+     * represented by this <code>Constructor</code> object.  Returns an array of
      * length 0 if the underlying constructor takes no parameters.
      */
     public Class[] getParameterTypes() {
@@ -75,18 +85,18 @@ class Constructor implements Member {
     }
 
     /**
-     * Returns an array of Class objects that represent the types of
-     * the checked exceptions thrown by the underlying constructor
-     * represented by this Constructor object.  Returns an array of
-     * length 0 if the constructor throws no checked exceptions.
+     * Returns an array of <code>Class</code> objects that represent the types of
+     * of exceptions declared to be thrown by the underlying constructor
+     * represented by this <code>Constructor</code> object.  Returns an array of
+     * length 0 if the constructor declares no exceptions in its <code>throws</code> clause.
      */
     public Class[] getExceptionTypes() {
 	return Method.copy(exceptionTypes);
     }
 
     /**
-     * Compares this Constructor against the specified object.
-     * Returns true if the objects are the same.  Two Constructors are
+     * Compares this <code>Constructor</code> against the specified object.
+     * Returns true if the objects are the same.  Two <code>Constructor</code> objects are
      * the same if they were declared by the same class and have the
      * same formal parameter types.
      */
@@ -110,7 +120,7 @@ class Constructor implements Member {
     }
 
     /**
-     * Returns a hashcode for this Constructor. The hashcode is
+     * Returns a hashcode for this <code>Constructor</code>. The hashcode is
      * the same as the hashcode for the underlying constructor's
      * declaring class name.
      */
@@ -119,7 +129,7 @@ class Constructor implements Member {
     }
 
     /**
-     * Return a string describing this Constructor.  The string is
+     * Returns a string describing this <code>Constructor</code>.  The string is
      * formatted as the constructor access modifiers, if any,
      * followed by the fully-qualified name of the declaring class,
      * followed by a parenthesized, comma-separated list of the
@@ -165,50 +175,55 @@ class Constructor implements Member {
     }
 
     /**
-     * Uses the constructor represented by this Constructor object to
+     * Uses the constructor represented by this <code>Constructor</code> object to
      * create and initialize a new instance of the constructor's
      * declaring class, with the specified initialization parameters.
      * Individual parameters are automatically unwrapped to match
      * primitive formal parameters, and both primitive and reference
-     * parameters are subject to widening conversions as necessary.
+     * parameters are subject to method invocation conversions as necessary.
      * Returns the newly created and initialized object.
      *
      * <p>Creation proceeds with the following steps, in order:
      *
      * <p>If the class that declares the underlying constructor
      * represents an abstract class, the creation throws an
-     * InstantiationException.
+     * <code>InstantiationException</code>.
      *
-     * <p>If this Constructor object enforces Java language access
+     * <p>If this <code>Constructor</code> object enforces Java language access
      * control and the underlying constructor is inaccessible, the
-     * creation throws an IllegalAccessException.
+     * creation throws an <code>IllegalAccessException</code>.
      *
-     * <p>If the number of actual parameters supplied via initargs is
+     * <p>If the number of actual parameters supplied via <code>initargs</code> is
      * different from the number of formal parameters required by the
      * underlying constructor, the creation throws an
-     * IllegalArgumentException.
+     * <code>IllegalArgumentException</code>.
      *
      * <p>A new instance of the constructor's declaring class is
      * created, and its fields are initialized to their default
      * initial values.
      *
-     * <p>For each actual parameter in the supplied initargs array:
+     * <p>For each actual parameter in the supplied <code>initargs</code> array:
      *
      * <p>If the corresponding formal parameter has a primitive type,
      * an unwrapping conversion is attempted to convert the object
      * value to a value of the primitive type.  If this attempt fails,
-     * the creation throws an IllegalArgumentException.
+     * the creation throws an <code>IllegalArgumentException</code>.
      *
      * <p>If, after possible unwrapping, the parameter value cannot be
-     * converted to the corresponding formal parameter type by an
-     * identity or widening conversion, the creation throws an
-     * IllegalArgumentException.
+     * converted to the corresponding formal parameter type by a
+     * method invocation conversion, the creation throws an
+     * <code>IllegalArgumentException</code>.
+     *
+     * <p> The constructor's declaring class is initialized if it has
+     * not already been initialized.  A new instance of the constructor's
+     * declaring class is created, and its fields are initialized to
+     * their default initial values.
      *
      * <p>Control transfers to the underlying constructor to
      * initialize the new instance.  If the constructor completes
      * abruptly by throwing an exception, the exception is placed in
-     * an InvocationTargetException and thrown in turn to the caller
-     * of newInstance.
+     * an <code>InvocationTargetException</code> and thrown in turn to the caller
+     * of <code>newInstance</code>.
      *
      * <p>If the constructor completes normally, returns the newly
      * created and initialized instance.
@@ -216,11 +231,14 @@ class Constructor implements Member {
      * @exception IllegalAccessException    if the underlying constructor
      *              is inaccessible.
      * @exception IllegalArgumentException  if the number of actual and formal
-     *              parameters differ, or if an unwrapping conversion fails.
+     *              parameters differ, or if an unwrapping  or method
+     *              invocation conversion fails.
      * @exception InstantiationException    if the class that declares the
      *              underlying constructor represents an abstract class.
      * @exception InvocationTargetException if the underlying constructor
      *              throws an exception.
+     * @exception ExceptionInInitializerError if the initialization provoked
+     *              by this method fails.
      */
     public native Object newInstance(Object[] initargs)
 	throws InstantiationException, IllegalAccessException,

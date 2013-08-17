@@ -1,8 +1,15 @@
 /*
- * @(#)IndexedPropertyDescriptor.java	1.25 01/12/10
+ * @(#)IndexedPropertyDescriptor.java	1.30 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.beans;
@@ -103,6 +110,9 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
     }
     
     /**
+     * Gets the method that should be used to read an indexed
+     * property value.
+     *
      * @return The method that should be used to read an indexed
      * property value.
      * May return null if the property isn't indexed or is write-only.
@@ -112,6 +122,18 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
     }
 
     /**
+     * Sets the method that should be used to read an indexed property value.
+     *
+     * @param getter The new indexed getter method.
+     */
+    public void setIndexedReadMethod(Method getter) throws IntrospectionException {
+	indexedReadMethod = getter;
+	findIndexedPropertyType();
+    }
+
+    /**
+     * Gets the method that should be used to write an indexed property value.
+     *
      * @return The method that should be used to write an indexed
      * property value.
      * May return null if the property isn't indexed or is read-only.
@@ -121,10 +143,21 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
     }
 
     /**
+     * Sets the method that should be used to write an indexed property value.
+     *
+     * @param getter The new indexed setter method.
+     */
+    public void setIndexedWriteMethod(Method setter) throws IntrospectionException {
+	indexedWriteMethod = setter;
+	findIndexedPropertyType();
+    }
+
+    /**
+     * Gets the Class object of the indexed properties' type.
+     * This is the type that will be returned by the indexedReadMethod.
+     *
      * @return The Java Class for the indexed properties type.  Note that
      * the Class may describe a primitive Java type such as "int".
-     * <p>
-     * This is the type that will be returned by the indexedReadMethod.
      */
     public Class getIndexedPropertyType() {
 	return indexedPropertyType;
@@ -161,10 +194,6 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
 		}
 		indexedPropertyType = params[1];
 	    }
-	    if (indexedPropertyType == null) {
-	        throw new IntrospectionException(
-			"no indexed getter or setter");
-	    }
 	    Class propertyType = getPropertyType();
 	    if (propertyType != null && (!propertyType.isArray() ||
 			propertyType.getComponentType() != indexedPropertyType)) {
@@ -181,6 +210,7 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
      * Package-private constructor.
      * Merge two property descriptors.  Where they conflict, give the
      * second argument (y) priority over the first argumnnt (x).
+     *
      * @param x  The first (lower priority) PropertyDescriptor
      * @param y  The second (higher priority) PropertyDescriptor
      */
@@ -206,11 +236,15 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
 	
     }
 
-
-    private static String capitalize(String s) {
-	char chars[] = s.toCharArray();
-	chars[0] = Character.toUpperCase(chars[0]);
-	return new String(chars);
+    /*
+     * Package-private dup constructor
+     * This must isolate the new object from any changes to the old object.
+     */
+    IndexedPropertyDescriptor(IndexedPropertyDescriptor old) {
+	super(old);
+	indexedReadMethod = old.indexedReadMethod;
+	indexedWriteMethod = old.indexedWriteMethod;
+	indexedPropertyType = old.indexedPropertyType;
     }
 
     private Class indexedPropertyType;

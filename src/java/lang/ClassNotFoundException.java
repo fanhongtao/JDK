@@ -1,11 +1,21 @@
 /*
- * @(#)ClassNotFoundException.java	1.5 01/12/10
+ * @(#)ClassNotFoundException.java	1.8 98/05/04
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
+
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
 /**
  * Thrown when an application tries to load in a class through its 
@@ -20,7 +30,7 @@ package java.lang;
  * but no definition for the class with the specifed name could be found. 
  *
  * @author  unascribed
- * @version 1.5, 12/10/01
+ * @version 1.8, 05/04/98
  * @see     java.lang.Class#forName(java.lang.String)
  * @see     java.lang.ClassLoader#findSystemClass(java.lang.String)
  * @see     java.lang.ClassLoader#loadClass(java.lang.String, boolean)
@@ -29,9 +39,21 @@ package java.lang;
 public
 class ClassNotFoundException extends Exception {
     /**
+     * use serialVersionUID from JDK 1.1.X for interoperability
+     */
+     private static final long serialVersionUID = 9176873029745254542L;
+
+    /**
+     * This field holds the exception ex if the 
+     * ClassNotFoundException(String s, Throwable ex) constructor was
+     * used to instantiate the object
+     * @serial 
+     * @since JDK 1.2
+     */
+    private Throwable ex;
+
+    /**
      * Constructs a <code>ClassNotFoundException</code> with no detail message.
-     *
-     * @since   JDK1.0
      */
     public ClassNotFoundException() {
 	super();
@@ -42,9 +64,82 @@ class ClassNotFoundException extends Exception {
      * specified detail message. 
      *
      * @param   s   the detail message.
-     * @since   JDK1.0
      */
     public ClassNotFoundException(String s) {
 	super(s);
     }
+
+    /**
+     * Constructs a <code>ClassNotFoundException</code> with the
+     * specified detail message and optional exception that was
+     * raised while loading the class.
+     *
+     * @param s the detail message
+     * @param ex the exception that was raised while loading the class
+     * @since JDK1.2
+     */
+    public ClassNotFoundException(String s, Throwable ex) {
+	super(s);
+	this.ex = ex;
+    }
+
+    /**
+     * Returns the exception that was raised if an error occurred while
+     * attempting to load the class. Otherwise, returns null.
+     *
+     * @since JDK1.2
+     */
+    public Throwable getException() {
+	return ex;
+    }
+
+    /**
+     * Prints the stack backtrace. 
+     * 
+     * If an exception occurred during class loading it prints that
+     * exception's stack trace, or else prints the stack backtrace of
+     * this exception.
+     *
+     * @see java.lang.System#err
+     */
+    public void printStackTrace() { 
+	printStackTrace(System.err);
+    }
+    
+    /**
+     * Prints the stack backtrace to the specified print stream.
+     *
+     * If an exception occurred during class loading it prints that
+     * exception's stack trace, or else prints the stack backtrace of
+     * this exception.
+     */
+    public void printStackTrace(PrintStream ps) { 
+	synchronized (ps) {
+	    if (ex != null) {
+		ps.print("java.lang.ClassNotFoundException: ");
+		ex.printStackTrace(ps);
+	    } else {
+		super.printStackTrace(ps);
+	    }
+	}
+    }
+    
+    /**
+     * Prints the stack backtrace to the specified print writer.
+     *
+     * If an exception occurred during class loading it prints that
+     * exception's stack trace, or else prints the stack backtrace of
+     * this exception.
+     */
+    public void printStackTrace(PrintWriter pw) { 
+	synchronized (pw) {
+	    if (ex != null) {
+		pw.print("java.lang.ClassNotFoundException: ");
+		ex.printStackTrace(pw);
+	    } else {
+		super.printStackTrace(pw);
+	    }
+	}
+    }
+
 }

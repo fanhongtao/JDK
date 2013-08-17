@@ -1,8 +1,15 @@
 /*
- * @(#)Byte.java	1.9 01/12/10
+ * @(#)Byte.java	1.13 98/09/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -12,31 +19,24 @@ package java.lang;
  * The Byte class is the standard wrapper for byte values.
  *
  * @author  Nakul Saraiya
- * @version 1.9, 12/10/01
+ * @version 1.13, 09/21/98
  * @see     java.lang.Number
  * @since   JDK1.1
  */
-public final
-class Byte extends Number {
+public final class Byte extends Number implements Comparable {
 
     /**
      * The minimum value a Byte can have.
-     *
-     * @since   JDK1.1
      */
     public static final byte   MIN_VALUE = -128;
 
     /**
      * The maximum value a Byte can have.
-     *
-     * @since   JDK1.1
      */
     public static final byte   MAX_VALUE = 127;
 
     /**
      * The Class object representing the primitive type byte.
-     *
-     * @since   JDK1.1
      */
     public static final Class	TYPE = Class.getPrimitiveClass("byte");
 
@@ -45,7 +45,6 @@ class Byte extends Number {
      * is assumed to be 10.
      *
      * @param b	the byte to be converted
-     * @since   JDK1.1
      */
     public static String toString(byte b) {
 	return Integer.toString((int)b, 10);
@@ -59,7 +58,6 @@ class Byte extends Number {
      * @param s		the String containing the byte
      * @exception	NumberFormatException If the string does not
      *			contain a parsable byte.
-     * @since   JDK1.1
      */
     public static byte parseByte(String s) throws NumberFormatException {
 	return parseByte(s, 10);
@@ -74,7 +72,6 @@ class Byte extends Number {
      * @param radix	the radix to be used
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
-     * @since   JDK1.1
      */
     public static byte parseByte(String s, int radix)
 	throws NumberFormatException {
@@ -93,7 +90,6 @@ class Byte extends Number {
      * @param radix 	the radix to be used
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
-     * @since   JDK1.1
      */
     public static Byte valueOf(String s, int radix)
 	throws NumberFormatException {
@@ -109,7 +105,6 @@ class Byte extends Number {
      * @param s		the String containing the integer
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
-     * @since   JDK1.1
      */
     public static Byte valueOf(String s) throws NumberFormatException {
 	return valueOf(s, 10);
@@ -120,7 +115,6 @@ class Byte extends Number {
      * decimal, hexadecimal, and octal numbers.
      *
      * @param nm the string to decode
-     * @since   JDK1.1
      */
     public static Byte decode(String nm) throws NumberFormatException {
 	if (nm.startsWith("0x")) {
@@ -138,6 +132,8 @@ class Byte extends Number {
 
     /**
      * The value of the Byte.
+     *
+     * @serial
      */
     private byte value;
 
@@ -145,7 +141,6 @@ class Byte extends Number {
      * Constructs a Byte object initialized to the specified byte value.
      *
      * @param value	the initial value of the Byte
-     * @since   JDK1.1
      */
     public Byte(byte value) {
 	this.value = value;
@@ -158,7 +153,6 @@ class Byte extends Number {
      * @param s		the String to be converted to a Byte
      * @exception	NumberFormatException If the String does not
      *			contain a parsable byte.
-     * @since   JDK1.1
      */
     public Byte(String s) throws NumberFormatException {
 	this.value = parseByte(s);
@@ -166,8 +160,6 @@ class Byte extends Number {
 
     /**
      * Returns the value of this Byte as a byte.
-     *
-     * @since   JDK1.1
      */
     public byte byteValue() {
 	return value;
@@ -175,8 +167,6 @@ class Byte extends Number {
 
     /**
      * Returns the value of this Byte as a short.
-     *
-     * @since   JDK1.1
      */
     public short shortValue() {
 	return (short)value;
@@ -184,8 +174,6 @@ class Byte extends Number {
 
     /**
      * Returns the value of this Byte as an int.
-     *
-     * @since   JDK1.1
      */
     public int intValue() {
 	return (int)value;
@@ -193,8 +181,6 @@ class Byte extends Number {
 
     /**
      * Returns the value of this Byte as a long.
-     *
-     * @since   JDK1.1
      */
     public long longValue() {
 	return (long)value;
@@ -202,8 +188,6 @@ class Byte extends Number {
 
     /**
      * Returns the value of this Byte as a float.
-     *
-     * @since   JDK1.1
      */
     public float floatValue() {
 	return (float)value;
@@ -211,8 +195,6 @@ class Byte extends Number {
 
     /**
      * Returns the value of this Byte as a double.
-     *
-     * @since   JDK1.1
      */
     public double doubleValue() {
 	return (double)value;
@@ -220,8 +202,6 @@ class Byte extends Number {
 
     /**
      * Returns a String object representing this Byte's value.
-     *
-     * @since   JDK1.1
      */
     public String toString() {
 	return String.valueOf((int)value);
@@ -229,8 +209,6 @@ class Byte extends Number {
 
     /**
      * Returns a hashcode for this Byte.
-     *
-     * @since   JDK1.1
      */
     public int hashCode() {
 	return (int)value;
@@ -241,7 +219,6 @@ class Byte extends Number {
      *
      * @param obj	the object to compare with
      * @return 		true if the objects are the same; false otherwise.
-     * @since   JDK1.1
      */
     public boolean equals(Object obj) {
 	if ((obj != null) && (obj instanceof Byte)) {
@@ -249,4 +226,45 @@ class Byte extends Number {
 	}
 	return false;
     }
+
+    /**
+     * Compares two Bytes numerically.
+     *
+     * @param   anotherByte   the <code>Byte</code> to be compared.
+     * @return  the value <code>0</code> if the argument Byte is equal to
+     *          this Byte; a value less than <code>0</code> if this Byte
+     *          is numerically less than the Byte argument; and a
+     *          value greater than <code>0</code> if this Byte is
+     *          numerically greater than the Byte argument (signed comparison).
+     * @since   JDK1.2
+     */
+    public int compareTo(Byte anotherByte) {
+	return this.value - anotherByte.value;
+    }
+
+    /**
+     * Compares this Byte to another Object.  If the Object is a Byte,
+     * this function behaves like <code>compareTo(Byte)</code>.  Otherwise,
+     * it throws a <code>ClassCastException</code> (as Bytes are comparable
+     * only to other Bytes).
+     *
+     * @param   o the <code>Object</code> to be compared.
+     * @return  the value <code>0</code> if the argument is a Byte
+     *		numerically equal to this Byte; a value less than
+     *		<code>0</code> if the argument is a Byte numerically
+     *		greater than this Byte; and a value greater than
+     *		<code>0</code> if the argument is a Byte numerically
+     *		less than this Byte.
+     * @exception <code>ClassCastException</code> if the argument is not a
+     *		  <code>Byte</code>. 
+     * @see     java.lang.Comparable
+     * @since   JDK1.2
+     */
+    public int compareTo(Object o) {
+	return compareTo((Byte)o);
+    }
+
+    /** use serialVersionUID from JDK 1.1. for interoperability */
+    private static final long serialVersionUID = -7183698231559129828L;
+
 }

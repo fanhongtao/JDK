@@ -1,8 +1,15 @@
 /*
- * @(#)SequenceInputStream.java	1.16 01/12/10
+ * @(#)SequenceInputStream.java	1.20 98/06/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -12,30 +19,39 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 /**
- * The sequence input stream class allows an application to combine 
- * several input streams serially and make them appear as if they 
- * were a single input stream. Each input stream is read from, in 
- * turn, until it reaches the end of the stream. The sequence input 
- * stream class then closes that stream and automatically switches to 
- * the next input stream. 
+ * A <code>SequenceInputStream</code> represents
+ * the logical concatenation of other input
+ * streams. It starts out with an ordered
+ * collection of input streams and reads from
+ * the first one until end of file is reached,
+ * whereupon it reads from the second one,
+ * and so on, until end of file is reached
+ * on the last of the contained input streams.
  *
  * @author  Author van Hoff
- * @version 1.16, 12/10/01
+ * @version 1.20, 06/29/98
  * @since   JDK1.0
  */
 public
 class SequenceInputStream extends InputStream {
     Enumeration e;
     InputStream in;
-    
+
     /**
-     * Constructs a new sequence input stream initialized to the 
-     * specified enumeration of input streams. Each object in the 
-     * enumeration must be an <code>InputStream</code>. 
+     * Initializes a newly created <code>SequenceInputStream</code>
+     * by remembering the argument, which must
+     * be an <code>Enumeration</code>  that produces
+     * objects whose run-time type is <code>InputStream</code>.
+     * The input streams that are  produced by
+     * the enumeration will be read, in order,
+     * to provide the bytes to be read  from this
+     * <code>SequenceInputStream</code>. After
+     * each input stream from the enumeration
+     * is exhausted, it is closed by calling its
+     * <code>close</code> method.
      *
      * @param   e   an enumeration of input streams.
      * @see     java.util.Enumeration
-     * @since   JDK1.0
      */
     public SequenceInputStream(Enumeration e) {
 	this.e = e;
@@ -46,15 +62,17 @@ class SequenceInputStream extends InputStream {
 	    throw new Error("panic");
 	}
     }
-  
+
     /**
-     * Constructs a new sequence input stream initialized to read first 
-     * from the input stream <code>s1</code>, and then from the input 
-     * stream <code>s2</code>. 
+     * Initializes a newly
+     * created <code>SequenceInputStream</code>
+     * by remembering the two arguments, which
+     * will be read in order, first <code>s1</code>
+     * and then <code>s2</code>, to provide the
+     * bytes to be read from this <code>SequenceInputStream</code>.
      *
      * @param   s1   the first input stream to read.
      * @param   s2   the second input stream to read.
-     * @since   JDK1.0
      */
     public SequenceInputStream(InputStream s1, InputStream s2) {
 	Vector	v = new Vector(2);
@@ -69,7 +87,7 @@ class SequenceInputStream extends InputStream {
 	    throw new Error("panic");
 	}
     }
-   
+
     /**
      *  Continues reading in the next stream if an EOF is reached.
      */
@@ -77,7 +95,14 @@ class SequenceInputStream extends InputStream {
 	if (in != null) {
 	    in.close();
 	}
-	in = e.hasMoreElements() ? (InputStream) e.nextElement() : null;
+
+        if (e.hasMoreElements()) {
+            in = (InputStream) e.nextElement();
+            if (in == null)
+                throw new NullPointerException();
+        }
+        else in = null;
+
     }
 
     /**
@@ -88,28 +113,27 @@ class SequenceInputStream extends InputStream {
     public int available() throws IOException {
 	if(in == null) {
 	    return 0; // no way to signal EOF from available()
-	} 
+	}
 	return in.available();
     }
 
     /**
-     * Reads the next byte of data from this input stream. The byte is 
-     * returned as an <code>int</code> in the range <code>0</code> to 
-     * <code>255</code>. If no byte is available because the end of the 
-     * stream has been reached, the value <code>-1</code> is returned. 
-     * This method blocks until input data is available, the end of the 
-     * stream is detected, or an exception is thrown. 
+     * Reads the next byte of data from this input stream. The byte is
+     * returned as an <code>int</code> in the range <code>0</code> to
+     * <code>255</code>. If no byte is available because the end of the
+     * stream has been reached, the value <code>-1</code> is returned.
+     * This method blocks until input data is available, the end of the
+     * stream is detected, or an exception is thrown.
      * <p>
-     * The <code>read</code> method of <code>SequenceInputStream</code> 
-     * tries to read one character from the current substream. If it 
-     * reaches the end of the stream, it calls the <code>close</code> 
-     * method of the current substream and begins reading from the next 
-     * substream. 
+     * This method
+     * tries to read one character from the current substream. If it
+     * reaches the end of the stream, it calls the <code>close</code>
+     * method of the current substream and begins reading from the next
+     * substream.
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public int read() throws IOException {
 	if (in == null) {
@@ -124,48 +148,56 @@ class SequenceInputStream extends InputStream {
     }
 
     /**
-     * Reads up to <code>len</code> bytes of data from this input stream 
-     * into an array of bytes. This method blocks until at least 1 byte 
-     * of input is available. If the first argument is <code>null</code>, 
-     * up to <code>len</code> bytes are read and discarded. 
+     * Reads up to <code>len</code> bytes of data from this input stream
+     * into an array of bytes. This method blocks until at least 1 byte
+     * of input is available. If the first argument is <code>null</code>,
+     * up to <code>len</code> bytes are read and discarded.
      * <p>
-     * The <code>read</code> method of <code>SequenceInputStream</code> 
-     * tries to read the data from the current substream. If it fails to 
-     * read any characters because the substream has reached the end of 
-     * the stream, it calls the <code>close</code> method of the current 
-     * substream and begins reading from the next substream. 
+     * The <code>read</code> method of <code>SequenceInputStream</code>
+     * tries to read the data from the current substream. If it fails to
+     * read any characters because the substream has reached the end of
+     * the stream, it calls the <code>close</code> method of the current
+     * substream and begins reading from the next substream.
      *
      * @param      b     the buffer into which the data is read.
      * @param      off   the start offset of the data.
      * @param      len   the maximum number of bytes read.
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
-    public int read(byte buf[], int pos, int len) throws IOException {
+    public int read(byte b[], int off, int len) throws IOException {
 	if (in == null) {
 	    return -1;
-	} else if (len == 0) { 
+	} else if (b == null) {
+	    throw new NullPointerException();
+	} else if ((off < 0) || (off > b.length) || (len < 0) ||
+		   ((off + len) > b.length) || ((off + len) < 0)) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
 	    return 0;
 	}
-	int n = in.read(buf, pos, len);
+
+	int n = in.read(b, off, len);
 	if (n <= 0) {
 	    nextStream();
-	    return read(buf, pos, len);
+	    return read(b, off, len);
 	}
 	return n;
     }
 
     /**
-     * Closes this input stream and releases any system resources 
-     * associated with the stream. 
+     * Closes this input stream and releases any system resources
+     * associated with the stream.
+     * A closed <code>SequenceInputStream</code>
+     * cannot  perform input operations and cannot
+     * be reopened.
      * <p>
-     * The <code>close</code> method of <code>SequenceInputStream</code> 
-     * calls the <code>close</code> method of both the substream from 
-     * which it is currently reading and the <code>close</code> method of 
-     * all the substreams that it has not yet begun to read from. 
+     * If this stream was created
+     * from an enumeration, all remaining elements
+     * are requested from the enumeration and closed
+     * before the <code>close</code> method returns.
+     * of <code>InputStream</code> .
      *
      * @exception  IOException  if an I/O error occurs.
-     * @since      JDK1.0
      */
     public void close() throws IOException {
 	do {

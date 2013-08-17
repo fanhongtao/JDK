@@ -1,10 +1,10 @@
 /*
- * @(#)PatternEntry.java	1.17 01/12/10
+ * @(#)PatternEntry.java	1.19 98/04/22
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  *
- * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -36,7 +36,7 @@ import java.lang.Character;
  * This is to be used with MergeCollation for adding patterns to an
  * existing rule table.
  * @see        MergeCollation
- * @version    1.17 12/10/01
+ * @version    1.19 04/22/98
  * @author     Mark Davis, Helena Shih
  */
 
@@ -63,8 +63,7 @@ class PatternEntry {
     public boolean equals(Object obj) {
         if (obj == null) return false;
         PatternEntry other = (PatternEntry) obj;
-        boolean result = (chars.equals(other.chars) &&
-                          extension.equals(other.extension));
+        boolean result = chars.equals(other.chars);
         return result;
     }
 
@@ -80,40 +79,25 @@ class PatternEntry {
     /**
      * Gets the strength of the entry.
      */
-    int getStrength()
-    {
-	return strength;
+    final int getStrength() {
+        return strength;
     }
 
     /**
      * Gets the expanding characters of the entry.
      */
-    String getExtension()
-    {
-	    return extension;
+    final String getExtension() {
+        return extension;
     }
 
     /**
      * Gets the core characters of the entry.
      */
-    String getChars()
-    {
-	    return chars;
+    final String getChars() {
+        return chars;
     }
 
     // ===== privates =====
-
-    PatternEntry() {
-    }
-
-    PatternEntry(int strength,
-                 StringBuffer chars,
-                 StringBuffer extension)
-    {
-        this.strength = strength;
-        this.chars = chars.toString();
-        this.extension = extension.toString();
-    }
 
     void addToBuffer(StringBuffer toAddTo,
                      boolean showExtension,
@@ -151,93 +135,6 @@ class PatternEntry {
         }
     }
 
-    int getNextEntry(String pattern,
-                     int i) throws ParseException
-    {
-        int newStrength = UNSET;
-        StringBuffer newChars = new StringBuffer();
-        StringBuffer newExtension = new StringBuffer();
-        boolean inChars = true;
-        boolean inQuote = false;
- mainLoop:
-        while (i < pattern.length()) {
-            char ch = pattern.charAt(i);
-            if (inQuote) {
-                if (ch == '\'') {
-                    inQuote = false;
-                } else {
-                    if (newChars.length() == 0) newChars.append(ch);
-                    else if (inChars) newChars.append(ch);
-                    else newExtension.append(ch);
-                }
-            } else switch (ch) {
-            case '=': if (newStrength != UNSET) break mainLoop;
-                newStrength = Collator.IDENTICAL; break;
-            case ',': if (newStrength != UNSET) break mainLoop;
-                newStrength = Collator.TERTIARY; break;
-            case ';': if (newStrength != UNSET) break mainLoop;
-                newStrength = Collator.SECONDARY; break;
-            case '<': if (newStrength != UNSET) break mainLoop;
-                newStrength = Collator.PRIMARY; break;
-            case '&': if (newStrength != UNSET) break mainLoop;
-                newStrength = RESET; break;
-            case '\t':
-            case '\n':
-            case '\f':
-            case '\r':
-            case ' ': break; // skip whitespace TODO use Character
-            case '/': inChars = false; break;
-            case '\'':
-                inQuote = true;
-                ch = pattern.charAt(++i);
-                if (newChars.length() == 0) newChars.append(ch);
-                else if (inChars) newChars.append(ch);
-                else newExtension.append(ch);
-                break;
-            default:
-                if (newStrength == UNSET) {
-                    throw new ParseException
-                        ("missing char (=,;<&) : " +
-                         pattern.substring(i,
-                            (i+10 < pattern.length()) ?
-                             i+10 : pattern.length()),
-                         i);
-                }
-                if (PatternEntry.isSpecialChar(ch) && (inQuote == false))
-                    throw new ParseException
-                        ("Unquoted punctuation character : " + Integer.toString(ch, 16), i);
-                if (inChars) {
-                    newChars.append(ch);
-                } else {
-                    newExtension.append(ch);
-                }
-                break;
-            }
-            i++;
-        }
-        if (newStrength == UNSET)
-            return -1;
-        if (newChars.length() == 0) {
-            throw new ParseException
-                ("missing chars (=,;<&): " +
-                  pattern.substring(i,
-                      (i+10 < pattern.length()) ?
-                       i+10 : pattern.length()),
-                 i);
-        }
-        strength = newStrength;
-        chars = newChars.toString();
-        extension = newExtension.toString();
-        return i;
-    }
-
-    static boolean isSpecialChar(char ch) {
-        return (((ch <= '\u002F') && (ch >= '\u0020')) ||
-                ((ch <= '\u003F') && (ch >= '\u003A')) ||
-                ((ch <= '\u0060') && (ch >= '\u005B')) ||
-                ((ch <= '\u007E') && (ch >= '\u007B')));
-    }
-
     static void appendQuoted(String chars, StringBuffer toAddTo) {
         boolean inQuote = false;
         char ch = chars.charAt(0);
@@ -271,6 +168,121 @@ class PatternEntry {
         if (inQuote)
             toAddTo.append('\'');
     }
+
+    //========================================================================
+    // Parsing a pattern into a list of PatternEntries....
+    //========================================================================
+
+    PatternEntry(int strength,
+                 StringBuffer chars,
+                 StringBuffer extension)
+    {
+        this.strength = strength;
+        this.chars = chars.toString();
+        this.extension = (extension.length() > 0) ? extension.toString()
+                                                  : "";
+    }
+
+    static class Parser {
+        private String pattern;
+        private int i;
+        
+        public Parser(String pattern) {
+            this.pattern = pattern;
+            this.i = 0;
+        }
+        
+        public PatternEntry next() throws ParseException {
+            int newStrength = UNSET;
+            
+            newChars.setLength(0);
+            newExtension.setLength(0);
+            
+            boolean inChars = true;
+            boolean inQuote = false;
+        mainLoop:
+            while (i < pattern.length()) {
+                char ch = pattern.charAt(i);
+                if (inQuote) {
+                    if (ch == '\'') {
+                        inQuote = false;
+                    } else {
+                        if (newChars.length() == 0) newChars.append(ch);
+                        else if (inChars) newChars.append(ch);
+                        else newExtension.append(ch);
+                    }
+                } else switch (ch) {
+                case '=': if (newStrength != UNSET) break mainLoop;
+                    newStrength = Collator.IDENTICAL; break;
+                case ',': if (newStrength != UNSET) break mainLoop;
+                    newStrength = Collator.TERTIARY; break;
+                case ';': if (newStrength != UNSET) break mainLoop;
+                    newStrength = Collator.SECONDARY; break;
+                case '<': if (newStrength != UNSET) break mainLoop;
+                    newStrength = Collator.PRIMARY; break;
+                case '&': if (newStrength != UNSET) break mainLoop;
+                    newStrength = RESET; break;
+                case '\t':
+                case '\n':
+                case '\f':
+                case '\r':
+                case ' ': break; // skip whitespace TODO use Character
+                case '/': inChars = false; break;
+                case '\'':
+                    inQuote = true;
+                    ch = pattern.charAt(++i);
+                    if (newChars.length() == 0) newChars.append(ch);
+                    else if (inChars) newChars.append(ch);
+                    else newExtension.append(ch);
+                    break;
+                default:
+                    if (newStrength == UNSET) {
+                        throw new ParseException
+                            ("missing char (=,;<&) : " +
+                             pattern.substring(i,
+                                (i+10 < pattern.length()) ?
+                                 i+10 : pattern.length()),
+                             i);
+                    }
+                    if (PatternEntry.isSpecialChar(ch) && (inQuote == false))
+                        throw new ParseException
+                            ("Unquoted punctuation character : " + Integer.toString(ch, 16), i);
+                    if (inChars) {
+                        newChars.append(ch);
+                    } else {
+                        newExtension.append(ch);
+                    }
+                    break;
+                }
+                i++;
+            }
+            if (newStrength == UNSET)
+                return null;
+            if (newChars.length() == 0) {
+                throw new ParseException
+                    ("missing chars (=,;<&): " +
+                      pattern.substring(i,
+                          (i+10 < pattern.length()) ?
+                           i+10 : pattern.length()),
+                     i);
+            }
+            
+            return new PatternEntry(newStrength, newChars, newExtension);
+        }
+
+        // We re-use these objects in order to improve performance
+        private StringBuffer newChars = new StringBuffer();
+        private StringBuffer newExtension = new StringBuffer();
+        
+    }
+        
+    static boolean isSpecialChar(char ch) {
+        return (((ch <= '\u002F') && (ch >= '\u0020')) ||
+                ((ch <= '\u003F') && (ch >= '\u003A')) ||
+                ((ch <= '\u0060') && (ch >= '\u005B')) ||
+                ((ch <= '\u007E') && (ch >= '\u007B')));
+    }
+    
 
     static final int RESET = -2;
     static final int UNSET = -1;
