@@ -1,5 +1,5 @@
 /*
- * @(#)JSlider.java	1.81 99/04/22
+ * @(#)JSlider.java	1.82 01/03/19
  *
  * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -64,7 +64,6 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
     private boolean paintTrack = true;
     private boolean paintLabels = false;
     private boolean isInverted = false;
-    private boolean nonValueChange = false;
 
     /**
      * The data model that handles the numeric maximum value,
@@ -271,11 +270,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      */
     private class ModelListener implements ChangeListener, Serializable {
         public void stateChanged(ChangeEvent e) {
-            if ( !nonValueChange ) {
                 fireStateChanged();
             }
         }
-    }
 
 
     /**
@@ -498,9 +495,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
     public void setValueIsAdjusting(boolean b) { 
         BoundedRangeModel m = getModel();   
         boolean oldValue = m.getValueIsAdjusting();
-        nonValueChange = true;
         m.setValueIsAdjusting(b);
-        nonValueChange = false;
 
         if ((oldValue != b) && (accessibleContext != null)) {
             accessibleContext.firePropertyChange(

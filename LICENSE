@@ -148,13 +148,12 @@ identified as "java", "javax", "sun" or similar convention as specified by
 Sun in any naming convention designation.
 
 4. Trademarks and Logos. You acknowledge and agree as between you and Sun
-that Sun owns the SUN, SOLARIS, JAVA, JINI, FORTE, STAROFFICE, STARPORTAL
-and iPLANET trademarks and all SUN, SOLARIS, JAVA, JINI, FORTE, STAROFFICE,
-STARPORTAL and iPLANET-related trademarks, service marks, logos and other
-brand designations ("Sun Marks"), and you agree to comply with the Sun
-Trademark and Logo Usage Requirements currently located at
-http://www.sun.com/policies/trademarks. Any use you make of the Sun Marks
-inures to Sun's benefit.
+that Sun owns the SUN, SOLARIS, JAVA, JINI, FORTE, and iPLANET trademarks
+and all SUN, SOLARIS, JAVA, JINI, FORTE, and iPLANET-related trademarks,
+service marks, logos and other brand designations ("Sun Marks"), and you
+agree to comply with the Sun Trademark and Logo Usage Requirements currently
+located at http://www.sun.com/policies/trademarks. Any use you make of the
+Sun Marks inures to Sun's benefit.
 
 5. Source Code. Software may contain source code that is provided solely for
 reference purposes pursuant to the terms of this Agreement.  Source code may

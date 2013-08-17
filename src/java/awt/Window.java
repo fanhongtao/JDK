@@ -1,7 +1,7 @@
 /*
- * @(#)Window.java	1.116 01/01/23
+ * @(#)Window.java	1.116 01/04/26
  *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -83,6 +83,8 @@ public class Window extends Container {
     transient Vector ownedWindowList = new Vector();
     private transient WeakReference weakThis;
 
+    private transient boolean showWithParent = false;
+    
     transient WindowListener windowListener;
     private transient boolean active = false;   // == true when Window receives WINDOW_ACTIVATED event
                                                 // == false when Window receives WINDOW_DEACTIVATED event
@@ -287,6 +289,14 @@ public class Window extends Container {
 	    toFront();
 	} else {
 	    super.show();
+            for (int i = 0; i < ownedWindowList.size(); i++) {
+                Window child = (Window) (((WeakReference)
+                    (ownedWindowList.elementAt(i))).get());
+                        if ((child != null) && child.showWithParent) {
+                            child.show();
+                            child.showWithParent = false;
+                        }       // endif
+            }   // endfor
 	}
         
         // If first time shown, generate WindowOpened event
@@ -316,11 +326,13 @@ public class Window extends Container {
         synchronized(ownedWindowList) {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
 	        Window child = (Window) (((WeakReference)
-		    (ownedWindowList.elementAt(i))).get());
-		if (child != null) {
-		    child.hide();
-		}
+		 	(ownedWindowList.elementAt(i))).get());
+                if ((child != null) && child.visible) {
+                    child.hide();
+                    child.showWithParent = true;
+                }
 	    }
+
 	}
 	super.hide();
     }
@@ -804,7 +816,7 @@ public class Window extends Container {
 	        // this if statement should really be an assert, but we don't
 	        // have asserts...
 	        if (!ownedWindowList.contains(weakWindow)) {
-		    ownedWindowList.addElement(weakWindow);
+		    	ownedWindowList.addElement(weakWindow);
 		}
 	    }
 	}
@@ -814,7 +826,7 @@ public class Window extends Container {
         if (weakWindow != null) {
 	    // synchronized block not required since removeElement is
 	    // already synchronized
-	    ownedWindowList.removeElement(weakWindow);
+	    	ownedWindowList.removeElement(weakWindow);
 	}
     }
 

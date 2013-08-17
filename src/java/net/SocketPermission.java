@@ -990,7 +990,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.29 01/03/25
+ * @version 1.29 01/05/07
  *
  * @author Roland Schemers
  */
