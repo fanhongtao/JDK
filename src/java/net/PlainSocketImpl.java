@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,16 +50,16 @@ class PlainSocketImpl extends SocketImpl
     private boolean shut_wr = false;
     
     private SocketInputStream socketInputStream = null;
-	/* number of threads using the FileDescriptor */
-	private int fdUseCount = 0;
-	
-	/* lock when increment/decrementing fdUseCount */
-	private Object fdLock = new Object();
-	
-	/* indicates a close is pending on the file descriptor */
-	private boolean closePending = false;    
+    /* number of threads using the FileDescriptor */
+    private int fdUseCount = 0;
 
-	/**
+    /* lock when increment/decrementing fdUseCount */
+    private Object fdLock = new Object();
+	
+    /* indicates a close is pending on the file descriptor */
+    private boolean closePending = false;    
+
+    /**
      * Load net library into runtime.
      */
     static {
@@ -78,8 +78,8 @@ class PlainSocketImpl extends SocketImpl
      * is a stream socket (true) or an unconnected UDP socket (false).
      */
     protected synchronized void create(boolean stream) throws IOException {
-	fd = new FileDescriptor();
-	socketCreate(stream);
+        fd = new FileDescriptor();
+        socketCreate(stream);
     }
 
     /**
@@ -504,78 +504,81 @@ try {
     /**
      * Closes the socket.
      */
-	protected void close() throws IOException {
-		synchronized(fdLock) {
-			if (fd != null) {
-				if (fdUseCount == 0) {
-					closePending = true;
-					socketClose(false);
-					fd = null;
-					return;
-				} else {
-					/*
-					 * If a thread has acquired the fd and a close
-					 * isn't pending then use a deferred close.
-					 * Also decrement fdUseCount to signal the last
-					 * thread that releases the fd to close it.
-					 */
-					if (!closePending) {
-						closePending = true;
-						fdUseCount--;
-						socketClose(true);
-					}
-				}
-			}
-		}
-	}
+    protected void close() throws IOException {
+        synchronized(fdLock) {
+            if (fd != null) {
+                if (fdUseCount == 0) {
+                   if (closePending) {
+                       return;
+                   }
+                   closePending = true;
+                   socketClose(false);
+                   fd = null;
+                   return;
+                } else {
+		    /*
+		     * If a thread has acquired the fd and a close
+		     * isn't pending then use a deferred close.
+		     * Also decrement fdUseCount to signal the last
+		     * thread that releases the fd to close it.
+		     */
+                    if (!closePending) {
+                        closePending = true;
+                        fdUseCount--;
+                        socketClose(true);
+                    }
+                }
+            }
+        }
+    }
   
-	/*
-	 * "Acquires" and returns the FileDescriptor for this impl
-	 *
-	 * A corresponding releaseFD is required to "release" the
-	 * FileDescriptor.
-	 */
-	public final FileDescriptor acquireFD() {
-		synchronized (fdLock) {
-			fdUseCount++;
-			return fd;
-		}
-	}
+    /*
+     * "Acquires" and returns the FileDescriptor for this impl
+     *
+     * A corresponding releaseFD is required to "release" the
+     * FileDescriptor.
+     */
+    public final FileDescriptor acquireFD() {
+        synchronized (fdLock) {
+            fdUseCount++;
+            return fd;
+        }
+    }
 
-	/*
-	 * "Release" the FileDescriptor for this impl.
-	 *
-	 * If the use count goes to -1 then the socket is closed.
-	 */
-	public final void releaseFD() {
-		synchronized (fdLock) {
-			fdUseCount--;
-			if (fdUseCount == -1) {
-				if (fd != null) {
-					try {
-						socketClose(false);
-					} catch (IOException e) {
-					} finally {
-							fd = null;
-					}
-				}
-			}
-		}
-	}
+    /*
+     * "Release" the FileDescriptor for this impl.
+     *
+     * If the use count goes to -1 then the socket is closed.
+     */
+    public final void releaseFD() {
+        synchronized (fdLock) {
+            fdUseCount--;
+            if (fdUseCount == -1) {
+                if (fd != null) {
+                    try {
+                        socketClose(false);
+                    } catch (IOException e) {
+                    } finally {
+                       fd = null;
+                    }
+                }
+            }
+        }
+    }
 	
-	public boolean isClosedOrPending() {
-		/*
-		 * Lock on fdLock to ensure that we wait if a
-		 * close is in progress.
-		 */
-		synchronized (fdLock) {
-			if (closePending || fd == null) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
+    public boolean isClosedOrPending() {
+        /*
+         * Lock on fdLock to ensure that we wait if a
+         * close is in progress.
+         */
+        synchronized (fdLock) {
+            if (closePending || fd == null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
  
 
     /**

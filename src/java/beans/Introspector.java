@@ -1,16 +1,26 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans;
 
-import java.lang.reflect.*;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
 import java.security.*;
+import java.security.PrivilegedAction;
+
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
+import java.util.WeakHashMap;
 
 /**
  * The Introspector class provides a standard way for tools to learn about
@@ -592,38 +602,56 @@ public class Introspector {
 	    if (igpd != null && ispd != null) {
 		// Complete indexed properties set
 		// Merge any classic property descriptors
-		if (gpd != null && (gpd.getPropertyType().isArray() ||
-				    gpd.getPropertyType().equals(igpd.getIndexedPropertyType()))) {
-		    igpd = new IndexedPropertyDescriptor(gpd, igpd);
+		if (gpd != null) {
+		    PropertyDescriptor tpd = mergePropertyDescriptor(igpd, gpd);
+		    if (tpd instanceof IndexedPropertyDescriptor) {
+			igpd = (IndexedPropertyDescriptor)tpd;
+		    }
 		}
-		if (spd != null && (spd.getPropertyType().isArray() ||
-				    spd.getPropertyType().equals(ispd.getIndexedPropertyType()))) {
-		    ispd = new IndexedPropertyDescriptor(spd, ispd);
+                if (spd != null) {
+		    PropertyDescriptor tpd = mergePropertyDescriptor(ispd, spd);
+		    if (tpd instanceof IndexedPropertyDescriptor) {
+			ispd = (IndexedPropertyDescriptor)tpd;
+		    }
+                }
+                if (igpd == ispd) {
+                    pd = igpd;
+		} else {
+		    pd = mergePropertyDescriptor(igpd, ispd);
 		}
-		pd = new IndexedPropertyDescriptor(igpd, ispd);
 	    } else if (gpd != null && spd != null) {
 		// Complete simple properties set
-		pd = new PropertyDescriptor(gpd, spd);
+                if (gpd == spd) {
+                    pd = gpd;
+                } else {
+		    pd = mergePropertyDescriptor(gpd, spd);
+		}
 	    } else if (ispd != null) {
 		// indexed setter
+		pd = ispd;
 		// Merge any classic property descriptors
 		if (spd != null) {
-		    ispd = new IndexedPropertyDescriptor(spd, ispd);
+		    pd = mergePropertyDescriptor(ispd, spd);
 		}
 		if (gpd != null) {
-		    ispd = new IndexedPropertyDescriptor(gpd, ispd);
+                   pd = mergePropertyDescriptor(ispd, gpd);
 		}
-		pd = ispd;
 	    } else if (igpd != null) {
 		// indexed getter
+		pd = igpd;
 		// Merge any classic property descriptors
 		if (gpd != null) {
-		    igpd = new IndexedPropertyDescriptor(gpd, igpd);
+                    pd = mergePropertyDescriptor(igpd, gpd);
+                    if (pd == igpd) {
+                        pd = gpd;
+                    }
 		}
 		if (spd != null) {
-		    igpd = new IndexedPropertyDescriptor(spd, igpd);
+                    pd = mergePropertyDescriptor(igpd, spd);
+                    if (pd == igpd) {
+                        pd = spd;
+                    }
 		}
-		pd = igpd;
 	    } else if (spd != null) {
 		// simple setter
 		pd = spd;
@@ -638,9 +666,7 @@ public class Introspector {
 	    // PropertyDescriptor. See 4168833
 	    if (pd instanceof IndexedPropertyDescriptor) {
 		ipd = (IndexedPropertyDescriptor)pd;
-		if ((ipd.getIndexedReadMethod() == null ||
-		    ipd.getIndexedWriteMethod() == null) &&
-		    (ipd.getReadMethod() != null && ipd.getWriteMethod() != null)) {
+		if (ipd.getIndexedReadMethod() == null && ipd.getIndexedWriteMethod() == null) {
 		    pd = new PropertyDescriptor(ipd);
 		}
 	    }
@@ -651,6 +677,92 @@ public class Introspector {
 	}
     }
 
+    /**
+     * Adds the property descriptor to the indexedproperty descriptor only if the
+     * types are the same.
+     *
+     * The most specific property descriptor will take precedence.
+     */
+    private PropertyDescriptor mergePropertyDescriptor(IndexedPropertyDescriptor ipd, 
+						       PropertyDescriptor pd) {
+	PropertyDescriptor result = null;
+	
+	Class propType = pd.getPropertyType();
+	Class ipropType = ipd.getIndexedPropertyType();
+	if (propType.isArray() && propType.getComponentType() == ipropType) {
+	    if (pd.getClass0().isAssignableFrom(ipd.getClass0())) {
+		result = new IndexedPropertyDescriptor(pd, ipd);
+	    } else {
+		result = new IndexedPropertyDescriptor(ipd, pd);
+	    }
+	} else {
+	    // Cannot merge the pd because of type mismatch
+	    // Return the most specific pd
+	    if (pd.getClass0().isAssignableFrom(ipd.getClass0())) {
+		result = ipd;
+	    } else {
+		result = pd;
+		// Try to add methods which may have been lost in the type change
+		// See 4168833
+		Method write = result.getWriteMethod();
+		Method read = result.getReadMethod();
+		
+		if (read == null && write != null) {
+		    try {
+			read = findMethod(result.getClass0(), 
+					  "get" + result.capitalize(result.getName()), 0);
+		    } catch (Exception e) {
+			read = null;
+		    }
+		    if (read != null) {
+			try {
+			    result.setReadMethod(read);
+			} catch (IntrospectionException ex) {
+				// no consequences for failure.
+			}
+		    }
+		}
+		if (write == null && read != null) {
+		    try {
+			write = findMethod(result.getClass0(), 
+					   "set" + result.capitalize(result.getName()), 1,
+					   new Class[] { read.getReturnType() });
+		    } catch (Exception e) {
+			write = null;
+		    }
+		    if (write != null) {
+			try {
+			    result.setWriteMethod(write);
+			} catch (IntrospectionException ex) {
+				// no consequences for failure.
+			}
+		    }
+		}
+	    }
+	}
+	return result;
+    }
+    
+    // Handle regular pd merge
+    private PropertyDescriptor mergePropertyDescriptor(PropertyDescriptor pd1,
+						       PropertyDescriptor pd2) {
+        if (pd1.getClass0().isAssignableFrom(pd2.getClass0())) {
+	    return new PropertyDescriptor(pd1, pd2);
+        } else {
+	    return new PropertyDescriptor(pd2, pd1);
+        }
+    }
+    
+    // Handle regular ipd merge
+    private PropertyDescriptor mergePropertyDescriptor(IndexedPropertyDescriptor ipd1,
+						       IndexedPropertyDescriptor ipd2) {
+	if (ipd1.getClass0().isAssignableFrom(ipd2.getClass0())) {
+	    return new IndexedPropertyDescriptor(ipd1, ipd2);
+        } else {
+	    return new IndexedPropertyDescriptor(ipd2, ipd1);
+        }
+    }
+    
     /**
      * @return An array of EventSetDescriptors describing the kinds of 
      * events fired by the target bean.
@@ -1019,47 +1131,6 @@ public class Introspector {
     //======================================================================
 
     /**
-     * Internal support for finding a target methodName on a given class.
-     */
-    private static Method internalFindMethod(Class start, String methodName,
-								 int argCount) {
-
-	// For overriden methods we need to find the most derived version.
-	// So we start with the given class and walk up the superclass chain.
-	for (Class cl = start; cl != null; cl = cl.getSuperclass()) {
-            Method methods[] = getPublicDeclaredMethods(cl);
-	    for (int i = 0; i < methods.length; i++) {
-	        Method method = methods[i];
-		if (method == null) {
-		    continue;
-		}
-	        // skip static methods.
-		int mods = method.getModifiers();
-		if (Modifier.isStatic(mods)) {
-		    continue;
-		}
-	        if (method.getName().equals(methodName) &&
-			method.getParameterTypes().length == argCount) {
-	            return method;
- 	        }
-	    }
-	}
-
-	// Now check any inherited interfaces.  This is necessary both when
-	// the argument class is itself an interface, and when the argument
-	// class is an abstract class.
-	Class ifcs[] = start.getInterfaces();
-	for (int i = 0 ; i < ifcs.length; i++) {
-	    Method m = internalFindMethod(ifcs[i], methodName, argCount);
-	    if (m != null) {
-		return m;
-	    }
-	}
-
-	return null;
-    }
-
-    /**
      * Internal support for finding a target methodName with a given
      * parameter list on a given class.
      */
@@ -1067,91 +1138,101 @@ public class Introspector {
                                                  int argCount, Class args[]) {
         // For overriden methods we need to find the most derived version.
         // So we start with the given class and walk up the superclass chain.
+	Method method = null;
+
         for (Class cl = start; cl != null; cl = cl.getSuperclass()) {
             Method methods[] = getPublicDeclaredMethods(cl);
             for (int i = 0; i < methods.length; i++) {
-                Method method = methods[i];
+                method = methods[i];
                 if (method == null) {
                     continue;
                 }
-                // skip static methods.
-                int mods = method.getModifiers();
-                if (Modifier.isStatic(mods)) {
-                    continue;
-                }
+
                 // make sure method signature matches.
                 Class params[] = method.getParameterTypes();
                 if (method.getName().equals(methodName) && 
                     params.length == argCount) {
-                    boolean different = false;
-                    if (argCount > 0) {
-                        for (int j = 0; j < argCount; j++) {
-                            if (params[j] != args[j]) {
-                                different = true;
-                                continue;
-                            }
-                        }
-                        if (different) {
-                            continue;
-                        }
-                    }
+		    if (args != null) {
+			boolean different = false;
+			if (argCount > 0) {
+			    for (int j = 0; j < argCount; j++) {
+				if (params[j] != args[j]) {
+				    different = true;
+				    continue;
+				}
+			    }
+			    if (different) {
+				continue;
+			    }
+			}
+		    }
                     return method;
                 }
             }
         }
 
+	method = null;
         // Now check any inherited interfaces.  This is necessary both when
         // the argument class is itself an interface, and when the argument
         // class is an abstract class.
         Class ifcs[] = start.getInterfaces();
         for (int i = 0 ; i < ifcs.length; i++) {
-            Method m = internalFindMethod(ifcs[i], methodName, argCount);
-            if (m != null) {
-                return m;
+            // Note: The original implementation had both methods calling
+            // the 3 arg method. This is preserved but perhaps it should
+            // pass the args array instead of null.
+            method = internalFindMethod(ifcs[i], methodName, argCount, null);
+            if (method != null) {
+                break;
             }
         }
 
-        return null;
+        return method;
     }
 
     /**
      * Find a target methodName on a given class.
      */
-    static Method findMethod(Class cls, String methodName, int argCount) 
-			throws IntrospectionException {
-	if (methodName == null) {
-	    return null;
-	}
-
-	Method m = internalFindMethod(cls, methodName, argCount);
-	if (m != null ) {
+    static Method findMethod(Class cls, String methodName, int argCount)
+	throws IntrospectionException {
+        if (methodName == null) {
+            return null;
+        }
+	Method m = findMethod(cls, methodName, argCount, null);
+	if (m != null) {
 	    return m;
 	}
-
 	// We failed to find a suitable method
 	throw new IntrospectionException("No method \"" + methodName + 
-					"\" with " + argCount + " arg(s)");
+					 "\" with " + argCount + " arg(s).");
     }
 
-    /**
+   /**
      * Find a target methodName with specific parameter list on a given class.
+     * <p>
+     * Used in the contructors of the EventSetDescriptor,
+     * PropertyDescriptor and the IndexedPropertyDescriptor.
+     * <p>
+     * @param cls The Class object on which to retrieve the method.
+     * @param methodName Name of the method.
+     * @param argCount Number of arguments for the desired method.
+     * @param args Array of argument types for the method.
+     * @return the method or null if not found
      */
     static Method findMethod(Class cls, String methodName, int argCount, 
                              Class args[]) throws IntrospectionException {
         if (methodName == null) {
             return null;
         }
-
-        Method m = internalFindMethod(cls, methodName, argCount, args);
-        if (m != null ) {
-            return m;
-        }
-
-        // We failed to find a suitable method
-        throw new IntrospectionException("No method \"" + methodName + 
-                   "\" with " + argCount + " arg(s) of matching types.");
-    }
-
+	
+	Method m = internalFindMethod(cls, methodName, argCount, args);
+	if (m != null) {
+	    return m;
+	}
+	// We failed to find a suitable method
+	throw new IntrospectionException("No method \"" + methodName + 
+					 "\" with " + argCount + " arg(s) of matching types.");
+    }	
+    
     /**
      * Return true if class a is either equivalent to class b, or
      * if class a is a subclass of class b, i.e. if a either "extends"

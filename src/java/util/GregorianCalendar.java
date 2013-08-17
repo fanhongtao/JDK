@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -172,7 +172,7 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.54
+ * @version      1.56
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1153,7 +1153,7 @@ public class GregorianCalendar extends Calendar {
         // Time to fields takes the wall millis (Standard or DST).
         timeToFields(localMillis, false);
 
-        int era = internalGetEra();
+        int era = internalGet(ERA);
         int year = internalGet(YEAR);
         int month = internalGet(MONTH);
         int date = internalGet(DATE);
@@ -1502,7 +1502,7 @@ public class GregorianCalendar extends Calendar {
             // been set wrong by the user.  We should rely only on
             // the Julian day number, which has been computed correctly
             // using the disambiguation algorithm above. [LIU]
-            dstOffset = zone.getOffset(era,
+            dstOffset = zone.getOffset(internalGet(ERA),
                                        internalGet(YEAR),
                                        internalGet(MONTH),
                                        internalGet(DATE),
