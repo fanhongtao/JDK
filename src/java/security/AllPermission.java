@@ -128,7 +128,7 @@ public final class AllPermission extends Permission {
  * @see java.security.Permission
  * @see java.security.Permissions
  *
- * @version 1.6 02/10/07
+ * @version 1.6 03/02/27
  *
  * @author Roland Schemers
  */

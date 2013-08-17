@@ -2,11 +2,11 @@
 
                     Java(R) 2 SDK, Standard Edition
                      Java(R) 2 Runtime Environment
-                           JDK/JRE 1.2.2_014
+                           JDK/JRE 1.2.2_015
 
 
 This CHANGES file summarizes the changes between the FCS version of 
-JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_014. For changes
+JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_015. For changes
 in the Java platform since earlier releases, see the the
 following document on the Java Software web site:
 
@@ -17,13 +17,19 @@ following document on the Java Software web site:
 ----------------------------------------------------------------------
 INTRODUCTION
 -----------------------------------------------------------------------
-This is patch 014 of the 1.2.2 version of the Java Development
+This is patch 015 of the 1.2.2 version of the Java Development
 Kit. For each patch release of the 1.2.2 version, 
 it is the Java(R) 2 SDK Windows 95/98/2000/NT production release, and the 
 Solaris(tm) reference implementation of the Java 2 SDK source base.
 
 For the WIN32 production release, the Java(tm) Plug-in product 
 is included with the JRE 1.2.2 software.
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_015
+-----------------------------------------------------------------------
+
+4518039 - "~" in the html file does not display on the URL scraper.
 
 -----------------------------------------------------------------------
 BUGS FIXED IN PATCH JDK/JRE 1.2.2_014
@@ -405,6 +411,6 @@ please go to this web page:
 	  http://java.sun.com/cgi-bin/bugreport.cgi
 
 -----------------------------------------------------------------------
-Copyright (C) 1996-2002 Sun Microsystems, Inc.
+Copyright (C) 1996-2003 Sun Microsystems, Inc.
 4150 Network Circle, Santa Clara, CA 95054, U.S.A
 All rights reserved.
