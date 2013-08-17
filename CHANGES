@@ -2,11 +2,11 @@
 
                     Java(R) 2 SDK, Standard Edition
                      Java(R) 2 Runtime Environment
-                           JDK/JRE 1.2.2_011
+                           JDK/JRE 1.2.2_012
 
 
 This CHANGES file summarizes the changes between the FCS version of 
-JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_011. For changes
+JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_012. For changes
 in the Java platform since earlier releases, see the the
 following document on the Java Software web site:
 
@@ -17,13 +17,33 @@ following document on the Java Software web site:
 ----------------------------------------------------------------------
 INTRODUCTION
 -----------------------------------------------------------------------
-This is patch 011 of the 1.2.2 version of the Java Development
+This is patch 012 of the 1.2.2 version of the Java Development
 Kit. For each patch release of the 1.2.2 version, 
 it is the Java(R) 2 SDK Windows 95/98/2000/NT production release, and the 
 Solaris(tm) reference implementation of the Java 2 SDK source base.
 
 For the WIN32 production release, the Java(tm) Plug-in product 
 is included with the JRE 1.2.2 software.
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_012
+-----------------------------------------------------------------------
+
+4255230 - Regression: Win32: Dialog inherits background from its owner
+
+4507714 - If AWT TextArea gains focus via TAB, it doesn't display 
+          next key press 
+
+4522270 - Encoding zero'd byte array using zh_TW locale results 
+          in empty string
+
+4530775 - jvm dies with "panic: GC failed to enter single 
+          threaded mode" message
+
+4622082/
+4429511 - Improper size of login dialog
+
+4165204 - ObjectStreamClass can hold global lock for a very long time
 
 -----------------------------------------------------------------------
 BUGS FIXED IN PATCH JDK/JRE 1.2.2_011

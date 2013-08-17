@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.118 01/11/29
+ * @(#)Window.java	1.120 02/02/28
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -252,17 +252,22 @@ public class Window extends Container {
     public void pack() {
 	Container parent = this.parent;
 	if (parent != null && parent.getPeer() == null) {
-	    parent.addNotify();
-	}
-	if (peer == null) {
-	    addNotify();
-	}
-	setSize(getPreferredSize());
+            parent.addNotify();
+        }
+	
+	/*fix for #4429511, avoid race condition with awt-eventqueue about
+	 *setting dialog size
+	 */
+	synchronized (getTreeLock()) {
+            if (peer == null) {
+    	        addNotify();
+	    }
+       	    setSize(getPreferredSize());
+	}	
 	isPacked = true;
-
 	validate();
     }
-
+    
     /**
      * Makes the Window visible. If the Window and/or its owner
      * are not yet displayable, both are made displayable.  The 

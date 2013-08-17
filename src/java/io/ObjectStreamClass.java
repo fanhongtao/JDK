@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamClass.java	1.81 01/11/29
+ * @(#)ObjectStreamClass.java	1.82 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import sun.misc.SoftCache;
+
 /**
  * Serialization's descriptor for classes.
  * It contains the name and serialVersionUID of the class.
@@ -34,7 +36,7 @@ import java.util.Iterator;
  * <a href="http://java.sun.com/products/jdk/1.2/docs/guide/serialization/spec/class.doc4.html"> Object Serialization Specification, Section 4.4, Stream Unique Identifiers</a>.
  *
  * @author  Roger Riggs
- * @version @(#)ObjectStreamClass.java	1.45 97/08/03
+ * @version 1.82 01/25/02
  * @see ObjectStreamField
  * @see <a href="http://java.sun.com/products/jdk/1.2/docs/guide/serialization/spec/class.doc.html"> Object Serialization Specification, Section 4, Class Descriptors</a>
  * @since   JDK1.1
@@ -60,51 +62,81 @@ public class ObjectStreamClass implements java.io.Serializable {
      */
     static ObjectStreamClass lookupInternal(Class cl)
     {
-	/* Synchronize on the hashtable so no two threads will do
-	 * this at the same time.
+	/*
+	 * Note: using the class directly as the key for storing entries does
+	 * not pin the class indefinitely, since SoftCache removes strong refs
+	 * to keys when the corresponding values are gc'ed.
 	 */
-	ObjectStreamClass desc = null;
-	synchronized (descriptorFor) {
-	    /* Find the matching descriptor if it already known */
-	    desc = findDescriptorFor(cl);
-	    if (desc != null) {
-		return desc;
+	Object entry;
+	EntryFuture future = null;
+	synchronized (localDescs) {
+	    if ((entry = localDescs.get(cl)) == null) {
+		localDescs.put(cl, future = new EntryFuture());
 	    }
-	    
-	    /* Check if it's serializable */
-	    boolean serializable = Serializable.class.isAssignableFrom(cl);
-
-	    /* If the class is only Serializable,
-	     * lookup the descriptor for the superclass.
-	     */
-	    ObjectStreamClass superdesc = null;
-	    if (serializable) {
-		Class superclass = cl.getSuperclass();
-		if (superclass != null) 
-		    superdesc = lookup(superclass);
-	    }
-
-	    /* Check if its' externalizable.
-	     * If it's Externalizable, clear the serializable flag.
-	     * Only one or the other may be set in the protocol.
-	     */
-	    boolean externalizable = false;
-	    if (serializable) {
-		externalizable = 
-		    ((superdesc != null) && superdesc.isExternalizable()) ||
-		    Externalizable.class.isAssignableFrom(cl);
-		if (externalizable) {
-		    serializable = false;
-		}
-	    }
-
-	    /* Create a new version descriptor,
-	     * it put itself in the known table.
-	     */
-	    desc = new ObjectStreamClass(cl, superdesc,
-				      serializable, externalizable);
 	}
-	return desc;
+	
+	if (entry instanceof ObjectStreamClass) {  // check common case first
+	    return (ObjectStreamClass) entry;
+	} else if (entry instanceof EntryFuture) {
+	    entry = ((EntryFuture) entry).get();
+	} else if (entry == null) {
+	    try {
+		entry = createLocalDescriptor(cl);
+	    } catch (Throwable th) {
+		entry = th;
+	    }
+	    future.set(entry);
+	    synchronized (localDescs) {
+		localDescs.put(cl, entry);
+	    }
+	}
+	
+	if (entry instanceof ObjectStreamClass) {
+	    return (ObjectStreamClass) entry;
+	} else if (entry instanceof RuntimeException) {
+	    throw (RuntimeException) entry;
+	} else if (entry instanceof Error) {
+	    throw (Error) entry;
+	} else {
+	    throw new InternalError("unexpected entry: " + entry);
+	}
+    }
+    
+    /*
+     * Creates local class descriptor for the given class.
+     */
+    private static ObjectStreamClass createLocalDescriptor(Class cl) {
+	/* Check if it's serializable */
+	boolean serializable = Serializable.class.isAssignableFrom(cl);
+
+	/* If the class is only Serializable,
+	 * lookup the descriptor for the superclass.
+	 */
+	ObjectStreamClass superdesc = null;
+	if (serializable) {
+	    Class superclass = cl.getSuperclass();
+	    if (superclass != null) 
+		superdesc = lookup(superclass);
+	}
+
+	/* Check if its' externalizable.
+	 * If it's Externalizable, clear the serializable flag.
+	 * Only one or the other may be set in the protocol.
+	 */
+	boolean externalizable = false;
+	if (serializable) {
+	    externalizable = 
+		((superdesc != null) && superdesc.isExternalizable()) ||
+		Externalizable.class.isAssignableFrom(cl);
+	    if (externalizable) {
+		serializable = false;
+	    }
+	}
+
+	/* Create a new version descriptor,
+	 */
+	return new ObjectStreamClass(cl, superdesc,
+				     serializable, externalizable);
     }
     
     /**
@@ -218,13 +250,6 @@ public class ObjectStreamClass implements java.io.Serializable {
 	superclass = superdesc;
 	serializable = serial;
 	externalizable = extern;
-
-	/*
-	 * Enter this class in the table of known descriptors.
-	 * Otherwise, when the fields are read it may recurse
-	 * trying to find the descriptor for itself.
-	 */
-	insertDescriptorFor(this);
 
 	if (!serializable || externalizable) {
 	    fields = NO_FIELDS;
@@ -475,11 +500,11 @@ public class ObjectStreamClass implements java.io.Serializable {
 	validateLocalClass(cl);
 
 	/* Disable instance deserialization when one class is serializable 
-	* and the other is not or if both the classes are neither serializable
-	* nor externalizable. 
-	*/
+	 * and the other is not or if both the classes are neither serializable
+	 * nor externalizable.
+	 */
 	if ((serializable != localClassDesc.serializable) ||
-	    (externalizable != localClassDesc.externalizable) || 
+	    (externalizable != localClassDesc.externalizable) ||
 	    (!serializable && !externalizable)) {
 
 	    /* Delay signaling InvalidClassException until trying 
@@ -1034,71 +1059,61 @@ public class ObjectStreamClass implements java.io.Serializable {
 	    String name = (serializable || externalizable) ? 
   		              localClassDesc.getName() : getName();
 	    String stype = (serializable || localClassDesc.serializable) ? 
-  		           "Serializable" : 
-  		           (externalizable || localClassDesc.externalizable) ?
-  		           "Externalizable" : "Serializable or Externalizable";
+		                  "Serializable" :
+		                  (externalizable || localClassDesc.externalizable) ?
+		                  "Externalizable" : "Serializable or Externalizable";
 	    throw new InvalidClassException(name, "is not " + stype);
+	}
+    }
+
+    /**
+     * Placeholder used in class descriptor lookup table for an entry in the
+     * process of being initialized.  (Internal) callers which receive an
+     * EntryFuture as the result of a lookup should call the get() method of
+     * the EntryFuture; this will return the actual entry once it is ready for
+     * use and has been set().  To conserve objects, EntryFutures synchronize
+     * on themselves.
+     */
+    private static class EntryFuture {
+	
+	private static final Object unset = new Object();
+	private Object entry = unset;
+
+	synchronized void set(Object entry) {
+	    if (this.entry != unset) {
+		throw new IllegalStateException();
+	    }
+	    this.entry = entry;
+	    notifyAll();
+	}
+	
+	synchronized Object get() {
+	    boolean interrupted = false;
+	    while (entry == unset) {
+		try { 
+		    wait(); 
+		} catch (InterruptedException ex) {
+		    interrupted = true;
+		}
+	    }
+	    if (interrupted) {
+		AccessController.doPrivileged(
+		    new PrivilegedAction() {
+			public Object run() {
+			    Thread.currentThread().interrupt();
+			    return null;
+			}
+		    }
+		);
+	    }
+	    return entry;
 	}
     }
 
     /*
      * Cache of Class -> ClassDescriptor Mappings.
      */
-    static private ObjectStreamClassEntry[] descriptorFor = new ObjectStreamClassEntry[61];
-
-    /*
-     * findDescriptorFor a Class.  This looks in the cache for a
-     * mapping from Class -> ObjectStreamClass mappings.  The hashCode
-     * of the Class is used for the lookup since the Class is the key.
-     * The entries are extended from java.lang.ref.SoftReference so the
-     * gc will be able to free them if needed.
-     */
-    private static ObjectStreamClass findDescriptorFor(Class cl) {
-
-	int hash = cl.hashCode();
-	int index = (hash & 0x7FFFFFFF) % descriptorFor.length;
-	ObjectStreamClassEntry e;
-	ObjectStreamClassEntry prev;
-	
-	/* Free any initial entries whose refs have been cleared */
-	while ((e = descriptorFor[index]) != null && e.get() == null) {
-	    descriptorFor[index] = e.next;
-	}
-
-	/* Traverse the chain looking for a descriptor with ofClass == cl.
-	 * unlink entries that are unresolved.
-	 */
-	prev = e;
-	while (e != null ) {
-	    ObjectStreamClass desc = (ObjectStreamClass)(e.get());
-	    if (desc == null) {
-		// This entry has been cleared,  unlink it
-		prev.next = e.next;
-	    } else {
-		if (desc.ofClass == cl)
-		    return desc;
-		prev = e;
-	    }
-	    e = e.next;
-	}
-	return null;
-    }
-
-    /*
-     * insertDescriptorFor a Class -> ObjectStreamClass mapping.
-     */
-    private static void insertDescriptorFor(ObjectStreamClass desc) {
-	// Make sure not already present
-	if (findDescriptorFor(desc.ofClass) != null) {
-	    return;
-	}
-
-	int hash = desc.ofClass.hashCode();
-	int index = (hash & 0x7FFFFFFF) % descriptorFor.length;
-	ObjectStreamClassEntry e = new ObjectStreamClassEntry(desc);
-	e.next = descriptorFor[index];
-       	descriptorFor[index] = e;
-    }
+    private static final SoftCache localDescs = new SoftCache(10);
 
     /*
      * The name of this descriptor
