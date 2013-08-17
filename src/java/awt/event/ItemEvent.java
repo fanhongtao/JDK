@@ -1,15 +1,8 @@
 /*
- * @(#)ItemEvent.java	1.18 98/09/21
+ * @(#)ItemEvent.java	1.19 01/11/29
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -37,7 +30,7 @@ import java.awt.ItemSelectable;
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/itemlistener.html">Tutorial: Writing an Item Listener</a>
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
- * @version 1.18 09/21/98
+ * @version 1.19 11/29/01
  * @author Carl Quinn
  */
 public class ItemEvent extends AWTEvent {

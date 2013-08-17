@@ -1,15 +1,8 @@
 /*
- * @(#)MenuComponent.java	1.43 98/08/31
+ * @(#)MenuComponent.java	1.44 01/11/29
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -29,7 +22,7 @@ import sun.awt.SunToolkit;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.43, 08/31/98
+ * @version 	1.44, 11/29/01
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */

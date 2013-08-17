@@ -1,14 +1,8 @@
 /*
- * @(#)JMenuItem.java	1.78 01/01/11
+ * @(#)JMenuItem.java	1.79 01/11/29
  *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -44,7 +38,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.78 01/11/01
+ * @version 1.79 11/29/01
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu

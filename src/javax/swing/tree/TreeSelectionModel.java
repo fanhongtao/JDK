@@ -1,15 +1,8 @@
 /*
- * @(#)TreeSelectionModel.java	1.13 98/11/17
+ * @(#)TreeSelectionModel.java	1.14 01/11/29
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.tree;
@@ -24,7 +17,7 @@ import java.beans.PropertyChangeListener;
   * <p>resetRowSelection is called from any of the methods that update
   * the selected paths.
   *
-  * @version 1.13 11/17/98
+  * @version 1.14 11/29/01
   * @author Scott Violet
   */
 

@@ -1,15 +1,8 @@
 /*
- * @(#)Dimension.java	1.21 98/09/21
+ * @(#)Dimension.java	1.22 01/11/29
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -33,7 +26,7 @@ import java.awt.geom.Dimension2D;
  * negative, the behavior of some methods defined by other objects is 
  * undefined. 
  * 
- * @version 	1.21, 09/21/98
+ * @version 	1.22, 11/29/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see         java.awt.Component

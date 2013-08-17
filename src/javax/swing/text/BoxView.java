@@ -1,14 +1,8 @@
 /*
- * @(#)BoxView.java	1.35 01/01/23
+ * @(#)BoxView.java	1.36 01/11/29
  *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -29,7 +23,7 @@ import javax.swing.SizeRequirements;
  * columns, pages, etc.
  *
  * @author  Timothy Prinzing
- * @version 1.35 01/23/01
+ * @version 1.36 11/29/01
  */
 public class BoxView extends CompositeView {
 

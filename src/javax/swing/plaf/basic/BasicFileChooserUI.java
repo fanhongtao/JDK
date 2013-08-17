@@ -1,14 +1,8 @@
 /*
- * @(#)BasicFileChooserUI.java	1.17 01/01/11
+ * @(#)BasicFileChooserUI.java	1.18 01/11/29
  *
- * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;

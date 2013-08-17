@@ -1,4 +1,11 @@
 /*
+ * @(#)BreakIterator.java	1.25 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
  * @(#)BreakIterator.java	1.22 98/07/24
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved

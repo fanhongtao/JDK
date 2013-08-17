@@ -1,15 +1,8 @@
 /*
- * @(#)Adler32.java	1.19 98/07/24
+ * @(#)Adler32.java	1.20 01/11/29
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -20,7 +13,7 @@ package java.util.zip;
  * can be computed much faster.
  *
  * @see		Checksum
- * @version 	1.19, 07/24/98
+ * @version 	1.20, 11/29/01
  * @author 	David Connelly
  */
 public

@@ -1,15 +1,8 @@
 /*
- * @(#)StyleSheet.java	1.53 99/04/22
+ * @(#)StyleSheet.java	1.54 01/11/29
  *
- * Copyright 1997-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -95,7 +88,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.53 04/22/99
+ * @version 1.54 11/29/01
  */
 public class StyleSheet extends StyleContext {
 

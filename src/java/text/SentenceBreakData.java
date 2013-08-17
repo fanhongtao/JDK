@@ -1,5 +1,12 @@
 /*
- * @(#)SentenceBreakData.java	1.17 98/08/11
+ * @(#)SentenceBreakData.java	1.18 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)SentenceBreakData.java	1.18 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

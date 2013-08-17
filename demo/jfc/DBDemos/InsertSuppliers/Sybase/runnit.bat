@@ -1,3 +1,10 @@
+REM
+REM @(#)runnit.bat	1.2 01/11/29
+REM
+REM Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+REM SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+REM
+
 @echo off
 rem Run the InsertSuppliers demo
 rem

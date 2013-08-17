@@ -1,14 +1,8 @@
 /*
- * @(#)DefaultEditorKit.java	1.42 01/01/23
+ * @(#)DefaultEditorKit.java	1.43 01/11/29
  *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -28,7 +22,7 @@ import javax.swing.SwingConstants;
  * provides a minimal set of actions for a simple editor.
  *
  * @author  Timothy Prinzing
- * @version 1.42 01/23/01
+ * @version 1.43 11/29/01
  */
 public class DefaultEditorKit extends EditorKit {
     

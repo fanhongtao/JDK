@@ -1,5 +1,12 @@
 /*
- * @(#)Collator.java	1.21 98/11/16
+ * @(#)Collator.java	1.22 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)Collator.java	1.22 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996-1998 -  All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
@@ -111,7 +118,7 @@ import java.util.Hashtable;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.21 11/16/98
+ * @version     1.22 11/29/01
  * @author      Helena Shih
  */
 

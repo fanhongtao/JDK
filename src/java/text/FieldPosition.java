@@ -1,5 +1,12 @@
 /*
- * @(#)FieldPosition.java	1.15 98/07/24
+ * @(#)FieldPosition.java	1.16 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)FieldPosition.java	1.16 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -51,7 +58,7 @@ package java.text;
  * to perform partial formatting or to get information about the
  * formatted output (such as the position of a field).
  *
- * @version     1.15 07/24/98
+ * @version     1.16 11/29/01
  * @author      Mark Davis
  * @see         java.text.Format
  */

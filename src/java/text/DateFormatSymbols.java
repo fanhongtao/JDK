@@ -1,5 +1,12 @@
 /*
- * @(#)DateFormatSymbols.java	1.30 98/09/23
+ * @(#)DateFormatSymbols.java	1.31 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)DateFormatSymbols.java	1.31 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -78,7 +85,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          SimpleDateFormat
  * @see          java.util.SimpleTimeZone
- * @version      1.30 09/23/98
+ * @version      1.31 11/29/01
  * @author       Chen-Lieh Huang
  */
 public class DateFormatSymbols implements Serializable, Cloneable {

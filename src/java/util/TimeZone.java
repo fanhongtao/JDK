@@ -1,4 +1,11 @@
 /*
+ * @(#)TimeZone.java	1.43 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
  * @(#)TimeZone.java	1.40 01/01/11
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
@@ -153,7 +160,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
 	// SimpleTimeZone overrides this and actually uses monthLength.
 	return getOffset(era, year, month, day, dayOfWeek, milliseconds);
     }
-    
+
 
     /**
      * Sets the base time zone offset to GMT.
@@ -275,7 +282,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
                                Calendar.JANUARY, 1, 0, 0,
                                Calendar.DECEMBER, 31, 0, ONE_DAY) :
             new SimpleTimeZone(getRawOffset(), getID());
-        format.applyPattern(style == LONG ? "zzzz" : "z");      
+        format.applyPattern(style == LONG ? "zzzz" : "z");
         format.getCalendar().setTimeZone(tz);
         return format.format(new Date()); // Doesn't matter what date we use
     }
@@ -361,7 +368,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
 
         return finalResult;
     }
-   
+
     /**
      * Gets the platform defined TimeZone ID.
      **/
@@ -370,7 +377,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
 
     /**
      * Gets the default <code>TimeZone</code> for this host.
-     * The source of the default <code>TimeZone</code> 
+     * The source of the default <code>TimeZone</code>
      * may vary with implementation.
      * @return a default <code>TimeZone</code>.
      */
@@ -978,7 +985,7 @@ class TimeZoneData
         new SimpleTimeZone(-3*ONE_HOUR, "AGT" /*alias for America/Buenos_Aires*/),
         //----------------------------------------------------------
         new SimpleTimeZone(-3*ONE_HOUR, "America/Godthab" /*WG%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 0*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 0*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 0*ONE_HOUR, 1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1014,14 +1021,14 @@ class TimeZoneData
         // Atlantic/Cape_Verde  Cape Verde(CV)  -1:00   -   CVT
         //----------------------------------------------------------
         new SimpleTimeZone(-1*ONE_HOUR, "America/Scoresbysund" /*EG%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 0, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 0,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 1*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone America/Scoresbysund	?(GL)	-1:00	EU	EG%sT
         //----------------------------------------------------------
         new SimpleTimeZone(-1*ONE_HOUR, "Atlantic/Azores" /*AZO%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 0, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 0,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 1*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1080,42 +1087,42 @@ class TimeZoneData
         new SimpleTimeZone(0*ONE_HOUR, "UTC" /*alias for GMT*/),
         //----------------------------------------------------------
         new SimpleTimeZone(0*ONE_HOUR, "Atlantic/Faeroe"  /*AZO%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Atlantic/Faeroe	Denmark, Faeroe Islands, and Greenland(DK)	0:00	EU	WE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(0*ONE_HOUR, "Atlantic/Canary"  /*AZO%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Atlantic/Canary	Spain(ES)	0:00	EU	WE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(0*ONE_HOUR, "Europe/Dublin" /*GMT/IST*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 1*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 1*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 2*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Dublin	---(IE)	0:00	EU	GMT/IST
         //----------------------------------------------------------
         new SimpleTimeZone(0*ONE_HOUR, "Europe/Lisbon" /*WE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 1*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 1*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_GE_DOM*/, 2*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Lisbon	Portugal(PT)	0:00	EU	WE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(0*ONE_HOUR, "Europe/London" /*GMT/BST*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/London	---(GB)	0:00	EU	GMT/BST
         //----------------------------------------------------------
         new SimpleTimeZone(0*ONE_HOUR, "WET" /*WET*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 1*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,  1*ONE_HOUR),
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Africa/Luanda" /*WAT*/),
@@ -1155,98 +1162,98 @@ class TimeZoneData
         // Africa/Algiers   Algeria(DZ) 1:00    -   CET
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Andorra" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Andorra	Andorra(AD)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Tirane" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Tirane	Albania(AL)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Vienna" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Vienna	Austria(AT)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Brussels" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Brussels	Belgium(BE)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Zurich" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Zurich	Switzerland(CH)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Prague" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Prague	Czech Republic(CZ)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Berlin" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Berlin	Germany(DE)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Copenhagen" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Copenhagen	Denmark, Faeroe Islands, and Greenland(DK)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Madrid" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Madrid	Spain(ES)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Gibraltar" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Gibraltar	Gibraltar(GI)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Budapest" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Budapest	Hungary(HU)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Rome" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Rome	Italy(IT)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Vaduz" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Vaduz	Liechtenstein(LI)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Luxembourg" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1256,14 +1263,14 @@ class TimeZoneData
         // Zone Africa/Tripoli	Libya(LY)	2:00	-	EET
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Monaco" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Monaco	Monaco(MC)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Malta" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1277,48 +1284,48 @@ class TimeZoneData
         // Africa/Windhoek  Namibia(NA) 1:00    Namibia WA%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Amsterdam" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Amsterdam	Netherlands(NL)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Oslo" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Oslo	Norway(NO)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Warsaw" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule EU      1981    max     -       Mar     lastSun  1:00u  1:00   S
         // Rule EU      1996    max     -       Oct     lastSun  1:00u  0      -
         // Zone Europe/Warsaw   1:00    EU      CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Stockholm" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Stockholm	Sweden(SE)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Belgrade" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Belgrade	Yugoslavia(YU)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Paris" /*CE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Paris	France(FR)	1:00	EU	CE%sT
         new SimpleTimeZone(1*ONE_HOUR, "ECT" /*alias for Europe/Paris*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Africa/Bujumbura" /*CAT*/),
@@ -1373,14 +1380,14 @@ class TimeZoneData
         // Europe/Minsk Belarus(BY) 2:00    Russia  EE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Asia/Nicosia"/*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EUAsia	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EUAsia	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Asia/Nicosia	Cyprus(CY)	2:00	EUAsia	EE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Tallinn"/*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1397,14 +1404,14 @@ class TimeZoneData
           Calendar.SEPTEMBER, -1, Calendar.THURSDAY /*DOW_IN_MON*/, 23*ONE_HOUR, 1*ONE_HOUR),
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Helsinki"/*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Helsinki	Finland(FI)	2:00	EU	EE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Athens"/*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1428,14 +1435,14 @@ class TimeZoneData
         // Asia/Beirut  Lebanon(LB) 2:00    Lebanon EE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(1*ONE_HOUR, "Europe/Vilnius" /*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Vilnius	Lithuania(LT)	1:00	EU	CE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Riga" /*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1470,20 +1477,20 @@ class TimeZoneData
         // Asia/Damascus    Syria(SY)   2:00    Syria   EE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Kiev" /*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Kiev	Ukraine(UA)	2:00	EU	EE%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Istanbul" /*EE%sT*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
         // Zone Europe/Istanbul	Turkey(TR)	2:00	EU	EE%sT
         new SimpleTimeZone(2*ONE_HOUR, "EET" /*alias for Europe/Istanbul*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         //----------------------------------------------------------
         new SimpleTimeZone(3*ONE_HOUR, "Asia/Bahrain" /*AST*/),
@@ -1540,7 +1547,7 @@ class TimeZoneData
         // Asia/Baghdad Iraq(IQ)    3:00    Iraq    A%sT
         //----------------------------------------------------------
         new SimpleTimeZone(2*ONE_HOUR, "Europe/Simferopol"/*MSK/MSD*/,
-          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 
+          Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR,
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 4*ONE_HOUR,  1*ONE_HOUR),
         // Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
         // Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
@@ -1583,7 +1590,7 @@ class TimeZoneData
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 1*ONE_HOUR),
         // Rule RussiaAsia	1993	max	-	Mar	lastSun	 2:00s	1:00	S
         // Rule RussiaAsia	1996	max	-	Oct	lastSun	 2:00s	0	-
-        // Zone Asia/Yerevan	Armenia(AM)	4:00 RussiaAsia	AM%sT			
+        // Zone Asia/Yerevan	Armenia(AM)	4:00 RussiaAsia	AM%sT
         new SimpleTimeZone(4*ONE_HOUR, "NET" /*alias for Asia/Yerevan*/),
         //----------------------------------------------------------
         new SimpleTimeZone(4*ONE_HOUR, "Asia/Baku",
@@ -1644,7 +1651,7 @@ class TimeZoneData
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, (int)(2.5*ONE_HOUR), 1*ONE_HOUR),
         // Rule	Kirgiz	1997	max	-	Mar	lastSun	2:30	1:00	S
         // Rule	Kirgiz	1997	max	-	Oct	lastSun	2:30	0	-
-        // Zone Asia/Bishkek	Kirgizstan(KG)	5:00	Kirgiz	KG%sT		    
+        // Zone Asia/Bishkek	Kirgizstan(KG)	5:00	Kirgiz	KG%sT
         //----------------------------------------------------------
         new SimpleTimeZone(5*ONE_HOUR, "Asia/Aqtobe" /*AQT%sT*/,
           Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_DOM*/, 0*ONE_HOUR,
@@ -1802,18 +1809,18 @@ class TimeZoneData
         new SimpleTimeZone((int)(9.5*ONE_HOUR), "ACT" /*alias for Australia/Darwin*/),
         //----------------------------------------------------------
         new SimpleTimeZone((int)(9.5*ONE_HOUR), "Australia/Adelaide" /*CST*/,
-          Calendar.AUGUST, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
+          Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 1*ONE_HOUR),
-        // Rule AS      2000    only    -       Aug     lastSun 2:00s   1:00   -
-        // Rule AS      1995    max     -       Mar     lastSun 2:00s   0      -
-        // Zone Australia/Adelaide      9:30    AS      CST
+        // Rule	AS	1987	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AS	1995	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Adelaide	9:30	AS	CST
         //----------------------------------------------------------
         new SimpleTimeZone((int)(9.5*ONE_HOUR), "Australia/Broken_Hill",
-          Calendar.AUGUST, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
+          Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 1*ONE_HOUR),
-        // Rule	AN	2000	only	-	Aug	lastSun	2:00s	1:00	-
-        // Rule	AN	1996	max	-	Mar	lastSun	2:00s	0	-
-        // Zone Australia/Broken_Hill	9:30	AN	CST
+        // Rule	AS	1987	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AS	1995	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Broken_Hill	9:30	AS	CST
         //----------------------------------------------------------
         new SimpleTimeZone(10*ONE_HOUR, "Australia/Hobart",
           Calendar.OCTOBER, 1, -Calendar.SUNDAY /*DOW>=DOM*/, 2*ONE_HOUR,
@@ -1848,16 +1855,18 @@ class TimeZoneData
         // Asia/Vladivostok Russia(RU)  10:00   Russia  VLA%sT
         //----------------------------------------------------------
         new SimpleTimeZone(10*ONE_HOUR, "Australia/Sydney" /*EST*/,
-          Calendar.AUGUST, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
+          Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
           Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 1*ONE_HOUR),
-        // Rule AN      2000    only    -       Aug     lastSun 2:00s   1:00   -
-        // Rule AN      1996    max     -       Mar     lastSun 2:00s   0      -
-        // Zone Australia/Sydney        10:00   AN      EST
+        // Rule	AN	2001	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AN	1996	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Sydney	10:00	AN	EST
         //----------------------------------------------------------
         new SimpleTimeZone(10*ONE_HOUR, "AET" /*alias for Australia/Sydney*/ /*LHST*/,
-       //   Calendar.AUGUST, 26, 0 /*DOM*/, 2*ONE_HOUR,
-          Calendar.AUGUST, -1, Calendar.SUNDAY /*DOM*/, 2*ONE_HOUR,
+          Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOM*/, 2*ONE_HOUR,
           Calendar.MARCH, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 1*ONE_HOUR),
+        // Rule	AN	2001	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AN	1996	max	-	Mar	lastSun	2:00s	0	-
+	// Zone AET	10:00	AN	EST
         //----------------------------------------------------------
         new SimpleTimeZone((int)(10.5*ONE_HOUR), "Australia/Lord_Howe",
           Calendar.OCTOBER, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 2*ONE_HOUR,
@@ -1915,7 +1924,7 @@ class TimeZoneData
           Calendar.FEBRUARY, -1, Calendar.SUNDAY /*DOW_IN_MON*/, 3*ONE_HOUR, 1*ONE_HOUR),
         // Rule	Fiji	1998	max	-	Nov	Sun>=1	2:00	1:00	S
         // Rule	Fiji	1999	max	-	Feb	lastSun	3:00	0	-
-        // Zone Pacific/Fiji	Fiji(FJ)	12:00	Fiji	FJ%sT	
+        // Zone Pacific/Fiji	Fiji(FJ)	12:00	Fiji	FJ%sT
         //----------------------------------------------------------
         new SimpleTimeZone(12*ONE_HOUR, "Antarctica/McMurdo" /*NZ%sT*/,
           Calendar.OCTOBER, 1, -Calendar.SUNDAY /*DOW>=DOM*/, 2*ONE_HOUR,

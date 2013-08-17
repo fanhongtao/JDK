@@ -1,5 +1,12 @@
 /*
- * @(#)ParseException.java	1.12 98/10/02
+ * @(#)ParseException.java	1.13 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)ParseException.java	1.13 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -37,7 +44,7 @@ package java.text;
  * @see java.lang.Exception
  * @see java.text.Format
  * @see java.text.FieldPosition
- * @version     1.12, 10/02/98
+ * @version     1.13, 11/29/01
  * @author      Mark Davis
  */
 public

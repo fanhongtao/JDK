@@ -1,5 +1,12 @@
 /*
- * @(#)MergeCollation.java	1.12 98/04/22
+ * @(#)MergeCollation.java	1.13 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)MergeCollation.java	1.13 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -48,7 +55,7 @@ import java.util.ArrayList;
  * "a < b < d & b < c"
  * XXX: make '' be a single quote.
  * @see PatternEntry
- * @version    1.12 04/22/98
+ * @version    1.13 11/29/01
  * @author             Mark Davis, Helena Shih
  */
 

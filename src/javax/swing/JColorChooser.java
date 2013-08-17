@@ -1,15 +1,8 @@
 /*
- * @(#)JColorChooser.java	1.22 98/09/01
+ * @(#)JColorChooser.java	1.23 01/11/29
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -63,7 +56,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.22 09/01/98
+ * @version 1.23 11/29/01
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson

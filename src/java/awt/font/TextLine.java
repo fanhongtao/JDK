@@ -1,6 +1,13 @@
 /*
  * %W% %E%
  *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * %W% %E%
+ *
  * (C) Copyright IBM Corp. 1998, All Rights Reserved
  *
  * Portions copyright (c) 1998 Sun Microsystems, Inc.

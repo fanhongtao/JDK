@@ -1,5 +1,12 @@
 /*
- * @(#)DateFormat.java	1.32 98/09/23
+ * @(#)DateFormat.java	1.33 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)DateFormat.java	1.33 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -116,7 +123,7 @@ import java.text.resources.*;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.32 09/23/98
+ * @version      1.33 11/29/01
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {

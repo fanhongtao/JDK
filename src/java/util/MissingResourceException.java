@@ -1,5 +1,12 @@
 /*
- * @(#)MissingResourceException.java	1.9 98/09/21
+ * @(#)MissingResourceException.java	1.10 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)MissingResourceException.java	1.10 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -37,7 +44,7 @@ package java.util;
  * Signals that a resource is missing.
  * @see java.io.Exception
  * @see ResourceBundle
- * @version     1.9, 09/21/98
+ * @version     1.10, 11/29/01
  * @author      Mark Davis
  */
 public

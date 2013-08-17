@@ -1,5 +1,12 @@
 /*
- * @(#)RuleBasedCollator.java	1.25 98/07/24
+ * @(#)RuleBasedCollator.java	1.26 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)RuleBasedCollator.java	1.26 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
@@ -267,7 +274,7 @@ import java.util.Vector;
  *
  * @see        Collator
  * @see        CollationElementIterator
- * @version    1.25 07/24/98
+ * @version    1.26 11/29/01
  * @author     Helena Shih
  */
 public class RuleBasedCollator extends Collator{

@@ -1,14 +1,8 @@
 /*
- * @(#)PlainSocketImpl.java	1.34 01/01/11
+ * @(#)PlainSocketImpl.java	1.35 01/11/29
  *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -26,7 +20,7 @@ import java.io.ByteArrayOutputStream;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.34, 01/11/01
+ * @version 1.35, 11/29/01
  */
 class PlainSocketImpl extends SocketImpl
 {

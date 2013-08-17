@@ -1,5 +1,12 @@
 /*
- * @(#)Normalizer.java	1.28 99/01/27
+ * @(#)Normalizer.java	1.29 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)Normalizer.java	1.29 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -40,7 +47,7 @@ package java.text;
   * be able to decompose a Unicode character into an equivalent string.
   * The composition operation is also necessary.
   *
-  * @version    1.28 01/27/99
+  * @version    1.29 11/29/01
   * @author     Mark Davis, Helena Shih, Laura Werner
   */
 class Normalizer {

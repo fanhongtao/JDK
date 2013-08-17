@@ -1,5 +1,12 @@
 /*
- * @(#)SimpleTextBoundary.java	1.23 98/07/27
+ * @(#)SimpleTextBoundary.java	1.24 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)SimpleTextBoundary.java	1.24 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

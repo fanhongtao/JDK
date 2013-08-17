@@ -1,14 +1,8 @@
 /*
- * @(#)DataFlavor.java	1.34 01/01/23
+ * @(#)DataFlavor.java	1.35 01/11/29
  *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.datatransfer;
@@ -23,7 +17,7 @@ import java.io.IOException;
  * Each instance represents the opaque concept of a data format as would
  * appear on a clipboard, during drag and drop, or in a file system.
  *
- * @version     1, 34
+ * @version     1, 35
  * @author	Blake Sullivan
  * @author	Laurence P. G. Cable
  */

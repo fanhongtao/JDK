@@ -1,5 +1,12 @@
 /*
- * @(#)EntryPair.java	1.9 98/04/22
+ * @(#)EntryPair.java	1.10 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)EntryPair.java	1.10 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

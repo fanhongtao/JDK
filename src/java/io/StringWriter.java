@@ -1,15 +1,8 @@
 /*
- * @(#)StringWriter.java	1.15 98/09/30
+ * @(#)StringWriter.java	1.16 01/11/29
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -19,7 +12,7 @@ package java.io;
  * A character stream that collects its output in a string buffer, which can
  * then be used to construct a string.
  *
- * @version 	1.15, 98/09/30
+ * @version 	1.16, 01/11/29
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

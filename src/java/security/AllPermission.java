@@ -1,15 +1,8 @@
 /*
- * @(#)AllPermission.java	1.5 98/12/03
+ * @(#)AllPermission.java	1.6 01/11/29
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -37,7 +30,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.5 98/12/03
+ * @version 1.6 01/11/29
  *
  * @author Roland Schemers
  */
@@ -135,7 +128,7 @@ public final class AllPermission extends Permission {
  * @see java.security.Permission
  * @see java.security.Permissions
  *
- * @version 1.5 01/07/26
+ * @version 1.6 01/12/05
  *
  * @author Roland Schemers
  */

@@ -1,5 +1,12 @@
 /*
- * @(#)CompactIntArray.java	1.14 98/06/11
+ * @(#)CompactIntArray.java	1.15 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)CompactIntArray.java	1.15 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -51,7 +58,7 @@ package java.text;
  * @see                CompactByteArray
  * @see                CompactCharArray
  * @see                CompactStringArray
- * @version            1.14 06/11/98
+ * @version            1.15 11/29/01
  * @author             Helena Shih
  */
 final class CompactIntArray implements Cloneable {

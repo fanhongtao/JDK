@@ -1,15 +1,8 @@
 /*
- * @(#)BasicPopupMenuSeparatorUI.java	1.6 98/11/05
+ * @(#)BasicPopupMenuSeparatorUI.java	1.7 01/11/29
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -26,7 +19,7 @@ import javax.swing.plaf.ComponentUI;
  * A Basic L&F implementation of PopupMenuSeparatorUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.6 11/05/98
+ * @version 1.7 11/29/01
  * @author Jeff Shapiro
  */
 

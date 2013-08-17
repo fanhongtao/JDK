@@ -1,15 +1,8 @@
 /*
- * @(#)DnDConstants.java	1.12 99/04/22
+ * @(#)DnDConstants.java	1.13 01/11/29
  *
- * Copyright 1997-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -17,7 +10,7 @@ package java.awt.dnd;
 /**
  * This class contains constant values representing
  * the type of action(s) to be performed by a Drag and Drop operation.
- * @version 1.12
+ * @version 1.13
  * @since JDK1.2
  */
 

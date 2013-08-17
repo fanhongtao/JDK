@@ -1,5 +1,12 @@
 /*
- * @(#)DecimalFormat.java	1.50 99/01/28
+ * @(#)DecimalFormat.java	1.51 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)DecimalFormat.java	1.51 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -207,7 +214,7 @@ import java.util.Hashtable;
  * @see          java.text.Format
  * @see          java.text.NumberFormat
  * @see          java.text.ChoiceFormat
- * @version      1.50 01/28/99
+ * @version      1.51 11/29/01
  * @author       Mark Davis
  * @author       Alan Liu
  */

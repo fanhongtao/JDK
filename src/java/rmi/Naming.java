@@ -1,15 +1,8 @@
 /*
- * @(#)Naming.java	1.10 98/07/12
+ * @(#)Naming.java	1.11 01/11/29
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi;
 
@@ -49,7 +42,7 @@ import java.net.MalformedURLException;
  * (see <code>java.rmi.registry.LocateRegistry.createRegistry</code> method
  * for details).
  *
- * @version 1.10, 07/12/98
+ * @version 1.11, 11/29/01
  * @author  Ann Wollrath
  * @author  Roger Riggs
  * @since   JDK1.1

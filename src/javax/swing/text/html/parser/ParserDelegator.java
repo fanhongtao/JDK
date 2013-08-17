@@ -1,15 +1,8 @@
 /*
- * @(#)ParserDelegator.java	1.6 99/04/22
+ * @(#)ParserDelegator.java	1.7 01/11/29
  *
- * Copyright 1998, 1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.text.html.parser;
@@ -27,7 +20,7 @@ import java.lang.reflect.Method;
  * reference to the dtd.
  *
  * @author  Sunita Mani
- * @version 1.6, 04/22/99
+ * @version 1.7, 11/29/01
  */
 
 public class ParserDelegator extends HTMLEditorKit.Parser {

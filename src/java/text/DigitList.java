@@ -1,4 +1,11 @@
 /*
+ * @(#)DigitList.java	1.24 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
  * @(#)DigitList.java	1.22 00/09/05
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved

@@ -1,14 +1,8 @@
 /*
- * @(#)Dialog.java	1.61 01/01/23
+ * @(#)Dialog.java	1.62 01/11/29
  *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -58,7 +52,7 @@ import sun.awt.AxBridgeHelper;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.61, 01/23/01
+ * @version 	1.62, 11/29/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

@@ -1,15 +1,8 @@
 /*
- * @(#)Style.java	1.14 98/08/26
+ * @(#)Style.java	1.15 01/11/29
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -33,7 +26,7 @@ import java.util.Hashtable;
  * implementations that are more efficient.
  *
  * @author  Timothy Prinzing
- * @version 1.14 08/26/98
+ * @version 1.15 11/29/01
  */
 public interface Style extends MutableAttributeSet {
 

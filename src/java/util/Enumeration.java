@@ -1,15 +1,8 @@
 /*
- * @(#)Enumeration.java	1.16 98/06/29
+ * @(#)Enumeration.java	1.17 01/11/29
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -47,7 +40,7 @@ package java.util;
  * @see     java.util.Vector#elements()
  *
  * @author  Lee Boynton
- * @version 1.16, 06/29/98
+ * @version 1.17, 11/29/01
  * @since   JDK1.0
  */
 public interface Enumeration {

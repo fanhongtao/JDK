@@ -1,5 +1,12 @@
 /*
- * @(#)CollationElementIterator.java	1.24 98/07/27
+ * @(#)CollationElementIterator.java	1.25 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)CollationElementIterator.java	1.25 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
@@ -86,7 +93,7 @@ import java.util.Vector;
  *
  * @see                Collator
  * @see                RuleBasedCollator
- * @version            1.24 07/27/98
+ * @version            1.25 11/29/01
  * @author             Helena Shih
  */
 public final class CollationElementIterator

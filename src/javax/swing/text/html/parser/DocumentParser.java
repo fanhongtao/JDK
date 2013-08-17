@@ -1,15 +1,8 @@
 /*
- * @(#)DocumentParser.java	1.15 98/11/06
+ * @(#)DocumentParser.java	1.16 01/11/29
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.text.html.parser;
@@ -29,7 +22,7 @@ import sun.io.*;
  * A Parser for HTML Documents. Read an InputStream of HTML and
  * invoke the appropriate methods in the ParserCallback class.
  *
- * @version 	1.15 11/06/98
+ * @version 	1.16 11/29/01
  * @author      Sunita Mani
  */
 public class DocumentParser extends javax.swing.text.html.parser.Parser {

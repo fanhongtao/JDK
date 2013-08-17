@@ -1,15 +1,8 @@
 /*
- * @(#)ByteArrayInputStream.java	1.32 98/09/30
+ * @(#)ByteArrayInputStream.java	1.33 01/11/29
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -22,7 +15,7 @@ package java.io;
  * be supplied by the <code>read</code> method.
  *
  * @author  Arthur van Hoff
- * @version 1.32, 09/30/98
+ * @version 1.33, 11/29/01
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */

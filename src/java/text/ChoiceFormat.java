@@ -1,5 +1,12 @@
 /*
- * @(#)ChoiceFormat.java	1.22 98/09/21
+ * @(#)ChoiceFormat.java	1.23 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)ChoiceFormat.java	1.23 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -141,7 +148,7 @@ import java.text.Utility;
  * </blockquote>
  * @see          DecimalFormat
  * @see          MessageFormat
- * @version      1.22 09/21/98
+ * @version      1.23 11/29/01
  * @author       Mark Davis
  */
 public class ChoiceFormat extends NumberFormat {

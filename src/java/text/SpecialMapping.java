@@ -1,5 +1,12 @@
 /*
- * @(#)SpecialMapping.java	1.8 98/07/24
+ * @(#)SpecialMapping.java	1.9 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)SpecialMapping.java	1.9 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

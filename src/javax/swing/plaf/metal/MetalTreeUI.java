@@ -1,15 +1,8 @@
 /*
- * @(#)MetalTreeUI.java	1.14 98/08/26
+ * @(#)MetalTreeUI.java	1.15 01/11/29
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -47,7 +40,7 @@ import javax.swing.plaf.basic.*;
  * 	tree.putClientProperty("JTree.lineStyle", "None");
  *
  *
- * @version 1.14 08/26/98
+ * @version 1.15 11/29/01
  * @author Tom Santos
  * @author Steve Wilson (value add stuff)
  */

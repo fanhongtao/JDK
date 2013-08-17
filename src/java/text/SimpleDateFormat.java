@@ -1,5 +1,12 @@
 /*
- * @(#)SimpleDateFormat.java	1.44 99/03/02
+ * @(#)SimpleDateFormat.java	1.45 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)SimpleDateFormat.java	1.45 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved

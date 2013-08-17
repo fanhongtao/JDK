@@ -1,5 +1,12 @@
 /*
- * @(#)LocaleData.java	1.25 98/09/22
+ * @(#)LocaleData.java	1.26 01/11/29
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)LocaleData.java	1.26 01/11/29
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -53,7 +60,7 @@ import java.util.zip.ZipEntry;
  *
  * @author Asmus Freytag
  * @author Mark Davis
- * @version 1.25 09/22/98
+ * @version 1.26 11/29/01
  */
 
 public class LocaleData {
