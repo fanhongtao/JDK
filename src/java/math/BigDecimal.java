@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.30, 02/06/02
+ * @version 1.32, 10/14/03
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {
@@ -120,6 +120,8 @@ public class BigDecimal extends Number implements Comparable {
      *	       of a BigDecimal.
      */
     public BigDecimal(String val) {
+	if (val.length() == 0)
+            throw new NumberFormatException();
         // Deal with leading plus sign if present
         if (val.charAt(0) == '+') {
             val = val.substring(1);      /* Discard leading '+' */

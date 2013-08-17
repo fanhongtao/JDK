@@ -273,7 +273,7 @@ import java.text.DateFormat;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.52, 03/14/03
+ * @version      1.53, 07/25/03
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -943,6 +943,9 @@ public abstract class Calendar implements Serializable, Cloneable {
         isTimeSet = false;
         fields[field] = value;
         stamp[field] = nextStamp++;
+        if (nextStamp == Integer.MAX_VALUE) {
+            adjustStamp();
+        }
         areFieldsSet = false;
         isSet[field] = true; // Remove later
     }
@@ -1506,6 +1509,41 @@ public abstract class Calendar implements Serializable, Cloneable {
         // in a newly-created object), we need to fill in the fields. [LIU]
         if (isLenient() || !areAllFieldsSet) areFieldsSet = false;
         isTimeSet = true;
+    }
+
+    /**
+     * Adjusts the stamp[] values before nextStamp overflow. nextStamp
+     * is set to the next stamp value upon the return.
+     */
+    private final void adjustStamp() {
+        int max = MINIMUM_USER_STAMP;
+        int newStamp = MINIMUM_USER_STAMP;
+
+        for (;;) {
+            int min = Integer.MAX_VALUE;
+            for (int i = 0; i < stamp.length; i++) {
+                int v = stamp[i];
+                if (v >= newStamp && min > v) {
+                    min = v;
+                }
+                if (max < v) {
+                    max = v;
+                }
+            }
+            if (max != min && min == Integer.MAX_VALUE) {
+                break;
+            }
+            for (int i = 0; i < stamp.length; i++) {
+                if (stamp[i] == min) {
+                    stamp[i] = newStamp;
+                }
+            }
+            newStamp++;
+            if (min == max) {
+                break;
+            }
+        }
+        nextStamp = newStamp;
     }
 
     /**

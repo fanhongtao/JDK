@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Hashtable;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.44, 02/06/02
+ * @version 1.46, 10/14/03
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */
@@ -98,7 +98,7 @@ public abstract class URLStreamHandler {
 	if (start < limit) {
             int queryStart = spec.indexOf('?');
             queryOnly = queryStart == start;
-            if (queryStart != -1) {
+            if ( (queryStart != -1) && (queryStart < limit) ) {
                 query = spec.substring(queryStart+1, limit);
                 if (limit > queryStart)
                     limit = queryStart;
