@@ -1,5 +1,5 @@
 /*
- * @(#)ValueUtility.java	1.25 01/12/03
+ * @(#)ValueUtility.java	1.26 02/07/30
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,15 +79,20 @@ public class ValueUtility {
 
     public static String getSignature(ValueMember member)
 	throws ClassNotFoundException {
-		
-	if (member.type.kind().value() == TCKind._tk_value_box) {
+
+        // REVISIT.  Can the type be something that is
+        // non-primitive yet not a value_box, value, or objref?
+        // If so, should use ObjectStreamClass or throw
+        // exception.
+
+	if (member.type.kind().value() == TCKind._tk_value_box ||
+            member.type.kind().value() == TCKind._tk_value ||
+            member.type.kind().value() == TCKind._tk_objref) {
 	    Class c = RepositoryId.cache.getId(member.id).getClassFromType();
-	    if (c.isArray())
-		return ObjectStreamClass.getSignature(c);
-	    else
-		return ObjectStreamClass.getSignature(c);
-	}
-	else {
+            return ObjectStreamClass.getSignature(c);
+
+	} else {
+
 	    return primitiveConstants[member.type.kind().value()];
 	}
 		

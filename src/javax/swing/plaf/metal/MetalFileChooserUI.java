@@ -1,5 +1,5 @@
 /*
- * @(#)MetalFileChooserUI.java	1.61 01/12/03
+ * @(#)MetalFileChooserUI.java	1.63 02/10/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.61 12/03/01
+ * @version 1.63 10/07/02
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -471,7 +471,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     protected ActionMap createActionMap() {
         AbstractAction escAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-		if(editing) {
+		if(editFile != null) {
 		    cancelEdit();
 		} else {
 		    getFileChooser().cancelSelection();
@@ -659,7 +659,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 			// rename
 			FileSystemView fsv = chooser.getFileSystemView();
 			File f2 = fsv.createFileObject(f.getParentFile(), newFileName);
-			if (MetalFileChooserUI.this.getModel().renameFile(f, f2)) {
+			if (!f2.exists() && MetalFileChooserUI.this.getModel().renameFile(f, f2)) {
+
 			    if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
 				if (chooser.isMultiSelectionEnabled()) {
 				    chooser.setSelectedFiles(new File[] { f2 });
@@ -978,7 +979,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     int lastIndex = -1;
-    boolean editing = false;
+    File editFile = null;
     int editX = 20;
 
     private int getEditIndex() {
@@ -994,8 +995,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     private void cancelEdit() {
-	if (editing) {
-	    editing = false;
+	if (editFile != null) {
+	    editFile = null;
 	    list.remove(editCell);
 	    centerPanel.repaint();
 	} else if (detailsTable != null && detailsTable.isEditing()) {
@@ -1008,7 +1009,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     private void editFileName(int index) {
 	ensureIndexIsVisible(index);
 	if (listViewPanel.isVisible()) {
-	    editing = true;
+	    editFile = (File)getModel().getElementAt(index);
 	    Rectangle r = list.getCellBounds(index, index);
 	    if (editCell == null) {
 		editCell = new JTextField();
@@ -1017,8 +1018,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		editCell.setNextFocusableComponent(list);
 	    }
 	    list.add(editCell);
-	    File f = (File)getModel().getElementAt(index);
-	    editCell.setText(getFileChooser().getName(f));
+	    editCell.setText(getFileChooser().getName(editFile));
 	    if (list.getComponentOrientation().isLeftToRight()) {
 		editCell.setBounds(editX + r.x, r.y, r.width - editX, r.height);
 	    } else {
@@ -1047,7 +1047,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		    int index = list.locationToIndex(e.getPoint());
 		    if ((!fc.isMultiSelectionEnabled() || fc.getSelectedFiles().length <= 1)
 			&& index >= 0 && list.isSelectedIndex(index)
-			&& getEditIndex() == index && !editing) {
+			&& getEditIndex() == index && editFile == null) {
 
 			editFileName(index);
 		    } else {
@@ -1073,19 +1073,12 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     private void applyEdit() {
-	if (editing) {
+	if (editFile != null && editFile.exists()) {
 	    JFileChooser chooser = getFileChooser();
-	    File f = null;
-	    if (isDirectorySelected()) {
-		f = getDirectory();
-	    } else {
-		f = chooser.getSelectedFile();
-	    }
-	    if (f != null) {
-		String oldDisplayName = chooser.getName(f);
-		String oldFileName = f.getName();
-		String newDisplayName = editCell.getText().trim();
-		String newFileName;
+	    String oldDisplayName = chooser.getName(editFile);
+	    String oldFileName = editFile.getName();
+	    String newDisplayName = editCell.getText().trim();
+	    String newFileName;
 
 		if (!newDisplayName.equals(oldDisplayName)) {
 		    newFileName = newDisplayName;
@@ -1098,8 +1091,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
 		    // rename
 		    FileSystemView fsv = chooser.getFileSystemView();
-		    File f2 = fsv.createFileObject(f.getParentFile(), newFileName);
-		    if (getModel().renameFile(f, f2)) {
+		    File f2 = fsv.createFileObject(editFile.getParentFile(), newFileName);
+		    if (!f2.exists() && getModel().renameFile(editFile, f2)) {
 			if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
 			    if (chooser.isMultiSelectionEnabled()) {
 				chooser.setSelectedFiles(new File[] { f2 });
@@ -1113,7 +1106,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		    } else {
 			// PENDING(jeff) - show a dialog indicating failure
 		    }
-		}
 	    }
 	}
         if (detailsTable != null && detailsTable.isEditing()) {

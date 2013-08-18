@@ -1,5 +1,5 @@
 /*
- * @(#)ServiceContext.java	1.25 01/12/03
+ * @(#)ServiceContext.java	1.26 02/07/30
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -96,7 +96,7 @@ public abstract class ServiceContext {
      */
     public void write(OutputStream s, GIOPVersion gv) throws SystemException
     {
-        EncapsOutputStream os = new EncapsOutputStream(s.orb()) ;
+        EncapsOutputStream os = new EncapsOutputStream(s.orb(), gv) ;
         os.putEndian() ;
         writeData( os ) ;
         byte[] data = os.toByteArray() ;

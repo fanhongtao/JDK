@@ -119,10 +119,10 @@ Redistribution
 
       In addition, the Java Web Start product may be excluded from
       redistributions. The Java Web Start product is contained in a 
-      file named javaws-1_0_1_03-solaris-sparc-i.zip,
-      javaws-1_0_1_03-solaris-i586-i.zip,
-      javaws-1_0_1_03-linux-i586-i.zip, or
-      javaws-1_0_1_03-windows-i586-i.exe, depending on the platform. 
+      file named javaws-1_0_1_04-solaris-sparc-i.zip,
+      javaws-1_0_1_04-solaris-i586-i.zip,
+      javaws-1_0_1_04-linux-i586-i.zip, or
+      javaws-1_0_1_04-windows-i586-i.exe, depending on the platform. 
 
 
       Unlimited Strength Java Cryptography Extension

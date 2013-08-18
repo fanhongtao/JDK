@@ -1,5 +1,5 @@
 /*
- * @(#)GraphicsDevice.java	1.25 01/12/03
+ * @(#)GraphicsDevice.java	1.26 02/08/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,7 +47,7 @@ import java.awt.image.ColorModel;
  * </pre>                           
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.25, 12/03/01
+ * @version 1.26, 08/13/02
  */
 public abstract class GraphicsDevice {
 
@@ -200,9 +200,9 @@ public abstract class GraphicsDevice {
         // Set the full screen window
         fullScreenWindow = w;
         if (fullScreenWindow != null) {
-            fullScreenWindow.setVisible(true);
             windowedModeBounds = fullScreenWindow.getBounds();
             fullScreenWindow.setBounds(0, 0, dm.getWidth(), dm.getHeight());
+            fullScreenWindow.setVisible(true);
             fullScreenWindow.toFront();
         }
     }

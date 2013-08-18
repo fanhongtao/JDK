@@ -1,5 +1,5 @@
 /*
- * @(#)URLClassLoader.java	1.74 01/12/03
+ * @(#)URLClassLoader.java	1.76 02/09/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -48,7 +48,7 @@ import sun.net.www.ParseUtil;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.74, 12/03/01
+ * @version 1.76, 09/04/02
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {

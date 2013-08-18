@@ -1,5 +1,5 @@
 /*
- * @(#)CardLayout.java	1.35 01/12/03
+ * @(#)CardLayout.java	1.37 02/10/31
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import java.io.IOException;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.35 12/03/01
+ * @version 	1.37 10/31/02
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
@@ -219,18 +219,23 @@ public class CardLayout implements LayoutManager2,
      */
     public void removeLayoutComponent(Component comp) {
       synchronized (comp.getTreeLock()) {
-          for (int i = 0; i < vector.size(); i++) {
-              if (((Card)vector.get(i)).comp == comp) {
-                  vector.remove(i);
-                  break;
-              }
-          }
-          
-          if (vector.isEmpty()) {
-              currentCard = 0;
-          } else {
-              currentCard %= vector.size();
-          }
+        for (int i = 0; i < vector.size(); i++) {
+            if (((Card)vector.get(i)).comp == comp) {
+				// component to be removed is present
+				// if it is visible, show the next component
+				if (comp.isVisible()) {
+					Container parent = comp.getParent();
+					if(parent != null) { 
+						next(parent); 
+					}
+				}
+                vector.remove(i);
+				if (i < currentCard) {
+					currentCard--; 
+				}
+                break;
+            }
+        }
       }
     }
 

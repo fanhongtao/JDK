@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.330 01/12/03
+ * @(#)Component.java	1.331 02/09/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -129,7 +129,7 @@ import sun.awt.im.CompositionArea;
  *    }
  * </pre>
  *
- * @version 	1.330, 12/03/01
+ * @version 	1.331, 09/02/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -579,7 +579,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
     private java.beans.PropertyChangeSupport changeSupport;
 
     boolean isPacked = false;
-
+    
     /**
      * This object is used as a key for internal hashtables.
      */
@@ -1127,7 +1127,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	if (b) {
 	    show();
 	} else {
-	    hide();
+            isPacked = false; 
+            hide();
 	}
     }
 

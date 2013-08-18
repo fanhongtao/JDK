@@ -1,5 +1,5 @@
 /*
- * @(#)ComponentView.java	1.48 01/12/03
+ * @(#)ComponentView.java	1.49 02/08/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -46,7 +46,7 @@ import javax.swing.OverlayLayout;
  * views of a shared model.
  *
  * @author Timothy Prinzing
- * @version 1.48 12/03/01
+ * @version 1.49 08/22/02
  */
 public class ComponentView extends View  {
 
@@ -362,13 +362,9 @@ public class ComponentView extends View  {
         // root) and the children typically don't want these bindings as well.
 
 	Invalidator(Component child) {
-	    setLayout(new OverlayLayout(this));
+            setLayout(null);
 	    add(child);
-	    min = child.getMinimumSize();
-	    pref = child.getPreferredSize();
-	    max = child.getMaximumSize();
-	    yalign = child.getAlignmentY();
-	    xalign = child.getAlignmentX();
+            cacheChildSizes();
 	}
 
 	/**
@@ -384,17 +380,31 @@ public class ComponentView extends View  {
 	    }
         }
 
-        public void validate() {
-            if (!isValid()) {
-                min = super.getMinimumSize();
-                pref = super.getPreferredSize();
-                max = super.getMaximumSize();
-                yalign = super.getAlignmentY();
-                xalign = super.getAlignmentX();
-            }
-            super.validate();
+        public void doLayout() {
+	    cacheChildSizes();
 	}
 
+	public void setBounds(int x, int y, int w, int h) {
+            super.setBounds(x, y, w, h);
+            getComponent(0).setSize(w, h);
+            cacheChildSizes();
+        }
+
+	private void validateIfNecessary() {
+            if (!isValid()) {
+                 validate();
+             }
+        }
+
+	private void cacheChildSizes() {
+            Component child = getComponent(0);
+            min = child.getMinimumSize();
+            pref = child.getPreferredSize();
+            max = child.getMaximumSize();
+            yalign = child.getAlignmentY();
+            xalign = child.getAlignmentX();
+          }
+  
 	/**
 	 * Shows or hides this component depending on the value of parameter 
 	 * <code>b</code>.
@@ -410,22 +420,27 @@ public class ComponentView extends View  {
 	}
 
         public Dimension getMinimumSize() {
+	    validateIfNecessary();
 	    return min;
 	}
 
         public Dimension getPreferredSize() {
+	    validateIfNecessary();
 	    return pref;
 	}
 
         public Dimension getMaximumSize() {
+	    validateIfNecessary();
 	    return max;
 	}
 
 	public float getAlignmentX() {
+	    validateIfNecessary();
 	    return xalign;
 	}
 
 	public float getAlignmentY() {
+	    validateIfNecessary();
 	    return yalign;
 	}
 

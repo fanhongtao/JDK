@@ -1,5 +1,5 @@
 /*
- * @(#)IIOPInputStream.java	1.46 01/12/03
+ * @(#)IIOPInputStream.java	1.47 02/07/30
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1398,7 +1398,8 @@ public class IIOPInputStream
 
     private Object inputObjectField(org.omg.CORBA.ValueMember field,
                                     com.sun.org.omg.SendingContext.CodeBase sender)
-        throws IndirectionException, ClassNotFoundException, IOException {
+        throws IndirectionException, ClassNotFoundException, IOException,
+               StreamCorruptedException {
 
         Object objectValue = null;
         Class type = null;
@@ -1429,51 +1430,54 @@ public class IIOPInputStream
             // have the ability to optimize this check.
             
             int callType = ValueHandlerImpl.kValueType;
-            boolean narrow = false;
-            boolean loadStubClass = false;
             
             if (!vhandler.isSequence(id)) {
-                FullValueDescription fieldFVD = sender.meta(field.id);
-                
-                if (kRemoteTypeCode == field.type) {
-                    
+
+                if (field.type.kind().value() == kRemoteTypeCode.kind().value()) {
+
                     // RMI Object reference...
                     callType = ValueHandlerImpl.kRemoteType;
                     
-                } else if (fieldFVD.is_abstract) {
-                    
-                    // RMI Abstract Object reference...
-                    callType = ValueHandlerImpl.kAbstractType;
-                }
-                
-                if (loadStubClass) {
-                    try {
-                        String codebase = sender.implementation(fieldFVD.id);
-                        type = Utility.loadStubClass(fieldFVD.id, codebase, type);  //d11638
-                    } catch (ClassNotFoundException e) {
-                        narrow = true;
-                    }
                 } else {
-                    narrow = true;
+
+                    // REVISIT.  If we don't have the local class,
+                    // we should probably verify that it's an RMI type, 
+                    // query the remote FVD, and use is_abstract.
+                    // Our FVD seems to get NullPointerExceptions for any
+                    // non-RMI types.
+
+                    // This uses the local class in the same way as
+                    // inputObjectField(ObjectStreamField) does.  REVISIT
+                    // inputObjectField(ObjectStreamField)'s loadStubClass
+                    // logic.  Assumption is that the given type cannot
+                    // evolve to become a CORBA abstract interface or
+                    // a RMI abstract interface.
+
+                    if (type != null && type.isInterface() &&
+                        (vhandler.isAbstractBase(type) ||
+                         ObjectStreamClassCorbaExt.isAbstractInterface(type))) {
+                
+                        callType = ValueHandlerImpl.kAbstractType;
+                    }
                 }
             }
-            
+                
             // Now that we have used the FVD of the field to determine the proper course
             // of action, it is ok to use the type (Class) from this point forward since 
             // the rep. id for this read will also follow on the wire.
 
             switch (callType) {
                 case ValueHandlerImpl.kRemoteType: 
-                    if (!narrow) 
-                        objectValue = orbStream.read_Object(type);
-                    else
+                    if (type != null)
                         objectValue = Utility.readObjectAndNarrow(orbStream, type);
+                    else
+                        objectValue = orbStream.read_Object();
                     break;
                 case ValueHandlerImpl.kAbstractType: 
-                    if (!narrow)
-                        objectValue = orbStream.read_abstract_interface(type); 
-                    else
+                    if (type != null)
                         objectValue = Utility.readAbstractAndNarrow(orbStream, type);
+                    else
+                        objectValue = orbStream.read_abstract_interface();
                     break;
                 case ValueHandlerImpl.kValueType:
                     if (type != null)
@@ -1481,6 +1485,8 @@ public class IIOPInputStream
                     else
                         objectValue = orbStream.read_value();
                     break;
+                default:
+                    throw new StreamCorruptedException("Unknown callType: " + callType);
             }
         }
 
@@ -1570,6 +1576,8 @@ public class IIOPInputStream
             case ValueHandlerImpl.kValueType:
                 objectValue = (Object)orbStream.read_value(type);
                 break;
+            default:
+                throw new StreamCorruptedException("Unknown callType: " + callType);
         }
 
         return objectValue;
@@ -1641,6 +1649,7 @@ public class IIOPInputStream
                     double doubleValue = orbStream.read_double();
                     fieldToValueMap.put(fields[i].name, new Double(doubleValue));
                     break;
+                case TCKind._tk_value:
                 case TCKind._tk_objref:
                 case TCKind._tk_value_box:
                     Object objectValue = null;
@@ -1657,6 +1666,9 @@ public class IIOPInputStream
 
                     fieldToValueMap.put(fields[i].name, objectValue);
                     break;
+                default:
+                    throw new StreamCorruptedException("Unknown kind: "
+                                                       + fields[i].type.kind().value());
                 }
             }
         } catch (Throwable t) {
@@ -1873,6 +1885,7 @@ public class IIOPInputStream
 			if ((o != null) && osc.hasField(fields[i]))
 			setDoubleField(o, cl, fields[i].name, ValueUtility.getSignature(fields[i]), doubleValue);
 			break;
+                    case TCKind._tk_value:
 		    case TCKind._tk_objref:
 		    case TCKind._tk_value_box:
                         Object objectValue = null;
@@ -1904,7 +1917,9 @@ public class IIOPInputStream
 
 			}		
 			break;
-					
+                    default:
+                        throw new StreamCorruptedException("Unknown kind: "
+                                                           + fields[i].type.kind().value());
 		    }
 		} catch (IllegalArgumentException e) {
 		    /* This case should never happen. If the field types
@@ -1971,6 +1986,7 @@ public class IIOPInputStream
 		case TCKind._tk_double:
 		    orbStream.read_double();
 		    break;
+                case TCKind._tk_value:
 		case TCKind._tk_objref:
 		case TCKind._tk_value_box:
 		    Class type = null;
@@ -2006,12 +2022,14 @@ public class IIOPInputStream
 			    if (!vhandler.isSequence(id)) {
 				FullValueDescription fieldFVD = sender.meta(fields[i].id);
 				if (kRemoteTypeCode == fields[i].type) {
+
 				    // RMI Object reference...
 				    callType = ValueHandlerImpl.kRemoteType;
 				} else if (fieldFVD.is_abstract) {
 				    // RMI Abstract Object reference...
+
 				    callType = ValueHandlerImpl.kAbstractType;
-				} 
+				}
 			    }
 										
 			    // Now that we have used the FVD of the field to determine the proper course
@@ -2032,6 +2050,9 @@ public class IIOPInputStream
 				    orbStream.read_value();
 				}
 				break;
+                            default:
+                                throw new StreamCorruptedException("Unknown callType: "
+                                                                   + callType);
 			    }
 			}
 										
@@ -2042,9 +2063,12 @@ public class IIOPInputStream
 		    }
 									
 		    break;
+                default:
+                    throw new StreamCorruptedException("Unknown kind: "
+                                                       + fields[i].type.kind().value());
+
 		}
 	    } catch (IllegalArgumentException e) {
-		e.printStackTrace();
 		/* This case should never happen. If the field types
 		   are not the same, InvalidClassException is raised when
 		   matching the local class to the serialized ObjectStreamClass. */

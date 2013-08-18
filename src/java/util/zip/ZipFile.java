@@ -1,5 +1,5 @@
 /*
- * @(#)ZipFile.java	1.54 01/12/03
+ * @(#)ZipFile.java	1.55 02/08/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version   1.54, 12/03/01 
+ * @version   1.55, 08/21/02 
  * @author	David Connelly
  */
 public
@@ -379,8 +379,7 @@ class ZipFile implements ZipConstants {
     /*
      * Inner class implementing the input stream used to read a zip file entry.
      */
-   private static class ZipFileInputStream extends InputStream {
-	private long jzfile;	// address of jzfile data
+   private class ZipFileInputStream extends InputStream {
 	private long jzentry;	// address of jzentry data
 	private int pos;	// current position within entry data
 	private int rem;	// number of remaining bytes within entry
@@ -388,7 +387,6 @@ class ZipFile implements ZipConstants {
         private ZipFile handle; // this would prevent the zip file from being GCed
        
 	ZipFileInputStream(long jzfile, long jzentry, ZipFile zf) {
-	    this.jzfile = jzfile;
 	    this.jzentry = jzentry;
 	    pos = 0;
 	    rem = getCSize(jzentry);
@@ -406,7 +404,9 @@ class ZipFile implements ZipConstants {
 	    if (len > rem) {
 		len = rem;
 	    }
-	    len = ZipFile.read(jzfile, jzentry, pos, b, off, len);
+  	    if(ZipFile.this.jzfile == 0)
+              throw new ZipException("ZipFile closed");
+	    len = ZipFile.read(ZipFile.this.jzfile, jzentry, pos, b, off, len);
 	    if (len > 0) {
 		pos += len;
 		rem -= len;
@@ -442,8 +442,8 @@ class ZipFile implements ZipConstants {
 
 	private void cleanup() {
 	    rem = 0;
-	    if (jzentry != 0) {
-	        freeEntry(jzfile, jzentry);
+	    if (jzentry != 0 && ZipFile.this.jzfile != 0) {
+	        freeEntry(ZipFile.this.jzfile, jzentry);
 		jzentry = 0;
 	    }
 	}
