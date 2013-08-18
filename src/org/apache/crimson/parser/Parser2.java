@@ -185,6 +185,16 @@ public class Parser2
     private DeclHandler         declHandler;
     private LexicalHandler      lexicalHandler;
 
+    //restricting entity expansions
+    //set this value to zero, initially no entity is expanded
+    private int entityExpansionCount = 0 ;
+    //this can be set to any arbitrary value, it would be reset by the value obtained from system property.
+    private int entityExpansionLimit = -1 ;
+    private String propertyEntityExpansionLimit = null;
+    
+    //disllow doctype decl
+    private String propertyDisallowDoctypeDecl = null;
+    private boolean disallowDoctypeDecl = false ;
 
     // Compile time option:  disable validation support for a better
     // fit in memory-critical environments (P-Java etc).  Doing that
@@ -199,6 +209,9 @@ public class Parser2
     static final String         strANY = "ANY";
     static final String         strEMPTY = "EMPTY";
 
+    // system properties
+    static final String SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT = "entityExpansionLimit" ;
+    static final String SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL = "disallowDoctypeDecl" ;
 
     ////////////////////////////////////////////////////////////////
     //
@@ -411,7 +424,28 @@ public class Parser2
             resolver = new Resolver ();
         
         setHandlers ();
-    }
+        
+        //reset it to zero before next parse
+        entityExpansionCount = 0;
+        
+        //SYSTEM PROPERTY ENTITY EXPANSION LIMIT
+	
+        //its good to check for system property value again (though this is little overhead) for every parse, 
+        //an application might set the different limit for another XML document
+        propertyEntityExpansionLimit = System.getProperty(SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT);
+        if(propertyEntityExpansionLimit != null){
+            entityExpansionLimit = Integer.parseInt(propertyEntityExpansionLimit);
+        }
+	
+        //SYSTEM PROPERTY DISALLOW DOCTYPE DECL
+        //its good to check for system property value again (though this is little overhead) for every parse, 
+        //an application might set the different value for another XML document        
+        propertyDisallowDoctypeDecl = System.getProperty(SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL);
+        if(propertyDisallowDoctypeDecl != null && (propertyDisallowDoctypeDecl.equals("true") || propertyDisallowDoctypeDecl.equals("TRUE"))){
+            disallowDoctypeDecl = true;
+        }
+	
+    }//init()
 
     static private final NullHandler nullHandler = new NullHandler();
 
@@ -794,6 +828,11 @@ public class Parser2
     ) throws SAXException, IOException
     {
         Object  entity = table.get (name);
+        
+        //throw fatal error when entity expansion count reaches the limit set by application
+        if( propertyEntityExpansionLimit != null && entityExpansionCount++ >= entityExpansionLimit){
+            fatal ("P-086", new Object[] {new Integer(entityExpansionLimit)});
+        };
 
         //
         // Note:  if entity is a PE (value.isPE) there is an XML
@@ -1120,8 +1159,14 @@ public class Parser2
         //      (S ExternalID)?
         //      S? ('[' (markupdecl|PEReference|S)* ']' S?)?
         //      '>'
-        if (!peek ("<!DOCTYPE"))
+        if (!peek ("<!DOCTYPE")) {
             return false;
+	}
+        else{
+            if( (propertyDisallowDoctypeDecl != null) && disallowDoctypeDecl){
+                fatal("P-085", new Object[] {SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL} );
+            }
+        }
 
         ExternalEntity  externalSubset = null;
 
@@ -2512,6 +2557,12 @@ public class Parser2
             //
             fatal ("P-014", new Object [] { name });
         }
+
+        //throw fatal error when entity expansion count reaches the limit set by application
+        if(propertyEntityExpansionLimit != null && entityExpansionCount++ >= entityExpansionLimit){
+            fatal ("P-086", new Object[] {new Integer(entityExpansionLimit)});
+        };
+        
 
         if (entity instanceof InternalEntity) {
             InternalEntity      e = (InternalEntity) entity;

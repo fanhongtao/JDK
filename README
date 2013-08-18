@@ -119,10 +119,10 @@ Redistribution
 
       In addition, the Java Web Start product may be excluded from
       redistributions. The Java Web Start product is contained in a 
-      file named javaws-1_0_1_04-solaris-sparc-i.zip,
-      javaws-1_0_1_04-solaris-i586-i.zip,
-      javaws-1_0_1_04-linux-i586-i.zip, or
-      javaws-1_0_1_04-windows-i586-i.exe, depending on the platform. 
+      file named javaws-1_0_1_05-solaris-sparc-i.zip,
+      javaws-1_0_1_05-solaris-i586-i.zip,
+      javaws-1_0_1_05-linux-i586-i.zip, or
+      javaws-1_0_1_05-windows-i586-i.exe, depending on the platform. 
 
 
       Unlimited Strength Java Cryptography Extension
@@ -204,6 +204,6 @@ Sun Java Web Pages
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 
 Inc.  This product includes code licensed from RSA Security.
 
-Copyright  2002 Sun Microsystems, Inc., 4150 Network Circle,
+Copyright  2003 Sun Microsystems, Inc., 4150 Network Circle,
 Santa Clara, California 95054, U.S.A. All rights reserved.
 

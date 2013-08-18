@@ -1,7 +1,7 @@
 /*
- * @(#)SequencedEvent.java	1.4 01/12/03
+ * @(#)SequencedEvent.java	1.8 03/02/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.awt.SunToolkit;
  * before the wrapping SequencedEvent was able to be dispatched. In this case,
  * the nested event is never dispatched.
  *
- * @version 1.4, 12/03/01
+ * @version 1.8, 02/14/03
  * @author David Mendenhall
  */
 class SequencedEvent extends AWTEvent implements ActiveEvent {
@@ -102,6 +102,8 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
             }
 
             if (!disposed) {
+	            KeyboardFocusManager.getCurrentKeyboardFocusManager().
+	                     setCurrentSequencedEvent(this);
                 Toolkit.getEventQueue().dispatchEvent(nested);
             }
         } finally {
@@ -127,30 +129,50 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
      * Disposes of this instance. This method is invoked once the nested event
      * has been dispatched and handled, or when the peer of the target of the
      * nested event has been disposed with a call to Component.removeNotify.
+     *
+     * NOTE: Locking protocol.  Since SunToolkit.postEvent can get EventQueue lock, 
+     * it shall never be called while holding the lock on the list, 
+     * as EventQueue lock is held during dispatching and dispatch() will get 
+     * lock on the list. The locks should be acquired in the same order.
      */
     final void dispose() {
-	synchronized (SequencedEvent.class) {
-	    disposed = true;
+        synchronized (SequencedEvent.class) {
+            if (disposed) {
+                return;
+            }
+            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                getCurrentSequencedEvent() == this) {
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                    setCurrentSequencedEvent(null);
+            }
+            disposed = true;
+        }
 
-	    // Wake myself up
-	    if (appContext != null) {
-		SunToolkit.postEvent(appContext, new SentEvent());
-	    }
-	    SequencedEvent.class.notifyAll();
-
-	    if (list.getFirst() == this) {
-		list.removeFirst();
-
-		// Wake up waiting threads
-		if (!list.isEmpty()) {
-		    SequencedEvent next = (SequencedEvent)list.getFirst();
-		    if (next.appContext != null) {
-			SunToolkit.postEvent(next.appContext, new SentEvent());
-		    }
-		}
-	    } else {
-		list.remove(this);
-	    }
-	}
+        // Wake myself up
+        if (appContext != null) {
+            SunToolkit.postEvent(appContext, new SentEvent());
+        }
+       
+        SequencedEvent next = null;
+       
+        synchronized (SequencedEvent.class) {
+            SequencedEvent.class.notifyAll();
+            if (list.getFirst() == this) {
+                list.removeFirst();
+                // Wake up waiting threads
+       	        if (!list.isEmpty()) {
+                    next = (SequencedEvent)list.getFirst();
+                }
+            } else {
+                list.remove(this);
+            }
+        }
+        // Wake up waiting threads
+        if (next != null && next.appContext != null) {
+            SunToolkit.postEvent(next.appContext, new SentEvent());
+        }
     }
 }
+
+
+	

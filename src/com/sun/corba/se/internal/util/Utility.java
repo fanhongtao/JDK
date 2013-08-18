@@ -1,7 +1,7 @@
 /*
- * @(#)Utility.java	1.32 01/12/03
+ * @(#)Utility.java	1.34 03/02/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -863,9 +863,9 @@ public final class Utility {
     /*
      * Load an RMI-IIOP Stub.
      */
-    public static Remote loadStub (ObjectImpl narrowFrom,
+    public static Stub loadStub (ObjectImpl narrowFrom,
                                    Class narrowTo) {
-        Remote result = null;
+        Stub result = null;
             
 	try {
             
@@ -903,7 +903,7 @@ public final class Utility {
                                                 narrowTo.getClassLoader());
 	    }
     	    // Create a stub instance and set the delegate...
-    	    result = (Remote) resultClass.newInstance();
+    	    result = (Stub) resultClass.newInstance();
             ((ObjectImpl)result)._set_delegate(narrowFrom._get_delegate());
     	    
         } catch (Exception err) {

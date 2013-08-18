@@ -1,7 +1,7 @@
 /*
- * @(#)KeyboardFocusManager.java	1.25 02/03/02
+ * @(#)KeyboardFocusManager.java	1.28 03/02/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -52,7 +52,7 @@ import sun.awt.SunToolkit;
  * ClassLoader.
  *
  * @author David Mendenhall
- * @version 1.25, 03/02/02 
+ * @version 1.28, 02/14/03 
  *
  * @see Window
  * @see Frame
@@ -301,6 +301,23 @@ public abstract class KeyboardFocusManager
      * permitted to access the global focus state.
      */
     private static AWTPermission replaceKeyboardFocusManagerPermission;
+
+    /*
+     * SequencedEvent which is currently dispatched in AppContext.
+     */
+    transient SequencedEvent currentSequencedEvent = null;
+
+    final void setCurrentSequencedEvent(SequencedEvent current) {
+        synchronized (SequencedEvent.class) {
+            currentSequencedEvent = current;
+        }
+    }
+
+    final SequencedEvent getCurrentSequencedEvent() {
+        synchronized (SequencedEvent.class) {
+            return currentSequencedEvent;
+        }
+    }
 
     static Set loadFocusTraversalKeys(String propName, String defaultValue,
 				      Set targetSet) {
