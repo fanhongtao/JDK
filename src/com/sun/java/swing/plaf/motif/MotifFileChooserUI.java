@@ -1,5 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.39 04/01/13
+ * @(#)MotifFileChooserUI.java	1.40 04/03/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.39 01/13/04
+ * @version 1.40 03/12/04
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -559,10 +559,12 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 
 	public void intervalAdded(ListDataEvent e) {
+	    fireIntervalAdded(e.getSource(), e.getIndex0(), e.getIndex1());
 	}
 
 	// PENDING(jeff) - implement
 	public void intervalRemoved(ListDataEvent e) {
+	    fireIntervalRemoved(e.getSource(), e.getIndex0(), e.getIndex1());
 	}
 
 	// PENDING(jeff) - this is inefficient - should sent out
@@ -602,10 +604,12 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 
 	public void intervalAdded(ListDataEvent e) {
+	    fireIntervalAdded(e.getSource(), e.getIndex0(), e.getIndex1());
 	}
 
 	// PENDING(jeff) - implement
 	public void intervalRemoved(ListDataEvent e) {
+	    fireIntervalRemoved(e.getSource(), e.getIndex0(), e.getIndex1());
 	}
 
 	// PENDING(jeff) - this is inefficient - should sent out

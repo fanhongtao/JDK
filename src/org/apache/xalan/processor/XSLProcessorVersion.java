@@ -84,7 +84,7 @@ public class XSLProcessorVersion
   /**
    * Implementation Language.
    */
-  public static String LANGUAGE = "Java";
+  public static final String LANGUAGE = "Java";
 
   /**
    * Major version number.
@@ -97,7 +97,7 @@ public class XSLProcessorVersion
    *          of new versions as external interfaces and behaviour
    *          may have changed.
    */
-  public static int VERSION = 2;
+  public static final int VERSION = 2;
 
   /**
    * Release Number.
@@ -107,7 +107,7 @@ public class XSLProcessorVersion
    *            -  API or behaviour change.
    *            -  its designated as a reference release.
    */
-  public static int RELEASE = 4;
+  public static final int RELEASE = 4;
 
   /**
    * Maintenance Drop Number.
@@ -118,7 +118,7 @@ public class XSLProcessorVersion
    *          When missing, it designates the final and complete
    *          development drop for a release.
    */
-  public static int MAINTENANCE = 1;
+  public static final int MAINTENANCE = 1;
 
   /**
    * Development Drop Number.
@@ -137,14 +137,14 @@ public class XSLProcessorVersion
    *          well as defect fixes. 'D' drops may not be as stable as
    *          the final releases.
    */
-  public static int DEVELOPMENT = 0;
+  public static final int DEVELOPMENT = 0;
   
   /**
    * Version String like <CODE>"<B>Xalan</B> <B>Language</B> 
    * v.r[.dd| <B>D</B>nn]"</CODE>.
    * <P>Semantics of the version string are identical to the Xerces project.</P>
    */
-  public static String S_VERSION = PRODUCT+" "+LANGUAGE+" "
+  public static final String S_VERSION = PRODUCT+" "+LANGUAGE+" "
                                    +VERSION+"."+RELEASE+"."
                                    +(DEVELOPMENT > 0 ? ("D"+DEVELOPMENT) 
                                      : (""+MAINTENANCE));

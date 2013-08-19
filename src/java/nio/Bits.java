@@ -1,7 +1,7 @@
 /*
- * @(#)Bits.java	1.11 03/01/29
+ * @(#)Bits.java	1.13 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -600,8 +600,8 @@ class Bits {				// package-private
     // A user-settable upper limit on the maximum amount of allocatable
     // direct buffer memory.  This value may be changed during VM
     // initialization if it is launched with "-XX:MaxDirectMemorySize=<size>".
-    private static long maxMemory = VM.maxDirectMemory();
-    private static long reservedMemory = 0;
+    private static volatile long maxMemory = VM.maxDirectMemory();
+    private static volatile long reservedMemory = 0;
     private static boolean memoryLimitSet = false;
 
     // These methods should be called whenever direct memory is allocated or
@@ -614,8 +614,14 @@ class Bits {				// package-private
 	}
 	if (reservedMemory + size > maxMemory) {
 	    System.gc();
-	    if (reservedMemory + size > maxMemory)
-		throw new OutOfMemoryError();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException x) {
+                // Restore interrupt status
+                Thread.currentThread().interrupt();
+            }
+            if (reservedMemory + size > maxMemory)
+                throw new OutOfMemoryError("Direct buffer memory");
 	}
 	reservedMemory += size;
     }

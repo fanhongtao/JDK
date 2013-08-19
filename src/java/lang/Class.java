@@ -1,7 +1,7 @@
 /*
- * @(#)Class.java	1.152 03/01/23
+ * @(#)Class.java	1.154 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -475,7 +475,15 @@ class Class implements java.io.Serializable {
      * @return  the name of the class or interface
      *          represented by this object.
      */
-    public native String getName();
+    public String getName() {
+      if (name == null)
+          name = getName0();
+      return name;
+    }
+ 
+    // cache the name to reduce the number of calls into the VM
+    private transient String name;
+    private native String getName0();
 
 
     /**

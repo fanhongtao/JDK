@@ -990,91 +990,42 @@ public class XStringForFSB extends XString
    * if the string can not be converted.  */
   public double toDouble()
   {
-    int end = m_length+m_start;
-    if(0 == end)
+    if(m_length == 0)
+      return Double.NaN;
+    int i;
+    char c;
+    String valueString = fsb().getString(m_start,m_length);
+
+    // The following are permitted in the Double.valueOf, but not by the XPath spec:
+    // - a plus sign
+    // - The use of e or E to indicate exponents
+    // - trailing f, F, d, or D
+    // See function comments; not sure if this is slower than actually doing the
+    // conversion ourselves (as was before).
+
+    for (i=0;i<m_length;i++)
+      if (!XMLCharacterRecognizer.isWhiteSpace(valueString.charAt(i)))
+        break;
+    if (valueString.charAt(i) == '-')
+      i++;
+    for (;i<m_length;i++) {
+      c = valueString.charAt(i);
+      if (c != '.' && (c < '0' || c > '9'))
+        break;
+    }
+    for (;i<m_length;i++)
+      if (!XMLCharacterRecognizer.isWhiteSpace(valueString.charAt(i)))
+        break;
+    if (i != m_length)
       return Double.NaN;
 
-    int start = m_start;
-    FastStringBuffer fsb = fsb();
-      
-    long longResult=0;
-    boolean isNegative=false;
-    boolean trailingSpace=false;
-    int[] digitsFound={0,0}; // intpart,fracpart
-    int digitType=0;    // Index to which kind of digit we're accumulating
-    double doubleResult;
-    
-    // Scan past leading whitespace characters
-    while(start< end &&
-          XMLCharacterRecognizer.isWhiteSpace( fsb.charAt(start) )
-          )
-      ++start;
-    
-    if (start < end && fsb.charAt(start) == '-')
-    {
-      isNegative=true;
-      start++;
-    }
-    
-    // parse the string from left to right converting as an integer.
-    for (int i = start; i < end; i++)
-    {
-      char c = fsb.charAt(i);
-
-      if(XMLCharacterRecognizer.isWhiteSpace(c))
-      {
-				trailingSpace=true;
-        break;                  // Trailing whitespace is ignored
-      }
-      else if(trailingSpace)
-	return Double.NaN;	// Nonspace after space is poorly formed
-	
-      switch(c)
-      {
-      case '.':
-        if(digitType==0)
-          digitType=1;
-        else
-          return Double.NaN;    // Second period is error
-	break;
-	
-      case '0':			// NOT Unicode isDigit();  ASCII digits _only_
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-        longResult = longResult * 10 + (c - '0'); // Accumulate as int
-        ++digitsFound[digitType]; // Remember scaling
-	break;
-
-      default:
-        return Double.NaN;      // Nonnumeric is error
-      }
-    }
-
-    if(0 ==digitsFound[0]&& 0==digitsFound[1])
+    try {
+      return new Double(valueString).doubleValue();
+    } catch (NumberFormatException nfe) {
+      // This should catch double periods, empty strings.
       return Double.NaN;
+    }
 
-    // Convert from scaled integer to floating point. This will come close. 
-    // There's an alternative solution involving Double.longBitsToDouble
-    // followed by a combined renormalize/scale operation... but I honestly
-    // think the more straightforward solution comes out to just about
-    // the same thing.
-                
-    long scale=1;               // AFAIK, java doesn't have an easier 10^n operation
-    for(int i=digitsFound[1];i>0;--i) 
-      scale*=10;
-                
-    doubleResult=((double)longResult)/scale;
-                
-    if(isNegative)
-      doubleResult *= -1;
-    return doubleResult;
   }
 
 }

@@ -1,9 +1,11 @@
 /*
- * @(#)java.h	1.22 03/01/23
+ * @(#)java.h	1.23 04/04/24
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+
+/* Backported from Tiger (1.5) java.h	1.26 04/01/12 */
 
 #ifndef _JAVA_H_
 #define _JAVA_H_
@@ -26,7 +28,7 @@ typedef struct {
 } InvocationFunctions;
 
 /*
- * Protoypes for launcher functions in the system specific java_md.c.
+ * Prototypes for launcher functions in the system specific java_md.c.
  */
 
 jboolean
@@ -47,7 +49,6 @@ void CreateExecutionEnvironment(int *_argc,
 				       jint so_jrepath,
 				       char jvmpath[],
 				       jint so_jvmpath,
-				       char **_jvmtype,
 				       char **original_argv);
 
 /*
@@ -59,19 +60,25 @@ void CreateExecutionEnvironment(int *_argc,
 void ReportErrorMessage(char * message, jboolean always);
 void ReportErrorMessage2(char * format, char * string, jboolean always);
 
+/*
+ * Report an exception which terminates the vm to stderr or a window
+ * as appropriate.
+ */
+void ReportExceptionDescription(JNIEnv * env);
+
 jboolean RemovableMachineDependentOption(char * option);
 void PrintMachineDependentOptions();
 
 /* 
  * Functions defined in java.c and used in java_md.c.
  */
-jint ReadKnownVMs(const char *jrepath); 
-char *CheckJvmType(int *argc, char ***argv);
+jint ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative); 
+char *CheckJvmType(int *argc, char ***argv, jboolean speculative);
 void* MemAlloc(size_t size);
 
 /*
  * Make launcher spit debug output.
  */
-extern jboolean debug;
+extern jboolean _launcher_debug;
 
 #endif /* _JAVA_H_ */

@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.127 03/01/27
+ * @(#)Introspector.java	1.129 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.lang.reflect.*;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,8 +84,8 @@ public class Introspector {
     public final static int IGNORE_ALL_BEANINFO        = 3;
 
     // Static Caches to speed up introspection.
-    private static Map declaredMethodCache = new WeakHashMap(100);
-    private static Map beanInfoCache = new WeakHashMap(100);
+    private static Map declaredMethodCache = Collections.synchronizedMap(new WeakHashMap(100));
+    private static Map beanInfoCache = Collections.synchronizedMap(new WeakHashMap(100));
 
     private Class beanClass;
     private BeanInfo explicitBeanInfo;

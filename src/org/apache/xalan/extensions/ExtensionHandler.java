@@ -116,7 +116,7 @@ public abstract class ExtensionHandler
    * 
    * @param className Name of the class to load
    */
-  public static Class getClassForName(String className)
+  static Class getClassForName(String className)
       throws ClassNotFoundException
   {
     Class result = null;
@@ -124,7 +124,19 @@ public abstract class ExtensionHandler
     // Hack for backwards compatibility with XalanJ1 stylesheets
     if(className.equals("org.apache.xalan.xslt.extensions.Redirect"))
       className = "org.apache.xalan.lib.Redirect";
-      
+
+    //throw security exception if the calling thread is not allowed to access the
+    //class. Restrict the access to the package classes as specified in java.security policy. 
+
+    SecurityManager security = System.getSecurityManager(); 
+    if (security != null) {  
+      int lastDot = className.lastIndexOf("."); 
+      String packageName = className;
+      if (lastDot != -1) 
+        packageName = className.substring(0, lastDot); 
+      security.checkPackageAccess(packageName); 
+    } 
+    
     if (getCCL != null)
     {
       try {

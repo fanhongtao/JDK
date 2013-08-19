@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoader.java	1.169 03/01/23
+ * @(#)ClassLoader.java	1.171 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.lang;
@@ -120,7 +120,7 @@ import sun.security.util.SecurityConstants;
  *     }
  * </pre></blockquote>
  *
- * @version  1.169, 01/23/03
+ * @version  1.171, 05/06/04
  * @see      #resolveClass(Class)
  * @since    1.0
  */
@@ -534,6 +534,8 @@ public abstract class ClassLoader {
 	Class c = null;
 
 	try {
+            if (!checkName(name, false))
+              throw new NoClassDefFoundError("Illegal name: " + name);
 	    c = defineClass0(name, b, off, len, protectionDomain);
 	} catch (ClassFormatError cfe) {
 	    // Class format error - try to transform the bytecode and
@@ -570,6 +572,16 @@ public abstract class ClassLoader {
 
     private native Class defineClass0(String name, byte[] b, int off, int len,
 	ProtectionDomain pd);
+
+    private boolean checkName(String name, boolean allowArrayClass) {
+      if ((name == null) || (name.length() == 0))
+          return true;
+      if (name.indexOf('/') != -1)
+          return false;
+      if (!allowArrayClass && (name.charAt(0) == '['))
+          return false;
+      return true;
+    }
 
     private synchronized void checkCerts(String name, CodeSource cs) {
 	int i = name.lastIndexOf('.');
@@ -697,6 +709,9 @@ public abstract class ClassLoader {
 	check();
 	ClassLoader system = getSystemClassLoader();
 	if (system == null) {
+            if (!checkName(name, true))
+              throw new ClassNotFoundException(name);
+
 	    return findBootstrapClass(name);
 	}
 	return system.loadClass(name);
@@ -706,6 +721,9 @@ public abstract class ClassLoader {
     private Class findBootstrapClass0(String name)
 	throws ClassNotFoundException {
 	check();
+        if (!checkName(name, true))
+          throw new ClassNotFoundException(name);
+
 	return findBootstrapClass(name);
     }
 
@@ -732,7 +750,15 @@ public abstract class ClassLoader {
      *
      * @since  1.1
      */
-    protected native final Class findLoadedClass(String name);
+    protected final Class findLoadedClass(String name) {
+      check();
+      if (!checkName(name, true))
+          return null;
+      return findLoadedClass0(name);
+    }
+
+    private native final Class findLoadedClass0(String name);
+
 
     /**
      * Sets the signers of a class.  This should be invoked after defining a
@@ -1331,7 +1357,7 @@ public abstract class ClassLoader {
      * the VM when it loads the library, and used by the VM to pass the correct
      * version of JNI to the native methods.  </p>
      *
-     * @version  1.169 01/23/03
+     * @version  1.171 05/06/04
      * @see      ClassLoader
      * @since    1.2
      */

@@ -93,9 +93,9 @@ public class RedundentExprEliminator extends XSLTVisitor
   static int m_uniquePsuedoVarID = 1;
   static final String PSUEDOVARNAMESPACE = Constants.S_VENDORURL+"/xalan/psuedovar";
  
-  public static boolean DEBUG = false;
-  public static boolean DIAGNOSE_NUM_PATHS_REDUCED = false;
-  public static boolean DIAGNOSE_MULTISTEPLIST = false;
+  public static final boolean DEBUG = false;
+  public static final boolean DIAGNOSE_NUM_PATHS_REDUCED = false;
+  public static final boolean DIAGNOSE_MULTISTEPLIST = false;
 
   /**
    * So we can reuse it over and over again.

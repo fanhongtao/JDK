@@ -1072,7 +1072,7 @@ private static final boolean DEBUG = false;
       }
       catch (WrongNumberArgsException wnae)
       {
-        java.lang.String name = FunctionTable.m_functions[funcID].getName();
+        java.lang.String name = FunctionTable.getFunctionName(funcID);
 
         m_errorHandler.fatalError( new TransformerException(
                   XSLMessages.createXPATHMessage(XPATHErrorResources.ER_ONLY_ALLOWS, 

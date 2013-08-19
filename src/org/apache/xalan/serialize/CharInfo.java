@@ -92,19 +92,19 @@ public class CharInfo
    * The name of the HTML entities file.
    * If specified, the file will be resource loaded with the default class loader.
    */
-  public static String HTML_ENTITIES_RESOURCE = "HTMLEntities.res";
+  public static final String HTML_ENTITIES_RESOURCE = "HTMLEntities.res";
 
   /**
    * The name of the XML entities file.
    * If specified, the file will be resource loaded with the default class loader.
    */
-  public static String XML_ENTITIES_RESOURCE = "XMLEntities.res";
+  public static final String XML_ENTITIES_RESOURCE = "XMLEntities.res";
 
   /** The linefeed character, which the parser should always normalize. */
-  public static char S_LINEFEED = 0x0A;
+  public static final char S_LINEFEED = 0x0A;
 
   /** The carriage return character, which the parser should always normalize. */
-  public static char S_CARRIAGERETURN = 0x0D;
+  public static final char S_CARRIAGERETURN = 0x0D;
 
   /** a zero length Class array used in the constructor */
   private static final Class[] NO_CLASSES = new Class[0];

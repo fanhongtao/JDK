@@ -1075,7 +1075,7 @@ public class OutputProperties extends ElemTemplateElement
   // Some special Xalan keys.
 
   /** The number of whitespaces to indent by, if indent="yes". */
-  public static String S_KEY_INDENT_AMOUNT =
+  public static final String S_KEY_INDENT_AMOUNT =
     S_BUILTIN_EXTENSIONS_UNIVERSAL+"indent-amount";
 
   /**
@@ -1083,22 +1083,22 @@ public class OutputProperties extends ElemTemplateElement
    *  implements the ContentHandler interface, where the result tree events
    *  will be sent to.      
    */
-  public static String S_KEY_CONTENT_HANDLER =
+  public static final String S_KEY_CONTENT_HANDLER =
     S_BUILTIN_EXTENSIONS_UNIVERSAL+"content-handler";
 
   /** File name of file that specifies character to entity reference mappings. */
-  public static String S_KEY_ENTITIES =
+  public static final String S_KEY_ENTITIES =
     S_BUILTIN_EXTENSIONS_UNIVERSAL+"entities";
 
   /** Use a value of "yes" if the href values for HTML serialization should 
    *  use %xx escaping. */
-  public static String S_USE_URL_ESCAPING =
+  public static final String S_USE_URL_ESCAPING =
     S_BUILTIN_EXTENSIONS_UNIVERSAL+"use-url-escaping";
 
   /** Use a value of "yes" if the META tag should be omitted where it would
    *  otherwise be supplied.
    */
-  public static String S_OMIT_META_TAG =
+  public static final String S_OMIT_META_TAG =
     S_BUILTIN_EXTENSIONS_UNIVERSAL+"omit-meta-tag";
 
   /** The default properties of all output files. */

@@ -1,7 +1,7 @@
 /*
- * @(#)ZipFile.java	1.58 03/01/23
+ * @(#)ZipFile.java	1.60 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version   1.58, 01/23/03 
+ * @version   1.60, 05/06/04 
  * @author	David Connelly
  */
 public
@@ -193,7 +193,7 @@ class ZipFile implements ZipConstants {
 	    throw new NullPointerException("name");
 	}
         long jzentry = 0;
-        InputStream in = null;
+        ZipFileInputStream in = null;
         synchronized (this) {
             ensureOpen(jzfile);
             jzentry = getEntry(jzfile, name);
@@ -202,12 +202,13 @@ class ZipFile implements ZipConstants {
             }
             in = new ZipFileInputStream(jzentry, this);
         }
+	final ZipFileInputStream zfin = in;
 	switch (getMethod(jzentry)) {
 	case STORED:
-	    return in;
+	    return zfin;
 	case DEFLATED:
-	    return new InflaterInputStream(in, getInflater()) {
-                private boolean isClosed = false;
+	    return new InflaterInputStream(zfin, getInflater()) {
+		private boolean isClosed = false;
                 
 		public void close() throws IOException {
                     if (!isClosed) {
@@ -234,13 +235,11 @@ class ZipFile implements ZipConstants {
 		}
 		private boolean eof;
 
-                public int available() throws IOException {
-                    if (super.available() != 0) {
-                        return this.in.available();
-                    } else {
-                        return 0;
-                    }
-                }
+		public int available() throws IOException {
+		    if (isClosed)
+			return 0;
+		    return zfin.size() - inf.getTotalOut();
+		}
 	    };
 	default:
 	    throw new ZipException("invalid compression method");
@@ -400,9 +399,10 @@ class ZipFile implements ZipConstants {
     }
 	
     /*
-     * Inner class implementing the input stream used to read a zip file entry.
+     * Inner class implementing the input stream used to read a 
+     * (possible compressed) zip file entry.
      */
-   private class ZipFileInputStream extends InputStream {
+    private class ZipFileInputStream extends InputStream {
 	private long jzentry;	// address of jzentry data
 	private int pos;	// current position within entry data
 	private int rem;	// number of remaining bytes within entry
@@ -463,6 +463,10 @@ class ZipFile implements ZipConstants {
 	}
 
 	public int available() {
+	    return rem;
+	}
+
+	public int size() {
 	    return size;
 	}
 

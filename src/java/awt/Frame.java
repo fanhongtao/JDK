@@ -1,7 +1,7 @@
 /*
- * @(#)Frame.java	1.139 03/01/23
+ * @(#)Frame.java	1.141 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -101,7 +101,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.139, 01/23/03
+ * @version 	1.141, 05/06/04
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -683,6 +683,9 @@ public class Frame extends Window implements MenuContainer {
      * @since   1.4
      */
     public synchronized void setExtendedState(int state) {
+	if ( !isFrameStateSupported( state ) ) {
+	    return;
+	}
         this.state = state;
         FramePeer peer = (FramePeer)this.peer;
         if (peer != null) {
@@ -690,6 +693,22 @@ public class Frame extends Window implements MenuContainer {
         }
     }
 
+    private boolean isFrameStateSupported(int state) {
+	if( !getToolkit().isFrameStateSupported( state ) ) {
+	    // * Toolkit.isFrameStateSupported returns always false
+	    // on compound state even if all parts are supported;
+	    // * if part of state is not supported, state is not supported;
+	    // * MAXIMIZED_BOTH is not a compound state.
+	    if( ((state & ICONIFIED) != 0) &&
+		!getToolkit().isFrameStateSupported( ICONIFIED )) {
+		return false;
+	    }else {
+		state &= ~ICONIFIED;
+	    }
+	    return getToolkit().isFrameStateSupported( state );
+	}
+	return true;
+    }
 
     /**
      * Gets the state of this frame (obsolete).

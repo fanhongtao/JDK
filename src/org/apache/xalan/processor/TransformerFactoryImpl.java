@@ -118,7 +118,7 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
    * The path/filename of the property file: XSLTInfo.properties  
    * Maintenance note: see also org.apache.xpath.functions.FuncSystemProperty.XSLT_PROPERTIES
    */
-  public static String XSLT_PROPERTIES =
+  public static final String XSLT_PROPERTIES =
     "org/apache/xalan/res/XSLTInfo.properties";
 
      /**

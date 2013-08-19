@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsRootPaneUI.java	1.10 03/01/23
+ * @(#)WindowsRootPaneUI.java	1.13 04/05/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,6 +25,7 @@ import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.AbstractButton;
+import javax.swing.JLabel;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -42,7 +43,7 @@ import javax.swing.plaf.basic.ComboPopup;
  * Windows implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.10 01/23/03
+ * @version 1.13 05/06/04
  * @author Mark Davidson
  * @since 1.4
  */
@@ -76,7 +77,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
 
         void repaintMnemonicsInComponents(Component[] c) {
             for(int i=0;i<c.length;i++) {
-                if(c[i] instanceof AbstractButton
+                if((c[i] instanceof JLabel) || (c[i] instanceof AbstractButton)
                    && ((AbstractButton)c[i]).getMnemonic() != '\0') {
                     c[i].repaint();
                     continue;
@@ -155,7 +156,8 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
         public boolean postProcessKeyEvent(KeyEvent ev) {
             if (ev.getKeyCode() == KeyEvent.VK_ALT) {
                 root = SwingUtilities.getRootPane(ev.getComponent());
-                winAncestor = SwingUtilities.getWindowAncestor(root);
+                winAncestor = (root == null ? null :
+                	SwingUtilities.getWindowAncestor(root));
 
                 if (ev.getID() == KeyEvent.KEY_PRESSED) {
                     if (!altKeyPressed) {
