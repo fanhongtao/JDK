@@ -1,7 +1,7 @@
 /*
- * @(#)GIOPImpl.java	1.48 01/12/03
+ * @(#)GIOPImpl.java	1.50 03/12/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -241,6 +241,7 @@ public class GIOPImpl implements ClientGIOP, ServerGIOP {
             lis = (ListenerThread) AccessController.doPrivileged(new PrivilegedAction() {
                 public java.lang.Object run() {
                     ListenerThread thread = new ListenerThread(finalTable, 
+							       orb.threadGroup,
 							       ss,
 							       socketType);
                     thread.setDaemon(true);

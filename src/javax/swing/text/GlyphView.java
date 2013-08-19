@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphView.java	1.21 01/12/03
+ * @(#)GlyphView.java	1.23 03/12/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -37,7 +37,7 @@ import javax.swing.event.*;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.21 12/03/01
+ * @version 1.23 12/02/03
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -312,6 +312,18 @@ public class GlyphView extends View implements TabableView, Cloneable {
     }
 
     /**
+     * Lazily initializes the selections field
+     */
+    private void initSelections(int p0, int p1) {
+        int viewPosCount = p1 - p0 + 1;
+        if (selections == null || viewPosCount > selections.length) {
+            selections = new byte[viewPosCount];
+            return;
+        }
+        for (int i = 0; i < viewPosCount; selections[i++] = 0);
+    }
+
+    /**
      * Renders a portion of a text style run.
      *
      * @param g the rendering surface to use
@@ -346,38 +358,66 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	} else if(c instanceof JTextComponent) {
 	    JTextComponent tc = (JTextComponent) c;
 	    Color selFG = tc.getSelectedTextColor();
-	    Caret caret = tc.getCaret();
-	    if ((caret != null) && (! caret.isSelectionVisible())) {
-		// selection currently not visible
-		selFG = fg;
-	    }
 
 	    if(selFG != null && !selFG.equals(fg)) {
-		int selStart = tc.getSelectionStart();
-		int selEnd = tc.getSelectionEnd();
+		Highlighter.Highlight[] h = tc.getHighlighter().getHighlights();
+  
+                if(h.length != 0) {
+                    boolean initialized = false;
+                    int viewSelectionCount = 0;
+                    for (int i = 0; i < h.length; i++) {
+                        Highlighter.Highlight highlight = h[i];
+                        int hStart = highlight.getStartOffset();
+                        int hEnd = highlight.getEndOffset();
+                        if (hStart > p1 || hEnd < p0) {
+                            // the selection is out of this view
+                            continue;
+                        }
+                        if (hStart <= p0 && hEnd >= p1){
+                            // the whole view is selected
+                            paintTextUsingColor(g, a, selFG, p0, p1);
+                            paintedText = true;
+                            break;
+                        }
+                        // the array is lazily created only when the view
+                        // is partially selected
+                        if (!initialized) {
+                            initSelections(p0, p1);
+                            initialized = true;
+                        }
+                        hStart = Math.max(p0, hStart);
+                        hEnd = Math.min(p1, hEnd);
+                        paintTextUsingColor(g, a, selFG, hStart, hEnd);
+                        // the array represents view positions [0, p1-p0+1]
+                        // later will iterate this array and sum its
+                        // elements. Positions with sum == 0 are not selected.
+                        selections[hStart-p0]++;
+                        selections[hEnd-p0]--;
 
-		if(selStart != selEnd) {
-		    // Something is selected, does p0 - p1 fall in that range?
-		    int pMin;
-		    int pMax;
+                        viewSelectionCount++;
+                    }
 
-		    if(selStart <= p0)
-			pMin = p0;
-		    else
-			pMin = Math.min(selStart, p1);
-		    if(selEnd >= p1)
-			pMax = p1;
-		    else
-			pMax = Math.max(selEnd, p0);
-		    // If pMin == pMax (also == p0), selection isn't in this
-		    // block.
-		    if(pMin != pMax) {
+                    if (!paintedText && viewSelectionCount > 0) {
+                        // the view is partially selected
+                        int curPos = -1;
+                        int startPos = 0;
+                        int viewLen = p1 - p0;
+                        while (curPos++ < viewLen) {
+                            // searching for the next selection start
+                            while(curPos < viewLen &&
+                                    selections[curPos] == 0) curPos++;
+                            if (startPos != curPos) {
+                                // paint unselected text
+                                paintTextUsingColor(g, a, fg,
+                                        p0 + startPos, p0 + curPos);
+                            }
+                            int checkSum = 0;
+                            // searching for next start position of unselected text
+                            while (curPos < viewLen &&
+                                    (checkSum += selections[curPos]) != 0) curPos++;
+                            startPos = curPos;
+                        }
 			paintedText = true;
-			if(pMin > p0) 
-			    paintTextUsingColor(g, a, fg, p0, pMin);
-			paintTextUsingColor(g, a, selFG, pMin, pMax);
-			if(pMax < p1)
-			    paintTextUsingColor(g, a, fg, pMax, p1);
 		    }
 		}
 	    }
@@ -834,6 +874,11 @@ public class GlyphView extends View implements TabableView, Cloneable {
     }
 
     // --- variables ------------------------------------------------
+
+    /**
+    * Used by paint() to store highlighted view positions
+    */
+    private byte[] selections = null;
 
     short offset;
     short length;

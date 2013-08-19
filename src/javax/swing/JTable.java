@@ -1,7 +1,7 @@
 /*
- * @(#)JTable.java	1.202 02/07/15
+ * @(#)JTable.java	1.204 03/12/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -122,7 +122,7 @@ import java.text.DateFormat;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.202 07/15/02
+ * @version 1.204 12/02/03
  * @author Philip Milne
  */
 /* The first versions of the JTable, contained in Swing-0.1 through
@@ -2172,6 +2172,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    if (delta != 0) {
 		resizingColumn.setWidth(resizingColumn.getWidth() + delta);
 	    }
+            setWidthsFromPreferredWidths(true);
 	}
 
 	super.doLayout();
@@ -2215,6 +2216,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    else {
                 int delta = getWidth() - getColumnModel().getTotalColumnWidth();
 	        accommodateDelta(resizingColumn, delta);
+                setWidthsFromPreferredWidths(true);
 	    }
 	}
     }
@@ -2295,8 +2297,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
         adjustSizes(totalWidth + delta, r, false);
 
-	setWidthsFromPreferredWidths(true);
-	// setWidthsFromPreferredWidths(false);
 	return;
     }
 

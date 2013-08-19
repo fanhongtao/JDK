@@ -1,7 +1,7 @@
 /*
- * @(#)CDRInputStream_1_0.java	1.80 03/04/25
+ * @(#)CDRInputStream_1_0.java	1.82 03/12/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -1755,7 +1755,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
 	} else {
 
 	    // read first array element and store it as an indirection to the whole array
-	    int indirection = get_offset() - 4; 
+	    int indirection = get_offset(); 
 	    String repID = read_repositoryId();
             if (repositoryIdCache == null)
         	repositoryIdCache = new CacheTable(false);

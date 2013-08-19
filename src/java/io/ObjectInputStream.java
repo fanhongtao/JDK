@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInputStream.java	1.142 02/07/19
+ * @(#)ObjectInputStream.java	1.144 03/12/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -156,7 +156,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.142, 02/07/19
+ * @version 1.144, 03/12/02
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -1502,8 +1502,8 @@ public class ObjectInputStream
 	try {
 	    readDesc = readClassDescriptor();
 	} catch (ClassNotFoundException ex) {
-	    // REMIND: do something less drastic here?
-	    throw new StreamCorruptedException();
+	    throw (IOException) new InvalidClassException(
+		"failed to read class descriptor").initCause(ex);
 	}
 	
 	Class cl = null;

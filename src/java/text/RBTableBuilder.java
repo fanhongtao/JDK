@@ -1,7 +1,7 @@
 /*
- * @(#)RBTableBuilder.java	1.7 01/12/03
+ * @(#)RBTableBuilder.java	1.9 03/12/02
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -76,7 +76,7 @@ final class RBTableBuilder {
         // the combining characters must be in their canonical order
         //
         Normalizer.Mode mode = NormalizerUtilities.toNormalizerMode(decmp);
-        pattern = Normalizer.normalize(pattern, mode, 0);
+        pattern = Normalizer.normalize(pattern, mode, 0, true);
 
         // Build the merged collation entries
         // Since rules can be specified in any order in the string
