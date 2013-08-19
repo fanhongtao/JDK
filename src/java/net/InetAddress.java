@@ -1,7 +1,7 @@
 /*
- * @(#)InetAddress.java	1.99 03/01/23 
+ * @(#)InetAddress.java	1.101 05/11/29 
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -148,7 +148,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.99, 01/23/03
+ * @version 1.101, 11/29/05
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -710,7 +710,7 @@ class InetAddress implements java.io.Serializable {
      */
     private static void cacheAddress(String hostname, Object address,
 				     boolean success) {
-
+	hostname = hostname.toLowerCase();
 	synchronized (addressCache) {
 	    cacheInitIfNeeded();
 	    if (success) {

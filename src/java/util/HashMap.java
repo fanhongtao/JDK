@@ -1,7 +1,7 @@
 /*
- * @(#)HashMap.java	1.59 04/12/09
+ * @(#)HashMap.java	1.63 06/02/08
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -88,7 +88,7 @@ import  java.io.*;
  * @author  Doug Lea
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.59, 12/09/04
+ * @version 1.63, 02/08/06
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -920,6 +920,10 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * @see Map.Entry
      */
     public Set entrySet() {
+	return entrySet0();
+    }
+
+    private Set entrySet0() {
         Set es = entrySet;
         return (es != null ? es : (entrySet = new EntrySet()));
     }
@@ -955,14 +959,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *		   <i>size</i> of the HashMap (the number of key-value
      *		   mappings), followed by the key (Object) and value (Object)
      *		   for each key-value mapping represented by the HashMap
-     *             The key-value mappings are emitted in the order that they
+     *             The key-value mappings are emitted in the order that they 
      *             are returned by <tt>entrySet().iterator()</tt>.
      * 
      */
     private void writeObject(java.io.ObjectOutputStream s)
         throws IOException
     {
-        Iterator i = entrySet().iterator();
+        Iterator i = (size > 0) ? entrySet0().iterator() : null;
 
 	// Write out the threshold, loadfactor, and any hidden stuff
 	s.defaultWriteObject();
@@ -974,6 +978,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	s.writeInt(size);
 
         // Write out keys and values (alternating)
+	if ( i == null) return;
+
 	while (i.hasNext()) {
             Map.Entry e = (Map.Entry) i.next();
             s.writeObject(e.getKey());

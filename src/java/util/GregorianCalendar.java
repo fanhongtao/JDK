@@ -1,7 +1,7 @@
 /*
- * @(#)GregorianCalendar.java	1.73 03/04/27
+ * @(#)GregorianCalendar.java	1.75 05/11/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -178,7 +178,7 @@ import sun.util.calendar.ZoneInfo;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.73
+ * @version      1.75
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -267,31 +267,31 @@ public class GregorianCalendar extends Calendar {
      * ERA                     0         0           1           1
      * YEAR                    1         1   292269054   292278994
      * MONTH                   0         0          11          11
-     * WEEK_OF_YEAR            1         1          52          53
-     * WEEK_OF_MONTH           0         0           4           6
-     * DAY_OF_MONTH            1         1          28          31
-     * DAY_OF_YEAR             1         1         365         366
+     * WEEK_OF_YEAR            1         1          52*         53
+     * WEEK_OF_MONTH           0         0           4*          6
+     * DAY_OF_MONTH            1         1          28*         31
+     * DAY_OF_YEAR             1         1         365*        366
      * DAY_OF_WEEK             1         1           7           7
-     * DAY_OF_WEEK_IN_MONTH   -1        -1           4           6
+     * DAY_OF_WEEK_IN_MONTH   -1        -1           4*          6
      * AM_PM                   0         0           1           1
      * HOUR                    0         0          11          11
      * HOUR_OF_DAY             0         0          23          23
      * MINUTE                  0         0          59          59
      * SECOND                  0         0          59          59
      * MILLISECOND             0         0         999         999
-     * ZONE_OFFSET           -12*      -12*         12*         12*
-     * DST_OFFSET              0         0           1*          1*
+     * ZONE_OFFSET        -13:00    -13:00       14:00       14:00
+     * DST_OFFSET           0:00      0:00        0:20        2:00
      * </pre>
      * (*) In units of one-hour
      */
     private static final int MIN_VALUES[] = {
-        0,1,0,1,0,1,1,1,-1,0,0,0,0,0,0,-12*ONE_HOUR,0
+        0,1,0,1,0,1,1,1,-1,0,0,0,0,0,0,-13*ONE_HOUR,0
     };
     private static final int LEAST_MAX_VALUES[] = {
-        1,292269054,11,52,4,28,365,7,4,1,11,23,59,59,999,12*ONE_HOUR,1*ONE_HOUR
+        1,292269054,11,52,4,28,365,7,4,1,11,23,59,59,999,14*ONE_HOUR,20*ONE_MINUTE
     };
     private static final int MAX_VALUES[] = {
-        1,292278994,11,53,6,31,366,7,6,1,11,23,59,59,999,12*ONE_HOUR,1*ONE_HOUR
+        1,292278994,11,53,6,31,366,7,6,1,11,23,59,59,999,14*ONE_HOUR,2*ONE_HOUR
     };
 
 /////////////////////

@@ -1,7 +1,7 @@
 /*
- * @(#)Proxy.java	1.11 03/01/23
+ * @(#)Proxy.java	1.13 05/11/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -191,7 +191,7 @@ import sun.misc.ProxyGenerator;
  * successfully by the <code>invoke</code> method.
  *
  * @author	Peter Jones
- * @version	1.11, 03/01/23
+ * @version	1.13, 05/11/29
  * @see		InvocationHandler
  * @since	JDK1.3
  */
@@ -311,10 +311,16 @@ public class Proxy implements java.io.Serializable {
 				      Class[] interfaces)
 	throws IllegalArgumentException
     {
+        if (interfaces.length > 65535) {
+            throw new IllegalArgumentException("interface limit exceeded");
+        }
+        
 	Class proxyClass = null;
 
 	/* buffer to generate string key for proxy class cache */
 	StringBuffer keyBuffer = new StringBuffer();
+
+        Set interfaceSet = new HashSet();       // for detecting duplicates
 
 	for (int i = 0; i < interfaces.length; i++) {
 	    /*
@@ -340,6 +346,15 @@ public class Proxy implements java.io.Serializable {
 		throw new IllegalArgumentException(
 		    interfaceClass.getName() + " is not an interface");
 	    }
+
+            /*
+             * Verify that this interface is not a duplicate.
+             */
+            if (interfaceSet.contains(interfaceClass)) {
+                throw new IllegalArgumentException(
+                    "repeated interface: " + interfaceClass.getName());
+            }
+            interfaceSet.add(interfaceClass);
 
 	    // continue building string key for proxy class cache
 	    keyBuffer.append(interfaces[i].getName()).append(';');

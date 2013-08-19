@@ -1,7 +1,7 @@
 /*
- * @(#)java_md.c	1.35 04/04/29
+ * @(#)java_md.c	1.38 05/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@
 
 /*
  * If a processor / os combination has the ability to run binaries of
- * with two data models (e.g. SPARC Solaris) then
+ * with two data models (e.g. Solaris) then
  * DUAL_MODE is defined.  When DUAL_MODE is defined, the architecture
  * names for the narrow and wide version of the architecture are
  * defined in BIG_ARCH and SMALL_ARCH.
@@ -48,6 +48,8 @@
 
 #  ifdef ia64
 #    define ARCH "ia64"
+#  elif defined(amd64)
+#    define ARCH "amd64"
 #  elif defined(__sparc)
 #    define ARCH "sparcv9"
 #  else
@@ -58,14 +60,21 @@
 
 #  ifdef i586
 #    define ARCH "i386"
+#  elif defined(__sparc)
+#    define ARCH "sparc"
 #  endif
 
 #endif /* _LP64 */
 
-#ifdef __sparc
+#ifdef __sun
 #  define DUAL_MODE
-#  define BIG_ARCH "sparcv9"
-#  define SMALL_ARCH "sparc"
+#  ifdef __sparc
+#    define BIG_ARCH "sparcv9"
+#    define SMALL_ARCH "sparc"
+#  else
+#    define BIG_ARCH "amd64"
+#    define SMALL_ARCH "i386"
+#  endif
 #  include <sys/systeminfo.h>
 #  include <sys/elf.h>
 #  include <stdio.h>
@@ -247,7 +256,7 @@ CreateExecutionEnvironment(int *_argcp,
        * an error and will terminate the program.
        *
        * But that is the future (and the source for this backport).
-       * Pre-1.5, Solaris SPARC is the only supported platform which
+       * Pre-1.5, Solaris is the only supported platform which
        * accepts the -d32 and -d64 options since it is the only
        * supported platform that allows running either 32 or 64 bit
        * binaries.  If other such platforms are added in the future
@@ -255,7 +264,7 @@ CreateExecutionEnvironment(int *_argcp,
        * accordingly.
        */
 
-#ifdef __sparc
+#ifdef __sun
       { /* open new scope to declare local variables */
 	int i;
 
@@ -303,7 +312,7 @@ CreateExecutionEnvironment(int *_argcp,
 	argc = newargc;
 	argv = newargv;
       }
-#endif /* end of __sparc */
+#endif /* end of __sun */
 
       /* If the data model is not changing, it is an error if the
 	 jvmpath does not exist */
@@ -507,7 +516,7 @@ CreateExecutionEnvironment(int *_argcp,
 		     where appropriate)*/
 	}
       }
-    
+
       /* 
        * Place the desired environment setting onto the prefix of
        * LD_LIBRARY_PATH.  Note that this prevents any possible infinite
@@ -553,8 +562,9 @@ CreateExecutionEnvironment(int *_argcp,
 	 * the bits are assumed to be in "olddir/../execname".  For example,
 	 *
 	 * olddir/sparcv9/execname
+	 * olddir/amd64/execname
 	 *
-	 * for Solaris SPARC.
+	 * for Solaris SPARC and amd64, respectively.
 	 */
 
 	if (running != wanted) {
@@ -581,12 +591,18 @@ CreateExecutionEnvironment(int *_argcp,
 	if (running != wanted) {
 	  fprintf(stderr, "Failed to start a %d-bit JVM process from a %d-bit JVM.\n",
 		  wanted, running);
-#ifdef __sparc
+#  ifdef __sun
+
+#    ifdef __sparc
 	  fprintf(stderr, "Verify all necessary J2SE components have been installed.\n" );
 	  fprintf(stderr,
 		  "(Solaris SPARC 64-bit components must be installed after 32-bit components.)\n" );
-#endif
+#    else 
+	  fprintf(stderr, "Either 64-bit processes are not supported by this platform\n");
+	  fprintf(stderr, "or the 64-bit components have not been installed.\n");
+#    endif
 	}
+#  endif
 #endif
 
       }
@@ -790,7 +806,7 @@ GetApplicationHome(char *buf, jint bufsize)
 	return JNI_FALSE;
     }
     if (strcmp("/bin", buf + strlen(buf) - 4) != 0) 
-	*(strrchr(buf, '/')) = '\0';	/* sparcv9              */
+	*(strrchr(buf, '/')) = '\0';	/* sparcv9 or amd64     */
     if (strlen(buf) < 4 || strcmp("/bin", buf + strlen(buf) - 4) != 0) {
 	buf[0] = '\0';
 	return JNI_FALSE;
@@ -970,7 +986,7 @@ void  ReportExceptionDescription(JNIEnv * env) {
 /*
  * Return JNI_TRUE for an option string that has no effect but should
  * _not_ be passed on to the vm; return JNI_FALSE otherwise.  On
- * Solaris SPARC, this screening needs to be done if:
+ * Solaris, this screening needs to be done if:
  * 1) LD_LIBRARY_PATH does _not_ need to be reset and
  * 2) -d32 or -d64 is passed to a binary with a matching data model
  *    (the exec in SetLibraryPath removes -d<n> options and points the
@@ -978,7 +994,7 @@ void  ReportExceptionDescription(JNIEnv * env) {
  *    would end up getting passed onto the vm.
  */
 jboolean RemovableMachineDependentOption(char * option) {
-#ifdef __sparc
+#ifdef __sun
   /*
    * Unconditionally remove both -d32 and -d64 options since only
    * the last such options has an effect; e.g. 
@@ -992,13 +1008,13 @@ jboolean RemovableMachineDependentOption(char * option) {
     return JNI_TRUE;
   else
     return JNI_FALSE;
-#else /* not __sparc */
+#else /* not __sun */
   return JNI_FALSE;
 #endif
 }
 
 void PrintMachineDependentOptions() {
-#ifdef __sparc
+#ifdef __sun
       fprintf(stdout,
 	"    -d32          use a 32-bit data model if available\n"
 	"\n"

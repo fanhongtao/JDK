@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDesktopPaneUI.java	1.45 03/01/23
+ * @(#)BasicDesktopPaneUI.java	1.47 05/12/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,15 +19,18 @@ import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
 import java.awt.*;
 import java.util.Vector;
+import sun.awt.AppContext;
 
 /**
  * Basic L&F for a desktop.
  *
- * @version 1.45 01/23/03
+ * @version 1.47 12/07/05
  * @author Steve Wilson
  */
 public class BasicDesktopPaneUI extends DesktopPaneUI
 {
+    private static final Object FRAMES_CACHE_KEY = 
+                new StringBuffer("BASIC_DESKTOP_PANE_UI.FRAMES_CACHE");
     private static Dimension minSize = new Dimension(0,0);
     private static Dimension maxSize = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
@@ -85,6 +88,18 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     }
 
     public BasicDesktopPaneUI() {
+    }
+
+    private static Vector getCurrentFramesCache() {
+        synchronized (BasicDesktopPaneUI.class) {
+            AppContext appContext = AppContext.getAppContext();
+            Vector framesCache = (Vector) appContext.get(FRAMES_CACHE_KEY);
+            if(framesCache == null) {
+                framesCache = new Vector();
+                appContext.put(FRAMES_CACHE_KEY,framesCache);
+            }
+            return framesCache;
+        }
     }
 
     public void installUI(JComponent c)   {
@@ -221,7 +236,6 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     /*
      * Key binding for accessibility -----------------
      */
-    private static Vector framesCache;
     private NavigateAction nextAction;
     private boolean moving = false;
     private boolean resizing = false;
@@ -423,6 +437,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 	public void actionPerformed(ActionEvent e) {
 	    // navigate to the next frame
 	    int i = 0;
+	    Vector framesCache = getCurrentFramesCache();
 	    verifyFramesCache();
 	    if (framesCache.size() == 0) return;
 	    JInternalFrame f = desktop.getSelectedFrame();
@@ -467,6 +482,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 	public void actionPerformed(ActionEvent e) {
 	    // navigate to the previous internal frame
             int i = 0;
+	    Vector framesCache = getCurrentFramesCache();
 	    verifyFramesCache();
 	    if (framesCache.size() == 0) return;
 	    JInternalFrame f = desktop.getSelectedFrame();
@@ -551,10 +567,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     private void verifyFramesCache() {
 
-	// Need to initialize?
-	if (framesCache == null) {
-	    framesCache = new Vector();
-	}
+	Vector framesCache = getCurrentFramesCache();
 
 	// Check whether any internal frames have closed in
 	// which case we have to refresh the frames cache.

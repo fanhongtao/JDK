@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.97 03/01/23
+ * @(#)Socket.java	1.99 05/11/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,7 @@ import java.io.InterruptedIOException;
 import java.nio.channels.SocketChannel;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
+import java.security.PrivilegedAction;
 
 /**
  * This class implements client sockets (also called just
@@ -27,7 +28,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.97, 01/23/03
+ * @version 1.99, 11/29/05
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -333,23 +334,31 @@ class Socket {
     }
 
     private void checkOldImpl() {
-	if (impl == null)
-	    return;
-	// SocketImpl.connect() is a protected method, therefore we need to use
-	// getDeclaredMethod, therefore we need permission to access the member
-	try {
-	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws NoSuchMethodException {
-			Class[] cl = new Class[2];
-			cl[0] = SocketAddress.class;
-			cl[1] = Integer.TYPE;
-			impl.getClass().getDeclaredMethod("connect", cl);
-			return null;
-		    }
-		});
-	} catch (java.security.PrivilegedActionException e) {
-	    oldImpl = true;
-	}
+        if (impl == null)
+            return;
+        // SocketImpl.connect() is a protected method, therefore we need to use
+        // getDeclaredMethod, therefore we need permission to access the member
+
+        Boolean tmpBool = (Boolean) AccessController.doPrivileged (new PrivilegedAction() {
+            public Object run() {
+                Class[] cl = new Class[2];
+                cl[0] = SocketAddress.class;
+                cl[1] = Integer.TYPE;
+                Class clazz = impl.getClass();
+                while (true) {
+                    try {
+                        clazz.getDeclaredMethod("connect", cl);
+                        return Boolean.FALSE;
+                    } catch (NoSuchMethodException e) {
+                        clazz = clazz.getSuperclass();
+                        if (clazz.equals (Object.class)) {
+                            return Boolean.TRUE;
+                        }
+                    }
+                }
+            }
+        });
+        oldImpl = tmpBool.booleanValue();
     }
 
     /**

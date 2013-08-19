@@ -1,7 +1,7 @@
 /*
- * @(#)Calendar.java	1.73 03/04/23
+ * @(#)Calendar.java	1.75 05/11/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,6 +27,8 @@ import java.text.DateFormat;
 import sun.text.resources.LocaleData;
 import sun.util.BuddhistCalendar;
 import sun.util.calendar.ZoneInfo;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 
 /**
  * <code>Calendar</code> is an abstract base class for converting between
@@ -258,7 +260,7 @@ import sun.util.calendar.ZoneInfo;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.73, 04/23/03
+ * @version      1.75, 11/29/05 
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -713,6 +715,12 @@ public abstract class Calendar implements Serializable, Cloneable {
     static final int        UNSET = 0;
     static final int        INTERNALLY_SET = 1;
     static final int        MINIMUM_USER_STAMP = 2;
+
+   /**
+     * The value of the corresponding fields[] has been calculated internally.
+     */
+    private static final int        COMPUTED = 1;
+
 
     /**
      * The next available value for <code>stamp[]</code>, an internal array.
@@ -1683,7 +1691,8 @@ public abstract class Calendar implements Serializable, Cloneable {
     private void readObject(ObjectInputStream stream)
          throws IOException, ClassNotFoundException
     {
-        stream.defaultReadObject();
+	final ObjectInputStream input = stream;
+        input.defaultReadObject();
 
         stamp = new int[FIELD_COUNT];
 
@@ -1699,16 +1708,21 @@ public abstract class Calendar implements Serializable, Cloneable {
         else if (serialVersionOnStream >= 0)
         {
             for (int i=0; i<FIELD_COUNT; ++i)
-                stamp[i] = isSet[i] ? INTERNALLY_SET : UNSET;
+	        stamp[i] = isSet[i] ? COMPUTED : UNSET;
         }
 
         serialVersionOnStream = currentSerialVersion;
 
 	// If there's a ZoneInfo object, use it for zone.
 	try {
-	    ZoneInfo zi = (ZoneInfo) stream.readObject();
+	    ZoneInfo zi = (ZoneInfo) AccessController.doPrivileged(
+	    new PrivilegedExceptionAction() {
+	        public Object run() throws Exception {
+		return input.readObject();
+	        }
+	    });
 	    if (zi != null) {
-		zone = zi;
+	        zone = zi;
 	    }
 	} catch (Exception e) {
 	}
@@ -1717,12 +1731,11 @@ public abstract class Calendar implements Serializable, Cloneable {
 	// replace it with a ZoneInfo equivalent (as of 1.4) in order
 	// to be compatible with the SimpleTimeZone-based
 	// implementation as much as possible.
-	TimeZone tz = getTimeZone();
-	if (tz instanceof SimpleTimeZone) {
-	    String id = tz.getID();
+	if (zone instanceof SimpleTimeZone) {
+	    String id = zone.getID();
 	    TimeZone zi = TimeZone.getTimeZone(id);
-	    if (zi != null && zi.hasSameRules(tz) && zi.getID().equals(id)) {
-		setTimeZone(zi);
+	    if (zi != null && zi.hasSameRules(zone) && zi.getID().equals(id)) {
+	        zone = zi;
 	    }
 	}
     }

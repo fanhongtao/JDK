@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.22 03/01/23
+ * @(#)DefaultListCellRenderer.java	1.24 05/12/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,15 +46,16 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.22 01/23/03
+ * @version 1.24 12/07/05
  * @author Philip Milne
  * @author Hans Muller
  */
 public class DefaultListCellRenderer extends JLabel
     implements ListCellRenderer, Serializable
 {
-
-    protected static Border noFocusBorder;
+    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+    private static final Border SAFE_NO_FOCUS_BORDER =
+				new EmptyBorder(1, 1, 1, 1);
 
     /**
      * Constructs a default renderer object for an item
@@ -62,13 +63,17 @@ public class DefaultListCellRenderer extends JLabel
      */
     public DefaultListCellRenderer() {
 	super();
-        if (noFocusBorder == null) {
-            noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-        }
 	setOpaque(true);
-	setBorder(noFocusBorder);
+	setBorder(getNoFocusBorder());
     }
 
+    private static Border getNoFocusBorder() {
+        if (System.getSecurityManager() != null) {
+            return SAFE_NO_FOCUS_BORDER;
+        } else {
+            return noFocusBorder;
+        }
+    }
 
     public Component getListCellRendererComponent(
         JList list,
@@ -98,7 +103,7 @@ public class DefaultListCellRenderer extends JLabel
 
 	setEnabled(list.isEnabled());
 	setFont(list.getFont());
-	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
+	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : getNoFocusBorder());
 
 	return this;
     }

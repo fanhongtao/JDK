@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.90 03/01/23
+ * @(#)Dialog.java	1.92 05/11/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -15,6 +15,8 @@ import javax.accessibility.*;
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
 import sun.awt.PeerEvent;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * A Dialog is a top-level window with a title and a border
@@ -65,7 +67,7 @@ import sun.awt.PeerEvent;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.90, 01/23/03
+ * @version 	1.92, 11/29/05
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -533,7 +535,7 @@ public class Dialog extends Window {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
                      enqueueKeyEvents(time, predictedFocusOwner); 
 
-                Runnable pumpEventsForHierarchy = new Runnable() {
+                final Runnable pumpEventsForHierarchy = new Runnable() {
                         public void run() {
                             EventDispatchThread dispatchThread =
                                 (EventDispatchThread)Thread.currentThread();
@@ -557,8 +559,18 @@ public class Dialog extends Window {
                     if (currentSequencedEvent != null) {
                         currentSequencedEvent.dispose();
                     }
+                    /* 
+                     * Event processing is done inside doPrivileged block so that
+                     * it wouldn't matter even if user code is on the stack
+                     * Fix for BugId 6300270
+                     */
+                     AccessController.doPrivileged(new PrivilegedAction() {
+                             public Object run() {
+                                pumpEventsForHierarchy.run();
+                                return null;
+                             }
+                     });
 
-                    pumpEventsForHierarchy.run();
                 } else {
                     synchronized (getTreeLock()) {
                         Toolkit.getEventQueue().

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.33 03/01/23
+ * @(#)DefaultTableCellRenderer.java	1.35 05/12/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,15 +55,15 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.33 01/23/03
+ * @version 1.35 12/07/05
  * @author Philip Milne 
  * @see JTable
  */
 public class DefaultTableCellRenderer extends JLabel
     implements TableCellRenderer, Serializable
 {
-
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1); 
+    private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
     
     // We need a place to store the color the JLabel should be returned 
     // to after its foreground and background colors have been set 
@@ -78,7 +78,15 @@ public class DefaultTableCellRenderer extends JLabel
     public DefaultTableCellRenderer() {
 	super();
 	setOpaque(true);
-        setBorder(noFocusBorder);
+        setBorder(getNoFocusBorder());
+    }
+
+    private static Border getNoFocusBorder() {
+        if (System.getSecurityManager() != null) {
+            return SAFE_NO_FOCUS_BORDER;
+        } else {
+            return noFocusBorder;
+        }
     }
 
     /**
@@ -154,7 +162,7 @@ public class DefaultTableCellRenderer extends JLabel
 	        super.setBackground( UIManager.getColor("Table.focusCellBackground") );
 	    }
 	} else {
-	    setBorder(noFocusBorder);
+	    setBorder(getNoFocusBorder());
 	}
 
         setValue(value); 
