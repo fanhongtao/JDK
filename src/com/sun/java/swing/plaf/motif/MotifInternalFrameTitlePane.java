@@ -1,7 +1,7 @@
 /*
- * @(#)MotifInternalFrameTitlePane.java	1.24 01/12/03
+ * @(#)MotifInternalFrameTitlePane.java	1.26 03/07/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.beans.PropertyVetoException;
 
 /**
  * Class that manages a Motif title bar
- * @version 1.24 12/03/01
+ * @version 1.26 07/08/03
  *
  * @since 1.3
  */
@@ -111,9 +111,7 @@ public class MotifInternalFrameTitlePane
             public void mousePressed(MouseEvent e) {
 				if ((e.getClickCount() == 2)){
 					if (iFrame.isClosable()) {
-						try{
-							iFrame.setClosed(true);
-						} catch (PropertyVetoException e0) { }
+						iFrame.doDefaultCloseAction();
 					}
 					systemMenu.setVisible(false);
 				}

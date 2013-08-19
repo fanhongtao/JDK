@@ -1,7 +1,7 @@
 /*
- * @(#)MessageBase.java	1.15 01/12/03
+ * @(#)MessageBase.java	1.17 03/07/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -514,21 +514,8 @@ public abstract class MessageBase implements Message {
         int n = 0;
         while (n < size) {
             int bytecount=0;
-            int itns=0;
 
-            // The while loop here is to workaround a possible bug
-            // in the Solaris JVM where an "interrupted system call"
-            // error is thrown as a SocketException instead of being
-            // retried inside SocketInputStream.read().
-            while ( true ) {
-                try {
-                    bytecount = is.read(buf, offset + n, size - n);
-                break;
-                } catch ( java.io.IOException ex ) {
-                if ( itns++ >= 5 )
-                throw ex;
-                }
-            }
+            bytecount = is.read(buf, offset + n, size - n);
 
             if (bytecount < 0)
             throw new IOException();

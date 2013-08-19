@@ -1,5 +1,5 @@
 /*
- * @(#)CardLayout.java	1.37 03/01/19
+ * @(#)CardLayout.java	1.38 03/06/27
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import java.io.IOException;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.37 01/19/03
+ * @version 	1.38 06/27/03
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
@@ -449,10 +449,10 @@ public class CardLayout implements LayoutManager2,
     public void show(Container parent, String name) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-
-            if (((Card) vector.get(currentCard)).name.equals(name))
-                return;
-
+            if ( (vector.size() > 0) && (currentCard < vector.size()) ) {
+                if (((Card) vector.get(currentCard)).name.equals(name)) 
+                   return;  
+            }
             int ncomponents = vector.size();
             for (int i = 0; i < ncomponents; i++) {
                 Card card = (Card)vector.get(i);

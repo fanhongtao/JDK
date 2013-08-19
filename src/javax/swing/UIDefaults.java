@@ -1,7 +1,7 @@
 /*
- * @(#)UIDefaults.java	1.51 01/12/03
+ * @(#)UIDefaults.java	1.53 03/07/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,9 @@ import java.awt.Dimension;
 import java.lang.reflect.Method;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-
+import java.security.AccessController;
+import java.security.AccessControlContext;
+import java.security.PrivilegedAction;
 
 /**
  * A table of defaults for Swing components.  Applications can set/get
@@ -44,7 +46,7 @@ import java.beans.PropertyChangeEvent;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see UIManager
- * @version 1.51 12/03/01
+ * @version 1.53 07/08/03
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -960,6 +962,7 @@ public class UIDefaults extends Hashtable
      * (since Reflection APIs are used).
      */
     public static class ProxyLazyValue implements LazyValue {
+	private AccessControlContext acc;
 	private String className;
 	private String methodName;
 	private Object[] args;
@@ -1014,9 +1017,12 @@ public class UIDefaults extends Hashtable
          *		paramaters to the static method in class c
 	 */
 	public ProxyLazyValue(String c, String m, Object[] o) {
+	    acc = AccessController.getContext();
 	    className = c;
 	    methodName = m;
-	    args = o;
+	    if (o != null) {
+		args = (Object[])o.clone();
+	    }
 	}
 
         /**
@@ -1026,34 +1032,35 @@ public class UIDefaults extends Hashtable
          * @param table  a <code>UIDefaults</code> table
          * @return the created <code>Object</code>
          */
-	public Object createValue(UIDefaults table) {
-	    Object instance = null;
+	public Object createValue(final UIDefaults table) {
+	// In order to pick up the security policy in effect at the
+	// time of creation we use a doPrivileged with the
+	// AccessControlContext that was in place when this was created.
+	return AccessController.doPrivileged(new PrivilegedAction() {
+	  public Object run() {
 	    try {
                 Class c;
                 Object cl;
 
                 // See if we should use a separate ClassLoader
-                if (table != null && ((cl = table.get("ClassLoader"))
+		if (table == null || !((cl = table.get("ClassLoader"))
                                       instanceof ClassLoader)) {
-                    c = Class.forName(className, true, (ClassLoader)cl);
+		   cl = Thread.currentThread().
+			getContextClassLoader();
+		   if (cl == null) {
+			// Fallback to the system class loader.
+			cl = ClassLoader.getSystemClassLoader();
+		   }
                 }
-                else {
-                    // NOTE: A better way to do this would probably be
-                    // to snapshot the ClassLoader at construction time.
-                    // But since it is very rare that these ClassLoaders will
-                    // differ, and it would cost us another field, I'm
-                    // going to leave it like this.
-                    c = Class.forName(className, true, Thread.currentThread().
-                                      getContextClassLoader());
-                }
+		c = Class.forName(className, true, (ClassLoader)cl);
 		if (methodName !=null) {
 		    Class[] types = getClassArray(args);
 		    Method m = c.getMethod(methodName, types);
-		    instance = m.invoke(c, args);
+		    return m.invoke(c, args);
 		} else {
 		    Class[] types = getClassArray(args);
                     Constructor constructor = c.getConstructor(types);
-                    instance = constructor.newInstance(args);
+                    return constructor.newInstance(args);
 		}
 	    } catch(Exception e) {
                 // Ideally we would throw an exception, unfortunately often
@@ -1061,15 +1068,11 @@ public class UIDefaults extends Hashtable
                 // loaded before one can be switched. Perhaps a
                 // flag should be added for debugging, so that if true
                 // the exception would be thrown.
-/*
-                throw new RuntimeException(
-                    "ProxyLazyValue: unable to create instance: " +
-                    className + " method: " + methodName + " args: " +
-                    printArgs(args));
-*/
 	    }	    
-	    return instance;
-	}
+	    return null;
+	    }
+	  }, acc);
+     }
 
 	/* 
 	 * Coerce the array of class types provided into one which

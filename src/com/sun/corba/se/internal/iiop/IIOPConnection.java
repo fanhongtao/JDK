@@ -1,7 +1,7 @@
 /*
- * @(#)IIOPConnection.java	1.123 01/12/03
+ * @(#)IIOPConnection.java	1.125 03/07/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -524,61 +524,83 @@ public final class IIOPConnection extends Connection
      * IMPORTANT: this connection's lock must be acquired before
      * setting the writeLock and must be unlocked after setting the writeLock.
      */
-    protected boolean writeLock()
-    {
+     protected boolean writeLock()
+     {
 
-        // Keep looping till we can set the writeLock.
-        while ( true ) {
-            synchronized ( stateEvent ){
-                switch ( state ) {
-                
-                case OPENING:
-                    try {
-                        stateEvent.wait();
-                    } catch (InterruptedException ie) {};
-                    // Loop back
-                    break;
-                
-                case ESTABLISHED:
-                    synchronized (writeEvent) {
-                        if (!writeLocked) {
-                            writeLocked = true;
-                            return true;
-                        }
+	 // Keep looping till we can set the writeLock.
+	 while ( true ) {
+	     int localState;
+	     synchronized (stateEvent) {
+		 localState = state;
+	     }
+
+	     switch (localState) {
+		 
+	     case OPENING:
+		 synchronized ( stateEvent ){
+		     if (state != OPENING) {
+			 // somebody has changed 'state' so be careful
+			 break;
+		     }
+		     try {
+			 stateEvent.wait();
+		     } catch(InterruptedException ie) {};
+		 }
+		 // Loop back
+		 break;
+		 
+	     case ESTABLISHED:
+		 synchronized (writeEvent) {
+		     if (!writeLocked) {
+			 writeLocked = true;
+			 return true;
+		     }
                     
-                        try {
-                            writeEvent.wait();
-                        } catch (InterruptedException ie) {};
-                    }
-                    // Loop back
-                    break;
+		     try {
+			 // do not stay here too long if state != ESTABLISHED
+			 while (state == ESTABLISHED && writeLocked) {
+			     writeEvent.wait();
+			 }
+		     } catch (InterruptedException ie) {};
+		 }
+		 // Loop back
+		 break;
                 
-                    //
-                    // XXX
-                    // Need to distinguish between client and server roles
-                    // here probably.
-                    //
-                case ABORT:
-                    throw new COMM_FAILURE( MinorCodes.WRITE_ERROR_SEND,
-                                            CompletionStatus.COMPLETED_NO);
-                     
-                case CLOSE_RECVD:
-                    // the connection has been closed or closing
-                    // ==> throw rebind exception
+		 //
+		 // XXX
+		 // Need to distinguish between client and server roles
+		 // here probably.
+		 //
+	     case ABORT:
+		 synchronized ( stateEvent ){
+		     if (state != ABORT) {
+			 break;
+		     }
+		     throw new COMM_FAILURE( MinorCodes.WRITE_ERROR_SEND,
+					     CompletionStatus.COMPLETED_NO);
+		 }
+
+	     case CLOSE_RECVD:
+		 // the connection has been closed or closing
+		 // ==> throw rebind exception
                 
-                    throw new COMM_FAILURE( MinorCodes.CONN_CLOSE_REBIND,
-                                            CompletionStatus.COMPLETED_NO);
-                
-                default:
-                    if (orb.transportDebugFlag)
-                        dprint("Connection:writeLock: weird state");
-                
-                    delete(Connection.CONN_ABORT);
-                    return false;
-                }
-            }
-        }
-    }
+                 synchronized ( stateEvent ){
+                     if (state != CLOSE_RECVD) {
+                         break;
+                     }
+		     throw new COMM_FAILURE( MinorCodes.CONN_CLOSE_REBIND,
+					     CompletionStatus.COMPLETED_NO);
+		 }
+
+	     default:
+		 if (orb.transportDebugFlag)
+		     dprint("Connection:writeLock: weird state");
+		 
+		 delete(Connection.CONN_ABORT);
+		 return false;
+	     }
+	 }
+     }
 
     /**
      * Release the write lock on this connection.
@@ -600,7 +622,7 @@ public final class IIOPConnection extends Connection
     void delete(int code)
     {
         DeleteConn dc = new DeleteConn(code);
-        reader.stop(dc);
+	reader.stop(dc);
     }
 
 
@@ -901,7 +923,7 @@ public final class IIOPConnection extends Connection
 
             // stop the reader without causing it to do purge_calls
             Exception ex = new Exception();
-            reader.stop(ex);
+	    reader.stop(ex);
 
             // this also does writeUnlock();
             purge_calls(Connection.CONN_REBIND, false, true);

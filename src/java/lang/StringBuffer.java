@@ -1,7 +1,7 @@
 /*
- * @(#)StringBuffer.java	1.73 02/03/05
+ * @(#)StringBuffer.java	1.75 03/07/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,7 +62,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.73, 03/05/02
+ * @version 	1.75, 07/08/03
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -249,8 +249,18 @@ public final class StringBuffer
 	    }
 	} else {
             count = newLength;
-            if (shared) copy();
+            if (shared) {
+                if (newLength > 0) {
+                    copy();
+                } else {
+                    // If newLength is zero, assume the StringBuffer is being
+                    // stripped for reuse; Make new buffer of default size
+                    value = new char[16];
+                    shared = false;
+                }
+            }
         }
+
     }
 
     /**
