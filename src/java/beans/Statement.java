@@ -1,7 +1,7 @@
 /*
- * @(#)Statement.java	1.18 03/01/23
+ * @(#)Statement.java	1.20 05/02/10
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -23,7 +23,7 @@ import java.util.*;
  *
  * @since 1.4
  *
- * @version 1.18 01/23/03
+ * @version 1.20 02/10/05
  * @author Philip Milne
  */
 
@@ -382,6 +382,13 @@ public class Statement {
         // System.out.println("Invoking: " + toString());
         Object target = getTarget();
         String methodName = getMethodName();
+        SecurityManager security = System.getSecurityManager();
+
+        if (target == null || methodName == null) {
+	    throw new NullPointerException((target == null ? "target" : 
+					    "methodName") + " should not be null");
+        }
+
         Object[] arguments = getArguments();
         // Class.forName() won't load classes outside
         // of core from a class inside core. Special
@@ -434,12 +441,39 @@ public class Statement {
                         m = constructor;
                     }
                 }
+                if (m != null && security != null) {
+		    String name = ((Class)target).getName();
+		    int i = name.lastIndexOf('.');
+		    if (i != -1) {
+		        security.checkPackageAccess(name.substring(0, i));
+		    }
+		}
             }
-            if (m == null) {
+            if (m == null && target != Class.class) {
                 m = getMethod((Class)target, methodName, argClasses);
             }
             if (m == null) {
                 m = getMethod(Class.class, methodName, argClasses);
+                if (m != null && security != null) {
+                    if (methodName.equals("forName")) {
+                        return classForName((String)arguments[0]);
+           	    }
+                    if (methodName.equals("newInstance") ||
+		        methodName.equals("getClasses") ||
+		        methodName.startsWith("getConstructor") ||
+		        methodName.startsWith("getField") ||
+		        methodName.startsWith("getMethod")) {
+		        String name = ((Class)target).getName();
+		        int i = name.lastIndexOf('.');
+		        if (i != -1) {
+		             security.checkPackageAccess(name.substring(0, i));
+		        }
+                    }
+                    if (methodName.startsWith("getDeclared")) {
+                        throw new Exception("Statement cannot invoke: " + 
+			      methodName + " on " + target.getClass());
+                    }
+		}
             }
         }
         else {
@@ -465,8 +499,20 @@ public class Statement {
         }
         if (m != null) {
             // System.err.println("Calling \"" + methodName + "\"" + " on " + ((o == null) ? null : target.getClass()));
-            try {
+            try {                
                 if (m instanceof Method) {
+                    if (security != null) {
+         	        if (target instanceof Method &&
+ 			    methodName.equals("invoke")) {
+             	            throw new Exception("Statement cannot invoke: " + 
+ 			        methodName + " on " + target.getClass());
+         	        }
+ 		        Class rt = ((Method)m).getReturnType();
+ 		        if (ClassLoader.class.isAssignableFrom(rt)) {
+            		    throw new Exception("Statement cannot invoke: " + 
+ 			        methodName + " on " + target.getClass());
+ 		        }
+                     }
                     return ((Method)m).invoke(target, arguments);
                 }
                 else {
@@ -516,49 +562,3 @@ public class Statement {
         return result.toString();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

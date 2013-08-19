@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamClassCorbaExt.java	1.3 03/01/23
+ * @(#)ObjectStreamClassCorbaExt.java	1.5 04/12/09
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,46 +33,38 @@ import java.lang.reflect.Method;
 
 class ObjectStreamClassCorbaExt {
 
+    /**
+     * Return true, iff,
+     *
+     * 1. 'cl' is an interface, and
+     * 2. 'cl' and all its ancestors do not implement java.rmi.Remote, and
+     * 3. if 'cl' has no methods (including those of its ancestors), or,
+     *    if all the methods (including those of its ancestors) throw an
+     *    exception that is atleast java.rmi.RemoteException or one of
+     *    java.rmi.RemoteException's super classes.
+     */
     static final boolean isAbstractInterface(Class cl) {
-
-        Method[] method = ObjectStreamClassCorbaExt.getDeclaredMethods(cl);
-        // Test for abstractness (used under rmi/iiop when determining whether
-        // to call read/write_Abstract
-
-        if (!cl.isInterface()) {
+        if (!cl.isInterface() || // #1
+                java.rmi.Remote.class.isAssignableFrom(cl)) { // #2
             return false;
         }
-
-        if (method.length == 0) {
-            return false;
-        }
-
-        boolean isAbstractInterface = false;
-
-        for (int im = method.length -1 ; (im > -1); im--) {
-            Class exceptions[] = method[im].getExceptionTypes();
-            if (exceptions.length == 0) {
-                return false;
-            }
-               
-            // Set abstractness to false and flip to true only if the 
-	    // method has at least one good exception
-
-            for (int ime = exceptions.length -1; (ime > -1) && (isAbstractInterface == false); ime--) {
-                if ((java.rmi.RemoteException.class == exceptions[ime]) ||
-                    (java.lang.Throwable.class == exceptions[ime]) ||
-                    (java.lang.Exception.class == exceptions[ime]) ||
-                    (java.io.IOException.class == exceptions[ime])) {
-                    isAbstractInterface = true;
+        Method[] methods = cl.getMethods();
+        for (int i = 0; i < methods.length; i++) {
+            Class exceptions[] = methods[i].getExceptionTypes();
+            boolean exceptionMatch = false;
+            for (int j = 0; (j < exceptions.length) && !exceptionMatch; j++) {
+                if ((java.rmi.RemoteException.class == exceptions[j]) ||
+                    (java.lang.Throwable.class == exceptions[j]) ||
+                    (java.lang.Exception.class == exceptions[j]) ||
+                    (java.io.IOException.class == exceptions[j])) {
+                    exceptionMatch = true;
                 }
             }
+            if (!exceptionMatch) {
+                return false;
+            }
         }
-
-	Class superclass = cl.getSuperclass();
-
-        isAbstractInterface = (isAbstractInterface && ((superclass == null) || ( ObjectStreamClassCorbaExt.isAbstractInterface(superclass))));
-	return isAbstractInterface;
-
+        return true;
     }
 
     /*

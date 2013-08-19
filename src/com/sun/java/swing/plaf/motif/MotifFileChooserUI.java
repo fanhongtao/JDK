@@ -1,5 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.42 05/01/15
+ * @(#)MotifFileChooserUI.java	1.44 05/02/07
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.42 01/15/05
+ * @version 1.44 02/07/05
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -324,7 +324,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	align(l);
 	rightPanel.add(l);
 	sp = createFilesList();
-	l.setLabelFor(sp);
+	l.setLabelFor(sp.getViewport().getView());
 	rightPanel.add(sp);
 
 	centerPanel.add(leftPanel);
@@ -679,6 +679,8 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	    String prop = e.getPropertyName();
 	    if(prop == JFileChooser.CHOOSABLE_FILE_FILTER_CHANGED_PROPERTY) {
 		filters = (FileFilter[]) e.getNewValue();
+		fireContentsChanged(this, -1, -1);
+	    } else if (prop == JFileChooser.FILE_FILTER_CHANGED_PROPERTY) {
 		fireContentsChanged(this, -1, -1);
 	    }
 	}

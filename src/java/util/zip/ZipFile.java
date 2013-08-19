@@ -1,7 +1,7 @@
 /*
- * @(#)ZipFile.java	1.60 04/05/06
+ * @(#)ZipFile.java	1.62 04/12/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version   1.60, 05/06/04 
+ * @version   1.62, 12/09/04 
  * @author	David Connelly
  */
 public
@@ -207,7 +207,10 @@ class ZipFile implements ZipConstants {
 	case STORED:
 	    return zfin;
 	case DEFLATED:
-	    return new InflaterInputStream(zfin, getInflater()) {
+	    int size = getSize(jzentry);
+	    if (size > 65536) size = 8192;
+	    if (size <= 0) size = 4096;
+	    return new InflaterInputStream(zfin, getInflater(), size) {
 		private boolean isClosed = false;
                 
 		public void close() throws IOException {

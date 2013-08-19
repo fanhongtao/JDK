@@ -1,7 +1,7 @@
 /*
- * @(#)HashMap.java	1.57 03/01/23
+ * @(#)HashMap.java	1.59 04/12/09
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -88,7 +88,7 @@ import  java.io.*;
  * @author  Doug Lea
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.57, 01/23/03
+ * @version 1.59, 12/09/04
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -962,6 +962,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     private void writeObject(java.io.ObjectOutputStream s)
         throws IOException
     {
+        Iterator i = entrySet().iterator();
+
 	// Write out the threshold, loadfactor, and any hidden stuff
 	s.defaultWriteObject();
 
@@ -972,11 +974,12 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	s.writeInt(size);
 
         // Write out keys and values (alternating)
-        for (Iterator i = entrySet().iterator(); i.hasNext(); ) {
+	while (i.hasNext()) {
             Map.Entry e = (Map.Entry) i.next();
             s.writeObject(e.getKey());
             s.writeObject(e.getValue());
         }
+	
     }
 
     private static final long serialVersionUID = 362498820763181265L;

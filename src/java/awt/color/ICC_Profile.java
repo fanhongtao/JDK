@@ -1,7 +1,7 @@
 /*
  * @(#)ICC_Profile.java	1.28 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,6 +35,9 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import java.util.StringTokenizer;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * A representation of color profile data for device independent and
@@ -747,26 +750,34 @@ public class ICC_Profile implements Serializable {
      * @exception IllegalArgumentException If <CODE>cspace</CODE> is not
      * one of the predefined color space types.
      */
-    public static ICC_Profile getInstance (int cspace)
-    {
-    ICC_Profile thisProfile = null;
-    String fileName;
+    public static ICC_Profile getInstance (int cspace) {
+        ICC_Profile thisProfile = null;
+        String fileName;
 
-        try {
-            switch (cspace) {
+        switch (cspace) {
             case ColorSpace.CS_sRGB:
                 if (sRGBprofile == null) {
-                    sRGBprofile = getDeferredInstance(
-                        new ProfileDeferralInfo("sRGB.pf", ColorSpace.TYPE_RGB,
+		    try {
+                    	/*
+                    	 * Deferral is only used for standard profiles.
+                    	 * Enabling the appropriate access privileges is handled
+                    	 * at a lower level.
+                    	 */
+                    	sRGBprofile = getDeferredInstance(
+                        	new ProfileDeferralInfo("sRGB.pf", ColorSpace.TYPE_RGB,
                                                 3, CLASS_DISPLAY)); 
-                }
+		    } catch (IOException e) {
+                      throw new IllegalArgumentException(
+                          "Can't load standard profile: sRGB.pf");
+                    }
+		}
                 thisProfile = sRGBprofile;
 
                 break;
 
             case ColorSpace.CS_CIEXYZ:
                 if (XYZprofile == null) {
-                    XYZprofile = getInstance ("CIEXYZ.pf");
+                    XYZprofile = getStandardProfile("CIEXYZ.pf");
                 }
                 thisProfile = XYZprofile;
 
@@ -774,7 +785,7 @@ public class ICC_Profile implements Serializable {
 
             case ColorSpace.CS_PYCC:
                 if (PYCCprofile == null) {
-                    PYCCprofile = getInstance ("PYCC.pf");
+                    PYCCprofile = getStandardProfile("PYCC.pf");
                 }
                 thisProfile = PYCCprofile;
 
@@ -782,7 +793,7 @@ public class ICC_Profile implements Serializable {
 
             case ColorSpace.CS_GRAY:
                 if (GRAYprofile == null) {
-                    GRAYprofile = getInstance ("GRAY.pf");
+                    GRAYprofile = getStandardProfile("GRAY.pf");
                 }
                 thisProfile = GRAYprofile;
 
@@ -790,7 +801,7 @@ public class ICC_Profile implements Serializable {
 
             case ColorSpace.CS_LINEAR_RGB:
                 if (LINEAR_RGBprofile == null) {
-                    LINEAR_RGBprofile = getInstance ("LINEAR_RGB.pf");
+                    LINEAR_RGBprofile = getStandardProfile("LINEAR_RGB.pf");
                 }
                 thisProfile = LINEAR_RGBprofile;
 
@@ -799,11 +810,25 @@ public class ICC_Profile implements Serializable {
             default:
                 throw new IllegalArgumentException("Unknown color space");
             }
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Can't load standard profile");
-        }
 
         return thisProfile;
+    }
+
+    private static ICC_Profile getStandardProfile(final String name) {
+          
+      return (ICC_Profile) AccessController.doPrivileged(
+          new PrivilegedAction() {
+                 public Object run() {
+                     ICC_Profile p = null;
+                     try {
+                         p = getInstance (name);
+                     } catch (IOException ex) {
+                         throw new IllegalArgumentException(
+                             "Can't load standard profile: " + name);
+                     }
+                     return p;
+                 }
+             });
     }
 
 
@@ -828,11 +853,19 @@ public class ICC_Profile implements Serializable {
      * an I/O error occurs while reading the file.
      *   
      * @exception IllegalArgumentException If the file does not
-     * contain valid ICC Profile data. 
+     * contain valid ICC Profile data.
+     *
+     * @exception SecurityException If a security manager is installed
+     * and it does not permit read access to the given file.
      */
     public static ICC_Profile getInstance(String fileName) throws IOException {
     ICC_Profile thisProfile;
     FileInputStream fis;
+
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkRead(fileName);
+        }
 
         if ((fis = openProfile(fileName)) == null) {
             throw new IOException("Cannot open file " + fileName);
@@ -921,12 +954,19 @@ public class ICC_Profile implements Serializable {
      * Constructs an ICC_Profile for which the actual loading of the
      * profile data from a file and the initialization of the CMM should
      * be deferred as long as possible.
+     * Deferral is only used for standard profiles.
+     * If deferring is disabled, then getStandardProfile() ensures
+     * that all of the appropriate access privileges are granted
+     * when loading this profile.
+     * If deferring is enabled, then the deferred activation
+     * code will take care of access privileges.
+     * @see activateDeferredProfile() 
      */
     static ICC_Profile getDeferredInstance(ProfileDeferralInfo pdi)
         throws IOException {
 
         if (!ProfileDeferralMgr.deferring) {
-            return getInstance(pdi.filename);
+            return getStandardProfile(pdi.filename);
         }
         if (pdi.colorSpaceType == ColorSpace.TYPE_RGB) {
             return new ICC_ProfileRGB(pdi);

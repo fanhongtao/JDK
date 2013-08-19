@@ -1,7 +1,7 @@
 /*
- * @(#)Properties.java	1.73 03/01/23
+ * @(#)Properties.java	1.75 05/02/10
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -521,7 +521,7 @@ class Properties extends Hashtable {
      * @exception  NullPointerException  if <code>out</code> is null.
      * @since 1.2
      */
-    public synchronized void store(OutputStream out, String header)
+    public void store(OutputStream out, String header)
     throws IOException
     {
         BufferedWriter awriter;
@@ -529,16 +529,18 @@ class Properties extends Hashtable {
         if (header != null)
             writeln(awriter, "#" + header);
         writeln(awriter, "#" + new Date().toString());
-        for (Enumeration e = keys(); e.hasMoreElements();) {
-            String key = (String)e.nextElement();
-            String val = (String)get(key);
-            key = saveConvert(key, true);
+        synchronized (this)  {
+            for (Enumeration e = keys(); e.hasMoreElements();) {
+                String key = (String)e.nextElement();
+                String val = (String)get(key);
+                key = saveConvert(key, true);
 
-	    /* No need to escape embedded and trailing spaces for value, hence
-	     * pass false to flag.
-	     */
-            val = saveConvert(val, false);
-            writeln(awriter, key + "=" + val);
+	        /* No need to escape embedded and trailing spaces for value, hence
+	         * pass false to flag.
+	         */
+                val = saveConvert(val, false);
+                writeln(awriter, key + "=" + val);
+            }
         }
         awriter.flush();
     }

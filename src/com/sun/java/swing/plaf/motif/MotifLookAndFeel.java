@@ -1,7 +1,7 @@
 /*
- * @(#)MotifLookAndFeel.java	1.161 05/01/15
+ * @(#)MotifLookAndFeel.java	1.161 05/02/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.161 01/15/05
+ * @version 1.161 02/07/05
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -1020,7 +1020,9 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		     "DOWN", "selectNext",
 		  "KP_DOWN", "selectNext",
 		       "UP", "selectPrevious",
-		    "KP_UP", "selectPrevious"
+		    "KP_UP", "selectPrevious",
+		    "SPACE", "spacePopup",
+		    "ENTER", "enterPressed" 
 	      }),
 
             "TextField.caretForeground", black,

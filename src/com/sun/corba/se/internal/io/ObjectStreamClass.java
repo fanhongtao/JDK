@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamClass.java	1.35 03/01/23
+ * @(#)ObjectStreamClass.java	1.37 04/12/09
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -133,21 +133,23 @@ public class ObjectStreamClass implements java.io.Serializable {
                 desc = new ObjectStreamClass(cl, superdesc,
                                              serializable, externalizable);
             }
-	}
 
-        // Must always call init.  See bug 4488137.  This code was
-        // incorrectly changed to return immediately on a non-null
-        // cache result.  That allowed threads to gain access to
-        // unintialized instances.
-        //
-        // All threads must sync on the member variable lock
-        // and check the initialization state.
-        //
-        // An alternative is to continue to synchronize on the
-        // descriptorFor array, but that leads to poor performance
-        // (see bug 4165204 "ObjectStreamClass can hold global lock
-        // for a very long time").
-	desc.init();
+            // Must always call init.  See bug 4488137.  This code was
+            // incorrectly changed to return immediately on a non-null
+            // cache result.  That allowed threads to gain access to
+            // unintialized instances.
+            //
+            // History: Note, the following init() call was originally within
+            // the synchronization block, as it currently is now. Later, the
+            // init() call was moved outside the synchronization block, and
+            // the init() method used a private member variable lock, to
+            // avoid performance problems. See bug 4165204. But that lead to
+            // a deadlock situation, see bug 5104239. Hence, the init() method
+            // has now been moved back into the synchronization block. The
+            // right approach to solving these problems would be to rewrite
+            // this class, based on the latest java.io.ObjectStreamClass.
+            desc.init();
+        }
 
 	return desc;
     }
