@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentView.java	1.49 02/04/18
+ * @(#)ComponentView.java	1.51 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -45,7 +45,7 @@ import javax.swing.event.*;
  * views of a shared model.
  *
  * @author Timothy Prinzing
- * @version 1.49 04/18/02
+ * @version 1.51 01/19/03
  */
 public class ComponentView extends View  {
 
@@ -363,19 +363,9 @@ public class ComponentView extends View  {
 	Invalidator(Component child) {
 	    setLayout(null);
 	    add(child);
-            child.setLocation(0, 0);
-	    min = child.getMinimumSize();
-	    pref = child.getPreferredSize();
-	    max = child.getMaximumSize();
-	    yalign = child.getAlignmentY();
-	    xalign = child.getAlignmentX();
+	    cacheChildSizes(); 
 	}
         
-        public void setBounds(int x, int y, int w, int h) {
-            super.setBounds(x, y, w, h);
-            getComponent(0).setSize(w, h);
-        }
-
 	/**
 	 * The components invalid layout needs 
 	 * to be propagated through the view hierarchy
@@ -388,16 +378,30 @@ public class ComponentView extends View  {
 		preferenceChanged(null, true, true);
 	    }
         }
+	
+	public void doLayout() {
+	    cacheChildSizes();
+	}
+	
+	public void setBounds(int x, int y, int w, int h) { 
+	   super.setBounds(x, y, w, h);
+	   getComponent(0).setSize(w, h);
+	   cacheChildSizes();
+	}
 
-        public void validate() {
-            if (!isValid()) {
-                min = super.getMinimumSize();
-                pref = super.getPreferredSize();
-                max = super.getMaximumSize();
-                yalign = super.getAlignmentY();
-                xalign = super.getAlignmentX();
-            }
-            super.validate();
+        public void validateIfNecessary() {
+	    if (!isValid()) {
+		validate(); 
+	     }
+	}
+
+	private void cacheChildSizes() {
+	    Component child = getComponent(0);
+	    min = child.getMinimumSize();
+	    pref = child.getPreferredSize();
+	    max = child.getMaximumSize();
+	    yalign = child.getAlignmentY();
+	    xalign = child.getAlignmentX();
 	}
 
 	/**
@@ -415,22 +419,27 @@ public class ComponentView extends View  {
 	}
 
         public Dimension getMinimumSize() {
+	    validateIfNecessary();
 	    return min;
 	}
 
         public Dimension getPreferredSize() {
+	    validateIfNecessary();
 	    return pref;
 	}
 
         public Dimension getMaximumSize() {
+	    validateIfNecessary();
 	    return max;
 	}
 
 	public float getAlignmentX() {
+	    validateIfNecessary();
 	    return xalign;
 	}
 
 	public float getAlignmentY() {
+	    validateIfNecessary();
 	    return yalign;
 	}
 

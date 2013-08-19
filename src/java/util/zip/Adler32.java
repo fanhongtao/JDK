@@ -1,7 +1,7 @@
 /*
- * @(#)Adler32.java	1.24 01/12/03
+ * @(#)Adler32.java	1.26 03/02/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.util.zip;
  * can be computed much faster.
  *
  * @see		Checksum
- * @version 	1.24, 12/03/01
+ * @version 	1.26, 02/08/03
  * @author 	David Connelly
  */
 public
@@ -51,7 +51,7 @@ class Adler32 implements Checksum {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off + len > b.length) {
+	if (off < 0 || len < 0 || off > b.length -len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	adler = updateBytes(adler, b, off, len);

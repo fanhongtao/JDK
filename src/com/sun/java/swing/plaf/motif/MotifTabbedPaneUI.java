@@ -1,7 +1,7 @@
 /*
- * @(#)MotifTabbedPaneUI.java	1.46 01/12/03
+ * @(#)MotifTabbedPaneUI.java	1.48 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.46 12/03/01
+ * @version 1.48 01/19/03
  * @author Amy Fowler
  * @author Philip Milne
  */
@@ -260,6 +260,29 @@ public class MotifTabbedPaneUI extends BasicTabbedPaneUI
         tabRunOverlay = (tabPlacement == LEFT || tabPlacement == RIGHT)?
             (int)Math.round((float)maxTabWidth * .10) :
             (int)Math.round((float)maxTabHeight * .22);
+
+       // Ensure that runover lay is not more than insets
+       // 2 pixel offset is set from insets to each run 
+	switch(tabPlacement) {
+        case LEFT:
+                if( tabRunOverlay > tabInsets.right - 2 )
+                    tabRunOverlay = tabInsets.right - 2 ;
+                break;
+        case RIGHT:
+                if( tabRunOverlay > tabInsets.left - 2 )
+                    tabRunOverlay = tabInsets.left - 2 ;
+                break;
+        case TOP:
+                if( tabRunOverlay > tabInsets.bottom - 2 )
+                    tabRunOverlay = tabInsets.bottom - 2 ;
+                break;
+        case BOTTOM:
+                if( tabRunOverlay > tabInsets.top - 2 )
+                    tabRunOverlay = tabInsets.top - 2 ;
+                break;
+
+     	}
+
         return tabRunOverlay;
     } 
        

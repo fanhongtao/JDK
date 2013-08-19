@@ -1,7 +1,7 @@
 /*
- * @(#)Inflater.java	1.37 02/02/06
+ * @(#)Inflater.java	1.39 03/02/08
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ package java.util.zip;
  * </pre></blockquote>
  *
  * @see		Deflater
- * @version 	1.37, 02/06/02
+ * @version 	1.39, 02/08/03
  * @author 	David Connelly
  *
  */
@@ -99,7 +99,7 @@ class Inflater {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off + len > b.length) {
+	if (off < 0 || len < 0 || off > b.length -len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	this.buf = b;
@@ -133,7 +133,7 @@ class Inflater {
 	if (strm == 0 || b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off + len > b.length) {
+	if (off < 0 || len < 0 || off > b.length -len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	setDictionary(strm, b, off, len);
@@ -213,7 +213,7 @@ class Inflater {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off + len > b.length) {
+	if (off < 0 || len < 0 || off > b.length -len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	return inflateBytes(b, off, len);

@@ -1,7 +1,7 @@
 /*
- * @(#)SlotTableStack.java	1.7 01/12/03
+ * @(#)SlotTableStack.java	1.9 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -111,7 +111,18 @@ public class SlotTableStack
             SlotTable tableTemp = peekSlotTable();
             table = new SlotTable( piOrb, tableTemp.getSize( ));
         }
-        tableContainer.add( currentIndex, table );
+        // NOTE: Very important not to always "add" - otherwise a memory leak.
+        if (currentIndex == tableContainer.size()) {
+            // Add will cause the table to grow.
+            tableContainer.add( currentIndex, table );
+        } else if (currentIndex > tableContainer.size()) {
+            throw new org.omg.CORBA.INTERNAL(
+                               "currentIndex > tableContainer.size(): " +
+                               currentIndex + " > " + tableContainer.size());
+        } else {
+            // Set will override unused slots.
+            tableContainer.set( currentIndex, table );
+        }
         currentIndex++;
     }
 
@@ -135,6 +146,7 @@ public class SlotTableStack
         }
         currentIndex--;
         SlotTable table = (SlotTable)tableContainer.get( currentIndex );
+        tableContainer.set( currentIndex, null ); // Do not leak memory.
         table.resetSlots( );
         tablePool.putSlotTable( table );
     }

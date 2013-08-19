@@ -1,7 +1,7 @@
 /*
- * @(#)java.c	1.98 02/05/20
+ * @(#)java.c	1.100 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -114,6 +114,7 @@ main(int argc, char ** argv)
     char *jarfile = 0;
     char *classname = 0;
     char *s = 0;
+    jstring mainClassName;
     jclass mainClass;
     jmethodID mainID;
     jobjectArray mainArgs;
@@ -283,7 +284,7 @@ main(int argc, char ** argv)
 
     /* Get the application's main class */
     if (jarfile != 0) {
-	jstring mainClassName = GetMainClassName(env, jarfile);
+	mainClassName = GetMainClassName(env, jarfile);
 	if ((*env)->ExceptionOccurred(env)) {
 	    (*env)->ExceptionDescribe(env);
 	    goto leave;
@@ -301,7 +302,18 @@ main(int argc, char ** argv)
 	mainClass = LoadClass(env, classname);
 	(*env)->ReleaseStringUTFChars(env, mainClassName, classname);
     } else {
-	mainClass = LoadClass(env, classname);
+        mainClassName = NewPlatformString(env, classname);
+        if (mainClassName == NULL) {
+            fprintf(stderr, "Failed to load Main Class: %s\n", classname);
+            goto leave;
+        }
+        classname = (char *)(*env)->GetStringUTFChars(env, mainClassName, 0);
+        if (classname == NULL) {
+            (*env)->ExceptionDescribe(env);
+            goto leave;
+        }
+        mainClass = LoadClass(env, classname);
+        (*env)->ReleaseStringUTFChars(env, mainClassName, classname);
     }
     if (mainClass == NULL) {
         (*env)->ExceptionDescribe(env);

@@ -1,7 +1,7 @@
 /*
- * @(#)JApplet.java	1.53 01/12/03
+ * @(#)JApplet.java	1.55 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -65,7 +65,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: Swing's Applet subclass.
  *
- * @version 1.53 12/03/01
+ * @version 1.55 01/19/03
  * @author Arnaud Weber
  */
 public class JApplet extends Applet implements Accessible, RootPaneContainer 
@@ -117,6 +117,11 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
         setLayout(new BorderLayout());
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
+
+ 	setFocusCycleRoot(true);
+ 	setFocusTraversalPolicy(KeyboardFocusManager.
+ 				getCurrentKeyboardFocusManager().
+ 				getDefaultFocusTraversalPolicy());
 
         enableEvents(AWTEvent.KEY_EVENT_MASK);
     }

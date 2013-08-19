@@ -1,7 +1,7 @@
 /*
- * @(#)Window.java	1.175 02/03/25
+ * @(#)Window.java	1.177 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -81,7 +81,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.175, 03/25/02
+ * @version 	1.177, 01/19/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -106,6 +106,7 @@ public class Window extends Container implements Accessible {
 
     static boolean systemSyncLWRequests = false;
     boolean     syncLWRequests = false;
+    boolean isFirstPack = true;
 
     static final int OPENED = 0x01;
 
@@ -428,7 +429,11 @@ public class Window extends Container implements Accessible {
 	    addNotify();
 	}
 	setSize(getPreferredSize());
-	isPacked = true;
+
+        if(isFirstPack == true) {
+            isPacked = true;
+            isFirstPack = false;
+        }
 
 	validate();
     }

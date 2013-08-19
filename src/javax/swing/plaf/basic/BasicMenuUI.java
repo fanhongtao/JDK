@@ -1,7 +1,7 @@
 /*
- * @(#)BasicMenuUI.java	1.144 02/04/24
+ * @(#)BasicMenuUI.java	1.146 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.144 04/24/02
+ * @version 1.146 01/19/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -523,6 +523,12 @@ public class BasicMenuUI extends BasicMenuItemUI
                     System.arraycopy(path,0,newPath,0,path.length);
                     newPath[path.length] = popupMenu;
                     newPath[path.length+1] = sub[0];
+                    manager.setSelectedPath(newPath);
+                } else {
+                    MenuSelectionManager manager = e.getMenuSelectionManager();
+                    MenuElement newPath[] = new MenuElement[path.length + 1];
+                    System.arraycopy(path,0,newPath,0,path.length);
+                    newPath[path.length] = popupMenu;
                     manager.setSelectedPath(newPath);
                 }
                 e.consume();

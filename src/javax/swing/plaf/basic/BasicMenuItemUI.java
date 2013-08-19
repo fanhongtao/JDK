@@ -1,7 +1,7 @@
 /*
- * @(#)BasicMenuItemUI.java	1.116 02/04/18
+ * @(#)BasicMenuItemUI.java	1.118 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -22,7 +22,7 @@ import javax.swing.text.View;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.116 04/18/02
+ * @version 1.118 01/19/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -986,7 +986,11 @@ public class BasicMenuItemUI extends MenuItemUI
 
 
     private class MenuDragMouseHandler implements MenuDragMouseListener {
-        public void menuDragMouseEntered(MenuDragMouseEvent e) {}
+        public void menuDragMouseEntered(MenuDragMouseEvent e) {
+           MenuSelectionManager manager = e.getMenuSelectionManager();
+           MenuElement path[] = e.getPath();
+           manager.setSelectedPath(path);
+        }
         public void menuDragMouseDragged(MenuDragMouseEvent e) {
             MenuSelectionManager manager = e.getMenuSelectionManager();
             MenuElement path[] = e.getPath();

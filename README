@@ -37,7 +37,7 @@ Release Notes
       http://java.sun.com/j2se/1.4.1/relnotes.html
 
       The on-line release notes will be updated as needed, so you should 
-      check it occasionally for the latest information. 
+      check them occasionally for the latest information. 
 
 
 Bug Reports and Feedback
@@ -102,7 +102,7 @@ Redistribution
             sunjce_provider.jar - the SunJCE provider for Java 
               Cryptography APIs
             localedata.jar - contains many of the resources 
-              needed for non US English locales
+              needed for non-US English locales
             ldapsec.jar - contains security features supported 
               by the LDAP service provider
             dnsns.jar - for the InetAddress wrapper of JNDI DNS 
@@ -131,11 +131,14 @@ Redistribution
             Archive of source files 
 
       In addition, the Java Web Start product may be excluded from
-      redistributions. The Java Web Start product is contained in a 
-      file named javaws-1_2-solaris-sparc-i.zip,
-      javaws-1_2-solaris-i586-i.zip,
-      javaws-1_2-linux-i586-i.zip, or
-      javaws-1_2-windows-i586-i.exe, depending on the platform. 
+      redistributions. Depending on the platform, the Java Web Start 
+      product is contained in a file named as follows.  The actual
+      product version number would replace the <version number> notation.
+
+      javaws-<version number>-solaris-sparc-i.zip
+      javaws-<version number>-solaris-i586-i.zip
+      javaws-<version number>-linux-i586-i.zip 
+      javaws-<version number>-windows-i586-i.exe
 
 
       Unlimited Strength Java Cryptography Extension
@@ -217,6 +220,6 @@ Sun Java Web Pages
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 
 Inc.  This product includes code licensed from RSA Security.
 
-Copyright 2002 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, 
+Copyright 2003 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, 
 California 95054, U.S.A.  All rights reserved.
 

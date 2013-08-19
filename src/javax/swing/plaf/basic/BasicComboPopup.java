@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboPopup.java	1.71 02/03/20
+ * @(#)BasicComboPopup.java	1.73 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.71 03/20/02
+ * @version 1.73 01/19/03
  * @author Tom Santos
  * @author Mark Davidson
  */
@@ -1068,7 +1068,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         }
 
         Rectangle rect = new Rectangle(px,py,pw,ph);
-        if (!SwingUtilities.isRectangleContainingRectangle(screenBounds, rect) 
+        if (py+ph > screenBounds.y+screenBounds.height 
 	    && ph < screenBounds.height) {
 	    rect.y = -rect.height;
 	}

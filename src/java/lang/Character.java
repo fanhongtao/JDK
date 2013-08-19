@@ -1,4 +1,4 @@
-// This file was generated AUTOMATICALLY from a template file Thu Aug 29 02:30:17 PDT 2002
+// This file was generated AUTOMATICALLY from a template file Thu Feb 20 14:35:28 PST 2003
 /* @(#)Character.java.template	1.1 02/04/22
  *
  * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
@@ -2188,7 +2188,7 @@ class Character extends Object implements java.io.Serializable, Comparable {
      */
 
     // The following tables and code generated using:
-  // java GenerateCharacter -template ../../tools/GenerateCharacter/Character.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.4.1/control/build/linux-i586/gensrc/java/lang/Character.java -string 11 4 1
+  // java GenerateCharacter -template ../../tools/GenerateCharacter/Character.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk141-update/ws/control/build/linux-i586/gensrc/java/lang/Character.java -string 11 4 1
       static char[][][] charMap = {
         { {'\u00DF'}, {'\u0053', '\u0053', } },
         { {'\u0149'}, {'\u02BC', '\u004E', } },

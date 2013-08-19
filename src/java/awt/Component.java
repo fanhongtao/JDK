@@ -1,7 +1,7 @@
 /*
- * @(#)Component.java	1.347 02/05/03
+ * @(#)Component.java	1.350 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -134,7 +134,7 @@ import sun.awt.im.CompositionArea;
  * efficient painting code, see
  * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
  *
- * @version 	1.347, 05/03/02
+ * @version 	1.350, 01/19/03
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -1133,6 +1133,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	if (b) {
 	    show();
 	} else {
+            isPacked = false;
 	    hide();
 	}
     }
@@ -2943,6 +2944,24 @@ public abstract class Component implements ImageObserver, MenuContainer,
     }
     
     /**
+     * @return the back buffer currently used by this component's 
+     * BufferStrategy.  If there is no BufferStrategy or no
+     * back buffer, this method returns null.
+     */
+    Image getBackBuffer() {
+	if (bufferStrategy != null) {
+	    if (bufferStrategy instanceof BltBufferStrategy) {
+		BltBufferStrategy bltBS = (BltBufferStrategy)bufferStrategy;
+		return bltBS.getBackBuffer();
+	    } else if (bufferStrategy instanceof FlipBufferStrategy) {
+		FlipBufferStrategy flipBS = (FlipBufferStrategy)bufferStrategy;
+		return flipBS.getBackBuffer();
+	    }
+	}
+	return null;
+    }
+    
+    /**
      * Inner class for flipping buffers on a component.  That component must
      * be a <code>Canvas</code> or <code>Window</code>.
      * @see Canvas
@@ -3037,7 +3056,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
          */
         protected Image getBackBuffer() {
             if (peer != null) {
-                return peer.getBackBuffer();
+                Image drawBuffer = peer.getBackBuffer();
+                if (drawBuffer instanceof VolatileImage) {
+                    drawVBuffer = (VolatileImage)drawBuffer;
+                }
+                revalidate();
+		return drawBuffer;
             } else {
                 throw new IllegalStateException(
                     "Component must have a valid peer");
@@ -3105,10 +3129,14 @@ public abstract class Component implements ImageObserver, MenuContainer,
          * Restore the drawing buffer if it has been lost
          */
         protected void revalidate() {
+	    // REMIND: this whole validation mechanism needs to be re-examined
+	    // for correctness.  Currently, the value of validatedContents
+	    // may be changed and overwritten before the user has a chance to
+	    // see that there was any restoration to the surface.  Also, we
+	    // need to handle the IMAGE_INCOMPATIBLE case.
             if (drawVBuffer != null) {
                 validatedContents = (drawVBuffer.validate(
                     getGraphicsConfiguration()) == VolatileImage.IMAGE_RESTORED);
-                // REMIND : handle IMAGE_INCOMPATIBLE
             } else {
                 validatedContents = false;
             }
@@ -3208,12 +3236,25 @@ public abstract class Component implements ImageObserver, MenuContainer,
          */
         public Graphics getDrawGraphics() {
             revalidate();
-            if (backBuffers == null) {
+	    Image backBuffer = getBackBuffer();
+            if (backBuffer == null) {
                 return getGraphics();
             }
-            return backBuffers[backBuffers.length - 1].getGraphics();
+            return backBuffer.getGraphics();
         }
     
+        /**
+         * @returns direct access to the back buffer, as an image.
+         * If there is no back buffer, returns null.
+         */
+        Image getBackBuffer() {
+            if (backBuffers != null) {
+		return backBuffers[backBuffers.length - 1];
+	    } else {
+		return null;
+	    }
+        }
+        
         /**
          * Makes the next available buffer visible.
          */

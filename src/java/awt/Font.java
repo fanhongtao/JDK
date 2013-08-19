@@ -1,7 +1,7 @@
 /*
- * @(#)Font.java	1.177 02/04/27
+ * @(#)Font.java	1.179 03/01/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -126,7 +126,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.177, 04/27/02
+ * @version 	1.179, 01/19/03
  */
 public class Font implements java.io.Serializable
 {
@@ -242,6 +242,12 @@ public class Font implements java.io.Serializable
     private transient long pData;       // native JDK1.1 font pointer
     private transient long pNativeFont; // native Java 2 platform font reference
 
+    /*
+     * If the origin of a Font is a created font then this attribute
+     * must be set on all derived fonts too.
+     */
+    private transient boolean createdFont = false;
+
     // cached values - performance
     private transient int numGlyphs = -1;
     private transient int missingGlyph = -1;
@@ -303,7 +309,7 @@ public class Font implements java.io.Serializable
         GraphicsEnvironment env =
             GraphicsEnvironment.getLocalGraphicsEnvironment();
         String localName = this.name;
-        if (env instanceof FontSupport) {
+        if (env instanceof FontSupport && createdFont == false) {
             localName = ((FontSupport)env).mapFontName(
                 this.name, this.style);
         }
@@ -339,14 +345,23 @@ public class Font implements java.io.Serializable
 	initializeFont(null);
     }
 
-    private Font(String name, int style, float sizePts) {
+    private Font(String name, int style, int size, boolean created) {
+        this.createdFont = created;
+	this.name = name;
+        this.style = (style & ~0x03) == 0 ? style : 0;
+        this.size = size;
+        this.pointSize = size;
+        initializeFont(null);
+    }
+
+    private Font(String name, int style, float sizePts, boolean created) {
+        this.createdFont = created;
 	this.name = name;
 	this.style = (style & ~0x03) == 0 ? style : 0;
 	this.size = (int)(sizePts + 0.5);
         this.pointSize = sizePts;
 	initializeFont(null);
     }
-
     /**
      * Creates a new <code>Font</code> with the specified attributes.
      * This <code>Font</code> only recognizes keys defined in 
@@ -357,7 +372,15 @@ public class Font implements java.io.Serializable
      *		<code>Font</code>, or <code>null</code>
      */
     public Font(Map attributes){
+	initFromMap(attributes);
+    }
 
+    private Font(Map attributes, boolean created) {
+        this.createdFont = created;
+        initFromMap(attributes);
+    }
+
+    private void initFromMap(Map attributes) {
 	this.name = "Dialog";
         this.pointSize = 12;
         this.size = 12;
@@ -603,7 +626,7 @@ public class Font implements java.io.Serializable
 	throw new FontFormatException ( "Unable to create font - bad font data" );
       }
       //    System.out.println (" Creating font with the name " + createName );
-      Font createFont = new Font ( createName, Font.PLAIN, 1 );
+      Font createFont = new Font ( createName, Font.PLAIN, 1, true);
       return createFont;
     }
 
@@ -1275,7 +1298,7 @@ public class Font implements java.io.Serializable
 	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
 	applyStyle(style, newAttributes);
 	applySize(size, newAttributes);
-        return new Font(newAttributes);
+        return new Font(newAttributes, createdFont);
     }
 
     /**
@@ -1293,7 +1316,7 @@ public class Font implements java.io.Serializable
 	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
 	applyStyle(style, newAttributes);
 	applyTransform(trans, newAttributes);
-        return new Font(newAttributes);
+        return new Font(newAttributes, createdFont);
     }
 
     /**
@@ -1306,7 +1329,7 @@ public class Font implements java.io.Serializable
     public Font deriveFont(float size){
 	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
 	applySize(size, newAttributes);
-        return new Font(newAttributes);
+        return new Font(newAttributes, createdFont);
     }
 
     /**
@@ -1322,7 +1345,7 @@ public class Font implements java.io.Serializable
     public Font deriveFont(AffineTransform trans){
 	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
 	applyTransform(trans, newAttributes);
-        return new Font(newAttributes);
+        return new Font(newAttributes, createdFont);
     }
 
     /**
@@ -1335,7 +1358,7 @@ public class Font implements java.io.Serializable
     public Font deriveFont(int style){
 	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
 	applyStyle(style, newAttributes);
-        return new Font(newAttributes);
+        return new Font(newAttributes, createdFont);
     }
 
     /**
@@ -1357,7 +1380,7 @@ public class Font implements java.io.Serializable
 	    newAttrs.put(validAttribs[i],obj);
 	  } 
 	}
-        return new Font(newAttrs);
+        return new Font(newAttrs, createdFont);
     }
 
     /**
