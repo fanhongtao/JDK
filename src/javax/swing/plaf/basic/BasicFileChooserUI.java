@@ -1,7 +1,7 @@
 /*
- * @(#)BasicFileChooserUI.java	1.49 05/05/26
+ * @(#)BasicFileChooserUI.java	1.51 06/03/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -408,6 +408,11 @@ public class BasicFileChooserUI extends FileChooserUI {
 		    if(getFileChooser().isTraversable(f)) {
 			list.clearSelection();
 			getFileChooser().setCurrentDirectory(f);
+			if (getFileChooser().getFileSelectionMode() == JFileChooser.FILES_AND_DIRECTORIES && 
+                            getFileChooser().getFileSystemView().isFileSystem(f)) {
+
+                             setFileName(f.toString());
+			}
 		    } else {
 			getFileChooser().approveSelection();
 		    }

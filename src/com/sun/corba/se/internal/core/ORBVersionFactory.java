@@ -1,7 +1,7 @@
 /*
- * @(#)ORBVersionFactory.java	1.10 03/01/23
+ * @(#)ORBVersionFactory.java	1.12 06/03/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ public class ORBVersionFactory {
 	* with future versions of the ORB, to the point that Merlin could
 	* not even unmarshal objrefs from a newer version that uses 
 	* extended versioning.  Therefore, we will simply treat all 
-	* unknown versions as NEWER.
+	* unknown versions as unknown as-is, to preserve the compatibility.
 	if (value < 0)
 	    throw new INTERNAL() ;
 	*/
@@ -43,7 +43,7 @@ public class ORBVersionFactory {
 	    case ORBVersion.NEW : return ORBVersionImpl.NEW ;
             case ORBVersion.JDK1_3_1_01: return ORBVersionImpl.JDK1_3_1_01 ;
 	    case ORBVersion.NEWER : return ORBVersionImpl.NEWER ;
-	    default : return ORBVersionImpl.NEWER ;
+	    default : return new ORBVersionImpl(value);
 	}
     }
 }

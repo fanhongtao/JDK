@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCaret.java	1.123 05/08/30
+ * @(#)DefaultCaret.java	1.125 06/03/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -89,7 +89,7 @@ import com.sun.java.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.123 08/30/05
+ * @version 1.125 03/17/06
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -1074,8 +1074,27 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
             Clipboard clip = getSystemSelection();
 
             if (clip != null) {
+                String selectedText = null;
+                if (component instanceof JPasswordField
+                    && component.getClientProperty("JPasswordField.cutCopyAllowed") !=
+                    Boolean.TRUE) {
+                    //fix for 4793761
+                    StringBuffer txt = null;
+                    char echoChar = ((JPasswordField)component).getEchoChar();
+                    int p0 = Math.min(getDot(), getMark());
+                    int p1 = Math.max(getDot(), getMark());
+                    for (int i = p0; i < p1; i++) {
+                        if (txt == null) {
+                            txt = new StringBuffer();
+                        }
+                        txt.append(echoChar);
+                    }
+                    selectedText = (txt != null) ? txt.toString() : null;
+                } else {
+                    selectedText = component.getSelectedText();
+                }
                 clip.setContents(new StringSelection(
-                            component.getSelectedText()), getClipboardOwner());
+                            selectedText), getClipboardOwner());
                 ownsSelection = true;
             }
         }
