@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultPersistenceDelegate.java	1.14 03/01/23
+ * @(#)DefaultPersistenceDelegate.java	1.15 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -10,7 +10,7 @@ import java.util.*;
 import java.lang.reflect.*;
 import java.beans.*;
 import java.io.*;
-
+import sun.reflect.misc.*;
 
 /**
  * The <code>DefaultPersistenceDelegate</code> is a concrete implementation of
@@ -36,7 +36,7 @@ import java.io.*;
  *
  * @since 1.4
  *
- * @version 1.14 01/23/03
+ * @version 1.15 08/30/05
  * @author Philip Milne
  */
 
@@ -160,8 +160,8 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
             catch (NoSuchFieldException e) {}
             try {
                 constructorArgs[i] = (f != null && !Modifier.isStatic(f.getModifiers())) ?
-                    f.get(oldInstance) :
-                    type.getMethod("get"+capitalize(name), new Class[0]).invoke(oldInstance, new Object[0]);
+                f.get(oldInstance) :
+                MethodUtil.invoke(ReflectionUtils.getPublicMethod(type, "get" + NameGenerator.capitalize(name), new Class[0]), oldInstance, new Object[0]); 
             }
             catch (Exception e) {
                 // handleError(e, "Warning: Failed to get " + name + " property for " + oldInstance.getClass() + " constructor");
@@ -313,14 +313,14 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
             EventListener[] newL = new EventListener[0];
             try {
                 Method m = d.getGetListenerMethod();
-                oldL = (EventListener[])m.invoke(oldInstance, new Object[]{});
-                newL = (EventListener[])m.invoke(newInstance, new Object[]{});
+                oldL = (EventListener[])MethodUtil.invoke(m, oldInstance, new Object[]{});
+                newL = (EventListener[])MethodUtil.invoke(m, newInstance, new Object[]{});
             }
             catch (Throwable e2) {
                 try {
                     Method m = type.getMethod("getListeners", new Class[]{Class.class});
-                    oldL = (EventListener[])m.invoke(oldInstance, new Object[]{listenerType});
-                    newL = (EventListener[])m.invoke(newInstance, new Object[]{listenerType});
+                    oldL = (EventListener[])MethodUtil.invoke(m, oldInstance, new Object[]{listenerType});
+                    newL = (EventListener[])MethodUtil.invoke(m, newInstance, new Object[]{listenerType});
                 }
                 catch (Exception e3) {
                     return;

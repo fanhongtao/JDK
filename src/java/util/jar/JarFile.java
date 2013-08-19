@@ -1,5 +1,5 @@
 /*
- * @(#)JarFile.java	1.52 04/12/09
+ * @(#)JarFile.java	1.53 05/07/20
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,7 @@
 package java.util.jar;
 
 import java.io.*;
+import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.zip.*;
 import java.security.cert.Certificate;
@@ -25,7 +26,7 @@ import sun.misc.SharedSecrets;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.52, 12/09/04
+ * @version 1.53, 07/20/05
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -33,9 +34,8 @@ import sun.misc.SharedSecrets;
  */
 public
 class JarFile extends ZipFile {
-    private Manifest man;
+    private SoftReference manRef;
     private JarEntry manEntry;
-    private boolean manLoaded;
     private JarVerifier jv;
     private boolean jvInitialized;
     private boolean verify;
@@ -134,7 +134,8 @@ class JarFile extends ZipFile {
      * @return the JAR file manifest, or <code>null</code> if none
      */
     public Manifest getManifest() throws IOException {
-	if (!manLoaded) {
+	Manifest man = manRef != null ? (Manifest) manRef.get() : null;
+	if (man == null) {
 	    // First look up manifest entry using standard name
 	    manEntry = getJarEntry(MANIFEST_NAME);
 	    if (manEntry == null) {
@@ -155,13 +156,16 @@ class JarFile extends ZipFile {
 	    if (manEntry != null) {
 		if (verify) {
 		    byte[] b = getBytes(manEntry);
- 		    man = new Manifest(new ByteArrayInputStream(b));
-		    jv = new JarVerifier(man, b);
+		    man = new Manifest(new ByteArrayInputStream(b));
+		    if (!jvInitialized) {
+		        jv = new JarVerifier(b);
+		    }
 		} else {
 		    man = new Manifest(super.getInputStream(manEntry));
 		}
+	    manRef = new SoftReference(man);
 	    }
-	    manLoaded = true;
+	    
 	}
 	return man;
     }
@@ -291,7 +295,7 @@ class JarFile extends ZipFile {
 		    JarEntry e = getJarEntry(names[i]);
 		    if (!e.isDirectory()) {
 			if (mev == null) {
-			    mev = new ManifestEntryVerifier(man);
+			    mev = new ManifestEntryVerifier(getManifest());
 			}
 			byte[] b = getBytes(e);
 			if (b != null && b.length > 0) {
@@ -370,7 +374,7 @@ class JarFile extends ZipFile {
 
 	// wrap a verifier stream around the real stream
 	return new JarVerifier.VerifierStream(
-	    man,
+	    getManifest(),
 	    ze instanceof JarFileEntry ?
 	    (JarEntry) ze : getJarEntry(ze.getName()),
 	    super.getInputStream(ze),

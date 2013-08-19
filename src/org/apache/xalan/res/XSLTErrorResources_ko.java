@@ -1,5 +1,5 @@
 /*
- * @(#)XSLTErrorResources_ko.java	1.3 03/04/28
+ * @(#)XSLTErrorResources_ko.java	1.4 05/08/26
  * The Apache Software License, Version 1.1
  *
  *
@@ -3316,8 +3316,16 @@ public class XSLTErrorResources_ko extends ListResourceBundle//XSLTErrorResource
    *
    * @return The int to message lookup table.
    */
-  public Object[][] getContents()
+  protected Object[][] getContents()
   {
-    return contents;
+	// return a copy of contents; in theory we want a deep clone
+	// of contents, but since it only contains (immutable) Strings,
+	// this shallow copy is sufficient
+	Object[][] commonCopy = new Object[contents.length][2];
+	for (int i = 0; i < contents.length; i++) {
+            commonCopy[i][0] = contents[i][0];
+            commonCopy[i][1] = contents[i][1];
+	}
+        return commonCopy;
   }
 }

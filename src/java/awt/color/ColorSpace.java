@@ -1,7 +1,7 @@
 /*
- * @(#)ColorSpace.java	1.36 03/01/23
+ * @(#)ColorSpace.java	1.38 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -274,54 +274,67 @@ public abstract class ColorSpace implements java.io.Serializable {
 
         switch (colorspace) {
         case CS_sRGB:
-            if (sRGBspace == null) {
-                ICC_Profile theProfile = ICC_Profile.getInstance (CS_sRGB);
-                sRGBspace = new ICC_ColorSpace (theProfile);
-            }
+	    synchronized(ColorSpace.class) {
+            	if (sRGBspace == null) {
+                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_sRGB);
+                    sRGBspace = new ICC_ColorSpace (theProfile);
+                }
 
-            theColorSpace = sRGBspace;
+                theColorSpace = sRGBspace;
+	    }
             break;
         
         case CS_CIEXYZ:
-            if (XYZspace == null) {
-                ICC_Profile theProfile = ICC_Profile.getInstance (CS_CIEXYZ);
-                XYZspace = new ICC_ColorSpace (theProfile);
-            }
+	    synchronized(ColorSpace.class) {
+                if (XYZspace == null) {
+                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_CIEXYZ);
+                    XYZspace = new ICC_ColorSpace (theProfile);
+                }
 
-            theColorSpace = XYZspace;
+                theColorSpace = XYZspace;
+  	    }
             break;
         
         case CS_PYCC:
-            if (PYCCspace == null) {
-                ICC_Profile theProfile = ICC_Profile.getInstance (CS_PYCC);
-                PYCCspace = new ICC_ColorSpace (theProfile);
-            }
+	    synchronized(ColorSpace.class) {
+                if (PYCCspace == null) {
+                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_PYCC);
+                    PYCCspace = new ICC_ColorSpace (theProfile);
+                }
 
-            theColorSpace = PYCCspace;
+                theColorSpace = PYCCspace;
+	    }
             break;
         
 
         case CS_GRAY:
-            if (GRAYspace == null) {
-                ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
-                GRAYspace = new ICC_ColorSpace (theProfile);
-             CMM.GRAYspace = GRAYspace;   // to allow access from
-                                          // java.awt.ColorModel
-            }
+	    synchronized(ColorSpace.class) {
+            	if (GRAYspace == null) {
+                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
+                    GRAYspace = new ICC_ColorSpace (theProfile);
+		    /* to allow access from java.awt.ColorModel */
+                    CMM.GRAYspace = GRAYspace; 
+                                          
+                }
 
-            theColorSpace = GRAYspace;
+                theColorSpace = GRAYspace;
+	    }
             break;
         
 
         case CS_LINEAR_RGB:
-            if (LINEAR_RGBspace == null) {
-                ICC_Profile theProfile = ICC_Profile.getInstance(CS_LINEAR_RGB);
-                LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
-             CMM.LINEAR_RGBspace = LINEAR_RGBspace;   // to allow access from
-                                                      // java.awt.ColorModel
-            }
+	    synchronized(ColorSpace.class) {
+            	if (LINEAR_RGBspace == null) {
+                    ICC_Profile theProfile =
+			 ICC_Profile.getInstance(CS_LINEAR_RGB);
+                    LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
+		    /* to allow access from java.awt.ColorModel */
+                    CMM.LINEAR_RGBspace = LINEAR_RGBspace;  
+                                                   
+                }
 
-            theColorSpace = LINEAR_RGBspace;
+                theColorSpace = LINEAR_RGBspace;
+	    }
             break;
         
 

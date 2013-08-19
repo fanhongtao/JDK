@@ -1,7 +1,7 @@
 /*
- * @(#)SynthTreeUI.java	1.20 04/01/13
+ * @(#)SynthTreeUI.java	1.22 05/08/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -33,7 +33,7 @@ import javax.swing.text.Position;
  * renderer - <code>Tree.trailingLegBufferOffset</code>.
  * <p>
  *
- * @version 1.20, 01/13/04 (based on BasicTreeUI v 1.155)
+ * @version 1.22, 08/30/05 (based on BasicTreeUI v 1.155)
  * @author Scott Violet
  */
 class SynthTreeUI extends TreeUI implements PropertyChangeListener, SynthUI,
@@ -2042,20 +2042,8 @@ class SynthTreeUI extends TreeUI implements PropertyChangeListener, SynthUI,
      * specified a toggle event the row is expanded/collapsed.
      */
     protected void selectPathForEvent(TreePath path, MouseEvent event) {
-	// Should this event toggle the selection of this row?
-	/* Control toggles just this node. */
-	if (isToggleSelectionEvent(event)) {
-	    if (tree.isPathSelected(path)) {
-		tree.removeSelectionPath(path);
-            }
-	    else {
-		tree.addSelectionPath(path);
-            }
-	    tree.setAnchorSelectionPath(path);
-	    tree.setLeadSelectionPath(path);
-	}
 	/* Adjust from the anchor point. */
-	else if (isMultiSelectEvent(event)) {
+	if (isMultiSelectEvent(event)) {
 	    TreePath anchor = tree.getAnchorSelectionPath();
 	    int anchorRow = (anchor == null) ? -1 : tree.getRowForPath(anchor);
 
@@ -2068,16 +2056,34 @@ class SynthTreeUI extends TreeUI implements PropertyChangeListener, SynthUI,
 		int row = getRowForPath(tree, path);
 		TreePath lastAnchorPath = anchor;
 
-		if (row < anchorRow) {
+                if (isToggleSelectionEvent(event)) {  
+                    if (tree.isRowSelected(anchorRow)) {  
+                        tree.addSelectionInterval(anchorRow, row);  
+                    } else {  
+                        tree.removeSelectionInterval(anchorRow, row);  
+                        tree.addSelectionInterval(row, row);  
+                    }  
+                } else if(row < anchorRow) {  
 		    tree.setSelectionInterval(row, anchorRow);
-                }
-		else {
+                } else {
 		    tree.setSelectionInterval(anchorRow, row);
                 }
 		tree.setAnchorSelectionPath(lastAnchorPath);
 		tree.setLeadSelectionPath(path);
 	    }
 	}
+        
+        // Should this event toggle the selection of this row?
+        /* Control toggles just this node. */
+        else if(isToggleSelectionEvent(event)) {
+            if(tree.isPathSelected(path))
+                tree.removeSelectionPath(path);
+            else
+                tree.addSelectionPath(path);
+            tree.setAnchorSelectionPath(path);
+            tree.setLeadSelectionPath(path);
+        }
+
 	/* Otherwise set the selection to just this interval. */
 	else if(SynthLookAndFeel.isPrimaryMouseButton(event)) {
 	    tree.setSelectionPath(path);

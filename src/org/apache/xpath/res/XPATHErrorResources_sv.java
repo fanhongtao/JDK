@@ -1,5 +1,5 @@
 /*
- * @(#)XPATHErrorResources_sv.java	1.4 03/05/01
+ * @(#)XPATHErrorResources_sv.java	1.5 05/08/26
  * The Apache Software License, Version 1.1
  *
  *
@@ -1375,9 +1375,17 @@ public static final int MAX_CODE = 116;  // this is needed to keep track of the 
    *
    * @return The association list.
    */
-  public Object[][] getContents()
+  protected Object[][] getContents()
   {
-    return contents;
+	// return a copy of contents; in theory we want a deep clone
+	// of contents, but since it only contains (immutable) Strings,
+	// this shallow copy is sufficient
+	Object[][] msgCopy = new Object[contents.length][2];
+	for (int i = 0; i < contents.length; i++) {
+            msgCopy[i][0] = contents[i][0];
+            msgCopy[i][1] = contents[i][1];
+	}
+        return msgCopy;
   }
 }
 

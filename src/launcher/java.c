@@ -1,7 +1,7 @@
 /*
- * @(#)java.c	1.111 04/04/30
+ * @(#)java.c	1.113 05/08/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -109,6 +109,7 @@ static jobjectArray NewPlatformStringArray(JNIEnv *env, char **strv, int strc);
 static jclass LoadClass(JNIEnv *env, char *name);
 static jstring GetMainClassName(JNIEnv *env, char *jarname);
 static void SetJavaCommandLineProp(char* classname, char* jarfile, int argc, char** argv);
+static void SetJavaLauncherProp(void);
 
 #ifdef JAVA_ARGS
 static void TranslateDashJArgs(int *pargc, char ***pargv);
@@ -270,6 +271,9 @@ main(int argc, char ** argv)
 
     /* set the -Dsun.java.command pseudo property */
     SetJavaCommandLineProp(classname, jarfile, argc, argv);
+
+    /* Set the -Dsun.java.launcher pseudo property */
+    SetJavaLauncherProp();
 
     /*
      * Done with all command line processing and potential re-execs so
@@ -1308,6 +1312,14 @@ SetJavaCommandLineProp(char *classname, char *jarfile,
     }
 
     AddOption(javaCommand, NULL);
+}
+
+/*
+ * JVM would like to know if it's created by a standard Sun launcher, or by
+ * user native application, the following property indicates the former.
+ */
+void SetJavaLauncherProp() {
+  AddOption("-Dsun.java.launcher=SUN_STANDARD", NULL);
 }
 
 /*

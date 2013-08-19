@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageReaderResources.java	1.4 03/01/23
+ * @(#)JPEGImageReaderResources.java	1.6 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,18 +11,16 @@ import java.util.ListResourceBundle;
 
 public class JPEGImageReaderResources extends ListResourceBundle {
 
-    static final Object[][] contents = {
+    public JPEGImageReaderResources() {}
+
+    protected Object[][] getContents() {
+        return new Object[][] {
+
         {Integer.toString(JPEGImageReader.WARNING_NO_EOI),
          "Truncated File - Missing EOI marker"},
         {Integer.toString(JPEGImageReader.WARNING_NO_JFIF_IN_THUMB),
          "JFIF markers not allowed in JFIF JPEG thumbnail; ignored"}
-    };
 
-    public JPEGImageReaderResources() {}
-         
-    public Object[][] getContents() {
-        return contents;
+        };
     }
-
-
 }

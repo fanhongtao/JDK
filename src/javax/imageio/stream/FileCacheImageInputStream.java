@@ -1,7 +1,7 @@
 /*
- * @(#)FileCacheImageInputStream.java	1.26 03/01/23
+ * @(#)FileCacheImageInputStream.java	1.27 05/07/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import com.sun.imageio.stream.StreamCloser;
 
 /**
  * An implementation of <code>ImageInputStream</code> that gets its
@@ -66,11 +67,11 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
         if ((cacheDir != null) && !(cacheDir.isDirectory())) {
             throw new IllegalArgumentException("Not a directory!");
         }
-        this.stream = stream;
+        this.stream = stream;	
         this.cacheFile =
             File.createTempFile("imageio", ".tmp", cacheDir);
-        cacheFile.deleteOnExit();
         this.cache = new RandomAccessFile(cacheFile, "rw");
+	StreamCloser.addToQueue(this);
     }
 
     /**
@@ -192,7 +193,7 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
     public boolean isCachedMemory() {
         return false;
     }
-
+    
     /**
      * Closes this <code>FileCacheImageInputStream</code>, closing
      * and removing the cache file.  The source <code>InputStream</code>
@@ -205,5 +206,6 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
         cache.close();
         cacheFile.delete();
         stream = null;
+	StreamCloser.removeFromQueue(this);
     }
 }

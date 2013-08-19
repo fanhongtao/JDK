@@ -1,7 +1,7 @@
 /*
- * @(#)ServerDelegate.java	1.72 03/01/23
+ * @(#)ServerDelegate.java	1.74 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -286,6 +286,10 @@ public class ServerDelegate implements ServerSubcontract {
 	    }
 	}
 
+	// Consume codesets much before throwing an exception
+	// the client may not send the codesets again in the same connection 
+        consumeServiceContexts(request);
+
         ServerResponse response = null;
 
         int sId = oktemp.getServerId() ;
@@ -293,8 +297,6 @@ public class ServerDelegate implements ServerSubcontract {
         if (sId != orb.getTransientServerId())
             throw new OBJECT_NOT_EXIST(MinorCodes.BAD_SERVER_ID,
                                        CompletionStatus.COMPLETED_NO);
-
-        consumeServiceContexts(request);
 
         // Now that we have the service contexts processed and the
         // correct ORBVersion set, we must finish initializing the

@@ -1,7 +1,7 @@
 /*
- * @(#)IIOPConnection.java	1.124 03/01/23
+ * @(#)IIOPConnection.java	1.126 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -529,53 +529,73 @@ public final class IIOPConnection extends Connection
 
         // Keep looping till we can set the writeLock.
         while ( true ) {
-            synchronized ( stateEvent ){
-                switch ( state ) {
-                
-                case OPENING:
+	    int localState;
+            synchronized (stateEvent){
+	 	localState = state;
+	    }
+ 
+            switch (localState) {
+
+            case OPENING:
+		synchronized (stateEvent) {
+                    if (state != OPENING) {
+                         // somebody has changed 'state' so be careful
+                         break;
+                    }
                     try {
                         stateEvent.wait();
-                    } catch (InterruptedException ie) {};
-                    // Loop back
-                    break;
-                
-                case ESTABLISHED:
-                    synchronized (writeEvent) {
-                        if (!writeLocked) {
-                            writeLocked = true;
-                            return true;
-                        }
+                    }   catch(InterruptedException ie) {};
+                 }
+                 // Loop back
+                 break;
+             case ESTABLISHED:
+                 synchronized (writeEvent) {
+                     if (!writeLocked) {
+                         writeLocked = true;
+                         return true;
+                     }
                     
-                        try {
-                            writeEvent.wait();
-                        } catch (InterruptedException ie) {};
-                    }
-                    // Loop back
-                    break;
-                
-                    //
-                    // XXX
-                    // Need to distinguish between client and server roles
-                    // here probably.
-                    //
-                case ABORT:
-                    throw new COMM_FAILURE( MinorCodes.WRITE_ERROR_SEND,
+                     try {
+			  // do not stay here too long if state != ESTABLISHED
+                          while (state == ESTABLISHED && writeLocked) {
+                              writeEvent.wait(100);
+		          }
+                     } catch (InterruptedException ie) {};
+                 }
+	         // Loop back
+	         break;
+              //
+              // XXX
+              // Need to distinguish between client and server roles
+              // here probably.
+              //
+              case ABORT:
+		  synchronized (stateEvent) {
+	              if (state != ABORT) {
+			  break;
+		      }
+                      throw new COMM_FAILURE( MinorCodes.WRITE_ERROR_SEND,
                                             CompletionStatus.COMPLETED_NO);
+		  }
                      
-                case CLOSE_RECVD:
+              case CLOSE_RECVD:
                     // the connection has been closed or closing
                     // ==> throw rebind exception
                 
-                    throw new COMM_FAILURE( MinorCodes.CONN_CLOSE_REBIND,
+		  synchronized (stateEvent) {
+                      if (state != CLOSE_RECVD) {
+                          break;
+                      }
+                      throw new COMM_FAILURE( MinorCodes.CONN_CLOSE_REBIND,
                                             CompletionStatus.COMPLETED_NO);
+		  }
                 
-                default:
-                    if (orb.transportDebugFlag)
-                        dprint("Connection:writeLock: weird state");
+              default:
+                  if (orb.transportDebugFlag)
+                      dprint("Connection:writeLock: weird state");
                 
-                    delete(Connection.CONN_ABORT);
-                    return false;
-                }
+                  delete(Connection.CONN_ABORT);
+                  return false;
             }
         }
     }

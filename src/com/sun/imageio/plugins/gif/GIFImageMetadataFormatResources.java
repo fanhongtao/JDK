@@ -1,19 +1,21 @@
 /*
- * @(#)GIFImageMetadataFormatResources.java	1.4 03/01/23
+ * @(#)GIFImageMetadataFormatResources.java	1.6 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.imageio.plugins.gif;
 
 import java.util.ListResourceBundle;
-import javax.imageio.metadata.IIOMetadataFormat;
-import javax.imageio.metadata.IIOMetadataFormatImpl;
 
 public class GIFImageMetadataFormatResources extends ListResourceBundle {
 
-    static final Object[][] contents = {
+    public GIFImageMetadataFormatResources() {}
+
+    protected Object[][] getContents() {
+        return new Object[][] {
+
         // Node name, followed by description
         { "ImageDescriptor", "The image descriptor" },
         { "LocalColorTable", "The local color table" },
@@ -78,11 +80,7 @@ public class GIFImageMetadataFormatResources extends ListResourceBundle {
         { "ApplicationExtension/authenticationCode",
           "The authentication code" },
         { "CommentExtension/value", "The comment" },
-    };
 
-    public GIFImageMetadataFormatResources() {}
-
-    public Object[][] getContents() {
-        return contents;
+        };
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.159 05/04/29
+ * @(#)BasicTreeUI.java	1.160 05/06/15
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import javax.swing.text.Position;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.159 04/29/05
+ * @version 1.160 06/15/05
  * @author Scott Violet
  */
 
@@ -2165,19 +2165,8 @@ public class BasicTreeUI extends TreeUI
      * specified a toggle event the row is expanded/collapsed.
      */
     protected void selectPathForEvent(TreePath path, MouseEvent event) {
-	// Should this event toggle the selection of this row?
-	/* Control toggles just this node. */
-	if(isToggleSelectionEvent(event)) {
-	    if(tree.isPathSelected(path))
-		tree.removeSelectionPath(path);
-	    else
-		tree.addSelectionPath(path);
-	    lastSelectedRow = getRowForPath(tree, path);
-	    setAnchorSelectionPath(path);
-	    setLeadSelectionPath(path);
-	}
 	/* Adjust from the anchor point. */
-	else if(isMultiSelectEvent(event)) {
+	if(isMultiSelectEvent(event)) {
 	    TreePath    anchor = getAnchorSelectionPath();
 	    int         anchorRow = (anchor == null) ? -1 :
 		                    getRowForPath(tree, anchor);
@@ -2191,15 +2180,36 @@ public class BasicTreeUI extends TreeUI
 		int          row = getRowForPath(tree, path);
 		TreePath     lastAnchorPath = anchor;
 
-		if(row < anchorRow)
+		if (isToggleSelectionEvent(event)) {  
+                    if (tree.isRowSelected(anchorRow)) {  
+                        tree.addSelectionInterval(anchorRow, row);  
+                    } else {  
+                        tree.removeSelectionInterval(anchorRow, row);  
+                        tree.addSelectionInterval(row, row);  
+                    }  
+                } else if(row < anchorRow) {
 		    tree.setSelectionInterval(row, anchorRow);
-		else
+		} else {
 		    tree.setSelectionInterval(anchorRow, row);
+                }
 		lastSelectedRow = row;
 		setAnchorSelectionPath(lastAnchorPath);
 		setLeadSelectionPath(path);
 	    }
 	}
+
+        // Should this event toggle the selection of this row?
+        /* Control toggles just this node. */
+        else if(isToggleSelectionEvent(event)) {
+            if(tree.isPathSelected(path))
+                tree.removeSelectionPath(path);
+            else
+                tree.addSelectionPath(path);
+            lastSelectedRow = getRowForPath(tree, path);
+            setAnchorSelectionPath(path);
+            setLeadSelectionPath(path);
+        }
+
 	/* Otherwise set the selection to just this interval. */
 	else if(SwingUtilities.isLeftMouseButton(event)) {
 	    tree.setSelectionPath(path);

@@ -73,6 +73,7 @@ import java.security.PrivilegedAction;
 
 public class ICC_Profile implements Serializable {
 
+    static final long serialVersionUID = -3938515861990936766L;
     transient long ID;
 
     private transient ProfileDeferralInfo deferralInfo;
@@ -756,54 +757,64 @@ public class ICC_Profile implements Serializable {
 
         switch (cspace) {
             case ColorSpace.CS_sRGB:
-                if (sRGBprofile == null) {
-		    try {
-                    	/*
-                    	 * Deferral is only used for standard profiles.
-                    	 * Enabling the appropriate access privileges is handled
-                    	 * at a lower level.
-                    	 */
-                    	sRGBprofile = getDeferredInstance(
+	        synchronized(ICC_Profile.class) {
+                    if (sRGBprofile == null) {
+		        try {
+                    	    /*
+                    	     * Deferral is only used for standard profiles.
+                    	     * Enabling the appropriate access privileges is handled
+                    	     * at a lower level.
+                    	     */
+                    	    sRGBprofile = getDeferredInstance(
                         	new ProfileDeferralInfo("sRGB.pf", ColorSpace.TYPE_RGB,
                                                 3, CLASS_DISPLAY)); 
-		    } catch (IOException e) {
-                      throw new IllegalArgumentException(
-                          "Can't load standard profile: sRGB.pf");
-                    }
-		}
-                thisProfile = sRGBprofile;
+		        } catch (IOException e) {
+                           throw new IllegalArgumentException(
+                                 "Can't load standard profile: sRGB.pf");
+                        }
+		    }
+                    thisProfile = sRGBprofile;
+	         }
 
                 break;
 
             case ColorSpace.CS_CIEXYZ:
-                if (XYZprofile == null) {
-                    XYZprofile = getStandardProfile("CIEXYZ.pf");
+	        synchronized(ICC_Profile.class) {
+                    if (XYZprofile == null) {
+                        XYZprofile = getStandardProfile("CIEXYZ.pf");
+                    }
+                    thisProfile = XYZprofile;
                 }
-                thisProfile = XYZprofile;
 
                 break;
 
             case ColorSpace.CS_PYCC:
-                if (PYCCprofile == null) {
-                    PYCCprofile = getStandardProfile("PYCC.pf");
-                }
-                thisProfile = PYCCprofile;
+	        synchronized(ICC_Profile.class) {
+                    if (PYCCprofile == null) {
+                        PYCCprofile = getStandardProfile("PYCC.pf");
+                    }
+                    thisProfile = PYCCprofile;
+	        }
 
                 break;
 
             case ColorSpace.CS_GRAY:
-                if (GRAYprofile == null) {
-                    GRAYprofile = getStandardProfile("GRAY.pf");
-                }
-                thisProfile = GRAYprofile;
+	        synchronized(ICC_Profile.class) {
+                    if (GRAYprofile == null) {
+                        GRAYprofile = getStandardProfile("GRAY.pf");
+                    }
+                    thisProfile = GRAYprofile;
+	        }
 
                 break;
 
             case ColorSpace.CS_LINEAR_RGB:
-                if (LINEAR_RGBprofile == null) {
-                    LINEAR_RGBprofile = getStandardProfile("LINEAR_RGB.pf");
-                }
-                thisProfile = LINEAR_RGBprofile;
+	        synchronized(ICC_Profile.class) {
+                    if (LINEAR_RGBprofile == null) {
+                        LINEAR_RGBprofile = getStandardProfile("LINEAR_RGB.pf");
+                    }
+                    thisProfile = LINEAR_RGBprofile;
+	        }
 
                 break;
 

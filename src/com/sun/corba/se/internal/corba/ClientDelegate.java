@@ -1,7 +1,7 @@
 /*
- * @(#)ClientDelegate.java	1.87 03/01/23
+ * @(#)ClientDelegate.java	1.89 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -725,7 +725,7 @@ public class ClientDelegate
 	// This is not synchronized since the returned value is constant
 	// so the overhead of synchronization is unnecessary.
 	if (! isCachedHashValue) {
-	    cachedHashValue = ior.stringify().hashCode();
+	    cachedHashValue = ior.hashCode();
 	    isCachedHashValue = true;
 	}
 	return cachedHashValue;

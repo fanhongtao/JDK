@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEvent.java	1.50 03/01/27
+ * @(#)AWTEvent.java	1.52 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,6 +11,7 @@ import java.util.EventObject;
 import java.awt.event.*;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
+import java.lang.reflect.Field;
 
 /**
  * The root event class for all AWT events.
@@ -51,7 +52,7 @@ import java.awt.peer.LightweightPeer;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.50 01/27/03
+ * @version 1.52 08/30/05
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {
@@ -189,6 +190,9 @@ public abstract class AWTEvent extends EventObject {
      */
     public final static int RESERVED_ID_MAX = 1999;
 
+    //security stuff
+    private static Field inputEvent_CanAccessSystemClipboard_Field = null;
+
     /*
      * JDK 1.1 serialVersionUID
      */
@@ -200,6 +204,29 @@ public abstract class AWTEvent extends EventObject {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+    }
+
+    private static synchronized Field get_InputEvent_CanAccessSystemClipboard() { 
+        if (inputEvent_CanAccessSystemClipboard_Field == null) { 
+            inputEvent_CanAccessSystemClipboard_Field =
+                (Field)java.security.AccessController.doPrivileged(
+                    new java.security.PrivilegedAction() {
+                            public Object run() {
+                                Field field = null;
+                                try {
+                                    field = InputEvent.class.
+                                        getDeclaredField("canAccessSystemClipboard");
+                                    field.setAccessible(true);
+                                    return field;
+                                } catch (SecurityException e) {
+                                } catch (NoSuchFieldException e) {
+                                }
+                                return null;
+                            }
+                        });
+        }
+
+        return inputEvent_CanAccessSystemClipboard_Field;
     }
 
     /**
@@ -473,6 +500,29 @@ public abstract class AWTEvent extends EventObject {
      */
     void copyPrivateDataInto(AWTEvent that) {
 	that.bdata = this.bdata;
-    }
+          // Copy canAccessSystemClipboard value from this into that.
+          if (this instanceof InputEvent && that instanceof InputEvent) {
+              Field field = get_InputEvent_CanAccessSystemClipboard();
+              if (field != null) { 
+                  try {
+                      boolean b = field.getBoolean(this);
+                      field.setBoolean(that, b);
+                  } catch(IllegalAccessException e) {
+                    } 
+              }
+          }
+      }
+    
+      void dispatched() {
+          if (this instanceof InputEvent) {
+              Field field = get_InputEvent_CanAccessSystemClipboard();
+              if (field != null) { 
+                  try {
+                      field.setBoolean(this, false);
+                  } catch(IllegalAccessException e) {
+                  } 
+              }
+          }
+      }         
 } // class AWTEvent
 

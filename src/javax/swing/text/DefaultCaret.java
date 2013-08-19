@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCaret.java	1.121 03/01/23
+ * @(#)DefaultCaret.java	1.123 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,6 +17,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import java.util.EventListener; 
+import com.sun.java.swing.SwingUtilities2;
 
 /**
  * A default implementation of Caret.  The caret is rendered as
@@ -88,7 +89,7 @@ import java.util.EventListener;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.121 01/23/03
+ * @version 1.123 08/30/05
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -290,18 +291,22 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 	    int nclicks = e.getClickCount();
 	    if (SwingUtilities.isLeftMouseButton(e)) {
 		// mouse 1 behavior
-		if(e.getClickCount() == 2) {
+		if(nclicks == 2
+			&& SwingUtilities2.canEventAccessSystemClipboard(e)) {
 		    Action a = new DefaultEditorKit.SelectWordAction();
 		    a.actionPerformed(new ActionEvent(getComponent(),
 						      ActionEvent.ACTION_PERFORMED, null, e.getWhen(), e.getModifiers()));
-		} else if(e.getClickCount() == 3) {
+		} else if(nclicks == 3
+			&& SwingUtilities2.canEventAccessSystemClipboard(e)) {
 		    Action a = new DefaultEditorKit.SelectLineAction();
 		    a.actionPerformed(new ActionEvent(getComponent(),
 						      ActionEvent.ACTION_PERFORMED, null, e.getWhen(), e.getModifiers()));
 		} 
 	    } else if (SwingUtilities.isMiddleMouseButton(e)) {
 		// mouse 2 behavior
-		if (nclicks == 1 && component.isEditable() && component.isEnabled()) {
+		if (nclicks == 1 && component.isEditable() 
+				&& component.isEnabled()
+				&& SwingUtilities2.canEventAccessSystemClipboard(e)) {
 		    // paste system selection, if it exists
 		    JTextComponent c = (JTextComponent) e.getSource();
 		    if (c != null) {
@@ -1060,6 +1065,11 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
     }
     
     private void updateSystemSelection() {
+
+        if ( ! SwingUtilities2.canCurrentEventAccessSystemClipboard() ) {
+            return;
+        }
+
         if (this.dot != this.mark && component != null) {
             Clipboard clip = getSystemSelection();
 

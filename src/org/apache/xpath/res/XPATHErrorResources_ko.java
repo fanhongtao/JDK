@@ -1,5 +1,5 @@
 /*
- * @(#)XPATHErrorResources_ko.java	1.3 03/04/28
+ * @(#)XPATHErrorResources_ko.java	1.4 05/08/26
  * The Apache Software License, Version 1.1
  *
  *
@@ -1637,9 +1637,17 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
    *
    * @return The association list.
    */
-  public Object[][] getContents()
+  protected Object[][] getContents()
   {
-    return contents;
+	// return a copy of contents; in theory we want a deep clone
+	// of contents, but since it only contains (immutable) Strings,
+	// this shallow copy is sufficient
+	Object[][] msgCopy = new Object[contents.length][2];
+	for (int i = 0; i < contents.length; i++) {
+            msgCopy[i][0] = contents[i][0];
+            msgCopy[i][1] = contents[i][1];
+	}
+        return msgCopy;
   }
 }
 

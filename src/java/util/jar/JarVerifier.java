@@ -1,7 +1,7 @@
 /*
- * @(#)JarVerifier.java	1.32 03/02/27
+ * @(#)JarVerifier.java	1.34 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.32 03/02/27
+ * @version 	1.34 05/08/30
  * @author	Roland Schemers
  */
 class JarVerifier {
@@ -54,9 +54,6 @@ class JarVerifier {
     /* Are there are files to verify? */
     private boolean anyToVerify = true;
 
-    /* The manifest file */
-    private Manifest manifest;
-
     /* The output stream to use when keeping track of files we are interested
        in */
     private ByteArrayOutputStream baos;
@@ -69,14 +66,13 @@ class JarVerifier {
 
     /**
      */
-    public JarVerifier(Manifest manifest, byte rawBytes[]) {
+    public JarVerifier(byte rawBytes[]) {
 	manifestRawBytes = rawBytes;
 	sigFileCerts = new Hashtable();
 	verifiedCerts = new Hashtable();
 	sigFileData = new Hashtable(11);
 	pendingBlocks = new ArrayList();
 	baos = new ByteArrayOutputStream();
-	this.manifest = manifest;
     }
 
     /**

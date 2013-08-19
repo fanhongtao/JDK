@@ -1,7 +1,7 @@
 /*
- * @(#)Component.java	1.357 03/04/14
+ * @(#)Component.java	1.359 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -134,7 +134,7 @@ import sun.awt.im.CompositionArea;
  * efficient painting code, see
  * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
  *
- * @version 	1.357, 04/14/03
+ * @version 	1.359, 08/30/05
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -1065,7 +1065,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
             eventMask |= AWTEvent.INPUT_METHODS_ENABLED_MASK;
         } else {
-	    if (areInputMethodsEnabled()) {
+	    if ((eventMask & AWTEvent.INPUT_METHODS_ENABLED_MASK) != 0) {
 		InputContext inputContext = getInputContext();
 		if (inputContext != null) {
 		    inputContext.endComposition();
@@ -5533,7 +5533,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
             // If there is any input context for this component, notify
             // that this component is being removed. (This has to be done
             // before hiding peer.)
-            if (areInputMethodsEnabled()) {
+	    if ((eventMask & AWTEvent.INPUT_METHODS_ENABLED_MASK) != 0) {
                 InputContext inputContext = getInputContext();
                 if (inputContext != null) {
                     inputContext.removeNotify(this);

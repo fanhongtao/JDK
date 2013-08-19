@@ -1,5 +1,5 @@
 /*
- * @(#)EventQueue.java	1.90 05/04/29
+ * @(#)EventQueue.java	1.91 05/06/20
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -76,7 +76,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.90, 04/29/05
+ * @version 	1.91, 06/20/05
  * @since 	1.1
  */
 public class EventQueue {
@@ -478,6 +478,7 @@ public class EventQueue {
             ((ActiveEvent)event).dispatch();
         } else if (src instanceof Component) {
             ((Component)src).dispatchEvent(event);
+	    event.dispatched();
         } else if (src instanceof MenuComponent) {
             ((MenuComponent)src).dispatchEvent(event);
         } else if (src instanceof AWTAutoShutdown) {

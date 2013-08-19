@@ -1,5 +1,5 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.42 05/04/29
+ * @(#)SubjectDomainCombiner.java	1.43 05/08/12
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import java.lang.ref.WeakReference;
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.42, 04/29/05 
+ * @version 1.43, 08/12/05 
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
@@ -314,11 +314,17 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
 		    // get the original perms
 		    Permissions perms = new Permissions();
-		    java.util.Enumeration e =
-			currentDomains[i].getPermissions().elements();
-		    while (e.hasMoreElements()) {
-			Permission newPerm = (Permission)e.nextElement();
-			perms.add(newPerm);
+                    PermissionCollection coll = pd.getPermissions();
+		    java.util.Enumeration e;
+                    if (coll != null) {
+                        synchronized (coll) {
+                                e = coll.elements(); 
+		                while (e.hasMoreElements()) {
+			                Permission newPerm = 
+                                                (Permission)e.nextElement();
+			                perms.add(newPerm);
+                                }
+                        }
 		    }
 
 		    // get perms from the policy

@@ -1,7 +1,7 @@
 /*
- * @(#)LookAndFeel.java	1.30 03/01/23
+ * @(#)LookAndFeel.java	1.32 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
  * Completely characterizes a look and feel from the point of view
  * of the pluggable look and feel components.  
  * 
- * @version 1.30 01/23/03
+ * @version 1.32 08/30/05
  * @author Tom Ball
  * @author Hans Muller
  */
@@ -261,8 +261,6 @@ public abstract class LookAndFeel
 		});
 
 		if (buffer[0] == null) {
-		    System.err.println(baseClass.getName() + "/" + 
-				       gifFile + " not found.");
 		    return null;
 		}
 		if (buffer[0].length == 0) {

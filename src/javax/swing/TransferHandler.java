@@ -1,7 +1,7 @@
 /*
- * @(#)TransferHandler.java	1.24 03/01/23
+ * @(#)TransferHandler.java	1.27 05/08/31
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -16,6 +16,8 @@ import java.io.*;
 import java.util.TooManyListenersException;
 import javax.swing.plaf.UIResource;
 import javax.swing.event.*;
+import com.sun.java.swing.SwingUtilities2;
+import sun.reflect.misc.MethodUtil;
 
 /**
  * This class is used to handle the transfer of a <code>Transferable</code>
@@ -41,7 +43,7 @@ import javax.swing.event.*;
  * 
  *
  * @author  Timothy Prinzing
- * @version 1.24 01/23/03
+ * @version 1.27 08/31/05
  */
 public class TransferHandler implements Serializable {
 
@@ -251,7 +253,7 @@ public class TransferHandler implements Serializable {
 		try {
 		    Object value = t.getTransferData(flavor);
 		    Object[] args = { value };
-		    writer.invoke(comp, args);
+		    MethodUtil.invoke(writer, comp, args);
 		    return true;
 		} catch (Exception ex) {
 		    System.err.println("Invocation failed");
@@ -504,7 +506,7 @@ public class TransferHandler implements Serializable {
 	    Method reader = property.getReadMethod();
 	    Object value = null;
 	    try {
-		value = reader.invoke(component, null);
+		value = MethodUtil.invoke(reader, component, null);
 	    } catch (Exception ex) {
 		throw new IOException("Property read failed: " + property.getName());
 	    }
@@ -797,9 +799,6 @@ public class TransferHandler implements Serializable {
 
 	TransferAction(String name) {
 	    super(name);
-	    // Will cause the system clipboard state to be updated.
-	    canAccessSystemClipboard = true;
-	    canAccessSystemClipboard();
 	}
 
         public void actionPerformed(ActionEvent e) {
@@ -828,7 +827,7 @@ public class TransferHandler implements Serializable {
 	 * Returns the clipboard to use for cut/copy/paste.
 	 */
         private Clipboard getClipboard(JComponent c) {
-	    if (canAccessSystemClipboard()) {
+	    if (SwingUtilities2.canAccessSystemClipboard()) {
 		return c.getToolkit().getSystemClipboard();
 	    }
 	    Clipboard clipboard = (Clipboard)sun.awt.AppContext.getAppContext().
@@ -842,40 +841,6 @@ public class TransferHandler implements Serializable {
 	}
 
 	/**
-	 * Returns true if it is safe to access the system Clipboard.
-	 * If the environment is headless or the security manager
-	 * does not allow access to the system clipboard, a private
-	 * clipboard is used.
-	 */
-        private boolean canAccessSystemClipboard() {
-	    if (canAccessSystemClipboard) {
-		if (GraphicsEnvironment.isHeadless()) {
-		    canAccessSystemClipboard = false;
-		    return false;
-		}
-
-		SecurityManager sm = System.getSecurityManager();
-		if (sm != null) {
-		    try {
-			sm.checkSystemClipboardAccess();
-			return true;
-		    } catch (SecurityException se) {
-			canAccessSystemClipboard = false;
-			return false;
-		    }
-		}
-		return true;
-	    }
-	    return false;
-	}
-	
-	/**
-	 * Indicates if it is safe to access the system clipboard. Once false,
-	 * access will never be checked again.
-	 */
-        private boolean canAccessSystemClipboard;
-
-	/**
 	 * Key used in app context to lookup Clipboard to use if access to
 	 * System clipboard is denied.
 	 */
@@ -884,6 +849,3 @@ public class TransferHandler implements Serializable {
     }
 
 }
-
-
-

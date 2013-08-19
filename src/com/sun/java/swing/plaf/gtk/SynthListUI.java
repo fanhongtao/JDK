@@ -1,7 +1,7 @@
 /*
- * @(#)SynthListUI.java	1.8 03/01/23
+ * @(#)SynthListUI.java	1.10 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.8, 01/23/03 (based on BasicListUI v 1.91)
+ * @version 1.10, 08/30/05 (based on BasicListUI v 1.91)
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -1348,7 +1348,15 @@ class SynthListUI extends ListUI implements SynthUI {
                 list.setValueIsAdjusting(adjusting);
                 int anchorIndex = list.getAnchorSelectionIndex();
                 if (e.isControlDown()) {
-                    if (list.isSelectedIndex(row)) {
+                    if (e.isShiftDown() && anchorIndex != -1) { 
+                        if (list.isSelectedIndex(anchorIndex)) { 
+                            list.addSelectionInterval(anchorIndex, row); 
+                        } else { 
+                            list.removeSelectionInterval(anchorIndex, row); 
+                            list.addSelectionInterval(row, row); 
+                            list.getSelectionModel().setAnchorSelectionIndex(anchorIndex); 
+                        } 
+                    } else if (list.isSelectedIndex(row)) { 
                         list.removeSelectionInterval(row, row);
                     }
                     else {

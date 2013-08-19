@@ -1,7 +1,7 @@
 /*
- * @(#)InputEvent.java	1.29 03/01/23
+ * @(#)InputEvent.java	1.31 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.Toolkit;
  * activated.
  *
  * @author Carl Quinn
- * @version 1.29 01/23/03
+ * @version 1.31 08/30/05
  *
  * @see KeyEvent
  * @see KeyAdapter
@@ -154,6 +154,12 @@ public abstract class InputEvent extends ComponentEvent {
      * @see java.awt.event.MouseEvent
      */
     int modifiers;
+  
+      /*
+       * A flag that indicates that this instance can be used to access 
+       * the system clipboard. 
+       */
+    private transient boolean canAccessSystemClipboard;
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -183,6 +189,26 @@ public abstract class InputEvent extends ComponentEvent {
         super(source, id);
         this.when = when;
         this.modifiers = modifiers;
+        canAccessSystemClipboard = canAccessSystemClipboard();
+    }
+
+    private boolean canAccessSystemClipboard() {
+        boolean b = false;
+
+        if (!GraphicsEnvironment.isHeadless()) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                try {
+                    sm.checkSystemClipboardAccess();
+                    b = true;
+                } catch (SecurityException se) {
+                }
+            } else {
+                b = true;
+            }
+        }
+
+        return b;
     }
 
     /**

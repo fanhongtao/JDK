@@ -1,7 +1,7 @@
 /*
- * @(#)IOR.java	1.28 03/01/23
+ * @(#)IOR.java	1.30 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -67,6 +67,12 @@ public class IOR extends IdEncapsulationContainerBase implements Writeable
 
 	return super.equals( obj ) && typeId.equals( other.typeId ) ;
     }
+
+    public synchronized int hashCode()
+    {
+        return  (super.hashCode() ^ typeId.hashCode());
+    }
+
 
     /** Construct an empty IOR.  This is needed for null object references.
     */

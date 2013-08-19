@@ -1,7 +1,7 @@
 /*
- * @(#)FileCacheImageOutputStream.java	1.22 03/01/23
+ * @(#)FileCacheImageOutputStream.java	1.23 05/07/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import com.sun.imageio.stream.StreamCloser;
 
 /**
  * An implementation of <code>ImageOutputStream</code> that writes its
@@ -65,8 +66,8 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
         this.stream = stream;
         this.cacheFile =
             File.createTempFile("imageio", ".tmp", cacheDir);
-        cacheFile.deleteOnExit();
         this.cache = new RandomAccessFile(cacheFile, "rw");
+	StreamCloser.addToQueue(this);
     }
 
     public int read() throws IOException {
@@ -192,6 +193,7 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
         cacheFile.delete();
         stream.flush();
         stream = null;
+	StreamCloser.removeFromQueue(this);
     }
 
     public void flushBefore(long pos) throws IOException {

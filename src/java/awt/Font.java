@@ -1,7 +1,7 @@
 /*
- * @(#)Font.java	1.181 03/01/23
+ * @(#)Font.java	1.183 05/08/30
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -126,7 +126,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.181, 01/23/03
+ * @version 	1.183, 08/30/05
  */
 public class Font implements java.io.Serializable
 {
@@ -1100,6 +1100,7 @@ public class Font implements java.io.Serializable
 	    return  (size == font.size)
 	      && (pointSize == font.pointSize)
 	      && (style == font.style)
+	      && (pNativeFont == font.pNativeFont)
 	      && name.equals(font.name)
 	      && thismat[0] == thatmat[0]
 	      && thismat[1] == thatmat[1]
