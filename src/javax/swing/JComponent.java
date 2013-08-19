@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.210 03/01/23
+ * @(#)JComponent.java	2.211 03/08/26
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -278,7 +278,7 @@ public abstract class JComponent extends Container implements Serializable
     private static final int WIF_INPUTMAP_CREATED                     =  7;
     private static final int ACTIONMAP_CREATED                        =  8;
     private static final int CREATED_DOUBLE_BUFFER                    =  9;
-    private static final int CREATED_VOLATILE_DOUBLE_BUFFER           = 10;
+    // Bit 10 is free 
     private static final int IS_PRINTING                              = 11;
     private static final int IS_PRINTING_ALL                          = 12;
     private static final int IS_REPAINTING                            = 13;
@@ -2787,26 +2787,23 @@ public abstract class JComponent extends Container implements Serializable
 
     /**
      * This is invoked by the <code>RepaintManager</code> if
-     * <code>createImage</code> or <code>createVolatileImage</code>
-     * is called on the component.
+     * <code>createImage</code> is called on the component.
      *
-     * @param volatile true if the double buffer was created as a VolatileImage
      * @param newValue true if the double buffer image was created from this component
      */
-    void setCreatedDoubleBuffer(boolean volatileImage, boolean newValue) {
-	setFlag(volatileImage? 
-		  CREATED_VOLATILE_DOUBLE_BUFFER : CREATED_DOUBLE_BUFFER, newValue);
+    void setCreatedDoubleBuffer(boolean newValue) {
+        setFlag(CREATED_DOUBLE_BUFFER, newValue);
     }
 
     /**
      * Returns true if the <code>RepaintManager</code>
      * created the double buffer image from the component.
      *
-     * @param volatile true if the double buffer image is a VolatileImage
      * @return true if this component had a double buffer image, false otherwise
      */
-    boolean getCreatedDoubleBuffer(boolean volatileImage) {
-	return getFlag(volatileImage? CREATED_VOLATILE_DOUBLE_BUFFER : CREATED_DOUBLE_BUFFER);
+    boolean getCreatedDoubleBuffer() {
+        return getFlag(CREATED_DOUBLE_BUFFER);
+
     }
 
     /**
@@ -4313,13 +4310,9 @@ public abstract class JComponent extends Container implements Serializable
 	unregisterWithKeyboardManager();
 	deregisterNextFocusableComponent();
 
-	if (getCreatedDoubleBuffer(false)) {
+	if (getCreatedDoubleBuffer()) {
 	    RepaintManager.currentManager(this).resetDoubleBuffer();
-	    setCreatedDoubleBuffer(false, false);
-	}
-	if (getCreatedDoubleBuffer(true)) {
-	    RepaintManager.currentManager(this).resetVolatileDoubleBuffer();
-	    setCreatedDoubleBuffer(true, false);
+	    setCreatedDoubleBuffer(false);
 	}
     }
 
@@ -4737,11 +4730,10 @@ public abstract class JComponent extends Container implements Serializable
             (offscreen.getWidth(null) > 0 && offscreen.getHeight(null) > 0)) {
 	
 	   VolatileImage vImage = (java.awt.image.VolatileImage)offscreen;
+	   GraphicsConfiguration gc = bufferComponent.getGraphicsConfiguration();
 	   for (int i = 0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-		if (vImage.validate(paintingComponent.getGraphicsConfiguration()) ==
-		    VolatileImage.IMAGE_INCOMPATIBLE)
-		{
-		    repaintManager.resetVolatileDoubleBuffer();
+                if (vImage.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE) {
+                    repaintManager.resetVolatileDoubleBuffer(gc);
 		    offscreen = repaintManager.getVolatileOffscreenBuffer(bufferComponent,clipW, clipH);
 		    vImage = (java.awt.image.VolatileImage)offscreen;
 		}

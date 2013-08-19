@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.52 03/01/23
+ * @(#)RepaintManager.java	1.53 03/08/26
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,11 +21,16 @@ import sun.security.action.GetPropertyAction;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.52 01/23/03
+ * @version 1.53 08/26/03
  * @author Arnaud Weber
  */
 public class RepaintManager 
 {
+    /**
+     * Maps from GraphicsConfiguration to VolatileImage.
+     */
+    private Map volatileMap = new HashMap(1);
+
     Hashtable dirtyComponents = new Hashtable();
     Hashtable tmpDirtyComponents = new Hashtable();
     Vector    invalidComponents;
@@ -43,11 +48,6 @@ public class RepaintManager
     //
     DoubleBufferInfo standardDoubleBuffer;
 
-    // Support for volatile offscreen buffer to improve blitting speed by
-    // taking advantage of graphics hardware
-    //
-    DoubleBufferInfo volatileDoubleBuffer;
-
     private static final Object repaintManagerKey = RepaintManager.class;
 
     // Whether or not a VolatileImage should be used for double-buffered painting
@@ -55,7 +55,7 @@ public class RepaintManager
 
     // The maximum number of times Swing will attempt to use the VolatileImage
     // buffer during a paint operation.
-    static final int VOLATILE_LOOP_MAX = 1;
+    static final int VOLATILE_LOOP_MAX = 2;
 
     static {
 	String vib = (String) java.security.AccessController.doPrivileged(
@@ -515,7 +515,7 @@ public class RepaintManager
      * repaint manager.
      */
     public Image getOffscreenBuffer(Component c,int proposedWidth,int proposedHeight) {
-	return _getOffscreenBuffer(c, proposedWidth, proposedHeight, false);
+	return _getOffscreenBuffer(c, proposedWidth, proposedHeight);
     }
 
   /**
@@ -532,27 +532,37 @@ public class RepaintManager
    */
     public Image getVolatileOffscreenBuffer(Component c, 
 					    int proposedWidth,int proposedHeight) {
-
-	return _getOffscreenBuffer(c, proposedWidth, proposedHeight, true);
+         GraphicsConfiguration config = c.getGraphicsConfiguration();
+         if (config == null) {
+             config = GraphicsEnvironment.getLocalGraphicsEnvironment().
+                             getDefaultScreenDevice().getDefaultConfiguration();
+         }
+         Dimension maxSize = getDoubleBufferMaximumSize();
+         int width = proposedWidth < 1 ? 1 :
+             (proposedWidth > maxSize.width? maxSize.width : proposedWidth);
+         int height = proposedHeight < 1 ? 1 :
+             (proposedHeight > maxSize.height? maxSize.height : proposedHeight);
+         VolatileImage image = (VolatileImage)volatileMap.get(config);
+         if (image == null || image.getWidth() < width ||
+                              image.getHeight() < height) {
+             if (image != null) {
+                 image.flush();
+             }
+             image = config.createCompatibleVolatileImage(width, height);
+             volatileMap.put(config, image);
+         }
+       return image;
     }
 
-    private Image _getOffscreenBuffer(Component c, int proposedWidth, int proposedHeight, 
-				    boolean useVolatileImage) {
+    private Image _getOffscreenBuffer(Component c, int proposedWidth, int proposedHeight) {
 	Dimension maxSize = getDoubleBufferMaximumSize();
 	DoubleBufferInfo doubleBuffer = null;
         int width, height;
 
-	if (useVolatileImage) {
-	    if (volatileDoubleBuffer == null) {
-		volatileDoubleBuffer = new DoubleBufferInfo();
-	    }
-	    doubleBuffer = volatileDoubleBuffer;
-	} else {
-	    if (standardDoubleBuffer == null) {
-		standardDoubleBuffer = new DoubleBufferInfo();
-	    }
-	    doubleBuffer = standardDoubleBuffer;
+	if (standardDoubleBuffer == null) {
+	    standardDoubleBuffer = new DoubleBufferInfo();
 	}
+	doubleBuffer = standardDoubleBuffer;
 	    
 	width = proposedWidth < 1? 1 : 
 	          (proposedWidth > maxSize.width? maxSize.width : proposedWidth);
@@ -574,11 +584,10 @@ public class RepaintManager
 	Image result = doubleBuffer.image;
 
 	if (doubleBuffer.image == null) {
-            result = useVolatileImage? c.createVolatileImage(width, height) :
-		                       c.createImage(width , height);
+	    result = c.createImage(width , height);
             doubleBuffer.size = new Dimension(width, height);
 	    if (c instanceof JComponent) {
-		((JComponent)c).setCreatedDoubleBuffer(useVolatileImage, true);
+		((JComponent)c).setCreatedDoubleBuffer(true);
 		doubleBuffer.image = result;
 	    }
 	    // JComponent will inform us when it is no longer valid
@@ -599,12 +608,16 @@ public class RepaintManager
 		standardDoubleBuffer.image = null;
 	    }
         }
-	if (volatileDoubleBuffer != null && volatileDoubleBuffer.image != null) {
-            if (volatileDoubleBuffer.image.getWidth(null) > d.width || 
-		volatileDoubleBuffer.image.getHeight(null) > d.height) {
-		volatileDoubleBuffer.image = null;
-	    }
-	}	    
+        // Clear out the VolatileImages
+        Iterator gcs = volatileMap.keySet().iterator();
+        while (gcs.hasNext()) {
+            GraphicsConfiguration gc = (GraphicsConfiguration)gcs.next();
+            VolatileImage image = (VolatileImage)volatileMap.get(gc);
+            if (image.getWidth() > d.width || image.getHeight() > d.height) {
+                image.flush();
+                gcs.remove();
+    	    }
+	}
     }
 
     /**
@@ -665,9 +678,10 @@ public class RepaintManager
     /**
      * This resets the volatile double buffer. 
      */
-    void resetVolatileDoubleBuffer() {
-	if (volatileDoubleBuffer != null) {
-	    volatileDoubleBuffer.needsReset = true;
+    void resetVolatileDoubleBuffer(GraphicsConfiguration gc) {
+         Image image = (Image)volatileMap.remove(gc);
+         if (image != null) {
+             image.flush();
 	}
     }
 

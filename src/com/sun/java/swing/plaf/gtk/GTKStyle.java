@@ -1,5 +1,5 @@
 /*
- * @(#)GTKStyle.java	1.89 03/01/23
+ * @(#)GTKStyle.java	1.90 03/09/04
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ import java.security.*;
 import java.awt.RenderingHints;
 
 /**
- * @version 1.89, 01/23/03
+ * @version 1.90, 09/04/03
  * @author Scott Violet
  */
 class GTKStyle extends DefaultSynthStyle implements GTKConstants {
@@ -357,6 +357,15 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         Object value = super.get(context, key);
 
         if (value == null) {
+	// See if this is a class specific value.
+	Object classKey = CLASS_SPECIFIC_MAP.get(key);
+ 
+	    if (classKey != null) {
+		value = getClassSpecificValue(context, (String)classKey);
+		if (value != null) {
+			return value;
+		}
+	    }
             if (key == "foreground" || key == "focus" ||
                       key == "SplitPane.dragPainter" ||
                       key == "ScrollPane.viewportBorderPainter") {
@@ -392,14 +401,6 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
                 synchronized(DATA) {
                     DATA.put(key, value);
                     DATA.notifyAll();
-                }
-            }
-            else if (value == null) {
-                // See if this is a class specific value.
-                Object classKey = CLASS_SPECIFIC_MAP.get(key);
-
-                if (classKey != null) {
-                    value = getClassSpecificValue(context, (String)key);
                 }
             }
         }
@@ -1447,9 +1448,9 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
 
         CLASS_SPECIFIC_MAP = new HashMap();
         CLASS_SPECIFIC_MAP.put("CheckBox.iconTextGap", "indicator_spacing");
-        CLASS_SPECIFIC_MAP.put("Slider.thumbHeight", "slider_width");
-        CLASS_SPECIFIC_MAP.put("Slider.trackBorder", "trough_border");
-        CLASS_SPECIFIC_MAP.put("SplitPaneDivider.size", "handle_size");
+        CLASS_SPECIFIC_MAP.put("Slider.thumbHeight", "slider-width");
+        CLASS_SPECIFIC_MAP.put("Slider.trackBorder", "trough-border");
+        CLASS_SPECIFIC_MAP.put("SplitPaneDivider.size", "handle-size");
         CLASS_SPECIFIC_MAP.put("Tree.expanderSize", "expander_size");
         CLASS_SPECIFIC_MAP.put("ScrollBar.thumbHeight", "slider_width");
 

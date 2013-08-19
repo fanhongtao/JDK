@@ -1,5 +1,5 @@
 /*
- * @(#)JViewport.java	1.107 03/01/23
+ * @(#)JViewport.java	1.108 03/08/26
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -74,7 +74,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.107 01/23/03
+ * @version 1.108 08/26/03
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -1540,11 +1540,11 @@ public class JViewport extends JComponent implements Accessible
 		if (rm.useVolatileDoubleBuffer() &&
 		    (off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight())) != null) {
 		    VolatileImage vImage = (java.awt.image.VolatileImage)off;
+		    GraphicsConfiguration gc = view.getGraphicsConfiguration();
 		    for(int i = 0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-		        if (vImage.validate(view.getGraphicsConfiguration()) ==
-			    VolatileImage.IMAGE_INCOMPATIBLE)
+			if (vImage.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE)
 			{
-			    rm.resetVolatileDoubleBuffer();
+			    rm.resetVolatileDoubleBuffer(gc);
 			    off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight());
 			    vImage = (java.awt.image.VolatileImage)off;
 			}
@@ -1617,11 +1617,11 @@ public class JViewport extends JComponent implements Accessible
 	if (rm.useVolatileDoubleBuffer() &&
 	    (off = rm.getVolatileOffscreenBuffer(this,r.width,r.height)) != null) {
 	    VolatileImage vImage = (java.awt.image.VolatileImage)off;
+	    GraphicsConfiguration gc = view.getGraphicsConfiguration();
 	    for(int i=0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-		if (vImage.validate(view.getGraphicsConfiguration()) ==
-		    VolatileImage.IMAGE_INCOMPATIBLE)
+		if (vImage.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE)
 		{
-		    rm.resetVolatileDoubleBuffer();
+		    rm.resetVolatileDoubleBuffer(gc);
 		    off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight());
 		    vImage = (java.awt.image.VolatileImage)off;
 		}

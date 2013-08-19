@@ -37,14 +37,14 @@ DOWNLOAD OR INSTALL PROCESS WILL NOT CONTINUE.
      Software and all associated intellectual property rights is retained by
      Sun and/or its licensors. Unless enforcement is prohibited by
      applicable law, you may not modify, decompile, or reverse engineer
-     Software.  Licensee acknowledges that Licensed Software is not designed
-     or intended for use in the design, construction, operation or
-     maintenance of any nuclear facility. Sun Microsystems, Inc. disclaims
-     any express or implied warranty of fitness for such uses. No right,
-     title or interest in or to any trademark, service mark, logo or trade
-     name of Sun or its licensors is granted under this Agreement.
-     Additional restrictions for developers and/or publishers licenses are
-     set forth in the Supplemental License Terms.
+     Software.  You acknowledge that Licensed Software is not designed or
+     intended for use in the design, construction, operation or maintenance
+     of any nuclear facility. Sun Microsystems, Inc. disclaims any express
+     or implied warranty of fitness for such uses. No right, title or
+     interest in or to any trademark, service mark, logo or trade name of
+     Sun or its licensors is granted under this Agreement. Additional
+     restrictions for developers and/or publishers licenses are set forth in
+     the Supplemental License Terms.
 
   4. LIMITED WARRANTY.  Sun warrants to you that for a period of ninety (90)
      days from the date of purchase, as evidenced by a copy of the receipt,
@@ -293,4 +293,4 @@ in any license contained within the Software.
 
 For inquiries please contact: Sun Microsystems, Inc., 4150 Network Circle,
 Santa Clara, California 95054, U.S.A.
-(LFI#130039/Form ID#011801)
+(LFI#135002/Form ID#011801)

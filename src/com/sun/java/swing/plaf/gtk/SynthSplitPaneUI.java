@@ -1,5 +1,5 @@
 /*
- * @(#)SynthSplitPaneUI.java	1.11 03/01/23
+ * @(#)SynthSplitPaneUI.java	1.12 03/09/04
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import javax.swing.plaf.UIResource;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.11, 01/23/03 (based on BasicSplitPaneUI v 1.72)
+ * @version 1.12, 09/04/03 (based on BasicSplitPaneUI v 1.72)
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -237,7 +237,7 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
         style = SynthLookAndFeel.updateStyle(context, this);
 
         if (style != oldStyle) {
-            splitPane.setDividerSize(((Integer)style.get(
+	    splitPane.setDividerSize(((Number)style.get(
                     context,"SplitPaneDivider.size")).intValue());
             divider.setDividerSize(splitPane.getDividerSize());
         }
@@ -1884,16 +1884,6 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
         protected MouseHandler mouseHandler;
 
         /**
-         * Button for quickly toggling the left component.
-         */
-        protected SynthArrowButton leftButton;
-
-        /**
-         * Button for quickly toggling the right component.
-         */
-        protected SynthArrowButton rightButton;
-
-        /**
          * True while the mouse is over the divider.
          */
         private boolean mouseOver;
@@ -1914,9 +1904,6 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
             addMouseListener(mouseHandler);
             addMouseMotionListener(mouseHandler);
             splitPane.addPropertyChangeListener(this);
-            if (splitPane.isOneTouchExpandable()) {
-                oneTouchExpandableChanged();
-            }
         }
 
         public String getUIClassID() {
@@ -1980,17 +1967,7 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
                     orientation = splitPane.getOrientation();
                     setCursor((orientation == JSplitPane.HORIZONTAL_SPLIT) ?
                               horizontalCursor : verticalCursor);
-                    if (leftButton != null) {
-                        leftButton.setDirection(mapDirection(true));
-                    }
-                    if (rightButton != null) {
-                        rightButton.setDirection(mapDirection(false));
-                    }
                     revalidate();
-                }
-                else if (e.getPropertyName().equals(JSplitPane.
-                                             ONE_TOUCH_EXPANDABLE_PROPERTY)) {
-                    oneTouchExpandableChanged();
                 }
             }
         }
@@ -2013,44 +1990,6 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
             context.dispose();
         }
 
-
-        /**
-         * Messaged when the oneTouchExpandable value of the JSplitPane the
-         * receiver is contained in changes. Will create the
-         * <code>leftButton</code> and <code>rightButton</code> if they
-         * are null. invalidates the receiver as well.
-         */
-        protected void oneTouchExpandableChanged() {
-            if (splitPane.isOneTouchExpandable() &&
-                          leftButton == null && rightButton == null) {
-                /* Create the left button and add an action listener to
-                   expand/collapse it. */
-                leftButton = createLeftOneTouchButton();
-                leftButton.setDirection(mapDirection(true));
-                if (leftButton != null) {
-                    leftButton.addActionListener(new OneTouchActionHandler(
-                                                     true));
-                }
-
-
-                /* Create the right button and add an action listener to
-                   expand/collapse it. */
-                rightButton = createRightOneTouchButton();
-                if (rightButton != null) {
-                    rightButton.setDirection(mapDirection(false));
-                    rightButton.addActionListener(new OneTouchActionHandler
-                                                  (false));
-                }
-
-                if (leftButton != null && rightButton != null) {
-                    add(leftButton);
-                    add(rightButton);
-                }
-            }
-            revalidate();
-        }
-
-
         private int mapDirection(boolean isLeft) {
             if (isLeft) {
                 if (splitPane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT){
@@ -2062,39 +2001,6 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
                 return SwingConstants.EAST;
             }
             return SwingConstants.SOUTH;
-        }
-
-
-        /**
-         * Creates and return an instance of JButton that can be used to
-         * collapse the left component in the split pane.
-         */
-        protected SynthArrowButton createLeftOneTouchButton() {
-            SynthArrowButton b = new SynthArrowButton(SwingConstants.NORTH);
-
-            b.setName("SplitPaneDivider.leftOneTouchButton");
-            b.setMinimumSize(new Dimension(oneTouchSize, oneTouchSize));
-            b.setCursor(defaultCursor);
-            b.setFocusPainted(false);
-            b.setBorderPainted(false);
-            b.setRequestFocusEnabled(false);
-            return b;
-        }
-
-
-        /**
-         * Creates and return an instance of JButton that can be used to
-         * collapse the right component in the split pane.
-         */
-        protected SynthArrowButton createRightOneTouchButton() {
-            SynthArrowButton b = new SynthArrowButton(SwingConstants.NORTH);
-
-            b.setMinimumSize(new Dimension(oneTouchSize, oneTouchSize));
-            b.setCursor(defaultCursor);
-            b.setFocusPainted(false);
-            b.setBorderPainted(false);
-            b.setRequestFocusEnabled(false);
-            return b;
         }
 
 
@@ -2452,54 +2358,7 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
          */
         protected class DividerLayout implements LayoutManager {
             public void layoutContainer(Container c) {
-                if (leftButton != null && rightButton != null &&
-                                  c == Divider.this) {
-                    if (splitPane.isOneTouchExpandable()) {
-                        Insets insets = c.getInsets();
-
-                        if (orientation == JSplitPane.VERTICAL_SPLIT) {
-                            int extraX = (insets != null) ? insets.left : 0;
-                            int blockSize = getHeight();
-
-                            if (insets != null) {
-                                blockSize -= (insets.top + insets.bottom);
-                                blockSize = Math.max(blockSize, 0);
-                            }
-                            blockSize = Math.min(blockSize, oneTouchSize);
-
-                            int y = (c.getSize().height - blockSize) / 2;
-
-                            leftButton.setBounds(extraX + oneTouchOffset, y,
-                                                 blockSize * 2, blockSize);
-                            rightButton.setBounds(extraX + oneTouchOffset +
-                                                  oneTouchSize * 2, y,
-                                                  blockSize * 2, blockSize);
-                        }
-                        else {
-                            int extraY = (insets != null) ? insets.top : 0;
-                            int blockSize = getWidth();
-
-                            if (insets != null) {
-                                blockSize -= (insets.left + insets.right);
-                                blockSize = Math.max(blockSize, 0);
-                            }
-                            blockSize = Math.min(blockSize, oneTouchSize);
-
-                            int x = (c.getSize().width - blockSize) / 2;
-
-                            leftButton.setBounds(x, extraY + oneTouchOffset,
-                                                 blockSize, blockSize * 2);
-                            rightButton.setBounds(x, extraY + oneTouchOffset+
-                                                  oneTouchSize * 2,
-                                                  blockSize, blockSize * 2);
-                        }
-                    }
-                    else {
-                        leftButton.setBounds(-5, -5, 1, 1);
-                        rightButton.setBounds(-5, -5, 1, 1);
-                    }
-                }
-            }
+	    }
 
             public Dimension minimumLayoutSize(Container c) {
                 // PENDING: resolve!
@@ -2509,34 +2368,21 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
                 if (c != Divider.this || splitPane == null) {
                     return new Dimension(0,0);
                 }
-                Dimension buttonMinSize = null;
-
-                if (splitPane.isOneTouchExpandable() && leftButton != null) {
-                    buttonMinSize = leftButton.getMinimumSize();
-                }
 
                 Insets insets = getInsets();
                 int width = getDividerSize();
                 int height = width;
 
                 if (orientation == JSplitPane.VERTICAL_SPLIT) {
-                    if (buttonMinSize != null) {
-                        int size = buttonMinSize.height;
                         if (insets != null) {
-                            size += insets.top + insets.bottom;
+			    height += insets.top + insets.bottom;
                         }
-                        height = Math.max(height, size);
-                    }
                     width = 1;
                 }
                 else {
-                    if (buttonMinSize != null) {
-                        int size = buttonMinSize.width;
                         if (insets != null) {
-                            size += insets.left + insets.right;
+			    width += insets.left + insets.right;
                         }
-                        width = Math.max(width, size);
-                    }
                     height = 1;
                 }
                 return new Dimension(width, height);
@@ -2552,68 +2398,5 @@ class SynthSplitPaneUI extends SplitPaneUI implements SynthUI {
 
             public void addLayoutComponent(String string, Component c) {}
         } // End of class Divider.DividerLayout
-
-
-        /**
-         * Listeners installed on the one touch expandable buttons.
-         */
-        private class OneTouchActionHandler implements ActionListener {
-            /** True indicates the resize should go the minimum (top or left)
-             * vs false which indicates the resize should go to the maximum.
-             */
-            private boolean toMinimum;
-
-            OneTouchActionHandler(boolean toMinimum) {
-                this.toMinimum = toMinimum;
-            }
-
-            public void actionPerformed(ActionEvent e) {
-                Insets  insets = splitPane.getInsets();
-                int     lastLoc = splitPane.getLastDividerLocation();
-                int     currentLoc = getDividerLocation(splitPane);
-                int     newLoc;
-
-                // We use the location from the UI directly, as the location
-                // the JSplitPane itself maintains is not necessarly correct.
-                if (toMinimum) {
-                    if (orientation == JSplitPane.VERTICAL_SPLIT) {
-                        if (currentLoc >= (splitPane.getHeight() -
-                                           insets.bottom - getHeight()))
-                            newLoc = lastLoc;
-                        else
-                            newLoc = insets.top;
-                    }
-                    else {
-                        if (currentLoc >= (splitPane.getWidth() -
-                                           insets.right - getWidth()))
-                            newLoc = lastLoc;
-                        else
-                            newLoc = insets.left;
-                    }
-                }
-                else {
-                    if (orientation == JSplitPane.VERTICAL_SPLIT) {
-                        if (currentLoc == insets.top)
-                            newLoc = lastLoc;
-                        else
-                            newLoc = splitPane.getHeight() - getHeight() -
-                                insets.top;
-                    }
-                    else {
-                        if (currentLoc == insets.left)
-                            newLoc = lastLoc;
-                        else
-                            newLoc = splitPane.getWidth() - getWidth() - 
-			         insets.left;
-                    }
-                }
-                if (currentLoc != newLoc) {
-                    splitPane.setDividerLocation(newLoc);
-                    // We do this in case the dividers notion of the location
-                    // differs from the real location.
-                    splitPane.setLastDividerLocation(currentLoc);
-                }
-            }
-        } // End of class Divider.LeftActionListener
     }
 }

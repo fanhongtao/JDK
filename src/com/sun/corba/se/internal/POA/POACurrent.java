@@ -1,5 +1,5 @@
 /*
- * @(#)POACurrent.java	1.15 03/01/23
+ * @(#)POACurrent.java	1.16 03/08/13
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -139,7 +139,7 @@ public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
 	return peekThrowInternal().postInvokeCalled();
     }
 
-    void addThreadInfo(POA poa, byte[] id, CookieHolder cookieHolder,
+    public void addThreadInfo(POA poa, byte[] id, CookieHolder cookieHolder,
 		       String operation)
     {
         //The first get() initializes the stack
@@ -147,7 +147,7 @@ public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
 	stack.push(new InvocationInfo(poa, id, cookieHolder, operation));
     }
 
-    void removeThreadInfo()
+    public void removeThreadInfo()
     {
         try {
             ((Stack) threadLocal.get()).pop();
@@ -161,7 +161,7 @@ public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
     // Class utilities.
     //
 
-    private InvocationInfo peekThrowNoContext()
+    public InvocationInfo peekThrowNoContext()
 	throws
 	    NoContext
     {

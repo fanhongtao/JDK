@@ -1,5 +1,5 @@
 /*
- * @(#)SynthStyle.java	1.18 03/01/23
+ * @(#)SynthStyle.java	1.19 03/09/04
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,7 +14,7 @@ import javax.swing.plaf.UIResource;
 /**
  * Bag of style properties.
  *
- * @version 1.18, 01/23/03
+ * @version 1.19, 09/04/03
  * @author Scott Violet
  */
 abstract class SynthStyle {
@@ -227,8 +227,8 @@ abstract class SynthStyle {
     public int getInt(SynthContext context, Object key, int defaultValue) {
         Object value = get(context, key);
 
-        if (value instanceof Integer) {
-            return ((Integer)value).intValue();
+	if (value instanceof Number) {
+		return ((Number)value).intValue();
         }
         return defaultValue;
     }

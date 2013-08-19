@@ -1,5 +1,5 @@
 /*
- * @(#)Preferences.java	1.19 03/01/23
+ * @(#)Preferences.java	1.20 03/09/05
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -174,7 +174,7 @@ import java.lang.Double;
  * qualified name of a class implementing the <tt>PreferencesFactory</tt>.
  *
  * @author  Josh Bloch
- * @version 1.19, 01/23/03
+ * @version 1.20, 09/05/03
  * @since   1.4
  */
 public abstract class Preferences {
@@ -183,7 +183,9 @@ public abstract class Preferences {
      * java.util.prefs.PreferencesFactory.
      */
     private static final PreferencesFactory factory;
+
     static {
+	PreferencesFactory factory0=null;
         String factoryName =
         (String) AccessController.doPrivileged(new PrivilegedAction() {
               public Object run() {
@@ -197,13 +199,29 @@ public abstract class Preferences {
                 "System property java.util.prefs.PreferencesFactory not set");
 
         try {
-            factory = (PreferencesFactory)
+            factory0 = (PreferencesFactory)
                Class.forName(factoryName, false,
                              ClassLoader.getSystemClassLoader()).newInstance();
-        }catch(Exception e) {
-            throw new InternalError(
-                "Can't instantiate Preferences factory " + e);
+        } catch(Exception ex) {
+	    try {
+		//workaround for javaws, plugin, 
+		//load factory class using non-system classloader
+		//We enforce the security here to require All Permission
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null) {
+		    sm.checkPermission(new java.security.AllPermission());
+		}
+	        factory0 = (PreferencesFactory)
+                    Class.forName(factoryName, false,
+                        Thread.currentThread().getContextClassLoader()).newInstance();
+	    } catch (Exception e) {
+                throw new InternalError(
+                    "Can't instantiate Preferences factory " + e);
+            }
         }
+	finally {
+	    factory = factory0;
+	}
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)CacheTable.java	1.14 03/01/23
+ * @(#)CacheTable.java	1.15 03/09/05
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -390,7 +390,7 @@ private final void checkForGrowth(){
     }
     else if (threshold == count) {
 	int size = keys.length;
-	int newSize = size + kGrowthRate;
+	int newSize = size * 2;
 	java.lang.Object newKeys[] = new java.lang.Object[newSize];
 	int newVals[] = new int[newSize];
 	int newHashCodes[] = new int[newSize];
