@@ -1,7 +1,7 @@
 /*
- * @(#)Applet.java	1.72 03/01/23
+ * @(#)Applet.java	1.74 04/08/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.applet;
@@ -27,7 +27,7 @@ import javax.accessibility.*;
  *
  * @author      Arthur van Hoff
  * @author      Chris Warth
- * @version     1.72, 01/23/03
+ * @version     1.74, 08/16/04
  * @since       JDK1.0
  */
 public class Applet extends Panel {
@@ -80,11 +80,21 @@ public class Applet extends Panel {
 
     /**
      * Sets this applet's stub. This is done automatically by the system.
-     *
+     * <p>If there is a security manager, its <code> checkPermission </code>
+     * method is called with the
+     * <code>AWTPermission("setAppletStub")</code>
+     * permission if a stub has already been set.
      * @param   stub   the new stub.
+     * @exception SecurityException if the caller cannot set the stub
      */
     public final void setStub(AppletStub stub) {
-	this.stub = (AppletStub)stub;
+        if (this.stub != null) {
+            SecurityManager s = System.getSecurityManager();
+            if (s != null) {
+                s.checkPermission(new AWTPermission("setAppletStub"));
+	    }
+        }
+        this.stub = (AppletStub)stub;
     }
 
     /**

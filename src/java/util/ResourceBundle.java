@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceBundle.java	1.68 03/01/23
+ * @(#)ResourceBundle.java	1.71 04/08/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,9 +23,10 @@
 package java.util;
 
 import java.io.InputStream;
-import java.io.FileInputStream;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import sun.misc.SoftCache;
-import java.lang.ref.SoftReference;
 
 /**
  *
@@ -226,17 +227,28 @@ abstract public class ResourceBundle {
      */
     private static final Hashtable underConstruction = new Hashtable(MAX_BUNDLES_SEARCHED, CACHE_LOAD_FACTOR);
 
-    /** NOTFOUND value used if class loader is null */
-    private static final Integer DEFAULT_NOT_FOUND = new Integer(-1);
+    /** constant indicating that no resource bundle was found */
+    private static final Object NOT_FOUND = new Object();
 
     /**
-     * This is a SoftCache, allowing bundles to be
+     * The cache is a map from cache keys (with bundle base name,
+     * locale, and class loader) to either a resource bundle
+     * (if one has been found) or NOT_FOUND (if no bundle has
+     * been found).
+     * The cache is a SoftCache, allowing bundles to be
      * removed from the cache if they are no longer
      * needed.  This will also allow the cache keys
      * to be reclaimed along with the ClassLoaders
      * they reference.
+     * This variable would be better named "cache", but we keep the old
+     * name for compatibility with some workarounds for bug 4212439.
      */
     private static SoftCache cacheList = new SoftCache(INITIAL_CACHE_SIZE, CACHE_LOAD_FACTOR);
+
+    /**
+     * Queue for reference objects referring to class loaders.
+     */
+    private static ReferenceQueue referenceQueue = new ReferenceQueue();
 
     /**
      * The parent bundle of this bundle.
@@ -412,7 +424,7 @@ abstract public class ResourceBundle {
       * locale (if at all).
       */
     private static final class ResourceCacheKey implements Cloneable {
-        private SoftReference loaderRef;
+        private LoaderReference loaderRef;
         private String searchName;
         private Locale defaultLocale;
         private int hashCodeCache;
@@ -445,8 +457,13 @@ abstract public class ResourceBundle {
                 if (loaderRef == null) {
                     return otherEntry.loaderRef == null;
                 } else {
+                    Object loaderRefValue = loaderRef.get();
                     return (otherEntry.loaderRef != null)
-                            && (loaderRef.get() == otherEntry.loaderRef.get());
+                            // with a null reference we can no longer find
+                            // out which class loader was referenced; so
+                            // treat it as unequal
+                            && (loaderRefValue != null)
+                            && (loaderRefValue == otherEntry.loaderRef.get());
                 }
             } catch (NullPointerException e) {
                 return false;
@@ -461,11 +478,16 @@ abstract public class ResourceBundle {
 
         public Object clone() {
             try {
-                return super.clone();
+                ResourceCacheKey clone = (ResourceCacheKey) super.clone();
+                if (loaderRef != null) {
+                    clone.loaderRef = new LoaderReference(loaderRef.get(), referenceQueue, clone);
+                }
+                return clone;
             } catch (CloneNotSupportedException e) {
                 //this should never happen
                 throw new InternalError();
             }
+
         }
 
         public void setKeyValues(ClassLoader loader, String searchName, Locale defaultLocale) {
@@ -478,7 +500,7 @@ abstract public class ResourceBundle {
             if (loader == null) {
                 this.loaderRef = null;
             } else {
-                loaderRef = new SoftReference(loader);
+                loaderRef = new LoaderReference(loader, referenceQueue, this);
                 hashCodeCache ^= loader.hashCode();
             }
         }
@@ -487,6 +509,25 @@ abstract public class ResourceBundle {
             setKeyValues(null, "", null);
         }
     }
+
+    /**
+     * References to class loaders are weak references, so that they can be
+     * garbage collected when nobody else is using them. The ResourceBundle
+     * class has no reason to keep class loaders alive.
+     */
+    private static final class LoaderReference extends WeakReference {
+        private ResourceCacheKey cacheKey;
+
+        LoaderReference(Object referent, ReferenceQueue q, ResourceCacheKey key) {
+            super(referent, q);
+            cacheKey = key;
+        }
+
+        ResourceCacheKey getCacheKey() {
+            return cacheKey;
+        }
+    }
+
 
     /**
      * Gets a resource bundle using the specified base name, the default locale,
@@ -668,12 +709,6 @@ abstract public class ResourceBundle {
             throw new NullPointerException();
         }
 
-        //We use the class loader as the "flag" value that signifies a bundle
-        //that could not be found.  This allows the entries to be garbage
-        //collected when the loader gets garbage collected.  If we don't
-        //have a loader, use a default value for NOTFOUND.
-        final Object NOTFOUND = (loader != null) ? (Object)loader : (Object)DEFAULT_NOT_FOUND;
-
         //fast path the case where the bundle is cached
         String bundleName = baseName;
         String localeSuffix = locale.toString();
@@ -690,7 +725,7 @@ abstract public class ResourceBundle {
         Locale defaultLocale = Locale.getDefault();
 
         Object lookup = findBundleInCache(loader, bundleName, defaultLocale);
-        if (lookup == NOTFOUND) {
+        if (lookup == NOT_FOUND) {
             throwMissingResourceException(baseName, locale);
         } else if (lookup != null) {
             return (ResourceBundle)lookup;
@@ -705,13 +740,13 @@ abstract public class ResourceBundle {
         //task.  This is critical because other threads may be waiting
         //for us to finish.
 
-        Object parent = NOTFOUND;
+        Object parent = NOT_FOUND;
         try {
             //locate the root bundle and work toward the desired child
-            Object root = findBundle(loader, baseName, defaultLocale, baseName, null, NOTFOUND);
+            Object root = findBundle(loader, baseName, defaultLocale, baseName, null);
             if (root == null) {
-                putBundleInCache(loader, baseName, defaultLocale, NOTFOUND);
-                root = NOTFOUND;
+                putBundleInCache(loader, baseName, defaultLocale, NOT_FOUND);
+                root = NOT_FOUND;
             }
 
             // Search the main branch of the search tree.
@@ -721,13 +756,13 @@ abstract public class ResourceBundle {
             Vector bundlesFound = new Vector(MAX_BUNDLES_SEARCHED);
 	    // if we found the root bundle and no other bundle names are needed
 	    // we can stop here. We don't need to search or load anything further.
-            boolean foundInMainBranch = (root != NOTFOUND && names.size() == 0);
+            boolean foundInMainBranch = (root != NOT_FOUND && names.size() == 0);
 	    
 	    if (!foundInMainBranch) {
 	      parent = root;
 	      for (int i = 0; i < names.size(); i++) {
                 bundleName = (String)names.elementAt(i);
-                lookup = findBundle(loader, bundleName, defaultLocale, baseName, parent, NOTFOUND);
+                lookup = findBundle(loader, bundleName, defaultLocale, baseName, parent);
                 bundlesFound.addElement(lookup);
                 if (lookup != null) {
                     parent = lookup;
@@ -745,7 +780,7 @@ abstract public class ResourceBundle {
                         //the fallback branch intersects the main branch so we can stop now.
                         break;
                     }
-                    lookup = findBundle(loader, bundleName, defaultLocale, baseName, parent, NOTFOUND);
+                    lookup = findBundle(loader, bundleName, defaultLocale, baseName, parent);
                     if (lookup != null) {
                         parent = lookup;
                     } else {
@@ -769,7 +804,7 @@ abstract public class ResourceBundle {
             cleanUpConstructionList();
             throw e;
         }
-        if (parent == NOTFOUND) {
+        if (parent == NOT_FOUND) {
             throwMissingResourceException(baseName, locale);
         }
         return (ResourceBundle)parent;
@@ -824,21 +859,30 @@ abstract public class ResourceBundle {
      * Find a bundle in the cache or load it via the loader or a property file.
      * If the bundle isn't found, an entry is put in the constructionCache
      * and null is returned.  If null is returned, the caller must define the bundle
-     * by calling putBundleInCache.  This routine also propagates NOTFOUND values
-     * from parent to child bundles when the parent is NOTFOUND.
+     * by calling putBundleInCache.  This routine also propagates NOT_FOUND values
+     * from parent to child bundles when the parent is NOT_FOUND.
      * @param loader the loader to use when loading a bundle
      * @param bundleName the complete bundle name including locale extension
      * @param defaultLocale the default locale at the time getBundle was called
      * @param parent the parent of the resource bundle being loaded.  null if
      * the bundle is a root bundle
-     * @param NOTFOUND the value to use for NOTFOUND bundles.
      * @return the bundle or null if the bundle could not be found in the cache
      * or loaded.
      */
     private static Object findBundle(ClassLoader loader, String bundleName, Locale defaultLocale,
-            String baseName, Object parent, final Object NOTFOUND) {
+            String baseName, Object parent) {
         Object result;
         synchronized (cacheList) {
+            // Before we do the real work of this method, see
+            // whether we need to do some housekeeping:
+            // If references to class loaders have been nulled out,
+            // remove all related information from the cache
+            Reference ref = referenceQueue.poll();
+            while (ref != null) {
+                cacheList.remove(((LoaderReference) ref).getCacheKey());
+                ref = referenceQueue.poll();
+            }
+
             //check for bundle in cache
             cacheKey.setKeyValues(loader, bundleName, defaultLocale);
             result = cacheList.get(cacheKey);
@@ -894,7 +938,7 @@ abstract public class ResourceBundle {
             if (constructing) {
                 // set the bundle's parent and put it in the cache
                 final ResourceBundle bundle = (ResourceBundle)result;
-                if (parent != NOTFOUND && bundle.parent == null) {
+                if (parent != NOT_FOUND && bundle.parent == null) {
                     bundle.setParent((ResourceBundle) parent);
                 }
                 bundle.setLocale(baseName, bundleName);
@@ -1002,13 +1046,18 @@ abstract public class ResourceBundle {
      * @return the bundle or null if none could be found.
      */
     private static Object loadBundle(final ClassLoader loader, String bundleName, Locale defaultLocale) {
+
+	// replace any '/'s with '.'s for the bug-for-bug compatible
+	// ClassLoader behavior. (5077272, see also 4872868)
+	String correctedBundleName = bundleName.replace('/', '.');
+
         // Search for class file using class loader
         try {
             Class bundleClass;
             if (loader != null) {
-                bundleClass = loader.loadClass(bundleName);
+                bundleClass = loader.loadClass(correctedBundleName);
             } else {
-                bundleClass = Class.forName(bundleName);
+                bundleClass = Class.forName(correctedBundleName);
             }
             if (ResourceBundle.class.isAssignableFrom(bundleClass)) {
                 Object myBundle = bundleClass.newInstance();

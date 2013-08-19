@@ -1,7 +1,7 @@
 /*
- * @(#)RTFReader.java	1.20 03/01/23
+ * @(#)RTFReader.java	1.23 04/08/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.rtf;
@@ -667,28 +667,33 @@ class DiscardingDestination implements Destination
  *  fontTable dictionary. */
 class FonttblDestination implements Destination
 {
-    int nextFontNumber;
-    String nextFontFamily;
+    int nextFontNumber = -1;
+    Object fontNumberKey = null; 
+    String nextFontFamily = null;
     
     public void handleBinaryBlob(byte[] data)
     { /* Discard binary blobs. */ }
 
-    /* TODO do these routines work correctly if a write buffer divides a
-       font name? (Probably not. Should allow for it as rare case) */
     public void handleText(String text)
     {
         int semicolon = text.indexOf(';');
         String fontName;
-        Object fontNum;  /* an Integer, but we don't care */
 
-        if (semicolon > 0)
+        if (semicolon > -1)
             fontName = text.substring(0, semicolon);
         else
             fontName = text;
 
         /* TODO: do something with the font family. */
 
-        fontTable.put(new Integer(nextFontNumber), fontName);
+        if (nextFontNumber == -1 
+            && fontNumberKey != null) {
+            //font name might be broken across multiple calls
+            fontName = fontTable.get(fontNumberKey) + fontName;
+        } else {
+            fontNumberKey = new Integer(nextFontNumber);
+        }
+        fontTable.put(fontNumberKey, fontName);
 
 	nextFontNumber = -1;
 	nextFontFamily = null;
@@ -911,7 +916,10 @@ class StylesheetDestination
 	}
 
 	public void close() {
-	    int semicolon = styleName.indexOf(';');
+            int semicolon = 0;
+	    if (styleName != null){
+		semicolon = styleName.indexOf(';');
+	    }
 	    if (semicolon > 0)
 		styleName = styleName.substring(0, semicolon);
 	    definedStyles.put(new Integer(number), this);

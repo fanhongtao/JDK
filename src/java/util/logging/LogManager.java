@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.27 04/01/13
+ * @(#)LogManager.java	1.28 04/06/08
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -107,7 +107,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.27, 01/13/04
+ * @version 1.28, 06/08/04
  * @since 1.4
 */
 
@@ -205,7 +205,12 @@ public class LogManager {
      */
     protected LogManager() {
 	// Add a shutdown hook to close the global handlers.
-	Runtime.getRuntime().addShutdownHook(new Cleaner());
+	try {
+	    Runtime.getRuntime().addShutdownHook(new Cleaner());
+	} catch(IllegalStateException e) {
+	    // If the VM is already shutting down,
+	    // We do not need to register shutdownHook.
+	}
     }
 
     /**

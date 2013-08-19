@@ -1,5 +1,5 @@
 /*
- * @(#)Pattern.java	1.97 04/01/13
+ * @(#)Pattern.java	1.98 04/08/13
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -571,7 +571,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.97, 04/01/13
+ * @version 	1.98, 04/08/13
  * @since       1.4
  * @spec	JSR-51
  */
@@ -711,6 +711,12 @@ public final class Pattern
     private int flags;
 
     /**
+     * Boolean indication this pattern is compiled; this is necessary in order
+     * to lazily compile deserialized Patterns.
+     */
+    private transient volatile boolean compiled = false;
+
+    /**
      * The normalized pattern string.
      */
     private transient String normalizedPattern;
@@ -822,6 +828,10 @@ public final class Pattern
      * @return  A new matcher for this pattern
      */
     public Matcher matcher(CharSequence input) {
+	synchronized(this) {
+	    if (!compiled)
+		compile();
+	}
         Matcher m = new Matcher(this, input);
         return m;
     }
@@ -1010,11 +1020,13 @@ public final class Pattern
         groupCount = 1;
         localCount = 0;
 
-        // Recompile object tree
-        if (pattern.length() > 0)
-            compile();
-        else
+        // if length > 0, the Pattern is lazily compiled
+	compiled = false;
+        if (pattern.length() == 0) {
             root = new Start(lastAccept);
+	    matchRoot = lastAccept;
+	    compiled = true;
+	}
     }
 
     /**
@@ -1305,6 +1317,7 @@ loop:   for(int x=0; x<input.length(); x++) {
         buffer = null;
         groupNodes = null;
         patternLength = 0;
+	compiled = true;
     }
 
     /**

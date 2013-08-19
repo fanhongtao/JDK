@@ -1,5 +1,5 @@
 /*
- * @(#)Bits.java	1.13 04/05/06
+ * @(#)Bits.java	1.14 04/06/11
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -607,23 +607,33 @@ class Bits {				// package-private
     // These methods should be called whenever direct memory is allocated or
     // freed.  They allow the user to control the amount of direct memory
     // which a process may access.  All sizes are specified in bytes.
-    static synchronized void reserveMemory(long size) {
-	if (!memoryLimitSet && VM.isBooted()) {
-	    maxMemory = VM.maxDirectMemory();
-	    memoryLimitSet = true;
+    static void reserveMemory(long size) {
+
+	synchronized (Bits.class) {
+	    if (!memoryLimitSet && VM.isBooted()) {
+		maxMemory = VM.maxDirectMemory();
+		memoryLimitSet = true;
+	    }
+	    if (size <= maxMemory - reservedMemory) {
+		reservedMemory += size;
+		return;
+	    }
 	}
-	if (reservedMemory + size > maxMemory) {
-	    System.gc();
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException x) {
-                // Restore interrupt status
-                Thread.currentThread().interrupt();
-            }
-            if (reservedMemory + size > maxMemory)
-                throw new OutOfMemoryError("Direct buffer memory");
+	
+	System.gc();
+	try {
+	    Thread.sleep(100);
+	} catch (InterruptedException x) {
+	    // Restore interrupt status
+	    Thread.currentThread().interrupt();
 	}
-	reservedMemory += size;
+	
+	synchronized (Bits.class) {
+	    if (reservedMemory + size > maxMemory) { 
+		throw new OutOfMemoryError("Direct buffer memory");
+	    }
+	    reservedMemory += size;
+	}
     }
 
     static synchronized void unreserveMemory(long size) {
@@ -633,7 +643,6 @@ class Bits {				// package-private
 	}
     }
 
-
     // -- Bulk get/put acceleration --
 
     // These numbers represent the point at which we have empirically
