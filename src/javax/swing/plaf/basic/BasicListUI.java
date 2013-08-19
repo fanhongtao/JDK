@@ -1,7 +1,7 @@
 /*
- * @(#)BasicListUI.java	1.93 03/01/23
+ * @(#)BasicListUI.java	1.96 05/01/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.93 01/23/03
+ * @version 1.96 01/15/05
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -1887,8 +1887,10 @@ public class BasicListUI extends ListUI
 			index = size - 1;
 		    }
 		}
-	    }
-	    else {
+	    } else if (size == 1) {
+                // there's only one item so we should select it
+                index = 0;
+	    } else {
 		index += getAmount(list);
 	    }
 	    return index;
@@ -1984,19 +1986,22 @@ public class BasicListUI extends ListUI
           */
 	protected int getNextIndex(JList list) {
             if (list.getLayoutOrientation() != JList.VERTICAL) {
-                ListUI ui = list.getUI();
+		int index = list.getLeadSelectionIndex();
+                int size = list.getModel().getSize();
 
+                if (index == -1) {
+                    return 0;
+                } else if (size == 1) {
+                    // there's only one item so we should select it
+                    return 0;
+                }
+
+                ListUI ui = list.getUI();
                 if (ui instanceof BasicListUI) {
                     BasicListUI bui = (BasicListUI)ui;
 
                     if (bui.columnCount > 1) {
-                        int index = list.getLeadSelectionIndex();
-
-                        if (index == -1) {
-                            return 0;
-                        }
-                        int size = list.getModel().getSize();
-                        int column = bui.convertModelToColumn(index);
+			int column = bui.convertModelToColumn(index);
                         int row = bui.convertModelToRow(index);
 
                         column += amount;

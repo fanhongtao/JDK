@@ -1,7 +1,7 @@
 /*
- * @(#)TypeCodeImpl.java	1.91 03/01/23
+ * @(#)TypeCodeImpl.java	1.94 05/01/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1756,9 +1756,10 @@ private void read_value_recursive(TypeCodeInputStream is) {
 }
 
 boolean read_value_kind(TypeCodeReader tcis) {
-    int myPosition = tcis.getTopLevelPosition();
-
     _kind = tcis.read_long();
+    // Bug fix 5034649: allow for padding that precedes the typecode kind.
+    int myPosition = tcis.getTopLevelPosition() - 4;
+
     // check validity of kind
     if ((_kind < 0 || _kind > typeTable.length) && _kind != tk_indirect) {
 	throw new MARSHAL();
@@ -2126,12 +2127,17 @@ public void write_value(TypeCodeOutputStream tcos) {
 	return;
     }
 
+    // The original approach changed for 5034649
+	
+    // marshal the kind
+    tcos.write_long(_kind);
+
     //if (debug) System.out.println("Writing " + _name + " with id " + _id);
     // We have to remember the stream and position for EVERY type code
     // in case some recursive or indirect type code references it.
-    topStream.addIDAtPosition(_id, tcos.getTopLevelPosition());
-    // marshal the kind
-    tcos.write_long(_kind);
+
+
+    topStream.addIDAtPosition(_id, tcos.getTopLevelPosition() - 4);
 
     switch (typeTable[_kind]) {
     case EMPTY:

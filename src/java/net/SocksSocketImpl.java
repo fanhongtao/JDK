@@ -1,14 +1,14 @@
 /*
- * @(#)SocksSocketImpl.java	1.8 03/01/23
+ * @(#)SocksSocketImpl.java	1.11 05/01/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.security.AccessController;
@@ -81,7 +81,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
      * Provides the authentication machanism required by the proxy.
      */
     private boolean authenticate(byte method, InputStream in, 
-				 DataOutputStream out) throws IOException {
+				 BufferedOutputStream out) throws IOException {
 	byte[] data = null;
 	int i;
 	// No Authentication required. We're done then!
@@ -223,6 +223,9 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 
     private void connectV4(InputStream in, OutputStream out,
 			   InetSocketAddress endpoint) throws IOException {
+    if (!(endpoint.getAddress() instanceof Inet4Address)) {
+        throw new SocketException("SOCKS V4 requires IPv4 only addresses");
+    }
 	out.write(PROTO_VERS4);
 	out.write(CONNECT);
 	out.write((endpoint.getPort() >> 8) & 0xff);
@@ -255,7 +258,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	    ex = new SocketException("SOCKS authentication failed");
 	    break;
 	default:
-	    ex = new SocketException("Replay from SOCKS server contains bad status");
+	    ex = new SocketException("Reply from SOCKS server contains bad status");
 	    break;
 	}
 	if (ex != null) {
@@ -301,7 +304,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	    throw new SocketException(e.getMessage());
 	}
 	// cmdIn & cmdOut were intialized during the privilegedConnect() call
-	DataOutputStream out = new DataOutputStream(cmdOut);
+	BufferedOutputStream out = new BufferedOutputStream(cmdOut, 512);
 	InputStream in = cmdIn;
 	    
 	if (useV4) {
@@ -438,6 +441,9 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
     private void bindV4(InputStream in, OutputStream out,
 			InetAddress baddr,
 			int lport) throws IOException {
+      if (!(baddr instanceof Inet4Address)) {
+          throw new SocketException("SOCKS V4 requires IPv4 only addresses");
+      }
 	super.bind(baddr, lport);
 	/* FIXME Test for IPV4/IPV6 */
 	byte[] addr1 = baddr.getAddress();
@@ -479,7 +485,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	    ex = new SocketException("SOCKS authentication failed");
 	    break;
 	default:
-	    ex = new SocketException("Replay from SOCKS server contains bad status");
+	    ex = new SocketException("Reply from SOCKS server contains bad status");
 	    break;
 	}
 	if (ex != null) {
@@ -520,7 +526,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	} catch (Exception e) {
 	    throw new SocketException(e.getMessage());
 	}
-	DataOutputStream out = new DataOutputStream(cmdOut);
+	BufferedOutputStream out = new BufferedOutputStream(cmdOut, 512);
 	InputStream in = cmdIn;
 	if (useV4) {
 	    bindV4(in, out, baddr, lport);

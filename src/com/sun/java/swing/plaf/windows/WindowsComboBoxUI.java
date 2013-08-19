@@ -1,7 +1,7 @@
 /*
  * @(#)WindowsComboBoxUI.java	1.36 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package com.sun.java.swing.plaf.windows;
 import javax.swing.plaf.basic.*;
 import javax.swing.plaf.*;
 import javax.swing.border.*;
+import java.beans.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -31,6 +32,10 @@ import java.awt.*;
 
 public class WindowsComboBoxUI extends BasicComboBoxUI {
 
+    //Control the selection behaviour of the JComboBox when it is used
+    //in a JTable DefaultCellEditor
+    private boolean isTableCellEditor = false;
+    private static final String IS_TABLE_CELL_EDITOR = "JComboBox.isTableCellEditor";
     public static ComponentUI createUI(JComponent c) {
         return new WindowsComboBoxUI();
     }  
@@ -38,6 +43,11 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
     public void installUI( JComponent c ) {
         super.installUI( c );
         comboBox.setRequestFocusEnabled( true );
+ 	// Is this combo box a cell editor?
+ 	Boolean inTable = (Boolean)c.getClientProperty(IS_TABLE_CELL_EDITOR );
+ 	if (inTable != null) {
+ 	    isTableCellEditor = inTable.equals(Boolean.TRUE) ? true : false;
+ 	}
     }
     
     /**
@@ -112,6 +122,28 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         }
     }
 
+     /**
+      * Creates a <code>PropertyChangeListener</code> which will be added to
+      * the combo box. If this method returns null then it will not
+      * be added to the combo box.
+      *
+      * @return an instance of a <code>PropertyChangeListener</code> or null
+      */
+     protected PropertyChangeListener createPropertyChangeListener() {
+         return new WindowPropertyChangeHandler();
+     }
+  
+     private class WindowPropertyChangeHandler extends PropertyChangeHandler {
+         public void propertyChange(PropertyChangeEvent e) {
+		 		
+             String propertyName = e.getPropertyName();
+             if (propertyName.equals(WindowsComboBoxUI.IS_TABLE_CELL_EDITOR)) {
+                 Boolean inTable = (Boolean)e.getNewValue();
+                 isTableCellEditor = inTable.equals(Boolean.TRUE) ? true : false;
+             }
+             super.propertyChange(e);
+         }
+     }
 
     /** 
      * Subclassed to add Windows specific Key Bindings.
@@ -156,7 +188,8 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 	    JComboBox comboBox = (JComboBox)e.getSource();
 	    if ( comboBox.isEnabled() ) {
 		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
-		if (comboBox.isEditable() && !ui.isPopupVisible(comboBox)) {
+		if ((comboBox.isEditable() || ui.isTableCellEditor)
+                       && !ui.isPopupVisible(comboBox)) {
 		    ui.setPopupVisible(comboBox, true);
 		} else {
 		    ui.selectNextPossibleValue();
@@ -171,7 +204,8 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 	    JComboBox comboBox = (JComboBox)e.getSource();
 	    if ( comboBox.isEnabled() ) {
 		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
-		if (comboBox.isEditable() && !ui.isPopupVisible(comboBox)) {
+ 		if ((comboBox.isEditable() || ui.isTableCellEditor)
+                       && !ui.isPopupVisible(comboBox)) {
 		    ui.setPopupVisible(comboBox, true);
 		} else {
 		    ui.selectPreviousPossibleValue();

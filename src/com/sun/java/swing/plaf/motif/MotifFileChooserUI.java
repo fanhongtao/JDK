@@ -1,7 +1,7 @@
 /*
- * @(#)MotifFileChooserUI.java	1.40 04/03/12
+ * @(#)MotifFileChooserUI.java	1.42 05/01/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.40 03/12/04
+ * @version 1.42 01/15/05
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -157,7 +157,11 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
                       }
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    directoryList.clearSelection();
+		    directoryList.getSelectionModel().removeSelectionInterval(0,0);
+
 		    fileList.clearSelection();
+		    fileList.getSelectionModel().removeSelectionInterval(0,0);
+
 		    File currentDirectory = getFileChooser().getCurrentDirectory();
 		    if(currentDirectory != null) {
 			try {
@@ -473,6 +477,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 	
 	fileList.setModel(new MotifFileListModel());
+	fileList.getSelectionModel().removeSelectionInterval(0, 0);
 	fileList.setCellRenderer(new FileCellRenderer());
 	fileList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 	fileList.addMouseListener(createDoubleClickListener(getFileChooser(), fileList));
@@ -490,6 +495,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
 	directoryList.setCellRenderer(new DirectoryCellRenderer());
 	directoryList.setModel(new MotifDirectoryListModel());
+	directoryList.getSelectionModel().removeSelectionInterval(0, 0);
 	directoryList.addMouseListener(createDoubleClickListener(getFileChooser(), directoryList));
 	directoryList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 

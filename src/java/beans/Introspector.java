@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.131 04/09/28
+ * @(#)Introspector.java	1.133 05/01/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.EventListener;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 /**
@@ -609,10 +610,6 @@ public class Introspector {
      * Adds the property descriptor to the list store.
      */
     private void addPropertyDescriptor(PropertyDescriptor pd) {
-	if (pdStore == null) {
-	    pdStore = new HashMap();
-	}
-	
 	String propName = pd.getName();
 	List list = (List)pdStore.get(propName);
 	if (list == null) {
@@ -627,12 +624,8 @@ public class Introspector {
      * lists of Property descriptors.
      */ 
     private void processPropertyDescriptors() {
-        if (pdStore == null) {
-	    return;
-        }
-
 	if (properties == null) {
-	    properties = new HashMap(pdStore.size());
+	    properties = new TreeMap();
 	}
 
 	List list;

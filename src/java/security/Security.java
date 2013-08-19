@@ -1,7 +1,7 @@
 /*
- * @(#)Security.java	1.119 03/01/23
+ * @(#)Security.java	1.123 05/01/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import sun.security.util.PropertyExpander;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.119, 01/23/03
+ * @version 1.123, 01/15/05
  */
 
 public final class Security {
@@ -86,6 +86,97 @@ public final class Security {
 		return null;
 	    }
 	});
+    }
+    
+    // the nested class and the 3 methods below are reflectively accessed
+    // from the sun.security.util.SignatureFileVerifier class during signed
+    // JAR verification.
+    
+    private static final class State {
+	boolean reloadProviders;
+	Vector providers;
+	Hashtable providerLoads;
+	int numOfStaticProviders;
+	Vector providerMasterClassNames;
+	int indexStaticProviders;
+	boolean resetProviderIndex;
+    }
+    
+    private static Object saveProviders() throws Exception {
+	// save state
+	State state = new State();
+	state.reloadProviders = reloadProviders;
+	state.providers = providers;
+	state.providerLoads = providerLoads;
+	state.numOfStaticProviders = numOfStaticProviders;
+	state.providerMasterClassNames = providerMasterClassNames;
+	state.indexStaticProviders = indexStaticProviders;
+	state.resetProviderIndex = resetProviderIndex;
+
+	// change provider settings
+	Vector ps = new Vector();
+	Vector names = new Vector();
+	findProvider(ps, names, "sun.security.provider.Sun");
+	findProvider(ps, names, "com.sun.net.ssl.internal.ssl.Provider");
+	findProvider(ps, names, "com.sun.rsajca.Provider");
+	int n = ps.size();
+
+	reloadProviders = false;
+	providers = ps;
+	providerLoads = new Hashtable();
+	numOfStaticProviders = n;
+	providerMasterClassNames = names;
+	indexStaticProviders = n;
+	resetProviderIndex = false;
+
+	// clear caches
+	providerPropertiesCache.clear();
+	engineCache.clear();
+	searchResultsCache.clear();
+	
+	return state;
+    }
+    
+    // return the provider for the specified class, new instance if necessary.
+    private static void findProvider(Vector ps, Vector names, String className) {
+	for (Enumeration e = providers.elements(); e.hasMoreElements();) {
+	    Provider p = (Provider)e.nextElement();
+	    Class c = p.getClass();
+	    if ((c.getClassLoader() == null) && c.getName().equals(className)) {
+		ps.add(p);
+		names.add(className);
+		return;
+	    }
+	}
+	try {
+	    Class clazz = Class.forName(className);
+	    Provider p = (Provider)clazz.newInstance();
+	    ps.add(p);
+	    names.add(className);
+	    return;
+	} catch (Exception e) {
+	    if (sdebug != null) {
+		sdebug.println("Could not load provider: " + className);
+		e.printStackTrace();
+	    }
+	}
+    }
+    
+    private static void restoreProviders(Object obj) {
+	// restore state
+	State state = (State)obj;
+	reloadProviders = state.reloadProviders;
+	providers = state.providers;
+	providerLoads = state.providerLoads;
+	numOfStaticProviders = state.numOfStaticProviders;
+	providerMasterClassNames = state.providerMasterClassNames;
+	indexStaticProviders = state.indexStaticProviders;
+	resetProviderIndex = state.resetProviderIndex;
+
+	// clear caches
+	providerPropertiesCache.clear();
+	engineCache.clear();
+	searchResultsCache.clear();
     }
     
     private static void initialize() {
@@ -512,9 +603,8 @@ public final class Security {
      * each provider in priority order one at a time looking for
      * either the direct engine property or a matching alias.
      */
-    private static ProviderProperty getEngineClassName(String algName,
-						       String engineType)
-        throws NoSuchAlgorithmException
+    private static synchronized ProviderProperty getEngineClassName
+	(String algName, String engineType) throws NoSuchAlgorithmException
     {
 	ProviderProperty pp;
 	String key = engineType;
@@ -525,62 +615,60 @@ public final class Security {
 	if (pp != null)
 	    return pp;
 
-	synchronized (Security.class) {
-	    sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
-	    /*
-	     * In case some providers have been loaded out of the
-	     * priority order when the launcher l is null, we should
-	     * clear the vector "providers" and reset the indexStaticProviders
-	     * to zero when the launcher l isn't null.
-	     *
-	     * We should only do the above if the "reloadProviders" is true
-	     * which means that the method reloadProviders() hasn't
-	     * load all statically registered providers yet.
-	     * Once the reloadProviders() method has loaded all statically
-	     * registered providers, we shouldn't clear the vector
-	     * "providers" in this getEngineClassName() method.
-	     */
-	    if ((reloadProviders == true) &&
-		(l != null) && (resetProviderIndex == true)) {
-		resetProviderIndex = false;
-		indexStaticProviders = 0;
-		providers.removeAllElements();
-		providerPropertiesCache.clear();
-		engineCache.clear();
-		searchResultsCache.clear();
-		providerLoads.clear();
-	    }
-
-	    // We should call loadOneMoreProvider() if no provider
-	    // has been loaded yet. Otherwise, we may not be able to
-	    // get in the following "for" loop.
-	    if (providers.size() == 0) {
-		loadOneMoreProvider();
-	    }
-	    for (int i = 0; i < providers.size(); i++) {
-		Provider prov = (Provider)providers.elementAt(i);
-		try {
-		    pp = getEngineClassName(algName, prov,
-					    engineType);
-		} catch (NoSuchAlgorithmException e) {
-		    if (i == providers.size() - 1) {
-			// The requested algorithm may be available in
-			// a registered provider which hasn't been loaded
-			// yet. Let's try to load one more registered
-			// provider. The method loadOneMoreProvider()
-			// won't do anything if we have tried to load all
-			// registered providers.
-			loadOneMoreProvider();
-		    }
-		    continue;
-		}
-
-		/* Cache it */
-		engineCache.put(key, pp);
-		return pp;
-	    }
+	sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
+	/*
+	 * In case some providers have been loaded out of the
+	 * priority order when the launcher l is null, we should
+	 * clear the vector "providers" and reset the indexStaticProviders
+	 * to zero when the launcher l isn't null.
+	 *
+	 * We should only do the above if the "reloadProviders" is true
+	 * which means that the method reloadProviders() hasn't
+	 * load all statically registered providers yet.
+	 * Once the reloadProviders() method has loaded all statically
+	 * registered providers, we shouldn't clear the vector
+	 * "providers" in this getEngineClassName() method.
+	 */
+	if ((reloadProviders == true) &&
+	    (l != null) && (resetProviderIndex == true)) {
+	    resetProviderIndex = false;
+	    indexStaticProviders = 0;
+	    providers.removeAllElements();
+	    providerPropertiesCache.clear();
+	    engineCache.clear();
+	    searchResultsCache.clear();
+	    providerLoads.clear();
 	}
-
+	
+	// We should call loadOneMoreProvider() if no provider
+	// has been loaded yet. Otherwise, we may not be able to
+	// get in the following "for" loop.
+	if (providers.size() == 0) {
+	    loadOneMoreProvider();
+	}
+	for (int i = 0; i < providers.size(); i++) {
+	    Provider prov = (Provider)providers.elementAt(i);
+	    try {
+		pp = getEngineClassName(algName, prov,
+					engineType);
+	    } catch (NoSuchAlgorithmException e) {
+		if (i == providers.size() - 1) {
+		    // The requested algorithm may be available in
+		    // a registered provider which hasn't been loaded
+		    // yet. Let's try to load one more registered
+		    // provider. The method loadOneMoreProvider()
+		    // won't do anything if we have tried to load all
+		    // registered providers.
+		    loadOneMoreProvider();
+		}
+		continue;
+	    }
+	    
+	    /* Cache it */
+	    engineCache.put(key, pp);
+	    return pp;
+	}
+	
 	throw new NoSuchAlgorithmException(algName.toUpperCase() + " " +
 					   engineType + " not available");
     }

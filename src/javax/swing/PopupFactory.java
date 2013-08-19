@@ -1,7 +1,7 @@
 /*
- * @(#)PopupFactory.java	1.19 03/01/31
+ * @(#)PopupFactory.java	1.22 05/01/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.19 01/31/03
+ * @version 1.22 01/15/05
  * @since 1.4
  */
 public class PopupFactory {
@@ -492,13 +492,16 @@ public class PopupFactory {
             Component component = getComponent();
             if(owner != null && component != null) {
                 Window w = SwingUtilities.getWindowAncestor(owner);
-                if(w == null)
+                if(w == null) {
                     return false;
+                }
                 Window[] ownedWindows = w.getOwnedWindows();
                 if(ownedWindows != null) {
                     Rectangle bnd = component.getBounds();
                     for(int i=0; i<ownedWindows.length;i++) {
-                        if(bnd.intersects(ownedWindows[i].getBounds())) {
+                        Window owned = ownedWindows[i];
+                        if (owned.isVisible() &&
+                            bnd.intersects(owned.getBounds())) {
                             return true;
                         }
                     }

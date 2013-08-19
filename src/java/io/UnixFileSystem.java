@@ -1,7 +1,7 @@
 /*
- * @(#)UnixFileSystem.java	1.15 03/01/23
+ * @(#)UnixFileSystem.java	1.18 05/01/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -139,6 +139,9 @@ class UnixFileSystem extends FileSystem {
 		String dir = null;
 		String resDir = null;
                 if (useCanonPrefixCache) {
+                    // Note that this can cause symlinks that should
+                    // be resolved to a destination directory to be
+                    // resolved to the directory they're contained in
                     dir = parentOrNull(path);
                     if (dir != null) {
                         resDir = javaHomePrefixCache.get(dir);
@@ -156,7 +159,11 @@ class UnixFileSystem extends FileSystem {
                     if (useCanonPrefixCache &&
 			dir != null && dir.startsWith(javaHome)) {
                         resDir = parentOrNull(res);
-                        if (resDir != null && resDir.startsWith(javaHome)) {
+                        // Note that we don't allow a resolved symlink 
+                        // to elsewhere in java.home to pollute the 
+                        // prefix cache (java.home prefix cache could 
+                        // just as easily be a set at this point) 
+                        if (resDir != null && resDir.equals(dir)) { 
                             File f = new File(res);
                             if (f.exists() && !f.isDirectory()) {
                                 javaHomePrefixCache.put(dir, resDir);
@@ -165,7 +172,7 @@ class UnixFileSystem extends FileSystem {
                     }
                 }
             }
-            assert canonicalize0(path).equals(res);
+            assert canonicalize0(path).equals(res) || path.startsWith(javaHome);
             return res;
         }
     }

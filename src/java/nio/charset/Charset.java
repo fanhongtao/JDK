@@ -1,7 +1,7 @@
 /*
- * @(#)Charset.java	1.38 04/05/06
+ * @(#)Charset.java	1.40 05/01/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -234,7 +234,7 @@ import sun.nio.cs.ThreadLocalCoders;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.38, 04/05/06
+ * @version 1.40, 05/01/15
  * @since 1.4
  *
  * @see CharsetDecoder
@@ -275,14 +275,15 @@ public abstract class Charset
     /* The standard set of charsets */
     private static CharsetProvider standardProvider = new StandardCharsets();
 
-    // Cache of the most-recently-returned charset,
-    // along with the name that was used to find it
+    // Cache of the most-recently-returned charsets, 
+    // along with the names that were used to find them 
     //
-    private static volatile Object[] cache = null;
+    private static volatile Object[] cache1 = null; // "Level 1" cache 
+    private static volatile Object[] cache2 = null; // "Level 2" cache 
 
-    private static Charset cache(String charsetName, Charset cs) {
-	cache = new Object[] { charsetName, cs };
-	return cs;
+    private static void cache(String charsetName, Charset cs) { 
+        cache2 = cache1; 
+        cache1 = new Object[] { charsetName, cs }; 
     }
 
     // Creates an iterator that walks over the available providers, ignoring
@@ -414,18 +415,32 @@ public abstract class Charset
     private static Charset lookup(String charsetName) {
 	if (charsetName == null)
 	    throw new IllegalArgumentException("Null charset name");
-	Object[] ca = cache;
-	if ((ca != null) && ca[0].equals(charsetName))
-	    return (Charset)ca[1];
-	Charset cs = standardProvider.charsetForName(charsetName);
-	if (cs != null)
-	    return cache(charsetName, cs);
-	cs = lookupExtendedCharset(charsetName);
-	if (cs != null)
-	    return cache(charsetName, cs);
-	cs = lookupViaProviders(charsetName);
-	if (cs != null)
-	    return cache(charsetName, cs);
+
+        Object[] a; 
+        if ((a = cache1) != null && charsetName.equals(a[0])) 
+            return (Charset)a[1]; 
+        // We expect most programs to use one Charset repeatedly. 
+        // We convey a hint to this effect to the VM by putting the 
+        // level 1 cache miss code in a separate method. 
+        return lookup2(charsetName); 
+    } 
+ 
+    private static Charset lookup2(String charsetName) { 
+        Object[] a; 
+        if ((a = cache2) != null && charsetName.equals(a[0])) { 
+            cache2 = cache1; 
+            cache1 = a; 
+            return (Charset)a[1]; 
+        } 
+ 
+        Charset cs; 
+        if ((cs = standardProvider.charsetForName(charsetName)) != null || 
+            (cs = lookupExtendedCharset(charsetName))           != null || 
+            (cs = lookupViaProviders(charsetName))              != null) { 
+            cache(charsetName, cs); 
+            return cs; 
+        }
+
 	/* Only need to check the name if we didn't find a charset for it */
 	checkName(charsetName);
 	return null;
