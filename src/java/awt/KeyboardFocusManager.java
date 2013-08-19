@@ -1,7 +1,7 @@
 /*
- * @(#)KeyboardFocusManager.java	1.40 03/01/23
+ * @(#)KeyboardFocusManager.java	1.42 06/08/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -53,7 +53,7 @@ import sun.awt.SunToolkit;
  * ClassLoader.
  *
  * @author David Mendenhall
- * @version 1.40, 01/23/03 
+ * @version 1.42, 08/15/06 
  *
  * @see Window
  * @see Frame
@@ -2011,6 +2011,7 @@ public abstract class KeyboardFocusManager
     private static LinkedList heavyweightRequests = new LinkedList();
     private static LinkedList currentLightweightRequests;
     private static boolean clearingCurrentLightweightRequests;
+    private static boolean allowSyncFocusRequests = true;
     private static Component newFocusOwner = null;
 
     int requestCount() {
@@ -2045,9 +2046,9 @@ public abstract class KeyboardFocusManager
                 ((heavyweightRequests.size() > 0)
                  ? heavyweightRequests.getLast() : null);
             if (hwFocusRequest == null &&
-                heavyweight == getNativeFocusOwner())
+                heavyweight == getNativeFocusOwner() &&
+                allowSyncFocusRequests)
             {
-
                 if (descendant == currentFocusOwner) {
                     // Redundant request.
                     return true;
@@ -2078,15 +2079,21 @@ public abstract class KeyboardFocusManager
             }
         }        
         boolean result = false;
-        synchronized(Component.LOCK) {
-            if (currentFocusOwnerEvent != null && currentFocusOwner != null) {
-                currentFocusOwner.dispatchEvent(currentFocusOwnerEvent);
-                result = true;
-            }
-            if (newFocusOwnerEvent != null && descendant != null) {
-                descendant.dispatchEvent(newFocusOwnerEvent);
-                result = true;
-            }        
+        final boolean clearing = clearingCurrentLightweightRequests;
+        try { 
+            clearingCurrentLightweightRequests = false; 
+            synchronized(Component.LOCK) { 
+                if (currentFocusOwnerEvent != null && currentFocusOwner != null) {
+                    currentFocusOwner.dispatchEvent(currentFocusOwnerEvent);
+                    result = true; 
+                } 
+                if (newFocusOwnerEvent != null && descendant != null) {
+                    descendant.dispatchEvent(newFocusOwnerEvent); 
+                    result = true; 
+                } 
+            } 
+        } finally { 
+            clearingCurrentLightweightRequests = clearing; 
         }
         return result;
     }
@@ -2343,11 +2350,22 @@ public abstract class KeyboardFocusManager
     static void processCurrentLightweightRequests() {
         KeyboardFocusManager manager = getCurrentKeyboardFocusManager();
         LinkedList localLightweightRequests = null;
-        
+
+        Component globalFocusOwner = manager.getGlobalFocusOwner();
+        if ((globalFocusOwner != null) &&
+            (globalFocusOwner.appContext != AppContext.getAppContext()))
+        {
+            // The current app context differs from the app context of a focus
+            // owner (and all pending lightweight requests), so we do nothing
+            // now and wait for a next event.
+            return;
+        }
+
         synchronized(heavyweightRequests) {
             if (currentLightweightRequests != null) {
                 clearingCurrentLightweightRequests = true;
                 localLightweightRequests = currentLightweightRequests;
+                allowSyncFocusRequests = (localLightweightRequests.size() < 2);
                 currentLightweightRequests = null;
             } else {
                 // do nothing
@@ -2389,6 +2407,7 @@ public abstract class KeyboardFocusManager
         } finally {
             clearingCurrentLightweightRequests = false;
             localLightweightRequests = null;
+            allowSyncFocusRequests = true;
         }
     }
 

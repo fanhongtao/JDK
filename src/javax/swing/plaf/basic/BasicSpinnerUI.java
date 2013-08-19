@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSpinnerUI.java	1.15 03/01/23
+ * @(#)BasicSpinnerUI.java	1.18 06/08/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -147,7 +147,17 @@ public class BasicSpinnerUI extends SpinnerUI
      * @see #uninstallListeners
      */
     protected void installListeners() {
-	spinner.addPropertyChangeListener(propertyChangeListener);
+        JComponent editor = spinner.getEditor();
+        if (editor != null && editor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor)editor).getTextField();
+            if (tf != null) {
+                tf.removeFocusListener(nextButtonHandler);
+                tf.addFocusListener(nextButtonHandler);
+                tf.removeFocusListener(previousButtonHandler);
+                tf.addFocusListener(previousButtonHandler);
+            }
+        }
+        spinner.addPropertyChangeListener(propertyChangeListener);
     }
 
 
@@ -161,7 +171,15 @@ public class BasicSpinnerUI extends SpinnerUI
      */
     protected void uninstallListeners() {
 	spinner.removePropertyChangeListener(propertyChangeListener);
-	removeEditorBorderListener(spinner.getEditor());
+        JComponent editor = spinner.getEditor();
+        removeEditorBorderListener(editor);
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor)editor).getTextField();
+            if (tf != null) {
+                tf.removeFocusListener(nextButtonHandler);
+                tf.removeFocusListener(previousButtonHandler);
+            }
+        }
     }
 
 
@@ -475,10 +493,11 @@ public class BasicSpinnerUI extends SpinnerUI
      * of a single button pressed/released gesture.
      */
     private static class ArrowButtonHandler extends AbstractAction
-					    implements MouseListener, UIResource {
+					    implements MouseListener, FocusListener, UIResource {
 	final javax.swing.Timer autoRepeatTimer;
 	final boolean isNext;
 	JSpinner spinner = null;
+        JButton arrowButton = null;
 
 	ArrowButtonHandler(String name, boolean isNext) {
             super(name);
@@ -501,6 +520,15 @@ public class BasicSpinnerUI extends SpinnerUI
             if (!(e.getSource() instanceof javax.swing.Timer)) {
                 // Most likely resulting from being in ActionMap.
                 spinner = eventToSpinner(e);
+                if (e.getSource() instanceof BasicArrowButton) {
+                    arrowButton = (JButton)e.getSource();
+                }
+            } else {
+                if (arrowButton!=null && !arrowButton.getModel().isPressed()
+                    && autoRepeatTimer.isRunning()) {
+                    autoRepeatTimer.stop();
+                    spinner = null;
+                }
             }
             if (spinner != null) {
                 try {
@@ -673,8 +701,22 @@ public class BasicSpinnerUI extends SpinnerUI
                 }
             }
         }
-    }
 
+        public void focusGained(FocusEvent e) {
+        }
+
+        public void focusLost(FocusEvent e) {
+            if (autoRepeatTimer.isRunning()) {
+                autoRepeatTimer.stop();
+            }
+            spinner = null;
+            if (arrowButton !=null) {
+                ButtonModel model = arrowButton.getModel();
+                model.setPressed(false);
+                model.setArmed(false);
+            }
+        }
+    }
 
     /**
      * A simple layout manager for the editor and the next/previous buttons.
@@ -810,6 +852,25 @@ public class BasicSpinnerUI extends SpinnerUI
 			JComponent newEditor = (JComponent)e.getNewValue();
 			ui.replaceEditor(oldEditor, newEditor);
 			ui.updateEnabledState();
+                        if (oldEditor instanceof JSpinner.DefaultEditor) {
+                            JTextField tf =
+                                ((JSpinner.DefaultEditor)oldEditor).getTextField();
+                            if (tf != null) {
+                                tf.removeFocusListener(nextButtonHandler);
+                                tf.removeFocusListener(previousButtonHandler);
+                            }
+                        }
+                        if (newEditor instanceof JSpinner.DefaultEditor) {
+                            JTextField tf =
+                                ((JSpinner.DefaultEditor)newEditor).getTextField();
+                            if (tf != null) {
+                                if (tf.getFont() instanceof UIResource) {
+                                    tf.setFont(spinner.getFont());
+                                }
+                                tf.addFocusListener(nextButtonHandler);
+                                tf.addFocusListener(previousButtonHandler);
+                            }
+                        }
 		    }
 		    else if ("enabled".equals(propertyName)) {
 			ui.updateEnabledState();

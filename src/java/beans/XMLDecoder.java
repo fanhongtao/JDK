@@ -1,7 +1,7 @@
 /*
- * @(#)XMLDecoder.java	1.22 05/04/29
+ * @(#)XMLDecoder.java	1.23 06/08/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -434,7 +434,7 @@ class ObjectHandler extends HandlerBase {
             if (type == Class.class) { 
                 type = (Class)target; 
             } 
-            java.lang.reflect.Field f = type.getField(fieldName); 
+            java.lang.reflect.Field f = sun.reflect.misc.FieldUtil.getField(type, fieldName);
             return f.get(target); 
         }
         catch (Exception e) { 

@@ -1,5 +1,5 @@
 /*
- * @(#)Socket.java	1.99 05/11/29
+ * @(#)Socket.java	1.100 06/08/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.99, 11/29/05
+ * @version 1.100, 08/15/06
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -351,7 +351,10 @@ class Socket {
                         return Boolean.FALSE;
                     } catch (NoSuchMethodException e) {
                         clazz = clazz.getSuperclass();
-                        if (clazz.equals (Object.class)) {
+                        // java.net.SocketImpl class will always have this abstract method. 
+                        // If we have not found it by now in the hierarchy then it does not 
+                        // exist, we are an old style impl. 
+                        if (clazz.equals(java.net.SocketImpl.class)) {
                             return Boolean.TRUE;
                         }
                     }

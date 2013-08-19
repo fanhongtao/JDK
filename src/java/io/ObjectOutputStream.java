@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectOutputStream.java	1.134 03/01/23
+ * @(#)ObjectOutputStream.java	1.135 06/08/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -111,7 +111,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.134, 03/01/23
+ * @version     1.135, 06/08/11
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -868,11 +868,16 @@ public class ObjectOutputStream
 	public abstract void put(String name, Object val);
 
 	/**
-	 * Write the data and fields to the specified ObjectOutput stream.
+	 * Write the data and fields to the specified ObjectOutput stream,
+	 * which must be the same stream that produced this
+	 * <code>PutField</code> object.
 	 * 
 	 * @param  out the stream to write the data and fields to
 	 * @throws IOException if I/O errors occur while writing to the
 	 * 	   underlying stream
+	 * @throws IllegalArgumentException if the specified stream is not
+	 * 	   the same stream that produced this <code>PutField</code>
+	 * 	   object
 	 * @deprecated This method does not write the values contained by this
 	 * 	   <code>PutField</code> object in a proper format, and may
 	 * 	   result in corruption of the serialization stream.  The
@@ -1450,6 +1455,9 @@ public class ObjectOutputStream
 	     * instance.  Applications which write unshared objects using the
 	     * PutField API must use OOS.writeFields().
 	     */
+	    if (ObjectOutputStream.this != out) {
+	        throw new IllegalArgumentException("wrong stream");
+	    }
 	    out.write(primVals, 0, primVals.length);
 	    
 	    ObjectStreamField[] fields = desc.getFields(false);

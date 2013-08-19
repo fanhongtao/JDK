@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphView.java	1.25 03/07/23
+ * @(#)GlyphView.java	1.27 06/07/26
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -37,7 +37,7 @@ import javax.swing.event.*;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.25 07/23/03
+ * @version 1.27 07/26/06
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -632,11 +632,16 @@ public class GlyphView extends View implements TabableView, Cloneable {
 		return View.BadBreakWeight;	    
 	    }
             if (getBreakSpot(p0, p1) != -1) {
-                return View.ExcellentBreakWeight;
+		return View.ExcellentBreakWeight;
+	    }
+            // Nothing good to break on.
+	    // breaking on the View boundary is better than splitting it
+            if (p1 == getEndOffset()) {
+                return View.GoodBreakWeight;
+            } else {
+               return View.GoodBreakWeight - 1;
             }
-	    // Nothing good to break on.
-	    return View.GoodBreakWeight;
-	}
+        }
 	return super.getBreakWeight(axis, pos, len);
     }
 

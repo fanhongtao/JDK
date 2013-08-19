@@ -1,7 +1,7 @@
 /*
- * @(#)BasicLabelUI.java	1.77 03/01/23
+ * @(#)BasicLabelUI.java	1.78 06/08/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,12 +30,19 @@ import java.beans.PropertyChangeListener;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.77 01/23/03
+ * @version 1.78 08/08/06
  * @author Hans Muller
  */
 public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 {
+    /**
+     * The default <code>BasicLabelUI</code> instance. This field might
+     * not be used. To change the default instance use a subclass which
+     * overrides the <code>createUI</code> method, and place that class
+     * name in defaults table under the key "LabelUI".
+     */
     protected static BasicLabelUI labelUI = new BasicLabelUI();
+    private final static BasicLabelUI SAFE_BASIC_LABEL_UI = new BasicLabelUI();
 
     /**
      * Forwards the call to SwingUtilities.layoutCompoundLabel().
@@ -369,7 +376,11 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     }
 
     public static ComponentUI createUI(JComponent c) {
-        return labelUI;
+        if (System.getSecurityManager() != null) {
+            return SAFE_BASIC_LABEL_UI;
+        } else {
+            return labelUI;
+        }
     }
 
     public void propertyChange(PropertyChangeEvent e) {

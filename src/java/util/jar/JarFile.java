@@ -1,7 +1,7 @@
 /*
- * @(#)JarFile.java	1.53 05/07/20
+ * @(#)JarFile.java	1.54 06/06/21
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import sun.misc.SharedSecrets;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.53, 07/20/05
+ * @version 1.54, 06/21/06
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -134,6 +134,10 @@ class JarFile extends ZipFile {
      * @return the JAR file manifest, or <code>null</code> if none
      */
     public Manifest getManifest() throws IOException {
+        return getManifestFromReference();
+    }
+
+    private Manifest getManifestFromReference() throws IOException {
 	Manifest man = manRef != null ? (Manifest) manRef.get() : null;
 	if (man == null) {
 	    // First look up manifest entry using standard name
@@ -223,7 +227,7 @@ class JarFile extends ZipFile {
 	    super(ze);
 	}
 	public Attributes getAttributes() throws IOException {
-	    Manifest man = JarFile.this.getManifest();
+	    Manifest man = getManifestFromReference();
 	    if (man != null) {
 		return man.getAttributes(getName());
 	    } else {
@@ -268,7 +272,7 @@ class JarFile extends ZipFile {
                         // Assume since we found a signature-related file
                         // that the jar is signed and that we therefore
                         // need a JarVerifier and Manifest
-                        getManifest();
+                        getManifestFromReference();
                         return;
                     }
                 }
@@ -295,7 +299,7 @@ class JarFile extends ZipFile {
 		    JarEntry e = getJarEntry(names[i]);
 		    if (!e.isDirectory()) {
 			if (mev == null) {
-			    mev = new ManifestEntryVerifier(getManifest());
+			    mev = new ManifestEntryVerifier(getManifestFromReference());
 			}
 			byte[] b = getBytes(e);
 			if (b != null && b.length > 0) {
@@ -374,7 +378,7 @@ class JarFile extends ZipFile {
 
 	// wrap a verifier stream around the real stream
 	return new JarVerifier.VerifierStream(
-	    getManifest(),
+	    getManifestFromReference(),
 	    ze instanceof JarFileEntry ?
 	    (JarEntry) ze : getJarEntry(ze.getName()),
 	    super.getInputStream(ze),
