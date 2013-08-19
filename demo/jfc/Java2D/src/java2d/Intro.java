@@ -55,7 +55,7 @@ import java.util.Arrays;
 /**
  * Introduction to the Java2Demo.  
  *
- * @version @(#)Intro.java	1.18 03/01/23
+ * @version @(#)Intro.java	1.19 03/06/26
  * @author Brian Lichtenwalter
  */
 public class Intro extends JPanel {
@@ -268,7 +268,7 @@ public class Intro extends JPanel {
                 }
             });
             cupanim = DemoImages.getImage("cupanim.gif", this);
-            java_logo = DemoImages.getImage("java_logo.gif", this);
+            java_logo = DemoImages.getImage("java_logo.png", this);
             director = new Director();
         }
 

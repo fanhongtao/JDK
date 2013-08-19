@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)DemoImages.java	1.14 03/01/23
+ * @(#)DemoImages.java	1.16 03/07/11
  */
 
 
@@ -54,9 +54,9 @@ public class DemoImages extends Component {
 
     private String[] names = 
     { 
-        "HotJava-16.gif", "bld.jpg", "boat.png", "box.gif",
+        "java-logo.gif", "bld.jpg", "boat.png", "box.gif",
         "boxwave.gif", "clouds.jpg", "duke.gif", "duke.running.gif",
-        "dukeplug.gif", "fight.gif", "globe.gif", "java_logo.gif",
+        "dukeplug.gif", "fight.gif", "globe.gif", "java_logo.png",
         "jumptojavastrip.png", "magnify.gif", "painting.gif", 
         "remove.gif", "snooze.gif", "star7.gif", "surfing.gif",
         "thumbsup.gif", "tip.gif", "duke.png", "print.gif", 

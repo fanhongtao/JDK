@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)TextureChooser.java	1.28 03/01/23
+ * @(#)TextureChooser.java	1.29 03/07/11
  */
 
 package java2d;
@@ -86,7 +86,7 @@ public class TextureChooser extends JPanel {
     }
 
     public TexturePaint getImageTexture() {
-        Image img = DemoImages.getImage("HotJava-16.gif", this);
+        Image img = DemoImages.getImage("java-logo.gif", this);
         int iw = img.getWidth(this);
         int ih = img.getHeight(this);
         BufferedImage bi = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_RGB);

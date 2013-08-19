@@ -1,5 +1,5 @@
 /*
- * @(#)FloatingDecimal.java	1.27 03/01/23
+ * @(#)FloatingDecimal.java	1.28 03/08/14
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -884,7 +884,7 @@ class FloatingDecimal{
     }
 
     private int getChars(char[] result) {
-        assert nDigits <= 17 : nDigits; // bound on size of nDigits
+        assert nDigits <= 19 : nDigits; // generous bound on size of nDigits
 	int i = 0;
 	if (isNegative) { result[0] = '-'; i = 1; }
 	if (isExceptional) {
@@ -958,7 +958,7 @@ class FloatingDecimal{
     // Per-thread buffer for string/stringbuffer conversion
     private static ThreadLocal perThreadBuffer = new ThreadLocal() {
             protected synchronized Object initialValue() {
-                return new char[24];
+                return new char[26];
             }
         };
 

@@ -1,5 +1,5 @@
 /*
- * @(#)java.c	1.105 03/01/23
+ * @(#)java.c	1.106 03/06/12
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,7 +47,7 @@
 #include "java.h"
 
 #ifndef FULL_VERSION
-#define FULL_VERSION "1.4"
+#define FULL_VERSION JDK_MAJOR_VERSION "." JDK_MINOR_VERSION
 #endif
 
 #ifdef WIN32

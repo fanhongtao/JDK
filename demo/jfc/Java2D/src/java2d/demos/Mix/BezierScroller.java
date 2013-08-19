@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)BezierScroller.java	1.34 03/01/23
+ * @(#)BezierScroller.java	1.35 03/07/11
  */
 
 package java2d.demos.Mix;
@@ -91,7 +91,7 @@ public class BezierScroller extends AnimatingControlsSurface {
     public BezierScroller() {
         setBackground(Color.white);
         doShape = doText = true;
-        hotj_img = getImage("HotJava-16.gif");
+        hotj_img = getImage("java-logo.gif");
         Image image = getImage("jumptojavastrip.png");
         int iw = image.getWidth(this);
         int ih = image.getHeight(this);

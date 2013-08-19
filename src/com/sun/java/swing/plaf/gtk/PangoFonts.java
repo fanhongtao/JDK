@@ -1,5 +1,5 @@
 /*
- * @(#)PangoFonts.java	1.6 03/01/23
+ * @(#)PangoFonts.java	1.7 03/06/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ import sun.java2d.SunGraphicsEnvironment;
 /**
  * @author Shannon Hickey
  * @author Leif Samuelsson
- * @version 1.6 01/23/03
+ * @version 1.7 06/23/03
  */
 class PangoFonts {
 
@@ -88,6 +88,20 @@ class PangoFonts {
 
         // Scale the font
         size = (int)(size * fontScale);
+
+        // Retrieve the DPI setting, if available, and scale the font
+        // accordingly.
+        int dpi = 96;
+        Object value =
+            Toolkit.getDefaultToolkit().getDesktopProperty("gnome.Xft/DPI");
+        if (value instanceof Integer) {
+            dpi = ((Integer)value).intValue() / 1024;
+        }
+        size = (int)((double)dpi * (double)size / 96.0);
+
+        if (size < 1) {
+            size = 1;
+        }
 
         String mappedName = mapName(family.toLowerCase());
         if (mappedName != null) {

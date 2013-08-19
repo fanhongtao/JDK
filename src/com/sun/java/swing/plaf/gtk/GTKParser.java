@@ -1,5 +1,5 @@
 /*
- * @(#)GTKParser.java	1.78 03/01/23
+ * @(#)GTKParser.java	1.79 03/07/25
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import sun.security.action.GetPropertyAction;
 
 /**
  * @author  Shannon Hickey
- * @version 1.78 01/23/03
+ * @version 1.79 07/25/03
  */
 class GTKParser {
     
@@ -40,6 +40,7 @@ class GTKParser {
     {
         engineParsers.put("pixmap", "com.sun.java.swing.plaf.gtk.PixmapEngineParser");
         engineParsers.put("bluecurve", "com.sun.java.swing.plaf.gtk.BluecurveEngineParser");
+        engineParsers.put("blueprint", "com.sun.java.swing.plaf.gtk.BlueprintEngineParser");
     }
     
     private GTKScanner scanner;

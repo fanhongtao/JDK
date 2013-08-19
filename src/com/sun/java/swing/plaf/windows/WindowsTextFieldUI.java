@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTextFieldUI.java	1.19 03/01/23
+ * @(#)WindowsTextFieldUI.java	1.20 03/06/24
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,7 +42,7 @@ import javax.swing.plaf.UIResource;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.19 01/23/03
+ * @version 1.20 06/24/03
  */
 public class WindowsTextFieldUI extends BasicTextFieldUI
 {
@@ -66,8 +66,9 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
      */
     protected void paintBackground(Graphics g) {
 	XPStyle xp = XPStyle.getXP();
-	if (xp != null) {
-	    JTextComponent editor = getComponent();
+	JTextComponent editor = getComponent();
+	Color bgColor = editor.getBackground();
+	if (xp != null && (bgColor == null || bgColor instanceof UIResource)) {
 	    String key;
 	    if (!editor.isEnabled()) {
 		key = "edit.edittext(disabled).fillcolor";
@@ -76,7 +77,7 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 	    } else {
 		key = "edit.fillcolor";
 	    }
-	    g.setColor(xp.getColor(key, editor.getBackground()));
+	    g.setColor(xp.getColor(key, bgColor));
 	    g.fillRect(0, 0, editor.getWidth(), editor.getHeight());
 	} else {
 	    super.paintBackground(g);
