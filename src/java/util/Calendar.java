@@ -1,7 +1,7 @@
 /*
- * @(#)Calendar.java	1.70 02/01/22
+ * @(#)Calendar.java	1.72 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -258,7 +258,7 @@ import sun.util.calendar.ZoneInfo;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.70, 01/22/02
+ * @version      1.72, 04/25/03
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1651,9 +1651,9 @@ public abstract class Calendar implements Serializable, Cloneable {
         // Write out the 1.1 FCS object.
         stream.defaultWriteObject();
 
-	// Write out the ZoneInfo object if used
+	// Write out the ZoneInfo object even if it is null,  see bug 4802409 
+	stream.writeObject(savedZone);
 	if (savedZone != null) {
-	    stream.writeObject(savedZone);
 	    zone = savedZone;
 	}
     }

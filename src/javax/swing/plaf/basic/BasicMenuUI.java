@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuUI.java	1.146 03/01/19
+ * @(#)BasicMenuUI.java	1.147 03/02/03
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.146 01/19/03
+ * @version 1.147 02/03/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -555,6 +555,9 @@ public class BasicMenuUI extends BasicMenuItemUI
 	    for (int i = selectedPath.length - 1; i >=0; i--) {
 		if (selectedPath[i] == menuItem) {
 		    JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
+                    if(!popupMenu.isVisible()) {
+                        return;
+                    }
 		    MenuElement items[] = popupMenu.getSubElements();
 
 		    if (indexes == null || lastMnemonic != keyChar) {

@@ -1,7 +1,7 @@
 /*
- * @(#)CDRInputStream_1_0.java	1.78 02/02/12
+ * @(#)CDRInputStream_1_0.java	1.80 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -464,7 +464,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
     	// Workaround for ORBs which send string lengths of
     	// zero to mean empty string.
     	if (len == 0)
-    	    return "";
+    	    return new String(""); 
 
         char[] result = getConvertedChars(len - 1, getCharConverter());
 
@@ -481,7 +481,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
     	// zero to mean empty string.
     	//
     	if (len == 0)
-    	    return "";
+    	    return new String("");
 
         len--;
         char[] c = new char[len];
@@ -535,7 +535,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
     	// zero to mean empty string.
     	//
     	if (len == 0)
-    	    return "";
+    	    return new String("");
 
         checkForNegativeLength(len);
 

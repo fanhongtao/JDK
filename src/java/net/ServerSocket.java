@@ -1,7 +1,7 @@
 /*
- * @(#)ServerSocket.java	1.73 02/04/12
+ * @(#)ServerSocket.java	1.75 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,8 @@ package java.net;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.channels.ServerSocketChannel;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 
 /**
  * This class implements server sockets. A server socket waits for 
@@ -23,7 +25,7 @@ import java.nio.channels.ServerSocketChannel;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.73, 04/12/02
+ * @version 1.75, 04/25/03
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -207,14 +209,21 @@ class ServerSocket {
     private void checkOldImpl() {
 	if (impl == null)
 	    return;
-	Class[] cl = new Class[2];
-	cl[0] = SocketAddress.class;
-	cl[1] = Integer.TYPE;
-	try {
-	    impl.getClass().getDeclaredMethod("connect", cl);
-	} catch (NoSuchMethodException e) {
-	    oldImpl = true;
-	}
+        // SocketImpl.connect() is a protected method, therefore we need to use
+        // getDeclaredMethod, therefore we need permission to access the member
+        try {
+            AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                    public Object run() throws NoSuchMethodException {
+                        Class[] cl = new Class[2];
+                        cl[0] = SocketAddress.class;
+                        cl[1] = Integer.TYPE;
+                        impl.getClass().getDeclaredMethod("connect", cl);
+                        return null;
+                    }
+                });
+        } catch (java.security.PrivilegedActionException e) {
+            oldImpl = true;
+        }
     }
 
     private void setImpl() {

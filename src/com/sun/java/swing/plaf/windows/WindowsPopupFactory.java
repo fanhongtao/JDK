@@ -1,13 +1,14 @@
 /*
- * @(#)WindowsPopupFactory.java	1.2 01/12/03
+ * @(#)WindowsPopupFactory.java	1.4 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.windows;
 
 import javax.swing.*;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Window;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.applet.Applet;
 
 import sun.awt.AppContext;
 
@@ -39,7 +41,7 @@ import sun.awt.AppContext;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.2 12/03/01
+ * @version 1.4 04/25/03
  * @author Amy Fowler
  */
 public class WindowsPopupFactory extends PopupFactory {
@@ -271,7 +273,16 @@ public class WindowsPopupFactory extends PopupFactory {
             if (owner instanceof Window) {
                 window = (Window)owner;
             } else if (owner != null) {
-                window = SwingUtilities.getWindowAncestor(owner);
+              for (Container p = owner.getParent(); p != null; p = p.getParent()) {
+                 if(p instanceof Window) {
+                   window = (Window)p;
+                   break;
+                 }
+                 if(p instanceof Applet) {
+                   window = new DefaultFrame();
+                   break;
+                 }
+              }
             }
             if (window == null) {
                 window = new DefaultFrame();

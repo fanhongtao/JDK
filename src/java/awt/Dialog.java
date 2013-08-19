@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.84 02/05/29
+ * @(#)Dialog.java	1.86 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -65,7 +65,7 @@ import sun.awt.PeerEvent;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.84, 05/29/02
+ * @version 	1.86, 04/25/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -533,6 +533,19 @@ public class Dialog extends Window {
                      enqueueKeyEvents(time, predictedFocusOwner); 
 
                 if (Toolkit.getEventQueue().isDispatchThread()) {
+
+                     /*
+                      * dispose SequencedEvent we are dispatching on current
+                      * AppContext, to prevent us from hang.
+                      *
+                      * BugId 4531693
+                      */
+                     SequencedEvent currentSequencedEvent =KeyboardFocusManager.getCurrentKeyboardFocusManager().getCurrentSequencedEvent();
+                     if (currentSequencedEvent != null) {
+                         currentSequencedEvent.dispose();
+                     } 
+
+
                     EventDispatchThread dispatchThread =
                         (EventDispatchThread)Thread.currentThread();
                     dispatchThread.pumpEventsForHierarchy(new Conditional() {

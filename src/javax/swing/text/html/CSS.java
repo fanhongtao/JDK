@@ -1,7 +1,7 @@
 /*
- * @(#)CSS.java	1.39 01/12/03
+ * @(#)CSS.java	1.41 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -90,7 +90,7 @@ import javax.swing.text.*;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.39 12/03/01
+ * @version 1.41 04/25/03
  * @see StyleSheet
  */
 public class CSS implements Serializable {
@@ -2934,12 +2934,21 @@ public class CSS implements Serializable {
 	 * first pass, calculate the preferred sizes, adjustments needed because
 	 * of margin collapsing, and the flexibility to adjust the sizes.
 	 */
-	long minimum = 0;
-	long maximum = 0;
 	long preferred = 0;
+	long currentPreferred = 0;
 	int lastMargin = 0;
 	int collapsed = 0;
 	int n = iter.getCount();
+	int adjustmentWeightsCount = LayoutIterator.WorstAdjustmentWeight + 1;
+	//max gain we can get adjusting elements with adjustmentWeight <= i
+	long gain[] = new long[adjustmentWeightsCount]; 
+	//max loss we can get adjusting elements with adjustmentWeight <= i
+	long loss[] = new long[adjustmentWeightsCount];
+	
+	for (int i = 0; i < adjustmentWeightsCount; i++) {
+	    gain[i] = loss[i] = 0;
+	}
+
 	for (int i = 0; i < n; i++) {
 	    iter.setIndex(i);
 	    int margin0 = lastMargin;
@@ -2950,13 +2959,20 @@ public class CSS implements Serializable {
 		iter.setOffset(iter.getOffset() - margin0);
 		collapsed += iter.getOffset();
 	    }
-	    iter.setSpan( (int) iter.getPreferredSpan(targetSpan));
-	    preferred += iter.getSpan();
-	    minimum += iter.getMinimumSpan(targetSpan);
-	    maximum += iter.getMaximumSpan(targetSpan);
-
+	    currentPreferred = (long)iter.getPreferredSpan(targetSpan);
+	    iter.setSpan((int) currentPreferred);
+   	     preferred += currentPreferred;
+            gain[iter.getAdjustmentWeight()] +=
+		(long)iter.getMaximumSpan(targetSpan) - currentPreferred;
+	    loss[iter.getAdjustmentWeight()] += 
+		 currentPreferred - (long)iter.getMinimumSpan(targetSpan);
 	    lastMargin = (int) iter.getTrailingCollapseSpan();
-	}
+        } 
+
+	for (int i = 1; i < adjustmentWeightsCount; i++) {
+   	    gain[i] += gain[i - 1];
+	    loss[i] += loss[i - 1];
+        }
 
 	/*
 	 * Second pass, expand or contract by as much as possible to reach
@@ -2967,34 +2983,55 @@ public class CSS implements Serializable {
 	// determine the adjustment to be made
 	int allocated = targetSpan - collapsed;
 	long desiredAdjustment = allocated - preferred;
+	long adjustmentsArray[] = (desiredAdjustment > 0) ? gain : loss;
+        desiredAdjustment = Math.abs(desiredAdjustment);
+	int adjustmentLevel = 0;
+        for (;adjustmentLevel <= LayoutIterator.WorstAdjustmentWeight; 
+          adjustmentLevel++) { 
+	   // adjustmentsArray[] is sorted. I do not bother about
+	   // binary search though
+           if (adjustmentsArray[adjustmentLevel] >= desiredAdjustment) {
+                break;
+	   }
+        }
+
 	float adjustmentFactor = 0.0f;
-	if (desiredAdjustment != 0) {
-	    float maximumAdjustment = (desiredAdjustment > 0) ? 
-		maximum - preferred : preferred - minimum;
-	    adjustmentFactor = desiredAdjustment / maximumAdjustment;
-	    adjustmentFactor = Math.min(adjustmentFactor, 1.0f);
-	    adjustmentFactor = Math.max(adjustmentFactor, -1.0f);
-	}
+
+	if (adjustmentLevel <= LayoutIterator.WorstAdjustmentWeight) {
+	   desiredAdjustment -= (adjustmentLevel > 0) ? 
+		 adjustmentsArray[adjustmentLevel - 1] : 0;
+	   if (desiredAdjustment != 0) {
+	       float maximumAdjustment = 
+		   adjustmentsArray[adjustmentLevel] - 
+				((adjustmentLevel > 0) ?
+		  	     adjustmentsArray[adjustmentLevel - 1] : 0
+		 );
+	       adjustmentFactor = desiredAdjustment / maximumAdjustment;
+           }
+        }
 
 	// make the adjustments
 	int totalOffset = 0;
 	for (int i = 0; i < n; i++) {
 	    iter.setIndex(i);
 	    iter.setOffset( iter.getOffset() + totalOffset);
-	    int availableSpan = (adjustmentFactor > 0.0f) ? 
-		(int) iter.getMaximumSpan(targetSpan) - iter.getSpan() : 
-		iter.getSpan() - (int) iter.getMinimumSpan(targetSpan);
-            float adjf = (adjustmentFactor * availableSpan);
-            // Round adjustment up.
-            int adj;
-            if (((int)(adjf * 10)) % 10 != 0) {
-                adj = (int)(adjf + .5f);
-            }
-            else {
-                adj = (int)adjf;
-            }
-	    iter.setSpan( iter.getSpan() + adj);
-	    totalOffset = (int) Math.min((long) totalOffset + (long) iter.getSpan(), Integer.MAX_VALUE);
+	    if (iter.getAdjustmentWeight() < adjustmentLevel) { 
+		iter.setSpan((int)
+			     ((allocated > preferred) ?
+ 		              Math.floor(iter.getMaximumSpan(targetSpan)) :
+			      Math.ceil(iter.getMinimumSpan(targetSpan)) 
+                             ) 
+ 		            );
+	    } else if (iter.getAdjustmentWeight() == adjustmentLevel) {
+	        int availableSpan = (allocated > preferred) ?
+		      (int) iter.getMaximumSpan(targetSpan) - iter.getSpan() :
+		      iter.getSpan() - (int) iter.getMinimumSpan(targetSpan);
+      		int adj = (int) Math.floor(adjustmentFactor * availableSpan);
+		iter.setSpan(iter.getSpan() +
+			 ((allocated > preferred) ? adj : -adj));
+	   }
+
+	   totalOffset = (int) Math.min((long) totalOffset + (long) iter.getSpan(), Integer.MAX_VALUE);
 	}
     }
 
@@ -3022,11 +3059,15 @@ public class CSS implements Serializable {
 
 	float getMaximumSpan(float parentSpan);
 
+	int getAdjustmentWeight(); //0 is the best weight WorstAdjustmentWeight is a worst one
+
 	//float getAlignment();
 
 	float getLeadingCollapseSpan();
 
 	float getTrailingCollapseSpan();
+        public static final int WorstAdjustmentWeight = 1;
+
     }
 
     //

@@ -1,7 +1,7 @@
 /*
- * @(#)CDRInputStream_1_2.java	1.8 01/12/03
+ * @(#)CDRInputStream_1_2.java	1.10 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.corba.se.internal.iiop;
@@ -58,7 +58,7 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
         int len = read_long();
 
         if (len == 0)
-            return "";
+            return new String("");
 
         checkForNegativeLength(len);
 

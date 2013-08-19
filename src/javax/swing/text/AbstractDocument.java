@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractDocument.java	1.132 02/04/17
+ * @(#)AbstractDocument.java	1.134 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -77,7 +77,7 @@ import sun.awt.font.BidiUtils;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.132 04/17/02
+ * @version 1.134 04/25/03
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -1552,9 +1552,12 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Document property that indicates whether internationalization
      * functions such as text reordering or reshaping should be
-     * performed.  It is currently turned off while this code is
-     * being stabilized.  It is also left as a package private for now
-     * until its long term benefit is decided.
+     * performed. This property should not be publicly exposed, 
+     * since it is used for implementation convenience only.  As a  
+     * side effect, copies of this property may be in its subclasses 
+     * that live in different packages (e.g. HTMLDocument as of now), 
+     * so those copies should also be taken care of when this property 
+     * needs to be modified. 
      */
     static final String I18NProperty = "i18n";
 

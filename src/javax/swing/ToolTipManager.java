@@ -1,7 +1,7 @@
 /*
- * @(#)ToolTipManager.java	1.63 02/04/23
+ * @(#)ToolTipManager.java	1.65 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * tooltip will be shown again after <code>initialDelay</code> milliseconds.
  *
  * @see JComponent#createToolTip
- * @version 1.63 04/23/02
+ * @version 1.65 04/25/03
  * @author Dave Moore
  * @author Rich Schiavi
  */
@@ -242,6 +242,17 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     void showTipWindow() {
         if(insideComponent == null || !insideComponent.isShowing())
             return;
+        for (Container p = insideComponent.getParent(); p != null; p = p.getParent()) {
+            if (p instanceof Window) {
+                if (!((Window)p).isFocused()) {
+                    return;
+                }
+                break;
+            }
+            if (p instanceof Applet) {
+                break;
+            }
+        }
         if (enabled) {
             Dimension size;
             Point screenLocation = insideComponent.getLocationOnScreen();

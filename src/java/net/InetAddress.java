@@ -1,7 +1,7 @@
 /*
- * @(#)InetAddress.java	1.95 02/03/14
+ * @(#)InetAddress.java	1.97 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Random;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
 import java.security.AccessController;
 import java.io.ObjectStreamException;
 import sun.security.action.*;
@@ -148,7 +148,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.95, 03/14/02
+ * @version 1.97, 04/25/03
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -569,25 +569,122 @@ class InetAddress implements java.io.Serializable {
     /*
      * Cached addresses - our own litle nis, not!
      */
-    private static LinkedHashMap	    addressCache = new LinkedHashMap();
-    private static boolean		    addressCacheInit = false;
+    private static Cache addressCache =
+        new Cache(InetAddressCachePolicy.get());
+
+    private static Cache negativeCache =
+        new Cache(InetAddressCachePolicy.getNegative());
+
+    private static boolean addressCacheInit = false;
+
     static InetAddress[]    unknown_array; // put THIS in cache
 
     static InetAddressImpl  impl;
 
     private static HashMap          lookupTable = new HashMap();
 
+    /**
+     * Represents a cache entry 
+     */
     static final class CacheEntry {
 
-	CacheEntry(String hostname, Object address, long expiration) {
-	    this.hostname = hostname;
-	    this.address = address;
-	    this.expiration = expiration;
-	}
+	CacheEntry(Object address, long expiration) {
+            this.address = address;
+            this.expiration = expiration;
+        }
 
-	String hostname;
 	Object address;
 	long expiration;
+    }
+
+    /**
+     * A cache that manages entries based on a policy specified
+     * at creation time.
+     */
+    static final class Cache {
+        private int policy;
+        private LinkedHashMap cache;
+
+        /**
+         * Create cache with specific policy 
+         */
+        public Cache(int policy) {
+            this.policy = policy;
+            cache = new LinkedHashMap();
+        }
+
+        /**
+         * Add an entry to the cache. If there's already an
+         * entry then for this host then the entry will be 
+         * replaced.
+         */
+        public Cache put(String host, Object address) {
+            if (policy == InetAddressCachePolicy.NEVER) {
+                return this;
+	    }
+
+	    // purge any expired entries
+
+	    if (policy != InetAddressCachePolicy.FOREVER) {
+		// As we iterate in insertion order we can
+                // terminate when a non-expired entry is found.         
+                LinkedList expired = new LinkedList();
+                Iterator i = cache.keySet().iterator();
+                long now = System.currentTimeMillis();
+                while (i.hasNext()) {
+                    String key = (String)i.next();
+                    CacheEntry entry = (CacheEntry)cache.get(key);
+
+		    if (entry.expiration >= 0 && entry.expiration < now) {
+                        expired.add(key);
+                    } else {
+                        break;
+                    }
+                }
+
+		i = expired.iterator();
+                while (i.hasNext()) {
+                    cache.remove(i.next());
+                }
+            }
+
+	    // create new entry and add it to the cache
+            // -- as a HashMap replaces existing entries we
+            //    don't need to explicitly check if there is 
+            //    already an entry for this host.
+            long expiration;
+            if (policy == InetAddressCachePolicy.FOREVER) {
+                expiration = -1;
+            } else {
+                expiration = System.currentTimeMillis() + (policy * 1000);
+            }
+            CacheEntry entry = new CacheEntry(address, expiration);
+            cache.put(host, entry);
+            return this;
+
+	}
+
+	/**
+         * Query the cache for the specific host. If found then
+         * return its CacheEntry, or null if not found.
+         */
+        public CacheEntry get(String host) {
+            if (policy == InetAddressCachePolicy.NEVER) {
+                return null;
+            }
+            CacheEntry entry = (CacheEntry)cache.get(host);
+
+            // check if entry has expired
+            if (entry != null && policy != InetAddressCachePolicy.FOREVER) {
+                if (entry.expiration >= 0 &&
+                    entry.expiration < System.currentTimeMillis()) {
+                    cache.remove(host);
+                    entry = null;
+                }
+            }
+
+            return entry;
+	}
     }
 
     /*
@@ -595,106 +692,60 @@ class InetAddress implements java.io.Serializable {
      * unknown array with no expiry.
      */
     private static void cacheInitIfNeeded() {
-	synchronized (addressCache) {
-	    if (addressCacheInit) {
-	        return;
-	    }
-	    unknown_array = new InetAddress[1];
-	    unknown_array[0] = impl.anyLocalAddress();
+        assert Thread.holdsLock(addressCache);
+        if (addressCacheInit) {
+            return;
+        }
+        unknown_array = new InetAddress[1];
+        unknown_array[0] = impl.anyLocalAddress();
 
-	    String hostname = impl.anyLocalAddress().getHostName();
+	addressCache.put(impl.anyLocalAddress().getHostName(),
+                         unknown_array);
 
-	    CacheEntry entry = new CacheEntry(hostname,
-					      unknown_array, 
-					      InetAddressCachePolicy.FOREVER);
-	    addressCache.put(hostname, entry);
-
-	    addressCacheInit = true;
-	}
+	addressCacheInit = true;
     }
 
+    /*
+     * Cache the given hostname and address.
+     */
     private static void cacheAddress(String hostname, Object address,
-				     boolean success) {
-
-	int policy = (success ? 
-		      InetAddressCachePolicy.get() :
-		      InetAddressCachePolicy.getNegative());
-
-	// if the cache policy is to cache nothing, just return
-
-	if (policy == 0) {
-	    return;
-	}
-
-	long expiration = -1;
-	if (policy != InetAddressCachePolicy.FOREVER) {
-	    expiration = System.currentTimeMillis() + (policy * 1000);
-	}
-	cacheAddress(hostname, address, expiration);
-    }
-
-    private static void cacheAddress(String hostname, Object address, long expiration) {
-        hostname = hostname.toLowerCase();
-
-	/* init cache on first call */
-	cacheInitIfNeeded();
-
+                                     boolean success) {
 	synchronized (addressCache) {
-	    CacheEntry entry = (CacheEntry)addressCache.get(hostname);
-	    if (entry == null) {
-		entry = new CacheEntry(hostname, address, expiration);
-		addressCache.put(hostname, entry);
+	    cacheInitIfNeeded();
+            if (success) {
+                addressCache.put(hostname, address);
 	    } else {
-		if (!entry.address.equals(address)) {
-		    entry.address = address;
-		    entry.expiration = expiration;
-		    // remove the old entry from the cache 
-		    // and add a new item
-		    addressCache.remove(hostname);
-		    addressCache.put(hostname, entry);
-		}
+		negativeCache.put(hostname, address);
 	    }
 	}
     }
 
+    /*
+     * Lookup hostname in cache (positive & negative cache). If
+     * found return address, null if not found.
+     */
     private static Object getCachedAddress(String hostname) {
         hostname = hostname.toLowerCase();
-	if ((InetAddressCachePolicy.get() == 0) && 
-	    (InetAddressCachePolicy.getNegative() == 0)) {
-	    return null;
-	}
 
-	/* init cache on first call */
-        cacheInitIfNeeded(); 
+	// search both positive & negative caches
 
 	synchronized (addressCache) {
-	    // purge expired entries from cache
-	    Iterator itr = addressCache.keySet().iterator();
-	    // pass the first entry, which is for unknown address
-	    itr.next();
-	    Vector expired = new Vector();
-	    while (itr.hasNext()) {
-		Object key = itr.next();
-		CacheEntry value = (CacheEntry)addressCache.get(key);
-		if (value != null && value.expiration < System.currentTimeMillis() &&
-		    value.expiration >= 0) {
-		    expired.add(key);
-		} else {
-		    break;
-		}
+	    CacheEntry entry;
+
+            cacheInitIfNeeded();
+
+            entry = (CacheEntry)addressCache.get(hostname);
+            if (entry == null) {
+                entry = (CacheEntry)negativeCache.get(hostname);
 	    }
 
-	    for (int i = 0; i < expired.size(); i++) {
-		Object key = expired.elementAt(i);
-		addressCache.remove(key);
-	    }
-
-	    CacheEntry entry = (CacheEntry)addressCache.get(hostname);
-	    if (entry == null) {
-		return null;
-	    }
-	    return entry.address;
+	    if (entry != null) {
+                return entry.address;
+            }
 	}
+
+	// not found
+        return null;
     }
 
     static {

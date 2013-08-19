@@ -1,7 +1,7 @@
 /*
- * @(#)MinorCodes.java	1.43 02/02/21
+ * @(#)MinorCodes.java	1.45 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -174,6 +174,11 @@ public final class MinorCodes {
     public static final int SERVER_SC_NO_IIOP_PROFILE = ORBConstants.GENERAL_BASE + 5 ;	
     public static final int GET_SYSTEM_EX_RETURNED_NULL = ORBConstants.GENERAL_BASE + 6;
 
+ // This minor code is used when there is an attempt to put an Indirection
+ // offset in the orbutil.cacheTable when there is an existing entry with
+ // same key (Object). The new indirection offset is different from the one
+ // present in the table.
+    public static final int DUPLICATE_INDIRECTION_OFFSET = ORBConstants.GENERAL_BASE + 7;
     /** 
      * When unmarshalling, the repository id of the user exception
      * was found to be of incorrect length.

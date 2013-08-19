@@ -1,7 +1,7 @@
 /*
- * @(#)TableView.java	1.28 01/12/03
+ * @(#)TableView.java	1.30 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -18,7 +18,7 @@ import javax.swing.text.*;
  * HTML table view.  
  * 
  * @author  Timothy Prinzing
- * @version 1.28 12/03/01
+ * @version 1.30 04/25/03
  * @see     View
  */
 /*public*/ class TableView extends BoxView implements ViewFactory {
@@ -586,7 +586,6 @@ import javax.swing.text.*;
 
 	// calculate column spans
 	layoutColumns(targetSpan, columnOffsets, columnSpans, columnRequirements);
-
 	// continue normal layout
 	super.layoutMinorAxis(targetSpan, axis, offsets, spans);
     }
@@ -939,36 +938,43 @@ import javax.swing.text.*;
 	/**
 	 * Update percentage adjustments if they are needed.
 	 */
-	private void updatePercentages(int span) {
+	private void updatePercentagesAndAdjustmentWeights(int span) {
+	    adjustmentWeights = new int[columnRequirements.length];
+	    for (int i = 0; i < columnRequirements.length; i++) {
+ 	    adjustmentWeights[i] = 0; 
+	    }
 	    if (relativeCells) {
 		percentages = new int[columnRequirements.length];
-		
-		int nrows = getRowCount();
-		for (int rowIndex = 0; rowIndex < nrows; rowIndex++) {
-		    RowView row = getRow(rowIndex);
-		    int col = 0;
-		    int ncells = row.getViewCount();
-		    for (int cell = 0; cell < ncells; cell++, col++) {
-			View cv = row.getView(cell);
-			for (; row.isFilled(col); col++); // advance to a free column
-			int rowSpan = getRowsOccupied(cv);
-			int colSpan = getColumnsOccupied(cv);
+	    } else { 
+	        percentages = null;
+            }
 
-			AttributeSet a = cv.getAttributes();
-			CSS.LengthValue lv = (CSS.LengthValue) 
-			    a.getAttribute(CSS.Attribute.WIDTH);
-			if ((lv != null) && (lv.isPercentage())) {
-			    // add a percentage requirement
-			    int len = (int) (lv.getValue(span) / colSpan + 0.5f);
-			    for (int i = 0; i < colSpan; i++) {
-				percentages[col+i] = Math.max(percentages[col+i], len);
+	    int nrows = getRowCount();
+	    for (int rowIndex = 0; rowIndex < nrows; rowIndex++) {
+	        RowView row = getRow(rowIndex);
+	        int col = 0;
+	        int ncells = row.getViewCount();
+	        for (int cell = 0; cell < ncells; cell++, col++) {
+		    View cv = row.getView(cell);
+		    for (; row.isFilled(col); col++); // advance to a free column
+		    int rowSpan = getRowsOccupied(cv);
+		    int colSpan = getColumnsOccupied(cv);
+    
+		    AttributeSet a = cv.getAttributes();
+		    CSS.LengthValue lv = (CSS.LengthValue) 
+	        	a.getAttribute(CSS.Attribute.WIDTH);
+		    if (lv != null) {
+		        int len = (int) (lv.getValue(span) / colSpan + 0.5f);
+		        for (int i = 0; i < colSpan; i++) {
+		            // add a percentage requirement
+			    if (lv.isPercentage()) {
+			       percentages[col+i] = Math.max(percentages[col+i], len);
 			    }
-			}
-			col += colSpan - 1;
+			    adjustmentWeights[col+i] = WorstAdjustmentWeight;
+		        }
 		    }
-		}
-	    } else {
-		percentages = null;
+		    col += colSpan - 1;
+	        }
 	    }
 	}
 
@@ -978,7 +984,7 @@ import javax.swing.text.*;
 	public void setLayoutArrays(int offsets[], int spans[], int targetSpan) {
 	    this.offsets = offsets;
 	    this.spans = spans;
-	    updatePercentages(targetSpan);
+	    updatePercentagesAndAdjustmentWeights(targetSpan);
 	}
 
 	// --- RequirementIterator methods -------------------
@@ -1035,6 +1041,10 @@ import javax.swing.text.*;
 	public float getTrailingCollapseSpan() {
 	    return cellSpacing;
 	}
+ 
+	public int getAdjustmentWeight() {
+	    return adjustmentWeights[col];
+	}
 
 	/**
 	 * Current column index
@@ -1047,6 +1057,7 @@ import javax.swing.text.*;
 	 */
 	private int[] percentages;
 
+	private int[] adjustmentWeights;
 	private int[] offsets;
 	private int[] spans;
     }
@@ -1185,6 +1196,10 @@ import javax.swing.text.*;
 
 	public float getTrailingCollapseSpan() {
 	    return cellSpacing;
+	}
+
+	public int getAdjustmentWeight() {
+	    return 0;
 	}
 
 	/**

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextFieldUI.java	1.90 01/12/03
+ * @(#)BasicTextFieldUI.java	1.92 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -31,7 +31,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.90 12/03/01
+ * @version 1.92 04/25/03
  */
 public class BasicTextFieldUI extends BasicTextUI {
 
@@ -139,6 +139,11 @@ public class BasicTextFieldUI extends BasicTextUI {
 	 */
         public int getFlowSpan(int index) {
 	    return Integer.MAX_VALUE;
+	}
+
+	protected void setJustification(int j) {
+	    // Justification is done in adjustAllocation(), so disable 
+	    // ParagraphView's justification handling by doing nothing here.
 	}
 
 	static boolean isLeftToRight( java.awt.Component c ) {

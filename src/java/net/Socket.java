@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.93 02/04/23
+ * @(#)Socket.java	1.95 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.93, 04/23/02
+ * @version 1.95, 04/25/03
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -317,12 +317,20 @@ class Socket {
     private void checkOldImpl() {
 	if (impl == null)
 	    return;
-	Class[] cl = new Class[2];
-	cl[0] = SocketAddress.class;
-	cl[1] = Integer.TYPE;
+
+	//SocketImpl.connect() is a protected method, therefore we need to use
+	//getDeclaredMethod, therefore we need permission to access the member
 	try {
-	    impl.getClass().getDeclaredMethod("connect", cl);
-	} catch (NoSuchMethodException e) {
+	    AccessController.doPrivileged (new PrivilegedExceptionAction() {
+		public Object run() throws NoSuchMethodException {
+		    Class[] cl = new Class[2];
+		    cl[0] = SocketAddress.class;
+		    cl[1] = Integer.TYPE;
+		    impl.getClass().getDeclaredMethod("connect", cl);
+		    return null;
+		}
+	    });
+	} catch (java.security.PrivilegedActionException e) {
 	    oldImpl = true;
 	}
     }

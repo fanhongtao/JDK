@@ -1,7 +1,7 @@
 /*
- * @(#)PlainSocketImpl.java	1.58 02/04/23
+ * @(#)PlainSocketImpl.java	1.60 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.58, 04/23/02
+ * @version 1.60, 04/25/03
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -439,7 +439,19 @@ class PlainSocketImpl extends SocketImpl
 	    if (fd != null) {
 		if (fdUseCount == 0) {
 		    closePending = true;
-		    socketClose0(false);
+		    /*
+		     * We close the FileDescriptor in two-steps - first the
+		     * "pre-close" which closes the socket but doesn't
+		     * release the underlying file descriptor. This operation
+		     * may be lengthy due to untransmitted data and a long
+		     * linger interval. Once the pre-close is done we do the
+		     * actual socket to release the fd.
+		     */
+		    try {
+			socketPreClose();
+		    } finally {
+			socketClose();
+		    }
 		    fd = null;
 		    return;
 		} else {
@@ -452,7 +464,7 @@ class PlainSocketImpl extends SocketImpl
 		    if (!closePending) {
 			closePending = true;
 		        fdUseCount--;
-		        socketClose0(true);
+		        socketPreClose();
 		    }
 		}
 	    }
@@ -526,7 +538,7 @@ class PlainSocketImpl extends SocketImpl
 	    if (fdUseCount == -1) {
 		if (fd != null) {
 	            try {
-		        socketClose0(false);
+		        socketClose();
 	            } catch (IOException e) { 
 		    } finally {
 		        fd = null;
@@ -587,6 +599,21 @@ class PlainSocketImpl extends SocketImpl
 	return timeout;
     }
 
+    /*
+     * "Pre-close" a socket by dup'ing the file descriptor - this enables
+     * the socket to be closed without releasing the file descriptor.
+     */
+    private void socketPreClose() throws IOException {
+	socketClose0(true);
+    }
+    
+    /*
+     * Close the socket (and release the file descriptor).
+     */
+    private void socketClose() throws IOException {
+	socketClose0(false);
+    }
+ 
     private native void socketCreate(boolean isServer) throws IOException;
     private native void socketConnect(InetAddress address, int port, int timeout)
 	throws IOException;

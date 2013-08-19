@@ -1,7 +1,7 @@
 /*
- * @(#)CacheTable.java	1.11 01/12/03
+ * @(#)CacheTable.java	1.13 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -14,6 +14,14 @@
  */
                     
 package com.sun.corba.se.internal.orbutil;
+import org.omg.CORBA.INTERNAL;
+import org.omg.CORBA.CompletionStatus;
+
+/**
+ * _REVISIT_: Replace CacheTable with a better data structure, the searches
+ * are linear, can be a performance bottleneck while deserializing an object
+ * with lot of indirections.
+ */
 
 public class CacheTable  {
 	
@@ -54,6 +62,17 @@ public class CacheTable  {
 	    keys[index] = key;
 	    vals[index] = val;
 	    index++;
+	} else {
+		// If there is an entry in the Cachetable with the same key, then
+		// check to see if the Indirection(value) is different. If it is
+		// different then we have a bug in our code. This check is added
+		// to make sure that our serialization code doesn't do any
+		// unintended optimization w.r.t object aliasing.
+		int oldValue = this.getVal ( key );
+		if (oldValue != val) {
+			throw new INTERNAL( MinorCodes.DUPLICATE_INDIRECTION_OFFSET,
+			    CompletionStatus.COMPLETED_NO );
+		}
 	}
     }
 

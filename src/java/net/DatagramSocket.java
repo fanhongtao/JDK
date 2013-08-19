@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramSocket.java	1.87 02/04/09
+ * @(#)DatagramSocket.java	1.89 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.channels.DatagramChannel;
 import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 
 /**
  * This class represents a socket for sending and receiving datagram packets.
@@ -41,7 +42,7 @@ import java.security.AccessController;
  * UDP port 8888.
  *
  * @author  Pavani Diwanji
- * @version 1.87, 04/09/02
+ * @version 1.89, 04/25/03
  * @see     java.net.DatagramPacket
  * @see     java.nio.channels.DatagramChannel
  * @since JDK1.0
@@ -148,6 +149,7 @@ class DatagramSocket {
         if (impl == null)
             throw new NullPointerException();
 	this.impl = impl;
+	checkOldImpl();
     }
 
     /**
@@ -234,13 +236,20 @@ class DatagramSocket {
     private void checkOldImpl() {
 	if (impl == null)
 	    return;
-	Class[] cl = new Class[1];
-	cl[0] = DatagramPacket.class;
-	try {
-	    impl.getClass().getDeclaredMethod("peekData", cl);
-	} catch (NoSuchMethodException e) {
-	    oldImpl = true;
-	}
+        // DatagramSocketImpl.peekdata() is a protected method, therefore we need to use
+        // getDeclaredMethod, therefore we need permission to access the member
+        try {
+            AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                    public Object run() throws NoSuchMethodException {
+                        Class[] cl = new Class[1];
+                        cl[0] = DatagramPacket.class;
+                        impl.getClass().getDeclaredMethod("peekData", cl);
+                        return null;
+                    }
+                });
+        } catch (java.security.PrivilegedActionException e) {
+            oldImpl = true;
+        }
     }
 
     static Class implClass = null;

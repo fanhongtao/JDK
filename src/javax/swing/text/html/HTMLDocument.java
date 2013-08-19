@@ -1,13 +1,14 @@
 /*
- * @(#)HTMLDocument.java	1.148 02/04/09
+ * @(#)HTMLDocument.java	1.150 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.font.TextAttribute;
 import java.util.*;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -17,6 +18,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.undo.*;
+import java.text.Bidi;
 
 /**
  * A document that models HTML.  The purpose of this model
@@ -67,7 +69,7 @@ import javax.swing.undo.*;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.148 04/09/02
+ * @version 1.150 04/25/03
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -1385,6 +1387,24 @@ public class HTMLDocument extends DefaultStyledDocument {
 
     private static char[] NEWLINE;
 
+    /**
+     * I18N property key.  Copied from AbstractDocument
+     */
+    private static final String I18NProperty = "i18n";
+
+    private static final boolean isComplex(char ch) {
+        return (ch >= '\u0900' && ch <= '\u0D7F') || // Indic
+     	       (ch >= '\u0E00' && ch <= '\u0E7F');   // Thai
+	}
+
+    private static final boolean isComplex(char[] text, int start, int limit) {
+    	for (int i = start; i < limit; ++i) {
+	    if (isComplex(text[i])) {
+		return true;
+	    }
+	}
+	return false;
+    }
 
     static {
 	contentAttributeSet = new SimpleAttributeSet();
@@ -2058,6 +2078,23 @@ public class HTMLDocument extends DefaultStyledDocument {
 	    if (receivedEndHTML || (midInsert && !inBody)) {
 		return;
 	    }
+
+	    // see if complex glyph layout support is needed
+	    if(HTMLDocument.this.getProperty(I18NProperty).equals( Boolean.FALSE ) ) {
+	       // if a default direction of right-to-left has been specified,
+	       // we want complex layout even if the text is all left to right.
+	       Object d = getProperty(TextAttribute.RUN_DIRECTION);
+	       if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
+	           HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
+	       } else {
+	            if (Bidi.requiresBidi(data, 0, data.length) ||
+	                isComplex(data, 0, data.length)) {
+			//
+	                HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
+		    }
+	       }
+	    }
+
 	    if (inTextArea) {
 	        textAreaContent(data);
 	    } else if (inPre) {

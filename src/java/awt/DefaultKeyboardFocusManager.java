@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.14 02/04/11
+ * @(#)DefaultKeyboardFocusManager.java	1.17 03/04/25
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -24,7 +24,7 @@ import sun.awt.SunToolkit;
  * Container's FocusTraversalPolicy.
  *
  * @author David Mendenhall
- * @version 1.14, 04/11/02
+ * @version 1.17, 04/25/03
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -642,11 +642,11 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
     }
 
     private void pumpApprovedKeyEvents() {
-	KeyEvent ke;
-        if (requestCount() == 0) {
-            synchronized(this) {
-                typeAheadMarkers.clear();
-            }
+        KeyEvent ke;
+        if(requestCount() == 0) {
+           synchronized(this) {
+              typeAheadMarkers.clear();
+           }
         }
 	do {
 	    ke = null;
@@ -878,9 +878,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
      */
     protected synchronized void enqueueKeyEvents(long after,
 						 Component untilFocused) {
-        if (untilFocused == null) {
+        if (untilFocused == null) 
             return;
-        }
 
 	int insertionIndex = 0,
 	    i = typeAheadMarkers.size();

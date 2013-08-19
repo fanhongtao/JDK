@@ -1,7 +1,7 @@
 /*
- * @(#)BasicFileChooserUI.java	1.45 02/04/11
+ * @(#)BasicFileChooserUI.java	1.47 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -767,13 +767,17 @@ public class BasicFileChooserUI extends FileChooserUI {
 			if (globFilter == null) {
 			    globFilter = new GlobFilter();
 			}
-			globFilter.setPattern(filename);
-			if (!(currentFilter instanceof GlobFilter)) {
-			    actualFileFilter = currentFilter;
+			try {
+			    globFilter.setPattern(filename);
+			    if (!(currentFilter instanceof GlobFilter)) {
+				actualFileFilter = currentFilter;
+			    }
+			    chooser.setFileFilter(null);
+			    chooser.setFileFilter(globFilter);
+			    return;
+			} catch (PatternSyntaxException pse) {
+			    // Not a valid glob pattern. Abandon filter.
 			}
-			chooser.setFileFilter(null);
-			chooser.setFileFilter(globFilter);
-			return;
 		    }
 
 		    resetGlobFilter();
@@ -858,10 +862,24 @@ public class BasicFileChooserUI extends FileChooserUI {
 		    len -= 2;
 		}
 		for (int i = 0; i < len; i++) {
-		    if (gPat[i] == '*') {
+		    switch(gPat[i]) {
+		      case '*':
 			rPat[j++] = '.';
+			rPat[j++] = '*';
+			break;
+
+		      case '\\':
+			rPat[j++] = '\\';
+			rPat[j++] = '\\';
+			break;
+
+		      default:
+			if ("+()^$.{}[]".indexOf(gPat[i]) >= 0) {
+			    rPat[j++] = '\\';
+			}
+			rPat[j++] = gPat[i];
+			break;
 		    }
-		    rPat[j++] = gPat[i];
 		}
 	    } else {
 		for (int i = 0; i < gPat.length; i++) {
