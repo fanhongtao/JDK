@@ -1,7 +1,7 @@
 /*
- * @(#)Bits.java	1.7 02/02/06
+ * @(#)Bits.java	1.11 03/01/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,7 @@ package java.nio;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import sun.misc.Unsafe;
-
+import sun.misc.VM;
 
 /**
  * Access to bits, native and otherwise.
@@ -43,17 +43,7 @@ class Bits {				// package-private
 		      ((long)swap((int)(x >> 32)) & 0xffffffffL));
     }
 
-    static float swap(float x) {
-	return Float.intBitsToFloat(swap(Float.floatToRawIntBits(x)));
-    }
-
-    static double swap(double x) {
-	return Double.longBitsToDouble(swap(Double.doubleToRawLongBits(x)));
-    }
-
-
 
-
     // -- get/put char --
 
     static private char makeChar(byte b1, byte b0) {
@@ -605,6 +595,39 @@ class Bits {				// package-private
     }
 
 
+    // -- Direct memory management --
+
+    // A user-settable upper limit on the maximum amount of allocatable
+    // direct buffer memory.  This value may be changed during VM
+    // initialization if it is launched with "-XX:MaxDirectMemorySize=<size>".
+    private static long maxMemory = VM.maxDirectMemory();
+    private static long reservedMemory = 0;
+    private static boolean memoryLimitSet = false;
+
+    // These methods should be called whenever direct memory is allocated or
+    // freed.  They allow the user to control the amount of direct memory
+    // which a process may access.  All sizes are specified in bytes.
+    static synchronized void reserveMemory(long size) {
+	if (!memoryLimitSet && VM.isBooted()) {
+	    maxMemory = VM.maxDirectMemory();
+	    memoryLimitSet = true;
+	}
+	if (reservedMemory + size > maxMemory) {
+	    System.gc();
+	    if (reservedMemory + size > maxMemory)
+		throw new OutOfMemoryError();
+	}
+	reservedMemory += size;
+    }
+
+    static synchronized void unreserveMemory(long size) {
+	if (reservedMemory > 0) {
+	    reservedMemory -= size;
+	    assert (reservedMemory > -1);
+	}
+    }
+
+
     // -- Bulk get/put acceleration --
 
     // These numbers represent the point at which we have empirically
@@ -649,13 +672,4 @@ class Bits {				// package-private
     static native void copyToLongArray(long srcAddr, Object dst, long dstPos,
 				       long length);
 
-    static native void copyFromFloatArray(Object src, long srcPos, long dstAddr,
-					  long length);
-    static native void copyToFloatArray(long srcAddr, Object dst, long dstPos,
-					long length);
-
-    static native void copyFromDoubleArray(Object src, long srcPos,
-					 long dstAddr, long length);
-    static native void copyToDoubleArray(long srcAddr, Object dst, long dstPos,
-					 long length);
 }

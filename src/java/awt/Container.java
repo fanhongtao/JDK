@@ -1,7 +1,7 @@
 /*
- * @(#)Container.java	1.229 02/04/02
+ * @(#)Container.java	1.239 03/02/26
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -51,7 +51,7 @@ import sun.awt.dnd.SunDropTargetEvent;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.229, 04/02/02
+ * @version 	1.239, 02/26/03
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -300,7 +300,7 @@ public class Container extends Component {
      * @param     comp   the component to be added
      * @see #addImpl
      * @see #validate
-     * @see #revalidate
+     * @see javax.swing.JComponent#revalidate()
      * @return    the component argument
      */
     public Component add(Component comp) {
@@ -314,7 +314,7 @@ public class Container extends Component {
      * <p>
      * This method is obsolete as of 1.1.  Please use the
      * method <code>add(Component, Object)</code> instead.
-     * @see add(Component, Object)
+     * @see #add(Component, Object)
      */
     public Component add(String name, Component comp) {
 	addImpl(comp, name, -1);
@@ -340,7 +340,7 @@ public class Container extends Component {
      * @see #addImpl
      * @see #remove
      * @see #validate
-     * @see #revalidate
+     * @see javax.swing.JComponent#revalidate()
      */
     public Component add(Component comp, int index) {
 	addImpl(comp, null, index);
@@ -510,7 +510,7 @@ public class Container extends Component {
      *                  layout contraints for this component
      * @see #addImpl
      * @see #validate
-     * @see #revalidate
+     * @see javax.swing.JComponent#revalidate()
      * @see       LayoutManager
      * @since     JDK1.1
      */
@@ -539,7 +539,7 @@ public class Container extends Component {
      * component
      * @see #addImpl
      * @see #validate
-     * @see #revalidate
+     * @see javax.swing.JComponent#revalidate()
      * @see #remove
      * @see LayoutManager
      */
@@ -708,6 +708,9 @@ public class Container extends Component {
      */
     public void remove(int index) {
 	synchronized (getTreeLock()) {
+            if (index < 0  || index >= ncomponents) {
+                throw new ArrayIndexOutOfBoundsException(index);
+            }
     	    Component comp = component[index];
 	    if (peer != null) {
 		comp.removeNotify();
@@ -1046,7 +1049,7 @@ public class Container extends Component {
      *
      * @see #add(java.awt.Component)
      * @see Component#invalidate
-     * @see #revalidate
+     * @see javax.swing.JComponent#revalidate()
      */
     public void validate() {
         /* Avoid grabbing lock unless really necessary. */
@@ -1585,13 +1588,14 @@ public class Container extends Component {
      * @see Component#enableEvents
      */  
     protected void processContainerEvent(ContainerEvent e) {
-        if (containerListener != null) {
+        ContainerListener listener = containerListener;
+        if (listener != null) {
             switch(e.getID()) {
               case ContainerEvent.COMPONENT_ADDED:
-                containerListener.componentAdded(e);
+                listener.componentAdded(e);
                 break;
               case ContainerEvent.COMPONENT_REMOVED:
-                containerListener.componentRemoved(e);
+                listener.componentRemoved(e);
                 break;
             }
         }
@@ -2065,6 +2069,7 @@ public class Container extends Component {
 	    }
 	    if ( dispatcher != null ) {
 		dispatcher.dispose();
+        dispatcher = null;
 	    }
 	    super.removeNotify();
         }
@@ -2156,7 +2161,7 @@ public class Container extends Component {
      * recommendations for Windows and Unix are listed below. These
      * recommendations are used in the Sun AWT implementations.
      *
-     * <table border>
+     * <table border=1 summary="Recommended default values for a Container's focus traversal keys">
      * <tr>
      *    <th>Identifier</th>
      *    <th>Meaning</th>
@@ -2365,6 +2370,21 @@ public class Container extends Component {
         }
     }
 
+    /**
+     * Check if this component is the child of this container or its children.
+     * Note: this function acquires treeLock
+     * Note: this function traverses children tree only in one Window.
+     * @param comp a component in test, must not be null
+     */
+    boolean isParentOf(Component comp) {
+        synchronized(getTreeLock()) {
+            while (comp != null && comp != this && !(comp instanceof Window)) {
+                comp = comp.getParent();
+            }
+            return (comp == this);
+        }
+    }
+
     void clearMostRecentFocusOwnerOnHide() {
         Component comp = null;
         Container window = this;
@@ -2379,11 +2399,24 @@ public class Container extends Component {
                 while ((comp != null) && (comp != this) && !(comp instanceof Window)) {
                     comp = comp.getParent();
                 }
-            }
+            }            
         }
 
         if (comp == this) {
             KeyboardFocusManager.setMostRecentFocusOwner((Window)window, null);
+        }
+
+        if (window != null) {
+            Window myWindow = (Window)window;
+            synchronized(getTreeLock()) {
+                // This synchronized should always be the second in a pair (tree lock, KeyboardFocusManager.class)
+                synchronized(KeyboardFocusManager.class) {
+                    Component storedComp = myWindow.getTemporaryLostComponent();
+                    if (isParentOf(storedComp) || storedComp == this) {
+                        myWindow.setTemporaryLostComponent(null);
+                    }
+                }
+            }
         }
     }
 
@@ -2635,7 +2668,7 @@ public class Container extends Component {
      * Sets the <code>ComponentOrientation</code> property of this container
      * and all components contained within it.
      *
-     * @param orientation the new component orientation of this container and
+     * @param o the new component orientation of this container and
      *        the components contained within it.
      * @exception NullPointerException if <code>orientation</code> is null.
      * @see Component#setComponentOrientation
@@ -2757,9 +2790,9 @@ public class Container extends Component {
      *   the <code>Container</code>'s <code>FocusTraversalPolicy</code>,
      *     or <code>null</code>
      *
-     * @see AWTEventMulticaster.save(java.io.ObjectOutputStream, java.lang.String, java.util.EventListener)
+     * @see AWTEventMulticaster#save(java.io.ObjectOutputStream, java.lang.String, java.util.EventListener)
      * @see Container#containerListenerK
-     * @see #readObject
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
 	s.defaultWriteObject();
@@ -2788,7 +2821,7 @@ public class Container extends Component {
      * @param s the <code>ObjectInputStream</code> to read
      * @serial
      * @see #addContainerListener
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
 	throws ClassNotFoundException, IOException

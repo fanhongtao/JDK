@@ -1,7 +1,7 @@
 /*
- * @(#)ResolveResult.java	1.7 01/12/03
+ * @(#)ResolveResult.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import javax.naming.InvalidNameException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 01/12/03
+  * @version 1.9 03/01/23
   * @since 1.3
   */
 public class ResolveResult implements java.io.Serializable {
@@ -179,4 +179,6 @@ public class ResolveResult implements java.io.Serializable {
 	this.resolvedObj = obj;
 	// ??? should check for null?
     }
+
+    private static final long serialVersionUID = -4552108072002407559L;
 }

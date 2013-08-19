@@ -1,7 +1,7 @@
 /*
- * @(#)AWTKeyStroke.java	1.11 01/12/03
+ * @(#)AWTKeyStroke.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -35,7 +35,7 @@ import java.io.Serializable;
  *
  * @see #getAWTKeyStroke
  *
- * @version 1.11, 12/03/01
+ * @version 1.14, 01/23/03
  * @author Arnaud Weber
  * @author David Mendenhall
  * @since 1.4
@@ -64,7 +64,8 @@ public class AWTKeyStroke implements Serializable {
     /**
      * Constructs an <code>AWTKeyStroke</code> with default values.
      * The default values used are:
-     * <table border>
+     * <table border="1" summary="AWTKeyStroke default values">
+     * <tr><th>Property</th><th>Default Value</th></tr>
      * <tr>
      *    <td>Key Char</td>
      *    <td><code>KeyEvent.CHAR_UNDEFINED</code></td>
@@ -253,7 +254,7 @@ public class AWTKeyStroke implements Serializable {
      * @param keyChar the Character object for a keyboard character
      * @param modifiers a bitwise-ored combination of any modifiers
      * @return an <code>AWTKeyStroke</code> object for that key
-     * @throw IllegalArgumentException if <code>keyChar</code> is
+     * @throws IllegalArgumentException if <code>keyChar</code> is
      *       <code>null</code>
      *
      * @see java.awt.event.InputEvent
@@ -421,7 +422,7 @@ public class AWTKeyStroke implements Serializable {
      *
      * @param s a String formatted as described above
      * @return an <code>AWTKeyStroke</code> object for that String
-     * @throw IllegalArgumentException if <code>s</code> is <code>null</code>,
+     * @throws IllegalArgumentException if <code>s</code> is <code>null</code>,
      *        or is formatted incorrectly
      */
     public static AWTKeyStroke getAWTKeyStroke(String s) {

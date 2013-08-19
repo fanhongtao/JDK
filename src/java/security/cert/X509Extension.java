@@ -1,7 +1,7 @@
 /*
- * @(#)X509Extension.java	1.18 01/12/03
+ * @(#)X509Extension.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.util.Set;
  * be handled by a <em>Class</em> that understands the extension.
  *
  * @author Hemma Prafullchandra
- * @version 1.18 01/12/03
+ * @version 1.20 03/01/23
  */
 
 public interface X509Extension {
@@ -135,7 +135,7 @@ public interface X509Extension {
      * by periods.
      *
      * <p>For example:<br>
-     * <table border=groove>
+     * <table border=groove summary="Examples of OIDs and extension names">
      * <tr>
      * <th>OID <em>(Object Identifier)</em></th>
      * <th>Extension Name</th></tr>

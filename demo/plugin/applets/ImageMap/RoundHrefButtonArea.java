@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)RoundHrefButtonArea.java	1.10 02/06/13
+ * @(#)RoundHrefButtonArea.java	1.11 03/01/23
  */
 
 /**
@@ -44,7 +44,7 @@
  * charactistics as the HrefButtonArea apply.
  *
  * @author 	Jim Graham
- * @version 	1.10, 06/13/02
+ * @version 	1.11, 01/23/03
  */
 class RoundHrefButtonArea extends HrefButtonArea {
     /**

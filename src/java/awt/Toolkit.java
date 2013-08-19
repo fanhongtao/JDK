@@ -1,7 +1,7 @@
 /*
- * @(#)Toolkit.java	1.184 02/04/02
+ * @(#)Toolkit.java	1.189 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,7 +46,7 @@ import java.beans.PropertyChangeSupport;
 import sun.awt.DebugHelper;
 import sun.awt.HeadlessToolkit;
 import sun.awt.NullComponentPeer;
-
+import sun.security.util.SecurityConstants;
 /**
  * This class is the abstract superclass of all actual
  * implementations of the Abstract Window Toolkit. Subclasses of
@@ -60,7 +60,7 @@ import sun.awt.NullComponentPeer;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.184, 04/02/02
+ * @version 	1.189, 01/23/03
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -379,7 +379,7 @@ public abstract class  Toolkit {
      * Fills in the integer array that is supplied as an argument
      * with the current system color values.
      *
-     * @param     an integer array.
+     * @param     systemColors an integer array.
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
      * @see       java.awt.GraphicsEnvironment#isHeadless
@@ -500,7 +500,7 @@ public abstract class  Toolkit {
 
     /**
      * Gets the insets of the screen.
-     * @param     a <code>GraphicsConfiguration</code>
+     * @param     gc a <code>GraphicsConfiguration</code>
      * @return    the insets of this toolkit's screen, in pixels.
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
@@ -601,16 +601,21 @@ public abstract class  Toolkit {
      * extensions).
      */
     private static void loadAssistiveTechnologies() {
+
+	// Get accessibility properties 
         final String sep = File.separator;
         final Properties properties = new Properties();
 
-	java.security.AccessController.doPrivileged(
+
+	String atNames = (String)java.security.AccessController.doPrivileged(
 	    new java.security.PrivilegedAction() {
 	    public Object run() {
+
+		// Try loading the per-user accessibility properties file.
 		try {
 		    File propsFile = new File(
-		      System.getProperty("java.home") + sep + "lib" +
-		      sep + "accessibility.properties");
+		      System.getProperty("user.home") +
+		      sep + ".accessibility.properties");
 		    FileInputStream in =
 			new FileInputStream(propsFile);
 
@@ -618,26 +623,57 @@ public abstract class  Toolkit {
 		    properties.load(in);
 		    in.close();
 		} catch (Exception e) {
-		    // File does not exist; no classes will be auto loaded
+		    // Per-user accessibility properties file does not exist
 		}
-		String magPresent = 
-		    System.getProperty("javax.accessibility.screen_magnifier_present");
-		if (magPresent == null) {
-		    magPresent = 
-			properties.getProperty("screen_magnifier_present", null);
-		    if (magPresent != null) {
-			System.setProperty("javax.accessibility.screen_magnifier_present",
-					   magPresent);
+
+		// Try loading the system-wide accessibility properties
+		// file only if a per-user accessibility properties
+		// file does not exist or is empty.
+		if (properties.size() == 0) {
+		    try {
+			File propsFile = new File(
+			    System.getProperty("java.home") + sep + "lib" +
+			    sep + "accessibility.properties");
+			FileInputStream in =
+			    new FileInputStream(propsFile);
+			
+			// Inputstream has been buffered in Properties class
+			properties.load(in);
+			in.close();
+		    } catch (Exception e) {
+			// System-wide accessibility properties file does 
+			// not exist;
 		    }
 		}
-		return null;
+		
+		// Get whether a screen magnifier is present.  First check
+		// the system property and then check the properties file.
+		String magPresent = System.getProperty("javax.accessibility.screen_magnifier_present");
+		if (magPresent == null) {
+		    magPresent = properties.getProperty("screen_magnifier_present", null);
+		    if (magPresent != null) {
+			System.setProperty("javax.accessibility.screen_magnifier_present", magPresent);
+		    }
+		}
+
+		// Get the names of any assistive technolgies to load.  First 
+		// check the system property and then check the properties 
+		// file.
+		String classNames = System.getProperty("javax.accessibility.assistive_technologies");
+		if (classNames == null) {
+		    classNames = properties.getProperty("assistive_technologies", null);
+		    if (classNames != null) {
+			System.setProperty("javax.accessibility.assistive_technologies", classNames);
+		    }
+		}
+		return classNames;
 	    }
 	});
 
-        String atNames = properties.getProperty("assistive_technologies",null);
-	ClassLoader cl = ClassLoader.getSystemClassLoader();
 
+	// Load any assistive technologies
         if (atNames != null) {
+	    ClassLoader cl = ClassLoader.getSystemClassLoader();
             StringTokenizer parser = new StringTokenizer(atNames," ,");
 	    String atName;
             while (parser.hasMoreTokens()) {
@@ -1074,8 +1110,8 @@ public abstract class  Toolkit {
      * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.datatransfer.Clipboard
      * @see       java.awt.datatransfer.StringSelection
-     * @see       java.awt.datatransfer.DataFlavor.stringFlavor
-     * @see       java.awt.datatransfer.DataFlavor.plainTextFlavor
+     * @see       java.awt.datatransfer.DataFlavor#stringFlavor
+     * @see       java.awt.datatransfer.DataFlavor#plainTextFlavor
      * @see       java.io.Reader
      * @see       java.awt.AWTPermission
      * @since     JDK1.1
@@ -1242,7 +1278,7 @@ public abstract class  Toolkit {
      * <p>Note that multi-frame images are invalid and may cause this
      * method to hang.
      *
-     * @param image the image to display when the cursor is active
+     * @param cursor the image to display when the cursor is actived
      * @param hotSpot the X and Y of the large cursor's hot spot; the
      *   hotSpot values must be less than the Dimension returned by
      *   <code>getBestCursorSize</code>
@@ -1279,9 +1315,9 @@ public abstract class  Toolkit {
      * supported size.  It is therefore recommended that this method
      * be called and an appropriate image used so no image conversion is made.
      *
-     * @param     desiredWidth the preferred cursor width the component would like
+     * @param     preferredWidth the preferred cursor width the component would like
      * to use.
-     * @param     desiredHeight the preferred cursor height the component would like
+     * @param     preferredHeight the preferred cursor height the component would like
      * to use.
      * @return    the closest matching supported cursor size, or a dimension of 0,0 if
      * the Toolkit implementation doesn't support custom cursors.
@@ -1504,7 +1540,7 @@ public abstract class  Toolkit {
      * @param srcActions	      The actions permitted for the gesture
      * @param dgl		      The DragGestureListener
      *
-     * @Return the new object or null.  Always returns null if
+     * @return the new object or null.  Always returns null if
      * GraphicsEnvironment.isHeadless() returns true.
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
@@ -1660,8 +1696,6 @@ public abstract class  Toolkit {
     private AWTEventListener eventListener = null;
     private WeakHashMap listener2SelectiveListener = new WeakHashMap();
 
-    private AWTPermission listenToAllAWTEventsPermission = null;
-
     /*
      * Extracts a "pure" AWTEventListener from a AWTEventListenerProxy,
      * if the listener is proxied.
@@ -1723,11 +1757,7 @@ public abstract class  Toolkit {
         }
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-          if (listenToAllAWTEventsPermission == null) {
-            listenToAllAWTEventsPermission =
-                        new AWTPermission("listenToAllAWTEvents");
-          }
-          security.checkPermission(listenToAllAWTEventsPermission);
+          security.checkPermission(SecurityConstants.ALL_AWT_EVENTS_PERMISSION);
         }
         synchronized (this) {
             SelectiveAWTEventListener selectiveListener =
@@ -1793,11 +1823,7 @@ public abstract class  Toolkit {
         }
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-            if (listenToAllAWTEventsPermission == null) {
-                listenToAllAWTEventsPermission =
-                 new AWTPermission("listenToAllAWTEvents");
-            }
-            security.checkPermission(listenToAllAWTEventsPermission);
+            security.checkPermission(SecurityConstants.ALL_AWT_EVENTS_PERMISSION);
         }
 
         synchronized (this) {
@@ -1873,11 +1899,7 @@ public abstract class  Toolkit {
     public AWTEventListener[] getAWTEventListeners() {
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-	        if (listenToAllAWTEventsPermission == null) {
-                listenToAllAWTEventsPermission =
-			      new AWTPermission("listenToAllAWTEvents");
-            }
-	        security.checkPermission(listenToAllAWTEventsPermission);
+	    security.checkPermission(SecurityConstants.ALL_AWT_EVENTS_PERMISSION);
         }
         synchronized (this) {
             EventListener[] la = ToolkitEventMulticaster.getListeners(eventListener,AWTEventListener.class); 
@@ -1905,7 +1927,7 @@ public abstract class  Toolkit {
      * Note that listener objects
      * added multiple times appear only once in the returned array.
      *
-     * @param  the bitmask of event types to listen for
+     * @param  eventMask the bitmask of event types to listen for
      * @return all of the <code>AWTEventListener</code>s registered
      *         on this toolkit for the specified
      *         event types, or an empty array if no such listeners
@@ -1925,11 +1947,7 @@ public abstract class  Toolkit {
     public AWTEventListener[] getAWTEventListeners(long eventMask) {
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-	        if (listenToAllAWTEventsPermission == null) {
-                listenToAllAWTEventsPermission =
-			      new AWTPermission("listenToAllAWTEvents");
-            }
-	        security.checkPermission(listenToAllAWTEventsPermission);
+	    security.checkPermission(SecurityConstants.ALL_AWT_EVENTS_PERMISSION);
         }
         synchronized (this) {
             EventListener[] la = ToolkitEventMulticaster.getListeners(eventListener,AWTEventListener.class);

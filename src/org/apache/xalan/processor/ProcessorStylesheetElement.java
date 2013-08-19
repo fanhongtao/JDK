@@ -133,6 +133,7 @@ class ProcessorStylesheetElement extends XSLTElementProcessor
 
       stylesheet.setDOMBackPointer(handler.getOriginatingNode());
       stylesheet.setLocaterInfo(handler.getLocator());
+
       stylesheet.setPrefixes(handler.getNamespaceSupport());
       handler.pushStylesheet(stylesheet);
       setPropertiesFromAttributes(handler, rawName, attributes,

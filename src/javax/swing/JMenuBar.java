@@ -1,7 +1,7 @@
 /*
- * @(#)JMenuBar.java	1.92 01/12/03
+ * @(#)JMenuBar.java	1.94 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import javax.accessibility.*;
  *   attribute: isContainer true
  * description: A container for holding and displaying menus.
  *
- * @version 1.92 12/03/01
+ * @version 1.94 01/23/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -321,7 +321,7 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      * its menus. Setting to <code>null</code> will cause the menubar to
      * use the default margins.
      *
-     * @param margin an Insets object containing the margin values
+     * @param m an Insets object containing the margin values
      * @see Insets
      * @beaninfo
      *        bound: true

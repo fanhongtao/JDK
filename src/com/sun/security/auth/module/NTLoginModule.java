@@ -1,7 +1,7 @@
 /*
- * @(#)NTLoginModule.java	1.6 02/02/26
+ * @(#)NTLoginModule.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,11 +14,11 @@ import javax.security.auth.callback.*;
 import javax.security.auth.login.*;
 import javax.security.auth.spi.*;
 import com.sun.security.auth.NTUserPrincipal;
+import com.sun.security.auth.NTSidUserPrincipal;
 import com.sun.security.auth.NTDomainPrincipal;
 import com.sun.security.auth.NTSidDomainPrincipal;
-import com.sun.security.auth.NTSidUserPrincipal;
-import com.sun.security.auth.NTSidGroupPrincipal;
 import com.sun.security.auth.NTSidPrimaryGroupPrincipal;
+import com.sun.security.auth.NTSidGroupPrincipal;
 import com.sun.security.auth.NTNumericCredential;
 
 /**
@@ -31,10 +31,17 @@ import com.sun.security.auth.NTNumericCredential;
  * If set to true in the login Configuration,
  * debug messages will be output to the output stream, System.out.
  *
- * @version 1.15, 01/11/00
+ * <p> This LoginModule also recognizes the debugNative option.
+ * If set to true in the login Configuration,
+ * debug messages from the native component of the module
+ * will be output to the output stream, System.out.
+ *
+ * @version 1.8, 01/23/03
  * @see javax.security.auth.spi.LoginModule
  */
 public class NTLoginModule implements LoginModule {
+
+    private NTSystem ntSystem;
 
     // initial state
     private Subject subject;
@@ -44,27 +51,19 @@ public class NTLoginModule implements LoginModule {
 
     // configurable option
     private boolean debug = false;
+    private boolean debugNative = false;
 
     // the authentication status
     private boolean succeeded = false;
     private boolean commitSucceeded = false;
 
-    // NTPrincipal
-    private NTUserPrincipal ntUserPrincipal;
-    //NTDomainPrincipal
-    private NTDomainPrincipal ntDomainPrincipal;
-    //NTSidDomainPrincipal
-    private NTSidDomainPrincipal ntSidDomainPrincipal;
-    //NTSidPrincipal
-    private NTSidUserPrincipal ntSidUserPrincipal;
-    //NTSidGroupPrincipal
-    private NTSidGroupPrincipal ntSidGroupPrincipals[];
-    //NTSidPrimaryGroupPrincipal
-    private NTSidPrimaryGroupPrincipal ntSidPrimaryGroupPrincipal;
-    //NTNumericCredential
-    private NTNumericCredential ntNumericCredential;
-    // NTSystem
-    private NTSystem ntSystem;
+    private NTUserPrincipal userPrincipal;		// user name
+    private NTSidUserPrincipal userSID;			// user SID
+    private NTDomainPrincipal userDomain;		// user domain
+    private NTSidDomainPrincipal domainSID;		// domain SID
+    private NTSidPrimaryGroupPrincipal primaryGroup;	// primary group
+    private NTSidGroupPrincipal groups[];		// supplementary groups
+    private NTNumericCredential iToken;			// impersonation token
 
     /**
      * Initialize this <code>LoginModule</code>.
@@ -74,8 +73,8 @@ public class NTLoginModule implements LoginModule {
      * @param subject the <code>Subject</code> to be authenticated. <p>
      *
      * @param callbackHandler a <code>CallbackHandler</code> for communicating
-     *			with the end user (prompting for usernames and
-     *			passwords, for example). This particular LoginModule only
+     *		with the end user (prompting for usernames and
+     *		passwords, for example). This particular LoginModule only
      *          extracts the underlying NT system information, so this
      *          parameter is ignored.<p>
      *
@@ -95,6 +94,11 @@ public class NTLoginModule implements LoginModule {
 
 	// initialize any configured options
 	debug = "true".equalsIgnoreCase((String)options.get("debug"));
+	debugNative="true".equalsIgnoreCase((String)options.get("debugNative"));
+
+	if (debugNative == true) {
+	    debug = true;
+	}
     }
 
     /**
@@ -112,11 +116,9 @@ public class NTLoginModule implements LoginModule {
      */
     public boolean login() throws LoginException {
         
-	ntSystem = null;
-	
 	succeeded = false; // Indicate not yet successful
 	
-	ntSystem = new NTSystem();
+	ntSystem = new NTSystem(debugNative);
 	if (ntSystem == null) {
 	    if (debug) {
 		System.out.println("\t\t[NTLoginModule] " +
@@ -127,51 +129,70 @@ public class NTLoginModule implements LoginModule {
 		 "underlying NT system identity information");
 	}
 	
-	ntUserPrincipal = new NTUserPrincipal(ntSystem.getName());
-	ntDomainPrincipal = new NTDomainPrincipal(ntSystem.getDomain());
-	{
-	    String temp = ntSystem.getDomainSID();
-	    if (!temp.equals(new String(""))) {
-		ntSidDomainPrincipal = new NTSidDomainPrincipal(temp);
-		temp = null;
-	    }
+	if (ntSystem.getName() == null) {
+	    throw new FailedLoginException
+		("Failed in attempt to import the " +
+		 "underlying NT system identity information");
 	}
-	ntSidUserPrincipal = new NTSidUserPrincipal(ntSystem.getUserSID());
-	String groups[] = ntSystem.getGroupIDs();
-	ntSidGroupPrincipals = new NTSidGroupPrincipal[groups.length];
-	for (int i = 0; i < groups.length; i++)
-	    ntSidGroupPrincipals[i]
-		= new NTSidGroupPrincipal(groups[i]);
-	ntSidPrimaryGroupPrincipal = 
-	    new NTSidPrimaryGroupPrincipal(ntSystem.getPrimaryGroupID());
-	ntNumericCredential = 
-	    new NTNumericCredential(ntSystem.getImpersonationToken());
-	
-	// authentication succeeded!!!
+	userPrincipal = new NTUserPrincipal(ntSystem.getName());
 	if (debug) {
 	    System.out.println("\t\t[NTLoginModule] " +
 			       "succeeded importing info: ");
-	    System.out.println("\t\t\tuserID = " + ntUserPrincipal.getName());
-	    System.out.println("\t\t\tdomain = " + ntDomainPrincipal.getName());
-	    if (ntSidDomainPrincipal == null) 
-		System.out.println("\t\t\tdomainSID = null");
-	    else
-		System.out.println("\t\t\tdomainSID = "
-				   + ntSidDomainPrincipal.getName());
-	    System.out.println("\t\t\tuserSID = " 
-			       + ntSidUserPrincipal.getName());
-	    System.out.println("\t\t\tprimary group ID = " +
-			       ntSidPrimaryGroupPrincipal.getName());
-	    if (ntSidGroupPrincipals != null) {
-		for (int i = 0; i < ntSidGroupPrincipals.length; i++) {
-		    System.out.println("\t\t\tgroup ID = "
-				       + ntSidGroupPrincipals[i].getName());
+	    System.out.println("\t\t\tuser name = " +
+		userPrincipal.getName());
+	}
+
+	if (ntSystem.getUserSID() != null) {
+	    userSID = new NTSidUserPrincipal(ntSystem.getUserSID());
+	    if (debug) {
+		System.out.println("\t\t\tuser SID = " +
+			userSID.getName());
+	    }
+	}
+	if (ntSystem.getDomain() != null) {
+	    userDomain = new NTDomainPrincipal(ntSystem.getDomain());
+	    if (debug) {
+		System.out.println("\t\t\tuser domain = " +
+			userDomain.getName());
+	    }
+	}
+	if (ntSystem.getDomainSID() != null) {
+	    domainSID =
+		new NTSidDomainPrincipal(ntSystem.getDomainSID());
+	    if (debug) {
+		System.out.println("\t\t\tuser domain SID = " +
+			domainSID.getName());
+	    }
+	}
+	if (ntSystem.getPrimaryGroupID() != null) {
+	    primaryGroup = 
+		new NTSidPrimaryGroupPrincipal(ntSystem.getPrimaryGroupID());
+	    if (debug) {
+		System.out.println("\t\t\tuser primary group = " +
+			primaryGroup.getName());
+	    }
+	}
+	if (ntSystem.getGroupIDs() != null &&
+	    ntSystem.getGroupIDs().length > 0) {
+
+	    String groupSIDs[] = ntSystem.getGroupIDs();
+	    groups = new NTSidGroupPrincipal[groupSIDs.length];
+	    for (int i = 0; i < groupSIDs.length; i++) {
+		groups[i] = new NTSidGroupPrincipal(groupSIDs[i]);
+		if (debug) {
+		    System.out.println("\t\t\tuser group = " +
+			groups[i].getName());
 		}
 	    }
-	    System.out.println("\t\t\timpersonationToken = "
-			       + Long.toString
-			       (ntNumericCredential.getToken()));
 	}
+	if (ntSystem.getImpersonationToken() != 0) {
+	    iToken = new NTNumericCredential(ntSystem.getImpersonationToken());
+	    if (debug) {
+		System.out.println("\t\t\timpersonation token = " +
+			ntSystem.getImpersonationToken());
+	    }
+	}
+
 	succeeded = true;
 	return succeeded;
     }
@@ -211,34 +232,35 @@ public class NTLoginModule implements LoginModule {
 	    throw new LoginException ("Subject is ReadOnly");
 	}
 	Set principals = subject.getPrincipals();
-	if (!principals.contains(ntUserPrincipal))
-	    principals.add(ntUserPrincipal);
-	if (!principals.contains(ntDomainPrincipal))
-	    principals.add(ntDomainPrincipal);
-	
-	// don't always have a SidDomainPrincipal
-	if (ntSidDomainPrincipal != null &&
-		!principals.contains(ntSidDomainPrincipal)) {
-	    principals.add(ntSidDomainPrincipal);
+
+	// we must have a userPrincipal - everything else is optional
+	if (!principals.contains(userPrincipal)) {
+	    principals.add(userPrincipal);
+	}
+	if (userSID != null && !principals.contains(userSID)) {
+	    principals.add(userSID);
 	}
 
-	if (!principals.contains(ntSidUserPrincipal))
-	    principals.add(ntSidUserPrincipal);
-	if (!principals.contains(ntSidPrimaryGroupPrincipal))
-	    principals.add(ntSidPrimaryGroupPrincipal);
-	for (int i = 0; i < ntSidGroupPrincipals.length; i++) {
-	    if (!principals.contains(ntSidGroupPrincipals[i]))
-		principals.add(ntSidGroupPrincipals[i]);
+	if (userDomain != null && !principals.contains(userDomain)) {
+	    principals.add(userDomain);
 	}
-	if (!subject.getPublicCredentials().contains(ntNumericCredential)) {
-	    subject.getPublicCredentials().add(ntNumericCredential);
+	if (domainSID != null && !principals.contains(domainSID)) {
+	    principals.add(domainSID);
+	}
+
+	if (primaryGroup != null && !principals.contains(primaryGroup)) {
+	    principals.add(primaryGroup);
+	}
+	for (int i = 0; groups != null && i < groups.length; i++) {
+	    if (!principals.contains(groups[i])) {
+		principals.add(groups[i]);
+	    }
 	}
 	
-	if (debug) {
-	    System.out.println("\t\t[NTLoginModule] " +
-			       "added NTPrincipal to Subject");
+	Set pubCreds = subject.getPublicCredentials();
+	if (iToken != null && !pubCreds.contains(iToken)) {
+	    pubCreds.add(iToken);
 	}
-	
 	commitSucceeded = true;
 	return true;
     }
@@ -271,14 +293,14 @@ public class NTLoginModule implements LoginModule {
 	if (succeeded == false) {
 	    return false;
 	} else if (succeeded == true && commitSucceeded == false) {
-	    ntUserPrincipal = null;
-	    ntDomainPrincipal = null;
-	    ntSidUserPrincipal = null;
-	    ntSidDomainPrincipal = null;
-	    ntSidGroupPrincipals = null;
-	    ntSidPrimaryGroupPrincipal = null;
-	    ntNumericCredential = null;
 	    ntSystem = null;
+	    userPrincipal = null;
+	    userSID = null;
+	    userDomain = null;
+	    domainSID = null;
+	    primaryGroup = null;
+	    groups = null;
+	    iToken = null;
 	    succeeded = false;
 	} else {
 	    // overall authentication succeeded and commit succeeded,
@@ -294,7 +316,7 @@ public class NTLoginModule implements LoginModule {
      * <p> This method removes the <code>NTUserPrincipal</code>,
      * <code>NTDomainPrincipal</code>, <code>NTSidUserPrincipal</code>,
      * <code>NTSidDomainPrincipal</code>, <code>NTSidGroupPrincipal</code>s,
-     * <code>NTSidPrimaryGroupPrincipal</code> and <code>NTNumericCredential</code>
+     * and <code>NTSidPrimaryGroupPrincipal</code>
      * that may have been added by the <code>commit</code> method.
      *
      * <p>
@@ -310,33 +332,41 @@ public class NTLoginModule implements LoginModule {
 	    throw new LoginException ("Subject is ReadOnly");
 	}
 	Set principals = subject.getPrincipals();
-	if (principals.contains(ntUserPrincipal))
-	    principals.remove(ntUserPrincipal);
-	if (principals.contains(ntDomainPrincipal))
-	    principals.remove(ntDomainPrincipal);
-	if (principals.contains(ntSidDomainPrincipal))
-	    principals.remove(ntSidDomainPrincipal);
-	if (principals.contains(ntSidUserPrincipal))
-	    principals.remove(ntSidUserPrincipal);
-	for (int i = 0; i < ntSidGroupPrincipals.length; i++) {
-	    if (principals.contains(ntSidGroupPrincipals[i]))
-		principals.remove(ntSidGroupPrincipals[i]);
+	if (principals.contains(userPrincipal)) {
+	    principals.remove(userPrincipal);
 	}
-	if (principals.contains(ntSidPrimaryGroupPrincipal))
-	    principals.remove(ntSidPrimaryGroupPrincipal);
-	if (principals.contains(ntNumericCredential))
-	    principals.remove(ntNumericCredential);
+	if (principals.contains(userSID)) {
+	    principals.remove(userSID);
+	}
+	if (principals.contains(userDomain)) {
+	    principals.remove(userDomain);
+	}
+	if (principals.contains(domainSID)) {
+	    principals.remove(domainSID);
+	}
+	if (principals.contains(primaryGroup)) {
+	    principals.remove(primaryGroup);
+	}
+	for (int i = 0; groups != null && i < groups.length; i++) {
+	    if (principals.contains(groups[i])) {
+		principals.remove(groups[i]);
+	    }
+	}
+
+	Set pubCreds = subject.getPublicCredentials();
+	if (pubCreds.contains(iToken)) {
+	    pubCreds.remove(iToken);
+	}
 	
 	succeeded = false;
 	commitSucceeded = false;
-	ntSystem.logoff(); // Clean up NT system resources
-	ntUserPrincipal = null;
-	ntDomainPrincipal = null;
-	ntSidUserPrincipal = null;
-	ntSidDomainPrincipal = null;
-	ntSidGroupPrincipals = null;
-	ntSidPrimaryGroupPrincipal = null;
-	ntNumericCredential = null;
+	userPrincipal = null;
+	userDomain = null;
+	userSID = null;
+	domainSID = null;
+	groups = null;
+	primaryGroup = null;
+	iToken = null;
 	ntSystem = null;
 		
 	if (debug) {

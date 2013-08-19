@@ -1,7 +1,7 @@
 /*
- * @(#)Clipboard.java	1.15 01/12/03
+ * @(#)Clipboard.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.awt.datatransfer;
  *
  * @see java.awt.Toolkit#getSystemClipboard
  *
- * @version 	1.15, 12/03/01
+ * @version 	1.18, 01/23/03
  * @author	Amy Fowler
  */
 public class Clipboard {
@@ -51,17 +51,22 @@ public class Clipboard {
      * unavailable.  For example, on some platforms, the system clipboard is 
      * unavailable while it is accessed by another application.
      *
-     * @param content the transferable object representing the clipboard content
+     * @param contents the transferable object representing the
+     *                 clipboard content
      * @param owner the object which owns the clipboard content
      * @throws IllegalStateException if the clipboard is currently unavailable
      * @see java.awt.Toolkit#getSystemClipboard
      */
     public synchronized void setContents(Transferable contents, ClipboardOwner owner) {
-        if (this.owner != null && this.owner != owner) {
-            this.owner.lostOwnership(this, this.contents);
-        }
+        final ClipboardOwner oldOwner = this.owner;
+        final Transferable oldContents = this.contents;
+  
         this.owner = owner;
         this.contents = contents;
+
+        if (oldOwner != null && oldOwner != owner) {
+            oldOwner.lostOwnership(this, oldContents);
+        }
     }
 
     /**

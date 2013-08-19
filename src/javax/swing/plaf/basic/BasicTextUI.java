@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextUI.java	1.81 02/04/24
+ * @(#)BasicTextUI.java	1.86 03/02/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -12,6 +12,7 @@ import java.awt.event.*;
 import java.awt.font.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
+import java.awt.im.InputContext;
 import java.beans.*;
 import java.io.*;
 import java.net.*;
@@ -84,7 +85,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.81 04/24/02
+ * @version 1.86 02/18/03
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -1663,6 +1664,11 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
                 }
                 if (newValue != null) {
                     ((Document)newValue).addDocumentListener(this);
+		    if ("document".equals(propertyName)) {
+			BasicTextUI.this.propertyChange(evt);
+			modelChanged();
+			return;
+		    }
                 }
                 modelChanged();
             }
@@ -2279,7 +2285,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         public boolean importData(JComponent comp, Transferable t) {
             JTextComponent c = (JTextComponent)comp;
 
-            // if we are importing to the same component that we exported from
+	    // if we are importing to the same component that we exported from
             // then don't actually do anything if the drop location is inside
             // the drag location and set shouldRemove to false so that exportDone
             // knows not to remove any data
@@ -2300,6 +2306,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
                             useRead = true;
                         }
                     }
+		    InputContext ic = c.getInputContext();
+		    if (ic != null) {
+			ic.endComposition();
+		    }
                     Reader r = importFlavor.getReaderForText(t);
                     handleReaderImport(r, c, useRead);
                     imported = true;

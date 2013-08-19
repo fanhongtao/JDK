@@ -69,14 +69,22 @@ import java.lang.StringBuffer;
  * <meta name="usage" content="internal"/>
  * This class is used to resolve relative URIs and SystemID 
  * strings into absolute URIs.
+ *
+ * <p>This is a generic utility for resolving URIs, other than the 
+ * fact that it's declared to throw TransformerException.  Please 
+ * see code comments for details on how resolution is performed.</p>
  */
 public class SystemIDResolver
 {
 
   /**
    * Get absolute URI from a given relative URI. 
-   * The URI is resolved relative to the system property "user.dir"
-   *
+   * 
+   * <p>The URI is resolved relative to the system property "user.dir" 
+   * if it is available; if not (i.e. in an Applet perhaps which 
+   * throws SecurityException) then it is currently resolved 
+   * relative to "" or a blank string.  Also replaces all 
+   * backslashes with forward slashes.</p>
    *
    * @param uri Relative URI to resolve
    *
@@ -86,7 +94,11 @@ public class SystemIDResolver
   public static String getAbsoluteURIFromRelative(String uri)
   {
 
-    String curdir = System.getProperty("user.dir");
+    String curdir = "";
+    try {
+      curdir = System.getProperty("user.dir");
+    }
+    catch (SecurityException se) {}// user.dir not accessible from applet
 
     if (null != curdir)
     {
@@ -95,7 +107,12 @@ public class SystemIDResolver
         base = "file://" + curdir;
       else
         base = "file:///" + curdir;
+        
       if (uri != null)
+        // Note: this should arguably stick in a '/' forward 
+        //  slash character instead of the file separator, 
+        //  since we're effectively assuming it's a hierarchical 
+        //  URI and adding in the abs_path separator -sc
         uri = base + System.getProperty("file.separator") + uri;
       else
         uri = base + System.getProperty("file.separator");
@@ -120,16 +137,32 @@ public class SystemIDResolver
   {
     if (url.startsWith(".."))
       url = new File(url).getAbsolutePath();
+      
     if (url.startsWith(File.separator))
+    {
+      // If the url starts with a path separator, we assume it's 
+      //  a reference to a file: scheme (why do we do this? -sc)
       url = "file://" + url;
+    }
     else if (url.indexOf(':') < 0)
     {
+      // If the url does not have a colon: character (which 
+      //  separates the scheme part from the rest) then it 
+      //  must be a relative one, so go get an absolute one -sc
       url = getAbsoluteURIFromRelative(url);
     }
-    else if (url.startsWith("file:") && url.charAt(5) != '/') 
-    {
-      url = getAbsoluteURIFromRelative(url.substring(5));
-    }
+
+    // Bugzilla#5701: the below else if is incorrect, if you read 
+    //  section 5.2 of RFC 2396.  If the url did start with file:, 
+    //  it implies we should assume it's absolute and be done 
+    //  with resolving.  Note that I'm not even sure why we put 
+    //  in the second check for '/' anyways -sc
+    //else if (url.startsWith("file:") && url.charAt(5) != '/') 
+    //{
+    //  url = getAbsoluteURIFromRelative(url.substring(5));
+    //}
+    // Bugzilla#5701 comment out code end 
+
     return url;
   }
 
@@ -149,14 +182,27 @@ public class SystemIDResolver
     boolean isAbsouteUrl = false;
     boolean needToResolve = false;    
  
-    if(urlString.startsWith("file:") && urlString.charAt(5) != '/') 
+    // Bugzilla#5701: the below if is incorrect, if you read 
+    //  section 5.2 of RFC 2396.  If the url did start with file:, 
+    //  it implies we should assume it's absolute and be done 
+    //  with resolving.  Note that I'm not even sure why we put 
+    //  in the second check for '/' anyways -sc
+    //if(urlString.startsWith("file:") && urlString.charAt(5) != '/') 
+    //{
+    //  needToResolve = true;
+    //}
+    //else if (urlString.indexOf(':') > 0)
+    // Bugzilla#5701 comment out code end 
+    if (urlString.indexOf(':') > 0)
     {
-      needToResolve = true;
-    }
-    else if (urlString.indexOf(':') > 0)
+      // If there is a colon to separate the scheme from the rest, 
+      //  it should be an absolute URL
       isAbsouteUrl = true;
+    }
     else if (urlString.startsWith(File.separator))
     {
+      // If the url starts with a path separator, we assume it's 
+      //  a reference to a file: scheme (why do we do this? -sc)
       urlString = "file://" + urlString;
       isAbsouteUrl = true;
     }
@@ -213,6 +259,15 @@ public class SystemIDResolver
     }
 
     String uriStr = uri.toString();
+    
+    // Not so sure if this is good.  But, for now, I'll try it. We really must 
+    // make sure the return from this function is a URL!
+    if((Character.isLetter(uriStr.charAt(0)) && (uriStr.charAt(1) == ':') 
+     && (uriStr.charAt(2) == '/') && (uriStr.length() == 3 || uriStr.charAt(3) != '/'))
+       || ((uriStr.charAt(0) == '/') && (uriStr.length() == 1 || uriStr.charAt(1) != '/')))
+    {
+    	uriStr = "file:///"+uriStr;
+    }
     return uriStr;
   }
 }

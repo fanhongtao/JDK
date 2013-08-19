@@ -1,7 +1,7 @@
 /*
- * @(#)TextListener.java	1.10 01/12/03
+ * @(#)TextListener.java	1.11 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.util.EventListener;
  * <code>textValueChanged</code> method is invoked.
  *
  * @author Georges Saab
- * @version 1.10 12/03/01
+ * @version 1.11 01/23/03
  *
  * @see TextEvent
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/textlistener.html">Tutorial: Writing a Text Listener</a>

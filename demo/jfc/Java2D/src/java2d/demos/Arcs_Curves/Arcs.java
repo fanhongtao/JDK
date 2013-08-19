@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)Arcs.java	1.20 02/06/13
+ * @(#)Arcs.java	1.21 03/01/23
  */
 
 package java2d.demos.Arcs_Curves;

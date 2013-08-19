@@ -1,7 +1,7 @@
 /*
- * @(#)SerializablePermission.java	1.15 02/02/01
+ * @(#)SerializablePermission.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.util.StringTokenizer;
  * and a discussion of the risks of granting code the permission.
  * <P>
  *
- * <table border=1 cellpadding=5>
+ * <table border=1 cellpadding=5 summary="Permission target name, what the permission allows, and associated risks">
  * <tr>
  * <th>Permission Target Name</th>
  * <th>What the Permission Allows</th>
@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.15, 02/01/02
+ * @version 1.17, 01/23/03
  *
  * @author Joe Fialli
  * @since 1.2

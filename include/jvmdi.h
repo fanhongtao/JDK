@@ -1,7 +1,7 @@
 /*
- * @(#)jvmdi.h	1.44 01/12/03
+ * @(#)jvmdi.h	1.47 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,7 @@
 #define JVMDI_VERSION_1    0x20010000
 #define JVMDI_VERSION_1_1  0x20010001
 #define JVMDI_VERSION_1_2  0x20010002
+#define JVMDI_VERSION_1_3  0x20010003
 
 #ifdef __cplusplus
 extern "C" {
@@ -545,7 +546,7 @@ typedef struct {
     unsigned int can_redefine_classes              : 1; 
     unsigned int can_add_method                    : 1;
     unsigned int can_unrestrictedly_redefine_classes : 1;
-    unsigned int reserved5                         : 1;
+    unsigned int can_suspend_resume_thread_lists   : 1;
 } JVMDI_capabilities;
 
 typedef struct JVMDI_Interface_1_ {
@@ -761,6 +762,11 @@ typedef struct JVMDI_Interface_1_ {
       (jclass clazz, char **sourceDebugExtension);
     jvmdiError (JNICALL *IsMethodObsolete)
       (jclass clazz, jmethodID method, jboolean *isObsoletePtr);
+
+    jvmdiError (JNICALL *SuspendThreadList)
+      (jint reqCount, jthread *reqList, jvmdiError *results); 
+    jvmdiError (JNICALL *ResumeThreadList)
+      (jint reqCount, jthread *reqList, jvmdiError *results); 
 } JVMDI_Interface_1;
   
 #ifndef NO_JVMDI_MACROS

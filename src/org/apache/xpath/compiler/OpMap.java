@@ -56,10 +56,10 @@
  */
 package org.apache.xpath.compiler;
 
-import java.util.Vector;
-
-import org.apache.xml.utils.QName;
+import org.apache.xalan.res.XSLMessages;
+import org.apache.xml.utils.ObjectVector;
 import org.apache.xpath.patterns.NodeTest;
+import org.apache.xpath.res.XPATHErrorResources;
 
 /**
  * This class represents the data structure basics of the XPath
@@ -94,23 +94,28 @@ public class OpMap
   }
 
   /**
-   * The max size that the token queue can grow to.
+   * The starting size of the token queue.
    */
   static final int MAXTOKENQUEUESIZE = 500;
 
+  /*
+   * Amount to grow token queue when it becomes full
+   */
+  static final int BLOCKTOKENQUEUESIZE = 500;
+  
   /**
    *  TokenStack is the queue of used tokens. The current token is the token at the
    * end of the m_tokenQueue. The idea is that the queue can be marked and a sequence
    * of tokens can be reused.
    */
-  public Object[] m_tokenQueue = new Object[MAXTOKENQUEUESIZE];
+  ObjectVector m_tokenQueue = new ObjectVector(MAXTOKENQUEUESIZE, BLOCKTOKENQUEUESIZE);
 
   /**
    * Get the XPath as a list of tokens.
    *
-   * @return an array of string tokens.
+   * @return ObjectVector of tokens.
    */
-  public Object[] getTokenQueue()
+  public ObjectVector getTokenQueue()
   {
     return m_tokenQueue;
   }
@@ -124,13 +129,13 @@ public class OpMap
    */
   public Object getToken(int pos)
   {
-    return m_tokenQueue[pos];
+    return m_tokenQueue.elementAt(pos);
   }
 
   /**
    * The current size of the token queue.
    */
-  public int m_tokenQueueSize = 0;
+//  public int m_tokenQueueSize = 0;
 
   /**
     * Get size of the token queue.
@@ -139,7 +144,8 @@ public class OpMap
    */
   public int getTokenQueueSize()
   {
-    return m_tokenQueueSize;
+    return m_tokenQueue.size();
+    
   }
 
   /**
@@ -148,7 +154,7 @@ public class OpMap
    * I use an array instead of a full parse tree in order to cut down
    * on the number of objects created.
    */
-  public int m_opMap[] = null;
+  OpMapVector m_opMap = null;
 
   /**
     * Get the opcode list that describes the XPath operations.  It contains
@@ -156,9 +162,9 @@ public class OpMap
    * I use an array instead of a full parse tree in order to cut down
    * on the number of objects created.
    *
-   * @return An array of integers that is the opcode list that describes the XPath operations.
+   * @return An IntVector that is the opcode list that describes the XPath operations.
    */
-  public int[] getOpMap()
+  public OpMapVector getOpMap()
   {
     return m_opMap;
   }
@@ -179,36 +185,20 @@ public class OpMap
   void shrink()
   {
 
-    int map[] = m_opMap;
-    int n = m_opMap[MAPINDEX_LENGTH];
-    ;
+    int n = m_opMap.elementAt(MAPINDEX_LENGTH);
+    m_opMap.setToSize(n + 4);
 
-    m_opMap = new int[n + 4];
+    m_opMap.setElementAt(0,n);
+    m_opMap.setElementAt(0,n+1);
+    m_opMap.setElementAt(0,n+2);
 
-    int i;
 
-    for (i = 0; i < n; i++)
-    {
-      m_opMap[i] = map[i];
-    }
+    n = m_tokenQueue.size();
+    m_tokenQueue.setToSize(n + 4);
 
-    m_opMap[i] = 0;
-    m_opMap[i + 1] = 0;
-    m_opMap[i + 2] = 0;
-
-    Object[] tokens = m_tokenQueue;
-
-    n = m_tokenQueueSize;
-    m_tokenQueue = new Object[n + 4];
-
-    for (i = 0; i < n; i++)
-    {
-      m_tokenQueue[i] = tokens[i];
-    }
-
-    m_tokenQueue[i] = null;
-    m_tokenQueue[i + 1] = null;
-    m_tokenQueue[i + 2] = null;
+    m_tokenQueue.setElementAt(null,n);
+    m_tokenQueue.setElementAt(null,n + 1);
+    m_tokenQueue.setElementAt(null,n + 2);
   }
 
   /**
@@ -219,9 +209,20 @@ public class OpMap
    */
   public int getOp(int opPos)
   {
-    return m_opMap[opPos];
+    return m_opMap.elementAt(opPos);
   }
 
+  /**
+  * Set the op at index to the given int.
+   *
+   * @param opPos index into op map.
+   * @param value Value to set
+   */
+  public void setOp(int opPos, int value)
+  {
+     m_opMap.setElementAt(value,opPos);
+  }
+  
   /**
    * Given an operation position, return the end position, i.e. the
    * beginning of the next operation.
@@ -232,7 +233,7 @@ public class OpMap
    */
   public int getNextOpPos(int opPos)
   {
-    return opPos + m_opMap[opPos + 1];
+    return opPos + m_opMap.elementAt(opPos + 1);
   }
 
   /**
@@ -275,8 +276,8 @@ public class OpMap
     else
     {
       throw new RuntimeException(
-        "Programmer's assertion in getNextStepPos: unknown stepType: "
-        + stepType);
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_UNKNOWN_STEP, new Object[]{new Integer(stepType).toString()})); 
+      //"Programmer's assertion in getNextStepPos: unknown stepType: " + stepType);
     }
   }
 
@@ -309,17 +310,17 @@ public class OpMap
      throws javax.xml.transform.TransformerException
   {
 
-    int stepType = m_opMap[opPos];
+    int stepType = m_opMap.elementAt(opPos);
 
     if ((stepType >= OpCodes.AXES_START_TYPES)
             && (stepType <= OpCodes.AXES_END_TYPES))
     {
-      return opPos + m_opMap[opPos + 2];
+      return opPos + m_opMap.elementAt(opPos + 2);
     }
     else if ((stepType >= OpCodes.FIRST_NODESET_OP)
              && (stepType <= OpCodes.LAST_NODESET_OP))
     {
-      return opPos + m_opMap[opPos + 1];
+      return opPos + m_opMap.elementAt(opPos + 1);
     }
     else if(-2 == stepType)
     {
@@ -337,7 +338,7 @@ public class OpMap
    * Tell the user of an error, and probably throw an
    * exception.
    *
-   * @param msg An error number that corresponds to one of the numbers found 
+   * @param msg An error msgkey that corresponds to one of the constants found 
    *            in {@link org.apache.xpath.res.XPATHErrorResources}, which is 
    *            a key for a format string.
    * @param args An array of arguments represented in the format string, which 
@@ -346,7 +347,7 @@ public class OpMap
    * @throws TransformerException if the current ErrorListoner determines to 
    *                              throw an exception.
    */
-  public void error(int msg, Object[] args) throws javax.xml.transform.TransformerException
+  public void error(String msg, Object[] args) throws javax.xml.transform.TransformerException
   {
 
     java.lang.String fmsg = org.apache.xalan.res.XSLMessages.createXPATHMessage(msg, args);
@@ -377,7 +378,7 @@ public class OpMap
    */
   public int getArgLength(int opPos)
   {
-    return m_opMap[opPos + MAPINDEX_LENGTH];
+    return m_opMap.elementAt(opPos + MAPINDEX_LENGTH);
   }
 
   /**
@@ -389,7 +390,7 @@ public class OpMap
    */
   public int getArgLengthOfStep(int opPos)
   {
-    return m_opMap[opPos + MAPINDEX_LENGTH + 1] - 3;
+    return m_opMap.elementAt(opPos + MAPINDEX_LENGTH + 1) - 3;
   }
 
   /**
@@ -413,7 +414,7 @@ public class OpMap
    */
   public int getStepTestType(int opPosOfStep)
   {
-    return m_opMap[opPosOfStep + 3];  // skip past op, len, len without predicates
+    return m_opMap.elementAt(opPosOfStep + 3);  // skip past op, len, len without predicates
   }
 
   /**
@@ -431,10 +432,10 @@ public class OpMap
     // System.out.println("getStepNS.argLenOfStep: "+argLenOfStep);
     if (argLenOfStep == 3)
     {
-      int index = m_opMap[opPosOfStep + 4];
+      int index = m_opMap.elementAt(opPosOfStep + 4);
 
       if (index >= 0)
-        return (String) m_tokenQueue[index];
+        return (String) m_tokenQueue.elementAt(index);
       else if (OpCodes.ELEMWILDCARD == index)
         return NodeTest.WILD;
       else
@@ -467,10 +468,10 @@ public class OpMap
       index = OpCodes.ELEMWILDCARD;
       break;
     case 2 :
-      index = m_opMap[opPosOfStep + 4];
+      index = m_opMap.elementAt(opPosOfStep + 4);
       break;
     case 3 :
-      index = m_opMap[opPosOfStep + 5];
+      index = m_opMap.elementAt(opPosOfStep + 5);
       break;
     default :
       index = OpCodes.EMPTY;
@@ -480,11 +481,11 @@ public class OpMap
     // int index = (argLenOfStep == 3) ? m_opMap[opPosOfStep+5] 
     //                                  : ((argLenOfStep == 1) ? -3 : -2);
     if (index >= 0)
-      return (String) m_tokenQueue[index].toString();
+      return (String) m_tokenQueue.elementAt(index).toString();
     else if (OpCodes.ELEMWILDCARD == index)
       return NodeTest.WILD;
     else
       return null;
   }
-
+  
 }

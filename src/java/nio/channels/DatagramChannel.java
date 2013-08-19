@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramChannel.java	1.30 01/12/17
+ * @(#)DatagramChannel.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import java.nio.channels.spi.*;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.30, 01/12/17
+ * @version 1.31, 03/01/23
  * @since 1.4
  */
 

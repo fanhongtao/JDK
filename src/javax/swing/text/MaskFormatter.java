@@ -1,7 +1,7 @@
 /*
- * @(#)MaskFormatter.java	1.5 01/12/03
+ * @(#)MaskFormatter.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,26 +15,42 @@ import javax.swing.text.*;
 
 /**
  * <code>MaskFormatter</code> is used to format and edit strings. The behavior
- * of a <code>MaskFormatter</code> is controlled by way off a String mask
+ * of a <code>MaskFormatter</code> is controlled by way of a String mask
  * that specifies the valid characters that can be contained at a particular
  * location in the <code>Document</code> model. The following characters can
  * be specified:
- * <table>
- *   <tr><td>#</td><td>Any valid number, uses <code>Character.isDigit</code>.
- *                   </td></tr>
- *   <tr><td>'</td><td>Escape character, used to escape any of the
-	  special formatting characters.</td></tr>
- *   <tr><td>U</td><td>Any character (<code>Character.isLetter</code>). All
-	  lowercase letters are mapped to upper case.</td></tr>
- *   <tr><td>L</td><td>Any character (<code>Character.isLetter</code>). All
-	  upper case letters are mapped to lower case.</td></tr>
- *   <tr><td>A</td><td>Any character or number (<code>Character.isLetter</code>
-	  or <code>Character.isDigit</code>)</td></tr>
- *   <tr><td>?</td><td>Any character
-	  (<code>Character.isLetter</code>).</td></tr>
- *   <tr><td>*</td><td>Anything.</td></tr>
- *   <tr><td>H</td><td>Any hex character (0-9, a-f or A-F).</td></tr>
+ *
+ * <table border=1 summary="Valid characters and their descriptions">
+ * <tr>
+ *    <th>Character&nbsp;</th>
+ *    <th><p align="left">Description</p></th>
+ * </tr>
+ * <tr>
+ *    <td>#</td>
+ *    <td>Any valid number, uses <code>Character.isDigit</code>.</td>
+ * </tr>
+ * <tr>
+ *    <td>'</td>
+ *    <td>Escape character, used to escape any of the
+ *       special formatting characters.</td>
+ * </tr>
+ * <tr>
+ *    <td>U</td><td>Any character (<code>Character.isLetter</code>). All
+ *        lowercase letters are mapped to upper case.</td>
+ * </tr>
+ * <tr><td>L</td><td>Any character (<code>Character.isLetter</code>). All
+ *        upper case letters are mapped to lower case.</td>
+ * </tr>
+ * <tr><td>A</td><td>Any character or number (<code>Character.isLetter</code>
+ *       or <code>Character.isDigit</code>)</td>
+ * </tr>
+ * <tr><td>?</td><td>Any character
+ *        (<code>Character.isLetter</code>).</td>
+ * </tr>
+ * <tr><td>*</td><td>Anything.</td></tr>
+ * <tr><td>H</td><td>Any hex character (0-9, a-f or A-F).</td></tr>
  * </table>
+ *
  * <p>
  * Typically characters correspond to one char, but in certain languages this
  * is not the case. The mask is on a per character basis, and will thus
@@ -114,7 +130,7 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.5 12/03/01
+ * @version 1.8 01/23/03
  * @since 1.4
  */
 public class MaskFormatter extends DefaultFormatter {
@@ -226,7 +242,7 @@ public class MaskFormatter extends DefaultFormatter {
      * in null (the default) implies the valid characters are only bound
      * by the mask and the valid characters.
      *
-     * @param validCharacters If non-null, specifies illegal characters.
+     * @param invalidCharacters If non-null, specifies illegal characters.
      */
     public void setInvalidCharacters(String invalidCharacters) {
         this.invalidCharacters = invalidCharacters;
@@ -330,7 +346,7 @@ public class MaskFormatter extends DefaultFormatter {
      * mask.
      *
      * @throws ParseException if there is an error in the conversion
-     * @param text String to convert
+     * @param value String to convert
      * @return Object representation of text
      */
     public Object stringToValue(String value) throws ParseException {

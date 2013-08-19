@@ -92,8 +92,25 @@ import javax.xml.transform.SourceLocator;
  * implementation of DTM can be created that wraps a DOM and vice
  * versa.</p>
  *
- * <p>State: In progress!!</p>
- */
+ * <p><strong>Please Note:</strong> The DTM API is still
+ * <strong>Subject To Change.</strong> This wouldn't affect most
+ * users, but might require updating some extensions.</p>
+ *
+ * <p> The largest change being contemplated is a reconsideration of
+ * the Node Handle representation.  We are still not entirely sure
+ * that an integer packed with two numeric subfields is really the
+ * best solution. It has been suggested that we move up to a Long, to
+ * permit more nodes per document without having to reduce the number
+ * of slots in the DTMManager. There's even been a proposal that we
+ * replace these integers with "cursor" objects containing the
+ * internal node id and a pointer to the actual DTM object; this might
+ * reduce the need to continuously consult the DTMManager to retrieve
+ * the latter, and might provide a useful "hook" back into normal Java
+ * heap management.  But changing this datatype would have huge impact
+ * on Xalan's internals -- especially given Java's lack of C-style
+ * typedefs -- so we won't cut over unless we're convinced the new
+ * solution really would be an improvement!</p>
+ * */
 public interface DTM
 {
 
@@ -173,6 +190,11 @@ public interface DTM
    * currently a node type defined by the DOM API.
    */
   public static final short NAMESPACE_NODE = 13;
+  
+  /**
+   * The number of valid nodetypes.
+   */
+  public static final short  NTYPES = 14;
 
   // ========= DTM Implementation Control Functions. ==============
   // %TBD% RETIRED -- do via setFeature if needed. Remove from impls.
@@ -358,25 +380,40 @@ public interface DTM
   public int getParent(int nodeHandle);
 
   /**
-   * Given a node handle, find the owning document node. Note that
-   * the reason this can't just return 0 is that it needs to include the
-   * document number portion of the node handle.
+   * Given a DTM which contains only a single document, 
+   * find the Node Handle of the  Document node. Note 
+   * that if the DTM is configured so it can contain multiple
+   * documents, this call will return the Document currently
+   * under construction -- but may return null if it's between
+   * documents. Generally, you should use getOwnerDocument(nodeHandle)
+   * or getDocumentRoot(nodeHandle) instead.
    *
-   * @param nodeHandle the id of the node.
-   * @return int Node handle of document, which should always be valid.
+   * @return int Node handle of document, or DTM.NULL if a shared DTM
+   * can not tell us which Document is currently active.
    */
   public int getDocument();
 
   /**
-   * Given a node handle, find the owning document node.  This has the exact
-   * same semantics as the DOM Document method of the same name, in that if
-   * the nodeHandle is a document node, it will return NULL.
+   * Given a node handle, find the owning document node. This version mimics
+   * the behavior of the DOM call by the same name.
    *
    * @param nodeHandle the id of the node.
-   * @return int Node handle of owning document,
-   * or DTM.NULL if the nodeHandle is a document.
+   * @return int Node handle of owning document, or DTM.NULL if the node was
+   * a Document.
+   * @see getDocumentRoot(int nodeHandle)
    */
   public int getOwnerDocument(int nodeHandle);
+
+  /**
+   * Given a node handle, find the owning document node.
+   *
+   * @param nodeHandle the id of the node.
+   * @return int Node handle of owning document, or the node itself if it was
+   * a Document. (Note difference from DOM, where getOwnerDocument returns
+   * null for the Document node.)
+   * @see getOwnerDocument(int nodeHandle)
+   */
+  public int getDocumentRoot(int nodeHandle);
 
   /**
    * Get the string-value of a node as a String object

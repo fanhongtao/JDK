@@ -1,7 +1,7 @@
 /*
- * @(#)TreeMap.java	1.54 01/12/03
+ * @(#)TreeMap.java	1.56 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -60,10 +60,14 @@ package java.util;
  * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:   <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
+ * should be used only to detect bugs.</i><p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.54, 12/03/01
+ * @version 1.56, 01/23/03
  * @see Map
  * @see HashMap
  * @see Hashtable

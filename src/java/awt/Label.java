@@ -1,7 +1,7 @@
 /*
- * @(#)Label.java	1.52 01/12/03
+ * @(#)Label.java	1.55 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -25,12 +25,12 @@ import javax.accessibility.*;
  * add(new Label("Another Label"));
  * </pre></blockquote><hr>
  * <p>
- * produces the following label:
+ * produces the following labels:
  * <p>
- * <img src="doc-files/Label-1.gif"
+ * <img src="doc-files/Label-1.gif" alt="Two labels: 'Hi There!' and 'Another label'"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.52, 12/03/01
+ * @version	1.55, 01/23/03
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -66,8 +66,8 @@ public class Label extends Component implements Accessible {
      * but never by the user.
      *
      * @serial
-     * @see getText()
-     * @see setText()
+     * @see #getText()
+     * @see #setText(String)
      */
     String text;
 
@@ -76,8 +76,8 @@ public class Label extends Component implements Accessible {
      * to be left justified.
      *
      * @serial
-     * @see getAlignment()
-     * @see setAlignment()
+     * @see #getAlignment()
+     * @see #setAlignment(int)
      */
     int	   alignment = LEFT;
 
@@ -227,7 +227,6 @@ public class Label extends Component implements Accessible {
      */
     public void setText(String text) {
         boolean testvalid = false;
-
 	synchronized (this) {
 	    if (text != this.text && (this.text == null ||
 				      !this.text.equals(text))) {

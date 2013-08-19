@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTabbedPaneUI.java	1.29 01/12/03
+ * @(#)MetalTabbedPaneUI.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -947,6 +947,10 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
      * Instantiate it only within subclasses of MetalTabbedPaneUI.
      */  
     public class TabbedPaneLayout extends BasicTabbedPaneUI.TabbedPaneLayout {
+
+	public TabbedPaneLayout() {
+	    MetalTabbedPaneUI.this.super();
+	}
 
         protected void normalizeTabRuns( int tabPlacement, int tabCount, 
                                      int start, int max ) {

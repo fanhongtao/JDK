@@ -1,7 +1,7 @@
 /*
- * @(#)TabStop.java	1.18 02/02/07
+ * @(#)TabStop.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -23,7 +23,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 02/07/02
+ * @version 1.19 01/23/03
  */
 public class TabStop implements Serializable {
 

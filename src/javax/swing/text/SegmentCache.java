@@ -1,7 +1,7 @@
 /*
- * @(#)SegmentCache.java	1.3 01/12/03
+ * @(#)SegmentCache.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -20,7 +20,7 @@ import java.util.List;
  *   segmentCache.releaseSegment(segment);
  * </pre>
  *
- * @version 1.3 12/03/01
+ * @version 1.4 01/23/03
  */
 class SegmentCache {
     /**

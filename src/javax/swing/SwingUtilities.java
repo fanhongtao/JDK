@@ -1,7 +1,7 @@
 /*
- * @(#)SwingUtilities.java	1.116 02/03/18
+ * @(#)SwingUtilities.java	1.120 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -25,7 +25,7 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.116 03/18/02
+ * @version 1.120 01/23/03
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -852,6 +852,7 @@ public class SwingUtilities implements SwingConstants
          */
 
         boolean textIsEmpty = (text == null) || text.equals("");
+        int lsb = 0;
 
 	View v = null;
         if (textIsEmpty) {
@@ -865,6 +866,13 @@ public class SwingUtilities implements SwingConstants
 		textR.height = (int) v.getPreferredSpan(View.Y_AXIS);
 	    } else {
 		textR.width = computeStringWidth(fm,text);
+                lsb = com.sun.java.swing.SwingUtilities2.getLeftSideBearing(
+                                         fm.getFont(), text);
+                if (lsb < 0) {
+                    // If lsb is negative, add it to the width, the
+                    // text bounds will later be adjusted accordingly.
+                    textR.width -= lsb;
+                }
 		textR.height = fm.getHeight();
 	    }
         }
@@ -992,6 +1000,16 @@ public class SwingUtilities implements SwingConstants
 
         iconR.x += dx;
         iconR.y += dy;
+
+        if (lsb < 0) {
+            // lsb is negative. We previously adjusted the bounds by lsb,
+            // we now need to shift the x location so that the text is
+            // drawn at the right location. The result is textR does not
+            // line up with the actual bounds (on the left side), but we will
+            // have provided enough space for the text.
+            textR.width += lsb;
+            textR.x -= lsb;
+        }
 
         return text;
     }
@@ -1331,7 +1349,7 @@ public class SwingUtilities implements SwingConstants
      * Return the child <code>Component</code> of the specified
      * <code>Component</code> that is the focus owner, if any.
      *
-     * @param comp the root of the <code>Component</code> hierarchy to
+     * @param c the root of the <code>Component</code> hierarchy to
      *        search for the focus owner
      * @return the focus owner, or <code>null</code> if there is no focus
      *         owner, or if the focus owner is not <code>comp</code>, or a
@@ -1525,7 +1543,7 @@ public class SwingUtilities implements SwingConstants
      */
     public static void replaceUIInputMap(JComponent component, int type,
 					 InputMap uiInputMap) {
-	InputMap map = component.getInputMap(type);
+	InputMap map = component.getInputMap(type, (uiInputMap != null));
 
 	while (map != null) {
 	    InputMap parent = map.getParent();
@@ -1547,7 +1565,7 @@ public class SwingUtilities implements SwingConstants
      */
     public static void replaceUIActionMap(JComponent component,
 					  ActionMap uiActionMap) {
-	ActionMap map = component.getActionMap();
+        ActionMap map = component.getActionMap((uiActionMap != null));;
 
 	while (map != null) {
 	    ActionMap parent = map.getParent();

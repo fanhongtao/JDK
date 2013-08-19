@@ -1,7 +1,7 @@
 /*
- * @(#)RMISecurityException.java	1.13 01/12/03
+ * @(#)RMISecurityException.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi;
@@ -11,7 +11,7 @@ package java.rmi;
  * has occurred during the execution of one of
  * <code>java.rmi.RMISecurityManager</code>'s methods.
  *
- * @version 1.13, 12/03/01
+ * @version 1.14, 01/23/03
  * @author  Roger Riggs
  * @since   JDK1.1
  * @deprecated Use {@link java.lang.SecurityException} instead.

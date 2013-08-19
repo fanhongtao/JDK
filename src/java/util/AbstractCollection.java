@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractCollection.java	1.23 01/12/03
+ * @(#)AbstractCollection.java	1.24 03/01/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,10 +28,14 @@ package java.util;
  *
  * The documentation for each non-abstract methods in this class describes its
  * implementation in detail.  Each of these methods may be overridden if
- * the collection being implemented admits a more efficient implementation.
+ * the collection being implemented admits a more efficient implementation.<p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.23, 12/03/01
+ * @version 1.24, 01/18/03
  * @see Collection
  * @since 1.2
  */

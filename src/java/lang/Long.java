@@ -1,7 +1,7 @@
 /*
- * @(#)Long.java	1.64 02/03/21
+ * @(#)Long.java	1.66 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.64, 03/21/02
+ * @version 1.66, 01/23/03
  * @since   JDK1.0
  */
 public final class Long extends Number implements Comparable {
@@ -89,26 +89,27 @@ public final class Long extends Number implements Comparable {
     public static String toString(long i, int radix) {
         if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
 	    radix = 10;
+        if (radix == 10)
+            return toString(i);
+        char[] buf = new char[65];
+        int charPos = 64;
+        boolean negative = (i < 0);
 
-	char[] buf = new char[65];
-	int charPos = 64;
-	boolean negative = (i < 0);
+        if (!negative) {
+            i = -i;
+        }
 
-	if (!negative) {
-	    i = -i;
-	}
+        while (i <= -radix) {
+            buf[charPos--] = Integer.digits[(int)(-(i % radix))];
+            i = i / radix;
+        }
+        buf[charPos] = Integer.digits[(int)(-i)];
 
-	while (i <= -radix) {
-	    buf[charPos--] = Integer.digits[(int)(-(i % radix))];
-	    i = i / radix;
-	}
-	buf[charPos] = Integer.digits[(int)(-i)];
+        if (negative) { 
+            buf[--charPos] = '-';
+        }
 
-	if (negative) {
-	    buf[--charPos] = '-';
-	}
-
-	return new String(buf, charPos, (65 - charPos));
+        return new String(buf, charPos, (65 - charPos));
     }
 
     /**
@@ -229,7 +230,77 @@ public final class Long extends Number implements Comparable {
      * @return  a string representation of the argument in base&nbsp;10.
      */
     public static String toString(long i) {
-	return toString(i, 10);
+        if (i == Long.MIN_VALUE)
+            return "-9223372036854775808";
+        char[] buf = (char[])(perThreadBuffer.get());
+        int charPos = getChars(i, buf);
+        return new String(buf, charPos, (20 - charPos));
+    }
+
+    // Per-thread buffer for string/stringbuffer conversion
+    private static ThreadLocal perThreadBuffer = new ThreadLocal() {
+        protected synchronized Object initialValue() {
+            return new char[20];
+        }
+    };
+
+    private static int getChars(long i, char[] buf) {
+        long q;
+        int r;
+        int charPos = 20;
+        char sign = 0;
+
+        if (i < 0) {
+            sign = '-';
+            i = -i;
+        }
+
+        // Get 2 digits/iteration using longs until quotient fits into an int
+        while (i > Integer.MAX_VALUE) { 
+            q = i / 100;
+            // really: r = i - (q * 100);
+            r = (int)(i - ((q << 6) + (q << 5) + (q << 2)));
+            i = q;
+            buf[--charPos] = Integer.DigitOnes[r];
+            buf[--charPos] = Integer.DigitTens[r];
+        }
+
+        // Get 2 digits/iteration using ints
+        int q2;
+        int i2 = (int)i;
+        while (i2 >= 65536) {
+            q2 = i2 / 100;
+            // really: r = i2 - (q * 100);
+            r = i2 - ((q2 << 6) + (q2 << 5) + (q2 << 2));
+            i2 = q2;
+            buf[--charPos] = Integer.DigitOnes[r];
+            buf[--charPos] = Integer.DigitTens[r];
+        }
+
+        // Fall thru to fast mode for smaller numbers
+        // assert(i2 <= 65536, i2);
+        for (;;) {
+            q2 = (i2 * 52429) >>> (16+3);
+            r = i2 - ((q2 << 3) + (q2 << 1));  // r = i2-(q2*10) ...
+            buf[--charPos] = Integer.digits[r];
+            i2 = q2;
+            if (i2 == 0) break;
+        }
+        if (sign != 0) {
+            buf[--charPos] = sign;
+        }
+        return charPos;
+    }
+
+    static void appendTo(long i, StringBuffer sb) {
+        if (i == Long.MIN_VALUE) {
+            sb.append("-9223372036854775808");
+            return;
+        }
+        char[] buf = (char[])(perThreadBuffer.get());
+        int charPos = getChars(i, buf);
+        sb.append(buf, charPos, (20 - charPos));
+        return;
     }
 
     /**

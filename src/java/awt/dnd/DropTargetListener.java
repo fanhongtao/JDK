@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetListener.java	1.19 01/12/03
+ * @(#)DropTargetListener.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.awt.dnd.DropTargetDropEvent;
  * <code>Component</code> higher in the Z-order that has an associated active 
  * <code>DropTarget</code>.
  *
- * @version 	1.19, 12/03/01
+ * @version 	1.20, 01/23/03
  * @since 1.2
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)MetalworksDocumentFrame.java	1.9 02/06/13
+ * @(#)MetalworksDocumentFrame.java	1.10 03/01/23
  */
 
 import java.awt.*;
@@ -47,7 +47,7 @@ import javax.swing.border.*;
 /**
   * This is a subclass of JInternalFrame which displays documents.
   *
-  * @version 1.9 06/13/02
+  * @version 1.10 01/23/03
   * @author Steve Wilson
   */
 public class MetalworksDocumentFrame extends JInternalFrame {

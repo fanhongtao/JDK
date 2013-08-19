@@ -1,7 +1,7 @@
 /*
- * @(#)Runtime.java	1.65 02/04/04
+ * @(#)Runtime.java	1.67 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.65, 04/04/02
+ * @version 1.67, 01/23/03
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -413,7 +413,7 @@ public class Runtime {
 	String cmdarray[];
  	StringTokenizer st;
 
-        if (command == "")
+        if (command.length() == 0)
             throw new IllegalArgumentException("Empty command"); 
 
 	st = new StringTokenizer(command);

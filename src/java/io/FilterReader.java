@@ -1,7 +1,7 @@
 /*
- * @(#)FilterReader.java	1.13 01/12/03
+ * @(#)FilterReader.java	1.16 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.io;
  * should override some of these methods and may also provide
  * additional methods and fields.
  *
- * @version 	1.13, 01/12/03
+ * @version 	1.16, 03/01/23
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -24,8 +24,7 @@ package java.io;
 public abstract class FilterReader extends Reader {
 
     /**
-     * The underlying character-input stream, or null if the stream has been
-     * closed.
+     * The underlying character-input stream.
      */
     protected Reader in;
 
@@ -33,6 +32,7 @@ public abstract class FilterReader extends Reader {
      * Create a new filtered reader.
      *
      * @param in  a Reader object providing the underlying stream.
+     * @throws NullPointerException if <code>in</code> is <code>null</code>
      */
     protected FilterReader(Reader in) {
 	super(in);

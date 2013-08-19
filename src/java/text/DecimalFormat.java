@@ -1,7 +1,7 @@
 /*
- * @(#)DecimalFormat.java	1.68 01/12/03
+ * @(#)DecimalFormat.java	1.71 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -147,7 +147,8 @@ import sun.text.resources.LocaleData;
  * are not localized.
  *
  * <blockquote>
- * <table border=0 cellspacing=3 cellpadding=0>
+ * <table border=0 cellspacing=3 cellpadding=0 summary="Chart showing symbol,
+ *  location, localized, and meaning.">
  *     <tr bgcolor="#ccccff">
  *          <th align=left>Symbol
  *          <th align=left>Location
@@ -342,7 +343,7 @@ import sun.text.resources.LocaleData;
  * @see          NumberFormat
  * @see          DecimalFormatSymbols
  * @see          ParsePosition
- * @version      1.68 12/03/01
+ * @version      1.71 01/23/03
  * @author       Mark Davis
  * @author       Alan Liu
  */

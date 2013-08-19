@@ -1,7 +1,7 @@
 /*
- * @(#)JComboBox.java	1.114 02/02/12
+ * @(#)JComboBox.java	1.117 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -55,7 +55,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.114 02/12/02
+ * @version 1.117 01/23/03
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -750,6 +750,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
                 model.removeElement( element );
             }
         }
+	selectedItemReminder = null;
 	if (isEditable()) {
 	    editor.setItem(null);
 	}
@@ -1274,6 +1275,9 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * do not call or override. 
      */
     public void intervalAdded(ListDataEvent e) {
+	if (selectedItemReminder != dataModel.getSelectedItem()) {
+	    selectedItemChanged();
+	}
     }
 
     /**
@@ -1281,6 +1285,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * do not call or override. 
      */
     public void intervalRemoved(ListDataEvent e) {
+	contentsChanged(e);
     }
 
     /**

@@ -61,6 +61,7 @@ package org.apache.xalan.processor;
  * Administrative class to keep track of the version number of
  * the Xalan release.
  * <P>See also: org/apache/xalan/res/XSLTInfo.properties</P>
+ * @deprecated To be replaced by org.apache.xalan.Version.getVersion()
  */
 public class XSLProcessorVersion
 {
@@ -106,7 +107,7 @@ public class XSLProcessorVersion
    *            -  API or behaviour change.
    *            -  its designated as a reference release.
    */
-  public static int RELEASE = 2;
+  public static int RELEASE = 4;
 
   /**
    * Maintenance Drop Number.
@@ -117,7 +118,7 @@ public class XSLProcessorVersion
    *          When missing, it designates the final and complete
    *          development drop for a release.
    */
-  public static int MAINTENANCE = 0;
+  public static int MAINTENANCE = 1;
 
   /**
    * Development Drop Number.
@@ -136,7 +137,7 @@ public class XSLProcessorVersion
    *          well as defect fixes. 'D' drops may not be as stable as
    *          the final releases.
    */
-  public static int DEVELOPMENT = 11;
+  public static int DEVELOPMENT = 0;
   
   /**
    * Version String like <CODE>"<B>Xalan</B> <B>Language</B> 

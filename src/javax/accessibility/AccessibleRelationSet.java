@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRelationSet.java	1.9 01/12/03
+ * @(#)AccessibleRelationSet.java	1.11 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
  *
  * @see AccessibleRelation
  *
- * @version     1.9 12/03/01
+ * @version     1.11 01/27/03
  * @author      Lynn Monsanto
  */
 public class AccessibleRelationSet {
@@ -47,7 +47,8 @@ public class AccessibleRelationSet {
     /**
      * Creates a new relation with the initial set of relations contained in 
      * the array of relations passed in.  Duplicate entries are ignored.
-     * @param relation an array of AccessibleRelation describing the 
+     *
+     * @param relations an array of AccessibleRelation describing the 
      * relation set.
      */
     public AccessibleRelationSet(AccessibleRelation[] relations) {
@@ -100,7 +101,8 @@ public class AccessibleRelationSet {
     /**
      * Adds all of the relations to the existing relation set.  Duplicate 
      * entries are ignored.
-     * @param relation  AccessibleRelation array describing the relation set.
+     *
+     * @param relations  AccessibleRelation array describing the relation set.
      */
     public void addAll(AccessibleRelation[] relations) {
         if (relations.length != 0) {

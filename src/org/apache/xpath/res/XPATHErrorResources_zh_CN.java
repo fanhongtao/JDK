@@ -1,11 +1,5 @@
 /*
- * @(#)XPATHErrorResources_zh_CN.java	1.8 02/03/26
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
+ * @(#)XPATHErrorResources_zh_CN.java	1.3 03/04/27
  * The Apache Software License, Version 1.1
  *
  *
@@ -56,10 +50,10 @@
  *
  * This software consists of voluntary contributions made by many
  * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, Lotus
- * Development Corporation., http://www.lotus.com.  For more
+ * originally based on software copyright (c) 2002, Sun Microsystems,
+ * Inc., http://www.sun.com.  For more
  * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * <http://www.apache.org/>. 
  */
 package org.apache.xpath.res;
 
@@ -70,28 +64,23 @@ import java.util.*;
 
 import java.text.DecimalFormat;
 
+
 /**
  * <meta name="usage" content="advanced"/>
  * Set up error messages.
  * We build a two dimensional array of message keys and
  * message strings. In order to add a new message here,
- * you need to first update the count of messages(MAX_CODE)or
- * the count of warnings(MAX_WARNING). The array will be
- * automatically filled in with the keys, but you need to
- * fill in the actual message string. Follow the instructions
- * below.
+ * you need to first add a Static string constant for the
+ * Key and update the contents array with Key, Value pair
+  * Also you need to  update the count of messages(MAX_CODE)or
+ * the count of warnings(MAX_WARNING) [ Information purpose only]
  */
 public class XPATHErrorResources_zh_CN extends XPATHErrorResources
 {
 
-  /** Field ERROR_SUFFIX          */
-  public static final String ERROR_SUFFIX = "ER";
-
-  /** Field WARNING_SUFFIX          */
-  public static final String WARNING_SUFFIX = "WR";
 
   /** Field MAX_CODE          */
-  public static final int MAX_CODE = 83;  // this is needed to keep track of the number of messages          
+  public static final int MAX_CODE = 116;  // this is needed to keep track of the number of messages          
 
   /** Field MAX_WARNING          */
   public static final int MAX_WARNING = 11;  // this is needed to keep track of the number of warnings
@@ -102,953 +91,1256 @@ public class XPATHErrorResources_zh_CN extends XPATHErrorResources
   /** Field MAX_MESSAGES          */
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
-  /** Field contents          */
-  static final Object[][] contents =
-    new Object[MAX_MESSAGES + MAX_OTHERS + 1][2];
-
-  /*
-  * Now fill in the message keys.
-  * This does not need to be updated. If MAX_CODE and MAX_WARNING
-  * are correct, the keys will get filled in automatically with
-  * the value ERxxxx (WRxxxx for warnings) where xxxx is a
-  * formatted number corresponding to the error code (i.e. ER0001).
-  */
-  static
-  {
-    for (int i = 0; i < MAX_CODE + 1; i++)
-    {
-      contents[i][0] = getMKey(i);
-    }
-
-    for (int i = 1; i < MAX_WARNING + 1; i++)
-    {
-      contents[i + MAX_CODE][0] = getWKey(i);
-    }
-  }
-
-  /*
-  * Now fill in the message text.
-  * First create an int for the message code. Make sure you
-  * update MAX_CODE for error messages and MAX_WARNING for warnings
-  * Then fill in the message text for that message code in the
-  * array. Use the new error code as the index into the array.
-  */
 
   // Error messages...
+  public static final Object[][] contents = {
 
   /** Field ERROR0000          */
-  public static final int ERROR0000 = 0;
+  //public static final int ERROR0000 = 0;
 
-  static
+
   {
-    contents[ERROR0000][1] = "{0}";
-  }
+    "ERROR0000", "{0}"},
+
 
   /** Field ER_CURRENT_NOT_ALLOWED_IN_MATCH          */
-  public static final int ER_CURRENT_NOT_ALLOWED_IN_MATCH = 1;
+  //public static final int ER_CURRENT_NOT_ALLOWED_IN_MATCH = 1;
 
-  static
+
   {
-    contents[ER_CURRENT_NOT_ALLOWED_IN_MATCH][1] =
-      "\u5339\u914d\u6a21\u5f0f\u4e2d\u4e0d\u5141\u8bb8\u4f7f\u7528 current() \u51fd\u6570\uff01";
-  }
+    ER_CURRENT_NOT_ALLOWED_IN_MATCH,
+      "\u5339\u914d\u6a21\u5f0f\u4e2d\u4e0d\u5141\u8bb8\u4f7f\u7528 current() \u51fd\u6570\uff01"},
+
 
   /** Field ER_CURRENT_TAKES_NO_ARGS          */
-  public static final int ER_CURRENT_TAKES_NO_ARGS = 2;
+  //public static final int ER_CURRENT_TAKES_NO_ARGS = 2;
 
-  static
+
   {
-    contents[ER_CURRENT_TAKES_NO_ARGS][1] =
-      "current() \u51fd\u6570\u4e0d\u63a5\u53d7\u53d8\u91cf\uff01";
-  }
+    ER_CURRENT_TAKES_NO_ARGS,
+      "current() \u51fd\u6570\u4e0d\u63a5\u53d7\u53d8\u91cf\uff01"},
+
 
   /** Field ER_DOCUMENT_REPLACED          */
-  public static final int ER_DOCUMENT_REPLACED = 3;
+  //public static final int ER_DOCUMENT_REPLACED = 3;
 
-  static
+
   {
-    contents[ER_DOCUMENT_REPLACED][1] =
-      "document() \u51fd\u6570\u5de5\u5177\u5df2\u88ab org.apache.xalan.xslt.FuncDocument \u66ff\u4ee3\uff01";
-  }
+    ER_DOCUMENT_REPLACED,
+      "document() \u51fd\u6570\u5de5\u5177\u5df2\u88ab org.apache.xalan.xslt.FuncDocument \u66ff\u4ee3\uff01"},
+
 
   /** Field ER_CONTEXT_HAS_NO_OWNERDOC          */
-  public static final int ER_CONTEXT_HAS_NO_OWNERDOC = 4;
+  //public static final int ER_CONTEXT_HAS_NO_OWNERDOC = 4;
 
-  static
+
   {
-    contents[ER_CONTEXT_HAS_NO_OWNERDOC][1] =
-      "\u4e0a\u4e0b\u6587\u6ca1\u6709\u5c5e\u4e3b\u6587\u6863\uff01";
-  }
+    ER_CONTEXT_HAS_NO_OWNERDOC,
+      "\u4e0a\u4e0b\u6587\u6ca1\u6709\u5c5e\u4e3b\u6587\u6863\uff01"},
+
 
   /** Field ER_LOCALNAME_HAS_TOO_MANY_ARGS          */
-  public static final int ER_LOCALNAME_HAS_TOO_MANY_ARGS = 5;
+  //public static final int ER_LOCALNAME_HAS_TOO_MANY_ARGS = 5;
 
-  static
+
   {
-    contents[ER_LOCALNAME_HAS_TOO_MANY_ARGS][1] =
-      "local-name() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_LOCALNAME_HAS_TOO_MANY_ARGS,
+      "local-name() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_NAMESPACEURI_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NAMESPACEURI_HAS_TOO_MANY_ARGS = 6;
+  //public static final int ER_NAMESPACEURI_HAS_TOO_MANY_ARGS = 6;
 
-  static
+
   {
-    contents[ER_NAMESPACEURI_HAS_TOO_MANY_ARGS][1] =
-      "namespace-uri() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_NAMESPACEURI_HAS_TOO_MANY_ARGS,
+      "namespace-uri() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS = 7;
+  //public static final int ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS = 7;
 
-  static
+
   {
-    contents[ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS][1] =
-      "normalize-space() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS,
+      "normalize-space() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_NUMBER_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NUMBER_HAS_TOO_MANY_ARGS = 8;
+  //public static final int ER_NUMBER_HAS_TOO_MANY_ARGS = 8;
 
-  static
+
   {
-    contents[ER_NUMBER_HAS_TOO_MANY_ARGS][1] =
-      "number() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_NUMBER_HAS_TOO_MANY_ARGS,
+      "number() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_NAME_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NAME_HAS_TOO_MANY_ARGS = 9;
+  //public static final int ER_NAME_HAS_TOO_MANY_ARGS = 9;
 
-  static
+
   {
-    contents[ER_NAME_HAS_TOO_MANY_ARGS][1] = "name() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_NAME_HAS_TOO_MANY_ARGS, "name() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_STRING_HAS_TOO_MANY_ARGS          */
-  public static final int ER_STRING_HAS_TOO_MANY_ARGS = 10;
+  //public static final int ER_STRING_HAS_TOO_MANY_ARGS = 10;
 
-  static
+
   {
-    contents[ER_STRING_HAS_TOO_MANY_ARGS][1] =
-      "string() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_STRING_HAS_TOO_MANY_ARGS,
+      "string() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_STRINGLENGTH_HAS_TOO_MANY_ARGS          */
-  public static final int ER_STRINGLENGTH_HAS_TOO_MANY_ARGS = 11;
+  //public static final int ER_STRINGLENGTH_HAS_TOO_MANY_ARGS = 11;
 
-  static
+
   {
-    contents[ER_STRINGLENGTH_HAS_TOO_MANY_ARGS][1] =
-      "string-length() \u7684\u53d8\u91cf\u592a\u591a\u3002";
-  }
+    ER_STRINGLENGTH_HAS_TOO_MANY_ARGS,
+      "string-length() \u7684\u53d8\u91cf\u592a\u591a\u3002"},
+
 
   /** Field ER_TRANSLATE_TAKES_3_ARGS          */
-  public static final int ER_TRANSLATE_TAKES_3_ARGS = 12;
+  //public static final int ER_TRANSLATE_TAKES_3_ARGS = 12;
 
-  static
+
   {
-    contents[ER_TRANSLATE_TAKES_3_ARGS][1] =
-      "translate() \u51fd\u6570\u4f7f\u7528\u4e09\u4e2a\u53d8\u91cf\uff01";
-  }
+    ER_TRANSLATE_TAKES_3_ARGS,
+      "translate() \u51fd\u6570\u4f7f\u7528\u4e09\u4e2a\u53d8\u91cf\uff01"},
+
 
   /** Field ER_UNPARSEDENTITYURI_TAKES_1_ARG          */
-  public static final int ER_UNPARSEDENTITYURI_TAKES_1_ARG = 13;
+  //public static final int ER_UNPARSEDENTITYURI_TAKES_1_ARG = 13;
 
-  static
+
   {
-    contents[ER_UNPARSEDENTITYURI_TAKES_1_ARG][1] =
-      "unparsed-entity-uri \u51fd\u6570\u5e94\u4f7f\u7528\u4e00\u4e2a\u53d8\u91cf\uff01";
-  }
+    ER_UNPARSEDENTITYURI_TAKES_1_ARG,
+      "unparsed-entity-uri \u51fd\u6570\u5e94\u4f7f\u7528\u4e00\u4e2a\u53d8\u91cf\uff01"},
+
 
   /** Field ER_NAMESPACEAXIS_NOT_IMPLEMENTED          */
-  public static final int ER_NAMESPACEAXIS_NOT_IMPLEMENTED = 14;
+  //public static final int ER_NAMESPACEAXIS_NOT_IMPLEMENTED = 14;
 
-  static
+
   {
-    contents[ER_NAMESPACEAXIS_NOT_IMPLEMENTED][1] =
-      "\u4ecd\u672a\u5b9e\u73b0\u540d\u79f0\u7a7a\u95f4\u8f74\uff01";
-  }
+    ER_NAMESPACEAXIS_NOT_IMPLEMENTED,
+      "\u4ecd\u672a\u5b9e\u73b0\u540d\u79f0\u7a7a\u95f4\u8f74\uff01"},
+
 
   /** Field ER_UNKNOWN_AXIS          */
-  public static final int ER_UNKNOWN_AXIS = 15;
+  //public static final int ER_UNKNOWN_AXIS = 15;
 
-  static
+
   {
-    contents[ER_UNKNOWN_AXIS][1] = "\u672a\u77e5\u8f74\uff1a{0}";
-  }
+    ER_UNKNOWN_AXIS, "\u672a\u77e5\u8f74\uff1a{0}"},
+
 
   /** Field ER_UNKNOWN_MATCH_OPERATION          */
-  public static final int ER_UNKNOWN_MATCH_OPERATION = 16;
+  //public static final int ER_UNKNOWN_MATCH_OPERATION = 16;
 
-  static
+
   {
-    contents[ER_UNKNOWN_MATCH_OPERATION][1] = "\u5339\u914d\u64cd\u4f5c\u672a\u77e5\uff01";
-  }
+    ER_UNKNOWN_MATCH_OPERATION, "\u5339\u914d\u64cd\u4f5c\u672a\u77e5\uff01"},
+
 
   /** Field ER_INCORRECT_ARG_LENGTH          */
-  public static final int ER_INCORRECT_ARG_LENGTH = 17;
+  //public static final int ER_INCORRECT_ARG_LENGTH = 17;
 
-  static
+
   {
-    contents[ER_INCORRECT_ARG_LENGTH][1] =
-      "processing-instruction() \u8282\u70b9\u7684\u53d8\u91cf\u957f\u5ea6\u6d4b\u8bd5\u4e0d\u6b63\u786e\uff01";
-  }
+    ER_INCORRECT_ARG_LENGTH,
+      "processing-instruction() \u8282\u70b9\u7684\u53d8\u91cf\u957f\u5ea6\u6d4b\u8bd5\u4e0d\u6b63\u786e\uff01"},
+
 
   /** Field ER_CANT_CONVERT_TO_NUMBER          */
-  public static final int ER_CANT_CONVERT_TO_NUMBER = 18;
+  //public static final int ER_CANT_CONVERT_TO_NUMBER = 18;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_NUMBER][1] =
-      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a\u6570\u5b57";
-  }
+    ER_CANT_CONVERT_TO_NUMBER,
+      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a\u6570\u5b57"},
+
 
   /** Field ER_CANT_CONVERT_TO_NODELIST          */
-  public static final int ER_CANT_CONVERT_TO_NODELIST = 19;
+  //public static final int ER_CANT_CONVERT_TO_NODELIST = 19;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_NODELIST][1] =
-      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a NodeList\uff01";
-  }
+    ER_CANT_CONVERT_TO_NODELIST,
+      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a NodeList\uff01"},
+
 
   /** Field ER_CANT_CONVERT_TO_MUTABLENODELIST          */
-  public static final int ER_CANT_CONVERT_TO_MUTABLENODELIST = 20;
+  //public static final int ER_CANT_CONVERT_TO_MUTABLENODELIST = 20;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_MUTABLENODELIST][1] =
-      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a NodeSetDTM\uff01";
-  }
+    ER_CANT_CONVERT_TO_MUTABLENODELIST,
+      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a NodeSetDTM\uff01"},
+
 
   /** Field ER_CANT_CONVERT_TO_TYPE          */
-  public static final int ER_CANT_CONVERT_TO_TYPE = 21;
+  //public static final int ER_CANT_CONVERT_TO_TYPE = 21;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_TYPE][1] =
-      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a type#{1}";
-  }
+    ER_CANT_CONVERT_TO_TYPE,
+      "\u4e0d\u80fd\u5c06 {0} \u8f6c\u6362\u4e3a\u4e00\u4e2a type//{1}"},
+
 
   /** Field ER_EXPECTED_MATCH_PATTERN          */
-  public static final int ER_EXPECTED_MATCH_PATTERN = 22;
+  //public static final int ER_EXPECTED_MATCH_PATTERN = 22;
 
-  static
+
   {
-    contents[ER_EXPECTED_MATCH_PATTERN][1] =
-      "getMatchScore \u4e2d\u9884\u671f\u7684\u5339\u914d\u6a21\u5f0f\uff01";
-  }
+    ER_EXPECTED_MATCH_PATTERN,
+      "getMatchScore \u4e2d\u9884\u671f\u7684\u5339\u914d\u6a21\u5f0f\uff01"},
+
 
   /** Field ER_COULDNOT_GET_VAR_NAMED          */
-  public static final int ER_COULDNOT_GET_VAR_NAMED = 23;
+  //public static final int ER_COULDNOT_GET_VAR_NAMED = 23;
 
-  static
+
   {
-    contents[ER_COULDNOT_GET_VAR_NAMED][1] =
-      "\u65e0\u6cd5\u83b7\u5f97\u547d\u540d\u7684\u53d8\u91cf {0}";
-  }
+    ER_COULDNOT_GET_VAR_NAMED,
+      "\u65e0\u6cd5\u83b7\u5f97\u547d\u540d\u7684\u53d8\u91cf {0}"},
+
 
   /** Field ER_UNKNOWN_OPCODE          */
-  public static final int ER_UNKNOWN_OPCODE = 24;
+  //public static final int ER_UNKNOWN_OPCODE = 24;
 
-  static
+
   {
-    contents[ER_UNKNOWN_OPCODE][1] = "\u9519\u8bef\uff01op \u4ee3\u7801\u672a\u77e5\uff1a{0}";
-  }
+    ER_UNKNOWN_OPCODE, "\u9519\u8bef\uff01op \u4ee3\u7801\u672a\u77e5\uff1a{0}"},
+
 
   /** Field ER_EXTRA_ILLEGAL_TOKENS          */
-  public static final int ER_EXTRA_ILLEGAL_TOKENS = 25;
+  //public static final int ER_EXTRA_ILLEGAL_TOKENS = 25;
 
-  static
+
   {
-    contents[ER_EXTRA_ILLEGAL_TOKENS][1] = "\u989d\u5916\u7684\u975e\u6cd5\u6807\u8bb0\uff1a{0}";
-  }
+    ER_EXTRA_ILLEGAL_TOKENS, "\u989d\u5916\u7684\u975e\u6cd5\u6807\u8bb0\uff1a{0}"},
+
 
   /** Field ER_EXPECTED_DOUBLE_QUOTE          */
-  public static final int ER_EXPECTED_DOUBLE_QUOTE = 26;
+  //public static final int ER_EXPECTED_DOUBLE_QUOTE = 26;
 
-  static
+
   {
-    contents[ER_EXPECTED_DOUBLE_QUOTE][1] =
-      "\u9519\u8bef\u5f15\u7528\u6587\u5b57... \u9884\u671f\u7684\u53cc\u5f15\u7528\uff01";
-  }
+    ER_EXPECTED_DOUBLE_QUOTE,
+      "\u9519\u8bef\u5f15\u7528\u6587\u5b57... \u9884\u671f\u7684\u53cc\u5f15\u7528\uff01"},
+
 
   /** Field ER_EXPECTED_SINGLE_QUOTE          */
-  public static final int ER_EXPECTED_SINGLE_QUOTE = 27;
+  //public static final int ER_EXPECTED_SINGLE_QUOTE = 27;
 
-  static
+
   {
-    contents[ER_EXPECTED_SINGLE_QUOTE][1] =
-      "\u9519\u8bef\u5f15\u7528\u6587\u5b57... \u9884\u671f\u7684\u5355\u5f15\u7528\uff01";
-  }
+    ER_EXPECTED_SINGLE_QUOTE,
+      "\u9519\u8bef\u5f15\u7528\u6587\u5b57... \u9884\u671f\u7684\u5355\u5f15\u7528\uff01"},
+
 
   /** Field ER_EMPTY_EXPRESSION          */
-  public static final int ER_EMPTY_EXPRESSION = 28;
+  //public static final int ER_EMPTY_EXPRESSION = 28;
 
-  static
+
   {
-    contents[ER_EMPTY_EXPRESSION][1] = "\u7a7a\u8868\u8fbe\u5f0f\uff01";
-  }
+    ER_EMPTY_EXPRESSION, "\u7a7a\u8868\u8fbe\u5f0f\uff01"},
+
 
   /** Field ER_EXPECTED_BUT_FOUND          */
-  public static final int ER_EXPECTED_BUT_FOUND = 29;
+  //public static final int ER_EXPECTED_BUT_FOUND = 29;
 
-  static
+
   {
-    contents[ER_EXPECTED_BUT_FOUND][1] = "\u9884\u671f\u7684 {0}\uff0c\u4f46\u53d1\u73b0\uff1a{1}";
-  }
+    ER_EXPECTED_BUT_FOUND, "\u9884\u671f\u7684 {0}\uff0c\u4f46\u53d1\u73b0\uff1a{1}"},
+
 
   /** Field ER_INCORRECT_PROGRAMMER_ASSERTION          */
-  public static final int ER_INCORRECT_PROGRAMMER_ASSERTION = 30;
+  //public static final int ER_INCORRECT_PROGRAMMER_ASSERTION = 30;
 
-  static
+
   {
-    contents[ER_INCORRECT_PROGRAMMER_ASSERTION][1] =
-      "\u7a0b\u5e8f\u5458\u65ad\u8a00\u662f\u9519\u8bef\u7684\uff01- {0}";
-  }
+    ER_INCORRECT_PROGRAMMER_ASSERTION,
+      "\u7a0b\u5e8f\u5458\u65ad\u8a00\u662f\u9519\u8bef\u7684\uff01- {0}"},
+
 
   /** Field ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL          */
-  public static final int ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL = 31;
+  //public static final int ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL = 31;
 
-  static
+
   {
-    contents[ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL][1] =
-      "19990709 XPath \u8349\u7a3f\u4e0d\u518d\u53ef\u9009\u7528 boolean(...) \u53d8\u91cf\u3002";
-  }
+    ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL,
+      "19990709 XPath \u8349\u7a3f\u4e0d\u518d\u53ef\u9009\u7528 boolean(...) \u53d8\u91cf\u3002"},
+
 
   /** Field ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG          */
-  public static final int ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG = 32;
+  //public static final int ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG = 32;
 
-  static
+
   {
-    contents[ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG][1] =
-      "\u5df2\u627e\u5230 ','\uff0c\u4f46\u672a\u627e\u5230\u524d\u8ff0\u53d8\u91cf\uff01";
-  }
+    ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG,
+      "\u5df2\u627e\u5230 ','\uff0c\u4f46\u672a\u627e\u5230\u524d\u8ff0\u53d8\u91cf\uff01"},
+
 
   /** Field ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG          */
-  public static final int ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG = 33;
+  //public static final int ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG = 33;
 
-  static
+
   {
-    contents[ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG][1] =
-      "\u5df2\u627e\u5230 ','\uff0c\u4f46\u672a\u627e\u5230\u4ee5\u4e0b\u53d8\u91cf\uff01";
-  }
+    ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG,
+      "\u5df2\u627e\u5230 ','\uff0c\u4f46\u672a\u627e\u5230\u4ee5\u4e0b\u53d8\u91cf\uff01"},
+
 
   /** Field ER_PREDICATE_ILLEGAL_SYNTAX          */
-  public static final int ER_PREDICATE_ILLEGAL_SYNTAX = 34;
+  //public static final int ER_PREDICATE_ILLEGAL_SYNTAX = 34;
 
-  static
+
   {
-    contents[ER_PREDICATE_ILLEGAL_SYNTAX][1] =
-      "'..[predicate]' \u6216 '.[predicate]' \u662f\u975e\u6cd5\u8bed\u6cd5\u3002\u8bf7\u6539\u7528 'self::node()[predicate]'\u3002";
-  }
+    ER_PREDICATE_ILLEGAL_SYNTAX,
+      "'..[predicate]' \u6216 '.[predicate]' \u662f\u975e\u6cd5\u8bed\u6cd5\u3002\u8bf7\u6539\u7528 'self::node()[predicate]'\u3002"},
+
 
   /** Field ER_ILLEGAL_AXIS_NAME          */
-  public static final int ER_ILLEGAL_AXIS_NAME = 35;
+  //public static final int ER_ILLEGAL_AXIS_NAME = 35;
 
-  static
+
   {
-    contents[ER_ILLEGAL_AXIS_NAME][1] = "\u975e\u6cd5\u7684\u8f74\u540d\u79f0\uff1a{0}";
-  }
+    ER_ILLEGAL_AXIS_NAME, "\u975e\u6cd5\u7684\u8f74\u540d\u79f0\uff1a{0}"},
+
 
   /** Field ER_UNKNOWN_NODETYPE          */
-  public static final int ER_UNKNOWN_NODETYPE = 36;
+  //public static final int ER_UNKNOWN_NODETYPE = 36;
 
-  static
+
   {
-    contents[ER_UNKNOWN_NODETYPE][1] = "\u672a\u77e5\u7684\u8282\u70b9\u7c7b\u578b\uff1a{0}";
-  }
+    ER_UNKNOWN_NODETYPE, "\u672a\u77e5\u7684\u8282\u70b9\u7c7b\u578b\uff1a{0}"},
+
 
   /** Field ER_PATTERN_LITERAL_NEEDS_BE_QUOTED          */
-  public static final int ER_PATTERN_LITERAL_NEEDS_BE_QUOTED = 37;
+  //public static final int ER_PATTERN_LITERAL_NEEDS_BE_QUOTED = 37;
 
-  static
+
   {
-    contents[ER_PATTERN_LITERAL_NEEDS_BE_QUOTED][1] =
-      "\u9700\u8981\u5f15\u7528\u6a21\u5f0f\u6587\u5b57 ({0})\uff01";
-  }
+    ER_PATTERN_LITERAL_NEEDS_BE_QUOTED,
+      "\u9700\u8981\u5f15\u7528\u6a21\u5f0f\u6587\u5b57 ({0})\uff01"},
+
 
   /** Field ER_COULDNOT_BE_FORMATTED_TO_NUMBER          */
-  public static final int ER_COULDNOT_BE_FORMATTED_TO_NUMBER = 38;
+  //public static final int ER_COULDNOT_BE_FORMATTED_TO_NUMBER = 38;
 
-  static
+
   {
-    contents[ER_COULDNOT_BE_FORMATTED_TO_NUMBER][1] =
-      "\u4e0d\u80fd\u5c06 {0} \u683c\u5f0f\u5316\u4e3a\u4e00\u4e2a\u6570\u5b57\uff01";
-  }
+    ER_COULDNOT_BE_FORMATTED_TO_NUMBER,
+      "\u4e0d\u80fd\u5c06 {0} \u683c\u5f0f\u5316\u4e3a\u4e00\u4e2a\u6570\u5b57\uff01"},
+
 
   /** Field ER_COULDNOT_CREATE_XMLPROCESSORLIAISON          */
-  public static final int ER_COULDNOT_CREATE_XMLPROCESSORLIAISON = 39;
+  //public static final int ER_COULDNOT_CREATE_XMLPROCESSORLIAISON = 39;
 
-  static
+
   {
-    contents[ER_COULDNOT_CREATE_XMLPROCESSORLIAISON][1] =
-      "\u4e0d\u80fd\u521b\u5efa XML TransformerFactory Liaison\uff1a{0}";
-  }
+    ER_COULDNOT_CREATE_XMLPROCESSORLIAISON,
+      "\u4e0d\u80fd\u521b\u5efa XML TransformerFactory Liaison\uff1a{0}"},
+
 
   /** Field ER_DIDNOT_FIND_XPATH_SELECT_EXP          */
-  public static final int ER_DIDNOT_FIND_XPATH_SELECT_EXP = 40;
+  //public static final int ER_DIDNOT_FIND_XPATH_SELECT_EXP = 40;
 
-  static
+
   {
-    contents[ER_DIDNOT_FIND_XPATH_SELECT_EXP][1] =
-      "\u9519\u8bef\uff01\u672a\u627e\u5230 xpath select \u8868\u8fbe\u5f0f (-select)\u3002";
-  }
+    ER_DIDNOT_FIND_XPATH_SELECT_EXP,
+      "\u9519\u8bef\uff01\u672a\u627e\u5230 xpath select \u8868\u8fbe\u5f0f (-select)\u3002"},
+
 
   /** Field ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH          */
-  public static final int ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH = 41;
+  //public static final int ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH = 41;
 
-  static
+
   {
-    contents[ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH][1] =
-      "\u9519\u8bef\uff01\u672a\u5728 OP_LOCATIONPATH \u540e\u627e\u5230 ENDOP";
-  }
+    ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH,
+      "\u9519\u8bef\uff01\u672a\u5728 OP_LOCATIONPATH \u540e\u627e\u5230 ENDOP"},
+
 
   /** Field ER_ERROR_OCCURED          */
-  public static final int ER_ERROR_OCCURED = 42;
+  //public static final int ER_ERROR_OCCURED = 42;
 
-  static
+
   {
-    contents[ER_ERROR_OCCURED][1] = "\u51fa\u9519\uff01";
-  }
+    ER_ERROR_OCCURED, "\u51fa\u9519\uff01"},
+
 
   /** Field ER_ILLEGAL_VARIABLE_REFERENCE          */
-  public static final int ER_ILLEGAL_VARIABLE_REFERENCE = 43;
+  //public static final int ER_ILLEGAL_VARIABLE_REFERENCE = 43;
 
-  static
+
   {
-    contents[ER_ILLEGAL_VARIABLE_REFERENCE][1] =
-      "\u4e3a\u53d8\u91cf\u7ed9\u51fa\u7684 VariableReference \u8d85\u51fa\u4e86\u4e0a\u4e0b\u6587\u8303\u56f4\u6216\u6ca1\u6709\u5b9a\u4e49\uff01\u540d\u79f0 = {0}";
-  }
+    ER_ILLEGAL_VARIABLE_REFERENCE,
+      "\u4e3a\u53d8\u91cf\u7ed9\u51fa\u7684 VariableReference \u8d85\u51fa\u4e86\u4e0a\u4e0b\u6587\u8303\u56f4\u6216\u6ca1\u6709\u5b9a\u4e49\uff01\u540d\u79f0 = {0}"},
+
 
   /** Field ER_AXES_NOT_ALLOWED          */
-  public static final int ER_AXES_NOT_ALLOWED = 44;
+  //public static final int ER_AXES_NOT_ALLOWED = 44;
 
-  static
+
   {
-    contents[ER_AXES_NOT_ALLOWED][1] =
-      "\u5339\u914d\u6a21\u5f0f\u4e2d\u4ec5\u5141\u8bb8\u4f7f\u7528 child:: \u548c attribute:: \u8f74\uff01\u8fdd\u4f8b\u8f74 = {0}";
-  }
+    ER_AXES_NOT_ALLOWED,
+      "\u5339\u914d\u6a21\u5f0f\u4e2d\u4ec5\u5141\u8bb8\u4f7f\u7528 child:: \u548c attribute:: \u8f74\uff01\u8fdd\u4f8b\u8f74 = {0}"},
+
 
   /** Field ER_KEY_HAS_TOO_MANY_ARGS          */
-  public static final int ER_KEY_HAS_TOO_MANY_ARGS = 45;
+  //public static final int ER_KEY_HAS_TOO_MANY_ARGS = 45;
 
-  static
+
   {
-    contents[ER_KEY_HAS_TOO_MANY_ARGS][1] =
-      "key() \u6709\u8bb8\u591a\u4e0d\u6b63\u786e\u7684\u53d8\u91cf\u3002";
-  }
+    ER_KEY_HAS_TOO_MANY_ARGS,
+      "key() \u6709\u8bb8\u591a\u4e0d\u6b63\u786e\u7684\u53d8\u91cf\u3002"},
+
 
   /** Field ER_COUNT_TAKES_1_ARG          */
-  public static final int ER_COUNT_TAKES_1_ARG = 46;
+  //public static final int ER_COUNT_TAKES_1_ARG = 46;
 
-  static
+
   {
-    contents[ER_COUNT_TAKES_1_ARG][1] =
-      "count \u51fd\u6570\u5e94\u4f7f\u7528\u4e00\u4e2a\u53d8\u91cf\uff01";
-  }
+    ER_COUNT_TAKES_1_ARG,
+      "count \u51fd\u6570\u5e94\u4f7f\u7528\u4e00\u4e2a\u53d8\u91cf\uff01"},
+
 
   /** Field ER_COULDNOT_FIND_FUNCTION          */
-  public static final int ER_COULDNOT_FIND_FUNCTION = 47;
+  //public static final int ER_COULDNOT_FIND_FUNCTION = 47;
 
-  static
+
   {
-    contents[ER_COULDNOT_FIND_FUNCTION][1] = "\u672a\u627e\u5230\u51fd\u6570\uff1a{0}";
-  }
+    ER_COULDNOT_FIND_FUNCTION, "\u672a\u627e\u5230\u51fd\u6570\uff1a{0}"},
+
 
   /** Field ER_UNSUPPORTED_ENCODING          */
-  public static final int ER_UNSUPPORTED_ENCODING = 48;
+  //public static final int ER_UNSUPPORTED_ENCODING = 48;
 
-  static
+
   {
-    contents[ER_UNSUPPORTED_ENCODING][1] = "\u4e0d\u53d7\u652f\u6301\u7684\u7f16\u7801\uff1a{0}";
-  }
+    ER_UNSUPPORTED_ENCODING, "\u4e0d\u53d7\u652f\u6301\u7684\u7f16\u7801\uff1a{0}"},
+
 
   /** Field ER_PROBLEM_IN_DTM_NEXTSIBLING          */
-  public static final int ER_PROBLEM_IN_DTM_NEXTSIBLING = 49;
+  //public static final int ER_PROBLEM_IN_DTM_NEXTSIBLING = 49;
 
-  static
+
   {
-    contents[ER_PROBLEM_IN_DTM_NEXTSIBLING][1] =
-      "getNextSibling \u4e2d\u7684 DTM \u51fa\u73b0\u95ee\u9898 ... \u6b63\u5728\u5c1d\u8bd5\u6062\u590d";
-  }
+    ER_PROBLEM_IN_DTM_NEXTSIBLING,
+      "getNextSibling \u4e2d\u7684 DTM \u51fa\u73b0\u95ee\u9898 ... \u6b63\u5728\u5c1d\u8bd5\u6062\u590d"},
+
 
   /** Field ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL          */
-  public static final int ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL = 50;
+  //public static final int ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL = 50;
 
-  static
+
   {
-    contents[ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL][1] =
-      "\u7a0b\u5e8f\u5458\u51fa\u9519\uff1a\u4e0d\u80fd\u5c06 EmptyNodeList \u5199\u5165\u3002";
-  }
+    ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL,
+      "\u7a0b\u5e8f\u5458\u51fa\u9519\uff1a\u4e0d\u80fd\u5c06 EmptyNodeList \u5199\u5165\u3002"},
+
 
   /** Field ER_SETDOMFACTORY_NOT_SUPPORTED          */
-  public static final int ER_SETDOMFACTORY_NOT_SUPPORTED = 51;
+  //public static final int ER_SETDOMFACTORY_NOT_SUPPORTED = 51;
 
-  static
+
   {
-    contents[ER_SETDOMFACTORY_NOT_SUPPORTED][1] =
-      "setDOMFactory \u4e0d\u53d7 XPathContext \u652f\u6301\uff01";
-  }
+    ER_SETDOMFACTORY_NOT_SUPPORTED,
+      "setDOMFactory \u4e0d\u53d7 XPathContext \u652f\u6301\uff01"},
+
 
   /** Field ER_PREFIX_MUST_RESOLVE          */
-  public static final int ER_PREFIX_MUST_RESOLVE = 52;
+  //public static final int ER_PREFIX_MUST_RESOLVE = 52;
 
-  static
+
   {
-    contents[ER_PREFIX_MUST_RESOLVE][1] =
-      "\u5fc5\u987b\u89e3\u51b3\u540d\u79f0\u7a7a\u95f4\u7684\u524d\u7f00\uff1a{0}";
-  }
+    ER_PREFIX_MUST_RESOLVE,
+      "\u5fc5\u987b\u89e3\u51b3\u540d\u79f0\u7a7a\u95f4\u7684\u524d\u7f00\uff1a{0}"},
+
 
   /** Field ER_PARSE_NOT_SUPPORTED          */
-  public static final int ER_PARSE_NOT_SUPPORTED = 53;
+  //public static final int ER_PARSE_NOT_SUPPORTED = 53;
 
-  static
+
   {
-    contents[ER_PARSE_NOT_SUPPORTED][1] =
-      "XPathContext \u4e2d\u4e0d\u652f\u6301\uff08\u8bed\u6cd5\uff09\u5206\u6790\u5668\uff08InputSource \u6e90\uff09\uff01\u65e0\u6cd5\u6253\u5f00 {0}";
-  }
+    ER_PARSE_NOT_SUPPORTED,
+      "XPathContext \u4e2d\u4e0d\u652f\u6301\uff08\u8bed\u6cd5\uff09\u5206\u6790\u5668\uff08InputSource \u6e90\uff09\uff01\u65e0\u6cd5\u6253\u5f00 {0}"},
+
 
   /** Field ER_CREATEDOCUMENT_NOT_SUPPORTED          */
-  public static final int ER_CREATEDOCUMENT_NOT_SUPPORTED = 54;
+  //public static final int ER_CREATEDOCUMENT_NOT_SUPPORTED = 54;
 
-  static
+
   {
-    contents[ER_CREATEDOCUMENT_NOT_SUPPORTED][1] =
-      "XPathContext \u4e2d\u4e0d\u652f\u6301 createDocument()\uff01";
-  }
+    ER_CREATEDOCUMENT_NOT_SUPPORTED,
+      "XPathContext \u4e2d\u4e0d\u652f\u6301 createDocument()\uff01"},
+
 
   /** Field ER_CHILD_HAS_NO_OWNER_DOCUMENT          */
-  public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT = 55;
+  //public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT = 55;
 
-  static
+
   {
-    contents[ER_CHILD_HAS_NO_OWNER_DOCUMENT][1] =
-      "\u5b50\u5c5e\u6027\u6ca1\u6709\u5c5e\u4e3b\u6587\u6863\uff01";
-  }
+    ER_CHILD_HAS_NO_OWNER_DOCUMENT,
+      "\u5b50\u5c5e\u6027\u6ca1\u6709\u5c5e\u4e3b\u6587\u6863\uff01"},
+
 
   /** Field ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT          */
-  public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = 56;
+  //public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = 56;
 
-  static
+
   {
-    contents[ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT][1] =
-      "\u5b50\u5c5e\u6027\u6ca1\u6709\u5c5e\u4e3b\u6587\u6863\u5143\u7d20\uff01";
-  }
+    ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT,
+      "\u5b50\u5c5e\u6027\u6ca1\u6709\u5c5e\u4e3b\u6587\u6863\u5143\u7d20\uff01"},
+
 
   /** Field ER_SAX_API_NOT_HANDLED          */
-  public static final int ER_SAX_API_NOT_HANDLED = 57;
+  //public static final int ER_SAX_API_NOT_HANDLED = 57;
 
-  static
+
   {
-    contents[ER_SAX_API_NOT_HANDLED][1] =
-      "SAX API characters(char ch[]... \u4e0d\u7531 DTM \u5904\u7406\uff01";
-  }
+    ER_SAX_API_NOT_HANDLED,
+      "SAX API characters(char ch[]... \u4e0d\u7531 DTM \u5904\u7406\uff01"},
+
 
   /** Field ER_IGNORABLE_WHITESPACE_NOT_HANDLED          */
-  public static final int ER_IGNORABLE_WHITESPACE_NOT_HANDLED = 58;
+  //public static final int ER_IGNORABLE_WHITESPACE_NOT_HANDLED = 58;
 
-  static
+
   {
-    contents[ER_IGNORABLE_WHITESPACE_NOT_HANDLED][1] =
-      "ignorableWhitespace(char ch[]... \u4e0d\u7531 DTM \u5904\u7406\uff01";
-  }
+    ER_IGNORABLE_WHITESPACE_NOT_HANDLED,
+      "ignorableWhitespace(char ch[]... \u4e0d\u7531 DTM \u5904\u7406\uff01"},
+
 
   /** Field ER_DTM_CANNOT_HANDLE_NODES          */
-  public static final int ER_DTM_CANNOT_HANDLE_NODES = 59;
+  //public static final int ER_DTM_CANNOT_HANDLE_NODES = 59;
 
-  static
+
   {
-    contents[ER_DTM_CANNOT_HANDLE_NODES][1] =
-      "DTMLiaison \u65e0\u6cd5\u5904\u7406\u8282\u70b9\u7c7b\u578b {0}";
-  }
+    ER_DTM_CANNOT_HANDLE_NODES,
+      "DTMLiaison \u65e0\u6cd5\u5904\u7406\u8282\u70b9\u7c7b\u578b {0}"},
+
 
   /** Field ER_XERCES_CANNOT_HANDLE_NODES          */
-  public static final int ER_XERCES_CANNOT_HANDLE_NODES = 60;
+  //public static final int ER_XERCES_CANNOT_HANDLE_NODES = 60;
 
-  static
+
   {
-    contents[ER_XERCES_CANNOT_HANDLE_NODES][1] =
-      "DOM2Helper \u65e0\u6cd5\u5904\u7406\u8282\u70b9\u7c7b\u578b {0}";
-  }
+    ER_XERCES_CANNOT_HANDLE_NODES,
+      "DOM2Helper \u65e0\u6cd5\u5904\u7406\u8282\u70b9\u7c7b\u578b {0}"},
+
 
   /** Field ER_XERCES_PARSE_ERROR_DETAILS          */
-  public static final int ER_XERCES_PARSE_ERROR_DETAILS = 61;
+  //public static final int ER_XERCES_PARSE_ERROR_DETAILS = 61;
 
-  static
+
   {
-    contents[ER_XERCES_PARSE_ERROR_DETAILS][1] =
-      "DOM2Helper.parse \u9519\u8bef\uff1aSystemID - {0} line - {1}";
-  }
+    ER_XERCES_PARSE_ERROR_DETAILS,
+      "DOM2Helper.parse \u9519\u8bef\uff1aSystemID - {0} line - {1}"},
+
 
   /** Field ER_XERCES_PARSE_ERROR          */
-  public static final int ER_XERCES_PARSE_ERROR = 62;
+  //public static final int ER_XERCES_PARSE_ERROR = 62;
 
-  static
+
   {
-    contents[ER_XERCES_PARSE_ERROR][1] = "DOM2Helper.parse \u9519\u8bef";
-  }
+    ER_XERCES_PARSE_ERROR, "DOM2Helper.parse \u9519\u8bef"},
+
 
   /** Field ER_CANT_OUTPUT_TEXT_BEFORE_DOC          */
-  public static final int ER_CANT_OUTPUT_TEXT_BEFORE_DOC = 63;
+  //public static final int ER_CANT_OUTPUT_TEXT_BEFORE_DOC = 63;
 
-  static
+
   {
-    contents[ER_CANT_OUTPUT_TEXT_BEFORE_DOC][1] =
-      "\u8b66\u544a\uff1a\u4e0d\u80fd\u8f93\u51fa\u6587\u6863\u5143\u7d20\u4e4b\u524d\u7684\u6587\u5b57\uff01\u5ffd\u7565...";
-  }
+    ER_CANT_OUTPUT_TEXT_BEFORE_DOC,
+      "\u8b66\u544a\uff1a\u4e0d\u80fd\u8f93\u51fa\u6587\u6863\u5143\u7d20\u4e4b\u524d\u7684\u6587\u5b57\uff01\u5ffd\u7565..."},
+
 
   /** Field ER_CANT_HAVE_MORE_THAN_ONE_ROOT          */
-  public static final int ER_CANT_HAVE_MORE_THAN_ONE_ROOT = 64;
+  //public static final int ER_CANT_HAVE_MORE_THAN_ONE_ROOT = 64;
 
-  static
+
   {
-    contents[ER_CANT_HAVE_MORE_THAN_ONE_ROOT][1] =
-      "DOM \u4e0a\u4e0d\u80fd\u6709\u591a\u4e2a\u6839\uff01";
-  }
+    ER_CANT_HAVE_MORE_THAN_ONE_ROOT,
+      "DOM \u4e0a\u4e0d\u80fd\u6709\u591a\u4e2a\u6839\uff01"},
+
 
   /** Field ER_INVALID_UTF16_SURROGATE          */
-  public static final int ER_INVALID_UTF16_SURROGATE = 65;
+  //public static final int ER_INVALID_UTF16_SURROGATE = 65;
 
-  static
+
   {
-    contents[ER_INVALID_UTF16_SURROGATE][1] =
-      "\u68c0\u6d4b\u5230\u65e0\u6548\u7684 UTF-16 surrogate\uff1a{0} ?";
-  }
+    ER_INVALID_UTF16_SURROGATE,
+      "\u68c0\u6d4b\u5230\u65e0\u6548\u7684 UTF-16 surrogate\uff1a{0} ?"},
+
 
   /** Field ER_OIERROR          */
-  public static final int ER_OIERROR = 66;
+  //public static final int ER_OIERROR = 66;
 
-  static
+
   {
-    contents[ER_OIERROR][1] = "IO \u9519\u8bef";
-  }
+    ER_OIERROR, "IO \u9519\u8bef"},
+
 
   /** Field ER_CANNOT_CREATE_URL          */
-  public static final int ER_CANNOT_CREATE_URL = 67;
+  //public static final int ER_CANNOT_CREATE_URL = 67;
 
-  static
+
   {
-    contents[ER_CANNOT_CREATE_URL][1] = "\u65e0\u6cd5\u521b\u5efa url \u4e3a\uff1a{0}";
-  }
+    ER_CANNOT_CREATE_URL, "\u65e0\u6cd5\u521b\u5efa url \u4e3a\uff1a{0}"},
+
 
   /** Field ER_XPATH_READOBJECT          */
-  public static final int ER_XPATH_READOBJECT = 68;
+  //public static final int ER_XPATH_READOBJECT = 68;
 
-  static
+
   {
-    contents[ER_XPATH_READOBJECT][1] = "\u5728 XPath.readObject \u4e2d\uff1a{0}";
-  }
+    ER_XPATH_READOBJECT, "\u5728 XPath.readObject \u4e2d\uff1a{0}"},
+
   
   /** Field ER_XPATH_READOBJECT         */
-  public static final int ER_FUNCTION_TOKEN_NOT_FOUND = 69;
+  //public static final int ER_FUNCTION_TOKEN_NOT_FOUND = 69;
 
-  static
+
   {
-    contents[ER_FUNCTION_TOKEN_NOT_FOUND][1] =
-      "\u672a\u627e\u5230\u51fd\u6570\u6807\u8bb0\u3002";
-  }
+    ER_FUNCTION_TOKEN_NOT_FOUND,
+      "\u672a\u627e\u5230\u51fd\u6570\u6807\u8bb0\u3002"},
+
   
    /**  Argument 'localName' is null  */
-  public static final int ER_ARG_LOCALNAME_NULL = 70;
+  //public static final int ER_ARG_LOCALNAME_NULL = 70;
 
-  static
+
   {
-    contents[ER_ARG_LOCALNAME_NULL][1] =
-       "\u53d8\u91cf 'localName' \u4e3a\u7a7a";
-  }
+    ER_ARG_LOCALNAME_NULL,
+       "\u53d8\u91cf 'localName' \u4e3a\u7a7a"},
+
   
    /**  Can not deal with XPath type:   */
-  public static final int ER_CANNOT_DEAL_XPATH_TYPE = 71;
+  //public static final int ER_CANNOT_DEAL_XPATH_TYPE = 71;
 
-  static
+
   {
-    contents[ER_CANNOT_DEAL_XPATH_TYPE][1] =
-       "\u65e0\u6cd5\u5904\u7406 XPath \u7c7b\u578b\uff1a{0}";
-  }
+    ER_CANNOT_DEAL_XPATH_TYPE,
+       "\u65e0\u6cd5\u5904\u7406 XPath \u7c7b\u578b\uff1a{0}"},
+
   
    /**  This NodeSet is not mutable  */
-  public static final int ER_NODESET_NOT_MUTABLE = 72;
+  //public static final int ER_NODESET_NOT_MUTABLE = 72;
 
-  static
+
   {
-    contents[ER_NODESET_NOT_MUTABLE][1] =
-       "\u6b64 NodeSet \u4e0d\u6613\u53d8";
-  }
+    ER_NODESET_NOT_MUTABLE,
+       "\u6b64 NodeSet \u4e0d\u6613\u53d8"},
+
   
    /**  This NodeSetDTM is not mutable  */
-  public static final int ER_NODESETDTM_NOT_MUTABLE = 73;
+  //public static final int ER_NODESETDTM_NOT_MUTABLE = 73;
 
-  static
+
   {
-    contents[ER_NODESETDTM_NOT_MUTABLE][1] =
-       "\u6b64 NodeSetDTM \u4e0d\u6613\u53d8";
-  }
+    ER_NODESETDTM_NOT_MUTABLE,
+       "\u6b64 NodeSetDTM \u4e0d\u6613\u53d8"},
+
   
    /**  Variable not resolvable:   */
-  public static final int ER_VAR_NOT_RESOLVABLE = 74;
+  //public static final int ER_VAR_NOT_RESOLVABLE = 74;
 
-  static
+
   {
-    contents[ER_VAR_NOT_RESOLVABLE][1] =
-        "\u53d8\u91cf\u4e0d\u53ef\u5206\u89e3\uff1a{0}";
-  }
+    ER_VAR_NOT_RESOLVABLE,
+        "\u53d8\u91cf\u4e0d\u53ef\u5206\u89e3\uff1a{0}"},
+
   
    /** Null error handler  */
-  public static final int ER_NULL_ERROR_HANDLER = 75;
+  //public static final int ER_NULL_ERROR_HANDLER = 75;
 
-  static
+
   {
-    contents[ER_NULL_ERROR_HANDLER][1] =
-        "\u9519\u8bef\u5904\u7406\u5668\u65e0\u6548";
-  }
+    ER_NULL_ERROR_HANDLER,
+        "\u9519\u8bef\u5904\u7406\u5668\u65e0\u6548"},
+
   
    /**  Programmer's assertion: unknown opcode  */
-  public static final int ER_PROG_ASSERT_UNKNOWN_OPCODE = 76;
+  //public static final int ER_PROG_ASSERT_UNKNOWN_OPCODE = 76;
 
-  static
+
   {
-    contents[ER_PROG_ASSERT_UNKNOWN_OPCODE][1] =
-       "\u7a0b\u5e8f\u5458\u65ad\u8a00\uff1aopcode \u672a\u77e5\uff1a{0}";
-  }
+    ER_PROG_ASSERT_UNKNOWN_OPCODE,
+       "\u7a0b\u5e8f\u5458\u65ad\u8a00\uff1aopcode \u672a\u77e5\uff1a{0}"},
+
   
    /**  0 or 1   */
-  public static final int ER_ZERO_OR_ONE = 77;
+  //public static final int ER_ZERO_OR_ONE = 77;
 
-  static
-  {
-    contents[ER_ZERO_OR_ONE][1] =
-       "0 \u6216 1";
-  }
-  
-   /**  2 or 3   */
-  public static final int ER_TWO_OR_THREE = 78;
 
-  static
   {
-    contents[ER_TWO_OR_THREE][1] =
-       "0 \u6216 1";
-  }
-  
-  
+    ER_ZERO_OR_ONE,
+       "0 \u6216 1"},
+
   
    /**  rtf() not supported by XRTreeFragSelectWrapper   */
-  public static final int ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 78;
+  //public static final int ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 78;
 
-  static
+
   {
-    contents[ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER][1] =
-       "rtf() \u4e0d\u53d7 XRTreeFragSelectWrapper \u652f\u6301";
-  }
+    ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+       "rtf() \u4e0d\u53d7 XRTreeFragSelectWrapper \u652f\u6301"},
+
   
    /**  asNodeIterator() not supported by XRTreeFragSelectWrapper   */
-  public static final int ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 79;
+  //public static final int ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 79;
 
-  static
+
   {
-    contents[ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER][1] =
-       "asNodeIterator() \u4e0d\u53d7 XRTreeFragSelectWrapper \u652f\u6301";
-  }
+    ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+       "asNodeIterator() \u4e0d\u53d7 XRTreeFragSelectWrapper \u652f\u6301"},
+
   
    /**  fsb() not supported for XStringForChars   */
-  public static final int ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS = 80;
+  //public static final int ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS = 80;
 
-  static
+
   {
-    contents[ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS][1] =
-       "fsb() \u4e0d\u652f\u6301 XStringForChars";
-  }
+    ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS,
+       "fsb() \u4e0d\u652f\u6301 XStringForChars"},
+
   
    /**  Could not find variable with the name of   */
-  public static final int ER_COULD_NOT_FIND_VAR = 81;
+  //public static final int ER_COULD_NOT_FIND_VAR = 81;
 
-  static
+
   {
-    contents[ER_COULD_NOT_FIND_VAR][1] =
-      "\u65e0\u6cd5\u627e\u5230\u540d\u79f0\u4e3a {0} \u7684\u53d8\u91cf";
-  }
+    ER_COULD_NOT_FIND_VAR,
+      "\u65e0\u6cd5\u627e\u5230\u540d\u79f0\u4e3a {0} \u7684\u53d8\u91cf"},
+
   
    /**  XStringForChars can not take a string for an argument   */
-  public static final int ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING = 82;
+  //public static final int ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING = 82;
 
-  static
+
   {
-    contents[ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING][1] =
-      "XStringForChars \u65e0\u6cd5\u4f7f\u7528\u53d8\u91cf\u7684\u4e00\u4e2a\u5b57\u7b26\u4e32";
-  }
+    ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING,
+      "XStringForChars \u65e0\u6cd5\u4f7f\u7528\u53d8\u91cf\u7684\u4e00\u4e2a\u5b57\u7b26\u4e32"},
+
   
    /**  The FastStringBuffer argument can not be null   */
-  public static final int ER_FASTSTRINGBUFFER_CANNOT_BE_NULL = 83;
+  //public static final int ER_FASTSTRINGBUFFER_CANNOT_BE_NULL = 83;
 
-  static
+
   {
-    contents[ER_FASTSTRINGBUFFER_CANNOT_BE_NULL][1] =
-      "FastStringBuffer \u53d8\u91cf\u4e0d\u80fd\u4e3a\u7a7a";
-  }  
+    ER_FASTSTRINGBUFFER_CANNOT_BE_NULL,
+      "FastStringBuffer \u53d8\u91cf\u4e0d\u80fd\u4e3a\u7a7a"},
+    
+   /**  2 or 3   */
+  //public static final int ER_TWO_OR_THREE = 84;
+  
+
+  {
+    ER_TWO_OR_THREE,
+       "2 \u6216 3"},
+
+  
+   /** Variable accessed before it is bound! */
+  //public static final int ER_VARIABLE_ACCESSED_BEFORE_BIND = 85;
+  
+
+  {
+    ER_VARIABLE_ACCESSED_BEFORE_BIND,
+       "\u7ed1\u5b9a\u4e4b\u524d\u8bbf\u95ee\u4e86\u53d8\u91cf\uff01"},
+
+
+   /** XStringForFSB can not take a string for an argument! */
+  //public static final int ER_FSB_CANNOT_TAKE_STRING = 86;
+
+
+  {
+    ER_FSB_CANNOT_TAKE_STRING,
+       "XStringForFSB \u65e0\u6cd5\u63a5\u53d7\u5b57\u7b26\u4e32\u7c7b\u578b\u7684\u53d8\u91cf\uff01"},
+
+
+   /** Error! Setting the root of a walker to null! */
+  //public static final int ER_SETTING_WALKER_ROOT_TO_NULL = 87;
+
+
+  {
+    ER_SETTING_WALKER_ROOT_TO_NULL,
+       "\n !!!! \u9519\u8bef\uff01\u904d\u5386\u7a0b\u5e8f\u7684\u6839\u8bbe\u7f6e\u4e3a\u7a7a!!!"},
+
+
+   /** This NodeSetDTM can not iterate to a previous node! */
+  //public static final int ER_NODESETDTM_CANNOT_ITERATE = 88;
+
+
+  {
+    ER_NODESETDTM_CANNOT_ITERATE,
+       "\u6b64 NodeSetDTM \u65e0\u6cd5\u8fed\u4ee3\u5230\u524d\u4e00\u4e2a\u8282\u70b9\uff01"},
+
+
+  /** This NodeSet can not iterate to a previous node! */
+  //public static final int ER_NODESET_CANNOT_ITERATE = 89;
+
+
+  {
+    ER_NODESET_CANNOT_ITERATE,
+       "\u6b64 NodeSet \u65e0\u6cd5\u8fed\u4ee3\u5230\u524d\u4e00\u4e2a\u8282\u70b9\uff01"},
+
+
+  /** This NodeSetDTM can not do indexing or counting functions! */
+  //public static final int ER_NODESETDTM_CANNOT_INDEX = 90;
+
+
+  {
+    ER_NODESETDTM_CANNOT_INDEX,
+       "\u6b64 NodeSetDTM \u65e0\u6cd5\u4e3a\u51fd\u6570\u5efa\u7acb\u7d22\u5f15\u6216\u8ba1\u7b97\u4e2a\u6570\uff01"},
+
+
+  /** This NodeSet can not do indexing or counting functions! */
+  //public static final int ER_NODESET_CANNOT_INDEX = 91;
+
+
+  {
+    ER_NODESET_CANNOT_INDEX,
+       "\u6b64 NodeSet \u65e0\u6cd5\u4e3a\u51fd\u6570\u5efa\u7acb\u7d22\u5f15\u6216\u8ba1\u7b97\u4e2a\u6570\uff01"},
+
+
+  /** Can not call setShouldCacheNodes after nextNode has been called! */
+  //public static final int ER_CANNOT_CALL_SETSHOULDCACHENODE = 92;
+
+
+  {
+    ER_CANNOT_CALL_SETSHOULDCACHENODE,
+       "\u8c03\u7528 nextNode \u540e\u65e0\u6cd5\u8c03\u7528 setShouldCacheNodes\uff01"},
+
+
+  /** {0} only allows {1} arguments */
+  //public static final int ER_ONLY_ALLOWS = 93;
+
+
+  {
+    ER_ONLY_ALLOWS,
+       "{0} \u4ec5\u5141\u8bb8 {1} \u53d8\u91cf"},
+
+
+  /** Programmer's assertion in getNextStepPos: unknown stepType: {0} */
+  //public static final int ER_UNKNOWN_STEP = 94;
+
+
+  {
+    ER_UNKNOWN_STEP,
+       "getNextStepPos \u4e2d\u7684\u7a0b\u5e8f\u5458\u58f0\u660e\uff1a\u672a\u77e5\u7684 stepType\uff1a{0}"},
+
+
+  //Note to translators:  A relative location path is a form of XPath expression.
+  // The message indicates that such an expression was expected following the
+  // characters '/' or '//', but was not found.
+
+  /** Problem with RelativeLocationPath */
+  //public static final int ER_EXPECTED_REL_LOC_PATH = 95;
+
+
+  {
+    ER_EXPECTED_REL_LOC_PATH,
+       "\u201c/\u201d\u6216\u201c//\u201d\u6807\u8bb0\u540e\u9700\u8981\u91c7\u7528\u76f8\u5bf9\u4f4d\u7f6e\u8def\u5f84\u3002"},
+
+
+  // Note to translators:  A location path is a form of XPath expression.
+  // The message indicates that syntactically such an expression was expected,but
+  // the characters specified by the substitution text were encountered instead.
+
+  /** Problem with LocationPath */
+  //public static final int ER_EXPECTED_LOC_PATH = 96;
+
+
+  {
+    ER_EXPECTED_LOC_PATH,
+       "\u9700\u8981\u4f4d\u7f6e\u8def\u5f84\uff0c\u4f46\u9047\u5230\u4ee5\u4e0b\u6807\u8bb0:  {0}"},
+
+
+  // Note to translators:  A location step is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected
+  // following the specified characters.
+
+  /** Problem with Step */
+  //public static final int ER_EXPECTED_LOC_STEP = 97;
+
+
+  {
+    ER_EXPECTED_LOC_STEP,
+       "\u201c/\u201d\u6216\u201c//\u201d\u6807\u8bb0\u540e\u9700\u8981\u91c7\u7528\u4f4d\u7f6e\u6b65\u9aa4\u3002"},
+
+
+  // Note to translators:  A node test is part of an XPath expression that is
+  // used to test for particular kinds of nodes.  In this case, a node test that
+  // consists of an NCName followed by a colon and an asterisk or that consists
+  // of a QName was expected, but was not found.
+
+  /** Problem with NodeTest */
+  //public static final int ER_EXPECTED_NODE_TEST = 98;
+
+
+  {
+    ER_EXPECTED_NODE_TEST,
+       "\u9700\u8981\u4e0e NCName:* \u6216 QName \u5339\u914d\u7684\u8282\u70b9\u6d4b\u8bd5\u3002"},
+
+
+  // Note to translators:  A step pattern is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected,
+  // but the specified character was found in the expression instead.
+
+  /** Expected step pattern */
+  //public static final int ER_EXPECTED_STEP_PATTERN = 99;
+
+
+  {
+    ER_EXPECTED_STEP_PATTERN,
+       "\u9700\u8981\u6b65\u9aa4\u6a21\u5f0f\uff0c\u4f46\u9047\u5230\u201c/\u201d\u3002"},
+
+
+  // Note to translators: A relative path pattern is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected,
+  // but was not found.
+ 
+  /** Expected relative path pattern */
+  //public static final int ER_EXPECTED_REL_PATH_PATTERN = 100;
+
+
+  {
+    ER_EXPECTED_REL_PATH_PATTERN,
+       "\u9700\u8981\u76f8\u5bf9\u8def\u5f84\u6a21\u5f0f\u3002"},
+
+
+  // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
+  // The localname is the portion after the optional colon; the message indicates
+  // that there is a problem with that part of the QNAME.
+
+  /** localname in QNAME should be a valid NCName */
+  //public static final int ER_ARG_LOCALNAME_INVALID = 101;
+
+
+  {
+    ER_ARG_LOCALNAME_INVALID,
+       "QNAME \u4e2d\u7684 Localname \u5e94\u8be5\u662f\u4e00\u4e2a\u6709\u6548\u7684 NCName"},
+
+  
+  // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
+  // The prefix is the portion before the optional colon; the message indicates
+  // that there is a problem with that part of the QNAME.
+
+  /** prefix in QNAME should be a valid NCName */
+  //public static final int ER_ARG_PREFIX_INVALID = 102;
+
+
+  {
+    ER_ARG_PREFIX_INVALID,
+       "QNAME \u4e2d\u7684\u524d\u7f00\u5e94\u8be5\u662f\u4e00\u4e2a\u6709\u6548\u7684 NCName"},
+
+
+  // Note to translators:  The substitution text is the name of a data type.  The
+  // message indicates that a value of a particular type could not be converted
+  // to a value of type string.
+
+  /** Field ER_CANT_CONVERT_TO_BOOLEAN          */
+  //public static final int ER_CANT_CONVERT_TO_BOOLEAN = 103;
+
+
+  {
+    ER_CANT_CONVERT_TO_BOOLEAN,
+       "\u65e0\u6cd5\u5c06 {0} \u8f6c\u6362\u6210\u5e03\u5c14\u503c\u3002"},
+
+
+  // Note to translators: Do not translate ANY_UNORDERED_NODE_TYPE and 
+  // FIRST_ORDERED_NODE_TYPE.
+
+  /** Field ER_CANT_CONVERT_TO_SINGLENODE       */
+  //public static final int ER_CANT_CONVERT_TO_SINGLENODE = 104;
+
+
+  {
+    ER_CANT_CONVERT_TO_SINGLENODE,
+       "\u65e0\u6cd5\u5c06 {0} \u8f6c\u6362\u6210\u5355\u8282\u70b9\u3002\u6b64\u83b7\u53d6\u7a0b\u5e8f\u9002\u7528\u4e8e ANY_UNORDERED_NODE_TYPE \u548c FIRST_ORDERED_NODE_TYPE \u7c7b\u578b\u3002"},
+
+
+  // Note to translators: Do not translate UNORDERED_NODE_SNAPSHOT_TYPE and
+  // ORDERED_NODE_SNAPSHOT_TYPE.
+
+  /** Field ER_CANT_GET_SNAPSHOT_LENGTH         */
+  //public static final int ER_CANT_GET_SNAPSHOT_LENGTH = 105;
+
+
+  {
+    ER_CANT_GET_SNAPSHOT_LENGTH,
+       "\u65e0\u6cd5\u83b7\u53d6\u7c7b\u578b {0} \u4e0a\u7684\u5feb\u7167\u957f\u5ea6\u3002\u6b64\u83b7\u53d6\u7a0b\u5e8f\u9002\u7528\u4e8e UNORDERED_NODE_SNAPSHOT_TYPE \u548c ORDERED_NODE_SNAPSHOT_TYPE \u7c7b\u578b\u3002"},
+
+
+  /** Field ER_NON_ITERATOR_TYPE                */
+  //public static final int ER_NON_ITERATOR_TYPE        = 106;
+
+
+  {
+    ER_NON_ITERATOR_TYPE,
+       "\u65e0\u6cd5\u8fed\u4ee3\u975e\u53e0\u4ee3\u5668\u7c7b\u578b\uff1a{0}"},
+
+
+  // Note to translators: This message indicates that the document being operated
+  // upon changed, so the iterator object that was being used to traverse the
+  // document has now become invalid.
+
+  /** Field ER_DOC_MUTATED                      */
+  //public static final int ER_DOC_MUTATED              = 107;
+
+
+  {
+    ER_DOC_MUTATED,
+       "\u7531\u4e8e\u7ed3\u679c\u7684\u8fd4\u56de\u4f7f\u6587\u6863\u53d1\u751f\u6539\u53d8\u3002\u53e0\u4ee3\u5668\u65e0\u6548\u3002"},
+
+
+  /** Field ER_INVALID_XPATH_TYPE               */
+  //public static final int ER_INVALID_XPATH_TYPE       = 108;
+
+
+  {
+    ER_INVALID_XPATH_TYPE,
+       "\u65e0\u6548 XPath \u7c7b\u578b\u53d8\u91cf\uff1a{0}"},
+
+
+  /** Field ER_EMPTY_XPATH_RESULT                */
+  //public static final int ER_EMPTY_XPATH_RESULT       = 109;
+
+
+  {
+    ER_EMPTY_XPATH_RESULT,
+       "\u7a7a\u7684 XPath \u7ed3\u679c\u5bf9\u8c61"},
+
+
+  /** Field ER_INCOMPATIBLE_TYPES                */
+  //public static final int ER_INCOMPATIBLE_TYPES       = 110;
+
+
+  {
+    ER_INCOMPATIBLE_TYPES,
+       "\u8fd4\u56de\u7c7b\u578b\uff1a{0} \u65e0\u6cd5\u5f3a\u5236\u8f6c\u6362\u6210\u6307\u5b9a\u7684\u7c7b\u578b\uff1a{1}"},
+
+
+  /** Field ER_NULL_RESOLVER                     */
+  //public static final int ER_NULL_RESOLVER            = 111;
+
+
+  {
+    ER_NULL_RESOLVER,
+       "\u65e0\u6cd5\u7528\u7a7a\u7684\u524d\u7f00\u89e3\u51b3\u5668\u6765\u89e3\u51b3\u524d\u7f00\u3002"},
+
+
+  // Note to translators:  The substitution text is the name of a data type.  The
+  // message indicates that a value of a particular type could not be converted
+  // to a value of type string.
+
+  /** Field ER_CANT_CONVERT_TO_STRING            */
+  //public static final int ER_CANT_CONVERT_TO_STRING   = 112;
+
+
+  {
+    ER_CANT_CONVERT_TO_STRING,
+       "\u65e0\u6cd5\u5c06 {0} \u8f6c\u6362\u6210\u5b57\u7b26\u4e32\u3002"},
+
+
+  // Note to translators: Do not translate snapshotItem,
+  // UNORDERED_NODE_SNAPSHOT_TYPE and ORDERED_NODE_SNAPSHOT_TYPE.
+
+  /** Field ER_NON_SNAPSHOT_TYPE                 */
+  //public static final int ER_NON_SNAPSHOT_TYPE       = 113;
+
+
+  {
+    ER_NON_SNAPSHOT_TYPE,
+       "\u65e0\u6cd5\u5bf9\u7c7b\u578b {0} \u8c03\u7528 snapshotItem\u3002\u6b64\u65b9\u6cd5\u9002\u7528\u4e8e UNORDERED_NODE_SNAPSHOT_TYPE \u548c ORDERED_NODE_SNAPSHOT_TYPE \u7c7b\u578b\u3002"},
+
+
+  // Note to translators:  XPathEvaluator is a Java interface name.  An
+  // XPathEvaluator is created with respect to a particular XML document, and in
+  // this case the expression represented by this object was being evaluated with
+  // respect to a context node from a different document.
+
+  /** Field ER_WRONG_DOCUMENT                    */
+  //public static final int ER_WRONG_DOCUMENT          = 114;
+
+
+  {
+    ER_WRONG_DOCUMENT,
+       "\u4e0a\u4e0b\u6587\u8282\u70b9\u4e0d\u5c5e\u4e8e\u7ed1\u5b9a\u5230\u6b64 XPathEvaluator \u7684\u6587\u6863\u3002"},
+
+
+  // Note to translators:  The XPath expression cannot be evaluated with respect
+  // to this type of node.
+  /** Field ER_WRONG_NODETYPE                    */
+  //public static final int ER_WRONG_NODETYPE          = 115;
+
+
+  {
+    ER_WRONG_NODETYPE ,
+       "\u4e0a\u4e0b\u6587\u8282\u70b9\u7c7b\u578b\u4e0d\u53d7\u652f\u6301\u3002"},
+
+
+  /** Field ER_XPATH_ERROR                       */
+  //public static final int ER_XPATH_ERROR             = 116;
+
+
+  {
+    ER_XPATH_ERROR ,
+       "XPath \u4e2d\u51fa\u73b0\u672a\u77e5\u9519\u8bef\u3002"},
+
+
+
   
 
 
   // Warnings...
 
   /** Field WG_LOCALE_NAME_NOT_HANDLED          */
-  public static final int WG_LOCALE_NAME_NOT_HANDLED = 1;
+  //public static final int WG_LOCALE_NAME_NOT_HANDLED = 1;
 
-  static
+
   {
-    contents[WG_LOCALE_NAME_NOT_HANDLED + MAX_CODE][1] =
-      "\u4ecd\u672a\u5904\u7406 format-number \u51fd\u6570\u4e2d\u7684\u8bed\u8a00\u73af\u5883\u540d\u79f0\uff01";
-  }
+    WG_LOCALE_NAME_NOT_HANDLED,
+      "\u4ecd\u672a\u5904\u7406 format-number \u51fd\u6570\u4e2d\u7684\u8bed\u8a00\u73af\u5883\u540d\u79f0\uff01"},
+
 
   /** Field WG_PROPERTY_NOT_SUPPORTED          */
-  public static final int WG_PROPERTY_NOT_SUPPORTED = 2;
+  //public static final int WG_PROPERTY_NOT_SUPPORTED = 2;
 
-  static
+
   {
-    contents[WG_PROPERTY_NOT_SUPPORTED + MAX_CODE][1] =
-      "\u4e0d\u53d7\u652f\u6301\u7684 XSL Property\uff1a{0}";
-  }
+    WG_PROPERTY_NOT_SUPPORTED,
+      "\u4e0d\u53d7\u652f\u6301\u7684 XSL Property\uff1a{0}"},
+
 
   /** Field WG_DONT_DO_ANYTHING_WITH_NS          */
-  public static final int WG_DONT_DO_ANYTHING_WITH_NS = 3;
+  //public static final int WG_DONT_DO_ANYTHING_WITH_NS = 3;
 
-  static
+
   {
-    contents[WG_DONT_DO_ANYTHING_WITH_NS + MAX_CODE][1] =
-      "\u5f53\u524d\u4e0d\u8981\u5bf9\u5c5e\u6027\u4e2d\u7684\u540d\u79f0\u7a7a\u95f4 {0} \u6267\u884c\u4efb\u4f55\u64cd\u4f5c\uff1a{1}";
-  }
+    WG_DONT_DO_ANYTHING_WITH_NS,
+      "\u5f53\u524d\u4e0d\u8981\u5bf9\u5c5e\u6027\u4e2d\u7684\u540d\u79f0\u7a7a\u95f4 {0} \u6267\u884c\u4efb\u4f55\u64cd\u4f5c\uff1a{1}"},
+
 
   /** Field WG_SECURITY_EXCEPTION          */
-  public static final int WG_SECURITY_EXCEPTION = 4;
+  //public static final int WG_SECURITY_EXCEPTION = 4;
 
-  static
+
   {
-    contents[WG_SECURITY_EXCEPTION + MAX_CODE][1] =
-      "\u5c1d\u8bd5\u8bbf\u95ee XSL \u7cfb\u7edf\u5c5e\u6027\u65f6\uff0cSecurityException\uff1a{0}";
-  }
+    WG_SECURITY_EXCEPTION,
+      "\u5c1d\u8bd5\u8bbf\u95ee XSL \u7cfb\u7edf\u5c5e\u6027\u65f6\uff0cSecurityException\uff1a{0}"},
+
 
   /** Field WG_QUO_NO_LONGER_DEFINED          */
-  public static final int WG_QUO_NO_LONGER_DEFINED = 5;
+  //public static final int WG_QUO_NO_LONGER_DEFINED = 5;
 
-  static
+
   {
-    contents[WG_QUO_NO_LONGER_DEFINED + MAX_CODE][1] =
-      "\u65e7\u8bed\u6cd5\uff1aXPath \u4e2d\u4e0d\u518d\u5b9a\u4e49 quo(...)\u3002";
-  }
+    WG_QUO_NO_LONGER_DEFINED,
+      "\u65e7\u8bed\u6cd5\uff1aXPath \u4e2d\u4e0d\u518d\u5b9a\u4e49 quo(...)\u3002"},
+
 
   /** Field WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST          */
-  public static final int WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST = 6;
+  //public static final int WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST = 6;
 
-  static
+
   {
-    contents[WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST + MAX_CODE][1] =
-      "XPath \u9700\u8981\u7531\u4e00\u4e2a\u6d3e\u751f\u5bf9\u8c61\u6765\u6267\u884c nodeTest\uff01";
-  }
+    WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST,
+      "XPath \u9700\u8981\u7531\u4e00\u4e2a\u6d3e\u751f\u5bf9\u8c61\u6765\u6267\u884c nodeTest\uff01"},
+
 
   /** Field WG_FUNCTION_TOKEN_NOT_FOUND          */
-  public static final int WG_FUNCTION_TOKEN_NOT_FOUND = 7;
+  //public static final int WG_FUNCTION_TOKEN_NOT_FOUND = 7;
 
-  static
+
   {
-    contents[WG_FUNCTION_TOKEN_NOT_FOUND + MAX_CODE][1] =
-      "\u672a\u627e\u5230\u51fd\u6570\u6807\u8bb0\u3002";
-  }
+    WG_FUNCTION_TOKEN_NOT_FOUND,
+      "\u672a\u627e\u5230\u51fd\u6570\u6807\u8bb0\u3002"},
+
 
   /** Field WG_COULDNOT_FIND_FUNCTION          */
-  public static final int WG_COULDNOT_FIND_FUNCTION = 8;
+  //public static final int WG_COULDNOT_FIND_FUNCTION = 8;
 
-  static
+
   {
-    contents[WG_COULDNOT_FIND_FUNCTION + MAX_CODE][1] =
-      "\u65e0\u6cd5\u627e\u5230\u51fd\u6570\uff1a{0}";
-  }
+    WG_COULDNOT_FIND_FUNCTION,
+      "\u65e0\u6cd5\u627e\u5230\u51fd\u6570\uff1a{0}"},
+
 
   /** Field WG_CANNOT_MAKE_URL_FROM          */
-  public static final int WG_CANNOT_MAKE_URL_FROM = 9;
+  //public static final int WG_CANNOT_MAKE_URL_FROM = 9;
 
-  static
+
   {
-    contents[WG_CANNOT_MAKE_URL_FROM + MAX_CODE][1] =
-      "\u65e0\u6cd5\u5f97\u5230 URL \u81ea\uff1a{0}";
-  }
+    WG_CANNOT_MAKE_URL_FROM,
+      "\u65e0\u6cd5\u5f97\u5230 URL \u81ea\uff1a{0}"},
+
 
   /** Field WG_EXPAND_ENTITIES_NOT_SUPPORTED          */
-  public static final int WG_EXPAND_ENTITIES_NOT_SUPPORTED = 10;
+  //public static final int WG_EXPAND_ENTITIES_NOT_SUPPORTED = 10;
 
-  static
+
   {
-    contents[WG_EXPAND_ENTITIES_NOT_SUPPORTED + MAX_CODE][1] =
-      "-E \u9009\u9879\u4e0d\u652f\u6301 DTM\uff08\u8bed\u6cd5\uff09\u5206\u6790\u5668";
-  }
+    WG_EXPAND_ENTITIES_NOT_SUPPORTED,
+      "-E \u9009\u9879\u4e0d\u652f\u6301 DTM\uff08\u8bed\u6cd5\uff09\u5206\u6790\u5668"},
+
 
   /** Field WG_ILLEGAL_VARIABLE_REFERENCE          */
-  public static final int WG_ILLEGAL_VARIABLE_REFERENCE = 11;
+  //public static final int WG_ILLEGAL_VARIABLE_REFERENCE = 11;
 
-  static
+
   {
-    contents[WG_ILLEGAL_VARIABLE_REFERENCE + MAX_CODE][1] =
-      "\u4e3a\u53d8\u91cf\u7ed9\u51fa\u7684 VariableReference \u8d85\u51fa\u4e86\u4e0a\u4e0b\u6587\u8303\u56f4\u6216\u6ca1\u6709\u5b9a\u4e49\uff01\u540d\u79f0 = {0}";
-  }
+    WG_ILLEGAL_VARIABLE_REFERENCE,
+      "\u4e3a\u53d8\u91cf\u7ed9\u51fa\u7684 VariableReference \u8d85\u51fa\u4e86\u4e0a\u4e0b\u6587\u8303\u56f4\u6216\u6ca1\u6709\u5b9a\u4e49\uff01\u540d\u79f0 = {0}"},
+
 
   /** Field WG_UNSUPPORTED_ENCODING          */
-  public static final int WG_UNSUPPORTED_ENCODING = 12;
+  //public static final int WG_UNSUPPORTED_ENCODING = 12;
 
-  static
+
   {
-    contents[ER_UNSUPPORTED_ENCODING][1] = "\u4e0d\u53d7\u652f\u6301\u7684\u7f16\u7801\uff1a{0}";
-  }
+    WG_UNSUPPORTED_ENCODING, "\u4e0d\u53d7\u652f\u6301\u7684\u7f16\u7801\uff1a{0}"},
+
 
   // Other miscellaneous text used inside the code...
-  static
-  {
-    contents[MAX_MESSAGES][0] = "ui_language";
-    contents[MAX_MESSAGES][1] = "zh";
-    contents[MAX_MESSAGES + 1][0] = "help_language";
-    contents[MAX_MESSAGES + 1][1] = "zh";
-    contents[MAX_MESSAGES + 2][0] = "language";
-    contents[MAX_MESSAGES + 2][1] = "zh";
-    contents[MAX_MESSAGES + 3][0] = "BAD_CODE";
-    contents[MAX_MESSAGES + 3][1] =
-      "createMessage \u53c2\u6570\u8d85\u51fa\u4e86\u8303\u56f4";
-    contents[MAX_MESSAGES + 4][0] = "FORMAT_FAILED";
-    contents[MAX_MESSAGES + 4][1] =
-      "messageFormat \u8c03\u7528\u671f\u95f4\u63d0\u51fa\u4e86\u4f8b\u5916";
-    contents[MAX_MESSAGES + 5][0] = "version";
-    contents[MAX_MESSAGES + 5][1] = ">>>>>>> Xalan \u7248\u672c";
-    contents[MAX_MESSAGES + 6][0] = "version2";
-    contents[MAX_MESSAGES + 6][1] = "<<<<<<<";
-    contents[MAX_MESSAGES + 7][0] = "yes";
-    contents[MAX_MESSAGES + 7][1] = "\u662f";
-    contents[MAX_MESSAGES + 8][0] = "line";
-    contents[MAX_MESSAGES + 8][1] = "\u884c #";
-    contents[MAX_MESSAGES + 9][0] = "column";
-    contents[MAX_MESSAGES + 9][1] = "\u5217 #";
-    contents[MAX_MESSAGES + 10][0] = "xsldone";
-    contents[MAX_MESSAGES + 10][1] = "XSLProcessor\uff1a\u5df2\u5b8c\u6210";
-    contents[MAX_MESSAGES + 11][0] = "xpath_option";
-    contents[MAX_MESSAGES + 11][1] = "xpath \u9009\u9879\uff1a";
-    contents[MAX_MESSAGES + 12][0] = "optionIN";
-    contents[MAX_MESSAGES + 12][1] = "   [-in inputXMLURL]";
-    contents[MAX_MESSAGES + 13][0] = "optionSelect";
-    contents[MAX_MESSAGES + 13][1] = "   [-select xpath expression]";
-    contents[MAX_MESSAGES + 14][0] = "optionMatch";
-    contents[MAX_MESSAGES + 14][1] =
-      "   [-match match pattern (for match diagnostics)]";
-    contents[MAX_MESSAGES + 15][0] = "optionAnyExpr";
-    contents[MAX_MESSAGES + 15][1] =
-      "\u6216\u8005\u53ea\u6709 xpath \u8868\u8fbe\u5f0f\u5c06\u6267\u884c\u8bca\u65ad\u8f6c\u50a8";
-    contents[MAX_MESSAGES + 16][0] = "noParsermsg1";
-    contents[MAX_MESSAGES + 16][1] = "XSL Process \u672a\u6210\u529f\u3002";
-    contents[MAX_MESSAGES + 17][0] = "noParsermsg2";
-    contents[MAX_MESSAGES + 17][1] = "** \u65e0\u6cd5\u627e\u5230\uff08\u8bed\u6cd5\uff09\u5206\u6790\u5668 **";
-    contents[MAX_MESSAGES + 18][0] = "noParsermsg3";
-    contents[MAX_MESSAGES + 18][1] = "\u8bf7\u68c0\u67e5\u60a8\u7684\u7c7b\u8def\u5f84\u3002";
-    contents[MAX_MESSAGES + 19][0] = "noParsermsg4";
-    contents[MAX_MESSAGES + 19][1] =
-      "\u5982\u679c\u60a8\u6ca1\u6709 IBM \u7684 XML Parser for Java\uff0c\u5219\u53ef\u4ee5\u4e0b\u8f7d\u5176\u81ea";
-    contents[MAX_MESSAGES + 20][0] = "noParsermsg5";
-    contents[MAX_MESSAGES + 20][1] =
-      "IBM's AlphaWorks: http://www.alphaworks.ibm.com/formula/xml";
-  }
+  { "ui_language", "zh"},
+  { "help_language", "zh"},
+  { "language", "zh"},
+    { "BAD_CODE",
+      "createMessage \u53c2\u6570\u8d85\u51fa\u4e86\u8303\u56f4"},
+    { "FORMAT_FAILED",
+      "messageFormat \u8c03\u7528\u671f\u95f4\u63d0\u51fa\u4e86\u4f8b\u5916"},
+    { "version", ">>>>>>> Xalan \u7248\u672c"},
+    { "version2", "<<<<<<<"},
+    { "yes", "\u662f"},
+    { "line", "\u884c //"},
+    { "column", "\u5217 //"},
+    { "xsldone", "XSLProcessor\uff1a\u5df2\u5b8c\u6210"},
+    { "xpath_option", "xpath \u9009\u9879\uff1a"},
+    { "optionIN", "   [-in inputXMLURL]"},
+    { "optionSelect", "   [-select xpath expression]"},
+    { "optionMatch",
+      "   [-match match pattern (for match diagnostics)]"},
+    { "optionAnyExpr",
+      "\u6216\u8005\u53ea\u6709 xpath \u8868\u8fbe\u5f0f\u5c06\u6267\u884c\u8bca\u65ad\u8f6c\u50a8"},
+    { "noParsermsg1", "XSL Process \u672a\u6210\u529f\u3002"},
+    { "noParsermsg2",
+    "** \u65e0\u6cd5\u627e\u5230\uff08\u8bed\u6cd5\uff09\u5206\u6790\u5668 **"},
+    { "noParsermsg3",
+    "\u8bf7\u68c0\u67e5\u60a8\u7684\u7c7b\u8def\u5f84\u3002"},
+    { "noParsermsg4", 
+      "\u5982\u679c\u60a8\u6ca1\u6709 IBM \u7684 XML Parser for Java\uff0c\u5219\u53ef\u4ee5\u4e0b\u8f7d\u5176\u81ea"},
+    { "noParsermsg5", 
+      "IBM \u7684 AlphaWorks: http://www.alphaworks.ibm.com/formula/xml"},
+    { "gtone", ">1" },
+    { "zero", "0" },
+    { "one", "1" },
+    { "two" , "2" },
+    { "three", "3" }
+    
+  };
 
   // ================= INFRASTRUCTURE ======================
 
@@ -1063,7 +1355,7 @@ public class XPATHErrorResources_zh_CN extends XPATHErrorResources
     "org.apache.xpath.res.XPATHErrorResources";
 
   /** Field ERROR_STRING          */
-  public static final String ERROR_STRING = "#error";
+  public static final String ERROR_STRING = "//error";
 
   /** Field ERROR_HEADER          */
   public static final String ERROR_HEADER = "\u9519\u8bef\uff1a";

@@ -75,38 +75,6 @@ class ProcessorPreserveSpace extends XSLTElementProcessor
 {
 
   /**
-   * Bean property to allow setPropertiesFromAttributes to
-   * get the elements attribute.
-   */
-  private Vector m_elements;
-
-  /**
-   * Set from the elements attribute.  This is a list of 
-   * whitespace delimited element qualified names that specify
-   * preservation of whitespace.
-   *
-   * @param elems Should be a non-null reference to a list 
-   *              of {@link org.apache.xpath.XPath} objects.
-   */
-  public void setElements(Vector elems)
-  {
-    m_elements = elems;
-  }
-
-  /**
-   * Get the property set by setElements().  This is a list of 
-   * whitespace delimited element qualified names that specify
-   * preservation of whitespace.
-   *
-   * @return A reference to a list of {@link org.apache.xpath.XPath} objects, 
-   *         or null.
-   */
-  Vector getElements()
-  {
-    return m_elements;
-  }
-
-  /**
    * Receive notification of the start of an preserve-space element.
    *
    * @param handler The calling StylesheetHandler/TemplatesBuilder.
@@ -123,14 +91,15 @@ class ProcessorPreserveSpace extends XSLTElementProcessor
    *        Attributes object.
    */
   public void startElement(
-          StylesheetHandler handler, String uri, String localName, String rawName, Attributes attributes)
+          StylesheetHandler handler, String uri, String localName, String rawName, 
+          Attributes attributes)
             throws org.xml.sax.SAXException
   {
-
-    setPropertiesFromAttributes(handler, rawName, attributes, this);
-
     Stylesheet thisSheet = handler.getStylesheet();
-    Vector xpaths = getElements();
+	WhitespaceInfoPaths paths = new WhitespaceInfoPaths(thisSheet);
+    setPropertiesFromAttributes(handler, rawName, attributes, paths);
+
+    Vector xpaths = paths.getElements();
 
     for (int i = 0; i < xpaths.size(); i++)
     {
@@ -139,5 +108,6 @@ class ProcessorPreserveSpace extends XSLTElementProcessor
 
       thisSheet.setPreserveSpaces(wsi);
     }
+    paths.clearElements();
   }
 }

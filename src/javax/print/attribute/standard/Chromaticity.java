@@ -1,8 +1,8 @@
 
 /*
- * @(#)Chromaticity.java	1.4 01/12/03
+ * @(#)Chromaticity.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -24,7 +24,7 @@ import javax.print.attribute.PrintJobAttribute;
  * {@link #MONOCHROME <CODE>MONOCHROME</CODE>} or {@link #COLOR 
  * <CODE>COLOR</CODE>} for a monochrome or color document. 
  * <P>
- * <TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+ * <TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1 SUMMARY="Shows effects of specifying MONOCHROME or COLOR Chromaticity attributes">
  * <TR BGCOLOR="#E5E5E5">
  * <TH>
  * Chromaticity<BR>Attribute

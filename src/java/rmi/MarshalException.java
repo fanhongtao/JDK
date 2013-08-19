@@ -1,7 +1,7 @@
 /*
- * @(#)MarshalException.java	1.10 01/12/03
+ * @(#)MarshalException.java	1.11 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package java.rmi;
  * retransmitted after a <code>MarshalException</code> and reliably preserve
  * "at most once" call semantics.
  * 
- * @version 1.10, 12/03/01
+ * @version 1.11, 01/23/03
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

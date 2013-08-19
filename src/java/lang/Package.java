@@ -1,7 +1,7 @@
 /*
- * @(#)Package.java	1.36 02/04/10
+ * @(#)Package.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,36 +35,52 @@ import sun.net.www.ParseUtil;
  * <code>Package</code> objects contain version information
  * about the implementation and specification of a Java package.
  * This versioning information is retrieved and made available
- * by the <code>ClassLoader</code> instance that loaded the class(es).
- * Typically, it is stored in the manifest that is distributed with
- * the classes.<p>
+ * by the {@link ClassLoader <code>ClassLoader</code>} instance that
+ * loaded the class(es).  Typically, it is stored in the manifest that is
+ * distributed with the classes.
  *
- * The set of classes that make up the package may implement a
- * particular specification and if
- * so the specification title, version number, and vendor strings 
- * identify that specification. 
+ * <p>The set of classes that make up the package may implement a
+ * particular specification and if so the specification title, version number,
+ * and vendor strings identify that specification.
  * An application can ask if the package is
- * compatible with a particular version, see the <code>isCompatibleWith</code>
- * method for details. <p>
+ * compatible with a particular version, see the {@link #isCompatibleWith
+ * <code>isCompatibleWith</code>} method for details.
  *
- * Specification version numbers use a "Dewey Decimal"
- * syntax that consists of positive decimal integers
- * separated by periods ".", for example, "2.0" or "1.2.3.4.5.6.7".
- * This allows an extensible number to be used to
- * represent major, minor, micro, etc versions.
- * The version number must begin with a number. <p>
+ * <p>Specification version numbers use a syntax that consists of positive
+ * decimal integers separated by periods ".", for example "2.0" or
+ * "1.2.3.4.5.6.7".  This allows an extensible number to be used to represent
+ * major, minor, micro, etc. versions.  The version specification is described
+ * by the following formal grammar:
+ * <blockquote>
+ * <dl>
+ * <dt><i>SpecificationVersion:
+ * <dd>Digits RefinedVersion<sub>opt</sub></i>
+
+ * <p><dt><i>RefinedVersion:</i>
+ * <dd><code>.</code> <i>Digits</i>
+ * <dd><code>.</code> <i>Digits RefinedVersion</i>
  *
- * The implementation title, version, and vendor strings identify an
+ * <p><dt><i>Digits:
+ * <dd>Digit
+ * <dd>Digits</i>
+ *
+ * <p><dt><i>Digit:</i>
+ * <dd>any character for which {@link Character#isDigit} returns <code>true</code>,
+ * e.g. 0, 1, 2, ...
+ * </dl>
+ * </blockquote>
+ *
+ * <p>The implementation title, version, and vendor strings identify an
  * implementation and are made available conveniently to enable accurate
  * reporting of the packages involved when a problem occurs. The contents
  * all three implementation strings are vendor specific. The
  * implementation version strings have no specified syntax and should
  * only be compared for equality with desired version identifers.
  *
- * Within each <code>ClassLoader</code> instance all classes from the same
- * java package have the same Package object.  The static methods allow a package 
- * to be found by name or the set of all packages known to the current class 
- * loader to be found.<p>
+ * <p>Within each <code>ClassLoader</code> instance all classes from the same
+ * java package have the same Package object.  The static methods allow a package
+ * to be found by name or the set of all packages known to the current class
+ * loader to be found.
  *
  * @see ClassLoader#definePackage
  */
@@ -87,7 +103,7 @@ public class Package {
     public String getSpecificationTitle() {
 	return specTitle;
     }
-    
+
     /**
      * Returns the version number of the specification
      * that this package implements.
@@ -102,8 +118,8 @@ public class Package {
     }
 
     /**
-     * Return the name of the organization, vendor, 
-     * or company that owns and maintains the specification 
+     * Return the name of the organization, vendor,
+     * or company that owns and maintains the specification
      * of the classes that implement this package.
      * @return the specification vendor, null is returned if it is not known.
      */
@@ -127,7 +143,7 @@ public class Package {
      * package version strings used for this implementation
      * by this vendor for this package.
      * @return the version of the implementation, null is returned if it is not known.
-     */    
+     */
     public String getImplementationVersion() {
     	return implVersion;
     }
@@ -178,8 +194,8 @@ public class Package {
      *
      * @param desired the version string of the desired version.
      * @return true if this package's version number is greater
-     * 		than or equal to the desired version number<br>  
-     *		
+     * 		than or equal to the desired version number
+     *
      * @exception NumberFormatException if the desired or current version
      *		is not of the correct dotted form.
      */
@@ -190,35 +206,31 @@ public class Package {
 	    throw new NumberFormatException("Empty version string");
 	}
 
-    	// Until it matches scan and compare numbers
-    	StringTokenizer dtok = new StringTokenizer(desired, ".", true);
-    	StringTokenizer stok = new StringTokenizer(specVersion, ".", true);
-	while (dtok.hasMoreTokens() || stok.hasMoreTokens()) {
-	    int dver;
-	    int sver;
-	    if (dtok.hasMoreTokens()) {
-		dver = Integer.parseInt(dtok.nextToken());
-	    } else
-		dver = 0;
+	String [] sa = specVersion.split("\\.", -1);
+	int [] si = new int[sa.length];
+	for (int i = 0; i < sa.length; i++) {
+	    si[i] = Integer.parseInt(sa[i]);
+	    if (si[i] < 0)
+  		throw NumberFormatException.forInputString("" + si[i]);
+	}
 
-	    if (stok.hasMoreTokens()) {
-		sver = Integer.parseInt(stok.nextToken());
-	    } else
-		sver = 0;
+	String [] da = desired.split("\\.", -1);
+	int [] di = new int[da.length];
+	for (int i = 0; i < da.length; i++) {
+	    di[i] = Integer.parseInt(da[i]);
+	    if (di[i] < 0)
+		throw NumberFormatException.forInputString("" + di[i]);
+	}
 
-    	    if (sver < dver)
-    	    	return false;		// Known to be incompatible
-    	    if (sver > dver)
-    	    	return true;		// Known to be compatible
-
-    	    // Check for and absorb seperators
-    	    if (dtok.hasMoreTokens())
-    	    	dtok.nextToken();
-    	    if (stok.hasMoreTokens())
-    	    	stok.nextToken();
-    	    // Compare next component
-    	}
-    	// All components numerically equal
+ 	int len = Math.max(di.length, si.length);
+ 	for (int i = 0; i < len; i++) {
+	    int d = (i < di.length ? di[i] : 0);
+ 	    int s = (i < si.length ? si[i] : 0);
+	    if (s < d)
+		return false;
+	    if (s > d)
+		return true;
+	}
 	return true;
     }
 
@@ -256,7 +268,7 @@ public class Package {
      * only packages corresponding to classes loaded by the bootstrap
      * <code>ClassLoader</code> instance will be returned.
      *
-     * @return a new array of packages known to the callers <code>ClassLoader</code> 
+     * @return a new array of packages known to the callers <code>ClassLoader</code>
      * instance.  An zero length array is returned if none are known.
      */
     public static Package[] getPackages() {
@@ -272,8 +284,8 @@ public class Package {
      * Get the package for the specified class.
      * The class's class loader is used to find the package instance
      * corresponding to the specified class. If the class loader
-     * is the bootstrap class loader, which may be represented by 
-     * <code>null</code> in some implementations, then the set of packages 
+     * is the bootstrap class loader, which may be represented by
+     * <code>null</code> in some implementations, then the set of packages
      * loaded by the bootstrap class loader is searched to find the package.
      * <p>
      * Packages have attributes for versions and specifications only
@@ -342,7 +354,7 @@ public class Package {
      * @param implvendor the organization that maintains the implementation
      * @return a new package for containing the specified information.
      */
-    Package(String name, 
+    Package(String name,
 	    String spectitle, String specversion, String specvendor,
 	    String impltitle, String implversion, String implvendor,
 	    URL sealbase)
@@ -439,7 +451,7 @@ public class Package {
     }
 
     private static Package defineSystemPackage(final String iname,
-					       final String fn) 
+					       final String fn)
     {
 	return (Package) AccessController.doPrivileged(new PrivilegedAction() {
 	    public Object run() {
@@ -494,7 +506,7 @@ public class Package {
 
     // The map of loaded system packages
     private static Map pkgs = new HashMap(31);
-    
+
     // Maps each directory or zip file name to its corresponding url
     private static Map urls = new HashMap(10);
 

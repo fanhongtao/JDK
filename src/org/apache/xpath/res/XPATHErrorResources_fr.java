@@ -1,11 +1,5 @@
 /*
- * @(#)XPATHErrorResources_fr.java	1.7 02/03/26
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
+ * @(#)XPATHErrorResources_fr.java	1.4 03/05/01
  * The Apache Software License, Version 1.1
  *
  *
@@ -56,12 +50,11 @@
  *
  * This software consists of voluntary contributions made by many
  * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, Lotus
- * Development Corporation., http://www.lotus.com.  For more
+ * originally based on software copyright (c) 2002, Sun Microsystems,
+ * Inc., http://www.sun.com.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  */
-
 package org.apache.xpath.res;
 
 import org.apache.xml.utils.res.XResourceBundleBase;
@@ -71,29 +64,22 @@ import java.util.*;
 
 import java.text.DecimalFormat;
 
+
 /**
  * <meta name="usage" content="advanced"/>
  * Set up error messages.
  * We build a two dimensional array of message keys and
  * message strings. In order to add a new message here,
- * you need to first update the count of messages(MAX_CODE)or
- * the count of warnings(MAX_WARNING). The array will be
- * automatically filled in with the keys, but you need to
- * fill in the actual message string. Follow the instructions
- * below.
+ * you need to first add a Static string constant for the
+ * Key and update the contents array with Key, Value pair
+  * Also you need to  update the count of messages(MAX_CODE)or
+ * the count of warnings(MAX_WARNING) [ Information purpose only]
  */
 public class XPATHErrorResources_fr extends XPATHErrorResources
 {
 
-  /** Field ERROR_SUFFIX          */
-  public static final String ERROR_SUFFIX = "ER";
-
-  /** Field WARNING_SUFFIX          */
-  public static final String WARNING_SUFFIX = "WR";
-
   /** Field MAX_CODE          */
-  public static final int MAX_CODE = 83;  // this is needed to keep track of the number of messages          
-
+  public static final int MAX_CODE = 116;  // this is needed to keep track of the number of messages          
 
   /** Field MAX_WARNING          */
   public static final int MAX_WARNING = 11;  // this is needed to keep track of the number of warnings
@@ -104,968 +90,1254 @@ public class XPATHErrorResources_fr extends XPATHErrorResources
   /** Field MAX_MESSAGES          */
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
-  /** Field contents          */
-  static final Object[][] contents =
-    new Object[MAX_MESSAGES + MAX_OTHERS + 1][2];
-
-  /*
-  * Now fill in the message keys.
-
-  * This does not need to be updated. If MAX_CODE and MAX_WARNING
-  * are correct, the keys will get filled in automatically with
-  * the value ERxxxx (WRxxxx for warnings) where xxxx is a
-  * formatted number corresponding to the error code (i.e. ER0001).
-
-  */
-  static
-  {
-    for (int i = 0; i < MAX_CODE + 1; i++)
-    {
-      contents[i][0] = getMKey(i);
-    }
-
-    for (int i = 1; i < MAX_WARNING + 1; i++)
-    {
-      contents[i + MAX_CODE][0] = getWKey(i);
-    }
-  }
-
-  /*
-
-  * Now fill in the message text.
-
-  * First create an int for the message code. Make sure you
-  * update MAX_CODE for error messages and MAX_WARNING for warnings
-  * Then fill in the message text for that message code in the
-  * array. Use the new error code as the index into the array.
-
-  */
-
 
   // Error messages...
+  public static final Object[][] contents = {
 
   /** Field ERROR0000          */
+  //public static final int ERROR0000 = 0;
 
-  public static final int ERROR0000 = 0;
 
-  static
   {
-    contents[ERROR0000][1] = "{0}";
-  }
+    "ERROR0000", "{0}"},
+
 
   /** Field ER_CURRENT_NOT_ALLOWED_IN_MATCH          */
-  public static final int ER_CURRENT_NOT_ALLOWED_IN_MATCH = 1;
+  //public static final int ER_CURRENT_NOT_ALLOWED_IN_MATCH = 1;
 
 
-  static
   {
-    contents[ER_CURRENT_NOT_ALLOWED_IN_MATCH][1] =
-      "La fonction current() n\u2019est pas admise dans la correspondance \u00e0 la forme !";
-  }
+    ER_CURRENT_NOT_ALLOWED_IN_MATCH,
+      "La fonction current() n'est pas admise dans la correspondance \u00e0 la forme !"},
+
 
   /** Field ER_CURRENT_TAKES_NO_ARGS          */
-  public static final int ER_CURRENT_TAKES_NO_ARGS = 2;
+  //public static final int ER_CURRENT_TAKES_NO_ARGS = 2;
 
-  static
+
   {
-    contents[ER_CURRENT_TAKES_NO_ARGS][1] =
-      "La fonction current() n\u2019admet pas les arguments !";
-  }
+    ER_CURRENT_TAKES_NO_ARGS,
+      "La fonction current() n'admet pas les arguments !"},
+
 
   /** Field ER_DOCUMENT_REPLACED          */
-  public static final int ER_DOCUMENT_REPLACED = 3;
+  //public static final int ER_DOCUMENT_REPLACED = 3;
 
-  static
+
   {
-    contents[ER_DOCUMENT_REPLACED][1] =
-      "la mise en \u0153uvre de la fonction document() a \u00e9t\u00e9 remplac\u00e9e par org.apache.xalan.xslt.FuncDocument!";
-  }
+    ER_DOCUMENT_REPLACED,
+      "La mise en oeuvre de la fonction document () a \u00e9t\u00e9 remplac\u00e9e par org.apache.xalan.xslt.FuncDocument!"},
+
 
   /** Field ER_CONTEXT_HAS_NO_OWNERDOC          */
-  public static final int ER_CONTEXT_HAS_NO_OWNERDOC = 4;
+  //public static final int ER_CONTEXT_HAS_NO_OWNERDOC = 4;
 
-  static
+
   {
-    contents[ER_CONTEXT_HAS_NO_OWNERDOC][1] =
-      "le contexte n\u2019a pas de document propri\u00e9taire !";
-  }
+    ER_CONTEXT_HAS_NO_OWNERDOC,
+      "le contexte n'a pas de document propri\u00e9taire !"},
+
 
   /** Field ER_LOCALNAME_HAS_TOO_MANY_ARGS          */
-  public static final int ER_LOCALNAME_HAS_TOO_MANY_ARGS = 5;
+  //public static final int ER_LOCALNAME_HAS_TOO_MANY_ARGS = 5;
 
-  static
+
   {
-    contents[ER_LOCALNAME_HAS_TOO_MANY_ARGS][1] =
-      "local-name() a trop d\u2019arguments.";
-  }
+    ER_LOCALNAME_HAS_TOO_MANY_ARGS,
+      "local-name() a trop d'arguments."},
+
 
   /** Field ER_NAMESPACEURI_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NAMESPACEURI_HAS_TOO_MANY_ARGS = 6;
+  //public static final int ER_NAMESPACEURI_HAS_TOO_MANY_ARGS = 6;
 
-  static
+
   {
-    contents[ER_NAMESPACEURI_HAS_TOO_MANY_ARGS][1] =
-      "namespace-uri() a trop d\u2019arguments.";
-  }
+    ER_NAMESPACEURI_HAS_TOO_MANY_ARGS,
+      "namespace-uri() a trop d'arguments."},
+
 
   /** Field ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS = 7;
+  //public static final int ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS = 7;
 
-  static
+
   {
-    contents[ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS][1] =
-      "normalize-space() a trop d\u2019arguments.";
-  }
+    ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS,
+      "normalize-space() a trop d'arguments."},
+
 
   /** Field ER_NUMBER_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NUMBER_HAS_TOO_MANY_ARGS = 8;
+  //public static final int ER_NUMBER_HAS_TOO_MANY_ARGS = 8;
 
-  static
+
   {
-    contents[ER_NUMBER_HAS_TOO_MANY_ARGS][1] =
-      "number() a trop d\u2019arguments.";
-  }
+    ER_NUMBER_HAS_TOO_MANY_ARGS,
+      "number() a trop d'arguments."},
+
 
   /** Field ER_NAME_HAS_TOO_MANY_ARGS          */
-  public static final int ER_NAME_HAS_TOO_MANY_ARGS = 9;
+  //public static final int ER_NAME_HAS_TOO_MANY_ARGS = 9;
 
-  static
+
   {
-    contents[ER_NAME_HAS_TOO_MANY_ARGS][1] = "name() a trop d\u2019arguments.";
-  }
+    ER_NAME_HAS_TOO_MANY_ARGS, "name() a trop d'arguments."},
+
 
   /** Field ER_STRING_HAS_TOO_MANY_ARGS          */
-  public static final int ER_STRING_HAS_TOO_MANY_ARGS = 10;
+  //public static final int ER_STRING_HAS_TOO_MANY_ARGS = 10;
 
-  static
+
   {
-    contents[ER_STRING_HAS_TOO_MANY_ARGS][1] =
-      "string() a trop d\u2019arguments.";
-  }
+    ER_STRING_HAS_TOO_MANY_ARGS,
+      "string() a trop d'arguments."},
+
 
   /** Field ER_STRINGLENGTH_HAS_TOO_MANY_ARGS          */
-  public static final int ER_STRINGLENGTH_HAS_TOO_MANY_ARGS = 11;
+  //public static final int ER_STRINGLENGTH_HAS_TOO_MANY_ARGS = 11;
 
-  static
+
   {
-    contents[ER_STRINGLENGTH_HAS_TOO_MANY_ARGS][1] =
-      "string-length() a trop d\u2019arguments.";
-  }
+    ER_STRINGLENGTH_HAS_TOO_MANY_ARGS,
+      "string-length() a trop d'arguments."},
+
 
   /** Field ER_TRANSLATE_TAKES_3_ARGS          */
-  public static final int ER_TRANSLATE_TAKES_3_ARGS = 12;
+  //public static final int ER_TRANSLATE_TAKES_3_ARGS = 12;
 
-  static
+
   {
-    contents[ER_TRANSLATE_TAKES_3_ARGS][1] =
-      "La fonction translate() a trois arguments !";
-  }
+    ER_TRANSLATE_TAKES_3_ARGS,
+      "La fonction translate() a trois arguments !"},
+
 
   /** Field ER_UNPARSEDENTITYURI_TAKES_1_ARG          */
-  public static final int ER_UNPARSEDENTITYURI_TAKES_1_ARG = 13;
+  //public static final int ER_UNPARSEDENTITYURI_TAKES_1_ARG = 13;
 
-  static
+
   {
-    contents[ER_UNPARSEDENTITYURI_TAKES_1_ARG][1] =
-      "La fonction unparsed-entity-uri ne peut avoir qu\u2019un seul argument !";
-  }
+    ER_UNPARSEDENTITYURI_TAKES_1_ARG,
+      "La fonction unparsed-entity-uri ne peut avoir qu'un seul argument !"},
+
 
   /** Field ER_NAMESPACEAXIS_NOT_IMPLEMENTED          */
-  public static final int ER_NAMESPACEAXIS_NOT_IMPLEMENTED = 14;
+  //public static final int ER_NAMESPACEAXIS_NOT_IMPLEMENTED = 14;
 
-  static
+
   {
-    contents[ER_NAMESPACEAXIS_NOT_IMPLEMENTED][1] =
-      "l'axe namespace n\u2019est pas encore mis en \u0153uvre !";
-  }
+    ER_NAMESPACEAXIS_NOT_IMPLEMENTED,
+      "l'axe namespace n'est pas encore mis en \u0153uvre !"},
+
 
   /** Field ER_UNKNOWN_AXIS          */
-  public static final int ER_UNKNOWN_AXIS = 15;
+  //public static final int ER_UNKNOWN_AXIS = 15;
 
-  static
+
   {
-    contents[ER_UNKNOWN_AXIS][1] = "axe inconnu : {0}";
-  }
+    ER_UNKNOWN_AXIS, "axe inconnu : {0}"},
+
 
   /** Field ER_UNKNOWN_MATCH_OPERATION          */
-  public static final int ER_UNKNOWN_MATCH_OPERATION = 16;
+  //public static final int ER_UNKNOWN_MATCH_OPERATION = 16;
 
-  static
+
   {
-    contents[ER_UNKNOWN_MATCH_OPERATION][1] = "op\u00e9ration de correspondance inconnue !";
-  }
+    ER_UNKNOWN_MATCH_OPERATION, "op\u00e9ration de correspondance inconnue !"},
+
 
   /** Field ER_INCORRECT_ARG_LENGTH          */
-  public static final int ER_INCORRECT_ARG_LENGTH = 17;
+  //public static final int ER_INCORRECT_ARG_LENGTH = 17;
 
-  static
+
   {
-    contents[ER_INCORRECT_ARG_LENGTH][1] =
-      "La longueur d\u2019argument du test du n\u0153ud processing-instruction() n\u2019est pas correcte !";
-  }
+    ER_INCORRECT_ARG_LENGTH,
+      "La longueur d'argument du test du n\u0153ud processing-instruction() n'est pas correcte !"},
+
 
   /** Field ER_CANT_CONVERT_TO_NUMBER          */
-  public static final int ER_CANT_CONVERT_TO_NUMBER = 18;
+  //public static final int ER_CANT_CONVERT_TO_NUMBER = 18;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_NUMBER][1] =
-      "Impossible de convertir {0} en fonction number";
-  }
+    ER_CANT_CONVERT_TO_NUMBER,
+      "Impossible de convertir {0} en fonction number"},
+
 
   /** Field ER_CANT_CONVERT_TO_NODELIST          */
-  public static final int ER_CANT_CONVERT_TO_NODELIST = 19;
+  //public static final int ER_CANT_CONVERT_TO_NODELIST = 19;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_NODELIST][1] =
-      "Impossible de convertir {0} en fonction NodeList !";
-  }
+    ER_CANT_CONVERT_TO_NODELIST,
+      "Impossible de convertir {0} en fonction NodeList !"},
+
 
   /** Field ER_CANT_CONVERT_TO_MUTABLENODELIST          */
-  public static final int ER_CANT_CONVERT_TO_MUTABLENODELIST = 20;
+  //public static final int ER_CANT_CONVERT_TO_MUTABLENODELIST = 20;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_MUTABLENODELIST][1] =
-      "Impossible de convertir {0} en fonction NodeSetDTM !";
-  }
+    ER_CANT_CONVERT_TO_MUTABLENODELIST,
+      "Impossible de convertir {0} en fonction NodeSetDTM !"},
+
 
   /** Field ER_CANT_CONVERT_TO_TYPE          */
-  public static final int ER_CANT_CONVERT_TO_TYPE = 21;
+  //public static final int ER_CANT_CONVERT_TO_TYPE = 21;
 
-  static
+
   {
-    contents[ER_CANT_CONVERT_TO_TYPE][1] =
-      "Impossible de convertir {0} en type#{1}";
-  }
+    ER_CANT_CONVERT_TO_TYPE,
+      "Impossible de convertir {0} en type//{1}"},
+
 
   /** Field ER_EXPECTED_MATCH_PATTERN          */
-  public static final int ER_EXPECTED_MATCH_PATTERN = 22;
+  //public static final int ER_EXPECTED_MATCH_PATTERN = 22;
 
-  static
+
   {
-    contents[ER_EXPECTED_MATCH_PATTERN][1] =
-      "Correspondance \u00e0 la forme attendue dans getMatchScore !";
-  }
+    ER_EXPECTED_MATCH_PATTERN,
+      "Correspondance \u00e0 la forme attendue dans getMatchScore !"},
+
 
   /** Field ER_COULDNOT_GET_VAR_NAMED          */
-  public static final int ER_COULDNOT_GET_VAR_NAMED = 23;
+  //public static final int ER_COULDNOT_GET_VAR_NAMED = 23;
 
-  static
+
   {
-    contents[ER_COULDNOT_GET_VAR_NAMED][1] =
-      "Impossible de trouver la variable nomm\u00e9e {0}";
-  }
+    ER_COULDNOT_GET_VAR_NAMED,
+      "Impossible de trouver la variable nomm\u00e9e {0}"},
+
 
   /** Field ER_UNKNOWN_OPCODE          */
-  public static final int ER_UNKNOWN_OPCODE = 24;
+  //public static final int ER_UNKNOWN_OPCODE = 24;
 
-  static
+
   {
-    contents[ER_UNKNOWN_OPCODE][1] = "ERREUR ! Code d\u2019op\u00e9ration inconnu : {0}";
-  }
+    ER_UNKNOWN_OPCODE, "ERREUR ! Code d'op\u00e9ration inconnu : {0}"},
+
 
   /** Field ER_EXTRA_ILLEGAL_TOKENS          */
-  public static final int ER_EXTRA_ILLEGAL_TOKENS = 25;
+  //public static final int ER_EXTRA_ILLEGAL_TOKENS = 25;
 
-  static
+
   {
-    contents[ER_EXTRA_ILLEGAL_TOKENS][1] = "Unit\u00e9s lexicales suppl\u00e9mentaires non autoris\u00e9es : {0}";
-  }
+    ER_EXTRA_ILLEGAL_TOKENS, "Unit\u00e9s lexicales suppl\u00e9mentaires non autoris\u00e9es : {0}"},
+
 
   /** Field ER_EXPECTED_DOUBLE_QUOTE          */
-  public static final int ER_EXPECTED_DOUBLE_QUOTE = 26;
+  //public static final int ER_EXPECTED_DOUBLE_QUOTE = 26;
 
-  static
+
   {
-    contents[ER_EXPECTED_DOUBLE_QUOTE][1] =
-      "libell\u00e9 mal pr\u00e9sent\u00e9... guillemet attendu !";
-  }
+    ER_EXPECTED_DOUBLE_QUOTE,
+      "libell\u00e9 mal pr\u00e9sent\u00e9... guillemet attendu !"},
+
 
   /** Field ER_EXPECTED_SINGLE_QUOTE          */
-  public static final int ER_EXPECTED_SINGLE_QUOTE = 27;
+  //public static final int ER_EXPECTED_SINGLE_QUOTE = 27;
 
-  static
+
   {
-    contents[ER_EXPECTED_SINGLE_QUOTE][1] =
-      "libell\u00e9 mal pr\u00e9sent\u00e9... apostrophe attendue !";
-  }
+    ER_EXPECTED_SINGLE_QUOTE,
+      "libell\u00e9 mal pr\u00e9sent\u00e9... apostrophe attendue !"},
+
 
   /** Field ER_EMPTY_EXPRESSION          */
-  public static final int ER_EMPTY_EXPRESSION = 28;
+  //public static final int ER_EMPTY_EXPRESSION = 28;
 
-  static
+
   {
-    contents[ER_EMPTY_EXPRESSION][1] = "Expression vide !";
-  }
+    ER_EMPTY_EXPRESSION, "Expression vide !"},
+
 
   /** Field ER_EXPECTED_BUT_FOUND          */
-  public static final int ER_EXPECTED_BUT_FOUND = 29;
+  //public static final int ER_EXPECTED_BUT_FOUND = 29;
 
-  static
+
   {
-    contents[ER_EXPECTED_BUT_FOUND][1] = "{0} attendu(e), mais : {1} trouv\u00e9(e)";
-  }
+    ER_EXPECTED_BUT_FOUND, "{0} attendu(e), mais : {1} trouv\u00e9(e)"},
+
 
   /** Field ER_INCORRECT_PROGRAMMER_ASSERTION          */
-  public static final int ER_INCORRECT_PROGRAMMER_ASSERTION = 30;
+  //public static final int ER_INCORRECT_PROGRAMMER_ASSERTION = 30;
 
-  static
+
   {
-    contents[ER_INCORRECT_PROGRAMMER_ASSERTION][1] =
-      "Assertion de programmeur incorrecte ! - {0}";
-  }
+    ER_INCORRECT_PROGRAMMER_ASSERTION,
+      "Assertion de programmeur incorrecte ! - {0}"},
+
 
   /** Field ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL          */
-  public static final int ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL = 31;
+  //public static final int ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL = 31;
 
-  static
+
   {
-    contents[ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL][1] =
-      "L\u2019argument boolean(...) n\u2019est plus facultatif avec la version brouillon 19990709 XPath .";
-  }
+    ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL,
+      "L'argument boolean(...) n'est plus facultatif avec la version brouillon 19990709 XPath ."},
+
 
   /** Field ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG          */
-  public static final int ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG = 32;
+  //public static final int ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG = 32;
 
-  static
+
   {
-    contents[ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG][1] =
-      "',' trouv\u00e9 sans argument avant !";
-  }
+    ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG,
+      "',' trouv\u00e9 sans argument avant !"},
+
 
   /** Field ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG          */
-  public static final int ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG = 33;
+  //public static final int ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG = 33;
 
-  static
+
   {
-    contents[ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG][1] =
-      "',' trouv\u00e9 sans argument apr\u00e8s !";
-  }
+    ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG,
+      "',' trouv\u00e9 sans argument apr\u00e8s !"},
+
 
   /** Field ER_PREDICATE_ILLEGAL_SYNTAX          */
-  public static final int ER_PREDICATE_ILLEGAL_SYNTAX = 34;
+  //public static final int ER_PREDICATE_ILLEGAL_SYNTAX = 34;
 
-  static
+
   {
-    contents[ER_PREDICATE_ILLEGAL_SYNTAX][1] =
-      "'..[predicate]' ou '.[predicate]' constitue une mauvaise syntaxe. Utilisez 'self::node()[predicate]' \u00e0 la place.";
-  }
+    ER_PREDICATE_ILLEGAL_SYNTAX,
+      "'..[predicate]' ou '.[predicate]' constitue une mauvaise syntaxe. Utilisez 'self::node()[predicate]' \u00e0 la place."},
+
 
   /** Field ER_ILLEGAL_AXIS_NAME          */
-  public static final int ER_ILLEGAL_AXIS_NAME = 35;
+  //public static final int ER_ILLEGAL_AXIS_NAME = 35;
 
-  static
+
   {
-    contents[ER_ILLEGAL_AXIS_NAME][1] = "nom d\u2019axe non autoris\u00e9 : {0}";
-  }
+    ER_ILLEGAL_AXIS_NAME, "nom d'axe non autoris\u00e9 : {0}"},
+
 
   /** Field ER_UNKNOWN_NODETYPE          */
-  public static final int ER_UNKNOWN_NODETYPE = 36;
+  //public static final int ER_UNKNOWN_NODETYPE = 36;
 
-  static
+
   {
-    contents[ER_UNKNOWN_NODETYPE][1] = "Type de n\u0153ud inconnu : {0}";
-  }
+    ER_UNKNOWN_NODETYPE, "Type de n\u0153ud inconnu : {0}"},
+
 
   /** Field ER_PATTERN_LITERAL_NEEDS_BE_QUOTED          */
-  public static final int ER_PATTERN_LITERAL_NEEDS_BE_QUOTED = 37;
+  //public static final int ER_PATTERN_LITERAL_NEEDS_BE_QUOTED = 37;
 
-  static
+
   {
-    contents[ER_PATTERN_LITERAL_NEEDS_BE_QUOTED][1] =
-      "Le libell\u00e9 de la forme ({0}) doit \u00eatre entre guillemets !";
-  }
+    ER_PATTERN_LITERAL_NEEDS_BE_QUOTED,
+      "Le libell\u00e9 de la forme ({0}) doit \u00eatre entre guillemets !"},
+
 
   /** Field ER_COULDNOT_BE_FORMATTED_TO_NUMBER          */
-  public static final int ER_COULDNOT_BE_FORMATTED_TO_NUMBER = 38;
+  //public static final int ER_COULDNOT_BE_FORMATTED_TO_NUMBER = 38;
 
-  static
+
   {
-    contents[ER_COULDNOT_BE_FORMATTED_TO_NUMBER][1] =
-      "{0} ne peut pas \u00eatre format\u00e9(e) en number\u00a0!";
-  }
+    ER_COULDNOT_BE_FORMATTED_TO_NUMBER,
+      "{0} ne peut pas \u00eatre format\u00e9(e) en number\u00a0!"},
+
 
   /** Field ER_COULDNOT_CREATE_XMLPROCESSORLIAISON          */
-  public static final int ER_COULDNOT_CREATE_XMLPROCESSORLIAISON = 39;
+  //public static final int ER_COULDNOT_CREATE_XMLPROCESSORLIAISON = 39;
 
-  static
+
   {
-    contents[ER_COULDNOT_CREATE_XMLPROCESSORLIAISON][1] =
-      "Impossible de cr\u00e9er XML TransformerFactory Liaison : {0}";
-  }
+    ER_COULDNOT_CREATE_XMLPROCESSORLIAISON,
+      "Impossible de cr\u00e9er XML TransformerFactory Liaison : {0}"},
+
 
   /** Field ER_DIDNOT_FIND_XPATH_SELECT_EXP          */
-  public static final int ER_DIDNOT_FIND_XPATH_SELECT_EXP = 40;
+  //public static final int ER_DIDNOT_FIND_XPATH_SELECT_EXP = 40;
 
-  static
+
   {
-    contents[ER_DIDNOT_FIND_XPATH_SELECT_EXP][1] =
+    ER_DIDNOT_FIND_XPATH_SELECT_EXP,
+      "Erreur ! Impossible de trouver l'expression de s\u00e9lection xpath (-select)."},
 
-      "Erreur ! Impossible de trouver l\u2019expression de s\u00e9lection xpath (-select).";
-  }
 
   /** Field ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH          */
-  public static final int ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH = 41;
+  //public static final int ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH = 41;
 
-  static
+
   {
-    contents[ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH][1] =
-      "ERREUR ! Impossible de trouver ENDOP apr\u00e8s OP_LOCATIONPATH";
-  }
+    ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH,
+      "ERREUR ! Impossible de trouver ENDOP apr\u00e8s OP_LOCATIONPATH"},
+
 
   /** Field ER_ERROR_OCCURED          */
-  public static final int ER_ERROR_OCCURED = 42;
+  //public static final int ER_ERROR_OCCURED = 42;
 
-  static
+
   {
-    contents[ER_ERROR_OCCURED][1] = "Une erreur s\u2019est produite !";
-  }
+    ER_ERROR_OCCURED, "Une erreur s'est produite !"},
+
 
   /** Field ER_ILLEGAL_VARIABLE_REFERENCE          */
-  public static final int ER_ILLEGAL_VARIABLE_REFERENCE = 43;
+  //public static final int ER_ILLEGAL_VARIABLE_REFERENCE = 43;
 
-  static
+
   {
-    contents[ER_ILLEGAL_VARIABLE_REFERENCE][1] =
-      "L'\u00e9l\u00e9ment VariableReference a \u00e9t\u00e9 fourni pour la variable hors contexte ou sans d\u00e9finition !  Nom = {0}";
-  }
+    ER_ILLEGAL_VARIABLE_REFERENCE,
+      "L''\u00e9l\u00e9ment VariableReference a \u00e9t\u00e9 fourni pour la variable hors contexte ou sans d\u00e9finition !  Nom = {0}"},
+
 
   /** Field ER_AXES_NOT_ALLOWED          */
-  public static final int ER_AXES_NOT_ALLOWED = 44;
+  //public static final int ER_AXES_NOT_ALLOWED = 44;
 
-  static
+
   {
-    contents[ER_AXES_NOT_ALLOWED][1] =
-      "Seuls les axes child:: et attribute:: sont admis dans les correspondances \u00e0 la forme !  Axes erron\u00e9s = {0}";
-  }
+    ER_AXES_NOT_ALLOWED,
+      "Seuls les axes child:: et attribute:: sont admis dans les correspondances \u00e0 la forme !  Axes erron\u00e9s = {0}"},
+
 
   /** Field ER_KEY_HAS_TOO_MANY_ARGS          */
-  public static final int ER_KEY_HAS_TOO_MANY_ARGS = 45;
+  //public static final int ER_KEY_HAS_TOO_MANY_ARGS = 45;
 
-  static
+
   {
-    contents[ER_KEY_HAS_TOO_MANY_ARGS][1] =
-      "key() dispose d\u2019un nombre incorrect d\u2019arguments.";
-  }
+    ER_KEY_HAS_TOO_MANY_ARGS,
+      "key() dispose d'un nombre incorrect d'arguments."},
+
 
   /** Field ER_COUNT_TAKES_1_ARG          */
-  public static final int ER_COUNT_TAKES_1_ARG = 46;
+  //public static final int ER_COUNT_TAKES_1_ARG = 46;
 
-  static
+
   {
-    contents[ER_COUNT_TAKES_1_ARG][1] =
-      "La fonction count ne doit avoir qu\u2019un seul argument !";
-  }
+    ER_COUNT_TAKES_1_ARG,
+      "La fonction count ne doit avoir qu'un seul argument !"},
 
 
   /** Field ER_COULDNOT_FIND_FUNCTION          */
-  public static final int ER_COULDNOT_FIND_FUNCTION = 47;
+  //public static final int ER_COULDNOT_FIND_FUNCTION = 47;
 
-  static
+
   {
-    contents[ER_COULDNOT_FIND_FUNCTION][1] = "Impossible de trouver la fonction : {0}";
-  }
+    ER_COULDNOT_FIND_FUNCTION, "Impossible de trouver la fonction : {0}"},
+
 
   /** Field ER_UNSUPPORTED_ENCODING          */
-  public static final int ER_UNSUPPORTED_ENCODING = 48;
+  //public static final int ER_UNSUPPORTED_ENCODING = 48;
 
-  static
+
   {
-    contents[ER_UNSUPPORTED_ENCODING][1] = "Codage non pris en charge : {0}";
-  }
+    ER_UNSUPPORTED_ENCODING, "Codage non pris en charge : {0}"},
+
 
   /** Field ER_PROBLEM_IN_DTM_NEXTSIBLING          */
-  public static final int ER_PROBLEM_IN_DTM_NEXTSIBLING = 49;
+  //public static final int ER_PROBLEM_IN_DTM_NEXTSIBLING = 49;
 
-  static
+
   {
-    contents[ER_PROBLEM_IN_DTM_NEXTSIBLING][1] =
-      "Un incident s\u2019est produit au niveau de DTM dans getNextSibling... Tentative de r\u00e9cup\u00e9ration";
-  }
+    ER_PROBLEM_IN_DTM_NEXTSIBLING,
+      "Un incident s'est produit au niveau de DTM dans getNextSibling... Tentative de r\u00e9cup\u00e9ration"},
+
 
   /** Field ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL          */
-  public static final int ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL = 50;
+  //public static final int ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL = 50;
 
-  static
+
   {
-    contents[ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL][1] =
-      "Erreur de programmation : Impossible d\u2019\u00e9crire dans EmptyNodeList.";
-  }
+    ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL,
+      "Erreur de programmation : Impossible d'\u00e9crire dans EmptyNodeList."},
+
 
   /** Field ER_SETDOMFACTORY_NOT_SUPPORTED          */
-  public static final int ER_SETDOMFACTORY_NOT_SUPPORTED = 51;
+  //public static final int ER_SETDOMFACTORY_NOT_SUPPORTED = 51;
 
-  static
+
   {
-    contents[ER_SETDOMFACTORY_NOT_SUPPORTED][1] =
-      "setDOMFactory n\u2019est pas pris en charge par XPathContext!";
-  }
+    ER_SETDOMFACTORY_NOT_SUPPORTED,
+      "setDOMFactory n'est pas pris en charge par XPathContext!"},
+
 
   /** Field ER_PREFIX_MUST_RESOLVE          */
-  public static final int ER_PREFIX_MUST_RESOLVE = 52;
+  //public static final int ER_PREFIX_MUST_RESOLVE = 52;
 
-  static
+
   {
-    contents[ER_PREFIX_MUST_RESOLVE][1] =
-      "Le pr\u00e9fixe doit se r\u00e9soudre en nom d'espace : {0}";
-  }
+    ER_PREFIX_MUST_RESOLVE,
+      "Le pr\u00e9fixe doit se r\u00e9soudre en nom d''espace : {0}"},
+
 
   /** Field ER_PARSE_NOT_SUPPORTED          */
-  public static final int ER_PARSE_NOT_SUPPORTED = 53;
+  //public static final int ER_PARSE_NOT_SUPPORTED = 53;
 
-  static
+
   {
-    contents[ER_PARSE_NOT_SUPPORTED][1] =
-      "parse (source InputSource) non pris en charge dans XpathContext ! Impossible d\u2019ouvrir {0}";
-  }
+    ER_PARSE_NOT_SUPPORTED,
+      "parse (source InputSource) non pris en charge dans XpathContext ! Impossible d'ouvrir {0}"},
+
 
   /** Field ER_CREATEDOCUMENT_NOT_SUPPORTED          */
-  public static final int ER_CREATEDOCUMENT_NOT_SUPPORTED = 54;
+  //public static final int ER_CREATEDOCUMENT_NOT_SUPPORTED = 54;
 
-  static
+
   {
-    contents[ER_CREATEDOCUMENT_NOT_SUPPORTED][1] =
-      "createDocument() non pris en charge dans XpathContext !";
-  }
+    ER_CREATEDOCUMENT_NOT_SUPPORTED,
+      "createDocument() non pris en charge dans XpathContext !"},
+
 
   /** Field ER_CHILD_HAS_NO_OWNER_DOCUMENT          */
-  public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT = 55;
+  //public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT = 55;
 
-  static
+
   {
-    contents[ER_CHILD_HAS_NO_OWNER_DOCUMENT][1] =
-      "L\u2019attribut child n\u2019a pas de document propri\u00e9taire !";
-  }
+    ER_CHILD_HAS_NO_OWNER_DOCUMENT,
+      "L'attribut child n'a pas de document propri\u00e9taire !"},
+
 
   /** Field ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT          */
-  public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = 56;
+  //public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = 56;
 
-  static
+
   {
-    contents[ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT][1] =
-      "L\u2019attribute child n\u2019a pas d\u2019\u00e9l\u00e9ment de document propri\u00e9taire !";
-  }
+    ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT,
+      "L'attribute child n'a pas d'\u00e9l\u00e9ment de document propri\u00e9taire !"},
+
 
   /** Field ER_SAX_API_NOT_HANDLED          */
-  public static final int ER_SAX_API_NOT_HANDLED = 57;
+  //public static final int ER_SAX_API_NOT_HANDLED = 57;
 
-  static
+
   {
-    contents[ER_SAX_API_NOT_HANDLED][1] =
-      "Les caract\u00e8res SAX API (char ch[]... ne sont pas pris en charge par DTM !";
-  }
+    ER_SAX_API_NOT_HANDLED,
+      "Les caract\u00e8res SAX API (char ch[]... ne sont pas pris en charge par DTM !"},
+
 
   /** Field ER_IGNORABLE_WHITESPACE_NOT_HANDLED          */
-  public static final int ER_IGNORABLE_WHITESPACE_NOT_HANDLED = 58;
+  //public static final int ER_IGNORABLE_WHITESPACE_NOT_HANDLED = 58;
 
-  static
+
   {
-    contents[ER_IGNORABLE_WHITESPACE_NOT_HANDLED][1] =
-      "ignorableWhitespace(char ch[]... ne sont pas pris en charge par DTM !";
-  }
+    ER_IGNORABLE_WHITESPACE_NOT_HANDLED,
+      "ignorableWhitespace(char ch[]... ne sont pas pris en charge par DTM !"},
+
 
   /** Field ER_DTM_CANNOT_HANDLE_NODES          */
-  public static final int ER_DTM_CANNOT_HANDLE_NODES = 59;
+  //public static final int ER_DTM_CANNOT_HANDLE_NODES = 59;
 
-  static
+
   {
-    contents[ER_DTM_CANNOT_HANDLE_NODES][1] =
-      "DTMLiaison ne peut pas prendre en charge les n\u0153uds de type {0}";
-  }
+    ER_DTM_CANNOT_HANDLE_NODES,
+      "DTMLiaison ne peut pas prendre en charge les n\u0153uds de type {0}"},
+
 
   /** Field ER_XERCES_CANNOT_HANDLE_NODES          */
-  public static final int ER_XERCES_CANNOT_HANDLE_NODES = 60;
+  //public static final int ER_XERCES_CANNOT_HANDLE_NODES = 60;
 
-  static
+
   {
-    contents[ER_XERCES_CANNOT_HANDLE_NODES][1] =
-      "DOM2Helper ne peut pas prendre en charge les n\u0153uds de type {0}";
-  }
+    ER_XERCES_CANNOT_HANDLE_NODES,
+      "DOM2Helper ne peut pas prendre en charge les n\u0153uds de type {0}"},
+
 
   /** Field ER_XERCES_PARSE_ERROR_DETAILS          */
-  public static final int ER_XERCES_PARSE_ERROR_DETAILS = 61;
+  //public static final int ER_XERCES_PARSE_ERROR_DETAILS = 61;
 
-  static
+
   {
-    contents[ER_XERCES_PARSE_ERROR_DETAILS][1] =
-      "Erreur DOM2Helper.parse : ID syst\u00e8me - {0} ligne - {1}";
-  }
+    ER_XERCES_PARSE_ERROR_DETAILS,
+      "Erreur DOM2Helper.parse : ID syst\u00e8me - {0} ligne - {1}"},
+
 
   /** Field ER_XERCES_PARSE_ERROR          */
-  public static final int ER_XERCES_PARSE_ERROR = 62;
+  //public static final int ER_XERCES_PARSE_ERROR = 62;
 
-  static
+
   {
-    contents[ER_XERCES_PARSE_ERROR][1] = "Erreur DOM2Helper.parse";
-  }
+    ER_XERCES_PARSE_ERROR, "Erreur DOM2Helper.parse"},
+
 
   /** Field ER_CANT_OUTPUT_TEXT_BEFORE_DOC          */
-  public static final int ER_CANT_OUTPUT_TEXT_BEFORE_DOC = 63;
+  //public static final int ER_CANT_OUTPUT_TEXT_BEFORE_DOC = 63;
 
-  static
+
   {
-    contents[ER_CANT_OUTPUT_TEXT_BEFORE_DOC][1] =
-      "Attention : impossible de sortir le texte avant l\u2019\u00e9l\u00e9ment document !  Op\u00e9ration ignor\u00e9e ...";
-  }
+    ER_CANT_OUTPUT_TEXT_BEFORE_DOC,
+      "Attention : impossible de sortir le texte avant l'\u00e9l\u00e9ment document !  Op\u00e9ration ignor\u00e9e ..."},
+
 
   /** Field ER_CANT_HAVE_MORE_THAN_ONE_ROOT          */
-  public static final int ER_CANT_HAVE_MORE_THAN_ONE_ROOT = 64;
+  //public static final int ER_CANT_HAVE_MORE_THAN_ONE_ROOT = 64;
 
-  static
+
   {
-    contents[ER_CANT_HAVE_MORE_THAN_ONE_ROOT][1] =
-      "Impossible d\u2019avoir plus d\u2019une racine sur un DOM !";
-  }
+    ER_CANT_HAVE_MORE_THAN_ONE_ROOT,
+      "Impossible d'avoir plus d'une racine sur un DOM !"},
+
 
   /** Field ER_INVALID_UTF16_SURROGATE          */
-  public static final int ER_INVALID_UTF16_SURROGATE = 65;
+  //public static final int ER_INVALID_UTF16_SURROGATE = 65;
 
-  static
+
   {
-    contents[ER_INVALID_UTF16_SURROGATE][1] =
-      "Substitut UTF-16 incorrect d\u00e9tect\u00e9 : {0} ?";
-  }
+    ER_INVALID_UTF16_SURROGATE,
+      "Substitut UTF-16 incorrect d\u00e9tect\u00e9 : {0} ?"},
+
 
   /** Field ER_OIERROR          */
-  public static final int ER_OIERROR = 66;
+  //public static final int ER_OIERROR = 66;
 
-  static
+
   {
-    contents[ER_OIERROR][1] = "Erreur d\u2019E/S";
-  }
+    ER_OIERROR, "Erreur d'E/S"},
+
 
   /** Field ER_CANNOT_CREATE_URL          */
-  public static final int ER_CANNOT_CREATE_URL = 67;
+  //public static final int ER_CANNOT_CREATE_URL = 67;
 
-  static
+
   {
-    contents[ER_CANNOT_CREATE_URL][1] = "Impossible de cr\u00e9er une url pour : {0}";
-  }
+    ER_CANNOT_CREATE_URL, "Impossible de cr\u00e9er une url pour : {0}"},
+
 
   /** Field ER_XPATH_READOBJECT          */
-  public static final int ER_XPATH_READOBJECT = 68;
+  //public static final int ER_XPATH_READOBJECT = 68;
 
 
-  static
   {
-    contents[ER_XPATH_READOBJECT][1] = "Dans XPath.readObject : {0}";
-  }
+    ER_XPATH_READOBJECT, "Dans XPath.readObject : {0}"},
+
   
   /** Field ER_XPATH_READOBJECT         */
-  public static final int ER_FUNCTION_TOKEN_NOT_FOUND = 69;
+  //public static final int ER_FUNCTION_TOKEN_NOT_FOUND = 69;
 
-  static
+
   {
-    contents[ER_FUNCTION_TOKEN_NOT_FOUND][1] =
-      "Unit\u00e9 lexicale function introuvable.";
-  }
+    ER_FUNCTION_TOKEN_NOT_FOUND,
+      "Unit\u00e9 lexicale function introuvable."},
+
   
    /**  Argument 'localName' is null  */
-  public static final int ER_ARG_LOCALNAME_NULL = 70;
+  //public static final int ER_ARG_LOCALNAME_NULL = 70;
 
-  static
+
   {
-    contents[ER_ARG_LOCALNAME_NULL][1] =
-       "L\u2019argument 'localName' est \u00e9gal \u00e0 null";
-  }
+    ER_ARG_LOCALNAME_NULL,
+       "L'argument 'localName' est \u00e9gal \u00e0 null"},
+
   
-
    /**  Can not deal with XPath type:   */
-  public static final int ER_CANNOT_DEAL_XPATH_TYPE = 71;
+  //public static final int ER_CANNOT_DEAL_XPATH_TYPE = 71;
 
-  static
+
   {
-    contents[ER_CANNOT_DEAL_XPATH_TYPE][1] =
-       "Impossible d\u2019op\u00e9rer avec le type : {0} XPath";
-  }
+    ER_CANNOT_DEAL_XPATH_TYPE,
+       "Impossible d'op\u00e9rer avec le type : {0} XPath"},
+
   
    /**  This NodeSet is not mutable  */
-  public static final int ER_NODESET_NOT_MUTABLE = 72;
+  //public static final int ER_NODESET_NOT_MUTABLE = 72;
 
-  static
+	
   {
-    contents[ER_NODESET_NOT_MUTABLE][1] =
-       "Cet \u00e9l\u00e9ment NodeSet n\u2019est pas mutable";
-  }
+    ER_NODESET_NOT_MUTABLE,
+       "Cet \u00e9l\u00e9ment NodeSet n'est pas mutable"},
+
   
    /**  This NodeSetDTM is not mutable  */
-  public static final int ER_NODESETDTM_NOT_MUTABLE = 73;
+  //public static final int ER_NODESETDTM_NOT_MUTABLE = 73;
 
-  static
+
   {
-    contents[ER_NODESETDTM_NOT_MUTABLE][1] =
-       "Cet \u00e9l\u00e9ment NodeSetDTM n\u2019est pas mutable";
-  }
+    ER_NODESETDTM_NOT_MUTABLE,
+       "Cet \u00e9l\u00e9ment NodeSetDTM n'est pas mutable"},
+
   
    /**  Variable not resolvable:   */
-  public static final int ER_VAR_NOT_RESOLVABLE = 74;
+  //public static final int ER_VAR_NOT_RESOLVABLE = 74;
 
-  static
+
   {
-    contents[ER_VAR_NOT_RESOLVABLE][1] =
-        "Variable non r\u00e9solue : {0}";
-  }
+    ER_VAR_NOT_RESOLVABLE,
+        "Variable non r\u00e9solue : {0}"},
+
   
    /** Null error handler  */
-  public static final int ER_NULL_ERROR_HANDLER = 75;
+  //public static final int ER_NULL_ERROR_HANDLER = 75;
 
-  static
+
   {
-    contents[ER_NULL_ERROR_HANDLER][1] =
-        "Gestionnaire d\u2019erreur vide";
-  }
+    ER_NULL_ERROR_HANDLER,
+        "Gestionnaire d'erreur vide"},
+
   
    /**  Programmer's assertion: unknown opcode  */
-  public static final int ER_PROG_ASSERT_UNKNOWN_OPCODE = 76;
+  //public static final int ER_PROG_ASSERT_UNKNOWN_OPCODE = 76;
 
-  static
+
   {
-    contents[ER_PROG_ASSERT_UNKNOWN_OPCODE][1] =
-       "Assertion du programmeur : code op\u00e9ration inconnu : {0}";
-  }
+    ER_PROG_ASSERT_UNKNOWN_OPCODE,
+       "Assertion du programmeur : code op\u00e9ration inconnu : {0}"},
+
   
    /**  0 or 1   */
-  public static final int ER_ZERO_OR_ONE = 77;
+  //public static final int ER_ZERO_OR_ONE = 77;
 
-  static
-  {
-    contents[ER_ZERO_OR_ONE][1] =
-       "0 ou 1";
-  }
-  
-   /**  2 or 3   */
-  public static final int ER_TWO_OR_THREE = 78;
 
-  static
   {
-    contents[ER_TWO_OR_THREE][1] =
-       "0 ou 1";
-  }
-  
+    ER_ZERO_OR_ONE,
+       "0 ou 1"},
+    
   
   
    /**  rtf() not supported by XRTreeFragSelectWrapper   */
-  public static final int ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 78;
+  //public static final int ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 78;
 
-  static
+
   {
-    contents[ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER][1] =
-       "rtf() n\u2019est pas pris en charge par XRTreeFragSelectWrapper";
-  }
+    ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+       "rtf() n'est pas pris en charge par XRTreeFragSelectWrapper"},
+
   
    /**  asNodeIterator() not supported by XRTreeFragSelectWrapper   */
-  public static final int ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 79;
+  //public static final int ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 79;
 
-  static
+
   {
+    ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+       "asNodeIterator() n'est pas pris en charge par XRTreeFragSelectWrapper"},
 
-    contents[ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER][1] =
-       "asNodeIterator() n\u2019est pas pris en charge par XRTreeFragSelectWrapper";
-  }
   
    /**  fsb() not supported for XStringForChars   */
-  public static final int ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS = 80;
+  //public static final int ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS = 80;
 
-  static
+
   {
-    contents[ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS][1] =
-       "fsb() n\u2019est pas pris en charge pour XStringForChars";
-  }
+    ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS,
+       "fsb() n'est pas pris en charge pour XStringForChars"},
+
   
    /**  Could not find variable with the name of   */
-  public static final int ER_COULD_NOT_FIND_VAR = 81;
+  //public static final int ER_COULD_NOT_FIND_VAR = 81;
 
-  static
+
   {
-    contents[ER_COULD_NOT_FIND_VAR][1] =
-      "Impossible de trouver la variable nomm\u00e9e {0}";
-  }
+    ER_COULD_NOT_FIND_VAR,
+      "Impossible de trouver la variable nomm\u00e9e {0}"},
+
   
    /**  XStringForChars can not take a string for an argument   */
-  public static final int ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING = 82;
+  //public static final int ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING = 82;
 
-  static
+
   {
-    contents[ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING][1] =
-      "XStringForChars ne peut pas avoir de cha\u00eene comme argument";
-  }
+    ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING,
+      "XStringForChars ne peut pas avoir de cha\u00eene comme argument"},
+
   
    /**  The FastStringBuffer argument can not be null   */
-  public static final int ER_FASTSTRINGBUFFER_CANNOT_BE_NULL = 83;
+  //public static final int ER_FASTSTRINGBUFFER_CANNOT_BE_NULL = 83;
 
-  static
+
   {
-    contents[ER_FASTSTRINGBUFFER_CANNOT_BE_NULL][1] =
-      "L\u2019argument FastStringBuffer ne peut pas \u00eatre \u00e9gal \u00e0 null";
-  }  
+    ER_FASTSTRINGBUFFER_CANNOT_BE_NULL,
+      "L'argument FastStringBuffer ne peut pas \u00eatre \u00e9gal \u00e0 null"},
+    
+/* MANTIS_XALAN CHANGE: BEGIN */ 
+   /**  2 or 3   */
+  //public static final int ER_TWO_OR_THREE = 84;
+
+
+  {
+    ER_TWO_OR_THREE,
+       "2 ou 3"},
+
+
+ /** Variable accessed before it is bound! */
+  //public static final int ER_VARIABLE_ACCESSED_BEFORE_BIND = 85;
+
+
+  {
+    ER_VARIABLE_ACCESSED_BEFORE_BIND,
+       "Variable acc\u00e9d\u00e9e avant sa limite !"},
+
+
+   /** XStringForFSB can not take a string for an argument! */
+  //public static final int ER_FSB_CANNOT_TAKE_STRING = 86;
+
+
+  {
+    ER_FSB_CANNOT_TAKE_STRING,
+       "XStringForFSB ne peut pas \u00eatre une cha\u00eene pour un argument!"},
+
+
+   /** Error! Setting the root of a walker to null! */
+  //public static final int ER_SETTING_WALKER_ROOT_TO_NULL = 87;
+
+
+  {
+    ER_SETTING_WALKER_ROOT_TO_NULL,
+       "\n !!!! Erreur! Attribution d'une valeur null \u00e0 la racine d'un walker !!!"},
+
+
+   /** This NodeSetDTM can not iterate to a previous node! */
+  //public static final int ER_NODESETDTM_CANNOT_ITERATE = 88;
+
+
+  {
+    ER_NODESETDTM_CANNOT_ITERATE,
+       "Ce NodeSetDTM ne peut pas \u00eatre r\u00e9p\u00e9t\u00e9 \u00e0 un noeud pr\u00e9c\u00e9dent !"},
+
+
+  /** This NodeSet can not iterate to a previous node! */
+  //public static final int ER_NODESET_CANNOT_ITERATE = 89;
+
+
+  {
+    ER_NODESET_CANNOT_ITERATE,
+       "Ce NodeSet ne peut pas \u00eatre r\u00e9p\u00e9t\u00e9 vers un noeud pr\u00e9c\u00e9dent !"},
+
+
+  /** This NodeSetDTM can not do indexing or counting functions! */
+  //public static final int ER_NODESETDTM_CANNOT_INDEX = 90;
+
+
+  {
+    ER_NODESETDTM_CANNOT_INDEX,
+       "Ce NodeSetDTM ne peut pas ex\u00e9cuter de fonctions d'indexation ou de comptage !"},
+
+
+  /** This NodeSet can not do indexing or counting functions! */
+  //public static final int ER_NODESET_CANNOT_INDEX = 91;
+
+
+  {
+    ER_NODESET_CANNOT_INDEX,
+       "Ce NodeSet ne peut pas ex\u00e9cuter de fonctions d'indexation ou de comptage !"},
+
+
+  /** Can not call setShouldCacheNodes after nextNode has been called! */
+  //public static final int ER_CANNOT_CALL_SETSHOULDCACHENODE = 92;
+
+
+  {
+    ER_CANNOT_CALL_SETSHOULDCACHENODE,
+       "Impossible d'appeler setShouldCacheNodes apr\u00e8s avoir appel\u00e9 nextNode !"},
+
+
+  /** {0} only allows {1} arguments */
+  //public static final int ER_ONLY_ALLOWS = 93;
+
+
+  {
+    ER_ONLY_ALLOWS,
+       "{0} n''admet que les arguments {1} arguments"},
+
+
+  /** Programmer's assertion in getNextStepPos: unknown stepType: {0} */
+  //public static final int ER_UNKNOWN_STEP = 94;
+
+
+  {
+    ER_UNKNOWN_STEP,
+       "Assertion du programmeur dans getNextStepPos : stepType inconnu : {0}"},
+
+
+  //Note to translators:  A relative location path is a form of XPath expression.
+  // The message indicates that such an expression was expected following the
+  // characters '/' or '//', but was not found.
+
+  /** Problem with RelativeLocationPath */
+  //public static final int ER_EXPECTED_REL_LOC_PATH = 95;
+
+
+  {
+    ER_EXPECTED_REL_LOC_PATH,
+       "Un chemin d'acc\u00e8s relatif \u00e9tait attendu apr\u00e8s le jeton '/' ou '//'."},
+
+
+  // Note to translators:  A location path is a form of XPath expression.
+  // The message indicates that syntactically such an expression was expected,but
+  // the characters specified by the substitution text were encountered instead.
+
+  /** Problem with LocationPath */
+  //public static final int ER_EXPECTED_LOC_PATH = 96;
+
+
+  {
+    ER_EXPECTED_LOC_PATH,
+       "Un chemin d'acc\u00e8s \u00e9tait attendu, mais l'objet suivant a \u00e9t\u00e9 rencontr\u00e9:  {0}"},
+
+
+  // Note to translators:  A location step is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected
+  // following the specified characters.
+
+  /** Problem with Step */
+  //public static final int ER_EXPECTED_LOC_STEP = 97;
+
+
+  {
+    ER_EXPECTED_LOC_STEP,
+       "Une \u00e9tape de positionnement \u00e9t\u00e9 attendue \u00e0 la suite de l'objet '/' ou '//'."},
+
+
+  // Note to translators:  A node test is part of an XPath expression that is
+  // used to test for particular kinds of nodes.  In this case, a node test that
+  // consists of an NCName followed by a colon and an asterisk or that consists
+  // of a QName was expected, but was not found.
+
+  /** Problem with NodeTest */
+  //public static final int ER_EXPECTED_NODE_TEST = 98;
+
+
+  {
+    ER_EXPECTED_NODE_TEST,
+       "Un test de noeud correspondant \u00e0 NCName:* ou \u00e0 QName \u00e9tait attendu."},
+
+
+  // Note to translators:  A step pattern is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected,
+  // but the specified character was found in the expression instead.
+
+  /** Expected step pattern */
+  //public static final int ER_EXPECTED_STEP_PATTERN = 99;
+
+
+  {
+    ER_EXPECTED_STEP_PATTERN,
+       "Une forme d'\u00e9tape \u00e9tait attendue, mais '/' a \u00e9t\u00e9 rencontr\u00e9."},
+
+
+  // Note to translators: A relative path pattern is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected,
+  // but was not found.
+ 
+/** Expected relative path pattern */
+  //public static final int ER_EXPECTED_REL_PATH_PATTERN = 100;
+
+
+  {
+    ER_EXPECTED_REL_PATH_PATTERN,
+       "Une forme de chemin d'acc\u00e8s relatif \u00e9tait attendue."},
+
+
+// Note to translators:  A QNAME has the syntactic form [NCName:]NCName
+  // The localname is the portion after the optional colon; the message indicates
+  // that there is a problem with that part of the QNAME.
+
+  /** localname in QNAME should be a valid NCName */
+  //public static final int ER_ARG_LOCALNAME_INVALID = 101;
+
+
+  {
+    ER_ARG_LOCALNAME_INVALID,
+       "Le nom local de QNAME doit \u00eatre un NCName admis"},
+
   
+// Note to translators:  A QNAME has the syntactic form [NCName:]NCName
+  // The prefix is the portion before the optional colon; the message indicates
+  // that there is a problem with that part of the QNAME.
+
+  /** prefix in QNAME should be a valid NCName */
+  //public static final int ER_ARG_PREFIX_INVALID = 102;
+
+
+  {
+    ER_ARG_PREFIX_INVALID,
+       "Le pr\u00e9fixe de QNAME doit \u00eatre un NCName admis"},
+
+
+// Note to translators:  The substitution text is the name of a data type.  The
+  // message indicates that a value of a particular type could not be converted
+  // to a value of type string.
+
+  /** Field ER_CANT_CONVERT_TO_BOOLEAN          */
+  //public static final int ER_CANT_CONVERT_TO_BOOLEAN = 103;
+
+
+  {
+    ER_CANT_CONVERT_TO_BOOLEAN,
+       "Impossible de convertir {0} en valeur bool\u00e9enne."},
+
+
+// Note to translators: Do not translate ANY_UNORDERED_NODE_TYPE and 
+  // FIRST_ORDERED_NODE_TYPE.
+
+  /** Field ER_CANT_CONVERT_TO_SINGLENODE       */
+  //public static final int ER_CANT_CONVERT_TO_SINGLENODE = 104;
+
+
+  {
+    ER_CANT_CONVERT_TO_SINGLENODE,
+       "Impossible de convertir {0} en noeud unique. Cette m\u00e9thode d'obtention s'applique aux  types ANY_UNORDERED_NODE_TYPE et FIRST_ORDERED_NODE_TYPE."},
+
+
+// Note to translators: Do not translate UNORDERED_NODE_SNAPSHOT_TYPE and
+  // ORDERED_NODE_SNAPSHOT_TYPE.
+
+  /** Field ER_CANT_GET_SNAPSHOT_LENGTH         */
+  //public static final int ER_CANT_GET_SNAPSHOT_LENGTH = 105;
+
+
+  {
+    ER_CANT_GET_SNAPSHOT_LENGTH,
+       "Impossible d'obtenir une longueur d'instantan\u00e9 du type : {0}. Cette m\u00e9thode d'obtention s'applique aux types UNORDERED_NODE_SNAPSHOT_TYPE et ORDERED_NODE_SNAPSHOT_TYPE."},
+
+  
+  /** Field ER_NON_ITERATOR_TYPE                */
+  //public static final int ER_NON_ITERATOR_TYPE        = 106;
+
+
+  {
+    ER_NON_ITERATOR_TYPE,
+       "Impossible d'it\u00e9rer sur le type non r\u00e9p\u00e9titeur : {0}"},
+
+
+// Note to translators: This message indicates that the document being operated
+  // upon changed, so the iterator object that was being used to traverse the
+  // document has now become invalid.
+
+  /** Field ER_DOC_MUTATED                      */
+  //public static final int ER_DOC_MUTATED              = 107;
+
+
+  {
+    ER_DOC_MUTATED,
+       "Le document a mut\u00e9 depuis que le r\u00e9sultat a \u00e9t\u00e9 renvoy\u00e9. L'it\u00e9rateur est incorrect."},
+
+
+/** Field ER_INVALID_XPATH_TYPE               */
+  //public static final int ER_INVALID_XPATH_TYPE       = 108;
+
+
+  {
+    ER_INVALID_XPATH_TYPE,
+       "Argument de type XPath incorrect : {0}"},
+
+
+/** Field ER_EMPTY_XPATH_RESULT                */
+  //public static final int ER_EMPTY_XPATH_RESULT       = 109;
+
+
+  {
+    ER_EMPTY_XPATH_RESULT,
+       "Objet de r\u00e9sultat XPath vide"},
+
+
+  /** Field ER_INCOMPATIBLE_TYPES                */
+  //public static final int ER_INCOMPATIBLE_TYPES       = 110;
+
+
+  {
+    ER_INCOMPATIBLE_TYPES,
+       "Impossible de forcer le type renvoy\u00e9 : {0} dans le fichier : {1}"},
+
+
+/** Field ER_NULL_RESOLVER                     */
+  //public static final int ER_NULL_RESOLVER            = 111;
+
+
+  {
+    ER_NULL_RESOLVER,
+       "Impossible de r\u00e9soudre le pr\u00e9fixe sans d\u00e9composeur de pr\u00e9fixe."},
+
+
+// Note to translators:  The substitution text is the name of a data type.  The
+  // message indicates that a value of a particular type could not be converted
+  // to a value of type string.
+
+  /** Field ER_CANT_CONVERT_TO_STRING            */
+  //public static final int ER_CANT_CONVERT_TO_STRING   = 112;
+
+
+  {
+    ER_CANT_CONVERT_TO_STRING,
+       "Impossible de convertir {0} en cha\u00eene ."},
+
+
+// Note to translators: Do not translate snapshotItem,
+  // UNORDERED_NODE_SNAPSHOT_TYPE and ORDERED_NODE_SNAPSHOT_TYPE.
+
+  /** Field ER_NON_SNAPSHOT_TYPE                 */
+  //public static final int ER_NON_SNAPSHOT_TYPE       = 113;
+
+
+  {
+    ER_NON_SNAPSHOT_TYPE,
+       "Impossible d'appeler snapshotItem sur le type : {0}. Cette m\u00e9thode s'applique aux types UNORDERED_NODE_SNAPSHOT_TYPE et ORDERED_NODE_SNAPSHOT_TYPE."},
+
+
+// Note to translators:  XPathEvaluator is a Java interface name.  An
+  // XPathEvaluator is created with respect to a particular XML document, and in
+  // this case the expression represented by this object was being evaluated with
+  // respect to a context node from a different document.
+
+/** Field ER_WRONG_DOCUMENT                    */
+  //public static final int ER_WRONG_DOCUMENT          = 114;
+
+
+  {
+    ER_WRONG_DOCUMENT,
+       "Le noeud de contexte n'appartient pas au document associ\u00e9 \u00e0 ce XPathEvaluator."},
+
+
+// Note to translators:  The XPath expression cannot be evaluated with respect
+  // to this type of node.
+  /** Field ER_WRONG_NODETYPE                    */
+  //public static final int ER_WRONG_NODETYPE          = 115;
+
+
+  {
+    ER_WRONG_NODETYPE ,
+       "Le noeud de contexte n'est pas pris en charge."},
+
+
+/** Field ER_XPATH_ERROR                       */
+  //public static final int ER_XPATH_ERROR             = 116;
+
+
+  {
+    ER_XPATH_ERROR ,
+       "Erreur inconnue dans XPath."},
+
 
 
   // Warnings...
 
   /** Field WG_LOCALE_NAME_NOT_HANDLED          */
-  public static final int WG_LOCALE_NAME_NOT_HANDLED = 1;
+  //public static final int WG_LOCALE_NAME_NOT_HANDLED = 1;
 
-  static
+
   {
-    contents[WG_LOCALE_NAME_NOT_HANDLED + MAX_CODE][1] =
-      "Le nom de l'environnement local dans la fonction format-number n\u2019est pas encore g\u00e9r\u00e9 !";
-  }
+    WG_LOCALE_NAME_NOT_HANDLED,
+      "Le nom de l'environnement local dans la fonction format-number n'est pas encore g\u00e9r\u00e9 !"},
+
 
   /** Field WG_PROPERTY_NOT_SUPPORTED          */
+  //public static final int WG_PROPERTY_NOT_SUPPORTED = 2;
 
-  public static final int WG_PROPERTY_NOT_SUPPORTED = 2;
 
-  static
   {
-    contents[WG_PROPERTY_NOT_SUPPORTED + MAX_CODE][1] =
-      "XSL Property non pris en charge : {0}";
-  }
+    WG_PROPERTY_NOT_SUPPORTED,
+      "XSL Property non pris en charge : {0}"},
+
 
   /** Field WG_DONT_DO_ANYTHING_WITH_NS          */
-  public static final int WG_DONT_DO_ANYTHING_WITH_NS = 3;
+  //public static final int WG_DONT_DO_ANYTHING_WITH_NS = 3;
 
-  static
+
   {
-    contents[WG_DONT_DO_ANYTHING_WITH_NS + MAX_CODE][1] =
-      "Ne rien faire pour l\u2019instant avec le nom d'espace {0} dans la propri\u00e9t\u00e9 : {1}";
-  }
+    WG_DONT_DO_ANYTHING_WITH_NS,
+      "Ne rien faire pour l'instant avec le nom d''espace {0} dans la propri\u00e9t\u00e9 : {1}"},
+
 
   /** Field WG_SECURITY_EXCEPTION          */
-  public static final int WG_SECURITY_EXCEPTION = 4;
+  //public static final int WG_SECURITY_EXCEPTION = 4;
 
-  static
+
   {
-    contents[WG_SECURITY_EXCEPTION + MAX_CODE][1] =
-      "Interception de SecurityException ors de la tentative d\u2019acc\u00e8s \u00e0 la propri\u00e9t\u00e9 syst\u00e8me XSL : {0}";
-  }
+    WG_SECURITY_EXCEPTION,
+      "Interception de SecurityException ors de la tentative d'acc\u00e8s \u00e0 la propri\u00e9t\u00e9 syst\u00e8me XSL : {0}"},
+
 
   /** Field WG_QUO_NO_LONGER_DEFINED          */
-  public static final int WG_QUO_NO_LONGER_DEFINED = 5;
+  //public static final int WG_QUO_NO_LONGER_DEFINED = 5;
 
-  static
+
   {
-    contents[WG_QUO_NO_LONGER_DEFINED + MAX_CODE][1] =
-      "L\u2019ancienne syntaxe: quo(...) n\u2019est plus d\u00e9finie dans XPath.";
-  }
+    WG_QUO_NO_LONGER_DEFINED,
+      "L'ancienne syntaxe: quo(...) n'est plus d\u00e9finie dans XPath."},
+
 
   /** Field WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST          */
+  //public static final int WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST = 6;
 
-  public static final int WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST = 6;
 
-  static
   {
-    contents[WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST + MAX_CODE][1] =
-      "XPath requiert un objet d\u00e9riv\u00e9 pour mettre en oeuvre nodeTest !";
-  }
+    WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST,
+      "XPath requiert un objet d\u00e9riv\u00e9 pour mettre en oeuvre nodeTest !"},
+
 
   /** Field WG_FUNCTION_TOKEN_NOT_FOUND          */
-  public static final int WG_FUNCTION_TOKEN_NOT_FOUND = 7;
+  //public static final int WG_FUNCTION_TOKEN_NOT_FOUND = 7;
 
-  static
+
   {
-    contents[WG_FUNCTION_TOKEN_NOT_FOUND + MAX_CODE][1] =
-      "Unit\u00e9 lexicale function introuvable.";
-  }
+    WG_FUNCTION_TOKEN_NOT_FOUND,
+      "Unit\u00e9 lexicale function introuvable."},
+
 
   /** Field WG_COULDNOT_FIND_FUNCTION          */
-  public static final int WG_COULDNOT_FIND_FUNCTION = 8;
+  //public static final int WG_COULDNOT_FIND_FUNCTION = 8;
 
-  static
+
   {
-    contents[WG_COULDNOT_FIND_FUNCTION + MAX_CODE][1] =
-      "Impossible de trouver la fonction : {0}";
-  }
+    WG_COULDNOT_FIND_FUNCTION,
+      "Impossible de trouver la fonction : {0}"},
+
 
   /** Field WG_CANNOT_MAKE_URL_FROM          */
-  public static final int WG_CANNOT_MAKE_URL_FROM = 9;
+  //public static final int WG_CANNOT_MAKE_URL_FROM = 9;
 
-  static
+
   {
-    contents[WG_CANNOT_MAKE_URL_FROM + MAX_CODE][1] =
-      "Impossible de cr\u00e9er une URL \u00e0 partir de : {0}";
-  }
+    WG_CANNOT_MAKE_URL_FROM,
+      "Impossible de cr\u00e9er une URL \u00e0 partir de : {0}"},
+
 
   /** Field WG_EXPAND_ENTITIES_NOT_SUPPORTED          */
-  public static final int WG_EXPAND_ENTITIES_NOT_SUPPORTED = 10;
+  //public static final int WG_EXPAND_ENTITIES_NOT_SUPPORTED = 10;
 
-  static
+
   {
-    contents[WG_EXPAND_ENTITIES_NOT_SUPPORTED + MAX_CODE][1] =
-      "L\u2019option -E n\u2019est pas pris en charge pour l\u2019analyseur syntaxique DTM";
-  }
+    WG_EXPAND_ENTITIES_NOT_SUPPORTED,
+      "L'option -E n'est pas pris en charge pour l'analyseur syntaxique DTM"},
+
 
   /** Field WG_ILLEGAL_VARIABLE_REFERENCE          */
-  public static final int WG_ILLEGAL_VARIABLE_REFERENCE = 11;
+  //public static final int WG_ILLEGAL_VARIABLE_REFERENCE = 11;
 
-  static
+
   {
-    contents[WG_ILLEGAL_VARIABLE_REFERENCE + MAX_CODE][1] =
-      "L'\u00e9l\u00e9ment VariableReference a \u00e9t\u00e9 fourni pour la variable hors contexte ou sans d\u00e9finition !  Nom = {0}";
-  }
+    WG_ILLEGAL_VARIABLE_REFERENCE,
+      "L''\u00e9l\u00e9ment VariableReference a \u00e9t\u00e9 fourni pour la variable hors contexte ou sans d\u00e9finition !  Nom = {0}"},
+
 
   /** Field WG_UNSUPPORTED_ENCODING          */
-  public static final int WG_UNSUPPORTED_ENCODING = 12;
+  //public static final int WG_UNSUPPORTED_ENCODING = 12;
 
-  static
+
   {
-    contents[ER_UNSUPPORTED_ENCODING][1] = "Codage non pris en charge : {0}";
-  }
+    ER_UNSUPPORTED_ENCODING, "Codage non pris en charge : {0}"},
+
 
   // Other miscellaneous text used inside the code...
-  static
-  {
-    contents[MAX_MESSAGES][0] = "ui_language";
-    contents[MAX_MESSAGES][1] = "fr";
-    contents[MAX_MESSAGES + 1][0] = "help_language";
-    contents[MAX_MESSAGES + 1][1] = "fr";
-    contents[MAX_MESSAGES + 2][0] = "language";
-    contents[MAX_MESSAGES + 2][1] = "fr";
-    contents[MAX_MESSAGES + 3][0] = "BAD_CODE";
-    contents[MAX_MESSAGES + 3][1] =
-      "Param\u00e8tre pour createMessage hors limites";
-    contents[MAX_MESSAGES + 4][0] = "FORMAT_FAILED";
-    contents[MAX_MESSAGES + 4][1] =
-      "Exception \u00e9mise pendant l\u2019appel de messageFormat";
-    contents[MAX_MESSAGES + 5][0] = "version";
-    contents[MAX_MESSAGES + 5][1] = ">>>>>>> Version Xalan ";
-    contents[MAX_MESSAGES + 6][0] = "version2";
-    contents[MAX_MESSAGES + 6][1] = "<<<<<<<";
-    contents[MAX_MESSAGES + 7][0] = "yes";
-    contents[MAX_MESSAGES + 7][1] = "oui";
-    contents[MAX_MESSAGES + 8][0] = "line";
-    contents[MAX_MESSAGES + 8][1] = "N\u00b0 de ligne";
-    contents[MAX_MESSAGES + 9][0] = "column";
-    contents[MAX_MESSAGES + 9][1] = "N\u00b0 de colonne";
-    contents[MAX_MESSAGES + 10][0] = "xsldone";
-    contents[MAX_MESSAGES + 10][1] = "XSLProcessor: termin\u00e9";
-    contents[MAX_MESSAGES + 11][0] = "xpath_option";
-    contents[MAX_MESSAGES + 11][1] = "options xpath : ";
-    contents[MAX_MESSAGES + 12][0] = "optionIN";
-    contents[MAX_MESSAGES + 12][1] = "   [-in inputXMLURL]";
-    contents[MAX_MESSAGES + 13][0] = "optionSelect";
-    contents[MAX_MESSAGES + 13][1] = "   [expression xpath -select]";
-    contents[MAX_MESSAGES + 14][0] = "optionMatch";
-    contents[MAX_MESSAGES + 14][1] =
-      "   [correspondance \u00e0 la forme -match (pour les diagnostics de correspondance)]";
-    contents[MAX_MESSAGES + 15][0] = "optionAnyExpr";
-    contents[MAX_MESSAGES + 15][1] =
-      "Ou une expression xpath provoquera un \u00e9chec de diagnostic";
-    contents[MAX_MESSAGES + 16][0] = "noParsermsg1";
-    contents[MAX_MESSAGES + 16][1] = "Echec de XSL Process.";
-    contents[MAX_MESSAGES + 17][0] = "noParsermsg2";
-    contents[MAX_MESSAGES + 17][1] = "** Impossible de trouver l\u2019analyseur syntaxique**";
-    contents[MAX_MESSAGES + 18][0] = "noParsermsg3";
-    contents[MAX_MESSAGES + 18][1] = "Veuillez v\u00e9rifier votre chemin de classe.";
-    contents[MAX_MESSAGES + 19][0] = "noParsermsg4";
-    contents[MAX_MESSAGES + 19][1] =
-      "Si vous ne disposez pas de l\u2019analyseur XML d\u2019IBM pour Java, vous pouvez le t\u00e9l\u00e9charger \u00e0 l\u2019adresse suivante";
-    contents[MAX_MESSAGES + 20][0] = "noParsermsg5";
-    contents[MAX_MESSAGES + 20][1] =
-      "IBM's AlphaWorks: http://www.alphaworks.ibm.com/formula/xml";
-  }
+
+  { "ui_language", "fr"},
+  { "help_language", "fr"},
+  { "language", "fr"},
+    { "BAD_CODE",
+      "Param\u00e8tre pour createMessage hors limites"},
+    { "FORMAT_FAILED",
+      "Exception \u00e9mise pendant l'appel de messageFormat"},
+    { "version", ">>>>>>> Version Xalan "},
+    { "version2", "<<<<<<<"},
+    { "yes", "oui"},
+    { "line", "Ligne //"},
+    { "column", "Colonne //"},
+    { "xsldone", "XSLProcessor: termin\u00e9"},
+    { "xpath_option", "options xpath : "},
+    { "optionIN", "   [-in inputXMLURL]"},
+    { "optionSelect", "   [expression xpath -select]"},
+    { "optionMatch",
+      "   [correspondance \u00e0 la forme -match (pour les diagnostics de correspondance)]"},
+    { "optionAnyExpr",
+      "Ou une expression xpath provoquera un \u00e9chec de diagnostic"},
+    { "noParsermsg1", "Echec de XSL Process."},
+    { "noParsermsg2", "** Impossible de trouver l'analyseur syntaxique**"},
+    { "noParsermsg3", "Veuillez v\u00e9rifier votre chemin de classe."},
+    { "noParsermsg4",
+      "Si vous ne disposez pas de l'analyseur XML d'IBM pour Java, vous pouvez le t\u00e9l\u00e9charger \u00e0 l'adresse suivante"},
+    { "noParsermsg5",
+      "IBM's AlphaWorks: http://www.alphaworks.ibm.com/formula/xml"},
+  { "gtone", ">1" },
+  { "zero", "0" },
+  { "one", "1" },
+  { "two" , "2" },
+  { "three", "3" }
+        
+  };
 
   // ================= INFRASTRUCTURE ======================
 
@@ -1077,12 +1349,10 @@ public class XPATHErrorResources_fr extends XPATHErrorResources
 
   /** Field ERROR_RESOURCES          */
   public static final String ERROR_RESOURCES =
-
     "org.apache.xpath.res.XPATHErrorResources";
 
-
   /** Field ERROR_STRING          */
-  public static final String ERROR_STRING = "#error";
+  public static final String ERROR_STRING = "//error";
 
   /** Field ERROR_HEADER          */
   public static final String ERROR_HEADER = "Erreur : ";
@@ -1109,3 +1379,5 @@ public class XPATHErrorResources_fr extends XPATHErrorResources
     return contents;
   }
 }
+
+

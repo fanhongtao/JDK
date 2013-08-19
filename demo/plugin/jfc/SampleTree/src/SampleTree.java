@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)SampleTree.java	1.21 02/06/13
+ * @(#)SampleTree.java	1.22 03/01/23
  */
 
 import javax.swing.*;
@@ -67,7 +67,7 @@ import javax.swing.tree.*;
   * For an example of subclassing JTreeModel for editing refer to
   *     SampleTreeModel.
   *
-  * @version 1.21 06/13/02
+  * @version 1.22 01/23/03
   * @author Scott Violet
   */
 

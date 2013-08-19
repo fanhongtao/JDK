@@ -1,7 +1,7 @@
 /*
- * @(#)EventQueue.java	1.84 02/04/17
+ * @(#)EventQueue.java	1.88 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,6 +28,7 @@ import sun.awt.PeerEvent;
 import sun.awt.SunToolkit;
 import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
+import sun.awt.AppContext;
 
 /**
  * <code>EventQueue</code> is a platform-independent class
@@ -62,12 +63,17 @@ import sun.awt.AWTAutoShutdown;
  * <code>EventQueue</code> for all applets. This behavior is
  * implementation-dependent.  Consult your browser's documentation
  * for more information.
+ * <p>
+ * For information on the threading issues of the event dispatch
+ * machinery, see <a href="doc-files/AWTThreadIssues.html">AWT Threading
+ * Issues</a>.
+
  *
  * @author Thomas Ball
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.84, 04/17/02
+ * @version 	1.88, 01/28/03
  * @since 	1.1
  */
 public class EventQueue {
@@ -407,7 +413,7 @@ public class EventQueue {
      * dispatched depends upon the type of the event and the
      * type of the event's source object:
      * <p> </p>
-     * <table border>
+     * <table border=1 summary="Event types, source types, and dispatch methods">
      * <tr>
      *     <th>Event Type</th>
      *     <th>Source Type</th> 
@@ -435,7 +441,7 @@ public class EventQueue {
      * </tr>
      * </table>
      * <p> </p>
-     * @param theEvent an instance of <code>java.awt.AWTEvent</code>,
+     * @param event an instance of <code>java.awt.AWTEvent</code>,
      * 		or a subclass of it
      * @throws NullPointerException if <code>event</code> is <code>null</code>
      */
@@ -565,6 +571,11 @@ public class EventQueue {
         }
 
 	nextQueue = newEventQueue;
+	
+        AppContext appContext = AppContext.getAppContext();
+        if (appContext.get(AppContext.EVENT_QUEUE_KEY) == this) {
+	    appContext.put(AppContext.EVENT_QUEUE_KEY, newEventQueue);
+        }
     }
 
     /**
@@ -610,6 +621,11 @@ public class EventQueue {
 		    }
 		}
 	    }
+            AppContext appContext = AppContext.getAppContext();
+            if (appContext.get(AppContext.EVENT_QUEUE_KEY) == this) {
+                appContext.put(AppContext.EVENT_QUEUE_KEY, previousQueue);
+            }
+
 	    previousQueue = null;
           }
         }

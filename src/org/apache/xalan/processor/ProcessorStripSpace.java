@@ -94,10 +94,11 @@ class ProcessorStripSpace extends ProcessorPreserveSpace
           StylesheetHandler handler, String uri, String localName, String rawName, Attributes attributes)
             throws org.xml.sax.SAXException
   {
-    setPropertiesFromAttributes(handler, rawName, attributes, this);
-
     Stylesheet thisSheet = handler.getStylesheet();
-    Vector xpaths = getElements();
+	WhitespaceInfoPaths paths = new WhitespaceInfoPaths(thisSheet);
+    setPropertiesFromAttributes(handler, rawName, attributes, paths);
+
+    Vector xpaths = paths.getElements();
 
     for (int i = 0; i < xpaths.size(); i++)
     {
@@ -106,6 +107,7 @@ class ProcessorStripSpace extends ProcessorPreserveSpace
 
       thisSheet.setStripSpaces(wsi);
     }
+    paths.clearElements();
 
   }
 }

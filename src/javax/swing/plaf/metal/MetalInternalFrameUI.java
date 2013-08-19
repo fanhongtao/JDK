@@ -1,7 +1,7 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.27 01/12/03
+ * @(#)MetalInternalFrameUI.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import javax.swing.plaf.*;
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.27 12/03/01
+ * @version 1.29 01/23/03
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
@@ -88,6 +88,12 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
   protected void installKeyboardActions(){
       super.installKeyboardActions();
+      ActionMap map = SwingUtilities.getUIActionMap(frame);
+      if (map != null) {
+	  // BasicInternalFrameUI creates an action with the same name, we override
+	  // it as Metal frames do not have system menus.
+	  map.remove("showSystemMenu");
+      }
   }
 
   protected void uninstallKeyboardActions(){

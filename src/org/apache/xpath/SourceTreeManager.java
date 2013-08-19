@@ -194,6 +194,28 @@ public class SourceTreeManager
     return source;
   }
 
+  /** JJK: Support  <?xalan:doc_cache_off?> kluge in ElemForEach.
+   * TODO: This function is highly dangerous. Cache management must be improved.
+   *
+   * @param n The node to remove.
+   */
+  public void removeDocumentFromCache(int n)
+  {
+    if(DTM.NULL ==n)
+      return;
+    for(int i=m_sourceTree.size()-1;i>=0;--i)
+    {
+      SourceTree st=(SourceTree)m_sourceTree.elementAt(i);
+      if(st!=null && st.m_root==n)
+      {
+	m_sourceTree.removeElementAt(i);
+	return;
+      }
+    }
+  }
+  
+
+
   /**
    * Put the source tree root node in the document cache.
    * TODO: This function needs to be a LOT more sophisticated.
@@ -353,7 +375,7 @@ public class SourceTreeManager
     }
     catch (Exception e)
     {
-      e.printStackTrace();
+      //e.printStackTrace();
       throw new TransformerException(e.getMessage(), locator, e);
     }
 

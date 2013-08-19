@@ -151,7 +151,7 @@ public class XSLProcessorContext
    */
   public org.w3c.dom.Node getSourceTree()
   {
-    return sourceTree.getNode(sourceTree.getDocument());
+    return sourceTree.getNode(sourceTree.getDocumentRoot(sourceNode));
   }
 
   /** the current context node.          */
@@ -235,6 +235,11 @@ public class XSLProcessorContext
       {
         DTM dtm = (DTM)obj;
         DTMIterator iterator = new DescendantIterator();
+        // %%ISSUE%% getDocument may not be valid for DTMs shared by multiple
+        // document trees, eg RTFs. But in that case, we shouldn't be trying
+        // to iterate over the whole DTM; we should be iterating over 
+        // dtm.getDocumentRoot(rootNodeHandle), and folks should have told us
+        // this by passing a more appropriate type.
         iterator.setRoot(dtm.getDocument(), xctxt);
         value = new XNodeSet(iterator);
       }

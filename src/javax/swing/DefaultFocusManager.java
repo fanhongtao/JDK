@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFocusManager.java	1.26 01/12/03
+ * @(#)DefaultFocusManager.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -21,7 +21,7 @@ import java.util.Comparator;
  *
  * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  *
- * @version 1.26, 12/03/01
+ * @version 1.27, 01/23/03
  * @author Arnaud Weber
  * @author David Mendenhall
  */

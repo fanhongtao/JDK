@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEventMulticaster.java	1.32 02/01/17
+ * @(#)AWTEventMulticaster.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -22,6 +22,8 @@ import java.util.EventListener;
  * event listeners and will dispatch events to those listeners.  Because
  * the structure is immutable, it is safe to use this API to add/remove
  * listeners during the process of an event dispatch operation.
+ * However, event listeners added during the process of an event dispatch 
+ * operation will not be notified of the event currently being dispatched.
  *
  * An example of how this class could be used to implement a new
  * component which fires "action" events:
@@ -38,15 +40,17 @@ import java.util.EventListener;
  *     }
  *     public void processEvent(AWTEvent e) {
  *         // when event occurs which causes "action" semantic
- *         if (actionListener != null) {
- *             actionListener.actionPerformed(new ActionEvent());
- *         }         
+ *         ActionListener listener = actionListener;
+ *         if (listener != null) {
+ *             listener.actionPerformed(new ActionEvent());
+ *         }
+ *     }
  * }
  * </code></pre>
  *
  * @author      John Rose
  * @author 	Amy Fowler
- * @version 	1.32, 01/17/02
+ * @version 	1.35, 01/23/03
  * @since 	1.1
  */
 

@@ -1,5 +1,5 @@
 /*
- * @(#)ClientDelegate.java	1.86 03/01/19
+ * @(#)ClientDelegate.java	1.87 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -233,11 +233,11 @@ public class ClientDelegate
 	    dprint( "invoke(ClientRequest) called" ) ;
 
         ClientResponse resp = request.invoke();
-        // We know for sure now that we've sent a message.
-        // So OK to not send initial again.
-        if (request.getConnection() != null) {
-            request.getConnection().setPostInitialContexts();
-        }
+	// We know for sure now that we've sent a message.
+	// So OK to not send initial again.
+	if (request.getConnection() != null) {
+	    request.getConnection().setPostInitialContexts();
+	}
 
         // Notify Portable Interceptors of client response.
 	// This must happen here so that both stream-based and DII
@@ -503,10 +503,10 @@ public class ClientDelegate
 
 	// NOTE : We only want to send the runtime context the first time
 	if ((c != null) && !c.isPostInitialContexts()) {
-            // Do not do c.setPostInitialContexts() here.
-            // If a client interceptor send_request does a ForwardRequest
-            // which ends up using the same connection then the service
-            // context would not be sent.
+	    // Do not do c.setPostInitialContexts() here.
+	    // If a client interceptor send_request does a ForwardRequest
+	    // which ends up using the same connection then the service 
+	    // context would not be sent.
 	    SendingContextServiceContext scsc =
 		new SendingContextServiceContext( orb.getServantIOR() ) ; //d11638
 	    try {

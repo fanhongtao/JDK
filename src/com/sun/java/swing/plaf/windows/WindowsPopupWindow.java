@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsPopupWindow.java	1.2 01/12/03
+ * @(#)WindowsPopupWindow.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.windows;
@@ -29,7 +29,7 @@ import java.awt.Graphics;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.2 12/03/01
+ * @version 1.4 01/23/03
  * @author Amy Fowler
  */
 class WindowsPopupWindow extends JWindow {
@@ -45,6 +45,7 @@ class WindowsPopupWindow extends JWindow {
 
     WindowsPopupWindow(Window parent) {
         super(parent);
+        setFocusableWindowState(false);
     }
 
     void setWindowType(int type) {

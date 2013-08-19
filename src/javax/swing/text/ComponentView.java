@@ -1,5 +1,5 @@
 /*
- * @(#)ComponentView.java	1.51 03/01/19
+ * @(#)ComponentView.java	1.51 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ import javax.swing.event.*;
  * views of a shared model.
  *
  * @author Timothy Prinzing
- * @version 1.51 01/19/03
+ * @version 1.51 01/23/03
  */
 public class ComponentView extends View  {
 

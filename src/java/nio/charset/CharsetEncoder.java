@@ -1,7 +1,7 @@
 /*
- * @(#)Charset-X-Coder.java	1.36 02/04/10
+ * @(#)Charset-X-Coder.java	1.37 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * threads.  </p>
  *
  *
- * @version 1.36, 02/04/10
+ * @version 1.37, 03/01/23
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4

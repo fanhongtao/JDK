@@ -1,7 +1,7 @@
 /*
- * @(#)Channels.java	1.19 01/12/03
+ * @(#)Channels.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import sun.nio.cs.StreamEncoder;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.19, 01/12/03
+ * @version 1.22, 03/01/23
  * @since 1.4
  */
 
@@ -127,8 +127,8 @@ public final class Channels {
                     ByteBuffer bb = ((this.bs == bs)
                                      ? this.bb
                                      : ByteBuffer.wrap(bs));
-                    bb.position(off);
                     bb.limit(Math.min(off + len, bb.capacity()));
+                    bb.position(off);
                     this.bb = bb;
                     this.bs = bs;
                     Channels.write(ch, bb);
@@ -224,7 +224,7 @@ public final class Channels {
      * its I/O operations to the given stream.  Closing the channel will in
      * turn cause the stream to be closed.  </p>
      *
-     * @param  in
+     * @param  out
      *         The stream to which bytes are to be written
      *
      * @return  A new writable byte channel

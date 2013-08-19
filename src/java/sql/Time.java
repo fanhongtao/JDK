@@ -1,7 +1,7 @@
 /*
- * @(#)Time.java	1.27 01/12/03
+ * @(#)Time.java	1.30 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -66,7 +66,6 @@ public class Time extends java.util.Date {
      *
      * @param s time in format "hh:mm:ss"
      * @return a corresponding <code>Time</code> object
-     * @overrides java.util.Date.valueOf
      */
     public static Time valueOf(String s) {
 	int hour;
@@ -96,7 +95,6 @@ public class Time extends java.util.Date {
      * Formats a time in JDBC time escape format.  
      *
      * @return a <code>String</code> in hh:mm:ss format
-     * @overrides java.util.Date.toString
      */
     public String toString () {
 	int hour = super.getHours();
@@ -215,6 +213,12 @@ public class Time extends java.util.Date {
     public void setDate(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
+
+   /**
+    * Private serial version unique ID to ensure serialization
+    * compatibility.
+    */
+    static final long serialVersionUID = 8397324403548013681L;
 }
 
 

@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextSupport.java	1.45 02/02/25
+ * @(#)BeanContextSupport.java	1.46 03/01/13
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.util.Map;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.45, 02/25/02
+ * @version 1.46, 01/13/03
  * @since 1.2
  */
 public class      BeanContextSupport extends BeanContextChildSupport
@@ -76,7 +76,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * @param lcle	The current Locale for this BeanContext. If 
      *                  <tt>lcle</tt> is <tt>null</tt>, the default locale 
      *                  is assigned to the <tt>BeanContext</tt> instance. 
-     * @param dtime	The initial state, 
+     * @param dTime	The initial state, 
      *                  <tt>true</tt> if in design mode, 
      *                  <tt>false</tt> if runtime.
      * @param visible	The initial visibility.
@@ -597,8 +597,8 @@ public class      BeanContextSupport extends BeanContextChildSupport
     /**
      * Adds a BeanContextMembershipListener
      *
-     * @param bcml the BeanContextMembershipListener to add
-     * @throw NullPointerException
+     * @param  bcml the BeanContextMembershipListener to add
+     * @throws NullPointerException
      */
 
     public void addBeanContextMembershipListener(BeanContextMembershipListener bcml) {
@@ -615,8 +615,8 @@ public class      BeanContextSupport extends BeanContextChildSupport
     /**
      * Removes a BeanContextMembershipListener
      *
-     * @param bcml the BeanContextMembershipListener to remove
-     * @throw NullPointerException
+     * @param  bcml the BeanContextMembershipListener to remove
+     * @throws NullPointerException
      */
 
     public void removeBeanContextMembershipListener(BeanContextMembershipListener bcml) {
@@ -632,10 +632,10 @@ public class      BeanContextSupport extends BeanContextChildSupport
 
     /**
      * @param name the name of the resource requested.
-     * @param child the child object making the request.
+     * @param bcc  the child object making the request.
      *
-     * @return the requested resource as an InputStream
-     * @throw  NullPointerException
+     * @return  the requested resource as an InputStream
+     * @throws  NullPointerException
      */
 
     public InputStream getResourceAsStream(String name, BeanContextChild bcc) {
@@ -652,7 +652,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
 
     /**
      * @param name the name of the resource requested.
-     * @param child the child object making the request.
+     * @param bcc  the child object making the request.
      *
      * @return the requested resource as an InputStream
      */
@@ -1212,8 +1212,8 @@ public class      BeanContextSupport extends BeanContextChildSupport
     /**
      * Gets the BeanContextChild (if any) of the specified child
      * @param child the specified child
-     * @return the BeanContextChild (if any) of the specified child
-     * @throw IllegalArgumentException if child implements both BeanContextChild and BeanContextProxy
+     * @return  the BeanContextChild (if any) of the specified child
+     * @throws  IllegalArgumentException if child implements both BeanContextChild and BeanContextProxy
      */
     protected static final BeanContextChild getChildBeanContextChild(Object child) {
         try {

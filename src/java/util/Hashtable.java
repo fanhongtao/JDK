@@ -1,7 +1,7 @@
 /*
- * @(#)Hashtable.java	1.91 02/04/21
+ * @(#)Hashtable.java	1.95 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.io.*;
  * performance: <i>initial capacity</i> and <i>load factor</i>.  The
  * <i>capacity</i> is the number of <i>buckets</i> in the hash table, and the
  * <i>initial capacity</i> is simply the capacity at the time the hash table
- * is created.  Note that the hash table is <i>open</i>: in the case a "hash
+ * is created.  Note that the hash table is <i>open</i>: in the case of a "hash
  * collision", a single bucket stores multiple entries, which must be searched
  * sequentially.  The <i>load factor</i> is a measure of how full the hash
  * table is allowed to get before its capacity is automatically increased.
@@ -83,11 +83,15 @@ import java.io.*;
  * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness: <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
+ * should be used only to detect bugs.</i><p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.91, 04/21/02
+ * @version 1.95, 01/23/03
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -808,7 +812,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     /**
      * Reconstitute the Hashtable from a stream (i.e., deserialize it).
      */
-    private synchronized void readObject(java.io.ObjectInputStream s)
+    private void readObject(java.io.ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
 	// Read in the length, threshold, and loadfactor
@@ -835,7 +839,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	for (; elements > 0; elements--) {
 	    Object key = s.readObject();
 	    Object value = s.readObject();
-	    put(key, value);
+	    put(key, value);  // synch could be eliminated for performance
 	}
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)URLStreamHandler.java	1.58 02/03/05
+ * @(#)URLStreamHandler.java	1.61 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import sun.net.www.ParseUtil;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.58, 03/05/02
+ * @version 1.61, 01/23/03
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */
@@ -390,7 +390,6 @@ public abstract class URLStreamHandler {
      * @param u2 the URL of the second host to compare 
      * @return	<tt>true</tt> if and only if they 
      * are equal, <tt>false</tt> otherwise.
-     * @exception UnknownHostException If an unknown host is found.
      */
     protected boolean hostsEqual(URL u1, URL u2) {
 	InetAddress a1 = getHostAddress(u1);
@@ -418,8 +417,12 @@ public abstract class URLStreamHandler {
 	int len = u.getProtocol().length() + 1;
 	if (u.getAuthority() != null && u.getAuthority().length() > 0)
 	    len += 2 + u.getAuthority().length();
-	if (u.getFile() != null) 
-	    len += u.getFile().length();
+	if (u.getPath() != null) {
+	    len += u.getPath().length();
+	}
+	if (u.getQuery() != null) {
+	    len += 1 + u.getQuery().length();
+	}
 	if (u.getRef() != null) 
 	    len += 1 + u.getRef().length();
 
@@ -430,8 +433,12 @@ public abstract class URLStreamHandler {
             result.append("//");
             result.append(u.getAuthority());
         }
-        if (u.getFile() != null) {
-            result.append(u.getFile());
+        if (u.getPath() != null) {
+            result.append(u.getPath());
+        }
+        if (u.getQuery() != null) {
+            result.append('?');
+            result.append(u.getQuery());
         }
 	if (u.getRef() != null) {
 	    result.append("#");

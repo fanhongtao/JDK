@@ -1,7 +1,7 @@
 /*
- * @(#)NTNumericCredential.java	1.12 02/02/19
+ * @(#)NTNumericCredential.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package com.sun.security.auth;
  * <p> This class abstracts an NT security token
  * and provides a mechanism to do same-process security impersonation.
  *
- * @version 1.12, 02/19/02
+ * @version 1.13, 01/23/03
  */
 
 public class NTNumericCredential {

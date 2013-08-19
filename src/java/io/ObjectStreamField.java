@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamField.java	1.39 01/12/03
+ * @(#)ObjectStreamField.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.lang.reflect.Field;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.39, 01/12/03
+ * @version 1.40, 03/01/23
  * @see ObjectStreamClass
  * @since 1.2
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)Method.java	1.34 01/12/03
+ * @(#)Method.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -169,7 +169,7 @@ class Method extends AccessibleObject implements Member {
 	if (obj != null && obj instanceof Method) {
 	    Method other = (Method)obj;
 	    if ((getDeclaringClass() == other.getDeclaringClass())
-		&& (getName().equals(other.getName()))) {
+		&& (getName() == other.getName())) {
 		/* Avoid unnecessary cloning */
 		Class[] params1 = parameterTypes;
 		Class[] params2 = other.parameterTypes;

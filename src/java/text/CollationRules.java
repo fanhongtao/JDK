@@ -1,7 +1,7 @@
 /*
- * @(#)CollationRules.java	1.24 01/12/03
+ * @(#)CollationRules.java	1.25 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.24, 12/03/01
+ * @version            1.25, 01/23/03
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {

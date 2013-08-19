@@ -64,6 +64,7 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.ContentHandler;
+import org.xml.sax.DTDHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.Attributes;
@@ -99,7 +100,7 @@ import org.apache.xalan.res.XSLMessages;
  * false.
  * */
 public class IncrementalSAXSource_Filter
-implements IncrementalSAXSource, ContentHandler, LexicalHandler, ErrorHandler, Runnable
+implements IncrementalSAXSource, ContentHandler, DTDHandler, LexicalHandler, ErrorHandler, Runnable
 {
   boolean DEBUG=false; //Internal status report
 
@@ -112,6 +113,7 @@ implements IncrementalSAXSource, ContentHandler, LexicalHandler, ErrorHandler, R
 
   private ContentHandler clientContentHandler=null; // %REVIEW% support multiple?
   private LexicalHandler clientLexicalHandler=null; // %REVIEW% support multiple?
+  private DTDHandler clientDTDHandler=null; // %REVIEW% support multiple?
   private ErrorHandler clientErrorHandler=null; // %REVIEW% support multiple?
   private int eventcounter;
   private int frequency=5;
@@ -176,6 +178,7 @@ implements IncrementalSAXSource, ContentHandler, LexicalHandler, ErrorHandler, R
   {
     fXMLReader=eventsource;
     eventsource.setContentHandler(this);
+    eventsource.setDTDHandler(this);
     eventsource.setErrorHandler(this); // to report fatal errors in filtering mode
 
     // Not supported by all SAX2 filters:
@@ -202,6 +205,11 @@ implements IncrementalSAXSource, ContentHandler, LexicalHandler, ErrorHandler, R
   public void setContentHandler(ContentHandler handler)
   {
     clientContentHandler=handler;
+  }
+  // Register a DTD handler for us to output to
+  public void setDTDHandler(DTDHandler handler)
+  {
+    clientDTDHandler=handler;
   }
   // Register a lexical handler for us to output to
   // Not all filters support this...
@@ -425,6 +433,20 @@ implements IncrementalSAXSource, ContentHandler, LexicalHandler, ErrorHandler, R
       clientLexicalHandler.startEntity(name);
   }
 
+  //
+  // DTDHandler support.
+  
+  public void notationDecl(String a, String b, String c) throws SAXException
+  {
+  	if(null!=clientDTDHandler)
+	  	clientDTDHandler.notationDecl(a,b,c);
+  }
+  public void unparsedEntityDecl(String a, String b, String c, String d)  throws SAXException
+  {
+  	if(null!=clientDTDHandler)
+	  	clientDTDHandler.unparsedEntityDecl(a,b,c,d);
+  }
+  
   //
   // ErrorHandler support.
   //

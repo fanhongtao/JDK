@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDragGestureRecognizer.java	1.4 01/12/03
+ * @(#)BasicDragGestureRecognizer.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -18,7 +18,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * by enough pixels to keep it from being treated as a click.
  *
  * @author  Timothy Prinzing
- * @version 1.4 12/03/01
+ * @version 1.5 01/23/03
  */
 class BasicDragGestureRecognizer implements MouseListener, MouseMotionListener {
     

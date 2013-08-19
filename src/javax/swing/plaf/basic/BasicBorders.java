@@ -1,7 +1,7 @@
 /*
- * @(#)BasicBorders.java	1.28 01/12/03
+ * @(#)BasicBorders.java	1.30 03/04/22
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the basic L & F.
- * @version 1.28 12/03/01
+ * @version 1.30 04/22/03
  * @author Georges Saab
  * @author Amy Fowler
  */
@@ -145,7 +145,9 @@ public class BasicBorders {
 		shade = darkShadow;
 	    }
 
-            if ( model.isRollover() && !( model.isPressed() && !model.isArmed() ) ) {
+            if ((model.isRollover() && !(model.isPressed() && !model.isArmed())) ||
+                model.isSelected()) {
+
 		Color oldColor = g.getColor();
 		g.translate(x, y);
 

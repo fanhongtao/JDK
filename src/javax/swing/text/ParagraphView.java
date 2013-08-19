@@ -1,5 +1,5 @@
 /*
- * @(#)ParagraphView.java	1.88 03/04/25
+ * @(#)ParagraphView.java	1.89 03/03/17
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,8 +7,8 @@
 package javax.swing.text;
 
 import java.awt.*;
-import javax.swing.event.*;
 import java.awt.font.TextAttribute;
+import javax.swing.event.*;
 import javax.swing.SizeRequirements;
 
 /**
@@ -25,7 +25,7 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.88 04/25/03
+ * @version 1.89 03/17/03
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
@@ -102,20 +102,20 @@ public class ParagraphView extends FlowView implements TabExpander {
 	AttributeSet attr = getAttributes();
 	if (attr != null) {
 	    setParagraphInsets(attr);
-	    Integer a = (Integer)attr.getAttribute(StyleConstants.Alignment); 
-            int alignment; 
-            if (a == null) { 
-                Document doc = getElement().getDocument(); 
-                Object o = doc.getProperty(TextAttribute.RUN_DIRECTION); 
-                if ((o != null) && o.equals(TextAttribute.RUN_DIRECTION_RTL)) { 
-                    alignment = StyleConstants.ALIGN_RIGHT; 
-                } else { 
-                    alignment = StyleConstants.ALIGN_LEFT; 
+	    Integer a = (Integer)attr.getAttribute(StyleConstants.Alignment);
+	    int alignment;
+	    if (a == null) {
+		Document doc = getElement().getDocument();
+		Object o = doc.getProperty(TextAttribute.RUN_DIRECTION);
+		if ((o != null) && o.equals(TextAttribute.RUN_DIRECTION_RTL)) {
+		    alignment = StyleConstants.ALIGN_RIGHT;
+		} else {
+		    alignment = StyleConstants.ALIGN_LEFT;
 		}
-            } else { 
-                alignment = a.intValue(); 
-            } 
-            setJustification(alignment); 
+	    } else {
+		alignment = a.intValue();
+	    }
+	    setJustification(alignment);
 	    setLineSpacing(StyleConstants.getLineSpacing(attr));
 	    setFirstLineIndent(StyleConstants.getFirstLineIndent(attr));
 	}
@@ -177,7 +177,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      * either the east or west direction.
      * Overridden from <code>CompositeView</code>.
      * @param pos position into the model
-     * @param bias either <code>Position.Bias.Forward</code> or
+     * @param b either <code>Position.Bias.Forward</code> or
      *          <code>Position.Bias.Backward</code>
      * @param a the allocated region to render into
      * @param direction either <code>SwingConstants.NORTH</code>

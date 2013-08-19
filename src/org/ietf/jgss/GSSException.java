@@ -1,7 +1,7 @@
 /*
- * @(#)GSSException.java	1.7 01/12/03
+ * @(#)GSSException.java	1.9 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package org.ietf.jgss;
  * their numeric values to textual representations. <p>
  *
  * @author Mayank Upadhyay
- * @version 1.7, 12/03/01
+ * @version 1.9, 01/27/03
  * @since 1.4
  */
 public class GSSException extends Exception {
@@ -360,7 +360,6 @@ public class GSSException extends Exception {
      * Returns a textual representation of both the major and the minor
      * status codes.
      * 
-     * @overrides Throwable#geMessage
      * @return a String with the error descriptions
      */
     public String getMessage() {

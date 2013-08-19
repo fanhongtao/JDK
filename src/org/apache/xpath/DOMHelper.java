@@ -75,6 +75,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.xml.dtm.ref.DTMNodeProxy;
+
 /**
  * @deprecated Since the introduction of the DTM, this class will be removed.
  * This class provides a front-end to DOM implementations, providing
@@ -204,17 +206,17 @@ public class DOMHelper
    */
   public static boolean isNodeAfter(Node node1, Node node2)
   {
-    if (node1 == node2)
+    if (node1 == node2 || isNodeTheSame(node1, node2))
       return true;
 
         // Default return value, if there is no defined ordering
     boolean isNodeAfter = true;
         
     Node parent1 = getParentOfNode(node1);
-    Node parent2 = getParentOfNode(node2);
+    Node parent2 = getParentOfNode(node2);          
 
     // Optimize for most common case
-    if (parent1 == parent2)  // then we know they are siblings
+    if (parent1 == parent2 || isNodeTheSame(parent1, parent2))  // then we know they are siblings
     {
       if (null != parent1)
         isNodeAfter = isNodeAfterSibling(parent1, node1, node2);
@@ -291,7 +293,7 @@ public class DOMHelper
       // Loop up the ancestor chain looking for common parent
       while (null != startNode1)
       {
-        if (startNode1 == startNode2)  // common parent?
+        if (startNode1 == startNode2 || isNodeTheSame(startNode1, startNode2))  // common parent?
         {
           if (null == prevChild1)  // first time in loop?
           {
@@ -329,6 +331,21 @@ public class DOMHelper
     ", isNodeAfter = "+isNodeAfter); */
     return isNodeAfter;
   }  // end isNodeAfter(Node node1, Node node2)
+
+  /**
+   * Use DTMNodeProxy to determine whether two nodes are the same.
+   * 
+   * @param node1 The first DOM node to compare.
+   * @param node2 The second DOM node to compare.
+   * @return true if the two nodes are the same.
+   */
+  public static boolean isNodeTheSame(Node node1, Node node2)
+  {
+    if (node1 instanceof DTMNodeProxy && node2 instanceof DTMNodeProxy)
+      return ((DTMNodeProxy)node1).equals((DTMNodeProxy)node2);
+    else
+      return (node1 == node2);
+  }
 
   /**
    * Figure out if child2 is after child1 in document order.
@@ -377,7 +394,7 @@ public class DOMHelper
       {
         Node child = children.item(i);
 
-        if (child1 == child)
+        if (child1 == child || isNodeTheSame(child1, child))
         {
           if (found2)
           {
@@ -388,7 +405,7 @@ public class DOMHelper
 
           found1 = true;
         }
-        else if (child2 == child)
+        else if (child2 == child || isNodeTheSame(child2, child))
         {
           if (found1)
           {
@@ -421,7 +438,7 @@ public class DOMHelper
       {
 
         // Node child = children.item(i);
-        if (child1 == child)
+        if (child1 == child || isNodeTheSame(child1, child))
         {
           if (found2)
           {
@@ -432,7 +449,7 @@ public class DOMHelper
 
           found1 = true;
         }
-        else if (child2 == child)
+        else if (child2 == child || isNodeTheSame(child2, child))
         {
           if (found1)
           {

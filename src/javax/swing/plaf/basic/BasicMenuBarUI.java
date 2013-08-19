@@ -1,7 +1,7 @@
 /*
- * @(#)BasicMenuBarUI.java	1.77 02/04/15
+ * @(#)BasicMenuBarUI.java	1.78 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import javax.swing.plaf.*;
  * A default L&F implementation of MenuBarUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.77 04/15/02
+ * @version 1.78 01/23/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

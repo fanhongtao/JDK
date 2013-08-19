@@ -1431,6 +1431,24 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
                 return (nodeHandle & DOCHANDLE_MASK);
         }
 
+        /**
+         * Given a node handle, find the owning document node.  This has the DTM
+         * semantics; a Document node is its own owner.
+         *
+         * <p>%REVIEW% Since this is DOM-specific, it may belong at the DOM
+         * binding layer. Included here as a convenience function and to
+         * aid porting of DOM code to DTM.</p>
+         *
+         * @param nodeHandle the id of the node.
+         * @return int Node handle of owning document, or NULL if the nodeHandle is
+         *             a document.
+         */
+        public int getDocumentRoot(int nodeHandle) {
+                // Assumption that Document Node is always in 0 slot
+                if ((nodeHandle & NODEHANDLE_MASK) == 0)
+                        return NULL;
+                return (nodeHandle & DOCHANDLE_MASK);
+        }
 
         /**
          * Get the string-value of a node as a String object

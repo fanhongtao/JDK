@@ -1,7 +1,7 @@
 /*
- * @(#)ParsePosition.java	1.16 01/12/03
+ * @(#)ParsePosition.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ package java.text;
  * you can use the same <code>ParsePosition</code>, since the index parameter
  * records the current position.
  *
- * @version     1.16 12/03/01
+ * @version     1.18 01/23/03
  * @author      Mark Davis
  * @see         java.text.Format
  */
@@ -74,6 +74,7 @@ public class ParsePosition {
      * Set the index at which a parse error occurred.  Formatters
      * should set this before returning an error code from their
      * parseObject method.  The default value is -1 if this is not set.
+     * @since 1.2
      */
     public void setErrorIndex(int ei)
     {
@@ -83,6 +84,7 @@ public class ParsePosition {
     /**
      * Retrieve the index at which an error occurred, or -1 if the
      * error index has not been set.
+     * @since 1.2
      */
     public int getErrorIndex()
     {

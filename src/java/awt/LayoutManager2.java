@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutManager2.java	1.12 01/12/03
+ * @(#)LayoutManager2.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -22,7 +22,7 @@ package java.awt;
  * @see LayoutManager
  * @see Container
  *
- * @version	1.12, 12/03/01
+ * @version	1.13, 01/23/03
  * @author 	Jonni Kanerva
  */
 public interface LayoutManager2 extends LayoutManager {

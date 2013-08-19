@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultHSBChooserPanel.java	1.20 02/04/16
+ * @(#)DefaultHSBChooserPanel.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -17,7 +17,7 @@ import java.awt.image.*;
 /**
  * Implements the default HSB Color chooser
  *
- *  @version 1.20 04/16/02
+ *  @version 1.22 01/23/03
  *  @author Tom Santos
  *  @author Steve Wilson
  *  @author Mark Davidson
@@ -440,9 +440,20 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         
         float[] hsb = getHSBColorFromModel();
         
-        palette = new HSBImage(HSBImage.HSQUARE, PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], 1.0f, 1.0f);
-        sliderPalette = new HSBImage(HSBImage.HSLIDER, 16, PALETTE_DIMENSION, 0f, 1.0f, 1.0f);
-        
+        switch(currentMode){
+            case HUE_MODE:
+                palette = new HSBImage(HSBImage.HSQUARE, PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], 1.0f, 1.0f);
+                sliderPalette = new HSBImage(HSBImage.HSLIDER, 16, PALETTE_DIMENSION, 0f, 1.0f, 1.0f);
+                break;
+            case SATURATION_MODE:
+                palette = new HSBImage(HSBImage.SSQUARE, PALETTE_DIMENSION, PALETTE_DIMENSION, 1.0f, hsb[1], 1.0f);
+                sliderPalette = new HSBImage(HSBImage.SSLIDER, 16, PALETTE_DIMENSION, 1.0f, 0f, 1.0f);
+                break;
+            case BRIGHTNESS_MODE:
+                palette = new HSBImage(HSBImage.BSQUARE, PALETTE_DIMENSION, PALETTE_DIMENSION, 1.0f, 1.0f, hsb[2]);
+                sliderPalette = new HSBImage(HSBImage.BSLIDER, 16, PALETTE_DIMENSION, 1.0f, 1.0f, 0f);
+                break;
+        }
         paletteImage = Toolkit.getDefaultToolkit().createImage(palette);
         sliderPaletteImage = Toolkit.getDefaultToolkit().createImage(sliderPalette);
         

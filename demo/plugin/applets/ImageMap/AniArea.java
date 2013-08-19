@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)AniArea.java	1.13 02/06/13
+ * @(#)AniArea.java	1.14 03/01/23
  */
 
 import java.awt.Graphics;
@@ -50,7 +50,7 @@ import java.net.MalformedURLException;
  * define the top left corner of each new frame.
  *
  * @author	Chuck McManis
- * @version	1.13, 06/13/02
+ * @version	1.14, 01/23/03
  */
 class AniArea extends ImageMapArea {
 

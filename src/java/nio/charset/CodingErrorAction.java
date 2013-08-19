@@ -1,7 +1,7 @@
 /*
- * @(#)CodingErrorAction.java	1.4 02/01/09
+ * @(#)CodingErrorAction.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.nio.charset;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.4, 02/01/09
+ * @version 1.5, 03/01/23
  * @since 1.4
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)MotifCheckBoxUI.java	1.21 01/12/03
+ * @(#)MotifCheckBoxUI.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 12/03/01
+ * @version 1.22 01/23/03
  * @author Rich Schiavi
  */
 public class MotifCheckBoxUI extends MotifRadioButtonUI {

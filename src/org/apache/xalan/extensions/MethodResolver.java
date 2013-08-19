@@ -224,6 +224,8 @@ public class MethodResolver
   {
     // System.out.println("---> Looking for method: "+name);
     // System.out.println("---> classObj: "+classObj);
+    if (name.indexOf("-")>0)
+      name = replaceDash(name);
     Method bestMethod = null;
     Class[] bestParamTypes = null;
     Method[] methods = classObj.getMethods();
@@ -323,7 +325,27 @@ public class MethodResolver
     
     return bestMethod;
   }
-
+  
+  /**
+   * To support EXSLT extensions, convert names with dash to allowable Java names: 
+   * e.g., convert abc-xyz to abcXyz.
+   * Note: dashes only appear in middle of an EXSLT function or element name.
+   */
+  private static String replaceDash(String name)
+  {
+    char dash = '-';
+    StringBuffer buff = new StringBuffer("");
+    for (int i=0; i<name.length(); i++)
+    {
+      if (name.charAt(i) == dash)
+      {}
+      else if (i > 0 && name.charAt(i-1) == dash)
+        buff.append(Character.toUpperCase(name.charAt(i)));
+      else
+        buff.append(name.charAt(i));
+    }
+    return buff.toString();
+  }
   
   /**
    * Given the name of a method, figure out the resolution of 
@@ -823,8 +845,11 @@ public class MethodResolver
             // Xalan ensures that iter() always returns an
             // iterator positioned at the beginning.
             DTMIterator ni = xobj.iter();
-            int handle = ni.nextNode();           
-            return ni.getDTM(handle).getNode(handle); // may be null.
+            int handle = ni.nextNode();
+            if (handle != DTM.NULL)
+              return ni.getDTM(handle).getNode(handle); // may be null.
+            else
+              return null;
           }
           else if(javaClass == java.lang.String.class)
           {

@@ -1,7 +1,7 @@
 /*
- * @(#)Direct-X-Buffer.java	1.39 02/05/06
+ * @(#)Direct-X-Buffer.java	1.45 03/04/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@
 
 package java.nio;
 
+import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 import sun.nio.ch.FileChannelImpl;
@@ -34,9 +35,6 @@ class DirectFloatBufferS
     // Base address, used in all indexing calculations
     // NOTE: moved up to Buffer.java for speed in JNI GetDirectBufferAddress
     //    protected long address;
-
-    // True iff this buffer should be freed
-    protected boolean allocated;
 
     // If this buffer is a view of another buffer then we keep a reference to
     // that buffer so that its memory isn't freed before we're done with it
@@ -81,6 +79,7 @@ class DirectFloatBufferS
 
 
 
+    public Cleaner cleaner() { return null; }
 
 
 
@@ -113,26 +112,37 @@ class DirectFloatBufferS
 
 
 
-    DirectFloatBufferS(DirectByteBuffer bb) { 	// package-private
-
-	super(-1, 0,
-	      bb.remaining() >> 2,
-	      bb.remaining() >> 2);
-	// enforce limit == capacity
-	int cap = this.capacity();
-	this.limit(cap);
-	int pos = this.position();
-	assert (pos <= cap);
- 	address = bb.address() + pos;
-	allocated = false;
-	viewedBuffer = bb;
 
 
 
-    }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // For duplicates and slices
+    //
     DirectFloatBufferS(DirectBuffer db,	        // package-private
 			       int mark, int pos, int lim, int cap,
 			       int off)
@@ -140,8 +150,10 @@ class DirectFloatBufferS
 
 	super(mark, pos, lim, cap);
 	address = db.address() + off;
-	allocated = false;
 	viewedBuffer = db;
+
+
+
 
 
 
@@ -189,11 +201,11 @@ class DirectFloatBufferS
     }
 
     public float get() {
-	return Bits.swap(unsafe.getFloat(ix(nextGetIndex())));
+	return Float.intBitsToFloat(Bits.swap(unsafe.getInt(ix(nextGetIndex()))));
     }
 
     public float get(int i) {
-	return Bits.swap(unsafe.getFloat(ix(checkIndex(i))));
+	return Float.intBitsToFloat(Bits.swap(unsafe.getInt(ix(checkIndex(i)))));
     }
 
     public FloatBuffer get(float[] dst, int offset, int length) {
@@ -208,9 +220,9 @@ class DirectFloatBufferS
 		throw new BufferUnderflowException();
 
 	    if (order() != ByteOrder.nativeOrder())
-		Bits.copyToFloatArray(ix(pos), dst,
-				       offset << 2,
-				       length << 2);
+		Bits.copyToIntArray(ix(pos), dst,
+					  offset << 2,
+					  length << 2);
 	    else
 		Bits.copyToByteArray(ix(pos), dst,
 				     offset << 2,
@@ -229,7 +241,7 @@ class DirectFloatBufferS
 
     public FloatBuffer put(float x) {
 
-	unsafe.putFloat(ix(nextPutIndex()), Bits.swap(x));
+	unsafe.putInt(ix(nextPutIndex()), Bits.swap(Float.floatToRawIntBits(x)));
 	return this;
 
 
@@ -238,7 +250,7 @@ class DirectFloatBufferS
 
     public FloatBuffer put(int i, float x) {
 
-	unsafe.putFloat(ix(checkIndex(i)), Bits.swap(x));
+	unsafe.putInt(ix(checkIndex(i)), Bits.swap(Float.floatToRawIntBits(x)));
 	return this;
 
 
@@ -274,7 +286,7 @@ class DirectFloatBufferS
 	    assert (spos <= slim);
 	    int srem = (spos <= slim ? slim - spos : 0);
 
-	    put(src.array(), src.arrayOffset() + spos, srem);
+	    put(src.hb, src.offset + spos, srem);
 	    src.position(spos + srem);
 
 	} else {
@@ -298,8 +310,8 @@ class DirectFloatBufferS
 		throw new BufferOverflowException();
 
 	    if (order() != ByteOrder.nativeOrder()) 
-		Bits.copyFromFloatArray(src, offset << 2,
-					 ix(pos), length << 2);
+		Bits.copyFromIntArray(src, offset << 2,
+					    ix(pos), length << 2);
 	    else
 		Bits.copyFromByteArray(src, offset << 2,
 				       ix(pos), length << 2);
@@ -389,23 +401,6 @@ class DirectFloatBufferS
 
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

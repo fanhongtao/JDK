@@ -1,7 +1,7 @@
 /*
- * @(#)ORB.java	1.217 03/12/02
+ * @(#)ORB.java	1.216 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,6 @@ package com.sun.corba.se.internal.iiop;
 // Import JDK stuff
 import java.net.*;
 import java.util.*;
-import java.security.*;
 
 // Import our stuff
 
@@ -77,49 +76,7 @@ public class ORB extends com.sun.corba.se.internal.corba.ORB implements RequestH
     protected int transientServerId=0;
 
     // The thread group of the main thread (for applications) or applet.
-    //  We make it package private from a security perspective.
-    static ThreadGroup threadGroup;
-
-    // We intend to create new threads in a reliable thread group.
-    // This avoids problems if the application/applet
-    // creates a thread group, makes JavaIDL calls which create a new
-    // connection and ReaderThread, and then destroys the thread
-    // group. If our ReaderThreads were to be part of such destroyed thread
-    // group then it might get killed and cause other invoking threads
-    // sharing the same connection to get a non-restartable
-    // CommunicationFailure. We'd like to avoid that.
-    //
-    // Our solution is to create all of our threads in the highest thread
-    // group that we have access to, given our own security clearance.
-    //
-    static {
-	try { 
-	    // try to get a thread group that's as high in the threadgroup  
-	    // parent-child hierarchy, as we can get to.
-	    // this will prevent an ORB thread created during applet-init from 
-	    // being killed when an applet dies.
-	    threadGroup = (ThreadGroup) AccessController.doPrivileged( 
-	      new PrivilegedAction() { 
-	      	public Object run() { 
-		    ThreadGroup tg, ptg; 
-		    tg = ptg = Thread.currentThread().getThreadGroup(); 
-		    try { 
-			while (ptg != null) { 
-			    tg = ptg;  
-			    ptg = tg.getParent(); 
-			} 
-		    } catch (SecurityException se) { 
-			// Discontinue going higher on a security exception.
-		    }
-		    return new ThreadGroup(tg, "ORB ThreadGroup"); 
-		} 
-	      }
-	    );
-	} catch (SecurityException e) { 
-	    // something wrong, we go back to the original code 
-	    threadGroup = Thread.currentThread().getThreadGroup(); 
-	}
-    }
+    protected ThreadGroup threadGroup;
 
     protected ServiceContextRegistry scr ;
 
@@ -136,7 +93,22 @@ public class ORB extends com.sun.corba.se.internal.corba.ORB implements RequestH
 	// tagged components can be fully decoded when an IOR
 	// is unmarshalled.
 	TaggedComponentFactories.registerFactories() ;
-	
+
+        //
+        // We attempt to create new threads in this thread group, if
+        // possible. This avoids problems if the application/applet
+        // creates a thread group, makes JavaIDL calls which create a new
+        // connection and ReaderThread, and then destroys the thread
+        // group. If our ReaderThread were part of this destroyed thread
+        // group then it might get killed and cause other invoking threads
+        // sharing the same connection to get a non-restartable
+        // CommunicationFailure. We'd like to avoid that.
+        //
+        // Our solution is to create all of our threads in the same
+        // thread group that we were initialized under.
+        //
+        threadGroup = Thread.currentThread().getThreadGroup();
+
         // Compute transientServerId = (milliseconds since Jan 1, 1970)/10.
 	// Note: transientServerId will wrap in about 2^32 / 8640000 = 497 days.
         // If two ORBS are started at the same time then there is a possibility

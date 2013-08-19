@@ -244,7 +244,8 @@ public class AttList implements Attributes
    */
   public String getValue(String uri, String localName)
   {
-    return ((Attr) m_attrs.getNamedItem(localName)).getValue();
+		Node a=m_attrs.getNamedItemNS(uri,localName);
+		return (a==null) ? null : a.getNodeValue();
   }
 
   /**
@@ -258,18 +259,34 @@ public class AttList implements Attributes
    */
   public int getIndex(String uri, String localPart)
   {
-    return 0;
+    for(int i=m_attrs.getLength()-1;i>=0;--i)
+    {
+      Node a=m_attrs.item(i);
+      String u=a.getNamespaceURI();
+      if( (u==null ? uri==null : u.equals(uri))
+	  &&
+	  a.getLocalName().equals(localPart) )
+	return i;
+    }
+    return -1;
   }
 
   /**
    * Look up the index of an attribute by raw XML 1.0 name.
    *
-   * @param rawName The raw (prefixed) name.
+   * @param qName The qualified (prefixed) name.
    * @return The index of the attribute, or -1 if it does not
    *         appear in the list.
    */
-  public int getIndex(String rawName)
+  public int getIndex(String qName)
   {
-    return 0;
+    for(int i=m_attrs.getLength()-1;i>=0;--i)
+    {
+      Node a=m_attrs.item(i);
+      if(a.getNodeName().equals(qName) )
+	return i;
+    }
+    return -1;
   }
 }
+

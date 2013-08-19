@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.72 02/02/12
+ * @(#)Date.java	1.74 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -100,7 +100,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.72, 02/12/02
+ * @version 1.74, 01/23/03
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -959,7 +959,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *     <tt>59</tt>), as two decimal digits.
      * <li><tt>ss</tt> is the second within the minute (<tt>00</tt> through 
      *     <tt>61</tt>, as two decimal digits.
-     * <li><tt>zzz</tt> is the time zone (and may reflect daylight savings 
+     * <li><tt>zzz</tt> is the time zone (and may reflect daylight saving 
      *     time). Standard time zone abbreviations include those 
      *     recognized by the method <tt>parse</tt>. If time zone 
      *     information is not available, then <tt>zzz</tt> is empty - 
@@ -1067,7 +1067,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * is in use, which is offset five hours from UTC; but:
      * <blockquote><pre>
      * new Date(96, 5, 1).getTimezoneOffset() returns 240</pre></blockquote>
-     * because on May 1, 1996, daylight savings time (Eastern Daylight Time) 
+     * because on June 1, 1996, daylight saving time (Eastern Daylight Time) 
      * is in use, which is offset only four hours from UTC.<p>
      * This method produces the same result as if it computed:
      * <blockquote><pre>
@@ -1079,12 +1079,13 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *                       this.getSeconds())) / (60 * 1000)
      * </pre></blockquote>
      *
-     * @return  the time-zone offset, in minutes, for the current locale.
-     * @see     java.util.Calendar
-     * @see     java.util.TimeZone
+     * @return  the time-zone offset, in minutes, for the current time zone.
+     * @see     java.util.Calendar#ZONE_OFFSET
+     * @see     java.util.Calendar#DST_OFFSET
+     * @see     java.util.TimeZone#getDefault
      * @deprecated As of JDK version 1.1,
-     * replaced by <code>Calendar.get(Calendar.ZONE_OFFSET) +
-     * Calendar.get(Calendar.DST_OFFSET)</code>.
+     * replaced by <code>-(Calendar.get(Calendar.ZONE_OFFSET) +
+     * Calendar.get(Calendar.DST_OFFSET)) / (60 * 1000)</code>.
      */
     public int getTimezoneOffset() {
         int offset;

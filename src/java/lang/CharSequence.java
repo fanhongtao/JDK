@@ -1,7 +1,7 @@
 /*
- * @(#)CharSequence.java	1.5 02/04/23
+ * @(#)CharSequence.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package java.lang;
  * a map. </p>
  *
  * @author Mike McCloskey
- * @version 1.5 02/04/23
+ * @version 1.6 03/01/23
  * @since 1.4
  * @spec JSR-51
  */

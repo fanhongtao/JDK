@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.26 02/04/09
+ * @(#)DefaultTreeCellEditor.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import java.util.Vector;
  *
  * @see javax.swing.JTree
  *
- * @version 1.26 04/09/02
+ * @version 1.28 01/23/03
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
@@ -146,7 +146,7 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
 
     /**
       * Returns the color the border is drawn.
-      * @returns the border selection color
+      * @return the border selection color
       */
     public Color getBorderSelectionColor() {
 	return borderSelectionColor;
@@ -301,7 +301,7 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
 
     /**
       * Removes the previously added <code>CellEditorListener</code>.
-      * @param the listener to be removed
+      * @param l the listener to be removed
       */
     public void removeCellEditorListener(CellEditorListener l) {
 	realEditor.removeCellEditorListener(l);

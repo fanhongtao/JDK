@@ -1,7 +1,7 @@
 /*
- * @(#)BreakIterator.java	1.30 01/12/03
+ * @(#)BreakIterator.java	1.32 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -297,6 +297,7 @@ public abstract class BreakIterator implements Cloneable
      * determined by the CharacterIterator passed to setText().
      * Invalid values cause an IllegalArgumentException to be thrown.
      * @return The last boundary before the specified offset.
+     * @since 1.2
      */
     public int preceding(int offset) {
         // NOTE:  This implementation is here solely because we can't add new
@@ -312,6 +313,7 @@ public abstract class BreakIterator implements Cloneable
      * Return true if the specified position is a boundary position.
      * @param offset the offset to check.
      * @return True if "offset" is a boundary position.
+     * @since 1.2
      */
     public boolean isBoundary(int offset) {
         // NOTE: This implementation probably is wrong for most situations

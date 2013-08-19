@@ -82,8 +82,17 @@ import org.apache.xml.dtm.ref.DTMManagerDefault;
  * created for each evaluation.  A faster way is to precompile the
  * XPaths using the low-level API, and then just use the XPaths
  * over and over.
- * @see <a href="http://www.w3.org/TR/xpath">XPath Specification</a>
- */
+ *
+ * NOTE: In particular, each call to this method will create a new
+ * XPathContext, a new DTMManager... and thus a new DTM. That's very
+ * safe, since it guarantees that you're always processing against a
+ * fully up-to-date view of your document. But it's also portentially
+ * very expensive, since you're rebuilding the DTM every time. You should
+ * consider using an instance of CachedXPathAPI rather than these static
+ * methods.
+ *
+ * @see <a href="http://www.w3.org/TR/xpath">XPath Specification</a> 
+ * */
 public class XPathAPI
 {
 

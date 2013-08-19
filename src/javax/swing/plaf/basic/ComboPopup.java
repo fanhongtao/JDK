@@ -1,7 +1,7 @@
 /*
- * @(#)ComboPopup.java	1.12 01/12/03
+ * @(#)ComboPopup.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import javax.swing.JList;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.12 12/03/01
+ * @version 1.14 01/23/03
  * @author Tom Santos
  */
 public interface ComboPopup {
@@ -73,8 +73,6 @@ public interface ComboPopup {
     /**
      * Returns a key listener that will be added to the combo box or null.
      * If this method returns null then it will not be added to the combo box.
-     *
-     * @param a <code>KeyListener</code> or null
      */
     public KeyListener getKeyListener();
 

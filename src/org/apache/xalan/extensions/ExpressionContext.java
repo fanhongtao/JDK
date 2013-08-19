@@ -59,6 +59,7 @@ package org.apache.xalan.extensions;
 import org.w3c.dom.traversal.NodeIterator;
 import org.w3c.dom.Node;
 import org.apache.xpath.objects.XObject;
+import javax.xml.transform.ErrorListener;
 
 /**
  * An object that implements this interface can supply
@@ -79,6 +80,12 @@ public interface ExpressionContext
    * defined in XSLT.
    */
   public NodeIterator getContextNodes();
+  
+  /**
+   * Get the error listener.
+   * @return The registered error listener.
+   */
+  public ErrorListener getErrorListener();
 
   /**
    * Get the value of a node as a number.
@@ -103,8 +110,19 @@ public interface ExpressionContext
    *
    * @throws javax.xml.transform.TransformerException
    */
-
   public XObject getVariableOrParam(org.apache.xml.utils.QName qname)
+            throws javax.xml.transform.TransformerException;
+  
+  /**
+   * Get the XPathContext that owns this ExpressionContext.
+   * 
+   * Note: exslt:function requires the XPathContext to access
+   * the variable stack and TransformerImpl.
+   * 
+   * @return The current XPathContext.
+   * @throws javax.xml.transform.TransformerException
+   */
+  public org.apache.xpath.XPathContext getXPathContext()
             throws javax.xml.transform.TransformerException;
 
 }

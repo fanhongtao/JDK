@@ -1,7 +1,7 @@
 /*
- * @(#)Acl.java	1.20 01/12/03
+ * @(#)Acl.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -67,7 +67,7 @@ import java.security.Principal;
  * @see java.security.acl.Owner
  * @see java.security.acl.Acl#getPermissions
  * 
- * @version 1.20, 01/12/03
+ * @version 1.21, 03/01/23
  * @author Satish Dharmaraj 
  */
 

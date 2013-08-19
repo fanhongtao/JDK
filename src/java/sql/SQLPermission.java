@@ -1,7 +1,7 @@
 /*
- * @(#)SQLPermission.java	1.11 01/12/03
+ * @(#)SQLPermission.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.security.*;
  * and a discussion of the risks of granting code the permission.
  * <P>
  *
- * <table border=1 cellpadding=5>
+ * <table border=1 cellpadding=5 summary="permission target name, what the permission allows, and associated risks">
  * <tr>
  * <th>Permission Target Name</th>
  * <th>What the Permission Allows</th>
@@ -95,4 +95,11 @@ public final class SQLPermission extends BasicPermission {
     public SQLPermission(String name, String actions) {
         super(name, actions);
     }
+
+    /**
+     * Private serial version unique ID to ensure serialization
+     * compatibility.
+     */
+    static final long serialVersionUID = -1439323187199563495L;
+
 }

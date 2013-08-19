@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceContext.java	1.48 02/03/18
+ * @(#)DragSourceContext.java	1.50 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.util.TooManyListenersException;
  *
  * @see DragSourceListener
  * @see DragSourceMotionListener
- * @version 1.48, 03/18/02
+ * @version 1.50, 01/23/03
  * @since 1.2
  */
 
@@ -353,7 +353,7 @@ public class DragSourceContext
      * <code>DragSource</code>, and passes them the specified
      * <code>DragSourceEvent</code>.
      *
-     * @param dsde the <code>DragSourceEvent</code>
+     * @param dse the <code>DragSourceEvent</code>
      */
     public void dragExit(DragSourceEvent dse) {
         DragSourceListener dsl = listener;

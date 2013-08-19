@@ -1,7 +1,7 @@
 /*
- * @(#)ItemEvent.java	1.24 01/12/03
+ * @(#)ItemEvent.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.awt.ItemSelectable;
  * clicks, and can instead process a "meaningful" (semantic) event like
  * "item selected" or "item deselected". 
  *
- * @version 1.24 12/03/01
+ * @version 1.26 01/23/03
  * @author Carl Quinn
  *
  * @see java.awt.ItemSelectable
@@ -67,7 +67,7 @@ public class ItemEvent extends AWTEvent {
      * The item whose selection state has changed.
      *
      * @serial
-     * @see getItem()
+     * @see #getItem()
      */
     Object item;
 
@@ -76,7 +76,7 @@ public class ItemEvent extends AWTEvent {
      * was selected or deselected.
      *
      * @serial
-     * @see getStateChange()
+     * @see #getStateChange()
      */
     int stateChange;
 

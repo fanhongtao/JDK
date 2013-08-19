@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationException.java	1.21 01/12/03
+ * @(#)ActivationException.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package java.rmi.activation;
  * the aforementioned "legacy field."
  *
  * @author 	Ann Wollrath
- * @version	1.21, 12/03/01
+ * @version	1.22, 01/23/03
  * @since 	1.2
  */
 public class ActivationException extends Exception {

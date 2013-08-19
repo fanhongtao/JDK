@@ -1,7 +1,7 @@
 /*
- * @(#)AppletStub.java	1.22 01/12/03
+ * @(#)AppletStub.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.applet;
@@ -16,7 +16,7 @@ import java.net.URL;
  * is running.
  *
  * @author 	Arthur van Hoff
- * @version     1.22, 12/03/01
+ * @version     1.24, 01/23/03
  * @see         java.applet.Applet#setStub(java.applet.AppletStub)
  * @since       JDK1.0
  */
@@ -31,28 +31,31 @@ public interface AppletStub {
      */
     boolean isActive();
 
+    
     /**
-     * Returns an absolute URL naming the directory of the document in which
-     * the applet is embedded.  For example, suppose an applet is contained
+     * Gets the URL of the document in which the applet is embedded.
+     * For example, suppose an applet is contained
      * within the document:
      * <blockquote><pre>
      *    http://java.sun.com/products/jdk/1.2/index.html
      * </pre></blockquote>
      * The document base is:
      * <blockquote><pre>
-     *    http://java.sun.com/products/jdk/1.2/
+     *    http://java.sun.com/products/jdk/1.2/index.html
      * </pre></blockquote>
      *
-     * @return  the {@link java.net.URL} of the document that contains this
+     * @return  the {@link java.net.URL} of the document that contains the
      *          applet.
      * @see     java.applet.AppletStub#getCodeBase()
      */
     URL getDocumentBase();
 
     /**
-     * Gets the base URL.
+     * Gets the base URL. This is the URL of the directory which contains the applet.
      *
-     * @return  the <code>URL</code> of the applet.
+     * @return  the base {@link java.net.URL} of
+     *          the directory which contains the applet.
+     * @see     java.applet.AppletStub#getDocumentBase()
      */
     URL getCodeBase();
 

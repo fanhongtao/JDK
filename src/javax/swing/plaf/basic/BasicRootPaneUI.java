@@ -1,7 +1,7 @@
 /*
- * @(#)BasicRootPaneUI.java	1.8 02/04/18
+ * @(#)BasicRootPaneUI.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import javax.swing.plaf.*;
  * Basic implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.8 04/18/02
+ * @version 1.9 01/23/03
  * @author Scott Violet
  */
 public class BasicRootPaneUI extends RootPaneUI implements

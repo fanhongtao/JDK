@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextServicesSupport.java	1.17 01/12/03
+ * @(#)BeanContextServicesSupport.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.Locale;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.17, 12/03/01
+ * @version 1.19, 01/23/03
  * @since 1.2
  */
 
@@ -403,7 +403,7 @@ public class      BeanContextServicesSupport extends BeanContextSupport
 	    BeanContextServiceRevokedEvent bcsre       = new BeanContextServiceRevokedEvent(BeanContextServicesSupport.this.getBeanContextServicesPeer(), serviceClass, revokeNow);
 	    boolean			   noMoreRefs  = false;
 
-	    while (i.hasNext()) {
+	    while (i.hasNext() && serviceRequestors != null) {
 		Map.Entry	    		  entry    = (Map.Entry)i.next();
 		BeanContextServiceRevokedListener listener = (BeanContextServiceRevokedListener)entry.getValue();
 

@@ -1,7 +1,7 @@
 /*
- * @(#)WindowAdapter.java	1.18 01/12/03
+ * @(#)WindowAdapter.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ package java.awt.event;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author David Mendenhall
- * @version 1.18, 12/03/01
+ * @version 1.19, 01/23/03
  * @since 1.1
  */
 public abstract class WindowAdapter

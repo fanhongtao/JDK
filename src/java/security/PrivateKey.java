@@ -1,7 +1,7 @@
 /*
- * @(#)PrivateKey.java	1.27 01/12/03
+ * @(#)PrivateKey.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package java.security;
  * @see java.security.interfaces.RSAPrivateKey
  * @see java.security.interfaces.RSAPrivateCrtKey
  *
- * @version 1.27 01/12/03
+ * @version 1.28 03/01/23
  * @author Benjamin Renaud
  * @author Josh Bloch
  */

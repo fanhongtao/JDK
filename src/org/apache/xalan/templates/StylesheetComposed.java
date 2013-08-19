@@ -126,8 +126,8 @@ public class StylesheetComposed extends Stylesheet
   public void recompose(Vector recomposableElements) throws TransformerException
   {
 
-    recomposeImports();         // Calculate the number of this import.
-    recomposeIncludes(this);    // Build the global include list for this stylesheet.
+    //recomposeImports();         // Calculate the number of this import.
+    //recomposeIncludes(this);    // Build the global include list for this stylesheet.
 
     // Now add in all of the recomposable elements at this precedence level
 
@@ -219,6 +219,9 @@ public class StylesheetComposed extends Stylesheet
    *  @serial
    */
   private int m_importCountComposed;
+  
+  /* The count of imports composed for this stylesheet */
+  private int m_endImportCountComposed;
 
   /**
    * Recalculate the precedence of this stylesheet in the global
@@ -234,6 +237,27 @@ public class StylesheetComposed extends Stylesheet
     int globalImportCount = root.getGlobalImportCount();
 
     m_importCountComposed = (globalImportCount - m_importNumber) - 1;
+    
+    // Now get the count of composed imports from this stylesheet's imports
+    int count = getImportCount();
+    if ( count > 0)
+    {
+      m_endImportCountComposed += count;
+      while (count > 0)
+        m_endImportCountComposed += this.getImport(--count).getEndImportCountComposed();
+    }
+    
+    // Now get the count of composed imports from this stylesheet's
+    // composed includes.
+    count = getIncludeCountComposed();
+    while (count>0)
+    {
+      int imports = getIncludeComposed(--count).getImportCount();
+      m_endImportCountComposed += imports;
+      while (imports > 0)
+        m_endImportCountComposed +=getIncludeComposed(count).getImport(--imports).getEndImportCountComposed();
+     
+    }                                                            
   }
 
   /**
@@ -270,6 +294,17 @@ public class StylesheetComposed extends Stylesheet
   {
     return m_importCountComposed;
   }
+  
+  /**
+   * Get the number of import in this stylesheet's composed list.
+   *
+   * @return the number of imports in this stylesheet's composed list.
+   */
+  public int getEndImportCountComposed()
+  {
+    return m_endImportCountComposed;
+  }
+  
 
   /**
    * The combined list of includes.

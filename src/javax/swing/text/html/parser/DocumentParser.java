@@ -1,7 +1,7 @@
 /*
- * @(#)DocumentParser.java	1.23 01/12/03
+ * @(#)DocumentParser.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,7 +82,7 @@ import sun.io.*;
  * \n, \r or \r\n, which ever is encountered the most in parsing the
  * stream.
  *
- * @version 	1.23 12/03/01
+ * @version 	1.24 01/23/03
  * @author      Sunita Mani
  */
 public class DocumentParser extends javax.swing.text.html.parser.Parser {

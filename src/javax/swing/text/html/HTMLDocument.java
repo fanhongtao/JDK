@@ -1,5 +1,5 @@
 /*
- * @(#)HTMLDocument.java	1.150 03/04/25
+ * @(#)HTMLDocument.java	1.154 03/03/17
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -69,7 +69,7 @@ import java.text.Bidi;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.150 04/25/03
+ * @version 1.154 03/17/03
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -1329,6 +1329,9 @@ public class HTMLDocument extends DefaultStyledDocument {
 	super.fireUndoableEditUpdate(e);
     }
 
+    boolean hasBaseTag() {
+	return hasBaseTag;
+    }
     /*
      * state defines whether the document is a frame document
      * or not.
@@ -1370,6 +1373,11 @@ public class HTMLDocument extends DefaultStyledDocument {
     URL base;
 
     /**
+     * does the document have base tag
+     */
+    boolean hasBaseTag = false;
+
+    /**
      * The parser that is used when inserting html into the existing
      * document.
      */
@@ -1388,17 +1396,19 @@ public class HTMLDocument extends DefaultStyledDocument {
     private static char[] NEWLINE;
 
     /**
-     * I18N property key.  Copied from AbstractDocument
+     * I18N property key.  
+     *
+     * @see AbstractDocument.I18NProperty
      */
     private static final String I18NProperty = "i18n";
 
     private static final boolean isComplex(char ch) {
         return (ch >= '\u0900' && ch <= '\u0D7F') || // Indic
-     	       (ch >= '\u0E00' && ch <= '\u0E7F');   // Thai
-	}
+               (ch >= '\u0E00' && ch <= '\u0E7F');   // Thai
+    }
 
     private static final boolean isComplex(char[] text, int start, int limit) {
-    	for (int i = start; i < limit; ++i) {
+	for (int i = start; i < limit; ++i) {
 	    if (isComplex(text[i])) {
 		return true;
 	    }
@@ -1660,8 +1670,9 @@ public class HTMLDocument extends DefaultStyledDocument {
      *
      * <p>
      * The assignment of the actions described is shown in the
-     * following table for the tags defined in <code>HTML.Tag</code>.
-     * <table>
+     * following table for the tags defined in <code>HTML.Tag</code>.<P>
+     * <table border=1 summary="HTML tags and assigned actions">
+     * <tr><th>Tag</th><th>Action</th></tr>
      * <tr><td><code>HTML.Tag.A</code>         <td>CharacterAction
      * <tr><td><code>HTML.Tag.ADDRESS</code>   <td>CharacterAction
      * <tr><td><code>HTML.Tag.APPLET</code>    <td>HiddenAction
@@ -2081,18 +2092,18 @@ public class HTMLDocument extends DefaultStyledDocument {
 
 	    // see if complex glyph layout support is needed
 	    if(HTMLDocument.this.getProperty(I18NProperty).equals( Boolean.FALSE ) ) {
-	       // if a default direction of right-to-left has been specified,
-	       // we want complex layout even if the text is all left to right.
-	       Object d = getProperty(TextAttribute.RUN_DIRECTION);
-	       if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
-	           HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
-	       } else {
-	            if (Bidi.requiresBidi(data, 0, data.length) ||
-	                isComplex(data, 0, data.length)) {
+		// if a default direction of right-to-left has been specified,
+		// we want complex layout even if the text is all left to right.
+		Object d = getProperty(TextAttribute.RUN_DIRECTION);
+		if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
+		    HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
+		} else {
+		    if (Bidi.requiresBidi(data, 0, data.length) ||
+			isComplex(data, 0, data.length)) {
 			//
-	                HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
+			HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
 		    }
-	       }
+		}
 	    }
 
 	    if (inTextArea) {
@@ -2788,6 +2799,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 		    try {
 			URL newBase = new URL(base, href);
 			setBase(newBase);
+			hasBaseTag = true;
 		    } catch (MalformedURLException ex) {
 		    }
 		}
@@ -2833,7 +2845,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	 * be iterated over picking up the data of the form.
 	 * The following are the model assignments for the
 	 * various type of form elements.
- 	 * <table>
+ 	 * <table summary="model assignments for the various types of form elements">
  	 * <tr>
  	 *   <th>Element Type
  	 *   <th>Model Type
@@ -2987,6 +2999,9 @@ public class HTMLDocument extends DefaultStyledDocument {
 		    JToggleButton.ToggleButtonModel model = new JToggleButton.ToggleButtonModel();
 		    if (type.equals("radio")) {
 			String name = (String) attr.getAttribute(HTML.Attribute.NAME);
+                        if ( radioButtonGroupsMap == null ) { //fix for 4772743
+                           radioButtonGroupsMap = new HashMap();
+                        }
 			ButtonGroup radioButtonGroup = (ButtonGroup)radioButtonGroupsMap.get(name);
 			if (radioButtonGroup == null) {
 			    radioButtonGroup = new ButtonGroup();
@@ -3138,7 +3153,9 @@ public class HTMLDocument extends DefaultStyledDocument {
 	/**
 	 * Adds some text with the current character attributes.
 	 *
-	 * @param embedded the attributes of an embedded object.
+         * @param data    text to be added
+         * @param offs    location to insert text in the Document
+         * @param length  length of new text
 	 */
 	protected void addContent(char[] data, int offs, int length) {
 	    addContent(data, offs, length, true);
@@ -3147,7 +3164,14 @@ public class HTMLDocument extends DefaultStyledDocument {
 	/**
 	 * Adds some text with the current character attributes.
 	 *
-	 * @param embedded the attributes of an embedded object.
+         * @param data    text to be added
+         * @param offs    location to insert text in the Document
+         * @param length  length of new text
+         * @param generateImpliedPIfNecessary 
+         *                If false, the text is added as is.
+         *                If true and the current Element is not 
+         *                a valid Element to contain textual content,
+         *                a paragraph will be created to contain the text.
 	 */
 	protected void addContent(char[] data, int offs, int length,
 				  boolean generateImpliedPIfNecessary) {

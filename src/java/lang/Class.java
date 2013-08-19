@@ -1,7 +1,7 @@
 /*
- * @(#)Class.java	1.146 02/05/14
+ * @(#)Class.java	1.152 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,6 +31,7 @@ import sun.misc.Unsafe;
 import sun.reflect.Reflection;
 import sun.reflect.ReflectionFactory;
 import sun.reflect.SignatureIterator;
+import sun.security.util.SecurityConstants;
 
 
 /**
@@ -210,7 +211,8 @@ class Class implements java.io.Serializable {
 	    if (sm != null) {
 		ClassLoader ccl = ClassLoader.getCallerClassLoader();
 		if (ccl != null) {
-		    sm.checkPermission(ClassLoader.getGetClassLoaderPerm());
+		    sm.checkPermission(
+			SecurityConstants.GET_CLASSLOADER_PERMISSION);
 		}
 	    }
 	}
@@ -425,43 +427,50 @@ class Class implements java.io.Serializable {
     public native boolean isPrimitive();
 
     /**
-     * Returns the  name of the entity (class, interface,
-     * array class, primitive type, or void) 
-     * represented by this <code>Class</code> object, as a <code>String</code>.
-     * <p>
-     * If this class object represents a reference type that is not an array 
-     * type then the binary name of the class is returned, as specified by 
-     * the Java Language Specification, Second Edition.
-     * If this class object represents a primitive type or void, then the
-     * name returned is the name determined by the following table.
-     * The encoding of element type names 
-     * is as follows:
+     * Returns the  name of the entity (class, interface, array class,
+     * primitive type, or void) represented by this <tt>Class</tt> object,
+     * as a <tt>String</tt>.
+     * 
+     * <p> If this class object represents a reference type that is not an
+     * array type then the binary name of the class is returned, as specified
+     * by the Java Language Specification, Second Edition.
+     *
+     * <p> If this class object represents a primitive type or void, then the
+     * name returned is a <tt>String</tt> equal to the Java language
+     * keyword corresponding to the primitive type or void.
+     * 
+     * <p> If this class object represents a class of arrays, then the internal
+     * form of the name consists of the name of the element type preceded by
+     * one or more '<tt>[</tt>' characters representing the depth of the array
+     * nesting.  The encoding of element type names is as follows:
+     *
+     * <blockquote><table summary="Element types and encodings">
+     * <tr><th> Element Type <th> Encoding
+     * <tr><td> boolean      <td align=center> Z
+     * <tr><td> byte         <td align=center> B
+     * <tr><td> char         <td align=center> C
+     * <tr><td> class or interface  <td align=center> L<i>classname;</i>
+     * <tr><td> double       <td align=center> D
+     * <tr><td> float        <td align=center> F
+     * <tr><td> int          <td align=center> I
+     * <tr><td> long         <td align=center> J
+     * <tr><td> short        <td align=center> S
+     * </table></blockquote>
+     *
+     * <p> The class or interface name <i>classname</i> is the binary name of
+     * the class specified above.
+     *
+     * <p> Examples:
      * <blockquote><pre>
-     * B            byte
-     * C            char
-     * D            double
-     * F            float
-     * I            int
-     * J            long
-     * L<i>classname;</i>  class or interface
-     * S            short
-     * Z            boolean
-     * V	    void
-     * </pre></blockquote>
-     * If this class object represents a class of arrays, then the internal 
-     * form of the name consists of the name of the element type
-     * as specified above, preceded by one or more "<tt>[</tt>" 
-     * characters representing the depth of array nesting. Thus:
-     * <blockquote><pre>
+     * String.class.getName()
+     *     returns "java.lang.String"
+     * byte.class.getName()
+     *     returns "byte"
      * (new Object[3]).getClass().getName()
-     * </pre></blockquote>
-     * returns "<code>[Ljava.lang.Object;</code>" and:
-     * <blockquote><pre>
+     *     returns "[Ljava.lang.Object;"
      * (new int[3][4][5][6][7][8][9]).getClass().getName()
+     *     returns "[[[[[[[I"
      * </pre></blockquote>
-     * returns "<code>[[[[[[[I</code>".
-     * The class or interface name <tt><i>classname</i></tt> is given in 
-     * fully qualified form as shown in the example above.
      *
      * @return  the name of the class or interface
      *          represented by this object.
@@ -503,7 +512,7 @@ class Class implements java.io.Serializable {
         if (sm != null) {
             ClassLoader ccl = ClassLoader.getCallerClassLoader();
             if (ccl != null && ccl != cl && !cl.isAncestor(ccl)) {
-                sm.checkPermission(ClassLoader.getGetClassLoaderPerm());
+                sm.checkPermission(SecurityConstants.GET_CLASSLOADER_PERMISSION);
             }
         }
         return cl;
@@ -897,7 +906,11 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
-        return getField0(name, Member.PUBLIC);
+        Field field = getField0(name);
+        if (field == null) {
+            throw new NoSuchFieldException(name);
+        }
+        return field;
     }
 
 
@@ -960,7 +973,11 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
-        return getMethod0(name, parameterTypes, Member.PUBLIC);
+        Method method = getMethod0(name, parameterTypes);
+        if (method == null) {
+            throw new NoSuchMethodException(getName() + "." + name + argumentTypesToString(parameterTypes));
+        }
+        return method;
     }
 
 
@@ -1186,7 +1203,11 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.DECLARED, ClassLoader.getCallerClassLoader());
-        return getField0(name, Member.DECLARED);
+        Field field = searchFields(privateGetDeclaredFields(false), name);
+        if (field == null) {
+            throw new NoSuchFieldException(name);
+        }
+        return field;
     }
 
 
@@ -1230,7 +1251,11 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.DECLARED, ClassLoader.getCallerClassLoader());
-        return getMethod0(name, parameterTypes, Member.DECLARED);
+        Method method = searchMethods(privateGetDeclaredMethods(false), name, parameterTypes);
+        if (method == null) {
+            throw new NoSuchMethodException(getName() + "." + name + argumentTypesToString(parameterTypes));
+        }
+        return method;
     }
 
 
@@ -1328,9 +1353,6 @@ class Class implements java.io.Serializable {
     }
 
 
-    /** permission required to get a protection domain */
-    private static RuntimePermission getPDperm;
-
 
     /** protection domain returned when the internal domain is null */
     private static java.security.ProtectionDomain allPermDomain;
@@ -1359,16 +1381,14 @@ class Class implements java.io.Serializable {
     public java.security.ProtectionDomain getProtectionDomain() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
-            if (getPDperm == null)
-                getPDperm = new RuntimePermission("getProtectionDomain");
-            sm.checkPermission(getPDperm);
+            sm.checkPermission(SecurityConstants.GET_PD_PERMISSION);
         }
         java.security.ProtectionDomain pd = getProtectionDomain0();
         if (pd == null) {
             if (allPermDomain == null) {
                 java.security.Permissions perms = 
                     new java.security.Permissions();
-                perms.add(new java.security.AllPermission());
+                perms.add(SecurityConstants.ALL_PERMISSION);
                 allPermDomain = 
                     new java.security.ProtectionDomain(null, perms);
             }
@@ -1635,6 +1655,101 @@ class Class implements java.io.Serializable {
         return res;
     }
 
+    static class MethodArray {
+        private Method[] methods;
+        private int length;
+
+        MethodArray() {
+            methods = new Method[20];
+            length = 0;
+        }
+        
+        void add(Method m) {
+            if (length == methods.length) {
+                Method[] newMethods = new Method[2 * methods.length];
+                System.arraycopy(methods, 0, newMethods, 0, methods.length);
+                methods = newMethods;
+            }
+            methods[length++] = m;
+        }
+
+        void addAll(Method[] ma) {
+            for (int i = 0; i < ma.length; i++) {
+                add(ma[i]);
+            }
+        }
+
+        void addAll(MethodArray ma) {
+            for (int i = 0; i < ma.length(); i++) {
+                add(ma.get(i));
+            }
+        }
+
+        void addIfNotPresent(Method newMethod) {
+            for (int i = 0; i < length; i++) {
+                Method m = methods[i];
+                if (m == newMethod || (m != null && m.equals(newMethod))) {
+                    return;
+                }
+            }
+            add(newMethod);
+        }
+
+        void addAllIfNotPresent(MethodArray newMethods) {
+            for (int i = 0; i < newMethods.length(); i++) {
+                Method m = newMethods.get(i);
+                if (m != null) {
+                    addIfNotPresent(m);
+                }
+            }
+        }
+
+        int length() {
+            return length;
+        }
+
+        Method get(int i) {
+            return methods[i];
+        }
+
+        void removeByNameAndSignature(Method toRemove) {
+            for (int i = 0; i < length; i++) {
+                Method m = methods[i];
+                if (m != null &&
+                    m.getReturnType() == toRemove.getReturnType() &&
+                    m.getName() == toRemove.getName() &&
+                    arrayContentsEq(m.getParameterTypes(),
+                                    toRemove.getParameterTypes())) {
+                    methods[i] = null;
+                }
+            }
+        }
+
+        void compactAndTrim() {
+            int newPos = 0;
+            // Get rid of null slots
+            for (int pos = 0; pos < length; pos++) {
+                Method m = methods[pos];
+                if (m != null) {
+                    if (pos != newPos) {
+                        methods[newPos] = m;
+                    }
+                    newPos++;
+                }
+            }
+            if (newPos != methods.length) {
+                Method[] newMethods = new Method[newPos];
+                System.arraycopy(methods, 0, newMethods, 0, newPos);
+                methods = newMethods;
+            }
+        }
+
+        Method[] getArray() {
+            return methods;
+        }
+    }
+
+
     // Returns an array of "root" methods. These Method objects must NOT
     // be propagated to the outside world, but must instead be copied
     // via ReflectionFactory.copyMethod.
@@ -1650,110 +1765,155 @@ class Class implements java.io.Serializable {
 
         // No cached value available; compute value recursively.
         // Start by fetching public declared methods
-	HashSet methods = new LinkedHashSet();
+        MethodArray methods = new MethodArray();
         {
             Method[] tmp = privateGetDeclaredMethods(true);
-            addAll(methods, tmp);
+            methods.addAll(tmp);
         }
         // Now recur over superclass and direct superinterfaces.
         // Go over superinterfaces first so we can more easily filter
         // out concrete implementations inherited from superclasses at
         // the end.
-        List inheritedMethods = new LinkedList();
+        MethodArray inheritedMethods = new MethodArray();
         Class[] interfaces = getInterfaces();
         for (int i = 0; i < interfaces.length; i++) {
-            addAll(inheritedMethods, interfaces[i].privateGetPublicMethods());
+            inheritedMethods.addAll(interfaces[i].privateGetPublicMethods());
         }
         if (!isInterface()) {
             Class c = getSuperclass();
             if (c != null) {
-                List superList = new LinkedList();
-                addAll(superList, c.privateGetPublicMethods());
+                MethodArray supers = new MethodArray();
+                supers.addAll(c.privateGetPublicMethods());
                 // Filter out concrete implementations of any
                 // interface methods
-                for (Iterator iter = superList.iterator(); iter.hasNext(); ) {
-                    Method m = (Method) iter.next();
-                    if (!Modifier.isAbstract(m.getModifiers())) {
-                        removeByNameAndSignature(inheritedMethods, m);
+                for (int i = 0; i < supers.length(); i++) {
+                    Method m = supers.get(i);
+                    if (m != null && !Modifier.isAbstract(m.getModifiers())) {
+                        inheritedMethods.removeByNameAndSignature(m);
                     }
                 }
                 // Insert superclass's inherited methods before
                 // superinterfaces' to satisfy getMethod's search
                 // order
-                inheritedMethods.addAll(0, superList);
+                supers.addAll(inheritedMethods);
+                inheritedMethods = supers;
             }
         }
         // Filter out all local methods from inherited ones
-        for (Iterator iter = methods.iterator(); iter.hasNext(); ) {
-            Method m = (Method) iter.next();
-            removeByNameAndSignature(inheritedMethods, m);
+        for (int i = 0; i < methods.length(); i++) {
+            Method m = methods.get(i);
+            inheritedMethods.removeByNameAndSignature(m);
         }
-        methods.addAll(inheritedMethods);
-        res = new Method[methods.size()];
-        methods.toArray(res);
+        methods.addAllIfNotPresent(inheritedMethods);
+        methods.compactAndTrim();
+        res = methods.getArray();
         if (useCaches) {
             publicMethods = new SoftReference(res);
         }
         return res;
     }
 
-    private static void addAll(Collection c, Method[] o) {
-        for (int i = 0; i < o.length; i++) {
-            c.add(o[i]);
-        }
-    }
-
-    private static void removeByNameAndSignature(Collection c, Method toRemove) {
-        for (Iterator iter = c.iterator(); iter.hasNext(); ) {
-            Method m = (Method) iter.next();
-            if (m.getReturnType() == toRemove.getReturnType() &&
-                m.getName().equals(toRemove.getName()) &&
-                arrayContentsEq(m.getParameterTypes(),
-                                toRemove.getParameterTypes())) {
-                iter.remove();
-            }
-        }
-    }
 
     //
     // Helpers for fetchers of one field, method, or constructor
     //
 
-    private Field getField0(String name, int which) throws NoSuchFieldException {
-        Field[] fields = null;
-        if (which == Member.PUBLIC) {
-            fields = privateGetPublicFields(null);
-        } else {
-            fields = privateGetDeclaredFields(false);
-        }
+    private Field searchFields(Field[] fields, String name) {
         String internedName = name.intern();
         for (int i = 0; i < fields.length; i++) {
             if (fields[i].getName() == internedName) {
                 return getReflectionFactory().copyField(fields[i]);
             }
         }
-        throw new NoSuchFieldException(name);
+        return null;
     }
 
-    private Method getMethod0(String name,
-                              Class[] parameterTypes,
-                              int which) throws NoSuchMethodException
-    {
-        Method[] methods = null;
-        if (which == Member.PUBLIC) {
-            methods = privateGetPublicMethods();
-        } else {
-            methods = privateGetDeclaredMethods(false);
+    private Field getField0(String name) throws NoSuchFieldException {
+        // Note: the intent is that the search algorithm this routine
+        // uses be equivalent to the ordering imposed by
+        // privateGetPublicFields(). It fetches only the declared
+        // public fields for each class, however, to reduce the number
+        // of Field objects which have to be created for the common
+        // case where the field being requested is declared in the
+        // class which is being queried.
+        Field res = null;
+        // Search declared public fields
+        if ((res = searchFields(privateGetDeclaredFields(true), name)) != null) {
+            return res;
         }
-        String internedName = name.intern();
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i].getName() == internedName &&
-                arrayContentsEq(parameterTypes,
-                                methods[i].getParameterTypes())) {
-                return getReflectionFactory().copyMethod(methods[i]);
+        // Direct superinterfaces, recursively
+        Class[] interfaces = getInterfaces();
+        for (int i = 0; i < interfaces.length; i++) {
+            Class c = interfaces[i];
+            if ((res = c.getField0(name)) != null) {
+                return res;
             }
         }
-        throw new NoSuchMethodException(getName() + "." + name + argumentTypesToString(parameterTypes));
+        // Direct superclass, recursively
+        if (!isInterface()) {
+            Class c = getSuperclass();
+            if (c != null) {
+                if ((res = c.getField0(name)) != null) {
+                    return res;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Method searchMethods(Method[] methods,
+                                        String name,
+                                        Class[] parameterTypes)
+    {
+ 	Method res = null;
+        String internedName = name.intern();
+        for (int i = 0; i < methods.length; i++) {
+	    Method m = methods[i];
+            if (m.getName() == internedName
+		&& arrayContentsEq(parameterTypes, m.getParameterTypes())
+		&& (res == null
+		    || res.getReturnType().isAssignableFrom(m.getReturnType())))
+		res = m;
+        }
+
+	return (res == null ? res : getReflectionFactory().copyMethod(res));
+    }
+  
+
+    private Method getMethod0(String name, Class[] parameterTypes) {
+        // Note: the intent is that the search algorithm this routine
+        // uses be equivalent to the ordering imposed by
+        // privateGetPublicMethods(). It fetches only the declared
+        // public methods for each class, however, to reduce the
+        // number of Method objects which have to be created for the
+        // common case where the method being requested is declared in
+        // the class which is being queried.
+        Method res = null;
+        // Search declared public methods
+        if ((res = searchMethods(privateGetDeclaredMethods(true),
+                                 name,
+                                 parameterTypes)) != null) {
+            return res;
+        }
+        // Search superclass's methods
+        if (!isInterface()) {
+            Class c = getSuperclass();
+            if (c != null) {
+                if ((res = c.getMethod0(name, parameterTypes)) != null) {
+                    return res;
+                }
+            }
+        }
+        // Search superinterfaces' methods
+        Class[] interfaces = getInterfaces();
+        for (int i = 0; i < interfaces.length; i++) {
+            Class c = interfaces[i];
+            if ((res = c.getMethod0(name, parameterTypes)) != null) {
+                return res;
+            }
+        }
+        // Not found
+        return null;
     }
 
     private Constructor getConstructor0(Class[] parameterTypes,

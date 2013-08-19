@@ -1,7 +1,7 @@
 /*
- * @(#)Applet.java	1.70 01/12/03
+ * @(#)Applet.java	1.72 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.applet;
@@ -27,7 +27,7 @@ import javax.accessibility.*;
  *
  * @author      Arthur van Hoff
  * @author      Chris Warth
- * @version     1.70, 12/03/01
+ * @version     1.72, 01/23/03
  * @since       JDK1.0
  */
 public class Applet extends Panel {
@@ -106,15 +106,15 @@ public class Applet extends Panel {
     }
 
     /**
-     * Returns an absolute URL naming the directory of the document in which
-     * the applet is embedded.  For example, suppose an applet is contained
+     * Gets the URL of the document in which this applet is embedded. 
+     * For example, suppose an applet is contained
      * within the document:
      * <blockquote><pre>
      *    http://java.sun.com/products/jdk/1.2/index.html
      * </pre></blockquote>
      * The document base is:
      * <blockquote><pre>
-     *    http://java.sun.com/products/jdk/1.2/
+     *    http://java.sun.com/products/jdk/1.2/index.html
      * </pre></blockquote>
      *
      * @return  the {@link java.net.URL} of the document that contains this
@@ -126,10 +126,10 @@ public class Applet extends Panel {
     }
 
     /**
-     * Gets the base URL. This is the URL of the applet itself.
+     * Gets the base URL. This is the URL of the directory which contains this applet.  
      *
-     * @return  the {@link java.net.URL} of
-     *          this applet.
+     * @return  the base {@link java.net.URL} of
+     *          the directory which contains this applet.
      * @see     java.applet.Applet#getDocumentBase()
      */
     public URL getCodeBase() {

@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsBorders.java	1.24 01/12/03
+ * @(#)WindowsBorders.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,6 +15,7 @@ import javax.swing.plaf.basic.*;
 import java.awt.Component;
 import java.awt.Insets;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -23,7 +24,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the Windows 95 L & F.
- * @version 1.24 12/03/01
+ * @version 1.27 01/23/03
  * @author Rich Schiavi
  */
 
@@ -138,6 +139,7 @@ public class WindowsBorders {
     public static class ToolBarBorder extends AbstractBorder implements UIResource, SwingConstants {
         protected Color shadow;
         protected Color highlight;
+	private XPStyle xp = XPStyle.getXP();
 
         public ToolBarBorder(Color shadow, Color highlight) {
             this.highlight = highlight;
@@ -149,7 +151,24 @@ public class WindowsBorders {
 	    g.translate(x, y);
 
 	    if (((JToolBar)c).isFloatable()) {
-		if (((JToolBar)c).getOrientation() == HORIZONTAL) {
+		boolean vertical = ((JToolBar)c).getOrientation() == VERTICAL;
+
+		if (xp != null) {
+		    Border xpBorder = xp.getBorder("toolbar");
+		    if (xpBorder != null) {
+			xpBorder.paintBorder(c, g, 0, 0, width, height);
+		    }
+		    String category = vertical ? "rebar.grippervert" : "rebar.gripper";
+		    XPStyle.Skin skin = xp.getSkin(category);
+		    int dw = vertical ? (width-1) : skin.getWidth();
+		    int dh = vertical ? skin.getHeight() : (height-1);
+		    int dx = (vertical || c.getComponentOrientation().isLeftToRight())
+							    ? 1 : (width-dw-1);
+		    skin.paintSkin(g, dx, 1, dw, dh, 0);
+
+		} else {
+
+		if (!vertical) {
 		    if (c.getComponentOrientation().isLeftToRight()) {
 			g.setColor(shadow);
 			g.drawLine(4, 3, 4, height - 4);
@@ -175,6 +194,7 @@ public class WindowsBorders {
 		    g.setColor(highlight);
 		    g.drawLine(3, 2, width - 4, 2);
 		    g.drawLine(3, 2, 3, 3);
+		}
 		}
 	    }
 

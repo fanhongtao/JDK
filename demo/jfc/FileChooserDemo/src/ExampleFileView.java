@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)ExampleFileView.java	1.12 02/06/13
+ * @(#)ExampleFileView.java	1.13 03/01/23
  */
 
 import javax.swing.*;
@@ -63,7 +63,7 @@ import java.util.Hashtable;
  *    fileView.putIcon("gif", new ImageIcon("images/gifIcon.gif"));
  *    chooser.setFileView(fileView);
  *
- * @version 1.12 06/13/02
+ * @version 1.13 01/23/03
  * @author Jeff Dinkins
  */
 public class ExampleFileView extends FileView {

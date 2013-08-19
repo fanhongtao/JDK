@@ -271,8 +271,6 @@ public class ElemElement extends ElemUse
    * for the attributes and children of the created element.
    *
    * @param transformer non-null reference to the the current transform-time state.
-   * @param sourceNode non-null reference to the <a href="http://www.w3.org/TR/xslt#dt-current-node">current source node</a>.
-   * @param mode reference, which may be null, to the <a href="http://www.w3.org/TR/xslt#modes">current mode</a>.
    *
    * @throws TransformerException
    */
@@ -281,15 +279,21 @@ public class ElemElement extends ElemUse
             throws TransformerException
   {
 
-    ResultTreeHandler rhandler = transformer.getResultTreeHandler();
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEvent(this);
+      
+ 	ResultTreeHandler rhandler = transformer.getResultTreeHandler();
     XPathContext xctxt = transformer.getXPathContext();
     int sourceNode = xctxt.getCurrentNode();
-    String nodeName = m_name_avt.evaluate(xctxt, sourceNode, this);
+    
+    
+    String nodeName = m_name_avt == null ? null : m_name_avt.evaluate(xctxt, sourceNode, this);
 
     String prefix = null;
     String nodeNamespace = "";
 
-    if (!validateNodeName(nodeName))
+    // Only validate if an AVT was used.
+    if ((nodeName != null) && (!m_name_avt.isSimple()) && (!validateNodeName(nodeName)))
     {
       transformer.getMsgMgr().warn(
         this, XSLTErrorResources.WG_ILLEGAL_ATTRIBUTE_VALUE,
@@ -298,7 +302,7 @@ public class ElemElement extends ElemUse
       nodeName = null;
     }
 
-    else
+    else if (nodeName != null)
     {
       prefix = QName.getPrefixPart(nodeName);
 
@@ -361,6 +365,9 @@ public class ElemElement extends ElemUse
     }
 
     constructNode(nodeName, prefix, nodeNamespace, transformer);
+
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEndEvent(this);
   }
   
   /**
@@ -430,4 +437,23 @@ public class ElemElement extends ElemUse
       throw new TransformerException(se);
     }
   }
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+  {
+  	if(callAttrs)
+  	{
+  	  if(null != m_name_avt)
+  		m_name_avt.callVisitors(visitor);
+  		
+  	  if(null != m_namespace_avt)
+  		m_namespace_avt.callVisitors(visitor);
+  	}
+  		
+    super.callChildVisitors(visitor, callAttrs);
+  }
+
 }

@@ -1,10 +1,10 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)IIOPInputStream_1_3_1.java	1.2 02/06/11
+ * @(#)IIOPInputStream_1_3_1.java	1.3 03/01/23
  */
 package com.sun.corba.se.internal.orbutil;
 

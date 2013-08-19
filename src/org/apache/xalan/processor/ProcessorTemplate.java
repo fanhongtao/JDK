@@ -67,7 +67,7 @@ import org.xml.sax.Attributes;
  */
 class ProcessorTemplate extends ProcessorTemplateElem
 {
-
+  
   /**
    * Append the current template element to the current
    * template element, and then push it onto the current template

@@ -70,6 +70,7 @@ import org.apache.xpath.DOMHelper;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.NodeSetDTM;
 import org.apache.xpath.axes.ContextNodeList;
+import org.apache.xpath.axes.NodeSequence;
 import org.apache.xml.utils.StringVector;
 import org.apache.xml.utils.XMLString;
 
@@ -78,15 +79,8 @@ import org.apache.xml.utils.XMLString;
  * This class represents an XPath nodeset object, and is capable of
  * converting the nodeset to other types, such as a string.
  */
-public class XNodeSet extends XObject
-{
-  protected DTMManager m_dtmMgr;
-  
-  public DTMManager getDTMMgr()
-  {
-    return m_dtmMgr;
-  }
-  
+public class XNodeSet extends NodeSequence
+{  
   /**
    * Default constructor for derived objects.
    */
@@ -101,18 +95,44 @@ public class XNodeSet extends XObject
    */
   public XNodeSet(DTMIterator val)
   {
-    super(val);
-    m_dtmMgr = val.getDTMManager();
+  	super();
+  	if(val instanceof XNodeSet)
+  	{
+	    setIter(((XNodeSet)val).m_iter);
+	    m_dtmMgr = ((XNodeSet)val).m_dtmMgr;
+	    m_last = ((XNodeSet)val).m_last;
+	    if(!((XNodeSet)val).hasCache())
+	    	((XNodeSet)val).setShouldCacheNodes(true);
+	    m_obj = ((XNodeSet)val).m_obj;
+  	}
+  	else
+    	setIter(val);
   }
+  
+  /**
+   * Construct a XNodeSet object.
+   *
+   * @param val Value of the XNodeSet object
+   */
+  public XNodeSet(XNodeSet val)
+  {
+  	super();
+    setIter(val.m_iter);
+    m_dtmMgr = val.m_dtmMgr;
+    m_last = val.m_last;
+    if(!val.hasCache())
+    	val.setShouldCacheNodes(true);
+    m_obj = val.m_obj;
+  }
+
 
   /**
    * Construct an empty XNodeSet object.  This is used to create a mutable 
    * nodeset to which random nodes may be added.
    */
-  public XNodeSet(DTMManager dtmMgr)
+  public XNodeSet(DTMManager dtmMgr) 
   {
-    super(new NodeSetDTM(dtmMgr));
-    m_dtmMgr = dtmMgr;
+    super(dtmMgr);
   }
 
   /**
@@ -129,7 +149,10 @@ public class XNodeSet extends XObject
     if (DTM.NULL != n)
     {
       ((NodeSetDTM) m_obj).addNode(n);
+      m_last = 1;
     }
+    else
+    	m_last = 0;
   }
 
   /**
@@ -175,9 +198,7 @@ public class XNodeSet extends XObject
   public double num()
   {
 
-    DTMIterator nl = iter();
-    int node = nl.nextNode();
-
+    int node = item(0);
     return (node != DTM.NULL) ? getNumberFromNode(node) : Double.NaN;
   }
   
@@ -190,8 +211,7 @@ public class XNodeSet extends XObject
    */
   public double numWithSideEffects()
   {
-    DTMIterator nl = iterRaw();
-    int node = nl.nextNode();
+    int node = nextNode();
 
     return (node != DTM.NULL) ? getNumberFromNode(node) : Double.NaN;
   }
@@ -204,7 +224,7 @@ public class XNodeSet extends XObject
    */
   public boolean bool()
   {
-    return (iter().nextNode() != DTM.NULL);
+    return (item(0) != DTM.NULL);
   }
   
   /**
@@ -215,7 +235,7 @@ public class XNodeSet extends XObject
    */
   public boolean boolWithSideEffects()
   {
-    return (iterRaw().nextNode() != DTM.NULL);
+    return (nextNode() != DTM.NULL);
   }
 
   
@@ -254,13 +274,13 @@ public class XNodeSet extends XObject
   public void dispatchCharactersEvents(org.xml.sax.ContentHandler ch)
           throws org.xml.sax.SAXException
   {
-    DTMIterator nl = iter();
-    int node = nl.nextNode();
-
+    int node = item(0);
+	
     if(node != DTM.NULL)
     {
       m_dtmMgr.getDTM(node).dispatchCharactersEvents(node, ch, false);
     }
+    
   }
   
   /**
@@ -270,9 +290,7 @@ public class XNodeSet extends XObject
    */
   public XMLString xstr()
   {
-    DTMIterator nl = iter();
-    int node = nl.nextNode();
-
+    int node = item(0);
     return (node != DTM.NULL) ? getStringFromNode(node) : XString.EMPTYSTRING;
   }
   
@@ -287,35 +305,6 @@ public class XNodeSet extends XObject
     xstring.appendToFsb(fsb);
   }
   
-  /**
-   * Specify if it's OK for detach to release the iterator for reuse.
-   * 
-   * @param allowRelease true if it is OK for detach to release this iterator 
-   * for pooling.
-   */
-  public void allowDetachToRelease(boolean allowRelease)
-  {
-    if(null != m_obj)
-      ((DTMIterator) m_obj).allowDetachToRelease(allowRelease);
-  }
-
-  /**
-   * Detaches the <code>DTMIterator</code> from the set which it iterated
-   * over, releasing any computational resources and placing the iterator
-   * in the INVALID state. After <code>detach</code> has been invoked,
-   * calls to <code>nextNode</code> or <code>previousNode</code> will
-   * raise a runtime exception.
-   */
-  public void detach()
-  {
-    if(null != m_obj)
-    {
-      Object obj = m_obj;
-      m_obj = null;
-      ((DTMIterator) obj).detach();
-    }
-  }
-
 
   /**
    * Cast result object to a string.
@@ -325,11 +314,22 @@ public class XNodeSet extends XObject
    */
   public String str()
   {
-
-    DTMIterator nl = iter();
-    int node = nl.nextNode();
-
-    return (node != DTM.NULL) ? getStringFromNode(node).toString() : "";
+    int node = item(0);
+    return (node != DTM.NULL) ? getStringFromNode(node).toString() : "";   
+  }
+  
+  /**
+   * Return a java object that's closest to the representation
+   * that should be handed to an extension.
+   *
+   * @return The object that this class wraps
+   */
+  public Object object()
+  {
+    if(null == m_obj)
+    	return this;
+    else
+    	return m_obj;
   }
 
   // %REVIEW%
@@ -361,9 +361,9 @@ public class XNodeSet extends XObject
 //  }
 
   /**
-   * Cast result object to a nodelist. Always issues an error.
+   * Cast result object to a nodelist.
    *
-   * @return null
+   * @return a NodeIterator.
    *
    * @throws javax.xml.transform.TransformerException
    */
@@ -373,9 +373,9 @@ public class XNodeSet extends XObject
   }
   
   /**
-   * Cast result object to a nodelist. Always issues an error.
+   * Cast result object to a nodelist.
    *
-   * @return null
+   * @return a NodeList.
    *
    * @throws javax.xml.transform.TransformerException
    */
@@ -401,9 +401,11 @@ public class XNodeSet extends XObject
    */
   public DTMIterator iterRaw()
   {
-
-    // System.out.println("In XNodeSet.iter()");
-    return (DTMIterator) m_obj;
+    return this;
+  }
+  
+  public void release(DTMIterator iter)
+  {
   }
   
   /**
@@ -415,7 +417,30 @@ public class XNodeSet extends XObject
   {
     try
     {
-      return ((DTMIterator) m_obj).cloneWithReset();
+    	if(hasCache())
+      		return cloneWithReset();
+      	else
+      		return this; // don't bother to clone... won't do any good!
+    }
+    catch (CloneNotSupportedException cnse)
+    {
+      throw new RuntimeException(cnse.getMessage());
+    }
+  }
+  
+  /**
+   * Get a fresh copy of the object.  For use with variables.
+   *
+   * @return A fresh nodelist.
+   */
+  public XObject getFresh()
+  {
+    try
+    {
+    	if(hasCache())
+      		return (XObject)cloneWithReset();
+      	else
+      		return this; // don't bother to clone... won't do any good!
     }
     catch (CloneNotSupportedException cnse)
     {
@@ -430,7 +455,6 @@ public class XNodeSet extends XObject
    */
   public NodeSetDTM mutableNodeset()
   {
-
     NodeSetDTM mnl;
 
     if(m_obj instanceof NodeSetDTM)
@@ -441,6 +465,7 @@ public class XNodeSet extends XObject
     {
       mnl = new NodeSetDTM(iter());
       m_obj = mnl;
+      setCurrentPos(0);
     }
 
     return mnl;
@@ -497,8 +522,8 @@ public class XNodeSet extends XObject
       // is true if and only if some node in $x has the string-value 
       // foo; the latter is true if and only if all nodes in $x have 
       // the string-value foo.
-      DTMIterator list1 = iter();
-      DTMIterator list2 = ((XNodeSet) obj2).iter();
+      DTMIterator list1 = iterRaw();
+      DTMIterator list2 = ((XNodeSet) obj2).iterRaw();
       int node1;
       java.util.Vector node2Strings = null;
 
@@ -542,6 +567,8 @@ public class XNodeSet extends XObject
           }
         }
       }
+      list1.reset();
+      list2.reset();
     }
     else if (XObject.CLASS_BOOLEAN == type)
     {
@@ -567,7 +594,7 @@ public class XNodeSet extends XObject
       // comparison on the number to be compared and on the result of 
       // converting the string-value of that node to a number using 
       // the number function is true. 
-      DTMIterator list1 = iter();
+      DTMIterator list1 = iterRaw();
       double num2 = obj2.num();
       int node;
 
@@ -582,11 +609,12 @@ public class XNodeSet extends XObject
           break;
         }
       }
+      list1.reset();
     }
     else if (XObject.CLASS_RTREEFRAG == type)
     {
       XMLString s2 = obj2.xstr();
-      DTMIterator list1 = iter();
+      DTMIterator list1 = iterRaw();
       int node;
 
       while (DTM.NULL != (node = list1.nextNode()))
@@ -600,6 +628,7 @@ public class XNodeSet extends XObject
           break;
         }
       }
+      list1.reset();
     }
     else if (XObject.CLASS_STRING == type)
     {
@@ -611,7 +640,7 @@ public class XNodeSet extends XObject
       // the comparison on the string-value of the node and the other 
       // string is true. 
       XMLString s2 = obj2.xstr();
-      DTMIterator list1 = iter();
+      DTMIterator list1 = iterRaw();
       int node;
 
       while (DTM.NULL != (node = list1.nextNode()))
@@ -624,6 +653,7 @@ public class XNodeSet extends XObject
           break;
         }
       }
+      list1.reset();
     }
     else
     {

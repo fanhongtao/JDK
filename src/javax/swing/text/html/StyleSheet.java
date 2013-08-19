@@ -1,7 +1,7 @@
 /*
- * @(#)StyleSheet.java	1.75 01/12/07
+ * @(#)StyleSheet.java	1.77 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -106,7 +106,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.75 12/07/01
+ * @version 1.77 01/23/03
  */
 public class StyleSheet extends StyleContext {
     // As the javadoc states, this class maintains a mapping between
@@ -485,10 +485,7 @@ public class StyleSheet extends StyleContext {
      * Converts a set of HTML attributes to an equivalent
      * set of CSS attributes.
      *
-     * @param AttributeSet containing the HTML attributes.
-     * @param AttributeSet containing the corresponding CSS attributes.
-     *        The AttributeSet will be empty if there are no mapping
-     *        CSS attributes.
+     * @param htmlAttrSet AttributeSet containing the HTML attributes.
      */
     public AttributeSet translateHTMLToCSS(AttributeSet htmlAttrSet) {
 	AttributeSet cssAttrSet = css.translateHTMLToCSS(htmlAttrSet);
@@ -868,7 +865,7 @@ public class StyleSheet extends StyleContext {
      * specification.  This might be used to specify things
      * like brighter, more hue, etc.
      *
-     * @param attr the set of attributes
+     * @param a the set of attributes
      * @return the color
      */
     public Color getBackground(AttributeSet a) {
@@ -2023,7 +2020,7 @@ public class StyleSheet extends StyleContext {
 	 * @param y the y coordinate of the list item allocation
 	 * @param w the width of the list item allocation
 	 * @param h the height of the list item allocation
-	 * @param s the allocated area to paint into.
+	 * @param v the allocated area to paint into.
 	 * @param item which list item is being painted.  This
 	 *  is a number greater than or equal to 0.
 	 */

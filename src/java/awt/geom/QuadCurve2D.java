@@ -1,7 +1,7 @@
 /*
- * @(#)QuadCurve2D.java	1.26 01/12/03
+ * @(#)QuadCurve2D.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.awt.Rectangle;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.26, 12/03/01
+ * @version 	1.27, 01/23/03
  * @author	Jim Graham
  */
 public abstract class QuadCurve2D implements Shape, Cloneable {

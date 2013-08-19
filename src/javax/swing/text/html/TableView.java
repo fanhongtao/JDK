@@ -1,5 +1,5 @@
 /*
- * @(#)TableView.java	1.30 03/04/25
+ * @(#)TableView.java	1.32 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import javax.swing.text.*;
  * HTML table view.  
  * 
  * @author  Timothy Prinzing
- * @version 1.30 04/25/03
+ * @version 1.32 01/23/03
  * @see     View
  */
 /*public*/ class TableView extends BoxView implements ViewFactory {
@@ -112,6 +112,25 @@ import javax.swing.text.*;
 	    return (RowView) rows.elementAt(row);
 	}
 	return null;
+    }
+
+    protected View getViewAtPoint(int x, int y, Rectangle alloc) {
+	int n = getViewCount();
+	View v = null;
+	Rectangle allocation = new Rectangle();
+	for (int i = 0; i < n; i++) {
+	    allocation.setBounds(alloc);
+	    childAllocation(i, allocation);
+	    v = getView(i);
+	    if (v instanceof RowView) {
+		v = ((RowView)v).findViewAtPoint(x, y, allocation);
+		if (v != null) {
+		    alloc.setBounds(allocation);
+		    return v;
+		}
+	    }
+	}
+        return super.getViewAtPoint(x, y, alloc);
     }
 
     /**
@@ -586,6 +605,7 @@ import javax.swing.text.*;
 
 	// calculate column spans
 	layoutColumns(targetSpan, columnOffsets, columnSpans, columnRequirements);
+
 	// continue normal layout
 	super.layoutMinorAxis(targetSpan, axis, offsets, spans);
     }
@@ -941,42 +961,40 @@ import javax.swing.text.*;
 	private void updatePercentagesAndAdjustmentWeights(int span) {
 	    adjustmentWeights = new int[columnRequirements.length];
 	    for (int i = 0; i < columnRequirements.length; i++) {
- 	    adjustmentWeights[i] = 0; 
+		adjustmentWeights[i] = 0;
 	    }
 	    if (relativeCells) {
 		percentages = new int[columnRequirements.length];
-	    } else { 
-	        percentages = null;
-            }
-
+	    } else {
+		percentages = null;
+	    }
 	    int nrows = getRowCount();
 	    for (int rowIndex = 0; rowIndex < nrows; rowIndex++) {
-	        RowView row = getRow(rowIndex);
-	        int col = 0;
-	        int ncells = row.getViewCount();
-	        for (int cell = 0; cell < ncells; cell++, col++) {
+		RowView row = getRow(rowIndex);
+		int col = 0;
+		int ncells = row.getViewCount();
+		for (int cell = 0; cell < ncells; cell++, col++) {
 		    View cv = row.getView(cell);
 		    for (; row.isFilled(col); col++); // advance to a free column
 		    int rowSpan = getRowsOccupied(cv);
 		    int colSpan = getColumnsOccupied(cv);
-    
 		    AttributeSet a = cv.getAttributes();
 		    CSS.LengthValue lv = (CSS.LengthValue) 
-	        	a.getAttribute(CSS.Attribute.WIDTH);
-		    if (lv != null) {
-		        int len = (int) (lv.getValue(span) / colSpan + 0.5f);
-		        for (int i = 0; i < colSpan; i++) {
-		            // add a percentage requirement
+			a.getAttribute(CSS.Attribute.WIDTH);
+		    if ( lv != null ) {
+			int len = (int) (lv.getValue(span) / colSpan + 0.5f);
+			for (int i = 0; i < colSpan; i++) {
 			    if (lv.isPercentage()) {
-			       percentages[col+i] = Math.max(percentages[col+i], len);
+				// add a percentage requirement
+				percentages[col+i] = Math.max(percentages[col+i], len);
 			    }
 			    adjustmentWeights[col+i] = WorstAdjustmentWeight;
-		        }
+			}
 		    }
 		    col += colSpan - 1;
-	        }
+		}
 	    }
-	}
+	} 
 
 	/**
 	 * Set the layout arrays to use for holding layout results
@@ -1041,7 +1059,7 @@ import javax.swing.text.*;
 	public float getTrailingCollapseSpan() {
 	    return cellSpacing;
 	}
- 
+
 	public int getAdjustmentWeight() {
 	    return adjustmentWeights[col];
 	}
@@ -1058,6 +1076,7 @@ import javax.swing.text.*;
 	private int[] percentages;
 
 	private int[] adjustmentWeights;
+
 	private int[] offsets;
 	private int[] spans;
     }
@@ -1266,6 +1285,17 @@ import javax.swing.text.*;
 	 */
         public AttributeSet getAttributes() {
 	    return attr;
+	}
+
+	View findViewAtPoint(int x, int y, Rectangle alloc) {
+	    int n = getViewCount();
+	    for (int i = 0; i < n; i++) {
+		if (getChildAllocation(i, alloc).contains(x, y)) {
+		    childAllocation(i, alloc);
+		    return getView(i);
+		}
+	    }
+	    return null;
 	}
 
         protected StyleSheet getStyleSheet() {

@@ -1,7 +1,7 @@
 /*
- * @(#)StyleConstants.java	1.31 02/02/11
+ * @(#)StyleConstants.java	1.34 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -21,11 +21,13 @@ import javax.swing.Icon;
  * All sizes are specified in points (such as found in postscript), a
  * device independent measure.
  * </p>
- * <p align=center><img src="doc-files/paragraph.gif"></p>
+ * <p align=center><img src="doc-files/paragraph.gif"
+ * alt="Diagram shows SpaceAbove, FirstLineIndent, LeftIndent, RightIndent, 
+ *      and SpaceBelow a paragraph."></p>
  * <p>
  * 
  * @author  Timothy Prinzing
- * @version 1.31 02/11/02
+ * @version 1.34 01/23/03
  */
 public class StyleConstants {
 

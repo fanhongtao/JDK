@@ -1,7 +1,7 @@
 /*
- * @(#)ZipEntry.java	1.34 02/02/06
+ * @(#)ZipEntry.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.34, 02/06/02
+ * @version	1.35, 01/23/03
  * @author	David Connelly
  */
 public

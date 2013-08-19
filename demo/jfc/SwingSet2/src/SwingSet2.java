@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)SwingSet2.java	1.32 02/06/13
+ * @(#)SwingSet2.java	1.35 03/01/23
  */
 
 import javax.swing.*;
@@ -60,7 +60,7 @@ import java.net.*;
 /**
  * A demo that shows all of the Swing components.
  *
- * @version 1.32 06/13/02
+ * @version 1.35 01/23/03
  * @author Jeff Dinkins
  */
 public class SwingSet2 extends JPanel {
@@ -104,6 +104,8 @@ public class SwingSet2 extends JPanel {
             "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
     private static final String windows  =
             "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+    private static final String gtk  =
+            "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
 
     // The current Look & Feel
     private static String currentLookAndFeel = metal;
@@ -146,6 +148,10 @@ public class SwingSet2 extends JPanel {
     private ButtonGroup themesMenuGroup = new ButtonGroup();
     private ButtonGroup audioMenuGroup = new ButtonGroup();
     private ButtonGroup toolTipMenuGroup = new ButtonGroup();
+
+    // Popup menu
+    private JPopupMenu popupMenu = null;
+    private ButtonGroup popupMenuGroup = new ButtonGroup();
 
     // Used only if swingset is an application 
     private JFrame frame = null;
@@ -253,6 +259,9 @@ public class SwingSet2 extends JPanel {
 
 	menuBar = createMenus();
 	top.add(menuBar, BorderLayout.NORTH);
+
+ 	// creates popup menu accessible via keyboard
+ 	popupMenu = createPopupMenu();
 
 	ToolBarPanel toolbarPanel = new ToolBarPanel();
 	toolbarPanel.setLayout(new BorderLayout());
@@ -364,6 +373,9 @@ public class SwingSet2 extends JPanel {
 
 	createLafMenuItem(lafMenu, "LafMenu.windows_label", "LafMenu.windows_mnemonic",
 		       "LafMenu.windows_accessible_description", windows);
+
+	createLafMenuItem(lafMenu, "LafMenu.gtk_label", "LafMenu.gtk_mnemonic",
+		       "LafMenu.gtk_accessible_description", gtk);
 
 	// ***** create themes menu 
 	themesMenu = (JMenu) menuBar.add(new JMenu(getString("ThemesMenu.themes_label")));
@@ -560,6 +572,49 @@ public class SwingSet2 extends JPanel {
         return mi;
     }
 
+    public JPopupMenu createPopupMenu() {
+ 	JPopupMenu popup = new JPopupMenu("JPopupMenu demo");
+	
+ 	createPopupMenuItem(popup, "LafMenu.java_label", "LafMenu.java_mnemonic",
+			    "LafMenu.java_accessible_description", metal);
+	
+ 	createPopupMenuItem(popup, "LafMenu.mac_label", "LafMenu.mac_mnemonic",
+			    "LafMenu.mac_accessible_description", mac);
+	
+ 	createPopupMenuItem(popup, "LafMenu.motif_label", "LafMenu.motif_mnemonic",
+			    "LafMenu.motif_accessible_description", motif);
+	
+ 	createPopupMenuItem(popup, "LafMenu.windows_label", "LafMenu.windows_mnemonic",
+			    "LafMenu.windows_accessible_description", windows);
+	
+	createPopupMenuItem(popup, "LafMenu.gtk_label", "LafMenu.gtk_mnemonic",
+			    "LafMenu.gtk_accessible_description", gtk);
+
+ 	// register key binding to activate popup menu
+ 	InputMap map = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+ 	map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK),
+ 		"postMenuAction");
+ 	getActionMap().put("postMenuAction", new ActivatePopupMenuAction(this, popup));
+ 	
+ 	return popup;
+    }
+    
+    /**
+     * Creates a JMenuItem for the Look and Feel popup menu
+     */
+    public JMenuItem createPopupMenuItem(JPopupMenu menu, String label, String mnemonic,
+ 					 String accessibleDescription, String laf) {
+	JMenuItem mi = menu.add(new JMenuItem(getString(label)));
+	popupMenuGroup.add(mi);
+ 	mi.setMnemonic(getMnemonic(mnemonic));
+ 	mi.getAccessibleContext().setAccessibleDescription(getString(accessibleDescription));
+ 	mi.addActionListener(new ChangeLookAndFeelAction(this, laf));
+ 	mi.setEnabled(isAvailableLookAndFeel(laf));
+	
+ 	return mi;
+    }
+    
+
     /**
      * Load the first demo. This is done separately from the remaining demos
      * so that we can get SwingSet2 up and available to the user quickly.
@@ -588,7 +643,7 @@ public class SwingSet2 extends JPanel {
 		tb.setToolTipText(((DemoModule)obj).getToolTip());
 
 		if(demos[demos.length-1].equals(obj.getClass().getName())) {
-		    setStatus("");
+ 		    setStatus(getString("Status.popupMenuAccessible"));
 		} 
 		  
 	    }
@@ -901,6 +956,7 @@ public class SwingSet2 extends JPanel {
             } else {
                 SwingUtilities.updateComponentTreeUI(getApplet());
             }
+ 	    SwingUtilities.updateComponentTreeUI(popupMenu);
 
 	} catch (Exception ex) {
 	    System.out.println("Failed loading L&F: " + currentLookAndFeel);
@@ -1062,6 +1118,23 @@ public class SwingSet2 extends JPanel {
         public void actionPerformed(ActionEvent e) {
 	    swingset.setLookAndFeel(laf);
 	}
+    }
+
+    class ActivatePopupMenuAction extends AbstractAction {
+ 	SwingSet2 swingset;
+ 	JPopupMenu popup;
+	protected ActivatePopupMenuAction(SwingSet2 swingset, JPopupMenu popup) {
+	    super("ActivatePopupMenu");
+ 	    this.swingset = swingset;
+ 	    this.popup = popup;
+	}
+	
+ 	public void actionPerformed(ActionEvent e) {
+ 	    Dimension invokerSize = getSize();
+ 	    Dimension popupSize = popup.getPreferredSize();
+ 	    popup.show(swingset, (invokerSize.width - popupSize.width) / 2,
+ 		       (invokerSize.height - popupSize.height) / 2);
+ 	}
     }
 
     // Turns on all possible auditory feedback

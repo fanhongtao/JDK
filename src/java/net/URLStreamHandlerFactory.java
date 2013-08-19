@@ -1,7 +1,7 @@
 /*
- * @(#)URLStreamHandlerFactory.java	1.16 01/12/03
+ * @(#)URLStreamHandlerFactory.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package java.net;
  * <code>URLStreamHandler</code> for a specific protocol.
  *
  * @author  Arthur van Hoff
- * @version 1.16, 12/03/01
+ * @version 1.17, 01/23/03
  * @see     java.net.URL
  * @see     java.net.URLStreamHandler
  * @since   JDK1.0

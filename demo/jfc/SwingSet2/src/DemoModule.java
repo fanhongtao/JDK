@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)DemoModule.java	1.13 02/06/13
+ * @(#)DemoModule.java	1.14 03/01/23
  */
 
 import javax.swing.*;
@@ -56,7 +56,7 @@ import java.net.*;
 /**
  * A generic SwingSet2 demo module
  *
- * @version 1.13 06/13/02
+ * @version 1.14 01/23/03
  * @author Jeff Dinkins
  */
 public class DemoModule extends JApplet {

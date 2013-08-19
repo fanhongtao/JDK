@@ -1,7 +1,7 @@
 /*
- * @(#)BRView.java	1.8 01/12/03
+ * @(#)BRView.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -12,7 +12,7 @@ import javax.swing.text.*;
  * Processes the &lt;BR&gt; tag.  In other words, forces a line break.
  *
  * @author Sunita Mani
- * @version 1.8 12/03/01
+ * @version 1.9 01/23/03
  */
 class BRView extends InlineView {
 

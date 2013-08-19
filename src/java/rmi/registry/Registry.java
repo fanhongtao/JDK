@@ -1,7 +1,7 @@
 /*
- * @(#)Registry.java	1.16 01/12/03
+ * @(#)Registry.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.registry;
@@ -54,7 +54,7 @@ import java.rmi.RemoteException;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.16, 01/12/03
+ * @version	1.17, 03/01/23
  * @since	JDK1.1
  * @see		LocateRegistry
  */

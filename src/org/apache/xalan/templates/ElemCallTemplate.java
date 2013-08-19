@@ -56,19 +56,13 @@
  */
 package org.apache.xalan.templates;
 
-import java.util.Vector;
-
-import org.w3c.dom.*;
-
-import org.xml.sax.*;
-
-import org.apache.xpath.*;
-import org.apache.xml.utils.QName;
-import org.apache.xalan.res.XSLTErrorResources;
-import org.apache.xpath.VariableStack;
-import org.apache.xalan.transformer.TransformerImpl;
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
+import org.apache.xalan.res.XSLTErrorResources;
+import org.apache.xalan.transformer.TransformerImpl;
+import org.apache.xml.utils.QName;
+import org.apache.xpath.VariableStack;
+import org.apache.xpath.XPathContext;
 import org.apache.xpath.objects.XObject;
 
 /**
@@ -282,7 +276,16 @@ public class ElemCallTemplate extends ElemForEach
       {
         transformer.popElemTemplateElement();
         xctxt.setSAXLocator(savedLocator);
-        vars.unlink();
+        // When we entered this function, the current 
+        // frame buffer (cfb) index in the variable stack may 
+        // have been manually set.  If we just call 
+        // unlink(), however, it will restore the cfb to the 
+        // previous link index from the link stack, rather than 
+        // the manually set cfb.  So, 
+        // the only safe solution is to restore it back 
+        // to the same position it was on entry, since we're 
+        // really not working in a stack context here. (Bug4218)
+        vars.unlink(thisframe);
       }
     }
     else
@@ -290,6 +293,10 @@ public class ElemCallTemplate extends ElemForEach
       transformer.getMsgMgr().error(this, XSLTErrorResources.ER_TEMPLATE_NOT_FOUND,
                                     new Object[]{ m_templateName });  //"Could not find template named: '"+templateName+"'");
     }
+    
+    if (TransformerImpl.S_DEBUG)
+	  transformer.getTraceManager().fireTraceEndEvent(this); 
+
   }
   
   /** Vector of xsl:param elements associated with this element. 
@@ -369,4 +376,24 @@ public class ElemCallTemplate extends ElemForEach
     // contain a for-each, and other elements.
     return super.appendChild(newChild);
   }
+  
+    /**
+     * Call the children visitors.
+     * @param visitor The visitor whose appropriate method will be called.
+     */
+    public void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+    {
+//      if (null != m_paramElems)
+//      {
+//        int size = m_paramElems.length;
+//
+//        for (int i = 0; i < size; i++)
+//        {
+//          ElemWithParam ewp = m_paramElems[i];
+//          ewp.callVisitors(visitor);
+//        }
+//      }
+
+      super.callChildVisitors(visitor, callAttrs);
+    }
 }

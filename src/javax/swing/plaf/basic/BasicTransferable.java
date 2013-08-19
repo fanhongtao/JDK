@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTransferable.java	1.7 02/04/04
+ * @(#)BasicTransferable.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -15,7 +15,7 @@ import javax.swing.plaf.UIResource;
  * components.  
  *
  * @author  Timothy Prinzing
- * @version 1.7 04/04/02
+ * @version 1.8 01/23/03
  */
 class BasicTransferable implements Transferable, UIResource {
     

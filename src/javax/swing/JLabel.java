@@ -1,7 +1,7 @@
 /*
- * @(#)JLabel.java	1.111 02/04/12
+ * @(#)JLabel.java	1.113 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -78,7 +78,7 @@ import java.util.*;
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.111 04/12/02
+ * @version 1.113 01/23/03
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -176,7 +176,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * image and horizontal alignment.
      * The label is centered vertically in its display area.
      *
-     * @param icon  The image to be displayed by the label.
+     * @param image  The image to be displayed by the label.
      * @param horizontalAlignment  One of the following constants
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
@@ -194,7 +194,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * The label is centered vertically and horizontally
      * in its display area.
      *
-     * @param icon  The image to be displayed by the label.
+     * @param image  The image to be displayed by the label.
      */
     public JLabel(Icon image) {
         this(null, image, CENTER);
@@ -829,7 +829,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * Sets the horizontal position of the label's text,
      * relative to its image.
      *
-     * @param x  One of the following constants
+     * @param textPosition  One of the following constants
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
      *           <code>CENTER</code>,

@@ -1,7 +1,7 @@
 /*
- * @(#)Matcher.java	1.43 02/05/10
+ * @(#)Matcher.java	1.46 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -70,7 +70,7 @@ package java.util.regex;
  * @author      Mike McCloskey
  * @author	Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.43, 02/05/10
+ * @version 	1.46, 03/01/23
  * @since	1.4
  * @spec        JSR-51
  */
@@ -495,6 +495,13 @@ public final class Matcher {
      * sign (<tt>$</tt>) may be included as a literal in the replacement
      * string by preceding it with a backslash (<tt>\$</tt>).
      *
+     * <p> Note that backslashes (<tt>\</tt>) and dollar signs (<tt>$</tt>) in
+     * the replacement string may cause the results to be different than if it
+     * were being treated as a literal replacement string. Dollar signs may be
+     * treated as references to captured subsequences as described above, and
+     * backslashes are used to escape literal characters in the replacement
+     * string.
+     *
      * <p> This method is intended to be used in a loop together with the
      * {@link #appendTail appendTail} and {@link #find find} methods.  The
      * following code, for example, writes <tt>one dog two dogs in the
@@ -622,6 +629,13 @@ public final class Matcher {
      * string may contain references to captured subsequences as in the {@link
      * #appendReplacement appendReplacement} method.
      *
+     * <p> Note that backslashes (<tt>\</tt>) and dollar signs (<tt>$</tt>) in
+     * the replacement string may cause the results to be different than if it
+     * were being treated as a literal replacement string. Dollar signs may be
+     * treated as references to captured subsequences as described above, and
+     * backslashes are used to escape literal characters in the replacement
+     * string.
+     *
      * <p> Given the regular expression <tt>a*b</tt>, the input
      * <tt>"aabfooaabfooabfoob"</tt>, and the replacement string
      * <tt>"-"</tt>, an invocation of this method on a matcher for that
@@ -639,15 +653,18 @@ public final class Matcher {
      *          as needed
      */
     public String replaceAll(String replacement) {
-        StringBuffer sb = new StringBuffer();
         reset();
         boolean result = find();
-        while(result) {
-            appendReplacement(sb, replacement);
-            result = find();
+        if (result) {
+            StringBuffer sb = new StringBuffer();
+            do {
+                appendReplacement(sb, replacement);
+                result = find();
+            } while (result);
+            appendTail(sb);
+            return sb.toString();
         }
-        appendTail(sb);
-        return sb.toString();
+        return text.toString();
     }
 
     /**

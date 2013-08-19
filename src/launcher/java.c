@@ -1,5 +1,5 @@
 /*
- * @(#)java.c	1.100 03/01/19
+ * @(#)java.c	1.105 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,27 @@
  * instance, the JDK command line tools such as javac and javadoc (see
  * makefiles for more details) are built with this program.  Any arguments
  * prefixed with '-J' will be passed directly to the 'java' command.
+ */
+
+/*
+ * One job of the launcher is to remove command line options which the
+ * vm does not understand and will not process.  These options include
+ * options which select which style of vm is run (e.g. -client and
+ * -server) as well as options which select the data model to use on
+ * platforms that support more than one (at the moment, this means
+ * -d32 and -d64 on SPARC Solaris).  Additionally, for tools which
+ * invoke an underlying vm "-J-foo" options are turned into "-foo"
+ * options to the vm.  This option filtering is handled in a number of
+ * places in the launcher, some of it in machine-dependent code.  In
+ * this file, the function CheckJVMType removes vm style options and
+ * TranslateDashJArgs removes "-J" prefixes.  On Solaris SPARC, the
+ * SetLibraryPath function in the unix java_md.c processes and removes
+ * -d<n> options.  However, in case SetLibraryPath does not need to
+ * exec because LD_LIBRARY_PATH is set acceptably and the data model
+ * does not need to be changed, ParseArguments will screen out the
+ * redundant -d<n> options and prevent them from being passed to the
+ * vm; this is done by using the machine-dependent call
+ * RemovableMachineDependentOption.
  */
 
 #include <stdio.h>
@@ -39,7 +60,6 @@ static jboolean printVersion = JNI_FALSE; /* print and exit */
 static jboolean showVersion = JNI_FALSE;  /* print but continue */
 static char *progname;
 jboolean debug = JNI_FALSE;
-int      status = 0;
 
 /*
  * List of VM options to be specified when the VM is created.
@@ -56,7 +76,6 @@ static jboolean ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 			       char **pclassname, int *pret);
 static jboolean InitializeJVM(JavaVM **pvm, JNIEnv **penv,
 			      InvocationFunctions *ifn);
-static void* MemAlloc(size_t size);
 static jstring NewPlatformString(JNIEnv *env, char *s);
 static jobjectArray NewPlatformStringArray(JNIEnv *env, char **strv, int strc);
 static jstring NewPlatformString(JNIEnv *env, char *s);
@@ -73,24 +92,18 @@ static void PrintJavaVersion(JNIEnv *env);
 static void PrintUsage(void);
 static jint PrintXUsage(void);
 
-static char *SetExecname(int argc, char **argv);
 static void SetPaths(int argc, char **argv);
-static char *CheckJvmType(int *argc, char ***argv);
-static void SetDataModel(int *argc, char ***argv, char *execname, 
-			    char *jrepath);
-static void SetLibraryPath(char ** original_argv, char *execname, 
-			   char *jrepath, char *jvmpath);
-static void InitEncodingFlag(JNIEnv *env); /* Temp fix for UTF16-le encoding */
+
 
 /* Support for options such as -hotspot, -classic etc. */
 #define INIT_MAX_KNOWN_VMS 10
-struct vmdesc {
-    char *name;
 #define VM_UNKNOWN -1
 #define VM_KNOWN 0
 #define VM_ALIASED_TO 1
 #define VM_WARN 2
 #define VM_ERROR 3
+struct vmdesc {
+    char *name;
     int flag;
     char *alias;
 };
@@ -98,7 +111,6 @@ static struct vmdesc *knownVMs = NULL;
 static int knownVMsCount = 0;
 static int knownVMsLimit = 0;
 
-static jint ReadKnownVMs(const char *jrepath); 
 static void GrowKnownVMs();
 static int  KnownVMIndex(const char* name);
 static void FreeKnownVMs(); 
@@ -125,61 +137,40 @@ main(int argc, char ** argv)
     char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
     char ** original_argv = argv;
 
-#ifndef WIN32
-    char *execname = 0;
-#endif
+    /* Error message to print or display; by default the message will
+       only be displayed in a window. */
+    char * message = "Fatal exception occurred.  Program will exit.";
+    jboolean messageDest = JNI_FALSE;
 
+    /* copy original argv */
+    {
+      int i;
+      original_argv = (char**)MemAlloc(sizeof(char*)*(argc+1));
+      for(i = 0; i < argc+1; i++)
+	original_argv[i] = argv[i];
+    }
+
+    
     if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
 	debug = JNI_TRUE;
 	printf("----_JAVA_LAUNCHER_DEBUG----\n");
     }
 
-#ifndef WIN32
-    /* Compute the name of the executable */
-    execname = SetExecname(argc, argv);
-#endif
+    CreateExecutionEnvironment(&argc, &argv, jrepath, sizeof(jrepath),
+			       jvmpath, sizeof(jvmpath), &jvmtype, 
+			       original_argv);
+    ifn.CreateJavaVM = 0;
+    ifn.GetDefaultJavaVMInitArgs = 0;
 
-    /* Find out where the JRE is that we will be using. */
-    if (!GetJREPath(jrepath, sizeof(jrepath))) {
-	fprintf(stderr, "Error: could not find Java 2 Runtime Environment.\n");
-	return 2;
-    }
-
-#ifndef WIN32
-    /* Check for data model flags, and run a different executable, if necessary. */
-    SetDataModel(&argc, &argv, execname, jrepath);
-#endif
-
-    /* Find the specified JVM type */
-    if (ReadKnownVMs(jrepath) < 1) {
-	fprintf(stderr, "Error: no known VMs. (check for corrupt jvm.cfg file)\n");
-	exit(1);
-    }
-    jvmtype = CheckJvmType(&argc, &argv);
-
-    jvmpath[0] = '\0';
-    if (!GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
-	fprintf(stderr, "Error: no `%s' JVM at `%s'.\n", jvmtype, jvmpath);
-	return 4;
-    }
-    /* If we got here, jvmpath has been correctly initialized. */
-
-#ifndef WIN32
-    /* Set the LD_LIBRARY_PATH environment variable */
-    SetLibraryPath(original_argv, execname, jrepath, jvmpath);
-#endif
-
-    ifn.CreateJavaVM = 0; ifn.GetDefaultJavaVMInitArgs = 0;
     if (debug)
-	start = CounterGet();
+      start = CounterGet();
     if (!LoadJavaVM(jvmpath, &ifn)) {
-        status = 1;
-	return 6;
+      exit(6);
     }
     if (debug) {
-	end   = CounterGet();
-	printf("%ld micro seconds to LoadJavaVM\n",
-	       (long)(jint)Counter2Micros(end-start));
+      end   = CounterGet();
+      printf("%ld micro seconds to LoadJavaVM\n",
+	     (long)(jint)Counter2Micros(end-start));
     }
     
 #ifdef JAVA_ARGS  /* javac, jar and friends. */
@@ -201,8 +192,7 @@ main(int argc, char ** argv)
     /* Preprocess wrapper arguments */
     TranslateDashJArgs(&argc, &argv);
     if (!AddApplicationOptions()) {
-        status = 2;
-	return 1;
+	exit(1);
     }
 #endif
 
@@ -214,10 +204,12 @@ main(int argc, char ** argv)
     SetClassPath(s);
 #endif
 
-    /* Parse command line options */
+    /* 
+     *  Parse command line options; if the return value of
+     *  ParseArguments is false, the program should exit.
+     */
     if (!ParseArguments(&argc, &argv, &jarfile, &classname, &ret)) {
-        status = 2;
-	return ret;
+      exit(ret);
     }
 
     /* Override class path if -jar flag was specified */
@@ -233,9 +225,9 @@ main(int argc, char ** argv)
     if (debug)
 	start = CounterGet();
     if (!InitializeJVM(&vm, &env, &ifn)) {
-	fprintf(stderr, "Could not create the Java virtual machine.\n");
-        status = 3;
-	return 1;
+	ReportErrorMessage("Could not create the Java virtual machine.",
+			   JNI_TRUE);
+	exit(1);
     }
 
     if (printVersion || showVersion) {
@@ -246,6 +238,7 @@ main(int argc, char ** argv)
 	}
 	if (printVersion) {
 	    ret = 0;
+	    message = NULL;
 	    goto leave;
 	}
 	if (showVersion) {
@@ -253,9 +246,10 @@ main(int argc, char ** argv)
 	}
     }
 
-    /* If the user specified neither a class name or a JAR file */
+    /* If the user specified neither a class name nor a JAR file */
     if (jarfile == 0 && classname == 0) {
 	PrintUsage();
+	message = NULL;
 	goto leave;
     }
 
@@ -279,9 +273,6 @@ main(int argc, char ** argv)
 
     ret = 1;
 
-    /* Temporary fix for utf-16le encoding. Init encoding flag */
-    InitEncodingFlag(env);
-
     /* Get the application's main class */
     if (jarfile != 0) {
 	mainClassName = GetMainClassName(env, jarfile);
@@ -290,9 +281,13 @@ main(int argc, char ** argv)
 	    goto leave;
 	}
 	if (mainClassName == NULL) {
-	    fprintf(stderr, "Failed to load Main-Class manifest attribute "
-		    "from\n%s\n", jarfile);
-	    goto leave;
+	  const char * format = "Failed to load Main-Class manifest "
+	                        "attribute from\n%s";
+	  message = (char*)MemAlloc((strlen(format) + strlen(jarfile)) *
+				    sizeof(char));
+	  sprintf(message, format, jarfile);
+	  messageDest = JNI_TRUE;
+	  goto leave;
 	}
 	classname = (char *)(*env)->GetStringUTFChars(env, mainClassName, 0);
 	if (classname == NULL) {
@@ -300,25 +295,34 @@ main(int argc, char ** argv)
 	    goto leave;
 	}
 	mainClass = LoadClass(env, classname);
+	if(mainClass == NULL) { /* exception occured */
+	    (*env)->ExceptionDescribe(env);
+	    message = "Could not find the main class.  Program will exit.";
+	    goto leave;
+	}
 	(*env)->ReleaseStringUTFChars(env, mainClassName, classname);
     } else {
-        mainClassName = NewPlatformString(env, classname);
-        if (mainClassName == NULL) {
-            fprintf(stderr, "Failed to load Main Class: %s\n", classname);
-            goto leave;
-        }
-        classname = (char *)(*env)->GetStringUTFChars(env, mainClassName, 0);
-        if (classname == NULL) {
-            (*env)->ExceptionDescribe(env);
-            goto leave;
-        }
-        mainClass = LoadClass(env, classname);
-        (*env)->ReleaseStringUTFChars(env, mainClassName, classname);
-    }
-    if (mainClass == NULL) {
-        (*env)->ExceptionDescribe(env);
-        status = 4;
+      mainClassName = NewPlatformString(env, classname);
+      if (mainClassName == NULL) {
+	const char * format = "Failed to load Main Class: %s";
+	message = (char *)MemAlloc((strlen(format) + strlen(classname)) * 
+				   sizeof(char) );
+	sprintf(message, format, classname); 
+	messageDest = JNI_TRUE;
 	goto leave;
+      }
+      classname = (char *)(*env)->GetStringUTFChars(env, mainClassName, 0);
+      if (classname == NULL) {
+	(*env)->ExceptionDescribe(env);
+	goto leave;
+      }
+      mainClass = LoadClass(env, classname);
+      if(mainClass == NULL) { /* exception occured */
+	(*env)->ExceptionDescribe(env);
+	message = "Could not find the main class. Program will exit.";
+	goto leave;
+      }
+      (*env)->ReleaseStringUTFChars(env, mainClassName, classname);
     }
 
     /* Get the application's main method */
@@ -328,30 +332,36 @@ main(int argc, char ** argv)
 	if ((*env)->ExceptionOccurred(env)) {
 	    (*env)->ExceptionDescribe(env);
 	} else {
-	    fprintf(stderr, "No main method found in specified class.\n");
+	  message = "No main method found in specified class.";
+	  messageDest = JNI_TRUE;
 	}
-        status = 5;
 	goto leave;
     }
 
     {    /* Make sure the main method is public */
+	jint mods;
+	jmethodID mid;
 	jobject obj = (*env)->ToReflectedMethod(env, mainClass, 
 						mainID, JNI_TRUE);
-	jint mods;
-	jmethodID mid = 
+
+	if( obj == NULL) { /* exception occurred */
+	    (*env)->ExceptionDescribe(env);
+	    goto leave;
+	}
+
+	mid = 
 	  (*env)->GetMethodID(env, 
 			      (*env)->GetObjectClass(env, obj),
 			      "getModifiers", "()I");
 	if ((*env)->ExceptionOccurred(env)) {
 	    (*env)->ExceptionDescribe(env);
-	    status = 6;
 	    goto leave;
 	}
 
 	mods = (*env)->CallIntMethod(env, obj, mid);
 	if ((mods & 1) == 0) { /* if (!Modifier.isPublic(mods)) ... */
-	    fprintf(stderr, "Main method not public.\n");
-	    status = 8;
+	    message = "Main method not public.";
+	    messageDest = JNI_TRUE;
 	    goto leave;
 	}
     }
@@ -380,213 +390,25 @@ main(int argc, char ** argv)
      * the application's main method exits.
      */
     if ((*vm)->DetachCurrentThread(vm) != 0) {
-	fprintf(stderr, "Could not detach main thread.\n");
+	message = "Could not detach main thread.";
+	messageDest = JNI_TRUE;
 	goto leave;
     }
     ret = 0;
+    message = NULL;
 
 leave:
     (*vm)->DestroyJavaVM(vm);
-    return ret;
-}
-
-
-#ifndef WIN32
-
-#include <sys/stat.h>
-
-/*
- * Return true if the named program exists
- */
-static int
-ProgramExists(char *name)
-{
-    struct stat sb;
-    if (stat(name, &sb) != 0) return 0;
-    if (S_ISDIR(sb.st_mode)) return 0;
-    return (sb.st_mode & S_IEXEC) != 0;
-}
-
-
-/*
- * Find a command in a directory, returning the path.
- */
-static char *
-Resolve(char *indir, char *cmd)
-{
-    char name[PATH_MAX + 2], *real;
-
-    if ((strlen(indir) + strlen(cmd) + 1)  > PATH_MAX) return 0;
-    sprintf(name, "%s%c%s", indir, FILE_SEPARATOR, cmd);
-    if (!ProgramExists(name)) return 0;
-    real = malloc(PATH_MAX + 2);
-    if (!realpath(name, real)) 
-	strcpy(real, name);
-    return real;
-}
-
-
-/*
- * Find a path for the executable
- */
-static char *
-FindExecName(char *program)
-{
-    char cwdbuf[PATH_MAX+2];
-    char *path;
-    char *tmp_path;
-    char *f;
-    char *result = 0;
-
-    /* absolute path? */
-    if (*program == FILE_SEPARATOR || 
-	(FILE_SEPARATOR=='\\' && strrchr(program, ':')))
-	return Resolve("", program+1);
-
-    /* relative path? */
-    if (strrchr(program, FILE_SEPARATOR) != 0) {
-	char buf[PATH_MAX+2];
-	return Resolve(getcwd(cwdbuf, sizeof(cwdbuf)), program);
-    }
-
-    /* from search path? */
-    path = getenv("PATH");
-    if (!path || !*path) path = ".";
-    tmp_path = malloc(strlen(path) + 2);
-    strcpy(tmp_path, path);
-
-    for (f=tmp_path; *f && result==0; ) {
-	char *s = f;
-	while (*f && (*f != PATH_SEPARATOR)) ++f;
-	if (*f) *f++ = 0;
-	if (*s == FILE_SEPARATOR)
-	    result = Resolve(s, program);
-	else {
-	    /* relative path element */
-	    char dir[2*PATH_MAX];
-	    sprintf(dir, "%s%c%s", getcwd(cwdbuf, sizeof(cwdbuf)), 
-		    FILE_SEPARATOR, s);
-	    result = Resolve(dir, program);
-	}
-	if (result != 0) break;
-    }
-
-    free(tmp_path);
-    return result;
-}
-
-
-/* Store the name of the executable once computed */
-static char *execname = 0;
-
-/*
- * Compute the name of the executable
- */
-static char *
-SetExecname(int argc, char **argv)
-{
-    char *exec_path = FindExecName(argv[0]);
-    execname = exec_path;
-    return exec_path;
-}
-
-/*
- * Return the name of the executable.  Used in java_md.c to find the JRE area.
- */
-char *
-GetExecname()
-{
-    return execname;
-}
-#endif /* #ifndef WIN32 */
-
-
-/*
- * Run another executable if necessary to change the data model.
- * Also, remove -d64 and the like from argc/argv.
- */
-static void
-SetDataModel(int *_argc, char ***_argv, 
-		char *execname, char *jrepath)
-{
-#ifdef sparc
-    int argc = *_argc;
-    char **argv = *_argv;
-    int i, running, wanted;
-
-    char **newargv;
-    int newargc = 0;
-
-    newargv = (char **)malloc((argc+1) * sizeof(*newargv));
-    newargv[newargc++] = argv[0];
-
-#ifdef _LP64
-    /* we're already running a 64-bit executable */
-    running = 64;
-#else
-    running = 32;
-#endif
-    wanted = 0;
-
-    /* scan for data model arg */
-    for (i=1; i<argc; i++) {
-	if (strcmp(argv[i], "-J-d64") == 0 || strcmp(argv[i], "-d64") == 0) {
-	    wanted = 64;
-	    continue;
-	}
-	if (strcmp(argv[i], "-J-d32") == 0 || strcmp(argv[i], "-d32") == 0) {
-	    wanted = 32;
-	    continue;
-	}
-	newargv[newargc++] = argv[i];
-
-#ifdef JAVA_ARGS
-	if (argv[i][0] != '-') continue;
-#else
-	if (strcmp(argv[i], "-classpath") == 0 || strcmp(argv[i], "-cp") == 0) {
-	    i++;
-	    if (i >= argc) break;
-	    newargv[newargc++] = argv[i];
-	    continue;
-	}
-	if (argv[i][0] != '-') { i++; break; }
-#endif
-    }
-
-    /* copy rest of args [i .. argc) */
-    while (i < argc) {
-	newargv[newargc++] = argv[i++];
-    }
-    newargv[newargc] = 0;
-
-    *_argc = argc = newargc;
-    *_argv = argv = newargv;
-
-    if (wanted == 0 || running == wanted) return;
-
-    {
-	char *oldexec = strcpy(malloc(strlen(execname) + 1), execname);
-	char *olddir = oldexec;
-	char *oldbase = strrchr(oldexec, '/');
-	char *newexec;
-
-	newexec = malloc(strlen(execname) + 20);
-	*oldbase++ = 0;
-	sprintf(newexec, "%s/%s/%s", olddir, 
-		((wanted==64) ? "sparcv9" : ".."), oldbase);
-	argv[0] = newexec;
-	execv(newexec, argv);
-	perror("execv()");
-	exit(1);
-    }
-#endif /* sparc */
+    if(message != NULL)
+      ReportErrorMessage(message, messageDest);
+    exit(ret);
 }
 
 
 /*
  * Check for a specified JVM type
  */
-static char *
+char *
 CheckJvmType(int *pargc, char ***argv) {
     int i, argi;
     int argc;
@@ -663,16 +485,19 @@ CheckJvmType(int *pargc, char ***argv) {
     *pargc = newArgvIdx;
 
     /* use the default VM type if not specified (no alias processing) */
-    if (jvmtype == NULL) return knownVMs[0].name+1;
+    if (jvmtype == NULL)
+      return knownVMs[0].name+1;
 
-    /* if using an alternate VM, no alieas processing */
-    if (jvmidx < 0) return jvmtype;
+    /* if using an alternate VM, no alias processing */
+    if (jvmidx < 0)
+      return jvmtype;
 
     /* Resolve aliases first */
     while (knownVMs[jvmidx].flag == VM_ALIASED_TO) {
         int nextIdx = KnownVMIndex(knownVMs[jvmidx].alias);
         if (nextIdx < 0) {
-            fprintf(stderr, "Error: Unable to resolve VM alias %s\n", knownVMs[jvmidx].alias);
+            ReportErrorMessage2("Error: Unable to resolve VM alias %s",
+				knownVMs[jvmidx].alias, JNI_TRUE);
             exit(1);
         }
         jvmidx = nextIdx;
@@ -688,91 +513,11 @@ CheckJvmType(int *pargc, char ***argv) {
     case VM_KNOWN:
 	break;
     case VM_ERROR:
-	fprintf(stderr, "Error: %s VM not supported\n", jvmtype);
+	ReportErrorMessage2("Error: %s VM not supported", jvmtype, JNI_TRUE);
 	exit(1);
     }
 
     return jvmtype;
-}
-
-
-static void
-SetLibraryPath(char **original_argv, char *execname, 
-	       char *jrepath, char *_jvmpath)
-{
-#ifndef WIN32
-    char *arch = (char *)GetArch(); /* like sparc or sparcv9 */
-    char *oldpath = getenv("LD_LIBRARY_PATH");
-    char *debugprog;
-
-    /*
-     * We need to set LD_LIBRARY_PATH as follows:
-     *
-     *     o		$JVMPATH (directory portion only)
-     *     o		$JRE/lib/$ARCH
-     *     o		$JRE/../lib/$ARCH
-     *
-     * followed by the user's previous $LD_LIBRARY_PATH, if any
-     */
-    char *jvmpath = strdup(_jvmpath);
-    char *newenv = malloc((oldpath?strlen(oldpath):0) + 
-			  2*strlen(jrepath) + 2*strlen(arch) +
-			  strlen(jvmpath) + 52);
-    char *newpath = newenv + strlen("LD_LIBRARY_PATH=");
-
-    /* remove the name of the .so from the JVM path */
-    char *lastslash = strrchr(jvmpath, '/');
-    if (lastslash) *lastslash = '\0';
-
-    sprintf(newenv, "LD_LIBRARY_PATH="
-	    "%s:"
-	    "%s/lib/%s:"
-	    "%s/../lib/%s",
-	    jvmpath,
-	    jrepath, arch,
-	    jrepath, arch);
-
-    /* Check to make sure that the prefix of the current path is the 
-     * desired environment variable setting. */
-    if (oldpath != 0 && 
-	strncmp(newpath, oldpath, strlen(newpath))==0 &&
-	(oldpath[strlen(newpath)] == 0 || oldpath[strlen(newpath)] == ':'))
-	return; /* already on the LD_LIBRARY_PATH */
-    
-    /* Place the desired environment setting onto the prefix of 
-     * LD_LIBRARY_PATH.  Note that this prevents any possible infinite 
-     * loop of execv() because we test for the prefix, above. */
-    if (oldpath != 0) {
-	strcat(newenv, ":");
-	strcat(newenv, oldpath);
-    }
-    putenv(newenv);
-
-    /* Unix systems document that they look at LD_LIBRARY_PATH 
-     * only once at startup, so we have to re-exec the current executable 
-     * to get the changed environment variable to have an effect. 
-     *
-     * If the DEBUGPROG env variable is set, exec the debugger 
-     */
-
-    if ( (debugprog = getenv("DEBUGPROG")) != NULL ) {
-	char **new_argv;
-    
-        new_argv = (char **)malloc(3 * sizeof(char *));
-	
-	new_argv[0] = debugprog;
-	new_argv[1] = execname;
-	new_argv[2] = NULL;
-        execv(debugprog, new_argv);
-        perror("execv()");
-        exit(1);
-    }
-    else {
-        execv(execname, original_argv);
-        perror("execv()");
-        exit(1);
-    }
-#endif
 }
 
 
@@ -812,7 +557,11 @@ SetClassPath(char *s)
 }
 
 /*
- * Parses command line arguments.
+ * Parses command line arguments.  Returns JNI_FALSE if launcher
+ * should exit without starting vm (e.g. certain version and usage
+ * options); returns JNI_TRUE if vm needs to be started to process
+ * given options.  *pret (the launcher process return value) is set to
+ * 0 for a normal exit.
  */
 static jboolean
 ParseArguments(int *pargc, char ***pargv, char **pjarfile,
@@ -828,7 +577,8 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 	argv++; --argc;
 	if (strcmp(arg, "-classpath") == 0 || strcmp(arg, "-cp") == 0) {
 	    if (argc < 1) {
-		fprintf(stderr, "%s requires class path specification\n", arg);
+	        ReportErrorMessage2("%s requires class path specification",
+				    arg, JNI_TRUE);
 		PrintUsage();
 		return JNI_FALSE;
 	    }
@@ -900,7 +650,10 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 	    fprintf(stderr,
 		    "Warning: %s option is no longer supported.\n",
 		    arg);
-	} else {
+	} else if (RemovableMachineDependentOption(arg) ) {
+	    ; /* Do not pass option to vm. */
+	}
+	else {
 	    AddOption(arg, NULL);
 	}
     }
@@ -961,7 +714,7 @@ InitializeJVM(JavaVM **pvm, JNIEnv **penv, InvocationFunctions *ifn)
  * Returns a pointer to a block of at least 'size' bytes of memory.
  * Prints error message and exits if the memory could not be allocated.
  */
-static void *
+void *
 MemAlloc(size_t size)
 {
     void *p = malloc(size);
@@ -970,36 +723,6 @@ MemAlloc(size_t size)
 	exit(1);
     }
     return p;
-}
-
-static int isUTF16;
-
-static void
-InitEncodingFlag(JNIEnv *env)
-{
-    jclass system;
-    jmethodID getProperty;
-    jstring fileEncoding;
-    jstring value;
-    const char* str;
-
-    system = (*env)->FindClass(env, "java/lang/System");
-    getProperty = 
-            (*env)->GetStaticMethodID(env, system, "getProperty", 
-                                     "(Ljava/lang/String;)Ljava/lang/String;");
-    fileEncoding = (*env)->NewStringUTF(env, "file.encoding");
-    value = 
-       (*env)->CallStaticObjectMethod(env, system, getProperty, fileEncoding);
-    if (value == NULL) {
-        isUTF16 = JNI_FALSE;
-        return;
-    }
-    str = (*env)->GetStringUTFChars(env, value, NULL);
-    if (strcmp(str, "utf-16le") == 0)
-        isUTF16 = JNI_TRUE;
-    else
-        isUTF16 = JNI_FALSE;
-    (*env)->ReleaseStringUTFChars(env, value, str);
 }
 
 /*
@@ -1012,9 +735,6 @@ NewPlatformString(JNIEnv *env, char *s)
     jclass cls;
     jmethodID mid;
     jbyteArray ary;
-
-    if (isUTF16)
-        return (*env)->NewStringUTF(env, s);
 
     NULL_CHECK0(cls = (*env)->FindClass(env, "java/lang/String"));
     NULL_CHECK0(mid = (*env)->GetMethodID(env, cls, "<init>", "([B)V"));
@@ -1155,7 +875,8 @@ TranslateDashJArgs(int *pargc, char ***pargv)
 	char *arg = argv[i];
 	if (arg[0] == '-' && arg[1] == 'J') {
 	    if (arg[2] == '\0') {
-		fprintf(stderr, "Error: the -J option should not be followed by a space.\n");
+		ReportErrorMessage("Error: the -J option should not be "
+				   "followed by a space.", JNI_TRUE);
 		exit(1);
 	    }
 	    *nargv++ = arg + 2;
@@ -1209,7 +930,7 @@ AddApplicationOptions()
     }
 
     if (!GetApplicationHome(home, sizeof(home))) {
-	fprintf(stderr, "Can't determine application home\n");
+	ReportErrorMessage("Can't determine application home", JNI_TRUE);
 	return JNI_FALSE;
     }
 
@@ -1324,20 +1045,14 @@ PrintUsage(void)
     fprintf(stdout,
 	"Usage: %s [-options] class [args...]\n"
 	"           (to execute a class)\n"
-	"   or  %s -jar [-options] jarfile [args...]\n"
+	"   or  %s [-options] -jar jarfile [args...]\n"
 	"           (to execute a jar file)\n"
 	"\n"
 	"where options include:\n",
 	progname,
 	progname);
 
-#ifdef sparc
-    fprintf(stdout,
-	"    -d32\n"
-	"                  use a 32-bit data model if available\n"
-	"    -d64\n"
-	"                  use a 64-bit data model if available\n");
-#endif
+    PrintMachineDependentOptions();
 
     for (i=0; i<knownVMsCount; i++) {
 	if (knownVMs[i].flag == VM_KNOWN)
@@ -1354,8 +1069,10 @@ PrintUsage(void)
 	"                  The default VM is %s.\n\n", knownVMs[0].name+1);
 
     fprintf(stdout,
-"    -cp -classpath <directories and zip/jar files separated by %c>\n"
-"                  set search path for application classes and resources\n"
+"    -cp <class search path of directories and zip/jar files>\n"
+"    -classpath <class search path of directories and zip/jar files>\n"
+"                  A %c separated list of directories, JAR archives,\n"
+"                  and ZIP archives to search for class files.\n" 
 "    -D<name>=<value>\n"
 "                  set a system property\n"
 "    -verbose[:class|gc|jni]\n"
@@ -1405,7 +1122,7 @@ PrintXUsage(void)
 /*
  * Read the jvm.cfg file and fill the knownJVMs[] array.
  */
-static jint
+jint
 ReadKnownVMs(const char *jrepath)
 {
     char *arch = (char *)GetArch(); /* like sparcv9 */
@@ -1430,7 +1147,8 @@ ReadKnownVMs(const char *jrepath)
     
     jvmCfg = fopen(jvmCfgName, "r");
     if (jvmCfg == NULL) {
-        fprintf(stderr, "Error: could not open `%s'\n", jvmCfgName);
+        ReportErrorMessage2("Error: could not open `%s'", jvmCfgName,
+			    JNI_TRUE);
 	exit(1);
     }
     while (fgets(line, sizeof(line), jvmCfg) != NULL) {
@@ -1480,8 +1198,8 @@ ReadKnownVMs(const char *jrepath)
                 } else if (!strncmp(tmpPtr, "ERROR", strlen("ERROR"))) {
                     vmType = VM_ERROR;
                 } else {
-                    fprintf(stderr, "Warning: unknown VM type %s on line %d of `%s'\n",
-                            vmType, lineno, &jvmCfgName[0]);
+                    fprintf(stderr, "Warning: unknown VM type on line %d of `%s'\n",
+                            lineno, &jvmCfgName[0]);
                     vmType = VM_KNOWN;
                 }
             }
@@ -1521,7 +1239,7 @@ GrowKnownVMs(int minimum)
     if (newMax <= minimum) {
         newMax = minimum;
     }
-    newKnownVMs = (struct vmdesc*) malloc(newMax * sizeof(struct vmdesc));
+    newKnownVMs = (struct vmdesc*) MemAlloc(newMax * sizeof(struct vmdesc));
     if (knownVMs != NULL) {
         memcpy(newKnownVMs, knownVMs, knownVMsLimit * sizeof(struct vmdesc));
     }

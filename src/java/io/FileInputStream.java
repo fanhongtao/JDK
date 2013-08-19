@@ -1,7 +1,7 @@
 /*
- * @(#)FileInputStream.java	1.58 02/02/06
+ * @(#)FileInputStream.java	1.60 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileReader</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.58, 02/06/02
+ * @version 1.60, 01/23/03
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream
@@ -99,6 +99,9 @@ class FileInputStream extends InputStream
 	if (security != null) {
 	    security.checkRead(name);
 	}
+        if (name == null) {
+            throw new NullPointerException();
+        }
 	fd = new FileDescriptor();
 	open(name);
     }

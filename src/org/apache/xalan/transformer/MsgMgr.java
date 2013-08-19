@@ -130,7 +130,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void warn(SourceLocator srcLctr, int msg) throws TransformerException
+  public void warn(SourceLocator srcLctr, String msg) throws TransformerException
   {
     warn(srcLctr, null, null, msg, null);
   }
@@ -146,7 +146,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void warn(SourceLocator srcLctr, int msg, Object[] args) throws TransformerException
+  public void warn(SourceLocator srcLctr, String msg, Object[] args) throws TransformerException
   {
     warn(srcLctr, null, null, msg, args);
   }
@@ -164,7 +164,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void warn(SourceLocator srcLctr, Node styleNode, Node sourceNode, int msg)
+  public void warn(SourceLocator srcLctr, Node styleNode, Node sourceNode, String msg)
           throws TransformerException
   {
     warn(srcLctr, styleNode, sourceNode, msg, null);
@@ -183,7 +183,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void warn(SourceLocator srcLctr, Node styleNode, Node sourceNode, int msg, Object args[])
+  public void warn(SourceLocator srcLctr, Node styleNode, Node sourceNode, String msg, Object args[])
           throws TransformerException
   {
 
@@ -196,7 +196,7 @@ public class MsgMgr
       System.out.println(formattedMsg);
   }
 
-  /**
+  /* This method is not properly i18nized. We need to use the following method
    * <meta name="usage" content="internal"/>
    * Tell the user of an error, and probably throw an
    * exception.
@@ -206,7 +206,7 @@ public class MsgMgr
    * the error condition is severe enough to halt processing.
    *
    * @throws TransformerException
-   */
+   *
   public void error(SourceLocator srcLctr, String msg) throws TransformerException
   {
 
@@ -222,6 +222,8 @@ public class MsgMgr
       throw new TransformerException(msg, srcLctr);
   }
 
+ */
+
   /**
    * <meta name="usage" content="internal"/>
    * Tell the user of an error, and probably throw an
@@ -233,7 +235,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void error(SourceLocator srcLctr, int msg) throws TransformerException
+  public void error(SourceLocator srcLctr, String msg) throws TransformerException
   {
     error(srcLctr, null, null, msg, null);
   }
@@ -250,7 +252,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void error(SourceLocator srcLctr, int msg, Object[] args) throws TransformerException
+  public void error(SourceLocator srcLctr, String msg, Object[] args) throws TransformerException
   {
     error(srcLctr, null, null, msg, args);
   }
@@ -267,7 +269,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void error(SourceLocator srcLctr, int msg, Exception e) throws TransformerException
+  public void error(SourceLocator srcLctr, String msg, Exception e) throws TransformerException
   {
     error(srcLctr, msg, null, e);
   }
@@ -285,7 +287,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void error(SourceLocator srcLctr, int msg, Object args[], Exception e) throws TransformerException
+  public void error(SourceLocator srcLctr, String msg, Object args[], Exception e) throws TransformerException
   {
 
     //msg  = (null == msg) ? XSLTErrorResources.ER_PROCESSOR_ERROR : msg;
@@ -316,7 +318,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void error(SourceLocator srcLctr, Node styleNode, Node sourceNode, int msg)
+  public void error(SourceLocator srcLctr, Node styleNode, Node sourceNode, String msg)
           throws TransformerException
   {
     error(srcLctr, styleNode, sourceNode, msg, null);
@@ -336,7 +338,7 @@ public class MsgMgr
    *
    * @throws TransformerException
    */
-  public void error(SourceLocator srcLctr, Node styleNode, Node sourceNode, int msg, Object args[])
+  public void error(SourceLocator srcLctr, Node styleNode, Node sourceNode, String msg, Object args[])
           throws TransformerException
   {
 

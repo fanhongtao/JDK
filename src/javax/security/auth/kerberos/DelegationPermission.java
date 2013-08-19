@@ -1,7 +1,7 @@
 /*
- * @(#)DelegationPermission.java	1.4 01/12/03
+ * @(#)DelegationPermission.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,10 @@ import java.util.*;
 import java.security.Permission;
 import java.security.BasicPermission;
 import java.security.PermissionCollection;
+import java.io.ObjectStreamField;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.io.IOException;
-
 
 /**
  * This class is used to restrict the usage of the Kerberos
@@ -238,10 +240,11 @@ public final class DelegationPermission extends BasicPermission
 final class KrbDelegationPermissionCollection extends PermissionCollection 
     implements java.io.Serializable {
 
-    private Vector permissions;
+    // Not serialized; see serialization section at end of class.
+    private transient List perms;
 
     public KrbDelegationPermissionCollection() {
-	permissions = new Vector();
+	perms = new ArrayList();
     }
 
     
@@ -260,10 +263,9 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
    		return false;
 
 	DelegationPermission np = (DelegationPermission) permission;
-	DelegationPermission x = null;
-	Enumeration e = elements();
-	while (e.hasMoreElements()) {
-	    x = (DelegationPermission)e.nextElement();
+	int len = perms.size();
+	for (int i = 0; i < len; i++) {
+	    DelegationPermission x = (DelegationPermission) perms.get(i);
 	    if (x.implies(np))
 		return true;
 	}
@@ -291,7 +293,7 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
-	permissions.add(0, permission);
+	perms.add(0, permission);
     }
 
     /**
@@ -302,9 +304,55 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
      */
 
     public Enumeration elements() {
-	return permissions.elements();
+        // Convert Iterator into Enumeration
+	return Collections.enumeration(perms);
     }
 
+    private static final long serialVersionUID = -3383936936589966948L;
+
+    // Need to maintain serialization interoperability with earlier releases,
+    // which had the serializable field:
+    //    private Vector permissions;
+    /**
+     * @serialField permissions java.util.Vector
+     *     A list of DelegationPermission objects.
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("permissions", Vector.class),
+    };
+
+    /**
+     * @serialData "permissions" field (a Vector containing the DelegationPermissions).
+     */
+    /*
+     * Writes the contents of the perms field out as a Vector for
+     * serialization compatibility with earlier releases.
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+	// Don't call out.defaultWriteObject()
+
+	// Write out Vector
+	Vector permissions = new Vector(perms.size());
+	permissions.addAll(perms);
+
+        ObjectOutputStream.PutField pfields = out.putFields();
+        pfields.put("permissions", permissions);
+        out.writeFields();
+    }
+
+    /*
+     * Reads in a Vector of DelegationPermissions and saves them in the perms field.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, 
+    ClassNotFoundException {
+	// Don't call defaultReadObject()
+
+	// Read in serialized fields
+	ObjectInputStream.GetField gfields = in.readFields();
+
+	// Get the one we want
+	Vector permissions = (Vector)gfields.get("permissions", null);
+	perms = new ArrayList(permissions.size());
+	perms.addAll(permissions);
+    }
 }
-
-

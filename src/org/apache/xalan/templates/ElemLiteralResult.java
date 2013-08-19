@@ -242,8 +242,9 @@ public class ElemLiteralResult extends ElemUse
   }
 
   /**
-   * Get whether or not the passed URL is contained flagged by
-   * the "extension-element-prefixes" property.
+   * Get whether or not the passed URL is flagged by
+   * the "extension-element-prefixes" or "exclude-result-prefixes"
+   * properties.
    * @see <a href="http://www.w3.org/TR/xslt#extension-element">extension-element in XSLT Specification</a>
    *
    * @param prefix non-null reference to prefix that might be excluded.(not currently used)
@@ -253,8 +254,10 @@ public class ElemLiteralResult extends ElemUse
    */
   public boolean containsExcludeResultPrefix(String prefix, String uri)
   {
-
-    if (null == m_excludeResultPrefixes || uri == null)
+    if (uri == null ||
+				(null == m_excludeResultPrefixes &&
+				 null == m_ExtensionElementURIs)
+				)
       return super.containsExcludeResultPrefix(prefix, uri);
 
     if (prefix.length() == 0)
@@ -262,13 +265,18 @@ public class ElemLiteralResult extends ElemUse
 
     // This loop is ok here because this code only runs during
     // stylesheet compile time.    
-    for (int i =0; i< m_excludeResultPrefixes.size(); i++)
-    {
-      if (uri.equals(getNamespaceForPrefix(m_excludeResultPrefixes.elementAt(i))))
-        return true;
-    }    
-    
-    return super.containsExcludeResultPrefix(prefix, uri);
+		if(m_excludeResultPrefixes!=null)
+			for (int i =0; i< m_excludeResultPrefixes.size(); i++)
+			{
+				if (uri.equals(getNamespaceForPrefix(m_excludeResultPrefixes.elementAt(i))))
+					return true;
+			}    
+		
+		// JJK Bugzilla 1133: Also check locally-scoped extensions
+    if(m_ExtensionElementURIs!=null && m_ExtensionElementURIs.contains(uri))
+       return true;
+
+		return super.containsExcludeResultPrefix(prefix, uri);
   }
 
   /**
@@ -316,7 +324,7 @@ public class ElemLiteralResult extends ElemUse
         if ((null != ns) && (ns.length() > 0))
         {
           NamespaceAlias nsa =
-            stylesheet.getNamespaceAliasComposed(m_namespace);
+            stylesheet.getNamespaceAliasComposed(m_namespace); // %REVIEW% ns?
 
           if (null != nsa)
           {
@@ -339,7 +347,7 @@ public class ElemLiteralResult extends ElemUse
 
   /**
    * Return whether we need to check namespace prefixes
-   * against and exclude result prefixes list.
+   * against the exclude result prefixes or extensions lists.
    * Note that this will create a new prefix table if one
    * has not been created already.
    *
@@ -347,8 +355,9 @@ public class ElemLiteralResult extends ElemUse
    */
   boolean needToCheckExclude()
   {
-
-    if (null == m_excludeResultPrefixes && null == m_prefixTable)
+    if (null == m_excludeResultPrefixes && null == m_prefixTable
+				&& m_ExtensionElementURIs==null   	// JJK Bugzilla 1133
+				)
       return false;
     else
     {
@@ -385,6 +394,9 @@ public class ElemLiteralResult extends ElemUse
 
   /**
    * Get the original namespace of the Literal Result Element.
+   * 
+   * %REVIEW% Why isn't this overriding the getNamespaceURI method
+   * rather than introducing a new one?
    *
    * @return The Namespace URI, or the empty string if the
    *        element has no Namespace URI.
@@ -452,6 +464,20 @@ public class ElemLiteralResult extends ElemUse
   {
     return m_rawName;
   }
+	
+ /**
+   * Get the prefix part of the raw name of the Literal Result Element.
+   *
+   * @return The prefix, or the empty string if noprefix was provided.
+   */
+  public String getPrefix()
+  {
+		int len=m_rawName.length()-m_localName.length()-1;
+    return (len>0)
+			? m_rawName.substring(0,len)
+			: "";
+  }
+
 
   /**
    * The "extension-element-prefixes" property, actually contains URIs.
@@ -463,7 +489,7 @@ public class ElemLiteralResult extends ElemUse
    * Set the "extension-element-prefixes" property.
    * @see <a href="http://www.w3.org/TR/xslt#extension-element">extension-element in XSLT Specification</a>
    *
-   * @param v Vector of URI to set as the "extension-element-prefixes" property
+   * @param v Vector of URIs (not prefixes) to set as the "extension-element-prefixes" property
    */
   public void setExtensionElementPrefixes(StringVector v)
   {
@@ -636,6 +662,11 @@ public class ElemLiteralResult extends ElemUse
     try
     {
       ResultTreeHandler rhandler = transformer.getResultTreeHandler();
+			
+			// JJK Bugzilla 3464, test namespace85 -- make sure LRE's
+			// namespace is asserted even if default, since xsl:element
+			// may have changed the context.
+			rhandler.startPrefixMapping(getPrefix(),getNamespace());
 
       // Add namespace declarations.
       executeNSDecls(transformer);
@@ -664,9 +695,10 @@ public class ElemLiteralResult extends ElemUse
             {
 
               // Important Note: I'm not going to check for excluded namespace 
-              // prefixes here.  It seems like it's to expensive, and I'm not 
+              // prefixes here.  It seems like it's too expensive, and I'm not 
               // even sure this is right.  But I could be wrong, so this needs 
               // to be tested against other implementations.
+							
               rhandler.addAttribute(avt.getURI(), avt.getName(),
                                     avt.getRawName(), "CDATA", stringedValue);
             }
@@ -683,6 +715,9 @@ public class ElemLiteralResult extends ElemUse
         // cause a system hang.
         rhandler.endElement(getNamespace(), getLocalName(), getRawName());
         unexecuteNSDecls(transformer);
+				
+				// JJK Bugzilla 3464, test namespace85 -- balance explicit start.
+				rhandler.endPrefixMapping(getPrefix());
       }
     }
     catch (org.xml.sax.SAXException se)
@@ -702,4 +737,36 @@ public class ElemLiteralResult extends ElemUse
   {
     return (null == m_avts) ? null : m_avts.elements();
   }
+  
+    /**
+     * Accept a visitor and call the appropriate method 
+     * for this class.
+     * 
+     * @param visitor The visitor whose appropriate method will be called.
+     * @return true if the children of the object should be visited.
+     */
+    protected boolean accept(XSLTVisitor visitor)
+    {
+      return visitor.visitLiteralResultElement(this);
+    }
+
+    /**
+     * Call the children visitors.
+     * @param visitor The visitor whose appropriate method will be called.
+     */
+    protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+    {
+      if (callAttrs && null != m_avts)
+      {
+        int nAttrs = m_avts.size();
+
+        for (int i = (nAttrs - 1); i >= 0; i--)
+        {
+          AVT avt = (AVT) m_avts.elementAt(i);
+          avt.callVisitors(visitor);
+        }
+      }
+      super.callChildVisitors(visitor, callAttrs);
+    }
+
 }

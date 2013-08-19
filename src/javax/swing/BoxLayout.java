@@ -1,7 +1,7 @@
 /*
- * @(#)BoxLayout.java	1.29 01/12/03
+ * @(#)BoxLayout.java	1.32 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -17,10 +17,12 @@ import java.io.PrintStream;
  * vertically or horizontally. The components will not wrap so, for 
  * example, a vertical arrangement of components will stay vertically 
  * arranged when the frame is resized. 
- * <TABLE ALIGN="RIGHT" BORDER="0">
+ * <TABLE ALIGN="RIGHT" BORDER="0" SUMMARY="layout">
  *    <TR>
  *      <TD ALIGN="CENTER">
- *         <P ALIGN="CENTER"><IMG SRC="doc-files/BoxLayout-1.gif" WIDTH="191" HEIGHT="201" ALIGN="BOTTOM" BORDER="0">
+ *         <P ALIGN="CENTER"><IMG SRC="doc-files/BoxLayout-1.gif" 
+ *          alt="The following text describes this graphic."
+ *          WIDTH="191" HEIGHT="201" ALIGN="BOTTOM" BORDER="0">
  *      </TD>
  *    </TR>
  * </TABLE>
@@ -108,7 +110,7 @@ import java.io.PrintStream;
  * @see JComponent#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version 1.29 12/03/01 
+ * @version 1.32 01/23/03 
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 

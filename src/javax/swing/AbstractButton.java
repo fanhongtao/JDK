@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractButton.java	1.156 02/04/05
+ * @(#)AbstractButton.java	1.161 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -42,7 +42,7 @@ import java.util.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.156 04/05/02 
+ * @version 1.161 01/23/03 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -203,7 +203,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     
     /**
      * Sets the button's text.
-     * @param t the string used to set the text
+     * @param text the string used to set the text
      * @see #getText
      * @beaninfo
      *        bound: true
@@ -324,7 +324,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         Insets old = margin;
         margin = m;
         firePropertyChange(MARGIN_CHANGED_PROPERTY, old, m);
-        if (old == null || !m.equals(old)) {
+        if (old == null || !old.equals(m)) {
             revalidate();
             repaint();
         }
@@ -367,11 +367,21 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setIcon(Icon defaultIcon) {
         Icon oldValue = this.defaultIcon;
         this.defaultIcon = defaultIcon;
+
+        /* If the default icon has really changed and we had
+         * generated the disabled icon for this component,
+         * (i.e. setDisabledIcon() was never called) then
+         * clear the disabledIcon field.
+         */
+        if (defaultIcon != oldValue && disabledIcon instanceof UIResource) {
+            disabledIcon = null;
+        }
+
         firePropertyChange(ICON_CHANGED_PROPERTY, oldValue, defaultIcon);
         if (accessibleContext != null) {
             accessibleContext.firePropertyChange(
                 AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                oldValue, pressedIcon);
+                oldValue, defaultIcon);
         }
         if (defaultIcon != oldValue) {
             if (defaultIcon == null || oldValue == null ||
@@ -418,7 +428,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         if (accessibleContext != null) {
             accessibleContext.firePropertyChange(
                 AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                oldValue, defaultIcon);
+                oldValue, pressedIcon);
         }
         if (pressedIcon != oldValue) {
             if (getModel().isPressed()) {
@@ -448,6 +458,18 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setSelectedIcon(Icon selectedIcon) {
         Icon oldValue = this.selectedIcon;
         this.selectedIcon = selectedIcon;
+
+        /* If the default selected icon has really changed and we had
+         * generated the disabled selected icon for this component,
+         * (i.e. setDisabledSelectedIcon() was never called) then
+         * clear the disabledSelectedIcon field.
+         */
+        if (selectedIcon != oldValue &&
+            disabledSelectedIcon instanceof UIResource) {
+
+            disabledSelectedIcon = null;
+        }
+
         firePropertyChange(SELECTED_ICON_CHANGED_PROPERTY, oldValue, selectedIcon);
         if (accessibleContext != null) {
             accessibleContext.firePropertyChange(
@@ -547,12 +569,11 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * @see #setDisabledIcon
      */
     public Icon getDisabledIcon() {
-        if(disabledIcon == null) {
-            if(defaultIcon != null
-               && defaultIcon instanceof ImageIcon) {
-                disabledIcon = new ImageIcon(
+        if (disabledIcon == null) {
+            if (defaultIcon != null && defaultIcon instanceof ImageIcon) {
+                disabledIcon = new IconUIResource(new ImageIcon(
                     GrayFilter.createDisabledImage(
-                        ((ImageIcon)defaultIcon).getImage()));
+                        ((ImageIcon)defaultIcon).getImage())));
             }
         }
         return disabledIcon;
@@ -597,8 +618,9 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public Icon getDisabledSelectedIcon() {
         if(disabledSelectedIcon == null) {
             if(selectedIcon != null && selectedIcon instanceof ImageIcon) {
-                disabledSelectedIcon = new ImageIcon(
-                    GrayFilter.createDisabledImage(((ImageIcon)selectedIcon).getImage()));
+                disabledSelectedIcon = new IconUIResource(new ImageIcon(
+                    GrayFilter.createDisabledImage(
+                        ((ImageIcon)selectedIcon).getImage())));
             } else {
                 return getDisabledIcon();
             }
@@ -738,7 +760,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     
     /**
      * Sets the vertical position of the text relative to the icon.
-     * @param alignment  one of the following values:
+     * @param textPosition  one of the following values:
      * <ul>
      * <li>SwingConstants.CENTER (the default)
      * <li>SwingConstants.TOP
@@ -1528,7 +1550,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     
     /**
      * Sets the model that this button represents.
-     * @param m the new <code>ButtonModel</code>
+     * @param newModel the new <code>ButtonModel</code>
      * @see #getModel
      * @beaninfo
      *        bound: true

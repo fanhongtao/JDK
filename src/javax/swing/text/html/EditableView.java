@@ -1,7 +1,7 @@
 /*
- * @(#)EditableView.java	1.8 01/12/03
+ * @(#)EditableView.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -23,7 +23,7 @@ import java.util.*;
  * size is 0 when not visible.
  *
  * @author  Scott Violet
- * @version 1.8, 12/03/01
+ * @version 1.9, 01/23/03
  */
 class EditableView extends ComponentView {
 

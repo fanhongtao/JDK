@@ -1,7 +1,7 @@
 /*
- * @(#)MetalLookAndFeel.java	1.158 02/04/18
+ * @(#)MetalLookAndFeel.java	1.161 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import sun.security.action.GetPropertyAction;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version @(#)MetalLookAndFeel.java	1.158 02/04/18
+ * @version @(#)MetalLookAndFeel.java	1.161 03/01/23
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
@@ -709,10 +709,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 				     "getInternalFrameAltMaximizeIcon",
 				     internalFrameIconArgs),
             "InternalFrame.titleFont",  windowTitleValue,
-	    "InternalFrame.windowBindings", new Object[] {
-	      "shift ESCAPE", "showSystemMenu",
-		"ctrl SPACE", "showSystemMenu",
-	            "ESCAPE", "hideSystemMenu"},
+	    "InternalFrame.windowBindings", null,
 	    // Internal Frame Auditory Cue Mappings
             "InternalFrame.closeSound", "sounds/FrameClose.wav",
             "InternalFrame.maximizeSound", "sounds/FrameMaximize.wav",
@@ -1065,6 +1062,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
                }),
+	    "Spinner.arrowButtonInsets", new Insets(0, 0, 0, 0),
+	    "Spinner.border", textFieldBorder,
+	    "Spinner.arrowButtonBorder", buttonBorder,
             "Spinner.font", controlTextValue,
 
 	    // SplitPane

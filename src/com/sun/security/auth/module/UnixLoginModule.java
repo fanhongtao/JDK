@@ -1,7 +1,7 @@
 /*
- * @(#)UnixLoginModule.java	1.4 01/12/03
+ * @(#)UnixLoginModule.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import com.sun.security.auth.UnixNumericGroupPrincipal;
  * If set to true in the login Configuration,
  * debug messages will be output to the output stream, System.out.
  *
- * @version 1.4, 12/03/01
+ * @version 1.5, 01/23/03
  */
 public class UnixLoginModule implements LoginModule {
 

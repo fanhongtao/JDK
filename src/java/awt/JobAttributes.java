@@ -1,7 +1,7 @@
 /*
- * @(#)JobAttributes.java	1.7 02/03/19
+ * @(#)JobAttributes.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ package java.awt;
  * has a corresponding <code>set<i>attributeName</i>ToDefault</code> method.
  * Default value fields are not provided.
  *
- * @version	1.7, 03/19/02
+ * @version	1.8, 01/23/03
  * @author	David Mendenhall
  */
 public final class JobAttributes implements Cloneable {

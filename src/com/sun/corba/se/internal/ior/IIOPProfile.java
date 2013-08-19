@@ -1,7 +1,7 @@
 /*
- * @(#)IIOPProfile.java	1.27 01/12/04
+ * @(#)IIOPProfile.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

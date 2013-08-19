@@ -1,7 +1,7 @@
 /*
- * @(#)Provider.java	1.52 02/04/23
+ * @(#)Provider.java	1.53 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.util.*;
  * service in Java that uses a pluggable architecture with a choice
  * of implementations that fit underneath. 
  *
- * @version 1.52, 04/23/02
+ * @version 1.53, 01/23/03
  * @author Benjamin Renaud
  */
 public abstract class Provider extends Properties {

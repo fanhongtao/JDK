@@ -1,7 +1,7 @@
 /*
- * @(#)CollectionCertStoreParameters.java	1.5 01/12/03
+ * @(#)CollectionCertStoreParameters.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.util.Collections;
  * provide the necessary locking. Multiple threads each manipulating
  * separate objects need not synchronize.
  *
- * @version 	1.5 12/03/01
+ * @version 	1.6 01/23/03
  * @since	1.4
  * @author	Steve Hanna
  * @see         java.util.Collection

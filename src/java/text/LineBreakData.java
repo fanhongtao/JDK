@@ -1,7 +1,7 @@
 /*
- * @(#)LineBreakData.java	1.18 01/12/03
+ * @(#)LineBreakData.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -305,7 +305,9 @@ final class LineBreakData extends TextBoundaryData
         nonBlank, //MATH_SYMBOL            = 25,
         preJwrd, //CURRENCY_SYMBOL         = 26,
         nonBlank, //MODIFIER_SYMBOL        = 27,
-        nonBlank  //OTHER_SYMBOL           = 28;
+        nonBlank, //OTHER_SYMBOL           = 28,
+        preJwrd, //INITIAL_QUOTE_PUNCTUATION = 29,
+        postJwrd, //FINAL_QUOTE_PUNCTUATION = 30,
     };
 
     private static SpecialMapping kExceptionChar[] =
@@ -428,7 +430,9 @@ final class LineBreakData extends TextBoundaryData
         false,          // kMathSymbol              = 25,
         true,           // kCurrencySymbol          = 26,
         false,          // kModifierSymbol          = 27,
-        true            // kOtherSymbol             = 28
+        true,           // kOtherSymbol             = 28,
+        false,          // kInitialQuotePunctuation = 29,
+        false,          // kFinalQuotePunctuation   = 30,
     };
 
     private static final int kLineAsciiValues[] = {

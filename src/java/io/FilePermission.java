@@ -1,7 +1,7 @@
 /*
- * @(#)FilePermission.java	1.69 01/12/03
+ * @(#)FilePermission.java	1.73 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -9,8 +9,16 @@ package java.io;
 
 import java.security.*;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.Collections;
+import java.io.ObjectStreamField;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import sun.security.util.SecurityConstants;
 
 /**
  * This class represents access to a file or directory.  A FilePermission consists
@@ -62,7 +70,7 @@ import java.util.StringTokenizer;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.69 01/12/03
+ * @version 1.73 03/01/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -123,10 +131,8 @@ public final class FilePermission extends Permission implements Serializable {
     private transient String cpath;
 
     // static Strings used by init(int mask)
-    private static final String RECURSIVE = "-";
-    private static final String WILD = "*";
-    private static final String SEP_RECURSIVE = File.separator+RECURSIVE;
-    private static final String SEP_WILD = File.separator+WILD;
+    private static final char RECURSIVE_CHAR = '-';
+    private static final char WILD_CHAR = '*';
 
 /*
     public String toString()
@@ -161,12 +167,10 @@ public final class FilePermission extends Permission implements Serializable {
 	if (mask == NONE) 
 		throw new IllegalArgumentException("invalid actions mask");
 
-	if (getName() == null) 
+	if ((cpath = getName()) == null) 
 		throw new NullPointerException("name can't be null");
 
 	this.mask = mask;
-
-	cpath = getName();
 
 	if (cpath.equals("<<ALL FILES>>")) {
 	    directory = true;
@@ -175,14 +179,19 @@ public final class FilePermission extends Permission implements Serializable {
 	    return;
 	}
 
-	if (cpath.endsWith(SEP_RECURSIVE) || cpath.equals(RECURSIVE)) {
+	int len = cpath.length();
+	char last = ((len > 0) ? cpath.charAt(len - 1) : 0);
+
+	if (last == RECURSIVE_CHAR &&
+	    (len == 1 || cpath.charAt(len - 2) == File.separatorChar)) {
 	    directory = true;
 	    recursive = true;
-	    cpath = cpath.substring(0, cpath.length()-1);
-	} else if (cpath.endsWith(SEP_WILD) || cpath.equals(WILD)) {
+	    cpath = cpath.substring(0, --len);
+	} else if (last == WILD_CHAR &&
+	    (len == 1 || cpath.charAt(len - 2) == File.separatorChar)) {
 	    directory = true;
 	    //recursive = false;
-	    cpath = cpath.substring(0, cpath.length()-1);
+	    cpath = cpath.substring(0, --len);
 	} else {
 	    // overkill since they are initialized to false, but 
 	    // commented out here to remind us...
@@ -190,7 +199,7 @@ public final class FilePermission extends Permission implements Serializable {
 	    //recursive = false;
 	}
 
-	if (cpath.equals("")) {
+	if (len == 0) {
 	    cpath = (String) java.security.AccessController.doPrivileged(
 		       new sun.security.action.GetPropertyAction("user.dir"));
 	}
@@ -207,8 +216,10 @@ public final class FilePermission extends Permission implements Serializable {
 		try {
 		    File file = new File(cpath);
 		    String canonical_path = file.getCanonicalPath();
+		    int ln;
 		    if (directory && 
-			(!canonical_path.endsWith(File.separator))) {
+	  		((ln=canonical_path.length()) == 0 ||
+			canonical_path.charAt(ln - 1) != File.separatorChar)) {
 			return canonical_path + File.separator;
 		    } else {
 			return canonical_path;
@@ -337,8 +348,11 @@ public final class FilePermission extends Permission implements Serializable {
 		    if (last == -1) 
 			return false;
 		    else {
-			String base = that.cpath.substring(0, last+1);
-			return (this.cpath.equals(base));
+			// this.cpath.equals(that.cpath.substring(0, last+1));
+			// Use regionMatches to avoid creating new string
+
+			return (this.cpath.length() == (last + 1)) &&
+			    this.cpath.regionMatches(0, that.cpath, 0, last+1);
 		    }
 		}
 	    }
@@ -390,10 +404,21 @@ public final class FilePermission extends Permission implements Serializable {
 
 	int mask = NONE;
 
+	// Null action valid?
 	if (actions == null) {
 	    return mask;
 	}
-
+	// Check against use of constants (used heavily within the JDK)
+	if (actions == SecurityConstants.FILE_READ_ACTION) {
+	    return READ;
+	} else if (actions == SecurityConstants.FILE_WRITE_ACTION) {
+	    return WRITE;
+	} else if (actions == SecurityConstants.FILE_EXECUTE_ACTION) {
+	    return EXECUTE;
+	} else if (actions == SecurityConstants.FILE_DELETE_ACTION) {
+	    return DELETE;
+	}
+	
 	char[] a = actions.toCharArray();
 
 	int i = a.length - 1;
@@ -590,7 +615,7 @@ public final class FilePermission extends Permission implements Serializable {
      * to a stream. The actions are serialized, and the superclass
      * takes care of the name.
      */
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
+    private void writeObject(ObjectOutputStream s)
         throws IOException
     {
 	// Write out the actions. The superclass takes care of the name
@@ -604,7 +629,7 @@ public final class FilePermission extends Permission implements Serializable {
      * readObject is called to restore the state of the FilePermission from
      * a stream.
      */
-    private synchronized void readObject(java.io.ObjectInputStream s)
+    private void readObject(ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
 	// Read in the actions, then restore everything else by calling init.
@@ -633,7 +658,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.69 12/03/01
+ * @version 1.73 01/23/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -645,7 +670,8 @@ public final class FilePermission extends Permission implements Serializable {
 final class FilePermissionCollection extends PermissionCollection
 implements Serializable {
 
-    private Vector permissions;
+    // Not serialized; see serialization section at end of class
+    private transient List perms;
 
     /**
      * Create an empty FilePermissions object.
@@ -653,7 +679,7 @@ implements Serializable {
      */
 
     public FilePermissionCollection() {
-	permissions = new Vector();
+	perms = new ArrayList();
     }
 
     /**
@@ -677,7 +703,9 @@ implements Serializable {
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 	    
-	permissions.addElement(permission);
+        // No need to synchronize because all adds are done sequentially
+	// before any implies() calls
+	perms.add(permission);
     }
 
     /**
@@ -701,10 +729,9 @@ implements Serializable {
 	int effective = 0;
 	int needed = desired;
 
-	Enumeration e = permissions.elements();
-	
-	while (e.hasMoreElements()) {
-	    FilePermission x = (FilePermission) e.nextElement();
+	int len = perms.size();
+	for (int i = 0; i < len; i++) {
+    	    FilePermission x = (FilePermission) perms.get(i);
 	    if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(fp)) {
 		effective |=  x.getMask();
 		if ((effective & desired) == desired)
@@ -722,8 +749,57 @@ implements Serializable {
      * @return an enumeration of all the FilePermission objects.
      */
 
-    public Enumeration elements()
-    {
-	return permissions.elements();
+    public Enumeration elements() {
+        // Convert Iterator into Enumeration
+	return Collections.enumeration(perms);
+    }
+
+    private static final long serialVersionUID = 2202956749081564585L;
+
+    // Need to maintain serialization interoperability with earlier releases,
+    // which had the serializable field:
+    //    private Vector permissions;
+
+    /**
+     * @serialField permissions java.util.Vector
+     *     A list of FilePermission objects.
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("permissions", Vector.class),
+    };
+
+    /**
+     * @serialData "permissions" field (a Vector containing the FilePermissions).
+     */
+    /*
+     * Writes the contents of the perms field out as a Vector for
+     * serialization compatibility with earlier releases.
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+	// Don't call out.defaultWriteObject()
+
+	// Write out Vector
+	Vector permissions = new Vector(perms.size());
+	permissions.addAll(perms);
+
+        ObjectOutputStream.PutField pfields = out.putFields();
+        pfields.put("permissions", permissions);
+        out.writeFields();
+    }
+
+    /*
+     * Reads in a Vector of FilePermissions and saves them in the perms field.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, 
+    ClassNotFoundException {
+	// Don't call defaultReadObject()
+
+	// Read in serialized fields
+	ObjectInputStream.GetField gfields = in.readFields();
+
+	// Get the one we want
+	Vector permissions = (Vector)gfields.get("permissions", null);
+	perms = new ArrayList(permissions.size());
+	perms.addAll(permissions);
     }
 }

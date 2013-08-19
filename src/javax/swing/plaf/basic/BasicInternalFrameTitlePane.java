@@ -1,7 +1,7 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.51 01/12/03
+ * @(#)BasicInternalFrameTitlePane.java	1.53 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -677,10 +677,10 @@ public class BasicInternalFrameTitlePane extends JComponent
         public NoFocusButton() {
             setFocusPainted(false);
             setMargin(new Insets(0,0,0,0));
+	    setOpaque(true);
         }
 	public boolean isFocusTraversable() { return false; }
 	public void requestFocus() {};
-        public boolean isOpaque() { return true; }
     };  // end NoFocusButton
 
 }   // End Title Pane Class

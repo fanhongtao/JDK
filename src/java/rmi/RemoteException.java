@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteException.java	1.21 01/12/03
+ * @(#)RemoteException.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.rmi;
  * may be accessed via the {@link Throwable#getCause()} method, as well as
  * the aforementioned "legacy field."
  *
- * @version 1.21, 12/03/01
+ * @version 1.22, 01/23/03
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

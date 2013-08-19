@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationGroup.java	1.41 02/04/08
+ * @(#)ActivationGroup.java	1.43 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -76,7 +76,7 @@ import sun.security.action.GetIntegerAction;
  * manager you would like to install.
  *
  * @author 	Ann Wollrath
- * @version	1.41, 02/04/08
+ * @version	1.43, 03/01/23
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
@@ -450,8 +450,8 @@ public abstract class ActivationGroup
 		    Naming.lookup("//:" + port +
 				  "/java.rmi.activation.ActivationSystem");
 	    } catch (Exception e) {
-		throw new ActivationException("ActivationSystem not running",
-					      e);
+		throw new ActivationException(
+		    "unable to obtain ActivationSystem", e);
 	    }
 	}
 	return currSystem;

@@ -1,7 +1,7 @@
 /*
- * @(#)SocketPermission.java	1.50 01/12/03
+ * @(#)SocketPermission.java	1.56 03/04/16
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -9,13 +9,20 @@ package java.net;
 
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.Hashtable;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.StringTokenizer;
 import java.net.InetAddress;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.io.Serializable;
+import java.io.ObjectStreamField;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.io.IOException;
+import sun.security.util.SecurityConstants;
+
 
 /**
  * This class represents access to a network via sockets.
@@ -70,8 +77,8 @@ import java.io.IOException;
  * resolve
  * </pre>
  * The "listen" action is only meaningful when used with "localhost". 
- * The "resolve" (resolve host/ip name service lookups) action is implied
- * when any of the other actions are present.
+ * The "resolve" action is implied when any of the other actions are present.
+ * The action "resolve" refers to host/ip name service lookups.
  * 
  * <p>As an example of the creation and meaning of SocketPermissions,  
  * note that if the following permission:
@@ -102,7 +109,7 @@ import java.io.IOException;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.50 01/12/03
+ * @version 1.56 03/04/16
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -113,6 +120,7 @@ import java.io.IOException;
 public final class SocketPermission extends Permission 
 implements java.io.Serializable 
 {
+    private static final long serialVersionUID = -7204263841984476862L;
 
     /**
      * Connect to host:port
@@ -226,13 +234,15 @@ implements java.io.Serializable
      */
     public SocketPermission(String host, String action) {
 	super(getHost(host));
-	init(host, getMask(action));
+	// name initialized to getHost(host); NPE detected in getHost()
+	init(getName(), getMask(action));
     }
 
 
     SocketPermission(String host, int mask) {
 	super(getHost(host));
-	init(host, mask);
+	// name initialized to getHost(host); NPE detected in getHost()
+	init(getName(), mask);
     }
 
     private static String getHost(String host)
@@ -314,12 +324,6 @@ implements java.io.Serializable
      * called.
      */
     private void init(String host, int mask) {
-
-	if (host == null) 
-		throw new NullPointerException("host can't be null");
-	
-	host = getHost(host);
-
 	// Set the integer mask that represents the actions
 
 	if ((mask & ALL) != mask) 
@@ -350,7 +354,7 @@ implements java.io.Serializable
 		throw new 
 		    IllegalArgumentException("invalid host/port: "+host);
 	    }
-	    sep = host.indexOf(':', rb+1);
+	    sep = hostport.indexOf(':', rb+1);
 	} else {
 	    start = 0;
 	    sep = host.indexOf(':', rb);
@@ -432,8 +436,17 @@ implements java.io.Serializable
 
 	int mask = NONE;
 
-	if (action == null) {
-	    return mask;
+	// Check against use of constants (used heavily within the JDK)
+	if (action == SecurityConstants.SOCKET_RESOLVE_ACTION) {
+	    return RESOLVE;
+	} else if (action == SecurityConstants.SOCKET_CONNECT_ACTION) {
+	    return CONNECT;
+	} else if (action == SecurityConstants.SOCKET_LISTEN_ACTION) {
+	    return LISTEN;
+	} else if (action == SecurityConstants.SOCKET_ACCEPT_ACTION) {
+	    return ACCEPT;
+	} else if (action == SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION) {
+	    return CONNECT|ACCEPT;
 	}
 
 	char[] a = action.toCharArray();
@@ -608,7 +621,8 @@ implements java.io.Serializable
      * <li> <i>p</i> is an instanceof SocketPermission,<p>
      * <li> <i>p</i>'s actions are a proper subset of this
      * object's actions, and<p>
-     * <li> <i>p</i>'s port range is included in this port range.<p>
+     * <li> <i>p</i>'s port range is included in this port range. Note:
+     * port range is ignored when p only contains the action, 'resolve'.<p>
      * </ul>
      * 
      * Then <code>implies</code> checks each of the following, in order,
@@ -787,9 +801,10 @@ implements java.io.Serializable
      * <P>
      * @param obj the object to test for equality with this object.
      * 
-     * @return true if <i>obj</i> is a SocketPermission, and has the same hostname,
-     *  port range, and
-     *  actions as this SocketPermission object.
+     * @return true if <i>obj</i> is a SocketPermission, and has the
+     *  same hostname, port range, and actions as this
+     *  SocketPermission object. However, port range will be ignored
+     *  in the comparison if <i>obj</i> only contains the action, 'resolve'.
      */
     public boolean equals(Object obj) {
 	if (obj == this)
@@ -805,10 +820,12 @@ implements java.io.Serializable
 	// check the mask first
 	if (this.mask != that.mask) return false;
 
-	// now check the port range...
-	if ((this.portrange[0] != that.portrange[0]) ||
-	    (this.portrange[1] != that.portrange[1])) {
-	    return false;
+	if ((that.mask & RESOLVE) != that.mask) {
+	    // now check the port range...
+	    if ((this.portrange[0] != that.portrange[0]) ||
+		(this.portrange[1] != that.portrange[1])) {
+		return false;
+	    }
 	}
 
 	// short cut. This catches:
@@ -1032,7 +1049,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.50 12/03/01
+ * @version 1.56 04/16/03
  *
  * @author Roland Schemers
  *
@@ -1042,12 +1059,8 @@ else its the cname?
 final class SocketPermissionCollection extends PermissionCollection 
 implements Serializable
 {
-    /**
-     * The SocketPermissions for this set.
-     * @serial
-     */
-
-    private Vector permissions;
+    // Not serialized; see serialization section at end of class
+    private transient List perms;
 
     /**
      * Create an empty SocketPermissions object.
@@ -1055,7 +1068,7 @@ implements Serializable
      */
 
     public SocketPermissionCollection() {
-	permissions = new Vector();
+	perms = new ArrayList();
     }
 
     /**
@@ -1079,9 +1092,12 @@ implements Serializable
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
+        // No need to synchronize because all adds are done sequentially
+	// before any implies() calls
+
 	// optimization to ensure perms most likely to be tested
 	// show up early (4301064)
-	permissions.add(0, permission);
+	perms.add(0, permission);
     }
 
     /**
@@ -1105,10 +1121,10 @@ implements Serializable
 	int effective = 0;
 	int needed = desired;
 
-	Enumeration e = permissions.elements();
+	int len = perms.size();
 	//System.out.println("implies "+np);
-	while (e.hasMoreElements()) {
-	    SocketPermission x = (SocketPermission) e.nextElement();
+	for (int i = 0; i < len; i++) {
+	    SocketPermission x = (SocketPermission) perms.get(i);
 	    //System.out.println("  trying "+x);
 	    if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(np)) {
 		effective |=  x.getMask();
@@ -1127,8 +1143,62 @@ implements Serializable
      * @return an enumeration of all the SocketPermission objects.
      */
 
-    public Enumeration elements()
-    {
-	return permissions.elements();
+    public Enumeration elements() {
+        // Convert Iterator into Enumeration
+	return Collections.enumeration(perms);
+    }
+
+    private static final long serialVersionUID = 2787186408602843674L;
+
+    // Need to maintain serialization interoperability with earlier releases,
+    // which had the serializable field:
+
+    // 
+    // The SocketPermissions for this set.
+    // @serial
+    // 
+    // private Vector permissions;
+
+    /**
+     * @serialField permissions java.util.Vector
+     *     A list of the SocketPermissions for this set.
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("permissions", Vector.class),
+    };
+
+    /**
+     * @serialData "permissions" field (a Vector containing the SocketPermissions).
+     */
+    /*
+     * Writes the contents of the perms field out as a Vector for
+     * serialization compatibility with earlier releases.
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+	// Don't call out.defaultWriteObject()
+
+	// Write out Vector
+	Vector permissions = new Vector(perms.size());
+	permissions.addAll(perms);
+
+        ObjectOutputStream.PutField pfields = out.putFields();
+        pfields.put("permissions", permissions);
+        out.writeFields();
+    }
+
+    /*
+     * Reads in a Vector of SocketPermissions and saves them in the perms field.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, 
+    ClassNotFoundException {
+	// Don't call in.defaultReadObject()
+
+	// Read in serialized fields
+	ObjectInputStream.GetField gfields = in.readFields();
+
+	// Get the one we want
+	Vector permissions = (Vector)gfields.get("permissions", null);
+	perms = new ArrayList(permissions.size());
+	perms.addAll(permissions);
     }
 }

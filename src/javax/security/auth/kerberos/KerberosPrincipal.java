@@ -1,7 +1,7 @@
 /*
- * @(#)KerberosPrincipal.java	1.14 01/12/03
+ * @(#)KerberosPrincipal.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -18,7 +18,7 @@ import sun.security.util.*;
  * This class encapsulates a Kerberos principal.
  *
  * @author Mayank Upadhyay
- * @version 1.14, 12/03/01
+ * @version 1.15, 01/23/03
  * @since 1.4
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)MenuSelectionManager.java	1.32 01/12/03
+ * @(#)MenuSelectionManager.java	1.34 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -14,7 +14,7 @@ import javax.swing.event.*;
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
  * 
- * @version 1.32 12/03/01
+ * @version 1.34 01/23/03
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
@@ -72,14 +72,15 @@ public class MenuSelectionManager {
         }
 
         for(i=currentSelectionCount - 1 ; i >= firstDifference ; i--) {
-            ((MenuElement)selection.elementAt(i)).menuSelectionChanged(false);
+            MenuElement me = (MenuElement)selection.elementAt(i);
             selection.removeElementAt(i);
+            me.menuSelectionChanged(false);
         }
 
         for(i = firstDifference, c = path.length ; i < c ; i++) {
 	    if (path[i] != null) {
-		path[i].menuSelectionChanged(true);
 		selection.addElement(path[i]);
+		path[i].menuSelectionChanged(true);
 	    }        
 	}
 
@@ -104,7 +105,9 @@ public class MenuSelectionManager {
      * when a choice has been made
      */
     public void clearSelectedPath() {
-        setSelectedPath(null);
+        if (selection.size() > 0) {
+            setSelectedPath(null);
+        }
     }
 
     /**

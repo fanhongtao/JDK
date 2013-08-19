@@ -1,7 +1,7 @@
 /*
- * @(#)ContinuationContext.java	1.5 01/12/03
+ * @(#)ContinuationContext.java	1.7 03/05/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,16 +15,19 @@ import javax.naming.*;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 01/12/03
+  * @version 1.7 03/05/09
   * @since 1.3
   */
 
 class ContinuationContext implements Context, Resolver {
     protected CannotProceedException cpe;
+    protected Hashtable env;
     protected Context contCtx = null;
 
-    protected ContinuationContext(CannotProceedException cpe) {
+    protected ContinuationContext(CannotProceedException cpe,
+			Hashtable env) {
 	this.cpe = cpe;
+	this.env = env;
     }
 
     protected Context getTargetContext() throws NamingException {
@@ -35,7 +38,7 @@ class ContinuationContext implements Context, Resolver {
 	    contCtx = NamingManager.getContext(cpe.getResolvedObj(),
 					       cpe.getAltName(),
 					       cpe.getAltNameCtx(),
-					       cpe.getEnvironment());
+					       env);
 	    if (contCtx == null)
 		throw (NamingException)cpe.fillInStackTrace();
 	}
@@ -187,7 +190,7 @@ class ContinuationContext implements Context, Resolver {
 	Resolver res = NamingManager.getResolver(cpe.getResolvedObj(),
 						 cpe.getAltName(),
 						 cpe.getAltNameCtx(),
-						 cpe.getEnvironment());
+						 env);
 	if (res == null)
 	    throw (NamingException)cpe.fillInStackTrace();
 	return res.resolveToClass(name, contextType);
@@ -201,7 +204,7 @@ class ContinuationContext implements Context, Resolver {
 	Resolver res = NamingManager.getResolver(cpe.getResolvedObj(),
 						 cpe.getAltName(),
 						 cpe.getAltNameCtx(),
-						 cpe.getEnvironment());
+						 env);
 	if (res == null)
 	    throw (NamingException)cpe.fillInStackTrace();
 	return res.resolveToClass(name, contextType);
@@ -209,6 +212,7 @@ class ContinuationContext implements Context, Resolver {
 
     public void close() throws NamingException {
 	cpe = null;
+	env = null;
 	if (contCtx != null) {
 	    contCtx.close();
 	    contCtx = null;

@@ -1,7 +1,7 @@
 /*
- * @(#)NTSidUserPrincipal.java	1.11 01/12/03
+ * @(#)NTSidUserPrincipal.java	1.13 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package com.sun.security.auth;
  * on how to achieve this.  Authorization decisions can then be based upon
  * the Principals associated with a <code>Subject</code>.
  *
- * @version 1.11, 12/03/01
+ * @version 1.13, 01/27/03
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */
@@ -29,7 +29,7 @@ public class NTSidUserPrincipal extends NTSid {
      *
      * <p>
      *
-     * @param stringSid a string version of the Windows NT SID for this user.<p>
+     * @param name a string version of the Windows NT SID for this user.<p>
      *
      * @exception NullPointerException if the <code>name</code>
      *                  is <code>null</code>.

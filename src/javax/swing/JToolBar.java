@@ -1,7 +1,7 @@
 /*
- * @(#)JToolBar.java	1.102 01/12/03
+ * @(#)JToolBar.java	1.105 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,7 @@ import java.util.Hashtable;
  *   attribute: isContainer true
  * description: A component which displays commonly used controls or Actions.
  *
- * @version 1.102 12/03/01
+ * @version 1.105 01/23/03
  * @author Georges Saab
  * @author Jeff Shapiro
  * @see Action
@@ -172,6 +172,12 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      */
     public void updateUI() {
         setUI((ToolBarUI)UIManager.getUI(this));
+        // GTKLookAndFeel installs a different LayoutManager, and sets it
+        // to null after changing the look and feel, so, install the default
+        // if the LayoutManager is null.
+        if (getLayout() == null) {
+            setLayout(new DefaultToolBarLayout(getOrientation())); 
+        }
         invalidate();
     }
 
@@ -465,8 +471,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      */
     public void addSeparator()
     {
-        JToolBar.Separator s = new JToolBar.Separator();
-        add(s);
+	addSeparator(null);
     }
 
     /**
@@ -478,6 +483,11 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
     public void addSeparator( Dimension size )
     {
         JToolBar.Separator s = new JToolBar.Separator( size );
+	if (getOrientation() == VERTICAL) {
+	    s.setOrientation(JSeparator.HORIZONTAL);
+	} else {
+	    s.setOrientation(JSeparator.VERTICAL);
+	}
         add(s);
     }
 
@@ -651,7 +661,11 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
          */
         public Dimension getMinimumSize()
 	{
-            return getPreferredSize();
+	    if (separatorSize != null) {
+		return separatorSize.getSize();
+	    } else {
+		return super.getMinimumSize();
+	    }
         }
 
         /** 
@@ -662,7 +676,11 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
          */
         public Dimension getMaximumSize()
 	{
-            return getPreferredSize();
+	    if (separatorSize != null) {
+		return separatorSize.getSize();
+	    } else {
+		return super.getMaximumSize();
+	    }
         }
 
         /** 
@@ -673,7 +691,11 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
          */
         public Dimension getPreferredSize()
 	{
-	    return separatorSize.getSize();
+	    if (separatorSize != null) {
+		return separatorSize.getSize();
+	    } else {
+		return super.getPreferredSize();
+	    }
         }
     }
 

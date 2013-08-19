@@ -1,7 +1,7 @@
 /*
- * @(#)DirectoryManager.java	1.8 01/12/03
+ * @(#)DirectoryManager.java	1.10 03/05/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,7 +41,7 @@ import com.sun.naming.internal.FactoryEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 01/12/03
+  * @version 1.10 03/05/09
   *
   * @see DirObjectFactory
   * @see DirStateFactory
@@ -73,11 +73,13 @@ public class DirectoryManager extends NamingManager {
 	Hashtable env = cpe.getEnvironment();
 	if (env == null) {
 	    env = new Hashtable(7);
-	    cpe.setEnvironment(env);
+	} else {
+	    // Make a (shallow) copy of the environment.
+ 	    env = (Hashtable) env.clone();
 	}
 	env.put(CPE, cpe);
 
-	return (new ContinuationDirContext(cpe));
+	return (new ContinuationDirContext(cpe, env));
     }
 
     /**

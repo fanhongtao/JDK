@@ -2,7 +2,7 @@
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2001 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights 
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -124,8 +124,12 @@ import org.w3c.dom.Node;
  * dependencies to enable easy compilation and usage even when 
  * Xalan, DOM/SAX/JAXP, etc. are not present.</p>
  * 
- * @author Shane_Curcuru@lotus.com
- * @version $Id: EnvironmentCheck.java,v 1.7 2001/09/10 19:13:16 curcuru Exp $
+ * <p>Note: for an improved version of this utility, please see 
+ * the xml-commons' project Which utility which does the same kind 
+ * of thing but in a much simpler manner.</p>
+ *
+ * @author Shane_Curcuru@us.ibm.com
+ * @version $Id: EnvironmentCheck.java,v 1.14 2002/10/31 15:06:43 ilene Exp $
  */
 public class EnvironmentCheck
 {
@@ -261,6 +265,7 @@ public class EnvironmentCheck
     checkJAXPVersion(hash);
     checkProcessorVersion(hash);
     checkParserVersion(hash);
+    checkAntVersion(hash);
     checkDOMVersion(hash);
     checkSAXVersion(hash);
     checkSystemProperties(hash);
@@ -294,7 +299,7 @@ public class EnvironmentCheck
     boolean errors = false;
 
     logMsg(
-      "#---- BEGIN writeEnvironmentReport($Revision: 1.7 $): Useful properties found: ----");
+      "#---- BEGIN writeEnvironmentReport($Revision: 1.14 $): Useful stuff found: ----");
 
     // Fake the Properties-like output
     for (Enumeration enum = h.keys(); 
@@ -363,11 +368,13 @@ public class EnvironmentCheck
   public String[] jarNames =
   {
     "xalan.jar", "xalansamples.jar", "xalanj1compat.jar", "xalanservlet.jar",
-    "xerces.jar", 
+    "xerces.jar",       // Xerces-J 1.x
+    "xercesImpl.jar",   // Xerces-J 2.x
     "testxsl.jar", 
     "crimson.jar", 
     "lotusxsl.jar", 
     "jaxp.jar", "parser.jar", "dom.jar", "sax.jar", "xml.jar", 
+    "xml-apis.jar",
     "xsltc.jar"
   };
 
@@ -450,7 +457,7 @@ public class EnvironmentCheck
     try
     {
       Element envCheckNode = factory.createElement("EnvironmentCheck");
-      envCheckNode.setAttribute("version", "$Revision: 1.7 $");
+      envCheckNode.setAttribute("version", "$Revision: 1.14 $");
       container.appendChild(envCheckNode);
 
       if (null == h)
@@ -701,7 +708,7 @@ public class EnvironmentCheck
     {
 
       // Look at each classpath entry for each of our requested jarNames
-      String filename = st.nextToken().toLowerCase();
+      String filename = st.nextToken();
 
       for (int i = 0; i < jars.length; i++)
       {
@@ -765,75 +772,9 @@ public class EnvironmentCheck
    */
   protected String getApparentVersion(String jarName, long jarSize)
   {
-
-    // Lookup in a manual table of known .jar sizes; 
-    //  only includes shipped versions of certain projects
-    Hashtable jarVersions = new Hashtable();
-
-    // key=jarsize, value=jarname ' from ' distro name
-    // Note assumption: two jars cannot have the same size!
-    // Note: hackish Hashtable, this could use improvement
-    jarVersions.put(new Long(857192), "xalan.jar from xalan-j_1_1");
-    jarVersions.put(new Long(440237), "xalan.jar from xalan-j_1_2");
-    jarVersions.put(new Long(436094), "xalan.jar from xalan-j_1_2_1");
-    jarVersions.put(new Long(426249), "xalan.jar from xalan-j_1_2_2");
-    jarVersions.put(new Long(702536), "xalan.jar from xalan-j_2_0_0");
-    jarVersions.put(new Long(720930), "xalan.jar from xalan-j_2_0_1");
-    jarVersions.put(new Long(872241), "xalan.jar from xalan-j_2_2_D10");
-    jarVersions.put(new Long(857171), "xalan.jar from lotusxsl-j_1_0_1");
-    jarVersions.put(new Long(802165), "xalan.jar from lotusxsl-j_2_0_0");
-    jarVersions.put(new Long(857692), "xalan.jar from lotusxsl-j_2_2");
-    // If the below were more common I would update it to report 
-    //  errors better; but this is so old hardly anyone has it
-    jarVersions.put(new Long(424490), "xalan.jar from Xerces Tools releases - ERROR:DO NOT USE!");
-
-    jarVersions.put(new Long(1591855), "xerces.jar from xalan-j_1_1 from xerces-1...");
-    jarVersions.put(new Long(1498679), "xerces.jar from xalan-j_1_2 from xerces-1_2_0.bin");
-    jarVersions.put(new Long(1484896), "xerces.jar from xalan-j_1_2_1 from xerces-1_2_1.bin");
-    jarVersions.put(new Long(804460),  "xerces.jar from xalan-j_1_2_2 from xerces-1_2_2.bin");
-    jarVersions.put(new Long(1499244), "xerces.jar from xalan-j_2_0_0 from xerces-1_2_3.bin");
-    jarVersions.put(new Long(1605266), "xerces.jar from xalan-j_2_0_1 from xerces-1_3_0.bin");
-    jarVersions.put(new Long(1190776), "xerces.jar from lotusxsl_1_0_1 apparently-from xerces-1_0_3.bin");
-    jarVersions.put(new Long(1489400), "xerces.jar from lotusxsl-j_2_0_0 from XML4J-3_1_1");
-    jarVersions.put(new Long(1787796), "xerces.jar from lotusxsl-j_2_2 or xerces-1_4_1.bin");
-    jarVersions.put(new Long(904030), "xerces.jar from xerces-1_4_0.bin");
-    jarVersions.put(new Long(1802885), "xerces.jar from xerces-1_4_2.bin");
-    jarVersions.put(new Long(1808883), "xerces.jar from xalan-j_2_2_D10 or xerces-1_4_3.bin");
-    jarVersions.put(new Long(1803877), "xerces.jar from XML4J-3_2_1");
-
-    jarVersions.put(new Long(37485), "xalanj1compat.jar from xalan-j_2_0_0");
-    jarVersions.put(new Long(38100), "xalanj1compat.jar from xalan-j_2_0_1");
-
-    jarVersions.put(new Long(18779), "xalanservlet.jar from xalan-j_2_0_0");
-    jarVersions.put(new Long(21453), "xalanservlet.jar from xalan-j_2_0_1");
-
-    // For those who've downloaded JAXP from sun
-    jarVersions.put(new Long(5618), "jaxp.jar from jaxp1.0.1");
-    jarVersions.put(new Long(136133), "parser.jar from jaxp1.0.1");
-    jarVersions.put(new Long(28404), "jaxp.jar from jaxp-1.1");
-    jarVersions.put(new Long(187162), "crimson.jar from jaxp-1.1");
-    jarVersions.put(new Long(801714), "xalan.jar from jaxp-1.1");
-
-    // jakarta-ant: since many people use ant these days
-    jarVersions.put(new Long(5537), "jaxp.jar from jakarta-ant-1.3 or 1.2");
-    jarVersions.put(new Long(136198),
-                    "parser.jar from jakarta-ant-1.3 or 1.2");
-
-    // Various LotusXSL versions, which are based on Xalan code 
-    //  (LotusXSL was donated by Lotus to Apache to become Xalan)
-    jarVersions.put(new Long(120274), "lotusxsl.jar from lotusxsl-0_16_4");
-    jarVersions.put(new Long(120293), "lotusxsl.jar from lotusxsl-0_16_5");
-    jarVersions.put(new Long(283777), "lotusxsl.jar from lotusxsl-0_17_2");
-    jarVersions.put(new Long(305577), "lotusxsl.jar from lotusxsl-0_17_3");
-    jarVersions.put(new Long(304500), "lotusxsl.jar from lotusxsl-0_17_4");
-    jarVersions.put(new Long(714959), "lotusxsl.jar from lotusxsl-0_18_1");
-    jarVersions.put(new Long(717674), "lotusxsl.jar from lotusxsl-0_18_2");
-    jarVersions.put(new Long(752343), "lotusxsl.jar from lotusxsl-0_18_3");
-    jarVersions.put(new Long(907101), "lotusxsl.jar from lotusxsl-0_18_4");
-    
-
     // If we found a matching size and it's for our 
     //  jar, then return it's description
+    // Lookup in static jarVersions Hashtable
     String foundSize = (String) jarVersions.get(new Long(jarSize));
 
     if ((null != foundSize) && (foundSize.startsWith(jarName)))
@@ -843,10 +784,11 @@ public class EnvironmentCheck
     else
     {
       if ("xerces.jar".equalsIgnoreCase(jarName)
+              || "xercesImpl.jar".equalsIgnoreCase(jarName)
               || "xalan.jar".equalsIgnoreCase(jarName))
       {
 
-        // For xalan.jar and xerces.jar, which we ship together:
+        // For xalan.jar and xerces.jar/xercesImpl.jar, which we ship together:
         // The jar is not from a shipped copy of xalan-j, so 
         //  it's up to the user to ensure that it's compatible
         return jarName + " " + WARNING + CLASS_PRESENT;
@@ -883,7 +825,7 @@ public class EnvironmentCheck
       final String JAXP1_CLASS = "javax.xml.parsers.DocumentBuilder";
       final String JAXP11_METHOD = "getDOMImplementation";
 
-      clazz = Class.forName(JAXP1_CLASS);
+      clazz = classForName(JAXP1_CLASS);
 
       Method method = clazz.getMethod(JAXP11_METHOD, noArgs);
 
@@ -902,9 +844,9 @@ public class EnvironmentCheck
       }
       else
       {
-
         // We couldn't even find the class, and don't have 
-        //  any JAXP support at all
+        //  any JAXP support at all, or only have the 
+        //  transform half of it
         h.put(ERROR + VERSION + "JAXP", CLASS_NOTPRESENT);
         h.put(ERROR, ERROR_FOUND);
       }
@@ -928,7 +870,7 @@ public class EnvironmentCheck
     {
       final String XALAN1_VERSION_CLASS =
         "org.apache.xalan.xslt.XSLProcessorVersion";
-      Class clazz = Class.forName(XALAN1_VERSION_CLASS);
+      Class clazz = classForName(XALAN1_VERSION_CLASS);
 
       // Found Xalan-J 1.x, grab it's version fields
       StringBuffer buf = new StringBuffer();
@@ -955,38 +897,47 @@ public class EnvironmentCheck
 
     try
     {
+      // NOTE: This is the old Xalan 2.0, 2.1, 2.2 version class, 
+      //    is being replaced by class below
       final String XALAN2_VERSION_CLASS =
         "org.apache.xalan.processor.XSLProcessorVersion";
-      Class clazz = Class.forName(XALAN2_VERSION_CLASS);
+      Class clazz = classForName(XALAN2_VERSION_CLASS);
 
       // Found Xalan-J 2.x, grab it's version fields
       StringBuffer buf = new StringBuffer();
-      Field f = clazz.getField("PRODUCT");
-
+      Field f = clazz.getField("S_VERSION");
       buf.append(f.get(null));
-      buf.append(";");
 
-      f = clazz.getField("LANGUAGE");
-
-      buf.append(f.get(null));
-      buf.append(";");
-
-      f = clazz.getField("S_VERSION");
-
-      buf.append(f.get(null));
-      buf.append(";");
-      h.put(VERSION + "xalan2", buf.toString());
+      h.put(VERSION + "xalan2x", buf.toString());
     }
     catch (Exception e2)
     {
-      h.put(VERSION + "xalan2", CLASS_NOTPRESENT);
+      h.put(VERSION + "xalan2x", CLASS_NOTPRESENT);
+    }
+    try
+    {
+      // NOTE: This is the new Xalan 2.2+ version class
+      final String XALAN2_2_VERSION_CLASS =
+        "org.apache.xalan.Version";
+      final String XALAN2_2_VERSION_METHOD = "getVersion";
+      final Class noArgs[] = new Class[0];
+
+      Class clazz = classForName(XALAN2_2_VERSION_CLASS);
+      Method method = clazz.getMethod(XALAN2_2_VERSION_METHOD, noArgs);
+      Object returnValue = method.invoke(null, new Object[0]);
+
+      h.put(VERSION + "xalan2_2", (String)returnValue);
+    }
+    catch (Exception e2)
+    {
+      h.put(VERSION + "xalan2_2", CLASS_NOTPRESENT);
     }
   }
 
   /**
    * Report product version information from common parsers.
    *
-   * Looks for version info in xerces.jar/crimson.jar.
+   * Looks for version info in xerces.jar/xercesImpl.jar/crimson.jar.
    *
    * //@todo actually look up version info in crimson manifest
    *
@@ -998,51 +949,43 @@ public class EnvironmentCheck
     if (null == h)
       h = new Hashtable();
 
-    final String XERCES1_VERSION_CLASS =
-      "org.apache.xerces.framework.Version";
-    final String XERCES2_VERSION_CLASS =
-      "org.apache.xerces.impl.Version";
-
     try
     {
-      Class clazz = Class.forName(XERCES1_VERSION_CLASS);
+      final String XERCES1_VERSION_CLASS = "org.apache.xerces.framework.Version";
+      Class clazz = classForName(XERCES1_VERSION_CLASS);
 
       // Found Xerces-J 1.x, grab it's version fields
       Field f = clazz.getField("fVersion");
       String parserVersion = (String) f.get(null);
 
-      h.put(VERSION + "xerces", parserVersion);
+      h.put(VERSION + "xerces1", parserVersion);
     }
     catch (Exception e)
     {
-      try
-      {
-        // Oops, no 1.x found, look for 2.x
-        Class clazz = Class.forName(XERCES2_VERSION_CLASS);
+      h.put(VERSION + "xerces1", CLASS_NOTPRESENT);
+    }
 
-        // Found Xerces-J 2.x, grab it's version fields
-        Field f = clazz.getField("fVersion");
-        String parserVersion = (String) f.get(null);
+    // Look for xerces1 and xerces2 parsers separately
+    try
+    {
+      final String XERCES2_VERSION_CLASS = "org.apache.xerces.impl.Version";
+      Class clazz = classForName(XERCES2_VERSION_CLASS);
 
-        h.put(VERSION + "xerces", parserVersion);
-      }
-      catch (Exception e2)
-      {
+      // Found Xerces-J 2.x, grab it's version fields
+      Field f = clazz.getField("fVersion");
+      String parserVersion = (String) f.get(null);
 
-        // This isn't necessarily an error, since the user might 
-        //  be using some other parser
-        h.put(VERSION + "xerces", CLASS_NOTPRESENT);
-      }
-
-      // This isn't necessarily an error, since the user might 
-      //  be using some other parser
-      h.put(VERSION + "xerces", CLASS_NOTPRESENT);
+      h.put(VERSION + "xerces2", parserVersion);
+    }
+    catch (Exception e)
+    {
+      h.put(VERSION + "xerces2", CLASS_NOTPRESENT);
     }
 
     try
     {
-      final String CRIMSON_CLASS = "org.apache.crimson.Parser2";
-      Class clazz = Class.forName(CRIMSON_CLASS);
+      final String CRIMSON_CLASS = "org.apache.crimson.parser.Parser2";
+      Class clazz = classForName(CRIMSON_CLASS);
 
       //@todo determine specific crimson version
       h.put(VERSION + "crimson", CLASS_PRESENT);
@@ -1050,6 +993,35 @@ public class EnvironmentCheck
     catch (Exception e)
     {
       h.put(VERSION + "crimson", CLASS_NOTPRESENT);
+    }
+  }
+
+  /**
+   * Report product version information from Ant.
+   *
+   * @param h Hashtable to put information in
+   */
+  protected void checkAntVersion(Hashtable h)
+  {
+
+    if (null == h)
+      h = new Hashtable();
+
+    try
+    {
+      final String ANT_VERSION_CLASS = "org.apache.tools.ant.Main";
+      final String ANT_VERSION_METHOD = "getAntVersion"; // noArgs
+      final Class noArgs[] = new Class[0];
+
+      Class clazz = classForName(ANT_VERSION_CLASS);
+      Method method = clazz.getMethod(ANT_VERSION_METHOD, noArgs);
+      Object returnValue = method.invoke(null, new Object[0]);
+
+      h.put(VERSION + "ant", (String)returnValue);
+    }
+    catch (Exception e)
+    {
+      h.put(VERSION + "ant", CLASS_NOTPRESENT);
     }
   }
 
@@ -1079,7 +1051,7 @@ public class EnvironmentCheck
 
     try
     {
-      Class clazz = Class.forName(DOM_LEVEL2_CLASS);
+      Class clazz = classForName(DOM_LEVEL2_CLASS);
       Method method = clazz.getMethod(DOM_LEVEL2_METHOD, twoStringArgs);
 
       // If we succeeded, we have loaded interfaces from a 
@@ -1091,7 +1063,7 @@ public class EnvironmentCheck
 
         // Check for the working draft version, which is 
         //  commonly found, but won't work anymore
-        clazz = Class.forName(DOM_LEVEL2WD_CLASS);
+        clazz = classForName(DOM_LEVEL2WD_CLASS);
         method = clazz.getMethod(DOM_LEVEL2WD_METHOD, twoStringArgs);
 
         h.put(ERROR + VERSION + "DOM.draftlevel", "2.0wd");
@@ -1103,7 +1075,7 @@ public class EnvironmentCheck
         {
 
           // Check for the final draft version as well
-          clazz = Class.forName(DOM_LEVEL2FD_CLASS);
+          clazz = classForName(DOM_LEVEL2FD_CLASS);
           method = clazz.getMethod(DOM_LEVEL2FD_METHOD, twoStringArgs);
 
           h.put(VERSION + "DOM.draftlevel", "2.0fd");
@@ -1149,14 +1121,14 @@ public class EnvironmentCheck
     final String SAX_VERSION2BETA_CLASSNF = "org.xml.sax.helpers.AttributesImpl";
     final String SAX_VERSION2BETA_METHODNF = "setAttributes";  // Attributes
     final Class oneStringArg[] = { java.lang.String.class };
-    // Note this introduces a minor dependency on SAX...
+    // Note this introduces a minor compile dependency on SAX...
     final Class attributesArg[] = { org.xml.sax.Attributes.class };
 
     try
     {
       // This method was only added in the final SAX 2.0 release; 
       //  see changes.html "Changes from SAX 2.0beta2 to SAX 2.0prerelease"
-      Class clazz = Class.forName(SAX_VERSION2BETA_CLASSNF);
+      Class clazz = classForName(SAX_VERSION2BETA_CLASSNF);
       Method method = clazz.getMethod(SAX_VERSION2BETA_METHODNF, attributesArg);
 
       // If we succeeded, we have loaded interfaces from a 
@@ -1172,7 +1144,7 @@ public class EnvironmentCheck
             
       try
       {
-        Class clazz = Class.forName(SAX_VERSION2_CLASS);
+        Class clazz = classForName(SAX_VERSION2_CLASS);
         Method method = clazz.getMethod(SAX_VERSION2_METHOD, oneStringArg);
 
         // If we succeeded, we have loaded interfaces from a 
@@ -1189,7 +1161,7 @@ public class EnvironmentCheck
           
         try
         {
-          Class clazz = Class.forName(SAX_VERSION1_CLASS);
+          Class clazz = classForName(SAX_VERSION1_CLASS);
           Method method = clazz.getMethod(SAX_VERSION1_METHOD, oneStringArg);
 
           // If we succeeded, we have loaded interfaces from a 
@@ -1207,6 +1179,186 @@ public class EnvironmentCheck
         }
       }
     }
+  }
+
+  /** 
+   * Worker method to load a class.  
+   * Factor out loading classes for future use and JDK differences.  
+   * Copied from javax.xml.*.FactoryFinder
+   * @param className name of class to load from 
+   * an appropriate classLoader
+   * @return the class asked for
+   */
+  protected static Class classForName(String className)
+        throws ClassNotFoundException
+  {
+    ClassLoader classLoader = findClassLoader();
+    if (classLoader == null) 
+    {
+      return Class.forName(className);
+    } 
+    else 
+    {
+      return classLoader.loadClass(className);
+    }
+  }
+  
+  /**
+   * Worker method to figure out which ClassLoader to use.  
+   * For JDK 1.2 and later use the context ClassLoader. 
+   * Copied from javax.xml.*.FactoryFinder
+   * @return the appropriate ClassLoader
+   */
+  protected static ClassLoader findClassLoader()
+        throws ClassNotFoundException
+  {
+    ClassLoader classLoader = null;
+    Method m = null;
+
+    try 
+    {
+      m = Thread.class.getMethod("getContextClassLoader", null);
+    } 
+    catch (NoSuchMethodException e) 
+    {
+      // Assume that we are running JDK 1.1, use the current ClassLoader
+      return EnvironmentCheck.class.getClassLoader();
+    }
+    try 
+    {
+      return (ClassLoader) m.invoke(Thread.currentThread(), null);
+    } 
+    catch (Exception e) 
+    {
+      throw new RuntimeException(e.toString());
+    }
+  }
+
+  /** 
+   * Manual table of known .jar sizes.  
+   * Only includes shipped versions of certain projects.
+   * key=jarsize, value=jarname ' from ' distro name
+   * Note assumption: two jars cannot have the same size!
+   *
+   * @see #getApparentVersion(String, long)
+   */
+  protected static Hashtable jarVersions = new Hashtable();
+
+  /** 
+   * Static initializer for jarVersions table.  
+   * Doing this just once saves time and space.
+   *
+   * @see #getApparentVersion(String, long)
+   */
+  static 
+  {
+    // Note: hackish Hashtable, this could use improvement
+    jarVersions.put(new Long(857192), "xalan.jar from xalan-j_1_1");
+    jarVersions.put(new Long(440237), "xalan.jar from xalan-j_1_2");
+    jarVersions.put(new Long(436094), "xalan.jar from xalan-j_1_2_1");
+    jarVersions.put(new Long(426249), "xalan.jar from xalan-j_1_2_2");
+    jarVersions.put(new Long(702536), "xalan.jar from xalan-j_2_0_0");
+    jarVersions.put(new Long(720930), "xalan.jar from xalan-j_2_0_1");
+    jarVersions.put(new Long(732330), "xalan.jar from xalan-j_2_1_0");
+    jarVersions.put(new Long(872241), "xalan.jar from xalan-j_2_2_D10");
+    jarVersions.put(new Long(882739), "xalan.jar from xalan-j_2_2_D11");
+    jarVersions.put(new Long(923866), "xalan.jar from xalan-j_2_2_0");
+    jarVersions.put(new Long(905872), "xalan.jar from xalan-j_2_3_D1");
+    jarVersions.put(new Long(906122), "xalan.jar from xalan-j_2_3_0");
+    jarVersions.put(new Long(906248), "xalan.jar from xalan-j_2_3_1");
+    jarVersions.put(new Long(983377), "xalan.jar from xalan-j_2_4_D1");    
+    jarVersions.put(new Long(997276), "xalan.jar from xalan-j_2_4_0");
+    
+    jarVersions.put(new Long(857171), "xalan.jar from lotusxsl-j_1_0_1");
+    jarVersions.put(new Long(802165), "xalan.jar from lotusxsl-j_2_0_0");
+    jarVersions.put(new Long(857692), "xalan.jar from lotusxsl-j_2_2");
+    jarVersions.put(new Long(906359), "xalan.jar from lotusxsl-j_2_3_1");
+    jarVersions.put(new Long(857692), "xalan.jar from lotusxsl-j_2_3_2");
+    jarVersions.put(new Long(1201514), "xalan.jar from lotusxsl-j_2_3_3");
+    jarVersions.put(new Long(1201599), "xalan.jar from lotusxsl-j_2_3_4");
+    jarVersions.put(new Long(1201641), "xalan.jar from lotusxsl-j_2_3_5");    
+
+    jarVersions.put(new Long(596540), "xsltc.jar from xalan-j_2_2_0");
+    jarVersions.put(new Long(590247), "xsltc.jar from xalan-j_2_3_D1");
+    jarVersions.put(new Long(589914), "xsltc.jar from xalan-j_2_3_0");
+    jarVersions.put(new Long(589915), "xsltc.jar from xalan-j_2_3_1");
+    jarVersions.put(new Long(1306667), "xsltc.jar from xalan-j_2_4_D1");     
+    jarVersions.put(new Long(1328227), "xsltc.jar from xalan-j_2_4_0");
+    jarVersions.put(new Long(1268634), "xsltc.jar-bundled from xalan-j_2_3_0");
+
+    jarVersions.put(new Long(100196), "xml-apis.jar from xalan-j_2_2_0 or xalan-j_2_3_D1");
+    jarVersions.put(new Long(108484), "xml-apis.jar from xalan-j_2_3_0, or xalan-j_2_3_1 from xml-commons-1.0.b2");
+    jarVersions.put(new Long(109049), "xml-apis.jar from xalan-j_2_4_0 from xml-commons RIVERCOURT1 branch");
+    jarVersions.put(new Long(109049), "xml-apis.jar from xalan-j_2_4_0, lotusxsl-j_2_3_2 or lotusxsl-j_2_3_3 from xml-commons RIVERCOURT1");
+    jarVersions.put(new Long(113749), "xml-apis.jar from xalan-j_2_4_1, lotusxsl-j_2_3_4 or lotusxsl-j_2_3_5 from factoryfinder-build of xml-commons RIVERCOURT1");
+    // If the below were more common I would update it to report 
+    //  errors better; but this is so old hardly anyone has it
+    jarVersions.put(new Long(424490), "xalan.jar from Xerces Tools releases - ERROR:DO NOT USE!");
+
+    jarVersions.put(new Long(1591855), "xerces.jar from xalan-j_1_1 from xerces-1...");
+    jarVersions.put(new Long(1498679), "xerces.jar from xalan-j_1_2 from xerces-1_2_0.bin");
+    jarVersions.put(new Long(1484896), "xerces.jar from xalan-j_1_2_1 from xerces-1_2_1.bin");
+    jarVersions.put(new Long(804460),  "xerces.jar from xalan-j_1_2_2 from xerces-1_2_2.bin");
+    jarVersions.put(new Long(1499244), "xerces.jar from xalan-j_2_0_0 from xerces-1_2_3.bin");
+    jarVersions.put(new Long(1605266), "xerces.jar from xalan-j_2_0_1 from xerces-1_3_0.bin");
+    jarVersions.put(new Long(904030), "xerces.jar from xalan-j_2_1_0 from xerces-1_4.bin");
+    jarVersions.put(new Long(1190776), "xerces.jar from lotusxsl_1_0_1 apparently-from xerces-1_0_3.bin");
+    jarVersions.put(new Long(1489400), "xerces.jar from lotusxsl-j_2_0_0 from XML4J-3_1_1");
+    jarVersions.put(new Long(1787796), "xerces.jar from lotusxsl-j_2_2 or xerces-1_4_1.bin");
+    jarVersions.put(new Long(904030), "xerces.jar from xerces-1_4_0.bin");
+    jarVersions.put(new Long(1802885), "xerces.jar from xerces-1_4_2.bin");
+    jarVersions.put(new Long(1734594), "xerces.jar from Xerces-J-bin.2.0.0.beta3");
+    jarVersions.put(new Long(1808883), "xerces.jar from xalan-j_2_2_D10,D11,D12 or xerces-1_4_3.bin");
+    jarVersions.put(new Long(1803877), "xerces.jar from XML4J-3_2_1");
+    jarVersions.put(new Long(1812019), "xerces.jar from xalan-j_2_2_0");
+    jarVersions.put(new Long(1720292), "xercesImpl.jar from xalan-j_2_3_D1");
+    jarVersions.put(new Long(1730053), "xercesImpl.jar from xalan-j_2_3_0 or xalan-j_2_3_1 from xerces-2_0_0");
+    jarVersions.put(new Long(1728861), "xercesImpl.jar from xalan-j_2_4_D1 from xerces-2_0_1");    
+    jarVersions.put(new Long(972027), "xercesImpl.jar from xalan-j_2_4_0 from xerces-2_1");
+    jarVersions.put(new Long(831587), "xercesImpl.jar from xalan-j_2_4_1 from xerces-2_2");    
+    jarVersions.put(new Long(1729063), "xercesImpl.jar from lotusxsl-j_2_3_1 from XML4J-4_0_0");
+    jarVersions.put(new Long(1738551), "xercesImpl.jar from lotusxsl-j_2_3_2 from XML4J-4_0_2");
+    jarVersions.put(new Long(3243826), "xercesImpl.jar from lotusxsl-j_2_3_3 from XML4J-4_0_5");
+    jarVersions.put(new Long(1171789), "xercesImpl.jar from lotusxsl-j_2_3_4 from XML4J-4_0_6");
+    jarVersions.put(new Long(1174955), "xercesImpl.jar from lotusxsl-j_2_3_5 from XML4J-4_0_8");
+    jarVersions.put(new Long(1173922), "xercesImpl.jar from lotusxsl-j_2_3_6 from XML4J-4_0_9");
+    jarVersions.put(new Long(831828), "xercesImpl.jar from lotusxsl-j_2_4_0 from XML4J-4_1_1");
+
+    jarVersions.put(new Long(37485), "xalanj1compat.jar from xalan-j_2_0_0");
+    jarVersions.put(new Long(38100), "xalanj1compat.jar from xalan-j_2_0_1");
+
+    jarVersions.put(new Long(18779), "xalanservlet.jar from xalan-j_2_0_0");
+    jarVersions.put(new Long(21453), "xalanservlet.jar from xalan-j_2_0_1");
+    jarVersions.put(new Long(24826), "xalanservlet.jar from xalan-j_2_3_1 or xalan-j_2_4_1 or lotusxsl-j_2_3_1 to lotusxsl-j-2_3_5");    
+    jarVersions.put(new Long(24831), "xalanservlet.jar from xalan-j_2_4_1");
+
+    // For those who've downloaded JAXP from sun
+    jarVersions.put(new Long(5618), "jaxp.jar from jaxp1.0.1");
+    jarVersions.put(new Long(136133), "parser.jar from jaxp1.0.1");
+    jarVersions.put(new Long(28404), "jaxp.jar from jaxp-1.1");
+    jarVersions.put(new Long(187162), "crimson.jar from jaxp-1.1");
+    jarVersions.put(new Long(801714), "xalan.jar from jaxp-1.1");
+    jarVersions.put(new Long(196399), "crimson.jar from crimson-1.1.1");
+    jarVersions.put(new Long(33323), "jaxp.jar from crimson-1.1.1 or jakarta-ant-1.4.1b1");
+    jarVersions.put(new Long(152717), "crimson.jar from crimson-1.1.2beta2");
+    jarVersions.put(new Long(88143), "xml-apis.jar from crimson-1.1.2beta2");
+    jarVersions.put(new Long(206384), "crimson.jar from crimson-1.1.3 or jakarta-ant-1.4.1b1");
+
+    // jakarta-ant: since many people use ant these days
+    jarVersions.put(new Long(136198), "parser.jar from jakarta-ant-1.3 or 1.2");
+    jarVersions.put(new Long(5537), "jaxp.jar from jakarta-ant-1.3 or 1.2");
+
+    // Various LotusXSL versions, which are based on Xalan code 
+    //  (LotusXSL was donated by Lotus to Apache to become Xalan)
+    jarVersions.put(new Long(120274), "lotusxsl.jar from lotusxsl-0_16_4");
+    jarVersions.put(new Long(120293), "lotusxsl.jar from lotusxsl-0_16_5");
+    jarVersions.put(new Long(283777), "lotusxsl.jar from lotusxsl-0_17_2");
+    jarVersions.put(new Long(305577), "lotusxsl.jar from lotusxsl-0_17_3");
+    jarVersions.put(new Long(304500), "lotusxsl.jar from lotusxsl-0_17_4");
+    jarVersions.put(new Long(714959), "lotusxsl.jar from lotusxsl-0_18_1");
+    jarVersions.put(new Long(717674), "lotusxsl.jar from lotusxsl-0_18_2");
+    jarVersions.put(new Long(752343), "lotusxsl.jar from lotusxsl-0_18_3");
+    jarVersions.put(new Long(907101), "lotusxsl.jar from lotusxsl-0_18_4");
   }
 
   /** Simple PrintWriter we send output to; defaults to System.out.  */

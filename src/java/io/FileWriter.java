@@ -1,7 +1,7 @@
 /*
- * @(#)FileWriter.java	1.16 02/02/06
+ * @(#)FileWriter.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ package java.io;
  * @see OutputStreamWriter
  * @see FileOutputStream
  *
- * @version 	1.16, 02/02/06
+ * @version 	1.17, 03/01/23
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

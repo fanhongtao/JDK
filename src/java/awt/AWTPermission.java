@@ -1,7 +1,7 @@
 /*
- * @(#)AWTPermission.java	1.22 02/02/01
+ * @(#)AWTPermission.java	1.24 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.security.BasicPermission;
  * the permission.
  * <P>
  *
- * <table border=1 cellpadding=5>
+ * <table border=1 cellpadding=5 summary="AWTPermission target names, descriptions, and associated risks.">
  * <tr>
  * <th>Permission Target Name</th>
  * <th>What the Permission Allows</th>
@@ -51,40 +51,6 @@ import java.security.BasicPermission;
  * </tr>
  *
  * <tr>
- *   <td>listenToAllAWTEvents</td>
- *   <td>Listen to all AWT events, system-wide</td>
- *   <td>After adding an AWT event listener,
- * malicious code may scan all AWT events dispatched in the system,
- * allowing it to read all user input (such as passwords).  Each
- * AWT event listener is called from within the context of that
- * event queue's EventDispatchThread, so if the accessEventQueue
- * permission is also enabled, malicious code could modify the
- * contents of AWT event queues system-wide, causing the application
- * or applet to misbehave in an insecure manner.</td>
- * </tr>
- *
- * <tr>
- *   <td>showWindowWithoutWarningBanner</td>
- *   <td>Display of a window without also displaying a banner warning
- * that the window was created by an applet</td>
- *   <td>Without this warning,
- * an applet may pop up windows without the user knowing that they
- * belong to an applet.  Since users may make security-sensitive
- * decisions based on whether or not the window belongs to an applet
- * (entering a username and password into a dialog box, for example),
- * disabling this warning banner may allow applets to trick the user
- * into entering such information.</td>
- * </tr>
- *
- * <tr>
- *   <td>readDisplayPixels</td>
- *   <td>Readback of pixels from the display screen</td>
- *   <td>Interfaces such as the java.awt.Composite interface or the 
- * java.awt.Robot class allow arbitrary code to examine pixels on the 
- * display enable malicious code to snoop on the activities of the user.</td>
- * </tr>
- *
- * <tr>
  *   <td>createRobot</td>
  *   <td>Create java.awt.Robot objects</td>
  *   <td>The java.awt.Robot object allows code to generate native-level
@@ -100,6 +66,50 @@ import java.security.BasicPermission;
  * low-level graphics card memory.  This could be used to spoof the
  * system, since the program is in direct control of rendering.</td>
  * </tr>
+ *
+ * <tr>
+ *   <td>listenToAllAWTEvents</td>
+ *   <td>Listen to all AWT events, system-wide</td>
+ *   <td>After adding an AWT event listener,
+ * malicious code may scan all AWT events dispatched in the system,
+ * allowing it to read all user input (such as passwords).  Each
+ * AWT event listener is called from within the context of that
+ * event queue's EventDispatchThread, so if the accessEventQueue
+ * permission is also enabled, malicious code could modify the
+ * contents of AWT event queues system-wide, causing the application
+ * or applet to misbehave in an insecure manner.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>readDisplayPixels</td>
+ *   <td>Readback of pixels from the display screen</td>
+ *   <td>Interfaces such as the java.awt.Composite interface or the 
+ * java.awt.Robot class allow arbitrary code to examine pixels on the 
+ * display enable malicious code to snoop on the activities of the user.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>replaceKeyboardFocusManager</td>
+ *   <td>Sets the <code>KeyboardFocusManager</code> for
+ *       a particular thread.
+ *   <td>When <code>SecurityManager</code> is installed, the invoking
+ *       thread must be granted this permission in order to replace
+ *       the current <code>KeyboardFocusManager</code>.  If permission
+ *       is not granted, a <code>SecurityException</code> will be thrown.
+ * </tr>
+ *
+ * <tr>
+ *   <td>showWindowWithoutWarningBanner</td>
+ *   <td>Display of a window without also displaying a banner warning
+ * that the window was created by an applet</td>
+ *   <td>Without this warning,
+ * an applet may pop up windows without the user knowing that they
+ * belong to an applet.  Since users may make security-sensitive
+ * decisions based on whether or not the window belongs to an applet
+ * (entering a username and password into a dialog box, for example),
+ * disabling this warning banner may allow applets to trick the user
+ * into entering such information.</td>
+ * </tr>
  * </table>
  *
  * @see java.security.BasicPermission
@@ -108,7 +118,7 @@ import java.security.BasicPermission;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 	1.22, 02/01/02
+ * @version 	1.24, 01/28/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers

@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLWriter.java	1.30 01/12/03
+ * @(#)HTMLWriter.java	1.32 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -14,6 +14,7 @@ import java.util.Vector;
 import java.io.IOException;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
+import java.net.URL;
 
 /**
  * This is a writer for HTMLDocuments.
@@ -347,7 +348,7 @@ public class HTMLWriter extends AbstractWriter {
      * @exception IOException on any I/O error
      */
     protected void startTag(Element elem) throws IOException, BadLocationException {
-
+	
 	if (synthesizedElement(elem)) {
 	    return;
 	}
@@ -413,6 +414,16 @@ public class HTMLWriter extends AbstractWriter {
 	else if (name == HTML.Tag.HEAD) {
 	    wroteHead = true;
 	}
+	HTMLDocument document = null;
+	if (name == HTML.Tag.BODY
+	    && (document = (HTMLDocument)getDocument()).hasBaseTag()) {
+            incrIndent();
+	    indent();
+	    write("<base href = \"" + document.getBase() + "\">");
+	    writeLineSeparator();
+            decrIndent();
+	}
+	
     }
 
     

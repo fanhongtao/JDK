@@ -1,7 +1,7 @@
 /*
- * @(#)ListCellRenderer.java	1.15 01/12/03
+ * @(#)ListCellRenderer.java	1.16 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.awt.Component;
  * @see JList
  * @see DefaultListCellRenderer
  *
- * @version 1.15 12/03/01
+ * @version 1.16 01/23/03
  * @author Hans Muller
  */
 public interface ListCellRenderer

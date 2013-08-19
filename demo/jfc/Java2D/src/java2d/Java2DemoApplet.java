@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@ import javax.swing.*;
               <param name="verbose" value=" ">
               <param name="zoom" value=" ">
  *
- * @version @(#)Java2DemoApplet.java	1.16 02/06/13
+ * @version @(#)Java2DemoApplet.java	1.17 03/01/23
  * @author Brian Lichtenwalter  (Framework, Intro, demos)
  * @author Jim Graham           (demos)
  */

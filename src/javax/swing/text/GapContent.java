@@ -1,7 +1,7 @@
 /*
  * @(#)GapContent.java	1.21 01/12/03
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -15,6 +15,8 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 import javax.swing.SwingUtilities;
+import java.lang.ref.WeakReference;
+import java.lang.ref.ReferenceQueue;
 
 /**
  * An implementation of the AbstractDocument.Content interface 
@@ -64,6 +66,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 
 	marks = new MarkVector();
 	search = new MarkData(0);
+	queue = new ReferenceQueue();
     }
     
     /**
@@ -207,16 +210,31 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
      * @exception BadLocationException if the specified position is invalid
      */
     public Position createPosition(int offset) throws BadLocationException {
+	while ( queue.poll() != null ) {
+	    unusedMarks++;
+	}
 	if (unusedMarks > Math.max(5, (marks.size() / 10))) {
 	    removeUnusedMarks();
 	}
 	int g0 = getGapStart();
 	int g1 = getGapEnd();
 	int index = (offset < g0) ? offset : offset + (g1 - g0);
-	MarkData m = new MarkData(index);
-	int sortIndex = findSortIndex(m);
-	marks.insertElementAt(m, sortIndex);
-	return new StickyPosition(m);
+	search.index = index;
+	int sortIndex = findSortIndex(search);
+	MarkData m;
+	StickyPosition position;
+	if (sortIndex < marks.size()
+	    && (m = marks.elementAt(sortIndex)).index == index
+	    && (position = m.getPosition()) != null) {
+	    //position references the correct StickyPostition
+	} else {
+	    position = new StickyPosition();
+	    m = new MarkData(index,position,queue);
+	    position.setMark(m);
+	    marks.insertElementAt(m, sortIndex);
+	}
+
+	return position;
     }
 
     /**
@@ -227,9 +245,14 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
      * it.  The update table holds only a reference
      * to this data.
      */
-    final class MarkData {
+    final class MarkData extends WeakReference {
 
 	MarkData(int index) {
+	    super(null);
+	    this.index = index;
+	}
+	MarkData(int index, StickyPosition position, ReferenceQueue queue) {
+	    super(position, queue);
 	    this.index = index;
 	}
 
@@ -245,36 +268,24 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    int offs = (index < g0) ? index : index - (g1 - g0);
 	    return Math.max(offs, 0);
 	}
-
-        public final void dispose() {
-	    unused = true;
-	    unusedMarks += 1;
+	
+	StickyPosition getPosition() {
+	    return (StickyPosition)get();
 	}
-
 	int index;
-	boolean unused;
     }
 
-    /**
-     * This really wants to be a weak reference but
-     * in 1.1 we don't have a 100% pure solution for
-     * this... so this class trys to hack a solution 
-     * to causing the marks to be collected.
-     */
     final class StickyPosition implements Position {
 
-	StickyPosition(MarkData mark) {
+	StickyPosition() {
+	}
+
+	void setMark(MarkData mark) {
 	    this.mark = mark;
 	}
 
         public final int getOffset() {
 	    return mark.getOffset();
-	}
-
- 	protected void finalize() throws Throwable {
-	    // schedule the record to be removed later
-	    // on another thread.
-	    mark.dispose();
 	}
 
         public String toString() {
@@ -299,7 +310,9 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
     /**
      * The number of unused mark entries
      */
-    private transient int unusedMarks;
+    private transient int unusedMarks = 0;
+
+    private transient ReferenceQueue queue;
 
     // --- gap management -------------------------------
 
@@ -525,7 +538,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	MarkVector cleaned = new MarkVector(n);
 	for (int i = 0; i < n; i++) {
 	    MarkData mark = marks.elementAt(i);
-	    if (mark.unused == false) {
+	    if (mark.get() != null) {
 		cleaned.addElement(mark);
 	    }
 	}
@@ -647,6 +660,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
         s.defaultReadObject();
 	marks = new MarkVector();
 	search = new MarkData(0);
+        queue = new ReferenceQueue();
     }
 
 

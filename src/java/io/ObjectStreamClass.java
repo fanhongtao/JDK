@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamClass.java	1.126 02/04/16
+ * @(#)ObjectStreamClass.java	1.130 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import sun.misc.SoftCache;
 import sun.misc.Unsafe;
 import sun.reflect.ReflectionFactory;
@@ -89,6 +91,8 @@ public class ObjectStreamClass implements Serializable {
     private ClassNotFoundException resolveEx;
     /** exception (if any) to be thrown if deserialization attempted */
     private InvalidClassException deserializeEx;
+    /** exception (if any) to be thrown if serialization attempted */
+    private InvalidClassException serializeEx;
     /** exception (if any) to be thrown if default serialization attempted */
     private InvalidClassException defaultSerializeEx;
 
@@ -329,12 +333,12 @@ public class ObjectStreamClass implements Serializable {
 	    AccessController.doPrivileged(new PrivilegedAction() {
 		public Object run() {
 		    suid = getDeclaredSUID(cl);
-		    fields = getSerialFields(cl);
 		    try {
+			fields = getSerialFields(cl);
 			computeFieldOffsets();
 		    } catch (InvalidClassException e) {
-			// should not occur, since fields are already sorted
-			throw new InternalError();
+			serializeEx = deserializeEx = e;
+			fields = NO_FIELDS;
 		    }
 		    
 		    if (externalizable) {
@@ -596,6 +600,16 @@ public class ObjectStreamClass implements Serializable {
 	}
     }
     
+    /**
+     * Throws an InvalidClassException if objects whose class is represented by
+     * this descriptor should not be allowed to serialize.
+     */
+    void checkSerialize() throws InvalidClassException {
+	if (serializeEx != null) {
+	    throw serializeEx;
+	}
+    }
+
     /**
      * Throws an InvalidClassException if objects whose class is represented by
      * this descriptor should not be permitted to use default serialization
@@ -1241,12 +1255,25 @@ public class ObjectStreamClass implements Serializable {
     }
 
     /**
-     * Returns true if classes are defined in the same package, false
+     * Returns true if classes are defined in the same runtime package, false
      * otherwise.
      */
     private static boolean packageEquals(Class cl1, Class cl2) {
-	Package pkg1 = cl1.getPackage(), pkg2 = cl2.getPackage();
-	return ((pkg1 == pkg2) || ((pkg1 != null) && (pkg1.equals(pkg2))));
+	return (cl1.getClassLoader() == cl2.getClassLoader() &&
+		getPackageName(cl1).equals(getPackageName(cl2)));
+    }
+
+    /**
+     * Returns package name of given class.
+     */
+    private static String getPackageName(Class cl) {
+	String s = cl.getName();
+	int i = s.lastIndexOf('[');
+	if (i >= 0) {
+	    s = s.substring(i + 2);
+	}
+	i = s.lastIndexOf('.');
+	return (i >= 0) ? s.substring(0, i) : "";
     }
 
     /**
@@ -1333,9 +1360,12 @@ public class ObjectStreamClass implements Serializable {
      * Returns ObjectStreamField array describing the serializable fields of
      * the given class.  Serializable fields backed by an actual field of the
      * class are represented by ObjectStreamFields with corresponding non-null
-     * Field objects.
+     * Field objects.  Throws InvalidClassException if the (explicitly
+     * declared) serializable fields are invalid.
      */
-    private static ObjectStreamField[] getSerialFields(Class cl) {
+    private static ObjectStreamField[] getSerialFields(Class cl) 
+	throws InvalidClassException
+    {
 	ObjectStreamField[] fields;
 	if (Serializable.class.isAssignableFrom(cl) &&
 	    !Externalizable.class.isAssignableFrom(cl) &&
@@ -1359,9 +1389,13 @@ public class ObjectStreamClass implements Serializable {
      * by an actual field of the class are represented by ObjectStreamFields
      * with corresponding non-null Field objects.  For compatibility with past
      * releases, a "serialPersistentFields" field with a null value is
-     * considered equivalent to not declaring "serialPersistentFields".
+     * considered equivalent to not declaring "serialPersistentFields".  Throws
+     * InvalidClassException if the declared serializable fields are
+     * invalid--e.g., if multiple fields share the same name.
      */
-    private static ObjectStreamField[] getDeclaredSerialFields(Class cl) {
+    private static ObjectStreamField[] getDeclaredSerialFields(Class cl) 
+	throws InvalidClassException
+    {
 	ObjectStreamField[] serialPersistentFields = null;
 	try {
 	    Field f = cl.getDeclaredField("serialPersistentFields");
@@ -1380,10 +1414,20 @@ public class ObjectStreamClass implements Serializable {
 	
 	ObjectStreamField[] boundFields = 
 	    new ObjectStreamField[serialPersistentFields.length];
+	Set fieldNames = new HashSet(serialPersistentFields.length);
+
 	for (int i = 0; i < serialPersistentFields.length; i++) {
 	    ObjectStreamField spf = serialPersistentFields[i];
+
+	    String fname = spf.getName();
+	    if (fieldNames.contains(fname)) {
+		throw new InvalidClassException(
+		    "multiple serializable fields named " + fname);
+	    }
+	    fieldNames.add(fname);
+
 	    try {
-		Field f = cl.getDeclaredField(spf.getName());
+		Field f = cl.getDeclaredField(fname);
 		if ((f.getType() == spf.getType()) &&
 		    ((f.getModifiers() & Modifier.STATIC) == 0))
 		{
@@ -1394,7 +1438,7 @@ public class ObjectStreamClass implements Serializable {
 	    }
 	    if (boundFields[i] == null) {
 		boundFields[i] = new ObjectStreamField(
-		    spf.getName(), spf.getType(), spf.isUnshared());
+		    fname, spf.getType(), spf.isUnshared());
 	    }
 	}
 	return boundFields;
@@ -1630,7 +1674,7 @@ public class ObjectStreamClass implements Serializable {
 	/** number of primitive fields */
 	private final int numPrimFields;
 	/** unsafe field keys */
-	private final int[] keys;
+	private final long[] keys;
 	/** field data offsets */
 	private final int[] offsets;
 	/** field type codes */
@@ -1648,7 +1692,7 @@ public class ObjectStreamClass implements Serializable {
 	FieldReflector(ObjectStreamField[] fields) {
 	    this.fields = fields;
 	    int nfields = fields.length;
-	    keys = new int[nfields];
+	    keys = new long[nfields];
 	    offsets = new int[nfields];
 	    typeCodes = new char[nfields];
 	    ArrayList typeList = new ArrayList();
@@ -1657,7 +1701,7 @@ public class ObjectStreamClass implements Serializable {
 		ObjectStreamField f = fields[i];
 		Field rf = f.getField();
 		keys[i] = (rf != null) ? 
-		    unsafe.fieldOffset(rf) : Unsafe.INVALID_FIELD_OFFSET;
+		    unsafe.objectFieldOffset(rf) : Unsafe.INVALID_FIELD_OFFSET;
 		offsets[i] = f.getOffset();
 		typeCodes[i] = f.getTypeCode();
 		if (!f.isPrimitive()) {
@@ -1693,7 +1737,8 @@ public class ObjectStreamClass implements Serializable {
 	     * in array should be equal to Unsafe.INVALID_FIELD_OFFSET.
 	     */
 	    for (int i = 0; i < numPrimFields; i++) {
-		int key = keys[i], off = offsets[i];
+		long key = keys[i];
+		int off = offsets[i];
 		switch (typeCodes[i]) {
 		    case 'Z':
 			Bits.putBoolean(buf, off, unsafe.getBoolean(obj, key));
@@ -1743,7 +1788,7 @@ public class ObjectStreamClass implements Serializable {
 		throw new NullPointerException();
 	    }
 	    for (int i = 0; i < numPrimFields; i++) {
-		int key = keys[i];
+		long key = keys[i];
 		if (key == Unsafe.INVALID_FIELD_OFFSET) {
 		    continue;		// discard value
 		}
@@ -1825,7 +1870,7 @@ public class ObjectStreamClass implements Serializable {
 		throw new NullPointerException();
 	    }
 	    for (int i = numPrimFields; i < fields.length; i++) {
-		int key = keys[i];
+		long key = keys[i];
 		if (key == Unsafe.INVALID_FIELD_OFFSET) {
 		    continue;		// discard value
 		}

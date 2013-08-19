@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCellEditor.java	1.47 02/02/11
+ * @(#)DefaultCellEditor.java	1.49 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.47 02/11/02
+ * @version 1.49 01/23/03
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -62,7 +62,7 @@ public class DefaultCellEditor extends AbstractCellEditor
     /**
      * Constructs a <code>DefaultCellEditor</code> that uses a text field.
      *
-     * @param x  a <code>JTextField</code> object
+     * @param textField  a <code>JTextField</code> object
      */
     public DefaultCellEditor(final JTextField textField) {
         editorComponent = textField;
@@ -82,7 +82,7 @@ public class DefaultCellEditor extends AbstractCellEditor
     /**
      * Constructs a <code>DefaultCellEditor</code> object that uses a check box.
      *
-     * @param x  a <code>JCheckBox</code> object
+     * @param checkBox  a <code>JCheckBox</code> object
      */
     public DefaultCellEditor(final JCheckBox checkBox) {
         editorComponent = checkBox;
@@ -106,9 +106,10 @@ public class DefaultCellEditor extends AbstractCellEditor
     }
 
     /**
-     * Constructs a <code>DefaultCellEditor</code> object that uses a combo box.
+     * Constructs a <code>DefaultCellEditor</code> object that uses a
+     * combo box.
      *
-     * @param x  a <code>JComboBox</code> object
+     * @param comboBox  a <code>JComboBox</code> object
      */
     public DefaultCellEditor(final JComboBox comboBox) {
         editorComponent = comboBox;
@@ -166,7 +167,7 @@ public class DefaultCellEditor extends AbstractCellEditor
 
     /**
      * Returns the number of clicks needed to start editing.
-     * @returns the number of clicks needed to start editing
+     * @return the number of clicks needed to start editing
      */
     public int getClickCountToStart() {
 	return clickCountToStart;

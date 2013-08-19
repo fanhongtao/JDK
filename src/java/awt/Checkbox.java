@@ -1,7 +1,7 @@
 /*
- * @(#)Checkbox.java	1.72 01/12/03
+ * @(#)Checkbox.java	1.79 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -34,7 +34,7 @@ import javax.accessibility.*;
  * This image depicts the check boxes and grid layout
  * created by this code example:
  * <p>
- * <img src="doc-files/Checkbox-1.gif"
+ * <img src="doc-files/Checkbox-1.gif" alt="The following context describes the graphic."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * The button labeled <code>one</code> is in the "on" state, and the
@@ -50,7 +50,7 @@ import javax.accessibility.*;
  * forces any other check box in the same group that is on
  * into the "off" state.
  *
- * @version	1.72 12/03/01
+ * @version	1.79 01/23/03
  * @author 	Sami Shaio
  * @see         java.awt.GridLayout
  * @see         java.awt.CheckboxGroup
@@ -72,7 +72,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 	 * defaults to null or "".
 	 * @serial
      * @see #getLabel()
-     * @see #setLabel()
+     * @see #setLabel(label)
      */
     String label;
 
@@ -80,7 +80,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * The state of the <code>Checkbox</code>.
      * @serial
      * @see #getState()
-     * @see #setState()
+     * @see #setState(state)
      */
     boolean state;
 
@@ -89,8 +89,8 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 	 * This field can be null indicating that the checkbox
 	 * is not a group checkbox.  
 	 * @serial
-     * @see getCheckBoxGroup()
-     * @see setCheckBoxGroup()
+     * @see #getCheckBoxGroup()
+     * @see #setCheckBoxGroup(CheckBoxGroup)
      */
     CheckboxGroup group;
 
@@ -239,7 +239,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      *
      * @return   the label of this check box, or <code>null</code>
      *                  if this check box has no label.
-     * @see      #setLabel
+     * @see      #setLabel(String)
      */
     public String getLabel() {
 	return label;
@@ -330,7 +330,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Determines this check box's group.
      * @return     this check box's group, or <code>null</code>
      *               if the check box is not part of a check box group.
-     * @see        #setCheckboxGroup
+     * @see        #setCheckboxGroup(CheckboxGroup)
      */
     public CheckboxGroup getCheckboxGroup() {
 	return group;
@@ -340,25 +340,53 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Sets this check box's group to be the specified check box group.
      * If this check box is already in a different check box group,
      * it is first taken out of that group.
+     * If the state of this check box is <code>true</code> and the new
+     * group already has a check box selected, this check box's state
+     * is changed to <code>false</code>.
      * @param     g   the new check box group, or <code>null</code>
      *                to remove this check box from any check box group.
      * @see       #getCheckboxGroup
      */
     public void setCheckboxGroup(CheckboxGroup g) {
-    	CheckboxGroup group = this.group;
-	if (group != null) {
-	    group.setSelectedCheckbox(null);
-	}
-	/* Locking check box above could cause deadlock with
-	 * CheckboxGroup's setSelectedCheckbox method.
-	 */
+        CheckboxGroup oldGroup;
+        boolean oldState;
+
+        /* Do nothing if this check box has already belonged
+         * to the check box group g.
+         */
+        if (this.group == g) {
+            return;
+        }
+
 	synchronized (this) {
+            oldGroup = this.group;
+            oldState = getState();
+
 	    this.group = g;
 	    CheckboxPeer peer = (CheckboxPeer)this.peer;
 	    if (peer != null) {
 		peer.setCheckboxGroup(g);
 	    }
+	    if (this.group != null && getState()) {
+	        if (this.group.getSelectedCheckbox() != null) {
+	            setState(false);
+	        } else {
+	            this.group.setSelectedCheckbox(this);
+	        }
+	    }
 	}
+
+        /* Locking check box below could cause deadlock with
+         * CheckboxGroup's setSelectedCheckbox method.
+         *
+         * Fix for 4726853 by kdm@sparc.spb.su
+         * Here we should check if this check box was selected
+         * in the previous group and set selected check box to
+         * null for that group if so.
+         */
+        if (oldGroup != null && oldState) {
+            oldGroup.setSelectedCheckbox(null);
+        }
     }
 
     /**
@@ -522,8 +550,9 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * @since       JDK1.1
      */
     protected void processItemEvent(ItemEvent e) {
-        if (itemListener != null) {
-            itemListener.itemStateChanged(e);
+        ItemListener listener = itemListener;
+        if (listener != null) {
+            listener.itemStateChanged(e);
         }
     }
 
@@ -570,9 +599,9 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      *   <code>itemListenerK</code> indicating an
      *     <code>ItemListener</code> object
      *
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component#itemListenerK
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws java.io.IOException
@@ -594,10 +623,10 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @serial
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @see #removeItemListener(ItemListener)
+     * @see #addItemListener(ItemListener)
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException

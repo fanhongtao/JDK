@@ -1,7 +1,7 @@
 /*
- * @(#)JCheckBoxMenuItem.java	1.52 01/12/03
+ * @(#)JCheckBoxMenuItem.java	1.53 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -56,7 +56,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A menu item which can be selected or deselected.
  *
- * @version 1.52 12/03/01
+ * @version 1.53 01/23/03
  * @author Georges Saab
  * @author David Karlton
  */

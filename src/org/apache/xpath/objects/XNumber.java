@@ -56,9 +56,10 @@
  */
 package org.apache.xpath.objects;
 
-import org.w3c.dom.*;
-import java.math.BigDecimal;
+import javax.xml.transform.TransformerException;
+import org.apache.xpath.ExpressionOwner;
 import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
 
 /**
  * <meta name="usage" content="general"/>
@@ -422,12 +423,15 @@ public class XNumber extends XObject
     // In order to handle the 'all' semantics of 
     // nodeset comparisons, we always call the 
     // nodeset function.
-    if (obj2.getType() == XObject.CLASS_NODESET)
-      return obj2.equals(this);
-
+    int t = obj2.getType();
     try
     {
-      return m_val == obj2.num();
+	    if (t == XObject.CLASS_NODESET)
+	      return obj2.equals(this);
+	    else if(t == XObject.CLASS_BOOLEAN)
+	      return obj2.bool() == bool();
+		else
+	       return m_val == obj2.num();
     }
     catch(javax.xml.transform.TransformerException te)
     {
@@ -447,5 +451,14 @@ public class XNumber extends XObject
   {
     return true;
   }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	visitor.visitNumberLiteral(owner, this);
+  }
+
 
 }

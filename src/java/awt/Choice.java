@@ -1,7 +1,7 @@
 /*
- * @(#)Choice.java	1.79 02/03/20
+ * @(#)Choice.java	1.83 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -32,7 +32,7 @@ import javax.accessibility.*;
  * After this choice menu has been added to a panel,
  * it appears as follows in its normal state:
  * <p>
- * <img src="doc-files/Choice-1.gif"
+ * <img src="doc-files/Choice-1.gif" alt="The following text describes the graphic"
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * In the picture, <code>"Green"</code> is the current choice.
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the <code>Choice</code>.
  * <p>
- * @version	1.79 03/20/02
+ * @version	1.83 01/23/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -57,12 +57,12 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * The items for the <code>Choice</code>.
      * This can be a <code>null</code> value.
      * @serial
-     * @see add()
-     * @see addItem()
-     * @see getItem()
-     * @see getItemCount()
-     * @see insert()
-     * @see remove()
+     * @see #add(String)
+     * @see #addItem(String)
+     * @see #getItem(int)
+     * @see #getItemCount()
+     * @see #insert(String, int)
+     * @see #remove(String)
      */
     Vector pItems;
 
@@ -70,8 +70,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * The index of the current choice for this <code>Choice</code>
      * or -1 if nothing is selected.
      * @serial
-     * @see getSelectedItem
-     * @see select()
+     * @see #getSelectedItem()
+     * @see #select(int)
      */
     int selectedIndex = -1;
 
@@ -613,13 +613,14 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * @param       e the item event
      * @see         java.awt.event.ItemEvent
      * @see         java.awt.event.ItemListener
-     * @see         #addItemListener
+     * @see         #addItemListener(ItemListener)
      * @see         java.awt.Component#enableEvents
      * @since       JDK1.1
      */
     protected void processItemEvent(ItemEvent e) {
-        if (itemListener != null) {
-            itemListener.itemStateChanged(e);
+        ItemListener listener = itemListener;
+        if (listener != null) {
+            listener.itemStateChanged(e);
         }
     }
 
@@ -661,9 +662,9 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      *   <code>itemListenerK</code> indicating an 
      *     <code>ItemListener</code> object
      *
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component#itemListenerK
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws java.io.IOException
@@ -685,10 +686,10 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @serial
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @see #removeItemListener(ItemListener)
+     * @see #addItemListener(ItemListener)
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException

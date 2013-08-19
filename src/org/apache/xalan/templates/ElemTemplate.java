@@ -91,7 +91,6 @@ import javax.xml.transform.TransformerException;
  */
 public class ElemTemplate extends ElemTemplateElement
 {
-
   /** The public identifier for the current document event.
    *  @serial          */
   private String m_publicId;
@@ -421,6 +420,12 @@ public class ElemTemplate extends ElemTemplateElement
           TransformerImpl transformer)
             throws TransformerException
   {
+    XPathContext xctxt = transformer.getXPathContext();
+    
+    transformer.getStackGuard().checkForInfinateLoop();
+    
+    xctxt.pushRTFContext();
+
     if (TransformerImpl.S_DEBUG)
       transformer.getTraceManager().fireTraceEvent(this);
 
@@ -437,7 +442,12 @@ public class ElemTemplate extends ElemTemplateElement
 //
 //      //"sourceNode is null in handleApplyTemplatesInstruction!");
 //    }
-  }
+
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEndEvent(this);
+
+    xctxt.popRTFContext();  
+    }
 
   /**
    * This function is called during recomposition to

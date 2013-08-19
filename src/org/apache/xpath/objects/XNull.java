@@ -70,7 +70,7 @@ import org.apache.xpath.NodeSetDTM;
  * This class represents an XPath null object, and is capable of
  * converting the null to other types, such as a string.
  */
-public class XNull extends XObject
+public class XNull extends XNodeSet
 {
 
   /**
@@ -147,15 +147,15 @@ public class XNull extends XObject
     return DTM.NULL;
   }
 
-  /**
-   * Cast result object to a nodelist.
-   *
-   * @return null
-   */
-  public DTMIterator iter()
-  {
-    return null;
-  }
+//  /**
+//   * Cast result object to a nodelist.
+//   *
+//   * @return null
+//   */
+//  public DTMIterator iter()
+//  {
+//    return null;
+//  }
 
   /**
    * Tell if two objects are functionally equal.

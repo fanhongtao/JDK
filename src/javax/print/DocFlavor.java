@@ -1,7 +1,7 @@
 /*
- * @(#)DocFlavor.java	1.12 02/01/09
+ * @(#)DocFlavor.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -178,100 +178,98 @@ import java.util.Map;
  * constant DocFlavor objects for these example doc flavors; class DocFlavor's 
  * constructor can be used to create an arbitrary doc flavor. 
  * <UL>
- * <LI> Preformatted text
- * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+ * <LI>Preformatted text
+ * <P>
+ * <TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 SUMMARY="MIME-Types and their descriptions">
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"text/plain"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ *  <TH>MIME-Type</TH><TH>Description</TH>
+ * </TR>
+ * <TR>
+ * <TD><CODE>"text/plain"</CODE></TD>
  * <TD>Plain text in the default character set (US-ASCII)</TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"text/plain; charset=<I>xxx</I>"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"text/plain; charset=<I>xxx</I>"</CODE></TD>
  * <TD>Plain text in character set <I>xxx</I></TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"text/html"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"text/html"</CODE></TD>
  * <TD>HyperText Markup Language in the default character set (US-ASCII)</TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"text/html; charset=<I>xxx</I>"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"text/html; charset=<I>xxx</I>"</CODE></TD>
  * <TD>HyperText Markup Language in character set <I>xxx</I></TD>
- * </TR>
- * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>. . .</CODE></TD>
  * </TR>
  * </TABLE>
  * <P>
- * In general, preformatted text print data is provided either in a character 
- * oriented representation class (character array, String, Reader) or in a  
- * byte oriented representation class (byte array, InputStream, URL). 
+ * In general, preformatted text print data is provided either in a character
+ * oriented representation class (character array, String, Reader) or in a
+ * byte oriented representation class (byte array, InputStream, URL).
  * <P>
- * <LI> Preformatted page description language (PDL) documents
- * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+ *  <LI>Preformatted page description language (PDL) documents
+ *<P>
+ * <TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 SUMMARY="MIME-Types and their descriptions">
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"application/pdf"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ *  <TH>MIME-Type</TH><TH>Description</TH>
+ * </TR>
+ *<TR>
+ * <TD><CODE>"application/pdf"</CODE></TD>
  * <TD>Portable Document Format document</TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"application/postscript"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"application/postscript"</CODE></TD>
  * <TD>PostScript document</TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"application/vnd.hp-PCL"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"application/vnd.hp-PCL"</CODE></TD>
  * <TD>Printer Control Language document</TD>
- * </TR>
- * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>. . .</CODE></TD>
  * </TR>
  * </TABLE>
  * <P>
- * In general, preformatted PDL print data is provided in a byte oriented 
+ * In general, preformatted PDL print data is provided in a byte oriented
  * representation class (byte array, InputStream, URL).
  * <P>
- * <LI> Preformatted images
- * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+ *  <LI>Preformatted images
+ *<P>
+ * <TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 SUMMARY="MIME-Types and their descriptions">
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"image/gif"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ *  <TH>MIME-Type</TH><TH>Description</TH>
+ * </TR>
+ * 
+ * <TR>
+ * <TD><CODE>"image/gif"</CODE></TD>
  * <TD>Graphics Interchange Format image</TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"image/jpeg"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"image/jpeg"</CODE></TD>
  * <TD>Joint Photographic Experts Group image</TD>
  * </TR>
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"image/png"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ * <TD><CODE>"image/png"</CODE></TD>
  * <TD>Portable Network Graphics image</TD>
- * </TR>
- * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>. . .</CODE></TD>
  * </TR>
  * </TABLE>
  * <P>
- * In general, preformatted image print data is provided in a byte oriented 
- * representation class (byte array, InputStream, URL). 
+ * In general, preformatted image print data is provided in a byte oriented
+ * representation class (byte array, InputStream, URL).
  * <P>
- * <LI> Preformatted autosense print data
- * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+ *  <LI>Preformatted autosense print data
+ *   <P>
+ * <TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 SUMMARY="MIME-Types and their descriptions">
  * <TR>
- * <TD>&#183;&nbsp;&nbsp;<CODE>"application/octet-stream"</CODE></TD>
- * <TD>&nbsp;--&nbsp;</TD>
+ *  <TH>MIME-Type</TH><TH>Description</TH>
+ * </TR>
+ * 
+ * <TR>
+ * <TD><CODE>"application/octet-stream"</CODE></TD>
  * <TD>The print data format is unspecified (just an octet stream)</TD>
  * </TABLE>
  * <P>
- * The printer decides how to interpret the print data; the way this 
- * "autosensing" works is implementation dependent. In general, preformatted 
- * autosense print data is provided in a byte oriented representation class 
- * (byte array, InputStream, URL). 
- * </UL>
+ * The printer decides how to interpret the print data; the way this
+ * "autosensing" works is implementation dependent. In general, preformatted
+ * autosense print data is provided in a byte oriented representation class
+ * (byte array, InputStream, URL).
+ * 
  * <P>
  * <HR>
  * <H3>Service Formatted Print Data</H3>

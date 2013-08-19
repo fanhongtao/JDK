@@ -1,7 +1,7 @@
 /*
- * @(#)JProgressBar.java	1.90 02/03/12
+ * @(#)JProgressBar.java	1.91 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -94,7 +94,7 @@ import javax.swing.plaf.ProgressBarUI;
  *      attribute: isContainer false
  *    description: A component that displays an integer value.
  *
- * @version 1.90 03/12/02
+ * @version 1.91 01/23/03
  * @author Michael C. Albers
  * @author Kathy Walrath
  */

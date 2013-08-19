@@ -58,6 +58,7 @@ package org.apache.xpath;
 
 //import org.w3c.dom.Node;
 import org.apache.xpath.objects.XObject;
+import org.apache.xpath.objects.XNodeSet;
 import org.apache.xpath.res.XPATHErrorResources;
 import org.apache.xalan.res.XSLMessages;
 
@@ -85,7 +86,7 @@ import javax.xml.transform.ErrorListener;
  * and walkers, which must be cloned in order to be used -- the original must
  * still be immutable.
  */
-public abstract class Expression implements java.io.Serializable
+public abstract class Expression implements java.io.Serializable, ExpressionNode, XPathVisitable
 {
 
   /**
@@ -93,7 +94,7 @@ public abstract class Expression implements java.io.Serializable
    *  messages. May be null.
    *  @serial
    */
-  protected SourceLocator m_slocator;
+  private ExpressionNode m_parent;
 
   /**
    * Tell if this expression or it's subexpressions can traverse outside
@@ -105,18 +106,18 @@ public abstract class Expression implements java.io.Serializable
   {
     return false;
   }
-
-  /**
-   * Set the location where this expression was built from.
-   *
-   *
-   * @param locator the location where this expression was built from, may be
-   *                null.
-   */
-  public void setSourceLocator(SourceLocator locator)
-  {
-    m_slocator = locator;
-  }
+  
+//  /**
+//   * Set the location where this expression was built from.
+//   *
+//   *
+//   * @param locator the location where this expression was built from, may be
+//   *                null.
+//   */
+//  public void setSourceLocator(SourceLocator locator)
+//  {
+//    m_slocator = locator;
+//  }
 
   /**
    * Execute an expression in the XPath runtime context, and return the
@@ -179,11 +180,32 @@ public abstract class Expression implements java.io.Serializable
     throws javax.xml.transform.TransformerException;
 
   /**
+   * Execute an expression in the XPath runtime context, and return the
+   * result of the expression, but tell that a "safe" object doesn't have 
+   * to be returned.  The default implementation just calls execute(xctxt).
+   *
+   *
+   * @param xctxt The XPath runtime context.
+   * @param destructiveOK true if a "safe" object doesn't need to be returned.
+   *
+   * @return The result of the expression in the form of a <code>XObject</code>.
+   *
+   * @throws javax.xml.transform.TransformerException if a runtime exception
+   *         occurs.
+   */
+  public XObject execute(XPathContext xctxt, boolean destructiveOK)
+    throws javax.xml.transform.TransformerException
+  {
+  	return execute(xctxt);
+  }
+
+
+  /**
    * Evaluate expression to a number.
    *
    *
-   * NEEDSDOC @param xctxt
-   * @return 0.0
+   * @param xctxt The XPath runtime context.
+   * @return The expression evaluated as a double.
    *
    * @throws javax.xml.transform.TransformerException
    */
@@ -197,7 +219,7 @@ public abstract class Expression implements java.io.Serializable
    * Evaluate expression to a boolean.
    *
    *
-   * NEEDSDOC @param xctxt
+   * @param xctxt The XPath runtime context.
    * @return false
    *
    * @throws javax.xml.transform.TransformerException
@@ -212,7 +234,7 @@ public abstract class Expression implements java.io.Serializable
    * Cast result object to a string.
    *
    *
-   * NEEDSDOC @param xctxt
+   * @param xctxt The XPath runtime context.
    * @return The string this wraps or the empty string if null
    *
    * @throws javax.xml.transform.TransformerException
@@ -244,7 +266,8 @@ public abstract class Expression implements java.io.Serializable
   public int asNode(XPathContext xctxt)
           throws javax.xml.transform.TransformerException
   {
-    return execute(xctxt).iter().nextNode();
+  	DTMIterator iter = execute(xctxt).iter();
+    return iter.nextNode();
   }
 
   /**
@@ -256,7 +279,7 @@ public abstract class Expression implements java.io.Serializable
    * @param contextNode The node that "." expresses.
    *
    *
-   * NEEDSDOC ($objectName$) @return
+   * @return A valid DTMIterator.
    * @throws TransformerException thrown if the active ProblemListener decides
    * the error condition is severe enough to halt processing.
    *
@@ -277,6 +300,39 @@ public abstract class Expression implements java.io.Serializable
       xctxt.popCurrentNodeAndExpression();
     }
   }
+  
+  /**
+   * <meta name="usage" content="experimental"/>
+   * Given an select expression and a context, evaluate the XPath
+   * and return the resulting iterator, but do not clone.
+   *
+   * @param xctxt The execution context.
+   * @param contextNode The node that "." expresses.
+   *
+   *
+   * @return A valid DTMIterator.
+   * @throws TransformerException thrown if the active ProblemListener decides
+   * the error condition is severe enough to halt processing.
+   *
+   * @throws javax.xml.transform.TransformerException
+   */
+  public DTMIterator asIteratorRaw(XPathContext xctxt, int contextNode)
+          throws javax.xml.transform.TransformerException
+  {
+
+    try
+    {
+      xctxt.pushCurrentNodeAndExpression(contextNode, contextNode);
+
+      XNodeSet nodeset = (XNodeSet)execute(xctxt);
+      return nodeset.iterRaw();
+    }
+    finally
+    {
+      xctxt.popCurrentNodeAndExpression();
+    }
+  }
+
 
   /**
    * Execute an expression in the XPath runtime context, and return the
@@ -301,6 +357,7 @@ public abstract class Expression implements java.io.Serializable
     XObject obj = execute(xctxt);
 
     obj.dispatchCharactersEvents(handler);
+    obj.detach();
   }
 
   /**
@@ -328,12 +385,40 @@ public abstract class Expression implements java.io.Serializable
    * NEEDSDOC @param globalsSize
    */
   public abstract void fixupVariables(java.util.Vector vars, int globalsSize);
+  
+  /**
+   * Compare this object with another object and see 
+   * if they are equal, include the sub heararchy.
+   * 
+   * @param expr Another expression object.
+   * @return true if this objects class and the expr
+   * object's class are the same, and the data contained 
+   * within both objects are considered equal.
+   */
+  public abstract boolean deepEquals(Expression expr);
+  
+  /**
+   * This is a utility method to tell if the passed in 
+   * class is the same class as this.  It is to be used by
+   * the deepEquals method.  I'm bottlenecking it here 
+   * because I'm not totally confident that comparing the 
+   * class objects is the best way to do this.
+   * @return true of the passed in class is the exact same 
+   * class as this class.
+   */
+  protected final boolean isSameClass(Expression expr)
+  {
+  	if(null == expr)
+  	  return false;
+  	  
+  	return (getClass() == expr.getClass());
+  }
 
   /**
    * Warn the user of an problem.
    *
    * @param xctxt The XPath runtime context.
-   * @param msg An error number that corresponds to one of the numbers found
+   * @param msg An error msgkey that corresponds to one of the conststants found
    *            in {@link org.apache.xpath.res.XPATHErrorResources}, which is
    *            a key for a format string.
    * @param args An array of arguments represented in the format string, which
@@ -344,7 +429,7 @@ public abstract class Expression implements java.io.Serializable
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public void warn(XPathContext xctxt, int msg, Object[] args)
+  public void warn(XPathContext xctxt, String msg, Object[] args)
           throws javax.xml.transform.TransformerException
   {
 
@@ -371,7 +456,6 @@ public abstract class Expression implements java.io.Serializable
    * @throws javax.xml.transform.TransformerException
    */
   public void assertion(boolean b, java.lang.String msg)
-          throws javax.xml.transform.TransformerException
   {
 
     if (!b)
@@ -389,7 +473,7 @@ public abstract class Expression implements java.io.Serializable
    * exception.
    *
    * @param xctxt The XPath runtime context.
-   * @param msg An error number that corresponds to one of the numbers found
+   * @param msg An error msgkey that corresponds to one of the constants found
    *            in {@link org.apache.xpath.res.XPATHErrorResources}, which is
    *            a key for a format string.
    * @param args An array of arguments represented in the format string, which
@@ -400,7 +484,7 @@ public abstract class Expression implements java.io.Serializable
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public void error(XPathContext xctxt, int msg, Object[] args)
+  public void error(XPathContext xctxt, String msg, Object[] args)
           throws javax.xml.transform.TransformerException
   {
 
@@ -409,9 +493,141 @@ public abstract class Expression implements java.io.Serializable
     if (null != xctxt)
     {
       ErrorListener eh = xctxt.getErrorListener();
-      TransformerException te = new TransformerException(fmsg, m_slocator);
+      TransformerException te = new TransformerException(fmsg, this);
 
       eh.fatalError(te);
     }
+  }
+  
+  /**
+   * Get the first non-Expression parent of this node.
+   * @return null or first ancestor that is not an Expression.
+   */
+  public ExpressionNode getExpressionOwner()
+  {
+  	ExpressionNode parent = exprGetParent();
+  	while((null != parent) && (parent instanceof Expression))
+  		parent = parent.exprGetParent();
+  	return parent;
+  }
+  
+  //=============== ExpressionNode methods ================
+  
+  /** This pair of methods are used to inform the node of its
+    parent. */
+  public void exprSetParent(ExpressionNode n)
+  {
+  	assertion(n != this, "Can not parent an expression to itself!");
+  	m_parent = n;
+  }
+  
+  public ExpressionNode exprGetParent()
+  {
+  	return m_parent;
+  }
+
+  /** This method tells the node to add its argument to the node's
+    list of children.  */
+  public void exprAddChild(ExpressionNode n, int i)
+  {
+  	assertion(false, "exprAddChild method not implemented!");
+  }
+
+  /** This method returns a child node.  The children are numbered
+     from zero, left to right. */
+  public ExpressionNode exprGetChild(int i)
+  {
+  	return null;
+  }
+
+  /** Return the number of children the node has. */
+  public int exprGetNumChildren()
+  {
+  	return 0;
+  }
+  
+  //=============== SourceLocator methods ================
+
+  /**
+   * Return the public identifier for the current document event.
+   *
+   * <p>The return value is the public identifier of the document
+   * entity or of the external parsed entity in which the markup that
+   * triggered the event appears.</p>
+   *
+   * @return A string containing the public identifier, or
+   *         null if none is available.
+   * @see #getSystemId
+   */
+  public String getPublicId()
+  {
+  	if(null == m_parent)
+  	  return null;
+  	return m_parent.getPublicId();
+  }
+
+  /**
+   * Return the system identifier for the current document event.
+   *
+   * <p>The return value is the system identifier of the document
+   * entity or of the external parsed entity in which the markup that
+   * triggered the event appears.</p>
+   *
+   * <p>If the system identifier is a URL, the parser must resolve it
+   * fully before passing it to the application.</p>
+   *
+   * @return A string containing the system identifier, or null
+   *         if none is available.
+   * @see #getPublicId
+   */
+  public String getSystemId()
+  {
+  	if(null == m_parent)
+  	  return null;
+  	return m_parent.getSystemId();
+  }
+
+  /**
+   * Return the line number where the current document event ends.
+   *
+   * <p><strong>Warning:</strong> The return value from the method
+   * is intended only as an approximation for the sake of error
+   * reporting; it is not intended to provide sufficient information
+   * to edit the character content of the original XML document.</p>
+   *
+   * <p>The return value is an approximation of the line number
+   * in the document entity or external parsed entity where the
+   * markup that triggered the event appears.</p>
+   *
+   * @return The line number, or -1 if none is available.
+   * @see #getColumnNumber
+   */
+  public int getLineNumber()
+  {
+  	if(null == m_parent)
+  	  return 0;
+  	return m_parent.getLineNumber();
+  }
+
+  /**
+   * Return the character position where the current document event ends.
+   *
+   * <p><strong>Warning:</strong> The return value from the method
+   * is intended only as an approximation for the sake of error
+   * reporting; it is not intended to provide sufficient information
+   * to edit the character content of the original XML document.</p>
+   *
+   * <p>The return value is an approximation of the column number
+   * in the document entity or external parsed entity where the
+   * markup that triggered the event appears.</p>
+   *
+   * @return The column number, or -1 if none is available.
+   * @see #getLineNumber
+   */
+  public int getColumnNumber()
+  {
+  	if(null == m_parent)
+  	  return 0;
+  	return m_parent.getColumnNumber();
   }
 }

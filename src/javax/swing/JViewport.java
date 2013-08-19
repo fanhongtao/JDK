@@ -1,7 +1,7 @@
 /*
- * @(#)JViewport.java	1.104 02/03/20
+ * @(#)JViewport.java	1.107 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -74,7 +74,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.104 03/20/02
+ * @version 1.107 01/23/03
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -633,6 +633,21 @@ public class JViewport extends JComponent implements Accessible
      * @return false
      */
     public boolean isOptimizedDrawingEnabled() {
+        return false;
+    }
+
+    /**
+     * Returns true if scroll mode is a BACKINGSTORE_SCROLL_MODE to cause
+     * painting to originate from <code>JViewport</code>, or one of its
+     * ancestors. Otherwise returns false.
+     *
+     * @return true if if scroll mode is a BACKINGSTORE_SCROLL_MODE.
+     * @see JComponent#isPaintingOrigin()
+     */
+    boolean isPaintingOrigin() {
+	if (scrollMode == BACKINGSTORE_SCROLL_MODE) {
+	    return true;
+	}
         return false;
     }
 
@@ -1335,8 +1350,8 @@ public class JViewport extends JComponent implements Accessible
      * @param     tm   maximum time in milliseconds before update
      * @param     x    the <code>x</code> coordinate (pixels over from left)
      * @param     y    the <code>y</code> coordinate (pixels down from top)
-     * @param     width    the width
-     * @param     height   the height
+     * @param     w    the width
+     * @param     h   the height
      * @see       java.awt.Component#update(java.awt.Graphics)
      */
     public void repaint(long tm, int x, int y, int w, int h) {

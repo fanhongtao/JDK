@@ -1,7 +1,7 @@
 /*
- * @(#)Timestamp.java	1.50 02/05/23
+ * @(#)Timestamp.java	1.53 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,11 +17,7 @@ package java.sql;
  * <P><B>Note:</B> This type is a composite of a <code>java.util.Date</code> and a
  * separate nanoseconds value. Only integral seconds are stored in the
  * <code>java.util.Date</code> component. The fractional seconds - the nanos - are
- * separate. The <code>getTime</code> method will return only integral seconds. If
- * a time value that includes the fractional seconds is desired, you
- * must convert nanos to milliseconds (nanos/1000000) and add this to
- * the <code>getTime</code> value.  The
- * <code>Timestamp.equals(Object)</code> method never returns 
+ * separate.  The <code>Timestamp.equals(Object)</code> method never returns 
  * <code>true</code> when passed a value of type <code>java.util.Date</code>
  * because the nanos component of a date is unknown.
  * As a result, the <code>Timestamp.equals(Object)</code>
@@ -30,7 +26,7 @@ package java.sql;
  * method.  Also, the <code>hashcode</code> method uses the underlying 
  * <code>java.util.Data</code> 
  * implementation and therefore does not include nanos in its computation.  
- * 
+ * <P>
  * Due to the differences between the <code>Timestamp</code> class
  * and the <code>java.util.Date</code>
  * class mentioned above, it is recommended that code not view
@@ -237,7 +233,6 @@ public class Timestamp extends java.util.Date {
      * </PRE>
      * @return a <code>String</code> object in
      *           <code>yyyy-mm-dd hh:mm:ss.fffffffff</code> format
-     * @overrides <code>toString</code> in class <code>java.util.Date</code>
      */
     public String toString () {
 

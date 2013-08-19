@@ -1,7 +1,7 @@
 /*
- * @(#)URLEncoder.java	1.26 02/04/15
+ * @(#)URLEncoder.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import sun.security.action.GetPropertyAction;
  * character @ is encoded as one byte 40 (hex).
  *
  * @author  Herb Jellinek
- * @version 1.26, 04/15/02
+ * @version 1.28, 01/23/03
  * @since   JDK1.0
  */
 public class URLEncoder {
@@ -185,8 +185,7 @@ public class URLEncoder {
         StringBuffer out = new StringBuffer(s.length());
 	ByteArrayOutputStream buf = new ByteArrayOutputStream(maxBytesPerChar);
 
-	BufferedWriter writer = 
-	    new BufferedWriter(new OutputStreamWriter(buf, enc));
+	OutputStreamWriter writer = new OutputStreamWriter(buf, enc);
 
 	for (int i = 0; i < s.length(); i++) {
 	    int c = (int) s.charAt(i);
@@ -203,7 +202,7 @@ public class URLEncoder {
 		// convert to external encoding before hex conversion
 		try {
 		    if (wroteUnencodedChar) { // Fix for 4407610
-		    	writer = new BufferedWriter(new OutputStreamWriter(buf, enc));
+		    	writer = new OutputStreamWriter(buf, enc);
 			wroteUnencodedChar = false;
 		    }
 		    writer.write(c);

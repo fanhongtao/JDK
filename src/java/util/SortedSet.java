@@ -1,7 +1,7 @@
 /*
- * @(#)SortedSet.java	1.16 01/12/03
+ * @(#)SortedSet.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,10 +49,14 @@ package java.util;
  * creates a new sorted set with the same elements and the same ordering as
  * the input sorted set.  There is no way to enforce this recommendation (as
  * interfaces cannot contain constructors) but the SDK implementation (the
- * <tt>TreeSet</tt> class) complies.
+ * <tt>TreeSet</tt> class) complies.<p>
+ *
+ * This interface is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.16, 12/03/01
+ * @version 1.18, 01/23/03
  * @see Set
  * @see TreeSet
  * @see SortedMap

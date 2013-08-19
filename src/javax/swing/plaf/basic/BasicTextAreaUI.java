@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextAreaUI.java	1.66 02/04/24
+ * @(#)BasicTextAreaUI.java	1.68 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -30,7 +30,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.66 04/24/02
+ * @version 1.68 01/23/03
  */
 public class BasicTextAreaUI extends BasicTextUI {
 
@@ -74,7 +74,8 @@ public class BasicTextAreaUI extends BasicTextUI {
      */
     protected void propertyChange(PropertyChangeEvent evt) {
 	if (evt.getPropertyName().equals("lineWrap") ||
-	    evt.getPropertyName().equals("wrapStyleWord")) {
+	    evt.getPropertyName().equals("wrapStyleWord") ||
+		evt.getPropertyName().equals("tabSize")) {
 	    // rebuild the view
 	    modelChanged();
 	} else if ("editable".equals(evt.getPropertyName())) {

@@ -1,7 +1,7 @@
 /*
- * @(#)List.java	1.92 02/03/27
+ * @(#)List.java	1.97 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -43,7 +43,7 @@ import javax.accessibility.*;
  * scrolling list:
  * <p>
  * <img src="doc-files/List-1.gif"
- * ALIGN=center HSPACE=10 VSPACE=7>
+ * alt="Shows a list containing: Venus, Earth, JavaSoft, and Mars. Javasoft is selected." ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * Clicking on an item that isn't selected selects it. Clicking on
  * an item that is already selected deselects it. In the preceding
@@ -80,7 +80,7 @@ import javax.accessibility.*;
  * For multiple-selection scrolling lists, it is considered a better
  * user interface to use an external gesture (such as clicking on a
  * button) to trigger the action.
- * @version 	1.92, 03/27/02
+ * @version 	1.97, 01/23/03
  * @author 	Sami Shaio
  * @see         java.awt.event.ItemEvent
  * @see         java.awt.event.ItemListener
@@ -94,8 +94,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * part of the List Component.
      *
      * @serial
-     * @see addItem()
-     * @see getItem()
+     * @see #addItem(String)
+     * @see #getItem(int)
      */
     Vector	items = new Vector();
     
@@ -106,7 +106,7 @@ public class List extends Component implements ItemSelectable, Accessible {
      * created.  It will never change.
      *
      * @serial
-     * @see getRows()
+     * @see #getRows()
      */
     int		rows = 0;
 
@@ -121,8 +121,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * one time.
      *
      * @serial
-     * @see isMultipleMode()
-     * @see setMultipleMode()
+     * @see #isMultipleMode()
+     * @see #setMultipleMode(boolean)
      */
     boolean	multipleMode = false;
 
@@ -131,8 +131,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * the indices of items that have been selected.
      *
      * @serial
-     * @see getSelectedIndexes()
-     * @see getSelectedIndex()
+     * @see #getSelectedIndexes()
+     * @see #getSelectedIndex()
      */
     int		selected[] = new int[0];
 
@@ -141,7 +141,7 @@ public class List extends Component implements ItemSelectable, Accessible {
      * when trying to make a particular list item visible.
      *
      * @serial
-     * @see makeVisible()
+     * @see #makeVisible(int)
      */
     int		visibleIndex = -1;
 
@@ -236,7 +236,6 @@ public class List extends Component implements ItemSelectable, Accessible {
 	    if (peer == null)
 	        peer = getToolkit().createList(this);
 	    super.addNotify();
-	    visibleIndex = -1;
 	}
     }
 
@@ -1035,8 +1034,9 @@ public class List extends Component implements ItemSelectable, Accessible {
      * @since       JDK1.1
      */
     protected void processItemEvent(ItemEvent e) {
-        if (itemListener != null) {
-            itemListener.itemStateChanged(e);
+        ItemListener listener = itemListener;
+        if (listener != null) {
+            listener.itemStateChanged(e);
         }
     }
 
@@ -1065,8 +1065,9 @@ public class List extends Component implements ItemSelectable, Accessible {
      * @since       JDK1.1
      */
     protected void processActionEvent(ActionEvent e) {
-        if (actionListener != null) {
-            actionListener.actionPerformed(e);
+        ActionListener listener = actionListener;
+        if (listener != null) {
+            listener.actionPerformed(e);
         }
     }
 
@@ -1127,10 +1128,10 @@ public class List extends Component implements ItemSelectable, Accessible {
      *    <code>ActionListener</code> object
      *
      * @param s the <code>ObjectOutputStream</code> to write
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
-     * @see java.awt.Component.actionListenerK
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component#itemListenerK
+     * @see java.awt.Component#actionListenerK
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws IOException
@@ -1160,10 +1161,10 @@ public class List extends Component implements ItemSelectable, Accessible {
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @see #removeItemListener(ItemListener)
+     * @see #addItemListener(ItemListener)
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException
@@ -1581,7 +1582,7 @@ public class List extends Component implements ItemSelectable, Accessible {
 	    /**
 	     * Set the Cursor of this object.
 	     *
-	     * @param c the new Cursor for the object
+	     * @param cursor the new Cursor for the object
 	     * @see #getCursor
 	     */
 	    public void setCursor(Cursor cursor) {

@@ -1,7 +1,7 @@
 /*
- * @(#)SecureRandomSpi.java	1.8 01/12/03
+ * @(#)SecureRandomSpi.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -14,7 +14,7 @@ package java.security;
  * service provider who wishes to supply the implementation
  * of a cryptographically strong pseudo-random number generator.
  *
- * @version 1.8, 12/03/01
+ * @version 1.9, 01/23/03
  *
  * @see SecureRandom
  * @since 1.2

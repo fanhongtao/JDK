@@ -1,7 +1,7 @@
 /*
- * @(#)AppConfigurationEntry.java	1.31 02/02/21
+ * @(#)AppConfigurationEntry.java	1.32 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import java.util.Collections;
  * options.  Please refer to the <code>Configuration</code> class for
  * more information on the different control flags and their semantics.
  *
- * @version 1.31, 02/21/02
+ * @version 1.32, 01/23/03
  * @see javax.security.auth.login.Configuration
  */
 public class AppConfigurationEntry {

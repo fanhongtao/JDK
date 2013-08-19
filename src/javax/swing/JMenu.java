@@ -1,7 +1,7 @@
 /*
- * @(#)JMenu.java	1.166 02/04/18
+ * @(#)JMenu.java	1.169 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -72,7 +72,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.166 04/18/02
+ * @version 1.169 01/23/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -521,15 +521,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
             this.popupMenu = new JPopupMenu();
             popupMenu.setInvoker(this);
             popupListener = createWinListener(popupMenu);
-            popupMenu.addPopupMenuListener(new PopupMenuListener() {
-                public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-                }
-                public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                }
-                public void popupMenuCanceled(PopupMenuEvent e) {
-                    fireMenuCanceled();
-                }
-            });
         }
     }
 
@@ -1304,7 +1295,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * and all components contained within it. This includes all 
      * components returned by {@link #getMenuComponents getMenuComponents}.
      *
-     * @param orientation the new component orientation of this menu and
+     * @param o the new component orientation of this menu and
      *        the components contained within it.
      * @exception NullPointerException if <code>orientation</code> is null.
      * @see java.awt.Component#setComponentOrientation

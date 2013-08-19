@@ -1,7 +1,7 @@
 /*
- * @(#)ByteOrder.java	1.10 01/12/03
+ * @(#)ByteOrder.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.10, 01/12/03
+ * @version 1.12, 03/01/23
  * @since 1.4
  */
 
@@ -49,8 +49,8 @@ public final class ByteOrder {
      * Native code libraries are often more efficient when such buffers are
      * used.  </p>
      *
-     * @returns  The native byte order of the hardware upon which this Java
-     *           virtual machine is running
+     * @return  The native byte order of the hardware upon which this Java
+     *          virtual machine is running
      */
     public static ByteOrder nativeOrder() {
 	return Bits.byteOrder();

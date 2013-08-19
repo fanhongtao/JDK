@@ -1,7 +1,7 @@
 /*
- * @(#)RandomAccess.java	1.3 01/12/03
+ * @(#)RandomAccess.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,6 +39,11 @@ package java.util;
  *     for (Iterator i=list.iterator(); i.hasNext(); )
  *         i.next();
  * </pre>
+ *
+ * <p>This interface is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
  */
 public interface RandomAccess {
 }

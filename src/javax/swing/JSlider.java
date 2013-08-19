@@ -1,7 +1,7 @@
 /*
- * @(#)JSlider.java	1.97 01/12/03
+ * @(#)JSlider.java	1.99 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,7 +49,7 @@ import java.beans.*;
  *      attribute: isContainer false
  *    description: A component that supports selecting a integer value from a range.
  * 
- * @version 1.97 12/03/01
+ * @version 1.99 01/23/03
  * @author David Kloba
  */
 public class JSlider extends JComponent implements SwingConstants, Accessible {
@@ -125,8 +125,6 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      * event's only (read-only) state is the source property.  The source
      * of events generated here is always "this". The event is lazily
      * created the first time that an event notification is fired.
-     * @exception IllegalArgumentException if orientation is not either
-     *		HORIZONTAL or VERTICAL
      * 
      * @see #fireStateChanged
      */

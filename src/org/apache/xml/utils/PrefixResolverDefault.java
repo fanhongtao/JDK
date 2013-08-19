@@ -179,4 +179,11 @@ public class PrefixResolverDefault implements PrefixResolver
   {
     return null;
   }
+	/**
+	 * @see PrefixResolver#handlesNullPrefixes()
+	 */
+	public boolean handlesNullPrefixes() {
+		return false;
+	}
+
 }

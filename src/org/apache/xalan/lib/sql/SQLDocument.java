@@ -1,5 +1,5 @@
 /**
- * @(#)SQLDocument.java	1.6 01/12/03 
+ * @(#) SQLDocument.java
  *
  * The Apache Software License, Version 1.1
  *
@@ -330,7 +330,9 @@ public class SQLDocument extends DTMDocument
     // to measure when we are actually reading rows.
     addRowToDTMFromResultSet();
 
-    // this.dumpDTM();
+// We can't do this until the Document is regiostered with the Manager
+// Which has not happened yet
+//    if (DEBUG) this.dumpDTM();
   }
 
 
@@ -676,9 +678,9 @@ public class SQLDocument extends DTMDocument
         // In Streaming mode, the current ROW will always point back
         // to itself until all the data was read. Once the Query is
         // empty then point the next row to DTM.NULL so that the stream
-        // ends.
+        // ends. Only do this if we have statted the loop to begin with.
 
-        if (m_StreamingMode)
+        if (m_StreamingMode && (m_LastRowIdx != DTM.NULL))
         {
           // We are at the end, so let's untie the mark
           m_nextsib.setElementAt(DTM.NULL, m_LastRowIdx);

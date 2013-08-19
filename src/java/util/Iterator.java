@@ -1,7 +1,7 @@
 /*
- * @(#)Iterator.java	1.16 01/12/03
+ * @(#)Iterator.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,10 +15,14 @@ package java.util;
  *	     underlying collection during the iteration with well-defined
  * 	     semantics.
  *	<li> Method names have been improved.
- * </ul>
+ * </ul><p>
+ *
+ * This interface is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.16, 12/03/01
+ * @version 1.18, 01/23/03
  * @see Collection
  * @see ListIterator
  * @see Enumeration

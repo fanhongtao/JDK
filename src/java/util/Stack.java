@@ -1,7 +1,7 @@
 /*
- * @(#)Stack.java	1.25 01/12/03
+ * @(#)Stack.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.util;
  * When a stack is first created, it contains no items. 
  *
  * @author  Jonathan Payne
- * @version 1.25, 12/03/01
+ * @version 1.26, 01/23/03
  * @since   JDK1.0
  */
 public

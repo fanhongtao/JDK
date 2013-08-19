@@ -1,5 +1,5 @@
 /*
- * @(#)MotifLookAndFeel.java	1.157 03/07/08
+ * @(#)MotifLookAndFeel.java	1.158 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.157 07/08/03
+ * @version 1.158 01/23/03
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -765,6 +765,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
                }),
+	    "Spinner.border", textFieldBorder,
 
             "SplitPane.background", table.get("control"),
             "SplitPane.highlight", table.get("controlHighlight"),

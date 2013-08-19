@@ -1,7 +1,7 @@
 /*
- * @(#)Utilities.java	1.38 01/12/03
+ * @(#)Utilities.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.SwingConstants;
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.38 12/03/01
+ * @version 1.40 01/23/03
  */
 public class Utilities {
 
@@ -585,6 +585,14 @@ public class Utilities {
 	    return paragraph;
 	}
 	return null;
+    }
+
+    static boolean isComposedTextElement(Document doc, int offset) {
+	Element elem = doc.getDefaultRootElement();
+	while (!elem.isLeaf()) {
+	    elem = elem.getElement(elem.getElementIndex(offset));
+	}
+	return isComposedTextElement(elem);
     }
 
     static boolean isComposedTextElement(Element elem) {

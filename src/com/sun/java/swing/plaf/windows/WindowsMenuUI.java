@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsMenuUI.java	1.18 02/02/04
+ * @(#)WindowsMenuUI.java	1.20 03/05/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,16 +39,19 @@ public class WindowsMenuUI extends BasicMenuUI {
      * @since 1.4
      */
     protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+	JMenu menu = (JMenu)menuItem;
+	ButtonModel model = menuItem.getModel();
+
 	// Use superclass method for the old Windows LAF,
-        // and for submenus
+        // for submenus, and for XP toplevel if selected or pressed
 	if (WindowsLookAndFeel.isClassicWindows() ||
-            ! ((JMenu)menuItem).isTopLevelMenu()) {
+	    !menu.isTopLevelMenu() ||
+	    (XPStyle.getXP() != null && (model.isArmed() || model.isSelected()))) {
 
 	    super.paintBackground(g, menuItem, bgColor);
 	    return;
 	}
 
-	ButtonModel model = menuItem.getModel();
 	Color oldColor = g.getColor();
         int menuWidth = menuItem.getWidth();
         int menuHeight = menuItem.getHeight();
@@ -72,14 +75,19 @@ public class WindowsMenuUI extends BasicMenuUI {
 		g.drawLine(0,menuHeight - 2, menuWidth - 1,menuHeight - 2);
             } else {
 		if (isMouseOver() && model.isEnabled()) {
-		    // Draw a raised bevel border
-		    g.setColor(highlight);
-		    g.drawLine(0,0, menuWidth - 1,0);
-		    g.drawLine(0,0, 0,menuHeight - 2);
+		    if (XPStyle.getXP() != null) {
+			g.setColor(selectionBackground); // Uses protected field.
+			g.fillRect(0, 0, menuWidth, menuHeight);
+		    } else {
+			// Draw a raised bevel border
+			g.setColor(highlight);
+			g.drawLine(0,0, menuWidth - 1,0);
+			g.drawLine(0,0, 0,menuHeight - 2);
 
-		    g.setColor(shadow);
-		    g.drawLine(menuWidth - 1,0, menuWidth - 1,menuHeight - 2);
-		    g.drawLine(0,menuHeight - 2, menuWidth - 1,menuHeight - 2);
+			g.setColor(shadow);
+			g.drawLine(menuWidth - 1,0, menuWidth - 1,menuHeight - 2);
+			g.drawLine(0,menuHeight - 2, menuWidth - 1,menuHeight - 2);
+		    }
 		} else {
 		    g.setColor(menuItem.getBackground());
 		    g.fillRect(0,0, menuWidth, menuHeight);
@@ -100,6 +108,7 @@ public class WindowsMenuUI extends BasicMenuUI {
      */
     protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
 	// Note: This method is almost identical to the same method in WindowsMenuItemUI
+	JMenu menu = (JMenu)menuItem;
 	ButtonModel model = menuItem.getModel();
 
 	if(!model.isEnabled()) {
@@ -116,12 +125,12 @@ public class WindowsMenuUI extends BasicMenuUI {
 	    Color oldColor = g.getColor();
 
 	    // For Win95, the selected text color is the selection forground color
-	    if (model.isSelected()) {
-                if (WindowsLookAndFeel.isClassicWindows() ||
-                    ! ((JMenu)menuItem).isTopLevelMenu()) {
-
-                    g.setColor(selectionForeground); // Uses protected field.
-                }
+	    if ((model.isSelected() && (WindowsLookAndFeel.isClassicWindows() ||
+					!menu.isTopLevelMenu())) ||
+		(XPStyle.getXP() != null && (isMouseOver() ||
+					     model.isArmed() ||
+					     model.isSelected()))) {
+		g.setColor(selectionForeground); // Uses protected field.
             }
  	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
                                           mnemonicIndex, 

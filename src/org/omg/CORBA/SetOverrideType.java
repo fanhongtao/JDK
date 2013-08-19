@@ -1,7 +1,7 @@
 /*
- * @(#)SetOverrideType.java	1.13 01/12/03
+ * @(#)SetOverrideType.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ package org.omg.CORBA;
  * are replaced with the given ones.
  *
  * @author OMG
- * @version 1.13 12/03/01
+ * @version 1.14 01/23/03
  * @since   JDK1.2
  */
 

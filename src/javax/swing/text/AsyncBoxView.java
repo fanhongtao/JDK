@@ -1,7 +1,7 @@
 /*
- * @(#)AsyncBoxView.java	1.12 01/12/03
+ * @(#)AsyncBoxView.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.event.DocumentEvent;
  * so that the model is stable while being accessed.
  *
  * @author  Timothy Prinzing
- * @version 1.12 12/03/01
+ * @version 1.14 01/23/03
  * @since   1.3
  */
 public class AsyncBoxView extends View {
@@ -420,7 +420,6 @@ public class AsyncBoxView extends View {
      *  for (may be null if there were no changes).
      * @param e the change information from the associated document
      * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
      * @see #insertUpdate
      * @see #removeUpdate
      * @see #changedUpdate     

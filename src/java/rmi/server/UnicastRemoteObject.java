@@ -1,7 +1,7 @@
 /*
- * @(#)UnicastRemoteObject.java	1.29 01/12/03
+ * @(#)UnicastRemoteObject.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -22,7 +22,7 @@ import java.rmi.*;
  * and toString methods inherited from the Object class, so that they
  * behave appropriately for remote objects.
  *
- * @version 1.29, 12/03/01
+ * @version 1.30, 01/23/03
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1

@@ -1,33 +1,21 @@
 package org.apache.xpath.axes;
 
-import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.DTMManager;
+import java.util.Vector;
 
-// Xalan imports
-import org.apache.xpath.res.XPATHErrorResources;
-import org.apache.xpath.XPath;
-import org.apache.xpath.compiler.OpMap;
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.compiler.OpCodes;
-import org.apache.xpath.compiler.PsuedoNames;
-import org.apache.xpath.NodeSetDTM;
-import org.apache.xpath.Expression;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XObject;
-import org.apache.xml.utils.IntStack;
+import javax.xml.transform.TransformerException;
+import org.apache.xml.dtm.DTM;
 import org.apache.xml.utils.PrefixResolver;
-import org.apache.xml.utils.ObjectPool;
-import org.apache.xpath.objects.XNodeSet;
-import org.apache.xpath.axes.AxesWalker;
+import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
 import org.apache.xpath.VariableStack;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.compiler.Compiler;
 
 /**
  * Location path iterator that uses Walkers.
  */
 
-public class WalkingIterator extends LocPathIterator
+public class WalkingIterator extends LocPathIterator implements ExpressionOwner
 {
   /**
    * Create a WalkingIterator iterator, including creation
@@ -65,12 +53,33 @@ public class WalkingIterator extends LocPathIterator
    * @param nscontext The namespace context for this iterator,
    * should be OK if null.
    */
-  protected WalkingIterator(PrefixResolver nscontext)
+  public WalkingIterator(PrefixResolver nscontext)
   {
 
     super(nscontext);
   }
+  
+  
+  /** 
+   * Get the analysis bits for this walker, as defined in the WalkerFactory.
+   * @return One of WalkerFactory#BIT_DESCENDANT, etc.
+   */
+  public int getAnalysisBits()
+  {
+    int bits = 0;
+    if (null != m_firstWalker)
+    {    	
+      AxesWalker walker = m_firstWalker;
 
+      while (null != walker)
+      {
+        int bit = walker.getAnalysisBits();
+        bits |= bit;
+        walker = walker.getNextWalker();
+      }       
+    }
+    return bits;
+  }
   
   /**
    * Get a cloned WalkingIterator that holds the same
@@ -113,6 +122,25 @@ public class WalkingIterator extends LocPathIterator
   }
   
   /**
+   * Initialize the context values for this expression
+   * after it is cloned.
+   *
+   * @param execContext The XPath runtime context for this
+   * transformation.
+   */
+  public void setRoot(int context, Object environment)
+  {
+
+    super.setRoot(context, environment);
+    
+    if(null != m_firstWalker)
+    {
+      m_firstWalker.setRoot(context);
+      m_lastUsedWalker = m_firstWalker;
+    }
+  }
+  
+  /**
    *  Returns the next node in the set and advances the position of the
    * iterator in the set. After a NodeIterator is created, the first call
    * to nextNode() returns the first node in the set.
@@ -121,26 +149,8 @@ public class WalkingIterator extends LocPathIterator
    */
   public int nextNode()
   {
-
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    if (null != m_cachedNodes)
-    {
-      if(m_next < m_cachedNodes.size())
-      {
-        int next = m_lastFetched = m_currentContextNode 
-                                       = m_cachedNodes.elementAt(m_next);
-      
-        incrementNextPosition();
-  
-        return next;
-      }
-      else if(m_foundLast)
-      {
-        m_lastFetched = DTM.NULL;
-        return DTM.NULL;
-      }
-    }
+  	if(m_foundLast)
+  		return DTM.NULL;
 
     // If the variable stack position is not -1, we'll have to 
     // set our position in the variable stack, so our variable access 
@@ -152,14 +162,6 @@ public class WalkingIterator extends LocPathIterator
     // from the execute method.
     if (-1 == m_stackFrame)
     {
-      if (DTM.NULL == m_firstWalker.getRoot())
-      {
-        this.setNextPosition(0);
-        m_firstWalker.setRoot(m_context);
-
-        m_lastUsedWalker = m_firstWalker;
-      }
-
       return returnNextNode(m_firstWalker.nextNode());
     }
     else
@@ -171,14 +173,6 @@ public class WalkingIterator extends LocPathIterator
 
       vars.setStackFrame(m_stackFrame);
 
-      if (DTM.NULL == m_firstWalker.getRoot())
-      {
-        this.setNextPosition(0);
-        m_firstWalker.setRoot(m_context);
-
-        m_lastUsedWalker = m_firstWalker;
-      }
-
       int n = returnNextNode(m_firstWalker.nextNode());
 
       // These two statements need to be combined into one operation.
@@ -187,6 +181,7 @@ public class WalkingIterator extends LocPathIterator
       return n;
     }
   }
+
   
   /**
    * <meta name="usage" content="advanced"/>
@@ -199,6 +194,18 @@ public class WalkingIterator extends LocPathIterator
   {
     return m_firstWalker;
   }
+  
+  /**
+   * <meta name="usage" content="advanced"/>
+   * Set the head of the walker list.
+   * 
+   * @param walker Should be a valid AxesWalker.
+   */
+  public final void setFirstWalker(AxesWalker walker)
+  {
+    m_firstWalker = walker;
+  }
+
 
   /**
    * <meta name="usage" content="advanced"/>
@@ -230,11 +237,21 @@ public class WalkingIterator extends LocPathIterator
    * exception INVALID_STATE_ERR.
    */
   public void detach()
-  {    
-    m_lastUsedWalker = null;
-    
-    // Always call the superclass detach last!
-    super.detach();
+  {   
+    if(m_allowDetach)
+    {
+	  	AxesWalker walker = m_firstWalker; 
+	    while (null != walker)
+	    {
+	      walker.detach();
+	      walker = walker.getNextWalker();
+	    }
+	
+	    m_lastUsedWalker = null;
+	    
+	    // Always call the superclass detach last!
+	    super.detach();
+    }
   }
   
   /**
@@ -259,6 +276,20 @@ public class WalkingIterator extends LocPathIterator
       walker = walker.getNextWalker();
     }
   }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	 	if(visitor.visitLocationPath(owner, this))
+  	 	{
+  	 		if(null != m_firstWalker)
+  	 		{
+  	 			m_firstWalker.callVisitors(this, visitor);
+  	 		}
+  	 	}
+  }
 
   
   /** The last used step walker in the walker list.
@@ -268,5 +299,46 @@ public class WalkingIterator extends LocPathIterator
   /** The head of the step walker list.
    *  @serial */
   protected AxesWalker m_firstWalker;
+
+  /**
+   * @see ExpressionOwner#getExpression()
+   */
+  public Expression getExpression()
+  {
+    return m_firstWalker;
+  }
+
+  /**
+   * @see ExpressionOwner#setExpression(Expression)
+   */
+  public void setExpression(Expression exp)
+  {
+  	exp.exprSetParent(this);
+  	m_firstWalker = (AxesWalker)exp;
+  }
+  
+    /**
+     * @see Expression#deepEquals(Expression)
+     */
+    public boolean deepEquals(Expression expr)
+    {
+      if (!super.deepEquals(expr))
+                return false;
+
+      AxesWalker walker1 = m_firstWalker;
+      AxesWalker walker2 = ((WalkingIterator)expr).m_firstWalker;
+      while ((null != walker1) && (null != walker2))
+      {
+        if(!walker1.deepEquals(walker2))
+        	return false;
+        walker1 = walker1.getNextWalker();
+        walker2 = walker2.getNextWalker();
+      }
+      
+      if((null != walker1) || (null != walker2))
+      	return false;
+
+      return true;
+    }
 
 }

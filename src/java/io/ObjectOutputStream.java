@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectOutputStream.java	1.132 02/04/12
+ * @(#)ObjectOutputStream.java	1.134 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -111,7 +111,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.132, 02/04/12
+ * @version     1.134, 03/01/23
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -1235,6 +1235,8 @@ public class ObjectOutputStream
 				     boolean unshared) 
 	throws IOException 
     {
+	desc.checkSerialize();
+
 	bout.writeByte(TC_OBJECT);
 	writeClassDesc(desc, false);
 	handles.assign(unshared ? null : obj);

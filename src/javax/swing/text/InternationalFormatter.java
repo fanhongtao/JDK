@@ -1,7 +1,7 @@
 /*
- * @(#)InternationalFormatter.java	1.12 02/04/18
+ * @(#)InternationalFormatter.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -156,7 +156,7 @@ public class InternationalFormatter extends DefaultFormatter {
      * Creates an <code>InternationalFormatter</code> with the specified
      * <code>Format</code> instance.
      *
-     * @param Format instance used for converting from/to Strings
+     * @param format Format instance used for converting from/to Strings
      */
     public InternationalFormatter(Format format) {
         this();
@@ -215,7 +215,7 @@ public class InternationalFormatter extends DefaultFormatter {
      * <code>valueClass</code> will be set to that of the class of
      * <code>max</code>.
      *
-     * @param maximum Maximum legal value that can be input
+     * @param max Maximum legal value that can be input
      * @see #setValueClass
      */
     public void setMaximum(Comparable max) {

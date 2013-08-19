@@ -113,8 +113,6 @@ public class ElemAttribute extends ElemElement
    * @see <a href="http://www.w3.org/TR/xslt#creating-attributes">creating-attributes in XSLT Specification</a>
    *
    * @param transformer non-null reference to the the current transform-time state.
-   * @param sourceNode non-null reference to the <a href="http://www.w3.org/TR/xslt#dt-current-node">current source node</a>.
-   * @param mode reference, which may be null, to the <a href="http://www.w3.org/TR/xslt#modes">current mode</a>.
    *
    * @throws TransformerException
    */
@@ -126,23 +124,27 @@ public class ElemAttribute extends ElemElement
 
     // If they are trying to add an attribute when there isn't an 
     // element pending, it is an error.
-    if (!rhandler.isElementPending())
-    {
-      // Make sure the trace event is sent.
-      if (TransformerImpl.S_DEBUG)
-        transformer.getTraceManager().fireTraceEvent(this);
-
-      XPathContext xctxt = transformer.getXPathContext();
-      int sourceNode = xctxt.getCurrentNode();
-      String attrName = m_name_avt.evaluate(xctxt, sourceNode, this);
-      transformer.getMsgMgr().warn(this,
-                                   XSLTErrorResources.WG_ILLEGAL_ATTRIBUTE,
-                                   new Object[]{ attrName });
-
-      return;
-
-      // warn(templateChild, sourceNode, "Trying to add attribute after element child has been added, ignoring...");
-    }
+    // I don't think we need this check here because it is checked in 
+    // ResultTreeHandler.addAttribute.  (is)
+//    if (!rhandler.isElementPending())
+//    {
+//      // Make sure the trace event is sent.
+//      if (TransformerImpl.S_DEBUG)
+//        transformer.getTraceManager().fireTraceEvent(this);
+//
+//      XPathContext xctxt = transformer.getXPathContext();
+//      int sourceNode = xctxt.getCurrentNode();
+//      String attrName = m_name_avt.evaluate(xctxt, sourceNode, this);
+//      transformer.getMsgMgr().warn(this,
+//                                   XSLTErrorResources.WG_ILLEGAL_ATTRIBUTE_POSITION,
+//                                   new Object[]{ attrName });
+//
+//      if (TransformerImpl.S_DEBUG)
+//        transformer.getTraceManager().fireTraceEndEvent(this);
+//      return;
+//
+//      // warn(templateChild, sourceNode, "Trying to add attribute after element child has been added, ignoring...");
+//    }
     
     super.execute(transformer);
     
@@ -293,4 +295,18 @@ public class ElemAttribute extends ElemElement
 
     return super.appendChild(newChild);
   }
+	/**
+	 * @see ElemElement#setName(AVT)
+	 */
+	public void setName(AVT v) {
+        if (v.isSimple())
+        {
+            if (v.getSimpleString().equals("xmlns"))
+            {
+                throw new IllegalArgumentException();
+            }
+        }
+		super.setName(v);
+	}
+
 }

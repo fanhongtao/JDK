@@ -242,5 +242,8 @@ public class ElemUse extends ElemTemplateElement
       applyAttrSets(transformer, getStylesheetRoot(),
                     m_attributeSetsNames);
     }
+    
+    if (TransformerImpl.S_DEBUG)
+	  transformer.getTraceManager().fireTraceEndEvent(this); 
   }
 }

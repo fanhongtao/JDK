@@ -1,7 +1,7 @@
 /*
- * @(#)InputEvent.java	1.27 01/12/03
+ * @(#)InputEvent.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.Toolkit;
  * activated.
  *
  * @author Carl Quinn
- * @version 1.27 12/03/01
+ * @version 1.29 01/23/03
  *
  * @see KeyEvent
  * @see KeyAdapter
@@ -37,96 +37,96 @@ import java.awt.Toolkit;
 public abstract class InputEvent extends ComponentEvent {
 
     /**
-     * The shift key modifier constant.
-     * It is recommended that SHIFT_DOWN_MASK to be used instead.
+     * The Shift key modifier constant.
+     * It is recommended that SHIFT_DOWN_MASK be used instead.
      */
     public static final int SHIFT_MASK = Event.SHIFT_MASK;
 
     /**
-     * The control key modifier constant.
-     * It is recommended that CTRL_DOWN_MASK to be used instead.
+     * The Control key modifier constant.
+     * It is recommended that CTRL_DOWN_MASK be used instead.
      */
     public static final int CTRL_MASK = Event.CTRL_MASK;
 
     /**
-     * The meta key modifier constant.
-     * It is recommended that META_DOWN_MASK to be used instead.
+     * The Meta key modifier constant.
+     * It is recommended that META_DOWN_MASK be used instead.
      */
     public static final int META_MASK = Event.META_MASK;
 
     /**
-     * The alt key modifier constant.
-     * It is recommended that ALT_DOWN_MASK to be used instead.
+     * The Alt key modifier constant.
+     * It is recommended that ALT_DOWN_MASK be used instead.
      */
     public static final int ALT_MASK = Event.ALT_MASK;
 
     /**
-     * The alt-graph key modifier constant.
+     * The AltGraph key modifier constant.
      */
     public static final int ALT_GRAPH_MASK = 1 << 5;
 
     /**
-     * The mouse button1 modifier constant.
-     * It is recommended that BUTTON1_DOWN_MASK to be used instead.
+     * The Mouse Button1 modifier constant.
+     * It is recommended that BUTTON1_DOWN_MASK be used instead.
      */
     public static final int BUTTON1_MASK = 1 << 4;
 
     /**
-     * The mouse button2 modifier constant.
-     * It is recommended that BUTTON2_DOWN_MASK to be used instead.
+     * The Mouse Button2 modifier constant.
+     * It is recommended that BUTTON2_DOWN_MASK be used instead.
      */
     public static final int BUTTON2_MASK = Event.ALT_MASK;
 
     /**
-     * The mouse button3 modifier constant.
-     * It is recommended that BUTTON3_DOWN_MASK to be used instead.
+     * The Mouse Button3 modifier constant.
+     * It is recommended that BUTTON3_DOWN_MASK be used instead.
      */
     public static final int BUTTON3_MASK = Event.META_MASK;
 
     /**
-     * The SHIFT key extended modifier constant.
+     * The Shift key extended modifier constant.
      * @since 1.4
      */
     public static final int SHIFT_DOWN_MASK = 1 << 6;
 
     /**
-     * The CTRL key extended modifier constant.
+     * The Control key extended modifier constant.
      * @since 1.4
      */
     public static final int CTRL_DOWN_MASK = 1 << 7;
 
     /**
-     * The META key extended modifier constant.
+     * The Meta key extended modifier constant.
      * @since 1.4
      */
     public static final int META_DOWN_MASK = 1 << 8;
 
     /**
-     * The ALT key extended modifier constant.                    
+     * The Alt key extended modifier constant.                    
      * @since 1.4
      */
     public static final int ALT_DOWN_MASK = 1 << 9;
 
     /**
-     * The mouse button1 extended modifier constant.
+     * The Mouse Button1 extended modifier constant.
      * @since 1.4
      */
     public static final int BUTTON1_DOWN_MASK = 1 << 10;
 
     /**
-     * The mouse button2 extended modifier constant.
+     * The Mouse Button2 extended modifier constant.
      * @since 1.4
      */
     public static final int BUTTON2_DOWN_MASK = 1 << 11;
 
     /**
-     * The mouse button3 extended modifier constant.
+     * The Mouse Button3 extended modifier constant.
      * @since 1.4
      */
     public static final int BUTTON3_DOWN_MASK = 1 << 12;
 
     /**
-     * The alt-graph key extended modifier constant.
+     * The AltGraph key extended modifier constant.
      * @since 1.4
      */
     public static final int ALT_GRAPH_DOWN_MASK = 1 << 13;
@@ -135,20 +135,22 @@ public abstract class InputEvent extends ComponentEvent {
     static final int JDK_1_3_MODIFIERS = SHIFT_DOWN_MASK - 1;
 
     /**
-     * The input events Time stamp.  The time stamp is in
-     * UTC format that indicates when the input event was
-     * created.
+     * The input event's Time stamp in UTC format.  The time stamp 
+     * indicates when the input event was created.
      *
      * @serial
-     * @see getWhen()
+     * @see #getWhen()
      */
     long when;
+
     /**
-     * The state of the modifier key at the time the input
+     * The state of the modifier mask at the time the input
      * event was fired.
      *
      * @serial
-     * @see getModifiers()
+     * @see #getModifiers()
+     * @see #getModifiersEx()
+     * @see java.awt.event.KeyEvent
      * @see java.awt.event.MouseEvent
      */
     int modifiers;
@@ -170,10 +172,12 @@ public abstract class InputEvent extends ComponentEvent {
     /**
      * Constructs an InputEvent object with the specified source component,
      * modifiers, and type.
+     * 
      * @param source the object where the event originated
-     * @id the event type
-     * @when the time the event occurred
-     * @modifiers the modifier keys down while event occurred
+     * @param id the event type
+     * @param when the time the event occurred
+     * @param modifiers represents the modifier keys and mouse buttons down 
+     *                  while the event occurred
      */
     InputEvent(Component source, int id, long when, int modifiers) {
         super(source, id);
@@ -210,7 +214,7 @@ public abstract class InputEvent extends ComponentEvent {
     }
 
     /**
-     * Returns whether or not the Alt-Graph modifier is down on this event.
+     * Returns whether or not the AltGraph modifier is down on this event.
      */
     public boolean isAltGraphDown() {
         return (modifiers & ALT_GRAPH_MASK) != 0;
@@ -224,16 +228,17 @@ public abstract class InputEvent extends ComponentEvent {
     }
 
     /**
-     * Returns the modifiers flag for this event.
+     * Returns the modifier mask for this event.
      */
     public int getModifiers() {
         return modifiers & JDK_1_3_MODIFIERS;
     }
 
     /**
-     * Returns the extended modifiers flag for this event.
-     * Extended modifiers represent state of all modal keys, 
-     * such of ALT, CTRL, META and mouse buttons just after event occured
+     * Returns the extended modifier mask for this event.
+     * Extended modifiers represent the state of all modal keys, 
+     * such as ALT, CTRL, META, and the mouse buttons just after 
+     * the event occurred
      * <P> 
      * For example, if the user presses <b>button 1</b> followed by
      * <b>button 2</b>, and then releases them in the same order,
@@ -248,7 +253,7 @@ public abstract class InputEvent extends ComponentEvent {
      * </PRE>
      * <P>
      * It is not recommended to compare the return value of this method
-     * via <code>==</code> because new modifiers can be added in the future.
+     * using <code>==</code> because new modifiers can be added in the future.
      * For example, the appropriate way to check that SHIFT and BUTTON1 are
      * down, but CTRL is up is demonstrated by the following code:
      * <PRE>
@@ -259,12 +264,12 @@ public abstract class InputEvent extends ComponentEvent {
      *    }
      * </PRE>
      * The above code will work even if new modifiers are added.
+     * 
      * @since 1.4
      */
     public int getModifiersEx() {
         return modifiers & ~JDK_1_3_MODIFIERS;
     }
-
 
     /**
      * Consumes this event so that it will not be processed
@@ -286,12 +291,16 @@ public abstract class InputEvent extends ComponentEvent {
     static final long serialVersionUID = -2482525981698309786L;
 
     /**
-     * Returns a String describing the extended modifier key(s), such as "Shift",
-     * "Button1" or "Ctrl+Shift" .  These strings can be localized by changing the 
+     * Returns a String describing the extended modifier keys and 
+     * mouse buttons, such as "Shift", "Button1", or "Ctrl+Shift".  
+     * These strings can be localized by changing the 
      * awt.properties file.
      *
-     * @return string a text description of the combination of extended 
-     *                modifier keys that were held down during the event
+     * @param modifiers a modifier mask describing the extended
+       *                modifier keys and mouse buttons for the event 
+     * @return a text description of the combination of extended 
+     *         modifier keys and mouse buttons that were held down 
+     *         during the event. 
      * @since 1.4
      */
     public static String getModifiersExText(int modifiers) {
@@ -334,3 +343,4 @@ public abstract class InputEvent extends ComponentEvent {
         return buf.toString();
     }
 }
+

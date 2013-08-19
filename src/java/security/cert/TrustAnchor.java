@@ -1,7 +1,7 @@
 /*
- * @(#)TrustAnchor.java	1.6 01/12/03
+ * @(#)TrustAnchor.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,8 @@ package java.security.cert;
 
 import java.io.IOException;
 import java.security.PublicKey;
+
+import javax.security.auth.x500.X500Principal;
 
 import sun.security.x509.NameConstraintsExtension;
 import sun.security.x509.X500Name;
@@ -38,19 +40,22 @@ import sun.security.x509.X500Name;
  * @see PKIXParameters#PKIXParameters(Set)
  * @see PKIXBuilderParameters#PKIXBuilderParameters(Set, CertSelector)
  *
- * @version     1.6 12/03/01
+ * @version     1.8 01/23/03
  * @since       1.4
  * @author      Sean Mullan
  */
 public class TrustAnchor {
+    
+    static {
+	CertPathHelperImpl.initialize();
+    }
 
     private PublicKey pubKey;
     private String caName;
+    private X500Principal caPrincipal;
     private X509Certificate trustedCert;
     private byte [] ncBytes;
     private NameConstraintsExtension nc;
-
-    private static final Boolean falseBoolean = new Boolean(false);
 
     /**
      * Creates an instance of <code>TrustAnchor</code> with the specified
@@ -156,7 +161,7 @@ public class TrustAnchor {
                 "parameter must be a non-empty String");
 	// check if caName is formatted correctly
 	try {
-	    new X500Name(caName, "RFC2253");
+	    caPrincipal = new X500Name(caName, "RFC2253").asX500Principal();
 	} catch (IOException ioe) {
 	    IllegalArgumentException iae = 
 	        new IllegalArgumentException(ioe.getMessage());
@@ -190,6 +195,10 @@ public class TrustAnchor {
     public final String getCAName() {
         return this.caName;
     }
+    
+    final X500Principal getCA() {
+	return this.caPrincipal;
+    }
 
     /**
      * Returns the public key of the most-trusted CA.
@@ -213,7 +222,7 @@ public class TrustAnchor {
             ncBytes = (byte []) bytes.clone();
             // validate DER encoding
 	    try {
-                nc = new NameConstraintsExtension(falseBoolean, bytes);
+                nc = new NameConstraintsExtension(Boolean.FALSE, bytes);
 	    } catch (IOException ioe) {
 		IllegalArgumentException iae = 
 		    new IllegalArgumentException(ioe.getMessage());

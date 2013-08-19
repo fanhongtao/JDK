@@ -1,7 +1,7 @@
 /*
- * @(#)JList.java	1.103 02/02/11
+ * @(#)JList.java	1.106 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -222,7 +222,7 @@ import java.io.Serializable;
  *   attribute: isContainer false
  * description: A component which allows for the selection of one or more objects from a list.
  *
- * @version 1.103 02/11/02
+ * @version 1.106 01/23/03
  * @author Hans Muller
  */
 public class JList extends JComponent implements Scrollable, Accessible
@@ -783,7 +783,10 @@ public class JList extends JComponent implements Scrollable, Accessible
      * </pre>
      * <p>
      * These correspond to the following values:
-     * <table>
+     *
+     * <table border="1" 
+     *  summary="Describes layouts VERTICAL, HORIZONTAL_WRAP, and VERTICAL_WRAP">
+     *   <tr><th><p align="left">Value</p></th><th><p align="left">Description</p></th></tr>
      *   <tr><td><code>JList.VERTICAL</code>
      *       <td>The cells should be layed out vertically in one column.
      *   <tr><td><code>JList.HORIZONTAL_WRAP</code>

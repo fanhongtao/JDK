@@ -1,7 +1,7 @@
 /*
- * @(#)PipedOutputStream.java	1.24 01/12/03
+ * @(#)PipedOutputStream.java	1.25 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.io.*;
  * is not recommended as it may deadlock the thread.
  *
  * @author  James Gosling
- * @version 1.24, 12/03/01
+ * @version 1.25, 01/23/03
  * @see     java.io.PipedInputStream
  * @since   JDK1.0
  */

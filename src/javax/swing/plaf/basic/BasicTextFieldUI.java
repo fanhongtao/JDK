@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextFieldUI.java	1.92 03/04/25
+ * @(#)BasicTextFieldUI.java	1.92 03/03/17
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.92 04/25/03
+ * @version 1.92 03/17/03
  */
 public class BasicTextFieldUI extends BasicTextUI {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Security.java	1.117 02/04/19
+ * @(#)Security.java	1.119 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import sun.security.util.PropertyExpander;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.117, 04/19/02
+ * @version 1.119, 01/23/03
  */
 
 public final class Security {
@@ -336,9 +336,10 @@ public final class Security {
 
 	    // determine if the loadProvider call below is looping.
 	    // this may occur if the provider to be loaded is signed.
-	    // if looping, simply return
+	    // if looping, continue
 	    if (providerLoads.get(name) != null) {
-		return;
+		indexStaticProviders++;
+		continue;
 	    } else {
 		providerLoads.put(name, name);
 	    }

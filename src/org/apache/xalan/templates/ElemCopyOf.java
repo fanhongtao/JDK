@@ -166,12 +166,11 @@ public class ElemCopyOf extends ElemTemplateElement
           TransformerImpl transformer)
             throws TransformerException
   {
+    if (TransformerImpl.S_DEBUG)
+    	transformer.getTraceManager().fireTraceEvent(this);
 
     try
     {
-      if (TransformerImpl.S_DEBUG)
-        transformer.getTraceManager().fireTraceEvent(this);
-
       XPathContext xctxt = transformer.getXPathContext();
       int sourceNode = xctxt.getCurrentNode();
       XObject value = m_selectExpression.execute(xctxt, sourceNode, this);
@@ -254,6 +253,11 @@ public class ElemCopyOf extends ElemTemplateElement
     {
       throw new TransformerException(se);
     }
+    finally
+    {
+      if (TransformerImpl.S_DEBUG)
+        transformer.getTraceManager().fireTraceEndEvent(this);
+    }
 
   }
 
@@ -274,4 +278,16 @@ public class ElemCopyOf extends ElemTemplateElement
     //" to " + this.m_elemName);
     return null;
   }
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+  {
+  	if(callAttrs)
+  		m_selectExpression.getExpression().callVisitors(m_selectExpression, visitor);
+    super.callChildVisitors(visitor, callAttrs);
+  }
+
 }

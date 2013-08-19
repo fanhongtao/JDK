@@ -56,17 +56,19 @@
  */
 package org.apache.xpath.operations;
 
-import org.apache.xpath.Expression;
-import org.apache.xpath.XPath;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XObject;
+import java.util.Vector;
 
-import org.w3c.dom.Node;
+import javax.xml.transform.TransformerException;
+import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.objects.XObject;
 
 /**
  * The baseclass for a binary operation.
  */
-public class Operation extends Expression
+public class Operation extends Expression implements ExpressionOwner
 {
 
   /** The left operand expression.
@@ -123,6 +125,8 @@ public class Operation extends Expression
   {
     m_left = l;
     m_right = r;
+    l.exprSetParent(this);
+    r.exprSetParent(this);
   }
 
   /**
@@ -140,10 +144,13 @@ public class Operation extends Expression
           throws javax.xml.transform.TransformerException
   {
 
-    XObject left = m_left.execute(xctxt);
-    XObject right = m_right.execute(xctxt);
+    XObject left = m_left.execute(xctxt, true);
+    XObject right = m_right.execute(xctxt, true);
 
-    return operate(left, right);
+    XObject result = operate(left, right);
+    left.detach();
+    right.detach();
+    return result;
   }
 
   /**
@@ -161,5 +168,83 @@ public class Operation extends Expression
           throws javax.xml.transform.TransformerException
   {
     return null;  // no-op
+  }
+
+  /** @return the left operand of binary operation, as an Expression.
+   */
+  public Expression getLeftOperand(){
+    return m_left;
+  }
+
+  /** @return the right operand of binary operation, as an Expression.
+   */
+  public Expression getRightOperand(){
+    return m_right;
+  }
+  
+  class LeftExprOwner implements ExpressionOwner
+  {
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_left;
+    }
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(Operation.this);
+    	m_left = exp;
+    }
+  }
+
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	if(visitor.visitBinaryOperation(owner, this))
+  	{
+  		m_left.callVisitors(new LeftExprOwner(), visitor);
+  		m_right.callVisitors(this, visitor);
+  	}
+  }
+
+  /**
+   * @see ExpressionOwner#getExpression()
+   */
+  public Expression getExpression()
+  {
+    return m_right;
+  }
+
+  /**
+   * @see ExpressionOwner#setExpression(Expression)
+   */
+  public void setExpression(Expression exp)
+  {
+  	exp.exprSetParent(this);
+  	m_right = exp;
+  }
+
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!isSameClass(expr))
+  		return false;
+  		
+  	if(!m_left.deepEquals(((Operation)expr).m_left))
+  		return false;
+  		
+  	if(!m_right.deepEquals(((Operation)expr).m_right))
+  		return false;
+  		
+  	return true;
   }
 }

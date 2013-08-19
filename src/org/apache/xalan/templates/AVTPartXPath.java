@@ -57,10 +57,12 @@
 package org.apache.xalan.templates;
 
 import org.apache.xpath.*;
+import org.apache.xpath.Expression;
 import org.apache.xpath.objects.XObject;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.compiler.XPathParser;
 import org.apache.xml.utils.FastStringBuffer;
+import org.apache.xpath.ExpressionOwner;
 
 //import org.w3c.dom.*;
 import org.apache.xml.dtm.DTM;
@@ -176,5 +178,13 @@ public class AVTPartXPath extends AVTPart
     {
       xobj.appendToFsb(buf);
     }
+  }
+  
+  /**
+   * @see XSLTVisitable#callVisitors(XSLTVisitor)
+   */
+  public void callVisitors(XSLTVisitor visitor)
+  {
+  	m_xpath.getExpression().callVisitors(m_xpath, visitor);
   }
 }

@@ -104,6 +104,8 @@ import java.io.StringReader;
 import java.util.Properties;
 import java.util.Enumeration;
 
+import org.apache.xalan.transformer.XalanProperties;
+
 /**
  * The TransformerFactoryImpl, which implements the TRaX TransformerFactory
  * interface, processes XSLT stylesheets into a Templates object
@@ -119,16 +121,12 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
   public static String XSLT_PROPERTIES =
     "org/apache/xalan/res/XSLTInfo.properties";
 
-  /** Flag tells if the properties file has been loaded to the system */
-  private static boolean isInited = false;
-
-  /**
+     /**
    * Constructor TransformerFactoryImpl
    *
    */
   public TransformerFactoryImpl()
   {
-    loadPropertyFileToSystem(XSLT_PROPERTIES);
   }
 
   /** a zero length Class array used in loadPropertyFileToSystem() */
@@ -143,18 +141,15 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
   /** Static string to be used for optimize feature */
   public static final String FEATURE_OPTIMIZE = "http://xml.apache.org/xalan/features/optimize";
 
+  /** Static string to be used for source_location feature */
+  public static final String FEATURE_SOURCE_LOCATION = XalanProperties.SOURCE_LOCATION;
 
   /**
-   * Retrieve a propery bundle from a specified file and load it
+   * Retrieve a propery bundle from XSLT_PROPERTIES and load it
    * int the System properties.
-   *
-   * @param file The properties file to be processed.
    */
-  private static void loadPropertyFileToSystem(String file)
+   static 
   {
-
-    if (false == isInited)
-    {
       try
       {
         InputStream is = null;
@@ -167,7 +162,7 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
             java.lang.reflect.Method getCCL = Thread.class.getMethod("getContextClassLoader", NO_CLASSES);
             if (getCCL != null) {
               ClassLoader contextClassLoader = (ClassLoader) getCCL.invoke(Thread.currentThread(), NO_OBJS);
-              is = contextClassLoader.getResourceAsStream(file); // file should be already fully specified
+              is = contextClassLoader.getResourceAsStream(XSLT_PROPERTIES); // file should be already fully specified
             }
           }
           catch (Exception e) {}
@@ -176,7 +171,7 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
             // NOTE! For the below getResourceAsStream in Sun JDK 1.1.8M
             //  we apparently must add the leading slash character - I 
             //  don't know why, but if it's not there, we throw an NPE from the below loading
-            is = TransformerFactoryImpl.class.getResourceAsStream("/" + file); // file should be already fully specified
+            is = TransformerFactoryImpl.class.getResourceAsStream("/" + XSLT_PROPERTIES); // file should be already fully specified
           }
 
           // get a buffered version
@@ -200,7 +195,6 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
 
           System.setProperties(systemProps);
 
-          isInited = true;
         }
         catch (Exception ex){}
       }
@@ -210,8 +204,7 @@ public class TransformerFactoryImpl extends SAXTransformerFactory
         // In this case the caller is required to have 
         // the needed attributes already defined.
       }
-    }
-  }
+   }
 
 public javax.xml.transform.Templates processFromNode(Node node)
           throws TransformerConfigurationException
@@ -504,6 +497,22 @@ public javax.xml.transform.Templates processFromNode(Node node)
   
   public static boolean m_optimize = true;
   
+  /** Flag set by FEATURE_SOURCE_LOCATION.
+   * This feature specifies whether the transformation phase should
+   * keep track of line and column numbers for the input source
+   * document. Note that this works only when that
+   * information is available from the source -- in other words, if you
+   * pass in a DOM, there's little we can do for you.
+   * 
+   * The default is false. Setting it true may significantly
+   * increase storage cost per node. 
+   * 
+   * %REVIEW% SAX2DTM is explicitly reaching up to retrieve this global field.
+   * We should instead have an architected pathway for passing hints of this
+   * sort down from TransformerFactory to Transformer to DTMManager to DTM.
+   * */
+  public static boolean m_source_location = false;
+  
   /**
    * Allows the user to set specific attributes on the underlying
    * implementation.
@@ -553,6 +562,31 @@ public javax.xml.transform.Templates processFromNode(Node node)
         throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_BAD_VALUE, new Object[]{name, value})); //name + " bad value " + value);
       }
     }
+    
+    // Custom Xalan feature: annotate DTM with SAX source locator fields.
+    // This gets used during SAX2DTM instantiation. 
+    //
+    // %REVIEW% Should the name of this field really be in XalanProperties?
+    // %REVIEW% I hate that it's a global static, but didn't want to change APIs yet.
+    else if(name.equals(FEATURE_SOURCE_LOCATION))
+    {
+      if(value instanceof Boolean)
+      {
+        // Accept a Boolean object..
+        m_source_location = ((Boolean)value).booleanValue();
+      }
+      else if(value instanceof String)
+      {
+        // .. or a String object
+        m_source_location = (new Boolean((String)value)).booleanValue();
+      }
+      else
+      {
+        // Give a more meaningful error message
+        throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_BAD_VALUE, new Object[]{name, value})); //name + " bad value " + value);
+      }
+    }
+    
     else
     {
       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_NOT_SUPPORTED, new Object[]{name})); //name + "not supported");
@@ -578,6 +612,10 @@ public javax.xml.transform.Templates processFromNode(Node node)
     else if (name.equals(FEATURE_OPTIMIZE))
     {
       return new Boolean(m_optimize);
+    }
+    else if (name.equals(FEATURE_SOURCE_LOCATION))
+    {
+      return new Boolean(m_source_location);
     }
     else
       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_ATTRIB_VALUE_NOT_RECOGNIZED, new Object[]{name})); //name + " attribute not recognized");
@@ -1026,7 +1064,8 @@ public javax.xml.transform.Templates processFromNode(Node node)
   {
 
     if (null == listener)
-      throw new IllegalArgumentException("ErrorListener");
+      throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_ERRORLISTENER, null));
+      // "ErrorListener");
 
     m_errorListener = listener;
   }

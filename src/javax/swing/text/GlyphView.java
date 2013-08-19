@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphView.java	1.23 03/12/02
+ * @(#)GlyphView.java	1.24 03/01/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -37,7 +37,7 @@ import javax.swing.event.*;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.23 12/02/03
+ * @version 1.24 01/27/03
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -89,6 +89,10 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * the given range.  This is normally used by
      * the GlyphPainter to determine what characters
      * it should render glyphs for.
+     *
+     * @param p0  the starting document offset >= 0
+     * @param p1  the ending document offset >= p0
+     * @return    the <code>Segment</code> containing the text
      */
      public Segment getText(int p0, int p1) {
          // When done with the returned Segment it should be released by
@@ -312,18 +316,6 @@ public class GlyphView extends View implements TabableView, Cloneable {
     }
 
     /**
-     * Lazily initializes the selections field
-     */
-    private void initSelections(int p0, int p1) {
-        int viewPosCount = p1 - p0 + 1;
-        if (selections == null || viewPosCount > selections.length) {
-            selections = new byte[viewPosCount];
-            return;
-        }
-        for (int i = 0; i < viewPosCount; selections[i++] = 0);
-    }
-
-    /**
      * Renders a portion of a text style run.
      *
      * @param g the rendering surface to use
@@ -358,66 +350,38 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	} else if(c instanceof JTextComponent) {
 	    JTextComponent tc = (JTextComponent) c;
 	    Color selFG = tc.getSelectedTextColor();
+	    Caret caret = tc.getCaret();
+	    if ((caret != null) && (! caret.isSelectionVisible())) {
+		// selection currently not visible
+		selFG = fg;
+	    }
 
 	    if(selFG != null && !selFG.equals(fg)) {
-		Highlighter.Highlight[] h = tc.getHighlighter().getHighlights();
-  
-                if(h.length != 0) {
-                    boolean initialized = false;
-                    int viewSelectionCount = 0;
-                    for (int i = 0; i < h.length; i++) {
-                        Highlighter.Highlight highlight = h[i];
-                        int hStart = highlight.getStartOffset();
-                        int hEnd = highlight.getEndOffset();
-                        if (hStart > p1 || hEnd < p0) {
-                            // the selection is out of this view
-                            continue;
-                        }
-                        if (hStart <= p0 && hEnd >= p1){
-                            // the whole view is selected
-                            paintTextUsingColor(g, a, selFG, p0, p1);
-                            paintedText = true;
-                            break;
-                        }
-                        // the array is lazily created only when the view
-                        // is partially selected
-                        if (!initialized) {
-                            initSelections(p0, p1);
-                            initialized = true;
-                        }
-                        hStart = Math.max(p0, hStart);
-                        hEnd = Math.min(p1, hEnd);
-                        paintTextUsingColor(g, a, selFG, hStart, hEnd);
-                        // the array represents view positions [0, p1-p0+1]
-                        // later will iterate this array and sum its
-                        // elements. Positions with sum == 0 are not selected.
-                        selections[hStart-p0]++;
-                        selections[hEnd-p0]--;
+		int selStart = tc.getSelectionStart();
+		int selEnd = tc.getSelectionEnd();
 
-                        viewSelectionCount++;
-                    }
+		if(selStart != selEnd) {
+		    // Something is selected, does p0 - p1 fall in that range?
+		    int pMin;
+		    int pMax;
 
-                    if (!paintedText && viewSelectionCount > 0) {
-                        // the view is partially selected
-                        int curPos = -1;
-                        int startPos = 0;
-                        int viewLen = p1 - p0;
-                        while (curPos++ < viewLen) {
-                            // searching for the next selection start
-                            while(curPos < viewLen &&
-                                    selections[curPos] == 0) curPos++;
-                            if (startPos != curPos) {
-                                // paint unselected text
-                                paintTextUsingColor(g, a, fg,
-                                        p0 + startPos, p0 + curPos);
-                            }
-                            int checkSum = 0;
-                            // searching for next start position of unselected text
-                            while (curPos < viewLen &&
-                                    (checkSum += selections[curPos]) != 0) curPos++;
-                            startPos = curPos;
-                        }
+		    if(selStart <= p0)
+			pMin = p0;
+		    else
+			pMin = Math.min(selStart, p1);
+		    if(selEnd >= p1)
+			pMax = p1;
+		    else
+			pMax = Math.max(selEnd, p0);
+		    // If pMin == pMax (also == p0), selection isn't in this
+		    // block.
+		    if(pMin != pMax) {
 			paintedText = true;
+			if(pMin > p0) 
+			    paintTextUsingColor(g, a, fg, p0, pMin);
+			paintTextUsingColor(g, a, selFG, pMin, pMax);
+			if(pMax < p1)
+			    paintTextUsingColor(g, a, fg, pMax, p1);
 		    }
 		}
 	    }
@@ -461,12 +425,17 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	    int d = (int) painter.getDescent(this);
 	    int y = alloc.y + alloc.height - (int) painter.getDescent(this);
 	    if (underline) {
-		y += 1;
-	    } else if (strike) {
+		int yTmp = y;
+		yTmp += 1;
+		g.drawLine(x0, yTmp, x1, yTmp);
+	    } 
+	    if (strike) {
+		int yTmp = y;
 		// move y coordinate above baseline
-		y -= (int) (painter.getAscent(this) * 0.3f);
+		yTmp -= (int) (painter.getAscent(this) * 0.3f);
+		g.drawLine(x0, yTmp, x1, yTmp);
 	    }
-	    g.drawLine(x0, y, x1, y);
+
 	}
     }
 
@@ -538,7 +507,9 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * to the coordinate space of the view mapped to it.
      *
      * @param pos the position to convert >= 0
-     * @param a the allocated region to render into
+     * @param a   the allocated region to render into
+     * @param b   either <code>Position.Bias.Forward</code>
+     *                or <code>Position.Bias.Backward</code>
      * @return the bounding box of the given position
      * @exception BadLocationException  if the given position does not represent a
      *   valid location in the associated document
@@ -875,11 +846,6 @@ public class GlyphView extends View implements TabableView, Cloneable {
 
     // --- variables ------------------------------------------------
 
-    /**
-    * Used by paint() to store highlighted view positions
-    */
-    private byte[] selections = null;
-
     short offset;
     short length;
 
@@ -940,10 +906,13 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	 * to the coordinate space of the view mapped to it.
 	 * This is shared by the broken views.
 	 *
-	 * @param pos the position to convert
-	 * @param a the allocated region to render into
-	 * @param rightToLeft true if the text is rendered right to left.
-	 * @return the bounding box of the given position
+         * @param v     the <code>GlyphView</code> containing the 
+         *              destination coordinate space
+         * @param pos   the position to convert
+         * @param bias  either <code>Position.Bias.Forward</code>
+         *                  or <code>Position.Bias.Backward</code>
+         * @param a     Bounds of the View
+         * @return      the bounding box of the given position
 	 * @exception BadLocationException  if the given position does not represent a
 	 *   valid location in the associated document
 	 * @see View#modelToView
@@ -956,12 +925,15 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	 * Provides a mapping from the view coordinate space to the logical
 	 * coordinate space of the model.
 	 *
-	 * @param x the X coordinate
-	 * @param y the Y coordinate
-	 * @param a the allocated region to render into
-	 * @param rightToLeft true if the text is rendered right to left
+         * @param v          the <code>GlyphView</code> to provide a mapping for
+	 * @param x          the X coordinate
+	 * @param y          the Y coordinate
+	 * @param a          the allocated region to render into
+         * @param biasReturn either <code>Position.Bias.Forward</code>
+         *                   or <code>Position.Bias.Backward</code> 
+         *                   is returned as the zero-th element of this array
 	 * @return the location within the model that best represents the
-	 *  given point of view
+	 *         given point of view
 	 * @see View#viewToModel
 	 */
         public abstract int viewToModel(GlyphView v, 
@@ -979,7 +951,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	 * @param v the view to find the model location to break at.
 	 * @param p0 the location in the model where the
 	 *  fragment should start it's representation >= 0.
-	 * @param pos the graphic location along the axis that the
+	 * @param x  the graphic location along the axis that the
 	 *  broken view would occupy >= 0.  This may be useful for
 	 *  things like tab calculations.
 	 * @param len specifies the distance into the view
@@ -995,6 +967,9 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	 * to represent a new GlyphView that is being created.  If
 	 * the painter doesn't hold any significant state, it can
 	 * return itself.  The default behavior is to return itself.
+         * @param v  the <code>GlyphView</code> to provide a painter for
+         * @param p0 the starting document offset >= 0
+         * @param p1 the ending document offset >= p0
 	 */
         public GlyphPainter getPainter(GlyphView v, int p0, int p1) {
 	    return this;
@@ -1009,11 +984,16 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	 *
 	 * @param v the view to use
 	 * @param pos the position to convert >= 0
+         * @param b   either <code>Position.Bias.Forward</code>
+         *                or <code>Position.Bias.Backward</code>
 	 * @param a the allocated region to render into
 	 * @param direction the direction from the current position that can
 	 *  be thought of as the arrow keys typically found on a keyboard.
 	 *  This may be SwingConstants.WEST, SwingConstants.EAST, 
 	 *  SwingConstants.NORTH, or SwingConstants.SOUTH.  
+         * @param biasRet  either <code>Position.Bias.Forward</code>
+         *                 or <code>Position.Bias.Backward</code> 
+         *                 is returned as the zero-th element of this array
 	 * @return the location within the model that best represents the next
 	 *  location visual position.
 	 * @exception BadLocationException

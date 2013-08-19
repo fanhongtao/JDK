@@ -1,7 +1,7 @@
 /*
- * @(#)ImageIO.java	1.82 02/04/19
+ * @(#)ImageIO.java	1.83 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

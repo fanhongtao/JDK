@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleStateSet.java	1.14 01/12/03
+ * @(#)AccessibleStateSet.java	1.16 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,7 +46,8 @@ public class AccessibleStateSet {
     /**
      * Creates a new state with the initial set of states contained in 
      * the array of states passed in.  Duplicate entries are ignored.
-     * @param state an array of AccessibleState describing the state set.
+     *
+     * @param states an array of AccessibleState describing the state set.
      */
     public AccessibleStateSet(AccessibleState[] states) {
         if (states.length != 0) {
@@ -88,7 +89,7 @@ public class AccessibleStateSet {
     /**
      * Adds all of the states to the existing state set.  Duplicate entries 
      * are ignored.
-     * @param state  AccessibleState array describing the state set.
+     * @param states  AccessibleState array describing the state set.
      */
     public void addAll(AccessibleState[] states) {
         if (states.length != 0) {

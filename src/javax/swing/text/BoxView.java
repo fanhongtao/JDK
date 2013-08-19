@@ -1,7 +1,7 @@
 /*
- * @(#)BoxView.java	1.57 02/04/18
+ * @(#)BoxView.java	1.59 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.57 04/18/02
+ * @version 1.59 01/23/03
  */
 public class BoxView extends CompositeView {
 
@@ -156,7 +156,7 @@ public class BoxView extends CompositeView {
      *   the new views; this should be a value >= 0 and <= getViewCount
      * @param length the number of existing child views to remove;
      *   This should be a value >= 0 and <= (getViewCount() - offset)
-     * @param views the child views to add; this value can be 
+     * @param elems the child views to add; this value can be 
      *   <code>null</code>to indicate no children are being added
      *   (useful to remove)
      */

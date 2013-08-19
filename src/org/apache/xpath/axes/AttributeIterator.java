@@ -90,7 +90,7 @@ public class AttributeIterator extends ChildTestIterator
   {
     super(compiler, opPos, analysis);
   }
-  
+    
   /**
    * Get the next node via getFirstAttribute && getNextAttribute.
    */

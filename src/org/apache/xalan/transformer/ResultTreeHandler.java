@@ -58,6 +58,8 @@ package org.apache.xalan.transformer;
 
 import java.util.Enumeration;
 
+import org.apache.xalan.processor.StylesheetHandler;
+import org.apache.xalan.res.XSLTErrorResources;
 import org.apache.xalan.templates.Stylesheet;
 import org.apache.xalan.templates.StylesheetRoot;
 import org.apache.xalan.templates.ElemTemplate;
@@ -853,8 +855,25 @@ public class ResultTreeHandler extends QueuedEvents
     {
       if (null != m_name)
       {
-        m_contentHandler.startElement(m_url, m_localName, m_name,
+        try
+        {
+          m_contentHandler.startElement(m_url, m_localName, m_name,
                                       m_attributes);
+        }
+        catch(Exception re)
+        {
+          // If we don't do this, and the exception is a RuntimeException, 
+          // good line numbers of where the exception occured in the stylesheet
+          // won't get reported.  I tried just catching RuntimeException, but 
+          // for whatever reason it didn't seem to catch.
+          // Fix for Christina's DOMException error problem.
+          throw new SAXParseException(re.getMessage(), 
+          m_transformer.getCurrentElement().getPublicId(), 
+          m_transformer.getCurrentElement().getSystemId(), 
+          m_transformer.getCurrentElement().getLineNumber(), 
+          m_transformer.getCurrentElement().getColumnNumber(), 
+          re);
+        }
         
         if(null != m_tracer)
         {
@@ -894,7 +913,11 @@ public class ResultTreeHandler extends QueuedEvents
   }
 
   /**
-   * Flush the pending element.
+   * Flush the pending element, and any attributes associated with it.
+   *
+   * NOTE: If there are attributes but _no_ pending element (which can
+   * happen if the user's stylesheet is doing something inappropriate),
+   * we still want to make sure they are flushed.
    *
    * @param type Event type
    *
@@ -957,11 +980,15 @@ public class ResultTreeHandler extends QueuedEvents
     int doc = obj.rtf();
     DTM dtm = support.getDTM(doc);
 
-    for (int n = dtm.getFirstChild(doc); DTM.NULL != n;
-            n = dtm.getNextSibling(n))
+    if(null != dtm)
     {
-      flushPending(true);  // I think.
-      dtm.dispatchToEvents(n, this);
+	    for (int n = dtm.getFirstChild(doc); DTM.NULL != n;
+	            n = dtm.getNextSibling(n))
+	    {
+	      flushPending(true);  // I think.
+          startPrefixMapping("","");
+	      dtm.dispatchToEvents(n, this);
+	    }
     }
   }
 
@@ -1001,6 +1028,14 @@ public class ResultTreeHandler extends QueuedEvents
         if ((null == foundURI) ||!foundURI.equals(ns))
         {
           startPrefixMapping(prefix, ns, false);
+                                        
+          // Bugzilla1133: Generate attribute as well as namespace event.
+          // SAX does expect both.
+
+          m_attributes.addAttribute("http://www.w3.org/2000/xmlns/", 
+                                    prefix, 
+                                    "xmlns"+(prefix.length()==0 ? "" : ":")+prefix, 
+                                    "CDATA", ns);
         }
       }
     }
@@ -1058,7 +1093,7 @@ public class ResultTreeHandler extends QueuedEvents
   }
 
   /**
-   * JJK: Combination of sendStartPrefixMappings and
+   * Combination of sendStartPrefixMappings and
    * addNSDeclsToAttrs() (which it mostly replaces).  Merging the two
    * loops is significantly more efficient.
    *
@@ -1178,13 +1213,17 @@ public class ResultTreeHandler extends QueuedEvents
 
       m_attributes.addAttribute("http://www.w3.org/2000/xmlns/", 
                                 prefix, name, "CDATA", uri);
+      
+      m_nsDeclsHaveBeenAdded = true;        
     }
 
-    m_nsDeclsHaveBeenAdded = true;
   }
 
   /**
    * Copy <KBD>xmlns:</KBD> attributes in if not already in scope.
+   * 
+   * As a quick hack to support ClonerToResultTree, this can also be used
+   * to copy an individual namespace node.
    *
    * @param src Source Node
    * NEEDSDOC @param type
@@ -1216,6 +1255,17 @@ public class ResultTreeHandler extends QueuedEvents
           }
         }
       }
+      else if (type == DTM.NAMESPACE_NODE)
+			{
+          String prefix = dtm.getNodeNameX(src);
+          String desturi = getURI(prefix);
+          String srcURI = dtm.getNodeValue(src);
+
+          if (!srcURI.equalsIgnoreCase(desturi))
+          {
+            this.startPrefixMapping(prefix, srcURI, false);
+          }
+			}
     }
     catch (org.xml.sax.SAXException se)
     {
@@ -1378,31 +1428,46 @@ public class ResultTreeHandler extends QueuedEvents
           String uri, String localName, String rawName, String type, String value)
             throws TransformerException
   {
-
-    // %REVIEW% %OPT% Is this ever needed?????
-    if (!m_nsDeclsHaveBeenAdded)
-      addNSDeclsToAttrs();
-
-    if (null == uri)  // defensive, should not really need this.
-      uri = "";
-
-    try
+    // %REVIEW% See Bugzilla 4344. Do we need an "else" that announces
+    // an error? Technically, this can't happen unless the stylesheet
+    // is unreasonable... but it's unclear whether silent or noisy
+    // failure is called for.
+    // Will add an "else" and emit a warning message.  This should
+    // cover testcases such as copyerr04-07, attribset19,34,35, 
+    // attribseterr08...(is)
+    if (m_elemIsPending)
     {
-      if (!rawName.equals("xmlns"))  // don't handle xmlns default namespace.
-        ensurePrefixIsDeclared(uri, rawName);
-    }
-    catch (org.xml.sax.SAXException se)
-    {
-      throw new TransformerException(se);
-    }
+        // %REVIEW% %OPT% Is this ever needed?????
+        // The check is not needed. See Bugzilla 10306. 
+        // if (!m_nsDeclsHaveBeenAdded)
+        addNSDeclsToAttrs();
 
-    if (DEBUG)
-      System.out.println("ResultTreeHandler#addAttribute Adding attr: "
-                         + localName + ", " + uri);
+        if (null == uri) { // defensive, should not really need this.
+            uri = "";
+        }
 
-    if (!isDefinedNSDecl(rawName, value))
-      m_attributes.addAttribute(uri, localName, rawName, type, value);
-  }
+        try {
+            if (!rawName.equals("xmlns")) { // don't handle xmlns default namespace.
+                ensurePrefixIsDeclared(uri, rawName);
+            }    
+        } catch (org.xml.sax.SAXException se) {
+            throw new TransformerException(se);
+        }
+      
+        if (DEBUG) {
+            System.out.println("ResultTreeHandler#addAttribute Adding attr: "
+			   + localName + ", " + uri);
+        }
+        
+        if (!isDefinedNSDecl(rawName, value)) {
+            m_attributes.addAttribute(uri, localName, rawName, type, value);
+        }
+    } else {
+        m_transformer.getMsgMgr().warn(m_stylesheetRoot,
+                                   XSLTErrorResources.WG_ILLEGAL_ATTRIBUTE_POSITION,
+                                   new Object[]{ localName });
+    }
+}
 
   /**
    * Return whether or not a namespace declaration is defined

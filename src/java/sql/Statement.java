@@ -1,7 +1,7 @@
 /*
- * @(#)Statement.java	1.37 01/12/03
+ * @(#)Statement.java	1.39 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -300,7 +300,8 @@ public interface Statement {
      *
      * <P>There are no more results when the following is true:
      * <PRE>
-     *      <code>(!getMoreResults() && (getUpdateCount() == -1)</code>
+     *     // stmt is a Statement object
+     *     ((stmt.getMoreResults() == false) && (stmt.getUpdateCount() == -1))
      * </PRE>
      *
      * @return <code>true</code> if the next result is a <code>ResultSet</code>
@@ -562,20 +563,25 @@ public interface Statement {
      *
      * <P>There are no more results when the following is true:
      * <PRE>
-     *      <code>(!getMoreResults() && (getUpdateCount() == -1)</code>
+     *     // stmt is a Statement object
+     *     ((stmt.getMoreResults() == false) && (stmt.getUpdateCount() == -1))
      * </PRE>
      *
      * @param current one of the following <code>Statement</code>
      *        constants indicating what should happen to current 
      *        <code>ResultSet</code> objects obtained using the method
-     *        <code>getResultSet</code:
-     *        <code>CLOSE_CURRENT_RESULT</code>, 
-     *        <code>KEEP_CURRENT_RESULT</code>, or
-     *        <code>CLOSE_ALL_RESULTS</code>
+     *        <code>getResultSet</code>:
+     *        <code>Statement.CLOSE_CURRENT_RESULT</code>, 
+     *        <code>Statement.KEEP_CURRENT_RESULT</code>, or
+     *        <code>Statement.CLOSE_ALL_RESULTS</code>
      * @return <code>true</code> if the next result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there are no 
      *         more results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or the argument
+	 *         supplied is not one of the following:
+     *        <code>Statement.CLOSE_CURRENT_RESULT</code>, 
+     *        <code>Statement.KEEP_CURRENT_RESULT</code>, or
+     *        <code>Statement.CLOSE_ALL_RESULTS</code>
      * @since 1.4
      * @see #execute
      */
@@ -632,8 +638,10 @@ public interface Statement {
      * @return either the row count for <code>INSERT</code>, <code>UPDATE</code>,
      *         or <code>DELETE</code> statements, or 0 for SQL statements 
      *         that return nothing
-     * @exception SQLException if a database access error occurs or the SQL
-     *            statement returns a <code>ResultSet</code> object
+     * @exception SQLException if a database access error occurs, the SQL
+     *            statement returns a <code>ResultSet</code> object, or the
+	 *            second argument supplied to this method is not an <code>int</code> array
+	 *            whose elements are valid column indexes 
      * @since 1.4
      */
     int executeUpdate(String sql, int columnIndexes[]) throws SQLException;
@@ -651,7 +659,10 @@ public interface Statement {
      * @return either the row count for <code>INSERT</code>, <code>UPDATE</code>,
      *         or <code>DELETE</code> statements, or 0 for SQL statements 
      *         that return nothing
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs, the SQL
+     *            statement returns a <code>ResultSet</code> object, or the
+	 *            second argument supplied to this method is not a <code>String</code> array
+     *            whose elements are valid column names
      *
      * @since 1.4
      */
@@ -685,7 +696,10 @@ public interface Statement {
      * @return <code>true</code> if the first result is a <code>ResultSet</code>
      *         object; <code>false</code> if it is an update count or there are
      *         no results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or the second 
+	 *         parameter supplied to this method is not 
+     *         <code>Statement.RETURN_GENERATED_KEYS</code> or
+	 *         <code>Statement.NO_GENERATED_KEYS</code>.
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults
@@ -723,7 +737,9 @@ public interface Statement {
      * @return <code>true</code> if the first result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there 
      *         are no results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or the 
+     *            elements in the <code>int</code> array passed to this method
+     *            are not valid column indexes
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults
@@ -760,7 +776,9 @@ public interface Statement {
      * @return <code>true</code> if the next result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there 
      *         are no more results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or the 
+	 *          elements of the <code>String</code> array passed to this
+     *          method are not valid column names
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults

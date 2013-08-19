@@ -1,5 +1,5 @@
 /*
- * @(#)BasicStroke.java	1.39 03/04/25
+ * @(#)BasicStroke.java	1.39 03/03/19
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -96,7 +96,7 @@ import sun.dc.pr.Rasterizer;
  * For more information on the user space coordinate system and the 
  * rendering process, see the <code>Graphics2D</code> class comments.
  * @see Graphics2D
- * @version 1.39, 04/25/03
+ * @version 1.39, 03/19/03
  * @author Jim Graham
  */
 public class BasicStroke implements Stroke {
@@ -564,6 +564,6 @@ public class BasicStroke implements Stroke {
 	}
 
 	public void dispose() {
-	}
+        }
     }
 }

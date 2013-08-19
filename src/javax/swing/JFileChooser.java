@@ -1,7 +1,7 @@
 /*
- * @(#)JFileChooser.java	1.96 02/04/11
+ * @(#)JFileChooser.java	1.98 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import java.awt.event.*;
  *   attribute: isContainer false
  * description: A component which allows for the interactive selection of a file.
  *
- * @version 1.96 04/11/02
+ * @version 1.98 01/23/03
  * @author Jeff Dinkins
  *
  */
@@ -729,6 +729,7 @@ public class JFileChooser extends JComponent implements Accessible {
               : (Frame)SwingUtilities.getAncestorOfClass(Frame.class, parent);
 
 	String title = getUI().getDialogTitle(this);
+        getAccessibleContext().setAccessibleDescription(title);
 
         JDialog dialog = new JDialog(frame, title, true);
 

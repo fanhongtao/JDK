@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyEditorSupport.java	1.15 01/12/03
+ * @(#)PropertyEditorSupport.java	1.17 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -217,8 +217,6 @@ public class PropertyEditorSupport implements PropertyEditor {
 
     /**
      * Report that we have been modified to any interested listeners.
-     *
-     * @param source  The PropertyEditor that caused the event.
      */
     public void firePropertyChange() {
 	java.util.Vector targets;

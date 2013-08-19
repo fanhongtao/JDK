@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultComboBoxModel.java	1.15 01/12/03
+ * @(#)DefaultComboBoxModel.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -26,7 +26,7 @@ import javax.accessibility.*;
 /**
  * The default model for combo boxes.
  *
- * @version 1.15 12/03/01
+ * @version 1.17 01/23/03
  * @author Arnaud Weber
  * @author Tom Santos
  */
@@ -165,8 +165,10 @@ public class DefaultComboBoxModel extends AbstractListModel implements MutableCo
             int firstIndex = 0;
             int lastIndex = objects.size() - 1;
             objects.removeAllElements();
-            selectedObject = null;
+	    selectedObject = null;
             fireIntervalRemoved(this, firstIndex, lastIndex);
-        }
+        } else {
+	    selectedObject = null;
+	}
     }
 }

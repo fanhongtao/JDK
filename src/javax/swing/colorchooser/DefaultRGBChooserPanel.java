@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultRGBChooserPanel.java	1.30 01/12/03
+ * @(#)DefaultRGBChooserPanel.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.awt.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.30 12/03/01
+ * @version 1.31 01/23/03
  * @author Steve Wilson
  * @author Mark Davidson
  * @see JColorChooser

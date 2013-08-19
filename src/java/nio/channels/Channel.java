@@ -1,7 +1,7 @@
 /*
- * @(#)Channel.java	1.15 01/12/03
+ * @(#)Channel.java	1.16 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.15, 01/12/03
+ * @version 1.16, 03/01/23
  * @since 1.4
  */
 

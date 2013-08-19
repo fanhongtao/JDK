@@ -1,7 +1,7 @@
 /*
- * @(#)Collator.java	1.32 01/12/03
+ * @(#)Collator.java	1.34 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -101,7 +101,7 @@ import sun.text.resources.LocaleData;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.32, 12/03/01
+ * @version     1.34, 01/27/03
  * @author      Helena Shih, Laura Werner, Richard Gillam
  */
 
@@ -342,7 +342,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
      * Sets this Collator's strength property.  The strength property determines
      * the minimum level of difference considered significant during comparison.
      * See the Collator class description for an example of use.
-     * @param the new strength value.
+     * @param newStrength  the new strength value.
      * @see java.text.Collator#getStrength
      * @see java.text.Collator#PRIMARY
      * @see java.text.Collator#SECONDARY
@@ -386,7 +386,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
     /**
      * Set the decomposition mode of this Collator. See getDecomposition
      * for a description of decomposition mode.
-     * @param the new decomposition mode
+     * @param decompositionMode  the new decomposition mode.
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#NO_DECOMPOSITION
      * @see java.text.Collator#CANONICAL_DECOMPOSITION

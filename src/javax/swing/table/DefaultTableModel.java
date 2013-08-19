@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableModel.java	1.34 01/12/03
+ * @(#)DefaultTableModel.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.event.TableModelEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.34 12/03/01
+ * @version 1.36 01/23/03
  * @author Philip Milne
  *
  * @see TableModel
@@ -445,7 +445,7 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
      * number of columns, all the extra columns at the end of a row are
      * discarded. <p>
      *
-     * @param   newIdentifiers  vector of column identifiers.  If
+     * @param   columnIdentifiers  vector of column identifiers.  If
      *				<code>null</code>, set the model
      *                          to zero columns
      * @see #setNumRows

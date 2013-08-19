@@ -1,7 +1,7 @@
 /*
- * @(#)Menu.java	1.69 02/02/04
+ * @(#)Menu.java	1.71 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -31,7 +31,7 @@ import javax.accessibility.*;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.69, 02/04/02
+ * @version 1.71, 01/23/03
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
@@ -51,7 +51,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * A vector of the items that will be part of the Menu.
      *
      * @serial
-     * @see countItems()
+     * @see #countItems()
      */
     Vector		items = new Vector();
 
@@ -65,7 +65,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * it is no longer needed.
      *
      * @serial
-     * @see isTearOff()
+     * @see #isTearOff()
      */
     boolean		tearOff;
 
@@ -492,8 +492,8 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * Writes default serializable fields to stream.
      *
      * @param s the <code>ObjectOutputStream</code> to write
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.io.IOException
@@ -510,7 +510,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws IOException, ClassNotFoundException, HeadlessException

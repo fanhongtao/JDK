@@ -1,7 +1,7 @@
 /*
- * @(#)TitledBorder.java	1.37 01/12/03
+ * @(#)TitledBorder.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -44,7 +44,7 @@ import javax.swing.UIManager;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.37 12/03/01 
+ * @version 1.38 01/23/03 
  * @author David Kloba
  * @author Amy Fowler
  */

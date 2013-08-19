@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)ImageMap.java	1.17 02/06/13
+ * @(#)ImageMap.java	1.18 03/01/23
  */
 
 import java.applet.Applet;
@@ -59,7 +59,7 @@ import java.net.MalformedURLException;
  * that can be dynamically loaded over the net.
  *
  * @author 	Jim Graham
- * @version 	1.17, 06/13/02
+ * @version 	1.18, 01/23/03
  */
 public class ImageMap
     extends Applet

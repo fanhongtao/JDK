@@ -1,7 +1,7 @@
 /*
- * @(#)Attributes.java	1.40 02/03/12
+ * @(#)Attributes.java	1.45 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.Collection;
 import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.logging.Logger; 
 
 /**
  * The Attributes class maps Manifest attribute names to associated string
@@ -27,7 +28,7 @@ import java.util.Iterator;
  * for more information about valid attribute names and values.
  *
  * @author  David Connelly
- * @version 1.40, 03/12/02
+ * @version 1.45, 01/23/03
  * @see	    Manifest
  * @since   1.2
  */
@@ -278,7 +279,14 @@ public class Attributes implements Map, Cloneable {
             StringBuffer buffer = new StringBuffer(
                                         ((Name)e.getKey()).toString());
 	    buffer.append(": ");
-	    buffer.append((String)e.getValue());
+
+            String value = (String)e.getValue();
+            if (value != null) {
+                byte[] vb = value.getBytes("UTF8");
+                value = new String(vb, 0, 0, vb.length);
+            }
+            buffer.append(value);
+
 	    buffer.append("\r\n");
             Manifest.make72Safe(buffer);
             os.writeBytes(buffer.toString());
@@ -314,9 +322,17 @@ public class Attributes implements Map, Cloneable {
 	    Map.Entry e = (Map.Entry)it.next();
 	    String name = ((Name)e.getKey()).toString();
 	    if ((version != null) && ! (name.equalsIgnoreCase(vername))) {
+
                 StringBuffer buffer = new StringBuffer(name);
 		buffer.append(": ");
-		buffer.append((String)e.getValue());
+
+                String value = (String)e.getValue();
+                if (value != null) {
+                    byte[] vb = value.getBytes("UTF8");
+                    value = new String(vb, 0, 0, vb.length);
+                }
+                buffer.append(value);
+
 		buffer.append("\r\n");
                 Manifest.make72Safe(buffer);
                 out.writeBytes(buffer.toString());
@@ -331,8 +347,11 @@ public class Attributes implements Map, Cloneable {
      */
     void read(Manifest.FastInputStream is, byte[] lbuf) throws IOException {
 	String name = null, value = null;
+        byte[] lastline = null;
+
 	int len;
 	while ((len = is.readLine(lbuf)) != -1) {
+            boolean lineContinued = false;
 	    if (lbuf[--len] != '\n') {
 		throw new IOException("line too long");
 	    }
@@ -348,22 +367,38 @@ public class Attributes implements Map, Cloneable {
 		if (name == null) {
 		    throw new IOException("misplaced continuation line");
 		}
-		value = value + new String(lbuf, 0, 1, len-1);
+                lineContinued = true;
+                byte[] buf = new byte[lastline.length + len - 1];
+                System.arraycopy(lastline, 0, buf, 0, lastline.length);
+                System.arraycopy(lbuf, 1, buf, lastline.length, len - 1);
+                if (is.peek() == ' ') {
+                    lastline = buf;
+                    continue;
+                }
+		value = new String(buf, 0, buf.length, "UTF8");
+                lastline = null;
 	    } else {
                 while (lbuf[i++] != ':') {
                     if (i >= len) {
-                        throw new IOException("invalid header field");
+			throw new IOException("invalid header field");
                     }
                 }
                 if (lbuf[i++] != ' ') {
-                    throw new IOException("invalid header field");
+		    throw new IOException("invalid header field");
                 }
                 name = new String(lbuf, 0, 0, i - 2);
-                value = new String(lbuf, 0, i, len - i);
+                if (is.peek() == ' ') {
+                    lastline = new byte[len - i];
+                    System.arraycopy(lbuf, i, lastline, 0, len - i);
+                    continue;
+                }
+                value = new String(lbuf, i, len - i, "UTF8");
             }
-
 	    try {
-		putValue(name, value);
+		if ((putValue(name, value) != null) && (!lineContinued)) {
+                    Logger.getLogger("java.util.jar").warning(
+                                     "Duplicate name in Manifest: " + name);
+                } 
 	    } catch (IllegalArgumentException e) {
 		throw new IOException("invalid header field name: " + name);
 	    }
@@ -461,7 +496,7 @@ public class Attributes implements Map, Cloneable {
          * <code>Name</code> object for <code>Manifest-Version</code> 
          * manifest attribute. This attribute indicates the version number 
          * of the manifest standard to which a JAR file's manifest conforms.
-         * @see <a href="../../../../guide/jar/manifest.html">
+         * @see <a href="../../../../guide/jar/jar.html#JAR Manifest">
          *      Manifest and Signature Specification</a>
          */ 
         public static final Name MANIFEST_VERSION = new Name("Manifest-Version");
@@ -469,7 +504,7 @@ public class Attributes implements Map, Cloneable {
         /**
          * <code>Name</code> object for <code>Signature-Version</code> 
          * manifest attribute used when signing JAR files.
-         * @see <a href="../../../../guide/jar/manifest.html">
+         * @see <a href="../../../../guide/jar/jar.html#JAR Manifest">
          *      Manifest and Signature Specification</a>
          */             
         public static final Name SIGNATURE_VERSION = new Name("Signature-Version");

@@ -1,7 +1,7 @@
 /*
- * @(#)Properties.java	1.69 02/03/18
+ * @(#)Properties.java	1.73 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -111,43 +111,118 @@ class Properties extends Hashtable {
     private static final String whiteSpaceChars = " \t\r\n\f";
 
     /**
-     * Reads a property list (key and element pairs) from the input stream.
-     * The stream is assumed to be using the ISO 8859-1 character encoding.
+     * Reads a property list (key and element pairs) from the input
+     * stream.  The stream is assumed to be using the ISO 8859-1
+     * character encoding; that is each byte is one Latin1 character.
+     * Characters not in Latin1, and certain special characters, can
+     * be represented in keys and elements using escape sequences
+     * similar to those used for character and string literals (see <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html#100850">&sect;3.3</a>
+     * and <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html#101089">&sect;3.10.6</a>
+     * of the <i>Java Language Specification</i>).
+     *
+     * The differences from the character escape sequences used for
+     * characters and strings are:
+     *
+     * <ul>
+     * <li> Octal escapes are not recognized.
+     *
+     * <li> The character sequence <code>\b</code> does <i>not</i>
+     * represent a backspace character.
+     *
+     * <li> The method does not treat a backslash character,
+     * <code>\</code>, before a non-valid escape character as an
+     * error; the backslash is silently dropped.  For example, in a
+     * Java string the sequence <code>"\z"</code> would cause a
+     * compile time error.  In contrast, this method silently drops
+     * the backslash.  Therefore, this method treats the two character
+     * sequence <code>"\b"</code> as equivalent to the single
+     * character <code>'b'</code>.
+     *
+     * <li> Escapes are not necessary for single and double quotes;
+     * however, by the rule above, single and double quote characters
+     * preceded by a backslash still yield single and double quote
+     * characters, respectively.
+     *
+     * </ul>
+     *
+     * An <code>IllegalArgumentException</code> is thrown if a
+     * malformed Unicode escape appears in the input.
+     *
      * <p>
-     * Every property occupies one line of the input stream. Each line
-     * is terminated by a line terminator (<code>\n</code> or <code>\r</code>
-     * or <code>\r\n</code>). Lines from the input stream are processed until
-     * end of file is reached on the input stream.
+     * This method processes input in terms of lines.  A natural line
+     * of input is terminated either by a set of line terminator
+     * characters (<code>\n</code> or <code>\r</code> or
+     * <code>\r\n</code>) or by the end of the file.  A natural line
+     * may be either a blank line, a comment line, or hold some part
+     * of a key-element pair.  The logical line holding all the data
+     * for a key-element pair may be spread out across several adjacent
+     * natural lines by escaping the line terminator sequence with a
+     * backslash character, <code>\</code>.  Note that a comment line
+     * cannot be extended in this manner; every natural line that is a
+     * comment must have its own comment indicator, as described
+     * below.  If a logical line is continued over several natural
+     * lines, the continuation lines receive further processing, also
+     * described below.  Lines are read from the input stream until
+     * end of file is reached.
+     *
      * <p>
-     * A line that contains only whitespace or whose first non-whitespace
-     * character is an ASCII <code>#</code> or <code>!</code> is ignored
-     * (thus, <code>#</code> or <code>!</code> indicate comment lines).
+     * A natural line that contains only white space characters is
+     * considered blank and is ignored.  A comment line has an ASCII
+     * <code>'#'</code> or <code>'!'</code> as its first non-white
+     * space character; comment lines are also ignored and do not
+     * encode key-element information.  In addition to line
+     * terminators, this method considers the characters space
+     * (<code>' '</code>, <code>'&#92;u0020'</code>), tab
+     * (<code>'\t'</code>, <code>'&#92;u0009'</code>), and form feed
+     * (<code>'\f'</code>, <code>'&#92;u000C'</code>) to be white
+     * space.
+     *
      * <p>
-     * Every line other than a blank line or a comment line describes one
-     * property to be added to the table (except that if a line ends with \,
-     * then the following line, if it exists, is treated as a continuation
-     * line, as described
-     * below). The key consists of all the characters in the line starting
-     * with the first non-whitespace character and up to, but not including,
-     * the first ASCII <code>=</code>, <code>:</code>, or whitespace
-     * character. All of the key termination characters may be included in
-     * the key by preceding them with a \.
-     * Any whitespace after the key is skipped; if the first non-whitespace
-     * character after the key is <code>=</code> or <code>:</code>, then it
-     * is ignored and any whitespace characters after it are also skipped.
-     * All remaining characters on the line become part of the associated
-     * element string. Within the element string, the ASCII
-     * escape sequences <code>\t</code>, <code>\n</code>,
-     * <code>\r</code>, <code>\\</code>, <code>\"</code>, <code>\'</code>,
-     * <code>\ &#32;</code> &#32;(a backslash and a space), and
-     * <code>&#92;u</code><i>xxxx</i> are recognized and converted to single
-     * characters. Moreover, if the last character on the line is
-     * <code>\</code>, then the next line is treated as a continuation of the
-     * current line; the <code>\</code> and line terminator are simply
-     * discarded, and any leading whitespace characters on the continuation
-     * line are also discarded and are not part of the element string.
+     * If a logical line is spread across several natural lines, the
+     * backslash escaping the line terminator sequence, the line
+     * terminator sequence, and any white space at the start the
+     * following line have no affect on the key or element values.
+     * The remainder of the discussion of key and element parsing will
+     * assume all the characters constituting the key and element
+     * appear on a single natural line after line continuation
+     * characters have been removed.  Note that it is <i>not</i>
+     * sufficient to only examine the character preceding a line
+     * terminator sequence to to see if the line terminator is
+     * escaped; there must be an odd number of contiguous backslashes
+     * for the line terminator to be escaped.  Since the input is
+     * processed from left to right, a non-zero even number of
+     * 2<i>n</i> contiguous backslashes before a line terminator (or
+     * elsewhere) encodes <i>n</i> backslashes after escape
+     * processing.
+     *
      * <p>
-     * As an example, each of the following four lines specifies the key
+     * The key contains all of the characters in the line starting
+     * with the first non-white space character and up to, but not
+     * including, the first unescaped <code>'='</code>,
+     * <code>':'</code>, or white space character other than a line
+     * terminator. All of these key termination characters may be
+     * included in the key by escaping them with a preceding backslash
+     * character; for example,<p>
+     *
+     * <code>\:\=</code><p>
+     *
+     * would be the two-character key <code>":="</code>.  Line
+     * terminator characters can be included using <code>\r</code> and
+     * <code>\n</code> escape sequences.  Any white space after the
+     * key is skipped; if the first non-white space character after
+     * the key is <code>'='</code> or <code>':'</code>, then it is
+     * ignored and any white space characters after it are also
+     * skipped.  All remaining characters on the line become part of
+     * the associated element string; if there are no remaining
+     * characters, the element is the empty string
+     * <code>&quot;&quot;</code>.  Once the raw character sequences
+     * constituting the key and element are identified, escape
+     * processing is performed as described above.
+     *
+     * <p>
+     * As an example, each of the following three lines specifies the key
      * <code>"Truth"</code> and the associated element value
      * <code>"Beauty"</code>:
      * <p>
@@ -160,7 +235,7 @@ class Properties extends Hashtable {
      * property:
      * <p>
      * <pre>
-     * fruits				apple, banana, pear, \
+     * fruits                           apple, banana, pear, \
      *                                  cantaloupe, watermelon, \
      *                                  kiwi, mango
      * </pre>
@@ -169,7 +244,7 @@ class Properties extends Hashtable {
      * <pre>"apple, banana, pear, cantaloupe, watermelon, kiwi, mango"</pre>
      * Note that a space appears before each <code>\</code> so that a space
      * will appear after each comma in the final result; the <code>\</code>,
-     * line terminator, and leading whitespace on the continuation line are
+     * line terminator, and leading white space on the continuation line are
      * merely discarded and are <i>not</i> replaced by one or more other
      * characters.
      * <p>
@@ -178,11 +253,13 @@ class Properties extends Hashtable {
      * <pre>cheeses
      * </pre>
      * specifies that the key is <code>"cheeses"</code> and the associated
-     * element is the empty string.<p>
+     * element is the empty string <code>""</code>.<p>
      *
      * @param      inStream   the input stream.
      * @exception  IOException  if an error occurred when reading from the
      *               input stream.
+     * @throws	   IllegalArgumentException if the input stream contains a
+     * 		   malformed Unicode escape sequence.
      */
     public synchronized void load(InputStream inStream) throws IOException {
 
@@ -194,42 +271,43 @@ class Properties extends Hashtable {
                 return;
 
             if (line.length() > 0) {
+                
+                // Find start of key
+                int len = line.length();
+                int keyStart;
+                for (keyStart=0; keyStart<len; keyStart++)
+                    if (whiteSpaceChars.indexOf(line.charAt(keyStart)) == -1)
+                        break;
+
+                // Blank lines are ignored
+                if (keyStart == len)
+                    continue;
+
                 // Continue lines that end in slashes if they are not comments
-                char firstChar = line.charAt(0);
+                char firstChar = line.charAt(keyStart);
                 if ((firstChar != '#') && (firstChar != '!')) {
                     while (continueLine(line)) {
                         String nextLine = in.readLine();
-                        if(nextLine == null)
+                        if (nextLine == null)
                             nextLine = "";
-                        String loppedLine = line.substring(0, line.length()-1);
+                        String loppedLine = line.substring(0, len-1);
                         // Advance beyond whitespace on new line
-                        int startIndex=0;
-                        for(startIndex=0; startIndex<nextLine.length(); startIndex++)
+                        int startIndex;
+                        for (startIndex=0; startIndex<nextLine.length(); startIndex++)
                             if (whiteSpaceChars.indexOf(nextLine.charAt(startIndex)) == -1)
                                 break;
                         nextLine = nextLine.substring(startIndex,nextLine.length());
                         line = new String(loppedLine+nextLine);
+                        len = line.length();
                     }
-
-                    // Find start of key
-                    int len = line.length();
-                    int keyStart;
-                    for(keyStart=0; keyStart<len; keyStart++) {
-                        if(whiteSpaceChars.indexOf(line.charAt(keyStart)) == -1)
-                            break;
-                    }
-
-                    // Blank lines are ignored
-                    if (keyStart == len)
-                        continue;
 
                     // Find separation between key and value
                     int separatorIndex;
-                    for(separatorIndex=keyStart; separatorIndex<len; separatorIndex++) {
+                    for (separatorIndex=keyStart; separatorIndex<len; separatorIndex++) {
                         char currentChar = line.charAt(separatorIndex);
                         if (currentChar == '\\')
                             separatorIndex++;
-                        else if(keyValueSeparators.indexOf(currentChar) != -1)
+                        else if (keyValueSeparators.indexOf(currentChar) != -1)
                             break;
                     }
 
@@ -266,10 +344,10 @@ class Properties extends Hashtable {
      * Returns true if the given line is a line that must
      * be appended to the next line
      */
-    private boolean continueLine (String line) {
+    private boolean continueLine(String line) {
         int slashCount = 0;
         int index = line.length() - 1;
-        while((index >= 0) && (line.charAt(index--) == '\\'))
+        while ((index >= 0) && (line.charAt(index--) == '\\'))
             slashCount++;
         return (slashCount % 2 == 1);
     }
@@ -278,16 +356,16 @@ class Properties extends Hashtable {
      * Converts encoded &#92;uxxxx to unicode chars
      * and changes special saved chars to their original forms
      */
-    private String loadConvert (String theString) {
+    private String loadConvert(String theString) {
         char aChar;
         int len = theString.length();
         StringBuffer outBuffer = new StringBuffer(len);
 
-        for(int x=0; x<len; ) {
+        for (int x=0; x<len; ) {
             aChar = theString.charAt(x++);
             if (aChar == '\\') {
                 aChar = theString.charAt(x++);
-                if(aChar == 'u') {
+                if (aChar == 'u') {
                     // Read the xxxx
                     int value=0;
 		    for (int i=0; i<4; i++) {
@@ -395,7 +473,7 @@ class Properties extends Hashtable {
      * Writes this property list (key and element pairs) in this
      * <code>Properties</code> table to the output stream in a format suitable
      * for loading into a <code>Properties</code> table using the
-     * <code>load</code> method.
+     * {@link #load(InputStream) load} method.
      * The stream is written using the ISO 8859-1 character encoding.
      * <p>
      * Properties from the defaults table of this <code>Properties</code>
@@ -411,20 +489,25 @@ class Properties extends Hashtable {
      * by the <code>toString</code> method of <code>Date</code> for the
      * current time), and a line separator as generated by the Writer.
      * <p>
-     * Then every entry in this <code>Properties</code> table is written out,
-     * one per line. For each entry the key string is written, then an ASCII
-     * <code>=</code>, then the associated element string. Each character of
-     * the element string is examined to see whether it should be rendered as
-     * an escape sequence. The ASCII characters <code>\</code>, tab, newline,
-     * and carriage return are written as <code>\\</code>, <code>\t</code>,
-     * <code>\n</code>, and <code>\r</code>, respectively. Characters less
-     * than <code>&#92;u0020</code> and characters greater than
-     * <code>&#92;u007E</code> are written as <code>&#92;u</code><i>xxxx</i> for
-     * the appropriate hexadecimal value <i>xxxx</i>. Leading space characters,
-     * but not embedded or trailing space characters, are written with a
-     * preceding <code>\</code>. The key and value characters <code>#</code>,
-     * <code>!</code>, <code>=</code>, and <code>:</code> are written with a
-     * preceding slash to ensure that they are properly loaded.
+     * Then every entry in this <code>Properties</code> table is
+     * written out, one per line. For each entry the key string is
+     * written, then an ASCII <code>=</code>, then the associated
+     * element string. Each character of the key and element strings
+     * is examined to see whether it should be rendered as an escape
+     * sequence. The ASCII characters <code>\</code>, tab, form feed,
+     * newline, and carriage return are written as <code>\\</code>,
+     * <code>\t</code>, <code>\f</code> <code>\n</code>, and
+     * <code>\r</code>, respectively. Characters less than
+     * <code>&#92;u0020</code> and characters greater than
+     * <code>&#92;u007E</code> are written as
+     * <code>&#92;u</code><i>xxxx</i> for the appropriate hexadecimal
+     * value <i>xxxx</i>.  For the key, all space characters are
+     * written with a preceding <code>\</code> character.  For the
+     * element, leading space characters, but not embedded or trailing
+     * space characters, are written with a preceding <code>\</code>
+     * character. The key and element characters <code>#</code>,
+     * <code>!</code>, <code>=</code>, and <code>:</code> are written
+     * with a preceding backslash to ensure that they are properly loaded.
      * <p>
      * After the entries have been written, the output stream is flushed.  The
      * output stream remains open after this method returns.

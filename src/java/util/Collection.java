@@ -1,7 +1,7 @@
 /*
- * @(#)Collection.java	1.38 01/12/03
+ * @(#)Collection.java	1.39 03/01/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,8 +56,12 @@ package java.util;
  * Such exceptions are marked as "optional" in the specification for this
  * interface. 
  *
+ * <p>This interface is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
  * @author  Josh Bloch
- * @version 1.32, 02/23/00
+ * @version 1.40, 01/23/03
  * @see	    Set
  * @see	    List
  * @see	    Map

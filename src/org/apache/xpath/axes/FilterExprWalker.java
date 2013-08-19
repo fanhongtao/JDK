@@ -56,23 +56,22 @@
  */
 package org.apache.xpath.axes;
 
-import org.apache.xpath.axes.LocPathIterator;
-import org.apache.xpath.XPath;
-import org.apache.xpath.Expression;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.VariableStack;
-import org.apache.xpath.objects.XObject;
-import org.apache.xml.utils.PrefixResolver;
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.compiler.OpCodes;
-import org.apache.xpath.patterns.NodeTestFilter;
-
 import java.util.Vector;
 
+import javax.xml.transform.TransformerException;
+import org.apache.xalan.templates.FuncKey;
+import org.apache.xml.dtm.Axis;
 import org.apache.xml.dtm.DTM;
 import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.Axis;
+import org.apache.xml.utils.PrefixResolver;
+import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.VariableStack;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.compiler.Compiler;
+import org.apache.xpath.compiler.OpCodes;
+import org.apache.xpath.objects.XNodeSet;
 
 /**
  * Walker for the OP_VARIABLE, or OP_EXTFUNCTION, or OP_FUNCTION, or OP_GROUP,
@@ -87,7 +86,7 @@ public class FilterExprWalker extends AxesWalker
    *
    * @param locPathIterator non-null reference to the parent iterator.
    */
-  FilterExprWalker(WalkingIterator locPathIterator)
+  public FilterExprWalker(WalkingIterator locPathIterator)
   {
     super(locPathIterator, Axis.FILTEREDLIST);
   }
@@ -110,15 +109,49 @@ public class FilterExprWalker extends AxesWalker
     // Smooth over an anomily in the opcode map...
     switch (stepType)
     {
-    case OpCodes.OP_VARIABLE :
-    case OpCodes.OP_EXTFUNCTION :
     case OpCodes.OP_FUNCTION :
+    case OpCodes.OP_EXTFUNCTION :
+    	m_mustHardReset = true;
     case OpCodes.OP_GROUP :
+    case OpCodes.OP_VARIABLE :
       m_expr = compiler.compile(opPos);
+      m_expr.exprSetParent(this);
+      if((OpCodes.OP_FUNCTION == stepType) && (m_expr instanceof org.apache.xalan.templates.FuncKey))
+      {
+      	// hack/temp workaround
+      	m_canDetachNodeset = false;
+      }
       break;
     default :
       m_expr = compiler.compile(opPos + 2);
+      m_expr.exprSetParent(this);
     }
+//    if(m_expr instanceof WalkingIterator)
+//    {
+//      WalkingIterator wi = (WalkingIterator)m_expr;
+//      if(wi.getFirstWalker() instanceof FilterExprWalker)
+//      {
+//      	FilterExprWalker fw = (FilterExprWalker)wi.getFirstWalker();
+//      	if(null == fw.getNextWalker())
+//      	{
+//      		m_expr = fw.m_expr;
+//      		m_expr.exprSetParent(this);
+//      	}
+//      }
+//      		
+//    }
+  }
+  
+  /**
+   * Detaches the walker from the set which it iterated over, releasing
+   * any computational resources and placing the iterator in the INVALID
+   * state.
+   */
+  public void detach()
+  {  
+  	super.detach();
+  	m_exprObj.detach();
+  	m_exprObj = null;
   }
 
   /**
@@ -130,51 +163,12 @@ public class FilterExprWalker extends AxesWalker
   public void setRoot(int root)
   {
 
-    // System.out.println("root: "+root);
-    XPathContext xctxt = m_lpi.getXPathContext();
-    PrefixResolver savedResolver = xctxt.getNamespaceContext();
-
-    try
-    {
-      xctxt.pushCurrentNode(root);
-      xctxt.setNamespaceContext(m_lpi.getPrefixResolver());
-      
-      // The setRoot operation can take place with a reset operation, 
-      // and so we may not be in the context of LocPathIterator#nextNode, 
-      // so we have to set up the variable context, execute the expression, 
-      // and then restore the variable context.
-
-      if(m_lpi.getIsTopLevel())
-      {
-        // System.out.println("calling m_expr.execute(m_lpi.getXPathContext())");
-        VariableStack vars = m_lpi.m_execContext.getVarStack();
-        
-        // These three statements need to be combined into one operation.
-        int savedStart = vars.getStackFrame();
-        vars.setStackFrame(m_lpi.m_stackFrame);
-        
-        m_nodeSet = m_expr.asIterator(xctxt, root);
-        
-        // These two statements need to be combined into one operation.
-        vars.setStackFrame(savedStart);
-      }
-      else
-        m_nodeSet = m_expr.asIterator(xctxt, root);
-            
-    }
-    catch (javax.xml.transform.TransformerException se)
-    {
-
-      // TODO: Fix...
-      throw new org.apache.xml.utils.WrappedRuntimeException(se);
-    }
-    finally
-    {
-      xctxt.popCurrentNode();
-      xctxt.setNamespaceContext(savedResolver);
-    }
-
     super.setRoot(root);
+
+  	m_exprObj = FilterExprIteratorSimple.executeFilterExpr(root, 
+  	                  m_lpi.getXPathContext(), m_lpi.getPrefixResolver(), 
+  	                  m_lpi.getIsTopLevel(), m_lpi.m_stackFrame, m_expr);
+
   }
 
   /**
@@ -190,12 +184,12 @@ public class FilterExprWalker extends AxesWalker
     FilterExprWalker clone = (FilterExprWalker) super.clone();
 
     // clone.m_expr = (Expression)((Expression)m_expr).clone();
-    if (null != m_nodeSet)
-      clone.m_nodeSet = (DTMIterator) m_nodeSet.clone();
+    if (null != m_exprObj)
+      clone.m_exprObj = (XNodeSet) m_exprObj.clone();
 
     return clone;
   }
-
+  
   /**
    * This method needs to override AxesWalker.acceptNode because FilterExprWalkers
    * don't need to, and shouldn't, do a node test.
@@ -236,8 +230,11 @@ public class FilterExprWalker extends AxesWalker
   public int getNextNode()
   {
 
-    if (null != m_nodeSet)
-       return m_nodeSet.nextNode();
+    if (null != m_exprObj)
+    {
+       int next = m_exprObj.nextNode();
+       return next;
+    }
     else
       return DTM.NULL;
   }
@@ -252,7 +249,7 @@ public class FilterExprWalker extends AxesWalker
    */
   public int getLastPos(XPathContext xctxt)
   {
-    return m_nodeSet.getLength();
+    return m_exprObj.getLength();
   }
   
   /** The contained expression. Should be non-null.
@@ -260,7 +257,10 @@ public class FilterExprWalker extends AxesWalker
   private Expression m_expr;
 
   /** The result of executing m_expr.  Needs to be deep cloned on clone op.  */
-  transient private DTMIterator m_nodeSet;
+  transient private XNodeSet m_exprObj;
+  
+  private boolean m_mustHardReset = false;
+  private boolean m_canDetachNodeset = true;
 
   /**
    * This function is used to fixup variables from QNames to stack frame 
@@ -279,6 +279,37 @@ public class FilterExprWalker extends AxesWalker
   }
   
   /**
+   * Get the inner contained expression of this filter.
+   */
+  public Expression getInnerExpression()
+  {
+  	return m_expr;
+  }
+  
+  /**
+   * Set the inner contained expression of this filter.
+   */
+  public void setInnerExpression(Expression expr)
+  {
+  	expr.exprSetParent(this);
+  	m_expr = expr;
+  }
+
+  
+  /** 
+   * Get the analysis bits for this walker, as defined in the WalkerFactory.
+   * @return One of WalkerFactory#BIT_DESCENDANT, etc.
+   */
+  public int getAnalysisBits()
+  {
+      if (null != m_expr && m_expr instanceof PathComponent)
+      {
+        return ((PathComponent) m_expr).getAnalysisBits();
+      }
+      return WalkerFactory.BIT_FILTER;
+  }
+  
+  /**
    * Returns true if all the nodes in the iteration well be returned in document 
    * order.
    * Warning: This can only be called after setRoot has been called!
@@ -287,7 +318,7 @@ public class FilterExprWalker extends AxesWalker
    */
   public boolean isDocOrdered()
   {
-    return m_nodeSet.isDocOrdered();
+    return m_exprObj.isDocOrdered();
   }
   
   /**
@@ -298,9 +329,61 @@ public class FilterExprWalker extends AxesWalker
    */
   public int getAxis()
   {
-    return m_nodeSet.getAxis();
+    return m_exprObj.getAxis();
   }
+  
+  class filterExprOwner implements ExpressionOwner
+  {
+      /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_expr;
+    }
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(FilterExprWalker.this);
+    	m_expr = exp;
+    }
+  }
+  
+	/**
+	 * This will traverse the heararchy, calling the visitor for 
+	 * each member.  If the called visitor method returns 
+	 * false, the subtree should not be called.
+	 * 
+	 * @param owner The owner of the visitor, where that path may be 
+	 *              rewritten if needed.
+	 * @param visitor The visitor whose appropriate method will be called.
+	 */
+	public void callPredicateVisitors(XPathVisitor visitor)
+	{
+	  m_expr.callVisitors(new filterExprOwner(), visitor);
+	  
+	  super.callPredicateVisitors(visitor);
+	} 
 
 
+    /**
+     * @see Expression#deepEquals(Expression)
+     */
+    public boolean deepEquals(Expression expr)
+    {
+      if (!super.deepEquals(expr))
+                return false;
+
+      FilterExprWalker walker = (FilterExprWalker)expr;
+      if(!m_expr.deepEquals(walker.m_expr))
+      	return false;
+
+      return true;
+    }
+
+	
 
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)KeyStroke.java	1.42 01/12/03
+ * @(#)KeyStroke.java	1.44 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -40,7 +40,7 @@ import java.awt.event.KeyEvent;
  * @see javax.swing.text.Keymap
  * @see #getKeyStroke
  *
- * @version 1.42, 12/03/01
+ * @version 1.44, 01/23/03
  * @author Arnaud Weber
  * @author David Mendenhall
  */
@@ -108,7 +108,7 @@ public class KeyStroke extends AWTKeyStroke {
      * @param keyChar the Character object for a keyboard character
      * @param modifiers a bitwise-ored combination of any modifiers
      * @return an KeyStroke object for that key
-     * @throw IllegalArgumentException if keyChar is null
+     * @throws IllegalArgumentException if keyChar is null
      *
      * @see java.awt.event.InputEvent
      * @since 1.3

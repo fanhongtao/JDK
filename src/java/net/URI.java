@@ -1,7 +1,7 @@
 /*
- * @(#)URI.java	1.25 02/04/17
+ * @(#)URI.java	1.33 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -60,7 +60,7 @@ import java.lang.NullPointerException;	// for javadoc
  * not begin with a slash character (<tt>'/'</tt>).  Opaque URIs are not
  * subject to further parsing.  Some examples of opaque URIs are:
  *
- * <blockquote><table cellpadding=0 cellspacing=0>
+ * <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  * <tr><td><tt>mailto:java-net@java.sun.com</tt><td></tr>
  * <tr><td><tt>news:comp.lang.java</tt><td></tr>
  * <tr><td><tt>urn:isbn:096139210x</tt></td></tr>
@@ -109,8 +109,8 @@ import java.lang.NullPointerException;	// for javadoc
  *
  * <p> All told, then, a URI instance has the following nine components:
  *
- * <blockquote><table>
- * <tr><td><i>Component</i></td><td><i>Type</i></td></tr>
+ * <blockquote><table summary="Describes the components of a URI:scheme,scheme-specific-part,authority,user-info,host,port,path,query,fragment">
+ * <tr><th><i>Component</i></th><th><i>Type</i></th></tr>
  * <tr><td>scheme</td><td><tt>String</tt></td></tr>
  * <tr><td>scheme-specific-part&nbsp;&nbsp;&nbsp;&nbsp;</td><td><tt>String</tt></td></tr>
  * <tr><td>authority</td><td><tt>String</tt></td></tr>
@@ -223,30 +223,30 @@ import java.lang.NullPointerException;	// for javadoc
  * which are taken from that specification, are used below to describe these
  * constraints:
  *
- * <blockquote><table cellspacing=2>
- *   <tr><td valign=top><i>alpha</i></td>
+ * <blockquote><table cellspacing=2 summary="Describes categories alpha,digit,alphanum,unreserved,punct,reserved,escaped,and other">
+ *   <tr><th valign=top><i>alpha</i></th>
  *       <td>The US-ASCII alphabetic characters,
  * 	  <tt>'A'</tt>&nbsp;through&nbsp;<tt>'Z'</tt>
  * 	  and <tt>'a'</tt>&nbsp;through&nbsp;<tt>'z'</tt></td></tr>
- *   <tr><td valign=top><i>digit</i></td>
+ *   <tr><th valign=top><i>digit</i></th>
  *       <td>The US-ASCII decimal digit characters,
  *       <tt>'0'</tt>&nbsp;through&nbsp;<tt>'9'</tt></td></tr>
- *   <tr><td valign=top><i>alphanum</i></td>
+ *   <tr><th valign=top><i>alphanum</i></th>
  *       <td>All <i>alpha</i> and <i>digit</i> characters</td></tr>
- *   <tr><td valign=top><i>unreserved</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *   <tr><th valign=top><i>unreserved</i>&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *       <td>All <i>alphanum</i> characters together with those in the string
  * 	  <tt>"_-!.~'()*"</tt></td></tr>
- *   <tr><td valign=top><i>punct</i></td>
+ *   <tr><th valign=top><i>punct</i></th>
  *       <td>The characters in the string <tt>",;:$&+="</tt></td></tr>
- *   <tr><td valign=top><i>reserved</i></td>
+ *   <tr><th valign=top><i>reserved</i></th>
  *       <td>All <i>punct</i> characters together with those in the string
  * 	  <tt>"?/[]@"</tt></td></tr>
- *   <tr><td valign=top><i>escaped</i></td>
+ *   <tr><th valign=top><i>escaped</i></th>
  *       <td>Escaped octets, that is, triplets consisting of the percent
  *           character (<tt>'%'</tt>) followed by two hexadecimal digits
  *           (<tt>'0'</tt>-<tt>'9'</tt>, <tt>'A'</tt>-<tt>'F'</tt>, and
  *           <tt>'a'</tt>-<tt>'f'</tt>)</td></tr>
- *   <tr><td valign=top><i>other</i></td>
+ *   <tr><th valign=top><i>other</i></th>
  *       <td>The Unicode characters that are not in the US-ASCII character set,
  *           are not control characters (according to the {@link
  *           java.lang.Character#isISOControl(char) Character.isISOControl}
@@ -432,7 +432,7 @@ import java.lang.NullPointerException;	// for javadoc
  * opening a connection to the specified resource.
  *
  *
- * @version 1.25, 02/04/17
+ * @version 1.33, 03/01/23
  * @author Mark Reinhold
  * @since 1.4
  *
@@ -532,6 +532,15 @@ public final class URI
      *   element of a dotted-quad address must contain no more than three
      *   decimal digits.  Each element is further constrained to have a value
      *   no greater than 255. </p></li>
+     *
+     *   <li> <p> Hostnames in host components that comprise only a single
+     *   domain label are permitted to start with an <i>alphanum</i> 
+     *   character. This seems to be the intent of <a
+     *   href="http://www.ietf.org/rfc/rfc2396.txt">RFC&nbsp;2396</a>
+     *   section&nbsp;3.2.2 although the grammar does not permit it. The
+     *   consequence of this deviation is that the authority component of a
+     *   hierarchical URI such as <tt>s://123</tt>, will parse as a server-based 
+     *   authority. </p></li>
      *
      *   <li><p> IPv6 addresses are permitted for the host component.  An IPv6
      *   address must be enclosed in square brackets (<tt>'['</tt> and
@@ -1062,17 +1071,12 @@ public final class URI
      *          or if some other error occurred while constructing the URL
      */
     public URL toURL()
-	throws MalformedURLException
-    {
+	throws MalformedURLException {
 	if (!isAbsolute())
 	    throw new IllegalArgumentException("URI is not absolute");
-	return new URL(scheme, (isOpaque()
-				? getRawSchemeSpecificPart() : null),
-		       authority, userInfo, host, port, path, query,
-		       fragment, null);
+	return new URL(toString());
     }
 
-
     // -- Component access methods --
 
     /**
@@ -1106,10 +1110,10 @@ public final class URI
     /**
      * Tells whether or not this URI is opaque.
      *
-     * <p> An opaque URI is not parsed beyond the scheme component.  The
-     * remainder of an opaque URI may be retrieved via the {@link
-     * #getSchemeSpecificPart() getSchemeSpecificPart} method; all other
-     * components are undefined. </p>
+     * <p> A URI is opaque if, and only if, it is absolute and its
+     * scheme-specific part does not begin with a slash character ('/').
+     * An opaque URI has a scheme, a scheme-specific part, and possibly
+     * a fragment; all other components are undefined. </p>
      *
      * @return  <tt>true</tt> if, and only if, this URI is opaque
      */
@@ -1224,9 +1228,9 @@ public final class URI
      *   separated by period characters (<tt>'.'</tt>), optionally followed by
      *   a period character.  Each label consists of <i>alphanum</i> characters
      *   as well as hyphen characters (<tt>'-'</tt>), though hyphens never
-     *   occur as the first or last characters in a label.  The last, or only,
-     *   label in a domain name begins with an <i>alpha</i>
-     *   character. </p></li>
+     *   occur as the first or last characters in a label. The rightmost
+     *   label of a domain name consisting of two or more labels, begins
+     *   with an <i>alpha</i> character. </li></p>
      *
      *   <li><p> A dotted-quad IPv4 address of the form
      *   <i>digit</i><tt>+.</tt><i>digit</i><tt>+.</tt><i>digit</i><tt>+.</tt><i>digit</i><tt>+</tt>,
@@ -1365,8 +1369,8 @@ public final class URI
      *
      * <p> For two URIs to be considered equal requires that either both are
      * opaque or both are hierarchical.  Their schemes must either both be
-     * undefined or else be equal without regard to case, and similarly for
-     * their fragments.
+     * undefined or else be equal without regard to case. Their fragments
+     * must either both be undefined or else be equal.
      *
      * <p> For two opaque URIs to be considered equal, their scheme-specific
      * parts must be equal.
@@ -1954,7 +1958,9 @@ public final class URI
 
     // RFC2396 5.2
     private static URI resolve(URI base, URI child) {
-	if (base.isOpaque() || child.isOpaque())
+	// check if child if opaque first so that NPE is thrown 
+	// if child is null.
+	if (child.isOpaque() || base.isOpaque())
 	    return child;
 
 	// 5.2 (2): Reference to current document (lone fragment)
@@ -2043,7 +2049,9 @@ public final class URI
     // child; otherwise, return the child.
     //
     private static URI relativize(URI base, URI child) {
-	if (base.isOpaque() || child.isOpaque())
+	// check if child if opaque first so that NPE is thrown 
+        // if child is null.
+	if (child.isOpaque() || base.isOpaque())
 	    return child;
 	if (!equalIgnoringCase(base.scheme, child.scheme)
 	    || !equal(base.authority, child.authority))
@@ -2355,7 +2363,12 @@ public final class URI
 	maybeAddLeadingDot(path, segs);
 
 	// Join the remaining segments and return the result
-	return new String(path, 0, join(path, segs));
+	String s = new String(path, 0, join(path, segs));
+	if (s.equals(ps)) {
+	    // string was already normalized
+	    return ps;
+	}
+	return s;
     }
 
 
@@ -3193,21 +3206,38 @@ public final class URI
 	}
 
 	// Attempt to parse an IPv4 address, returning -1 on failure but
-	// allowing the given interval to contain characters after the IPv4
-	// address (e.g., [:<port>])
+	// allowing the given interval to contain [:<characters>] after
+	// the IPv4 address.
 	//
-	private int parseIPv4Address(int start, int n)
-	    throws URISyntaxException
-	{
-	    int p = scanIPv4Address(start, n, false);
+	private int parseIPv4Address(int start, int n) {
+	    int p;
+
+	    try {
+	        p = scanIPv4Address(start, n, false);
+	    } catch (URISyntaxException x) {
+		return -1;
+            } catch (NumberFormatException nfe) {
+		return -1;
+            }
+
+	    if (p > start && p < n) {
+	        // IPv4 address is followed by something - check that
+		// it's a ":" as this is the only valid character to
+		// follow an address.
+		if (charAt(p) != ':') {
+		    p = -1;
+		}
+	    }
+
 	    if (p > start)
 		host = substring(start, p);
+
 	    return p;
 	}
 
-	// hostname      = *( domainlabel "." ) toplabel [ "." ]
+	// hostname      = domainlabel [ "." ] | 1*( domainlabel "." ) toplabel [ "." ] 
 	// domainlabel   = alphanum | alphanum *( alphanum | "-" ) alphanum
-	// toplabel      = alpha | alpha *( alphanum | "-" ) alphanum
+        // toplabel      = alpha | alpha *( alphanum | "-" ) alphanum
 	//
 	private int parseHostname(int start, int n)
 	    throws URISyntaxException
@@ -3243,9 +3273,11 @@ public final class URI
 	    if (l < 0)
 		failExpecting("hostname", start);
 
-	    // Make sure last parsed label (= toplabel) starts with a letter
-	    if (!match(charAt(l), L_ALPHA, H_ALPHA))
+	    // for a fully qualified hostname check that the rightmost
+	    // label starts with an alpha character.
+	    if (l > start && !match(charAt(l), L_ALPHA, H_ALPHA)) {
 		fail("Illegal character in hostname", l);
+	    }
 
 	    host = substring(start, p);
 	    return p;

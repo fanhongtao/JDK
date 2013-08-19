@@ -1,7 +1,7 @@
 /*
- * @(#)Bidi.java	1.10 02/02/22
+ * @(#)Bidi.java	1.13 03/03/19
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -213,14 +213,14 @@ public final class Bidi {
         if (paragraphLength < 0) {
             throw new IllegalArgumentException("bad length: " + paragraphLength);
         }
-        if (textStart < 0 || textStart + paragraphLength > text.length) {
-            throw new IllegalArgumentException("bad range: " + textStart 
-                                               + " to " + (textStart + paragraphLength) + 
+        if (textStart < 0 || paragraphLength > text.length - textStart) {
+            throw new IllegalArgumentException("bad range: " + textStart + 
+                                               " length: " + paragraphLength + 
                                                " for text of length: " + text.length);
         }
-        if (embeddings != null && (embStart < 0 || embStart + paragraphLength > embeddings.length)) {
+        if (embeddings != null && (embStart < 0 || paragraphLength > embeddings.length - embStart)) {
             throw new IllegalArgumentException("bad range: " + embStart + 
-                                               " to " + (embStart + paragraphLength) + 
+                                               " length: " + paragraphLength + 
                                                " for embeddings of length: " + text.length);
         }
 
@@ -624,12 +624,14 @@ public final class Bidi {
 	if (cws == null) {
 	    buf.append(" cws: null");
 	} else {
+	    buf.append(" cws: [");
 	    for (int i = 0; i < cws.length; ++i) {
 		if (i != 0) {
 		    buf.append(' ');
 		}
 		buf.append(Integer.toHexString(cws[i]));
 	    }
+	    buf.append(']');
 	}
 	buf.append(']');
 

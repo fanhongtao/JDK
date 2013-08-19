@@ -1,7 +1,7 @@
 /*
- * @(#)Point.java	1.35 02/03/20
+ * @(#)Point.java	1.37 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.awt.geom.Point2D;
  * A point representing a location in (x, y) coordinate space, specified
  * in integer precision.
  *
- * @version 	1.35, 03/20/02
+ * @version 	1.37, 01/23/03
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -180,15 +180,14 @@ public class Point extends Point2D implements java.io.Serializable {
     }	
 
     /**
-     * Determines whether an instance of <code>Point2D</code> is equal
-     * to this point.  Two instances of <code>Point2D</code> are equal if
-     * the values of their <code>x</code> and <code>y</code> member 
-     * fields, representing their position in the coordinate space, are
-     * the same.
-     * @param      obj   an object to be compared with this point
-     * @return     <code>true</code> if the object to be compared is
-     *                     an instance of <code>Point</code> and has
-     *                     the same values; <code>false</code> otherwise
+     * Determines whether or not two points are equal. Two instances of
+     * <code>Point2D</code> are equal if the values of their 
+     * <code>x</code> and <code>y</code> member fields, representing
+     * their position in the coordinate space, are the same.
+     * @param obj an object to be compared with this <code>Point2D</code>
+     * @return <code>true</code> if the object to be compared is
+     *         an instance of <code>Point2D</code> and has
+     *         the same values; <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
 	if (obj instanceof Point) {

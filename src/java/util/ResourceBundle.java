@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceBundle.java	1.66 02/05/12
+ * @(#)ResourceBundle.java	1.68 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -626,7 +626,7 @@ abstract public class ResourceBundle {
      * MyResources_fr.properties, MyResources_en.properties, MyResources_es_ES.class.
      * The contents of all files are valid (that is, public non-abstract subclasses of ResourceBundle for
      * the ".class" files, syntactically correct ".properties" files).
-     * The default locale is <code>Locale("en", "UK")</code>.
+     * The default locale is <code>Locale("en", "GB")</code>.
      * <p>
      * Calling <code>getBundle</code> with the shown locale argument values instantiates
      * resource bundles from the following sources:

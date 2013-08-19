@@ -304,7 +304,7 @@ public class SerializerToXML
   /**
    * Flag to quickly tell if the encoding is UTF8.
    */
-  boolean m_isUTF8;
+  boolean m_isUTF8 = false;
 
   /**
    * The maximum character size before we have to resort
@@ -322,6 +322,9 @@ public class SerializerToXML
 
   /** Indicate whether running in Debug mode */
   private static final boolean DEBUG = false;
+
+  /** This flag is set while receiving events from the external DTD */
+  private boolean m_inExternalDTD = false;
 
   /**
    * Default constructor.
@@ -457,6 +460,18 @@ public class SerializerToXML
 
         if (null == m_charInfo)
         {
+          try
+          {
+            m_charInfo = new CharInfo(entitiesFileName);
+          }
+          catch(Exception e)
+          {
+          	m_charInfo = null;
+          }
+        }
+
+        if (null == m_charInfo)
+        {
           String absoluteEntitiesFileName;
 
           if (entitiesFileName.indexOf(':') < 0)
@@ -507,6 +522,7 @@ public class SerializerToXML
 
     if (m_encoding.equalsIgnoreCase("UTF-8"))
     {
+      m_isUTF8 = true;
       if(output instanceof java.io.BufferedOutputStream)
       {
         init(new WriterToUTF8(output), format, true);
@@ -732,7 +748,6 @@ public class SerializerToXML
   public void startDTD(String name, String publicId, String systemId)
           throws org.xml.sax.SAXException
   {
-
     m_doctypeSystem = systemId;
     m_doctypePublic = publicId;
 
@@ -1263,8 +1278,26 @@ public class SerializerToXML
     try
     {
       final Writer writer = m_writer;
+      final int limit = start + length;
+      boolean wasDash = false;
       writer.write("<!--");
-      writer.write(ch, start, length);
+
+      // Detect occurrences of two consecutive dashes, handle as necessary.
+      for (int i = start; i < limit; i++) {
+        if (wasDash && ch[i] == '-') {
+          writer.write(ch, start, i - start);
+          writer.write(" -");
+          start = i + 1;     	  
+        }
+        wasDash = (ch[i] == '-');
+      }      	 
+      
+      // Output the remaining characters.
+      writer.write(ch, start, limit - start);
+      // Protect comment end from a single trailing dash
+      if (ch[limit-1] == '-')
+        writer.write(' ');
+
       writer.write("-->");
     }
     catch(IOException ioe)
@@ -1337,8 +1370,7 @@ public class SerializerToXML
       if (shouldIndent())
         indent(m_currentIndent);
 
-      boolean writeCDataBrackets = (((length >= 1)
-                                     && (ch[start] <= m_maxCharacter)));
+      boolean writeCDataBrackets = (((length >= 1) && canConvert(ch[start])));
 
       if (writeCDataBrackets)
       {
@@ -1561,7 +1593,7 @@ public class SerializerToXML
           checkWhite = false;
         }
   
-        if (((ch < maxCharacter) && (!specialsMap.get(ch))) || ('"' == ch))
+        if ((canConvert(ch) && (!specialsMap.get(ch))) || ('"' == ch))
         {
           lengthClean++;
         }
@@ -1747,7 +1779,7 @@ public class SerializerToXML
       {
         m_writer.write(m_lineSep, 0, m_lineSepLen);
       }
-      else if (isCData && (c > m_maxCharacter))
+      else if (isCData && (!canConvert(c)))
       {
         if (i != 0)
           m_writer.write("]]>");
@@ -1780,7 +1812,7 @@ public class SerializerToXML
       }
       else
       {
-        if (c <= m_maxCharacter)
+        if (canConvert(c))
         {
           m_writer.write(c);
         }
@@ -1861,6 +1893,8 @@ public class SerializerToXML
    */
   public void startEntity(String name) throws org.xml.sax.SAXException
   {
+    if (name.equals("[dtd]")) 
+      m_inExternalDTD = true;
     m_inEntityRef = true;
   }
 
@@ -1873,6 +1907,8 @@ public class SerializerToXML
    */
   public void endEntity(String name) throws org.xml.sax.SAXException
   {
+    if (name.equals("[dtd]")) 
+      m_inExternalDTD = false;
     m_inEntityRef = false;
   }
 
@@ -1885,7 +1921,6 @@ public class SerializerToXML
    */
   public void entityReference(String name) throws org.xml.sax.SAXException
   {
-
     writeParentTagEnd();
 
     if (shouldIndent())
@@ -1922,6 +1957,9 @@ public class SerializerToXML
    */
   public void elementDecl(String name, String model) throws SAXException
   {
+    // Do not inline external DTD
+    if (m_inExternalDTD) return; 
+    
     try
     {
       final Writer writer = m_writer;
@@ -1972,6 +2010,8 @@ public class SerializerToXML
           String eName, String aName, String type, String valueDefault, String value)
             throws SAXException
   {
+    // Do not inline external DTD
+    if (m_inExternalDTD) return; 
 
     try
     {
@@ -1983,27 +2023,20 @@ public class SerializerToXML
   
         m_inDoctype = false;
       }
-  
-      if (!eName.equals(m_elemName))
-      {
-        writer.write("<!ATTLIST ");
-        writer.write(eName);
-        writer.write(" ");
-  
-        m_elemName = eName;
-      }
-      else
-      {
-        m_pos -= 3;
-  
-        writer.write(m_lineSep, 0, m_lineSepLen);
-      }
-  
+
+       
+      writer.write("<!ATTLIST ");
+      writer.write(eName);
+      writer.write(" "); 
+
       writer.write(aName);
       writer.write(" ");
       writer.write(type);
-      writer.write(" ");
-      writer.write(valueDefault);
+      if(valueDefault!=null)
+      {
+	writer.write(" ");
+	writer.write(valueDefault);
+      }
   
       //m_writer.write(" ");
       //m_writer.write(value);
@@ -2032,6 +2065,8 @@ public class SerializerToXML
   public void internalEntityDecl(String name, String value)
           throws SAXException
   {
+    // Do not inline external DTD
+    if (m_inExternalDTD) return; 
 
     try
     {
@@ -2190,7 +2225,7 @@ public class SerializerToXML
         }
         else
         {
-          if (ch > m_maxCharacter || (m_charInfo.isSpecial(ch)))
+          if (!canConvert(ch) || (m_charInfo.isSpecial(ch)))
           {
             m_writer.write("&#");
             m_writer.write(Integer.toString(ch));
@@ -2210,6 +2245,82 @@ public class SerializerToXML
 
     return pos;
   }
+  
+  /**
+   * Opaque reference to the sun.io.CharToByteConverter for this 
+   * encoding.
+   */
+  Object m_charToByteConverter = null;
+  
+  /**
+   * Method reference to the sun.io.CharToByteConverter#canConvert method 
+   * for this encoding.  Invalid if m_charToByteConverter is null.
+   */
+  java.lang.reflect.Method m_canConvertMeth;
+  
+  /**
+   * Boolean that tells if we already tried to get the converter.
+   */
+  boolean m_triedToGetConverter = false;
+  
+  /**
+   * Tell if this character can be written without escaping.
+   */
+  public boolean canConvert(char ch)
+  {
+    if(ch < 127)
+    {
+      if(ch >= 0x20 || (0x0A == ch || 0x0D == ch || 0x09 == ch) )
+        return true;
+      else
+        return false;
+    }
+    
+    if(null == m_charToByteConverter && false == m_triedToGetConverter)
+    {
+      m_triedToGetConverter = true;
+      try
+      {
+        m_charToByteConverter = Encodings.getCharToByteConverter(m_encoding);
+        if(null != m_charToByteConverter)
+        {
+          Class argsTypes[] = new Class[1];
+          argsTypes[0] = Character.TYPE;
+          Class convClass = m_charToByteConverter.getClass();
+          m_canConvertMeth = convClass.getMethod("canConvert", argsTypes);
+        }
+      }
+      catch(Exception e)
+      {
+       // This is just an assert: no action at the moment.
+        System.err.println("Warning: "+e.getMessage());
+      }
+    }
+    if(null != m_charToByteConverter)
+    {
+      try
+      {
+        Object args[] = new Object[1];
+        args[0] = new Character( ch );
+        Boolean bool 
+          = (Boolean)m_canConvertMeth.invoke(m_charToByteConverter, args);
+        return bool.booleanValue() ? !Character.isISOControl(ch) : false;
+      }
+      catch(java.lang.reflect.InvocationTargetException ite)
+      {
+        // This is just an assert: no action at the moment.
+        System.err.println("Warning: InvocationTargetException in canConvert!");
+      }
+      catch(java.lang.IllegalAccessException iae)
+      {
+        // This is just an assert: no action at the moment.
+        System.err.println("Warning: IllegalAccessException in canConvert!");
+      }
+    }
+    // fallback!
+    return ( ch <= m_maxCharacter );
+  }
+
 
   /**
    * Returns the specified <var>string</var> after substituting <VAR>specials</VAR>,
@@ -2234,7 +2345,7 @@ public class SerializerToXML
       {
         char ch = stringChars[i];
   
-        if ((ch < m_maxCharacter) && (!m_charInfo.isSpecial(ch)))
+        if (canConvert(ch) && (!m_charInfo.isSpecial(ch)))
         {
           writer.write(ch);
         }

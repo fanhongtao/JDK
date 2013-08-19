@@ -1411,4 +1411,137 @@ public class Stylesheet extends ElemTemplateElement
     v.setStylesheet(this);
   }
   
+    /**
+     * Call the children visitors.
+     * @param visitor The visitor whose appropriate method will be called.
+     */
+    protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+    {
+      int s = getImportCount();
+      for (int j = 0; j < s; j++)
+      {
+      	getImport(j).callVisitors(visitor);
+      }
+   
+      s = getIncludeCount();
+      for (int j = 0; j < s; j++)
+      {
+      	getInclude(j).callVisitors(visitor);
+      }
+
+      s = getOutputCount();
+      for (int j = 0; j < s; j++)
+      {
+        visitor.visitTopLevelInstruction(getOutput(j));
+      }
+
+      // Next, add in the attribute-set elements
+
+      s = getAttributeSetCount();
+      for (int j = 0; j < s; j++)
+      {
+      	ElemAttributeSet attrSet = getAttributeSet(j);
+        if (visitor.visitTopLevelInstruction(attrSet))
+        {
+          attrSet.callChildVisitors(visitor);
+        }
+      }
+      // Now the decimal-formats
+
+      s = getDecimalFormatCount();
+      for (int j = 0; j < s; j++)
+      {
+        visitor.visitTopLevelInstruction(getDecimalFormat(j));
+      }
+
+      // Now the keys
+
+      s = getKeyCount();
+      for (int j = 0; j < s; j++)
+      {
+        visitor.visitTopLevelInstruction(getKey(j));
+      }
+
+      // And the namespace aliases
+
+      s = getNamespaceAliasCount();
+      for (int j = 0; j < s; j++)
+      {
+        visitor.visitTopLevelInstruction(getNamespaceAlias(j));
+      }
+
+      // Next comes the templates
+
+      s = getTemplateCount();
+      for (int j = 0; j < s; j++)
+      {
+        try
+        {
+          ElemTemplate template = getTemplate(j);
+          if (visitor.visitTopLevelInstruction(template))
+          {
+            template.callChildVisitors(visitor);
+          }
+        }
+        catch (TransformerException te)
+        {
+          throw new org.apache.xml.utils.WrappedRuntimeException(te);
+        }
+      }
+
+      // Then, the variables
+
+      s = getVariableOrParamCount();
+      for (int j = 0; j < s; j++)
+      {
+      	ElemVariable var = getVariableOrParam(j);
+        if (visitor.visitTopLevelVariableOrParamDecl(var))
+        {
+          var.callChildVisitors(visitor);
+        }
+      }
+
+      // And lastly the whitespace preserving and stripping elements
+
+      s = getStripSpaceCount();
+      for (int j = 0; j < s; j++)
+      {
+        visitor.visitTopLevelInstruction(getStripSpace(j));
+      }
+
+      s = getPreserveSpaceCount();
+      for (int j = 0; j < s; j++)
+      {
+        visitor.visitTopLevelInstruction(getPreserveSpace(j));
+      }
+      
+      if(null != m_NonXslTopLevel)
+      {
+      	java.util.Enumeration enum = m_NonXslTopLevel.elements();
+      	while(enum.hasMoreElements())
+      	{
+      	  ElemTemplateElement elem = (ElemTemplateElement)enum.nextElement();
+          if (visitor.visitTopLevelInstruction(elem))
+          {
+            elem.callChildVisitors(visitor);
+          }
+      		
+      	}
+      }
+    }
+        
+          
+  /**
+   * Accept a visitor and call the appropriate method 
+   * for this class.
+   * 
+   * @param visitor The visitor whose appropriate method will be called.
+   * @return true if the children of the object should be visited.
+   */
+  protected boolean accept(XSLTVisitor visitor)
+  {
+  	return visitor.visitStylesheet(this);
+  }
+
+  
 }

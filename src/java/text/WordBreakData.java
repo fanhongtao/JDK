@@ -1,7 +1,7 @@
 /*
- * @(#)WordBreakData.java	1.17 01/12/03
+ * @(#)WordBreakData.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -360,7 +360,9 @@ final class WordBreakData extends TextBoundaryData
         BREAK,     // MATH_SYMBOL            = 25,
         preNum,    // CURRENCY_SYMBOL        = 26,
         BREAK,     // MODIFIER_SYMBOL        = 27,
-        BREAK      // OTHER_SYMBOL           = 28
+        BREAK,     // OTHER_SYMBOL           = 28,
+        BREAK,     // INITIAL_QUOTE_PUNCTUATION = 29,
+        BREAK,     // FINAL_QUOTE_PUNCTUATION = 30,
     };
     private static final SpecialMapping kExceptionChar[] =
     {
@@ -432,7 +434,9 @@ final class WordBreakData extends TextBoundaryData
         false,          // kMathSymbol              = 25,
         true,           // kCurrencySymbol          = 26,
         false,          // kModifierSymbol          = 27,
-        false           // kOtherSymbol             = 28
+        false,          // kOtherSymbol             = 28,
+        false,          // kInitialQuotePunctuation = 29,
+        false,          // kFinalQuotePunctuation   = 30,
     };
 
     private static final int kWordAsciiValues[] = {

@@ -1,7 +1,7 @@
 /*
- * @(#)KeyPair.java	1.12 01/12/03
+ * @(#)KeyPair.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.util.*;
  * @see PublicKey
  * @see PrivateKey
  *
- * @version 1.12 01/12/03
+ * @version 1.13 03/01/23
  * @author Benjamin Renaud
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)NumberFormatException.java	1.18 02/02/06
+ * @(#)NumberFormatException.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * have the appropriate format. 
  *
  * @author  unascribed
- * @version 1.18, 02/06/02
+ * @version 1.19, 01/23/03
  * @see     java.lang.Integer#toString()
  * @since   JDK1.0
  */

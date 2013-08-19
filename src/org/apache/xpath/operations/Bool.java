@@ -56,6 +56,8 @@
  */
 package org.apache.xpath.operations;
 
+import org.apache.xpath.Expression;
+import org.apache.xpath.XPathVisitor;
 import org.apache.xpath.objects.XObject;
 import org.apache.xpath.objects.XBoolean;
 import org.apache.xpath.XPathContext;

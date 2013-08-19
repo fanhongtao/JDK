@@ -56,17 +56,19 @@
  */
 package org.apache.xpath.patterns;
 
-import org.apache.xpath.compiler.OpCodes;
-import org.apache.xpath.XPath;
+import java.util.Vector;
+
+import javax.xml.transform.TransformerException;
+import org.apache.xml.dtm.DTM;
+import org.apache.xml.dtm.DTMFilter;
+import org.apache.xml.dtm.ref.ExpandedNameTable;
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPath;
 import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
 import org.apache.xpath.objects.XNumber;
 import org.apache.xpath.objects.XObject;
-import org.apache.xpath.WhitespaceStrippingElementMatcher;
-import org.apache.xml.utils.PrefixResolver;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.ref.ExpandedNameTable;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -247,6 +249,45 @@ public class NodeTest extends Expression
   public NodeTest(int whatToShow)
   {
     initNodeTest(whatToShow);
+  }
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!isSameClass(expr))
+  		return false;
+  		
+  	NodeTest nt = (NodeTest)expr;
+
+  	if(null != nt.m_name)
+  	{
+  		if(null == m_name)
+  			return false;
+  		else if(!nt.m_name.equals(m_name))
+  			return false;
+  	}
+  	else if(null != m_name)
+  		return false;
+
+  	if(null != nt.m_namespace)
+  	{
+  		if(null == m_namespace)
+  			return false;
+  		else if(!nt.m_namespace.equals(m_namespace))
+  			return false;
+  	}
+  	else if(null != m_namespace)
+  		return false;
+  		  		
+  	if(m_whatToShow != nt.m_whatToShow)
+  		return false;
+  		
+  	if(m_isTotallyWild != nt.m_isTotallyWild)
+  		return false;
+
+	return true;
   }
 
   /**
@@ -603,7 +644,7 @@ public class NodeTest extends Expression
       return m_score;
 
     int nodeBit = (m_whatToShow & (0x00000001 
-                   << ((expType >> ExpandedNameTable.ROTAMOUNT_TYPE) - 1)));
+                   << ((dtm.getNodeType(context)) - 1)));
 
     switch (nodeBit)
     {
@@ -677,6 +718,14 @@ public class NodeTest extends Expression
   public void fixupVariables(java.util.Vector vars, int globalsSize)
   {
     // no-op
+  }
+
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	assertion(false, "callVisitors should not be called for this object!!!");  	
   }
 
 }

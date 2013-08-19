@@ -1,17 +1,21 @@
 /*
- * @(#)Certificate.java	1.20 01/12/03
+ * @(#)Certificate.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
+
+import java.util.Arrays;
 
 import java.security.PublicKey;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+
+import sun.security.x509.X509CertImpl;
 
 /**
  * <p>Abstract class for managing a variety of identity certificates.
@@ -34,13 +38,13 @@ import java.security.SignatureException;
  * @see CertificateFactory
  *
  * @author Hemma Prafullchandra
- * @version 1.20 01/12/03
+ * @version 1.22, 01/23/03
  */
 
 public abstract class Certificate implements java.io.Serializable {
 
     // the certificate type
-    private String type;
+    private final String type;
 
     /**
      * Creates a certificate of the specified type.
@@ -63,7 +67,7 @@ public abstract class Certificate implements java.io.Serializable {
     public final String getType() {
 	return this.type;
     }
-
+    
     /**
      * Compares this certificate for equality with the specified
      * object. If the <code>other</code> object is an
@@ -76,20 +80,17 @@ public abstract class Certificate implements java.io.Serializable {
      * match, false otherwise.
      */
     public boolean equals(Object other) {
-        if (this == other)
+        if (this == other) {
             return true;
-        if (!(other instanceof Certificate))
+	}
+        if (!(other instanceof Certificate)) {
             return false;
+	}
         try {
-            byte[] thisCert = this.getEncoded();
-            byte[] otherCert = ((Certificate)other).getEncoded();
-
-            if (thisCert.length != otherCert.length)
-                return false;
-            for (int i = 0; i < thisCert.length; i++)
-                 if (thisCert[i] != otherCert[i])
-                     return false;
-            return true;
+            byte[] thisCert = X509CertImpl.getEncodedInternal(this);
+            byte[] otherCert = X509CertImpl.getEncodedInternal((Certificate)other);
+	    
+	    return Arrays.equals(thisCert, otherCert);
         } catch (CertificateException e) {
 	    return false;
         }
@@ -102,15 +103,15 @@ public abstract class Certificate implements java.io.Serializable {
      * @return the hashcode value.
      */
     public int hashCode() {
-        int     retval = 0;
+        int retval = 0;
         try {
-            byte[] certData = this.getEncoded();
+            byte[] certData = X509CertImpl.getEncodedInternal(this);
             for (int i = 1; i < certData.length; i++) {
                  retval += certData[i] * i;
             }
-            return(retval);
+            return retval;
         } catch (CertificateException e) {
-            return(retval);
+            return retval;
         }
     }
 
@@ -146,7 +147,6 @@ public abstract class Certificate implements java.io.Serializable {
         SignatureException;
 
     /**
-
      * Verifies that this certificate was signed using the
      * private key that corresponds to the specified public key.
      * This method uses the signature verification engine

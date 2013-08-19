@@ -1,7 +1,7 @@
 /*
- * @(#)AllPermission.java	1.15 01/12/03
+ * @(#)AllPermission.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -11,6 +11,7 @@ import java.security.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+import sun.security.util.SecurityConstants;
 
 /**
  * The AllPermission is a permission that implies all other permissions.
@@ -30,7 +31,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.15 01/12/03
+ * @version 1.17 03/01/23
  *
  * @author Roland Schemers
  *
@@ -130,7 +131,7 @@ public final class AllPermission extends Permission {
  * @see java.security.Permission
  * @see java.security.Permissions
  *
- * @version 1.15 12/03/01
+ * @version 1.17 01/23/03
  *
  * @author Roland Schemers
  *
@@ -211,7 +212,7 @@ implements java.io.Serializable
 
 	    public Object nextElement() {
 		hasMore = false;
-		return new AllPermission();
+		return SecurityConstants.ALL_PERMISSION;
 	    }
 	};
     }

@@ -56,9 +56,11 @@
  */
 package org.apache.xpath;
 
-import org.w3c.dom.Node;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
 import javax.xml.transform.TransformerException;
+import org.w3c.dom.Node;
 
 /**
  * <meta name="usage" content="general"/>
@@ -84,6 +86,16 @@ public class XPathException extends TransformerException
   {
     return m_styleNode;
   }
+  
+  /**
+   * Set the stylesheet node from where this error originated.
+   * @param styleNode The stylesheet node from where this error originated, or null.
+   */
+  public void setStylesheetNode(Object styleNode)
+  {
+    m_styleNode = styleNode;
+  }
+
 
   /** A nested exception.
    *  @serial   */
@@ -94,10 +106,55 @@ public class XPathException extends TransformerException
    * an error message.
    * @param message The error message.
    */
+  public XPathException(String message, ExpressionNode ex)
+  {
+    super(message);
+    this.setLocator(ex);
+    setStylesheetNode(getStylesheetNode(ex));
+  }
+  
+  /**
+   * Create an XPathException object that holds
+   * an error message.
+   * @param message The error message.
+   */
   public XPathException(String message)
   {
     super(message);
   }
+
+  
+  /**
+   * Get the XSLT ElemVariable that this sub-expression references.  In order for 
+   * this to work, the SourceLocator must be the owning ElemTemplateElement.
+   * @return The dereference to the ElemVariable, or null if not found.
+   */
+  public org.w3c.dom.Node getStylesheetNode(ExpressionNode ex)
+  {
+  	
+    ExpressionNode owner = getExpressionOwner(ex);
+
+    if (null != owner && owner instanceof org.w3c.dom.Node)
+    {
+		return ((org.w3c.dom.Node)owner);
+    }
+    return null;
+
+  }
+  
+  /**
+   * Get the first non-Expression parent of this node.
+   * @return null or first ancestor that is not an Expression.
+   */
+  protected ExpressionNode getExpressionOwner(ExpressionNode ex)
+  {
+  	ExpressionNode parent = ex.exprGetParent();
+  	while((null != parent) && (parent instanceof Expression))
+  		parent = parent.exprGetParent();
+  	return parent;
+  }
+
+
 
   /**
    * Create an XPathException object that holds

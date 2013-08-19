@@ -1,7 +1,7 @@
 /*
- * @(#)Observer.java	1.17 01/12/03
+ * @(#)Observer.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.util;
@@ -11,7 +11,7 @@ package java.util;
  * wants to be informed of changes in observable objects.
  *
  * @author  Chris Warth
- * @version 1.17, 12/03/01
+ * @version 1.18, 01/23/03
  * @see     java.util.Observable
  * @since   JDK1.0
  */

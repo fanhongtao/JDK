@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)Stylepad.java	1.16 02/06/13
+ * @(#)Stylepad.java	1.17 03/01/23
  */
 
 
@@ -52,7 +52,7 @@ import java.io.*;
  * Sample application using JTextPane.
  *
  * @author Timothy Prinzing
- * @version 1.16 06/13/02
+ * @version 1.17 01/23/03
  */
 public class Stylepad extends Notepad {
 

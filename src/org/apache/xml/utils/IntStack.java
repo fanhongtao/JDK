@@ -88,6 +88,16 @@ public class IntStack extends IntVector
   {
     super(blocksize);
   }
+  
+  /**
+   * Copy constructor for IntStack
+   * 
+   * @param v IntStack to copy
+   */
+  public IntStack (IntStack v)
+  {
+  	super(v);
+  }
 
   /**
    * Pushes an item onto the top of this stack.
@@ -145,7 +155,13 @@ public class IntStack extends IntVector
    */
   public int peek()
   {
-    return m_map[m_firstFree - 1];
+    try {
+      return m_map[m_firstFree - 1];
+    }
+    catch (ArrayIndexOutOfBoundsException e)
+    {
+      throw new EmptyStackException();
+    }
   }
 
   /**
@@ -157,7 +173,13 @@ public class IntStack extends IntVector
    */
   public int peek(int n)
   {
-    return m_map[m_firstFree-(1+n)];
+    try {
+      return m_map[m_firstFree-(1+n)];
+    }
+    catch (ArrayIndexOutOfBoundsException e)
+    {
+      throw new EmptyStackException();
+    }
   }
 
   /**
@@ -169,7 +191,13 @@ public class IntStack extends IntVector
    */
   public void setTop(int val)
   {
-    m_map[m_firstFree - 1] = val;
+    try {
+      m_map[m_firstFree - 1] = val;
+    }
+    catch (ArrayIndexOutOfBoundsException e)
+    {
+      throw new EmptyStackException();
+    }
   }
 
   /**
@@ -204,5 +232,16 @@ public class IntStack extends IntVector
     }
 
     return -1;
+  }
+  
+  /**
+   * Returns clone of current IntStack
+   * 
+   * @return clone of current IntStack
+   */
+  public Object clone()
+    throws CloneNotSupportedException
+  {
+  	return (IntStack) super.clone();
   }
 }

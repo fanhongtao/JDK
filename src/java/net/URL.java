@@ -1,7 +1,7 @@
 /*
- * @(#)URL.java	1.117 02/02/07
+ * @(#)URL.java	1.122 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+import sun.security.util.SecurityConstants;
 
 /**
  * Class <code>URL</code> represents a Uniform Resource
@@ -87,7 +88,7 @@ import java.util.StringTokenizer;
  * specified. The optional fragment is not inherited.
  *
  * @author  James Gosling
- * @version 1.117, 02/07/02
+ * @version 1.122, 01/23/03
  * @since JDK1.0 
  */
 public final class URL implements java.io.Serializable {
@@ -315,98 +316,55 @@ public final class URL implements java.io.Serializable {
      * @see        java.net.NetPermission
      */
     public URL(String protocol, String host, int port, String file,
-	       URLStreamHandler handler)
-	throws MalformedURLException
-    {
-	this(protocol, host, port, new Parts(file), handler);
-    }
-
-    /**
-     * No validation of the inputs is performed by this constructor.
-     */
-    private URL(String protocol, String host, int port, Parts parts, 
 	       URLStreamHandler handler) throws MalformedURLException {
-	this(protocol, null, null, null, host, port, parts.getPath(),
-	      parts.getQuery(),  parts.getRef(), handler);
-    }
-     
-    /**
-     * A package private constructor that takes all URL components.
-     *
-     * No validation of the inputs is performed by this constructor.
-     *
-     * @param   protocol  Protocol name
-     * @param   opaquePart
-     * @param   authority
-     * @param   userInfo  User name and authorization information
-     * @param   host      Host name
-     * @param   port      Port number
-     * @param   path      Path
-     * @param   query     Query
-     * @param   ref       Fragment
-     * @exception  MalformedURLException  if an unknown protocol is specified.
-     * @exception  SecurityException
-     *        if a security manager exists and its
-     *        <code>checkPermission</code> method doesn't allow
-     *        specifying a stream handler explicitly.
-     * @since   1.4
-     */
-    URL(String protocol, String opaquePart, String authority,
-	String userInfo, String host, int port,
-	String path, String query, String ref, URLStreamHandler handler)
-	throws MalformedURLException {
 	if (handler != null) {
-	    SecurityManager sm = System.getSecurityManager();
-	    if (sm != null) {
-		// check for permission to specify a handler
-		checkSpecifyHandler(sm);
-	    }
-	}
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                // check for permission to specify a handler
+                checkSpecifyHandler(sm);
+            }
+        }
 
 	protocol = protocol.toLowerCase();
-	this.protocol = protocol;
-	
-	if (opaquePart != null) {
-	    this.path = opaquePart;
-	} else {
-	    if (host != null) {
-		this.userInfo = userInfo;
-		/* if host is a literal IPv6 address, 
-		 * we will make it conform to RFC 2732 */
-		if (host != null && host.indexOf(':') >= 0 
-		    && !host.startsWith("[")) {
-		    host = "["+host+"]";
-		}
-		this.host = host;
-		if (port < -1)
-		    throw new MalformedURLException("Invalid port number :" +
-						    port);
-		this.port = port;
-		if (authority == null) {
-		    String hostport = port == -1? host : host + ":" + port;
-		    authority = userInfo == null? hostport :
-			userInfo + "@" + hostport;
-		}
-	    } 
-	    this.authority = authority;
-	    this.path = path;
-	    this.query = query;
-	    if (query != null) {
-		this.file = path+"?"+query;
-	    } else {
-		this.file = this.path;
+        this.protocol = protocol;
+ 	if (host != null) {
+
+            /**
+	     * if host is a literal IPv6 address,
+             * we will make it conform to RFC 2732
+	     */
+            if (host != null && host.indexOf(':') >= 0
+                    && !host.startsWith("[")) {
+                host = "["+host+"]";
+            }
+            this.host = host;
+
+	    if (port < -1) {
+		throw new MalformedURLException("Invalid port number :" +
+                                                    port);
 	    }
+            this.port = port;
+	    authority = (port == -1) ? host : host + ":" + port;
 	}
 
-	this.ref = ref;
+	Parts parts = new Parts(file);
+        path = parts.getPath();
+        query = parts.getQuery();
+
+        if (query != null) {
+            this.file = path + "?" + query;
+        } else {
+            this.file = path;
+        }
+	ref = parts.getRef();	
 
 	// Note: we don't do validation of the URL here. Too risky to change
-	// right now, but worth considering for future reference. -br
-	if (handler == null &&
-	    (handler = getURLStreamHandler(protocol)) == null) {
-	    throw new MalformedURLException("unknown protocol: " + protocol);
-	}
-	this.handler = handler;
+        // right now, but worth considering for future reference. -br
+        if (handler == null &&
+            (handler = getURLStreamHandler(protocol)) == null) {
+            throw new MalformedURLException("unknown protocol: " + protocol);
+        }
+        this.handler = handler;
     }
 
     /**
@@ -638,13 +596,8 @@ public final class URL implements java.io.Serializable {
      * Checks for permission to specify a stream handler.
      */
     private void checkSpecifyHandler(SecurityManager sm) {
-	if (specifyHandlerPerm == null) {
-	    specifyHandlerPerm = new NetPermission("specifyStreamHandler");
-	}
-	sm.checkPermission(specifyHandlerPerm);
+	sm.checkPermission(SecurityConstants.SPECIFY_HANDLER_PERMISSION);
     }
-
-    private static NetPermission specifyHandlerPerm;
 
     /**
      * Sets the fields of the URL. This is not a public method so that

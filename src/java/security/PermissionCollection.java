@@ -1,7 +1,7 @@
 /*
- * @(#)PermissionCollection.java	1.28 01/12/03
+ * @(#)PermissionCollection.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -70,12 +70,14 @@ import java.util.*;
  * @see Permission
  * @see Permissions
  *
- * @version 1.28 01/12/03
+ * @version 1.30 03/01/23
  *
  * @author Roland Schemers
  */
 
 public abstract class PermissionCollection implements java.io.Serializable {
+
+    private static final long serialVersionUID = -6727011328946861783L;
 
     // when set, add will throw an exception.
     private boolean readOnly;

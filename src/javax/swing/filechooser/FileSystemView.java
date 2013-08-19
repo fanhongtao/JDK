@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemView.java	1.36 02/04/10
+ * @(#)FileSystemView.java	1.41 03/02/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import sun.awt.shell.*;
  * Java Licensees may want to provide a different implementation of
  * FileSystemView to better handle a given operating system.
  *
- * @version 1.36 04/10/02
+ * @version 1.41 02/17/03
  * @author Jeff Dinkins
  */
 
@@ -137,7 +137,10 @@ public abstract class FileSystemView {
 	String name = null;
 	if (f != null) {
 	    name = f.getName();
-	    if (!name.equals("..") && f.exists()) {
+	    if (!name.equals("..") &&
+		((f instanceof ShellFolder) ||
+		 f.exists())) {
+
 		name = getShellFolder(f).getDisplayName();
 		if (name == null || name.length() == 0) {
 		    name = f.getPath();	// e.g. "/"
@@ -201,6 +204,12 @@ public abstract class FileSystemView {
 	if (folder == null || file == null) {
 	    return false;
 	} else if (folder instanceof ShellFolder) {
+	    if (!ShellFolder.disableFileChooserSpeedFix()) {
+		File parent = file.getParentFile();
+		if (parent != null && parent.equals(folder)) {
+		    return true;
+		}
+	    }
 	    File[] children = getFiles(folder, false);
 	    for (int i = 0; i < children.length; i++) {
 		if (file.equals(children[i])) {
@@ -235,7 +244,7 @@ public abstract class FileSystemView {
     }
 
 
-    /*
+    /**
      * Checks if <code>f</code> represents a real directory or file as opposed to a
      * special folder such as <code>"Desktop"</code>. Used by UI classes to decide if
      * a folder is selectable when doing directory choosing.
@@ -264,17 +273,19 @@ public abstract class FileSystemView {
     }
 
 
-    /*
+    /**
      * Is dir the root of a tree in the file system, such as a drive
      * or partition. Example: Returns true for "C:\" on Windows 98.
      * 
-     * @See also isRoot
+     * @param f a <code>File</code> object representing a directory
+     * @return <code>true</code> if <code>f</code> is a root of a filesystem
+     * @see #isRoot
      */
     public boolean isFileSystemRoot(File dir) {
 	return ShellFolder.isFileSystemRoot(dir);
     }
 
-    /*
+    /**
      * Used by UI classes to decide whether to display a special icon
      * for drives or partitions, e.g. a "hard disk" icon.
      *
@@ -287,7 +298,7 @@ public abstract class FileSystemView {
 	return false;
     }
 
-    /*
+    /**
      * Used by UI classes to decide whether to display a special icon
      * for a floppy disk. Implies isDrive(dir).
      *
@@ -300,7 +311,7 @@ public abstract class FileSystemView {
 	return false;
     }
 
-    /*
+    /**
      * Used by UI classes to decide whether to display a special icon
      * for a computer node, e.g. "My Computer" or a network server.
      *
@@ -344,7 +355,8 @@ public abstract class FileSystemView {
     /**
      * Return the user's default starting directory for the file chooser.
      *
-     * @returns a <code>File</code> object representing the default starting folder
+     * @return a <code>File</code> object representing the default
+     *         starting folder
      */
     public File getDefaultDirectory() {
 	File f = (File)ShellFolder.get("fileChooserDefaultFolder");
@@ -385,8 +397,20 @@ public abstract class FileSystemView {
 
 
 	// add all files in dir
-	File[] names = dir.listFiles();
+	File[] names;
+	if (ShellFolder.disableFileChooserSpeedFix()) {
+	    if (dir instanceof ShellFolder) {
+		names = ((ShellFolder)dir).listFiles(!useFileHiding);
+	    } else {
+		names = dir.listFiles();
+	    }
+	} else {
+	    if (!(dir instanceof ShellFolder)) {
+		dir = getShellFolder(dir);
+	    }
 
+	    names = ((ShellFolder)dir).listFiles(!useFileHiding);
+	}
 	File f;
 
 	int nameCount = (names == null) ? 0 : names.length;
@@ -619,7 +643,7 @@ class WindowsFileSystemView extends FileSystemView {
     }
 
     /**
-     * @returns the Desktop folder.
+     * @return the Desktop folder.
      */
     public File getHomeDirectory() {
 	return getRoots()[0];

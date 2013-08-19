@@ -1,7 +1,7 @@
 /*
- * @(#)BasicButtonListener.java	1.58 02/04/05
+ * @(#)BasicButtonListener.java	1.59 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -19,7 +19,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.58 04/05/02
+ * @version 1.59 01/23/03
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */

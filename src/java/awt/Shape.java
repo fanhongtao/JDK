@@ -1,7 +1,7 @@
 /*
- * @(#)Shape.java	1.19 01/12/03
+ * @(#)Shape.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -97,7 +97,8 @@ public interface Shape {
     /**
      * Tests if the specified coordinates are inside the boundary of the 
      * <code>Shape</code>.
-     * @param x,&nbsp;y the specified coordinates
+     * @param x the specified x coordinate
+     * @param y the specified y coordinate
      * @return <code>true</code> if the specified coordinates are inside 
      *         the <code>Shape</code> boundary; <code>false</code>
      *         otherwise.
@@ -135,7 +136,8 @@ public interface Shape {
      * The {@link java.awt.geom.Area Area} class can be used to perform 
      * more accurate computations of geometric intersection for any 
      * <code>Shape</code> object if a more precise answer is required.
-     * @param x,&nbsp;y the coordinates of the specified rectangular area
+     * @param x the x coordinate of the specified rectangular area
+     * @param y the y coordinate of the specified rectangular area
      * @param w the width of the specified rectangular area
      * @param h the height of the specified rectangular area
      * @return <code>true</code> if the interior of the <code>Shape</code> and
@@ -192,7 +194,8 @@ public interface Shape {
      * The <code>Area</code> class can be used to perform more accurate 
      * computations of geometric intersection for any <code>Shape</code>
      * object if a more precise answer is required.
-     * @param x,&nbsp;y the coordinates of the specified rectangular area
+     * @param x the x coordinate of the specified rectangular area
+     * @param y the y coordinate of the specified rectangular area
      * @param w the width of the specified rectangular area
      * @param h the height of the specified rectangular area
      * @return <code>true</code> if the interior of the <code>Shape</code>

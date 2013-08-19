@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableColumnModel.java	1.43 01/12/03
+ * @(#)DefaultTableColumnModel.java	1.45 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.43 12/03/01
+ * @version 1.45 01/23/03
  * @author Alan Chung
  * @author Philip Milne
  * @see JTable
@@ -90,7 +90,7 @@ public class DefaultTableColumnModel implements TableColumnModel,
      *  This method also posts the <code>columnAdded</code>
      *  event to its listeners.
      *
-     * @param	column		the <code>TableColumn</code> to be added
+     * @param	aColumn		the <code>TableColumn</code> to be added
      * @exception IllegalArgumentException	if <code>aColumn</code> is
      *				<code>null</code>
      * @see	#removeColumn
@@ -386,7 +386,7 @@ public class DefaultTableColumnModel implements TableColumnModel,
     // implements javax.swing.table.TableColumnModel
     /**
      * Sets whether column selection is allowed.  The default is false.
-     * @param  true if column selection will be allowed, false otherwise
+     * @param  flag true if column selection will be allowed, false otherwise
      */
     public void setColumnSelectionAllowed(boolean flag) {
 	columnSelectionAllowed = flag;
@@ -599,7 +599,6 @@ public class DefaultTableColumnModel implements TableColumnModel,
      * notification on this event type.  The event instance
      * is lazily created using the parameters passed into
      * the fire method.
-     * @param  e the event received
      * @see EventListenerList
      */
     protected void fireColumnMarginChanged() {

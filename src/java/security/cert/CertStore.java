@@ -1,7 +1,7 @@
 /*
- * @(#)CertStore.java	1.8 01/12/03
+ * @(#)CertStore.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,7 +57,7 @@ import java.lang.reflect.InvocationTargetException;
  * Multiple threads may concurrently invoke the static methods defined in
  * this class with no ill effects.
  *
- * @version 	1.8 12/03/01
+ * @version 	1.9 01/23/03
  * @since	1.4
  * @author	Sean Mullan, Steve Hanna
  */

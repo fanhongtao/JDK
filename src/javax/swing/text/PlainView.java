@@ -1,7 +1,7 @@
 /*
- * @(#)PlainView.java	1.69 01/12/03
+ * @(#)PlainView.java	1.71 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,7 +17,7 @@ import javax.swing.event.*;
  * child element as a line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.69 12/03/01
+ * @version 1.71 01/23/03
  * @see     View
  */
 public class PlainView extends View implements TabExpander {
@@ -62,13 +62,13 @@ public class PlainView extends View implements TabExpander {
 	
 	try {
 	    if (line.isLeaf()) {
-	        drawElement(line, g, x, y);
+                drawElement(lineIndex, line, g, x, y);
 	    } else {
 	        // this line contains the composed text.
 	        int count = line.getElementCount();
 		for(int i = 0; i < count; i++) {
 		    elem = line.getElement(i);
-		    x = drawElement(elem, g, x, y);
+		    x = drawElement(lineIndex, elem, g, x, y);
 		}
 	    }
         } catch (BadLocationException e) {
@@ -76,11 +76,14 @@ public class PlainView extends View implements TabExpander {
         }
     }
    
-    private int drawElement(Element elem, Graphics g, int x, int y) throws BadLocationException {
+    private int drawElement(int lineIndex, Element elem, Graphics g, int x, int y) throws BadLocationException {
 	int p0 = elem.getStartOffset();
         int p1 = elem.getEndOffset();
         p1 = Math.min(getDocument().getLength(), p1);
 
+        if (lineIndex == 0) {
+            x += firstLineOffset;
+        }
 	AttributeSet attr = elem.getAttributes();
 	if (Utilities.isComposedTextAttributeDefined(attr)) {
 	    g.setColor(unselected);
@@ -283,6 +286,12 @@ public class PlainView extends View implements TabExpander {
 	    }
             drawLine(line, g, x, y);
             y += fontHeight;
+            if (line == 0) {
+                // This should never really happen, in so far as if
+                // firstLineOffset is non 0, there should only be one
+                // line of text.
+                x -= firstLineOffset;
+            }
         }
     }
 
@@ -368,6 +377,11 @@ public class PlainView extends View implements TabExpander {
                 return getEndOffset() - 1;
             }
             Element line = map.getElement(lineIndex);
+            int dx = 0;
+            if (lineIndex == 0) {
+                alloc.x += firstLineOffset;
+                alloc.width -= firstLineOffset;
+            }
             if (x < alloc.x) {
                 // point is to the left of the line
                 return line.getStartOffset();
@@ -571,6 +585,10 @@ public class PlainView extends View implements TabExpander {
 	updateMetrics();
         if (metrics != null) {
             Rectangle alloc = a.getBounds();
+            if (line == 0) {
+                alloc.x += firstLineOffset;
+                alloc.width -= firstLineOffset;
+            }
             r = new Rectangle(alloc.x, alloc.y + (line * metrics.getHeight()),
                               alloc.width, metrics.getHeight());
         }
@@ -652,5 +670,13 @@ public class PlainView extends View implements TabExpander {
     int sel1;
     Color unselected;
     Color selected;
+
+    /**
+     * Offset of where to draw the first character on the first line.
+     * This is a hack and temporary until we can better address the problem
+     * of text measuring. This field is actually never set directly in
+     * PlainView, but by FieldView.
+     */
+    int firstLineOffset;
     
 }

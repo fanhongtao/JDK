@@ -1,7 +1,7 @@
 /*
- * @(#)SecurityManager.java	1.127 01/12/03
+ * @(#)SecurityManager.java	1.129 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@ import java.net.InetAddress;
 import java.lang.reflect.Member;
 import java.lang.reflect.*;
 import java.net.URL;
+
+import sun.security.util.SecurityConstants;
 
 /**
  * The security manager is a class that allows 
@@ -180,7 +182,7 @@ import java.net.URL;
  * @author  Arthur van Hoff
  * @author  Roland Schemers
  *
- * @version 1.127, 12/03/01
+ * @version 1.129, 01/23/03
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
@@ -222,34 +224,14 @@ class SecurityManager {
      */
     private boolean initialized = false;
 
-    // static permissions. Create here and used in the various
-    // check permission calls
-
-    private static RuntimePermission createClassLoaderPermission;
-
-    private static AWTPermission topLevelWindowPermission;
-
-    private static AWTPermission accessClipboardPermission;
-
-    private static AWTPermission checkAwtEventQueuePermission;
-
-    private static RuntimePermission checkMemberAccessPermission;
-
-    private static AllPermission allPermission;
-
-    private static RuntimePermission threadPermission;
-
-    private static RuntimePermission threadGroupPermission;
 
     /**
      * returns true if the current context has been granted AllPermission
      */
     private boolean hasAllPermission() 
     {
-	if (allPermission == null)
-	    allPermission = new AllPermission();
 	try {
-	    checkPermission(allPermission);
+	    checkPermission(SecurityConstants.ALL_PERMISSION);
 	    return true;
 	} catch (SecurityException se) {
 	    return false;
@@ -601,10 +583,7 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkCreateClassLoader() {
-	if (createClassLoaderPermission == null)
-	    createClassLoaderPermission = 
-                        new RuntimePermission("createClassLoader");
-	checkPermission(createClassLoaderPermission);
+	checkPermission(SecurityConstants.CREATE_CLASSLOADER_PERMISSION);
     }
 
     /** 
@@ -669,9 +648,7 @@ class SecurityManager {
 	    throw new NullPointerException("thread can't be null");
 	}
 	if (t.getThreadGroup() == rootGroup) {
-	    if (threadPermission == null)
-		  threadPermission = new RuntimePermission("modifyThread");
-	    checkPermission(threadPermission);
+	    checkPermission(SecurityConstants.MODIFY_THREAD_PERMISSION);
 	} else {
 	    // just return
 	}
@@ -724,10 +701,7 @@ class SecurityManager {
 	    throw new NullPointerException("thread group can't be null");
 	}
 	if (g == rootGroup) {
-	    if (threadGroupPermission == null)
-		threadGroupPermission = 
-		    new RuntimePermission("modifyThreadGroup");
-	    checkPermission(threadGroupPermission);
+	    checkPermission(SecurityConstants.MODIFY_THREADGROUP_PERMISSION);
 	} else {
 	    // just return
 	}
@@ -794,9 +768,11 @@ class SecurityManager {
     public void checkExec(String cmd) {
 	File f = new File(cmd);
 	if (f.isAbsolute()) {
-	    checkPermission(new FilePermission(cmd, "execute"));
+	    checkPermission(new FilePermission(cmd, 
+		SecurityConstants.FILE_EXECUTE_ACTION));
 	} else {
-	    checkPermission(new FilePermission("<<ALL FILES>>", "execute"));
+	    checkPermission(new FilePermission("<<ALL FILES>>", 
+		SecurityConstants.FILE_EXECUTE_ACTION));
 	}
     }
 
@@ -884,7 +860,8 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkRead(String file) {
-	checkPermission(new FilePermission(file, "read"));
+	checkPermission(new FilePermission(file, 
+	    SecurityConstants.FILE_READ_ACTION));
     }
 
     /**
@@ -918,7 +895,9 @@ class SecurityManager {
      * @see        java.security.AccessControlContext#checkPermission(java.security.Permission)
      */
     public void checkRead(String file, Object context) {
-	checkPermission(new FilePermission(file, "read"), context);
+	checkPermission(
+	    new FilePermission(file, SecurityConstants.FILE_READ_ACTION), 
+	    context);
     }
 
     /**
@@ -972,7 +951,8 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkWrite(String file) {
-	checkPermission(new FilePermission(file, "write"));
+	checkPermission(new FilePermission(file, 
+	    SecurityConstants.FILE_WRITE_ACTION));
     }
 
     /**
@@ -999,7 +979,8 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkDelete(String file) {
-	checkPermission(new FilePermission(file, "delete"));
+	checkPermission(new FilePermission(file, 
+	    SecurityConstants.FILE_DELETE_ACTION));
     }
 
     /**
@@ -1039,9 +1020,11 @@ class SecurityManager {
 	    host = "[" + host + "]";
 	}
 	if (port == -1) {
-	    checkPermission(new SocketPermission(host,"resolve"));
+	    checkPermission(new SocketPermission(host, 
+		SecurityConstants.SOCKET_RESOLVE_ACTION));
 	} else {
-	    checkPermission(new SocketPermission(host+":"+port,"connect"));
+	    checkPermission(new SocketPermission(host+":"+port,
+		SecurityConstants.SOCKET_CONNECT_ACTION));
 	}
     }
 
@@ -1092,11 +1075,13 @@ class SecurityManager {
 	    host = "[" + host + "]";
 	}
 	if (port == -1)
-	    checkPermission(new SocketPermission(host,"resolve"),
-			    context);
+	    checkPermission(new SocketPermission(host,
+		SecurityConstants.SOCKET_RESOLVE_ACTION),
+		context);
 	else
-	    checkPermission(new SocketPermission(host+":"+port,"connect"),
-			    context);
+	    checkPermission(new SocketPermission(host+":"+port,
+		SecurityConstants.SOCKET_CONNECT_ACTION),
+		context);
     }
 
     /**
@@ -1122,16 +1107,12 @@ class SecurityManager {
      */
     public void checkListen(int port) {
 	if (port == 0) {
-	    if (localListenPermission == null)
-		localListenPermission = 
-                          new SocketPermission("localhost:1024-","listen");
-	    checkPermission(localListenPermission);
+	    checkPermission(SecurityConstants.LOCAL_LISTEN_PERMISSION);
 	} else {
-	    checkPermission(new SocketPermission("localhost:"+port,"listen"));
+	    checkPermission(new SocketPermission("localhost:"+port,
+		SecurityConstants.SOCKET_LISTEN_ACTION));
 	}
     }
-
-    private static SocketPermission localListenPermission;
 
     /**
      * Throws a <code>SecurityException</code> if the 
@@ -1165,7 +1146,8 @@ class SecurityManager {
 	if (!host.startsWith("[") && host.indexOf(':') != -1) {
 	    host = "[" + host + "]";
 	}
-	checkPermission(new SocketPermission(host+":"+port,"accept"));
+	checkPermission(new SocketPermission(host+":"+port,
+	    SecurityConstants.SOCKET_ACCEPT_ACTION));
     }
 
     /**
@@ -1195,7 +1177,8 @@ class SecurityManager {
 	if (!host.startsWith("[") && host.indexOf(':') != -1) {
 	    host = "[" + host + "]";
 	}
-      	checkPermission(new SocketPermission(host, "accept,connect"));
+      	checkPermission(new SocketPermission(host, 
+	    SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION));
     }
 
     /**
@@ -1229,7 +1212,8 @@ class SecurityManager {
 	if (!host.startsWith("[") && host.indexOf(':') != -1) {
 	    host = "[" + host + "]";
 	}
-      	checkPermission(new SocketPermission(host, "accept,connect"));
+      	checkPermission(new SocketPermission(host, 
+	    SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION));
     }
 
     /**
@@ -1256,7 +1240,8 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkPropertiesAccess() {
-      	checkPermission(new PropertyPermission("*", "read,write"));
+      	checkPermission(new PropertyPermission("*", 
+	    SecurityConstants.PROPERTY_RW_ACTION));
     }
 
     /**
@@ -1288,7 +1273,8 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkPropertyAccess(String key) {
-      	checkPermission(new PropertyPermission(key, "read"));
+      	checkPermission(new PropertyPermission(key, 
+	    SecurityConstants.PROPERTY_READ_ACTION));
     }
 
     /**
@@ -1329,10 +1315,7 @@ class SecurityManager {
 	    throw new NullPointerException("window can't be null");
 	}
 	try {
-	if (topLevelWindowPermission == null)
-	    topLevelWindowPermission =
-		new AWTPermission("showWindowWithoutWarningBanner");
-	    checkPermission(topLevelWindowPermission);
+	    checkPermission(SecurityConstants.TOPLEVEL_WINDOW_PERMISSION);
 	    return true;
 	} catch (SecurityException se) {
 	    // just return false
@@ -1382,9 +1365,7 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkSystemClipboardAccess() {
-	if (accessClipboardPermission == null)
-	    accessClipboardPermission = new AWTPermission("accessClipboard");
- 	checkPermission(accessClipboardPermission);
+ 	checkPermission(SecurityConstants.ACCESS_CLIPBOARD_PERMISSION);
     }
 
     /**
@@ -1405,10 +1386,7 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkAwtEventQueueAccess() {
-	if (checkAwtEventQueuePermission == null)
-	    checkAwtEventQueuePermission = 
-		new AWTPermission("accessEventQueue");
-      	checkPermission(checkAwtEventQueuePermission);
+      	checkPermission(SecurityConstants.CHECK_AWT_EVENTQUEUE_PERMISSION);
     }
 
     /*
@@ -1656,10 +1634,7 @@ class SecurityManager {
 	     */
 	    if ((stack.length<4) || 
 		(stack[3].getClassLoader() != clazz.getClassLoader())) {
-		if (checkMemberAccessPermission == null)
-		    checkMemberAccessPermission = 
-			new RuntimePermission("accessDeclaredMembers");
-		checkPermission(checkMemberAccessPermission);
+		checkPermission(SecurityConstants.CHECK_MEMBER_ACCESS_PERMISSION);
 	    }
 	}
     }

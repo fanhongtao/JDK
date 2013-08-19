@@ -129,7 +129,7 @@ public class NamespaceSupport2
      */
     public void reset ()
     {
-        // JJK: Discarding the whole stack doesn't save us a lot versus
+        // Discarding the whole stack doesn't save us a lot versus
         // creating a new NamespaceSupport. Do we care, or should we
         // change this to just reset the root context?
         currentContext = new Context2(null);

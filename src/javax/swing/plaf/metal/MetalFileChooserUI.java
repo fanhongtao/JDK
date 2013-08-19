@@ -1,7 +1,7 @@
 /*
- * @(#)MetalFileChooserUI.java	1.65 02/07/10
+ * @(#)MetalFileChooserUI.java	1.69 03/02/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.65 07/10/02
+ * @version 1.69 02/17/03
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -184,6 +184,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
 	// CurrentDir ComboBox
 	directoryComboBox = new JComboBox();
+	directoryComboBox.getAccessibleContext().setAccessibleDescription(lookInLabelText);
 	directoryComboBox.putClientProperty( "JComboBox.lightweightKeyboardNavigation", "Lightweight" );
 	lookInLabel.setLabelFor(directoryComboBox);
 	directoryComboBoxModel = createDirectoryComboBoxModel(fc);
@@ -347,7 +348,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
      	fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
 	fileNamePanel.add(fileNameLabel);
 
-	fileNameTextField = new JTextField() {
+	fileNameTextField = new JTextField(35) {
 	    public Dimension getMaximumSize() {
 		return new Dimension(Short.MAX_VALUE, super.getPreferredSize().height);
 	    }
@@ -382,6 +383,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	filterComboBoxModel = createFilterComboBoxModel();
 	fc.addPropertyChangeListener(filterComboBoxModel);
 	filterComboBox = new JComboBox(filterComboBoxModel);
+	filterComboBox.getAccessibleContext().setAccessibleDescription(filesOfTypeLabelText);
 	filesOfTypeLabel.setLabelFor(filterComboBox);
 	filterComboBox.setRenderer(createFilterComboBoxRenderer());
 	filesOfTypePanel.add(filterComboBox);
@@ -936,10 +938,12 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 				int j = 0;
 				for (int i = 0; i < objects.length; i++) {
 				    File f = (File)objects[i];
-				    if ((chooser.isFileSelectionEnabled() && f.isFile())
+				    boolean isDir = f.isDirectory();
+				    boolean isFile = ShellFolder.disableFileChooserSpeedFix() ? f.isFile() : !isDir;
+				    if ((chooser.isFileSelectionEnabled() && isFile)
 					|| (chooser.isDirectorySelectionEnabled()
 					    && fsv.isFileSystem(f)
-					    && f.isDirectory())) {
+					    && isDir)) {
 					files[j++] = f;
 				    }
 				}
@@ -1199,36 +1203,82 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	    File[] files = getFileChooser().getSelectedFiles();	// Should be selected
 	    Object[] selectedObjects = list.getSelectedValues(); // Are actually selected
 
-	    // Remove files that shouldn't be selected
-	    for (int j = 0; j < selectedObjects.length; j++) {
-		boolean found = false;
-		for (int i = 0; i < files.length; i++) {
-		    if (files[i].equals(selectedObjects[j])) {
-			found = true;
-			break;
-		    }
-		}
-		if (!found) {
-		    int index = getModel().indexOf(selectedObjects[j]);
-		    if (index >= 0) {
-			listSelectionModel.removeSelectionInterval(index, index);
-		    }
-		}
-	    }
-	    // Add files that should be selected
-	    for (int i = 0; i < files.length; i++) {
-		boolean found = false;
+	    if (ShellFolder.disableFileChooserSpeedFix()) {
+		// Remove files that shouldn't be selected
 		for (int j = 0; j < selectedObjects.length; j++) {
-		    if (files[i].equals(selectedObjects[j])) {
-			found = true;
-			break;
+		    boolean found = false;
+		    for (int i = 0; i < files.length; i++) {
+			if (files[i].equals(selectedObjects[j])) {
+			    found = true;
+			    break;
+			}
+		    }
+		    if (!found) {
+			int index = getModel().indexOf(selectedObjects[j]);
+			if (index >= 0) {
+			    listSelectionModel.removeSelectionInterval(index, index);
+			}
 		    }
 		}
-		if (!found) {
-		    int index = getModel().indexOf(files[i]);
-		    if (index >= 0) {
-			listSelectionModel.addSelectionInterval(index, index);
+		// Add files that should be selected
+		for (int i = 0; i < files.length; i++) {
+		    boolean found = false;
+		    for (int j = 0; j < selectedObjects.length; j++) {
+			if (files[i].equals(selectedObjects[j])) {
+			    found = true;
+			    break;
+			}
 		    }
+		    if (!found) {
+			int index = getModel().indexOf(files[i]);
+			if (index >= 0) {
+			    listSelectionModel.addSelectionInterval(index, index);
+			}
+		    }
+		}
+	    } else {
+		listSelectionModel.setValueIsAdjusting(true);
+		try {
+		    Arrays.sort(files);
+		    Arrays.sort(selectedObjects);
+
+		    int shouldIndex = 0;
+		    int actuallyIndex = 0;
+
+		    // Remove files that shouldn't be selected and add files which should be selected
+		    // Note: Assume files are already sorted in compareTo order.
+		    while (shouldIndex < files.length &&
+			   actuallyIndex < selectedObjects.length) {
+			int comparison = files[shouldIndex].compareTo(selectedObjects[actuallyIndex]);
+			if (comparison < 0) {
+			    int index = getModel().indexOf(files[shouldIndex]);
+			    listSelectionModel.addSelectionInterval(index, index);
+			    shouldIndex++;
+			} else if (comparison > 0) {
+			    int index = getModel().indexOf(selectedObjects[actuallyIndex]);
+			    listSelectionModel.removeSelectionInterval(index, index);
+			    actuallyIndex++;
+			} else {
+			    // Do nothing
+			    shouldIndex++;
+			    actuallyIndex++;
+			}
+
+		    }
+
+		    while (shouldIndex < files.length) {
+			int index = getModel().indexOf(files[shouldIndex]);
+			listSelectionModel.addSelectionInterval(index, index);
+			shouldIndex++;
+		    }
+
+		    while (actuallyIndex < selectedObjects.length) {
+			int index = getModel().indexOf(selectedObjects[actuallyIndex]);
+			listSelectionModel.removeSelectionInterval(index, index);
+			actuallyIndex++;
+		    }
+		} finally {
+		    listSelectionModel.setValueIsAdjusting(false);
 		}
 	    }
 	} else {

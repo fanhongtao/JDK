@@ -56,14 +56,18 @@
  */
 package org.apache.xpath.patterns;
 
-import org.apache.xpath.XPath;
-import org.apache.xpath.Expression;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XNumber;
-import org.apache.xpath.objects.XObject;
+import java.util.Vector;
+
+import javax.xml.transform.TransformerException;
 import org.apache.xml.dtm.DTM;
 import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.Axis;
+import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.objects.XNumber;
+import org.apache.xpath.objects.XObject;
+import org.apache.xpath.patterns.StepPattern.PredOwner;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -252,4 +256,35 @@ public class FunctionPattern extends StepPattern
 
     return score;
   }
+  
+  class FunctionOwner implements ExpressionOwner
+  {
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_functionExpr;
+    }
+
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(FunctionPattern.this);
+    	m_functionExpr = exp;
+    }
+  }
+  
+  /**
+   * Call the visitor for the function.
+   */
+  protected void callSubtreeVisitors(XPathVisitor visitor)
+  {
+    m_functionExpr.callVisitors(new FunctionOwner(), visitor);
+    super.callSubtreeVisitors(visitor);
+  }
+
 }

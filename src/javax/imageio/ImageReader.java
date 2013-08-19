@@ -1,7 +1,7 @@
 /*
- * @(#)ImageReader.java	1.137 02/02/08
+ * @(#)ImageReader.java	1.138 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

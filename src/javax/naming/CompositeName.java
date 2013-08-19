@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeName.java	1.10 02/04/02
+ * @(#)CompositeName.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -60,7 +60,7 @@ import java.util.Properties;
  *the string form of a composite name and its corresponding structural form
  *(<tt>CompositeName</tt>).
  *<p>
-<table border="1" cellpadding=3 width="70%">
+<table border="1" cellpadding=3 width="70%" summary="examples showing string form of composite name and its corresponding structural form (CompositeName)">
 
 <tr>
 <th>String Name</th>
@@ -126,7 +126,7 @@ import java.util.Properties;
  * string forms of two composite names simply involves concatenating
  * their string forms together.  
 
-<p> <table border="1" cellpadding=3 width="70%">
+<p> <table border="1" cellpadding=3 width="70%" summary="composition examples showing string names and composite names">
 
 <tr>
 <th>String Names</th>
@@ -178,7 +178,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.10 02/04/02
+ * @version 1.12 03/01/23
  * @since 1.3
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleTable.java	1.6 01/12/03
+ * @(#)AccessibleTable.java	1.8 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -176,7 +176,7 @@ public interface AccessibleTable {
      * Returns a boolean value indicating whether the specified column
      * is selected.
      *
-     * @param r zero-based column of the table
+     * @param c zero-based column of the table
      * @return the boolean value true if the specified column is selected.
      * Otherwise, false.
      */

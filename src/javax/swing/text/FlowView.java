@@ -1,7 +1,7 @@
 /*
- * @(#)FlowView.java	1.29 02/01/07
+ * @(#)FlowView.java	1.35 03/03/14
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.SizeRequirements;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.29 01/07/02
+ * @version 1.35 03/14/03
  * @see     View
  */
 public abstract class FlowView extends BoxView {
@@ -322,7 +322,10 @@ public abstract class FlowView extends BoxView {
 		if (host != null) {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
-	    } 
+	    } else {
+                fv.layoutChanged(View.X_AXIS);
+                fv.layoutChanged(View.Y_AXIS);
+	    }
 	}
 
 	/**
@@ -339,6 +342,9 @@ public abstract class FlowView extends BoxView {
 		if (host != null) {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
+	    } else {
+                fv.layoutChanged(View.X_AXIS);
+                fv.layoutChanged(View.Y_AXIS);
 	    }
 	}
 
@@ -346,9 +352,10 @@ public abstract class FlowView extends BoxView {
 	 * Gives notification from the document that attributes were changed
 	 * in a location that this view is responsible for.
 	 *
-	 * @param changes the change information from the associated document
-	 * @param a the current allocation of the view
-	 * @param f the factory to use to rebuild if the view has children
+         * @param fv     the <code>FlowView</code> containing the changes
+         * @param e      the <code>DocumentEvent</code> describing the changes
+         *               done to the Document
+         * @param alloc  Bounds of the View
 	 * @see View#changedUpdate
 	 */
         public void changedUpdate(FlowView fv, DocumentEvent e, Rectangle alloc) {
@@ -357,6 +364,9 @@ public abstract class FlowView extends BoxView {
 		if (host != null) {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
+	    } else {
+                fv.layoutChanged(View.X_AXIS);
+                fv.layoutChanged(View.Y_AXIS);
 	    }
 	}
 
@@ -374,7 +384,7 @@ public abstract class FlowView extends BoxView {
 	 * constraints for each row.  This is called by a FlowView.layout 
 	 * to update the child views in the flow.
 	 *
-	 * @param v the view to reflow
+	 * @param fv the view to reflow
 	 */
 	public void layout(FlowView fv) {
 	    int p0 = fv.getStartOffset(); 
@@ -504,7 +514,7 @@ public abstract class FlowView extends BoxView {
 	 * the row.  If a forced break is encountered, the
 	 * break will be positioned there.
 	 * 
-	 * @param r the row to adjust to the current layout
+	 * @param rowIndex the row to adjust to the current layout
 	 *  span.
 	 * @param desiredSpan the current layout span >= 0
 	 * @param x the location r starts at.
@@ -548,7 +558,38 @@ public abstract class FlowView extends BoxView {
 	    v = v.breakView(flowAxis, v.getStartOffset(), x + bestSpan, spanLeft);
 	    View[] va = new View[1];
 	    va[0] = v;
+	    View lv = getLogicalView(fv);
+	    for (int i = bestIndex; i < n; i++) {
+		View tmpView = r.getView(i);
+		if (contains(lv,tmpView)) {
+		    tmpView.setParent(lv);
+		} else if (tmpView.getViewCount() > 0) {
+		    recursiveReparent(tmpView, lv);
+		}
+	    }
 	    r.replace(bestIndex, n - bestIndex, va);
+	}
+
+	private void recursiveReparent(View v, View logicalView) {
+	    int n = v.getViewCount();
+	    for (int i = 0; i < n; i++) {
+		View tmpView = v.getView(i);
+		if (contains(logicalView,tmpView)) {
+		    tmpView.setParent(logicalView);
+		} else {
+		    recursiveReparent(tmpView, logicalView);
+		}
+	    }
+	}
+
+	private boolean contains(View logicalView, View v) {
+	    int n = logicalView.getViewCount();
+	    for (int i = 0; i < n; i++) {
+		if (logicalView.getView(i) == v) {
+		    return true;
+		}
+	    }
+	    return false;
 	}
 
 	/**

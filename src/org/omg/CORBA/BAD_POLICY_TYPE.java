@@ -1,7 +1,7 @@
 /*
- * @(#)BAD_POLICY_TYPE.java	1.11 01/12/03
+ * @(#)BAD_POLICY_TYPE.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package org.omg.CORBA;
  * the <tt>PolicyError</tt> exception.
  *
  * @author rip-dev
- * @version 1.11 12/03/01
+ * @version 1.12 01/23/03
  */
 public interface BAD_POLICY_TYPE {
     /**

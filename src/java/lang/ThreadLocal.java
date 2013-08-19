@@ -1,7 +1,7 @@
 /*
- * @(#)ThreadLocal.java	1.19 01/12/03
+ * @(#)ThreadLocal.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,7 +46,7 @@ import java.lang.ref.*;
  * references to these copies exist). 
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.19, 12/03/01
+ * @version 1.21, 01/23/03
  * @since   1.2
  */
 public class ThreadLocal {
@@ -88,13 +88,17 @@ public class ThreadLocal {
 
     /**
      * Returns the current thread's initial value for this thread-local
-     * variable.  This method will be called once per accessing thread for each
-     * thread-local, the first time each thread accesses the variable with the
-     * {@link #get()} or {@link #set(Object)} method.  If the programmer
+     * variable.  This method will be invoked at most once per accessing
+     * thread for each thread-local, the first time the thread accesses the
+     * variable with the {@link #get()} method.  The <tt>initialValue</tt>
+     * method will not be invoked in a thread if the thread invokes the {@link
+     * #set(Object)} method prior to the <tt>get</tt> method.
+     *
+     * <p>This implementation simply returns <tt>null</tt>; if the programmer
      * desires thread-local variables to be initialized to some value other
      * than <tt>null</tt>, <tt>ThreadLocal</tt> must be subclassed, and this
      * method overridden.  Typically, an anonymous inner class will be used.
-     * Typical implementations of <tt>initialValue</tt> will call an
+     * Typical implementations of <tt>initialValue</tt> will invoke an
      * appropriate constructor and return the newly constructed object.
      *
      * @return the initial value for this thread-local
@@ -126,9 +130,9 @@ public class ThreadLocal {
 
     /**
      * Sets the current thread's copy of this thread-local variable
-     * to the specified value.  This is only used to change the value from
-     * the one assigned by the <tt>initialValue</tt> method, and many
-     * applications will have no need for this functionality.
+     * to the specified value.  Many applications will have no need for
+     * this functionality, relying solely on the {@link #initialValue()}
+     * method to set the values of thread-locals.
      *
      * @param value the value to be stored in the current threads' copy of
      *	      this thread-local.

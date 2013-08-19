@@ -80,14 +80,19 @@ import org.w3c.dom.*;
 /**
  * Implements three extension elements to allow an XSLT transformation to
  * redirect its output to multiple output files.
- * You must declare the Xalan namespace (xmlns:lxslt="http://xml.apache.org/xslt"),
- * a namespace for the extension prefix (such as xmlns:redirect="org.apache.xalan.lib.Redirect"),
- * and declare the extension namespace as an extension (extension-element-prefixes="redirect").
- * You can either just use redirect:write, in which case the file will be
+ *
+ * It is accessed by specifying a namespace URI as follows:
+ * <pre>
+ *    xmlns:redirect="http://xml.apache.org/xalan/redirect"
+ * </pre>
+ *
+ * <p>You can either just use redirect:write, in which case the file will be
  * opened and immediately closed after the write, or you can bracket the
  * write calls by redirect:open and redirect:close, in which case the
  * file will be kept open for multiple writes until the close call is
- * encountered.  Calls can be nested.  Calls can take a 'file' attribute
+ * encountered.  Calls can be nested.  
+ *
+ * <p>Calls can take a 'file' attribute
  * and/or a 'select' attribute in order to get the filename.  If a select
  * attribute is encountered, it will evaluate that expression for a string
  * that indicates the filename.  If the string evaluates to empty, it will
@@ -98,12 +103,21 @@ import org.w3c.dom.*;
  * by calling TransformerImpl.setOutputTarget() or it is automatically set
  * when using the two argument form of transform() or transformNode().
  *
+ * <p>Calls to redirect:write and redirect:open also take an optional 
+ * attribute append="true|yes", which will attempt to simply append 
+ * to an existing file instead of always opening a new file.  The 
+ * default behavior of always overwriting the file still happens 
+ * if you do not specify append.
+ * <p><b>Note:</b> this may give unexpected results when using xml 
+ * or html output methods, since this is <b>not</b> coordinated 
+ * with the serializers - hence, you may get extra xml decls in 
+ * the middle of your file after appending to it.
+ *
  * <p>Example:</p>
  * <PRE>
  * &lt;?xml version="1.0"?>
  * &lt;xsl:stylesheet xmlns:xsl="http://www.w3.org/XSL/Transform/1.0"
- *                 xmlns:lxslt="http://xml.apache.org/xslt"
- *                 xmlns:redirect="org.apache.xalan.lib.Redirect"
+ *                 xmlns:redirect="http://xml.apache.org/xalan/redirect"
  *                 extension-element-prefixes="redirect">
  *
  *   &lt;xsl:template match="/">
@@ -156,6 +170,18 @@ public class Redirect
    */
   protected Hashtable m_outputStreams = new Hashtable ();
 
+  /** 
+   * Default append mode for bare open calls.  
+   * False for backwards compatibility (I think). 
+   */
+  public static final boolean DEFAULT_APPEND_OPEN = false;
+
+  /** 
+   * Default append mode for bare write calls.  
+   * False for backwards compatibility. 
+   */
+  public static final boolean DEFAULT_APPEND_WRITE = false;
+
   /**
    * Open the given file and put it in the XML, HTML, or Text formatter listener's table.
    */
@@ -174,9 +200,13 @@ public class Redirect
                                                   context.getTransformer());
       boolean mkdirs = (mkdirsExpr != null)
                        ? (mkdirsExpr.equals("true") || mkdirsExpr.equals("yes")) : true;
-          // ContentHandler fl = 
-          makeFormatterListener(context, elem, fileName, true, mkdirs);
-          // fl.startDocument();
+
+      // Whether to append to existing files or not, <jpvdm@iafrica.com>
+      String appendExpr = elem.getAttribute("append", context.getContextNode(), context.getTransformer());
+	  boolean append = (appendExpr != null)
+                       ? (appendExpr.equals("true") || appendExpr.equals("yes")) : DEFAULT_APPEND_OPEN;
+
+      Object ignored = makeFormatterListener(context, elem, fileName, true, mkdirs, append);
     }
   }
   
@@ -202,7 +232,13 @@ public class Redirect
                                                   context.getTransformer());
       boolean mkdirs = (mkdirsExpr != null)
                        ? (mkdirsExpr.equals("true") || mkdirsExpr.equals("yes")) : true;
-      formatter = makeFormatterListener(context, elem, fileName, true, mkdirs);
+
+      // Whether to append to existing files or not, <jpvdm@iafrica.com>
+      String appendExpr = elem.getAttribute("append", context.getContextNode(), context.getTransformer());
+	  boolean append = (appendExpr != null)
+                       ? (appendExpr.equals("true") || appendExpr.equals("yes")) : DEFAULT_APPEND_WRITE;
+
+      formatter = makeFormatterListener(context, elem, fileName, true, mkdirs, append);
     }
     else
     {
@@ -313,6 +349,8 @@ public class Redirect
   }
   
   // yuck.
+  // Note: this is not the best way to do this, and may not even 
+  //    be fully correct! Patches (with test cases) welcomed. -sc
   private String urlToFileName(String base)
   {
     if(null != base)
@@ -348,7 +386,8 @@ public class Redirect
                                                ElemExtensionCall elem,
                                                String fileName,
                                                boolean shouldPutInTable,
-                                               boolean mkdirs)
+                                               boolean mkdirs, 
+                                               boolean append)
     throws java.net.MalformedURLException,
     java.io.FileNotFoundException,
     java.io.IOException,
@@ -398,7 +437,13 @@ public class Redirect
     // defined by a first child of the redirect element.
     OutputProperties format = transformer.getOutputFormat();
 
-    FileOutputStream ostream = new FileOutputStream(file);
+    // FileOutputStream ostream = new FileOutputStream(file);
+    // Patch from above line to below by <jpvdm@iafrica.com>
+    //  Note that in JDK 1.2.2 at least, FileOutputStream(File)
+    //  is implemented as a call to 
+    //  FileOutputStream(File.getPath, append), thus this should be 
+    //  the equivalent instead of getAbsolutePath()
+    FileOutputStream ostream = new FileOutputStream(file.getPath(), append);
     
     try
     {

@@ -1,7 +1,7 @@
 /*
- * @(#)NamingExceptionEvent.java	1.5 01/12/03
+ * @(#)NamingExceptionEvent.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import javax.naming.NamingException;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 01/12/03
+  * @version 1.6 03/01/23
   *
   * @see NamingListener#namingExceptionThrown
   * @see EventContext

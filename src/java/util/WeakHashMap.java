@@ -1,7 +1,7 @@
 /*
- * @(#)WeakHashMap.java	1.20 02/04/20
+ * @(#)WeakHashMap.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -94,7 +94,11 @@ import java.lang.ref.ReferenceQueue;
  * exception for its correctness:  <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * @version	1.20, 04/20/02
+ * <p>This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
+ * @version	1.24, 01/23/03
  * @author      Doug Lea
  * @author      Josh Bloch
  * @author	Mark Reinhold
@@ -406,27 +410,28 @@ public class WeakHashMap extends AbstractMap implements Map {
     }
   
     /**
-     * Rehashes the contents of this map into a new <tt>HashMap</tt> instance
-     * with a larger capacity. This method is called automatically when the
-     * number of keys in this map exceeds its capacity and load factor.
+     * Rehashes the contents of this map into a new array with a
+     * larger capacity.  This method is called automatically when the
+     * number of keys in this map reaches its threshold.
      *
-     * Note that this method is a no-op if it's called with newCapacity ==
-     * 2*MAXIMUM_CAPACITY (which is Integer.MIN_VALUE).
+     * If current capacity is MAXIMUM_CAPACITY, this method does not
+     * resize the map, but but sets threshold to Integer.MAX_VALUE.
+     * This has the effect of preventing future calls.
      *
-     * @param newCapacity the new capacity, MUST be a power of two.
+     * @param newCapacity the new capacity, MUST be a power of two;
+     *        must be greater than current capacity unless current
+     *        capacity is MAXIMUM_CAPACITY (in which case value
+     *        is irrelevant).
      */
     void resize(int newCapacity) {
-        // assert (newCapacity & -newCapacity) == newCapacity; // power of 2
-
         Entry[] oldTable = getTable();
         int oldCapacity = oldTable.length;
-
-        // check if needed
-        if (size < threshold || oldCapacity > newCapacity) 
+        if (oldCapacity == MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
             return;
-    
-        Entry[] newTable = new Entry[newCapacity];
+        }
 
+        Entry[] newTable = new Entry[newCapacity];
         transfer(oldTable, newTable);
         table = newTable;
 
@@ -471,25 +476,35 @@ public class WeakHashMap extends AbstractMap implements Map {
      * mappings will replace any mappings that this map had for any of the
      * keys currently in the specified map.<p>
      *
-     * @param t mappings to be stored in this map.
+     * @param m mappings to be stored in this map.
      * @throws  NullPointerException if the specified map is null.
      */
-    public void putAll(Map t) {
-        // Expand enough to hold t's elements without resizing.
-        int n = t.size();
-        if (n == 0)
+    public void putAll(Map m) {
+        int numKeysToBeAdded = m.size();
+        if (numKeysToBeAdded == 0)
             return;
-        if (n >= threshold) {
-            n = (int)(n / loadFactor + 1);
-            if (n > MAXIMUM_CAPACITY)
-                n = MAXIMUM_CAPACITY;
-            int capacity = table.length;
-            while (capacity < n)
-                capacity <<= 1;
-            resize(capacity);
+
+        /*
+         * Expand the map if the map if the number of mappings to be added
+         * is greater than or equal to threshold.  This is conservative; the
+         * obvious condition is (m.size() + size) >= threshold, but this
+         * condition could result in a map with twice the appropriate capacity,
+         * if the keys to be added overlap with the keys already in this map.
+         * By using the conservative calculation, we subject ourself
+         * to at most one extra resize.
+         */
+        if (numKeysToBeAdded > threshold) {
+            int targetCapacity = (int)(numKeysToBeAdded / loadFactor + 1);
+            if (targetCapacity > MAXIMUM_CAPACITY)
+                targetCapacity = MAXIMUM_CAPACITY;
+            int newCapacity = table.length;
+            while (newCapacity < targetCapacity)
+                newCapacity <<= 1;
+            if (newCapacity > table.length)
+                resize(newCapacity);
         }
-    
-        for (Iterator i = t.entrySet().iterator(); i.hasNext(); ) {
+
+        for (Iterator i = m.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry e = (Map.Entry) i.next();
             put(e.getKey(), e.getValue());
         }

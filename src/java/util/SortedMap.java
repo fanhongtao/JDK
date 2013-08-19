@@ -1,7 +1,7 @@
 /*
- * @(#)SortedMap.java	1.13 01/12/03
+ * @(#)SortedMap.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,10 +51,14 @@ package java.util;
  * sorted map with the same key-value mappings and the same ordering as the
  * input sorted map.  There is no way to enforce this recommendation (as
  * interfaces cannot contain constructors) but the SDK implementation
- * (TreeMap) complies.
+ * (TreeMap) complies.<p>
+ *
+ * This interface is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.13, 12/03/01
+ * @version 1.15, 01/23/03
  * @see Map
  * @see TreeMap
  * @see SortedSet

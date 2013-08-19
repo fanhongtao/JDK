@@ -1,7 +1,7 @@
 /*
- * @(#)NTSidPrimaryGroupPrincipal.java	1.11 01/12/03
+ * @(#)NTSidPrimaryGroupPrincipal.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package com.sun.security.auth;
  * on how to achieve this.  Authorization decisions can then be based upon
  * the Principals associated with a <code>Subject</code>.
  *
- * @version 1.11, 12/03/01
+ * @version 1.12, 01/23/03
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */

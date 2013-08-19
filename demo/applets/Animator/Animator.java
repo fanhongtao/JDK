@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)Animator.java	1.8 02/06/13
+ * @(#)Animator.java	1.9 03/01/23
  */
 
 import java.awt.*;
@@ -57,7 +57,7 @@ import java.util.Iterator;
  * home page</a> for details and updates.
  *
  * @author Herb Jellinek
- * @version 1.8, 06/13/02
+ * @version 1.9, 01/23/03
  */
 public class Animator extends Applet implements Runnable, MouseListener {
     int appWidth = 0;                // Animator width

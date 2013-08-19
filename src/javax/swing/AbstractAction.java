@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractAction.java	1.47 02/02/11
+ * @(#)AbstractAction.java	1.48 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -33,7 +33,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.47 02/11/02
+ * @version 1.48 01/23/03
  * @author Georges Saab
  * @see Action
  */

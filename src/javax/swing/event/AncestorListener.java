@@ -1,7 +1,7 @@
 /*
- * @(#)AncestorListener.java	1.10 01/12/03
+ * @(#)AncestorListener.java	1.11 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -20,7 +20,7 @@ import javax.swing.*;
  * visible or invisible, either by the setVisible() method or by being added
  * or removed from the component hierarchy.
  *
- * @version 1.10 12/03/01
+ * @version 1.11 01/23/03
  * @author Dave Moore
  */
 public interface AncestorListener extends EventListener {

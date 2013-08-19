@@ -1,7 +1,7 @@
 /*
- * @(#)NTSystem.java	1.6 02/02/19
+ * @(#)NTSystem.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,21 +13,19 @@ import javax.security.auth.login.LoginException;
  * <p> This class implementation retrieves and makes available NT
  * security information for the current user.
  * 
- * @version 1.9, 01/11/00
+ * @version 1.8, 01/23/03
  */
 public class NTSystem {
     
-    private native void getCurrent();
+    private native void getCurrent(boolean debug);
     
-    private native void logoff0() throws LoginException;
-
     private String userName;
     private String domain;
     private String domainSID;
     private String userSID;
     private String groupIDs[];
     private String primaryGroupID;
-    private long impersonationToken;
+    private long   impersonationToken;
     
     static boolean loadedLibrary = false;
 
@@ -36,19 +34,20 @@ public class NTSystem {
      * the native library to access the underlying system information.
      */
     public NTSystem() {
+	this(false);
+    }
+
+    /**
+     * Instantiate an <code>NTSystem</code> and load
+     * the native library to access the underlying system information.
+     */
+    NTSystem(boolean debug) {
         if (!loadedLibrary) {
             loadNative();
             loadedLibrary = true;
         }
-	    this.userName = "";
-        this.domain = "";
-        this.domainSID = "";
-        this.userSID = "";
-        this.groupIDs = new String [0];
-        this.primaryGroupID = "";
-        this.impersonationToken = 0;
-	    getCurrent();
-	}
+	getCurrent(debug);
+    }
     
     /**
      * Get the username for the current NT user.
@@ -125,46 +124,6 @@ public class NTSystem {
      */
     public long getImpersonationToken() {
         return impersonationToken;
-    }
-    
-    /**
-     * Clean up NT resources when done.
-     *
-     * <p>
-     *
-     */
-    void logoff() throws LoginException {
-        LoginException le = null;
-        try {
-            logoff0();
-        }
-        catch (LoginException e) { le = e; }
-        impersonationToken = 0;
-        userName = null;
-        domain = null;
-        domainSID = null;
-        userSID = null;
-        primaryGroupID = null;
-        for (int i = 0; i<groupIDs.length; i++)
-            groupIDs[i] = null;
-        groupIDs = null;
-        if (le != null) throw le;
-    }
-    
-    /**
-     * Clean up NT resources during garbage collection, in case <code>LoginContext.logout()</code> was not called.
-     *
-     * <p>
-     *
-     */
-    protected void finalize() {
-        if (impersonationToken != 0) { // attempt resource cleanup
-            try {
-                logoff0();
-            }
-            catch (Exception e) {}
-        }
-        return;
     }
     
     private void loadNative() {

@@ -1,7 +1,7 @@
 /*
- * @(#)Canvas.java	1.32 01/12/03
+ * @(#)Canvas.java	1.33 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -20,7 +20,7 @@ import javax.accessibility.*;
  * component. The <code>paint</code> method must be overridden 
  * in order to perform custom graphics on the canvas.
  *
- * @version 	1.32 12/03/01
+ * @version 	1.33 01/23/03
  * @author 	Sami Shaio
  * @since       JDK1.0
  */

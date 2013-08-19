@@ -1,5 +1,5 @@
 /*
- * @(#)StringBuffer.java	1.75 03/07/08
+ * @(#)StringBuffer.java	1.78 03/05/16
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,7 +62,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.75, 07/08/03
+ * @version 	1.78, 05/16/03
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -260,7 +260,6 @@ public final class StringBuffer
                 }
             }
         }
-
     }
 
     /**
@@ -464,7 +463,7 @@ public final class StringBuffer
      * @param   str   the characters to be appended.
      * @return  a reference to this <code>StringBuffer</code> object.
      */
-    public synchronized StringBuffer append(char str[]) {
+    public synchronized StringBuffer append(char str[]) { 
 	int len = str.length;
 	int newcount = count + len;
 	if (newcount > value.length)
@@ -515,8 +514,26 @@ public final class StringBuffer
      * @see     java.lang.String#valueOf(boolean)
      * @see     java.lang.StringBuffer#append(java.lang.String)
      */
-    public StringBuffer append(boolean b) {
-	return append(String.valueOf(b));
+    public synchronized StringBuffer append(boolean b) {
+        if (b) {
+            int newcount = count + 4;
+            if (newcount > value.length)
+                expandCapacity(newcount);
+            value[count++] = 't';
+            value[count++] = 'r';
+            value[count++] = 'u';
+            value[count++] = 'e';
+        } else {
+            int newcount = count + 5;
+            if (newcount > value.length)
+                expandCapacity(newcount);
+            value[count++] = 'f';
+            value[count++] = 'a';
+            value[count++] = 'l';
+            value[count++] = 's';
+            value[count++] = 'e';
+        }
+	return this;
     }
 
     /**
@@ -555,8 +572,9 @@ public final class StringBuffer
      * @see     java.lang.String#valueOf(int)
      * @see     java.lang.StringBuffer#append(java.lang.String)
      */
-    public StringBuffer append(int i) {
-	return append(String.valueOf(i));
+    public synchronized StringBuffer append(int i) {
+	Integer.appendTo(i, this);
+        return this;
     }
 
     /**
@@ -572,8 +590,9 @@ public final class StringBuffer
      * @see     java.lang.String#valueOf(long)
      * @see     java.lang.StringBuffer#append(java.lang.String)
      */
-    public StringBuffer append(long l) {
-	return append(String.valueOf(l));
+    public synchronized StringBuffer append(long l) {
+        Long.appendTo(l, this);
+	return this;
     }
 
     /**
@@ -589,8 +608,9 @@ public final class StringBuffer
      * @see     java.lang.String#valueOf(float)
      * @see     java.lang.StringBuffer#append(java.lang.String)
      */
-    public StringBuffer append(float f) {
-	return append(String.valueOf(f));
+    public synchronized StringBuffer append(float f) {
+        new FloatingDecimal(f).appendTo(this);
+	return this;
     }
 
     /**
@@ -606,8 +626,9 @@ public final class StringBuffer
      * @see     java.lang.String#valueOf(double)
      * @see     java.lang.StringBuffer#append(java.lang.String)
      */
-    public StringBuffer append(double d) {
-	return append(String.valueOf(d));
+    public synchronized StringBuffer append(double d) {
+        new FloatingDecimal(d).appendTo(this);
+	return this;
     }
 
     /**

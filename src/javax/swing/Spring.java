@@ -1,7 +1,7 @@
 /*
- * @(#)Spring.java	1.5 02/02/12
+ * @(#)Spring.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -91,7 +91,7 @@ import java.util.*;
  * @see SpringLayout
  * @see SpringLayout.Constraints
  *
- * @version 1.5 02/12/02
+ * @version 1.6 01/23/03
  * @author 	Philip Milne
  * @since       1.4
  */

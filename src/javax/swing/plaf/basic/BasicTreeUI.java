@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTreeUI.java	1.155 02/04/16
+ * @(#)BasicTreeUI.java	1.156 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import javax.swing.text.Position;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.155 04/16/02
+ * @version 1.156 01/23/03
  * @author Scott Violet
  */
 

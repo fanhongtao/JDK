@@ -1,7 +1,7 @@
 /*
- * @(#)DTDConstants.java	1.8 01/12/03
+ * @(#)DTDConstants.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package javax.swing.text.html.parser;
  *
  * @see DTD
  * @see Element
- * @version 1.8, 12/03/01
+ * @version 1.9, 01/23/03
  * @author Arthur van Hoff
  */
 public

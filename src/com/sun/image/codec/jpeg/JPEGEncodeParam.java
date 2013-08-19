@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGEncodeParam.java	1.5 01/12/03
+ * @(#)JPEGEncodeParam.java	1.7 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -212,13 +212,13 @@ public interface JPEGEncodeParam
 	 * Set the pixel size units This value is copied into the APP0
 	 * marker (if that marker is written). This value isn't used by
 	 * the JPEG code.
-	 * @param units One of the DENSITY_UNIT_* values.
+	 * @param unit One of the DENSITY_UNIT_* values.
 	 */
 	public void setDensityUnit( int unit);
 	/** 
 	 * Set the horizontal pixel density This value is written into the
 	 * APP0 marker. It isn't used by the JPEG code.
-	 * @param desnity the horizontal pixel density, in units
+	 * @param density the horizontal pixel density, in units
 	 * described by @see JPEGParam.getDensityUnit.
 	 */
 	public void setXDensity( int density );

@@ -1,7 +1,7 @@
 /*
- * @(#)FileChannel.java	1.36 01/12/17
+ * @(#)FileChannel.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -128,7 +128,7 @@ import java.nio.channels.spi.AbstractInterruptibleChannel;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.36, 01/12/17
+ * @version 1.38, 03/01/23
  * @since 1.4
  */
 
@@ -292,7 +292,7 @@ public abstract class FileChannel
      * position is greater than the given size then it is set to that size.
      * </p>
      *
-     * @param  newSize
+     * @param  size
      *         The new size, a non-negative byte count
      *
      * @return  This file channel
@@ -453,7 +453,7 @@ public abstract class FileChannel
      * operating systems can transfer bytes directly from the source channel
      * into the filesystem cache without actually copying them.  </p>
      *
-     * @param  source
+     * @param  src
      *         The source channel
      *
      * @param  position
@@ -591,7 +591,7 @@ public abstract class FileChannel
     /**
      * A typesafe enumeration for file-mapping modes.
      *
-     * @version 1.36, 01/12/17
+     * @version 1.38, 03/01/23
      * @since 1.4
      *
      * @see java.nio.channels.FileChannel#map

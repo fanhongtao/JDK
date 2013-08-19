@@ -1,7 +1,7 @@
 /*
- * @(#)Vector.java	1.85 01/12/03
+ * @(#)Vector.java	1.89 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,11 +43,15 @@ package java.util;
  * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:  <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
+ * should be used only to detect bugs.</i><p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.85, 12/03/01
+ * @version 1.89, 01/23/03
  * @see Collection
  * @see List
  * @see ArrayList
@@ -426,16 +430,8 @@ public class Vector extends AbstractList
 	if (index >= elementCount) {
 	    throw new ArrayIndexOutOfBoundsException(index + " >= " + elementCount);
 	}
-	/* Since try/catch is free, except when the exception is thrown,
-	   put in this extra try/catch to catch negative indexes and
-	   display a more informative error message.  This might not
-	   be appropriate, especially if we have a decent debugging
-	   environment - JP. */
-	try {
-	    return elementData[index];
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    throw new ArrayIndexOutOfBoundsException(index + " < 0");
-	}
+
+        return elementData[index];
     }
 
     /**
@@ -557,7 +553,7 @@ public class Vector extends AbstractList
      */
     public synchronized void insertElementAt(Object obj, int index) {
 	modCount++;
-	if (index >= elementCount + 1) {
+	if (index > elementCount) {
 	    throw new ArrayIndexOutOfBoundsException(index
 						     + " > " + elementCount);
 	}
@@ -841,20 +837,16 @@ public class Vector extends AbstractList
      *
      * @param c elements to be inserted into this Vector.
      * @return <tt>true</tt> if this Vector changed as a result of the call.
-     * @exception ArrayIndexOutOfBoundsException index out of range (index
-     *		  &lt; 0 || index &gt; size()).
      * @throws NullPointerException if the specified collection is null.
      * @since 1.2
      */
     public synchronized boolean addAll(Collection c) {
 	modCount++;
-	int numNew = c.size();
+        Object[] a = c.toArray();
+        int numNew = a.length;
 	ensureCapacityHelper(elementCount + numNew);
-
-	Iterator e = c.iterator();
-	for (int i=0; i<numNew; i++)
-	    elementData[elementCount++] = e.next();
-
+        System.arraycopy(a, 0, elementData, elementCount, numNew);
+        elementCount += numNew;
 	return numNew != 0;
     }
 
@@ -906,9 +898,10 @@ public class Vector extends AbstractList
     public synchronized boolean addAll(int index, Collection c) {
 	modCount++;
 	if (index < 0 || index > elementCount)
-	    throw new ArrayIndexOutOfBoundsException(index);	    
+	    throw new ArrayIndexOutOfBoundsException(index);
 
-	int numNew = c.size();
+        Object[] a = c.toArray();
+	int numNew = a.length;
 	ensureCapacityHelper(elementCount + numNew);
 
 	int numMoved = elementCount - index;
@@ -916,10 +909,7 @@ public class Vector extends AbstractList
 	    System.arraycopy(elementData, index, elementData, index + numNew,
 			     numMoved);
 
-	Iterator e = c.iterator();
-	for (int i=0; i<numNew; i++)
-	    elementData[index++] = e.next();
-
+        System.arraycopy(a, 0, elementData, index, numNew);
 	elementCount += numNew;
 	return numNew != 0;
     }
@@ -1014,5 +1004,16 @@ public class Vector extends AbstractList
 	int newElementCount = elementCount - (toIndex-fromIndex);
 	while (elementCount != newElementCount)
 	    elementData[--elementCount] = null;
+    }
+
+    /**
+     * Save the state of the <tt>Vector</tt> instance to a stream (that
+     * is, serialize it).  This method is present merely for synchronization.
+     * It just calls the default readObject method.
+     */
+    private synchronized void writeObject(java.io.ObjectOutputStream s)
+        throws java.io.IOException
+    {
+	s.defaultWriteObject();
     }
 }

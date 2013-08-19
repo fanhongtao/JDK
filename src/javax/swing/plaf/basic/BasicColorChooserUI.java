@@ -1,7 +1,7 @@
 /*
- * @(#)BasicColorChooserUI.java	1.38 02/04/15
+ * @(#)BasicColorChooserUI.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * Provides the basic look and feel for a JColorChooser.
  * <p>
- * @version 1.38 04/15/02
+ * @version 1.40 01/23/03
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -127,6 +127,10 @@ public class BasicColorChooserUI extends ColorChooserUI
 	}
 
 	previewPanel = chooser.getPreviewPanel();
+	if ((previewPanel != null) && (previewPanelHolder != null) && (chooser != null) && (previewPanel.getSize().getHeight()+previewPanel.getSize().getWidth() == 0)) {
+	  chooser.remove(previewPanelHolder);
+	  return;
+	}
 	if (previewPanel == null || previewPanel instanceof UIResource) { 
 	  previewPanel = ColorChooserComponentFactory.getPreviewPanel(); // get from table?
 	    chooser.setPreviewPanel(previewPanel);

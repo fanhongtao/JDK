@@ -124,7 +124,7 @@ public class FuncDocument extends Function2Args
     int context = xctxt.getCurrentNode();
     DTM dtm = xctxt.getDTM(context);
     
-    int docContext = dtm.getDocument();
+    int docContext = dtm.getDocumentRoot(context);
     XObject arg = (XObject) this.getArg0().execute(xctxt);
 
     String base = "";
@@ -179,6 +179,7 @@ public class FuncDocument extends Function2Args
       // the tree representation of the stylesheet is exactly 
       // the same as if the XML document containing the stylesheet 
       // was the initial source document.
+      assertion(null != xctxt.getNamespaceContext(), "Namespace context can not be null!");
       base = xctxt.getNamespaceContext().getBaseIdentifier();
     }
 
@@ -420,14 +421,14 @@ public class FuncDocument extends Function2Args
    * exception.
    *
    * @param xctxt The XPath runtime state.
-   * @param msg The error message code
+   * @param msg The error message key
    * @param args Arguments to be used in the error message
    * @throws XSLProcessorException thrown if the active ProblemListener and XPathContext decide
    * the error condition is severe enough to halt processing.
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public void error(XPathContext xctxt, int msg, Object args[])
+  public void error(XPathContext xctxt, String msg, Object args[])
           throws javax.xml.transform.TransformerException
   {
 
@@ -446,14 +447,14 @@ public class FuncDocument extends Function2Args
    * Warn the user of a problem.
    *
    * @param xctxt The XPath runtime state.
-   * @param msg Warning message code
+   * @param msg Warning message key
    * @param args Arguments to be used in the warning message
    * @throws XSLProcessorException thrown if the active ProblemListener and XPathContext decide
    * the error condition is severe enough to halt processing.
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public void warn(XPathContext xctxt, int msg, Object args[])
+  public void warn(XPathContext xctxt, String msg, Object args[])
           throws javax.xml.transform.TransformerException
   {
 
@@ -479,6 +480,16 @@ public class FuncDocument extends Function2Args
   public void checkNumberArgs(int argNum) throws WrongNumberArgsException
   {
     if ((argNum < 1) || (argNum > 2))
+      reportWrongNumberArgs();
+  }
+  
+  /**
+   * Constructs and throws a WrongNumberArgException with the appropriate
+   * message for this function object.
+   *
+   * @throws WrongNumberArgsException
+   */
+  protected void reportWrongNumberArgs() throws WrongNumberArgsException {
       throw new WrongNumberArgsException(XSLMessages.createMessage(XSLTErrorResources.ER_ONE_OR_TWO, null)); //"1 or 2");
   }
   

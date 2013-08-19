@@ -1,7 +1,7 @@
 /*
- * @(#)SocksSocketImplFactory.java	1.2 01/12/03
+ * @(#)SocksSocketImplFactory.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -47,6 +47,41 @@ class SocksSocketImplFactory implements SocketImplFactory, SocksConsts {
 	this.server = server;
 	this.port = port == -1 ? DEFAULT_PORT : port;
 	this.useV4 = v4;
+    }
+
+    /*
+     * Checks whether the System properties changed.
+     * If they did, we need to renegociate the protocol version
+     */
+
+    private synchronized void checkProps() {
+	boolean changed = false;
+	int newport = DEFAULT_PORT;
+	String socksPort = null;
+	String socksHost = 
+	    (String) java.security.AccessController.doPrivileged(
+		     new sun.security.action.GetPropertyAction("socksProxyHost"));
+	socksPort =
+	    (String) java.security.AccessController.doPrivileged(
+		     new sun.security.action.GetPropertyAction("socksProxyPort"));
+	if (socksPort != null) {
+	    try {
+		newport = Integer.parseInt(socksPort);
+	    } catch (Exception e) {
+		newport = DEFAULT_PORT;
+	    }
+	}
+	if (socksHost != null && !socksHost.equals(this.server)) {
+	    this.server = socksHost;
+	    changed = true;
+	}
+	if (newport != this.port) {
+	    this.port = newport;
+	    changed = true;
+	}
+	if (changed) {
+	    guessVersion();
+	}
     }
 
     private void guessVersion() {
@@ -112,6 +147,7 @@ class SocksSocketImplFactory implements SocketImplFactory, SocksConsts {
      * @see     java.net.SocketImpl
      */
     public SocketImpl createSocketImpl() {
+	checkProps();
 	SocksSocketImpl impl = new SocksSocketImpl(server, port);
 	if (useV4)
 	    impl.setV4();

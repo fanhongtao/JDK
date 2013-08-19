@@ -1,7 +1,7 @@
 /*
- * @(#)RMIClassLoader.java	1.35 02/03/06
+ * @(#)RMIClassLoader.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -83,7 +83,7 @@ import sun.misc.Service;
  *
  * </ul>
  *
- * @version	1.35, 02/03/06
+ * @version	1.36, 03/01/23
  * @author	Ann Wollrath
  * @author	Peter Jones
  * @author	Laird Dornin

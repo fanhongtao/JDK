@@ -1,7 +1,7 @@
 /*
- * @(#)Rectangle.java	1.63 01/12/03
+ * @(#)Rectangle.java	1.65 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.63, 12/03/01
+ * @version 	1.65, 01/23/03
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -121,7 +121,8 @@ public class Rectangle extends Rectangle2D
      * specified as
      * (<code>x</code>,&nbsp;<code>y</code>) and whose width and height 
      * are specified by the arguments of the same name. 
-     * @param     x,&nbsp;y the specified coordinates
+     * @param     x the specified x coordinate
+     * @param     y the specified y coordinate
      * @param     width    the width of the <code>Rectangle</code>
      * @param     height   the height of the <code>Rectangle</code>
      */
@@ -261,7 +262,9 @@ public class Rectangle extends Rectangle2D
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setBounds</code> method of <code>Component</code>.
-     * @param x,&nbsp;y the new coordinates for the top-left
+     * @param x the new x coordinate for the top-left
+     *                    corner of this <code>Rectangle</code>
+     * @param y the new y coordinate for the top-left
      *                    corner of this <code>Rectangle</code>
      * @param width the new width for this <code>Rectangle</code>
      * @param height the new height for this <code>Rectangle</code>
@@ -279,7 +282,9 @@ public class Rectangle extends Rectangle2D
      * and <code>height</code>.
      * This method is included for completeness, to parallel the
      * <code>setBounds</code> method of <code>Component</code>.
-     * @param x,&nbsp;y the coordinates of the upper-left corner of 
+     * @param x the x coordinate of the upper-left corner of 
+     *                  the specified rectangle
+     * @param y the y coordinate of the upper-left corner of 
      *                  the specified rectangle
      * @param width the new width for the <code>Dimension</code> object
      * @param height  the new height for the <code>Dimension</code> object
@@ -298,7 +303,9 @@ public class Rectangle extends Rectangle2D
      * <code>x</code>, <code>y</code>, <code>width</code>, 
      * and <code>height</code>.
      * <p>
-     * @param x,&nbsp;y the new coordinates for the top-left
+     * @param x the new x coordinate for the top-left
+     *                    corner of this <code>Rectangle</code>
+     * @param y the new y coordinate for the top-left
      *                    corner of this <code>Rectangle</code>
      * @param width the new width for this <code>Rectangle</code>
      * @param height the new height for this <code>Rectangle</code>
@@ -348,7 +355,8 @@ public class Rectangle extends Rectangle2D
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setLocation</code> method of <code>Component</code>.
-     * @param x,&nbsp;y the coordinates of the new location
+     * @param x the x coordinate of the new location
+     * @param y the y coordinate of the new location
      * @see       #getLocation
      * @see	  java.awt.Component#setLocation(int, int)
      * @since     JDK1.1
@@ -360,7 +368,8 @@ public class Rectangle extends Rectangle2D
     /**
      * Moves this <code>Rectangle</code> to the specified location.
      * <p>
-     * @param x,&nbsp;y the coordinates of the new location
+     * @param x the x coordinate of the new location
+     * @param y the y coordinate of the new location
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setLocation(int, int)</code>.
      */
@@ -465,7 +474,8 @@ public class Rectangle extends Rectangle2D
      * Checks whether or not this <code>Rectangle</code> contains the 
      * point at the specified location
      * (<i>x</i>,&nbsp;<i>y</i>).
-     * @param  x,&nbsp;y  the specified coordinates
+     * @param  x the specified x coordinate
+     * @param  y the specified y coordinate
      * @return    <code>true</code> if the point 
      *            (<i>x</i>,&nbsp;<i>y</i>) is inside this 
      *		  <code>Rectangle</code>; 
@@ -494,7 +504,8 @@ public class Rectangle extends Rectangle2D
      * the <code>Rectangle</code>
      * at the specified location (<i>X</i>,&nbsp;<i>Y</i>) with the
      * specified dimensions (<i>W</i>,&nbsp;<i>H</i>).
-     * @param     X,&nbsp;Y  the specified coordinates
+     * @param     X the specified x coordinate
+     * @param     Y the specified y coordinate
      * @param     W   the width of the <code>Rectangle</code>
      * @param     H   the height of the <code>Rectangle</code>
      * @return    <code>true</code> if the <code>Rectangle</code> specified by
@@ -544,7 +555,8 @@ public class Rectangle extends Rectangle2D
      * Checks whether or not this <code>Rectangle</code> contains the 
      * point at the specified location
      * (<i>X</i>,&nbsp;<i>Y</i>).
-     * @param  X,&nbsp;Y  the specified coordinates
+     * @param  X the specified x coordinate
+     * @param  Y the specified y coordinate
      * @return    <code>true</code> if the point 
      *            (<i>X</i>,&nbsp;<i>Y</i>) is inside this 
      *		  <code>Rectangle</code>; 
@@ -674,7 +686,8 @@ public class Rectangle extends Rectangle2D
      * falls on the right or bottom edge of the enlarged 
      * <code>Rectangle</code>, <code>contains</code> returns 
      * <code>false</code> for that point.
-     * @param newx,&nbsp;newy   the coordinates of the new point
+     * @param newx the x coordinate of the new point
+     * @param newy the y coordinate of the new point
      */
     public void add(int newx, int newy) {
 	int x1 = Math.min(x, newx);
@@ -774,7 +787,8 @@ public class Rectangle extends Rectangle2D
      * indicating, for each side of this <code>Rectangle</code>, 
      * whether or not the specified coordinates are on the same side of the
      * edge as the rest of this <code>Rectangle</code>.
-     * @param x,&nbsp;y the specified coordinates
+     * @param x the specified x coordinate
+     * @param y the specified y coordinate
      * @return the logical OR of all appropriate out codes.
      * @see #OUT_LEFT
      * @see #OUT_TOP

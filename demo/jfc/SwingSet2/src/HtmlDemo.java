@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)HtmlDemo.java	1.7 02/06/13
+ * @(#)HtmlDemo.java	1.8 03/01/23
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * Html Demo
  *
- * @version 1.7 02/06/13
+ * @version 1.8 03/01/23
  * @author Jeff Dinkins
  */
 public class HtmlDemo extends DemoModule {

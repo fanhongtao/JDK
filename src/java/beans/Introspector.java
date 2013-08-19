@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.124 02/04/27
+ * @(#)Introspector.java	1.127 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -181,7 +181,7 @@ public class Introspector {
      * based on the same arguments, then the BeanInfo class is retrieved
      * from the BeanInfo cache.
      *
-     * @param bean The bean class to be analyzed.
+     * @param beanClass The bean class to be analyzed.
      * @param stopClass The baseclass at which to stop the analysis.  Any
      *    methods/properties/events in the stopClass or in its baseclasses
      *    will be ignored in the analysis.
@@ -413,7 +413,30 @@ public class Introspector {
 		DEFAULT_INFO_PATH.equals(searchPath[i]) && "ComponentBeanInfo".equals(name)) {
 		try {
 		    String fullName = searchPath[i] + "." + name;
-		    return (java.beans.BeanInfo)instantiate(beanClass, fullName);
+		    java.beans.BeanInfo bi = (java.beans.BeanInfo)instantiate(beanClass, fullName);
+
+		    // Make sure that the returned BeanInfo matches the class.
+		    if (bi.getBeanDescriptor() != null) {
+			if (bi.getBeanDescriptor().getBeanClass() == beanClass) {
+			    return bi;
+			}
+		    } else if (bi.getPropertyDescriptors() != null) {
+			PropertyDescriptor[] pds = bi.getPropertyDescriptors();
+			for (int j = 0; j < pds.length; j++) {
+			    Method method = pds[j].getReadMethod();
+			    if (method.getDeclaringClass() == beanClass) {
+				return bi;
+			    }
+			}
+		    } else if (bi.getMethodDescriptors() != null) {
+			MethodDescriptor[] mds = bi.getMethodDescriptors();
+			for (int j = 0; j < mds.length; j++) {
+			    Method method = mds[j].getMethod();
+			    if (method.getDeclaringClass() == beanClass) {
+				return bi;
+			    }
+			}
+		    }
 		} catch (Exception ex) {
 		    // Silently ignore any errors.
 		}

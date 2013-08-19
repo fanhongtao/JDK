@@ -1,7 +1,7 @@
 /*
- * @(#)MediaTracker.java	1.37 01/12/03
+ * @(#)MediaTracker.java	1.39 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -125,7 +125,7 @@ import java.awt.image.ImageObserver;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.37, 12/03/01
+ * @version 	1.39, 01/23/03
  * @author 	Jim Graham
  * @since       JDK1.0
  */
@@ -137,7 +137,7 @@ public class MediaTracker implements java.io.Serializable {
      * eventually be drawn.
      *
      * @serial
-     * @see MediaTracker()
+     * @see #MediaTracker(Component)
      */
     Component target;
     /**
@@ -145,8 +145,8 @@ public class MediaTracker implements java.io.Serializable {
      * tracked by the <code>MediaTracker</code>.
      *
      * @serial
-     * @see addImage()
-     * @see removeImage()
+     * @see #addImage(Image, int)
+     * @see #removeImage(Image)
      */
     MediaEntry head;
 

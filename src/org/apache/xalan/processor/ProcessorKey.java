@@ -121,7 +121,8 @@ class ProcessorKey extends XSLTElementProcessor
    * @param target The target element where the properties will be set.
    */
   void setPropertiesFromAttributes(
-          StylesheetHandler handler, String rawName, Attributes attributes, Object target)
+          StylesheetHandler handler, String rawName, Attributes attributes, 
+          org.apache.xalan.templates.ElemTemplateElement target)
             throws org.xml.sax.SAXException
   {
 

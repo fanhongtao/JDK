@@ -1,7 +1,7 @@
 /*
- * @(#)JTextField.java	1.85 01/12/03
+ * @(#)JTextField.java	1.87 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -136,7 +136,7 @@ import java.io.Serializable;
  * description: A component which allows for the editing of a single line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.85 12/03/01
+ * @version 1.87 01/23/03
  * @see #setActionCommand
  * @see JPasswordField
  * @see #addActionListener
@@ -405,7 +405,9 @@ public class JTextField extends JTextComponent implements SwingConstants {
     public Dimension getPreferredSize() {
         Dimension size = super.getPreferredSize();
         if (columns != 0) {
-            size.width = columns * getColumnWidth();
+            Insets insets = getInsets();
+            size.width = columns * getColumnWidth() +
+                insets.left + insets.right;
         }
         return size;
     }

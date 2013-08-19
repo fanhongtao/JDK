@@ -1,7 +1,7 @@
 /*
- * @(#)BasicToolBarUI.java	1.82 01/12/03
+ * @(#)BasicToolBarUI.java	1.87 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import javax.swing.plaf.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.82 12/03/01
+ * @version 1.87 01/23/03
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -419,7 +419,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
      */
     protected Border createRolloverBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
-	return new CompoundBorder(new BasicBorders.RolloverButtonBorder(
+	return new BorderUIResource.CompoundBorderUIResource(new BasicBorders.RolloverButtonBorder(
 					   table.getColor("controlShadow"),
                                            table.getColor("controlDkShadow"),
                                            table.getColor("controlHighlight"),
@@ -438,7 +438,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
      */
     protected Border createNonRolloverBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
-	return new CompoundBorder(new BasicBorders.ButtonBorder(
+	return new BorderUIResource.CompoundBorderUIResource(new BasicBorders.ButtonBorder(
 					   table.getColor("Button.shadow"),
                                            table.getColor("Button.darkShadow"),
                                            table.getColor("Button.light"),
@@ -451,7 +451,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
      */
     private Border createNonRolloverToggleBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
-	return new CompoundBorder(new BasicBorders.RadioButtonBorder(
+	return new BorderUIResource.CompoundBorderUIResource(new BasicBorders.RadioButtonBorder(
  					   table.getColor("ToggleButton.shadow"),
                                            table.getColor("ToggleButton.darkShadow"),
                                            table.getColor("ToggleButton.light"),
@@ -495,7 +495,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
     /**
      * Creates a window which contains the toolbar after it has been
      * dragged out from its container
-     * @returns a <code>RootPaneContainer</code> object, containing the toolbar.
+     * @return a <code>RootPaneContainer</code> object, containing the toolbar.
      */
     protected RootPaneContainer createFloatingWindow(JToolBar toolbar) {
 	class ToolBarDialog extends JDialog {
@@ -675,8 +675,9 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	    if (border == null || border instanceof UIResource) {
 		borderTable.put(b, b.getBorder());
 	    }
-	    // Don't set a border if the existing border is null
-	    if (b.getBorder() != null) {
+
+	    // Only set the border if its the default border
+	    if (b.getBorder() instanceof UIResource) {
 		b.setBorder(rolloverBorder);
 	    }
 
@@ -702,11 +703,12 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	    if (border == null || border instanceof UIResource) {
 		borderTable.put(b, b.getBorder());
 	    }
-	    if (b.getBorder() != null) {
+
+	    // Only set the border if its the default border
+	    if (b.getBorder() instanceof UIResource) {
 		if (b instanceof JToggleButton) {
 		    ((JToggleButton)b).setBorder(nonRolloverToggleBorder);
 		} else {
-		    // Don't set a border if the existing border is null
 		    b.setBorder(nonRolloverBorder);
 		}
 	    }
@@ -1165,9 +1167,13 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 		for( int i = 0; i < components.length; ++i ) {
 		    if (components[i] instanceof JToolBar.Separator) {
 			separator = (JToolBar.Separator)components[i];
-			separator.setOrientation(orientation);
-			Dimension size = separator.getSize();
-			if (size.width != size.height) {
+			if ((orientation == JToolBar.HORIZONTAL)) {
+			    separator.setOrientation(JSeparator.VERTICAL);
+			} else {
+			    separator.setOrientation(JSeparator.HORIZONTAL);
+			}
+			Dimension size = separator.getSeparatorSize();
+			if (size != null && size.width != size.height) {
 			    // Flip the orientation.
 			    Dimension newSize = new Dimension(size.height, size.width);
 			    separator.setSeparatorSize(newSize);

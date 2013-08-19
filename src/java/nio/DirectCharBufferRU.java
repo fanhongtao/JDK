@@ -1,7 +1,7 @@
 /*
- * @(#)Direct-X-Buffer.java	1.39 02/05/06
+ * @(#)Direct-X-Buffer.java	1.45 03/04/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@
 
 package java.nio;
 
+import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 import sun.nio.ch.FileChannelImpl;
@@ -113,7 +114,6 @@ class DirectCharBufferRU
 
 
 
-    DirectCharBufferRU(DirectByteBufferR bb) { 	// package-private
 
 
 
@@ -127,16 +127,28 @@ class DirectCharBufferRU
 
 
 
-	super(bb);
-
-    }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+    // For duplicates and slices
+    //
     DirectCharBufferRU(DirectBuffer db,	        // package-private
 			       int mark, int pos, int lim, int cap,
 			       int off)
     {
+
+
 
 
 
@@ -389,23 +401,6 @@ class DirectCharBufferRU
 		? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

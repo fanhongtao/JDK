@@ -1,7 +1,7 @@
 /*
- * @(#)IllegalAccessException.java	1.12 01/12/03
+ * @(#)IllegalAccessException.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package java.lang;
  * the specified class, field, method or constructor.
  *
  * @author  unascribed
- * @version 1.12, 12/03/01
+ * @version 1.13, 01/23/03
  * @see     Class#newInstance()
  * @see     java.lang.reflect.Field#set(Object, Object)
  * @see     java.lang.reflect.Field#setBoolean(Object, boolean)

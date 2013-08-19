@@ -56,7 +56,12 @@
  */
 package org.apache.xpath.functions;
 
+import java.util.Vector;
+
+import org.apache.xalan.res.XSLMessages;
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathVisitor;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -113,9 +118,12 @@ public class Function3Args extends Function2Args
     if (argNum < 2)
       super.setArg(arg, argNum);
     else if (2 == argNum)
+    {
       m_arg2 = arg;
+      arg.exprSetParent(this);
+    }
     else
-      throw new WrongNumberArgsException("3");
+		  reportWrongNumberArgs();
   }
 
   /**
@@ -129,7 +137,17 @@ public class Function3Args extends Function2Args
   public void checkNumberArgs(int argNum) throws WrongNumberArgsException
   {
     if (argNum != 3)
-      throw new WrongNumberArgsException("3");
+      reportWrongNumberArgs();
+  }
+
+  /**
+   * Constructs and throws a WrongNumberArgException with the appropriate
+   * message for this function object.
+   *
+   * @throws WrongNumberArgsException
+   */
+  protected void reportWrongNumberArgs() throws WrongNumberArgsException {
+      throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("three", null));
   }
   
   /**
@@ -143,5 +161,60 @@ public class Function3Args extends Function2Args
     return super.canTraverseOutsideSubtree() 
     ? true : m_arg2.canTraverseOutsideSubtree();
    }
+   
+  class Arg2Owner implements ExpressionOwner
+  {
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_arg2;
+    }
+
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(Function3Args.this);
+    	m_arg2 = exp;
+    }
+  }
+
+   
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callArgVisitors(XPathVisitor visitor)
+  {
+  	super.callArgVisitors(visitor);
+  	if(null != m_arg2)
+  		m_arg2.callVisitors(new Arg2Owner(), visitor);
+  }
+
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!super.deepEquals(expr))
+  		return false;
+  		
+  	if(null != m_arg2)
+  	{
+  		if(null == ((Function3Args)expr).m_arg2)
+  			return false;
+
+  		if(!m_arg2.deepEquals(((Function3Args)expr).m_arg2))
+  			return false;
+  	}
+  	else if (null != ((Function3Args)expr).m_arg2)
+  		return false;
+  		
+  	return true;
+  }
+
 
 }

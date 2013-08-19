@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInputStream.java	1.144 03/12/02
+ * @(#)ObjectInputStream.java	1.144 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -156,7 +156,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.144, 03/12/02
+ * @version 1.144, 03/01/23
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -1502,8 +1502,8 @@ public class ObjectInputStream
 	try {
 	    readDesc = readClassDescriptor();
 	} catch (ClassNotFoundException ex) {
-	    throw (IOException) new InvalidClassException(
-		"failed to read class descriptor").initCause(ex);
+	    // REMIND: do something less drastic here?
+	    throw new StreamCorruptedException();
 	}
 	
 	Class cl = null;
@@ -2228,9 +2228,6 @@ public class ObjectInputStream
 	/** number of bytes in current block yet to be read from stream */
 	private int unread = 0;
 
-	/** buffer for constructing deserialized strings */
-	private StringBuffer sbuf;
-
 	/** underlying stream (wrapped in peekable filter stream) */
 	private final PeekInputStream in;
 	/** loopback stream (for data reads that span data blocks) */
@@ -2880,7 +2877,7 @@ public class ObjectInputStream
 	 * utflen bytes.
 	 */
 	private String readUTFBody(long utflen) throws IOException {
-	    sbuf = new StringBuffer();
+	    StringBuffer sbuf = new StringBuffer();
 	    if (!blkmode) {
 		end = pos = 0;
 	    }
@@ -2888,11 +2885,11 @@ public class ObjectInputStream
 	    while (utflen > 0) {
 		int avail = end - pos;
 		if (avail >= 3 || (long) avail == utflen) {
-		    utflen -= readUTFSpan(utflen);
+		    utflen -= readUTFSpan(sbuf, utflen);
 		} else {
 		    if (blkmode) {
 			// near block boundary, read one byte at a time
-			utflen -= readUTFChar(utflen);
+			utflen -= readUTFChar(sbuf, utflen);
 		    } else {
 			// shift and refill buffer manually
 			if (avail > 0) {
@@ -2905,9 +2902,7 @@ public class ObjectInputStream
 		}
 	    }
 
-	    String s = sbuf.toString();
-	    sbuf = null;
-	    return s;
+	    return sbuf.toString();
 	}
 
 	/**
@@ -2916,7 +2911,9 @@ public class ObjectInputStream
 	 * consuming no more than utflen bytes.  Appends read characters to
 	 * sbuf.  Returns the number of bytes consumed.
 	 */
-	private long readUTFSpan(long utflen) throws IOException {
+	private long readUTFSpan(StringBuffer sbuf, long utflen) 
+	    throws IOException
+	{
 	    int cpos = 0;
 	    int start = pos;
 	    int avail = Math.min(end - pos, CHAR_BUF_SIZE);
@@ -2991,7 +2988,9 @@ public class ObjectInputStream
 	 * data mode to handle UTF-encoded characters which (potentially)
 	 * straddle block-data boundaries.
 	 */
-	private int readUTFChar(long utflen) throws IOException {
+	private int readUTFChar(StringBuffer sbuf, long utflen) 
+	    throws IOException
+	{
 	    int b1, b2, b3;
 	    b1 = readByte() & 0xFF;
 	    switch (b1 >> 4) {

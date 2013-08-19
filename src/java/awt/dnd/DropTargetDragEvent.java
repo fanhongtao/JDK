@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetDragEvent.java	1.20 01/12/03
+ * @(#)DropTargetDragEvent.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import java.util.List;
  * first constant found. If no constant is found the <i>user drop action</i>
  * is <code>DnDConstants.ACTION_NONE</code>.
  *
- * @version 	1.20, 12/03/01
+ * @version 	1.21, 01/23/03
  * @since 1.2
  */
 

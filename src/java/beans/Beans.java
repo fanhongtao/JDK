@@ -1,7 +1,7 @@
 /*
- * @(#)Beans.java	1.57 01/12/03
+ * @(#)Beans.java	1.59 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ public class Beans {
      * Instantiate a JavaBean.
      * </p>
      *
-     * @param     classLoader the class-loader from which we should create
+     * @param     cls         the class-loader from which we should create
      * 		              the bean.  If this is null, then the system
      *                        class-loader is used.
      * @param     beanName    the name of the bean within the class-loader.
@@ -53,7 +53,7 @@ public class Beans {
      * Instantiate a JavaBean.
      * </p>
      *
-     * @param     classLoader the class-loader from which we should create
+     * @param     cls         the class-loader from which we should create
      * 		              the bean.  If this is null, then the system
      *                        class-loader is used.
      * @param     beanName    the name of the bean within the class-loader.
@@ -107,7 +107,7 @@ public class Beans {
      * the SDK appletviewer (for a reference browser environment) and the
      * BDK BeanBox (for a reference bean container).
      *
-     * @param     classLoader the class-loader from which we should create
+     * @param     cls         the class-loader from which we should create
      * 		              the bean.  If this is null, then the system
      *                        class-loader is used.
      * @param     beanName    the name of the bean within the class-loader.
@@ -331,7 +331,7 @@ public class Beans {
      * This method is provided in Beans 1.0 as a hook to allow the
      * addition of more flexible bean behaviour in the future.
      *
-     * @param obj  Object from which we want to obtain a view.
+     * @param bean        Object from which we want to obtain a view.
      * @param targetType  The type of view we'd like to get.
      *
      */

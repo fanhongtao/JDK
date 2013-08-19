@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.86 03/04/25
+ * @(#)Dialog.java	1.90 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -65,7 +65,7 @@ import sun.awt.PeerEvent;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.86, 04/25/03
+ * @version 	1.90, 01/23/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -86,7 +86,7 @@ public class Dialog extends Window {
      * it will be false.
      *
      * @serial
-     * @see setResizable()
+     * @see #setResizable(boolean)
      */
     boolean resizable = true;
 
@@ -98,7 +98,7 @@ public class Dialog extends Window {
      * undecorated, otherwise it will be false.
      *
      * @serial
-     * @see #setUndecorated()
+     * @see #setUndecorated(boolean)
      * @see #isUndecorated()
      * @see Component#isDisplayable()
      * @since 1.4
@@ -112,8 +112,8 @@ public class Dialog extends Window {
      * the owner frame from the user.
      *
      * @serial
-     * @see isModal()
-     * @see setModal()
+     * @see #isModal()
+     * @see #setModal(boolean)
      */
     boolean modal;
 
@@ -122,8 +122,8 @@ public class Dialog extends Window {
      * This field can be null.
      *
      * @serial
-     * @see getTitle()
-     * @see setTitle()
+     * @see #getTitle()
+     * @see #setTitle(String)
      */
     String title;
 
@@ -486,7 +486,7 @@ public class Dialog extends Window {
     * Stores the app context on which event dispatch thread the dialog
     * is being shown. Initialized in show(), used in hideAndDisposeHandler()
     */
-    private AppContext showAppContext;
+    transient private AppContext showAppContext;
 
    /**
      * Makes the Dialog visible. If the dialog and/or its owner
@@ -507,6 +507,7 @@ public class Dialog extends Window {
      * @see java.awt.Dialog#isModal
      */
     public void show() {
+        beforeFirstShow = false;
         if (!isModal()) {
             conditionalShow();
         } else {
@@ -532,29 +533,38 @@ public class Dialog extends Window {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
                      enqueueKeyEvents(time, predictedFocusOwner); 
 
-                if (Toolkit.getEventQueue().isDispatchThread()) {
-
-                     /*
-                      * dispose SequencedEvent we are dispatching on current
-                      * AppContext, to prevent us from hang.
-                      *
-                      * BugId 4531693
-                      */
-                     SequencedEvent currentSequencedEvent =KeyboardFocusManager.getCurrentKeyboardFocusManager().getCurrentSequencedEvent();
-                     if (currentSequencedEvent != null) {
-                         currentSequencedEvent.dispose();
-                     } 
-
-
-                    EventDispatchThread dispatchThread =
-                        (EventDispatchThread)Thread.currentThread();
-                    dispatchThread.pumpEventsForHierarchy(new Conditional() {
-                        public boolean evaluate() {
-                            return keepBlocking && windowClosingException == null;
+                Runnable pumpEventsForHierarchy = new Runnable() {
+                        public void run() {
+                            EventDispatchThread dispatchThread =
+                                (EventDispatchThread)Thread.currentThread();
+                            dispatchThread.pumpEventsForHierarchy(new Conditional() {
+                                    public boolean evaluate() {
+                                        return keepBlocking && windowClosingException == null;
+                                    }
+                                }, Dialog.this);
                         }
-                    }, this);
+                    };
+
+                if (EventQueue.isDispatchThread()) {
+                    /*
+                     * dispose SequencedEvent we are dispatching on current
+                     * AppContext, to prevent us from hang.
+                     *
+                     * BugId 4531693 (son@sparc.spb.su)
+                     */
+                    SequencedEvent currentSequencedEvent = KeyboardFocusManager.
+                        getCurrentKeyboardFocusManager().getCurrentSequencedEvent();
+                    if (currentSequencedEvent != null) {
+                        currentSequencedEvent.dispose();
+                    }
+
+                    pumpEventsForHierarchy.run();
                 } else {
                     synchronized (getTreeLock()) {
+                        Toolkit.getEventQueue().
+                            postEvent(new PeerEvent(this,
+                                                    pumpEventsForHierarchy,
+                                                    PeerEvent.PRIORITY_EVENT));
                         while (keepBlocking && windowClosingException == null) {
                             try {
                                 getTreeLock().wait();
@@ -593,12 +603,13 @@ public class Dialog extends Window {
                 keepBlocking = false;
 
                 if (showAppContext != null) {
-                        // Wake up event dispatch thread on which the dialog was 
-                        // initially shown
-                        SunToolkit.postEvent(showAppContext, 
-                                             new PeerEvent(this, 
-                                                           new WakingRunnable(), 
-                                                           PeerEvent.PRIORITY_EVENT));
+                    // Wake up event dispatch thread on which the dialog was 
+                    // initially shown
+                    SunToolkit.postEvent(showAppContext, 
+                                         new PeerEvent(this, 
+                                                       new WakingRunnable(), 
+                                                       PeerEvent.PRIORITY_EVENT));
+                    showAppContext = null;
                 }
                 EventQueue.invokeLater(new WakingRunnable());
                 getTreeLock().notifyAll();

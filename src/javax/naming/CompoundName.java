@@ -1,7 +1,7 @@
 /*
- * @(#)CompoundName.java	1.8 02/04/18
+ * @(#)CompoundName.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -125,7 +125,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.8 02/04/18
+ * @version 1.9 03/01/23
  * @since 1.3
  */
 

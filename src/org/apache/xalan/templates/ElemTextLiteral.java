@@ -242,11 +242,10 @@ public class ElemTextLiteral extends ElemTemplateElement
           TransformerImpl transformer)
             throws TransformerException
   {
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEvent(this);
     try
     {
-      if (TransformerImpl.S_DEBUG)
-        transformer.getTraceManager().fireTraceEvent(this);
-
       ResultTreeHandler rth = transformer.getResultTreeHandler();
       if (m_disableOutputEscaping)
       {
@@ -263,6 +262,11 @@ public class ElemTextLiteral extends ElemTemplateElement
     catch(SAXException se)
     {
       throw new TransformerException(se);
+    }
+    finally
+    {
+      if (TransformerImpl.S_DEBUG)
+        transformer.getTraceManager().fireTraceEndEvent(this);
     }
   }
 }

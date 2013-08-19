@@ -1,7 +1,7 @@
 /*
- * @(#)RMISocketFactory.java	1.19 02/05/07
+ * @(#)RMISocketFactory.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.net.*;
  * communication, then HTTP to a cgi-bin script on the server is used
  * to POST the RMI call.<p>
  *
- * @version 1.19, 05/07/02
+ * @version 1.20, 01/23/03
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1

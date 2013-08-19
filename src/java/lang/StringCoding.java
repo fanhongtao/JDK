@@ -1,7 +1,7 @@
 /*
  * @(#)StringCoding.java	1.9 02/04/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,6 +77,8 @@ class StringCoding {
     }
 
     private static Charset lookupCharset(String csn) {
+	if (csn.equalsIgnoreCase("PCK"))
+	    return null;
 	if (Charset.isSupported(csn)) {
 	    try {
 		return Charset.forName(csn);

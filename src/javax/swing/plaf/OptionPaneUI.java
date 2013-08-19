@@ -1,7 +1,7 @@
 /*
- * @(#)OptionPaneUI.java	1.10 01/12/03
+ * @(#)OptionPaneUI.java	1.11 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 /**
  * Pluggable look and feel interface for JOptionPane.
  *
- * @version 1.10 12/03/01
+ * @version 1.11 01/23/03
  * @author Scott Violet
  */
 

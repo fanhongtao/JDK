@@ -1,7 +1,7 @@
 /*
- * @(#)DocumentEvent.java	1.21 01/12/03
+ * @(#)DocumentEvent.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -18,7 +18,7 @@ import javax.swing.text.*;
  * removed).
  *
  * @author  Timothy Prinzing
- * @version 1.21 12/03/01
+ * @version 1.22 01/23/03
  * @see javax.swing.text.Document
  * @see DocumentListener
  */

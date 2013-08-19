@@ -1,7 +1,7 @@
 /*
- * @(#)JFrame.java	1.93 02/04/18
+ * @(#)JFrame.java	1.95 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -90,7 +90,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.93 04/18/02
+ * @version 1.95 01/28/03
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -321,6 +321,12 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * </ul>
      * <p>
      * The value is set to <code>HIDE_ON_CLOSE</code> by default.
+     * <p>
+     * <b>Note</b>: When the last displayable window within the
+     * Java virtual machine (VM) is disposed of, the VM may
+     * terminate.  See <a href="../../java/awt/doc-files/AWTThreadIssues.html">
+     * AWT Threading Issues</a> for more information.
+     *
      * @param operation the operation which should be performed when the
      *        user closes the frame
      * @exception IllegalArgumentException if defaultCloseOperation value 
@@ -329,8 +335,9 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * @see #getDefaultCloseOperation
      * @see WindowConstants
      * @throws  SecurityException
-     *        If EXIT_ON_CLOSE has been specified and the SecurityManager will
-     *        not allow the caller to invoke <code>System.exit</code>.
+     *        if <code>EXIT_ON_CLOSE</code> has been specified and the
+     *        <code>SecurityManager</code> will
+     *        not allow the caller to invoke <code>System.exit</code>
      * @see        java.lang.Runtime#exit(int)
      *
      * @beaninfo

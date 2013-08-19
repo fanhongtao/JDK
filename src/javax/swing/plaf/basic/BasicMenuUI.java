@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuUI.java	1.147 03/02/03
+ * @(#)BasicMenuUI.java	1.151 03/05/06
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,13 +14,15 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.border.*;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 
 /**
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.147 02/03/03
+ * @version 1.151 05/06/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -30,9 +32,6 @@ public class BasicMenuUI extends BasicMenuItemUI
     protected ChangeListener         changeListener;
     protected PropertyChangeListener propertyChangeListener;
     protected MenuListener           menuListener;
-
-    // Shared instance of the menuListener
-    private static MenuListener sharedMenuListener;
 
     private int lastMnemonic = 0;
 
@@ -52,6 +51,7 @@ public class BasicMenuUI extends BasicMenuItemUI
 
     protected void installDefaults() {
 	super.installDefaults();
+	updateDefaultBackgroundColor();
 	((JMenu)menuItem).setDelay(200);
         crossMenuMnemonic = UIManager.getBoolean("Menu.crossMenuMnemonic");
     }
@@ -143,10 +143,7 @@ public class BasicMenuUI extends BasicMenuItemUI
     }
 
     protected MenuListener createMenuListener(JComponent c) {
-	if (sharedMenuListener == null) {
-	    sharedMenuListener = new  MenuHandler();
-	}
-	return sharedMenuListener;
+	return null;
     }
 
     protected ChangeListener createChangeListener(JComponent c) {
@@ -262,12 +259,31 @@ public class BasicMenuUI extends BasicMenuItemUI
 	}
     }
 
+    /*
+     * Set the background color depending on whether this is a toplevel menu
+     * in a menubar or a submenu of another menu.
+     */
+    private void updateDefaultBackgroundColor() {
+	if (!UIManager.getBoolean("Menu.useMenuBarBackgroundForTopLevel")) {
+	   return;
+	}
+	JMenu menu = (JMenu)menuItem;
+	if (menu.getBackground() instanceof UIResource) {
+	    if (menu.isTopLevelMenu()) {
+		menu.setBackground(UIManager.getColor("MenuBar.background"));
+	    } else {
+		menu.setBackground(UIManager.getColor(getPropertyPrefix() + ".background"));
+	    }
+	}		    
+    }
 
     private class PropertyChangeHandler implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent e) {
 	    String prop = e.getPropertyName();
 	    if(prop.equals(AbstractButton.MNEMONIC_CHANGED_PROPERTY)) {
 		updateMnemonicBinding();
+	    } else if (prop == "ancestor") {
+		updateDefaultBackgroundColor();
 	    }
 	}
     }
@@ -406,18 +422,6 @@ public class BasicMenuUI extends BasicMenuItemUI
 	}
     }
 
-    private static class MenuHandler implements MenuListener {
-	public void menuSelected(MenuEvent e) {}
-	public void menuDeselected(MenuEvent e) {}
-	public void menuCanceled(MenuEvent e) {
-	    JMenu m = (JMenu)e.getSource();
-	    MenuSelectionManager manager = MenuSelectionManager.defaultManager();
-	    if(manager.isComponentPartOfCurrentMenu(m))
-		MenuSelectionManager.defaultManager().clearSelectedPath();
-	}
-	
-    }
-
     /**
      * As of Java 2 platform 1.4, this previously undocumented class
      * is now obsolete. KeyBindings are now managed by the popup menu.
@@ -490,12 +494,6 @@ public class BasicMenuUI extends BasicMenuItemUI
      */
     private class MenuKeyHandler implements MenuKeyListener {
 	
-	// fields for handling duplicate mnemonics.
-	private int indexes[];
-	private char lastMnemonic;
-	private int lastIndex;
-	private int matches;
-	
 	/**
 	 * Opens the SubMenu
 	 */
@@ -516,21 +514,16 @@ public class BasicMenuUI extends BasicMenuItemUI
             MenuElement path[] = e.getPath();
             if(lower((char)key) == lower(e.getKeyChar())) {
                 JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
+                ArrayList newList = new ArrayList(Arrays.asList(path));
+                newList.add(popupMenu);
                 MenuElement sub[] = popupMenu.getSubElements();
                 if(sub.length > 0) {
-                    MenuSelectionManager manager = e.getMenuSelectionManager();
-                    MenuElement newPath[] = new MenuElement[path.length + 2];
-                    System.arraycopy(path,0,newPath,0,path.length);
-                    newPath[path.length] = popupMenu;
-                    newPath[path.length+1] = sub[0];
-                    manager.setSelectedPath(newPath);
-                } else {
-                    MenuSelectionManager manager = e.getMenuSelectionManager();
-                    MenuElement newPath[] = new MenuElement[path.length + 1];
-                    System.arraycopy(path,0,newPath,0,path.length);
-                    newPath[path.length] = popupMenu;
-                    manager.setSelectedPath(newPath);
+                    newList.add(sub[0]);
                 }
+                MenuSelectionManager manager = e.getMenuSelectionManager();
+                MenuElement newPath[] = new MenuElement[0];;
+                newPath = (MenuElement[]) newList.toArray(newPath);
+                manager.setSelectedPath(newPath);
                 e.consume();
             }
         }
@@ -556,27 +549,40 @@ public class BasicMenuUI extends BasicMenuItemUI
 		if (selectedPath[i] == menuItem) {
 		    JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
                     if(!popupMenu.isVisible()) {
-                        return;
+                        return; // Do not invoke items from invisible popup
                     }
 		    MenuElement items[] = popupMenu.getSubElements();
 
-		    if (indexes == null || lastMnemonic != keyChar) {
-			matches = 0;
-			lastIndex = 0;
-			indexes = new int[items.length];
-			for (int j = 0; j < items.length; j++) {
-			    int key = ((JMenuItem)items[j]).getMnemonic();
-			    if(lower((char)key) == lower(keyChar)) {
+		    MenuElement currentItem = selectedPath[selectedPath.length - 1];
+		    int currentIndex = -1;
+		    int matches = 0;
+		    int firstMatch = -1;
+		    int indexes[] = null;
+
+		    for (int j = 0; j < items.length; j++) {
+			int key = ((JMenuItem)items[j]).getMnemonic();
+			if(lower((char)key) == lower(keyChar)) {
+			    if (matches == 0) {
+				firstMatch = j;
+				matches++;
+			    } else {
+				if (indexes == null) {
+				    indexes = new int[items.length];
+				    indexes[0] = firstMatch;
+				}
 				indexes[matches++] = j;
 			    }
 			}
-			lastMnemonic = keyChar;
+			if (currentItem == items[j]) {
+			    currentIndex = matches - 1;
+			}
 		    }
+
 		    if (matches == 0) {
 			; // no op (consume)
 		    } else if (matches == 1) {
 			// Invoke the menu action
-			JMenuItem item = (JMenuItem)items[indexes[0]];
+			JMenuItem item = (JMenuItem)items[firstMatch];
 			if (!(item instanceof JMenu)) {
 			    // Let Submenus be handled by menuKeyTyped
 			    manager.clearSelectedPath();
@@ -586,17 +592,14 @@ public class BasicMenuUI extends BasicMenuItemUI
 			// Select the menu item with the matching mnemonic. If
 			// the same mnemonic has been invoked then select the next
 			// menu item in the cycle.
-			if (lastIndex == matches) {
-			    // Take care of the situation in which the 
-			    // mnemonic wraps.
-			    lastIndex = 0;
-			}
-			MenuElement menuItem = items[indexes[lastIndex++]];
+			MenuElement newItem = null;
+
+			newItem = items[indexes[(currentIndex + 1) % matches]];
 
 			MenuElement newPath[] = new MenuElement[path.length+2];
 			System.arraycopy(path, 0, newPath, 0, path.length);
 			newPath[path.length] = popupMenu;
-			newPath[path.length+1] = menuItem;
+			newPath[path.length+1] = newItem;
 			manager.setSelectedPath(newPath);
 		    }
 		    e.consume();

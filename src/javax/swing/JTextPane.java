@@ -1,7 +1,7 @@
 /*
- * @(#)JTextPane.java	1.85 01/12/03
+ * @(#)JTextPane.java	1.87 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -57,7 +57,7 @@ import javax.swing.plaf.*;
  * description: A text component that can be marked up with attributes that are graphically represented.
  *
  * @author  Timothy Prinzing
- * @version 1.85 12/03/01
+ * @version 1.87 01/23/03
  * @see javax.swing.text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {
@@ -182,11 +182,17 @@ public class JTextPane extends JEditorPane {
                 Caret caret = getCaret();
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
-                if (p0 != p1) {
-                    doc.remove(p0, p1 - p0);
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).replace(p0, p1 - p0, content, 
+                              attr != null ? attr : getInputAttributes());
                 }
-                if (content != null && content.length() > 0) {
-                    doc.insertString(p0, content, attr != null ? attr : getInputAttributes());
+                else {
+                    if (p0 != p1) {
+                        doc.remove(p0, p1 - p0);
+                    }
+                    if (content != null && content.length() > 0) {
+                        doc.insertString(p0, content, attr != null ? attr : getInputAttributes());
+                    }
                 }
             } catch (BadLocationException e) {
 	        UIManager.getLookAndFeel().provideErrorFeedback(JTextPane.this);

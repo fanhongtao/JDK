@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractPreferences.java	1.10 01/12/03
+ * @(#)AbstractPreferences.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -99,7 +99,7 @@ import java.lang.Double;
  * with normal <tt>Preferences</tt> usage and would lead to great confusion.
  *
  * @author  Josh Bloch
- * @version 1.10, 12/03/01
+ * @version 1.17, 01/23/03
  * @see     Preferences
  * @since   1.4
  */
@@ -117,7 +117,7 @@ public abstract class AbstractPreferences extends Preferences {
     /**
      * Our parent node.
      */
-    private final AbstractPreferences parent;
+    final AbstractPreferences parent;
 
     /**
      * Our root node.
@@ -1307,10 +1307,10 @@ public abstract class AbstractPreferences extends Preferences {
         AbstractPreferences[] cachedKids;
 
         synchronized(lock) {
-            if (removed) 
-                throw new IllegalStateException("Node has been removed");             
-            syncSpi();
-            cachedKids = cachedChildren();
+	    if (removed) 
+		throw new IllegalStateException("Node has been removed");            
+	    syncSpi();
+	    cachedKids = cachedChildren();
         }
 
         for (int i=0; i<cachedKids.length; i++)
@@ -1350,11 +1350,13 @@ public abstract class AbstractPreferences extends Preferences {
      * the subTree while only that node is locked. Note that flushSpi() is
      * invoked top-down.
      *
+     * <p> If this method is invoked on a node that has been removed with 
+     * the {@link #removeNode()} method, flushSpi() is invoked on this node, 
+     * but not on others.
+     *
      * @throws BackingStoreException if this operation cannot be completed
      *         due to a failure in the backing store, or inability to 
      *         communicate with it.
-     * @throws IllegalStateException if this node (or an ancestor) has been
-     *         removed with the {@link #removeNode()} method.
      * @see #flush()
      */
     public void flush() throws BackingStoreException {
@@ -1363,15 +1365,15 @@ public abstract class AbstractPreferences extends Preferences {
 
     private void flush2() throws BackingStoreException {
         AbstractPreferences[] cachedKids;
-
-        synchronized(lock) {
-            if (removed) 
-                throw new IllegalStateException("Node has been removed");
-            flushSpi();
+	
+	synchronized(lock) {
+	    flushSpi();
+	    if(removed) 
+		return;
             cachedKids = cachedChildren();
         }
-
-        for (int i=0; i<cachedKids.length; i++)
+	
+        for (int i = 0; i < cachedKids.length; i++)
             cachedKids[i].flush2();
     }
 

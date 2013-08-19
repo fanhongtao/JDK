@@ -1,7 +1,7 @@
 /*
- * @(#)BasicEditorPaneUI.java	1.29 02/04/24
+ * @(#)BasicEditorPaneUI.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.29 04/24/02
+ * @version 1.30 01/23/03
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 

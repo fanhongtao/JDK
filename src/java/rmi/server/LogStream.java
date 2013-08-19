@@ -1,7 +1,7 @@
 /*
- * @(#)LogStream.java	1.17 02/03/18
+ * @(#)LogStream.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -13,7 +13,7 @@ import java.util.*;
  * <code>LogStream</code> provides a mechanism for logging errors that are
  * of possible interest to those monitoring a system.  
  *
- * @version 1.17, 03/18/02
+ * @version 1.18, 01/23/03
  * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
  * @since   JDK1.1
  * @deprecated no replacement

@@ -1,11 +1,13 @@
 /*
- * @(#)Reference.java	1.31 01/12/03
+ * @(#)Reference.java	1.33 03/03/07
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.ref;
+
+import sun.misc.Cleaner;
 
 
 /**
@@ -14,7 +16,7 @@ package java.lang.ref;
  * implemented in close cooperation with the garbage collector, this class may
  * not be subclassed directly.
  *
- * @version  1.31, 12/03/01
+ * @version  1.33, 03/07/03
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -114,6 +116,12 @@ public abstract class Reference {
 			} catch (InterruptedException x) { }
 			continue;
 		    }
+		}
+
+		// Fast path for cleaners
+		if (r instanceof Cleaner) {
+		    ((Cleaner)r).clean();
+		    continue;
 		}
 
 		ReferenceQueue q = r.queue;

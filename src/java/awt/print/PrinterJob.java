@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterJob.java	1.32 02/03/08
+ * @(#)PrinterJob.java	1.34 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,11 +35,11 @@ public abstract class PrinterJob {
      * If no printers are available on the system, a PrinterJob will still
      * be returned from this method, but <code>getPrintService()</code> 
      * will return <code>null</code>, and calling 
-     * {@link print() print} with this <code>PrinterJob</code> might 
+     * {@link #print() print} with this <code>PrinterJob</code> might 
      * generate an exception.  Applications that need to determine if
      * there are suitable printers before creating a <code>PrinterJob</code> 
      * should ensure that the array returned from 
-     * {@link lookupPrintServices() lookupPrintServices} is not empty.
+     * {@link #lookupPrintServices() lookupPrintServices} is not empty.
      * @return a new <code>PrinterJob</code>.
      */
     public static PrinterJob getPrinterJob() {

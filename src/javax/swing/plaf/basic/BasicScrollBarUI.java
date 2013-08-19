@@ -1,7 +1,7 @@
 /*
- * @(#)BasicScrollBarUI.java	1.72 02/03/13
+ * @(#)BasicScrollBarUI.java	1.75 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -20,7 +20,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.72 03/13/02
+ * @version 1.75 01/23/03
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -874,10 +874,8 @@ public class BasicScrollBarUI
 	    if(!scrollbar.isEnabled())
 		return;
 
-	    if(trackHighlight != NO_HIGHLIGHT) {
-		Rectangle r = getTrackBounds();
-		scrollbar.repaint(r.x, r.y, r.width, r.height);
-	    }
+	    Rectangle r = getTrackBounds();
+	    scrollbar.repaint(r.x, r.y, r.width, r.height);
 
 	    trackHighlight = NO_HIGHLIGHT;
 	    isDragging = false;
@@ -968,12 +966,11 @@ public class BasicScrollBarUI
                 break;
             }
 	    scrollByBlock(direction);
-	    if(!getThumbBounds().contains(currentMouseX, currentMouseY))	{
-		scrollTimer.stop();
-		scrollListener.setDirection(direction);
-		scrollListener.setScrollByBlock(true);
-		scrollTimer.start();
-	    }
+
+	    scrollTimer.stop();
+	    scrollListener.setDirection(direction);
+	    scrollListener.setScrollByBlock(true);
+	    startScrollTimerIfNecessary();
         }
 		
 

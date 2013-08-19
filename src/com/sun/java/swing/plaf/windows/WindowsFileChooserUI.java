@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.73 02/07/10
+ * @(#)WindowsFileChooserUI.java	1.78 03/02/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.73 07/10/02
+ * @version 1.78 02/17/03
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -39,13 +39,14 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private static final String[] OS_NAMES =
 		new String[] { "Windows 3.1", "Windows 95", "Windows NT",
-			       "Windows 98", "Windows 2000", "Windows Me" };
+			       "Windows 98", "Windows 2000", "Windows Me", "Windows XP" };
     private static int WIN_31 = 0;
     private static int WIN_95 = 1;
     private static int WIN_NT = 2;
     private static int WIN_98 = 3;
     private static int WIN_2k = 4;
     private static int WIN_Me = 5;
+    private static int WIN_XP = 6;
     private static String osName = System.getProperty("os.name");
     private static String osVersion = System.getProperty("os.version");
     private static final String OS_NAME = ((osName.equals(OS_NAMES[WIN_98]) && osVersion.startsWith("4.9"))
@@ -76,7 +77,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	}
     };
     private boolean smallIconsView = false;
-    private Border loweredBevelBorder;
+    private Border listViewBorder;
     private boolean useShellFolder;
 
     private ListSelectionModel listSelectionModel;
@@ -181,11 +182,16 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     public void installComponents(JFileChooser fc) {
 	FileSystemView fsv = fc.getFileSystemView();
-	loweredBevelBorder = new BevelBorder(BevelBorder.LOWERED,
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    listViewBorder = xp.getBorder("listview");
+	} else {
+	    listViewBorder = new BevelBorder(BevelBorder.LOWERED,
 					     UIManager.getColor("ToolBar.highlight"),
 					     UIManager.getColor("ToolBar.background"),
 					     UIManager.getColor("ToolBar.darkShadow"),
 					     UIManager.getColor("ToolBar.shadow"));
+	}
 
 	fc.setBorder(new EmptyBorder(4, 10, 10, 10));
 	fc.setLayout(new BorderLayout(8, 8));
@@ -405,7 +411,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	fileAndFilterPanel.setLayout(new BoxLayout(fileAndFilterPanel, BoxLayout.Y_AXIS));
 
 
-	filenameTextField = new JTextField() {
+	filenameTextField = new JTextField(35) {
 	    public Dimension getMaximumSize() {
 		return new Dimension(Short.MAX_VALUE, super.getPreferredSize().height);
 	    }
@@ -556,17 +562,22 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     }
 
     class ShortCutPanel extends JToolBar implements ActionListener {
-	final Dimension buttonSize = new Dimension(83, 54);
 	JToggleButton[] buttons;
 	File[] files;
+	XPStyle xp = XPStyle.getXP();
+	final Dimension buttonSize = new Dimension(83, (xp != null) ? 69 : 54);
 
 	ShortCutPanel() {
 	    super(JToolBar.VERTICAL);
-	    setBorder(loweredBevelBorder);
 	    setFloatable(false);
 	    putClientProperty("JToolBar.isRollover", Boolean.TRUE);
+	    if (xp != null) {
+		putClientProperty("XPStyle.subClass", "placesbar");
+		setBorder(new EmptyBorder(1, 1, 1, 1));
+	    } else {
+		setBorder(listViewBorder);
+	    }
 	    Color bgColor = new Color(UIManager.getColor("ToolBar.shadow").getRGB());
-	    Color fgColor = new Color(UIManager.getColor("List.selectionForeground").getRGB());
 	    setBackground(bgColor);
 	    JFileChooser chooser = getFileChooser();
 	    FileSystemView fsv = chooser.getFileSystemView();
@@ -594,8 +605,15 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		    icon = fsv.getSystemIcon(files[i]);
 		}
 		buttons[i] = new JToggleButton(folderName, icon);
-		buttons[i].setForeground(fgColor);
-		buttons[i].setBackground(bgColor);
+		if (xp != null) {
+		    buttons[i].setIconTextGap(2);
+		    buttons[i].setMargin(new Insets(2, 2, 2, 2));
+		    buttons[i].setText("<html><center>"+folderName+"</center></html>");
+		} else {
+		    Color fgColor = new Color(UIManager.getColor("List.selectionForeground").getRGB());
+		    buttons[i].setBackground(bgColor);
+		    buttons[i].setForeground(fgColor);
+		}
 		buttons[i].setHorizontalTextPosition(JToggleButton.CENTER);
 		buttons[i].setVerticalTextPosition(JToggleButton.BOTTOM);
 		buttons[i].setAlignmentX(JComponent.CENTER_ALIGNMENT);
@@ -603,6 +621,9 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		buttons[i].setMaximumSize(buttonSize);
 		buttons[i].addActionListener(this);
 		add(buttons[i]);
+		if (i < files.length-1 && xp != null) {
+		    add(Box.createRigidArea(vstrut1));
+		}
 		buttonGroup.add(buttons[i]);
 	    }
 	    doDirectoryChanged(chooser.getCurrentDirectory());
@@ -622,6 +643,15 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		    break;
 		}
 	    }
+	}
+
+	public Dimension getPreferredSize() {
+	    Dimension min  = super.getMinimumSize();
+	    Dimension pref = super.getPreferredSize();
+	    if (min.height > pref.height) {
+		pref = new Dimension(pref.width, min.height);
+	    }
+	    return pref;
 	}
     } // class ShortCutPanel
 
@@ -702,7 +732,16 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	});
 
 	JScrollPane scrollpane = new JScrollPane(list);
-	scrollpane.setBorder(loweredBevelBorder);
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    Color bg = xp.getColor("listview.fillcolor", null);
+	    if (bg != null) {
+		list.setBackground(bg);
+	    }
+	}
+	if (listViewBorder != null) {
+	    scrollpane.setBorder(listViewBorder);
+	}
 	p.add(scrollpane, BorderLayout.CENTER);
 	return p;
     }
@@ -1036,7 +1075,6 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	JScrollPane scrollpane = new JScrollPane(detailsTable);
 	scrollpane.setComponentOrientation(chooser.getComponentOrientation());
         LookAndFeel.installColors(scrollpane.getViewport(), "Table.background", "Table.foreground");
-	scrollpane.setBorder(loweredBevelBorder);
 
 	scrollpane.addComponentListener(new ComponentAdapter() {
 	    public void componentResized(ComponentEvent e) {
@@ -1046,6 +1084,16 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    }
 	});
 
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    Color bg = xp.getColor("listview.fillcolor", null);
+	    if (bg != null) {
+		list.setBackground(bg);
+	    }
+	}
+	if (listViewBorder != null) {
+	    scrollpane.setBorder(listViewBorder);
+	}
 	p.add(scrollpane, BorderLayout.CENTER);
 	return p;
     }
@@ -1111,10 +1159,12 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 				int j = 0;
 				for (int i = 0; i < objects.length; i++) {
 				    File f = (File)objects[i];
-				    if ((chooser.isFileSelectionEnabled() && f.isFile())
+				    boolean isDir = f.isDirectory();
+				    boolean isFile = ShellFolder.disableFileChooserSpeedFix() ? f.isFile() : !isDir;
+				    if ((chooser.isFileSelectionEnabled() && isFile)
 					|| (chooser.isDirectorySelectionEnabled()
 					    && fsv.isFileSystem(f)
-					    && f.isDirectory())) {
+					    && isDir)) {
 					files[j++] = f;
 				    }
 				}
@@ -1398,36 +1448,82 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    File[] files = getFileChooser().getSelectedFiles();	// Should be selected
 	    Object[] selectedObjects = list.getSelectedValues(); // Are actually selected
 
-	    // Remove files that shouldn't be selected
-	    for (int j = 0; j < selectedObjects.length; j++) {
-		boolean found = false;
-		for (int i = 0; i < files.length; i++) {
-		    if (files[i].equals(selectedObjects[j])) {
-			found = true;
-			break;
-		    }
-		}
-		if (!found) {
-		    int index = getModel().indexOf(selectedObjects[j]);
-		    if (index >= 0) {
-			listSelectionModel.removeSelectionInterval(index, index);
-		    }
-		}
-	    }
-	    // Add files that should be selected
-	    for (int i = 0; i < files.length; i++) {
-		boolean found = false;
+	    if (ShellFolder.disableFileChooserSpeedFix()) {
+		// Remove files that shouldn't be selected
 		for (int j = 0; j < selectedObjects.length; j++) {
-		    if (files[i].equals(selectedObjects[j])) {
-			found = true;
-			break;
+		    boolean found = false;
+		    for (int i = 0; i < files.length; i++) {
+			if (files[i].equals(selectedObjects[j])) {
+			    found = true;
+			    break;
+			}
+		    }
+		    if (!found) {
+			int index = getModel().indexOf(selectedObjects[j]);
+			if (index >= 0) {
+			    listSelectionModel.removeSelectionInterval(index, index);
+			}
 		    }
 		}
-		if (!found) {
-		    int index = getModel().indexOf(files[i]);
-		    if (index >= 0) {
-			listSelectionModel.addSelectionInterval(index, index);
+		// Add files that should be selected
+		for (int i = 0; i < files.length; i++) {
+		    boolean found = false;
+		    for (int j = 0; j < selectedObjects.length; j++) {
+			if (files[i].equals(selectedObjects[j])) {
+			    found = true;
+			    break;
+			}
 		    }
+		    if (!found) {
+			int index = getModel().indexOf(files[i]);
+			if (index >= 0) {
+			    listSelectionModel.addSelectionInterval(index, index);
+			}
+		    }
+		}
+	    } else {
+		listSelectionModel.setValueIsAdjusting(true);
+		try {
+		    Arrays.sort(files);
+		    Arrays.sort(selectedObjects);
+
+		    int shouldIndex = 0;
+		    int actuallyIndex = 0;
+
+		    // Remove files that shouldn't be selected and add files which should be selected
+		    // Note: Assume files are already sorted in compareTo order.
+		    while (shouldIndex < files.length &&
+			   actuallyIndex < selectedObjects.length) {
+			int comparison = files[shouldIndex].compareTo(selectedObjects[actuallyIndex]);
+			if (comparison < 0) {
+			    int index = getModel().indexOf(files[shouldIndex]);
+			    listSelectionModel.addSelectionInterval(index, index);
+			    shouldIndex++;
+			} else if (comparison > 0) {
+			    int index = getModel().indexOf(selectedObjects[actuallyIndex]);
+			    listSelectionModel.removeSelectionInterval(index, index);
+			    actuallyIndex++;
+			} else {
+			    // Do nothing
+			    shouldIndex++;
+			    actuallyIndex++;
+			}
+
+		    }
+
+		    while (shouldIndex < files.length) {
+			int index = getModel().indexOf(files[shouldIndex]);
+			listSelectionModel.addSelectionInterval(index, index);
+			shouldIndex++;
+		    }
+
+		    while (actuallyIndex < selectedObjects.length) {
+			int index = getModel().indexOf(selectedObjects[actuallyIndex]);
+			listSelectionModel.removeSelectionInterval(index, index);
+			actuallyIndex++;
+		    }
+		} finally {
+		    listSelectionModel.setValueIsAdjusting(false);
 		}
 	    }
 	} else {

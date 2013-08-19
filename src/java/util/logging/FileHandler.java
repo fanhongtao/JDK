@@ -1,7 +1,7 @@
 /*
- * @(#)FileHandler.java	1.25 01/12/03
+ * @(#)FileHandler.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -96,7 +96,7 @@ import java.security.*;
  * Note that the use of unique ids to avoid conflicts is only guaranteed
  * to work reliably when using a local disk file system.
  *
- * @version 1.25, 12/03/01
+ * @version 1.26, 01/23/03
  * @since 1.4
  */
 

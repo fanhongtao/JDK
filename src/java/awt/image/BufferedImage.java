@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedImage.java	1.87 02/04/27
+ * @(#)BufferedImage.java	1.89 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,8 +26,8 @@ import sun.awt.image.OffScreenImageSource;
 
 /**
  *
- * The <code>BufferedImage</code> subclass describes an {@link Image} with
- * an accessible buffer of image data.
+ * The <code>BufferedImage</code> subclass describes an {@link
+ * java.awt.Image Image} with an accessible buffer of image data.
  * A <code>BufferedImage</code> is comprised of a {@link ColorModel} and a
  * {@link Raster} of image data.
  * The number and types of bands in the {@link SampleModel} of the

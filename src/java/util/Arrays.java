@@ -1,11 +1,13 @@
 /*
- * @(#)Arrays.java	1.45 02/02/12
+ * @(#)Arrays.java	1.48 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
+
+import java.lang.reflect.*;
 
 /**
  * This class contains various methods for manipulating arrays (such as
@@ -23,8 +25,12 @@ package java.util;
  * example, the algorithm used by <tt>sort(Object[])</tt> does not have to be
  * a mergesort, but it does have to be <i>stable</i>.)
  *
+ * <p>This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
  * @author  Josh Bloch
- * @version 1.45, 02/12/02
+ * @version 1.48, 01/23/03
  * @see     Comparable
  * @see     Comparator
  * @since   1.2
@@ -1070,7 +1076,7 @@ public class Arrays {
      */
     public static void sort(Object[] a) {
         Object aux[] = (Object[])a.clone();
-        mergeSort(aux, a, 0, a.length);
+        mergeSort(aux, a, 0, a.length, 0);
     }
 
     /**
@@ -1107,38 +1113,66 @@ public class Arrays {
      */
     public static void sort(Object[] a, int fromIndex, int toIndex) {
         rangeCheck(a.length, fromIndex, toIndex);
-        Object aux[] = (Object[])a.clone();  // Optimization opportunity
-        mergeSort(aux, a, fromIndex, toIndex);
+        Object aux[] = (Object[])cloneSubarray(a, fromIndex, toIndex);
+        mergeSort(aux, a, fromIndex, toIndex, -fromIndex);
     }
 
+    /**
+     * Tuning parameter: list size at or below which insertion sort will be
+     * used in preference to mergesort or quicksort.
+     */
+    private static final int INSERTIONSORT_THRESHOLD = 7;
+
+    /**
+     * Clones an array within the specified bounds.
+     * This method assumes that a is an array.
+     */
+    private static Object cloneSubarray(Object[] a, int from, int to) {
+        int n = to - from;
+        Object result = Array.newInstance(a.getClass().getComponentType(), n);
+        System.arraycopy(a, from, result, 0, n);
+        return result;
+    }
+
+    /**
+     * Src is the source array that starts at index 0
+     * Dest is the (possibly larger) array destination with a possible offset
+     * low is the index in dest to start sorting
+     * high is the end index in dest to end sorting
+     * off is the offset to generate corresponding low, high in src
+     */
     private static void mergeSort(Object src[], Object dest[],
-                                  int low, int high) {
+                                  int low, int high, int off) {
 	int length = high - low;
 
 	// Insertion sort on smallest arrays
-	if (length < 7) {
-	    for (int i=low; i<high; i++)
-		for (int j=i; j>low &&
+        if (length < INSERTIONSORT_THRESHOLD) {
+            for (int i=low; i<high; i++)
+                for (int j=i; j>low &&
                  ((Comparable)dest[j-1]).compareTo((Comparable)dest[j])>0; j--)
-		    swap(dest, j, j-1);
-	    return;
-	}
+                    swap(dest, j, j-1);
+            return;
+        }
 
         // Recursively sort halves of dest into src
+        int destLow  = low;
+        int destHigh = high;
+        low  += off;
+        high += off;
         int mid = (low + high) >> 1;
-        mergeSort(dest, src, low, mid);
-        mergeSort(dest, src, mid, high);
+        mergeSort(dest, src, low, mid, -off);
+        mergeSort(dest, src, mid, high, -off);
 
         // If list is already sorted, just copy from src to dest.  This is an
         // optimization that results in faster sorts for nearly ordered lists.
         if (((Comparable)src[mid-1]).compareTo((Comparable)src[mid]) <= 0) {
-           System.arraycopy(src, low, dest, low, length);
-           return;
+            System.arraycopy(src, low, dest, destLow, length);
+            return;
         }
 
         // Merge sorted halves (now in src) into dest
-        for(int i = low, p = low, q = mid; i < high; i++) {
-            if (q>=high || p<mid && ((Comparable)src[p]).compareTo(src[q])<=0)
+        for(int i = destLow, p = low, q = mid; i < destHigh; i++) {
+            if (q >= high || p < mid && ((Comparable)src[p]).compareTo(src[q])<=0)
                 dest[i] = src[p++];
             else
                 dest[i] = src[q++];
@@ -1180,9 +1214,9 @@ public class Arrays {
     public static void sort(Object[] a, Comparator c) {
         Object aux[] = (Object[])a.clone();
         if (c==null)
-            mergeSort(aux, a, 0, a.length);
+            mergeSort(aux, a, 0, a.length, 0);
         else
-            mergeSort(aux, a, 0, a.length, c);
+            mergeSort(aux, a, 0, a.length, 0, c);
     }
 
     /**
@@ -1220,19 +1254,26 @@ public class Arrays {
     public static void sort(Object[] a, int fromIndex, int toIndex,
                             Comparator c) {
         rangeCheck(a.length, fromIndex, toIndex);
-        Object aux[] = (Object[])a.clone();
+        Object aux[] = (Object[])cloneSubarray(a, fromIndex, toIndex);
         if (c==null)
-            mergeSort(aux, a, fromIndex, toIndex);
+            mergeSort(aux, a, fromIndex, toIndex, -fromIndex);
         else
-            mergeSort(aux, a, fromIndex, toIndex, c);
+            mergeSort(aux, a, fromIndex, toIndex, -fromIndex, c);
     }
 
+    /**
+     * Src is the source array that starts at index 0
+     * Dest is the (possibly larger) array destination with a possible offset
+     * low is the index in dest to start sorting
+     * high is the end index in dest to end sorting
+     * off is the offset into src corresponding to low in dest
+     */
     private static void mergeSort(Object src[], Object dest[],
-                                  int low, int high, Comparator c) {
+                                  int low, int high, int off, Comparator c) {
 	int length = high - low;
 
 	// Insertion sort on smallest arrays
-	if (length < 7) {
+	if (length < INSERTIONSORT_THRESHOLD) {
 	    for (int i=low; i<high; i++)
 		for (int j=i; j>low && c.compare(dest[j-1], dest[j])>0; j--)
 		    swap(dest, j, j-1);
@@ -1240,20 +1281,24 @@ public class Arrays {
 	}
 
         // Recursively sort halves of dest into src
+        int destLow  = low;
+        int destHigh = high;
+        low  += off;
+        high += off;
         int mid = (low + high) >> 1;
-        mergeSort(dest, src, low, mid, c);
-        mergeSort(dest, src, mid, high, c);
+        mergeSort(dest, src, low, mid, -off, c);
+        mergeSort(dest, src, mid, high, -off, c);
 
         // If list is already sorted, just copy from src to dest.  This is an
         // optimization that results in faster sorts for nearly ordered lists.
         if (c.compare(src[mid-1], src[mid]) <= 0) {
-           System.arraycopy(src, low, dest, low, length);
+           System.arraycopy(src, low, dest, destLow, length);
            return;
         }
 
         // Merge sorted halves (now in src) into dest
-        for(int i = low, p = low, q = mid; i < high; i++) {
-            if (q>=high || p<mid && c.compare(src[p], src[q]) <= 0)
+        for(int i = destLow, p = low, q = mid; i < destHigh; i++) {
+            if (q >= high || p < mid && c.compare(src[p], src[q]) <= 0)
                 dest[i] = src[p++];
             else
                 dest[i] = src[q++];

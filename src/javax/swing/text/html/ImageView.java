@@ -1,7 +1,7 @@
 /*
- * @(#)ImageView.java	1.50 01/12/03
+ * @(#)ImageView.java	1.53 03/03/17
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * as of 1.4.
  *
  * @author  Scott Violet
- * @version 1.50 12/03/01
+ * @version 1.53 03/17/03
  * @see IconView
  * @since 1.4
  */
@@ -869,12 +869,22 @@ public class ImageView extends View {
      */
     private void safePreferenceChanged() {
         if (SwingUtilities.isEventDispatchThread()) {
-            preferenceChanged(null, true, true);
+            Document doc = getDocument();
+            try {
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).readLock();
+                }
+                preferenceChanged(null, true, true);
+            } finally {
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).readUnlock();
+                }
+            }
         }
         else {
             SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        preferenceChanged(null, true, true);
+                        safePreferenceChanged();
                     }
                 });
         }
@@ -968,17 +978,7 @@ public class ImageView extends View {
             }
             if (changed != 0) {
                 // May need to resize myself, asynchronously:
-                Document doc = getDocument();
-                try {
-                    if (doc instanceof AbstractDocument) {
-                        ((AbstractDocument)doc).readLock();
-                    }
-                    safePreferenceChanged();
-                } finally {
-                    if (doc instanceof AbstractDocument) {
-                        ((AbstractDocument)doc).readUnlock();
-                    }
-                }
+                safePreferenceChanged();
                 return true;
             }
 

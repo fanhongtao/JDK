@@ -385,7 +385,6 @@ public class SerializerToText extends SerializerToXML
           m_writer.write(c);
         }
 
-        // This needs to go into a function... 
         else if (isUTF16Surrogate(c))
         {
           i = writeUTF16Surrogate(c, ch, i, end);
@@ -510,15 +509,33 @@ public class SerializerToText extends SerializerToXML
 
   /**
    * Called when a Comment is to be constructed.
+   * Note that Xalan will normally invoke the other version of this method.
+   * %REVIEW% In fact, is this one ever needed, or was it a mistake?
+   *
    * @param   data  The comment data.
    * @throws org.xml.sax.SAXException Any SAX exception, possibly
    *            wrapping another exception.
-   *
-   * @throws org.xml.sax.SAXException
    */
   public void comment(String data) throws org.xml.sax.SAXException
   {
+    // No action for the moment.
+  }
 
+  /**
+   * Report an XML comment anywhere in the document.
+   *
+   * This callback will be used for comments inside or outside the
+   * document element, including comments in the external DTD
+   * subset (if read).
+   *
+   * @param ch An array holding the characters in the comment.
+   * @param start The starting position in the array.
+   * @param length The number of characters to use from the array.
+   * @throws org.xml.sax.SAXException The application may raise an exception.
+   */
+  public void comment(char ch[], int start, int length)
+          throws org.xml.sax.SAXException
+  {
     // No action for the moment.
   }
 

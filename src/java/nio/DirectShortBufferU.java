@@ -1,7 +1,7 @@
 /*
- * @(#)Direct-X-Buffer.java	1.39 02/05/06
+ * @(#)Direct-X-Buffer.java	1.45 03/04/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@
 
 package java.nio;
 
+import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 import sun.nio.ch.FileChannelImpl;
@@ -34,9 +35,6 @@ class DirectShortBufferU
     // Base address, used in all indexing calculations
     // NOTE: moved up to Buffer.java for speed in JNI GetDirectBufferAddress
     //    protected long address;
-
-    // True iff this buffer should be freed
-    protected boolean allocated;
 
     // If this buffer is a view of another buffer then we keep a reference to
     // that buffer so that its memory isn't freed before we're done with it
@@ -81,6 +79,7 @@ class DirectShortBufferU
 
 
 
+    public Cleaner cleaner() { return null; }
 
 
 
@@ -113,26 +112,37 @@ class DirectShortBufferU
 
 
 
-    DirectShortBufferU(DirectByteBuffer bb) { 	// package-private
-
-	super(-1, 0,
-	      bb.remaining() >> 1,
-	      bb.remaining() >> 1);
-	// enforce limit == capacity
-	int cap = this.capacity();
-	this.limit(cap);
-	int pos = this.position();
-	assert (pos <= cap);
- 	address = bb.address() + pos;
-	allocated = false;
-	viewedBuffer = bb;
 
 
 
-    }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // For duplicates and slices
+    //
     DirectShortBufferU(DirectBuffer db,	        // package-private
 			       int mark, int pos, int lim, int cap,
 			       int off)
@@ -140,8 +150,10 @@ class DirectShortBufferU
 
 	super(mark, pos, lim, cap);
 	address = db.address() + off;
-	allocated = false;
 	viewedBuffer = db;
+
+
+
 
 
 
@@ -189,11 +201,11 @@ class DirectShortBufferU
     }
 
     public short get() {
-	return (unsafe.getShort(ix(nextGetIndex())));
+	return ((unsafe.getShort(ix(nextGetIndex()))));
     }
 
     public short get(int i) {
-	return (unsafe.getShort(ix(checkIndex(i))));
+	return ((unsafe.getShort(ix(checkIndex(i)))));
     }
 
     public ShortBuffer get(short[] dst, int offset, int length) {
@@ -209,8 +221,8 @@ class DirectShortBufferU
 
 	    if (order() != ByteOrder.nativeOrder())
 		Bits.copyToShortArray(ix(pos), dst,
-				       offset << 1,
-				       length << 1);
+					  offset << 1,
+					  length << 1);
 	    else
 		Bits.copyToByteArray(ix(pos), dst,
 				     offset << 1,
@@ -229,7 +241,7 @@ class DirectShortBufferU
 
     public ShortBuffer put(short x) {
 
-	unsafe.putShort(ix(nextPutIndex()), (x));
+	unsafe.putShort(ix(nextPutIndex()), ((x)));
 	return this;
 
 
@@ -238,7 +250,7 @@ class DirectShortBufferU
 
     public ShortBuffer put(int i, short x) {
 
-	unsafe.putShort(ix(checkIndex(i)), (x));
+	unsafe.putShort(ix(checkIndex(i)), ((x)));
 	return this;
 
 
@@ -274,7 +286,7 @@ class DirectShortBufferU
 	    assert (spos <= slim);
 	    int srem = (spos <= slim ? slim - spos : 0);
 
-	    put(src.array(), src.arrayOffset() + spos, srem);
+	    put(src.hb, src.offset + spos, srem);
 	    src.position(spos + srem);
 
 	} else {
@@ -299,7 +311,7 @@ class DirectShortBufferU
 
 	    if (order() != ByteOrder.nativeOrder()) 
 		Bits.copyFromShortArray(src, offset << 1,
-					 ix(pos), length << 1);
+					    ix(pos), length << 1);
 	    else
 		Bits.copyFromByteArray(src, offset << 1,
 				       ix(pos), length << 1);
@@ -389,23 +401,6 @@ class DirectShortBufferU
 		? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

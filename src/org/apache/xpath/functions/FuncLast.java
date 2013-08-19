@@ -71,6 +71,8 @@ import org.apache.xpath.NodeSetDTM;
 import org.apache.xpath.axes.LocPathIterator;
 import org.apache.xpath.axes.ContextNodeList;
 import org.apache.xpath.axes.SubContextList;
+import org.apache.xpath.compiler.Compiler;
+
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -78,6 +80,17 @@ import org.apache.xpath.axes.SubContextList;
  */
 public class FuncLast extends Function
 {
+  
+  private boolean m_isTopLevel;
+  
+  /**
+   * Figure out if we're executing a toplevel expression.
+   * If so, we can't be inside of a predicate. 
+   */
+  public void postCompileStep(Compiler compiler)
+  {
+    m_isTopLevel = compiler.getLocationPathDepth() == -1;
+  }
 
   /**
    * Get the position in the current context node list.
@@ -94,7 +107,8 @@ public class FuncLast extends Function
 
     // assert(null != m_contextNodeList, "m_contextNodeList must be non-null");
     // If we're in a predicate, then this will return non-null.
-    SubContextList iter = xctxt.getSubContextList();
+    SubContextList iter = m_isTopLevel ? null : xctxt.getSubContextList();
+
     // System.out.println("iter: "+iter);
     if (null != iter)
       return iter.getLastPos(xctxt);

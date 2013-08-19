@@ -886,7 +886,7 @@ public class SerializerToHTML extends SerializerToXML
     {
       char ch = stringArray[i];
 
-      if ((ch < 33) || (ch > 126))
+      if ((ch < 32) || (ch > 126))
       {
         if (doURLEscaping)
         {
@@ -981,7 +981,7 @@ public class SerializerToHTML extends SerializerToXML
           }
 
         }
-        else if (ch < m_maxCharacter)
+        else if (canConvert(ch))
         {
           accum(ch);
         }
@@ -1001,7 +1001,9 @@ public class SerializerToHTML extends SerializerToXML
 // The encoded signes are in Hex form. So %xx my be in form %3C that is "<" sign. I will try to change here a little.
           
 //        if( ((i+2) < len) && isASCIIDigit(stringArray[i+1]) && isASCIIDigit(stringArray[i+2]) )
-        if ( ((i+2) < len) && isHHSign(new String(stringArray,i+1,2)) )
+        
+// We are no longer escaping '%'
+       /* if ( ((i+2) < len) && isHHSign(new String(stringArray,i+1,2)) )
         {
           accum(ch);
         }
@@ -1012,9 +1014,9 @@ public class SerializerToHTML extends SerializerToXML
            accum('%');
            accum(makeHHString(ch));
           }
-          else
+          else*/
             accum(ch);
-        }   
+       // }   
                
       } 
       // Since http://www.ietf.org/rfc/rfc2396.txt refers to the URI grammar as
@@ -1060,7 +1062,7 @@ public class SerializerToHTML extends SerializerToXML
       // System.out.println("ch: "+(int)ch);
       // System.out.println("m_maxCharacter: "+(int)m_maxCharacter);
       // System.out.println("m_attrCharsMap[ch]: "+(int)m_attrCharsMap[ch]);
-      if ((ch < m_maxCharacter) && (!m_charInfo.isSpecial(ch)))
+      if (canConvert(ch) && (!m_charInfo.isSpecial(ch)))
       {
         accum(ch);
       }
@@ -1113,22 +1115,15 @@ public class SerializerToHTML extends SerializerToXML
             accum(entityName);
             accum(';');
           }
-          else if (ch < m_maxCharacter)
+          else if (canConvert(ch))
           {
             accum(ch);  // no escaping in this case
           }
           else
           {
-            if (ch < m_maxCharacter)
-            {
-              accum(ch);  // no escaping in this case
-            }
-            else
-            {
-              accum("&#");
-              accum(Integer.toString(ch));
-              accum(';');
-            }
+            accum("&#");
+            accum(Integer.toString(ch));
+            accum(';');
           }
         }
       }

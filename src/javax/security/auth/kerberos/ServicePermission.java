@@ -1,7 +1,7 @@
 /*
- * @(#)ServicePermission.java	1.5 01/12/03
+ * @(#)ServicePermission.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,9 @@ package javax.security.auth.kerberos;
 import java.util.*;
 import java.security.Permission;
 import java.security.PermissionCollection;
+import java.io.ObjectStreamField;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
@@ -436,12 +439,12 @@ public final class ServicePermission extends Permission
 final class KrbServicePermissionCollection extends PermissionCollection 
     implements java.io.Serializable {
 
-    private Vector permissions;
+    // Not serialized; see serialization section at end of class
+    private transient List perms;
 
     public KrbServicePermissionCollection() {
-	permissions = new Vector();
+	perms = new ArrayList();
     }
-
     
     /**
      * Check and see if this collection of permissions implies the permissions 
@@ -462,15 +465,14 @@ final class KrbServicePermissionCollection extends PermissionCollection
 	int effective = 0;
 	int needed = desired;
 
-	Enumeration e = permissions.elements();
+	int len = perms.size();
 	
 	// need to deal with the case where the needed permission has
 	// more than one action and the collection has individual permissions
 	// that sum up to the needed.
 
-	while (e.hasMoreElements()) {
-	    ServicePermission x =
-		(ServicePermission) e.nextElement();
+	for (int i = 0; i < len; i++) {
+	    ServicePermission x = (ServicePermission) perms.get(i);
 
 	    //System.out.println("  trying "+x);
 	    if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(np)) {
@@ -503,7 +505,7 @@ final class KrbServicePermissionCollection extends PermissionCollection
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
-	permissions.add(0, permission);
+	perms.add(0, permission);
     }
 
     /**
@@ -514,7 +516,56 @@ final class KrbServicePermissionCollection extends PermissionCollection
      */
 
     public Enumeration elements() {
-	return permissions.elements();
+        // Convert Iterator into Enumeration
+	return Collections.enumeration(perms);
     }
 
+    private static final long serialVersionUID = -4118834211490102011L;
+
+    // Need to maintain serialization interoperability with earlier releases,
+    // which had the serializable field:
+    // private Vector permissions;
+
+    /**
+     * @serialField permissions java.util.Vector
+     *     A list of ServicePermission objects.
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("permissions", Vector.class),
+    };
+
+    /**
+     * @serialData "permissions" field (a Vector containing the ServicePermissions).
+     */
+    /*
+     * Writes the contents of the perms field out as a Vector for
+     * serialization compatibility with earlier releases.
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+	// Don't call out.defaultWriteObject()
+
+	// Write out Vector
+	Vector permissions = new Vector(perms.size());
+	permissions.addAll(perms);
+
+        ObjectOutputStream.PutField pfields = out.putFields();
+        pfields.put("permissions", permissions);
+        out.writeFields();
+    }
+
+    /*
+     * Reads in a Vector of ServicePermissions and saves them in the perms field.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, 
+    ClassNotFoundException {
+	// Don't call defaultReadObject()
+
+	// Read in serialized fields
+	ObjectInputStream.GetField gfields = in.readFields();
+
+	// Get the one we want
+	Vector permissions = (Vector)gfields.get("permissions", null);
+	perms = new ArrayList(permissions.size());
+	perms.addAll(permissions);
+    }
 }

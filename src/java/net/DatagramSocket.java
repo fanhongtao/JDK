@@ -1,5 +1,5 @@
 /*
- * @(#)DatagramSocket.java	1.89 03/04/25
+ * @(#)DatagramSocket.java	1.90 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,7 +42,7 @@ import java.security.PrivilegedExceptionAction;
  * UDP port 8888.
  *
  * @author  Pavani Diwanji
- * @version 1.89, 04/25/03
+ * @version 1.90, 01/23/03
  * @see     java.net.DatagramPacket
  * @see     java.nio.channels.DatagramChannel
  * @since JDK1.0
@@ -67,15 +67,31 @@ class DatagramSocket {
      */
     boolean oldImpl = false;
 
-    boolean connected = false;
+    /*
+     * Connection state:
+     * ST_NOT_CONNECTED = socket not connected
+     * ST_CONNECTED = socket connected
+     * ST_CONNECTED_NO_IMPL = socket connected but not at impl level
+     */
+    static final int ST_NOT_CONNECTED = 0;
+    static final int ST_CONNECTED = 1;
+    static final int ST_CONNECTED_NO_IMPL = 2;
+
+    int connectState = ST_NOT_CONNECTED;
+
+    /*
+     * Connected address & port
+     */
     InetAddress connectedAddress = null;
     int connectedPort = -1;
 
     /**
      * Connects this socket to a remote socket address (IP address + port number).
+     * Binds socket if not already bound.
      * <p>
      * @param   addr    The remote address.
-     * @throws  SocketException if the connect fails.
+     * @param	port	The remote port
+     * @throws  SocketException if binding the socket fails.
      */
     private synchronized void connectInternal(InetAddress address, int port) throws SocketException {
         if (port < 0 || port > 0xFFFF) {
@@ -99,12 +115,24 @@ class DatagramSocket {
 	if (!isBound())
 	  bind(new InetSocketAddress(0));
 
-	if (!oldImpl)
-	    getImpl().connect(address, port);
+	// old impls do not support connect/disconnect
+	if (oldImpl) {
+	    connectState = ST_CONNECTED_NO_IMPL;
+	} else {
+	    try {
+	        getImpl().connect(address, port);
+
+		// socket is now connected by the impl
+		connectState = ST_CONNECTED;
+	    } catch (SocketException se) {
+
+		// connection will be emulated by DatagramSocket
+		connectState = ST_CONNECTED_NO_IMPL;
+	    }
+	}
 
         connectedAddress = address;
         connectedPort = port;
-        connected = true;
     }
 
 
@@ -236,20 +264,20 @@ class DatagramSocket {
     private void checkOldImpl() {
 	if (impl == null)
 	    return;
-        // DatagramSocketImpl.peekdata() is a protected method, therefore we need to use
-        // getDeclaredMethod, therefore we need permission to access the member
-        try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction() {
-                    public Object run() throws NoSuchMethodException {
-                        Class[] cl = new Class[1];
-                        cl[0] = DatagramPacket.class;
-                        impl.getClass().getDeclaredMethod("peekData", cl);
-                        return null;
-                    }
-                });
-        } catch (java.security.PrivilegedActionException e) {
-            oldImpl = true;
-        }
+	// DatagramSocketImpl.peekdata() is a protected method, therefore we need to use
+	// getDeclaredMethod, therefore we need permission to access the member
+	try {
+	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws NoSuchMethodException {
+			Class[] cl = new Class[1];
+			cl[0] = DatagramPacket.class;
+			impl.getClass().getDeclaredMethod("peekData", cl);
+			return null;
+		    }
+		});
+	} catch (java.security.PrivilegedActionException e) {
+	    oldImpl = true;
+	}
     }
 
     static Class implClass = null;
@@ -385,7 +413,9 @@ class DatagramSocket {
     public void connect(InetAddress address, int port) {
 	try {
 	    connectInternal(address, port);
-	} catch (SocketException e) { }
+	} catch (SocketException se) { 
+	    throw new Error("connect failed", se);
+	}
     }
 
     /**
@@ -419,12 +449,12 @@ class DatagramSocket {
 	synchronized (this) {
 	    if (isClosed())
 		return;
-	    if (connected && (!oldImpl)) {
+	    if (connectState == ST_CONNECTED) {
 	    	impl.disconnect ();
 	    }
 	    connectedAddress = null;
 	    connectedPort = -1;
-	    connected = false;
+	    connectState = ST_NOT_CONNECTED;
 	}
     }
 
@@ -445,7 +475,7 @@ class DatagramSocket {
      * @since 1.4
      */
     public boolean isConnected() {
-	return connected;
+	return connectState != ST_NOT_CONNECTED;
     }
 
     /**
@@ -545,7 +575,7 @@ class DatagramSocket {
 	synchronized (p) {
 	    if (isClosed())
 		throw new SocketException("Socket is closed");
-	    if (!connected) {
+	    if (connectState == ST_NOT_CONNECTED) {
 		// check the address is ok wiht the security manager on every send.
 		SecurityManager security = System.getSecurityManager();
 
@@ -617,7 +647,7 @@ class DatagramSocket {
       	synchronized (p) {
 	    if (!isBound())
 		bind(new InetSocketAddress(0));
-	    if (!connected) {
+	    if (connectState == ST_NOT_CONNECTED) {
 		// check the address is ok with the security manager before every recv.
 		SecurityManager security = System.getSecurityManager();
 		if (security != null) {
@@ -657,9 +687,10 @@ class DatagramSocket {
 		    } // end of while
 		}
 	    }
-	    if (connected && oldImpl) {
+	    if (connectState == ST_CONNECTED_NO_IMPL) {
 		// We have to do the filtering the old fashioned way since
-		// the native impl doesn't support connect
+		// the native impl doesn't support connect or the connect
+		// via the impl failed.
 		boolean stop = false;
 		while (!stop) {
 		    // peek at the packet to see who it is from.

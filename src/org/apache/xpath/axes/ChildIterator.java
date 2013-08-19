@@ -122,27 +122,8 @@ public class ChildIterator extends LocPathIterator
    */
   public int nextNode()
   {
-
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    if ((null != m_cachedNodes)
-            && (m_next < m_cachedNodes.size()))
-    {
-      int next = m_cachedNodes.elementAt(m_next);
-    
-      incrementNextPosition();
-      m_currentContextNode = next;
-
-      return next;
-    }
-
-    if (m_foundLast)
-    {
-      m_lastFetched = DTM.NULL;
-      return DTM.NULL;
-    }
+  	if(m_foundLast)
+  		return DTM.NULL;
 
     int next;
 
@@ -153,11 +134,7 @@ public class ChildIterator extends LocPathIterator
     // m_lastFetched = next;
     if (DTM.NULL != next)
     {
-      if (null != m_cachedNodes)
-        m_cachedNodes.addElement(m_lastFetched);
-
-      m_next++;
-
+      m_pos++;
       return next;
     }
     else

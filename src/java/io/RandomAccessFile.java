@@ -1,7 +1,7 @@
 /*
- * @(#)RandomAccessFile.java	1.68 02/02/06
+ * @(#)RandomAccessFile.java	1.72 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.68, 02/06/02
+ * @version 1.72, 01/23/03
  * @since   JDK1.0
  */
 
@@ -103,7 +103,8 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * in which the file is to be opened.  The permitted values and their
      * meanings are:
      *
-     * <blockquote><table>
+     * <blockquote><table summary="Access mode permitted values and meanings">
+     * <tr><th><p align="left">Value</p></th><th><p align="left">Meaning</p></th></tr>
      * <tr><td valign="top"><tt>"r"</tt></td>
      *     <td> Open for reading only.  Invoking any of the <tt>write</tt>
      *     methods of the resulting object will cause an {@link
@@ -196,6 +197,9 @@ public class RandomAccessFile implements DataOutput, DataInput {
 		security.checkWrite(name);
 	    }
 	}
+        if (name == null) {
+            throw new NullPointerException();
+        }
 	fd = new FileDescriptor();
 	open(name, imode);
     }
@@ -514,7 +518,11 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * @revised 1.4
      * @spec JSR-51
      */
-    public native void close() throws IOException; // ## Must close channel
+    public void close() throws IOException {
+        if (channel != null)
+            channel.close();
+        close0();
+    }
 
     //
     //  Some "reading/writing Java data types" methods stolen from
@@ -1034,6 +1042,8 @@ public class RandomAccessFile implements DataOutput, DataInput {
     }
 
     private static native void initIDs();
+
+    private native void close0() throws IOException;
 
     static {
 	initIDs();

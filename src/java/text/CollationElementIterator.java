@@ -1,7 +1,7 @@
 /*
- * @(#)CollationElementIterator.java	1.42 02/04/17
+ * @(#)CollationElementIterator.java	1.45 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -242,6 +242,7 @@ public final class CollationElementIterator
      * updates the pointer.  This means that when you change direction while
      * iterating (i.e., call next() and then call previous(), or call previous()
      * and then call next()), you'll get back the same element twice.</p>
+     * @since 1.2
      */
     public int previous()
     {
@@ -362,19 +363,20 @@ public final class CollationElementIterator
     }
 
     /**
-      * Sets the iterator to point to the collation element corresponding to
-      * the specified character (the parameter is a CHARACTER offset in the
-      * original string, not an offset into its corresponding sequence of
-      * collation elements).  The value returned by the next call to next()
-      * will be the collation element corresponding to the specified position
-      * in the text.  If that position is in the middle of a contracting
-      * character sequence, the result of the next call to next() is the
-      * collation element for that sequence.  This means that getOffset()
-      * is not guaranteed to return the same value as was passed to a preceding
-      * call to setOffset().
-      *
-      * @param newOffset The new character offset into the original text.
-      */
+     * Sets the iterator to point to the collation element corresponding to
+     * the specified character (the parameter is a CHARACTER offset in the
+     * original string, not an offset into its corresponding sequence of
+     * collation elements).  The value returned by the next call to next()
+     * will be the collation element corresponding to the specified position
+     * in the text.  If that position is in the middle of a contracting
+     * character sequence, the result of the next call to next() is the
+     * collation element for that sequence.  This means that getOffset()
+     * is not guaranteed to return the same value as was passed to a preceding
+     * call to setOffset().
+     *
+     * @param newOffset The new character offset into the original text.
+     * @since 1.2
+     */
     public void setOffset(int newOffset)
     {
         if (text != null) {
@@ -415,18 +417,19 @@ public final class CollationElementIterator
     }
 
     /**
-      * Returns the character offset in the original text corresponding to the next
-      * collation element.  (That is, getOffset() returns the position in the text
-      * corresponding to the collation element that will be returned by the next
-      * call to next().)  This value will always be the index of the FIRST character
-      * corresponding to the collation element (a contracting character sequence is
-      * when two or more characters all correspond to the same collation element).
-      * This means if you do setOffset(x) followed immediately by getOffset(), getOffset()
-      * won't necessarily return x.
-      *
-      * @return The character offset in the original text corresponding to the collation
-      * element that will be returned by the next call to next().
-      */
+     * Returns the character offset in the original text corresponding to the next
+     * collation element.  (That is, getOffset() returns the position in the text
+     * corresponding to the collation element that will be returned by the next
+     * call to next().)  This value will always be the index of the FIRST character
+     * corresponding to the collation element (a contracting character sequence is
+     * when two or more characters all correspond to the same collation element).
+     * This means if you do setOffset(x) followed immediately by getOffset(), getOffset()
+     * won't necessarily return x.
+     *
+     * @return The character offset in the original text corresponding to the collation
+     * element that will be returned by the next call to next().
+     * @since 1.2
+     */
     public int getOffset()
     {
         return (text != null) ? text.getIndex() : 0;
@@ -434,25 +437,23 @@ public final class CollationElementIterator
 
 
     /**
-      * Return the maximum length of any expansion sequences that end
-      * with the specified comparison order.
-      * @param order a collation order returned by previous or next.
-      * @return the maximum length of any expansion sequences ending
-      *         with the specified order.
-      */
+     * Return the maximum length of any expansion sequences that end
+     * with the specified comparison order.
+     * @param order a collation order returned by previous or next.
+     * @return the maximum length of any expansion sequences ending
+     *         with the specified order.
+     * @since 1.2
+     */
     public int getMaxExpansion(int order)
     {
         return ordering.getMaxExpansion(order);
     }
 
-    //============================================================
-    // Package-visible methods that should eventually be made public
-    //============================================================
-
     /**
      * Set a new string over which to iterate.
      *
-     * @param str the new source text.
+     * @param source  the new source text
+     * @since 1.2
      */
     public void setText(String source)
     {
@@ -472,7 +473,8 @@ public final class CollationElementIterator
     /**
      * Set a new string over which to iterate.
      *
-     * @param str the new source text.
+     * @param source  the new source text.
+     * @since 1.2
      */
     public void setText(CharacterIterator source)
     {

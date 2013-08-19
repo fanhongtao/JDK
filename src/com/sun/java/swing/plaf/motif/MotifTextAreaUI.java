@@ -1,7 +1,7 @@
 /*
- * @(#)MotifTextAreaUI.java	1.20 01/12/03
+ * @(#)MotifTextAreaUI.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
@@ -24,7 +24,7 @@ import javax.swing.plaf.basic.BasicTextAreaUI;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.20 12/03/01
+ * @version 1.21 01/23/03
  */
 public class MotifTextAreaUI extends BasicTextAreaUI {
 

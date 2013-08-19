@@ -100,7 +100,7 @@ class ProcessorImport extends ProcessorInclude
    *
    * @return the appropriate error number
    */
-  protected int getStylesheetInclErr()
+  protected String getStylesheetInclErr()
   {
     return XSLTErrorResources.ER_IMPORTING_ITSELF;
   }

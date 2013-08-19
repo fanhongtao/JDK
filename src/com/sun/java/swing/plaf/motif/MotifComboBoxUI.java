@@ -1,7 +1,7 @@
 /*
- * @(#)MotifComboBoxUI.java	1.36 02/01/25
+ * @(#)MotifComboBoxUI.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
@@ -23,7 +23,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.36, 01/25/02
+ * @version 1.38, 01/23/03
  * @author Arnaud Weber
  */
 public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
@@ -93,6 +93,9 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         }
 
         protected class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
+	    protected InvocationKeyHandler() {
+		MotifComboPopup.this.super();
+	    }
 	}
     }
 
@@ -243,6 +246,9 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
      * Instantiate it only within subclasses of <FooUI>.
      */    	     
     public class ComboBoxLayoutManager extends BasicComboBoxUI.ComboBoxLayoutManager {
+	public ComboBoxLayoutManager() {
+	    MotifComboBoxUI.this.super();
+	}
         public void layoutContainer(Container parent) {
             if ( motifGetEditor() != null ) {
                 Rectangle cvb = rectangleForCurrentValue();

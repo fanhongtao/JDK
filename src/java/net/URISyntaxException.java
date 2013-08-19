@@ -1,7 +1,7 @@
 /*
- * @(#)URISyntaxException.java	1.3 01/12/03
+ * @(#)URISyntaxException.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.net;
  * URI reference.
  *
  * @author Mark Reinhold
- * @version 1.3, 01/12/03
+ * @version 1.4, 03/01/23
  * @see URI
  */
 

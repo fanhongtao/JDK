@@ -1,7 +1,7 @@
 /*
- * @(#)UnknownObjectException.java	1.9 01/12/03
+ * @(#)UnknownObjectException.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ package java.rmi.activation;
  * An <code>ActivationID</code> is also obtained during the
  * <code>Activatable.register</code> call.
  * 
- * @version 1.9, 12/03/01
+ * @version 1.10, 01/23/03
  * @author  Ann Wollrath
  * @since   1.2
  * @see     java.rmi.activation.Activatable

@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleContext.java	1.36 01/12/03
+ * @(#)AccessibleContext.java	1.39 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package javax.accessibility;
 import java.util.Locale;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeEvent;
 import java.awt.IllegalComponentStateException;
 
 /**
@@ -650,9 +651,14 @@ public abstract class AccessibleContext {
 				   Object oldValue, 
 				   Object newValue) {
         if (accessibleChangeSupport != null) {
-	    accessibleChangeSupport.firePropertyChange(propertyName, 
-						       oldValue, 
-						       newValue);
+	    if (newValue instanceof PropertyChangeEvent) {
+		PropertyChangeEvent pce = (PropertyChangeEvent)newValue;
+		accessibleChangeSupport.firePropertyChange(pce);
+	    } else {
+		accessibleChangeSupport.firePropertyChange(propertyName, 
+							   oldValue, 
+							   newValue);
+	    }
 	}
     }
 }

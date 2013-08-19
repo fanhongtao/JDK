@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleTimeZone.java	1.43 01/12/03
+ * @(#)SimpleTimeZone.java	1.45 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -124,7 +124,7 @@ import sun.util.calendar.Gregorian;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.43 12/03/01
+ * @version  1.45 01/23/03
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 
@@ -312,6 +312,17 @@ public class SimpleTimeZone extends TimeZone {
 			  int endMonth, int endDay, int endDayOfWeek,
 			  int endTime, int endTimeMode,
 			  int dstSavings) {
+
+	// Workaround fix for 4278609 (JCK failure)
+	if (endMonth == Calendar.JANUARY && endDay == 1 &&
+	    endDayOfWeek == 0 && endTime == 0 && endTimeMode == WALL_TIME &&
+	    dstSavings > 0) {
+	    endMonth = Calendar.DECEMBER;
+	    endDay = 31;
+	    endTime = (24 * 60 * 60 * 1000) - dstSavings;
+	    endTimeMode = STANDARD_TIME;
+	}
+
         setID(ID);
         this.rawOffset      = rawOffset;
         this.startMonth     = startMonth;

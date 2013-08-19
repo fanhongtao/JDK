@@ -1,7 +1,7 @@
 /*
- * @(#)BasicListUI.java	1.91 02/02/15
+ * @(#)BasicListUI.java	1.93 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.91 02/15/02
+ * @version 1.93 01/23/03
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -224,7 +224,8 @@ public class BasicListUI extends ListUI
 
     /**
      * The preferredSize of the list depends upon the layout orientation.
-     * <table><tr><td>Layout Orientation</td><td>Preferred Size</td></tr>
+     * <table summary="Describes the preferred size for each layout orientation">
+     * <tr><th>Layout Orientation</th><th>Preferred Size</th></tr>
      * <tr>
      *   <td>JList.VERTICAL
      *   <td>The preferredSize of the list is total height of the rows

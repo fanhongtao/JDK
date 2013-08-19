@@ -1,7 +1,7 @@
 /*
- * @(#)FactoryFinder.java	1.4 01/12/03
+ * @(#)FactoryFinder.java	1.7 03/02/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -131,7 +131,7 @@ class FactoryFinder {
         } catch (SecurityException se) {
         }
 
-        // try to read from $java.home/lib/xml.properties
+        // try to read from $java.home/lib/jaxp.properties
         try {
             String javah=System.getProperty( "java.home" );
             String configFile = javah + File.separator +
@@ -142,7 +142,9 @@ class FactoryFinder {
                 props.load( new FileInputStream(f));
                 String factoryClassName = props.getProperty(factoryId);
                 debugPrintln("found java.home property " + factoryClassName);
-                return newInstance(factoryClassName, classLoader);
+                if(factoryClassName != null){
+                    return newInstance(factoryClassName, classLoader);
+                }
             }
         } catch(Exception ex ) {
             if( debug ) ex.printStackTrace();

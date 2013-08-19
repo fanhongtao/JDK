@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPaneAdjustable.java	1.5 01/12/03
+ * @(#)ScrollPaneAdjustable.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -17,7 +17,7 @@ import java.io.Serializable;
  * scrollbar of a <code>ScrollPane</code>.  Objects of this class are
  * returned by <code>ScrollPane</code> methods.
  *
- * @version     1.5 12/03/01
+ * @version     1.7 01/23/03
  * @since	1.4
  */
 public class ScrollPaneAdjustable implements Adjustable, Serializable {
@@ -62,7 +62,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * 
      * @serial
      * @see #getMinimum
-     * @see #setSpan
+     * @see #setSpan(int, int, int)
      */
     private int minimum;
 
@@ -72,7 +72,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * 
      * @serial
      * @see #getMaximum
-     * @see #setSpan
+     * @see #setSpan(int, int, int)
      */
     private int maximum;
 
@@ -82,7 +82,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * 
      * @serial
      * @see #getVisibleAmount
-     * @see #setSpan
+     * @see #setSpan(int, int, int)
      */
     private int visibleAmount;
 

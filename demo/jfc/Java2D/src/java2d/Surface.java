@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)Surface.java	1.46 02/06/13
+ * @(#)Surface.java	1.48 03/01/23
  */
 
 package java2d;
@@ -173,10 +173,14 @@ public abstract class Surface extends JPanel implements Printable {
     }
 
 
-    public BufferedImage createBufferedImage(int w, int h, int imgType) {
+    public BufferedImage createBufferedImage(Graphics2D g2,
+                                             int w,
+                                             int h,
+                                             int imgType) {
         BufferedImage bi = null;
         if (imgType == 0) {
-            bi = (BufferedImage) getGraphicsConfiguration().createCompatibleImage(w, h);  
+            bi = (BufferedImage) g2.getDeviceConfiguration().
+                                    createCompatibleImage(w, h);  
         } else if (imgType > 0 && imgType < 14) {
             bi = new BufferedImage(w, h, imgType);
         } else if (imgType == 14) {
@@ -338,7 +342,8 @@ public abstract class Surface extends JPanel implements Printable {
         if (imageType == 1)
             bimg = null;
         else if (bimg == null || biw != d.width || bih != d.height) {
-            bimg = createBufferedImage(d.width, d.height, imageType-2);
+            bimg = createBufferedImage((Graphics2D)g,
+                                       d.width, d.height, imageType-2);
             clearOnce = true;
             toBeInitialized = true;
         }

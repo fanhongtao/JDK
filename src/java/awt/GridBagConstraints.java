@@ -1,7 +1,7 @@
 /*
- * @(#)GridBagConstraints.java	1.29 01/12/03
+ * @(#)GridBagConstraints.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -11,7 +11,7 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version 	1.29, 12/03/01
+ * @version 	1.31, 01/23/03
  * @author Doug Stein
  * @see java.awt.GridBagLayout
  * @since JDK1.0
@@ -395,14 +395,14 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * The minimum width of the component.  It is used to calculate
      * <code>ipady</code>, where the default will be 0.
      * @serial
-     * @see ipady
+     * @see #ipady
      */
   int minWidth;
    /**
      * The minimum height of the component. It is used to calculate
      * <code>ipadx</code>, where the default will be 0.
      * @serial
-     * @see ipadx
+     * @see #ipadx
      */
   int minHeight;
 

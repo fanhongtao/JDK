@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsTextFieldUI.java	1.17 01/12/03
+ * @(#)WindowsTextFieldUI.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import javax.swing.plaf.UIResource;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.17 12/03/01
+ * @version 1.19 01/23/03
  */
 public class WindowsTextFieldUI extends BasicTextFieldUI
 {
@@ -54,6 +54,33 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
      */
     public static ComponentUI createUI(JComponent c) {
         return new WindowsTextFieldUI();
+    }
+
+    /**
+     * Paints a background for the view.  This will only be
+     * called if isOpaque() on the associated component is
+     * true.  The default is to paint the background color 
+     * of the component.
+     *
+     * @param g the graphics context
+     */
+    protected void paintBackground(Graphics g) {
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    JTextComponent editor = getComponent();
+	    String key;
+	    if (!editor.isEnabled()) {
+		key = "edit.edittext(disabled).fillcolor";
+	    } else if (!editor.isEditable()) {
+		key = "edit.edittext(readonly).fillcolor";
+	    } else {
+		key = "edit.fillcolor";
+	    }
+	    g.setColor(xp.getColor(key, editor.getBackground()));
+	    g.fillRect(0, 0, editor.getWidth(), editor.getHeight());
+	} else {
+	    super.paintBackground(g);
+	}
     }
 
     /**

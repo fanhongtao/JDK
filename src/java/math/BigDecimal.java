@@ -1,10 +1,10 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)BigDecimal.java	1.40 02/06/11
+ * @(#)BigDecimal.java	1.42 03/01/23
  */
 
 package java.math;
@@ -59,7 +59,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.40, 06/11/02
+ * @version 1.42, 01/23/03
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {
@@ -101,7 +101,7 @@ public class BigDecimal extends Number implements Comparable {
      * (<tt>'&#92;u0075'</tt>) or <tt>'E'</tt> (<tt>'&#92;u0045'</tt>)
      * followed by one or more decimal digits.  The value of the
      * exponent must lie between -{@link Integer#MAX_VALUE} ({@link
-     * Integer#MIN_VALUE}+1) and {@link Integer.MAX_VALUE}, inclusive.
+     * Integer#MIN_VALUE}+1) and {@link Integer#MAX_VALUE}, inclusive.
      *
      * <p>More formally, the strings this constructor accepts are
      * described by the following grammar:

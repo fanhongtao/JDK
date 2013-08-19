@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractCellEditor.java	1.8 01/12/03
+ * @(#)AbstractCellEditor.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import java.util.EventObject;
 import java.io.Serializable;
 
 /**
- * @version 1.8 12/03/01 
+ * @version 1.10 01/23/03 
  * 
  * A base class for <code>CellEditors</code>, providing default
  * implementations for the methods in the <code>CellEditor</code>
@@ -52,7 +52,7 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
 
     /**
      * Returns true.
-     * @param e  an event object
+     * @param anEvent  an event object
      * @return true
      */
     public boolean shouldSelectCell(EventObject anEvent) { 

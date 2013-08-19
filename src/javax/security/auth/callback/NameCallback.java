@@ -1,7 +1,7 @@
 /*
- * @(#)NameCallback.java	1.11 02/02/25
+ * @(#)NameCallback.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package javax.security.auth.callback;
  * <code>NameCallback</code> to the <code>handle</code>
  * method of a <code>CallbackHandler</code> to retrieve name information.
  *
- * @version 1.11, 02/25/02
+ * @version 1.12, 01/23/03
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class NameCallback implements Callback, java.io.Serializable {

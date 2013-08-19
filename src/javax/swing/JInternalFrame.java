@@ -1,7 +1,7 @@
 /*
- * @(#)JInternalFrame.java	1.137 01/12/10
+ * @(#)JInternalFrame.java	1.139 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,7 +80,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see JRootPane
  *
- * @version 1.137 12/10/01
+ * @version 1.139 01/23/03
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo

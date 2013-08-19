@@ -1,7 +1,7 @@
 /*
- * @(#)SpringLayout.java	1.12 02/01/30
+ * @(#)SpringLayout.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -146,7 +146,7 @@ import java.util.*;
  * @see Spring
  * @see SpringLayout.Constraints
  *
- * @version  1.12 01/30/02
+ * @version  1.15 01/23/03
  * @author 	Philip Milne
  * @author 	Joe Winchester
  * @since       1.4
@@ -284,81 +284,48 @@ public class SpringLayout implements LayoutManager2 {
      * is over-constrained horizontally.
      *
      * <p>
-     * <table border=1>
-     * <tr>
-     * <td valign=top>
-     * <b>Value Being Set</b>
-     * <br>
-     * (method used)
-     * <td valign=top>
-     * <b>Result When Over-Constrained Horizontally</b>
-     * <br>
-     * (<code>x</code>, <code>width</code>, and the east edge
-     * are all non-<code>null</code>)
-     * <tr>
-     * <td>
-     * <code>x</code> or the west edge
-     * <br>
-     * (<code>setX</code> or <code>setConstraint</code>)
-     * <td>
-     * <code>width</code> value is automatically set to <code>east - x</code>.
      *
-     * <tr>
-     * <td>
-     * <code>width</code>
-     * <br>
-     * (<code>setWidth</code>)
-     * <td>
-     * east edge's value is automatically set to <code>x + width</code>.
-     *
-     * <tr>
-     * <td>
-     * east edge
-     * <br>
-     * (<code>setConstraint</code>)
-     * <td>
-     * <code>x</code> value is automatically set to
-     * <code>east - width</code>.
-     * </table>
+     * <table border=1 summary="Shows which value changes when a Constraints object is over-constrained horizontally">
+     *   <tr>
+     *     <th valign=top>Value Being Set<br>(method used)</th>
+     *     <th valign=top>Result When Over-Constrained Horizontally<br>
+     *      (<code>x</code>, <code>width</code>, and the east edge are all non-<code>null</code>)</th>
+     *   </tr>
+     *   <tr>
+     *     <td><code>x</code> or the west edge <br>(<code>setX</code> or <code>setConstraint</code>)</td>
+     *     <td><code>width</code> value is automatically set to <code>east - x</code>.</td>
+     *   </tr>
+     *   <tr>
+     *     <td><code>width</code><br>(<code>setWidth</code>)</td>
+     *     <td>east edge's value is automatically set to <code>x + width</code>.</td>
+     *   </tr>
+     *   <tr>
+     *     <td>east edge<br>(<code>setConstraint</code>)</td>
+     *     <td><code>x</code> value is automatically set to <code>east - width</code>.</td>
+     *   </tr>
+     *   </table>
      *
      * <p>
      * The rules for the vertical properties are similar:
      * <p>
-     * <table border=1>
-     * <tr>
-     * <td valign=top>
-     * <b>Value Being Set</b>
-     * <br>
-     * (method used)
-     * <td valign=top>
-     * <b>Result When Over-Constrained Vertically</b>
-     * <br>
-     * (<code>y</code>, <code>height</code>, and the south edge
-     * are all non-<code>null</code>)
-     * <tr>
-     * <td>
-     * <code>y</code> or the north edge
-     * <br>
-     * (<code>setY</code> or <code>setConstraint</code>)
-     * <td>
-     * <code>height</code> value is automatically set to <code>south - y</code>.
      *
+     * <table border=1 summary="Shows which value changes when a Constraints object is over-constrained vertically">
      * <tr>
-     * <td>
-     * <code>height</code>
-     * <br>
-     * (<code>setHeight</code>)
-     * <td>
-     * south edge's value is automatically set to <code>y + height</code>.
-     *
+     *  <th valign=top>Value Being Set<br>(method used)</th>
+     *  <th valign=top>Result When Over-Constrained Vertically<br>(<code>y</code>, <code>height</code>, and the south edge are all non-<code>null</code>)</th>
+     * </tr>
      * <tr>
-     * <td>
-     * south edge
-     * <br>
-     * (<code>setConstraint</code>)
-     * <td>
-     * <code>y</code> value is automatically set to
-     * <code>south - height</code>.
+     *   <td><code>y</code> or the north edge<br>(<code>setY</code> or <code>setConstraint</code>)</td>
+     *   <td><code>height</code> value is automatically set to <code>south - y</code>.</td>
+     * </tr>
+     * <tr>
+     *   <td><code>height</code><br>(<code>setHeight</code>)</td>
+     *   <td>south edge's value is automatically set to <code>y + height</code>.</td>
+     * </tr>
+     * <tr>
+     *   <td>south edge<br>(<code>setConstraint</code>)</td>
+     *   <td><code>y</code> value is automatically set to <code>south - height</code>.</td>
+     * </tr>
      * </table>
      *
      */
@@ -922,17 +889,17 @@ public class SpringLayout implements LayoutManager2 {
         if (constraints == null) {
            constraints = new Constraints();
         }
-        if (constraints.getX() == null) {
-            constraints.setX(Spring.constant(0));
-        }
-        if (constraints.getY() == null) {
-            constraints.setY(Spring.constant(0));
-        }
         if (constraints.getWidth() == null) {
             constraints.setWidth(new WidthSpring(c));
         }
         if (constraints.getHeight() == null) {
             constraints.setHeight(new HeightSpring(c));
+        }
+        if (constraints.getX() == null) {
+            constraints.setX(Spring.constant(0));
+        }
+        if (constraints.getY() == null) {
+            constraints.setY(Spring.constant(0));
         }
         return constraints;
     }

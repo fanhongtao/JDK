@@ -1,7 +1,7 @@
 /*
- * @(#)JDialog.java	1.68 02/03/20
+ * @(#)JDialog.java	1.71 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -76,7 +76,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.68 03/20/02
+ * @version 1.71 01/28/03
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
@@ -419,16 +419,21 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * the user initiates a "close" on this dialog.
      * The possible choices are:
      * <ul>
-     * <li>DO_NOTHING_ON_CLOSE - do not do anything - require the
+     * <li><code>DO_NOTHING_ON_CLOSE</code> - do not do anything - require the
      * program to handle the operation in the <code>windowClosing</code>
      * method of a registered <code>WindowListener</code> object.
-     * <li>HIDE_ON_CLOSE - automatically hide the dialog after
+     * <li><code>HIDE_ON_CLOSE</code> - automatically hide the dialog after
      * invoking any registered <code>WindowListener</code> objects
-     * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
+     * <li><code>DISPOSE_ON_CLOSE</code> - automatically hide and dispose the 
      * dialog after invoking any registered <code>WindowListener</code> objects
      * </ul>
      * <p>
-     * The value is set to HIDE_ON_CLOSE by default.
+     * The value is set to <code>HIDE_ON_CLOSE</code> by default.
+     * <p>
+     * <b>Note</b>: When the last displayable window within the
+     * Java virtual machine (VM) is disposed of, the VM may
+     * terminate.  See <a href="../../java/awt/doc-files/AWTThreadIssues.html">
+     * AWT Threading Issues</a> for more information.
      * @see #addWindowListener
      * @see #getDefaultCloseOperation
      *
@@ -465,7 +470,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
    /**
     * Sets the menubar for this dialog.
     *
-    * @param menubar the menubar being placed in the dialog
+    * @param menu the menubar being placed in the dialog
     *
     * @see #getJMenuBar
     *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)ImageMapArea.java	1.14 02/06/13
+ * @(#)ImageMapArea.java	1.15 03/01/23
  */
 
 import java.awt.Graphics;
@@ -50,7 +50,7 @@ import java.net.MalformedURLException;
  * classes will need and delegates specific actions to the subclasses.
  *
  * @author 	Jim Graham
- * @version 	1.14, 06/13/02
+ * @version 	1.15, 01/23/03
  */
 class ImageMapArea implements ImageObserver {
     /** The applet parent that contains this ImageArea. */

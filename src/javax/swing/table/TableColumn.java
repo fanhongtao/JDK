@@ -1,7 +1,7 @@
 /*
- * @(#)TableColumn.java	1.56 02/04/17
+ * @(#)TableColumn.java	1.57 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.beans.PropertyChangeListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.56 04/17/02
+ * @version 1.57 01/23/03
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.table.TableColumnModel

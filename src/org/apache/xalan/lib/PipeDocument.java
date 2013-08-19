@@ -112,9 +112,15 @@ import java.util.Vector;
 import java.util.Properties;
 
 /**
- * Sets stylesheet params and pipes an XML document through a series of 1 or more stylesheets.
+ * PipeDocument is a Xalan extension element to set stylesheet params and pipes an XML 
+ * document through a series of 1 or more stylesheets.
  * PipeDocument is invoked from a stylesheet as the {@link #pipeDocument pipeDocument extension element}.
  * 
+ * It is accessed by specifying a namespace URI as follows:
+ * <pre>
+ *    xmlns:pipe="http://xml.apache.org/xalan/PipeDocument"
+ * </pre>
+ *
  * @author Donald Leslie
  */
 public class PipeDocument
@@ -130,7 +136,7 @@ public class PipeDocument
  * Syntax:
  * &lt;xsl:stylesheet version="1.0"
  *                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
- *                xmlns:pipe="xalan://PipeDocument"
+ *                xmlns:pipe="http://xml.apache.org/xalan/PipeDocument"
  *                extension-element-prefixes="pipe"&gt;
  * ...
  * &lt;pipe:pipeDocument   source="source.xml" target="target.xml"&gt;

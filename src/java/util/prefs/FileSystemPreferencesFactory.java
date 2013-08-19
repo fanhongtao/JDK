@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemPreferencesFactory.java	1.2 01/12/03
+ * @(#)FileSystemPreferencesFactory.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.util.prefs;
  * java.util.prefs.PreferencesFactory system property.
  *
  * @author  Josh Bloch
- * @version 1.2, 12/03/01
+ * @version 1.4, 01/23/03
  * @see     FileSystemPreferences
  * @see     Preferences
  * @since   1.4
@@ -21,10 +21,10 @@ package java.util.prefs;
 
 class FileSystemPreferencesFactory implements PreferencesFactory {
     public Preferences userRoot() {
-        return FileSystemPreferences.userRoot;
+        return FileSystemPreferences.getUserRoot();
     }
 
     public Preferences systemRoot() {
-        return FileSystemPreferences.systemRoot;
+        return FileSystemPreferences.getSystemRoot();
     }
 }

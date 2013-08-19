@@ -65,7 +65,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * <code>NodeInfo</code> defines the XSLT extension functions to be
+ * <code>NodeInfo</code> defines a set of XSLT extension functions to be
  * used from stylesheets.
  *
  * @author <a href="mailto:ovidiu@cup.hp.com">Ovidiu Predescu</a>
@@ -119,8 +119,10 @@ public class NodeInfo
   }
 
   /**
-   * <code>publicId</code> returns the system id of the current
+   * <code>publicId</code> returns the public identifier of the current
    * context node.
+   * 
+   * Xalan does not currently record this value, and will return null.
    *
    * @param context an <code>ExpressionContext</code> value
    * @return a <code>String</code> value
@@ -139,11 +141,12 @@ public class NodeInfo
   }
 
   /**
-   * <code>publicId</code> returns the system id of the node passed as
-   * argument. If a node set is passed as argument, the system id of
+   * <code>publicId</code> returns the public identifier of the node passed as
+   * argument. If a node set is passed as argument, the public identifier of
    * the first node in the set is returned.
+   * 
+   * Xalan does not currently record this value, and will return null.
    *
-   * @param context an <code>ExpressionContext</code> value
    * @param nodeList a <code>NodeList</code> value
    * @return a <code>String</code> value
    */
@@ -166,9 +169,16 @@ public class NodeInfo
   /**
    * <code>lineNumber</code> returns the line number of the current
    * context node.
+   * 
+   * NOTE: Xalan does not normally record location information for each node. 
+   * To obtain it, you must set the custom TrAX attribute 
+   * "http://xml.apache.org/xalan/features/source_location"
+   * true in the TransformerFactory before generating the Transformer and executing
+   * the stylesheet. Storage cost per node will be noticably increased in this mode.
    *
    * @param context an <code>ExpressionContext</code> value
-   * @return an <code>int</code> value
+   * @return an <code>int</code> value. This may be -1 to indicate that the
+   * line number is not known.
    */
   public static int lineNumber(ExpressionContext context)
   {
@@ -188,8 +198,15 @@ public class NodeInfo
    * passed as argument. If a node set is passed as argument, the line
    * number of the first node in the set is returned.
    *
+   * NOTE: Xalan does not normally record location information for each node. 
+   * To obtain it, you must set the custom TrAX attribute 
+   * "http://xml.apache.org/xalan/features/source_location"
+   * true in the TransformerFactory before generating the Transformer and executing
+   * the stylesheet. Storage cost per node will be noticably increased in this mode.
+   *
    * @param nodeList a <code>NodeList</code> value
-   * @return an <code>int</code> value
+   * @return an <code>int</code> value. This may be -1 to indicate that the
+   * line number is not known.
    */
   public static int lineNumber(NodeList nodeList)
   {
@@ -211,8 +228,15 @@ public class NodeInfo
    * <code>columnNumber</code> returns the column number of the
    * current context node.
    *
+   * NOTE: Xalan does not normally record location information for each node. 
+   * To obtain it, you must set the custom TrAX attribute 
+   * "http://xml.apache.org/xalan/features/source_location"
+   * true in the TransformerFactory before generating the Transformer and executing
+   * the stylesheet. Storage cost per node will be noticably increased in this mode.
+   *
    * @param context an <code>ExpressionContext</code> value
-   * @return an <code>int</code> value
+   * @return an <code>int</code> value. This may be -1 to indicate that the
+   * column number is not known.
    */
   public static int columnNumber(ExpressionContext context)
   {
@@ -232,8 +256,15 @@ public class NodeInfo
    * passed as argument. If a node set is passed as argument, the line
    * number of the first node in the set is returned.
    *
+   * NOTE: Xalan does not normally record location information for each node. 
+   * To obtain it, you must set the custom TrAX attribute 
+   * "http://xml.apache.org/xalan/features/source_location"
+   * true in the TransformerFactory before generating the Transformer and executing
+   * the stylesheet. Storage cost per node will be noticably increased in this mode.
+   *
    * @param nodeList a <code>NodeList</code> value
-   * @return an <code>int</code> value
+   * @return an <code>int</code> value. This may be -1 to indicate that the
+   * column number is not known.
    */
   public static int columnNumber(NodeList nodeList)
   {

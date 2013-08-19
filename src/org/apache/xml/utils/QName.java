@@ -125,16 +125,41 @@ public class QName implements java.io.Serializable
    */
   public QName(String namespaceURI, String localName)
   {
+    this(namespaceURI, localName, false); 
+  }
 
+  /**
+   * Constructs a new QName with the specified namespace URI and
+   * local name.
+   *
+   * @param namespaceURI The namespace URI if known, or null
+   * @param localName The local name
+   * @param validate If true the new QName will be validated and an IllegalArgumentException will
+   *                 be thrown if it is invalid.
+   */
+  public QName(String namespaceURI, String localName, boolean validate) 
+  {
+
+    // This check was already here.  So, for now, I will not add it to the validation
+    // that is done when the validate parameter is true.
     if (localName == null)
       throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
             XPATHErrorResources.ER_ARG_LOCALNAME_NULL, null)); //"Argument 'localName' is null");
 
+    if (validate) 
+    {
+        if (!XMLChar.isValidNCName(localName))
+        {
+            throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
+        }
+    }
+    
     _namespaceURI = namespaceURI;
     _localName = localName;
     m_hashCode = toString().hashCode();
   }
-
+  
   /**
    * Constructs a new QName with the specified namespace URI, prefix
    * and local name.
@@ -142,37 +167,94 @@ public class QName implements java.io.Serializable
    * @param namespaceURI The namespace URI if known, or null
    * @param prefix The namespace prefix is known, or null
    * @param localName The local name
+   * 
    */
   public QName(String namespaceURI, String prefix, String localName)
   {
+     this(namespaceURI, prefix, localName, false);
+  }
+  
+ /**
+   * Constructs a new QName with the specified namespace URI, prefix
+   * and local name.
+   *
+   * @param namespaceURI The namespace URI if known, or null
+   * @param prefix The namespace prefix is known, or null
+   * @param localName The local name
+   * @param validate If true the new QName will be validated and an IllegalArgumentException will
+   *                 be thrown if it is invalid.
+   */
+  public QName(String namespaceURI, String prefix, String localName, boolean validate)
+  {
 
+    // This check was already here.  So, for now, I will not add it to the validation
+    // that is done when the validate parameter is true.
     if (localName == null)
       throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
             XPATHErrorResources.ER_ARG_LOCALNAME_NULL, null)); //"Argument 'localName' is null");
 
+    if (validate)
+    {    
+        if (!XMLChar.isValidNCName(localName))
+        {
+            throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
+        }
+
+        if ((null != prefix) && (!XMLChar.isValidNCName(prefix)))
+        {
+            throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_PREFIX_INVALID,null )); //"Argument 'prefix' not a valid NCName");
+        }
+
+    }
     _namespaceURI = namespaceURI;
     _prefix = prefix;
     _localName = localName;
     m_hashCode = toString().hashCode();
-  }
+  }  
 
   /**
    * Construct a QName from a string, without namespace resolution.  Good
    * for a few odd cases.
    *
    * @param localName Local part of qualified name
+   * 
    */
   public QName(String localName)
   {
+    this(localName, false);
+  }
+  
+  /**
+   * Construct a QName from a string, without namespace resolution.  Good
+   * for a few odd cases.
+   *
+   * @param localName Local part of qualified name
+   * @param validate If true the new QName will be validated and an IllegalArgumentException will
+   *                 be thrown if it is invalid.
+   */
+  public QName(String localName, boolean validate)
+  {
 
+    // This check was already here.  So, for now, I will not add it to the validation
+    // that is done when the validate parameter is true.
     if (localName == null)
       throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
             XPATHErrorResources.ER_ARG_LOCALNAME_NULL, null)); //"Argument 'localName' is null");
 
+    if (validate)
+    {    
+        if (!XMLChar.isValidNCName(localName))
+        {
+            throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
+        }
+    }
     _namespaceURI = null;
     _localName = localName;
     m_hashCode = toString().hashCode();
-  }
+  }  
 
   /**
    * Construct a QName from a string, resolving the prefix
@@ -183,6 +265,21 @@ public class QName implements java.io.Serializable
    * @param namespaces Namespace stack to use to resolve namespace
    */
   public QName(String qname, Stack namespaces)
+  {
+    this(qname, namespaces, false);
+  }
+
+  /**
+   * Construct a QName from a string, resolving the prefix
+   * using the given namespace stack. The default namespace is
+   * not resolved.
+   *
+   * @param qname Qualified name to resolve
+   * @param namespaces Namespace stack to use to resolve namespace
+   * @param validate If true the new QName will be validated and an IllegalArgumentException will
+   *                 be thrown if it is invalid.
+   */
+  public QName(String qname, Stack namespaces, boolean validate)
   {
 
     String namespace = null;
@@ -197,6 +294,7 @@ public class QName implements java.io.Serializable
       {
         namespace = S_XMLNAMESPACEURI;
       }
+      // Do we want this?
       else if (prefix.equals("xmlns"))
       {
         return;
@@ -235,6 +333,15 @@ public class QName implements java.io.Serializable
 
     _localName = (indexOfNSSep < 0)
                  ? qname : qname.substring(indexOfNSSep + 1);
+                 
+    if (validate)
+    {
+        if ((_localName == null) || (!XMLChar.isValidNCName(_localName))) 
+        {
+           throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
+        }
+    }                 
     _namespaceURI = namespace;
     _prefix = prefix;
     m_hashCode = toString().hashCode();
@@ -252,6 +359,23 @@ public class QName implements java.io.Serializable
   public QName(String qname, Element namespaceContext,
                PrefixResolver resolver)
   {
+      this(qname, namespaceContext, resolver, false);
+  }
+
+  /**
+   * Construct a QName from a string, resolving the prefix
+   * using the given namespace context and prefix resolver. 
+   * The default namespace is not resolved.
+   * 
+   * @param qname Qualified name to resolve
+   * @param namespaceContext Namespace Context to use
+   * @param resolver Prefix resolver for this context
+   * @param validate If true the new QName will be validated and an IllegalArgumentException will
+   *                 be thrown if it is invalid.
+   */
+  public QName(String qname, Element namespaceContext,
+               PrefixResolver resolver, boolean validate)
+  {
 
     _namespaceURI = null;
 
@@ -268,6 +392,12 @@ public class QName implements java.io.Serializable
         if (prefix.equals("xml"))
         {
           _namespaceURI = S_XMLNAMESPACEURI;
+        }
+        
+        // Do we want this?
+        else if (prefix.equals("xmlns"))
+        {
+          return;
         }
         else
         {
@@ -292,8 +422,19 @@ public class QName implements java.io.Serializable
 
     _localName = (indexOfNSSep < 0)
                  ? qname : qname.substring(indexOfNSSep + 1);
+
+    if (validate)
+    {
+        if ((_localName == null) || (!XMLChar.isValidNCName(_localName))) 
+        {
+           throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
+        }
+    }                 
+                 
     m_hashCode = toString().hashCode();
   }
+
 
   /**
    * Construct a QName from a string, resolving the prefix
@@ -305,14 +446,30 @@ public class QName implements java.io.Serializable
    */
   public QName(String qname, PrefixResolver resolver)
   {
+    this(qname, resolver, false);
+  }
 
+  /**
+   * Construct a QName from a string, resolving the prefix
+   * using the given namespace stack. The default namespace is
+   * not resolved.
+   *
+   * @param qname Qualified name to resolve
+   * @param resolver Prefix resolver for this context
+   * @param validate If true the new QName will be validated and an IllegalArgumentException will
+   *                 be thrown if it is invalid.
+   */
+  public QName(String qname, PrefixResolver resolver, boolean validate)
+  {
+
+	String prefix = null;
     _namespaceURI = null;
 
     int indexOfNSSep = qname.indexOf(':');
 
     if (indexOfNSSep > 0)
     {
-      String prefix = qname.substring(0, indexOfNSSep);
+      prefix = qname.substring(0, indexOfNSSep);
 
       if (prefix.equals("xml"))
       {
@@ -332,9 +489,21 @@ public class QName implements java.io.Serializable
       }
     }
 
-    _localName = (indexOfNSSep < 0)
-                 ? qname : qname.substring(indexOfNSSep + 1);
+	_localName = (indexOfNSSep < 0)
+                 ? qname : qname.substring(indexOfNSSep + 1);   
+                 
+    if (validate)
+    {
+        if ((_localName == null) || (!XMLChar.isValidNCName(_localName))) 
+        {
+           throw new IllegalArgumentException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
+        }
+    }                 
+
+              
     m_hashCode = toString().hashCode();
+    _prefix = prefix;
   }
 
   /**

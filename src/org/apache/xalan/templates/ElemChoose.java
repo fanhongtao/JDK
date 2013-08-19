@@ -141,6 +141,11 @@ public class ElemChoose extends ElemTemplateElement
         // must be xsl:when
         XPathContext xctxt = transformer.getXPathContext();
         int sourceNode = xctxt.getCurrentNode();
+        
+        // System.err.println("\""+when.getTest().getPatternString()+"\"");
+        
+        // if(when.getTest().getPatternString().equals("COLLECTION/icuser/ictimezone/LITERAL='GMT +13:00 Pacific/Tongatapu'"))
+        // 	System.err.println("Found COLLECTION/icuser/ictimezone/LITERAL");
 
         if (TransformerImpl.S_DEBUG)
         {
@@ -153,8 +158,11 @@ public class ElemChoose extends ElemTemplateElement
           if (test.bool())
           {
             transformer.getTraceManager().fireTraceEvent(when);
+            
             transformer.executeChildTemplates(when, true);
 
+	        transformer.getTraceManager().fireTraceEndEvent(when); 
+	                  
             return;
           }
 
@@ -176,6 +184,8 @@ public class ElemChoose extends ElemTemplateElement
         // xsl:otherwise                
         transformer.executeChildTemplates(childElem, true);
 
+        if (TransformerImpl.S_DEBUG)
+	      transformer.getTraceManager().fireTraceEndEvent(childElem); 
         return;
       }
     }
@@ -183,6 +193,9 @@ public class ElemChoose extends ElemTemplateElement
     if (!found)
       transformer.getMsgMgr().error(
         this, XSLTErrorResources.ER_CHOOSE_REQUIRES_WHEN);
+        
+    if (TransformerImpl.S_DEBUG)
+	  transformer.getTraceManager().fireTraceEndEvent(this);         
   }
 
   /**
@@ -216,4 +229,14 @@ public class ElemChoose extends ElemTemplateElement
 
     return super.appendChild(newChild);
   }
+  
+  /**
+   * Tell if this element can accept variable declarations.
+   * @return true if the element can accept and process variable declarations.
+   */
+  public boolean canAcceptVariables()
+  {
+  	return false;
+  }
+
 }

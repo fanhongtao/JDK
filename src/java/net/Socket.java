@@ -1,5 +1,5 @@
 /*
- * @(#)Socket.java	1.95 03/04/25
+ * @(#)Socket.java	1.97 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.95, 04/25/03
+ * @version 1.97, 01/23/03
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -90,6 +90,11 @@ class Socket {
      * Creates a stream socket and connects it to the specified port
      * number on the named host.
      * <p>
+     * If the specified host is <tt>null</tt> it is the equivalent of
+     * specifying the address as <tt>{@link java.net.InetAddress#getByName InetAddress.getByName}(null)</tt>.
+     * In other words, it is equivalent to specifying an address of the 
+     * loopback interface. </p>
+     * <p>
      * If the application has specified a server socket factory, that
      * factory's <code>createSocketImpl</code> method is called to create
      * the actual socket implementation. Otherwise a "plain" socket is created.
@@ -99,7 +104,7 @@ class Socket {
      * with the host address and <code>port</code> 
      * as its arguments. This could result in a SecurityException.
      *
-     * @param      host   the host name.
+     * @param      host   the host name, or <code>null</code> for the loopback address.
      * @param      port   the port number.
      *
      * @exception  UnknownHostException if the IP address of 
@@ -116,7 +121,8 @@ class Socket {
     public Socket(String host, int port)
 	throws UnknownHostException, IOException
     {
-	this(host != null ? new InetSocketAddress(host, port) : null, 
+	this(host != null ? new InetSocketAddress(host, port) :
+	     new InetSocketAddress(InetAddress.getByName(null), port),
 	     new InetSocketAddress(0), true);
     }
 
@@ -153,12 +159,17 @@ class Socket {
      * the specified remote port. The Socket will also bind() to the local
      * address and port supplied.
      * <p>
+     * If the specified host is <tt>null</tt> it is the equivalent of
+     * specifying the address as <tt>{@link java.net.InetAddress#getByName InetAddress.getByName}(null)</tt>.
+     * In other words, it is equivalent to specifying an address of the 
+     * loopback interface. </p>
+     * <p>
      * If there is a security manager, its
      * <code>checkConnect</code> method is called
      * with the host address and <code>port</code> 
      * as its arguments. This could result in a SecurityException.
      * 
-     * @param host the name of the remote host
+     * @param host the name of the remote host, or <code>null</code> for the loopback address.
      * @param port the remote port
      * @param localAddr the local address the socket is bound to
      * @param localPort the local port the socket is bound to
@@ -170,7 +181,8 @@ class Socket {
      */
     public Socket(String host, int port, InetAddress localAddr,
 		  int localPort) throws IOException {
-	this(host != null ? new InetSocketAddress(host, port) : null, 
+	this(host != null ? new InetSocketAddress(host, port) :
+	       new InetSocketAddress(InetAddress.getByName(null), port),
 	     new InetSocketAddress(localAddr, localPort), true);
     }
 
@@ -204,6 +216,11 @@ class Socket {
      * Creates a stream socket and connects it to the specified port
      * number on the named host.
      * <p>
+     * If the specified host is <tt>null</tt> it is the equivalent of
+     * specifying the address as <tt>{@link java.net.InetAddress#getByName InetAddress.getByName}(null)</tt>.
+     * In other words, it is equivalent to specifying an address of the 
+     * loopback interface. </p>
+     * <p>
      * If the stream argument is <code>true</code>, this creates a
      * stream socket. If the stream argument is <code>false</code>, it
      * creates a datagram socket.
@@ -219,7 +236,7 @@ class Socket {
      * <p>
      * If a UDP socket is used, TCP/IP related socket options will not apply.
      *
-     * @param      host     the host name.
+     * @param      host     the host name, or <code>null</code> for the loopback address.
      * @param      port     the port number.
      * @param      stream   a <code>boolean</code> indicating whether this is
      *                      a stream socket or a datagram socket.
@@ -233,7 +250,8 @@ class Socket {
      * @deprecated Use DatagramSocket instead for UDP transport.
      */
     public Socket(String host, int port, boolean stream) throws IOException {
-	this(host != null ? new InetSocketAddress(host, port) : null, 
+	this(host != null ? new InetSocketAddress(host, port) :
+	       new InetSocketAddress(InetAddress.getByName(null), port),
 	     new InetSocketAddress(0), stream);
     }
 
@@ -317,19 +335,18 @@ class Socket {
     private void checkOldImpl() {
 	if (impl == null)
 	    return;
-
-	//SocketImpl.connect() is a protected method, therefore we need to use
-	//getDeclaredMethod, therefore we need permission to access the member
+	// SocketImpl.connect() is a protected method, therefore we need to use
+	// getDeclaredMethod, therefore we need permission to access the member
 	try {
-	    AccessController.doPrivileged (new PrivilegedExceptionAction() {
-		public Object run() throws NoSuchMethodException {
-		    Class[] cl = new Class[2];
-		    cl[0] = SocketAddress.class;
-		    cl[1] = Integer.TYPE;
-		    impl.getClass().getDeclaredMethod("connect", cl);
-		    return null;
-		}
-	    });
+	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws NoSuchMethodException {
+			Class[] cl = new Class[2];
+			cl[0] = SocketAddress.class;
+			cl[1] = Integer.TYPE;
+			impl.getClass().getDeclaredMethod("connect", cl);
+			return null;
+		    }
+		});
 	} catch (java.security.PrivilegedActionException e) {
 	    oldImpl = true;
 	}
@@ -340,6 +357,7 @@ class Socket {
      * @since 1.4
      */
     void setImpl() {
+	checkSocks();
 	if (factory != null) {
 	    impl = factory.createSocketImpl();
 	    checkOldImpl();
@@ -1367,26 +1385,36 @@ class Socket {
     /**
      * The factory for all client sockets.
      */
-    private static SocketImplFactory factory;
-
-    static {
+    private static SocketImplFactory factory = null;
+    private static synchronized void checkSocks() {
 	int port = -1;
 	String socksPort = null;
-	String useSocks = 
-	    (String) java.security.AccessController.doPrivileged(
-		     new sun.security.action.GetPropertyAction("socksProxyHost"));
-	socksPort =
-	    (String) java.security.AccessController.doPrivileged(
-		     new sun.security.action.GetPropertyAction("socksProxyPort"));
-	if (socksPort != null) {
-	    try {
-		port = Integer.parseInt(socksPort);
-	    } catch (Exception e) {
-		port = -1;
+	String useSocks = null;
+
+	if (factory == null) {
+	    
+	    useSocks = (String) AccessController.doPrivileged(
+		   new sun.security.action.GetPropertyAction("socksProxyHost"));
+	    if (useSocks == null || useSocks.length() <= 0)
+		return;
+
+	    socksPort = (String) AccessController.doPrivileged(
+		       new sun.security.action.GetPropertyAction("socksProxyPort"));
+	    if (socksPort != null && socksPort.length() > 0) {
+		try {
+		    port = Integer.parseInt(socksPort);
+		} catch (Exception e) {
+		    port = -1;
+		}
 	    }
+	    if (useSocks != null)
+		factory = new SocksSocketImplFactory(useSocks, port);
+	} else if (factory instanceof SocksSocketImplFactory) {
+	    useSocks = (String) AccessController.doPrivileged(
+		   new sun.security.action.GetPropertyAction("socksProxyHost"));
+	    if (useSocks == null || useSocks.length() <= 0)
+		factory = null;
 	}
-	if (useSocks != null)
-	    factory = new SocksSocketImplFactory(useSocks, port);
     }
 
     /**

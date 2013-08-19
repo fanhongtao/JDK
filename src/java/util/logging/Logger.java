@@ -1,7 +1,7 @@
 /*
- * @(#)Logger.java	1.33 01/12/03
+ * @(#)Logger.java	1.35 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -138,7 +138,7 @@ import java.lang.ref.WeakReference;
  * All the other logging methods are implemented as calls on this
  * log(LogRecord) method.
  *
- * @version 1.33, 12/03/01
+ * @version 1.35, 01/27/03
  * @since 1.4
  */
 
@@ -1175,7 +1175,7 @@ public class Logger {
      * also be written to the parent's Handlers, and potentially
      * to its parent, recursively up the namespace.
      *
-     * @param useParenthandlers   true if output is to be sent to the
+     * @param useParentHandlers   true if output is to be sent to the
      *		logger's parent.
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have LoggingPermission("control").

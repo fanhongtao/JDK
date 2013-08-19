@@ -1,7 +1,7 @@
 /*
- * @(#)SpinnerDateModel.java	1.5 01/12/03
+ * @(#)SpinnerDateModel.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,7 +62,7 @@ import java.io.Serializable;
  * @see SpinnerNumberModel
  * @see Calendar#add
  *
- * @version 1.5 12/03/01
+ * @version 1.7 01/23/03
  * @author Hans Muller
  * @since 1.4
  */
@@ -256,7 +256,7 @@ public class SpinnerDateModel extends AbstractSpinnerModel implements Serializab
      * This method fires a <code>ChangeEvent</code> if the <code>end</code>
      * has changed.
      * 
-     * @param start defines the last date in the sequence
+     * @param end defines the last date in the sequence
      * @see #getEnd
      * @see #setStart
      * @see #addChangeListener
@@ -290,7 +290,7 @@ public class SpinnerDateModel extends AbstractSpinnerModel implements Serializab
      * simply move the specified <code>Calendar</code> field forward or backward 
      * by one unit with the <code>Calendar.add</code> method.
      * 
-     * @param size one of 
+     * @param calendarField one of 
      *  <ul>
      *    <li><code>Calendar.ERA</code>
      *    <li><code>Calendar.YEAR</code>

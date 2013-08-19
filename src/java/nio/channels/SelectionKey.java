@@ -1,7 +1,7 @@
 /*
- * @(#)SelectionKey.java	1.21 01/12/03
+ * @(#)SelectionKey.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,7 +82,7 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.21, 01/12/03
+ * @version 1.23, 03/01/23
  * @since 1.4
  *
  * @see SelectableChannel
@@ -166,7 +166,7 @@ public abstract class SelectionKey {
      * <p> This method may be invoked at any time.  Whether or not it blocks,
      * and for how long, is implementation-dependent.  </p>
      *
-     * @param  set  The new interest set
+     * @param  ops  The new interest set
      *
      * @return  This selection key
      *

@@ -1,7 +1,7 @@
 /*
- * @(#)SecureRandom.java	1.41 01/12/03
+ * @(#)SecureRandom.java	1.42 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -77,7 +77,7 @@ import java.util.Enumeration;
  * @see java.security.SecureRandomSpi
  * @see java.util.Random
  * 
- * @version 1.41, 12/03/01
+ * @version 1.42, 01/23/03
  * @author Benjamin Renaud
  * @author Josh Bloch 
  */

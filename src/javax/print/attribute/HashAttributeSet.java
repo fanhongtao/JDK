@@ -1,7 +1,7 @@
 /*
- * @(#)HashAttributeSet.java	1.7 01/12/03
+ * @(#)HashAttributeSet.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -497,7 +497,12 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      * @return  The hash code value for this attribute set.
      */
     public int hashCode() {
-	return attrMap.hashCode();
+	int hcode = 0;
+	Attribute[] attrs = toArray();    
+	for (int i=0;i<attrs.length; i++) {
+	    hcode += attrs[i].hashCode();
+	}
+	return hcode;
     }
 
 }

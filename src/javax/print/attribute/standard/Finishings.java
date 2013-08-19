@@ -1,7 +1,7 @@
 /*
- * @(#)Finishings.java	1.5 01/12/03
+ * @(#)Finishings.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -21,7 +21,7 @@ import javax.print.attribute.PrintJobAttribute;
  * for purposes of finishing. 
  * <P>
  * Standard Finishings values are:
- * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+ * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100% SUMMARY="layout">
  * <TR>
  * <TD WIDTH=10%>
  * &nbsp;
@@ -57,7 +57,7 @@ import javax.print.attribute.PrintJobAttribute;
  * <P>
  * The following Finishings values are more specific; they indicate a 
  * corner or an edge as if the document were a portrait document: 
- * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+ * <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100% SUMMARY="layout">
  * <TR>
  * <TD WIDTH=10%>
  * &nbsp;

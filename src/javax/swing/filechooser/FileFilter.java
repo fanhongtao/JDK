@@ -1,7 +1,7 @@
 /*
- * @(#)FileFilter.java	1.16 01/12/03
+ * @(#)FileFilter.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.io.File;
  * @see javax.swing.JFileChooser#setFileFilter
  * @see javax.swing.JFileChooser#addChoosableFileFilter
  *
- * @version 1.16 12/03/01
+ * @version 1.17 01/23/03
  * @author Jeff Dinkins
  */
 public abstract class FileFilter {

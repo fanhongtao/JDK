@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextChildSupport.java	1.12 02/02/22
+ * @(#)BeanContextChildSupport.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.io.Serializable;
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.12, 02/22/02
+ * @version	1.13, 01/23/03
  * @since	1.2
  * 
  * @see	java.beans.beancontext.BeanContext

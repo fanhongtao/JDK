@@ -1,7 +1,7 @@
 /*
- * @(#)StringCharacterIterator.java	1.18 01/12/03
+ * @(#)StringCharacterIterator.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -90,6 +90,7 @@ public final class StringCharacterIterator implements CharacterIterator
      * is called.
      *
      * @param  text   The String to be iterated over
+     * @since 1.2
      */
     public void setText(String text) {
         if (text == null)

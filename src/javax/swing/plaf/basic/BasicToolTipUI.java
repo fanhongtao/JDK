@@ -1,7 +1,7 @@
 /*
- * @(#)BasicToolTipUI.java	1.36 01/12/03
+ * @(#)BasicToolTipUI.java	1.37 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import javax.swing.text.View;
  * Standard tool tip L&F.
  * <p>
  *
- * @version 1.36 12/03/01
+ * @version 1.37 01/23/03
  * @author Dave Moore
  */
 public class BasicToolTipUI extends ToolTipUI

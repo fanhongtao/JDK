@@ -1,7 +1,7 @@
 /*
- * @(#)jvmpi.h	1.24 01/12/03
+ * @(#)jvmpi.h	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@
 
 #define JVMPI_VERSION_1   ((jint)0x10000001)  /* implied 0 for minor version */
 #define JVMPI_VERSION_1_1 ((jint)0x10000002)
+#define JVMPI_VERSION_1_2 ((jint)0x10000003)
 
 #ifdef __cplusplus
 extern "C" {
@@ -316,6 +317,10 @@ typedef struct {
     jobject   (*jobjectID2jobject)(jobjectID jid);
     jobjectID (*jobject2jobjectID)(jobject jobj);
 
+    void (*SuspendThreadList)
+      (jint reqCount, JNIEnv **reqList, jint *results);
+    void (*ResumeThreadList)
+      (jint reqCount, JNIEnv **reqList, jint *results);
 } JVMPI_Interface;
 
 /* type of argument passed to RequestEvent for heap dumps */

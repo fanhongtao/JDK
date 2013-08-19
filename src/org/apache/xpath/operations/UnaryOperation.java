@@ -56,17 +56,19 @@
  */
 package org.apache.xpath.operations;
 
-import org.apache.xpath.Expression;
-import org.apache.xpath.XPath;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XObject;
+import java.util.Vector;
 
-import org.w3c.dom.Node;
+import javax.xml.transform.TransformerException;
+import org.apache.xpath.Expression;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.objects.XObject;
 
 /**
  * The unary operation base class.
  */
-public abstract class UnaryOperation extends Expression
+public abstract class UnaryOperation extends Expression implements ExpressionOwner
 {
 
   /** The operand for the operation.
@@ -113,6 +115,7 @@ public abstract class UnaryOperation extends Expression
   public void setRight(Expression r)
   {
     m_right = r;
+    r.exprSetParent(this);
   }
 
   /**
@@ -144,4 +147,55 @@ public abstract class UnaryOperation extends Expression
    */
   public abstract XObject operate(XObject right)
     throws javax.xml.transform.TransformerException;
+
+  /** @return the operand of unary operation, as an Expression.
+   */
+  public Expression getOperand(){
+    return m_right;
+  }
+  
+  /**
+   * @see XPathVisitable#callVisitors(XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	if(visitor.visitUnaryOperation(owner, this))
+  	{
+  		m_right.callVisitors(this, visitor);
+  	}
+  }
+
+
+  /**
+   * @see ExpressionOwner#getExpression()
+   */
+  public Expression getExpression()
+  {
+    return m_right;
+  }
+
+  /**
+   * @see ExpressionOwner#setExpression(Expression)
+   */
+  public void setExpression(Expression exp)
+  {
+  	exp.exprSetParent(this);
+  	m_right = exp;
+  }
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!isSameClass(expr))
+  		return false;
+  		
+  	if(!m_right.deepEquals(((UnaryOperation)expr).m_right))
+  		return false;
+  		
+  	return true;
+  }
+
+
 }

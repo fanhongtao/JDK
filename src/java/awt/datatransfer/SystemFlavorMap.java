@@ -1,7 +1,7 @@
 /*
- * @(#)SystemFlavorMap.java	1.28 02/02/22
+ * @(#)SystemFlavorMap.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import sun.awt.datatransfer.DataTransferer;
  * <code>AWT.DnD.flavorMapFileURL</code>. See <code>flavormap.properties</code>
  * for details.
  *
- * @version 1.28, 02/22/02
+ * @version 1.31, 01/23/03
  * @since 1.2
  */
 public final class SystemFlavorMap implements FlavorMap, FlavorTable {
@@ -161,7 +161,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             java.security.AccessController.doPrivileged(
                 new java.security.PrivilegedAction() {
                     public Object run() {
-                        String url = "file:" +
+                        String fileName =
                             System.getProperty("java.home") +
                             File.separator +
                             "lib" +
@@ -170,11 +170,11 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                         try {
                             return new BufferedReader
                                 (new InputStreamReader
-                                    (new URL(url).openStream(), "ISO-8859-1"));
+                                    (new File(fileName).toURI().toURL().openStream(), "ISO-8859-1"));
                         } catch (MalformedURLException e) {
-                            System.err.println("MalformedURLException:" + e + " while loading default flavormap.properties file URL:" + url);
+                            System.err.println("MalformedURLException:" + e + " while loading default flavormap.properties file:" + fileName);
                         } catch (IOException e) {
-                            System.err.println("IOException:" + e + " while loading default flavormap.properties file URL:" + url);
+                            System.err.println("IOException:" + e + " while loading default flavormap.properties file:" + fileName);
                         }
                         return null;
                     }
@@ -991,7 +991,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * application-level mappings.
      *
      * @param flav the <code>DataFlavor</code> key for the mappings
-     * @param nat the <code>String</code> native values for the mappings
+     * @param natives the <code>String</code> native values for the mappings
      * @throws NullPointerException if flav or natives is <code>null</code>
      *         or if natives contains <code>null</code> elements
      *
@@ -1070,7 +1070,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * application-level mappings.
      *
      * @param nat the <code>String</code> native key for the mappings
-     * @param flav the <code>DataFlavor</code> values for the mappings
+     * @param flavors the <code>DataFlavor</code> values for the mappings
      * @throws NullPointerException if nat or flavors is <code>null</code>
      *         or if flavors contains <code>null</code> elements
      *

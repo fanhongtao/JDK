@@ -86,6 +86,10 @@ public interface IncrementalSAXSource
    */
   public void setLexicalHandler(org.xml.sax.ext.LexicalHandler handler);
 
+  /**  Register a SAX-style DTD handler for us to output to
+   */
+  public void setDTDHandler(org.xml.sax.DTDHandler handler);
+
   // ------------------------------------------------------------------
   // Command Input API
   // ------------------------------------------------------------------

@@ -73,7 +73,7 @@ import javax.xml.transform.TransformerException;
  * <p>This has been changed from the previous incarnations of this
  * class to be fairly low level.</p>
  */
-public final class VariableStack implements Cloneable
+public class VariableStack implements Cloneable
 {
 
   /**
@@ -97,7 +97,7 @@ public final class VariableStack implements Cloneable
     VariableStack vs = (VariableStack) super.clone();
 
     // I *think* I can get away with a shallow clone here?
-    vs._sf = (XObject[]) _sf.clone();
+    vs._stackFrames = (XObject[]) _stackFrames.clone();
     vs._links = (int[]) _links.clone();
 
     return vs;
@@ -107,19 +107,19 @@ public final class VariableStack implements Cloneable
    * The stack frame where all variables and params will be kept.
    * @serial
    */
-  XObject[] _sf = new XObject[XPathContext.RECURSIONLIMIT * 2];
+  XObject[] _stackFrames = new XObject[XPathContext.RECURSIONLIMIT * 2];
 
   /**
-   * The top of the stack frame (<code>_sf</code>).
+   * The top of the stack frame (<code>_stackFrames</code>).
    * @serial
    */
-  int _top;
+  int _frameTop;
 
   /**
-   * The bottom index of the current frame (relative to <code>_sf</code>).
+   * The bottom index of the current frame (relative to <code>_stackFrames</code>).
    * @serial
    */
-  private int _cfb;
+  private int _currentFrameBottom;
 
   /**
    * The stack of frame positions.  I call 'em links because of distant
@@ -141,9 +141,9 @@ public final class VariableStack implements Cloneable
    *
    * @return The item at the given index.
    */
-  public final XObject elementAt(final int i)
+  public XObject elementAt(final int i)
   {
-    return _sf[i];
+    return _stackFrames[i];
   }
 
   /**
@@ -151,9 +151,9 @@ public final class VariableStack implements Cloneable
    *
    * @return the total size of the execution stack.
    */
-  public final int size()
+  public int size()
   {
-    return _top;
+    return _frameTop;
   }
 
   /**
@@ -161,16 +161,17 @@ public final class VariableStack implements Cloneable
    *
    * @return the total size of the execution stack.
    */
-  public final void reset()
+  public void reset()
   {
 
-    _top = 0;
+    _frameTop = 0;
     _linksTop = 0;
 
     // Adding one here to the stack of frame positions will allow us always 
     // to look one under without having to check if we're at zero.
     // (As long as the caller doesn't screw up link/unlink.)
     _links[_linksTop++] = 0;
+    _stackFrames = new XObject[_stackFrames.length]; 
   }
 
   /**
@@ -178,9 +179,9 @@ public final class VariableStack implements Cloneable
    *
    * @param sf The new stack frame position.
    */
-  public final void setStackFrame(int sf)
+  public void setStackFrame(int sf)
   {
-    _cfb = sf;
+    _currentFrameBottom = sf;
   }
 
   /**
@@ -190,9 +191,9 @@ public final class VariableStack implements Cloneable
    *
    * @return The current stack frame position.
    */
-  public final int getStackFrame()
+  public int getStackFrame()
   {
-    return _cfb;
+    return _currentFrameBottom;
   }
 
   /**
@@ -210,19 +211,19 @@ public final class VariableStack implements Cloneable
    * @return The bottom of the stack frame, from where local variable addressing
    * should start from.
    */
-  public final int link(final int size)
+  public int link(final int size)
   {
 
-    _cfb = _top;
-    _top += size;
+    _currentFrameBottom = _frameTop;
+    _frameTop += size;
 
-    if (_top >= _sf.length)
+    if (_frameTop >= _stackFrames.length)
     {
-      XObject newsf[] = new XObject[_sf.length + (1024 * 4) + size];
+      XObject newsf[] = new XObject[_stackFrames.length + (1024 * 4) + size];
 
-      System.arraycopy(_sf, 0, newsf, 0, _sf.length);
+      System.arraycopy(_stackFrames, 0, newsf, 0, _stackFrames.length);
 
-      _sf = newsf;
+      _stackFrames = newsf;
     }
 
     if (_linksTop + 1 >= _links.length)
@@ -234,19 +235,31 @@ public final class VariableStack implements Cloneable
       _links = newlinks;
     }
 
-    _links[_linksTop++] = _cfb;
+    _links[_linksTop++] = _currentFrameBottom;
 
-    return _cfb;
+    return _currentFrameBottom;
   }
 
   /**
    * Free up the stack frame that was last allocated with
    * {@link link(int size)}.
    */
-  public final void unlink()
+  public  void unlink()
   {
-    _top = _links[--_linksTop];
-    _cfb = _links[_linksTop - 1];
+    _frameTop = _links[--_linksTop];
+    _currentFrameBottom = _links[_linksTop - 1];
+  }
+  
+  /**
+   * Free up the stack frame that was last allocated with
+   * {@link link(int size)}.
+   * @param currentFrame The current frame to set to 
+   * after the unlink.
+   */
+  public  void unlink(int currentFrame)
+  {
+    _frameTop = _links[--_linksTop];
+    _currentFrameBottom = currentFrame; 
   }
 
   /**
@@ -258,9 +271,9 @@ public final class VariableStack implements Cloneable
    *
    * @param val The value of the variable that is being set.
    */
-  public final void setLocalVariable(int index, XObject val)
+  public void setLocalVariable(int index, XObject val)
   {
-    _sf[index + _cfb] = val;
+    _stackFrames[index + _currentFrameBottom] = val;
   }
 
   /**
@@ -273,9 +286,9 @@ public final class VariableStack implements Cloneable
    *
    * @param val The value of the variable that is being set.
    */
-  public final void setLocalVariable(int index, XObject val, int stackFrame)
+  public void setLocalVariable(int index, XObject val, int stackFrame)
   {
-    _sf[index + stackFrame] = val;
+    _stackFrames[index + stackFrame] = val;
   }
 
   /**
@@ -292,20 +305,22 @@ public final class VariableStack implements Cloneable
    *
    * @throws TransformerException
    */
-  public final XObject getLocalVariable(XPathContext xctxt, int index)
+  public XObject getLocalVariable(XPathContext xctxt, int index)
           throws TransformerException
   {
 
-    index += _cfb;
+    index += _currentFrameBottom;
 
-    XObject val = _sf[index];
+    XObject val = _stackFrames[index];
     
     if(null == val)
-      throw new TransformerException("Variable accessed before it is bound!", xctxt.getSAXLocator());
+      throw new TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VARIABLE_ACCESSED_BEFORE_BIND, null),
+                     xctxt.getSAXLocator());
+      // "Variable accessed before it is bound!", xctxt.getSAXLocator());
 
     // Lazy execution of variables.
     if (val.getType() == XObject.CLASS_UNRESOLVEDVARIABLE)
-      return (_sf[index] = val.execute(xctxt));
+      return (_stackFrames[index] = val.execute(xctxt));
 
     return val;
   }
@@ -322,15 +337,49 @@ public final class VariableStack implements Cloneable
    *
    * @throws TransformerException
    */
-  public final XObject getLocalVariable(int index, int frame)
+  public XObject getLocalVariable(int index, int frame)
           throws TransformerException
   {
 
     index += frame;
 
-    XObject val = _sf[index];
+    XObject val = _stackFrames[index];
 
     return val;
+  }
+  
+  /**
+   * Get a local variable or parameter in the current stack frame.
+   *
+   *
+   * @param xctxt The XPath context, which must be passed in order to
+   * lazy evaluate variables.
+   *
+   * @param index Local variable index relative to the current stack
+   * frame bottom.
+   *
+   * @return The value of the variable.
+   *
+   * @throws TransformerException
+   */
+  public XObject getLocalVariable(XPathContext xctxt, int index, boolean destructiveOK)
+          throws TransformerException
+  {
+
+    index += _currentFrameBottom;
+
+    XObject val = _stackFrames[index];
+    
+    if(null == val)
+      throw new TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VARIABLE_ACCESSED_BEFORE_BIND, null),
+                     xctxt.getSAXLocator());
+      // "Variable accessed before it is bound!", xctxt.getSAXLocator());
+
+    // Lazy execution of variables.
+    if (val.getType() == XObject.CLASS_UNRESOLVEDVARIABLE)
+      return (_stackFrames[index] = val.execute(xctxt));
+
+    return destructiveOK ? val : val.getFresh();
   }
 
   /**
@@ -343,9 +392,9 @@ public final class VariableStack implements Cloneable
    *
    * @throws TransformerException
    */
-  public final boolean isLocalSet(int index) throws TransformerException
+  public boolean isLocalSet(int index) throws TransformerException
   {
-    return (_sf[index + _cfb] != null);
+    return (_stackFrames[index + _currentFrameBottom] != null);
   }
 
   /** NEEDSDOC Field m_nulls          */
@@ -360,12 +409,12 @@ public final class VariableStack implements Cloneable
    * @param start The start position, relative to the current local stack frame.
    * @param len The number of slots to be cleared.
    */
-  public final void clearLocalSlots(int start, int len)
+  public void clearLocalSlots(int start, int len)
   {
 
-    start += _cfb;
+    start += _currentFrameBottom;
 
-    System.arraycopy(m_nulls, 0, _sf, start, len);
+    System.arraycopy(m_nulls, 0, _stackFrames, start, len);
   }
 
   /**
@@ -377,9 +426,9 @@ public final class VariableStack implements Cloneable
    *
    * @param val The value of the variable that is being set.
    */
-  public final void setGlobalVariable(final int index, final XObject val)
+  public void setGlobalVariable(final int index, final XObject val)
   {
-    _sf[index] = val;
+    _stackFrames[index] = val;
   }
 
   /**
@@ -396,17 +445,44 @@ public final class VariableStack implements Cloneable
    *
    * @throws TransformerException
    */
-  public final XObject getGlobalVariable(XPathContext xctxt, final int index)
+  public XObject getGlobalVariable(XPathContext xctxt, final int index)
           throws TransformerException
   {
 
-    XObject val = _sf[index];
+    XObject val = _stackFrames[index];
 
     // Lazy execution of variables.
     if (val.getType() == XObject.CLASS_UNRESOLVEDVARIABLE)
-      return (_sf[index] = val.execute(xctxt));
+      return (_stackFrames[index] = val.execute(xctxt));
 
     return val;
+  }
+  
+  /**
+   * Get a global variable or parameter from the global stack frame.
+   *
+   *
+   * @param xctxt The XPath context, which must be passed in order to
+   * lazy evaluate variables.
+   *
+   * @param index Global variable index relative to the global stack
+   * frame bottom.
+   *
+   * @return The value of the variable.
+   *
+   * @throws TransformerException
+   */
+  public XObject getGlobalVariable(XPathContext xctxt, final int index, boolean destructiveOK)
+          throws TransformerException
+  {
+
+    XObject val = _stackFrames[index];
+
+    // Lazy execution of variables.
+    if (val.getType() == XObject.CLASS_UNRESOLVEDVARIABLE)
+      return (_stackFrames[index] = val.execute(xctxt));
+
+    return destructiveOK ? val : val.getFresh();
   }
 
   /**
@@ -422,7 +498,7 @@ public final class VariableStack implements Cloneable
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public final XObject getVariableOrParam(
+  public XObject getVariableOrParam(
           XPathContext xctxt, org.apache.xml.utils.QName qname)
             throws javax.xml.transform.TransformerException
   {

@@ -1,7 +1,7 @@
 /*
- * @(#)SwingPropertyChangeSupport.java	1.17 01/12/03
+ * @(#)SwingPropertyChangeSupport.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.List;
  * only necessary because all of PropertyChangeSupport's instance
  * data is private, without accessor methods.
  *
- * @version 1.17 12/03/01
+ * @version 1.18 01/23/03
  * @author unattributed
  */
 

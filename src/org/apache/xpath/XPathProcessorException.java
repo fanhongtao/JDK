@@ -73,6 +73,7 @@ public class XPathProcessorException extends XPathException
   {
     super(message);
   }
+  
 
   /**
    * Create an XPathProcessorException object that holds

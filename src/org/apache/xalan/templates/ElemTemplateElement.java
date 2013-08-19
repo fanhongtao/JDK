@@ -76,6 +76,7 @@ import org.apache.xalan.transformer.ResultNameSpace;
 import org.apache.xalan.transformer.ResultTreeHandler;
 import org.apache.xpath.VariableStack;
 import org.apache.xpath.WhitespaceStrippingElementMatcher;
+import org.apache.xpath.ExpressionNode;
 
 // TRaX imports
 import javax.xml.transform.Templates;
@@ -109,8 +110,8 @@ import org.apache.xml.utils.NamespaceSupport2;
  * @see Stylesheet
  */
 public class ElemTemplateElement extends UnImplNode
-        implements PrefixResolver, Serializable, SourceLocator, 
-                   WhitespaceStrippingElementMatcher
+        implements PrefixResolver, Serializable, ExpressionNode, 
+                   WhitespaceStrippingElementMatcher, XSLTVisitable
 {
 
   /**
@@ -156,6 +157,19 @@ public class ElemTemplateElement extends UnImplNode
   {
     return "Unknown XSLT Element";
   }
+  
+  /**
+   * For now, just return the result of getNodeName(), which 
+   * the local name.
+   *
+   * @return The result of getNodeName().
+   */
+  public String getLocalName()
+  {
+
+    return getNodeName();
+  }
+
 
   /**
    * This function will be called on top-level elements
@@ -203,7 +217,7 @@ public class ElemTemplateElement extends UnImplNode
    */
   public Stylesheet getStylesheet()
   {
-    return m_parentNode.getStylesheet();
+    return (null==m_parentNode) ? null : m_parentNode.getStylesheet();
   }
 
   /**
@@ -288,38 +302,28 @@ public class ElemTemplateElement extends UnImplNode
   /**
    * Throw a template element runtime error.  (Note: should we throw a TransformerException instead?)
    *
-   * @param msg Description of the error that occured.
+   * @param msg key of the error that occured.
    * @param args Arguments to be used in the message
    */
-  public void error(int msg, Object[] args)
+  public void error(String msg, Object[] args)
   {
 
     String themsg = XSLMessages.createMessage(msg, args);
 
-    error(
-      XSLMessages.createMessage(
-        XSLTErrorResources.ER_ELEMTEMPLATEELEM_ERR, new Object[]{ themsg }));  //"ElemTemplateElement error: "+msg);
+    throw new RuntimeException(XSLMessages.createMessage(
+                                    XSLTErrorResources.ER_ELEMTEMPLATEELEM_ERR,
+                                    new Object[]{ themsg }));
   }
   
-  /**
+  /*
    * Throw an error.
    *
-   * @param msg Message code for the error
-   */
-  public void error(int msg)
-  {
-    error(msg, null);
-  }
-  
-  /**
-   * Throw a template element runtime error.  (Note: should we throw a TransformerException instead?)
+   * @param msg Message key for the error
    *
-   * @param msg Description of the error that occured.
-   * @param args Arguments to be used in the message
    */
   public void error(String msg)
   {
-    throw new RuntimeException(msg);
+    error(msg, null);
   }
   
 
@@ -506,6 +510,76 @@ public class ElemTemplateElement extends UnImplNode
     // oldChildElem.m_stylesheet = null;
     return newChildElem;
   }
+  
+  /**
+   * Unimplemented. See org.w3c.dom.Node
+   *
+   * @param newChild New child node to insert
+   * @param refChild Insert in front of this child
+   *
+   * @return null
+   *
+   * @throws DOMException
+   */
+  public Node insertBefore(Node newChild, Node refChild) throws DOMException
+  {
+  	if(null == refChild)
+  	{
+  		appendChild(newChild);
+  		return newChild;
+  	}
+  	
+  	if(newChild == refChild)
+  	{
+  		// hmm...
+  		return newChild;
+  	}
+
+    Node node = m_firstChild; 
+    Node prev = null;  
+    boolean foundit = false;
+    
+    while (null != node)
+    {
+    	// If the newChild is already in the tree, it is first removed.
+    	if(newChild == node)
+    	{
+    		if(null != prev)
+    			((ElemTemplateElement)prev).m_nextSibling = 
+    				(ElemTemplateElement)node.getNextSibling();
+    		else
+    			m_firstChild = (ElemTemplateElement)node.getNextSibling();
+    		node = node.getNextSibling();
+    		continue; // prev remains the same.
+    	}
+    	if(refChild == node)
+    	{
+    		if(null != prev)
+    		{
+    			((ElemTemplateElement)prev).m_nextSibling = (ElemTemplateElement)newChild;
+    		}
+    		else
+    		{
+    			m_firstChild = (ElemTemplateElement)newChild;
+    		}
+    		((ElemTemplateElement)newChild).m_nextSibling = (ElemTemplateElement)refChild;
+    		((ElemTemplateElement)newChild).setParentElem(this);
+    		prev = newChild;
+    		node = node.getNextSibling();
+    		foundit = true;
+    		continue;
+    	}
+    	prev = node;
+    	node = node.getNextSibling();
+    }
+    
+    if(!foundit)
+    	throw new DOMException(DOMException.NOT_FOUND_ERR, 
+    		"refChild was not found in insertBefore method!");
+    else
+    	return newChild;
+  }
+
 
   /**
    * Replace the old child with a new child.
@@ -599,6 +673,25 @@ public class ElemTemplateElement extends UnImplNode
   {
     return getStylesheet();
   }
+  
+  /**
+   * Get the owning xsl:template element.
+   *
+   * @return The owning xsl:template element, this element if it is a xsl:template, or null if not found.
+   */
+  public ElemTemplate getOwnerXSLTemplate()
+  {
+  	ElemTemplateElement el = this;
+  	int type = el.getXSLToken();
+  	while((null != el) && (type != Constants.ELEMNAME_TEMPLATE))
+  	{
+    	el = el.getParentElem();
+    	if(null != el)
+  			type = el.getXSLToken();
+  	}
+  	return (ElemTemplate)el;
+  }
+
 
   /**
    * Return the element name.
@@ -688,7 +781,8 @@ public class ElemTemplateElement extends UnImplNode
    */
   public String getSystemId()
   {
-    return this.getStylesheet().getHref();
+    Stylesheet sheet=getStylesheet();
+    return (sheet==null) ? null : sheet.getHref();
   }
 
   /**
@@ -838,7 +932,6 @@ public class ElemTemplateElement extends UnImplNode
    */
   public String getNamespaceForPrefix(String prefix, org.w3c.dom.Node context)
   {
-
     this.error(XSLTErrorResources.ER_CANT_RESOLVE_NSPREFIX, null);
 
     return null;
@@ -870,6 +963,10 @@ public class ElemTemplateElement extends UnImplNode
     if (null != nsDecls)
     {
       int n = nsDecls.size();
+      if(prefix.equals(Constants.ATTRVAL_DEFAULT_PREFIX))
+      {
+        prefix = "";
+      }
 
       for (int i = 0; i < n; i++)
       {
@@ -883,6 +980,12 @@ public class ElemTemplateElement extends UnImplNode
     // Not found; ask our ancestors
     if (null != m_parentNode)
       return m_parentNode.getNamespaceForPrefix(prefix);
+
+    // JJK: No ancestors; try implicit
+    // %REVIEW% Are there literals somewhere that we should use instead?
+    // %REVIEW% Is this really the best place to patch?
+    if("xml".equals(prefix))
+      return "http://www.w3.org/XML/1998/namespace";
 
     // No parent, so no definition
     return null;
@@ -945,7 +1048,8 @@ public class ElemTemplateElement extends UnImplNode
     {
       if (uri.equals(Constants.S_XSLNAMESPACEURL)
               || getStylesheet().containsExtensionElementURI(uri)
-              || uri.equals(Constants.S_BUILTIN_EXTENSIONS_URL))
+              || uri.equals(Constants.S_BUILTIN_EXTENSIONS_URL)
+              || uri.equals(Constants.S_BUILTIN_OLD_EXTENSIONS_URL))
         return true;
 
       if (containsExcludeResultPrefix(prefix, uri))
@@ -1103,7 +1207,20 @@ public class ElemTemplateElement extends UnImplNode
    */
   void executeNSDecls(TransformerImpl transformer) throws TransformerException
   {
+       executeNSDecls(transformer, null);
+  }
 
+  /**
+   * Send startPrefixMapping events to the result tree handler
+   * for all declared prefix mappings in the stylesheet.
+   *
+   * @param transformer non-null reference to the the current transform-time state.
+   * @param ignorePrefix string prefix to not startPrefixMapping
+   *
+   * @throws TransformerException
+   */
+  void executeNSDecls(TransformerImpl transformer, String ignorePrefix) throws TransformerException
+  {  
     try
     {
       if (null != m_prefixTable)
@@ -1115,7 +1232,7 @@ public class ElemTemplateElement extends UnImplNode
         {
           XMLNSDecl decl = (XMLNSDecl) m_prefixTable.elementAt(i);
 
-          if (!decl.getIsExcluded())
+          if (!decl.getIsExcluded() && !(null != ignorePrefix && decl.getPrefix().equals(ignorePrefix)))
           {
             rhandler.startPrefixMapping(decl.getPrefix(), decl.getURI(), true);
           }
@@ -1129,7 +1246,7 @@ public class ElemTemplateElement extends UnImplNode
   }
 
   /**
-   * Send startPrefixMapping events to the result tree handler
+   * Send endPrefixMapping events to the result tree handler
    * for all declared prefix mappings in the stylesheet.
    *
    * @param transformer non-null reference to the the current transform-time state.
@@ -1138,7 +1255,21 @@ public class ElemTemplateElement extends UnImplNode
    */
   void unexecuteNSDecls(TransformerImpl transformer) throws TransformerException
   {
+       unexecuteNSDecls(transformer, null);
+  }
 
+  /**
+   * Send endPrefixMapping events to the result tree handler
+   * for all declared prefix mappings in the stylesheet.
+   *
+   * @param transformer non-null reference to the the current transform-time state.
+   * @param ignorePrefix string prefix to not endPrefixMapping
+   * 
+   * @throws TransformerException
+   */
+  void unexecuteNSDecls(TransformerImpl transformer, String ignorePrefix) throws TransformerException
+  {
+ 
     try
     {
       if (null != m_prefixTable)
@@ -1150,7 +1281,7 @@ public class ElemTemplateElement extends UnImplNode
         {
           XMLNSDecl decl = (XMLNSDecl) m_prefixTable.elementAt(i);
 
-          if (!decl.getIsExcluded())
+          if (!decl.getIsExcluded() && !(null != ignorePrefix && decl.getPrefix().equals(ignorePrefix)))
           {
             rhandler.endPrefixMapping(decl.getPrefix());
           }
@@ -1462,5 +1593,112 @@ public class ElemTemplateElement extends UnImplNode
     StylesheetRoot sroot = this.getStylesheetRoot();
     return (null != sroot) ? sroot.canStripWhiteSpace() : false;
   }
+  
+  /**
+   * Tell if this element can accept variable declarations.
+   * @return true if the element can accept and process variable declarations.
+   */
+  public boolean canAcceptVariables()
+  {
+  	return true;
+  }
+  
+  //=============== ExpressionNode methods ================
+  
+  /** 
+   * Set the parent of this node.
+   * @param n Must be a ElemTemplateElement.
+   */
+  public void exprSetParent(ExpressionNode n)
+  {
+  	// This obviously requires that only a ElemTemplateElement can 
+  	// parent a node of this type.
+  	setParentElem((ElemTemplateElement)n);
+  }
+  
+  /**
+   * Get the ExpressionNode parent of this node.
+   */
+  public ExpressionNode exprGetParent()
+  {
+  	return getParentElem();
+  }
+
+  /** 
+   * This method tells the node to add its argument to the node's
+   * list of children. 
+   * @param n Must be a ElemTemplateElement. 
+   */
+  public void exprAddChild(ExpressionNode n, int i)
+  {
+  	appendChild((ElemTemplateElement)n);
+  }
+
+  /** This method returns a child node.  The children are numbered
+     from zero, left to right. */
+  public ExpressionNode exprGetChild(int i)
+  {
+  	return (ExpressionNode)item(i);
+  }
+
+  /** Return the number of children the node has. */
+  public int exprGetNumChildren()
+  {
+  	return getLength();
+  }
+  
+  /**
+   * Accept a visitor and call the appropriate method 
+   * for this class.
+   * 
+   * @param visitor The visitor whose appropriate method will be called.
+   * @return true if the children of the object should be visited.
+   */
+  protected boolean accept(XSLTVisitor visitor)
+  {
+  	return visitor.visitInstruction(this);
+  }
+
+  /**
+   * @see XSLTVisitable#callVisitors(XSLTVisitor)
+   */
+  public void callVisitors(XSLTVisitor visitor)
+  {
+  	if(accept(visitor))
+  	{
+		callChildVisitors(visitor);
+  	}
+  }
+
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttributes)
+  {
+    for (ElemTemplateElement node = m_firstChild;
+      node != null;
+      node = node.m_nextSibling)
+      {
+      node.callVisitors(visitor);
+    }
+  }
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor)
+  {
+  	callChildVisitors(visitor, true);
+  }
+
+
+	/**
+	 * @see PrefixResolver#handlesNullPrefixes()
+	 */
+	public boolean handlesNullPrefixes() {
+		return false;
+	}
 
 }

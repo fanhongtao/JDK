@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)TableExample.java	1.16 02/06/13
+ * @(#)TableExample.java	1.17 03/01/23
  */
 
 /**
@@ -44,7 +44,7 @@
  * NOTE: This example uses a modal dialog via the static convenience methods in
  * the JOptionPane. Use of modal dialogs requires JDK 1.1.4 or greater.
  *
- * @version 1.16 06/13/02
+ * @version 1.17 01/23/03
  * @author Philip Milne
  */
 

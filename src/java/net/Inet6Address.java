@@ -1,14 +1,17 @@
 /*
- * @(#)Inet6Address.java	1.21 02/02/11
+ * @(#)Inet6Address.java	1.25 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
 
 import java.security.AccessController;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 import java.io.ObjectStreamException;
+import java.io.InvalidObjectException;
 import sun.security.action.*;
 
 /**
@@ -26,7 +29,7 @@ import sun.security.action.*;
  *   the hexadecimal values of the eight 16-bit pieces of the
  *   address. This is the full form.  For example,
  *
- *   <blockquote><table cellpadding=0 cellspacing=0>
+ *   <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  *   <tr><td><tt>1080:0:0:0:8:800:200C:417A</tt><td></tr>
  *   </table></blockquote>
  *
@@ -43,7 +46,7 @@ import sun.security.action.*;
  *   The "::" can also be used to compress the leading and/or trailing
  *   zeros in an address. For example,
  *
- *   <blockquote><table cellpadding=0 cellspacing=0>
+ *   <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  *   <tr><td><tt>1080::8:800:200C:417A</tt><td></tr>
  *   </table></blockquote>
  *
@@ -54,7 +57,7 @@ import sun.security.action.*;
  *   are the decimal values of the four low-order 8-bit pieces of the
  *   standard IPv4 representation address, for example,
  *
- *   <blockquote><table cellpadding=0 cellspacing=0>
+ *   <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  *   <tr><td><tt>::FFFF:129.144.52.38</tt><td></tr>
  *   <tr><td><tt>::129.144.52.38</tt><td></tr>
  *   </table></blockquote>
@@ -64,7 +67,7 @@ import sun.security.action.*;
  *   IPv4-compatible IPv6 address. Note that the IPv4 portion must be
  *   in the "d.d.d.d" form. The following forms are invalid:
  *
- *   <blockquote><table cellpadding=0 cellspacing=0>
+ *   <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  *   <tr><td><tt>::FFFF:d.d.d</tt><td></tr>
  *   <tr><td><tt>::FFFF:d.d</tt><td></tr>
  *   <tr><td><tt>::d.d.d</tt><td></tr>
@@ -73,14 +76,14 @@ import sun.security.action.*;
  *
  *   <p> The following form:
  *
- *   <blockquote><table cellpadding=0 cellspacing=0>
+ *   <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  *   <tr><td><tt>::FFFF:d</tt><td></tr>
  *   </table></blockquote>
  *
  *   <p> is valid, however it is an unconventional representation of
  *   the IPv4-compatible IPv6 address,
  *
- *   <blockquote><table cellpadding=0 cellspacing=0>
+ *   <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  *   <tr><td><tt>::255.255.0.d</tt><td></tr>
  *   </table></blockquote>
  *
@@ -96,7 +99,7 @@ import sun.security.action.*;
  * <h4> Special IPv6 address </h4>
  *
  * <blockquote>
- *<table cellspacing=2> <tr><td valign=top><i>IPv4-mapped address</i></td>
+ * <table cellspacing=2 summary="Description of IPv4-mapped address"> <tr><th valign=top><i>IPv4-mapped address</i></th>
  *         <td>Of the form::ffff:w.x.y.z, this IPv6 address is used to
  *         represent an IPv4 address. It allows the native program to
  *         use the same address data structure and also the same
@@ -126,6 +129,8 @@ class Inet6Address extends InetAddress {
      */
     byte[] ipaddress;
 
+    private static final long serialVersionUID = 6880410070516793377L;
+
     /*
      * Perform initializations.
      */
@@ -146,6 +151,23 @@ class Inet6Address extends InetAddress {
 	    family = IPv6;
 	    ipaddress = (byte[])addr.clone();
 	} 
+    }
+
+    private void readObject(ObjectInputStream s) 
+	throws IOException, ClassNotFoundException {
+	s.defaultReadObject();
+	
+	ipaddress = (byte[])ipaddress.clone();
+
+	// Check that our invariants are satisfied
+	if (ipaddress.length != INADDRSZ) {
+	    throw new InvalidObjectException("invalid address length: "+
+					     ipaddress.length);
+	}
+	
+	if (family != IPv6) {
+	    throw new InvalidObjectException("invalid address family type");
+	}
     }
     
     /**
@@ -307,9 +329,18 @@ class Inet6Address extends InetAddress {
      */
     public int hashCode() {
 	if (ipaddress != null) {
+
 	    int hash = 0;
-	    for (int i = 0; i < ipaddress.length; i++) {
-		hash += ipaddress[i];
+	    int i=0;
+  	    while (i<INADDRSZ) {
+		int j=0;
+		int component=0;
+		while (j<4 && i<INADDRSZ) {
+		    component = (component << 8) + ipaddress[i];
+		    j++; 
+		    i++;
+		}
+		hash += component;
 	    }
 	    return hash;
 

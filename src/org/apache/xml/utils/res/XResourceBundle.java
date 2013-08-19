@@ -56,8 +56,6 @@
  */
 package org.apache.xml.utils.res;
 
-import org.apache.xml.utils.res.XResourceBundleBase;
-
 import java.util.*;
 
 /**

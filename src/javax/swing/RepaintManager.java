@@ -1,7 +1,7 @@
 /*
- * @(#)RepaintManager.java	1.51 02/04/18
+ * @(#)RepaintManager.java	1.52 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -21,7 +21,7 @@ import sun.security.action.GetPropertyAction;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.51 04/18/02
+ * @version 1.52 01/23/03
  * @author Arnaud Weber
  */
 public class RepaintManager 

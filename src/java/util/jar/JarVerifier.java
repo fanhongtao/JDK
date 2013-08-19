@@ -1,7 +1,7 @@
 /*
- * @(#)JarVerifier.java	1.30 02/02/06
+ * @(#)JarVerifier.java	1.32 03/02/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.30 02/02/06
+ * @version 	1.32 03/02/27
  * @author	Roland Schemers
  */
 class JarVerifier {
@@ -351,6 +351,8 @@ class JarVerifier {
 	    this.mev = new ManifestEntryVerifier(man);
 	    this.jv.beginEntry(je, mev);
 	    this.numLeft = je.getSize();
+	    if (this.numLeft == 0)
+		this.jv.update(-1, this.mev);
 	}
 
 	public int read() throws IOException

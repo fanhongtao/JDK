@@ -59,8 +59,13 @@ package org.apache.xpath.functions;
 import java.util.Vector;
 
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.ExpressionNode;
 import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.ExtensionsProvider;
 import org.apache.xpath.objects.*;
+import org.apache.xalan.transformer.TransformerImpl;
 import org.apache.xalan.extensions.ExtensionsTable;
 import org.apache.xml.dtm.DTMIterator;
 
@@ -70,6 +75,8 @@ import org.w3c.dom.traversal.NodeIterator;
 
 import org.apache.xml.dtm.*;
 import org.apache.xpath.axes.*;
+import org.apache.xpath.res.XPATHErrorResources;
+import org.apache.xalan.res.XSLMessages;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -133,6 +140,49 @@ public class FuncExtFunction extends Function
       }
     }
   }
+  
+  /**
+   * Return the namespace of the extension function.
+   *
+   * @return The namespace of the extension function.
+   */
+  public String getNamespace()
+  {
+    return m_namespace;
+  }
+  
+  /**
+   * Return the name of the extension function.
+   *
+   * @return The name of the extension function.
+   */
+  public String getFunctionName()
+  {
+    return m_extensionName;
+  }
+
+  /** 
+   * Return the nth argument passed to the extension function.
+   * 
+   * @param n The argument number index.
+   * @return The Expression object at the given index.
+   */    
+  public Expression getArg(int n) {
+    if (n >= 0 && n < m_argVec.size())
+      return (Expression) m_argVec.elementAt(n);
+    else
+      return null;
+  }
+
+  /**
+   * Return the number of arguments that were passed
+   * into this extension function.
+   *
+   * @return The number of arguments.
+   */    
+  public int getArgCount() {
+    return m_argVec.size();
+  }
 
   /**
    * Create a new FuncExtFunction based on the qualified name of the extension,
@@ -148,7 +198,7 @@ public class FuncExtFunction extends Function
   public FuncExtFunction(java.lang.String namespace,
                          java.lang.String extensionName, Object methodKey)
   {
-
+    //try{throw new Exception("FuncExtFunction() " + namespace + " " + extensionName);} catch (Exception e){e.printStackTrace();}
     m_namespace = namespace;
     m_extensionName = extensionName;
     m_methodKey = methodKey;
@@ -173,14 +223,15 @@ public class FuncExtFunction extends Function
     for (int i = 0; i < nArgs; i++)
     {
       Expression arg = (Expression) m_argVec.elementAt(i);
+      
+      XObject xobj = arg.execute(xctxt);
 
-      argVec.addElement(arg.execute(xctxt));
+      argVec.addElement(xobj);
     }
-
-    ExtensionsTable etable = xctxt.getExtensionsTable();
-    Object val = etable.extFunction(m_namespace, m_extensionName, argVec,
-                                    m_methodKey,
-                                    xctxt.getExpressionContext());
+    //dml
+    ExtensionsProvider extProvider = (ExtensionsProvider)xctxt.getOwnerObject();
+    Object val = extProvider.extFunction(m_namespace, m_extensionName, 
+                                         argVec, m_methodKey);
 
     if (null != val)
     {
@@ -219,4 +270,85 @@ public class FuncExtFunction extends Function
    * @throws WrongNumberArgsException
    */
   public void checkNumberArgs(int argNum) throws WrongNumberArgsException{}
+
+
+  class ArgExtOwner implements ExpressionOwner
+  {
+  
+    Expression m_exp;
+  	
+  	ArgExtOwner(Expression exp)
+  	{
+  		m_exp = exp;
+  	}
+  	
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_exp;
+    }
+
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(FuncExtFunction.this);
+    	m_exp = exp;
+    }
+  }
+  
+  
+  /**
+   * Call the visitors for the function arguments.
+   */
+  public void callArgVisitors(XPathVisitor visitor)
+  {
+      for (int i = 0; i < m_argVec.size(); i++)
+      {
+         Expression exp = (Expression)m_argVec.elementAt(i);
+         exp.callVisitors(new ArgExtOwner(exp), visitor);
+      }
+    
+  }
+
+  /**
+   * Set the parent node.
+   * For an extension function, we also need to set the parent
+   * node for all argument expressions.
+   * 
+   * @param n The parent node
+   */
+  public void exprSetParent(ExpressionNode n) 
+  {
+	
+    super.exprSetParent(n);
+      
+    int nArgs = m_argVec.size();
+
+    for (int i = 0; i < nArgs; i++)
+    {
+      Expression arg = (Expression) m_argVec.elementAt(i);
+
+      arg.exprSetParent(n);
+    }		
+  }
+
+  /**
+   * Constructs and throws a WrongNumberArgException with the appropriate
+   * message for this function object.  This class supports an arbitrary
+   * number of arguments, so this method must never be called.
+   *
+   * @throws WrongNumberArgsException
+   */
+  protected void reportWrongNumberArgs() throws WrongNumberArgsException {
+    String fMsg = XSLMessages.createXPATHMessage(
+        XPATHErrorResources.ER_INCORRECT_PROGRAMMER_ASSERTION,
+        new Object[]{ "Programmer's assertion:  the method FunctionMultiArgs.reportWrongNumberArgs() should never be called." });
+
+    throw new RuntimeException(fMsg);
+  }
 }

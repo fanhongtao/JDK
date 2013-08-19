@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.177 03/01/19
+ * @(#)Window.java	1.184 03/01/28
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.awt.DebugHelper;
  * <p>
  * In a multi-screen environment, you can create a <code>Window</code>
  * on a different screen device by constructing the <code>Window</code>
- * with {@link Window(Window, GraphicsConfiguration)}.  The 
+ * with {@link #Window(Window, GraphicsConfiguration)}.  The 
  * <code>GraphicsConfiguration</code> object is one of the 
  * <code>GraphicsConfiguration</code> objects of the target screen device.  
  * <p>
@@ -53,6 +53,7 @@ import sun.awt.DebugHelper;
  * possible, as shown in the following figure.
  * <p>
  * <img src="doc-files/MultiScreen.gif"
+ * alt="Diagram shows virtual device containing 4 physical screens. Primary physical screen shows coords (0,0), other screen shows (-80,-100)."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>  
  * In such an environment, when calling <code>setLocation</code>, 
@@ -81,7 +82,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.177, 01/19/03
+ * @version 	1.184, 01/28/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -104,9 +105,15 @@ public class Window extends Container implements Accessible {
      */
     String      warningString;
 
+    /**
+     * Holds the reference to the component which last had focus in this window
+     * before it lost focus.
+     */
+    private transient Component temporaryLostComponent;
+
     static boolean systemSyncLWRequests = false;
     boolean     syncLWRequests = false;
-    boolean isFirstPack = true;
+    transient boolean beforeFirstShow = true;
 
     static final int OPENED = 0x01;
 
@@ -430,9 +437,8 @@ public class Window extends Container implements Accessible {
 	}
 	setSize(getPreferredSize());
 
-        if(isFirstPack == true) {
+        if(beforeFirstShow) {
             isPacked = true;
-            isFirstPack = false;
         }
 
 	validate();
@@ -457,6 +463,7 @@ public class Window extends Container implements Accessible {
 	if (visible) {
 	    toFront();
 	} else {
+            beforeFirstShow = false;
 	    super.show();
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
                 Window child = (Window) (((WeakReference)
@@ -511,19 +518,24 @@ public class Window extends Container implements Accessible {
         /* do nothing */
     }
     /**
-     * Releases all of the native screen resources used by this Window, 
-     * its subcomponents, and all of its owned children. That is, the 
-     * resources for these Components will be destroyed, any memory 
-     * they consume will be returned to the OS, and they will be marked 
-     * as undisplayable.
+     * Releases all of the native screen resources used by this
+     * <code>Window</code>, its subcomponents, and all of its owned
+     * children. That is, the resources for these <code>Component</code>s
+     * will be destroyed, any memory they consume will be returned to the
+     * OS, and they will be marked as undisplayable.
      * <p>
-     * The Window and its subcomponents can be made displayable again
-     * by rebuilding the native resources with a subsequent call to
+     * The <code>Window</code> and its subcomponents can be made displayable
+     * again by rebuilding the native resources with a subsequent call to
      * <code>pack</code> or <code>show</code>. The states of the recreated
-     * Window and its subcomponents will be identical to the states of these
-     * objects at the point where the Window was disposed (not accounting for
-     * additional modifcations between those actions).
-     * </p>
+     * <code>Window</code> and its subcomponents will be identical to the
+     * states of these objects at the point where the <code>Window</code>
+     * was disposed (not accounting for additional modifications between
+     * those actions).
+     * <p>
+     * <b>Note</b>: When the last displayable window
+     * within the Java virtual machine (VM) is disposed of, the VM may
+     * terminate.  See <a href="doc-files/AWTThreadIssues.html">
+     * AWT Threading Issues</a> for more information.
      * @see Component#isDisplayable
      * @see #pack
      * @see #show
@@ -541,6 +553,7 @@ public class Window extends Container implements Accessible {
                 }
             }
             setVisible(false);
+            beforeFirstShow = true;
             removeNotify();
             synchronized (inputContextLock) {
                 if (inputContext != null) {
@@ -594,7 +607,7 @@ public class Window extends Container implements Accessible {
      * it the focused Window.
      * <p>
      * Places this Window at the top of the stacking order and shows it in
-     * front of any other Windows in this VM. No action will take place is this
+     * front of any other Windows in this VM. No action will take place if this
      * Window is not visible. Some platforms do not allow Windows which own
      * other Windows to appear on top of those owned Windows. Some platforms
      * may not permit this VM to place its Windows above windows of native
@@ -748,7 +761,7 @@ public class Window extends Container implements Accessible {
 
     /**
      * Set the cursor image to a specified cursor.
-     * @param <code>cursor</code> One of the constants defined
+     * @param     cursor One of the constants defined
      *            by the <code>Cursor</code> class. If this parameter is null
      *            then the cursor for this window will be set to the type
      *            Cursor.DEFAULT_CURSOR.
@@ -1098,28 +1111,29 @@ public class Window extends Container implements Accessible {
      * @see Component#enableEvents
      */  
     protected void processWindowEvent(WindowEvent e) {
-        if (windowListener != null) {
+        WindowListener listener = windowListener;
+        if (listener != null) {
             switch(e.getID()) {
                 case WindowEvent.WINDOW_OPENED:
-                    windowListener.windowOpened(e);
+                    listener.windowOpened(e);
                     break;
                 case WindowEvent.WINDOW_CLOSING:
-                    windowListener.windowClosing(e);
+                    listener.windowClosing(e);
                     break;
                 case WindowEvent.WINDOW_CLOSED:
-                    windowListener.windowClosed(e);
+                    listener.windowClosed(e);
                     break;
                 case WindowEvent.WINDOW_ICONIFIED:
-                    windowListener.windowIconified(e);
+                    listener.windowIconified(e);
                     break;
                 case WindowEvent.WINDOW_DEICONIFIED:
-                    windowListener.windowDeiconified(e);
+                    listener.windowDeiconified(e);
                     break;
                 case WindowEvent.WINDOW_ACTIVATED:
-                    windowListener.windowActivated(e);
+                    listener.windowActivated(e);
                     break;
                 case WindowEvent.WINDOW_DEACTIVATED:
-                    windowListener.windowDeactivated(e);
+                    listener.windowDeactivated(e);
                     break;
                 default:
                     break;
@@ -1146,13 +1160,14 @@ public class Window extends Container implements Accessible {
      * @see Component#enableEvents
      */
     protected void processWindowFocusEvent(WindowEvent e) {
-        if (windowFocusListener != null) {
+        WindowFocusListener listener = windowFocusListener;
+        if (listener != null) {
             switch (e.getID()) {
                 case WindowEvent.WINDOW_GAINED_FOCUS:
-                    windowFocusListener.windowGainedFocus(e);
+                    listener.windowGainedFocus(e);
                     break;
                 case WindowEvent.WINDOW_LOST_FOCUS:
-                    windowFocusListener.windowLostFocus(e);
+                    listener.windowLostFocus(e);
                     break;
                 default:
                     break;
@@ -1181,10 +1196,11 @@ public class Window extends Container implements Accessible {
      * @since 1.4
      */
     protected void processWindowStateEvent(WindowEvent e) {
-	if (windowStateListener != null) {
+        WindowStateListener listener = windowStateListener;
+	if (listener != null) {
 	    switch (e.getID()) {
 		case WindowEvent.WINDOW_STATE_CHANGED:
-		    windowStateListener.windowStateChanged(e);
+		    listener.windowStateChanged(e);
 		    break;
 		default:
 		    break;
@@ -1291,7 +1307,7 @@ public class Window extends Container implements Accessible {
      */
     public boolean isFocused() {
 	return (KeyboardFocusManager.getCurrentKeyboardFocusManager().
-		getFocusedWindow() == this);
+		getGlobalFocusedWindow() == this);
     }
   
     /**
@@ -1694,11 +1710,11 @@ public class Window extends Container implements Accessible {
      *    <code>ownedWindowK</code> indicating a child
      *      <code>Window</code> object
      *
-     * @see AWTEventMulticaster.save(java.io.ObjectOutputStream, java.lang.String, java.util.EventListener)
+     * @see AWTEventMulticaster#save(java.io.ObjectOutputStream, java.lang.String, java.util.EventListener)
      * @see Component#windowListenerK
      * @see Component#windowFocusListenerK
      * @see Component#ownedWindowK
-     * @see #readObject
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         synchronized (this) {
@@ -1911,8 +1927,12 @@ public class Window extends Container implements Accessible {
      * component. If the component is not currently showing,
      * or <code>c</code> is <code>null</code>, the 
      * window is centered on the screen.  If the bottom of the
-     * component is offscreen, the window is displayed to the
-     * right of the component.
+     * component is offscreen, the window is placed to the
+     * side of the <code>Component</code> that is closest
+     * to the center of the screen.  So if the 
+     * <code>Component</code> is on the right part of the
+     * screen, the <code>Window</code> is placed to its left,
+     * and visa versa.
      *
      * @param c  the component in relation to which the window's location
      *           is determined
@@ -2054,7 +2074,23 @@ public class Window extends Container implements Accessible {
     public BufferStrategy getBufferStrategy() {
         return super.getBufferStrategy();
     }
-    
+
+    Component getTemporaryLostComponent() {
+        return temporaryLostComponent;
+    }
+    Component setTemporaryLostComponent(Component component) {
+        Component previousComp = temporaryLostComponent;
+        // Check that "component" is an acceptable focus owner and don't store it otherwise 
+        // - or later we will have problems with opposite while handling  WINDOW_GAINED_FOCUS
+        if (component == null 
+            || (component.isDisplayable() && component.isVisible() && component.isEnabled() && component.isFocusable()))
+        {
+            temporaryLostComponent = component;
+        } else {
+            temporaryLostComponent = null;
+        }
+        return previousComp;
+    }
 } // class Window
 
 

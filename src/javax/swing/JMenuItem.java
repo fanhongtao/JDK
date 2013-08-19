@@ -1,5 +1,5 @@
 /*
- * @(#)JMenuItem.java	1.109 03/01/19
+ * @(#)JMenuItem.java	1.110 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -51,7 +51,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: An item which can be selected in a menu.
  *
- * @version 1.109 01/19/03
+ * @version 1.110 01/23/03
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -72,7 +72,6 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     private static final boolean VERBOSE = false; // show reuse hits/misses
     private static final boolean DEBUG =   false;  // show bad params, misc.
 
-    /*Bug 4711693 */
     private boolean isMouseDragged = false;
 
     /**
@@ -591,7 +590,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * Notifies all listeners that have registered interest for
      * notification on this event type. 
      *
-     * @param a <code>MenuKeyEvent</code>
+     * @param event a <code>MenuKeyEvent</code>
      * @see EventListenerList
      */
     protected void fireMenuKeyPressed(MenuKeyEvent event) {
@@ -615,7 +614,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * Notifies all listeners that have registered interest for
      * notification on this event type. 
      *
-     * @param a <code>MenuKeyEvent</code>
+     * @param event a <code>MenuKeyEvent</code>
      * @see EventListenerList
      */
     protected void fireMenuKeyReleased(MenuKeyEvent event) {

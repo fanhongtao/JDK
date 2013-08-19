@@ -1,7 +1,7 @@
 /*
- * @(#)TextMeasurer.java	1.35 01/12/03
+ * @(#)TextMeasurer.java	1.37 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -345,26 +345,18 @@ public final class TextMeasurer implements Cloneable {
      */
     private int trailingCdWhitespaceStart(int startPos, int limitPos) {
 
-        int cdWsStart = limitPos;
-
         if (fLevels != null) {
             // Back up over counterdirectional whitespace
             final byte baseLevel = (byte) (fIsDirectionLTR? 0 : 1); 
-            for (cdWsStart = limitPos-1; cdWsStart >= startPos; cdWsStart--) {
-		// note: should use the direction code value, but Character doesn't provide
-		// access for now, so use this instead
-                // if ((fLevels[cdWsStart] % 2) == baseLevel || 
-                //        Bidi.getDirectionCode(fChars[cdWsStart]) != Bidi.WS) {
-
+            for (int cdWsStart = limitPos; --cdWsStart >= startPos;) {
                 if ((fLevels[cdWsStart] % 2) == baseLevel || 
-                        !Character.isWhitespace(fChars[cdWsStart])) {
-                    cdWsStart++;
-                    break;
+                        Character.getDirectionality(fChars[cdWsStart]) != Character.DIRECTIONALITY_WHITESPACE) {
+                    return ++cdWsStart;
                 }
             }
         }
 
-        return cdWsStart;
+        return startPos;
     }
 
     private TextLineComponent[] makeComponentsOnRange(int startPos, 

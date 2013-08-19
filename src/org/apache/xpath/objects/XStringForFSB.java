@@ -61,6 +61,9 @@ import org.apache.xml.utils.XMLString;
 import org.apache.xml.utils.XMLStringFactory;
 import org.apache.xml.utils.XMLCharacterRecognizer;
 
+import org.apache.xpath.res.XPATHErrorResources;
+import org.apache.xalan.res.XSLMessages;
+
 import java.util.Locale;
 
 /**
@@ -98,7 +101,7 @@ public class XStringForFSB extends XString
 
     if (null == val)
       throw new IllegalArgumentException(
-        "The FastStringBuffer argument can not be null!!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_FASTSTRINGBUFFER_CANNOT_BE_NULL, null));
   }
 
   /**
@@ -112,7 +115,7 @@ public class XStringForFSB extends XString
     super(val);
 
     throw new IllegalArgumentException(
-      "XStringForFSB can not take a string for an argument!");
+      XSLMessages.createXPATHMessage(XPATHErrorResources.ER_FSB_CANNOT_TAKE_STRING, null)); // "XStringForFSB can not take a string for an argument!");
   }
 
   /**
@@ -371,6 +374,8 @@ public class XStringForFSB extends XString
     {
       return true;
     }
+    if(obj2.getType() == XObject.CLASS_NUMBER)
+    	return obj2.equals(this);
 
     String str = obj2.str();
     int n = m_length;
@@ -457,6 +462,9 @@ public class XStringForFSB extends XString
 
     if (null == obj2)
       return false;
+      
+    if(obj2 instanceof XNumber)
+    	return obj2.equals(this);
 
       // In order to handle the 'all' semantics of 
       // nodeset comparisons, we always call the 
@@ -593,7 +601,13 @@ public class XStringForFSB extends XString
    */
   public int hashCode()
   {
-
+    // Commenting this out because in JDK1.1.8 and VJ++
+    // we don't match XMLStrings. Defaulting to the super
+    // causes us to create a string, but at this point
+    // this only seems to get called in key processing.
+    // Maybe we can live with it?
+    
+/*
     int h = m_hash;
 
     if (h == 0)
@@ -611,8 +625,9 @@ public class XStringForFSB extends XString
 
       m_hash = h;
     }
+    */
 
-    return h;
+    return super.hashCode(); // h;
   }
 
   /**
@@ -961,94 +976,105 @@ public class XStringForFSB extends XString
    * Convert a string to a double -- Allowed input is in fixed
    * notation ddd.fff.
    *
+   * %OPT% CHECK PERFORMANCE against generating a Java String and
+   * converting it to double. The advantage of running in native
+   * machine code -- perhaps even microcode, on some systems -- may
+   * more than make up for the cost of allocating and discarding the
+   * additional object. We need to benchmark this. 
+   *
+   * %OPT% More importantly, we need to decide whether we _care_ about
+   * the performance of this operation. Does XString.toDouble constitute
+   * any measurable percentage of our typical runtime? I suspect not!
+   *
    * @return A double value representation of the string, or return Double.NaN 
-   * if the string can not be converted.
-   */
+   * if the string can not be converted.  */
   public double toDouble()
   {
-
-    int start = m_start;
-    int end = m_length+start;
-    
+    int end = m_length+m_start;
     if(0 == end)
       return Double.NaN;
-      
-    double result = 0.0;
-    int punctPos = end-1;
-    FastStringBuffer fsb = fsb();
-    
-    // Scan to first whitespace character.
-    for (int i = start; i < end; i++) 
-    {
-      char c = fsb.charAt(i);
-      if( !XMLCharacterRecognizer.isWhiteSpace( c ) )
-      {
-        break;
-      }
-      else
-        start++;
-    }
 
-    double sign = 1.0;
+    int start = m_start;
+    FastStringBuffer fsb = fsb();
+      
+    long longResult=0;
+    boolean isNegative=false;
+    boolean trailingSpace=false;
+    int[] digitsFound={0,0}; // intpart,fracpart
+    int digitType=0;    // Index to which kind of digit we're accumulating
+    double doubleResult;
+    
+    // Scan past leading whitespace characters
+    while(start< end &&
+          XMLCharacterRecognizer.isWhiteSpace( fsb.charAt(start) )
+          )
+      ++start;
+    
     if (start < end && fsb.charAt(start) == '-')
     {
-      sign = -1.0;
-
+      isNegative=true;
       start++;
     }
     
-    int digitsFound = 0;
-    for (int i = start; i < end; i++)  // parse the string from left to right converting the integer part
+    // parse the string from left to right converting as an integer.
+    for (int i = start; i < end; i++)
     {
       char c = fsb.charAt(i);
-      if (c != '.')
-      {
-        if(XMLCharacterRecognizer.isWhiteSpace(c))
-          break;
-        else if (Character.isDigit(c))
-        {
-          result = result * 10.0 + (c - 0x30);
-          digitsFound++;
-        }
-        else
-        {
-          return Double.NaN;
-        }
-      }
-      else
-      {
-        punctPos = i;
 
-        break;
+      if(XMLCharacterRecognizer.isWhiteSpace(c))
+      {
+				trailingSpace=true;
+        break;                  // Trailing whitespace is ignored
+      }
+      else if(trailingSpace)
+	return Double.NaN;	// Nonspace after space is poorly formed
+	
+      switch(c)
+      {
+      case '.':
+        if(digitType==0)
+          digitType=1;
+        else
+          return Double.NaN;    // Second period is error
+	break;
+	
+      case '0':			// NOT Unicode isDigit();  ASCII digits _only_
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        longResult = longResult * 10 + (c - '0'); // Accumulate as int
+        ++digitsFound[digitType]; // Remember scaling
+	break;
+
+      default:
+        return Double.NaN;      // Nonnumeric is error
       }
     }
-    
-    if (fsb.charAt(punctPos) == '.')  // parse the string from the end to the '.' converting the fractional part
-    {
-      double fractPart = 0.0;
-      for (int i = end - 1; i > punctPos; i--)
-      {
-        char c = fsb.charAt(i);
-        if(XMLCharacterRecognizer.isWhiteSpace(c))
-          continue;
-        else if (Character.isDigit(c))
-        {
-          fractPart = fractPart / 10.0 + (c - 0x30);
-          digitsFound++;
-        }
-        else
-        {
-          return Double.NaN;
-        }
-      }
 
-      result += fractPart / 10.0;
-    }
-    
-    if(0 == digitsFound)
+    if(0 ==digitsFound[0]&& 0==digitsFound[1])
       return Double.NaN;
 
-    return result * sign;
+    // Convert from scaled integer to floating point. This will come close. 
+    // There's an alternative solution involving Double.longBitsToDouble
+    // followed by a combined renormalize/scale operation... but I honestly
+    // think the more straightforward solution comes out to just about
+    // the same thing.
+                
+    long scale=1;               // AFAIK, java doesn't have an easier 10^n operation
+    for(int i=digitsFound[1];i>0;--i) 
+      scale*=10;
+                
+    doubleResult=((double)longResult)/scale;
+                
+    if(isNegative)
+      doubleResult *= -1;
+    return doubleResult;
   }
 
 }

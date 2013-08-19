@@ -78,7 +78,7 @@ import org.apache.xml.dtm.ref.DTMNodeProxy;
  *
  * @see org.apache.xalan.trace.TracerEvent
  */
-public class PrintTraceListener implements TraceListener
+public class PrintTraceListener implements TraceListenerEx2
 {
 
   /**
@@ -121,7 +121,7 @@ public class PrintTraceListener implements TraceListener
    *
    * @param ev the trace event.
    */
-  public void trace(TracerEvent ev)
+  public void _trace(TracerEvent ev)
   {
 
     switch (ev.m_styleNode.getXSLToken())
@@ -169,6 +169,44 @@ public class PrintTraceListener implements TraceListener
       }
     }
   }
+  
+  int m_indent = 0;
+  
+  /**
+   * Print information about a TracerEvent.
+   *
+   * @param ev the trace event.
+   */
+  public void trace(TracerEvent ev)
+  {
+//  	m_traceElements = true;
+//  	m_traceTemplates = true;
+//  	
+//  	for(int i = 0; i < m_indent; i++)
+//  		m_pw.print(" ");
+//    m_indent = m_indent+2;
+//  	m_pw.print("trace: ");
+	_trace(ev);
+  }
+  
+  /**
+   * Method that is called when the end of a trace event occurs.
+   * The method is blocking.  It must return before processing continues.
+   *
+   * @param ev the trace event.
+   */
+  public void traceEnd(TracerEvent ev)
+  {
+//  	m_traceElements = true;
+//  	m_traceTemplates = true;
+//  	
+//  	m_indent = m_indent-2;
+//  	for(int i = 0; i < m_indent; i++)
+//  		m_pw.print(" ");
+//  	m_pw.print("etrac: ");
+//	_trace(ev);
+  }
+
 
   /**
    * Method that is called just after a select attribute has been evaluated.
@@ -184,14 +222,19 @@ public class PrintTraceListener implements TraceListener
     {
       ElemTemplateElement ete = (ElemTemplateElement) ev.m_styleNode;
       Node sourceNode = ev.m_sourceNode;
-      int nodeHandler = ((DTMNodeProxy)sourceNode).getDTMNodeNumber();
       
-      SourceLocator locator = ((DTMNodeProxy)sourceNode).getDTM()
-        .getSourceLocatorFor(nodeHandler);
+      SourceLocator locator = null;
+      if (sourceNode instanceof DTMNodeProxy)
+      {
+        int nodeHandler = ((DTMNodeProxy)sourceNode).getDTMNodeNumber();      
+        locator = ((DTMNodeProxy)sourceNode).getDTM().getSourceLocatorFor(nodeHandler);
+      }
 
       if (locator != null)      
         m_pw.println("Selected source node '" + sourceNode.getNodeName()
                  + "', at " + locator);
+      else
+        m_pw.println("Selected source node '" + sourceNode.getNodeName() +"'");
 
       if (ev.m_styleNode.getLineNumber() == 0)
       {
@@ -267,6 +310,21 @@ public class PrintTraceListener implements TraceListener
       }
     }
   }
+  
+  /**
+   * Method that is called after an xsl:apply-templates or xsl:for-each 
+   * selection occurs.
+   *
+   * @param ev the generate event.
+   *
+   * @throws javax.xml.transform.TransformerException
+   */
+  public void selectEnd(EndSelectionEvent ev) 
+     throws javax.xml.transform.TransformerException
+  {
+  	// Nothing for right now.
+  }
+
 
   /**
    * Print information about a Generate event.
@@ -321,4 +379,6 @@ public class PrintTraceListener implements TraceListener
       }
     }
   }
+  
+
 }

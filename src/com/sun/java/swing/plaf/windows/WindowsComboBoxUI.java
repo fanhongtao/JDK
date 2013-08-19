@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.32 01/12/07
+ * @(#)WindowsComboBoxUI.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.32, 12/07/01
+ * @version 1.36, 01/23/03
  * @author Tom Santos
  */
 
@@ -40,9 +40,31 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         comboBox.setRequestFocusEnabled( true );
     }
     
+    /**
+     * Creates a layout manager for managing the components which make up the 
+     * combo box.
+     * 
+     * @return an instance of a layout manager
+     */
+    protected LayoutManager createLayoutManager() {
+        return new BasicComboBoxUI.ComboBoxLayoutManager() {
+	    public void layoutContainer(Container parent) {
+		super.layoutContainer(parent);
+
+		if (XPStyle.getXP() != null && arrowButton != null) {
+		    Dimension d = parent.getSize();
+		    Insets insets = getInsets();
+		    int buttonWidth = arrowButton.getPreferredSize().width;
+		    arrowButton.setBounds(d.width - insets.right - buttonWidth, insets.top,
+					  buttonWidth, d.height - insets.top - insets.bottom);
+		}
+	    }
+	};
+    }
+
     protected void installKeyboardActions() {
         super.installKeyboardActions();
-        ActionMap map = (ActionMap)UIManager.get("ComboBox.actionMap");
+        ActionMap map = SwingUtilities.getUIActionMap(comboBox);
         if (map != null) {
             map.put("selectPrevious", new UpAction());
             map.put("selectNext", new DownAction());
@@ -65,6 +87,32 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 	return new WindowsComboBoxEditor();
     }
  
+    /**
+     * Creates an button which will be used as the control to show or hide
+     * the popup portion of the combo box.
+     *
+     * @return a button which represents the popup control
+     */
+    protected JButton createArrowButton() {
+	if (XPStyle.getXP() != null) {
+	    return new XPComboBoxButton();
+	} else {
+	    return super.createArrowButton();
+	}
+    }
+
+    private static class XPComboBoxButton extends XPStyle.GlyphButton {
+        public XPComboBoxButton() {
+	    super("combobox.dropdownbutton");
+	    setRequestFocusEnabled(false);
+	}   
+
+        public Dimension getPreferredSize() {
+            return new Dimension(17, 20);
+        }
+    }
+
+
     /** 
      * Subclassed to add Windows specific Key Bindings.
      * This class is now obsolete and doesn't do anything. 
@@ -84,6 +132,9 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         }
 
         protected class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
+	    protected InvocationKeyHandler() {
+		WindowsComboPopup.this.super();
+	    }
         }
     }
 
@@ -105,8 +156,9 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 	    JComboBox comboBox = (JComboBox)e.getSource();
 	    if ( comboBox.isEnabled() ) {
 		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
-		if ( !comboBox.isEditable() || (comboBox.isEditable() &&
-						ui.isPopupVisible(comboBox))) {
+		if (comboBox.isEditable() && !ui.isPopupVisible(comboBox)) {
+		    ui.setPopupVisible(comboBox, true);
+		} else {
 		    ui.selectNextPossibleValue();
 		}
 	    }
@@ -119,8 +171,9 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 	    JComboBox comboBox = (JComboBox)e.getSource();
 	    if ( comboBox.isEnabled() ) {
 		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
-		if ( !comboBox.isEditable() || (comboBox.isEditable() &&
-        					ui.isPopupVisible(comboBox))) {
+		if (comboBox.isEditable() && !ui.isPopupVisible(comboBox)) {
+		    ui.setPopupVisible(comboBox, true);
+		} else {
 		    ui.selectPreviousPossibleValue();
 		}
 	    }

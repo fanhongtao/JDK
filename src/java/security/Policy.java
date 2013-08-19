@@ -1,7 +1,7 @@
 /*
- * @(#)Policy.java	1.87 01/12/03
+ * @(#)Policy.java	1.89 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,8 @@ import java.lang.reflect.*;
 
 import java.util.WeakHashMap;
 import sun.security.util.Debug;
+import sun.security.util.SecurityConstants;
+
 
 /**
  * This is an abstract class for representing the system security
@@ -66,7 +68,7 @@ import sun.security.util.Debug;
  *
  * @author Roland Schemers
  * @author Gary Ellison
- * @version 1.87, 12/03/01
+ * @version 1.89, 01/23/03
  * @see java.security.CodeSource
  * @see java.security.PermissionCollection
  * @see java.security.SecureClassLoader
@@ -108,8 +110,8 @@ public abstract class Policy {
     public static Policy getPolicy()
     {
         SecurityManager sm = System.getSecurityManager();
-        if (sm != null) sm.checkPermission(new SecurityPermission
-						("getPolicy"));
+        if (sm != null)
+	    sm.checkPermission(SecurityConstants.GET_POLICY_PERMISSION);
 	return getPolicyNoCheck();
     }
 
@@ -270,7 +272,7 @@ public abstract class Policy {
 
 	    if (policyPerms == null) { // assume it has all
 		policyPerms = new Permissions();
-		policyPerms.add(new AllPermission());
+		policyPerms.add(SecurityConstants.ALL_PERMISSION);
 	    }
 
 	    synchronized (p) {

@@ -1,7 +1,7 @@
 /*
- * @(#)EditorKit.java	1.17 01/12/03
+ * @(#)EditorKit.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -26,7 +26,7 @@ import javax.swing.JEditorPane;
  * it's relationship with a JTextComponent.
  *
  * @author  Timothy Prinzing
- * @version 1.17 12/03/01
+ * @version 1.18 01/23/03
  */
 public abstract class EditorKit implements Cloneable, Serializable {
 

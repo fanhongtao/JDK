@@ -173,16 +173,28 @@ public class ElemPI extends ElemTemplateElement
 
     XPathContext xctxt = transformer.getXPathContext();
     int sourceNode = xctxt.getCurrentNode();
-    String piName = m_name_atv.evaluate(xctxt, sourceNode, this);
+    
+    String piName = m_name_atv == null ? null : m_name_atv.evaluate(xctxt, sourceNode, this);
+    
+    // Ignore processing instruction if name is null
+    if (piName == null) return;
 
     if (piName.equalsIgnoreCase("xml"))
     {
-      error(XSLTErrorResources.ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML);  //"processing-instruction name can not be 'xml'");
+     	transformer.getMsgMgr().warn(
+        this, XSLTErrorResources.WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML,
+              new Object[]{ Constants.ATTRNAME_NAME, piName });
+		return;
     }
-    else if (!isValidNCName(piName))
+    
+    // Only check if an avt was used (ie. this wasn't checked at compose time.)
+    // Ignore processing instruction, if invalid
+    else if ((!m_name_atv.isSimple()) && (!isValidNCName(piName)))
     {
-      error(XSLTErrorResources.ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME,
-            new Object[]{ piName });  //"processing-instruction name must be a valid NCName: "+piName);
+     	transformer.getMsgMgr().warn(
+        this, XSLTErrorResources.WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME,
+              new Object[]{ Constants.ATTRNAME_NAME, piName });
+		return;    	
     }
 
     // Note the content model is:
@@ -203,6 +215,9 @@ public class ElemPI extends ElemTemplateElement
     {
       throw new TransformerException(se);
     }
+    
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEndEvent(this);
   }
 
   /**

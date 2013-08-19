@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultHighlighter.java	1.37 03/12/02
+ * @(#)DefaultHighlighter.java	1.36 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -15,7 +15,7 @@ import javax.swing.plaf.*;
  * painter that renders in a solid color.
  * 
  * @author  Timothy Prinzing
- * @version 1.37 12/02/03
+ * @version 1.36 01/23/03
  * @see     Highlighter
  */
 public class DefaultHighlighter extends LayeredHighlighter {
@@ -238,11 +238,7 @@ public class DefaultHighlighter extends LayeredHighlighter {
      * @see Highlighter#getHighlights
      */
     public Highlighter.Highlight[] getHighlights() {
-	int size = highlights.size();
-        if (size == 0) {
-            return noHighlights;
-        }
-	Highlighter.Highlight[] h = new Highlighter.Highlight[size];
+	Highlighter.Highlight[] h = new Highlighter.Highlight[highlights.size()];
 	highlights.copyInto(h);
 	return h;
     }
@@ -295,8 +291,6 @@ public class DefaultHighlighter extends LayeredHighlighter {
 
     // ---- member variables --------------------------------------------
     
-    private final static Highlighter.Highlight[] noHighlights =
-            new Highlighter.Highlight[0];
     private Vector highlights = new Vector();  // Vector<HighlightInfo>
     private JTextComponent component;
     private boolean drawsLayeredHighlights;

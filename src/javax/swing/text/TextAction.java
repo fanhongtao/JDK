@@ -1,7 +1,7 @@
 /*
- * @(#)TextAction.java	1.26 01/12/03
+ * @(#)TextAction.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -39,7 +39,7 @@ import javax.swing.KeyStroke;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.26 12/03/01
+ * @version 1.27 01/23/03
  */
 public abstract class TextAction extends AbstractAction {
 

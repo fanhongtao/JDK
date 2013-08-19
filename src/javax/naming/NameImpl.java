@@ -1,7 +1,7 @@
 /*
- * @(#)NameImpl.java	1.7 02/04/02
+ * @(#)NameImpl.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Aravindan Ranganathan
-  * @version 1.7 02/04/02
+  * @version 1.8 03/01/23
   * @since 1.3
   */
 

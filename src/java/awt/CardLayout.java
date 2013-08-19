@@ -1,5 +1,5 @@
 /*
- * @(#)CardLayout.java	1.38 03/06/27
+ * @(#)CardLayout.java	1.37 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import java.io.IOException;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.38 06/27/03
+ * @version 	1.37 01/23/03
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
@@ -197,18 +197,18 @@ public class CardLayout implements LayoutManager2,
      *      <code>addLayoutComponent(Component, Object)</code>.
      */
     public void addLayoutComponent(String name, Component comp) {
-      synchronized (comp.getTreeLock()) {
-	if (!vector.isEmpty()) {
-	    comp.setVisible(false);
-	}
-        for (int i=0; i < vector.size(); i++) {
-            if (((Card)vector.get(i)).name.equals(name)) {
-                vector.remove(i);
-                break;
+        synchronized (comp.getTreeLock()) {
+            if (!vector.isEmpty()) {
+                comp.setVisible(false);
             }
+            for (int i=0; i < vector.size(); i++) {
+                if (((Card)vector.get(i)).name.equals(name)) {
+                    ((Card)vector.get(i)).comp = comp;
+                    return;
+                }
+            }
+            vector.add(new Card(name, comp));
         }
-	vector.add(new Card(name, comp));
-      }
     }
 
     /**
@@ -218,27 +218,24 @@ public class CardLayout implements LayoutManager2,
      * @see     java.awt.Container#removeAll()
      */
     public void removeLayoutComponent(Component comp) {
-      synchronized (comp.getTreeLock()) {
-         for (int i = 0; i < vector.size(); i++) {
-             if (((Card)vector.get(i)).comp == comp) {
-                 
-                 // component to be removed is present
-                 // if it is visible, show the next component 
-                 if (comp.isVisible()) {
-                     Container parent = comp.getParent();
-                     if(parent != null) {
-                         next(parent);
-                     }
-                 }
+        synchronized (comp.getTreeLock()) {
+            for (int i = 0; i < vector.size(); i++) {
+                if (((Card)vector.get(i)).comp == comp) { 
+                    // if we remove current component we should show next one
+                    if (comp.isVisible() && (comp.getParent() != null)) {
+                        next(comp.getParent());
+                    }
 
-                 vector.remove(i);
-                 if(i < currentCard) {
-                     currentCard--;
-                 }
-                 break;
-             }
-         }
-      }
+                    vector.remove(i);
+
+                    // correct currentCard if this is necessary
+                    if (currentCard > i) {
+                        currentCard--;
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -251,25 +248,25 @@ public class CardLayout implements LayoutManager2,
      * @see     java.awt.CardLayout#minimumLayoutSize
      */
     public Dimension preferredLayoutSize(Container parent) {
-      synchronized (parent.getTreeLock()) {
-	Insets insets = parent.getInsets();
-	int ncomponents = vector.size();
-	int w = 0;
-	int h = 0;
+        synchronized (parent.getTreeLock()) {
+            Insets insets = parent.getInsets();
+            int ncomponents = parent.getComponentCount();
+            int w = 0;
+            int h = 0;
 
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = ((Card)vector.get(i)).comp;
-	    Dimension d = comp.getPreferredSize();
-	    if (d.width > w) {
-		w = d.width;
-	    }
-	    if (d.height > h) {
-		h = d.height;
-	    }
-	}
-	return new Dimension(insets.left + insets.right + w + hgap*2,
-			     insets.top + insets.bottom + h + vgap*2);
-      }
+            for (int i = 0 ; i < ncomponents ; i++) {
+                Component comp = parent.getComponent(i);
+                Dimension d = comp.getPreferredSize();
+                if (d.width > w) {
+                    w = d.width;
+                }
+                if (d.height > h) {
+                    h = d.height;
+                }
+            }
+            return new Dimension(insets.left + insets.right + w + hgap*2,
+                                 insets.top + insets.bottom + h + vgap*2);
+        }
     }
 
     /**
@@ -282,25 +279,25 @@ public class CardLayout implements LayoutManager2,
      * @see       java.awt.CardLayout#preferredLayoutSize
      */
     public Dimension minimumLayoutSize(Container parent) {
-      synchronized (parent.getTreeLock()) {
-	Insets insets = parent.getInsets();
-	int ncomponents = vector.size();
-	int w = 0;
-	int h = 0;
+        synchronized (parent.getTreeLock()) {
+            Insets insets = parent.getInsets();
+            int ncomponents = parent.getComponentCount();
+            int w = 0;
+            int h = 0;
 
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = ((Card) vector.get(i)).comp;
-	    Dimension d = comp.getMinimumSize();
-	    if (d.width > w) {
-		w = d.width;
-	    }
-	    if (d.height > h) {
-		h = d.height;
-	    }
-	}
-	return new Dimension(insets.left + insets.right + w + hgap*2,
-			     insets.top + insets.bottom + h + vgap*2);
-      }
+            for (int i = 0 ; i < ncomponents ; i++) {
+                Component comp = parent.getComponent(i);
+                Dimension d = comp.getMinimumSize();
+                if (d.width > w) {
+                    w = d.width;
+                }
+                if (d.height > h) {
+                    h = d.height;
+                }
+            }
+            return new Dimension(insets.left + insets.right + w + hgap*2,
+                                 insets.top + insets.bottom + h + vgap*2);
+        }
     }
 
     /**
@@ -356,18 +353,26 @@ public class CardLayout implements LayoutManager2,
      * @see       java.awt.Container#doLayout
      */
     public void layoutContainer(Container parent) {
-      synchronized (parent.getTreeLock()) {
-	Insets insets = parent.getInsets();
+        synchronized (parent.getTreeLock()) {
+            Insets insets = parent.getInsets();
+            int ncomponents = parent.getComponentCount();
+            Component comp = null;
+            boolean currentFound = false;
 
-        if (!vector.isEmpty()) {
-            Component comp = ((Card) vector.get(currentCard)).comp;
-            comp.setBounds(hgap + insets.left, vgap + insets.top,
-                           parent.width - (hgap*2 + insets.left + insets.right),
-                           parent.height - (vgap*2 + insets.top + insets.bottom));
-            if (!comp.isVisible())
-                comp.setVisible(true);
+            for (int i = 0 ; i < ncomponents ; i++) {
+                comp = parent.getComponent(i);
+                comp.setBounds(hgap + insets.left, vgap + insets.top,
+                               parent.width - (hgap*2 + insets.left + insets.right),
+                               parent.height - (vgap*2 + insets.top + insets.bottom));
+                if (comp.isVisible()) {
+                    currentFound = true;
+                }
+            }
+
+            if (!currentFound && ncomponents > 0) {
+                parent.getComponent(0).setVisible(true);
+            }
         }
-      }
     }
 
     /**
@@ -389,7 +394,19 @@ public class CardLayout implements LayoutManager2,
     public void first(Container parent) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-            show(parent, 0);
+            int ncomponents = parent.getComponentCount();
+            for (int i = 0 ; i < ncomponents ; i++) {
+                Component comp = parent.getComponent(i);
+                if (comp.isVisible()) {
+                    comp.setVisible(false);
+                    break;
+                }
+            }
+            if (ncomponents > 0) {
+                currentCard = 0;
+                parent.getComponent(0).setVisible(true);
+                parent.validate();
+            }
 	}
     }
 
@@ -404,7 +421,19 @@ public class CardLayout implements LayoutManager2,
     public void next(Container parent) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-            show(parent, (currentCard + 1) % vector.size());
+            int ncomponents = parent.getComponentCount();
+            for (int i = 0 ; i < ncomponents ; i++) {
+                Component comp = parent.getComponent(i);
+                if (comp.isVisible()) {
+                    comp.setVisible(false);
+                    currentCard = (i + 1) % ncomponents;
+                    comp = parent.getComponent(currentCard);
+                    comp.setVisible(true);
+                    parent.validate();
+                    return;
+                }
+            }
+            showDefaultComponent(parent);
 	}
     }
 
@@ -419,9 +448,28 @@ public class CardLayout implements LayoutManager2,
     public void previous(Container parent) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-            int newIndex = (currentCard + vector.size() - 1) % vector.size(); 
-            show(parent, newIndex);
+            int ncomponents = parent.getComponentCount();
+            for (int i = 0 ; i < ncomponents ; i++) {
+                Component comp = parent.getComponent(i);
+                if (comp.isVisible()) {
+                    comp.setVisible(false);
+                    currentCard = ((i > 0) ? i-1 : ncomponents-1);
+                    comp = parent.getComponent(currentCard);
+                    comp.setVisible(true);
+                    parent.validate();
+                    return;
+                }
+            }
+            showDefaultComponent(parent);
 	}
+    }
+
+    void showDefaultComponent(Container parent) {
+        if (parent.getComponentCount() > 0) {
+            currentCard = 0;
+            parent.getComponent(0).setVisible(true);
+            parent.validate();
+        }
     }
 
     /**
@@ -433,7 +481,19 @@ public class CardLayout implements LayoutManager2,
     public void last(Container parent) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-            show(parent, vector.size() - 1);
+            int ncomponents = parent.getComponentCount();
+            for (int i = 0 ; i < ncomponents ; i++) {
+                Component comp = parent.getComponent(i);
+                if (comp.isVisible()) {
+                    comp.setVisible(false);
+                    break;
+                }
+            }
+            if (ncomponents > 0) {
+                currentCard = ncomponents - 1;
+                parent.getComponent(currentCard).setVisible(true);
+                parent.validate();
+            }
 	}
     }
 
@@ -449,28 +509,29 @@ public class CardLayout implements LayoutManager2,
     public void show(Container parent, String name) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-            if ( (vector.size() > 0) && (currentCard < vector.size()) ) {
-                if (((Card) vector.get(currentCard)).name.equals(name)) 
-                   return;  
-            }
+            Component next = null;
             int ncomponents = vector.size();
             for (int i = 0; i < ncomponents; i++) {
                 Card card = (Card)vector.get(i);
                 if (card.name.equals(name)) {
-                    show(parent, i);
+                    next = card.comp;
+                    currentCard = i;
                     break;
                 }
             }
+            if ((next != null) && !next.isVisible()) {
+                ncomponents = parent.getComponentCount();
+                for (int i = 0; i < ncomponents; i++) {
+                    Component comp = parent.getComponent(i);
+                    if (comp.isVisible()) {
+                        comp.setVisible(false);
+                        break;
+                    }
+                }
+                next.setVisible(true);
+                parent.validate();
+            }
 	}
-    }
-
-    void show(Container parent, int newIndex) {
-        if (!vector.isEmpty() && (currentCard != newIndex)) {
-            ((Card) vector.get(currentCard)).comp.setVisible(false);
-            currentCard = newIndex;
-            ((Card) vector.get(currentCard)).comp.setVisible(true);
-            parent.validate();
-        }
     }
 
     /**

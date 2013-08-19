@@ -1,7 +1,7 @@
 /*
- * @(#)MulticastSocket.java	1.65 02/03/05
+ * @(#)MulticastSocket.java	1.67 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -606,7 +606,7 @@ class MulticastSocket extends DatagramSocket {
 		throw new SocketException("Socket is closed");
             synchronized(ttlLock) {
                 synchronized(p) {
-		    if (!connected) {
+		    if (connectState == ST_NOT_CONNECTED) {
                         // Security manager makes sure that the multicast address
                         // is allowed one and that the ttl used is less
                         // than the allowed maxttl.

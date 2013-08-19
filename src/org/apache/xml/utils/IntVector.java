@@ -66,7 +66,7 @@ package org.apache.xml.utils;
  * access to existing nodes is O(1) fast but appending may be O(N**2)
  * slow. See also SuballocatedIntVector.
  */
-public class IntVector
+public class IntVector implements Cloneable
 {
 
   /** Size of blocks to allocate          */
@@ -119,6 +119,19 @@ public class IntVector
     m_map = new int[blocksize];
   }
 
+  /**
+   * Copy constructor for IntVector
+   * 
+   * @param v Existing IntVector to copy
+   */
+  public IntVector(IntVector v)
+  {
+  	m_map = new int[v.m_mapSize];
+    m_mapSize = v.m_mapSize;
+    m_firstFree = v.m_firstFree;
+  	m_blocksize = v.m_blocksize;
+  	System.arraycopy(v.m_map, 0, m_map, 0, m_firstFree);
+  }
 
   /**
    * Get the length of the list.
@@ -427,4 +440,16 @@ public class IntVector
 
     return java.lang.Integer.MIN_VALUE;
   }
+  
+  /**
+   * Returns clone of current IntVector
+   * 
+   * @return clone of current IntVector
+   */
+  public Object clone()
+    throws CloneNotSupportedException
+  {
+  	return new IntVector(this);
+  }
+  
 }

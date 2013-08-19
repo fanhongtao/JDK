@@ -1,7 +1,7 @@
 /*
- * @(#)DateFormat.java	1.45 01/12/03
+ * @(#)DateFormat.java	1.47 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -118,7 +118,7 @@ import sun.text.resources.LocaleData;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.45 12/03/01
+ * @version      1.47 01/23/03
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {
@@ -311,7 +311,8 @@ public abstract class DateFormat extends Format {
      */
     public final String format(Date date)
     {
-        return format(date, new StringBuffer(),new FieldPosition(0)).toString();
+        return format(date, new StringBuffer(),
+		      DontCareFieldPosition.INSTANCE).toString();
     }
 
     /**

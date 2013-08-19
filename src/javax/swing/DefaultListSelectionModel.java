@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.66 02/02/13
+ * @(#)DefaultListSelectionModel.java	1.67 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.66 02/13/02
+ * @version 1.67 01/23/03
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel

@@ -1,7 +1,7 @@
 /*
- * @(#)Box.java	1.37 01/12/03
+ * @(#)Box.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import javax.accessibility.*;
  * @see BoxLayout
  *
  * @author  Timothy Prinzing
- * @version 1.37 12/03/01
+ * @version 1.38 01/23/03
  */
 public class Box extends JComponent implements Accessible {
 

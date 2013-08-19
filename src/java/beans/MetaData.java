@@ -1,7 +1,7 @@
 /*
- * @(#)MetaData.java	1.30 02/04/22
+ * @(#)MetaData.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -23,7 +23,7 @@ import java.util.Enumeration;
  *
  * @see java.beans.Intropector
  *
- * @version 1.30 04/22/02
+ * @version 1.31 01/23/03
  * @author Philip Milne
  * @author Steve Langley
  */

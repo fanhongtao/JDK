@@ -1,7 +1,7 @@
 /*
- * @(#)URLDecoder.java	1.21 02/04/15
+ * @(#)URLDecoder.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import java.io.*;
  *
  * @author  Mark Chamness
  * @author  Michael McCloskey
- * @version 1.21, 04/15/02
+ * @version 1.23, 01/23/03
  * @since   1.2
  */
 
@@ -181,5 +181,3 @@ public class URLDecoder {
         return (needToChange? sb.toString() : s);
     }
 }
-
-

@@ -1,7 +1,7 @@
 /*
- * @(#)DecimalFormatSymbols.java	1.37 02/01/16
+ * @(#)DecimalFormatSymbols.java	1.39 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import sun.text.resources.LocaleData;
  *
  * @see          java.util.Locale
  * @see          DecimalFormat
- * @version      1.37, 01/16/02
+ * @version      1.39, 01/23/03
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -215,6 +215,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     /**
      * Returns the currency symbol for the currency of these
      * DecimalFormatSymbols in their locale.
+     * @since 1.2
      */
     public String getCurrencySymbol()
     {
@@ -224,6 +225,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     /**
      * Sets the currency symbol for the currency of these
      * DecimalFormatSymbols in their locale.
+     * @since 1.2
      */
     public void setCurrencySymbol(String currency)
     {
@@ -233,6 +235,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     /**
      * Returns the ISO 4217 currency code of the currency of these
      * DecimalFormatSymbols.
+     * @since 1.2
      */
     public String getInternationalCurrencySymbol()
     {
@@ -252,6 +255,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
      *
      * @see #setCurrency
      * @see #setCurrencySymbol
+     * @since 1.2
      */
     public void setInternationalCurrencySymbol(String currencyCode)
     {
@@ -302,6 +306,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
 
     /**
      * Returns the monetary decimal separator.
+     * @since 1.2
      */
     public char getMonetaryDecimalSeparator()
     {
@@ -310,6 +315,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
 
     /**
      * Sets the monetary decimal separator.
+     * @since 1.2
      */
     public void setMonetaryDecimalSeparator(char sep)
     {

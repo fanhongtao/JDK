@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriterSpi.java	1.6 02/04/22
+ * @(#)JPEGImageWriterSpi.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import javax.imageio.IIOException;
 
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
+import java.awt.image.SampleModel;
 import java.util.Locale;
 
 public class JPEGImageWriterSpi extends ImageWriterSpi {
@@ -71,7 +72,22 @@ public class JPEGImageWriterSpi extends ImageWriterSpi {
     }
 
     public boolean canEncodeImage(ImageTypeSpecifier type) {
-        // Any image type should be encodable given the right metadata
+        SampleModel sampleModel = type.getSampleModel();
+
+        // Find the maximum bit depth across all channels
+        int[] sampleSize = sampleModel.getSampleSize();
+        int bitDepth = sampleSize[0];
+        for (int i = 1; i < sampleSize.length; i++) {
+            if (sampleSize[i] > bitDepth) {
+                bitDepth = sampleSize[i];
+            }
+        }
+
+        // 4450894: Ensure bitDepth is between 1 and 8
+        if (bitDepth < 1 || bitDepth > 8) {
+            return false;
+        }
+
         return true;
     }
 

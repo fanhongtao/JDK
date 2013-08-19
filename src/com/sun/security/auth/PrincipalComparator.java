@@ -1,7 +1,7 @@
 /*
- * @(#)PrincipalComparator.java	1.8 01/12/03
+ * @(#)PrincipalComparator.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ package com.sun.security.auth;
  * the <code>PrincipalComparator</code> interface by itself,
  * or both at the same time.
  *
- * @version 1.8, 12/03/01
+ * @version 1.9, 01/23/03
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */

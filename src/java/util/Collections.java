@@ -1,7 +1,7 @@
 /*
- * @(#)Collections.java	1.63 02/05/12
+ * @(#)Collections.java	1.66 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,8 +34,12 @@ import java.io.Serializable;
  * example, invoking the <tt>sort</tt> method on an unmodifiable list that is
  * already sorted may or may not throw <tt>UnsupportedOperationException</tt>.
  *
+ * <p>This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
  * @author  Josh Bloch
- * @version 1.63, 05/12/02
+ * @version 1.66, 01/23/03
  * @see	    Collection
  * @see	    Set
  * @see	    List
@@ -2115,6 +2119,11 @@ public class Collections {
         public int size() {return 0;}
 
         public boolean contains(Object obj) {return false;}
+
+        // Preserves singleton property
+        private Object readResolve() {
+            return EMPTY_SET;
+        }
     }
 
     /**
@@ -2137,6 +2146,11 @@ public class Collections {
         public Object get(int index) {
             throw new IndexOutOfBoundsException("Index: "+index);
         }
+
+        // Preserves singleton property
+        private Object readResolve() {
+            return EMPTY_LIST;
+        }
     }
 
     /**
@@ -2147,6 +2161,8 @@ public class Collections {
     public static final Map EMPTY_MAP = new EmptyMap();
 
     private static class EmptyMap extends AbstractMap implements Serializable {
+        private static final long serialVersionUID = 6428348081105594320L;
+
         public int size()                          {return 0;}
 
         public boolean isEmpty()                   {return true;}
@@ -2168,6 +2184,11 @@ public class Collections {
         }
 
         public int hashCode()                      {return 0;}
+
+        // Preserves singleton property
+        private Object readResolve() {
+            return EMPTY_MAP;
+        }
     }
 
     /**

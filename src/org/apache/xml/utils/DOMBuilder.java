@@ -300,8 +300,10 @@ public class DOMBuilder
 
     Element elem;
 
+	// Note that the namespace-aware call must be used to correctly
+	// construct a Level 2 DOM, even for non-namespaced nodes.
     if ((null == ns) || (ns.length() == 0))
-      elem = m_doc.createElement(name);
+      elem = m_doc.createElementNS(null,name);
     else
       elem = m_doc.createElementNS(ns, name);
 
@@ -323,20 +325,14 @@ public class DOMBuilder
   
           String attrNS = atts.getURI(i);
           
-          if(attrNS == null)
-            attrNS = ""; // defensive, shouldn't have to do this.
-  
-          // System.out.println("attrNS: "+attrNS+", localName: "+atts.getQName(i)
-          //                   +", qname: "+atts.getQName(i)+", value: "+atts.getValue(i));
-          // Crimson won't let us set an xmlns: attribute on the DOM.
           String attrQName = atts.getQName(i);
-          if ((attrNS.length() == 0) /* || attrQName.startsWith("xmlns:") || attrQName.equals("xmlns") */)
-            elem.setAttribute(attrQName, atts.getValue(i));
+          if((attrQName.equals("xmlns") || attrQName.startsWith("xmlns:")) )
+          {
+            elem.setAttributeNS("http://www.w3.org/2000/xmlns/",attrQName, atts.getValue(i));
+          }
           else
           {
-  
-            // elem.setAttributeNS(atts.getURI(i), atts.getLocalName(i), atts.getValue(i));
-            elem.setAttributeNS(attrNS, attrQName, atts.getValue(i));
+             elem.setAttributeNS(atts.getURI(i),attrQName, atts.getValue(i));
           }
         }
       }
@@ -713,7 +709,7 @@ public class DOMBuilder
         qname = "xmlns:"+prefix;
 
       Element elem = (Element)m_currentNode;
-      String val = elem.getAttribute(qname);
+      String val = elem.getAttribute(qname); // Obsolete, should be DOM2...?
       if(val == null)
       {
         elem.setAttributeNS("http://www.w3.org/XML/1998/namespace",

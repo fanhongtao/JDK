@@ -1,7 +1,7 @@
 /*
- * @(#)DeflaterOutputStream.java	1.31 02/02/06
+ * @(#)DeflaterOutputStream.java	1.32 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.31, 02/06/02
+ * @version 	1.32, 01/23/03
  * @author 	David Connelly
  */
 public

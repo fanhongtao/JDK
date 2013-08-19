@@ -1,7 +1,7 @@
 /*
- * @(#)LanguageCallback.java	1.11 02/02/25
+ * @(#)LanguageCallback.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.util.Locale;
  * method of a <code>CallbackHandler</code> to retrieve the <code>Locale</code>
  * used for localizing text.
  *
- * @version 1.11, 02/25/02
+ * @version 1.12, 01/23/03
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class LanguageCallback implements Callback, java.io.Serializable {

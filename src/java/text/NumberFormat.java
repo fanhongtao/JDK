@@ -1,7 +1,7 @@
 /*
- * @(#)NumberFormat.java	1.57 01/12/03
+ * @(#)NumberFormat.java	1.60 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -152,7 +152,7 @@ import sun.text.resources.LocaleData;
  *
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.57, 12/03/01
+ * @version      1.60, 01/27/03
  * @author       Mark Davis
  * @author       Helena Shih
  */
@@ -176,10 +176,10 @@ public abstract class NumberFormat extends Format  {
      * Formats an object to produce a string.
      * This general routines allows polymorphic parsing and
      * formatting for objects.
-     * @param obj    The object to format
-     * @param toAppendTo    where the text is to be appended
-     * @param pos    On input: an alignment field, if desired.
-     * On output: the offsets of the alignment field.
+     * @param number      the object to format
+     * @param toAppendTo  where the text is to be appended
+     * @param pos         On input: an alignment field, if desired.
+     *                    On output: the offsets of the alignment field.
      * @return       the value passed in as toAppendTo (this allows chaining,
      * as with StringBuffer.append())
      * @exception IllegalArgumentException when the Format cannot format the
@@ -252,18 +252,18 @@ public abstract class NumberFormat extends Format  {
      * Specialization of format.
      * @see java.text.Format#format
      */
-    public final String format (double number) {
-        return format(number,new StringBuffer(),
-                      new FieldPosition(0)).toString();
+    public final String format(double number) {
+        return format(number, new StringBuffer(),
+                      DontCareFieldPosition.INSTANCE).toString();
     }
 
    /**
      * Specialization of format.
      * @see java.text.Format#format
      */
-    public final String format (long number) {
-        return format(number,new StringBuffer(),
-                      new FieldPosition(0)).toString();
+    public final String format(long number) {
+        return format(number, new StringBuffer(),
+                      DontCareFieldPosition.INSTANCE).toString();
     }
 
    /**

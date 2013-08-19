@@ -1,5 +1,5 @@
 /*
- * @(#)SequencedEvent.java	1.7 03/04/25
+ * @(#)SequencedEvent.java	1.7 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.awt.SunToolkit;
  * before the wrapping SequencedEvent was able to be dispatched. In this case,
  * the nested event is never dispatched.
  *
- * @version 1.7, 04/25/03
+ * @version 1.7, 01/23/03
  * @author David Mendenhall
  */
 class SequencedEvent extends AWTEvent implements ActiveEvent {
@@ -89,7 +89,7 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
 
             if (!disposed) {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                     setCurrentSequencedEvent(this);
+                    setCurrentSequencedEvent(this);
                 Toolkit.getEventQueue().dispatchEvent(nested);
             }
         } finally {
@@ -155,13 +155,12 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
             if (disposed) {
                 return;
             }
-
-             if (KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                     getCurrentSequencedEvent() == this) {
-                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                     setCurrentSequencedEvent(null);
-             }
-             disposed = true;
+            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                    getCurrentSequencedEvent() == this) {
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                    setCurrentSequencedEvent(null);
+            }
+            disposed = true;
         }
         // Wake myself up
         if (appContext != null) {

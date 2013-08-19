@@ -1,7 +1,7 @@
 /*
- * @(#)LinkedHashSet.java	1.7 01/12/03
+ * @(#)LinkedHashSet.java	1.8 03/01/20
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,8 +80,12 @@ package java.util;
  * exception for its correctness:   <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
+ * <p>This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
  * @author  Josh Bloch
- * @version 1.7 12/03/01
+ * @version 1.8 01/20/03
  * @see     Object#hashCode()
  * @see     Collection
  * @see     Set

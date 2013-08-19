@@ -157,12 +157,15 @@ public class XUnresolvedVariable extends XObject
     
     // These three statements need to be combined into one operation.
     int currentFrame = vars.getStackFrame();
-    vars.setStackFrame(m_varStackPos);
+    //// vars.setStackFrame(m_varStackPos);
+   
 
+    ElemVariable velem = (ElemVariable)m_obj;
     try
     {
       m_doneEval = false;
-      ElemVariable velem = (ElemVariable)m_obj;
+      if(-1 != velem.m_frameSize)
+      	vars.link(velem.m_frameSize);
       XObject var = velem.getValue(m_transformer, m_context);
       m_doneEval = true;
       return var;
@@ -170,7 +173,10 @@ public class XUnresolvedVariable extends XObject
     finally
     {
       // These two statements need to be combined into one operation.
-      vars.setStackFrame(currentFrame);
+      // vars.setStackFrame(currentFrame);
+      
+      if(-1 != velem.m_frameSize)
+	  	vars.unlink(currentFrame);
     }
   }
   

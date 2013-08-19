@@ -1,7 +1,7 @@
 /*
- * @(#)BasicProgressBarUI.java	1.60 02/03/20
+ * @(#)BasicProgressBarUI.java	1.62 03/04/22
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.io.Serializable;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.60 03/20/02
+ * @version 1.62 04/22/03
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
@@ -690,7 +690,12 @@ public class BasicProgressBarUI extends ProgressBarUI {
 			       int amountFull, Insets b) {
 	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
             if (BasicGraphicsUtils.isLeftToRight(progressBar)) {
-                paintString(g, x, y, width, height, x, amountFull, b);
+		if (progressBar.isIndeterminate()) {
+		    boxRect = getBox(boxRect);
+		    paintString(g, x, y, width, height, boxRect.x, boxRect.width, b);
+		} else {
+		    paintString(g, x, y, width, height, x, amountFull, b);
+		}
             }
             else {
                 paintString(g, x, y, width, height, x + width - amountFull,
@@ -698,8 +703,13 @@ public class BasicProgressBarUI extends ProgressBarUI {
             }
         }
         else {
-            paintString(g, x, y, width, height, y + height - amountFull,
-                        amountFull, b);
+	    if (progressBar.isIndeterminate()) {
+		boxRect = getBox(boxRect);
+		paintString(g, x, y, width, height, boxRect.y, boxRect.height, b);
+	    } else {
+		paintString(g, x, y, width, height, y + height - amountFull,
+			    amountFull, b);
+	    }
         }
     }
 

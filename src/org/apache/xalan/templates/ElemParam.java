@@ -163,6 +163,9 @@ public class ElemParam extends ElemVariable
       // transformer.getXPathContext().getVarStack().pushVariable(m_qname, var);
       transformer.getXPathContext().getVarStack().setLocalVariable(m_index, var);
     }
+    
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEndEvent(this);
   }
   
 }

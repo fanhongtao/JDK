@@ -1,7 +1,7 @@
 /*
- * @(#)JPopupMenu.java	1.176 02/05/07
+ * @(#)JPopupMenu.java	1.181 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.176 05/07/02
+ * @version 1.181 01/23/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -260,7 +260,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     /**
      * Appends the specified menu item to the end of this menu. 
      *
-     * @param c the <code>JMenuItem</code> to add
+     * @param menuItem the <code>JMenuItem</code> to add
      * @return the <code>JMenuItem</code> added
      */
     public JMenuItem add(JMenuItem menuItem) {
@@ -724,6 +724,16 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 
         // if closing, first close all Submenus
         if (b == false) {
+
+	    // 4234793: This is a workaround because JPopupMenu.firePopupMenuCanceled is
+	    // a protected method and cannot be called from BasicPopupMenuUI directly
+	    // The real solution could be to make 
+	    // firePopupMenuCanceled public and call it directly.
+	    Boolean doCanceled = (Boolean)getClientProperty("JPopupMenu.firePopupMenuCanceled");
+	    if (doCanceled != null && doCanceled == Boolean.TRUE) {
+		putClientProperty("JPopupMenu.firePopupMenuCanceled", Boolean.FALSE);
+		firePopupMenuCanceled();
+	    }
             getSelectionModel().clearSelection();
 	    
         } else {
@@ -752,6 +762,11 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             popup.hide();
             popup = null;
 	    firePropertyChange("visible", Boolean.TRUE, Boolean.FALSE);
+            // 4694797: When popup menu is made invisible, selected path
+            // should be cleared
+            if (isPopupMenu()) {
+                MenuSelectionManager.defaultManager().clearSelectedPath();
+            }
         }
         if (accessibleContext != null) {
 	    if (b) {
@@ -944,7 +959,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     /**
      * Returns the index of the specified component.
      * 
-     * @param  the <code>Component</code> to find
+     * @param  c the <code>Component</code> to find
      * @return the index of the component, where 0 is the first;
      *         or -1 if the component is not found
      */
@@ -986,8 +1001,8 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * height. This is equivalent to
      *  <code>setPreferredSize(new Dimension(width, height))</code>.
      *
-     * @param <code>width</code> the new width of the Popup in pixels
-     * @param <code>height</code> the new height of the Popup in pixels
+     * @param width the new width of the Popup in pixels
+     * @param height the new height of the Popup in pixels
      * @beaninfo
      * description: The size of the popup menu
      */

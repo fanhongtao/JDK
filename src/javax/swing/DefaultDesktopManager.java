@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultDesktopManager.java	1.46 02/04/15
+ * @(#)DefaultDesktopManager.java	1.49 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.awt.event.ComponentEvent;
   * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.46 04/15/02
+  * @version 1.49 01/23/03
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -81,7 +81,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
     /**
      * Resizes the frame to fill its parents bounds.
-     * @param the frame to be resized
+     * @param f the frame to be resized
      */
     public void maximizeFrame(JInternalFrame f) {
 
@@ -263,23 +263,26 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
     private void setupDragMode(JComponent f) {
         JDesktopPane p = getDesktopPane(f);
-	if (p != null){
-	  String mode = (String)p.getClientProperty("JDesktopPane.dragMode");
-	  if (mode != null && mode.equals("outline")) {
-	    dragMode = OUTLINE_DRAG_MODE;
-	  } else if (mode != null && mode.equals("faster") && f instanceof JInternalFrame) {
-	    dragMode = FASTER_DRAG_MODE;
-	  } else {
-            
-	    if ( p.getDragMode() == JDesktopPane.OUTLINE_DRAG_MODE ) {
-	        dragMode = OUTLINE_DRAG_MODE;
-	    } else if ( p.getDragMode() == JDesktopPane.LIVE_DRAG_MODE && f instanceof JInternalFrame) {
-	        dragMode = FASTER_DRAG_MODE;
-	    } else {
-	        dragMode = DEFAULT_DRAG_MODE;
-	    }
-	  }
-	}
+        if (p != null) {
+            String mode = (String)p.getClientProperty("JDesktopPane.dragMode");
+            if (mode != null && mode.equals("outline")) {
+                dragMode = OUTLINE_DRAG_MODE;
+            } else if (mode != null && mode.equals("faster")
+                    && f instanceof JInternalFrame
+                    && ((JInternalFrame)f).isOpaque()) {
+                dragMode = FASTER_DRAG_MODE;
+            } else {
+                if (p.getDragMode() == JDesktopPane.OUTLINE_DRAG_MODE ) {
+                    dragMode = OUTLINE_DRAG_MODE;
+                } else if ( p.getDragMode() == JDesktopPane.LIVE_DRAG_MODE
+                        && f instanceof JInternalFrame
+                        && ((JInternalFrame)f).isOpaque()) {
+                    dragMode = FASTER_DRAG_MODE;
+                } else {
+                    dragMode = DEFAULT_DRAG_MODE;
+                }
+            }
+        }
     }
 
     private transient Point currentLoc = null;
@@ -299,7 +302,8 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
 	      g.setXORMode(Color.white);
 	      if (currentLoc != null) {
-	        g.drawRect( currentLoc.x, currentLoc.y, f.getWidth()-1, f.getHeight()-1);
+	        g.drawRect(currentLoc.x, currentLoc.y,
+                        f.getWidth()-1, f.getHeight()-1);
 	      }
 	      g.drawRect( newX, newY, f.getWidth()-1, f.getHeight()-1);
 	      currentLoc = new Point (newX, newY);

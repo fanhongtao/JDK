@@ -1,7 +1,7 @@
 /*
- * @(#)Field.java	1.29 01/12/03
+ * @(#)Field.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -135,7 +135,7 @@ class Field extends AccessibleObject implements Member {
 	if (obj != null && obj instanceof Field) {
 	    Field other = (Field)obj;
 	    return (getDeclaringClass() == other.getDeclaringClass())
-		&& (getName().equals(other.getName()))
+                && (getName() == other.getName())
 		&& (getType() == other.getType());
 	}
 	return false;

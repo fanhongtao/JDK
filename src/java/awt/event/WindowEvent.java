@@ -1,7 +1,7 @@
 /*
- * @(#)WindowEvent.java	1.27 01/12/03
+ * @(#)WindowEvent.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.awt.SunToolkit;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.27, 12/03/01
+ * @version 1.30, 01/23/03
  *
  * @see WindowAdapter
  * @see WindowListener
@@ -137,11 +137,10 @@ public class WindowEvent extends ComponentEvent {
      * native application, a Java application in a different VM, or with no
      * other Window, null is returned.
      *
-     * @serial
      * @see #getOppositeWindow
      * @since 1.4
      */
-    Window opposite;
+    transient Window opposite;
 
     /**
      * TBS
@@ -292,7 +291,7 @@ public class WindowEvent extends ComponentEvent {
      * </ul>
      *
      * @return a bitwise mask of the previous window state
-     * @see Frame#getExtendedState()
+     * @see java.awt.Frame#getExtendedState()
      * @since 1.4
      */
     public int getOldState() {
@@ -315,7 +314,7 @@ public class WindowEvent extends ComponentEvent {
      * </ul>
      *
      * @return a bitwise mask of the new window state
-     * @see Frame#getExtendedState()
+     * @see java.awt.Frame#getExtendedState()
      * @since 1.4
      */
     public int getNewState() {

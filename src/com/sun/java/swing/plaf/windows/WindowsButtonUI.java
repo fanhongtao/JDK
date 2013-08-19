@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsButtonUI.java	1.22 01/12/03
+ * @(#)WindowsButtonUI.java	1.29 03/04/21
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 12/03/01
+ * @version 1.29 04/21/03
  * @author Jeff Dinkins
  *
  */
@@ -41,6 +41,7 @@ public class WindowsButtonUI extends BasicButtonUI
 
     private boolean defaults_initialized = false;
     
+
     // ********************************
     //          Create PLAF
     // ********************************
@@ -68,6 +69,12 @@ public class WindowsButtonUI extends BasicButtonUI
 	    dashedRectGapHeight = UIManager.getInt(pp + "dashedRectGapHeight");
 	    focusColor = UIManager.getColor(pp + "focus");
 	    defaults_initialized = true;
+	}
+
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    b.setBorder(xp.getBorder("button.pushbutton"));
+	    b.setRolloverEnabled(true);
 	}
     }
     
@@ -97,6 +104,10 @@ public class WindowsButtonUI extends BasicButtonUI
 	    return;
 	}
 	    
+	if (XPStyle.getXP() != null) {
+	    return;
+	}
+
 	// focus painted same color as text on Basic??
 	int width = b.getWidth();
 	int height = b.getHeight();
@@ -126,5 +137,121 @@ public class WindowsButtonUI extends BasicButtonUI
 	return d;
     }
 
+
+    /* These rectangles/insets are allocated once for all 
+     * ButtonUI.paint() calls.  Re-using rectangles rather than 
+     * allocating them in each paint call substantially reduced the time
+     * it took paint to run.  Obviously, this method can't be re-entered.
+     */
+    private static Rectangle viewRect = new Rectangle();
+
+    public void paint(Graphics g, JComponent c) {
+	if (XPStyle.getXP() != null) {
+	    WindowsButtonUI.paintXPButtonBackground(g, c);
+	}
+	super.paint(g, c);
+    }
+
+    static void paintXPButtonBackground(Graphics g, JComponent c) {
+	AbstractButton b = (AbstractButton)c;
+
+	XPStyle xp = XPStyle.getXP();
+
+	if (b.isContentAreaFilled() && xp != null &&
+	    "imagefile".equalsIgnoreCase(xp.getString("button.pushbutton.bgtype"))) {
+
+	    ButtonModel model = b.getModel();
+	    boolean toolbar = (c.getParent() instanceof JToolBar);
+	    XPStyle.Skin skin = xp.getSkin(toolbar ? "toolbar.button" : "button.pushbutton");
+
+	    // normal, rollover/activated/focus, pressed, disabled, default
+	    int index = 0;
+	    if (toolbar) {
+		if (model.isArmed() && model.isPressed()) {
+		    index = 2;
+		} else if (model.isSelected() && model.isRollover()) {
+		    index = 5;
+		} else if (model.isSelected()) {
+		    index = 4;
+		} else if (model.isRollover()) {
+		    index = 1;
+		}
+	    } else {
+		if (model.isArmed() && model.isPressed() || model.isSelected()) {
+		    index = 2;
+		} else if (!model.isEnabled()) {
+		    index = 3;
+		} else if (model.isRollover() || model.isPressed()) {
+		    index = 1;
+		} else if (b instanceof JButton && ((JButton)b).isDefaultButton()) {
+		    index = 4;
+		} else if (c.hasFocus()) {
+		    index = 1;
+		}
+	    }
+	    Dimension d = c.getSize();
+	    int dx = 0;
+	    int dy = 0;
+	    int dw = d.width;
+	    int dh = d.height;
+
+	    Border border = c.getBorder();
+	    Insets insets;
+	    if (border != null) {
+		// Note: The border may be compound, containing an outer
+		// opaque border (supplied by the application), plus an
+		// inner transparent margin border. We want to size the
+		// background to fill the transparent part, but stay
+		// inside the opaque part.
+		insets = WindowsButtonUI.getOpaqueInsets(border, c);
+	    } else {
+		insets = c.getInsets();
+	    }
+	    if (insets != null) {
+		dx += insets.left;
+		dy += insets.top;
+		dw -= (insets.left + insets.right);
+		dh -= (insets.top + insets.bottom);
+	    }
+	    skin.paintSkin(g, dx, dy, dw, dh, index);
+	}
+    }
+
+    /**
+     * returns - b.getBorderInsets(c) if border is opaque
+     *         - null if border is completely non-opaque
+     *         - somewhere inbetween if border is compound and
+     *              outside border is opaque and inside isn't
+     */
+    private static Insets getOpaqueInsets(Border b, Component c) {
+	if (b == null) {
+	    return null;
+	}
+	if (b.isBorderOpaque()) {
+	    return b.getBorderInsets(c);
+	} else if (b instanceof CompoundBorder) {
+	    CompoundBorder cb = (CompoundBorder)b;
+	    Insets iOut = getOpaqueInsets(cb.getOutsideBorder(), c);
+	    if (iOut != null && iOut.equals(cb.getOutsideBorder().getBorderInsets(c))) {
+		// Outside border is opaque, keep looking
+		Insets iIn = getOpaqueInsets(cb.getInsideBorder(), c);
+		if (iIn == null) {
+		    // Inside is non-opaque, use outside insets
+		    return iOut;
+		} else {
+		    // Found non-opaque somewhere in the inside (which is
+		    // also compound).
+		    return new Insets(iOut.top + iIn.top, iOut.left + iIn.left,
+				      iOut.bottom + iIn.bottom, iOut.right + iIn.right);
+		}
+	    } else {
+		// Outside is either all non-opaque or has non-opaque
+		// border inside another compound border
+		return iOut;
+	    }
+	} else {
+	    return null;
+	}
+    }
 }
 

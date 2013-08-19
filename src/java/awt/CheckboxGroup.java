@@ -1,7 +1,7 @@
 /*
- * @(#)CheckboxGroup.java	1.30 01/12/03
+ * @(#)CheckboxGroup.java	1.34 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -28,10 +28,11 @@ package java.awt;
  * <p>
  * This image depicts the check box group created by this example:
  * <p>
- * <img src="doc-files/CheckboxGroup-1.gif"
+ * <img src="doc-files/CheckboxGroup-1.gif" 
+ * alt="Shows three checkboxes, arranged vertically, labeled one, two, and three. Checkbox one is in the on state."
  * ALIGN=center HSPACE=10 VSPACE=7> 
  * <p>
- * @version 	1.30 12/03/01
+ * @version 	1.34 01/23/03
  * @author 	Sami Shaio
  * @see         java.awt.Checkbox
  * @since       JDK1.0
@@ -39,9 +40,9 @@ package java.awt;
 public class CheckboxGroup implements java.io.Serializable {
     /**
      * The current choice.
-	 * @serial
-     * @see getCurrent()
-     * @see setCurrent()
+     * @serial
+     * @see #getCurrent()
+     * @see #setCurrent(Checkbox)
      */
     Checkbox selectedCheckbox = null;
 
@@ -110,7 +111,7 @@ public class CheckboxGroup implements java.io.Serializable {
 	}
 	Checkbox oldChoice = this.selectedCheckbox;
 	this.selectedCheckbox = box;
-	if ((oldChoice != null) && (oldChoice != box)) {
+	if (oldChoice != null && oldChoice != box && oldChoice.group == this) {
 	    oldChoice.setState(false);
 	}
 	if (box != null && oldChoice != box && !box.getState()) {

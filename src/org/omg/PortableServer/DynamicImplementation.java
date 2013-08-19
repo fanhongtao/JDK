@@ -1,7 +1,7 @@
 /*
- * @(#)DynamicImplementation.java	1.6 01/12/03
+ * @(#)DynamicImplementation.java	1.8 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.PortableServer;
@@ -19,7 +19,7 @@ abstract public class DynamicImplementation extends Servant {
  * Receives requests issued to any CORBA object 
  * incarnated by the DSI servant and performs the processing 
  * necessary to execute the request.
- * @param <code>request</code> the request issued to the CORBA object.
+ * @param request the request issued to the CORBA object.
  */
     abstract public void invoke(org.omg.CORBA.ServerRequest request);
 }

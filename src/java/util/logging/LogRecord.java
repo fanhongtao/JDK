@@ -1,7 +1,7 @@
 /*
- * @(#)LogRecord.java	1.17 01/12/03
+ * @(#)LogRecord.java	1.18 03/01/13
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.io.*;
  *
  * </ul>
  *
- * @version 1.17, 12/03/01
+ * @version 1.18, 01/13/03
  * @since 1.4
  */
 
@@ -165,8 +165,6 @@ public class LogRecord implements java.io.Serializable {
      * the message string before formatting it.  The result may
      * be null if the message is not localizable, or if no suitable
      * ResourceBundle is available.
-     *
-     * @param bundle localization bundle (may be null)
      */
     public ResourceBundle getResourceBundle() {
 	return resourceBundle;
@@ -187,8 +185,6 @@ public class LogRecord implements java.io.Serializable {
      * This is the name for the ResourceBundle that should be
      * used to localize the message string before formatting it.
      * The result may be null if the message is not localizable.
-     *
-     * @param bundle localization bundle name (may be null)
      */
     public String getResourceBundleName() {
 	return resourceBundleName;
@@ -405,7 +401,7 @@ public class LogRecord implements java.io.Serializable {
     /**
      * Set a throwable associated with the log event.
      *
-     * @param throwable a throwable
+     * @param thrown  a throwable
      */
     public void setThrown(Throwable thrown) {
 	this.thrown = thrown;

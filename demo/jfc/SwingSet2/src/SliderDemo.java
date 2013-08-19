@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)SliderDemo.java	1.5 02/06/13
+ * @(#)SliderDemo.java	1.6 03/01/23
  */
 
 
@@ -57,7 +57,7 @@ import java.net.*;
 /**
  * JSlider Demo
  *
- * @version 1.5 06/13/02
+ * @version 1.6 01/23/03
  * @author Dave Kloba
  * @author Jeff Dinkins
  */

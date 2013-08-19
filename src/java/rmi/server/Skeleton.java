@@ -1,7 +1,7 @@
 /*
- * @(#)Skeleton.java	1.16 01/12/03
+ * @(#)Skeleton.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -18,7 +18,7 @@ import java.rmi.Remote;
  * a server-side entity that dispatches calls to the actual remote object
  * implementation.
  *
- * @version 1.16, 12/03/01
+ * @version 1.17, 01/23/03
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement.  Skeletons are no longer required for remote

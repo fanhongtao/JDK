@@ -60,14 +60,17 @@ import org.apache.xpath.XPathContext;
 import org.apache.xpath.VariableStack;
 import org.apache.xpath.axes.ContextNodeList;
 import org.apache.xml.utils.NodeVector;
+import org.apache.xml.utils.IntStack;
 import org.apache.xml.utils.BoolStack;
 import org.apache.xml.dtm.DTMIterator;
 import org.apache.xalan.templates.ElemTemplateElement;
 
 import java.util.Stack;
 
+
 import org.xml.sax.helpers.NamespaceSupport;
 import org.apache.xml.utils.NamespaceSupport2;
+import org.apache.xml.utils.ObjectStack;
 
 import java.util.Enumeration;
 
@@ -90,10 +93,10 @@ class TransformSnapshotImpl implements TransformSnapshot
    * The stack of <a href="http://www.w3.org/TR/xslt#dt-current-node">current node</a> objects.
    *  Not to be confused with the current node list.  
    */
-  private int[] m_currentNodes;
+  private IntStack m_currentNodes;
 
   /** A stack of the current sub-expression nodes. */
-  private int[] m_currentExpressionNodes;
+  private IntStack m_currentExpressionNodes;
 
   /**
    * The current context node lists stack.
@@ -121,7 +124,7 @@ class TransformSnapshotImpl implements TransformSnapshot
    * org.apache.xalan.transformer.TransformState interface,
    * so a tool can discover the calling template. 
    */
-  private ElemTemplateElement[] m_currentTemplateElements;
+  private ObjectStack m_currentTemplateElements;
 
   /**
    * A node vector used as a stack to track the current
@@ -201,9 +204,9 @@ class TransformSnapshotImpl implements TransformSnapshot
       XPathContext xpc = transformer.getXPathContext();
 
       m_variableStacks = (VariableStack) xpc.getVarStack().clone();
-      m_currentNodes = (int[]) xpc.getCurrentNodeStack().clone();
+      m_currentNodes = (IntStack) xpc.getCurrentNodeStack().clone();
       m_currentExpressionNodes =
-        (int[]) xpc.getCurrentExpressionNodeStack().clone();
+        (IntStack) xpc.getCurrentExpressionNodeStack().clone();
       m_contextNodeLists = (Stack) xpc.getContextNodeListsStack().clone();
 
       if (!m_contextNodeLists.empty())
@@ -214,7 +217,7 @@ class TransformSnapshotImpl implements TransformSnapshot
       m_currentTemplateRuleIsNull =
         (BoolStack) transformer.m_currentTemplateRuleIsNull.clone();
       m_currentTemplateElements =
-        (ElemTemplateElement[]) transformer.m_currentTemplateElements.clone();
+        (ObjectStack) transformer.m_currentTemplateElements.clone();
       m_currentMatchTemplates =
         (Stack) transformer.m_currentMatchTemplates.clone();
       m_currentMatchNodes =
@@ -269,9 +272,9 @@ class TransformSnapshotImpl implements TransformSnapshot
       XPathContext xpc = transformer.getXPathContext();
 
       xpc.setVarStack((VariableStack) m_variableStacks.clone());
-      xpc.setCurrentNodeStack((int[]) m_currentNodes.clone());
+      xpc.setCurrentNodeStack((IntStack) m_currentNodes.clone());
       xpc.setCurrentExpressionNodeStack(
-        (int[]) m_currentExpressionNodes.clone());
+        (IntStack) m_currentExpressionNodes.clone());
       xpc.setContextNodeListsStack((Stack) m_contextNodeLists.clone());
 
       if (m_contextNodeList != null)
@@ -282,7 +285,7 @@ class TransformSnapshotImpl implements TransformSnapshot
       transformer.m_currentTemplateRuleIsNull =
         (BoolStack) m_currentTemplateRuleIsNull.clone();
       transformer.m_currentTemplateElements =
-        (ElemTemplateElement[]) m_currentTemplateElements.clone();
+        (ObjectStack) m_currentTemplateElements.clone();
       transformer.m_currentMatchTemplates =
         (Stack) m_currentMatchTemplates.clone();
       transformer.m_currentMatchedNodes =

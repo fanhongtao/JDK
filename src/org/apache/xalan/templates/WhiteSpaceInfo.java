@@ -81,6 +81,21 @@ public class WhiteSpaceInfo extends ElemTemplate
   {
     return m_shouldStripSpace;
   }
+  
+  /**
+   * Constructor WhiteSpaceInfo
+   *
+   *
+   * @param matchPattern Match pattern
+   * @param shouldStripSpace Flag indicating whether or not
+   * to strip whitespaces
+   * @param thisSheet The current stylesheet
+   */
+  public WhiteSpaceInfo(Stylesheet thisSheet)
+  {
+  	setStylesheet(thisSheet);
+  }
+
 
   /**
    * Constructor WhiteSpaceInfo

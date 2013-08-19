@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ import java.util.Arrays;
 /**
  * Introduction to the Java2Demo.  
  *
- * @version @(#)Intro.java	1.16 02/06/13
+ * @version @(#)Intro.java	1.18 03/01/23
  * @author Brian Lichtenwalter
  */
 public class Intro extends JPanel {
@@ -1576,7 +1576,9 @@ public class Intro extends JPanel {
                 "Parry Kejriwal", "Doug Felt", "Rekha Rangarajan", 
                 "Paula Patel", "Michael Bundschuh", "Joe Warzecha", 
                 "Joey Beheler", "Aastha Bhardwaj", "Daniel Rice",
-                "Chris Campbell"
+                "Chris Campbell", "Shinsuke Fukuda", "Dmitri Trembovetski",
+                "Chet Haase", "Jennifer Godinez", "Nicholas Talian",
+                "Raul Vera", "Ankit Patel", "Ilya Bagrak"
             };
             static Font font = new Font("serif", Font.PLAIN, 26);
             static FontMetrics fm = Surface.getMetrics(font);

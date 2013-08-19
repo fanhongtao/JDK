@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetContext.java	1.33 01/12/03
+ * @(#)DropTargetContext.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.util.List;
  * drag under feedback, but also to effect the subsequent data transfer
  * if appropriate.
  *
- * @version 	1.33, 12/03/01
+ * @version 	1.35, 01/23/03
  * @since 1.2
  */
 
@@ -347,7 +347,7 @@ public class DropTargetContext implements Serializable {
          * the data is requested in application/x-java-serialized-object 
          * data flavor.
          *
-         * @param flavor the requested flavor for the data
+         * @param df the requested flavor for the data
          * @throws IOException if the data is no longer available
          *              in the requested flavor.
          * @throws UnsupportedFlavorException if the requested data flavor is

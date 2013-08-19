@@ -1,7 +1,7 @@
 /*
- * @(#)JRadioButton.java	1.71 01/12/03
+ * @(#)JRadioButton.java	1.72 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -56,7 +56,7 @@ import java.io.IOException;
  *
  * @see ButtonGroup
  * @see JCheckBox
- * @version 1.71 12/03/01
+ * @version 1.72 01/23/03
  * @author Jeff Dinkins
  */
 public class JRadioButton extends JToggleButton implements Accessible {

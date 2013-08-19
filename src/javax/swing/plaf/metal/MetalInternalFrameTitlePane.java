@@ -1,7 +1,7 @@
 /*
- * @(#)MetalInternalFrameTitlePane.java	1.49 01/12/03
+ * @(#)MetalInternalFrameTitlePane.java	1.51 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 /**
  * Class that manages a JLF title bar
- * @version 1.49 12/03/01
+ * @version 1.51 01/23/03
  * @author Steve Wilson
  * @author Brian Beck
  * @since 1.3
@@ -140,6 +140,12 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
      * have system menus.
      */
     protected void addSystemMenuItems(JMenu systemMenu) {}
+
+    /**
+     * Override the parent's method to do nothing. Metal frames do not 
+     * have system menus.
+     */
+    protected void showSystemMenu() {}
 
     /**
      * Override the parent's method avoid creating a menu bar. Metal frames

@@ -68,6 +68,7 @@ import org.apache.xml.utils.PrefixResolver;
 import org.apache.xml.utils.XMLString;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.axes.LocPathIterator;
+import org.apache.xpath.objects.XNodeSet;
 
 /**
  * This class manages the key tables.
@@ -94,12 +95,12 @@ public class KeyManager
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public LocPathIterator getNodeSetDTMByKey(
+  public XNodeSet getNodeSetDTMByKey(
           XPathContext xctxt, int doc, QName name, XMLString ref, PrefixResolver nscontext)
             throws javax.xml.transform.TransformerException
   {
 
-    LocPathIterator nl = null;
+    XNodeSet nl = null;
     ElemTemplateElement template = (ElemTemplateElement) nscontext;  // yuck -sb
 
     if ((null != template)

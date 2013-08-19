@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.179 03/01/19
+ * @(#)Font.java	1.181 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -126,7 +126,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.179, 01/19/03
+ * @version 	1.181, 01/23/03
  */
 public class Font implements java.io.Serializable
 {
@@ -140,7 +140,6 @@ public class Font implements java.io.Serializable
     /**
      * A map of font attributes available in this font.
      * Attributes include things like ligatures and glyph substitution.
-     * @return the attributes map
      *
      * @serial
      * @see #getAttributes()
@@ -1156,8 +1155,8 @@ public class Font implements java.io.Serializable
      * Writes default serializable fields to a stream.
      *
      * @param s the <code>ObjectOutputStream</code> to write
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see #readObject(java.io.ObjectInputStream)
      */
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.lang.ClassNotFoundException,
@@ -1172,7 +1171,7 @@ public class Font implements java.io.Serializable
      *
      * @param s the <code>ObjectInputStream</code> to read
      * @serial
-     * @see #writeObject
+     * @see #writeObject(java.io.ObjectOutputStream)
      */
     private void readObject(java.io.ObjectInputStream s)
       throws java.lang.ClassNotFoundException,
@@ -1280,7 +1279,8 @@ public class Font implements java.io.Serializable
             TextAttribute.FAMILY,
             TextAttribute.WEIGHT,
             TextAttribute.POSTURE,
-            TextAttribute.SIZE
+            TextAttribute.SIZE,
+	    TextAttribute.TRANSFORM
         };
 
         return attributes;
@@ -1371,6 +1371,10 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(Map attributes) {
+	if (attributes == null || attributes.size() == 0) {
+	    return this;
+	}
+
         Hashtable newAttrs = new Hashtable(getAttributes());
 	Attribute validAttribs[] = getAvailableAttributes();
 	Object obj;
@@ -1983,10 +1987,10 @@ public class Font implements java.io.Serializable
      * @throws ArrayIndexOutOfBoundsException if start or limit is 
      * out of bounds
      * @see java.text.Bidi
-     * @see LAYOUT_LEFT_TO_RIGHT
-     * @see LAYOUT_RIGHT_TO_LEFT
-     * @see LAYOUT_NO_START_CONTEXT
-     * @see LAYOUT_NO_LIMIT_CONTEXT
+     * @see #LAYOUT_LEFT_TO_RIGHT
+     * @see #LAYOUT_RIGHT_TO_LEFT
+     * @see #LAYOUT_NO_START_CONTEXT
+     * @see #LAYOUT_NO_LIMIT_CONTEXT
      */
     public GlyphVector layoutGlyphVector(FontRenderContext frc,
 					 char[] text,

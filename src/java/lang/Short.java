@@ -1,7 +1,7 @@
 /*
- * @(#)Short.java	1.32 02/02/06
+ * @(#)Short.java	1.33 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.lang;
  * constants and methods useful when dealing with a <code>short</code>.
  *
  * @author  Nakul Saraiya
- * @version 1.32, 02/06/02
+ * @version 1.33, 01/23/03
  * @see     java.lang.Number
  * @since   JDK1.1
  */

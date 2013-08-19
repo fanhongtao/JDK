@@ -1,7 +1,7 @@
 /*
- * @(#)GradientPaint.java	1.36 01/12/03
+ * @(#)GradientPaint.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,11 +47,15 @@ public class GradientPaint implements Paint {
 
     /**
      * Constructs a simple acyclic <code>GradientPaint</code> object.
-     * @param x1,&nbsp;y1 coordinates of the first specified
+     * @param x1 x coordinate of the first specified
+     * <code>Point</code> in user space
+     * @param y1 y coordinate of the first specified
      * <code>Point</code> in user space
      * @param color1 <code>Color</code> at the first specified 
      * <code>Point</code>
-     * @param x2,&nbsp;y2 coordinates of the second specified
+     * @param x2 x coordinate of the second specified
+     * <code>Point</code> in user space
+     * @param y2 y coordinate of the second specified
      * <code>Point</code> in user space
      * @param color2 <code>Color</code> at the second specified 
      * <code>Point</code>
@@ -102,11 +106,15 @@ public class GradientPaint implements Paint {
     /**
      * Constructs either a cyclic or acyclic <code>GradientPaint</code>
      * object depending on the <code>boolean</code> parameter.
-     * @param x1,&nbsp;y1 coordinates of the first specified
+     * @param x1 x coordinate of the first specified
+     * <code>Point</code> in user space
+     * @param y1 y coordinate of the first specified
      * <code>Point</code> in user space
      * @param color1 <code>Color</code> at the first specified 
      * <code>Point</code>
-     * @param x2,&nbsp;y2 coordinates of the second specified
+     * @param x2 x coordinate of the second specified
+     * <code>Point</code> in user space
+     * @param y2 y coordinate of the second specified
      * <code>Point</code> in user space
      * @param color2 <code>Color</code> at the second specified 
      * <code>Point</code>

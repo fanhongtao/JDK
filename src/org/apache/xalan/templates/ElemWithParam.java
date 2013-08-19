@@ -255,7 +255,7 @@ public class ElemWithParam extends ElemTemplateElement
         // Use result tree fragment
         int df = transformer.transformToRTF(this);
 
-        var = new XRTreeFrag(df, xctxt);
+        var = new XRTreeFrag(df, xctxt, this);
       }
     }
     finally
@@ -265,6 +265,18 @@ public class ElemWithParam extends ElemTemplateElement
 
     return var;
   }
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+  {
+  	if(callAttrs && (null != m_selectPattern))
+  		m_selectPattern.getExpression().callVisitors(m_selectPattern, visitor);
+    super.callChildVisitors(visitor, callAttrs);
+  }
+
 
 
 }

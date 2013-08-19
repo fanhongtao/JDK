@@ -1,7 +1,7 @@
 /*
- * @(#)Graphics2D.java	1.76 01/12/03
+ * @(#)Graphics2D.java	1.78 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -383,7 +383,7 @@ import java.util.Map;
  * </pre>
  * </ol>
  *
- * @version 	1.76, 12/03/01
+ * @version 	1.78, 01/23/03
  * @author Jim Graham
  * @see java.awt.RenderingHints
  */
@@ -416,7 +416,8 @@ public abstract class Graphics2D extends Graphics {
      * by <code>height&nbsp;+&nbsp;1</code> pixels tall.  This method
      * uses the current <code>Color</code> exclusively and ignores
      * the current <code>Paint</code>.
-     * @param x,&nbsp;y the coordinates of the rectangle to be drawn.
+     * @param x the x coordinate of the rectangle to be drawn.
+     * @param y the y coordinate of the rectangle to be drawn.
      * @param width the width of the rectangle to be drawn.
      * @param height the height of the rectangle to be drawn.
      * @param raised a boolean that determines whether the rectangle
@@ -452,7 +453,8 @@ public abstract class Graphics2D extends Graphics {
      * determined from the current <code>Color</code>.  This method uses
      * the current <code>Color</code> exclusively and ignores the current 
      * <code>Paint</code>.
-     * @param x,&nbsp;y the coordinates of the rectangle to be filled.
+     * @param x the x coordinate of the rectangle to be filled.
+     * @param y the y coordinate of the rectangle to be filled.
      * @param       width the width of the rectangle to be filled.
      * @param       height the height of the rectangle to be filled.
      * @param       raised a boolean value that determines whether the 
@@ -546,9 +548,11 @@ public abstract class Graphics2D extends Graphics {
      * </pre>
      * @param op the filter to be applied to the image before rendering
      * @param img the <code>BufferedImage</code> to be rendered
-     * @param x,&nbsp;y the location in user space where the upper left
-     * corner of the
-     * image is rendered
+     * @param x the x coordinate of the location in user space where
+     * the upper left corner of the image is rendered
+     * @param y the y coordinate of the location in user space where
+     * the upper left corner of the image is rendered
+     *
      * @see #transform
      * @see #setTransform
      * @see #setComposite
@@ -629,8 +633,10 @@ public abstract class Graphics2D extends Graphics {
      * right to left, in which case the coordinate supplied is the
      * location of the leftmost character on the baseline.
      * @param str the string to be rendered
-     * @param x,&nbsp;y the coordinates where the <code>String</code>
-     * should be rendered
+     * @param x the x coordinate of the location where the
+     * <code>String</code> should be rendered
+     * @param y the y coordinate of the location where the
+     * <code>String</code> should be rendered
      * @throws NullPointerException if <code>str</code> is 
      *         <code>null</code>
      * @see         java.awt.Graphics#drawBytes
@@ -651,8 +657,10 @@ public abstract class Graphics2D extends Graphics {
      * left, in which case the coordinate supplied is the location of the
      * leftmost character on the baseline.
      * @param s the <code>String</code> to be rendered
-     * @param x,&nbsp;y the coordinates where the <code>String</code>
-     * should be rendered
+     * @param x the x coordinate of the location where the
+     * <code>String</code> should be rendered
+     * @param y the y coordinate of the location where the
+     * <code>String</code> should be rendered
      * @throws NullPointerException if <code>str</code> is
      *         <code>null</code>
      * @see #setPaint
@@ -679,7 +687,9 @@ public abstract class Graphics2D extends Graphics {
      * coordinate supplied is the location of the leftmost character
      * on the baseline.
      * @param iterator the iterator whose text is to be rendered
-     * @param x,&nbsp;y the coordinates where the iterator's text is to be
+     * @param x the x coordinate where the iterator's text is to be
+     * rendered
+     * @param y the y coordinate where the iterator's text is to be
      * rendered
      * @see #setPaint
      * @see java.awt.Graphics#setColor
@@ -705,7 +715,9 @@ public abstract class Graphics2D extends Graphics {
      * coordinate supplied is the location of the leftmost character
      * on the baseline.
      * @param iterator the iterator whose text is to be rendered
-     * @param x,&nbsp;y the coordinates where the iterator's text is to be
+     * @param x the x coordinate where the iterator's text is to be
+     * rendered
+     * @param y the y coordinate where the iterator's text is to be
      * rendered
      * @see #setPaint
      * @see java.awt.Graphics#setColor
@@ -728,7 +740,9 @@ public abstract class Graphics2D extends Graphics {
      * This is the fastest way to render a set of characters to the
      * screen.
      * @param g the <code>GlyphVector</code> to be rendered
-     * @param x,&nbsp;y the position in User Space where the glyphs should
+     * @param x the x position in User Space where the glyphs should
+     * be rendered
+     * @param y the y position in User Space where the glyphs should
      * be rendered
      *
      * @see java.awt.Font#createGlyphVector
@@ -934,7 +948,8 @@ public abstract class Graphics2D extends Graphics {
      * <code>Graphics2D</code> context's former coordinate system.  All 
      * coordinates used in subsequent rendering operations on this graphics 
      * context are relative to this new origin.
-     * @param  x,&nbsp;y  the specified coordinates
+     * @param  x the specified x coordinate
+     * @param  y the specified y coordinate
      * @since   JDK1.0
      */
     public abstract void translate(int x, int y);
@@ -991,7 +1006,8 @@ public abstract class Graphics2D extends Graphics {
      * Rotating with a positive angle theta rotates points on the positive
      * x axis toward the positive y axis.
      * @param theta the angle of rotation in radians
-     * @param x,&nbsp;y coordinates of the origin of the rotation
+     * @param x the x coordinate of the origin of the rotation
+     * @param y the y coordinate of the origin of the rotation
      */
     public abstract void rotate(double theta, double x, double y);
 

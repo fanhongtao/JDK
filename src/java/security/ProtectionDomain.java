@@ -1,7 +1,7 @@
 /*
- * @(#)ProtectionDomain.java	1.39 01/12/03
+ * @(#)ProtectionDomain.java	1.41 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -9,6 +9,7 @@ package java.security;
 
 import java.util.Enumeration;
 import java.util.Vector;
+import sun.security.util.SecurityConstants;
 
 /** 
  *
@@ -25,7 +26,7 @@ import java.util.Vector;
  * is checked.
  * <p>
  * 
- * @version 	1.39, 12/03/01
+ * @version 	1.41, 01/23/03
  * @author Li Gong 
  * @author Roland Schemers
  * @author Gary Ellison
@@ -236,10 +237,8 @@ public class ProtectionDomain {
 	    if (debug != null) {
 		return true;
 	    }
-	    SecurityPermission sp =
-		new java.security.SecurityPermission("getPolicy");
 	    try {
-		sm.checkPermission(sp);
+		sm.checkPermission(SecurityConstants.GET_POLICY_PERMISSION);
 	    } catch (SecurityException se) {
 		return false;
 	    }

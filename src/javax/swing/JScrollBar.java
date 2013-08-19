@@ -1,7 +1,7 @@
 /*
- * @(#)JScrollBar.java	1.72 01/12/03
+ * @(#)JScrollBar.java	1.74 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A component that helps determine the visible content range of an area.
  *
- * @version 1.72 12/03/01
+ * @version 1.74 01/23/03
  * @author David Kloba
  */
 public class JScrollBar extends JComponent implements Adjustable, Accessible
@@ -703,7 +703,7 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      * Enables the component so that the knob position can be changed.
      * When the disabled, the knob position cannot be changed.
      *
-     * @param b a boolean value, where true enables the component and
+     * @param x a boolean value, where true enables the component and
      *          false disables it
      */
     public void setEnabled(boolean x)  {

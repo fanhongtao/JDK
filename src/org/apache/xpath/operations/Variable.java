@@ -56,24 +56,34 @@
  */
 package org.apache.xpath.operations;
 
-import javax.xml.transform.TransformerException;
+import java.util.Vector;
 
+import javax.xml.transform.TransformerException;
+import org.apache.xalan.res.XSLMessages;
+import org.apache.xalan.templates.ElemTemplateElement;
+import org.apache.xalan.templates.ElemVariable;
+import org.apache.xalan.templates.Stylesheet;
+import org.apache.xml.utils.PrefixResolver;
 import org.apache.xml.utils.QName;
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionNode;
+import org.apache.xpath.ExpressionOwner;
 import org.apache.xpath.XPath;
 import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XObject;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.axes.PathComponent;
+import org.apache.xpath.axes.WalkerFactory;
 import org.apache.xpath.objects.XNodeSet;
-
-import org.w3c.dom.Node;
-
+import org.apache.xpath.objects.XObject;
 import org.apache.xpath.res.XPATHErrorResources;
-import org.apache.xalan.res.XSLMessages;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+
 
 /**
  * The variable reference expression executer.
  */
-public class Variable extends Expression
+public class Variable extends Expression implements PathComponent
 {
   /** Tell if fixupVariables was called.
    *  @serial   */
@@ -89,6 +99,51 @@ public class Variable extends Expression
    * the offset to the current stack frame.
    */
   protected int m_index;
+  
+  /**
+   * Set the index for the variable into the stack.  For advanced use only. You 
+   * must know what you are doing to use this.
+   * 
+   * @param index a global or local index.
+   */
+  public void setIndex(int index)
+  {
+  	m_index = index;
+  }
+  
+  /**
+   * Set the index for the variable into the stack.  For advanced use only.
+   * 
+   * @return index a global or local index.
+   */
+  public int getIndex()
+  {
+  	return m_index;
+  }
+  
+  /**
+   * Set whether or not this is a global reference.  For advanced use only.
+   * 
+   * @param isGlobal true if this should be a global variable reference.
+   */
+  public void setIsGlobal(boolean isGlobal)
+  {
+  	m_isGlobal = isGlobal;
+  }
+  
+  /**
+   * Set the index for the variable into the stack.  For advanced use only.
+   * 
+   * @return true if this should be a global variable reference.
+   */
+  public boolean getGlobal()
+  {
+  	return m_isGlobal;
+  }
+
+  
+  
+
   
   protected boolean m_isGlobal = false;
   
@@ -106,6 +161,7 @@ public class Variable extends Expression
   {
     m_fixUpWasCalled = true;
     int sz = vars.size();
+
     for (int i = vars.size()-1; i >= 0; i--) 
     {
       QName qn = (QName)vars.elementAt(i);
@@ -126,10 +182,11 @@ public class Variable extends Expression
         return;
       }
     }
+    
     java.lang.String msg = XSLMessages.createXPATHMessage(XPATHErrorResources.ER_COULD_NOT_FIND_VAR, 
                                              new Object[]{m_qname.toString()});
                                              
-    TransformerException te = new TransformerException(msg, m_slocator);
+    TransformerException te = new TransformerException(msg, this);
                                              
     throw new org.apache.xml.utils.WrappedRuntimeException(te);
     
@@ -145,6 +202,35 @@ public class Variable extends Expression
   {
     m_qname = qname;
   }
+  
+  /**
+   * Get the qualified name of the variable.
+   *
+   * @return A non-null reference to a qualified name.
+   */
+  public QName getQName()
+  {
+    return m_qname;
+  }
+  
+  /**
+   * Execute an expression in the XPath runtime context, and return the
+   * result of the expression.
+   *
+   *
+   * @param xctxt The XPath runtime context.
+   *
+   * @return The result of the expression in the form of a <code>XObject</code>.
+   *
+   * @throws javax.xml.transform.TransformerException if a runtime exception
+   *         occurs.
+   */
+  public XObject execute(XPathContext xctxt)
+    throws javax.xml.transform.TransformerException
+  {
+  	return execute(xctxt, false);
+  }
+
 
   /**
    * Dereference the variable, and return the reference value.  Note that lazy 
@@ -158,8 +244,9 @@ public class Variable extends Expression
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public XObject execute(XPathContext xctxt) throws javax.xml.transform.TransformerException
+  public XObject execute(XPathContext xctxt, boolean destructiveOK) throws javax.xml.transform.TransformerException
   {
+  	org.apache.xml.utils.PrefixResolver xprefixResolver = xctxt.getNamespaceContext();
 
     // Is the variable fetched always the same?
     // XObject result = xctxt.getVariable(m_qname);
@@ -167,9 +254,9 @@ public class Variable extends Expression
     {    
       XObject result;
       if(m_isGlobal)
-        result = xctxt.getVarStack().getGlobalVariable(xctxt, m_index);
+        result = xctxt.getVarStack().getGlobalVariable(xctxt, m_index, destructiveOK);
       else
-        result = xctxt.getVarStack().getLocalVariable(xctxt, m_index);
+        result = xctxt.getVarStack().getLocalVariable(xctxt, m_index, destructiveOK);
   
       if (null == result)
       {
@@ -191,60 +278,74 @@ public class Variable extends Expression
       // pending some bright light going off in my head.  Some sort of callback?
       synchronized(this)
       {
-        org.apache.xml.utils.PrefixResolver prefixResolver = xctxt.getNamespaceContext();
-
-        // Get the current ElemTemplateElement, which must be pushed in as the 
-        // prefix resolver, and then walk backwards in document order, searching 
-        // for an xsl:param element or xsl:variable element that matches our 
-        // qname.  If we reach the top level, use the StylesheetRoot's composed
-        // list of top level variables and parameters.
-
-        if (prefixResolver instanceof org.apache.xalan.templates.ElemTemplateElement)
-        {
-
-          org.apache.xalan.templates.ElemVariable vvar;
-
-          org.apache.xalan.templates.ElemTemplateElement prev = 
-            (org.apache.xalan.templates.ElemTemplateElement) prefixResolver;
-
-          if (!(prev instanceof org.apache.xalan.templates.Stylesheet))
-          {            
-            while ( !(prev.getParentNode() instanceof org.apache.xalan.templates.Stylesheet) )
-            {
-              org.apache.xalan.templates.ElemTemplateElement savedprev = prev;
-
-              while (null != (prev = prev.getPreviousSiblingElem()))
-              {
-                if(prev instanceof org.apache.xalan.templates.ElemVariable)
-                {
-                  vvar = (org.apache.xalan.templates.ElemVariable) prev;
-                
-                  if (vvar.getName().equals(m_qname))
-                  {
-                    m_index = vvar.getIndex();
-                    m_isGlobal = false;
-                    m_fixUpWasCalled = true;
-                    return execute(xctxt);
-                  }
-                }
-              }
-              prev = savedprev.getParentElem();
-            }
-          }
-
-          vvar = prev.getStylesheetRoot().getVariableOrParamComposed(m_qname);
-          if (null != vvar)
-          {
-            m_index = vvar.getIndex();
-            m_isGlobal = true;
-            m_fixUpWasCalled = true;
-            return execute(xctxt);
-          }
-
-        }
+      	org.apache.xalan.templates.ElemVariable vvar= getElemVariable();
+      	if(null != vvar)
+      	{
+          m_index = vvar.getIndex();
+          m_isGlobal = vvar.getIsTopLevel();
+          m_fixUpWasCalled = true;
+          return execute(xctxt);
+      	}
       }
       throw new javax.xml.transform.TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VAR_NOT_RESOLVABLE, new Object[]{m_qname.toString()})); //"Variable not resolvable: "+m_qname);
     }
+  }
+  
+  /**
+   * Get the XSLT ElemVariable that this sub-expression references.  In order for 
+   * this to work, the SourceLocator must be the owning ElemTemplateElement.
+   * @return The dereference to the ElemVariable, or null if not found.
+   */
+  public org.apache.xalan.templates.ElemVariable getElemVariable()
+  {
+  	
+    // Get the current ElemTemplateElement, and then walk backwards in 
+    // document order, searching 
+    // for an xsl:param element or xsl:variable element that matches our 
+    // qname.  If we reach the top level, use the StylesheetRoot's composed
+    // list of top level variables and parameters.
+    
+    org.apache.xpath.ExpressionNode owner = getExpressionOwner();
+
+    if (null != owner && owner instanceof org.apache.xalan.templates.ElemTemplateElement)
+    {
+
+      org.apache.xalan.templates.ElemVariable vvar;
+
+      org.apache.xalan.templates.ElemTemplateElement prev = 
+        (org.apache.xalan.templates.ElemTemplateElement) owner;
+
+      if (!(prev instanceof org.apache.xalan.templates.Stylesheet))
+      {            
+        while ( !(prev.getParentNode() instanceof org.apache.xalan.templates.Stylesheet) )
+        {
+          org.apache.xalan.templates.ElemTemplateElement savedprev = prev;
+
+          while (null != (prev = prev.getPreviousSiblingElem()))
+          {
+            if(prev instanceof org.apache.xalan.templates.ElemVariable)
+            {
+              vvar = (org.apache.xalan.templates.ElemVariable) prev;
+            
+              if (vvar.getName().equals(m_qname))
+              {
+                return vvar;
+              }
+            }
+          }
+          prev = savedprev.getParentElem();
+        }
+      }
+
+      vvar = prev.getStylesheetRoot().getVariableOrParamComposed(m_qname);
+      if (null != vvar)
+      {
+        return vvar;
+      }
+
+    }
+    return null;
+
   }
   
   /**
@@ -259,5 +360,72 @@ public class Variable extends Expression
   {
     return true;
   }
+  
+  /** 
+   * Get the analysis bits for this walker, as defined in the WalkerFactory.
+   * @return One of WalkerFactory#BIT_DESCENDANT, etc.
+   */
+  public int getAnalysisBits()
+  {
+  	org.apache.xalan.templates.ElemVariable vvar = getElemVariable();
+  	if(null != vvar)
+  	{
+  		XPath xpath = vvar.getSelect();
+  		if(null != xpath)
+  		{
+	  		Expression expr = xpath.getExpression();
+	  		if(null != expr && expr instanceof PathComponent)
+	  		{
+	  			return ((PathComponent)expr).getAnalysisBits();
+	  		}
+  		}
+  	}
+    return WalkerFactory.BIT_FILTER;
+  }
+
+
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	visitor.visitVariableRef(owner, this);
+  }
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!isSameClass(expr))
+  		return false;
+  		
+  	if(!m_qname.equals(((Variable)expr).m_qname))
+  		return false;
+  		
+  	// We have to make sure that the qname really references 
+  	// the same variable element.
+    if(getElemVariable() != ((Variable)expr).getElemVariable())
+    	return false;
+  		
+  	return true;
+  }
+  
+  static final java.lang.String PSUEDOVARNAMESPACE = "http://xml.apache.org/xalan/psuedovar";
+  
+  /**
+   * Tell if this is a psuedo variable reference, declared by Xalan instead 
+   * of by the user.
+   */
+  public boolean isPsuedoVarRef()
+  {
+  	java.lang.String ns = m_qname.getNamespaceURI();
+  	if((null != ns) && ns.equals(PSUEDOVARNAMESPACE))
+  	{
+  		if(m_qname.getLocalName().startsWith("#"))
+  			return true;
+  	}
+  	return false;
+  }
+  
 
 }

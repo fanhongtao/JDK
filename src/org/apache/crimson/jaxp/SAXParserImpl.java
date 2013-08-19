@@ -1,5 +1,5 @@
 /*
- * $Id: SAXParserImpl.java,v 1.7 2001/03/30 23:33:41 edwingo Exp $
+ * $Id: SAXParserImpl.java,v 1.8 2001/11/06 23:48:41 edwingo Exp $
  *
  * The Apache Software License, Version 1.1
  *
@@ -77,7 +77,7 @@ import java.util.*;
 /**
  * @author Rajiv Mordani
  * @author Edwin Goei
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 
 /**
@@ -122,6 +122,13 @@ public class SAXParserImpl extends SAXParser {
         namespaceAware = spf.isNamespaceAware();
         String namespaces = "http://xml.org/sax/features/namespaces";
         xmlReader.setFeature(namespaces, namespaceAware);
+
+        // SAX "namespaces" and "namespace-prefixes" features must not both
+        // be false as specified by SAX
+        if (namespaceAware == false) {
+            String prefixes = "http://xml.org/sax/features/namespace-prefixes";
+            xmlReader.setFeature(prefixes, true);
+        }
 
         setFeatures(features);
     }

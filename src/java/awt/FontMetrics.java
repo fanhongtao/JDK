@@ -1,7 +1,7 @@
 /*
- * @(#)FontMetrics.java	1.47 01/12/03
+ * @(#)FontMetrics.java	1.49 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.text.CharacterIterator;
  * <li>{@link #charsWidth(char[], int, int)}
  * </ul>
  * <p>
- * <img src="doc-files/FontMetrics-1.gif" border=15 align
+ * <img src="doc-files/FontMetrics-1.gif" alt="The letter 'p' showing its 'reference point'" border=15 align
  * ALIGN=right HSPACE=10 VSPACE=7>
  * Note that the implementations of these methods are
  * inefficient, so they are usually overridden with more efficient
@@ -71,7 +71,7 @@ import java.text.CharacterIterator;
  * called a <em>ligature</em>.  Measuring characters individually does
  * not account for these transformations.
  *
- * @version 	1.47 12/03/01
+ * @version 	1.49 01/23/03
  * @author 	Jim Graham
  * @see         java.awt.Font
  * @since       JDK1.0

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.123 02/04/17
+ * @(#)BasicTabbedPaneUI.java	1.126 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1516,6 +1516,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         int tabPlacement = tabPane.getTabPlacement();
         int current = tabPane.getSelectedIndex();
         int tabCount = tabPane.getTabCount();
+        boolean leftToRight = BasicGraphicsUtils.isLeftToRight(tabPane);
 
         // If we have no tabs then don't navigate.
         if (tabCount <= 0) {
@@ -1563,10 +1564,18 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                     selectAdjacentRunTab(tabPlacement, current, offset);
                     break;
                 case EAST:
-                    selectNextTabInRun(current);
+                    if (leftToRight) {
+                        selectNextTabInRun(current);
+                    } else {
+                        selectPreviousTabInRun(current);
+                    }
                     break;
                 case WEST:
-                    selectPreviousTabInRun(current);
+                    if (leftToRight) {
+                        selectPreviousTabInRun(current);
+                    } else {
+                        selectNextTabInRun(current);
+                    }
                     break;
                 default:
               }
@@ -1905,7 +1914,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                     }
                     Integer index = (Integer)ui.mnemonicToIndexMap.
                                  get(new Integer(mnemonic));
-                    if (index != null) {
+                    if (index != null && pane.isEnabledAt(index.intValue())) {
                         pane.setSelectedIndex(index.intValue());
                     }
                 }

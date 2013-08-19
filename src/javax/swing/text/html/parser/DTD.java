@@ -1,7 +1,7 @@
 /*
- * @(#)DTD.java	1.14 01/12/03
+ * @(#)DTD.java	1.16 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.net.URL;
  * @see ContentModel
  * @see Parser
  * @author Arthur van Hoff
- * @version 1.14 12/03/01
+ * @version 1.16 01/23/03
  */
 public
 class DTD implements DTDConstants {
@@ -234,7 +234,7 @@ class DTD implements DTDConstants {
 
     /**
      * Creates and returns an <code>Element</code>.
-     * @param the element's name
+     * @param name the element's name
      * @return the new <code>Element</code>
      */
     protected Element defElement(String name, int type,
@@ -313,7 +313,7 @@ class DTD implements DTDConstants {
      * and returned.  Any uppercase characters in the name
      * are converted to lowercase.
      *
-     * @param the name of the DTD
+     * @param name the name of the DTD
      * @return the DTD which corresponds to <code>name</code>
      */
     public static DTD getDTD(String name) throws IOException {

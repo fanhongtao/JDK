@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSelectableChannel.java	1.19 02/02/25
+ * @(#)AbstractSelectableChannel.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.nio.channels.*;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.19, 02/02/25
+ * @version 1.21, 03/01/23
  * @since 1.4
  */
 
@@ -201,7 +201,8 @@ public abstract class AbstractSelectableChannel
     protected final void implCloseChannel() throws IOException {
 	implCloseSelectableChannel();
 	synchronized (keyLock) {
-	    for (int i = 0; i < keyCount; i++) {
+            int count = (keys == null) ? 0 : keys.length;
+	    for (int i = 0; i < count; i++) {
 		SelectionKey k = keys[i];
 		if (k != null)
 		    k.cancel();

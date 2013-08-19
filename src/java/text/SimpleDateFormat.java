@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleDateFormat.java	1.68 01/12/03
+ * @(#)SimpleDateFormat.java	1.74 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -71,7 +71,7 @@ import sun.text.resources.LocaleData;
  * <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to
  * <code>'z'</code> are reserved):
  * <blockquote>
- * <table border=0 cellspacing=3 cellpadding=0>
+ * <table border=0 cellspacing=3 cellpadding=0 summary="Chart shows pattern letters, date/time component, presentation, and examples.">
  *     <tr bgcolor="#ccccff">
  *         <th align=left>Letter
  *         <th align=left>Date or Time Component
@@ -260,7 +260,7 @@ import sun.text.resources.LocaleData;
  * the U.S. locale. The given date and time are 2001-07-04 12:08:56 local time
  * in the U.S. Pacific Time time zone.
  * <blockquote>
- * <table border=0 cellspacing=3 cellpadding=0>
+ * <table border=0 cellspacing=3 cellpadding=0 summary="Examples of date and time patterns interpreted in the U.S. locale">
  *     <tr bgcolor="#ccccff">
  *         <th align=left>Date and Time Pattern
  *         <th align=left>Result
@@ -304,7 +304,7 @@ import sun.text.resources.LocaleData;
  * @see          java.util.TimeZone
  * @see          DateFormat
  * @see          DateFormatSymbols
- * @version      1.68, 12/03/01
+ * @version      1.74, 01/27/03
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
@@ -738,6 +738,7 @@ public class SimpleDateFormat extends DateFormat {
      * @param startDate During parsing, two digit years will be placed in the range
      * <code>startDate</code> to <code>startDate + 100 years</code>.
      * @see #get2DigitYearStart
+     * @since 1.2
      */
     public void set2DigitYearStart(Date startDate) {
         parseAmbiguousDatesAsAfter(startDate);
@@ -750,6 +751,7 @@ public class SimpleDateFormat extends DateFormat {
      * @return the start of the 100-year period into which two digit years are
      * parsed
      * @see #set2DigitYearStart
+     * @since 1.2
      */
     public Date get2DigitYearStart() {
         return defaultCenturyStart;
@@ -887,7 +889,7 @@ public class SimpleDateFormat extends DateFormat {
 			   FieldDelegate delegate, StringBuffer buffer)
     {
         int     maxIntCount = Integer.MAX_VALUE;
-        String  current = "";
+        String  current = null;
         int     beginOffset = buffer.length();
 
         int field = PATTERN_INDEX_TO_CALENDAR_FIELD[patternCharIndex];
@@ -903,9 +905,9 @@ public class SimpleDateFormat extends DateFormat {
             break;
         case 1: // 'y' - YEAR
             if (count >= 4)
-                current = zeroPaddingNumber(value, count, maxIntCount);
+		zeroPaddingNumber(value, count, maxIntCount, buffer);
             else // count < 4
-                current = zeroPaddingNumber(value, 2, 2); // clip 1996 to 96
+		zeroPaddingNumber(value, 2, 2, buffer); // clip 1996 to 96
             break;
         case 2: // 'M' - MONTH
             if (count >= 4)
@@ -913,15 +915,14 @@ public class SimpleDateFormat extends DateFormat {
             else if (count == 3)
                 current = formatData.shortMonths[value];
             else
-                current = zeroPaddingNumber(value+1, count, maxIntCount);
+		zeroPaddingNumber(value+1, count, maxIntCount, buffer);
             break;
         case 4: // 'k' - HOUR_OF_DAY: 1-based.  eg, 23:59 + 1 hour =>> 24:59
             if (value == 0)
-                current = zeroPaddingNumber(
-                                            calendar.getMaximum(Calendar.HOUR_OF_DAY)+1,
-                                            count, maxIntCount);
+		zeroPaddingNumber(calendar.getMaximum(Calendar.HOUR_OF_DAY)+1,
+                                            count, maxIntCount, buffer);
             else
-                current = zeroPaddingNumber(value, count, maxIntCount);
+		zeroPaddingNumber(value, count, maxIntCount, buffer);
             break;
         case 9: // 'E' - DAY_OF_WEEK
             if (count >= 4)
@@ -934,11 +935,10 @@ public class SimpleDateFormat extends DateFormat {
             break;
         case 15: // 'h' - HOUR:1-based.  eg, 11PM + 1 hour =>> 12 AM
             if (value == 0)
-                current = zeroPaddingNumber(
-                                            calendar.getLeastMaximum(Calendar.HOUR)+1,
-                                            count, maxIntCount);
+		zeroPaddingNumber(calendar.getLeastMaximum(Calendar.HOUR)+1,
+				  count, maxIntCount, buffer);
             else
-                current = zeroPaddingNumber(value, count, maxIntCount);
+		zeroPaddingNumber(value, count, maxIntCount, buffer);
             break;
         case 17: // 'z' - ZONE_OFFSET
             int zoneIndex
@@ -947,29 +947,27 @@ public class SimpleDateFormat extends DateFormat {
                 // For time zones that have no names, use strings
                 // GMT+hours:minutes and GMT-hours:minutes.
                 // For instance, France time zone uses GMT+01:00.
-                StringBuffer zoneString = new StringBuffer();
 
                 value = calendar.get(Calendar.ZONE_OFFSET) +
-                    calendar.get(Calendar.DST_OFFSET);
+			calendar.get(Calendar.DST_OFFSET);
 
                 if (value < 0) {
-                    zoneString.append(GMT_MINUS);
+                    buffer.append(GMT_MINUS);
                     value = -value; // suppress the '-' sign for text display.
                 } else {
-                    zoneString.append(GMT_PLUS);
+                    buffer.append(GMT_PLUS);
                 }
                 int num = value / millisPerHour;
                 if (num < 10) {
-                    zoneString.append('0');
+                    buffer.append('0');
                 }
-                zoneString.append(num);
-                zoneString.append(':');
+                buffer.append(num);
+                buffer.append(':');
                 num = (value % millisPerHour) / millisPerMinute;
                 if (num < 10) {
-                    zoneString.append('0');
+                    buffer.append('0');
                 }
-                zoneString.append(num);
-                current = zoneString.toString();
+                buffer.append(num);
             } else if (calendar.get(Calendar.DST_OFFSET) != 0) {
                 if (count >= 4) {
                     current = formatData.zoneStrings[zoneIndex][3];
@@ -986,29 +984,26 @@ public class SimpleDateFormat extends DateFormat {
             }
             break;
         case 18: // 'Z' - ZONE_OFFSET ("-/+hhmm" form)
-            StringBuffer zoneString = new StringBuffer();
-
             value = calendar.get(Calendar.ZONE_OFFSET) +
                     calendar.get(Calendar.DST_OFFSET);
 
             if (value < 0) {
-                zoneString.append('-');
+                buffer.append('-');
                 value = -value; // suppress the '-' sign for text display.
             } else {
-                zoneString.append('+');
+                buffer.append('+');
             }
 
             int num = value / millisPerHour;
             if (num < 10) {
-                zoneString.append('0');
+                buffer.append('0');
             }
-            zoneString.append(num);
+            buffer.append(num);
             num = (value % millisPerHour) / millisPerMinute;
             if (num < 10) {
-                 zoneString.append('0');
+                 buffer.append('0');
             }
-            zoneString.append(num);
-            current = zoneString.toString();
+            buffer.append(num);
             break;
         default:
             // case 3: // 'd' - DATE
@@ -1021,15 +1016,16 @@ public class SimpleDateFormat extends DateFormat {
             // case 12: // 'w' - WEEK_OF_YEAR
             // case 13: // 'W' - WEEK_OF_MONTH
             // case 16: // 'K' - HOUR: 0-based.  eg, 11PM + 1 hour =>> 0 AM
-            current = zeroPaddingNumber(value, count, maxIntCount);
+	    zeroPaddingNumber(value, count, maxIntCount, buffer);
             break;
         } // switch (patternCharIndex)
 
-        buffer.append(current);
+	if (current != null) {
+	    buffer.append(current);
+	}
 
         int fieldID = PATTERN_INDEX_TO_DATE_FORMAT_FIELD[patternCharIndex];
-        Field f = PATTERN_INDEX_TO_DATE_FORMAT_FIELD_ID[
-                                  patternCharIndex];
+        Field f = PATTERN_INDEX_TO_DATE_FORMAT_FIELD_ID[patternCharIndex];
 
         delegate.formatted(fieldID, f, f, beginOffset, buffer.length(), buffer);
     }
@@ -1037,7 +1033,7 @@ public class SimpleDateFormat extends DateFormat {
     /**
      * Formats a number with the specified minimum and maximum number of digits.
      */
-    private final String zeroPaddingNumber(int value, int minDigits, int maxDigits)
+    private final void zeroPaddingNumber(int value, int minDigits, int maxDigits, StringBuffer buffer)
     {
 	// Optimization for 1, 2 and 4 digit numbers. This should
 	// cover most cases of formatting date/time related items.
@@ -1049,37 +1045,38 @@ public class SimpleDateFormat extends DateFormat {
 	    }
 	    if (value >= 0) {
 		if (value < 100 && minDigits >= 1 && minDigits <= 2) {
-		    StringBuffer buf = new StringBuffer();
 		    if (value < 10) {
 			if (minDigits == 2) {
-			    buf.append(zeroDigit);
+			    buffer.append(zeroDigit);
 			}
-			buf.append((char)(zeroDigit + value));
+			buffer.append((char)(zeroDigit + value));
 		    } else {
-			buf.append((char)(zeroDigit + value / 10));
-			buf.append((char)(zeroDigit + value % 10));
+			buffer.append((char)(zeroDigit + value / 10));
+			buffer.append((char)(zeroDigit + value % 10));
 		    }
-		    return buf.toString();
+		    return;
 		} else if (value >= 1000 && value < 10000) {
 		    if (minDigits == 4) {
-			StringBuffer buf = new StringBuffer();
-			buf.append((char)(zeroDigit + value / 1000));
+			buffer.append((char)(zeroDigit + value / 1000));
 			value %= 1000;
-			buf.append((char)(zeroDigit + value / 100));
+			buffer.append((char)(zeroDigit + value / 100));
 			value %= 100;
-			buf.append((char)(zeroDigit + value / 10));
-			buf.append((char)(zeroDigit + value % 10));
-			return buf.toString();
-		    } else if (minDigits == 2 && maxDigits == 2) {
-			return zeroPaddingNumber(value % 100, 2, 2);
+			buffer.append((char)(zeroDigit + value / 10));
+			buffer.append((char)(zeroDigit + value % 10));
+			return;
+		    }
+		    if (minDigits == 2 && maxDigits == 2) {
+			zeroPaddingNumber(value % 100, 2, 2, buffer);
+			return;
 		    }
 		}
 	    }
 	} catch (Exception e) {
 	}
+
         numberFormat.setMinimumIntegerDigits(minDigits);
         numberFormat.setMaximumIntegerDigits(maxDigits);
-        return numberFormat.format((long)value);
+	numberFormat.format((long)value, buffer, DontCareFieldPosition.INSTANCE);
     }
 
 
@@ -1097,9 +1094,9 @@ public class SimpleDateFormat extends DateFormat {
      * changed, the error index of <code>pos</code> is set to the index of
      * the character where the error occurred, and null is returned.
      *
-     * @param source A <code>String</code>, part of which should be parsed.
-     * @param pos A <code>ParsePosition</code> object with index and error
-     *            index information as described above.
+     * @param text  A <code>String</code>, part of which should be parsed.
+     * @param pos   A <code>ParsePosition</code> object with index and error
+     *              index information as described above.
      * @return A <code>Date</code> parsed from the string. In case of
      *         error, returns null.
      * @exception NullPointerException if <code>text</code> or <code>pos</code> is null.
@@ -1163,6 +1160,16 @@ public class SimpleDateFormat extends DateFormat {
 		    return null;
 		}
 	    }
+	}
+
+	// If only AM_PM has been set without any hour value, then
+	// HOUR is set to 0 to force calendar to take the HOUR and
+	// AM_PM fields. (bugid: 4736959) (Changing GregorianCalendar
+	// to take a look at both the HOUR and AM_PM stamp values
+	// breaks JCK GregorianCalendar2057.)
+	if (calendar.isSet(Calendar.AM_PM) && !calendar.isSet(Calendar.HOUR) &&
+	    !calendar.isSet(Calendar.HOUR_OF_DAY)) {
+	    calendar.set(Calendar.HOUR, 0); // force to update the stamp value
 	}
 
         // At this point the fields of Calendar have been set.  Calendar

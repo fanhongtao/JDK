@@ -1,7 +1,7 @@
 /*
- * @(#)MouseEvent.java	1.42 02/03/12
+ * @(#)MouseEvent.java	1.45 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -127,7 +127,7 @@ import java.io.ObjectInputStream;
  * </ul>
  *
  * @author Carl Quinn
- * 1.42, 03/12/02
+ * 1.45, 01/23/03
  *   
  * @see MouseAdapter
  * @see MouseListener
@@ -191,6 +191,19 @@ public class MouseEvent extends InputEvent {
     public static final int MOUSE_EXITED = 5 + MOUSE_FIRST; //Event.MOUSE_EXIT
 
     /**
+     * The "mouse dragged" event. This <code>MouseEvent</code>
+     * occurs when the mouse position changes while a mouse button is pressed.
+     */
+    public static final int MOUSE_DRAGGED = 6 + MOUSE_FIRST; //Event.MOUSE_DRAG
+
+    /**
+     * The "mouse wheel" event.  This is the only <code>MouseWheelEvent</code>.
+     * It occurs when a mouse equipped with a wheel has its wheel rotated.
+     * @since 1.4
+     */
+    public static final int MOUSE_WHEEL = 7 + MOUSE_FIRST; 
+
+    /**
      * Indicates no mouse buttons; used by {@link #getButton}. 
      * @since 1.4
      */ 
@@ -213,19 +226,6 @@ public class MouseEvent extends InputEvent {
      * @since 1.4
      */ 
     public static final int BUTTON3 = 3;
-
-    /**
-     * The "mouse dragged" event. This <code>MouseEvent</code>
-     * occurs when the mouse position changes while a mouse button is pressed.
-     */
-    public static final int MOUSE_DRAGGED = 6 + MOUSE_FIRST; //Event.MOUSE_DRAG
-
-    /**
-     * The "mouse wheel" event.  This is the only <code>MouseWheelEvent</code>. 
-     * It occurs when a mouse equipped with a wheel has its wheel rotated.
-     * @since 1.4
-     */
-    public static final int MOUSE_WHEEL = 7 + MOUSE_FIRST; //Event.MOUSE_WHEEL
 
     /**
      * The mouse event's x coordinate.
@@ -385,7 +385,6 @@ public class MouseEvent extends InputEvent {
         this(source, id, when, modifiers, x, y, clickCount, popupTrigger, NOBUTTON);
     }
 
-
     /**
      * Returns the horizontal x position of the event relative to the 
      * source component.
@@ -452,7 +451,7 @@ public class MouseEvent extends InputEvent {
     /**
      * Returns which, if any, of the mouse buttons has changed state.
      *
-     * @returns one of the following constants:
+     * @return one of the following constants:
      * <code>NOBUTTON</code>,
      * <code>BUTTON1</code>,
      * <code>BUTTON2</code> or
@@ -480,12 +479,14 @@ public class MouseEvent extends InputEvent {
     }
 
     /**
-     * Returns a String describing the modifier key(s), such as "Shift",
-     * or "Ctrl+Shift".  These strings can be localized by changing the 
-     * awt.properties file.
+     * Returns a String describing the modifier keys and mouse buttons 
+     * that were down during the event, such as "Shift", or "Ctrl+Shift".  
+     * These strings can be localized by changing the awt.properties file.
      *
-     * @return string a text description of the combination of modifier
-     *                keys that were held down during the event
+     * @param modifiers a modifier mask describing the modifier keys and 
+     *                  mouse buttons that were down during the event
+     * @return string   a text description of the combination of modifier
+     *                  keys and mouse buttons that were down during the event
      * @since 1.4
      */
     public static String getMouseModifiersText(int modifiers) {
@@ -535,44 +536,53 @@ public class MouseEvent extends InputEvent {
      * @return a string identifying the event and its attributes
      */
     public String paramString() {
-        String str;
+        StringBuffer str = new StringBuffer(80);
+
         switch(id) {
           case MOUSE_PRESSED:
-              str = "MOUSE_PRESSED";
+              str.append("MOUSE_PRESSED");
               break;
           case MOUSE_RELEASED:
-              str = "MOUSE_RELEASED";
+              str.append("MOUSE_RELEASED");
               break;
           case MOUSE_CLICKED:
-              str = "MOUSE_CLICKED";
+              str.append("MOUSE_CLICKED");
               break;
           case MOUSE_ENTERED:
-              str = "MOUSE_ENTERED";
+              str.append("MOUSE_ENTERED");
               break;
           case MOUSE_EXITED:
-              str = "MOUSE_EXITED";
+              str.append("MOUSE_EXITED");
               break;
           case MOUSE_MOVED:
-              str = "MOUSE_MOVED";
+              str.append("MOUSE_MOVED");
               break;
           case MOUSE_DRAGGED:
-              str = "MOUSE_DRAGGED";
+              str.append("MOUSE_DRAGGED");
               break;
           case MOUSE_WHEEL:
-              str = "MOUSE_WHEEL";
+              str.append("MOUSE_WHEEL");
               break;
            default:
-              str = "unknown type";
+              str.append("unknown type");
         }
-        str += ",("+x+","+y+")"+",button="+getButton();
+
+        // (x,y) coordinates
+        str.append(",(").append(x).append(",").append(y).append(")"); 
+
+        str.append(",button=").append(getButton());
+
         if (getModifiers() != 0) {
-            str += ",modifiers=" + getMouseModifiersText(modifiers);
+            str.append(",modifiers=").append(getMouseModifiersText(modifiers));
         }
 
         if (getModifiersEx() != 0) {
-            str += ",extModifiers=" + getModifiersExText(modifiers);
+            str.append(",extModifiers=").append(getModifiersExText(modifiers));
         }
-        return str + ",clickCount="+clickCount;
+
+        str.append(",clickCount=").append(clickCount);
+
+        return str.toString(); 
     }
 
     /**
@@ -689,3 +699,4 @@ public class MouseEvent extends InputEvent {
 	}
     }
 }
+

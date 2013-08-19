@@ -87,7 +87,7 @@ import javax.xml.transform.TransformerException;
  * <pre>
  *   xalan://partial.class.name
  *   xalan://
- *   http://xml.apache.org/xslt/java (which is the same as xalan://)
+ *   http://xml.apache.org/xalan/java (which is the same as xalan://)
  * </pre>
  * However, we do not enforce this.  If the class name contains a
  * a /, we only use the part to the right of the rightmost slash.
@@ -276,6 +276,10 @@ public class ExtensionHandlerJavaPackage extends ExtensionHandlerJava
             MethodResolver.convertParams(methodArgs, convertedArgs, paramTypes, exprContext);
             return c.newInstance(convertedArgs[0]);
           }
+          catch (InvocationTargetException ite)
+          {
+            throw ite;
+          }
           catch(Exception e)
           {
             // Must not have been the right one
@@ -314,6 +318,10 @@ public class ExtensionHandlerJavaPackage extends ExtensionHandlerJava
             paramTypes = m.getParameterTypes();
             MethodResolver.convertParams(methodArgs, convertedArgs, paramTypes, exprContext);
             return m.invoke(null, convertedArgs[0]);
+          }
+          catch (InvocationTargetException ite)
+          {
+            throw ite;
           }
           catch(Exception e)
           {
@@ -365,6 +373,10 @@ public class ExtensionHandlerJavaPackage extends ExtensionHandlerJava
             MethodResolver.convertParams(methodArgs, convertedArgs, paramTypes, exprContext);
             return m.invoke(targetObject, convertedArgs[0]);
           }
+          catch (InvocationTargetException ite)
+          {
+            throw ite;
+          }
           catch(Exception e)
           {
             // Must not have been the right one
@@ -383,11 +395,15 @@ public class ExtensionHandlerJavaPackage extends ExtensionHandlerJava
     }
     catch (InvocationTargetException ite)
     {
-      Throwable realException = ite.getTargetException();
-      if (realException instanceof Exception)
-        throw new TransformerException((Exception) realException);
-      else
-        throw new TransformerException(ite);
+      Throwable resultException = ite;
+      Throwable targetException = ite.getTargetException();
+ 
+      if (targetException instanceof TransformerException)
+        throw ((TransformerException)targetException);
+      else if (targetException != null)
+        resultException = targetException;
+            
+      throw new TransformerException(resultException);
     }
     catch (Exception e)
     {
@@ -462,6 +478,18 @@ public class ExtensionHandlerJavaPackage extends ExtensionHandlerJava
     try
     {
       result = m.invoke(null, new Object[] {xpc, element});
+    }
+    catch (InvocationTargetException ite)
+    {
+      Throwable resultException = ite;
+      Throwable targetException = ite.getTargetException();
+ 
+      if (targetException instanceof TransformerException)
+        throw ((TransformerException)targetException);
+      else if (targetException != null)
+        resultException = targetException;
+            
+      throw new TransformerException(resultException);
     }
     catch (Exception e)
     {

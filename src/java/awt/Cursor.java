@@ -1,7 +1,7 @@
 /*
- * @(#)Cursor.java	1.36 01/12/03
+ * @(#)Cursor.java	1.39 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -20,11 +20,13 @@ import java.util.StringTokenizer;
 
 import java.security.AccessController;
 
+import sun.awt.DebugHelper;
+
 /**
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.36, 12/03/01
+ * @version 	1.39, 01/23/03
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -124,7 +126,7 @@ public class Cursor implements java.io.Serializable {
      * the <code>DEFAULT_CURSOR</code>.
      *
      * @serial
-     * @see getType()
+     * @see #getType()
      */
     int type = DEFAULT_CURSOR;
 
@@ -157,10 +159,12 @@ public class Cursor implements java.io.Serializable {
     private static final String DotHotspotSuffix = ".HotSpot";
     private static final String DotNameSuffix    = ".Name";
 
-     /*
-      * JDK 1.1 serialVersionUID
-      */
+    /*
+     * JDK 1.1 serialVersionUID
+     */
     private static final long serialVersionUID = 8028237497568985504L;
+
+    private static final DebugHelper dbg = DebugHelper.create(Cursor.class);
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -172,7 +176,7 @@ public class Cursor implements java.io.Serializable {
 
     /**
      * Initialize JNI field and method IDs for fields that may be
-       accessed from C.
+     * accessed from C.
      */
     private static native void initIDs();
 
@@ -191,9 +195,11 @@ public class Cursor implements java.io.Serializable {
 
     /**
      * Returns a cursor object with the specified predefined type.
+     * 
      * @param type the type of predefined cursor
-	 * @throws IllegalArgumentException if the specified cursor type is
-	 * invalid
+     * @return the specified predefined cursor 
+     * @throws IllegalArgumentException if the specified cursor type is
+     *         invalid
      */
     static public Cursor getPredefinedCursor(int type) {
 	if (type < Cursor.DEFAULT_CURSOR || type > Cursor.MOVE_CURSOR) {
@@ -206,13 +212,14 @@ public class Cursor implements java.io.Serializable {
     }
 
     /**
-     * @return the system specific custom Cursor named
-     *
-     * Cursor names are, for example: "Invalid.16x16"
+     * Returns a system-specific custom cursor object matching the 
+     * specified name.  Cursor names are, for example: "Invalid.16x16"
+     * 
+     * @param name a string describing the desired system-specific custom cursor 
+     * @return the system specific custom cursor named
      * @exception HeadlessException if
      * <code>GraphicsEnvironment.isHeadless</code> returns true
      */
-
     static public Cursor getSystemCustomCursor(final String name)
 	throws AWTException, HeadlessException {
         GraphicsEnvironment.checkHeadless();
@@ -228,8 +235,10 @@ public class Cursor implements java.io.Serializable {
 	    String key    = prefix + DotFileSuffix;
 
 	    if (!systemCustomCursorProperties.containsKey(key)) {
-		System.err.println("Cursor.getSystemCustomCursor(" + name + ") returned null");
-		return null;
+	        if (dbg.on) {
+	            dbg.println("Cursor.getSystemCustomCursor(" + name + ") returned null");
+	        } 
+	        return null;
 	    }
 
 	    final String fileName =
@@ -281,7 +290,9 @@ public class Cursor implements java.io.Serializable {
 	    }
 
 	    if (cursor == null) {
-		System.err.println("Cursor.getSystemCustomCursor(" + name + ") returned null");
+	        if (dbg.on) {
+	            dbg.println("Cursor.getSystemCustomCursor(" + name + ") returned null");
+		} 
 	    } else {
 	        systemCustomCursors.put(name, cursor);
 	    }
@@ -300,8 +311,8 @@ public class Cursor implements java.io.Serializable {
     /**
      * Creates a new cursor object with the specified type.
      * @param type the type of cursor
-	 * @throws IllegalArgumentException if the specified cursor type
-	 * is invalid
+     * @throws IllegalArgumentException if the specified cursor type
+     * is invalid
      */
     public Cursor(int type) {
 	if (type < Cursor.DEFAULT_CURSOR || type > Cursor.MOVE_CURSOR) {
@@ -355,7 +366,6 @@ public class Cursor implements java.io.Serializable {
     /*
      * load the cursor.properties file
      */
-
     private static void loadSystemCustomCursorProperties() throws AWTException {
 	synchronized(systemCustomCursors) {
 	    systemCustomCursorProperties = new Properties();
@@ -395,3 +405,4 @@ public class Cursor implements java.io.Serializable {
 
     private native void finalizeImpl() throws Throwable;
 }
+

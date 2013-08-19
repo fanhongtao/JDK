@@ -1,7 +1,7 @@
 /*
- * @(#)System.java	1.125 01/12/03
+ * @(#)System.java	1.131 03/01/29
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,19 +16,20 @@ import java.security.PrivilegedAction;
 import java.security.AllPermission;
 import sun.net.InetAddressCachePolicy;
 import sun.reflect.Reflection;
+import sun.security.util.SecurityConstants;
 
 /**
- * The <code>System</code> class contains several useful class fields 
- * and methods. It cannot be instantiated. 
+ * The <code>System</code> class contains several useful class fields
+ * and methods. It cannot be instantiated.
  * <p>
- * Among the facilities provided by the <code>System</code> class 
- * are standard input, standard output, and error output streams; 
- * access to externally defined "properties"; a means of 
- * loading files and libraries; and a utility method for quickly 
- * copying a portion of an array. 
+ * Among the facilities provided by the <code>System</code> class
+ * are standard input, standard output, and error output streams;
+ * access to externally defined "properties"; a means of
+ * loading files and libraries; and a utility method for quickly
+ * copying a portion of an array.
  *
- * @author  Arthur van Hoff 
- * @version 1.125, 12/03/01
+ * @author  Arthur van Hoff
+ * @version 1.131, 01/29/03
  * @since   JDK1.0
  */
 public final class System {
@@ -44,26 +45,26 @@ public final class System {
     }
 
     /**
-     * The "standard" input stream. This stream is already 
-     * open and ready to supply input data. Typically this stream 
-     * corresponds to keyboard input or another input source specified by 
-     * the host environment or user. 
+     * The "standard" input stream. This stream is already
+     * open and ready to supply input data. Typically this stream
+     * corresponds to keyboard input or another input source specified by
+     * the host environment or user.
      */
     public final static InputStream in = nullInputStream();
 
     /**
-     * The "standard" output stream. This stream is already 
-     * open and ready to accept output data. Typically this stream 
-     * corresponds to display output or another output destination 
-     * specified by the host environment or user. 
+     * The "standard" output stream. This stream is already
+     * open and ready to accept output data. Typically this stream
+     * corresponds to display output or another output destination
+     * specified by the host environment or user.
      * <p>
-     * For simple stand-alone Java applications, a typical way to write 
-     * a line of output data is: 
+     * For simple stand-alone Java applications, a typical way to write
+     * a line of output data is:
      * <blockquote><pre>
      *     System.out.println(data)
      * </pre></blockquote>
      * <p>
-     * See the <code>println</code> methods in class <code>PrintStream</code>. 
+     * See the <code>println</code> methods in class <code>PrintStream</code>.
      *
      * @see     java.io.PrintStream#println()
      * @see     java.io.PrintStream#println(boolean)
@@ -79,16 +80,16 @@ public final class System {
     public final static PrintStream out = nullPrintStream();
 
     /**
-     * The "standard" error output stream. This stream is already 
-     * open and ready to accept output data. 
+     * The "standard" error output stream. This stream is already
+     * open and ready to accept output data.
      * <p>
-     * Typically this stream corresponds to display output or another 
-     * output destination specified by the host environment or user. By 
-     * convention, this output stream is used to display error messages 
-     * or other information that should come to the immediate attention 
-     * of a user even if the principal output stream, the value of the 
-     * variable <code>out</code>, has been redirected to a file or other 
-     * destination that is typically not continuously monitored. 
+     * Typically this stream corresponds to display output or another
+     * output destination specified by the host environment or user. By
+     * convention, this output stream is used to display error messages
+     * or other information that should come to the immediate attention
+     * of a user even if the principal output stream, the value of the
+     * variable <code>out</code>, has been redirected to a file or other
+     * destination that is typically not continuously monitored.
      */
     public final static PrintStream err = nullPrintStream();
 
@@ -98,22 +99,22 @@ public final class System {
 
     /**
      * Reassigns the "standard" input stream.
-     * 
-     * <p>First, if there is a security manager, its <code>checkPermission</code> 
+     *
+     * <p>First, if there is a security manager, its <code>checkPermission</code>
      * method is called with a <code>RuntimePermission("setIO")</code> permission
-     *  to see if it's ok to reassign the "standard" input stream. 
+     *  to see if it's ok to reassign the "standard" input stream.
      * <p>
-     * 
+     *
      * @param in the new standard input stream.
-     * 
+     *
      * @throws SecurityException
-     *        if a security manager exists and its 
-     *        <code>checkPermission</code> method doesn't allow 
+     *        if a security manager exists and its
+     *        <code>checkPermission</code> method doesn't allow
      *        reassigning of the standard input stream.
-     * 
+     *
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
-     * 
+     *
      * @since   JDK1.1
      */
     public static void setIn(InputStream in) {
@@ -124,20 +125,20 @@ public final class System {
     /**
      * Reassigns the "standard" output stream.
      *
-     * <p>First, if there is a security manager, its <code>checkPermission</code> 
+     * <p>First, if there is a security manager, its <code>checkPermission</code>
      * method is called with a <code>RuntimePermission("setIO")</code> permission
-     *  to see if it's ok to reassign the "standard" output stream. 
-     * 
+     *  to see if it's ok to reassign the "standard" output stream.
+     *
      * @param out the new standard output stream
-     * 
+     *
      * @throws SecurityException
-     *        if a security manager exists and its 
-     *        <code>checkPermission</code> method doesn't allow 
+     *        if a security manager exists and its
+     *        <code>checkPermission</code> method doesn't allow
      *        reassigning of the standard output stream.
-     * 
+     *
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
-     * 
+     *
      * @since   JDK1.1
      */
     public static void setOut(PrintStream out) {
@@ -148,20 +149,20 @@ public final class System {
     /**
      * Reassigns the "standard" error output stream.
      *
-     * <p>First, if there is a security manager, its <code>checkPermission</code> 
+     * <p>First, if there is a security manager, its <code>checkPermission</code>
      * method is called with a <code>RuntimePermission("setIO")</code> permission
-     *  to see if it's ok to reassign the "standard" error output stream. 
-     * 
+     *  to see if it's ok to reassign the "standard" error output stream.
+     *
      * @param err the new standard error output stream.
-     * 
+     *
      * @throws SecurityException
-     *        if a security manager exists and its 
-     *        <code>checkPermission</code> method doesn't allow 
+     *        if a security manager exists and its
+     *        <code>checkPermission</code> method doesn't allow
      *        reassigning of the standard error output stream.
-     * 
+     *
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
-     * 
+     *
      * @since   JDK1.1
      */
     public static void setErr(PrintStream err) {
@@ -188,10 +189,10 @@ public final class System {
      * security manager.
      * This may result in throwing a <code>SecurityException</code>.
      *
-     * <p> Otherwise, the argument is established as the current 
-     * security manager. If the argument is <code>null</code> and no 
-     * security manager has been established, then no action is taken and 
-     * the method simply returns. 
+     * <p> Otherwise, the argument is established as the current
+     * security manager. If the argument is <code>null</code> and no
+     * security manager has been established, then no action is taken and
+     * the method simply returns.
      *
      * @param      s   the security manager.
      * @exception  SecurityException  if the security manager has already
@@ -206,7 +207,7 @@ public final class System {
         try {
             s.checkPackageAccess("java.lang");
         } catch (Exception e) {
-            // no-op 
+            // no-op
         }
         setSecurityManager0(s);
     }
@@ -214,7 +215,7 @@ public final class System {
     private static synchronized
     void setSecurityManager0(final SecurityManager s) {
 	if (security != null) {
- 	    // ask the currently installed security manager if we 
+ 	    // ask the currently installed security manager if we
  	    // can replace it.
  	    security.checkPermission(new RuntimePermission
 				     ("setSecurityManager"));
@@ -232,7 +233,7 @@ public final class System {
 	    AccessController.doPrivileged(new PrivilegedAction() {
 		public Object run() {
 		    s.getClass().getProtectionDomain().implies
-			(new AllPermission());
+			(SecurityConstants.ALL_PERMISSION);
 		    return null;
 		}
 	    });
@@ -257,98 +258,98 @@ public final class System {
     /**
      * Returns the current time in milliseconds.  Note that
      * while the unit of time of the return value is a millisecond,
-     * the granularity of the value depends on the underlying 
-     * operating system and may be larger.  For example, many 
-     * operating systems measure time in units of tens of 
+     * the granularity of the value depends on the underlying
+     * operating system and may be larger.  For example, many
+     * operating systems measure time in units of tens of
      * milliseconds.
      *
-     * <p> See the description of the class <code>Date</code> for 
-     * a discussion of slight discrepancies that may arise between 
-     * "computer time" and coordinated universal time (UTC). 
+     * <p> See the description of the class <code>Date</code> for
+     * a discussion of slight discrepancies that may arise between
+     * "computer time" and coordinated universal time (UTC).
      *
-     * @return  the difference, measured in milliseconds, between 
+     * @return  the difference, measured in milliseconds, between
      *          the current time and midnight, January 1, 1970 UTC.
      * @see     java.util.Date
      */
     public static native long currentTimeMillis();
 
-    /** 
+    /**
      * Copies an array from the specified source array, beginning at the
      * specified position, to the specified position of the destination array.
-     * A subsequence of array components are copied from the source 
-     * array referenced by <code>src</code> to the destination array 
-     * referenced by <code>dest</code>. The number of components copied is 
-     * equal to the <code>length</code> argument. The components at 
-     * positions <code>srcPos</code> through 
-     * <code>srcPos+length-1</code> in the source array are copied into 
-     * positions <code>destPos</code> through 
-     * <code>destPos+length-1</code>, respectively, of the destination 
-     * array. 
+     * A subsequence of array components are copied from the source
+     * array referenced by <code>src</code> to the destination array
+     * referenced by <code>dest</code>. The number of components copied is
+     * equal to the <code>length</code> argument. The components at
+     * positions <code>srcPos</code> through
+     * <code>srcPos+length-1</code> in the source array are copied into
+     * positions <code>destPos</code> through
+     * <code>destPos+length-1</code>, respectively, of the destination
+     * array.
      * <p>
-     * If the <code>src</code> and <code>dest</code> arguments refer to the 
-     * same array object, then the copying is performed as if the 
-     * components at positions <code>srcPos</code> through 
-     * <code>srcPos+length-1</code> were first copied to a temporary 
-     * array with <code>length</code> components and then the contents of 
-     * the temporary array were copied into positions 
-     * <code>destPos</code> through <code>destPos+length-1</code> of the 
-     * destination array. 
+     * If the <code>src</code> and <code>dest</code> arguments refer to the
+     * same array object, then the copying is performed as if the
+     * components at positions <code>srcPos</code> through
+     * <code>srcPos+length-1</code> were first copied to a temporary
+     * array with <code>length</code> components and then the contents of
+     * the temporary array were copied into positions
+     * <code>destPos</code> through <code>destPos+length-1</code> of the
+     * destination array.
      * <p>
-     * If <code>dest</code> is <code>null</code>, then a 
+     * If <code>dest</code> is <code>null</code>, then a
      * <code>NullPointerException</code> is thrown.
      * <p>
-     * If <code>src</code> is <code>null</code>, then a 
+     * If <code>src</code> is <code>null</code>, then a
      * <code>NullPointerException</code> is thrown and the destination
      * array is not modified.
      * <p>
-     * Otherwise, if any of the following is true, an 
-     * <code>ArrayStoreException</code> is thrown and the destination is 
-     * not modified: 
+     * Otherwise, if any of the following is true, an
+     * <code>ArrayStoreException</code> is thrown and the destination is
+     * not modified:
      * <ul>
-     * <li>The <code>src</code> argument refers to an object that is not an 
-     *     array. 
-     * <li>The <code>dest</code> argument refers to an object that is not an 
-     *     array. 
+     * <li>The <code>src</code> argument refers to an object that is not an
+     *     array.
+     * <li>The <code>dest</code> argument refers to an object that is not an
+     *     array.
      * <li>The <code>src</code> argument and <code>dest</code> argument refer
      *     to arrays whose component types are different primitive types.
-     * <li>The <code>src</code> argument refers to an array with a primitive 
-     *    component type and the <code>dest</code> argument refers to an array 
-     *     with a reference component type. 
-     * <li>The <code>src</code> argument refers to an array with a reference 
-     *    component type and the <code>dest</code> argument refers to an array 
-     *     with a primitive component type. 
+     * <li>The <code>src</code> argument refers to an array with a primitive
+     *    component type and the <code>dest</code> argument refers to an array
+     *     with a reference component type.
+     * <li>The <code>src</code> argument refers to an array with a reference
+     *    component type and the <code>dest</code> argument refers to an array
+     *     with a primitive component type.
      * </ul>
      * <p>
-     * Otherwise, if any of the following is true, an 
-     * <code>IndexOutOfBoundsException</code> is 
-     * thrown and the destination is not modified: 
+     * Otherwise, if any of the following is true, an
+     * <code>IndexOutOfBoundsException</code> is
+     * thrown and the destination is not modified:
      * <ul>
-     * <li>The <code>srcPos</code> argument is negative. 
-     * <li>The <code>destPos</code> argument is negative. 
-     * <li>The <code>length</code> argument is negative. 
-     * <li><code>srcPos+length</code> is greater than 
-     *     <code>src.length</code>, the length of the source array. 
-     * <li><code>destPos+length</code> is greater than 
-     *     <code>dest.length</code>, the length of the destination array. 
+     * <li>The <code>srcPos</code> argument is negative.
+     * <li>The <code>destPos</code> argument is negative.
+     * <li>The <code>length</code> argument is negative.
+     * <li><code>srcPos+length</code> is greater than
+     *     <code>src.length</code>, the length of the source array.
+     * <li><code>destPos+length</code> is greater than
+     *     <code>dest.length</code>, the length of the destination array.
      * </ul>
      * <p>
-     * Otherwise, if any actual component of the source array from 
-     * position <code>srcPos</code> through 
-     * <code>srcPos+length-1</code> cannot be converted to the component 
-     * type of the destination array by assignment conversion, an 
-     * <code>ArrayStoreException</code> is thrown. In this case, let 
-     * <b><i>k</i></b> be the smallest nonnegative integer less than 
-     * length such that <code>src[srcPos+</code><i>k</i><code>]</code> 
-     * cannot be converted to the component type of the destination 
-     * array; when the exception is thrown, source array components from 
+     * Otherwise, if any actual component of the source array from
+     * position <code>srcPos</code> through
+     * <code>srcPos+length-1</code> cannot be converted to the component
+     * type of the destination array by assignment conversion, an
+     * <code>ArrayStoreException</code> is thrown. In this case, let
+     * <b><i>k</i></b> be the smallest nonnegative integer less than
+     * length such that <code>src[srcPos+</code><i>k</i><code>]</code>
+     * cannot be converted to the component type of the destination
+     * array; when the exception is thrown, source array components from
      * positions <code>srcPos</code> through
-     * <code>srcPos+</code><i>k</i><code>-1</code> 
-     * will already have been copied to destination array positions 
+     * <code>srcPos+</code><i>k</i><code>-1</code>
+     * will already have been copied to destination array positions
      * <code>destPos</code> through
-     * <code>destPos+</code><i>k</I><code>-1</code> and no other 
-     * positions of the destination array will have been modified. 
+     * <code>destPos+</code><i>k</I><code>-1</code> and no other
+     * positions of the destination array will have been modified.
      * (Because of the restrictions already itemized, this
-     * paragraph effectively applies only to the situation where both 
+     * paragraph effectively applies only to the situation where both
      * arrays have component types that are reference types.)
      *
      * @param      src      the source array.
@@ -361,7 +362,7 @@ public final class System {
      * @exception  ArrayStoreException  if an element in the <code>src</code>
      *               array could not be stored into the <code>dest</code> array
      *               because of a type mismatch.
-     * @exception  NullPointerException if either <code>src</code> or 
+     * @exception  NullPointerException if either <code>src</code> or
      *               <code>dest</code> is <code>null</code>.
      */
     public static native void arraycopy(Object src,  int  srcPos,
@@ -406,11 +407,11 @@ public final class System {
     private static native Properties initProperties(Properties props);
 
     /**
-     * Determines the current system properties. 
+     * Determines the current system properties.
      * <p>
-     * First, if there is a security manager, its 
-     * <code>checkPropertiesAccess</code> method is called with no 
-     * arguments. This may result in a security exception. 
+     * First, if there is a security manager, its
+     * <code>checkPropertiesAccess</code> method is called with no
+     * arguments. This may result in a security exception.
      * <p>
      * The current set of system properties for use by the 
      * {@link #getProperty(String)} method is returned as a 
@@ -418,7 +419,7 @@ public final class System {
      * system properties, a set of system properties is first created and 
      * initialized. This set of system properties always includes values 
      * for the following keys: 
-     * <table>
+     * <table summary="Shows property keys and associated values">
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>java.version</code></td>
@@ -482,13 +483,13 @@ public final class System {
      * Multiple paths in a system property value are separated by the path
      * separator character of the platform.
      * <p>
-     * Note that even if the security manager does not permit the 
-     * <code>getProperties</code> operation, it may choose to permit the 
+     * Note that even if the security manager does not permit the
+     * <code>getProperties</code> operation, it may choose to permit the
      * {@link #getProperty(String)} operation.
      *
      * @return     the system properties
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkPropertiesAccess</code> method doesn't allow access 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkPropertiesAccess</code> method doesn't allow access
      *              to the system properties.
      * @see        #setProperties
      * @see        java.lang.SecurityException
@@ -503,21 +504,21 @@ public final class System {
     }
 
     /**
-     * Sets the system properties to the <code>Properties</code> 
-     * argument. 
+     * Sets the system properties to the <code>Properties</code>
+     * argument.
      * <p>
-     * First, if there is a security manager, its 
-     * <code>checkPropertiesAccess</code> method is called with no 
-     * arguments. This may result in a security exception. 
+     * First, if there is a security manager, its
+     * <code>checkPropertiesAccess</code> method is called with no
+     * arguments. This may result in a security exception.
      * <p>
-     * The argument becomes the current set of system properties for use 
-     * by the {@link #getProperty(String)} method. If the argument is 
-     * <code>null</code>, then the current set of system properties is 
-     * forgotten. 
+     * The argument becomes the current set of system properties for use
+     * by the {@link #getProperty(String)} method. If the argument is
+     * <code>null</code>, then the current set of system properties is
+     * forgotten.
      *
      * @param      props   the new system properties.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkPropertiesAccess</code> method doesn't allow access 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkPropertiesAccess</code> method doesn't allow access
      *              to the system properties.
      * @see        #getProperties
      * @see        java.util.Properties
@@ -534,23 +535,23 @@ public final class System {
         }
 	System.props = props;
     }
-    
+
     /**
-     * Gets the system property indicated by the specified key. 
+     * Gets the system property indicated by the specified key.
      * <p>
-     * First, if there is a security manager, its 
-     * <code>checkPropertyAccess</code> method is called with the key as 
-     * its argument. This may result in a SecurityException. 
+     * First, if there is a security manager, its
+     * <code>checkPropertyAccess</code> method is called with the key as
+     * its argument. This may result in a SecurityException.
      * <p>
-     * If there is no current set of system properties, a set of system 
-     * properties is first created and initialized in the same manner as 
-     * for the <code>getProperties</code> method. 
+     * If there is no current set of system properties, a set of system
+     * properties is first created and initialized in the same manner as
+     * for the <code>getProperties</code> method.
      *
      * @param      key   the name of the system property.
      * @return     the string value of the system property,
      *             or <code>null</code> if there is no property with that key.
      *
-     * @exception  SecurityException  if a security manager exists and its  
+     * @exception  SecurityException  if a security manager exists and its
      *             <code>checkPropertyAccess</code> method doesn't allow
      *              access to the specified system property.
      * @exception  NullPointerException if <code>key</code> is
@@ -561,7 +562,7 @@ public final class System {
      * @see        java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
      * @see        java.lang.System#getProperties()
      */
-    public static String getProperty(String key) {       
+    public static String getProperty(String key) {
 	if (key == null) {
 	    throw new NullPointerException("key can't be null");
 	}
@@ -573,24 +574,24 @@ public final class System {
 	}
 	return props.getProperty(key);
     }
-    
+
     /**
-     * Gets the system property indicated by the specified key. 
+     * Gets the system property indicated by the specified key.
      * <p>
-     * First, if there is a security manager, its 
-     * <code>checkPropertyAccess</code> method is called with the 
-     * <code>key</code> as its argument. 
+     * First, if there is a security manager, its
+     * <code>checkPropertyAccess</code> method is called with the
+     * <code>key</code> as its argument.
      * <p>
-     * If there is no current set of system properties, a set of system 
-     * properties is first created and initialized in the same manner as 
-     * for the <code>getProperties</code> method. 
+     * If there is no current set of system properties, a set of system
+     * properties is first created and initialized in the same manner as
+     * for the <code>getProperties</code> method.
      *
      * @param      key   the name of the system property.
      * @param      def   a default value.
      * @return     the string value of the system property,
      *             or the default value if there is no property with that key.
      *
-     * @exception  SecurityException  if a security manager exists and its  
+     * @exception  SecurityException  if a security manager exists and its
      *             <code>checkPropertyAccess</code> method doesn't allow
      *             access to the specified system property.
      * @exception  NullPointerException if <code>key</code> is
@@ -608,15 +609,15 @@ public final class System {
 	    throw new IllegalArgumentException("key can't be empty");
 	}
 	if (security != null) {
-	    security.checkPropertyAccess(key); 
+	    security.checkPropertyAccess(key);
 	}
 	return props.getProperty(key, def);
     }
-    
+
     /**
-     * Sets the system property indicated by the specified key. 
+     * Sets the system property indicated by the specified key.
      * <p>
-     * First, if a security manager exists, its 
+     * First, if a security manager exists, its
      * <code>SecurityManager.checkPermission</code> method
      * is called with a <code>PropertyPermission(key, "write")</code>
      * permission. This may result in a SecurityException being thrown.
@@ -629,8 +630,8 @@ public final class System {
      * @return     the previous value of the system property,
      *             or <code>null</code> if it did not have one.
      *
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkPermission</code> method doesn't allow 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkPermission</code> method doesn't allow
      *             setting of the specified property.
      * @exception  NullPointerException if <code>key</code> is
      *             <code>null</code>.
@@ -650,10 +651,11 @@ public final class System {
 	    throw new IllegalArgumentException("key can't be empty");
 	}
 	if (security != null)
-	    security.checkPermission(new PropertyPermission(key, "write"));
+	    security.checkPermission(new PropertyPermission(key,
+		SecurityConstants.PROPERTY_WRITE_ACTION));
 	return (String) props.setProperty(key, value);
     }
-    
+
     /**
      * Gets an environment variable. An environment variable is a
      * system-dependent external variable that has a string value.
@@ -670,7 +672,7 @@ public final class System {
      *     if (Boolean.getBoolean("myapp.exper.mode"))
      *         enableExpertCommands();
      * </pre></blockquote>
-     * 
+     *
      * @param  name of the environment variable
      * @return the value of the variable, or <code>null</code> if the variable
      *           is not defined.
@@ -690,14 +692,14 @@ public final class System {
     }
 
     /**
-     * Terminates the currently running Java Virtual Machine. The 
-     * argument serves as a status code; by convention, a nonzero status 
-     * code indicates abnormal termination. 
+     * Terminates the currently running Java Virtual Machine. The
+     * argument serves as a status code; by convention, a nonzero status
+     * code indicates abnormal termination.
      * <p>
-     * This method calls the <code>exit</code> method in class 
-     * <code>Runtime</code>. This method never returns normally. 
+     * This method calls the <code>exit</code> method in class
+     * <code>Runtime</code>. This method never returns normally.
      * <p>
-     * The call <code>System.exit(n)</code> is effectively equivalent to 
+     * The call <code>System.exit(n)</code> is effectively equivalent to
      * the call:
      * <blockquote><pre>
      * Runtime.getRuntime().exit(n)
@@ -705,7 +707,7 @@ public final class System {
      *
      * @param      status   exit status.
      * @throws  SecurityException
-     *        if a security manager exists and its <code>checkExit</code> 
+     *        if a security manager exists and its <code>checkExit</code>
      *        method doesn't allow exit with the specified status.
      * @see        java.lang.Runtime#exit(int)
      */
@@ -716,14 +718,14 @@ public final class System {
     /**
      * Runs the garbage collector.
      * <p>
-     * Calling the <code>gc</code> method suggests that the Java Virtual 
-     * Machine expend effort toward recycling unused objects in order to 
-     * make the memory they currently occupy available for quick reuse. 
-     * When control returns from the method call, the Java Virtual 
-     * Machine has made a best effort to reclaim space from all discarded 
+     * Calling the <code>gc</code> method suggests that the Java Virtual
+     * Machine expend effort toward recycling unused objects in order to
+     * make the memory they currently occupy available for quick reuse.
+     * When control returns from the method call, the Java Virtual
+     * Machine has made a best effort to reclaim space from all discarded
      * objects.
      * <p>
-     * The call <code>System.gc()</code> is effectively equivalent to the 
+     * The call <code>System.gc()</code> is effectively equivalent to the
      * call:
      * <blockquote><pre>
      * Runtime.getRuntime().gc()
@@ -738,14 +740,14 @@ public final class System {
     /**
      * Runs the finalization methods of any objects pending finalization.
      * <p>
-     * Calling this method suggests that the Java Virtual Machine expend 
-     * effort toward running the <code>finalize</code> methods of objects 
-     * that have been found to be discarded but whose <code>finalize</code> 
-     * methods have not yet been run. When control returns from the 
-     * method call, the Java Virtual Machine has made a best effort to 
-     * complete all outstanding finalizations. 
+     * Calling this method suggests that the Java Virtual Machine expend
+     * effort toward running the <code>finalize</code> methods of objects
+     * that have been found to be discarded but whose <code>finalize</code>
+     * methods have not yet been run. When control returns from the
+     * method call, the Java Virtual Machine has made a best effort to
+     * complete all outstanding finalizations.
      * <p>
-     * The call <code>System.runFinalization()</code> is effectively 
+     * The call <code>System.runFinalization()</code> is effectively
      * equivalent to the call:
      * <blockquote><pre>
      * Runtime.getRuntime().runFinalization()
@@ -762,10 +764,10 @@ public final class System {
      * finalizers of all objects that have finalizers that have not yet been
      * automatically invoked are to be run before the Java runtime exits.
      * By default, finalization on exit is disabled.
-     * 
-     * <p>If there is a security manager, 
+     *
+     * <p>If there is a security manager,
      * its <code>checkExit</code> method is first called
-     * with 0 as its argument to ensure the exit is allowed. 
+     * with 0 as its argument to ensure the exit is allowed.
      * This could result in a SecurityException.
      *
      * @deprecated  This method is inherently unsafe.  It may result in
@@ -774,7 +776,7 @@ public final class System {
      *	    behavior or deadlock.
      * @param value indicating enabling or disabling of finalization
      * @throws  SecurityException
-     *        if a security manager exists and its <code>checkExit</code> 
+     *        if a security manager exists and its <code>checkExit</code>
      *        method doesn't allow the exit.
      *
      * @see     java.lang.Runtime#exit(int)
@@ -787,19 +789,19 @@ public final class System {
     }
 
     /**
-     * Loads a code file with the specified filename from the local file 
-     * system as a dynamic library. The filename 
-     * argument must be a complete path name. 
+     * Loads a code file with the specified filename from the local file
+     * system as a dynamic library. The filename
+     * argument must be a complete path name.
      * <p>
-     * The call <code>System.load(name)</code> is effectively equivalent 
+     * The call <code>System.load(name)</code> is effectively equivalent
      * to the call:
      * <blockquote><pre>
      * Runtime.getRuntime().load(name)
      * </pre></blockquote>
      *
      * @param      filename   the file to load.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkLink</code> method doesn't allow 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkLink</code> method doesn't allow
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the file does not exist.
      * @see        java.lang.Runtime#load(java.lang.String)
@@ -810,19 +812,19 @@ public final class System {
     }
 
     /**
-     * Loads the system library specified by the <code>libname</code> 
-     * argument. The manner in which a library name is mapped to the 
+     * Loads the system library specified by the <code>libname</code>
+     * argument. The manner in which a library name is mapped to the
      * actual system library is system dependent.
      * <p>
-     * The call <code>System.loadLibrary(name)</code> is effectively 
+     * The call <code>System.loadLibrary(name)</code> is effectively
      * equivalent to the call
      * <blockquote><pre>
      * Runtime.getRuntime().loadLibrary(name)
      * </pre></blockquote>
      *
      * @param      libname   the name of the library.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkLink</code> method doesn't allow 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkLink</code> method doesn't allow
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the library does not exist.
      * @see        java.lang.Runtime#loadLibrary(java.lang.String)
@@ -876,18 +878,22 @@ public final class System {
 	setOut0(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
 	setErr0(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
 
-	// Enough of the world is now in place that we can risk
-        // initializing the logging configuration.
-	try {
-	    java.util.logging.LogManager.getLogManager().readConfiguration();
-	} catch (Exception ex) {
-	    // System.err.println("Can't read logging configuration:");
-	    // ex.printStackTrace();
-	}
-
 	// Load the zip library now in order to keep java.util.zip.ZipFile
 	// from trying to use itself to load this library later.
 	loadLibrary("zip");
+
+        // Currently File.deleteOnExit is built on JVM_Exit, which is a
+        // separate mechanism from shutdown hooks. Unfortunately in order to
+        // work properly JVM_Exit implicitly requires that Java signal
+        // handlers be set up for HUP, TERM, and INT (where available). If
+        // File.deleteOnExit were implemented in terms of shutdown hooks this
+        // call to Terminator.setup() could be removed.
+        Terminator.setup();
+
+	// Set the maximum amount of direct memory.  This value is controlled
+	// by the vm option -XX:MaxDirectMemorySize=<size>.  This method acts
+	// as an initializer only if it is called before sun.misc.VM.booted().
+ 	sun.misc.VM.maxDirectMemory();
 
 	// Subsystems that are invoked during initialization can invoke
 	// sun.misc.VM.isBooted() in order to avoid doing things that should
@@ -895,7 +901,7 @@ public final class System {
 	sun.misc.VM.booted();
     }
 
-    /* returns the class of the caller. */ 
+    /* returns the class of the caller. */
     static Class getCallerClass() {
         // NOTE use of more generic Reflection.getCallerClass()
         return Reflection.getCallerClass(3);

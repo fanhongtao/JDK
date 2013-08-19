@@ -1,7 +1,7 @@
 /*
- * @(#)JCheckBox.java	1.69 02/03/12
+ * @(#)JCheckBox.java	1.70 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -45,7 +45,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: A component which can be selected or deselected.
  *
- * @version 1.69 03/12/02
+ * @version 1.70 01/23/03
  * @author Jeff Dinkins
  */
 public class JCheckBox extends JToggleButton implements Accessible {

@@ -1,17 +1,10 @@
 package org.apache.xpath.axes;
 
 import javax.xml.transform.TransformerException;
-
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.patterns.NodeTest;
-import org.apache.xpath.objects.XObject;
-
 import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMIterator;
 import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.Axis;
-import org.apache.xml.dtm.DTMAxisTraverser;
+import org.apache.xpath.Expression;
+import org.apache.xpath.compiler.Compiler;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -44,7 +37,7 @@ public class OneStepIteratorForward extends ChildTestIterator
     m_axis = WalkerFactory.getAxisFromStep(compiler, firstStepPos);
     
   }
-  
+    
   /**
    * Create a OneStepIterator object that will just traverse the self axes.
    * 
@@ -138,6 +131,20 @@ public class OneStepIteratorForward extends ChildTestIterator
   public int getAxis()
   {
     return m_axis;
+  }
+
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!super.deepEquals(expr))
+  		return false;
+  		
+  	if(m_axis != ((OneStepIteratorForward)expr).m_axis)
+  		return false;
+  		
+  	return true;
   }
 
   

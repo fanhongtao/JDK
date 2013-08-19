@@ -1,7 +1,7 @@
 /*
- * @(#)InvalidParameterException.java	1.17 01/12/03
+ * @(#)InvalidParameterException.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.security;
  * to a method.
  *
  * @author Benjamin Renaud
- * @version 1.17, 01/12/03
+ * @version 1.18, 03/01/23
  */
 
 public class InvalidParameterException extends IllegalArgumentException {

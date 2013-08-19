@@ -1,5 +1,5 @@
 /*
- * @(#)ServerSocket.java	1.75 03/04/25
+ * @(#)ServerSocket.java	1.75 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.security.PrivilegedExceptionAction;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.75, 04/25/03
+ * @version 1.75, 01/23/03
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -209,21 +209,21 @@ class ServerSocket {
     private void checkOldImpl() {
 	if (impl == null)
 	    return;
-        // SocketImpl.connect() is a protected method, therefore we need to use
-        // getDeclaredMethod, therefore we need permission to access the member
-        try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction() {
-                    public Object run() throws NoSuchMethodException {
-                        Class[] cl = new Class[2];
-                        cl[0] = SocketAddress.class;
-                        cl[1] = Integer.TYPE;
-                        impl.getClass().getDeclaredMethod("connect", cl);
-                        return null;
-                    }
-                });
-        } catch (java.security.PrivilegedActionException e) {
-            oldImpl = true;
-        }
+	// SocketImpl.connect() is a protected method, therefore we need to use
+	// getDeclaredMethod, therefore we need permission to access the member
+	try {
+	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws NoSuchMethodException {
+			Class[] cl = new Class[2];
+			cl[0] = SocketAddress.class;
+			cl[1] = Integer.TYPE;
+			impl.getClass().getDeclaredMethod("connect", cl);
+			return null;
+		    }
+		});
+	} catch (java.security.PrivilegedActionException e) {
+	    oldImpl = true;
+	}
     }
 
     private void setImpl() {

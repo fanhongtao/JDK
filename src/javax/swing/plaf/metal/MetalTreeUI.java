@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTreeUI.java	1.19 01/12/03
+ * @(#)MetalTreeUI.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,17 +25,26 @@ import javax.swing.plaf.basic.*;
  * <code>MetalTreeUI</code> allows for configuring how to
  * visually render the spacing and delineation between nodes. The following
  * hints are supported:
- * <table>
- *   <tr><td>Angled
- *       <td>A line is drawn connecting the child to the parent. For handling
- *           of the root node refer to
- *           {@link javax.swing.JTree#setRootVisible} and
- *           {@link javax.swing.JTree#setShowsRootHandles}.
- *   <tr><td>Horizontal
- *       <td>A horizontal line is drawn dividing the children of the root node.
- *   <tr><td>None
- *       <td>Do not draw any visual indication between nodes.
+ *
+ * <table summary="Descriptions of supported hints: Angled, Horizontal, and None">
+ *  <tr>
+ *    <th><p align="left">Angled</p></th>
+ *    <td>A line is drawn connecting the child to the parent. For handling
+ *          of the root node refer to
+ *          {@link javax.swing.JTree#setRootVisible} and
+ *          {@link javax.swing.JTree#setShowsRootHandles}.
+ *    </td>
+ *  </tr>
+ *  <tr>
+ *     <th><p align="left">Horizontal</p></th>
+ *     <td>A horizontal line is drawn dividing the children of the root node.</td>
+ *  </tr>
+ *  <tr>
+ *      <th><p align="left">None</p></th>
+ *      <td>Do not draw any visual indication between nodes.</td>
+ *  </tr>
  * </table>
+ *
  * <p>
  * As it is typically impratical to obtain the <code>TreeUI</code> from
  * the <code>JTree</code> and cast to an instance of <code>MetalTreeUI</code>
@@ -46,7 +55,7 @@ import javax.swing.plaf.basic.*;
  * <p>
  * The default is <code>Angled</code>.
  *
- * @version 1.19 12/03/01
+ * @version 1.22 01/23/03
  * @author Tom Santos
  * @author Steve Wilson (value add stuff)
  */

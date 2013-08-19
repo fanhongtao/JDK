@@ -1,7 +1,7 @@
 /*
- * @(#)Principal.java	1.20 01/12/03
+ * @(#)Principal.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.security;
  *
  * @see java.security.cert.X509Certificate
  *
- * @version 1.20, 01/12/03
+ * @version 1.21, 03/01/23
  * @author Li Gong
  */
 public interface Principal {

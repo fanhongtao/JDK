@@ -1,7 +1,7 @@
 /*
- * @(#)TextComponent.java	1.71 01/12/03
+ * @(#)TextComponent.java	1.74 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -34,7 +34,7 @@ import javax.accessibility.*;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.71, 12/03/01
+ * @version	1.74, 01/23/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -46,8 +46,8 @@ public class TextComponent extends Component implements Accessible {
      * A <code>null</code> value is the same as "".
      *
      * @serial
-     * @see setText()
-     * @see getText()
+     * @see #setText(String)
+     * @see #getText()
      */
     String text;
 
@@ -58,7 +58,7 @@ public class TextComponent extends Component implements Accessible {
      * is editable and <code>false</code> if not.
      *
      * @serial
-     * @see isEditable()
+     * @see #isEditable()
      */
     boolean editable = true;
 
@@ -68,8 +68,8 @@ public class TextComponent extends Component implements Accessible {
      * of the selected text.
      *
      * @serial
-     * @see getSelectionStart()
-     * @see setSelectionStart()
+     * @see #getSelectionStart()
+     * @see #setSelectionStart(int)
      */
     int selectionStart;
 
@@ -79,8 +79,8 @@ public class TextComponent extends Component implements Accessible {
      * is the end position of the selected text.
      *
      * @serial
-     * @see getSelectionEnd()
-     * @see setSelectionEnd()
+     * @see #getSelectionEnd()
+     * @see #setSelectionEnd(int)
      */
     int selectionEnd;
 
@@ -273,7 +273,7 @@ public class TextComponent extends Component implements Accessible {
      * @return This text component's background color.
      *         If this text component does not have a background color,
      *         the background color of its parent is returned.
-     * @see setBackground
+     * @see #setBackground(Color)
      * @since JDK1.0
      */
     public Color getBackground() {
@@ -290,7 +290,7 @@ public class TextComponent extends Component implements Accessible {
      * @param c The color to become this text component's color.
      *        If this parameter is null then this text component
      *        will inherit the background color of its parent.
-     * @see #getBackground
+     * @see #getBackground()
      * @since JDK1.0
      */
     public void setBackground(Color c) {
@@ -644,11 +644,12 @@ public class TextComponent extends Component implements Accessible {
      * @see Component#enableEvents
      */ 
     protected void processTextEvent(TextEvent e) {
-        if (textListener != null) {
+        TextListener listener = textListener;
+        if (listener != null) {
             int id = e.getID();
 	    switch (id) {
 	    case TextEvent.TEXT_VALUE_CHANGED:
-		textListener.textValueChanged(e);
+		listener.textValueChanged(e);
 		break;
 	    }
         }
@@ -710,8 +711,8 @@ public class TextComponent extends Component implements Accessible {
      *             is one of the following :
      *             textListenerK indicating and TextListener object.
      *
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.textListenerK
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component#textListenerK
      */
     private void writeObject(java.io.ObjectOutputStream s)
       throws IOException 
@@ -741,8 +742,8 @@ public class TextComponent extends Component implements Accessible {
      * @exception HeadlessException if
      * <code>GraphicsEnvironment.isHeadless()</code> returns
      * <code>true</code>
-     * @see removeTextListener()
-     * @see addTextListener()
+     * @see #removeTextListener()
+     * @see #addTextListener()
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     private void readObject(ObjectInputStream s)

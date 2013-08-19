@@ -49,14 +49,13 @@
  *
  * This software consists of voluntary contributions made by many
  * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, Lotus
- * Development Corporation., http://www.lotus.com.  For more
+ * originally based on software copyright (c) 2002, Sun Microsystems,
+ * Inc., http://www.sun.com.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  */
 package org.apache.xpath.res;
 
-import java.util.*;
 
 /**
  * <meta name="usage" content="advanced"/>

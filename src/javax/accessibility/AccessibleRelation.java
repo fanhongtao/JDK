@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRelation.java	1.8 01/12/03
+ * @(#)AccessibleRelation.java	1.10 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -129,10 +129,11 @@ public class AccessibleRelation extends AccessibleBundle {
 
     /**
      * Create a new AccessibleRelation using the given locale independent key.
-     * @param key the locale independent name of the relation.
-     * @note The String should be a locale independent key for the relation.
+     * The key String should be a locale independent key for the relation.
      * It is not intended to be used as the actual String to display 
      * to the user.  To get the localized string, use toDisplayString.
+     *
+     * @param key the locale independent name of the relation.
      * @see AccessibleBundle#toDisplayString
      */
     public AccessibleRelation(String key) {
@@ -142,10 +143,11 @@ public class AccessibleRelation extends AccessibleBundle {
 
     /**
      * Creates a new AccessibleRelation using the given locale independent key.
-     * @param key the locale independent name of the relation.
-     * @note The String should be a locale independent key for the relation.
+     * The key String should be a locale independent key for the relation.
      * It is not intended to be used as the actual String to display 
      * to the user.  To get the localized string, use toDisplayString.
+     *
+     * @param key the locale independent name of the relation.
      * @param target the target object for this relation
      * @see AccessibleBundle#toDisplayString
      */
@@ -157,10 +159,11 @@ public class AccessibleRelation extends AccessibleBundle {
 
     /**
      * Creates a new AccessibleRelation using the given locale independent key.
-     * @param key the locale independent name of the relation.
-     * @note The String should be a locale independent key for the relation.
+     * The key String should be a locale independent key for the relation.
      * It is not intended to be used as the actual String to display 
      * to the user.  To get the localized string, use toDisplayString.
+     *
+     * @param key the locale independent name of the relation.
      * @param target the target object(s) for this relation
      * @see AccessibleBundle#toDisplayString
      */

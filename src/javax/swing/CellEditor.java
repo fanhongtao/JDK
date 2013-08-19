@@ -1,7 +1,7 @@
 /*
- * @(#)CellEditor.java	1.22 01/12/03
+ * @(#)CellEditor.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import javax.swing.event.*;
  *
  * @see javax.swing.event.CellEditorListener
  *
- * @version 1.22 12/03/01
+ * @version 1.23 01/23/03
  * @author Alan Chung
  */
 public interface CellEditor {

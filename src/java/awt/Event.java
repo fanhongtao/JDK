@@ -1,7 +1,7 @@
 /*
- * @(#)Event.java	1.72 01/12/03
+ * @(#)Event.java	1.74 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -38,7 +38,7 @@ import java.io.*;
  * <code>Event</code> class (<code>PGUP</code>,
  * <code>PGDN</code>, <code>F1</code>, <code>F2</code>, etc).
  *
- * @version 1.72 12/03/01
+ * @version 1.74 01/23/03
  * @author     Sami Shaio
  * @since      JDK1.0
  */
@@ -567,7 +567,7 @@ public class Event implements java.io.Serializable {
      * false means it's sent to the peer, true means it's not.
      *
      * @serial
-     * @see isConsumed()
+     * @see #isConsumed()
      */
     private boolean consumed = false;
 
@@ -693,9 +693,9 @@ public class Event implements java.io.Serializable {
      * @param     dx     the distance to translate the <i>x</i> coordinate.
      * @param     dy     the distance to translate the <i>y</i> coordinate.
      */
-    public void translate(int x, int y) {
-	this.x += x;
-	this.y += y;
+    public void translate(int dx, int dy) {
+	this.x += dx;
+	this.y += dy;
     }
 
     /**

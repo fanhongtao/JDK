@@ -1,7 +1,7 @@
 /*
- * @(#)Pattern.java	1.87 02/07/10
+ * @(#)Pattern.java	1.95 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,251 +51,253 @@ import java.util.HashMap;
  * <a name="sum">
  * <h4> Summary of regular-expression constructs </h4>
  *
- * <table border="0" cellpadding="1" cellspacing="0">
+ * <table border="0" cellpadding="1" cellspacing="0" 
+ *  summary="Regular expression constructs, and what they match">
  *
  * <tr align="left">
- * <th bgcolor="#CCCCFF" align="left">Construct</th>
- * <th bgcolor="#CCCCFF" align="left">Matches</th>
+ * <th bgcolor="#CCCCFF" align="left" id="construct">Construct</th>
+ * <th bgcolor="#CCCCFF" align="left" id="matches">Matches</th>
  * </tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Characters</th></tr>
+ * <tr align="left"><th colspan="2" id="characters">Characters</th></tr>
  *
- * <tr><td valign="top"><i>x</i></td>
- *     <td>The character <i>x</i></td></tr>
- * <tr><td valign="top"><tt>\\</tt></td>
- *     <td>The backslash character</td></tr>
- * <tr><td valign="top"><tt>\0</tt><i>n</i></td>
- *     <td>The character with octal value <tt>0</tt><i>n</i>
+ * <tr><td valign="top" headers="construct characters"><i>x</i></td>
+ *     <td headers="matches">The character <i>x</i></td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\\</tt></td>
+ *     <td headers="matches">The backslash character</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\0</tt><i>n</i></td>
+ *     <td headers="matches">The character with octal value <tt>0</tt><i>n</i>
  *         (0&nbsp;<tt>&lt;=</tt>&nbsp;<i>n</i>&nbsp;<tt>&lt;=</tt>&nbsp;7)</td></tr>
- * <tr><td valign="top"><tt>\0</tt><i>nn</i></td>
- *     <td>The character with octal value <tt>0</tt><i>nn</i>
+ * <tr><td valign="top" headers="construct characters"><tt>\0</tt><i>nn</i></td>
+ *     <td headers="matches">The character with octal value <tt>0</tt><i>nn</i>
  *         (0&nbsp;<tt>&lt;=</tt>&nbsp;<i>n</i>&nbsp;<tt>&lt;=</tt>&nbsp;7)</td></tr>
- * <tr><td valign="top"><tt>\0</tt><i>mnn</i></td>
- *     <td>The character with octal value <tt>0</tt><i>mnn</i>
+ * <tr><td valign="top" headers="construct characters"><tt>\0</tt><i>mnn</i></td>
+ *     <td headers="matches">The character with octal value <tt>0</tt><i>mnn</i>
  *         (0&nbsp;<tt>&lt;=</tt>&nbsp;<i>m</i>&nbsp;<tt>&lt;=</tt>&nbsp;3,
  *         0&nbsp;<tt>&lt;=</tt>&nbsp;<i>n</i>&nbsp;<tt>&lt;=</tt>&nbsp;7)</td></tr>
- * <tr><td valign="top"><tt>\x</tt><i>hh</i></td>
- *     <td>The character with hexadecimal&nbsp;value&nbsp;<tt>0x</tt><i>hh</i></td></tr>
- * <tr><td valign="top"><tt>&#92;u</tt><i>hhhh</i></td>
- *     <td>The character with hexadecimal&nbsp;value&nbsp;<tt>0x</tt><i>hhhh</i></td></tr>
- * <tr><td valign="top"><tt>\t</tt></td>
- *     <td>The tab character (<tt>'&#92;u0009'</tt>)</td></tr>
- * <tr><td valign="top"><tt>\n</tt></td>
- *     <td>The newline (line feed) character (<tt>'&#92;u000A'</tt>)</td></tr>
- * <tr><td valign="top"><tt>\r</tt></td>
- *     <td>The carriage-return character (<tt>'&#92;u000D'</tt>)</td></tr>
- * <tr><td valign="top"><tt>\f</tt></td>
- *     <td>The form-feed character (<tt>'&#92;u000C'</tt>)</td></tr>
- * <tr><td valign="top"><tt>\a</tt></td>
- *     <td>The alert (bell) character (<tt>'&#92;u0007'</tt>)</td></tr>
- * <tr><td valign="top"><tt>\e</tt></td>
- *     <td>The escape character (<tt>'&#92;u001B'</tt>)</td></tr>
- * <tr><td valign="top"><tt>\c</tt><i>x</i></td>
- *     <td>The control character corresponding to <i>x</i></td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\x</tt><i>hh</i></td>
+ *     <td headers="matches">The character with hexadecimal&nbsp;value&nbsp;<tt>0x</tt><i>hh</i></td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>&#92;u</tt><i>hhhh</i></td>
+ *     <td headers="matches">The character with hexadecimal&nbsp;value&nbsp;<tt>0x</tt><i>hhhh</i></td></tr>
+ * <tr><td valign="top" headers="matches"><tt>\t</tt></td>
+ *     <td headers="matches">The tab character (<tt>'&#92;u0009'</tt>)</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\n</tt></td>
+ *     <td headers="matches">The newline (line feed) character (<tt>'&#92;u000A'</tt>)</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\r</tt></td>
+ *     <td headers="matches">The carriage-return character (<tt>'&#92;u000D'</tt>)</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\f</tt></td>
+ *     <td headers="matches">The form-feed character (<tt>'&#92;u000C'</tt>)</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\a</tt></td>
+ *     <td headers="matches">The alert (bell) character (<tt>'&#92;u0007'</tt>)</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\e</tt></td>
+ *     <td headers="matches">The escape character (<tt>'&#92;u001B'</tt>)</td></tr>
+ * <tr><td valign="top" headers="construct characters"><tt>\c</tt><i>x</i></td>
+ *     <td headers="matches">The control character corresponding to <i>x</i></td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Character classes</th></tr>
+ * <tr align="left"><th colspan="2" id="classes">Character classes</th></tr>
  *
- * <tr><td valign="top"><tt>[abc]</tt></td>
- *     <td><tt>a</tt>, <tt>b</tt>, or <tt>c</tt> (simple class)</td></tr>
- * <tr><td valign="top"><tt>[^abc]</tt></td>
- *     <td>Any character except <tt>a</tt>, <tt>b</tt>, or <tt>c</tt> (negation)</td></tr>
- * <tr><td valign="top"><tt>[a-zA-Z]</tt></td>
- *     <td><tt>a</tt> through <tt>z</tt>
+ * <tr><td valign="top" headers="construct classes"><tt>[abc]</tt></td>
+ *     <td headers="matches"><tt>a</tt>, <tt>b</tt>, or <tt>c</tt> (simple class)</td></tr>
+ * <tr><td valign="top" headers="construct classes"><tt>[^abc]</tt></td>
+ *     <td headers="matches">Any character except <tt>a</tt>, <tt>b</tt>, or <tt>c</tt> (negation)</td></tr>
+ * <tr><td valign="top" headers="construct classes"><tt>[a-zA-Z]</tt></td>
+ *     <td headers="matches"><tt>a</tt> through <tt>z</tt>
  *         or <tt>A</tt> through <tt>Z</tt>, inclusive (range)</td></tr>
- * <tr><td valign="top"><tt>[a-d[m-p]]</tt></td>
- *     <td><tt>a</tt> through <tt>d</tt>,
+ * <tr><td valign="top" headers="construct classes"><tt>[a-d[m-p]]</tt></td>
+ *     <td headers="matches"><tt>a</tt> through <tt>d</tt>,
  *      or <tt>m</tt> through <tt>p</tt>: <tt>[a-dm-p]</tt> (union)</td></tr>
- * <tr><td valign="top"><tt>[a-z&&[def]]</tt></td>
- *     <td><tt>d</tt>, <tt>e</tt>, or <tt>f</tt> (intersection)</tr>
- * <tr><td valign="top"><tt>[a-z&&[^bc]]</tt></td>
- *     <td><tt>a</tt> through <tt>z</tt>,
+ * <tr><td valign="top" headers="construct classes"><tt>[a-z&&[def]]</tt></td>
+ *     <td headers="matches"><tt>d</tt>, <tt>e</tt>, or <tt>f</tt> (intersection)</tr>
+ * <tr><td valign="top" headers="construct classes"><tt>[a-z&&[^bc]]</tt></td>
+ *     <td headers="matches"><tt>a</tt> through <tt>z</tt>,
  *         except for <tt>b</tt> and <tt>c</tt>: <tt>[ad-z]</tt> (subtraction)</td></tr>
- * <tr><td valign="top"><tt>[a-z&&[^m-p]]</tt></td>
- *     <td><tt>a</tt> through <tt>z</tt>,
+ * <tr><td valign="top" headers="construct classes"><tt>[a-z&&[^m-p]]</tt></td>
+ *     <td headers="matches"><tt>a</tt> through <tt>z</tt>,
  *          and not <tt>m</tt> through <tt>p</tt>: <tt>[a-lq-z]</tt>(subtraction)</td></tr>
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Predefined character classes</th></tr>
  *
- * <tr><td valign="top"><tt>.</tt></td>
- *     <td>Any character (may or may not match <a href="#lt">line terminators</a>)</td></tr>
- * <tr><td valign="top"><tt>\d</tt></td>
- *     <td>A digit: <tt>[0-9]</tt></td></tr>
- * <tr><td valign="top"><tt>\D</tt></td>
- *     <td>A non-digit: <tt>[^0-9]</tt></td></tr>
- * <tr><td valign="top"><tt>\s</tt></td>
- *     <td>A whitespace character: <tt>[ \t\n\x0B\f\r]</tt></td></tr>
- * <tr><td valign="top"><tt>\S</tt></td>
- *     <td>A non-whitespace character: <tt>[^\s]</tt></td></tr>
- * <tr><td valign="top"><tt>\w</tt></td>
- *     <td>A word character: <tt>[a-zA-Z_0-9]</tt></td></tr>
- * <tr><td valign="top"><tt>\W</tt></td>
- *     <td>A non-word character: <tt>[^\w]</tt></td></tr>
+ * <tr align="left"><th colspan="2" id="predef">Predefined character classes</th></tr>
+ *
+ * <tr><td valign="top" headers="construct predef"><tt>.</tt></td>
+ *     <td headers="matches">Any character (may or may not match <a href="#lt">line terminators</a>)</td></tr>
+ * <tr><td valign="top" headers="construct predef"><tt>\d</tt></td>
+ *     <td headers="matches">A digit: <tt>[0-9]</tt></td></tr>
+ * <tr><td valign="top" headers="construct predef"><tt>\D</tt></td>
+ *     <td headers="matches">A non-digit: <tt>[^0-9]</tt></td></tr>
+ * <tr><td valign="top" headers="construct predef"><tt>\s</tt></td>
+ *     <td headers="matches">A whitespace character: <tt>[ \t\n\x0B\f\r]</tt></td></tr>
+ * <tr><td valign="top" headers="construct predef"><tt>\S</tt></td>
+ *     <td headers="matches">A non-whitespace character: <tt>[^\s]</tt></td></tr>
+ * <tr><td valign="top" headers="construct predef"><tt>\w</tt></td>
+ *     <td headers="matches">A word character: <tt>[a-zA-Z_0-9]</tt></td></tr>
+ * <tr><td valign="top" headers="construct predef"><tt>\W</tt></td>
+ *     <td headers="matches">A non-word character: <tt>[^\w]</tt></td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">POSIX character classes</b> (US-ASCII only)<b></th></tr>
+ * <tr align="left"><th colspan="2" id="posix">POSIX character classes</b> (US-ASCII only)<b></th></tr>
  *
- * <tr><td valign="top"><tt>\p{Lower}</tt></td>
- *     <td>A lower-case alphabetic character: <tt>[a-z]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Upper}</tt></td>
- *     <td>An upper-case alphabetic character:<tt>[A-Z]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{ASCII}</tt></td>
- *     <td>All ASCII:<tt>[\x00-\x7F]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Alpha}</tt></td>
- *     <td>An alphabetic character:<tt>[\p{Lower}\p{Upper}]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Digit}</tt></td>
- *     <td>A decimal digit: <tt>[0-9]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Alnum}</tt></td>
- *     <td>An alphanumeric character:<tt>[\p{Alpha}\p{Digit}]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Punct}</tt></td>
- *     <td>Punctuation: One of <tt>!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Lower}</tt></td>
+ *     <td headers="matches">A lower-case alphabetic character: <tt>[a-z]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Upper}</tt></td>
+ *     <td headers="matches">An upper-case alphabetic character:<tt>[A-Z]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{ASCII}</tt></td>
+ *     <td headers="matches">All ASCII:<tt>[\x00-\x7F]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Alpha}</tt></td>
+ *     <td headers="matches">An alphabetic character:<tt>[\p{Lower}\p{Upper}]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Digit}</tt></td>
+ *     <td headers="matches">A decimal digit: <tt>[0-9]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Alnum}</tt></td>
+ *     <td headers="matches">An alphanumeric character:<tt>[\p{Alpha}\p{Digit}]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Punct}</tt></td>
+ *     <td headers="matches">Punctuation: One of <tt>!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~</tt></td></tr>
  *     <!-- <tt>[\!"#\$%&'\(\)\*\+,\-\./:;\<=\>\?@\[\\\]\^_`\{\|\}~]</tt>
  *          <tt>[\X21-\X2F\X31-\X40\X5B-\X60\X7B-\X7E]</tt> -->
- * <tr><td valign="top"><tt>\p{Graph}</tt></td>
- *     <td>A visible character: <tt>[\p{Alnum}\p{Punct}]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Print}</tt></td>
- *     <td>A printable character: <tt>[\p{Graph}]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Blank}</tt></td>
- *     <td>A space or a tab: <tt>[ \t]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Cntrl}</tt></td>
- *     <td>A control character: <tt>[\x00-\x1F\x7F]</td></tr>
- * <tr><td valign="top"><tt>\p{XDigit}</tt></td>
- *     <td>A hexadecimal digit: <tt>[0-9a-fA-F]</tt></td></tr>
- * <tr><td valign="top"><tt>\p{Space}</tt></td>
- *     <td>A whitespace character: <tt>[ \t\n\x0B\f\r]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Graph}</tt></td>
+ *     <td headers="matches">A visible character: <tt>[\p{Alnum}\p{Punct}]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Print}</tt></td>
+ *     <td headers="matches">A printable character: <tt>[\p{Graph}]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Blank}</tt></td>
+ *     <td headers="matches">A space or a tab: <tt>[ \t]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Cntrl}</tt></td>
+ *     <td headers="matches">A control character: <tt>[\x00-\x1F\x7F]</td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{XDigit}</tt></td>
+ *     <td headers="matches">A hexadecimal digit: <tt>[0-9a-fA-F]</tt></td></tr>
+ * <tr><td valign="top" headers="construct posix"><tt>\p{Space}</tt></td>
+ *     <td headers="matches">A whitespace character: <tt>[ \t\n\x0B\f\r]</tt></td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Classes for Unicode blocks and categories</th></tr>
+ * <tr align="left"><th colspan="2" id="unicode">Classes for Unicode blocks and categories</th></tr>
  *
- * <tr><td valign="top"><tt>\p{InGreek}</tt></td>
- *     <td>A character in the Greek&nbsp;block (simple <a href="#ubc">block</a>)</td></tr>
- * <tr><td valign="top"><tt>\p{Lu}</tt></td>
- *     <td>An uppercase letter (simple <a href="#ubc">category</a>)</td></tr>
- * <tr><td valign="top"><tt>\p{Sc}</tt></td>
- *     <td>A currency symbol</td></tr>
- * <tr><td valign="top"><tt>\P{InGreek}</tt></td>
- *     <td>Any character except one in the Greek block (negation)</td></tr>
- * <tr><td valign="top"><tt>[\p{L}&&[^\p{Lu}]]&nbsp;</tt></td>
- *     <td>Any letter except an uppercase letter (subtraction)</td></tr>
+ * <tr><td valign="top" headers="construct unicode"><tt>\p{InGreek}</tt></td>
+ *     <td headers="matches">A character in the Greek&nbsp;block (simple <a href="#ubc">block</a>)</td></tr>
+ * <tr><td valign="top" headers="construct unicode"><tt>\p{Lu}</tt></td>
+ *     <td headers="matches">An uppercase letter (simple <a href="#ubc">category</a>)</td></tr>
+ * <tr><td valign="top" headers="construct unicode"><tt>\p{Sc}</tt></td>
+ *     <td headers="matches">A currency symbol</td></tr>
+ * <tr><td valign="top" headers="construct unicode"><tt>\P{InGreek}</tt></td>
+ *     <td headers="matches">Any character except one in the Greek block (negation)</td></tr>
+ * <tr><td valign="top" headers="construct unicode"><tt>[\p{L}&&[^\p{Lu}]]&nbsp;</tt></td>
+ *     <td headers="matches">Any letter except an uppercase letter (subtraction)</td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Boundary matchers</th></tr>
+ * <tr align="left"><th colspan="2" id="bounds">Boundary matchers</th></tr>
  *
- * <tr><td valign="top"><tt>^</tt></td>
- *     <td>The beginning of a line</td></tr>
- * <tr><td valign="top"><tt>$</tt></td>
- *     <td>The end of a line</td></tr>
- * <tr><td valign="top"><tt>\b</tt></td>
- *     <td>A word boundary</td></tr>
- * <tr><td valign="top"><tt>\B</tt></td>
- *     <td>A non-word boundary</td></tr>
- * <tr><td valign="top"><tt>\A</tt></td>
- *     <td>The beginning of the input</td></tr>
- * <tr><td valign="top"><tt>\G</tt></td>
- *     <td>The end of the previous match</td></tr>
- * <tr><td valign="top"><tt>\Z</tt></td>
- *     <td>The end of the input but for the final
+ * <tr><td valign="top" headers="construct bounds"><tt>^</tt></td>
+ *     <td headers="matches">The beginning of a line</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>$</tt></td>
+ *     <td headers="matches">The end of a line</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>\b</tt></td>
+ *     <td headers="matches">A word boundary</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>\B</tt></td>
+ *     <td headers="matches">A non-word boundary</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>\A</tt></td>
+ *     <td headers="matches">The beginning of the input</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>\G</tt></td>
+ *     <td headers="matches">The end of the previous match</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>\Z</tt></td>
+ *     <td headers="matches">The end of the input but for the final
  *         <a href="#lt">terminator</a>, if&nbsp;any</td></tr>
- * <tr><td valign="top"><tt>\z</tt></td>
- *     <td>The end of the input</td></tr>
+ * <tr><td valign="top" headers="construct bounds"><tt>\z</tt></td>
+ *     <td headers="matches">The end of the input</td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Greedy quantifiers</th></tr>
+ * <tr align="left"><th colspan="2" id="greedy">Greedy quantifiers</th></tr>
  *
- * <tr><td valign="top"><i>X</i><tt>?</tt></td>
- *     <td><i>X</i>, once or not at all</td></tr>
- * <tr><td valign="top"><i>X</i><tt>*</tt></td>
- *     <td><i>X</i>, zero or more times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>+</tt></td>
- *     <td><i>X</i>, one or more times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>}</tt></td>
- *     <td><i>X</i>, exactly <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,}</tt></td>
- *     <td><i>X</i>, at least <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}</tt></td>
- *     <td><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
- *
- * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Reluctant quantifiers</th></tr>
- *
- * <tr><td valign="top"><i>X</i><tt>??</tt></td>
- *     <td><i>X</i>, once or not at all</td></tr>
- * <tr><td valign="top"><i>X</i><tt>*?</tt></td>
- *     <td><i>X</i>, zero or more times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>+?</tt></td>
- *     <td><i>X</i>, one or more times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>}?</tt></td>
- *     <td><i>X</i>, exactly <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,}?</tt></td>
- *     <td><i>X</i>, at least <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}?</tt></td>
- *     <td><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
+ * <tr><td valign="top" headers="construct greedy"><i>X</i><tt>?</tt></td>
+ *     <td headers="matches"><i>X</i>, once or not at all</td></tr>
+ * <tr><td valign="top" headers="construct greedy"><i>X</i><tt>*</tt></td>
+ *     <td headers="matches"><i>X</i>, zero or more times</td></tr>
+ * <tr><td valign="top" headers="construct greedy"><i>X</i><tt>+</tt></td>
+ *     <td headers="matches"><i>X</i>, one or more times</td></tr>
+ * <tr><td valign="top" headers="construct greedy"><i>X</i><tt>{</tt><i>n</i><tt>}</tt></td>
+ *     <td headers="matches"><i>X</i>, exactly <i>n</i> times</td></tr>
+ * <tr><td valign="top" headers="construct greedy"><i>X</i><tt>{</tt><i>n</i><tt>,}</tt></td>
+ *     <td headers="matches"><i>X</i>, at least <i>n</i> times</td></tr>
+ * <tr><td valign="top" headers="construct greedy"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}</tt></td>
+ *     <td headers="matches"><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Possessive quantifiers</th></tr>
+ * <tr align="left"><th colspan="2" id="reluc">Reluctant quantifiers</th></tr>
  *
- * <tr><td valign="top"><i>X</i><tt>?+</tt></td>
- *     <td><i>X</i>, once or not at all</td></tr>
- * <tr><td valign="top"><i>X</i><tt>*+</tt></td>
- *     <td><i>X</i>, zero or more times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>++</tt></td>
- *     <td><i>X</i>, one or more times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>}+</tt></td>
- *     <td><i>X</i>, exactly <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,}+</tt></td>
- *     <td><i>X</i>, at least <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}+</tt></td>
- *     <td><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
- *
- * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Logical operators</th></tr>
- *
- * <tr><td valign="top"><i>XY</i></td>
- *     <td><i>X</i> followed by <i>Y</i></td></tr>
- * <tr><td valign="top"><i>X</i><tt>|</tt><i>Y</i></td>
- *     <td>Either <i>X</i> or <i>Y</i></td></tr>
- * <tr><td valign="top"><tt>(</tt><i>X</i><tt>)</tt></td>
- *     <td>X, as a <a href="#cg">capturing group</a></td></tr>
+ * <tr><td valign="top" headers="construct reluc"><i>X</i><tt>??</tt></td>
+ *     <td headers="matches"><i>X</i>, once or not at all</td></tr>
+ * <tr><td valign="top" headers="construct reluc"><i>X</i><tt>*?</tt></td>
+ *     <td headers="matches"><i>X</i>, zero or more times</td></tr>
+ * <tr><td valign="top" headers="construct reluc"><i>X</i><tt>+?</tt></td>
+ *     <td headers="matches"><i>X</i>, one or more times</td></tr>
+ * <tr><td valign="top" headers="construct reluc"><i>X</i><tt>{</tt><i>n</i><tt>}?</tt></td>
+ *     <td headers="matches"><i>X</i>, exactly <i>n</i> times</td></tr>
+ * <tr><td valign="top" headers="construct reluc"><i>X</i><tt>{</tt><i>n</i><tt>,}?</tt></td>
+ *     <td headers="matches"><i>X</i>, at least <i>n</i> times</td></tr>
+ * <tr><td valign="top" headers="construct reluc"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}?</tt></td>
+ *     <td headers="matches"><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Back references</th></tr>
+ * <tr align="left"><th colspan="2" id="poss">Possessive quantifiers</th></tr>
  *
- * <tr><td valign="bottom"><tt>\</tt><i>n</i></td>
- *     <td valign="bottom">Whatever the <i>n</i><sup>th</sup>
+ * <tr><td valign="top" headers="construct poss"><i>X</i><tt>?+</tt></td>
+ *     <td headers="matches"><i>X</i>, once or not at all</td></tr>
+ * <tr><td valign="top" headers="construct poss"><i>X</i><tt>*+</tt></td>
+ *     <td headers="matches"><i>X</i>, zero or more times</td></tr>
+ * <tr><td valign="top" headers="construct poss"><i>X</i><tt>++</tt></td>
+ *     <td headers="matches"><i>X</i>, one or more times</td></tr>
+ * <tr><td valign="top" headers="construct poss"><i>X</i><tt>{</tt><i>n</i><tt>}+</tt></td>
+ *     <td headers="matches"><i>X</i>, exactly <i>n</i> times</td></tr>
+ * <tr><td valign="top" headers="construct poss"><i>X</i><tt>{</tt><i>n</i><tt>,}+</tt></td>
+ *     <td headers="matches"><i>X</i>, at least <i>n</i> times</td></tr>
+ * <tr><td valign="top" headers="construct poss"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}+</tt></td>
+ *     <td headers="matches"><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
+ *
+ * <tr><th>&nbsp;</th></tr>
+ * <tr align="left"><th colspan="2" id="logical">Logical operators</th></tr>
+ *
+ * <tr><td valign="top" headers="construct logical"><i>XY</i></td>
+ *     <td headers="matches"><i>X</i> followed by <i>Y</i></td></tr>
+ * <tr><td valign="top" headers="construct logical"><i>X</i><tt>|</tt><i>Y</i></td>
+ *     <td headers="matches">Either <i>X</i> or <i>Y</i></td></tr>
+ * <tr><td valign="top" headers="construct logical"><tt>(</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches">X, as a <a href="#cg">capturing group</a></td></tr>
+ *
+ * <tr><th>&nbsp;</th></tr>
+ * <tr align="left"><th colspan="2" id="backref">Back references</th></tr>
+ *
+ * <tr><td valign="bottom" headers="construct backref"><tt>\</tt><i>n</i></td>
+ *     <td valign="bottom" headers="matches">Whatever the <i>n</i><sup>th</sup>
  *     <a href="#cg">capturing group</a> matched</td></tr>
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Quotation</th></tr>
+ * <tr align="left"><th colspan="2" id="quot">Quotation</th></tr>
  *
- * <tr><td valign="top"><tt>\</tt></td>
- *     <td>Nothing, but quotes the following character</tt></td></tr>
- * <tr><td valign="top"><tt>\Q</tt></td>
- *     <td>Nothing, but quotes all characters until <tt>\E</tt></td></tr>
- * <tr><td valign="top"><tt>\E</tt></td>
- *     <td>Nothing, but ends quoting started by <tt>\Q</tt></td></tr>
+ * <tr><td valign="top" headers="construct quot"><tt>\</tt></td>
+ *     <td headers="matches">Nothing, but quotes the following character</tt></td></tr>
+ * <tr><td valign="top" headers="construct quot"><tt>\Q</tt></td>
+ *     <td headers="matches">Nothing, but quotes all characters until <tt>\E</tt></td></tr>
+ * <tr><td valign="top" headers="construct quot"><tt>\E</tt></td>
+ *     <td headers="matches">Nothing, but ends quoting started by <tt>\Q</tt></td></tr>
  *     <!-- Metachars: !$()*+.<>?[\]^{|} -->
  *
  * <tr><th>&nbsp;</th></tr>
- * <tr align="left"><th colspan="2">Special constructs (non-capturing)</th></tr>
+ * <tr align="left"><th colspan="2" id="special">Special constructs (non-capturing)</th></tr>
  *
- * <tr><td valign="top"><tt>(?:</tt><i>X</i><tt>)</tt></td>
- *     <td><i>X</i>, as a non-capturing group</td></tr>
- * <tr><td valign="top"><tt>(?idmsux-idmsux)&nbsp;</tt></td>
- *     <td>Nothing, but turns match flags on - off</td></tr>
- * <tr><td valign="top"><tt>(?idmsux-idmsux:</tt><i>X</i><tt>)</tt>&nbsp;&nbsp;</td>
- *     <td><i>X</i>, as a <a href="#cg">non-capturing group</a> with the
+ * <tr><td valign="top" headers="construct special"><tt>(?:</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches"><i>X</i>, as a non-capturing group</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?idmsux-idmsux)&nbsp;</tt></td>
+ *     <td headers="matches">Nothing, but turns match flags on - off</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?idmsux-idmsux:</tt><i>X</i><tt>)</tt>&nbsp;&nbsp;</td>
+ *     <td headers="matches"><i>X</i>, as a <a href="#cg">non-capturing group</a> with the
  *         given flags on - off</td></tr>
- * <tr><td valign="top"><tt>(?=</tt><i>X</i><tt>)</tt></td>
- *     <td><i>X</i>, via zero-width positive lookahead</td></tr>
- * <tr><td valign="top"><tt>(?!</tt><i>X</i><tt>)</tt></td>
- *     <td><i>X</i>, via zero-width negative lookahead</td></tr>
- * <tr><td valign="top"><tt>(?&lt;=</tt><i>X</i><tt>)</tt></td>
- *     <td><i>X</i>, via zero-width positive lookbehind</td></tr>
- * <tr><td valign="top"><tt>(?&lt;!</tt><i>X</i><tt>)</tt></td>
- *     <td><i>X</i>, via zero-width negative lookbehind</td></tr>
- * <tr><td valign="top"><tt>(?&gt;</tt><i>X</i><tt>)</tt></td>
- *     <td><i>X</i>, as an independent, non-capturing group</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?=</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches"><i>X</i>, via zero-width positive lookahead</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?!</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches"><i>X</i>, via zero-width negative lookahead</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?&lt;=</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches"><i>X</i>, via zero-width positive lookbehind</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?&lt;!</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches"><i>X</i>, via zero-width negative lookbehind</td></tr>
+ * <tr><td valign="top" headers="construct special"><tt>(?&gt;</tt><i>X</i><tt>)</tt></td>
+ *     <td headers="matches"><i>X</i>, as an independent, non-capturing group</td></tr>
  *
  * </table>
  *
@@ -348,20 +350,21 @@ import java.util.HashMap;
  *    <p> The precedence of character-class operators is as follows, from
  *    highest to lowest:
  *
- *    <blockquote><table border="0" cellpadding="1" cellspacing="0">
- *      <tr><td>1&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *    <blockquote><table border="0" cellpadding="1" cellspacing="0" 
+ *                 summary="Precedence of character class operators.">
+ *      <tr><th>1&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *	  <td>Literal escape&nbsp;&nbsp;&nbsp;&nbsp;</td>
  *	  <td><tt>\x</tt></td></tr>
- *     <tr><td>2</td>
+ *     <tr><th>2&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *	  <td>Grouping</td>
  *	  <td><tt>[...]</tt></td></tr>
- *     <tr><td>3</td>
+ *     <tr><th>3&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *	  <td>Range</td>
  *	  <td><tt>a-z</tt></td></tr>
- *      <tr><td>4</td>
+ *      <tr><th>4&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *	  <td>Union</td>
  *	  <td><tt>[a-e][i-u]<tt></td></tr>
- *      <tr><td>5</td>
+ *      <tr><th>5&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *	  <td>Intersection</td>
  *	  <td><tt>[a-z&&[aeiou]]</tt></td></tr>
  *    </table></blockquote>
@@ -404,10 +407,9 @@ import java.util.HashMap;
  * <p> By default, the regular expressions <tt>^</tt> and <tt>$</tt> ignore
  * line terminators and only match at the beginning and the end, respectively,
  * of the entire input sequence. If {@link #MULTILINE} mode is activated then
- * these expressions match just after or just before, respectively, a line
- * terminator or the end of the input sequence with the exception that
- * the expression <tt>^</tt> never matches at the end of input, even if the
- * last character is a newline.
+ * <tt>^</tt> matches at the beginning of input and after any line terminator
+ * except at the end of input. When in {@link #MULTILINE} mode <tt>$</tt>
+ * matches just before a line terminator or the end of the input sequence.
  *
  * <a name="cg">
  * <h4> Groups and capturing </h4>
@@ -416,14 +418,14 @@ import java.util.HashMap;
  * left to right.  In the expression <tt>((A)(B(C)))</tt>, for example, there
  * are four such groups: </p>
  *
- * <blockquote><table cellpadding=1 cellspacing=0>
- * <tr><td>1&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ * <blockquote><table cellpadding=1 cellspacing=0 summary="Capturing group numberings">
+ * <tr><th>1&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *     <td><tt>((A)(B(C)))</tt></td></tr>
- * <tr><td>2</td>
+ * <tr><th>2&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *     <td><tt>(A)</tt></td></tr>
- * <tr><td>3</td>
+ * <tr><th>3&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *     <td><tt>(B(C))</tt></td></tr>
- * <tr><td>4</td>
+ * <tr><th>4&nbsp;&nbsp;&nbsp;&nbsp;</th>
  *     <td><tt>(C)</tt></td></tr>
  * </table></blockquote>
  *
@@ -558,9 +560,9 @@ import java.util.HashMap;
  *
  *
  * <p> For a more precise description of the behavior of regular expression
- * constructs, please see <a href="http://www.oreilly.com/catalog/regex/">
- * <i>Mastering Regular Expressions</i>, Jeffrey E. F. Friedl, O'Reilly and
- * Associates, 1997.</a>
+ * constructs, please see <a href="http://www.oreilly.com/catalog/regex2/">
+ * <i>Mastering Regular Expressions, 2nd Edition</i>, Jeffrey E. F. Friedl,
+ * O'Reilly and Associates, 2002.</a>
  * </p>
  *
  * @see java.lang.String#split(String, int)
@@ -569,7 +571,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.87, 02/07/10
+ * @version 	1.95, 03/01/23
  * @since       1.4
  * @spec	JSR-51
  */
@@ -623,7 +625,7 @@ public final class Pattern
      * <p> In this mode, whitespace is ignored, and embedded comments starting
      * with <tt>#</tt> are ignored until the end of a line.
      *
-     * <p> Unix lines mode can also be enabled via the embedded flag
+     * <p> Comments mode can also be enabled via the embedded flag
      * expression&nbsp;<tt>(?x)</tt>.
      */
     public static final int COMMENTS = 0x04;
@@ -890,10 +892,11 @@ public final class Pattern
      * <p> The input <tt>"boo:and:foo"</tt>, for example, yields the following
      * results with these parameters:
      *
-     * <blockquote><table cellpadding=1 cellspacing=0>
-     * <tr><td><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
-     *     <td><i>Limit&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
-     *     <td><i>Result</i></td></tr>
+     * <blockquote><table cellpadding=1 cellspacing=0 
+     *              summary="Split examples showing regex, limit, and result">
+     * <tr><th><P align="left"><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></th>
+     *     <th><P align="left"><i>Limit&nbsp;&nbsp;&nbsp;&nbsp;</i></th>
+     *     <th><P align="left"><i>Result&nbsp;&nbsp;&nbsp;&nbsp;</i></th></tr>
      * <tr><td align=center>:</td>
      *     <td align=center>2</td>
      *     <td><tt>{ "boo", "and:foo" }</tt></td></tr>
@@ -972,9 +975,10 @@ public final class Pattern
      * <p> The input <tt>"boo:and:foo"</tt>, for example, yields the following
      * results with these expressions:
      *
-     * <blockquote><table cellpadding=1 cellspacing=0>
-     * <tr><td><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
-     *     <td><i>Result</i></td></tr>
+     * <blockquote><table cellpadding=1 cellspacing=0 
+     *              summary="Split examples showing regex and result">
+     * <tr><th><P align="left"><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></th>
+     *     <th><P align="left"><i>Result</i></th></tr>
      * <tr><td align=center>:</td>
      *     <td><tt>{ "boo", "and", "foo" }</tt></td></tr>
      * <tr><td align=center>o</td>
@@ -1002,14 +1006,15 @@ public final class Pattern
         // Read in all fields
 	s.defaultReadObject();
 
+        // Initialize counts
+        groupCount = 1;
+        localCount = 0;
+
         // Recompile object tree
-        if (pattern.length() > 0) {
+        if (pattern.length() > 0)
             compile();
-        } else {
+        else
             root = new Start(lastAccept);
-            groupCount = 1;
-            localCount = 0;
-        }
     }
 
     /**
@@ -1300,6 +1305,40 @@ loop:   for(int x=0; x<input.length(); x++) {
         buffer = null;
         groupNodes = null;
         patternLength = 0;
+    }
+
+    /**
+     * Used to print out a subtree of the Pattern to help with debugging.
+     */
+    private static void printObjectTree(Node node) {
+        while(node != null) {
+            if (node instanceof Prolog) {
+                System.out.println(node);
+                printObjectTree(((Prolog)node).loop);
+                System.out.println("**** end contents prolog loop");
+            } else if (node instanceof Loop) {
+                System.out.println(node);
+                printObjectTree(((Loop)node).body);
+                System.out.println("**** end contents Loop body");
+            } else if (node instanceof Curly) {
+                System.out.println(node);
+                printObjectTree(((Curly)node).atom);
+                System.out.println("**** end contents Curly body");
+            } else if (node instanceof GroupTail) {
+                System.out.println(node);
+                System.out.println("Tail next is "+node.next);
+                return;
+            } else {
+                System.out.println(node);
+            }      
+            node = node.next;
+            if (node != null)
+                System.out.println("->next:");
+            if (node == Pattern.accept) {
+                System.out.println("Accept Node");
+                node = null;
+            }
+       }
     }
 
     /**
@@ -1936,6 +1975,7 @@ loop:   for(int x=0; x<input.length(); x++) {
     private Node clazz(boolean consume) {
         Node prev = null;
         Node node = null;
+        BitClass bits = new BitClass(false);
         boolean include = true;
         boolean firstInClass = true;
         int ch = next();
@@ -2013,17 +2053,21 @@ loop:   for(int x=0; x<input.length(); x++) {
                     firstInClass = false;
                     break;
             }
-            node = range();
+            node = range(bits);
             if (include) {
-                if (prev == null)
+                if (prev == null) {
                     prev = node;
-                else
-                    prev = new Add(prev, node);
+                } else {
+                    if (prev != node)
+                        prev = new Add(prev, node);
+                }
             } else {
-                if (prev == null)
+                if (prev == null) {
                     prev = node.dup(true);  // Complement
-                else
-                    prev = new Sub(prev, node);
+                } else {
+                    if (prev != node)
+                        prev = new Sub(prev, node);
+                }
             }
             ch = peek();
         }
@@ -2033,7 +2077,7 @@ loop:   for(int x=0; x<input.length(); x++) {
      * Parse a single character or a character range in a character class
      * and return its representative node.
      */
-    private Node range() {
+    private Node range(BitClass bits) {
         int ch = peek();
         if (ch == '\\') {
             ch = nextEscaped();
@@ -2059,8 +2103,11 @@ loop:   for(int x=0; x<input.length(); x++) {
         if (ch >= 0) {
             if (peek() == '-') {
                 char endRange = temp[cursor+1];
-                if (endRange == '[')
+                if (endRange == '[') {
+                    if (ch < 256)
+                        return bits.add(ch, flags());
                     return newSingle(ch);
+                }
                 if (endRange != ']') {
                     next();
                     int m = single();
@@ -2072,6 +2119,8 @@ loop:   for(int x=0; x<input.length(); x++) {
                         return new Range((ch<<16)+m);
                 }
             }
+            if (ch < 256)
+                return bits.add(ch, flags());
             return newSingle(ch);
         }
         return error("Unexpected character '"+((char)ch)+"'");
@@ -2565,6 +2614,64 @@ loop:   for(int x=0; x<input.length(); x++) {
     }
 
     /**
+     *  Creates a bit vector for matching ASCII values.
+     */
+    static final class BitClass extends Node {
+        boolean[] bits = new boolean[256];
+        boolean complementMe = false;
+        BitClass(boolean not) {
+            complementMe = not;
+        }
+        BitClass(boolean[] newBits, boolean not) {
+            complementMe = not;
+            bits = newBits;
+        }
+        Node add(int c, int f) {
+            if ((f & CASE_INSENSITIVE) == 0) {
+                bits[c] = true;
+                return this;
+            }
+            if (c < 128) {
+                bits[c] = true;
+                if (ASCII.isUpper(c)) {
+                    c += 0x20;
+                    bits[c] = true;
+                } else if (ASCII.isLower(c)) {
+                    c -= 0x20;
+                    bits[c] = true;
+                }
+                return this;
+            }
+            c = Character.toLowerCase((char)c);
+            bits[c] = true;
+            c = Character.toUpperCase((char)c);
+            bits[c] = true;
+            return this;
+        }
+        Node dup(boolean not) {
+            return new BitClass(bits, not);
+        }
+        boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (i < matcher.to) {
+                int c = seq.charAt(i);
+                if (c > 255)
+                    return false;
+                if (complementMe)
+                    return ((!bits[c]) &&
+                            next.match(matcher, i+1, seq));
+                if (bits[c])
+                    return next.match(matcher, i+1, seq);
+            }
+            return false;
+        }
+        boolean study(TreeInfo info) {
+            info.minLength++;
+            info.maxLength++;
+            return next.study(info);
+        }
+    }
+
+    /**
      *  Utility method for creating a single character matcher.
      */
     private Node newSingle(int ch) {
@@ -2734,8 +2841,7 @@ loop:   for(int x=0; x<input.length(); x++) {
 
     /**
      * Node to anchor at the end of input. This is the absolute end, so this
-     * should not match at the last newline before the end as $ will when
-     * not in multiline mode.
+     * should not match at the last newline before the end as $ will.
      */
     static final class End extends Node {
         boolean match(Matcher matcher, int i, CharSequence seq) {
@@ -2756,6 +2862,9 @@ loop:   for(int x=0; x<input.length(); x++) {
                     && ch != '\u0085' ) {
                     return false;
                 }
+                // Should treat /r/n as one newline
+                if (ch == '\r' && seq.charAt(i) == '\n')
+                    return false;
             }
             // Perl does not match ^ at end of input even after newline
             if (i == matcher.to)
@@ -2813,65 +2922,37 @@ loop:   for(int x=0; x<input.length(); x++) {
             multiline = mul;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (multiline) {
-                // Matches before any line terminator; also matches at the
-                // end of input unless preceded by a line terminator
-                if (i < matcher.to - 2) {
-                    char ch = seq.charAt(i);
-                    if (ch == '\n' || ch == '\u0085' || (ch|1) == '\u2029' ||
-                    ch == '\r') {
-                        // No match between \r\n
-                        if (i > 0 && ch == '\n' && seq.charAt(i-1) == '\r')
-                            return false;
-                    } else { // No line terminator, no match
-                        return false;
-                    }
-                } else {
-                    return endMatch(matcher, i, seq);
-                }
-            } else {
-                // Matches at end only unless there's a line terminator
-                // there in which case it matches right before the terminator
+            if (!multiline) {
                 if (i < matcher.to - 2)
                     return false;
-                return endMatch(matcher, i, seq);
-            }
-           return next.match(matcher, i, seq);
-        }
-        // Matches at end unless there's a line terminator there in which
-        // case it matches right before the terminator
-        boolean endMatch(Matcher matcher, int i, CharSequence seq) {
-            if (i == matcher.to && i > 0) {
-                char ch = seq.charAt(i-1);
-                if (ch == '\n' || ch == '\u0085' || (ch|1) == '\u2029' ||
-                    ch == '\r') {
-                    return false;
-                }
-            }
-            if (i == matcher.to - 1) {
-                char ch = seq.charAt(i);
-                if ((ch != '\n') && (ch != '\u0085') &&
-                    ((ch|1) != '\u2029') && (ch != '\r'))
-                    return false;
-                if (i > 0) {
-                    ch = seq.charAt(i - 1);
-                    if (ch == '\r')
+                if (i == matcher.to - 2) {
+                    char ch = seq.charAt(i);
+                    if (ch != '\r')
+                        return false;
+                    ch = seq.charAt(i + 1);
+                    if (ch != '\n')
                         return false;
                 }
             }
-            if (i == matcher.to - 2) {
+            // Matches before any line terminator; also matches at the
+            // end of input
+            if (i < matcher.to) {
                 char ch = seq.charAt(i);
-                if (ch != '\r')
-                    return false;
-                ch = seq.charAt(i + 1);
-                if (ch != '\n')
-                    return false;
+                 if (ch == '\n') {
+                     // No match between \r\n
+                     if (i > 0 && seq.charAt(i-1) == '\r')
+                         return false;
+                 } else if (ch == '\r' || ch == '\u0085' ||
+                            (ch|1) == '\u2029') {
+                     // line terminator; match
+                 } else { // No line terminator, no match
+                     return false;
+                 }
             }
-          return next.match(matcher, i, seq);
+            return next.match(matcher, i, seq);
         }
         boolean study(TreeInfo info) {
             next.study(info);
-            info.maxLength += 2;
             return info.deterministic;
         }
     }
@@ -2897,17 +2978,10 @@ loop:   for(int x=0; x<input.length(); x++) {
                     return false;
                 }
             }
-            // Matches at end UNLESS preceded by line terminator
-            if (i == matcher.to && i > 0) {
-                char ch = seq.charAt(i-1);
-                if (ch == '\n')
-                    return false;
-            }
             return next.match(matcher, i, seq);
         }
         boolean study(TreeInfo info) {
             next.study(info);
-            info.maxLength += 1;
             return info.deterministic;
         }
     }
@@ -3580,13 +3654,11 @@ loop:   for(int x=0; x<input.length(); x++) {
                 j++;
                 // We are greedy so match as many as we can
                 while (j < cmax) {
-                    if (!atom.match(matcher, i, seq)) {
+                    if (!atom.match(matcher, i, seq))
                         break;
-                    }
                     if (i + k != matcher.last) {
-                        if (match0(matcher, matcher.last, j+1, seq)) {
+                        if (match0(matcher, matcher.last, j+1, seq))
                             return true;
-                        }
                         break;
                     }
                     i += k;
@@ -3603,32 +3675,34 @@ loop:   for(int x=0; x<input.length(); x++) {
             }
             return next.match(matcher, i, seq);
         }
+        // Reluctant match. At this point, the minimum has been satisfied.
+        // i is the index to start matching at
+        // j is the number of atoms that have matched
         boolean match1(Matcher matcher, int i, int j, CharSequence seq) {
             for (;;) {
-                if (next.match(matcher, i, seq)) {
+                // Try finishing match without consuming any more
+                if (next.match(matcher, i, seq))
                     return true;
-                }
-                if (j >= cmax) {
+                // At the maximum, no match found
+                if (j >= cmax)
                     return false;
-                }
-                if (!atom.match(matcher, i, seq)) {
+                // Okay, must try one more atom
+                if (!atom.match(matcher, i, seq))
                     return false;
-                }
-                if (i == matcher.last) {
+                // If we haven't moved forward then must break out
+                if (i == matcher.last)
                     return false;
-                }
+                // Move up index and number matched
                 i = matcher.last;
                 j++;
             }
         }
         boolean match2(Matcher matcher, int i, int j, CharSequence seq) {
             for (; j < cmax; j++) {
-                if (!atom.match(matcher, i, seq)) {
+                if (!atom.match(matcher, i, seq))
                     break;
-                }
-                if (i == matcher.last) {
+                if (i == matcher.last)
                     break;
-                }
                 i = matcher.last;
             }
             return next.match(matcher, i, seq);
@@ -3659,11 +3733,10 @@ loop:   for(int x=0; x<input.length(); x++) {
                 info.maxValid = false;
             }
 
-            if (info.deterministic && cmin == cmax) {
+            if (info.deterministic && cmin == cmax)
                 info.deterministic = detm;
-            } else {
+            else
                 info.deterministic = false;
-            }
 
             return next.study(info);
         }
@@ -3959,7 +4032,6 @@ loop:   for(int x=0; x<input.length(); x++) {
                 if (next.match(matcher, i, seq)) {
                     return true;
                 }
-
                 matcher.groups[groupIndex] = groupStart;
                 matcher.groups[groupIndex+1] = groupEnd;
                 return false;
@@ -4067,8 +4139,8 @@ loop:   for(int x=0; x<input.length(); x++) {
      * normal match but is skipped in the matchInit.
      */
     static final class LazyLoop extends Loop {
-        LazyLoop(int count, int group) {
-            super(count, group);
+        LazyLoop(int countIndex, int beginIndex) {
+            super(countIndex, beginIndex);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
             // Check for zero length group
@@ -4076,14 +4148,23 @@ loop:   for(int x=0; x<input.length(); x++) {
                 int count = matcher.locals[countIndex];
                 if (count < cmin) {
                     matcher.locals[countIndex] = count + 1;
-                    return body.match(matcher, i, seq);
+                    boolean result = body.match(matcher, i, seq);
+                    // If match failed we must backtrack, so
+                    // the loop count should NOT be incremented
+                    if (!result)
+                        matcher.locals[countIndex] = count;
+                    return result;
                 }
-                if (next.match(matcher, i, seq)) {
+                if (next.match(matcher, i, seq))
                     return true;
-                }
                 if (count < cmax) {
                     matcher.locals[countIndex] = count + 1;
-                    return body.match(matcher, i, seq);
+                    boolean result = body.match(matcher, i, seq);
+                    // If match failed we must backtrack, so
+                    // the loop count should NOT be incremented
+                    if (!result)
+                        matcher.locals[countIndex] = count;
+                    return result;
                 }
                 return false;
             }

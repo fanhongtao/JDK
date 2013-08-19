@@ -1,11 +1,14 @@
 /*
- * @(#)InetSocketAddress.java	1.13 02/02/22
+ * @(#)InetSocketAddress.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
 
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import java.io.InvalidObjectException;
 
 /**
  *
@@ -39,6 +42,8 @@ public class InetSocketAddress extends SocketAddress {
      */   
     private int port;
 
+    private static final long serialVersionUID = 5076001401234631237L;
+    
     /**
      * Creates a socket address where the IP address is the wildcard address
      * and the port number a specified value.
@@ -112,6 +117,21 @@ public class InetSocketAddress extends SocketAddress {
 	    addr = null;
 	}
 	this.port = port;
+    }
+
+    private void readObject(ObjectInputStream s) 
+ 	throws IOException, ClassNotFoundException {
+ 	s.defaultReadObject();
+	
+ 	// Check that our invariants are satisfied
+ 	if (port < 0 || port > 0xFFFF) {
+ 	    throw new InvalidObjectException("port out of range:" + port);
+ 	}
+ 	
+ 	if (hostname == null && addr == null) {
+ 	    throw new InvalidObjectException("hostname and addr " + 
+ 					     "can't both be null");
+ 	}
     }
 
     /**

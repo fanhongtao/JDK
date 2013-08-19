@@ -76,6 +76,8 @@ import org.apache.xalan.res.XSLTErrorResources;
  * special treatement, such as entity reference substitution or normalization
  * of a newline character.  It also provides character to entity reference
  * lookup.
+ *
+ * DEVELOPERS: See Known Issue in the constructor.
  */
 public class CharInfo
 {
@@ -115,6 +117,15 @@ public class CharInfo
    * Constructor that reads in a resource file that describes the mapping of
    * characters to entity references.
    *
+   * Resource files must be encoded in UTF-8 and have a format like:
+   * <pre>
+   * # First char # is a comment
+   * Entity numericValue
+   * quot 34
+   * amp 38
+   * </pre>
+   * (Note: Why don't we just switch to .properties files? Oct-01 -sc)
+   *
    * @param entitiesResource Name of entities resource file that should
    * be loaded, which describes that mapping of characters to entity references.
    */
@@ -131,12 +142,17 @@ public class CharInfo
 
     try
     {
+      try
+      {
+        // Maintenance note: we should evaluate replacing getting the 
+        //  ClassLoader with javax.xml.transform.FactoryFinder.findClassLoader()
+        //  or similar code
+        ClassLoader cl = CharInfo.class.getClassLoader();
 
-      try {
-        java.lang.reflect.Method getCCL = Thread.class.getMethod("getContextClassLoader", NO_CLASSES);
-        if (getCCL != null) {
-          ClassLoader contextClassLoader = (ClassLoader) getCCL.invoke(Thread.currentThread(), NO_OBJS);
-          is = contextClassLoader.getResourceAsStream("org/apache/xalan/serialize/" + entitiesResource);
+        if (cl == null) {
+          is = ClassLoader.getSystemResourceAsStream(entitiesResource);
+        } else {
+          is = cl.getResourceAsStream(entitiesResource);
         }
       }
       catch (Exception e) {}
@@ -152,11 +168,34 @@ public class CharInfo
       }
 
       if (is == null)
-        throw new RuntimeException(XSLMessages.createMessage(XSLTErrorResources.ER_RESOURCE_COULD_NOT_FIND, new Object[]{entitiesResource, entitiesResource })); //"The resource [" + entitiesResource
-                                  // + "] could not be found.\n"
-                                  // + entitiesResource);
+        throw new RuntimeException(XSLMessages.createMessage(XSLTErrorResources.ER_RESOURCE_COULD_NOT_FIND, new Object[]{entitiesResource, entitiesResource }));
 
-      reader = new BufferedReader(new InputStreamReader(is));
+      // Fix Bugzilla#4000: force reading in UTF-8
+      //  This creates the de facto standard that Xalan's resource 
+      //  files must be encoded in UTF-8. This should work in all JVMs.
+      //
+      // %REVIEW% KNOWN ISSUE: IT FAILS IN MICROSOFT VJ++, which
+      // didn't implement the UTF-8 encoding. Theoretically, we should
+      // simply let it fail in that case, since the JVM is obviously
+      // broken if it doesn't support such a basic standard.  But
+      // since there are still some users attempting to use VJ++ for
+      // development, we have dropped in a fallback which makes a
+      // second attempt using the platform's default encoding. In VJ++
+      // this is apparently ASCII, which is subset of UTF-8... and
+      // since the strings we'll be reading here are also primarily
+      // limited to the 7-bit ASCII range (at least, in English
+      // versions of Xalan), this should work well enough to keep us
+      // on the air until we're ready to officially decommit from
+      // VJ++.
+      try
+      {
+	reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+      }
+      catch(java.io.UnsupportedEncodingException e)
+      {
+	reader = new BufferedReader(new InputStreamReader(is));
+      }
+
       line = reader.readLine();
 
       while (line != null)
@@ -199,10 +238,7 @@ public class CharInfo
     }
     catch (Exception except)
     {
-      throw new RuntimeException(XSLMessages.createMessage(XSLTErrorResources.ER_RESOURCE_COULD_NOT_LOAD, new Object[]{entitiesResource,  except.toString(), entitiesResource, except.toString() })); //"The resource [" + entitiesResource
-                                 //+ "] could not load: " + except.toString()
-                                 //+ "\n" + entitiesResource + "\t"
-                                 //+ except.toString());
+      throw new RuntimeException(XSLMessages.createMessage(XSLTErrorResources.ER_RESOURCE_COULD_NOT_LOAD, new Object[]{entitiesResource,  except.toString(), entitiesResource, except.toString() }));
     }
     finally
     {
@@ -230,7 +266,6 @@ public class CharInfo
    */
   protected void defineEntity(String name, char value)
   {
-
     CharKey character = new CharKey(value);
 
     m_charToEntityRef.put(character, name);
@@ -242,12 +277,22 @@ public class CharInfo
   /**
    * Resolve a character to an entity reference name.
    *
+   * This is reusing a stored key object, in an effort to avoid
+   * heap activity. Unfortunately, that introduces a threading risk.
+   * Simplest fix for now is to make it a synchronized method, or to give
+   * up the reuse; I see very little performance difference between them.
+   * Long-term solution would be to replace the hashtable with a sparse array
+   * keyed directly from the character's integer value; see DTM's
+   * string pool for a related solution.
+   *
    * @param value character value that should be resolved to a name.
    *
    * @return name of character entity, or null if not found.
    */
+  synchronized 
   public String getEntityNameForChar(char value)
   {
+    // CharKey m_charKey = new CharKey(); //Alternative to synchronized
     m_charKey.setChar(value);
     return (String) m_charToEntityRef.get(m_charKey);
   }

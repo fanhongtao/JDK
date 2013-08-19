@@ -1,17 +1,13 @@
 package org.apache.xpath.axes;
 
 import javax.xml.transform.TransformerException;
-
+import org.apache.xml.dtm.DTM;
+import org.apache.xml.dtm.DTMAxisIterator;
+import org.apache.xml.dtm.DTMFilter;
+import org.apache.xml.dtm.DTMIterator;
+import org.apache.xpath.Expression;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.patterns.NodeTest;
-import org.apache.xpath.objects.XObject;
-
-import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.Axis;
-import org.apache.xml.dtm.DTMAxisIterator;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -45,6 +41,7 @@ public class OneStepIterator extends ChildTestIterator
     m_axis = WalkerFactory.getAxisFromStep(compiler, firstStepPos);
     
   }
+  
   
   /**
    * Create a OneStepIterator object.
@@ -107,6 +104,24 @@ public class OneStepIterator extends ChildTestIterator
     }
     return clone;
   }
+  
+  /**
+   *  Get a cloned Iterator that is reset to the beginning
+   *  of the query.
+   * 
+   *  @return A cloned NodeIterator set of the start of the query.
+   * 
+   *  @throws CloneNotSupportedException
+   */
+  public DTMIterator cloneWithReset() throws CloneNotSupportedException
+  {
+
+    OneStepIterator clone = (OneStepIterator) super.cloneWithReset();
+    clone.m_iterator = m_iterator;
+
+    return clone;
+  }
+
 
 
   /**
@@ -152,7 +167,8 @@ public class OneStepIterator extends ChildTestIterator
         xctxt.pushCurrentNode(root);
         clone.setRoot(root, xctxt);
 
-        clone.setPredicateCount(predicateIndex);
+        // clone.setPredicateCount(predicateIndex);
+        clone.m_predCount = predicateIndex;
 
         // Count 'em all
         int count = 1;
@@ -191,56 +207,6 @@ public class OneStepIterator extends ChildTestIterator
     else if (i < m_proximityPositions.length)
       m_proximityPositions[i]--;
   }
-
-  /**
-   * Get the number of nodes in this node list.  The function is probably ill
-   * named?
-   *
-   *
-   * @param xctxt The XPath runtime context.
-   *
-   * @return the number of nodes in this node list.
-   */
-  public int getLastPos(XPathContext xctxt)
-  {
-    if(!isReverseAxes())
-      return super.getLastPos(xctxt);
-
-    int count = 0;
-
-    try
-    {
-      OneStepIterator clone = (OneStepIterator) this.clone();
-
-      int root = getRoot();
-      xctxt.pushCurrentNode(root);
-      clone.setRoot(root, xctxt);
-
-      clone.setPredicateCount(this.getPredicateCount() - 1);
-
-      // Count 'em all
-      // count = 1;
-      int next;
-
-      while (DTM.NULL != (next = clone.nextNode()))
-      {
-        count++;
-      }
-    }
-    catch (CloneNotSupportedException cnse)
-    {
-
-      // can't happen
-    }
-    finally
-    {
-      xctxt.popCurrentNode();
-    }
-
-    // System.out.println("getLastPos - pos: "+count);
-    // System.out.println("pos (ReverseAxesWalker): "+count);
-    return count;
-  }
   
   /**
    * Reset the iterator.
@@ -263,6 +229,20 @@ public class OneStepIterator extends ChildTestIterator
   {
     return m_axis;
   }
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!super.deepEquals(expr))
+  		return false;
+  		
+  	if(m_axis != ((OneStepIterator)expr).m_axis)
+  		return false;
+  		
+  	return true;
+  }
 
-
+  
 }

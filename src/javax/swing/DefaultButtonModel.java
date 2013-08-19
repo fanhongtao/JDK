@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultButtonModel.java	1.41 01/12/03
+ * @(#)DefaultButtonModel.java	1.43 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -25,7 +25,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.41 12/03/01
+ * @version 1.43 01/23/03
  * @author Jeff Dinkins
  */
 public class DefaultButtonModel implements ButtonModel, Serializable {
@@ -88,7 +88,8 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
      * Sets the <code>actionCommand</code> string that gets sent as
      * part of the event when the button is pressed.
      *
-     * @param s the <code>String</code> that identifies the generated event
+     * @param actionCommand the <code>String</code> that identifies
+     * the generated event
      */
     public void setActionCommand(String actionCommand) {
         this.actionCommand = actionCommand;

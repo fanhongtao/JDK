@@ -1,7 +1,7 @@
 /*
- * @(#)AppletContext.java	1.27 01/12/03
+ * @(#)AppletContext.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * information about its environment.
  *
  * @author 	Arthur van Hoff
- * @version     1.27, 12/03/01
+ * @version     1.29, 01/23/03
  * @since       JDK1.0
  */
 public interface AppletContext {
@@ -89,7 +89,8 @@ public interface AppletContext {
      * document is to be displayed.
      * The target argument is interpreted as follows:
      * <p>
-     * <center><table border="3">
+     * <center><table border="3" summary="Target arguments and their descriptions">
+     * <tr><th>Target Argument</th><th>Description</th></tr>
      * <tr><td><code>"_self"</code>  <td>Show in the window and frame that
      *                                   contain the applet.</tr>
      * <tr><td><code>"_parent"</code><td>Show in the applet's parent frame. If

@@ -1,7 +1,7 @@
 /*
- * @(#)LogManager.java	1.20 01/12/03
+ * @(#)LogManager.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -107,7 +107,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.20, 12/03/01
+ * @version 1.24, 01/23/03
  * @since 1.4
 */
 
@@ -127,6 +127,10 @@ public class LogManager {
     private LogNode root = new LogNode(null);
     private Logger rootLogger;
 
+    // Have we done the primordial reading of the configuration file?
+    // (Must be done after a suitable amount of java.lang.System
+    // initialization has been done)
+    private volatile boolean readPrimordialConfiguration;
     // Have we initialized global (root) handlers yet?
     // This gets set to false in readConfiguration
     private boolean initializedGlobalHandlers = true;
@@ -134,28 +138,33 @@ public class LogManager {
     private boolean deathImminent;
 
     static {
-	String cname = null;
-	try {
-	    cname = System.getProperty("java.util.logging.manager");
-	    if (cname != null) {
-		Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
-		manager = (LogManager) clz.newInstance();
-	    }
-	} catch (Exception ex) {
-	    System.err.println("Could not load Logmanager \"" + cname + "\"");
-	    ex.printStackTrace();
-	}
-	if (manager == null) {
-	    manager = new LogManager();
-	}
+	AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    String cname = null;
+                    try {
+                        cname = System.getProperty("java.util.logging.manager");
+                        if (cname != null) {
+                            Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
+                            manager = (LogManager) clz.newInstance();
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("Could not load Logmanager \"" + cname + "\"");
+                        ex.printStackTrace();
+                    }
+                    if (manager == null) {
+                        manager = new LogManager();
+                    }
 
-	// Create and retain Logger for the root of the namespace.
-	manager.rootLogger = manager.new RootLogger();
-	manager.addLogger(manager.rootLogger);
+                    // Create and retain Logger for the root of the namespace.
+                    manager.rootLogger = manager.new RootLogger();
+                    manager.addLogger(manager.rootLogger);
 
-	// We don't call readConfiguration() here, as we may be running
-	// very early in the JVM startup sequence.  Instead readConfiguration
-        // will be called from java.lang.System.initializeSystemClass.
+                    // We don't call readConfiguration() here, as we may be running
+                    // very early in the JVM startup sequence.  Instead readConfiguration
+                    // will be called lazily in getLogManager().
+                    return null;
+                }
+            });
     }
 
 
@@ -192,7 +201,37 @@ public class LogManager {
      * Return the global LogManager object.
      */
     public static LogManager getLogManager() {
+        if (manager != null) {
+            manager.readPrimordialConfiguration();
+        }
 	return manager;
+    }
+
+    private void readPrimordialConfiguration() {
+        if (!readPrimordialConfiguration) {
+            synchronized (this) {
+                if (!readPrimordialConfiguration) {
+                    // If System.in/out/err are null, it's a good
+                    // indication that we're still in the
+                    // bootstrapping phase
+                    if (System.out == null) {
+                        return;
+                    }
+                    readPrimordialConfiguration = true;
+                    try {
+                        AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                                public Object run() throws Exception {
+                                    readConfiguration();
+                                    return null;
+                                }
+                            });
+                    } catch (Exception ex) {
+                        // System.err.println("Can't read logging configuration:");
+                        // ex.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyPermission.java	1.27 01/12/03
+ * @(#)PropertyPermission.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,16 @@ package java.util;
 import java.io.Serializable;
 import java.io.IOException;
 import java.security.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Collections;
+import java.io.ObjectStreamField;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import sun.security.util.SecurityConstants;
 
 /**
  * This class is for property permissions.
@@ -54,7 +64,7 @@ import java.security.*;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.27 01/12/03
+ * @version 1.30 03/01/23
  *
  * @author Roland Schemers
  * @since 1.2
@@ -213,6 +223,15 @@ public final class PropertyPermission extends BasicPermission {
 
 	if (actions == null) {
 	    return mask;
+	}
+
+	// Check against use of constants (used heavily within the JDK)
+	if (actions == SecurityConstants.PROPERTY_READ_ACTION) {
+	    return READ;
+	} if (actions == SecurityConstants.PROPERTY_WRITE_ACTION) {
+	    return WRITE;
+	} else if (actions == SecurityConstants.PROPERTY_RW_ACTION) {
+	    return READ|WRITE;
 	}
 
 	char[] a = actions.toCharArray();
@@ -387,7 +406,7 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.27, 12/03/01
+ * @version 1.30, 01/23/03
  *
  * @author Roland Schemers
  *
@@ -398,16 +417,15 @@ implements Serializable
 {
 
     /**
-     * Table of permissions.
-     *
-     * @serial
+     * Key is property name; value is PropertyPermission.
+     * Not serialized; see serialization section at end of class.
      */
-    private Hashtable permissions;
+    private transient Map perms;
 
     /**
      * Boolean saying if "*" is in the collection.
      *
-     * @serial
+     * @see #serialPersistentFields
      */
     private boolean all_allowed;
 
@@ -417,7 +435,7 @@ implements Serializable
      */
 
     public PropertyPermissionCollection() {
-	permissions = new Hashtable(32);     // Capacity for default policy
+	perms = new HashMap(32);     // Capacity for default policy
 	all_allowed = false;
     }
 
@@ -445,7 +463,10 @@ implements Serializable
 	PropertyPermission pp = (PropertyPermission) permission;
 
 	PropertyPermission existing =
-	    (PropertyPermission) permissions.get(pp.getName());
+	    (PropertyPermission) perms.get(pp.getName());
+
+        // No need to synchronize because all adds are done sequentially
+	// before any implies() calls
 
 	if (existing != null) {
 	    int oldMask = existing.getMask();
@@ -453,12 +474,12 @@ implements Serializable
 	    if (oldMask != newMask) {
 		int effective = oldMask | newMask;
 		String actions = PropertyPermission.getActions(effective);
-		permissions.put(pp.getName(),
+		perms.put(pp.getName(),
 			new PropertyPermission(pp.getName(), actions));
 
 	    }
 	} else {
-	    permissions.put(pp.getName(), permission);
+	    perms.put(pp.getName(), permission);
 	}
 
         if (!all_allowed) {
@@ -490,7 +511,7 @@ implements Serializable
 
 	// short circuit if the "*" Permission was added
 	if (all_allowed) {
-	    x = (PropertyPermission) permissions.get("*");
+	    x = (PropertyPermission) perms.get("*");
 	    if (x != null) {
 		effective |= x.getMask();
 		if ((effective & desired) == desired)
@@ -505,7 +526,7 @@ implements Serializable
 	String name = pp.getName();
 	//System.out.println("check "+name);
 
-	x = (PropertyPermission) permissions.get(name);
+	x = (PropertyPermission) perms.get(name);
 
 	if (x != null) {
 	    // we have a direct hit!
@@ -523,7 +544,7 @@ implements Serializable
 
 	    name = name.substring(0, last+1) + "*";
 	    //System.out.println("check "+name);
-	    x = (PropertyPermission) permissions.get(name);
+	    x = (PropertyPermission) perms.get(name);
 
 	    if (x != null) {
 		effective |= x.getMask();
@@ -545,10 +566,71 @@ implements Serializable
      * @return an enumeration of all the PropertyPermission objects.
      */
 
-    public Enumeration elements()
-    {
-	return permissions.elements();
+    public Enumeration elements() {
+        // Convert Iterator of Map values into an Enumeration
+	return Collections.enumeration(perms.values());
+    }
+
+    private static final long serialVersionUID = 7015263904581634791L;
+
+    // Need to maintain serialization interoperability with earlier releases,
+    // which had the serializable field:
+    //
+    // Table of permissions.
+    //
+    // @serial
+    //
+    // private Hashtable permissions;
+    /**
+     * @serialField permissions java.util.Hashtable
+     *     A table of the PropertyPermissions.
+     * @serialField all_allowed boolean
+     *     boolean saying if "*" is in the collection.
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("permissions", Hashtable.class),
+	new ObjectStreamField("all_allowed", Boolean.TYPE),
+    };
+
+    /**
+     * @serialData Default fields.
+     */
+    /*
+     * Writes the contents of the perms field out as a Hashtable for
+     * serialization compatibility with earlier releases. all_allowed
+     * unchanged.
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+	// Don't call out.defaultWriteObject()
+
+	// Copy perms into a Hashtable
+	Hashtable permissions = new Hashtable(perms.size()*2);
+	permissions.putAll(perms);
+
+	// Write out serializable fields
+        ObjectOutputStream.PutField pfields = out.putFields();
+	pfields.put("all_allowed", all_allowed);
+        pfields.put("permissions", permissions);
+        out.writeFields();
+    }
+
+    /*
+     * Reads in a Hashtable of PropertyPermissions and saves them in the 
+     * perms field. Reads in all_allowed.
+     */
+    private void readObject(ObjectInputStream in) throws IOException, 
+    ClassNotFoundException {
+	// Don't call defaultReadObject()
+
+	// Read in serialized fields
+	ObjectInputStream.GetField gfields = in.readFields();
+
+	// Get all_allowed
+	all_allowed = gfields.get("all_allowed", false);
+
+	// Get permissions
+	Hashtable permissions = (Hashtable)gfields.get("permissions", null);
+	perms = new HashMap(permissions.size()*2);
+	perms.putAll(permissions);
     }
 }
-
-

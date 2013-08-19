@@ -1,7 +1,7 @@
 /*
- * @(#)XMLEncoder.java	1.20 02/05/01
+ * @(#)XMLEncoder.java	1.25 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -175,7 +175,7 @@ import java.lang.reflect.*;
  *
  * @since 1.4
  *
- * @version 1.20 05/01/02
+ * @version 1.25 01/27/03
  * @author Philip Milne
  */
 public class XMLEncoder extends Encoder {
@@ -297,12 +297,12 @@ public class XMLEncoder extends Encoder {
     }
     
     private void mark(Statement stm) {
-        mark(stm.getTarget(), false);
         Object[] args = stm.getArguments();
         for (int i = 0; i < args.length; i++) {
             Object arg = args[i];
             mark(arg, true);
         }
+        mark(stm.getTarget(), false);
     }
 
 
@@ -314,7 +314,7 @@ public class XMLEncoder extends Encoder {
      * initializing a persistence delegate or setting up an encoder to
      * read from a resource bundle.
      *
-     * @param oldExp The statement that will be written
+     * @param oldStm The statement that will be written
      *               to the stream.
      * @see java.beans.PersistenceDelegate#initialize
      */
@@ -336,7 +336,7 @@ public class XMLEncoder extends Encoder {
             statementList(oldStm.getTarget()).add(oldStm);
         }
         catch (Exception e) {
-            getExceptionListener().exceptionThrown(new Exception("discarding statement " + oldStm));
+            getExceptionListener().exceptionThrown(new Exception("discarding statement " + oldStm, e));
         }
         this.internal = internal;
     }
@@ -445,14 +445,38 @@ public class XMLEncoder extends Encoder {
         return d;
     }
 
-    private static String quoteCharacters(String x) {
-        x = NameGenerator.replace(x, '&', "&amp;");
-        x = NameGenerator.replace(x, '<', "&lt;");
-        x = NameGenerator.replace(x, '\r', "&#13;");
-	x = NameGenerator.replace(x, '>', "&gt;");
-	x = NameGenerator.replace(x, '"', "&quot;");
-	x = NameGenerator.replace(x, '\'', "&apos;");
-        return x;
+    private static String quoteCharacters(String s) {
+	StringBuffer result = null;
+        for(int i = 0, max = s.length(), delta = 0; i < max; i++) {
+	    char c = s.charAt(i);
+	    String replacement = null;
+
+	    if (c == '&') {
+		replacement = "&amp;";
+	    } else if (c == '<') {
+		replacement = "&lt;";
+	    } else if (c == '\r') {
+		replacement = "&#13;";
+	    } else if (c == '>') {
+		replacement = "&gt;";
+	    } else if (c == '"') {
+		replacement = "&quot;";
+	    } else if (c == '\'') {
+		replacement = "&apos;";
+	    }
+	    
+	    if (replacement != null) {
+		if (result == null) {
+		    result = new StringBuffer(s);
+		}
+		result.replace(i + delta, i + delta + 1, replacement);
+		delta += (replacement.length() - 1);
+	    }
+        }
+        if (result == null) {
+            return s;
+        }
+	return result.toString();
     }
 
     private void writeln(String exp) {

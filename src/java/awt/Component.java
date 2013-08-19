@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.350 03/01/19
+ * @(#)Component.java	1.357 03/04/14
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -134,7 +134,7 @@ import sun.awt.im.CompositionArea;
  * efficient painting code, see
  * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
  *
- * @version 	1.350, 01/19/03
+ * @version 	1.357, 04/14/03
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -269,7 +269,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      *
      * @since 1.4
      * @see java.awt.image.BufferStrategy
-     * @see #getBufferStrategy
+     * @see #getBufferStrategy()
      */
     transient BufferStrategy bufferStrategy = null;
 	
@@ -371,7 +371,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * Tracks whether this Component is relying on default focus travesability.
      *
      * @serial
-     * @see #isFocusTraversableOverridden
      * @since 1.4
      */
     private int isFocusTraversableOverridden = FOCUS_TRAVERSABLE_UNKNOWN;
@@ -385,8 +384,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * KeyboardFocusManager's default traversal key is used.
      *
      * @serial
-     * @see #setFocusTraversalKey
-     * @see #getFocusTraversalKey
+     * @see #setFocusTraversalKeys
+     * @see #getFocusTraversalKeys
      * @since 1.4
      */
     Set[] focusTraversalKeys;
@@ -2163,8 +2162,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @param font the font for which font metrics is to be 
      * 		obtained
      * @return the font metrics for <code>font</code>
-     * @param     font   the font
-     * @return    the font metrics for the specified font
      * @see       #getFont
      * @see       #getPeer
      * @see       java.awt.peer.ComponentPeer#getFontMetrics(Font)
@@ -2844,7 +2841,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @exception IllegalArgumentException if numBuffers is less than 1.
      * @exception IllegalStateException if the component is not displayable
      * @see #isDisplayable
-     * @see #getBufferStrategy
+     * @see #getBufferStrategy()
      * @since 1.4
      */
     void createBufferStrategy(int numBuffers) {
@@ -2901,7 +2898,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * but not possible.
      * @exception IllegalArgumentException if numBuffers is less than 1, or if
      * caps is <code>null</code>
-     * @see #getBufferStrategy
+     * @see #getBufferStrategy()
      * @since 1.4
      */
     void createBufferStrategy(int numBuffers,
@@ -3031,7 +3028,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
          * @exception IllegalArgumentException if numBuffers is less than two,
          * or if <code>BufferCapabilities.isPageFlipping</code> is not
          * <code>true</code>.
-         * @see java.awt.image.BufferCapabilities#isPageFlipping
+         * @see java.awt.BufferCapabilities#isPageFlipping()
          */
         protected void createBuffers(int numBuffers, BufferCapabilities caps)
             throws AWTException {
@@ -3050,7 +3047,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
         
         /**
-         * @returns direct access to the back buffer, as an image.
+         * @return direct access to the back buffer, as an image.
          * @exception IllegalStateException if the buffers have not yet
          * been created
          */
@@ -3077,7 +3074,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
          * property.
          * @exception IllegalStateException if the buffers have not yet
          * been created
-         * @see java.awt.image.BufferCapabilities#FlipContents
+         * @see java.awt.BufferCapabilities#getFlipContents()
          */
         protected void flip(BufferCapabilities.FlipContents flipAction) {
             if (peer != null) {
@@ -3200,7 +3197,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
     
         /**
          * Creates a new blt buffer strategy around a component
-         * @param c the component to use as the front buffer
+         * @param numBuffers the component to use as the front buffer
          * @param caps the capabilities of the buffers
          */
         protected BltBufferStrategy(int numBuffers, BufferCapabilities caps) {
@@ -3244,7 +3241,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
     
         /**
-         * @returns direct access to the back buffer, as an image.
+         * @return direct access to the back buffer, as an image.
          * If there is no back buffer, returns null.
          */
         Image getBackBuffer() {
@@ -3513,27 +3510,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
             }
         }
 
-        /**
-         * Fix for 4495473.
-         * This fix allows to correctly dispatch events when native
-         * event proxying mechanism is active.
-         * If it is active we should redispatch key events after
-         * we detected its correct target.
-         */
-        if (e instanceof KeyEvent) {
-            KeyEvent ke = (KeyEvent)e;
-            if (KeyboardFocusManager.isProxyActive(ke)) {
-                Container target = getNativeContainer();
-                if (target != null) {
-                    ComponentPeer peer = target.getPeer();
-                    if (peer != null) {
-                        peer.handleEvent(e);
-                    }
-                }
-                return;
-            }
-        }
-
         // MouseWheel may need to be retargeted here so that
         // AWTEventListener sees the event go to the correct
         // Component.  If the MouseWheelEvent needs to go to an ancestor,
@@ -3693,24 +3669,14 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	}
   
 	/*
-         * 9. Allow the peer to process the event.
+         * 9. Allow the peer to process the event. 
+         * Except KeyEvents, they will be processed by peer after 
+         * all KeyEventPostProcessors 
+         * (see DefaultKeyboardFocusManager.dispatchKeyEvent())
 	 */
-	if (peer != null) {
+	if (!(e instanceof KeyEvent) && (peer != null)) {
 	    peer.handleEvent(e);
 	}
-
-        // Give native control a chance to dispatch the event if the focus
-        // owner is lightweight. Fix for 4390019 by son@sparc.spb.su.
-        if (e instanceof KeyEvent && 
-            (peer == null || peer instanceof LightweightPeer)) {
-            Container target = getNativeContainer();
-            if (target != null) {
-                ComponentPeer peer = target.getPeer();
-                if (peer != null) {
-                    peer.handleEvent(e);
-                }
-            }
-        }
     } // dispatchEventImpl()
 
     /*
@@ -5708,7 +5674,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * recommendations for Windows and Unix are listed below. These
      * recommendations are used in the Sun AWT implementations.
      *
-     * <table border>
+     * <table border=1 summary="Recommended default values for a Component's focus traversal keys">
      * <tr>
      *    <th>Identifier</th>
      *    <th>Meaning</th>
@@ -6141,7 +6107,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
                 Component heavyweight = (peer instanceof LightweightPeer)
                     ? getNativeContainer() : this;
-                if (heavyweight == null) {
+                if (heavyweight == null || !heavyweight.isVisible()) {
                     return false;
                 }
                 peer = heavyweight.peer;
@@ -6808,7 +6774,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @serialData an optional <code>ComponentOrientation</code>
      *    (after <code>inputMethodListener</code>, as of 1.2)
      *
-     * @see AWTEventMulticaster.save(java.io.ObjectOutputStream, java.lang.String, java.util.EventListener)
+     * @see AWTEventMulticaster#save(java.io.ObjectOutputStream, java.lang.String, java.util.EventListener)
      * @see #componentListenerK
      * @see #focusListenerK
      * @see #keyListenerK
@@ -6818,7 +6784,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #hierarchyListenerK
      * @see #hierarchyBoundsListenerK
      * @see #mouseWheelListenerK
-     * @see #readObject
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
         throws IOException
@@ -6852,7 +6818,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * Unrecognized keys or values will be ignored.
      *
      * @param s the <code>ObjectInputStream</code> to read
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
         throws ClassNotFoundException, IOException
@@ -7534,7 +7500,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         /**
          * Sets the <code>Cursor</code> of this object.
          *
-         * @param c the new <code>Cursor</code> for the object
+         * @param cursor the new <code>Cursor</code> for the object
          */
         public void setCursor(Cursor cursor) {
             Component.this.setCursor(cursor);
@@ -7724,7 +7690,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
          * The bounds specify this object's width, height, and location
          * relative to its parent.
          *
-         * @param a rectangle indicating this component's bounds
+         * @param r a rectangle indicating this component's bounds
          */
         public void setBounds(Rectangle r) {
             Component.this.setBounds(r);

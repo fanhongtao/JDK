@@ -1,7 +1,7 @@
 /*
- * @(#)DropTarget.java	1.43 02/04/09
+ * @(#)DropTarget.java	1.46 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,19 +44,13 @@ import java.awt.dnd.peer.DropTargetPeer;
  * The default <code>FlavorMap</code> hereafter designates the
  * <code>FlavorMap</code> returned by <code>SystemFlavorMap.getDefaultFlavorMap()</code>. 
  * 
- * @version 	1.43, 04/09/02
+ * @version 	1.46, 01/23/03
  * @since 1.2
  */
 
 public class DropTarget implements DropTargetListener, Serializable {
 
     private static final long serialVersionUID = -6283860791671019047L;
-
-    /*
-     * default FlavorMap for the system
-     */
-
-    static private final FlavorMap defaultFlavorMap = SystemFlavorMap.getDefaultFlavorMap();
 
     /**
      * Creates a new DropTarget given the <code>Component</code> 
@@ -428,7 +422,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      */
 
     public void setFlavorMap(FlavorMap fm) {
-        flavorMap = fm == null ? defaultFlavorMap : fm;
+        flavorMap = fm == null ? SystemFlavorMap.getDefaultFlavorMap() : fm;
     }
 
     /**
@@ -449,11 +443,6 @@ public class DropTarget implements DropTargetListener, Serializable {
      */
 
     public void addNotify(ComponentPeer peer) {
-	/*
-	 * FIX THIS FOR BETA4
-	 */
-
-	// java.security.AccessController.checkPermission(new AWTPermission("setDTarget"));
 	if (peer == componentPeer) return;
 
 	componentPeer = peer;
@@ -813,5 +802,5 @@ public class DropTarget implements DropTargetListener, Serializable {
      * The FlavorMap
      */
 
-    private transient FlavorMap flavorMap = defaultFlavorMap;
+    private transient FlavorMap flavorMap = SystemFlavorMap.getDefaultFlavorMap();
 }

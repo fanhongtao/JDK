@@ -134,6 +134,8 @@ public class ElemApplyImport extends ElemTemplateElement
       transformer.getMsgMgr().error(this,
         XSLTErrorResources.ER_NULL_SOURCENODE_APPLYIMPORTS);  //"sourceNode is null in xsl:apply-imports!");
     }
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEndEvent(this);
   }
 
   /**

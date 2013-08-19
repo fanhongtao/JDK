@@ -1,7 +1,7 @@
 /*
- * @(#)PopupMenu.java	1.26 01/12/03
+ * @(#)PopupMenu.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import javax.accessibility.*;
  * (e.g., you add it to a <code>MenuBar</code>), then you <b>cannot</b>
  * call <code>show</code> on that <code>PopupMenu</code>.
  *
- * @version	1.26 12/03/01
+ * @version	1.27 01/23/03
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {

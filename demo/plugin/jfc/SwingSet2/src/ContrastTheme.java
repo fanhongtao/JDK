@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)ContrastTheme.java	1.7 02/06/13
+ * @(#)ContrastTheme.java	1.8 03/01/23
  */
 
  
@@ -48,7 +48,7 @@ import java.awt.*;
 /**
  * This class describes a higher-contrast Metal Theme.
  *
- * @version 1.7 06/13/02
+ * @version 1.8 01/23/03
  * @author Michael C. Albers
  */
 

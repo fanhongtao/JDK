@@ -1,7 +1,7 @@
 /*
- * @(#)JEditorPane.java	1.115 02/04/03
+ * @(#)JEditorPane.java	1.118 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -163,7 +163,7 @@ import javax.accessibility.*;
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.115 04/03/02
+ * @version 1.118 01/23/03
  */
 public class JEditorPane extends JTextComponent {
 
@@ -848,7 +848,7 @@ public class JEditorPane extends JTextComponent {
      * @see #getContentType
      * @beaninfo
      *  description: the type of content
-     * @throw NullPointerException if the <code>type</code> parameter
+     * @throws NullPointerException if the <code>type</code> parameter
      *		is <code>null</code>
      */
     public final void setContentType(String type) {
@@ -1029,12 +1029,18 @@ public class JEditorPane extends JTextComponent {
                 Caret caret = getCaret();
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
-                if (p0 != p1) {
-                    doc.remove(p0, p1 - p0);
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).replace(p0, p1 - p0, content, 
+                              ((StyledEditorKit)kit).getInputAttributes());
                 }
-                if (content != null && content.length() > 0) {
-                    doc.insertString(p0, content, ((StyledEditorKit)kit).
-				     getInputAttributes());
+                else {
+                    if (p0 != p1) {
+                        doc.remove(p0, p1 - p0);
+                    }
+                    if (content != null && content.length() > 0) {
+                        doc.insertString(p0, content, ((StyledEditorKit)kit).
+                                         getInputAttributes());
+                    }
                 }
             } catch (BadLocationException e) {
 	        UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
@@ -1841,7 +1847,7 @@ public class JEditorPane extends JTextComponent {
 	 * is associated with this character index, or -1 if there
 	 * is no hyperlink associated with this index.
 	 *
-	 * @param character index within the text
+	 * @param  charIndex index within the text
 	 * @return index into the set of hyperlinks for this hypertext doc.
 	 */
 	public int getLinkIndex(int charIndex) {
@@ -1868,7 +1874,7 @@ public class JEditorPane extends JTextComponent {
 	 * index.  If there is no hyperlink at this index, it returns
 	 * null.
 	 *
-	 * @param index into the set of hyperlinks for this hypertext doc.
+	 * @param linkIndex into the set of hyperlinks for this hypertext doc.
 	 * @return string representation of the hyperlink
 	 */
 	public AccessibleHyperlink getLink(int linkIndex) {
@@ -1886,7 +1892,7 @@ public class JEditorPane extends JTextComponent {
 	 * Returns the contiguous text within the document that
 	 * is associated with this hyperlink.
 	 *
-	 * @param index into the set of hyperlinks for this hypertext doc.
+	 * @param linkIndex into the set of hyperlinks for this hypertext doc.
 	 * @return the contiguous text sharing the link at this index
 	 */
 	public String getLinkText(int linkIndex) {

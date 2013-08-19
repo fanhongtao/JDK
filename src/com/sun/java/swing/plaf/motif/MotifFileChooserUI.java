@@ -1,7 +1,7 @@
 /*
- * @(#)MotifFileChooserUI.java	1.35 02/04/23
+ * @(#)MotifFileChooserUI.java	1.37 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.35 04/23/02
+ * @version 1.37 01/23/03
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -265,7 +265,9 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	align(l);
 	leftPanel.add(l);
 	JScrollPane sp = createDirectoryList();
-	l.setLabelFor(sp);
+        sp.getVerticalScrollBar().setFocusable(false);
+        sp.getHorizontalScrollBar().setFocusable(false);
+	l.setLabelFor(sp.getViewport().getView());
 	leftPanel.add(sp);
 
 

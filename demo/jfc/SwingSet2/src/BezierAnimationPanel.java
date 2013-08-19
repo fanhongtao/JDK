@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)BezierAnimationPanel.java	1.10 02/06/13
+ * @(#)BezierAnimationPanel.java	1.12 03/03/12
  */
 
 
@@ -55,7 +55,7 @@ import java.awt.event.*;
 /**
  * BezierAnimationPanel
  *
- * @version 1.10 06/13/02
+ * @version 1.12 03/12/03
  * @author Jim Graham
  * @author Jeff Dinkins (removed dynamic setting changes, made swing friendly)
  */
@@ -109,6 +109,10 @@ class BezierAnimationPanel extends JPanel implements Runnable {
 	   }
 	);
 	setBackground(getBackgroundColor());
+    }
+
+    public boolean isOpaque() {
+        return true;
     }
 
     public Color getGradientColorA() {

@@ -1,7 +1,7 @@
 /*
- * @(#)TreeSelectionModel.java	1.21 01/12/03
+ * @(#)TreeSelectionModel.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ import java.beans.PropertyChangeListener;
   * row is then the row that corresponds to the TreePath as determined
   * from the RowMapper.
   *
-  * @version 1.21 12/03/01
+  * @version 1.23 01/23/03
   * @author Scott Violet
   */
 
@@ -136,7 +136,7 @@ public interface TreeSelectionModel
       * are notified. This has
       * no effect if <code>paths</code> is null.
       *
-      * @param path the new path to add to the current selection
+      * @param paths the new paths to add to the current selection
       */
     void addSelectionPaths(TreePath[] paths);
 

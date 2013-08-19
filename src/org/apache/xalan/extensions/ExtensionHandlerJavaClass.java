@@ -247,6 +247,10 @@ public class ExtensionHandlerJavaClass extends ExtensionHandlerJava
             MethodResolver.convertParams(methodArgs, convertedArgs, paramTypes, exprContext);
             return c.newInstance(convertedArgs[0]);
           }
+          catch (InvocationTargetException ite)
+          {
+            throw ite;
+          }
           catch(Exception e)
           {
             // Must not have been the right one
@@ -290,8 +294,19 @@ public class ExtensionHandlerJavaClass extends ExtensionHandlerJava
               if (methodArgs.length <= nTargetArgs)
                 return m.invoke(m_defaultInstance, convertedArgs[0]);
               else  
-                return m.invoke(methodArgs[0], convertedArgs[0]);
+              {
+                targetObject = methodArgs[0];
+                
+                if (targetObject instanceof XObject)
+                  targetObject = ((XObject) targetObject).object();
+                  
+                return m.invoke(targetObject, convertedArgs[0]);
+              }
             }
+          }
+          catch (InvocationTargetException ite)
+          {
+            throw ite;
           }
           catch(Exception e)
           {
@@ -345,11 +360,15 @@ public class ExtensionHandlerJavaClass extends ExtensionHandlerJava
     }
     catch (InvocationTargetException ite)
     {
-      Throwable realException = ite.getTargetException();
-      if (realException instanceof Exception)
-        throw new TransformerException((Exception) realException);
-      else
-        throw new TransformerException(ite);
+      Throwable resultException = ite;
+      Throwable targetException = ite.getTargetException();
+ 
+      if (targetException instanceof TransformerException)
+        throw ((TransformerException)targetException);
+      else if (targetException != null)
+        resultException = targetException;
+            
+      throw new TransformerException(resultException);
     }
     catch (Exception e)
     {
@@ -411,6 +430,17 @@ public class ExtensionHandlerJavaClass extends ExtensionHandlerJava
     try
     {
       result = m.invoke(m_defaultInstance, new Object[] {xpc, element});
+    }
+    catch (InvocationTargetException e)
+    {
+      Throwable targetException = e.getTargetException();
+      
+      if (targetException instanceof TransformerException)
+        throw (TransformerException)targetException;
+      else if (targetException != null)
+        throw new TransformerException (targetException.getMessage (), targetException);
+      else
+        throw new TransformerException (e.getMessage (), e);
     }
     catch (Exception e)
     {

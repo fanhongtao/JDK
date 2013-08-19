@@ -565,7 +565,7 @@ public class NodeSorter
         if (r.getType() == XObject.CLASS_NODESET)
         {
           // %REVIEW%
-          DTMIterator ni = (DTMIterator)r.object();
+          DTMIterator ni = ((XNodeSet)r).iterRaw();
           int current = ni.getCurrentNode();
           if(DTM.NULL == current)
             current = ni.nextNode();

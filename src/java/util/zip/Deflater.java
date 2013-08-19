@@ -1,5 +1,5 @@
 /*
- * @(#)Deflater.java	1.38 03/02/08
+ * @(#)Deflater.java	1.38 03/02/07
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,7 +43,7 @@ package java.util.zip;
  * </pre></blockquote>
  * 
  * @see		Inflater
- * @version 	1.38, 02/08/03
+ * @version 	1.38, 02/07/03
  * @author 	David Connelly
  */
 public
@@ -150,7 +150,7 @@ class Deflater {
 	if (b== null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length - len) {
+        if (off < 0 || len < 0 || off > b.length - len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	this.buf = b;
@@ -184,7 +184,7 @@ class Deflater {
 	if (strm == 0 || b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length -len) {
+        if (off < 0 || len < 0 || off > b.length - len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	setDictionary(strm, b, off, len);
@@ -282,7 +282,7 @@ class Deflater {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off > b.length - len) {
+        if (off < 0 || len < 0 || off > b.length - len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	return deflateBytes(b, off, len);

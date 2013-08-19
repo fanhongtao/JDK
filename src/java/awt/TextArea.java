@@ -1,7 +1,7 @@
 /*
- * @(#)TextArea.java	1.70 01/12/03
+ * @(#)TextArea.java	1.75 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * <p>
  * The following image shows the appearance of a text area:
  * <p>
- * <img src="doc-files/TextArea-1.gif"
+ * <img src="doc-files/TextArea-1.gif" alt="A TextArea showing the word 'Hello!'"
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * This text area could be created by the following line of code:
@@ -32,7 +32,7 @@ import javax.accessibility.*;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.70, 12/03/01
+ * @version	1.75, 01/23/03
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -124,12 +124,12 @@ public class TextArea extends TextComponent {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
-	forwardTraversalKeys = KeyboardFocusManager.loadFocusTraversalKeys
-	    ("AWT.forwardTextAreaFocusTraversalKey", "ctrl TAB",
-	     new TreeSet());
-	backwardTraversalKeys = KeyboardFocusManager.loadFocusTraversalKeys
-	    ("AWT.backwardTextAreaFocusTraversalKey", "ctrl shift TAB",
-	     new TreeSet());
+	forwardTraversalKeys = KeyboardFocusManager.initFocusTraversalKeysSet(
+	    "ctrl TAB",
+	    new TreeSet());
+	backwardTraversalKeys = KeyboardFocusManager.initFocusTraversalKeysSet(
+	    "ctrl shift TAB",
+	    new TreeSet());
     }
 
     /**
@@ -460,7 +460,7 @@ public class TextArea extends TextComponent {
      * Determines the preferred size of a text area with the specified
      * number of rows and columns.
      * @param     rows   the number of rows
-     * @param     cols   the number of columns
+     * @param     columns   the number of columns
      * @return    the preferred dimensions required to display
      *                       the text area with the specified
      *                       number of rows and columns
@@ -510,7 +510,7 @@ public class TextArea extends TextComponent {
      * Determines the minimum size of a text area with the specified
      * number of rows and columns.
      * @param     rows   the number of rows
-     * @param     cols   the number of columns
+     * @param     columns   the number of columns
      * @return    the minimum dimensions required to display
      *                       the text area with the specified
      *                       number of rows and columns

@@ -1,7 +1,7 @@
 /*
- * @(#)ClassNotFoundException.java	1.17 01/12/03
+ * @(#)ClassNotFoundException.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ package java.lang;
  * Throwable#getCause()} method, as well as the aforementioned "legacy method."
  *
  * @author  unascribed
- * @version 1.17, 12/03/01
+ * @version 1.18, 01/23/03
  * @see     java.lang.Class#forName(java.lang.String)
  * @see     java.lang.ClassLoader#findSystemClass(java.lang.String)
  * @see     java.lang.ClassLoader#loadClass(java.lang.String, boolean)

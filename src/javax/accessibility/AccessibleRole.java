@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRole.java	1.38 01/12/03
+ * @(#)AccessibleRole.java	1.40 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -562,10 +562,12 @@ public class AccessibleRole extends AccessibleBundle {
      * This should not be a public method.  Instead, it is used to create
      * the constants in this file to make it a strongly typed enumeration.
      * Subclasses of this class should enforce similar policy.
-     * @param key the locale independent name of the role.
-     * @note The String should be a locale independent key for the role.
+     * <p>
+     * The key String should be a locale independent key for the role.
      * It is not intended to be used as the actual String to display 
      * to the user.  To get the localized string, use toDisplayString.
+     *
+     * @param key the locale independent name of the role.
      * @see AccessibleBundle#toDisplayString
      */
     protected AccessibleRole(String key) {

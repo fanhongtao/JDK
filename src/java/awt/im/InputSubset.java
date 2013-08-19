@@ -1,7 +1,7 @@
 /*
- * @(#)InputSubset.java	1.9 01/12/03
+ * @(#)InputSubset.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.awt.im;
  * java.lang.Character.UnicodeBlock}</code> class, these constants do not
  * directly correspond to Unicode code blocks.
  *
- * @version 1.9, 12/03/01
+ * @version 1.10, 01/23/03
  * @since   1.2
  */
 

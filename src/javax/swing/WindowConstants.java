@@ -1,7 +1,7 @@
 /*
- * @(#)WindowConstants.java	1.16 02/04/18
+ * @(#)WindowConstants.java	1.18 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,9 +20,12 @@ package javax.swing;
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/frame.html#windowevents">Responding to Window-Closing Events</a>,
  * a section in <em>The Java Tutorial</em>.
+ * @see JFrame#setDefaultCloseOperation(int)
+ * @see JDialog#setDefaultCloseOperation(int)
+ * @see JInternalFrame#setDefaultCloseOperation(int)
  * 
  *
- * @version 1.16 04/18/02
+ * @version 1.18 01/28/03
  * @author Amy Fowler
  */
 public interface WindowConstants
@@ -38,7 +41,14 @@ public interface WindowConstants
     public static final int HIDE_ON_CLOSE = 1;
 
     /**
-     * The dispose-window default window close operation
+     * The dispose-window default window close operation.
+     * <p>
+     * <b>Note</b>: When the last displayable window
+     * within the Java virtual machine (VM) is disposed of, the VM may
+     * terminate.  See <a href="../../java/awt/doc-files/AWTThreadIssues.html">
+     * AWT Threading Issues</a> for more information.
+     * @see java.awt.Window#dispose()
+     * @see JInternalFrame#dispose()
      */
     public static final int DISPOSE_ON_CLOSE = 2;
 

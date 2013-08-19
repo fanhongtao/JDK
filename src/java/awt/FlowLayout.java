@@ -1,7 +1,7 @@
 /*
- * @(#)FlowLayout.java	1.44 02/04/17
+ * @(#)FlowLayout.java	1.46 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -44,7 +44,7 @@ import java.io.IOException;
  * <p>
  * A flow layout lets each component assume its natural (preferred) size.
  *
- * @version 	1.44, 04/17/02
+ * @version 	1.46, 01/23/03
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @since       JDK1.0
@@ -137,8 +137,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * specify the space between components.
      *
      * @serial
-     * @see getHgap
-     * @see setHgap
+     * @see #getHgap()
+     * @see #setHgap(int)
      */
     int hgap;
 
@@ -148,8 +148,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * specify the space between rows.
      *
      * @serial
-     * @see getVgap
-     * @see setVgap
+     * @see #getHgap()
+     * @see #setHgap(int)
      */
     int vgap;
 

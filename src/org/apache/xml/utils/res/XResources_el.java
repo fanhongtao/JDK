@@ -109,7 +109,7 @@ public class XResources_el extends XResourceBundle
     { "numberGroups", new int[]{ 100, 10, 1 } },
 
     //These only used for mutiplicative-additive numbering
-    { "multiplier", new int[]{ 1000 } },
+    { "multiplier", new long[]{ 1000 } },
     { "multiplierChar", new char[]{ 0x03d9 } },
 
     // chinese only??

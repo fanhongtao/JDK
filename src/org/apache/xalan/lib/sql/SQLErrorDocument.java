@@ -1,5 +1,5 @@
 /**
- * @(#)SQLErrorDocument.java	1.5 01/12/03 
+ * @(#) SQLErrorDocument.java
  *
  * The Apache Software License, Version 1.1
  *

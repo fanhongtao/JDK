@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsInternalFrameTitlePane.java	1.7 02/02/11
+ * @(#)WindowsInternalFrameTitlePane.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,10 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
     private JPopupMenu systemPopupMenu;
     private JLabel systemLabel;
 
+    private Font titleFont;
+    private int shadowOffset;
+    private Color shadowColor;
+
     public WindowsInternalFrameTitlePane(JInternalFrame f) {
         super(f);
     }
@@ -35,82 +39,127 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
 
     protected void installDefaults() {
         super.installDefaults();
-        selectedTitleGradientColor =
-                UIManager.getColor("InternalFrame.activeTitleGradient");
-        notSelectedTitleGradientColor =
-                UIManager.getColor("InternalFrame.inactiveTitleGradient");
-        Color activeBorderColor =
-                UIManager.getColor("InternalFrame.activeBorderColor");
-        setBorder(BorderFactory.createLineBorder(activeBorderColor, 1));
+
+	if (XPStyle.getXP() == null) {
+	    selectedTitleGradientColor =
+		    UIManager.getColor("InternalFrame.activeTitleGradient");
+	    notSelectedTitleGradientColor =
+		    UIManager.getColor("InternalFrame.inactiveTitleGradient");
+	    Color activeBorderColor =
+		    UIManager.getColor("InternalFrame.activeBorderColor");
+	    setBorder(BorderFactory.createLineBorder(activeBorderColor, 1));
+	}
+    }
+
+
+    protected void createButtons() {
+	super.createButtons();
+	if (XPStyle.getXP() != null) {
+	    iconButton.setContentAreaFilled(false);
+	    maxButton.setContentAreaFilled(false);
+	    closeButton.setContentAreaFilled(false);
+	}
     }
 
     public void paintComponent(Graphics g)  {
         paintTitleBackground(g);
 
-        if(frame.getTitle() != null) {
+	String title = frame.getTitle();
+        if (title != null) {
             boolean isSelected = frame.isSelected();
-            Font f = g.getFont();
-            g.setFont(getFont());
-            if(isSelected)
-                g.setColor(selectedTextColor);
-            else
-                g.setColor(notSelectedTextColor);
+            Font oldFont = g.getFont();
+            Font newFont = (titleFont != null) ? titleFont : getFont();
+            g.setFont(newFont);
 
             // Center text vertically.
             FontMetrics fm = g.getFontMetrics();
             int baseline = (getHeight() + fm.getAscent() - fm.getLeading() -
                     fm.getDescent()) / 2;
 
-            int titleX;
-            Rectangle r = new Rectangle(0, 0, 0, 0);
-            if (frame.isIconifiable())  r = iconButton.getBounds();
-            else if (frame.isMaximizable())  r = maxButton.getBounds();
-            else if (frame.isClosable())  r = closeButton.getBounds();
-            int titleW;
-    
-            String title = frame.getTitle();
-            if(WindowsGraphicsUtils.isLeftToRight(frame) ) {
-                if (r.x == 0)  r.x = frame.getWidth()-frame.getInsets().right;
-                    titleX = systemLabel.getX() + systemLabel.getWidth() + 2;
-                    titleW = r.x - titleX - 3;
-                    title = getTitle(frame.getTitle(), fm, titleW);
-            } else {
-                titleX = systemLabel.getX() - 2
-                         - SwingUtilities.computeStringWidth(fm,title);
-            }
+	    int titleX;
+	    Rectangle r = new Rectangle(0, 0, 0, 0);
+	    if (frame.isIconifiable())  r = iconButton.getBounds();
+	    else if (frame.isMaximizable())  r = maxButton.getBounds();
+	    else if (frame.isClosable())  r = closeButton.getBounds();
+	    int titleW;
+
+	    if(WindowsGraphicsUtils.isLeftToRight(frame) ) {
+		if (r.x == 0)  r.x = frame.getWidth()-frame.getInsets().right;
+		    titleX = systemLabel.getX() + systemLabel.getWidth() + 2;
+		    titleW = r.x - titleX - 3;
+		    title = getTitle(frame.getTitle(), fm, titleW);
+	    } else {
+		titleX = systemLabel.getX() - 2
+			 - SwingUtilities.computeStringWidth(fm,title);
+	    }
+	    if (shadowOffset != 0 && shadowColor != null) {
+		g.setColor(shadowColor);
+		g.drawString(title, titleX + shadowOffset, baseline + shadowOffset);
+	    }
+	    g.setColor(isSelected ? selectedTextColor : notSelectedTextColor);
             g.drawString(title, titleX, baseline);
-            g.setFont(f);
+            g.setFont(oldFont);
         }
     }
 
-    protected void paintTitleBackground(Graphics g) {
-        Boolean gradientsOn = (Boolean)LookAndFeel.getDesktopPropertyValue(
-            "win.frame.captionGradientsOn", Boolean.valueOf(false));
-        if (gradientsOn.booleanValue() && g instanceof Graphics2D) {
-            Graphics2D g2 = (Graphics2D)g;
-            Paint savePaint = g2.getPaint();
-        
-            boolean isSelected = frame.isSelected();
-            int w = getWidth();
+    public Dimension getPreferredSize() {
+	return getMinimumSize();
+    }
 
-            if (isSelected) {
-                GradientPaint titleGradient = new GradientPaint(0,0, 
-                        selectedTitleColor,
-                        (int)(w*.75),0, 
-                        selectedTitleGradientColor);
-                g2.setPaint(titleGradient);
-            } else {
-                GradientPaint titleGradient = new GradientPaint(0,0, 
-                        notSelectedTitleColor,
-                        (int)(w*.75),0, 
-                        notSelectedTitleGradientColor);   
-                g2.setPaint(titleGradient);
-            }
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.setPaint(savePaint);
-        } else {
-            super.paintTitleBackground(g);
-        }
+    public Dimension getMinimumSize() {
+	Dimension d = super.getMinimumSize();
+
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    // Note: Don't know how to calculate height on XP,
+	    // the captionbarheight is 25 but native caption is 30 (maximized 26)
+	    d.height = xp.getInt("sysmetrics.captionbarheight", d.height);
+	    if (frame.isMaximum()) {
+		d.height += 1;
+	    } else {
+		d.height += 5;
+	    }
+	}
+	return d;
+    }
+
+    protected void paintTitleBackground(Graphics g) {
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    XPStyle.Skin skin = xp.getSkin(frame.isIcon() ? "window.mincaption"
+				      : (frame.isMaximum() ? "window.maxcaption"
+							   : "window.caption"));
+
+	    skin.paintSkin(g, 0,  0, getSize().width, getSize().height, frame.isSelected() ? 0 : 1);
+	} else {
+	    Boolean gradientsOn = (Boolean)LookAndFeel.getDesktopPropertyValue(
+		"win.frame.captionGradientsOn", Boolean.valueOf(false));
+	    if (gradientsOn.booleanValue() && g instanceof Graphics2D) {
+		Graphics2D g2 = (Graphics2D)g;
+		Paint savePaint = g2.getPaint();
+
+		boolean isSelected = frame.isSelected();
+		int w = getWidth();
+
+		if (isSelected) {
+		    GradientPaint titleGradient = new GradientPaint(0,0, 
+			    selectedTitleColor,
+			    (int)(w*.75),0, 
+			    selectedTitleGradientColor);
+		    g2.setPaint(titleGradient);
+		} else {
+		    GradientPaint titleGradient = new GradientPaint(0,0, 
+			    notSelectedTitleColor,
+			    (int)(w*.75),0, 
+			    notSelectedTitleGradientColor);   
+		    g2.setPaint(titleGradient);
+		}
+		g2.fillRect(0, 0, getWidth(), getHeight());
+		g2.setPaint(savePaint);
+	    } else {
+		super.paintTitleBackground(g);
+	    }
+	}
     }
 
     protected void assembleSystemMenu() {
@@ -120,24 +169,7 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
         systemLabel = new JLabel(frame.getFrameIcon());
         systemLabel.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                Dimension dim = new Dimension();
-                Border border = frame.getBorder();
-                if (border != null) {
-                    dim.width += border.getBorderInsets(frame).left +
-                                 border.getBorderInsets(frame).right;
-                    dim.height += border.getBorderInsets(frame).bottom +
-                                  border.getBorderInsets(frame).top;
-                }
-                if (!frame.isIcon()) {
-                    systemPopupMenu.show(e.getComponent(),
-                        getX() - dim.width,
-                        getY() + getHeight() - dim.height);
-                } else {
-                    systemPopupMenu.show(e.getComponent(),
-                        getX() - dim.width,
-                        getY() - systemPopupMenu.getPreferredSize().height -
-                            dim.height);
-                }
+		showSystemPopupMenu(e.getComponent());
             }
         });
     }
@@ -158,6 +190,31 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
         mi.setMnemonic('C');
     }
 
+    protected void showSystemMenu(){
+	showSystemPopupMenu(systemLabel);
+    }
+
+    private void showSystemPopupMenu(Component invoker){
+	Dimension dim = new Dimension();
+	Border border = frame.getBorder();
+	if (border != null) {
+	    dim.width += border.getBorderInsets(frame).left +
+		border.getBorderInsets(frame).right;
+	    dim.height += border.getBorderInsets(frame).bottom +
+		border.getBorderInsets(frame).top;
+	}
+	if (!frame.isIcon()) {
+	    systemPopupMenu.show(invoker,
+                getX() - dim.width,
+                getY() + getHeight() - dim.height);
+	} else {
+	    systemPopupMenu.show(invoker,
+                getX() - dim.width,
+                getY() - systemPopupMenu.getPreferredSize().height -
+		     dim.height);
+	}
+    }
+
     protected PropertyChangeListener createPropertyChangeListener() {
         return new WindowsPropertyChangeHandler();
     }
@@ -166,45 +223,88 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
         return new WindowsTitlePaneLayout();
     }
 
-    public class WindowsTitlePaneLayout extends
-            BasicInternalFrameTitlePane.TitlePaneLayout {
+    public class WindowsTitlePaneLayout extends BasicInternalFrameTitlePane.TitlePaneLayout {
+	private Insets captionMargin = null;
+	private Insets contentMargin = null;
+	private XPStyle xp = XPStyle.getXP();
+
+	WindowsTitlePaneLayout() {
+	    if (xp != null) {
+		captionMargin = xp.getMargin("window.caption.captionmargins");
+		contentMargin = xp.getMargin("window.caption.contentmargins");
+	    }
+	    if (captionMargin == null) {
+		captionMargin = new Insets(0, 2, 0, 2);
+	    }
+	    if (contentMargin == null) {
+		contentMargin = new Insets(0, 0, 0, 0);
+	    }
+	}
+
+	private int layoutButton(JComponent button, String category,
+				 int x, int y, int w, int h, boolean leftToRight) {
+	    if (xp != null) {
+		// Ignore offset parameters, because Windows does, and some third party
+		// themes have bad values for them.
+		XPStyle.Skin skin = xp.getSkin(category);
+		if (skin.getImage() != null) {
+		    w = skin.getWidth();
+		    h = skin.getHeight();
+		}
+	    }
+	    if (!leftToRight) {
+		x -= w;
+	    }
+	    button.setBounds(x, y, w, h);
+	    if (leftToRight) {
+		x += w + 2;
+	    } else {
+		x -= 2;
+	    }
+	    return x;
+	}
+
         public void layoutContainer(Container c) {
             boolean leftToRight = WindowsGraphicsUtils.isLeftToRight(frame);
-            
+	    int x, y;
             int w = getWidth();
             int h = getHeight();
-            int x;
 
-            int buttonHeight = closeButton.getIcon().getIconHeight();
-            //int buttonWidth = closeButton.getIcon().getIconWidth();
+	    // System button
+	    Icon icon = frame.getFrameIcon();
+	    int iconHeight = (icon != null) ? icon.getIconHeight() : 0;
+	    x = (leftToRight) ? captionMargin.left : w - captionMargin.right;
+	    y = (h - iconHeight) / 2 + 1;
+	    layoutButton(systemLabel, "window.sysbutton", x, y, 16, 16, leftToRight);
 
-            Icon icon = frame.getFrameIcon();
-            int iconHeight = 0;
-            if (icon != null) {
-                iconHeight = icon.getIconHeight();
-            }
+	    // Right hand buttons
+	    if (xp != null) {
+		x = (leftToRight) ? w - captionMargin.right - 2 : captionMargin.left + 2;
+		y = contentMargin.top + captionMargin.top;
+		if (frame.isMaximum()) {
+		    y += 1;
+		} else {
+		    y += 5;
+		}
+	    } else {
+		x = (leftToRight) ? w - captionMargin.right : captionMargin.left;
+		// The +1 is due to the way the line border is drawn and modifies
+		// the look of the title pane.
+		y = (h - 16) / 2 + 1;
+	    }
 
-            x = (leftToRight) ? 2 : w - 16 - 2;
-            systemLabel.setBounds(x, (h - iconHeight) / 2, 16, 16);
+	    if(frame.isClosable()) {
+		x = layoutButton(closeButton, "window.closebutton", x, y, 16, 14, !leftToRight);
+	    } 
 
-            x = (leftToRight) ? w - 16 - 2 : 2;
-            
-            // The +1 is due to the way the line border is drawn and modifies
-            // the look of the title pane.
-            if(frame.isClosable()) {
-                closeButton.setBounds(x, (h - buttonHeight) / 2 + 1, 16, 14);
-                x += (leftToRight) ? -(16 + 2) : 16 + 2;
-            } 
-            
-            if(frame.isMaximizable()) {
-                maxButton.setBounds(x, (h - buttonHeight) / 2 + 1, 16, 14);
-                x += (leftToRight) ? -(16 + 2) : 16 + 2;
-            }
-        
-            if(frame.isIconifiable()) {
-                iconButton.setBounds(x, (h - buttonHeight) / 2 + 1, 16, 14);
-            } 
-        }
+	    if(frame.isMaximizable()) {
+		x = layoutButton(maxButton, "window.maxbutton", x, y, 16, 14, !leftToRight);
+	    }
+
+	    if(frame.isIconifiable()) {
+		layoutButton(iconButton, "window.minbutton", x, y, 16, 14, !leftToRight);
+	    } 
+	}
     } // end WindowsTitlePaneLayout
 
     public class WindowsPropertyChangeHandler extends PropertyChangeHandler {

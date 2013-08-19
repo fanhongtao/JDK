@@ -119,7 +119,7 @@ public class ElemIf extends ElemTemplateElement
    * values that may be based on some other property that
    * depends on recomposition.
    *
-   * NEEDSDOC @param sroot
+   * @param sroot The root stylesheet.
    *
    * @throws TransformerException
    */
@@ -171,9 +171,6 @@ public class ElemIf extends ElemTemplateElement
   public void execute(TransformerImpl transformer) throws TransformerException
   {
 
-    if (TransformerImpl.S_DEBUG)
-      transformer.getTraceManager().fireTraceEvent(this);
-
     XPathContext xctxt = transformer.getXPathContext();
     int sourceNode = xctxt.getCurrentNode();
 
@@ -187,7 +184,20 @@ public class ElemIf extends ElemTemplateElement
 
       if (test.bool())
       {
+      	// Note that there was a bad incompatibility with xsl:if... 
+      	// which was called whether the test was successful or not.  
+      	// With the current logic of xsl:for-each, 
+      	// if the node-set is empty trace will not be called at all.
+        // So I've changed xsl:if to match the xsl:for-each behavior. 
+        // -sb
+
+        if (TransformerImpl.S_DEBUG)
+          transformer.getTraceManager().fireTraceEvent(this);
+
         transformer.executeChildTemplates(this, true);
+        
+        if (TransformerImpl.S_DEBUG)
+          transformer.getTraceManager().fireTraceEndEvent(this);
       }
 
       // I don't think we want this.  -sb
@@ -199,5 +209,18 @@ public class ElemIf extends ElemTemplateElement
     {
       transformer.executeChildTemplates(this, true);
     }
+    
   }
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+  {
+  	if(callAttrs)
+  		m_test.getExpression().callVisitors(m_test, visitor);
+    super.callChildVisitors(visitor, callAttrs);
+  }
+
 }

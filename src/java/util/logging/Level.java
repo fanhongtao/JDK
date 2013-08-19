@@ -1,7 +1,7 @@
 /*
- * @(#)Level.java	1.10 02/02/25
+ * @(#)Level.java	1.12 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.ResourceBundle;
  * they maintain the Object uniqueness property across serialization
  * by defining a suitable readResolve method.
  *
- * @version 1.10, 02/25/02
+ * @version 1.12, 01/27/03
  * @since 1.4
  */
 
@@ -269,7 +269,7 @@ public class Level implements java.io.Serializable {
      * <li>	"SEVERE"
      * <li>	"1000"
      * </ul>
-     * @param level   string to be parsed
+     * @param  name   string to be parsed
      * @return parsed value
      * @throws NullPointerException if the name is null
      * @throws IllegalArgumentException if the value is neither one of the

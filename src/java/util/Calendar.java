@@ -1,5 +1,5 @@
 /*
- * @(#)Calendar.java	1.72 03/04/25
+ * @(#)Calendar.java	1.73 03/04/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -258,7 +258,7 @@ import sun.util.calendar.ZoneInfo;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.72, 04/25/03
+ * @version      1.73, 04/23/03
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -966,6 +966,23 @@ public abstract class Calendar implements Serializable, Cloneable {
     }
 
     /**
+     * Clears the value of the given calendar field and resets the
+     * field status flags only. The difference from clear(int) is that
+     * this method doesn't reset isTimeSet.
+     *
+     * @param field the given calendar field.
+     * @throws ArrayIndexOutOfBoundsException if specified field is out of range
+     *             (<tt>field &lt; 0 || field &gt;= FIELD_COUNT</tt>).
+     */
+    final void internalClear(int field) {
+        fields[field] = 0;
+        stamp[field] = UNSET;
+        areFieldsSet = false;
+        areAllFieldsSet = false;
+        isSet[field] = false;
+    }
+
+    /**
      * Sets the time field with the given value.
      * @param field the given time field.
      * @param value the value to be set for the given time field.
@@ -1651,7 +1668,9 @@ public abstract class Calendar implements Serializable, Cloneable {
         // Write out the 1.1 FCS object.
         stream.defaultWriteObject();
 
-	// Write out the ZoneInfo object even if it is null,  see bug 4802409 
+	// Write out the ZoneInfo object 
+	// 4802409: we write out even if it is null, a temporary workaround
+	// the real fix for bug 4844924 in corba-iiop
 	stream.writeObject(savedZone);
 	if (savedZone != null) {
 	    zone = savedZone;

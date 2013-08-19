@@ -57,18 +57,17 @@
 package org.apache.xpath.axes;
 
 import javax.xml.transform.TransformerException;
-
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.patterns.NodeTest;
-import org.apache.xpath.objects.XObject;
-import org.apache.xpath.compiler.OpCodes;
-import org.apache.xpath.XPathContext;
-
-import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.DTMAxisTraverser;
 import org.apache.xml.dtm.Axis;
+import org.apache.xml.dtm.DTM;
+import org.apache.xml.dtm.DTMAxisTraverser;
+import org.apache.xml.dtm.DTMFilter;
+import org.apache.xml.dtm.DTMIterator;
+import org.apache.xpath.Expression;
+import org.apache.xpath.VariableStack;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.compiler.Compiler;
+import org.apache.xpath.compiler.OpCodes;
+import org.apache.xpath.patterns.NodeTest;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -93,9 +92,8 @@ public class DescendantIterator extends LocPathIterator
 
     super(compiler, opPos, analysis, false);
 
-    int ops[] = compiler.getOpMap();
     int firstStepPos = compiler.getFirstChildPos(opPos);
-    int stepType = ops[firstStepPos];
+    int stepType = compiler.getOp(firstStepPos);
 
     boolean orSelf = (OpCodes.FROM_DESCENDANTS_OR_SELF == stepType);
     boolean fromRoot = false;
@@ -109,7 +107,7 @@ public class DescendantIterator extends LocPathIterator
       fromRoot = true;
       // Ugly code... will go away when AST work is done.
       int nextStepPos = compiler.getNextStepPos(firstStepPos);
-      if(ops[nextStepPos] == OpCodes.FROM_DESCENDANTS_OR_SELF)
+      if(compiler.getOp(nextStepPos) == OpCodes.FROM_DESCENDANTS_OR_SELF)
         orSelf = true;
       // firstStepPos += 8;
     }
@@ -193,6 +191,7 @@ public class DescendantIterator extends LocPathIterator
   {
 
     DescendantIterator clone = (DescendantIterator) super.cloneWithReset();
+    clone.m_traverser = m_traverser;
 
     clone.resetProximityPositions();
 
@@ -213,27 +212,9 @@ public class DescendantIterator extends LocPathIterator
    */
   public int nextNode()
   {
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    if ((null != m_cachedNodes)
-            && (m_next < m_cachedNodes.size()))
-    {
-      int next = m_cachedNodes.elementAt(m_next);
-    
-      incrementNextPosition();
-      m_currentContextNode = next;
+   	if(m_foundLast)
+  		return DTM.NULL;
 
-      return next;
-    }
-
-    if (m_foundLast)
-    {
-      m_lastFetched = DTM.NULL;
-      return DTM.NULL;
-    }
-      
     if(DTM.NULL == m_lastFetched)
     {
       resetProximityPositions();
@@ -291,11 +272,7 @@ public class DescendantIterator extends LocPathIterator
   
       if (DTM.NULL != next)
       {
-        if (null != m_cachedNodes)
-          m_cachedNodes.addElement(m_lastFetched);
-  
-        m_next++;
-  
+      	m_pos++;
         return next;
       }
       else
@@ -413,7 +390,7 @@ public class DescendantIterator extends LocPathIterator
   {
     return m_axis;
   }
-
+  
   
   /** The traverser to use to navigate over the descendants. */
   transient protected DTMAxisTraverser m_traverser;
@@ -423,5 +400,20 @@ public class DescendantIterator extends LocPathIterator
   
   /** The extended type ID, not set until setRoot. */
   protected int m_extendedTypeID;
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!super.deepEquals(expr))
+  		return false;
+  		
+  	if(m_axis != ((DescendantIterator)expr).m_axis)
+  		return false;
+  		
+  	return true;
+  }
+
   
 }

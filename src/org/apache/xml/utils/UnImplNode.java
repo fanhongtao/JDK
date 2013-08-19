@@ -77,9 +77,9 @@ public class UnImplNode implements Node, Element, NodeList, Document
   /**
    * Throw an error.
    *
-   * @param msg Message code for the error
+   * @param msg Message Key for the error
    */
-  public void error(int msg)
+  public void error(String msg)
   {
 
     System.out.println("DOM ERROR! class: " + this.getClass().getName());
@@ -90,10 +90,10 @@ public class UnImplNode implements Node, Element, NodeList, Document
   /**
    * Throw an error.
    *
-   * @param msg Message code for the error
+   * @param msg Message Key for the error
    * @param args Array of arguments to be used in the error message
    */
-  public void error(int msg, Object[] args)
+  public void error(String msg, Object[] args)
   {
 
     System.out.println("DOM ERROR! class: " + this.getClass().getName());

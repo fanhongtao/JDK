@@ -72,6 +72,7 @@ import org.apache.xalan.res.XSLTErrorResources;
 import org.apache.xalan.templates.Constants;
 import org.apache.xalan.templates.ElemTemplateElement;
 import org.apache.xalan.templates.ElemUnknown;
+import org.apache.xalan.templates.ElemForEach;
 import org.apache.xalan.templates.StylesheetRoot;
 import org.apache.xalan.templates.Stylesheet;
 import org.apache.xml.utils.NodeConsumer;
@@ -84,6 +85,8 @@ import org.apache.xpath.functions.Function;
 import org.apache.xpath.XPathFactory;
 import org.apache.xpath.XPath;
 
+import org.apache.xpath.functions.FuncExtFunction;
+import org.apache.xalan.extensions.ExpressionVisitor;
 import org.w3c.dom.Node;
 
 import org.xml.sax.Attributes;
@@ -189,11 +192,14 @@ public class StylesheetHandler extends DefaultHandler
    * @throws javax.xml.transform.TransformerException if the expression can not be processed.
    * @see <a href="http://www.w3.org/TR/xslt#section-Expressions">Section 4 Expressions in XSLT Specification</a>
    */
-  public XPath createXPath(String str)
+  public XPath createXPath(String str, ElemTemplateElement owningTemplate)
           throws javax.xml.transform.TransformerException
   {
     ErrorListener handler = m_stylesheetProcessor.getErrorListener();
-    return new XPath(str, getLocator(), this, XPath.SELECT, handler);
+    XPath xpath = new XPath(str, owningTemplate, this, XPath.SELECT, handler);
+    // Visit the expression, registering namespaces for any extension functions it includes.
+    xpath.callVisitors(xpath, new ExpressionVisitor(getStylesheetRoot()));
+    return xpath;
   }
 
   /**
@@ -206,11 +212,14 @@ public class StylesheetHandler extends DefaultHandler
    * @throws javax.xml.transform.TransformerException if the pattern can not be processed.
    * @see <a href="http://www.w3.org/TR/xslt#patterns">Section 5.2 Patterns in XSLT Specification</a>
    */
-  XPath createMatchPatternXPath(String str)
+  XPath createMatchPatternXPath(String str, ElemTemplateElement owningTemplate)
           throws javax.xml.transform.TransformerException
   {
     ErrorListener handler = m_stylesheetProcessor.getErrorListener();
-    return new XPath(str, getLocator(), this, XPath.MATCH, handler);
+    XPath xpath = new XPath(str, owningTemplate, this, XPath.MATCH, handler);
+    // Visit the expression, registering namespaces for any extension functions it includes.
+    xpath.callVisitors(xpath, new ExpressionVisitor(getStylesheetRoot()));
+    return xpath;    
   }
 
   /**
@@ -416,8 +425,8 @@ public class StylesheetHandler extends DefaultHandler
     }
 
     if (null == elemProcessor)
-      error(rawName + " is not allowed in this position in the stylesheet!",
-            null);
+      error(XSLMessages.createMessage(XSLTErrorResources.ER_NOT_ALLOWED_IN_POSITION, new Object[]{rawName}),null);//rawName + " is not allowed in this position in the stylesheet!",
+            
                 
     return elemProcessor;
   }
@@ -605,10 +614,11 @@ public class StylesheetHandler extends DefaultHandler
           String uri, String localName, String rawName, Attributes attributes)
             throws org.xml.sax.SAXException
   {
-      NamespaceSupport nssupport = this.getNamespaceSupport();
+    NamespaceSupport nssupport = this.getNamespaceSupport();
     nssupport.pushContext();
     
     int n = m_prefixMappings.size();
+
     for (int i = 0; i < n; i++) 
     {
       String prefix = (String)m_prefixMappings.elementAt(i++);
@@ -652,8 +662,16 @@ public class StylesheetHandler extends DefaultHandler
     XSLTElementProcessor elemProcessor = getProcessorFor(uri, localName,
                                            rawName);
 
-    this.pushProcessor(elemProcessor);
-    elemProcessor.startElement(this, uri, localName, rawName, attributes);
+    if(null != elemProcessor)  // defensive, for better multiple error reporting. -sb
+    {
+      this.pushProcessor(elemProcessor);
+      elemProcessor.startElement(this, uri, localName, rawName, attributes);
+    }
+    else
+    {
+      m_shouldProcess = false;
+      popSpaceHandling();
+    }
                 
   }
 
@@ -725,8 +743,8 @@ public class StylesheetHandler extends DefaultHandler
       // If it's whitespace, just ignore it, otherwise flag an error.
       if (!XMLCharacterRecognizer.isWhiteSpace(ch, start, length))
         error(
-          "Non-whitespace text is not allowed in this position in the stylesheet!",
-          null);
+          XSLMessages.createMessage(XSLTErrorResources.ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION, null),null);//"Non-whitespace text is not allowed in this position in the stylesheet!",
+          
     }
     else
       elemProcessor.characters(this, ch, start, length);
@@ -757,6 +775,14 @@ public class StylesheetHandler extends DefaultHandler
   /**
    * Receive notification of a processing instruction.
    *
+   * <p>The Parser will invoke this method once for each processing
+   * instruction found: note that processing instructions may occur
+   * before or after the main document element.</p>
+   *
+   * <p>A SAX parser should never report an XML declaration (XML 1.0,
+   * section 2.8) or a text declaration (XML 1.0, section 4.3.1)
+   * using this method.</p>
+   *
    * <p>By default, do nothing.  Application writers may override this
    * method in a subclass to take specific actions for each
    * processing instruction, such as setting status variables or
@@ -773,9 +799,58 @@ public class StylesheetHandler extends DefaultHandler
   public void processingInstruction(String target, String data)
           throws org.xml.sax.SAXException
   {
-
     if (!m_shouldProcess)
       return;
+
+    // Recreating Scott's kluge:
+    // A xsl:for-each or xsl:apply-templates may have a special 
+    // PI that tells us not to cache the document.  This PI 
+    // should really be namespaced.
+    //    String localName = getLocalName(target);
+    //    String ns = m_stylesheet.getNamespaceFromStack(target);
+    //
+    // %REVIEW%: We need a better PI architecture
+    
+    String prefix="",ns="", localName=target;
+    int colon=target.indexOf(':');
+    if(colon>=0)
+    {
+      ns=getNamespaceForPrefix(prefix=target.substring(0,colon));
+      localName=target.substring(colon+1);
+    }
+
+    try
+    {
+      // A xsl:for-each or xsl:apply-templates may have a special 
+      // PI that tells us not to cache the document.  This PI 
+      // should really be namespaced... but since the XML Namespaces
+      // spec never defined namespaces as applying to PI's, and since
+      // the testcase we're trying to support is inconsistant in whether
+      // it binds the prefix, I'm going to make this sloppy for
+      // testing purposes.
+      if(
+	 "xalan:doc-cache-off".equals(target) ||
+	   ("doc-cache-off".equals(localName) &&
+	    ns.equals("org.apache.xalan.xslt.extensions.Redirect") )
+	 )
+      {
+	if(!(m_elems.peek() instanceof ElemForEach))
+          throw new TransformerException
+	    ("xalan:doc-cache-off not allowed here!", 
+	     getLocator());
+        ElemForEach elem = (ElemForEach)m_elems.peek();
+
+        elem.m_doc_cache_off = true;
+
+	//System.out.println("JJK***** Recognized <? {"+ns+"}"+prefix+":"+localName+" "+data+"?>");
+      }
+    }
+    catch(Exception e)
+    {
+      // JJK: Officially, unknown PIs can just be ignored.
+      // Do we want to issue a warning?
+    }
+
 
     flushCharacters();
     getCurrentProcessor().processingInstruction(this, target, data);
@@ -808,7 +883,7 @@ public class StylesheetHandler extends DefaultHandler
    * <meta name="usage" content="internal"/>
    * Warn the user of an problem.
    *
-   * @param msg An index into the {@link org.apache.xalan.res.XSLTErrorResources}
+   * @param msg An key into the {@link org.apache.xalan.res.XSLTErrorResources}
    * table, that is one of the WG_ prefixed definitions.
    * @param args An array of arguments for the given warning.
    *
@@ -817,7 +892,7 @@ public class StylesheetHandler extends DefaultHandler
    * {@link javax.xml.transform.ErrorListener#warning}
    * method chooses to flag this condition as an error.
    */
-  public void warn(int msg, Object args[]) throws org.xml.sax.SAXException
+  public void warn(String msg, Object args[]) throws org.xml.sax.SAXException
   {
 
     String formattedMsg = m_XSLMessages.createWarning(msg, args);
@@ -900,7 +975,7 @@ public class StylesheetHandler extends DefaultHandler
    * Tell the user of an error, and probably throw an
    * exception.
    *
-   * @param msg An index into the {@link org.apache.xalan.res.XSLTErrorResources}
+   * @param msg A key into the {@link org.apache.xalan.res.XSLTErrorResources}
    * table, that is one of the WG_ prefixed definitions.
    * @param args An array of arguments for the given warning.
    * @param e An error which the SAXException should wrap.
@@ -910,7 +985,7 @@ public class StylesheetHandler extends DefaultHandler
    * {@link javax.xml.transform.ErrorListener#error}
    * method chooses to flag this condition as an error.
    */
-  protected void error(int msg, Object args[], Exception e)
+  protected void error(String msg, Object args[], Exception e)
           throws org.xml.sax.SAXException
   {
 
@@ -1589,7 +1664,7 @@ public class StylesheetHandler extends DefaultHandler
     String value = attrs.getValue("xml:space");
     if(null == value)
     {
-      m_spacePreserveStack.push(m_spacePreserveStack.peek());
+      m_spacePreserveStack.push(m_spacePreserveStack.peekOrFalse());
     }
     else if(value.equals("preserve"))
     {
@@ -1633,6 +1708,13 @@ public class StylesheetHandler extends DefaultHandler
       }
     return (version == -1)? Constants.XSLTVERSUPPORTED : version;
   }
+	/**
+	 * @see PrefixResolver#handlesNullPrefixes()
+	 */
+	public boolean handlesNullPrefixes() {
+		return false;
+	}
+
 }
 
 

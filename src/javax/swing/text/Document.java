@@ -1,7 +1,7 @@
 /*
- * @(#)Document.java	1.37 01/12/03
+ * @(#)Document.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -28,7 +28,8 @@ import javax.swing.event.*;
  * used are the location between two characters.  As the diagram 
  * below shows, a location in a text document can be referred to 
  * as a position, or an offset. This position is zero-based.
- * <p align=center><img src="doc-files/Document-coord.gif">
+ * <p align=center><img src="doc-files/Document-coord.gif" 
+ * alt="The following text describes this graphic.">
  * <p>
  * In the example, if the content of a document is the
  * sequence "The quick brown fox," as shown in the preceding diagram, 
@@ -50,7 +51,8 @@ import javax.swing.event.*;
  * Exactly what structure is modeled is up to a particular Document
  * implementation.  It might be as simple as no structure (i.e. a
  * simple text field), or it might be something like diagram below.
- * <p align=center><img src="doc-files/Document-structure.gif">
+ * <p align=center><img src="doc-files/Document-structure.gif"
+ * alt="Diagram shows Book->Chapter->Paragraph">
  * <p>
  * The unit of structure (i.e. a node of the tree) is referred to
  * by the <a href="Element.html">Element</a> interface.  Each Element
@@ -100,9 +102,10 @@ import javax.swing.event.*;
  * fired from the Document to indicate it has changed again.
  * In this case however, there should be no <code>UndoableEditEvent</code>
  * generated since that edit is actually the source of the change
- * rather than a mutation to the <code>Document</code> made through it's 
+ * rather than a mutation to the <code>Document</code> made through its 
  * api.
- * <p align=center><img src="doc-files/Document-notification.gif">
+ * <p align=center><img src="doc-files/Document-notification.gif"
+ * alt="The preceeding text describes this graphic.">
  * <p>
  * Referring to the above diagram, suppose that the component shown 
  * on the left mutates the document object represented by the blue 
@@ -151,7 +154,7 @@ import javax.swing.event.*;
  * The Element Interface</a>.
  *
  * @author  Timothy Prinzing
- * @version 1.37 12/03/01
+ * @version 1.40 01/23/03
  *
  * @see javax.swing.event.DocumentEvent
  * @see javax.swing.event.DocumentListener
@@ -247,7 +250,8 @@ public interface Document {
      * For a removal, the end of the removal range is collapsed 
      * down to the start of the range, and any marks in the removal 
      * range are collapsed down to the start of the range.
-     * <p align=center><img src="doc-files/Document-remove.gif">
+     * <p align=center><img src="doc-files/Document-remove.gif"
+     *  alt="Diagram shows removal of 'quick' from 'The quick brown fox.'">
      * <p>
      * If the Document structure changed as result of the removal,
      * the details of what Elements were inserted and removed in
@@ -279,7 +283,8 @@ public interface Document {
      * insertUpdate method on the DocumentListener.
      * The offset and length of the generated DocumentEvent
      * will indicate what change was actually made to the Document.
-     * <p align=center><img src="doc-files/Document-insert.gif">
+     * <p align=center><img src="doc-files/Document-insert.gif"
+     *  alt="Diagram shows insertion of 'quick' in 'The quick brown fox'">
      * <p>
      * If the Document structure changed as result of the insertion,
      * the details of what Elements were inserted and removed in

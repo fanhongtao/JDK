@@ -1,7 +1,7 @@
 /*
- * @(#)CustomMarshal.java	1.11 01/12/03
+ * @(#)CustomMarshal.java	1.13 03/01/28
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import org.omg.CORBA.DataInputStream;
  * <tt>CustomMarshal</tt> operations. The manner in which this is done is 
  * specified in the IDL to Java langague mapping. Each custom 
  * marshaled value type shall have its own implementation.
- * @see DataOuputStream
+ * @see DataOutputStream
  * @see DataInputStream
  */
 public interface CustomMarshal {

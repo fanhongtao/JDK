@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTheme.java	1.22 02/04/18
+ * @(#)MetalTheme.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -15,7 +15,7 @@ import javax.swing.*;
  * used by Metal.  Classes which implement this interface can
  * be used to swap the colors in a Metal application.
  *
- * @version 1.22 04/18/02
+ * @version 1.23 01/23/03
  * @author Steve Wilson
  */
 

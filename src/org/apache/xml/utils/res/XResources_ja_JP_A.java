@@ -1,11 +1,4 @@
 /*
- * @(#)XResources_ja_JP_A.java	1.5 01/12/03
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -68,7 +61,7 @@ import org.apache.xml.utils.res.XResourceBundle;
 import java.util.*;
 
 //
-//  LangResources_ja_JP_A.properties
+//  LangResources_en.properties
 //
 
 /**
@@ -118,8 +111,10 @@ public class XResources_ja_JP_A extends XResourceBundle
     { "numberGroups", new int[]{ 1 } },
 
     //These only used for mutiplicative-additive numbering
+    // Note that we are using longs and that the last two 
+    // multipliers are not supported. This is a known limitation.
     { "multiplier",
-      new int[]{ 1000000000, 100000000, 10000, 1000, 100, 10 } },
+      new long[]{ Long.MAX_VALUE, Long.MAX_VALUE, 100000000, 10000, 1000, 100, 10 } },
     { "multiplierChar",
       new char[]{ 0x4EAC, 0x5146, 0x5104, 0x4E07, 0x5343, 0x767e, 0x5341 } },
 

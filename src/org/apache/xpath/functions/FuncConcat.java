@@ -58,10 +58,9 @@ package org.apache.xpath.functions;
 
 //import org.w3c.dom.Node;
 
-import java.util.Vector;
-
+import javax.xml.transform.TransformerException;
+import org.apache.xalan.res.XSLMessages;
 import org.apache.xpath.XPathContext;
-import org.apache.xpath.XPath;
 import org.apache.xpath.objects.XObject;
 import org.apache.xpath.objects.XString;
 
@@ -114,6 +113,16 @@ public class FuncConcat extends FunctionMultiArgs
   public void checkNumberArgs(int argNum) throws WrongNumberArgsException
   {
     if (argNum < 2)
-      throw new WrongNumberArgsException(">1");
+      reportWrongNumberArgs();
+  }
+
+  /**
+   * Constructs and throws a WrongNumberArgException with the appropriate
+   * message for this function object.
+   *
+   * @throws WrongNumberArgsException
+   */
+  protected void reportWrongNumberArgs() throws WrongNumberArgsException {
+      throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("gtone", null));
   }
 }

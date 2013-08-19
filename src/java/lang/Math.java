@@ -1,7 +1,7 @@
 /*
- * @(#)Math.java	1.55 02/02/06
+ * @(#)Math.java	1.57 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -60,7 +60,7 @@ import java.util.Random;
  * requirements.
  * 
  * @author  unascribed
- * @version 1.55, 02/06/02
+ * @version 1.57, 01/23/03
  * @since   JDK1.0
  */
 
@@ -424,8 +424,9 @@ public final strictfp class Math {
     }
 
     /**
-     * Returns of value of the first argument raised to the power of the
+     * Returns the value of the first argument raised to the power of the
      * second argument. Special cases:
+     *
      * <ul><li>If the second argument is positive or negative zero, then the 
      * result is 1.0. 
      * <li>If the second argument is 1.0, then the result is the same as the 
@@ -433,64 +434,113 @@ public final strictfp class Math {
      * <li>If the second argument is NaN, then the result is NaN. 
      * <li>If the first argument is NaN and the second argument is nonzero, 
      * then the result is NaN. 
-     * <li>If the absolute value of the first argument is greater than 1 and 
-     * the second argument is positive infinity, or the absolute value of the 
-     * first argument is less than 1 and the second argument is negative 
-     * infinity, then the result is positive infinity. 
-     * <li>If the absolute value of the first argument is greater than 1 and 
-     * the second argument is negative infinity, or the absolute value of the 
+     *
+     * <li>If
+     * <ul>
+     * <li>the absolute value of the first argument is greater than 1
+     * and the second argument is positive infinity, or
+     * <li>the absolute value of the first argument is less than 1 and
+     * the second argument is negative infinity,
+     * </ul>
+     * then the result is positive infinity. 
+     *
+     * <li>If 
+     * <ul>
+     * <li>the absolute value of the first argument is greater than 1 and 
+     * the second argument is negative infinity, or 
+     * <li>the absolute value of the 
      * first argument is less than 1 and the second argument is positive 
-     * infinity, then the result is positive zero. 
+     * infinity,
+     * </ul>
+     * then the result is positive zero. 
+     *
      * <li>If the absolute value of the first argument equals 1 and the 
      * second argument is infinite, then the result is NaN. 
-     * <li>If the first argument is positive zero and the second argument is 
-     * greater than zero, or the first argument is positive infinity and the 
-     * second argument is less than zero, then the result is positive zero. 
-     * <li>If the first argument is positive zero and the second argument is 
-     * less than zero, or the first argument is positive infinity and the 
-     * second argument is greater than zero, then the result is positive 
-     * infinity. 
-     * <li>If the first argument is negative zero and the second argument is 
-     * greater than zero but not a finite odd integer, or the first argument 
-     * is negative infinity and the second argument is less than zero but not 
-     * a finite odd integer, then the result is positive zero. 
-     * <li>If the first argument is negative zero and the second argument is 
-     * a positive finite odd integer, or the first argument is negative 
-     * infinity and the second argument is a negative finite odd integer, 
+     *
+     * <li>If 
+     * <ul>
+     * <li>the first argument is positive zero and the second argument
+     * is greater than zero, or
+     * <li>the first argument is positive infinity and the second
+     * argument is less than zero,
+     * </ul>
+     * then the result is positive zero. 
+     *
+     * <li>If 
+     * <ul>
+     * <li>the first argument is positive zero and the second argument
+     * is less than zero, or
+     * <li>the first argument is positive infinity and the second
+     * argument is greater than zero,
+     * </ul>
+     * then the result is positive infinity.
+     *
+     * <li>If 
+     * <ul>
+     * <li>the first argument is negative zero and the second argument
+     * is greater than zero but not a finite odd integer, or
+     * <li>the first argument is negative infinity and the second
+     * argument is less than zero but not a finite odd integer,
+     * </ul>
+     * then the result is positive zero. 
+     *
+     * <li>If 
+     * <ul>
+     * <li>the first argument is negative zero and the second argument
+     * is a positive finite odd integer, or
+     * <li>the first argument is negative infinity and the second
+     * argument is a negative finite odd integer,
+     * </ul>
      * then the result is negative zero. 
-     * <li>If the first argument is negative zero and the second argument is 
-     * less than zero but not a finite odd integer, or the first argument is 
-     * negative infinity and the second argument is greater than zero but not 
-     * a finite odd integer, then the result is positive infinity. 
-     * <li>If the first argument is negative zero and the second argument is 
-     * a negative finite odd integer, or the first argument is negative 
-     * infinity and the second argument is a positive finite odd integer, 
+     *
+     * <li>If
+     * <ul>
+     * <li>the first argument is negative zero and the second argument
+     * is less than zero but not a finite odd integer, or
+     * <li>the first argument is negative infinity and the second
+     * argument is greater than zero but not a finite odd integer,
+     * </ul>
+     * then the result is positive infinity. 
+     *
+     * <li>If 
+     * <ul>
+     * <li>the first argument is negative zero and the second argument
+     * is a negative finite odd integer, or
+     * <li>the first argument is negative infinity and the second
+     * argument is a positive finite odd integer,
+     * </ul>
      * then the result is negative infinity. 
-     * <li>If the first argument is less than zero and the second argument is 
-     * a finite even integer, then the result is equal to the result of 
-     * raising the absolute value of the first argument to the power of the 
-     * second argument. 
-     * <li>If the first argument is less than zero and the second argument 
-     * is a finite odd integer, then the result is equal to the negative of 
-     * the result of raising the absolute value of the first argument to the 
-     * power of the second argument. 
-     * <li>If the first argument is finite and less than zero and the second 
-     * argument is finite and not an integer, then the result is NaN. 
+     *
+     * <li>If the first argument is finite and less than zero
+     * <ul>
+     * <li> if the second argument is a finite even integer, the
+     * result is equal to the result of raising the absolute value of
+     * the first argument to the power of the second argument
+     *
+     * <li>if the second argument is a finite odd integer, the result
+     * is equal to the negative of the result of raising the absolute
+     * value of the first argument to the power of the second
+     * argument
+     *
+     * <li>if the second argument is finite and not an integer, then
+     * the result is NaN.
+     * </ul>
+     *
      * <li>If both arguments are integers, then the result is exactly equal 
      * to the mathematical result of raising the first argument to the power 
      * of the second argument if that result can in fact be represented 
-     * exactly as a double value.</ul>
+     * exactly as a <code>double</code> value.</ul>
      * 
      * <p>(In the foregoing descriptions, a floating-point value is
-     * considered to be an integer if and only if it is a fixed point
-     * of the method {@link #ceil <tt>ceil</tt>} or, equivalently, a
-     * fixed point of the method {@link #floor <tt>floor</tt>}. A
-     * value is a fixed point of a one-argument method if and only if
-     * the result of applying the method to the value is equal to the
-     * value.)
-     * <p>
-     * A result must be within 1 ulp of the correctly rounded result.  Results
-     * must be semi-monotonic.
+     * considered to be an integer if and only if it is finite and a
+     * fixed point of the method {@link #ceil <tt>ceil</tt>} or,
+     * equivalently, a fixed point of the method {@link #floor
+     * <tt>floor</tt>}. A value is a fixed point of a one-argument
+     * method if and only if the result of applying the method to the
+     * value is equal to the value.)
+     *
+     * <p>A result must be within 1 ulp of the correctly rounded
+     * result.  Results must be semi-monotonic.
      *
      * @param   a   the base.
      * @param   b   the exponent.

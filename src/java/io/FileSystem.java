@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystem.java	1.9 01/12/03
+ * @(#)FileSystem.java	1.11 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -203,4 +203,25 @@ abstract class FileSystem {
      */
     public abstract int hashCode(File f);
 
+    // Flags for enabling/disabling performance optimizations for file
+    // name canonicalization
+    static boolean useCanonCaches      = true;
+    static boolean useCanonPrefixCache = true;
+
+    private static boolean getBooleanProperty(String prop, boolean defaultVal) {
+        String val = System.getProperty("sun.io.useCanonCaches");
+        if (val == null) return defaultVal;
+        if (val.equalsIgnoreCase("true")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static {
+        useCanonCaches      = getBooleanProperty("sun.io.useCanonCaches",
+                                                 useCanonCaches);
+        useCanonPrefixCache = getBooleanProperty("sun.io.useCanonPrefixCache",
+                                                 useCanonPrefixCache);
+    }
 }

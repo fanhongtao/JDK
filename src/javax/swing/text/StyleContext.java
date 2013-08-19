@@ -1,7 +1,7 @@
 /*
- * @(#)StyleContext.java	1.71 01/12/03
+ * @(#)StyleContext.java	1.74 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -14,6 +14,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.ChangeEvent;
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 /**
  * A pool of styles and their associated resources.  This class determines
@@ -39,7 +41,7 @@ import javax.swing.event.ChangeEvent;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.71 12/03/01
+ * @version 1.74 01/23/03
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -414,25 +416,11 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * @param a the set to reclaim
      */
     public void reclaim(AttributeSet a) {
-        if (a instanceof SmallAttributeSet) {
-            SmallAttributeSet sa = (SmallAttributeSet) a;
-            sa.nrefs -= 1;
-            if (sa.nrefs <= 0) {
-                unusedSets += 1;
-                if ((unusedSets > 10) && (unusedSets > (attributesPool.size() / 10))) {
-                    if (SwingUtilities.isEventDispatchThread()) {
-                        removeUnusedSets();
-                    } else {
-                        Runnable callRemoveUnused = new Runnable() {
-                            public void run() {
-                                removeUnusedSets();
-                            }
-                        };
-                        SwingUtilities.invokeLater(callRemoveUnused);
-                    }
-                }
-            }
-        }
+	if (SwingUtilities.isEventDispatchThread()) {
+	    attributesPool.size(); // force WeakHashMap to expunge stale entries
+	} 
+	// if current thread is not event dispatching thread
+	// do not bother with expunging stale entries.
     }
 
     // --- local methods -----------------------------------------------
@@ -482,19 +470,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * Clean the unused immutable sets out of the hashtable.
      */
     synchronized void removeUnusedSets() {
-        Vector rmList = new Vector();
-        Enumeration sets = attributesPool.keys();
-        while (sets.hasMoreElements()) {
-            SmallAttributeSet set = (SmallAttributeSet)sets.nextElement();
-            if (set.nrefs <= 0) {
-                rmList.addElement(set);
-            }
-        }
-        sets = rmList.elements();
-        while (sets.hasMoreElements()) {
-            attributesPool.remove(sets.nextElement());
-        }
-        unusedSets = 0;
+	attributesPool.size(); // force WeakHashMap to expunge stale entries
     }
 
     /**
@@ -506,12 +482,13 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
 	// PENDING(prinz) should consider finding a alternative to
 	// generating extra garbage on search key.
 	SmallAttributeSet key = createSmallAttributeSet(search);
-        SmallAttributeSet a = (SmallAttributeSet) attributesPool.get(key);
-        if (a == null) {
+	WeakReference reference = (WeakReference)attributesPool.get(key);
+        SmallAttributeSet a;
+        if (reference == null 
+	    || (a = (SmallAttributeSet)reference.get()) == null) {
             a = key;
-            attributesPool.put(a, a);
-        }
-        a.nrefs += 1;
+            attributesPool.put(a, new WeakReference(a));
+        } 
         return a;
     }
 
@@ -535,9 +512,9 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
     public String toString() {
         removeUnusedSets();
         String s = "";
-        Enumeration sets = attributesPool.keys();
-        while (sets.hasMoreElements()) {
-            SmallAttributeSet set = (SmallAttributeSet)sets.nextElement();
+        Iterator iterator = attributesPool.keySet().iterator();
+        while (iterator.hasNext()) {
+            SmallAttributeSet set = (SmallAttributeSet)iterator.next();
             s = s + set + "\n";
         }
         return s;
@@ -706,7 +683,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
         fontSearch = new FontKey(null, 0, 0);
         fontTable = new Hashtable();
         search = new SimpleAttributeSet();
-        attributesPool = new Hashtable();
+        attributesPool = Collections.
+	    synchronizedMap(new WeakHashMap());
         s.defaultReadObject();
     }
 
@@ -725,7 +703,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
     private transient FontKey fontSearch = new FontKey(null, 0, 0);
     private transient Hashtable fontTable = new Hashtable();
 
-    private transient Hashtable attributesPool = new Hashtable();
+    private transient Map attributesPool = Collections.
+	synchronizedMap(new WeakHashMap());
     private transient MutableAttributeSet search = new SimpleAttributeSet();
 
     /**
@@ -810,7 +789,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
                     s = s + tbl[i] + "=" + tbl[i+1] + ",";
                 }
             }
-            s = s + "nrefs=" + nrefs + "}";
+            s = s + "}";
             return s;
         }
 
@@ -982,7 +961,6 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
         // --- variables -----------------------------------------
 
         Object[] attributes;
-        int nrefs;
 	// This is also stored in attributes
 	AttributeSet resolveParent;
     }

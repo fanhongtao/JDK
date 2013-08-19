@@ -1,7 +1,7 @@
 /*
- * @(#)Signature.java	1.89 01/12/03
+ * @(#)Signature.java	1.91 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -90,7 +90,7 @@ import java.security.cert.X509Certificate;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.89, 12/03/01
+ * @version 1.91, 01/23/03
  */
 
 public abstract class Signature extends SignatureSpi {
@@ -771,6 +771,11 @@ public abstract class Signature extends SignatureSpi {
 	    throws InvalidKeyException {
 		sigSpi.engineInitSign(privateKey);
 	}
+
+        protected void engineInitSign(PrivateKey privateKey, SecureRandom sr)
+            throws InvalidKeyException {
+                sigSpi.engineInitSign(privateKey, sr);
+        }
 
 	protected void engineUpdate(byte b) throws SignatureException {
 	    sigSpi.engineUpdate(b);

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicLookAndFeel.java	1.206 02/04/09
+ * @(#)BasicLookAndFeel.java	1.208 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ import javax.swing.text.DefaultEditorKit;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.206 04/09/02
+ * @version 1.208 01/23/03
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -1040,7 +1040,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Spinner.font", monospacedPlain12,
 	    "Spinner.background", table.get("control"),
 	    "Spinner.foreground", table.get("control"),
-	    "Spinner.border", loweredBevelBorder,
+	    "Spinner.border", textFieldBorder,
+	    "Spinner.arrowButtonBorder", null,
+	    "Spinner.arrowButtonInsets", null,
 	    "Spinner.arrowButtonSize", new Dimension(16, 5),
             "Spinner.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -1049,6 +1051,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
                }),
+	    "Spinner.editorBorderPainted", Boolean.FALSE,
 
 	    // *** SplitPane
 	    "SplitPane.background", table.get("control"),

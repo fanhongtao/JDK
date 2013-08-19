@@ -1,7 +1,7 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.38 02/02/01
+ * @(#)SubjectDomainCombiner.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.util.Iterator;
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.38, 02/01/02 
+ * @version 1.40, 01/23/03 
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
@@ -37,8 +37,6 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
     private Principal[] principals;
     private static boolean checkedCacheProperty = false;
     private static boolean allowCaching = true;
-
-    private static final AllPermission ALL_PERMISSION = new AllPermission();
 
     private static final sun.security.util.Debug debug =
 	sun.security.util.Debug.getInstance("combiner",

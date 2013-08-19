@@ -1,7 +1,7 @@
 /*
- * @(#)JSeparator.java	1.48 01/12/03
+ * @(#)JSeparator.java	1.49 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A divider between menu items.
  *
- * @version 1.48 12/03/01
+ * @version 1.49 01/23/03
  * @author Georges Saab
  * @author Jeff Shapiro
  */

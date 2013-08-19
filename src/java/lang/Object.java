@@ -1,7 +1,7 @@
 /*
- * @(#)Object.java	1.58 01/12/03
+ * @(#)Object.java	1.61 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * including arrays, implement the methods of this class. 
  *
  * @author  unascribed
- * @version 1.58, 12/03/01
+ * @version 1.61, 01/23/03
  * @see     java.lang.Class
  * @since   JDK1.0
  */
@@ -74,34 +74,37 @@ public class Object {
     /**
      * Indicates whether some other object is "equal to" this one.
      * <p>
-     * The <code>equals</code> method implements an equivalence relation: 
+     * The <code>equals</code> method implements an equivalence relation
+     * on non-null object references:
      * <ul>
-     * <li>It is <i>reflexive</i>: for any reference value <code>x</code>, 
-     *     <code>x.equals(x)</code> should return <code>true</code>. 
-     * <li>It is <i>symmetric</i>: for any reference values <code>x</code> and 
-     *     <code>y</code>, <code>x.equals(y)</code> should return 
-     *     <code>true</code> if and only if <code>y.equals(x)</code> returns 
-     *     <code>true</code>. 
-     * <li>It is <i>transitive</i>: for any reference values <code>x</code>, 
-     *     <code>y</code>, and <code>z</code>, if <code>x.equals(y)</code>
-     *     returns  <code>true</code> and <code>y.equals(z)</code> returns 
-     *     <code>true</code>, then <code>x.equals(z)</code> should return 
-     *     <code>true</code>. 
-     * <li>It is <i>consistent</i>: for any reference values <code>x</code> 
-     *     and <code>y</code>, multiple invocations of <tt>x.equals(y)</tt>
-     *     consistently return <code>true</code> or consistently return 
-     *     <code>false</code>, provided no information used in
-     *     <code>equals</code> comparisons on the object is modified.
-     * <li>For any non-null reference value <code>x</code>, 
+     * <li>It is <i>reflexive</i>: for any non-null reference value
+     *     <code>x</code>, <code>x.equals(x)</code> should return
+     *     <code>true</code>.
+     * <li>It is <i>symmetric</i>: for any non-null reference values
+     *     <code>x</code> and <code>y</code>, <code>x.equals(y)</code>
+     *     should return <code>true</code> if and only if
+     *     <code>y.equals(x)</code> returns <code>true</code>.
+     * <li>It is <i>transitive</i>: for any non-null reference values
+     *     <code>x</code>, <code>y</code>, and <code>z</code>, if
+     *     <code>x.equals(y)</code> returns <code>true</code> and
+     *     <code>y.equals(z)</code> returns <code>true</code>, then
+     *     <code>x.equals(z)</code> should return <code>true</code>.
+     * <li>It is <i>consistent</i>: for any non-null reference values
+     *     <code>x</code> and <code>y</code>, multiple invocations of
+     *     <tt>x.equals(y)</tt> consistently return <code>true</code>
+     *     or consistently return <code>false</code>, provided no
+     *     information used in <code>equals</code> comparisons on the
+     *     objects is modified.
+     * <li>For any non-null reference value <code>x</code>,
      *     <code>x.equals(null)</code> should return <code>false</code>.
      * </ul>
      * <p>
      * The <tt>equals</tt> method for class <code>Object</code> implements 
      * the most discriminating possible equivalence relation on objects; 
-     * that is, for any reference values <code>x</code> and <code>y</code>, 
-     * this method returns <code>true</code> if and only if <code>x</code> and 
-     * <code>y</code> refer to the same object (<code>x==y</code> has the 
-     * value <code>true</code>).
+     * that is, for any non-null reference values <code>x</code> and
+     * <code>y</code>, this method returns <code>true</code> if and only
+     * if <code>x</code> and <code>y</code> refer to the same object
+     * (<code>x == y</code> has the value <code>true</code>).
      * <p>
      * Note that it is generally necessary to override the <tt>hashCode</tt>
      * method whenever this method is overridden, so as to maintain the
@@ -340,7 +343,7 @@ public class Object {
      * measured in nanoseconds, is given by:
      * <blockquote>
      * <pre>
-     * 1000000*millis+nanos</pre></blockquote>
+     * 1000000*timeout+nanos</pre></blockquote>
      * <p>
      * In all other respects, this method does the same thing as the 
      * method {@link #wait(long)} of one argument. In particular, 
@@ -359,7 +362,7 @@ public class Object {
      * </ul>
      * <p>
      * The thread then waits until it can re-obtain ownership of the 
-     * monitor and resumes execution 
+     * monitor and resumes execution.
      * <p>
      * This method should only be called by a thread that is the owner 
      * of this object's monitor. See the <code>notify</code> method for a 

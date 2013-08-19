@@ -215,8 +215,9 @@ public abstract class DTMManager
    * always be returned.  Otherwise it is up to the DTMManager to return a
    * new instance or an instance that it already created and may be being used
    * by someone else.
-   * (I think more parameters will need to be added for error handling, and entity
-   * resolution).
+   * 
+   * (More parameters may eventually need to be added for error handling
+   * and entity resolution, and to better control selection of implementations.)
    *
    * @param source the specification of the source object, which may be null,
    *               in which case it is assumed that node construction will take
@@ -485,7 +486,7 @@ public abstract class DTMManager
           System.err.println("DTM: found  " + serviceId);
         }
 
-        BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+        BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
         foundFactory = rd.readLine();
 
@@ -524,15 +525,18 @@ public abstract class DTMManager
    * files which use it... including the IDKey testcases.
    *
    * (FuncGenerateKey currently uses the node identifier directly and
-   * thus is sensitive to its format. The IDKEY results will still be
+   * thus is affected when this changes. The IDKEY results will still be
    * _correct_ (presuming no other breakage), but simple equality
    * comparison against the previous "golden" files will probably
-   * complain.)  */
-  public static final int IDENT_DTM_NODE_BITS = 22;
+   * complain.)
+   * */
+  public static final int IDENT_DTM_NODE_BITS = 16;
     
 
   /** When this bitmask is ANDed with a DTM node handle number, the result
-   * is the node's index number within that DTM.
+   * is the low bits of the node's index number within that DTM. To obtain
+   * the high bits, add the DTM ID portion's offset as assigned in the DTM 
+   * Manager.
    */
   public static final int IDENT_NODE_DEFAULT = (1<<IDENT_DTM_NODE_BITS)-1;
 

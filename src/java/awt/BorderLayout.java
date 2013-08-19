@@ -1,7 +1,7 @@
 /*
- * @(#)BorderLayout.java	1.49 01/12/03
+ * @(#)BorderLayout.java	1.53 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -74,7 +74,10 @@ import java.util.Hashtable;
  * Here is an example of five buttons in an applet laid out using
  * the <code>BorderLayout</code> layout manager:
  * <p>
- * <img src="doc-files/BorderLayout-1.gif"
+ * <img src="doc-files/BorderLayout-1.gif" 
+ * alt="Diagram of an applet demonstrating BorderLayout. 
+ *      Each section of the BorderLayout contains a Button corresponding to its position in the layout, one of: 
+ *      North, West, Center, East, or South."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * The code for this applet is as follows:
@@ -95,7 +98,7 @@ import java.util.Hashtable;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.49, 12/03/01
+ * @version 	1.53, 01/23/03
  * @author 	Arthur van Hoff
  * @see         java.awt.Container#add(String, Component)
  * @see         java.awt.ComponentOrientation
@@ -103,13 +106,13 @@ import java.util.Hashtable;
  */
 public class BorderLayout implements LayoutManager2,
 				     java.io.Serializable {
-     /**
+    /**
      * Constructs a border layout with the horizontal gaps
      * between components.
      * The horizontal gap is specified by <code>hgap</code>.
      *
-     * @see getHgap()
-     * @see setHgap()
+     * @see #getHgap()
+     * @see #setHgap(int)
      *
      * @serial
      */
@@ -120,9 +123,9 @@ public class BorderLayout implements LayoutManager2,
      * between components.
      * The vertical gap is specified by <code>vgap</code>.
      *
-     * @see getVgap()
-     * @see setVgap()
-	 * @serial
+     * @see #getVgap()
+     * @see #setVgap(int)
+     * @serial
      */
 	int vgap;
 
@@ -130,9 +133,10 @@ public class BorderLayout implements LayoutManager2,
      * Constant to specify components location to be the
      *      north portion of the border layout.
      * @serial
-     * @see #getChild
+     * @see #getChild(String, boolean)
      * @see #addLayoutComponent
-     * @see #getLayoutAlignment
+     * @see #getLayoutAlignmentX
+     * @see #getLayoutAlignmentY
      * @see #removeLayoutComponent
      */
 	Component north;
@@ -140,9 +144,10 @@ public class BorderLayout implements LayoutManager2,
      * Constant to specify components location to be the
      *      west portion of the border layout.
      * @serial
-     * @see #getChild
+     * @see #getChild(String, boolean)
      * @see #addLayoutComponent
-     * @see #getLayoutAlignment
+     * @see #getLayoutAlignmentX
+     * @see #getLayoutAlignmentY
      * @see #removeLayoutComponent
      */
 	Component west;
@@ -150,9 +155,10 @@ public class BorderLayout implements LayoutManager2,
      * Constant to specify components location to be the
      *      east portion of the border layout.
      * @serial
-     * @see #getChild
+     * @see #getChild(String, boolean)
      * @see #addLayoutComponent
-     * @see #getLayoutAlignment
+     * @see #getLayoutAlignmentX
+     * @see #getLayoutAlignmentY
      * @see #removeLayoutComponent
      */
 	Component east;
@@ -160,9 +166,10 @@ public class BorderLayout implements LayoutManager2,
      * Constant to specify components location to be the
      *      south portion of the border layout.
      * @serial
-     * @see #getChild
+     * @see #getChild(String, boolean)
      * @see #addLayoutComponent
-     * @see #getLayoutAlignment
+     * @see #getLayoutAlignmentX
+     * @see #getLayoutAlignmentY
      * @see #removeLayoutComponent
      */
     Component south;
@@ -170,9 +177,10 @@ public class BorderLayout implements LayoutManager2,
      * Constant to specify components location to be the
      *      center portion of the border layout.
      * @serial
-     * @see #getChild
+     * @see #getChild(String, boolean)
      * @see #addLayoutComponent
-     * @see #getLayoutAlignment
+     * @see #getLayoutAlignmentX
+     * @see #getLayoutAlignmentY
      * @see #removeLayoutComponent
      */
 	Component center;

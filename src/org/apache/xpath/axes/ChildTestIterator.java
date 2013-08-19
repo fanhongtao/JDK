@@ -74,7 +74,7 @@ import org.apache.xml.dtm.Axis;
  * children patterns that have a node test, and possibly a predicate.
  * @see org.apache.xpath.axes.WalkerFactory#newLocPathIterator
  */
-public class ChildTestIterator extends LocPathIterator
+public class ChildTestIterator extends BasicTestIterator
 {
   /** The traverser to use to navigate over the descendants. */
   transient protected DTMAxisTraverser m_traverser;
@@ -95,37 +95,17 @@ public class ChildTestIterator extends LocPathIterator
   ChildTestIterator(Compiler compiler, int opPos, int analysis)
           throws javax.xml.transform.TransformerException
   {
-
-    super(compiler, opPos, analysis, false);
-
-    int firstStepPos = compiler.getFirstChildPos(opPos);
-    int whatToShow = compiler.getWhatToShow(firstStepPos);
-
-    if ((0 == (whatToShow
-               & (DTMFilter.SHOW_ATTRIBUTE 
-               | DTMFilter.SHOW_NAMESPACE 
-               | DTMFilter.SHOW_ELEMENT
-               | DTMFilter.SHOW_PROCESSING_INSTRUCTION))) 
-               || (whatToShow == DTMFilter.SHOW_ALL))
-      initNodeTest(whatToShow);
-    else
-    {
-      initNodeTest(whatToShow, compiler.getStepNS(firstStepPos),
-                              compiler.getStepLocalName(firstStepPos));
-    }
-    initPredicateInfo(compiler, firstStepPos);
+    super(compiler, opPos, analysis);
   }
   
   /**
    * Create a ChildTestIterator object.
    *
-   * @param compiler A reference to the Compiler that contains the op map.
-   * @param opPos The position within the op map, which contains the
-   * location path expression for this itterator.
+   * @param traverser Traverser that tells how the KeyIterator is to be handled.
    *
    * @throws javax.xml.transform.TransformerException
    */
-  ChildTestIterator(DTMAxisTraverser traverser)
+  public ChildTestIterator(DTMAxisTraverser traverser)
   {
 
     super(null);
@@ -133,25 +113,6 @@ public class ChildTestIterator extends LocPathIterator
     m_traverser = traverser;
   }
 
-  
-  /**
-   *  Get a cloned Iterator that is reset to the beginning
-   *  of the query.
-   * 
-   *  @return A cloned NodeIterator set of the start of the query.
-   * 
-   *  @throws CloneNotSupportedException
-   */
-  public DTMIterator cloneWithReset() throws CloneNotSupportedException
-  {
-
-    ChildTestIterator clone = (ChildTestIterator) super.cloneWithReset();
-
-    clone.resetProximityPositions();
-
-    return clone;
-  }
-  
   /**
    * Get the next node via getNextXXX.  Bottlenecked for derived class override.
    * @return The next node on the axis, or DTM.NULL.
@@ -175,107 +136,25 @@ public class ChildTestIterator extends LocPathIterator
     return m_lastFetched;
   }
 
+  
   /**
-   *  Returns the next node in the set and advances the position of the
-   * iterator in the set. After a NodeIterator is created, the first call
-   * to nextNode() returns the first node in the set.
-   *
-   * @return  The next <code>Node</code> in the set being iterated over, or
-   *   <code>null</code> if there are no more members in that set.
+   *  Get a cloned Iterator that is reset to the beginning
+   *  of the query.
+   * 
+   *  @return A cloned NodeIterator set of the start of the query.
+   * 
+   *  @throws CloneNotSupportedException
    */
-  public int nextNode()
+  public DTMIterator cloneWithReset() throws CloneNotSupportedException
   {
 
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    if ((null != m_cachedNodes)
-            && (m_next < m_cachedNodes.size()))
-    {
-      int next = m_cachedNodes.elementAt(m_next);
-    
-      incrementNextPosition();
-      m_currentContextNode = next;
+    ChildTestIterator clone = (ChildTestIterator) super.cloneWithReset();
+    clone.m_traverser = m_traverser;
 
-      return next;
-    }
-
-    if (m_foundLast)
-    {
-      m_lastFetched = DTM.NULL;
-      return DTM.NULL;
-    }
-      
-    if(DTM.NULL == m_lastFetched)
-    {
-      resetProximityPositions();
-    }
-
-    int next;
-    
-    org.apache.xpath.VariableStack vars;
-    int savedStart;
-    if (-1 != m_stackFrame)
-    {
-      vars = m_execContext.getVarStack();
-
-      // These three statements need to be combined into one operation.
-      savedStart = vars.getStackFrame();
-
-      vars.setStackFrame(m_stackFrame);
-    }
-    else
-    {
-      // Yuck.  Just to shut up the compiler!
-      vars = null;
-      savedStart = 0;
-    }
-    
-    try
-    {
-      do
-      {
-        next = getNextNode();
-  
-        if (DTM.NULL != next)
-        {
-          if(DTMIterator.FILTER_ACCEPT == acceptNode(next))
-            break;
-          else
-            continue;
-        }
-        else
-          break;
-      }
-      while (next != DTM.NULL);
-  
-      if (DTM.NULL != next)
-      {
-        if (null != m_cachedNodes)
-          m_cachedNodes.addElement(m_lastFetched);
-  
-        m_next++;
-  
-        return next;
-      }
-      else
-      {
-        m_foundLast = true;
-  
-        return DTM.NULL;
-      }
-    }
-    finally
-    {
-      if (-1 != m_stackFrame)
-      {
-        // These two statements need to be combined into one operation.
-        vars.setStackFrame(savedStart);
-      }
-    }
+    return clone;
   }
   
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.

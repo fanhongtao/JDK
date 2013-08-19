@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeView.java	1.64 02/01/31
+ * @(#)CompositeView.java	1.66 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -54,7 +54,7 @@ import javax.swing.SwingConstants;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.64 01/31/02
+ * @version 1.66 01/23/03
  */
 public abstract class CompositeView extends View {
 
@@ -151,7 +151,7 @@ public abstract class CompositeView extends View {
      * and the internal reference to them removed so that they
      * may be garbage collected.
      *
-     * @param index the starting index into the child views to insert
+     * @param offset the starting index into the child views to insert
      *   the new views; >= 0 and <= getViewCount
      * @param length the number of existing child views to remove;
      *   this should be a value >= 0 and <= (getViewCount() - offset)

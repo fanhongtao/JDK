@@ -1,7 +1,7 @@
 /*
- * @(#)MenuBar.java	1.60 01/12/03
+ * @(#)MenuBar.java	1.63 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -24,6 +24,8 @@ import javax.accessibility.*;
  * This is what a menu bar might look like:
  * <p>
  * <img src="doc-files/MenuBar-1.gif"
+ * <alt="Diagram of MenuBar containing 2 menus: Examples and Options. 
+ * Examples menu is expanded showing items: Basic, Simple, Check, and More Examples.">
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * A menu bar handles keyboard shortcuts for menu items, passing them
@@ -38,7 +40,7 @@ import javax.accessibility.*;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.60, 12/03/01
+ * @version 1.63, 01/23/03
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -62,7 +64,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * actual menus that will be part of the MenuBar.
      *
      * @serial
-     * @see countMenus()
+     * @see #countMenus()
      */
     Vector menus = new Vector();
 
@@ -73,8 +75,8 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * right edge of the menubar.
      *
      * @serial
-     * @see getHelpMenu()
-     * @see setHelpMenu()
+     * @see #getHelpMenu()
+     * @see #setHelpMenu(Menu)
      */
     Menu helpMenu;
 
@@ -377,8 +379,8 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * Writes default serializable fields to stream.
      *
      * @param s the <code>ObjectOutputStream</code> to write
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see #readObject(java.io.ObjectInputStream)
      */
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.lang.ClassNotFoundException,
@@ -396,7 +398,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #readObject
+     * @see #writeObject(java.io.ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException

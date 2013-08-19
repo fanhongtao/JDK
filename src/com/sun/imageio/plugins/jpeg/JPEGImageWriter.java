@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriter.java	1.26 02/04/22
+ * @(#)JPEGImageWriter.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -382,6 +382,24 @@ public class JPEGImageWriter extends ImageWriter {
             bandSizes = new int [numSrcBands];
             for (int i = 0; i < numSrcBands; i++) {
                 bandSizes[i] = tempSize[0];  // All the same
+            }
+        }
+
+        for (int i = 0; i < bandSizes.length; i++) {
+            // 4450894 part 1: The IJG libraries are compiled so they only
+            // handle <= 8-bit samples.  We now check the band sizes and throw
+            // an exception for images, such as USHORT_GRAY, with > 8 bits
+            // per sample.
+            if (bandSizes[i] > 8) {
+                throw new IIOException("Sample size must be <= 8");
+            }
+            // 4450894 part 2: We expand IndexColorModel images to full 24-
+            // or 32-bit in grabPixels() for each scanline.  For indexed
+            // images such as BYTE_BINARY, we need to ensure that we update
+            // bandSizes to account for the scaling from 1-bit band sizes
+            // to 8-bit.
+            if (indexed) {
+                bandSizes[i] = 8;
             }
         }
 

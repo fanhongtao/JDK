@@ -1,19 +1,20 @@
 package org.apache.xpath.axes;
 
-import org.apache.xpath.patterns.NodeTest;
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XObject;
-import org.apache.xpath.Expression;
-import org.apache.xpath.axes.SubContextList;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Vector;
 
-import org.apache.xml.utils.PrefixResolver;
-
-//import org.w3c.dom.Node;
-//import org.w3c.dom.traversal.NodeFilter;
+import javax.xml.transform.TransformerException;
 import org.apache.xml.dtm.DTM;
 import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
+import org.apache.xml.utils.PrefixResolver;
+import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.compiler.Compiler;
+import org.apache.xpath.objects.XObject;
+import org.apache.xpath.patterns.NodeTest;
 
 public abstract class PredicatedNodeTest extends NodeTest implements SubContextList
 {
@@ -87,6 +88,9 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
 
     return clone;
   }
+  
+  // Only for clones for findLastPos.  See bug4638.
+  protected int m_predCount = -1;
 
   /**
    * Get the number of predicates that this walker has.
@@ -95,7 +99,10 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
    */
   public int getPredicateCount()
   {
-    return (null == m_predicates) ? 0 : m_predicates.length;
+    if(-1 == m_predCount)
+      return (null == m_predicates) ? 0 : m_predicates.length;
+    else
+      return m_predCount;
   }
 
   /**
@@ -140,7 +147,16 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
     int pos = compiler.getFirstPredicateOpPos(opPos);
 
     if(pos > 0)
+    {
       m_predicates = compiler.getCompiledPredicates(pos);
+      if(null != m_predicates)
+      {
+      	for(int i = 0; i < m_predicates.length; i++)
+      	{
+      		m_predicates[i].exprSetParent(this);
+      	}
+      }
+    }
   }
 
   /**
@@ -151,7 +167,7 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
    *
    * @return A predicate expression.
    */
-  Expression getPredicate(int index)
+  public Expression getPredicate(int index)
   {
     return m_predicates[index];
   }
@@ -249,8 +265,11 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
    */
   protected void countProximityPosition(int i)
   {
-    if (i < m_proximityPositions.length)
-      m_proximityPositions[i]++;
+  	// Note that in the case of a UnionChildIterator, this may be a 
+  	// static object and so m_proximityPositions may indeed be null!
+  	int[] pp = m_proximityPositions;
+    if ((null != pp) && (i < pp.length))
+      pp[i]++;
   }
 
   /**
@@ -320,7 +339,8 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
           }
 
           int proxPos = this.getProximityPosition(m_predicateIndex);
-          if (proxPos != (int) pred.num())
+          int predIndex = (int) pred.num();
+          if (proxPos != predIndex)
           {
             if (DEBUG_PREDICATECOUNTING)
             {
@@ -476,6 +496,8 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
   public void setLocPathIterator(LocPathIterator li)
   {
     m_lpi = li;
+    if(this != li)
+      li.exprSetParent(this);
   }
   
   /**
@@ -495,6 +517,59 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
     return false;
    }
    
+	/**
+	 * This will traverse the heararchy, calling the visitor for 
+	 * each member.  If the called visitor method returns 
+	 * false, the subtree should not be called.
+	 * 
+	 * @param owner The owner of the visitor, where that path may be 
+	 *              rewritten if needed.
+	 * @param visitor The visitor whose appropriate method will be called.
+	 */
+	public void callPredicateVisitors(XPathVisitor visitor)
+	{
+	  if (null != m_predicates)
+	    {
+	    int n = m_predicates.length;
+	    for (int i = 0; i < n; i++)
+	      {
+	      ExpressionOwner predOwner = new PredOwner(i);
+	      if (visitor.visitPredicate(predOwner, m_predicates[i]))
+	        {
+	        m_predicates[i].callVisitors(predOwner, visitor);
+	      }
+	
+	    }
+	  }
+	} 
+	
+    /**
+     * @see Expression#deepEquals(Expression)
+     */
+    public boolean deepEquals(Expression expr)
+    {
+      if (!super.deepEquals(expr))
+            return false;
+
+      PredicatedNodeTest pnt = (PredicatedNodeTest) expr;
+      if (null != m_predicates)
+      {
+
+        int n = m_predicates.length;
+        if ((null == pnt.m_predicates) || (pnt.m_predicates.length != n))
+              return false;
+        for (int i = 0; i < n; i++)
+        {
+          if (!m_predicates[i].deepEquals(pnt.m_predicates[i]))
+          	return false; 
+        }
+      }
+      else if (null != pnt.m_predicates)
+              return false; 
+              
+      return true; 
+    }
+    
   /** This is true if nextNode returns null. */
   transient protected boolean m_foundLast = false;
     
@@ -521,5 +596,33 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
 
   /** If true, diagnostic messages about predicate execution will be posted.  */
   static final boolean DEBUG_PREDICATECOUNTING = false;
+  
+  class PredOwner implements ExpressionOwner
+  {
+  	int m_index;
+  	
+  	PredOwner(int index)
+  	{
+  		m_index = index;
+  	}
+  	
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_predicates[m_index];
+    }
 
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(PredicatedNodeTest.this);
+    	m_predicates[m_index] = exp;
+    }
+  }
+    
 }

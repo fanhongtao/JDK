@@ -1,7 +1,7 @@
 /*
- * @(#)JTableHeader.java	1.61 01/12/03
+ * @(#)JTableHeader.java	1.64 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.io.IOException;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.61 12/03/01
+ * @version 1.64 01/23/03
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.JTable
@@ -597,7 +597,12 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
      *  @return the default table column renderer
      */
     protected TableCellRenderer createDefaultRenderer() {
-	DefaultTableCellRenderer label = new DefaultTableCellRenderer() {
+	DefaultTableCellRenderer label = new UIResourceTableCellRenderer();
+	label.setHorizontalAlignment(JLabel.CENTER);
+	return label;
+    }
+
+    private static class UIResourceTableCellRenderer extends DefaultTableCellRenderer implements UIResource {
 	    public Component getTableCellRendererComponent(JTable table, Object value,
                          boolean isSelected, boolean hasFocus, int row, int column) {
 	        if (table != null) {
@@ -613,9 +618,6 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 		setBorder(UIManager.getBorder("TableHeader.cellBorder"));
 	        return this;
             }
-	};
-	label.setHorizontalAlignment(JLabel.CENTER);
-	return label;
     }
 
     /**
@@ -891,6 +893,11 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 	    private AccessibleContext getCurrentAccessibleContext() {
 		TableColumnModel tcm = table.getColumnModel();
                 if (tcm != null) {
+		    // Fixes 4772355 - ArrayOutOfBoundsException in 
+		    // JTableHeader
+		    if (column < 0 || column >= tcm.getColumnCount()) {
+			return null;
+		    }
 		    TableColumn aColumn = tcm.getColumn(column);
 		    TableCellRenderer renderer = aColumn.getHeaderRenderer();
 		    if (renderer == null) {
@@ -914,6 +921,11 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 	    private Component getCurrentComponent() {
 		TableColumnModel tcm = table.getColumnModel();
                 if (tcm != null) {
+		    // Fixes 4772355 - ArrayOutOfBoundsException in 
+		    // JTableHeader
+		    if (column < 0 || column >= tcm.getColumnCount()) {
+			return null;
+		    }
 		    TableColumn aColumn = tcm.getColumn(column);
 		    TableCellRenderer renderer = aColumn.getHeaderRenderer();
 		    if (renderer == null) {

@@ -1,7 +1,7 @@
 /*
- * @(#)TimeZone.java	1.62 02/01/21
+ * @(#)TimeZone.java	1.63 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -108,7 +108,7 @@ import sun.util.calendar.ZoneInfoFile;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.62 01/21/02
+ * @version      1.63 01/23/03
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since        JDK1.1
  */

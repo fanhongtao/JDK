@@ -1,7 +1,7 @@
 /*
- * @(#)NetPermission.java	1.41 02/02/01
+ * @(#)NetPermission.java	1.44 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
  * and a discussion of the risks of granting code the permission.
  * <P>
  *
- * <table border=1 cellpadding=5>
+ * <table border=1 cellpadding=5 summary="Permission target name, what the permission allows, and associated risks">
  * <tr>
  * <th>Permission Target Name</th>
  * <th>What the Permission Allows</th>
@@ -75,13 +75,14 @@ that class really didn't come from that location.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.41 02/02/01
+ * @version 1.44 03/01/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers
  */
 
 public final class NetPermission extends BasicPermission {
+    private static final long serialVersionUID = -8343910153355041693L;
 
     /**
      * Creates a new NetPermission with the specified name.

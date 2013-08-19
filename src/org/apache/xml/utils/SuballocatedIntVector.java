@@ -68,25 +68,22 @@ package org.apache.xml.utils;
  * long vectors are being built up.
  * 
  * Known issues:
- *
- * Current chunking is based on /%. Shift/mask _should_ be faster, if
- * power-of-two chunksizes are acceptable. (Would be in a real language,
- * anyway...) Some compilers _may_ be smart enough to convert the former
- * to the latter if the block size is a constant power of two... so we have
- * our choice of locking in a specific size, or converting to shift/mask,
- * or both...
  * 
  * Some methods are private because they haven't yet been tested properly.
  *
  * Retrieval performance is critical, since this is used at the core
- * of the DTM model. (Construction performance is almost as
- * important.) That's pushing me toward just letting reads of unset
- * indices throw exceptions or return stale data; safer behavior would
- * have performance costs. */
+ * of the DTM model. (Append performance is almost as important.)
+ * That's pushing me toward just letting reads from unset indices
+ * throw exceptions or return stale data; safer behavior would have
+ * performance costs.
+ * */
 public class SuballocatedIntVector
 {
   /** Size of blocks to allocate          */
   protected int m_blocksize;
+
+  /** Bitwise addressing (much faster than div/remainder */
+  protected int m_SHIFT, m_MASK;
   
   /** Number of blocks to (over)allocate by */
   protected  int m_numblocks=32;
@@ -97,12 +94,14 @@ public class SuballocatedIntVector
   /** Number of ints in array          */
   protected int m_firstFree = 0;
 
-  /** "Shortcut" handle to m_map[0] */
+  /** "Shortcut" handle to m_map[0]. Surprisingly helpful for short vectors. */
   protected int m_map0[];
+
 
   /**
    * Default constructor.  Note that the default
-   * block size is very small, for small lists.
+   * block size is currently 2K, which may be overkill for
+   * small lists and undershootng for large ones.
    */
   public SuballocatedIntVector()
   {
@@ -110,29 +109,35 @@ public class SuballocatedIntVector
   }
 
   /**
-   * Construct a IntVector, using the given block size.
+   * Construct a IntVector, using the given block size. For
+   * efficiency, we will round the requested size off to a power of
+   * two.
    *
    * @param blocksize Size of block to allocate
-   */
+   * */
   public SuballocatedIntVector(int blocksize)
   {
-    m_blocksize = blocksize;
-    m_map0=new int[blocksize];
+    //m_blocksize = blocksize;
+    for(m_SHIFT=0;0!=(blocksize>>>=1);++m_SHIFT)
+      ;
+    m_blocksize=1<<m_SHIFT;
+    m_MASK=m_blocksize-1;
+		
+    m_map0=new int[m_blocksize];
     m_map = new int[m_numblocks][];
     m_map[0]=m_map0;
   }
-  
-  /**
-   * Construct a IntVector, using the given block size.
+	
+  /** We never _did_ use the increasesize parameter, so I'm phasing
+   * this constructor out.
    *
-   * @param blocksize Size of block to allocate
-   */
-  public SuballocatedIntVector(int blocksize, int increaseSize)
+   * @deprecated use SuballocatedIntVector(int)
+   * @see SuballocatedIntVector(int)
+   * */
+  public SuballocatedIntVector(int blocksize,int increasesize)
   {
-    // increaseSize not currently used.
     this(blocksize);
   }
-
 
   /**
    * Get the length of the list.
@@ -145,13 +150,14 @@ public class SuballocatedIntVector
   }
   
   /**
-   * Set the length of the list.
+   * Set the length of the list. This will only work to truncate the list, and
+   * even then it has not been heavily tested and may not be trustworthy.
    *
    * @return length of the list
    */
-  private  void setSize(int sz)
+  public void setSize(int sz)
   {
-    if(m_firstFree<sz)
+    if(m_firstFree>sz) // Whups; had that backward!
       m_firstFree = sz;
   }
 
@@ -173,8 +179,8 @@ public class SuballocatedIntVector
       // long enough and catch exceptions) yield no noticable
       // improvement.
 
-      int index=m_firstFree/m_blocksize;
-      int offset=m_firstFree%m_blocksize;
+      int index=m_firstFree>>>m_SHIFT;
+      int offset=m_firstFree&m_MASK;
 
       if(index>=m_map.length)
       {
@@ -206,8 +212,8 @@ public class SuballocatedIntVector
       }
     else
     {
-      int index=m_firstFree/m_blocksize;
-      int offset=m_firstFree%m_blocksize;
+      int index=m_firstFree>>>m_SHIFT;
+      int offset=m_firstFree&m_MASK;
       m_firstFree+=numberOfElements;
       while( numberOfElements>0)
       {
@@ -243,8 +249,8 @@ public class SuballocatedIntVector
     int newlen=m_firstFree+numberOfElements;
     if(newlen>m_blocksize)
     {
-      int index=m_firstFree%m_blocksize;
-      int newindex=(m_firstFree+numberOfElements)%m_blocksize;
+      int index=m_firstFree>>>m_SHIFT;
+      int newindex=(m_firstFree+numberOfElements)>>>m_SHIFT;
       for(int i=index+1;i<=newindex;++i)
         m_map[i]=new int[m_blocksize];
     }
@@ -268,7 +274,7 @@ public class SuballocatedIntVector
       addElement(value);
     else if (at>m_firstFree)
     {
-      int index=at/m_blocksize;
+      int index=at>>>m_SHIFT;
       if(index>=m_map.length)
       {
         int newsize=index+m_numblocks;
@@ -279,16 +285,16 @@ public class SuballocatedIntVector
       int[] block=m_map[index];
       if(null==block)
         block=m_map[index]=new int[m_blocksize];
-      int offset=at%m_blocksize;
+      int offset=at&m_MASK;
           block[offset]=value;
           m_firstFree=offset+1;
         }
     else
     {
-      int index=at/m_blocksize;
-      int maxindex=m_firstFree/m_blocksize; // %REVIEW% (m_firstFree+1?)
+      int index=at>>>m_SHIFT;
+      int maxindex=m_firstFree>>>m_SHIFT; // %REVIEW% (m_firstFree+1?)
       ++m_firstFree;
-      int offset=at%m_blocksize;
+      int offset=at&m_MASK;
       int push;
       
       // ***** Easier to work down from top?
@@ -355,9 +361,9 @@ public class SuballocatedIntVector
         // No point in removing elements that "don't exist"...  
     if(at<m_firstFree)
     {
-      int index=at/m_blocksize;
-      int maxindex=m_firstFree/m_blocksize;
-      int offset=at%m_blocksize;
+      int index=at>>>m_SHIFT;
+      int maxindex=m_firstFree>>>m_SHIFT;
+      int offset=at&m_MASK;
       
       while(index<=maxindex)
       {
@@ -398,8 +404,8 @@ public class SuballocatedIntVector
       m_map0[at]=value;
     else
     {
-      int index=at/m_blocksize;
-      int offset=at%m_blocksize;
+      int index=at>>>m_SHIFT;
+      int offset=at&m_MASK;
         
       if(index>=m_map.length)
       {
@@ -443,11 +449,11 @@ public class SuballocatedIntVector
    */
   public int elementAt(int i)
   {
-    // %OPT% Seems to buy us some very slight performance gains.
+    // This is actually a significant optimization!
     if(i<m_blocksize)
       return m_map0[i];
 
-    return m_map[i/m_blocksize][i%m_blocksize];
+    return m_map[i>>>m_SHIFT][i&m_MASK];
   }
 
   /**
@@ -478,9 +484,9 @@ public class SuballocatedIntVector
         if(index>=m_firstFree)
                 return -1;
           
-    int bindex=index/m_blocksize;
-    int boffset=index%m_blocksize;
-    int maxindex=m_firstFree/m_blocksize;
+    int bindex=index>>>m_SHIFT;
+    int boffset=index&m_MASK;
+    int maxindex=m_firstFree>>>m_SHIFT;
     int[] block;
     
     for(;bindex<maxindex;++bindex)
@@ -493,7 +499,7 @@ public class SuballocatedIntVector
       boffset=0; // after first
     }
     // Last block may need to stop before end
-    int maxoffset=m_firstFree%m_blocksize;
+    int maxoffset=m_firstFree&m_MASK;
     block=m_map[maxindex];
     for(int offset=boffset;offset<maxoffset;++offset)
       if(block[offset]==elem)
@@ -529,8 +535,8 @@ public class SuballocatedIntVector
    */
   private  int lastIndexOf(int elem)
   {
-    int boffset=m_firstFree%m_blocksize;
-    for(int index=m_firstFree/m_blocksize;
+    int boffset=m_firstFree&m_MASK;
+    for(int index=m_firstFree>>>m_SHIFT;
         index>=0;
         --index)
     {

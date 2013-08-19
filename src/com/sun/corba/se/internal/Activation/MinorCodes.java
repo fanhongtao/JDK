@@ -1,7 +1,7 @@
 /*
- * @(#)MinorCodes.java	1.16 01/12/03
+ * @(#)MinorCodes.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import com.sun.corba.se.internal.orbutil.ORBConstants;
  * The minor code numbers for POA/JavaIDLx start with 101 to distinguish
  * them from JavaIDL minor codes which start from 1. 
  * 
- * @version     1.16, 02/08/29
+ * @version     1.17, 03/06/20
  * @author      Rohit Garg
  * @since       JDK1.2
  */

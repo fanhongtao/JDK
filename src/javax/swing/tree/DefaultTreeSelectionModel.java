@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeSelectionModel.java	1.45 02/03/20
+ * @(#)DefaultTreeSelectionModel.java	1.47 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,7 +41,7 @@ import javax.swing.DefaultListSelectionModel;
  *
  * @see javax.swing.JTree
  *
- * @version 1.45 03/20/02
+ * @version 1.47 01/23/03
  * @author Scott Violet
  */
 public class DefaultTreeSelectionModel extends Object implements Cloneable, Serializable, TreeSelectionModel
@@ -183,7 +183,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
       * and adding the new paths would make the selection discontiguous,
       * the selection is reset to the first TreePath in <code>paths</code>.
       *
-      * @param paths new selection
+      * @param pPaths new selection
       */
     public void setSelectionPaths(TreePath[] pPaths) {
 	int            newCount, newCounter, oldCount, oldCounter;
@@ -317,7 +317,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
       * otherwise the TreePaths aren't contiguous and the selection becomes
       * the first TreePath in <code>paths</code>.
       *
-      * @param path the new path to add to the current selection
+      * @param paths the new path to add to the current selection
       */
     public void addSelectionPaths(TreePath[] paths) {
 	int       newPathLength = ((paths == null) ? 0 : paths.length);
@@ -433,7 +433,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
       * are in the selection the TreeSelectionListeners are notified.
       * This has no effect if <code>paths</code> is null.
       *
-      * @param path the path to remove from the selection
+      * @param paths the paths to remove from the selection
       */
     public void removeSelectionPaths(TreePath[] paths) {
 	if (paths != null && selection != null && paths.length > 0) {

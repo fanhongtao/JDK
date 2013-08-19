@@ -1,7 +1,7 @@
 /*
- * @(#)ResultSet.java	1.42 02/03/06
+ * @(#)ResultSet.java	1.44 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.util.Calendar;
  *       rs.updateString(1, "AINSWORTH"); // updates the 
  *          // first column of the insert row to be <code>AINSWORTH</code>
  *       rs.updateInt(2,35); // updates the second column to be <code>35</code>
- *       rs.updateBoolean(3, true); // updates the third row to <code>true</code>
+ *       rs.updateBoolean(3, true); // updates the third column to <code>true</code>
  *       rs.insertRow();
  *       rs.moveToCurrentRow();
  *

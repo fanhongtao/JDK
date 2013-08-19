@@ -1,7 +1,7 @@
 /*
- * @(#)Delegate.java	1.8 01/12/03
+ * @(#)Delegate.java	1.10 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.PortableServer.portable;
@@ -87,7 +87,7 @@ public interface Delegate {
 /**
  * This operation returns an object in the Interface Repository
  * which provides type information that may be useful to a program.
- * @param Self the servant.
+ * @param self the servant.
  * @return type information corresponding to the object.
  */
     // The get_interface() method has been replaced by get_interface_def()

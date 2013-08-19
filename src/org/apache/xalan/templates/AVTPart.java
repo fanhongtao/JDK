@@ -67,7 +67,7 @@ import org.apache.xml.utils.FastStringBuffer;
  * Class to hold a part, either a string or XPath,
  * of an Attribute Value Template.
  */
-public abstract class AVTPart implements java.io.Serializable
+public abstract class AVTPart implements java.io.Serializable, XSLTVisitable
 {
 
   /**

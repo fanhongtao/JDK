@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateException.java	1.29 01/12/03
+ * @(#)CertificateException.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.security.GeneralSecurityException;
  * This exception indicates one of a variety of certificate problems.
  *
  * @author Hemma Prafullchandra
- * @version 1.29
+ * @version 1.30
  * @see Certificate
  */
 public class CertificateException extends GeneralSecurityException {

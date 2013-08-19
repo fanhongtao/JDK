@@ -1,7 +1,7 @@
 /*
- * @(#)MetalPopupMenuSeparatorUI.java	1.6 01/12/03
+ * @(#)MetalPopupMenuSeparatorUI.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.plaf.*;
  * A Metal L&F implementation of PopupMenuSeparatorUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.6 12/03/01
+ * @version 1.7 01/23/03
  * @author Jeff Shapiro
  */
 

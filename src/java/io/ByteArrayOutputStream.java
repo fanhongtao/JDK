@@ -1,7 +1,7 @@
 /*
- * @(#)ByteArrayOutputStream.java	1.45 01/12/03
+ * @(#)ByteArrayOutputStream.java	1.46 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.45, 12/03/01
+ * @version 1.46, 01/23/03
  * @since   JDK1.0
  */
 

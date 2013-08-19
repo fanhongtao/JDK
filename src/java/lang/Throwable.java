@@ -1,7 +1,7 @@
 /*
- * @(#)Throwable.java	1.50 02/02/19
+ * @(#)Throwable.java	1.51 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -123,7 +123,7 @@ import  java.io.*;
  * @author  unascribed
  * @author  Josh Bloch (Added exception chaining and programmatic access to
  *          stack trace in 1.4.)
- * @version 1.50, 02/19/02
+ * @version 1.51, 01/23/03
  * @since JDK1.0
  */
 public class Throwable implements Serializable {

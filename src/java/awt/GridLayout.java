@@ -1,7 +1,7 @@
 /*
- * @(#)GridLayout.java	1.32 02/03/11
+ * @(#)GridLayout.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,11 +37,17 @@ package java.awt;
  * If the container's <code>ComponentOrientation</code> property is horizontal
  * and right-to-left, the example produces the output shown in Figure 2.
  * <p>
- * <center><table COLS=2 WIDTH=600 >
+ * <center><table COLS=2 WIDTH=600 summary="layout">
  * <tr ALIGN=CENTER>
- * <td><img SRC="doc-files/GridLayout-1.gif"></td>
+ * <td><img SRC="doc-files/GridLayout-1.gif"
+ *      alt="Shows 6 buttons in rows of 2. Row 1 shows buttons 1 then 2.
+ * Row 2 shows buttons 3 then 4. Row 3 shows buttons 5 then 6.">
+ * </td>
  * 
- * <td ALIGN=CENTER><img SRC="doc-files/GridLayout-2.gif"></td>
+ * <td ALIGN=CENTER><img SRC="doc-files/GridLayout-2.gif"
+ *                   alt="Shows 6 buttons in rows of 2. Row 1 shows buttons 2 then 1.
+ * Row 2 shows buttons 4 then 3. Row 3 shows buttons 6 then 5.">
+ * </td>
  * </tr>
  * 
  * <tr ALIGN=CENTER>
@@ -63,7 +69,7 @@ package java.awt;
  * the number of columns affects the layout only when the 
  * number of rows is set to zero.
  *
- * @version 1.32, 03/11/02
+ * @version 1.35, 01/23/03
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
@@ -74,8 +80,8 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * This should be a non-negative integer.
      *
      * @serial
-     * @see getHgap()
-     * @see setHgap()
+     * @see #getHgap()
+     * @see #setHgap(int)
      */
     int hgap;
     /**
@@ -84,8 +90,8 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * This should be a non negative integer.
      *
      * @serial
-     * @see getVgap()
-     * @see setVgap()
+     * @see #getVgap()
+     * @see #setVgap(int)
      */
     int vgap;
     /**
@@ -96,8 +102,8 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * dimension depends on the other dimension.
      *
      * @serial
-     * @see getRows()
-     * @see setRows()
+     * @see #getRows()
+     * @see #setRows(int)
      */
     int rows;
     /**
@@ -108,8 +114,8 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * dimension depends on the other dimension.
      *
      * @serial
-     * @see getColumns()
-     * @see setColumns()
+     * @see #getColumns()
+     * @see #setColumns(int)
      */
     int cols;
 
@@ -288,7 +294,7 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * rows, plus the vertical padding times the number of rows plus one, 
      * plus the top and bottom insets of the target container. 
      * 
-     * @param     target   the container in which to do the layout
+     * @param     parent   the container in which to do the layout
      * @return    the preferred dimensions to lay out the 
      *                      subcomponents of the specified container
      * @see       java.awt.GridLayout#minimumLayoutSize 
@@ -337,7 +343,7 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * plus the vertical padding times the number of rows plus one, plus 
      * the top and bottom insets of the target container. 
      *  
-     * @param       target   the container in which to do the layout
+     * @param       parent   the container in which to do the layout
      * @return      the minimum dimensions needed to lay out the 
      *                      subcomponents of the specified container
      * @see         java.awt.GridLayout#preferredLayoutSize
@@ -386,7 +392,7 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * size minus any insets and any specified horizontal or vertical 
      * gap. All components in a grid layout are given the same size. 
      *  
-     * @param      target   the container in which to do the layout
+     * @param      parent   the container in which to do the layout
      * @see        java.awt.Container
      * @see        java.awt.Container#doLayout
      */

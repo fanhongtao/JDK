@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPaneLayout.java	1.55 01/12/07
+ * @(#)ScrollPaneLayout.java	1.57 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.55 12/07/01
+ * @version 1.57 01/23/03
  * @author Hans Muller
  */
 public class ScrollPaneLayout
@@ -204,7 +204,7 @@ public class ScrollPaneLayout
      * </ul>
      *
      * @param s the component identifier
-     * @param comp the the component to be added
+     * @param c the the component to be added
      * @exception IllegalArgumentException if <code>s</code> is an invalid key
      */
     public void addLayoutComponent(String s, Component c) 

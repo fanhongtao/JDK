@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)DelayedSoundArea.java	1.12 02/06/13
+ * @(#)DelayedSoundArea.java	1.13 03/01/23
  */
 
 import java.awt.Graphics;
@@ -53,7 +53,7 @@ import java.util.StringTokenizer;
  * via SoundArea and another if the user stays on the button.
  *
  * @author 	Chuck McManis
- * @version 	1.12, 06/13/02
+ * @version 	1.13, 01/23/03
  */
 class DelayedSoundArea extends ImageMapArea {
     /** The URL of the sound to be played. */

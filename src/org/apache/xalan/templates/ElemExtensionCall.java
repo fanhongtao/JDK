@@ -91,8 +91,6 @@ import org.apache.xml.dtm.DTM;
 public class ElemExtensionCall extends ElemLiteralResult
 {
 
-  // ExtensionNSHandler nsh;
-
   /** The Namespace URI for this extension call element.
    *  @serial          */
   String m_extns;
@@ -144,51 +142,15 @@ public class ElemExtensionCall extends ElemLiteralResult
    */
   public void compose(StylesheetRoot sroot) throws TransformerException
   {
-
     super.compose(sroot);
-    m_extns = this.getNamespace();
-
-    StylesheetRoot stylesheet = this.getStylesheetRoot();
-
-    m_decl = getElemExtensionDecl(stylesheet, m_extns);
-
-    if (null != m_decl)
-    {
-      for (ElemTemplateElement child = m_decl.getFirstChildElem();
-              child != null; child = child.getNextSiblingElem())
-      {
-        if (Constants.ELEMNAME_EXTENSIONSCRIPT == child.getXSLToken())
-        {
-          ElemExtensionScript sdecl = (ElemExtensionScript) child;
-
-          m_lang = sdecl.getLang();
-          m_srcURL = sdecl.getSrc();
-
-          ElemTemplateElement childOfSDecl = sdecl.getFirstChildElem();
-
-          if (null != childOfSDecl)
-          {
-            if (Constants.ELEMNAME_TEXTLITERALRESULT
-                    == childOfSDecl.getXSLToken())
-            {
-              ElemTextLiteral tl = (ElemTextLiteral) childOfSDecl;
-              char[] chars = tl.getChars();
-
-              m_scriptSrc = new String(chars);
-            }
-          }
-
-          break;
-        }
-      }
-    }
-    else
-    {
-
-      // stylesheet.error(xxx);
-    }
+    m_extns = this.getNamespace();   
+    m_decl = getElemExtensionDecl(sroot, m_extns);
+    // Register the extension namespace if the extension does not have
+    // an ElemExtensionDecl ("component").
+    if (m_decl == null)
+      sroot.getExtensionNamespacesManager().registerExtension(m_extns);
   }
-
+ 
   /**
    * Return the ElemExtensionDecl for this extension element 
    *
@@ -227,7 +189,7 @@ public class ElemExtensionCall extends ElemLiteralResult
       }
     }
 
-    return decl;
+    return null;
   }
   
   /**
@@ -261,6 +223,23 @@ public class ElemExtensionCall extends ElemLiteralResult
     }
 
   }
+  
+  /**
+   * Return true if this extension element has a <xsl:fallback> child element.
+   *
+   * @return true if this extension element has a <xsl:fallback> child element.
+   */
+  public boolean hasFallbackChildren()
+  {
+    for (ElemTemplateElement child = m_firstChild; child != null;
+             child = child.m_nextSibling)
+    {
+      if (child.getXSLToken() == Constants.ELEMNAME_FALLBACK)
+        return true;
+    }
+    
+    return false;
+  }
 
 
   /**
@@ -272,8 +251,7 @@ public class ElemExtensionCall extends ElemLiteralResult
    *
    * @throws TransformerException
    */
-  public void execute(
-          TransformerImpl transformer)
+  public void execute(TransformerImpl transformer)
             throws TransformerException
   {
 
@@ -281,25 +259,23 @@ public class ElemExtensionCall extends ElemLiteralResult
     {
       transformer.getResultTreeHandler().flushPending();
 
-      XPathContext liaison = ((XPathContext) transformer.getXPathContext());
-      ExtensionsTable etable = liaison.getExtensionsTable();
+      ExtensionsTable etable = transformer.getExtensionsTable();
       ExtensionHandler nsh = etable.get(m_extns);
-
-      // We're seeing this extension namespace used for the first time.  Try to
-      // autodeclare it as a java namespace.
 
       if (null == nsh)
       {
-        nsh = etable.makeJavaNamespace(m_extns);
-
-        if(null != nsh)
-          etable.addExtensionNamespace(m_extns, nsh);
-        else
+        if (hasFallbackChildren())
         {
           executeFallbacks(transformer);
-          return;
         }
-
+        else
+        {
+	  TransformerException te = new TransformerException(XSLMessages.createMessage(
+	  	XSLTErrorResources.ER_CALL_TO_EXT_FAILED, new Object[]{getNodeName()}));
+	  transformer.getErrorListener().fatalError(te);
+        }
+        
+        return;
       }
 
       try
@@ -310,42 +286,27 @@ public class ElemExtensionCall extends ElemLiteralResult
       catch (Exception e)
       {
 
-        // System.out.println(e);
-        // e.printzStackTrace();
-        String msg = e.getMessage();
-        
-        TransformerException te;
-        if(e instanceof TransformerException)
-        {
-          te = (TransformerException)e;
-        }
-        else
-        {
-          if(null != msg)
-            te = new TransformerException(e);
-          else
-            te = new TransformerException(XSLMessages.createMessage(XSLTErrorResources.ER_UNKNOWN_ERROR_CALLING_EXTENSION, null), e); //"Unknown error when calling extension!", e);
-        }
-        if(null == te.getLocator())
-          te.setLocator(this);
-
-        if (null != msg)
-        {
-          if (msg.indexOf("fatal") >= 0)
+	if (hasFallbackChildren())
+	  executeFallbacks(transformer);
+	else
+	{
+          if(e instanceof TransformerException)
           {
-            transformer.getErrorListener().fatalError(te);
+            TransformerException te = (TransformerException)e;
+            if(null == te.getLocator())
+              te.setLocator(this);
+            
+            transformer.getErrorListener().fatalError(te);            
           }
-          else if(e instanceof RuntimeException)      
-            transformer.getErrorListener().error(te); // ??
+          else if (e instanceof RuntimeException)
+          {
+            transformer.getErrorListener().fatalError(new TransformerException(e));
+          }
           else
-            transformer.getErrorListener().warning(te);
-
+          {
+            transformer.getErrorListener().warning(new TransformerException(e));
+          }
         }
-        else      
-          transformer.getErrorListener().error(te); // ??
-
-        executeFallbacks(
-          transformer);
       }
     }
     catch(org.xml.sax.SAXException se)
@@ -405,5 +366,18 @@ public class ElemExtensionCall extends ElemLiteralResult
 
     return null;
   }
+  
+  /**
+   * Accept a visitor and call the appropriate method 
+   * for this class.
+   * 
+   * @param visitor The visitor whose appropriate method will be called.
+   * @return true if the children of the object should be visited.
+   */
+  protected boolean accept(XSLTVisitor visitor)
+  {
+  	return visitor.visitExtensionElement(this);
+  }
+
   
 }

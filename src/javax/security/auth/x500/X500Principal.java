@@ -1,7 +1,7 @@
 /*
- * @(#)X500Principal.java	1.17 02/04/05
+ * @(#)X500Principal.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import sun.security.util.*;
  * <code>X509Certificate</code> return X500Principals representing the
  * issuer and subject fields of the certificate.
  *
- * @version 1.17, 04/05/02
+ * @version 1.19, 01/23/03
  * @see java.security.cert.X509Certificate
  * @since 1.4
  */
@@ -57,17 +57,17 @@ public final class X500Principal implements Principal, java.io.Serializable {
      */
     public static final String CANONICAL = "CANONICAL";
 
+    /**
+     * The X500Name representing this principal.
+     *
+     * NOTE: this field is reflectively accessed from within X500Name.
+     */
     private transient X500Name thisX500Name;
     
-    private transient byte[] encByte = null;
-    
     /**
-     * Creates an X500Principal by wrapping an X500Name without cloning it.
-     * Note that use of this constructor requires care because modifying
-     * the underlying X500Name would violate the X500Principal immutability
-     * contract. Code using it must guarantee that this will never happen.
+     * Creates an X500Principal by wrapping an X500Name.
      *
-     * The constructor is package private. It is intended to be accessed
+     * NOTE: The constructor is package private. It is intended to be accessed
      * using privileged reflection from classes in sun.security.*.
      * Currently referenced from sun.security.x509.X500Name.asX500Principal().
      */
@@ -305,18 +305,11 @@ public final class X500Principal implements Principal, java.io.Serializable {
      * encoded form
      */
     public byte[] getEncoded() {
-	if (encByte == null ) {
-	    try {
-		encByte = thisX500Name.getEncoded();
-	    } catch (IOException ioe) {
-		RuntimeException re = new RuntimeException
-					("unable to get encoding");
-		re.initCause(ioe);
-		throw re;
-	    }
+	try {
+	    return thisX500Name.getEncoded();
+	} catch (IOException e) {
+            throw new RuntimeException("unable to get encoding", e);
 	}
-	// assert encByte not null
-	return ((byte[])(encByte.clone()));
     }
 
     /**
@@ -348,15 +341,14 @@ public final class X500Principal implements Principal, java.io.Serializable {
      *		to this <code>X500Principal</code>, <code>false</code> otherwise
      */
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-
-	if (o instanceof X500Principal) {
-	    X500Principal that = (X500Principal)o;
-	    return this.getName(X500Principal.CANONICAL).equals
-		(that.getName(X500Principal.CANONICAL));
 	}
-	return false;
+	if (o instanceof X500Principal == false) {
+	    return false;
+	}
+	X500Principal other = (X500Principal)o;
+	return this.thisX500Name.equals(other.thisX500Name);
     }
  
     /**
@@ -368,7 +360,7 @@ public final class X500Principal implements Principal, java.io.Serializable {
      * @return a hash code for this <code>X500Principal</code>
      */
     public int hashCode() {
-	return getName(X500Principal.CANONICAL).hashCode();
+	return thisX500Name.hashCode();
     }
 
     /**
@@ -380,7 +372,7 @@ public final class X500Principal implements Principal, java.io.Serializable {
      */ 
     private void writeObject(java.io.ObjectOutputStream s)
 	throws IOException {
-	s.writeObject(this.getEncoded());
+	s.writeObject(thisX500Name.getEncodedInternal());
     }
 
     /**

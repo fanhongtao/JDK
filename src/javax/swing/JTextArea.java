@@ -1,7 +1,7 @@
 /*
- * @(#)JTextArea.java	1.84 02/04/01
+ * @(#)JTextArea.java	1.87 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -102,7 +102,7 @@ import java.io.IOException;
  * description: A multi-line area that displays plain text.
  * 
  * @author  Timothy Prinzing
- * @version 1.84 04/01/02
+ * @version 1.87 01/23/03
  * @see JTextPane
  * @see JEditorPane
  */
@@ -493,8 +493,14 @@ public class JTextArea extends JTextComponent {
         Document doc = getDocument();
         if (doc != null) {
             try {
-                doc.remove(start, end - start);
-                doc.insertString(start, str, null);
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).replace(start, end - start, str,
+                                                    null);
+                }
+                else {
+                    doc.remove(start, end - start);
+                    doc.insertString(start, str, null);
+                }
             } catch (BadLocationException e) {
                 throw new IllegalArgumentException(e.getMessage());
             }
@@ -605,11 +611,15 @@ public class JTextArea extends JTextComponent {
     public Dimension getPreferredSize() {
 	Dimension d = super.getPreferredSize();
         d = (d == null) ? new Dimension(400,400) : d;
+        Insets insets = getInsets();
+
         if (columns != 0) {
-	    d.width = Math.max(d.width, columns * getColumnWidth());
+	    d.width = Math.max(d.width, columns * getColumnWidth() +
+                               insets.left + insets.right);
 	}
 	if (rows != 0) {
-	    d.height = Math.max(d.height, rows * getRowHeight());
+	    d.height = Math.max(d.height, rows * getRowHeight() +
+                                insets.top + insets.bottom);
 	}
 	return d;
     }

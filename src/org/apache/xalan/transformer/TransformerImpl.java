@@ -57,113 +57,83 @@
 package org.apache.xalan.transformer;
 
 // Java imports
-import java.util.Stack;
-import java.util.Vector;
-import java.util.Enumeration;
-import java.util.Properties;
-import java.util.StringTokenizer;
-
-import java.io.StringWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
-// Xalan imports
-import org.apache.xalan.res.XSLTErrorResources;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.ErrorListener;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.URIResolver;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamResult;
+import org.apache.xalan.processor.TransformerFactoryImpl;
 import org.apache.xalan.res.XSLMessages;
-import org.apache.xalan.templates.Constants;
-import org.apache.xalan.templates.ElemAttributeSet;
-import org.apache.xalan.templates.ElemTemplateElement;
-import org.apache.xalan.templates.StylesheetComposed;
-import org.apache.xalan.templates.ElemForEach;
-import org.apache.xalan.templates.ElemApplyTemplates;
-import org.apache.xalan.templates.ElemUse;
-import org.apache.xalan.templates.StylesheetRoot;
-import org.apache.xalan.templates.Stylesheet;
-import org.apache.xalan.templates.ElemWithParam;
-import org.apache.xalan.templates.ElemSort;
-import org.apache.xalan.templates.AVT;
-import org.apache.xalan.templates.ElemVariable;
-import org.apache.xalan.templates.ElemParam;
-import org.apache.xalan.templates.ElemCallTemplate;
-import org.apache.xalan.templates.ElemTemplate;
-import org.apache.xalan.templates.ElemTextLiteral;
-import org.apache.xalan.templates.TemplateList;
-import org.apache.xalan.templates.XUnresolvedVariable;
-import org.apache.xalan.templates.OutputProperties;
-import org.apache.xalan.trace.TraceManager;
-import org.apache.xalan.transformer.XalanProperties;
-import org.apache.xml.utils.DOMBuilder;
-import org.apache.xml.utils.NodeVector;
-import org.apache.xml.utils.BoolStack;
-import org.apache.xml.utils.QName;
-import org.apache.xml.utils.PrefixResolver;
-import org.apache.xml.utils.ObjectPool;
-import org.apache.xml.utils.SAXSourceLocator;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.NodeSetDTM;
-import org.apache.xpath.objects.XObject;
-import org.apache.xpath.objects.XNodeSet;
-import org.apache.xpath.XPath;
-import org.apache.xpath.objects.XString;
-import org.apache.xpath.objects.XRTreeFrag;
-import org.apache.xpath.Arg;
-import org.apache.xpath.XPathAPI;
-import org.apache.xpath.VariableStack;
-import org.apache.xpath.SourceTreeManager;
-import org.apache.xpath.compiler.XPathParser;
-import org.apache.xpath.axes.ContextNodeList;
-import org.apache.xpath.Expression;
-
-// Serializer Imports
+import org.apache.xalan.res.XSLTErrorResources;
+import org.apache.xalan.serialize.Method;
 import org.apache.xalan.serialize.Serializer;
 import org.apache.xalan.serialize.SerializerFactory;
-import org.apache.xalan.serialize.Method;
+import org.apache.xalan.templates.AVT;
+import org.apache.xalan.templates.Constants;
+import org.apache.xalan.templates.ElemAttributeSet;
+import org.apache.xalan.templates.ElemForEach;
+import org.apache.xalan.templates.ElemSort;
+import org.apache.xalan.templates.ElemTemplate;
+import org.apache.xalan.templates.ElemTemplateElement;
+import org.apache.xalan.templates.ElemTextLiteral;
+import org.apache.xalan.templates.ElemVariable;
+import org.apache.xalan.templates.OutputProperties;
+import org.apache.xalan.templates.Stylesheet;
+import org.apache.xalan.templates.StylesheetComposed;
+import org.apache.xalan.templates.StylesheetRoot;
+import org.apache.xalan.templates.WhiteSpaceInfo;
+import org.apache.xalan.templates.XUnresolvedVariable;
+import org.apache.xalan.trace.TraceManager;
 import org.apache.xml.dtm.DTM;
 import org.apache.xml.dtm.DTMIterator;
 import org.apache.xml.dtm.DTMManager;
 import org.apache.xml.dtm.DTMWSFilter;
-
-// We have to figure out what to do about this one.
-import org.apache.xml.dtm.ref.ExpandedNameTable;
-
-// SAX2 Imports
+import org.apache.xml.utils.BoolStack;
+import org.apache.xml.utils.DOMBuilder;
+import org.apache.xml.utils.NodeVector;
+import org.apache.xml.utils.ObjectPool;
+import org.apache.xml.utils.ObjectStack;
+import org.apache.xml.utils.QName;
+import org.apache.xml.utils.SAXSourceLocator;
+import org.apache.xml.utils.WrappedRuntimeException;
+import org.apache.xpath.Arg;
+import org.apache.xpath.DOMHelper;
+import org.apache.xpath.VariableStack;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.objects.XObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 import org.xml.sax.ContentHandler;
-import org.xml.sax.helpers.XMLFilterImpl;
-import org.xml.sax.InputSource;
-
-import javax.xml.transform.TransformerException;
-
-import org.xml.sax.XMLReader;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLFilter;
-import org.xml.sax.Locator;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.ext.DeclHandler;
-import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.DeclHandler;
+import org.xml.sax.ext.LexicalHandler;
 
-import javax.xml.transform.ErrorListener;
-
-// TRaX Imports
-import javax.xml.transform.Source;
-import javax.xml.transform.Result;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.URIResolver;
-import javax.xml.transform.SourceLocator;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.OutputKeys;
-
-// Imported JAVA API for XML Parsing 1.0 classes
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+//dml
+import org.apache.xpath.ExtensionsProvider;
+import org.apache.xalan.extensions.ExtensionsTable;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -172,7 +142,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * representation of the transformation execution.</p>
  */
 public class TransformerImpl extends Transformer
-        implements Runnable, DTMWSFilter
+        implements Runnable, DTMWSFilter, ExtensionsProvider
 {
 
   // Synch object to gaurd against setting values from the TrAX interface 
@@ -269,11 +239,11 @@ public class TransformerImpl extends Transformer
    * so a tool can discover the calling template. Note the use of an array 
    * for this limits the recursion depth to 4K.
    */
-  ElemTemplateElement[] m_currentTemplateElements 
-      = new ElemTemplateElement[XPathContext.RECURSIONLIMIT];
+  ObjectStack m_currentTemplateElements 
+      = new ObjectStack(XPathContext.RECURSIONLIMIT);
   
   /** The top of the currentTemplateElements stack. */
-  int m_currentTemplateElementsTop = 0;
+  //int m_currentTemplateElementsTop = 0;
 
   /**
    * A node vector used as a stack to track the current
@@ -316,7 +286,7 @@ public class TransformerImpl extends Transformer
    * Object to guard agains infinite recursion when
    * doing queries.
    */
-  private StackGuard m_stackGuard = new StackGuard();
+  private StackGuard m_stackGuard;
 
   /**
    * Output handler to bottleneck SAX events.
@@ -355,12 +325,6 @@ public class TransformerImpl extends Transformer
    */
   public static boolean S_DEBUG = false;
 
-  /**
-   * This property specifies whether the transformation phase should
-   * keep track of line and column numbers for the input source
-   * document. By default is false. */
-  protected boolean m_useSourceLocationProperty = false;
-  
   /**
    * The SAX error handler, where errors and warnings are sent.
    */
@@ -423,7 +387,7 @@ public class TransformerImpl extends Transformer
   private Stack m_modes = new Stack();
 
   //==========================================================
-  // SECTION: Constructors
+  // SECTION: Constructor
   //==========================================================
 
   /**
@@ -432,12 +396,74 @@ public class TransformerImpl extends Transformer
    * @param stylesheet The root of the stylesheet tree.
    */
   public TransformerImpl(StylesheetRoot stylesheet)
+   // throws javax.xml.transform.TransformerException    
   {
-
     setStylesheet(stylesheet);
     setXPathContext(new XPathContext(this));
     getXPathContext().setNamespaceContext(stylesheet);
+    m_stackGuard = new StackGuard(this);
   }
+  
+  // ================ ExtensionsTable ===================
+
+  /**
+   * The table of ExtensionHandlers.
+   */
+  private ExtensionsTable m_extensionsTable = null;
+
+  /**
+   * Get the extensions table object. 
+   *
+   * @return The extensions table.
+   */
+  public ExtensionsTable getExtensionsTable()
+  {
+    return m_extensionsTable;
+  }
+
+  /**
+   * If the stylesheet contains extensions, set the extensions table object.
+   *
+   *
+   * @param sroot The stylesheet.
+   * @throws javax.xml.transform.TransformerException
+   */
+  void setExtensionsTable(StylesheetRoot sroot)
+       throws javax.xml.transform.TransformerException
+  {
+    try
+    {
+      if (sroot.getExtensions() != null)
+        m_extensionsTable = new ExtensionsTable(sroot);
+    }
+    catch (javax.xml.transform.TransformerException te)
+    {te.printStackTrace();}
+  }
+  
+  //== Implementation of the XPath ExtensionsProvider interface.
+  
+  public boolean functionAvailable(String ns, String funcName)
+          throws javax.xml.transform.TransformerException
+  {
+    return getExtensionsTable().functionAvailable(ns, funcName);
+  }
+  
+  public boolean elementAvailable(String ns, String elemName)
+          throws javax.xml.transform.TransformerException
+  {
+    return getExtensionsTable().elementAvailable(ns, elemName);   
+  }
+   
+  public Object extFunction(String ns, String funcName, 
+                            Vector argVec, Object methodKey)
+            throws javax.xml.transform.TransformerException
+  {//System.out.println("TransImpl.extFunction() " + ns + " " + funcName +" " + getExtensionsTable());
+    return getExtensionsTable().extFunction(ns, funcName, 
+                                        argVec, methodKey,
+                                        getXPathContext().getExpressionContext());   
+  }
+  
+  //=========================
 
   /**
    * Reset the state.  This needs to be called after a process() call
@@ -464,21 +490,17 @@ public class TransformerImpl extends Transformer
       // I need to look more carefully at which of these really
       // needs to be reset.
       m_countersTable = null;
-      m_stackGuard = new StackGuard();
 
       m_xcontext.reset();
-      m_xcontext.getVarStack().reset();
-
-      int n = m_currentTemplateElements.length;
-      for (int i = 0; i < n; i++) 
-      {
-        m_currentTemplateElements[i] = null;
-      }
-      m_currentTemplateElementsTop = 0;
       
+      m_xcontext.getVarStack().reset();
+      resetUserParameters();
+      
+
+      m_currentTemplateElements.removeAllElements();     
       m_currentMatchTemplates.removeAllElements();
       m_currentMatchedNodes.removeAllElements();
-
+      
       m_resultTreeHandler = null;
       m_outputTarget = null;
       m_keyManager = new KeyManager();
@@ -502,32 +524,26 @@ public class TransformerImpl extends Transformer
    * <code>getProperty</code> returns the current setting of the
    * property described by the <code>property</code> argument.
    *
+   * %REVIEW% Obsolete now that source_location is handled in the TransformerFactory?
+   *
    * @param property a <code>String</code> value
    * @return a <code>boolean</code> value
    */
   public boolean getProperty(String property)
   {
-    if (property.equals(XalanProperties.SOURCE_LOCATION))
-      return m_useSourceLocationProperty;
-
     return false;
   }
 
   /**
    * Set a runtime property for this <code>TransformerImpl</code>.
    *
+   * %REVIEW% Obsolete now that source_location is handled in the TransformerFactory?
+   *
    * @param property a <code>String</code> value
    * @param value an <code>Object</code> value
    */
   public void setProperty(String property, Object value)
   {
-    if (property.equals(XalanProperties.SOURCE_LOCATION)) {
-      if (!(value instanceof Boolean))
-        throw new RuntimeException(XSLMessages.createMessage(XSLTErrorResources.ER_PROPERTY_VALUE_BOOLEAN, new Object[]{XalanProperties.SOURCE_LOCATION})); //"Value for property "
-                                   //+ XalanProperties.SOURCE_LOCATION
-                                   //+ " should be a Boolean instance");
-      m_useSourceLocationProperty = ((Boolean)value).booleanValue();
-    }
   }
 
   // ========= Transformer Interface Implementation ==========
@@ -604,6 +620,14 @@ public class TransformerImpl extends Transformer
 
     try
     {
+        
+      // Patch for bugzilla #13863.  If we don't reset the namespaceContext
+      // then we will get a NullPointerException if transformer is reused 
+      // (for stylesheets that use xsl:key).  Not sure if this should go 
+      // here or in reset(). -is  
+      if(getXPathContext().getNamespaceContext() == null){
+         getXPathContext().setNamespaceContext(getStylesheet());
+      }
       String base = source.getSystemId();
       
       // If no systemID of the source, use the base of the stylesheet.
@@ -615,8 +639,12 @@ public class TransformerImpl extends Transformer
       // As a last resort, use the current user dir.
       if(null == base)
       {
-        String currentDir = System.getProperty("user.dir");
-        
+        String currentDir = "";
+        try {
+          currentDir = System.getProperty("user.dir");
+        }
+        catch (SecurityException se) {}// user.dir not accessible from applet
+              
         if (currentDir.startsWith(java.io.File.separator))
           base = "file://" + currentDir;
         else
@@ -628,13 +656,15 @@ public class TransformerImpl extends Transformer
       setBaseURLOfSource(base);
       DTMManager mgr = m_xcontext.getDTMManager();
       DTM dtm = mgr.getDTM(source, false, this, true, true);
-      dtm.setProperty(XalanProperties.SOURCE_LOCATION,
-                      new Boolean(m_useSourceLocationProperty));
+      dtm.setDocumentBaseURI(base);
       
       boolean hardDelete = true;  // %REVIEW% I have to think about this. -sb
 
       try
       {
+      	// NOTE: This will work because this is _NOT_ a shared DTM, and thus has
+      	// only a single Document node. If it could ever be an RTF or other
+      	// shared DTM, look at dtm.getDocumentRoot(nodeHandle).
         this.transformNode(dtm.getDocument());
       }
       finally
@@ -658,9 +688,8 @@ public class TransformerImpl extends Transformer
         }
         else if (e instanceof org.apache.xml.utils.WrappedRuntimeException)
         {
-          m_errorHandler.fatalError(
-            new javax.xml.transform.TransformerException(
-              ((org.apache.xml.utils.WrappedRuntimeException) e).getException()));
+          fatalError(
+              ((org.apache.xml.utils.WrappedRuntimeException) e).getException());
         }
         else
         {
@@ -683,17 +712,13 @@ public class TransformerImpl extends Transformer
           ((org.apache.xml.utils.WrappedRuntimeException) throwable).getException();
       }
 
-      m_errorHandler.fatalError(new TransformerException(wre.getException()));
+      fatalError(throwable);
     }
 
     // Patch attributed to David Eisenberg <david@catcode.com>
     catch (org.xml.sax.SAXParseException spe)
     {
-      String msg = spe.getMessage();
-      SAXSourceLocator loc = new SAXSourceLocator(spe);
-
-      //m_errorHandler.fatalError(new TransformerException( msg, loc ));
-      m_errorHandler.fatalError(new TransformerException(spe));
+      fatalError(spe);
     }
     catch (org.xml.sax.SAXException se)
     {
@@ -706,6 +731,15 @@ public class TransformerImpl extends Transformer
       // This looks to be redundent to the one done in TransformNode.
       reset();
     }
+  }
+  
+  private void fatalError(Throwable throwable) throws TransformerException
+  {
+    if (throwable instanceof org.xml.sax.SAXParseException)
+      m_errorHandler.fatalError(new TransformerException(throwable.getMessage(),new SAXSourceLocator((org.xml.sax.SAXParseException)throwable)));
+    else
+      m_errorHandler.fatalError(new TransformerException(throwable));
+    
   }
 
   /**
@@ -868,8 +902,15 @@ public class TransformerImpl extends Transformer
    * @param oformat A set of output properties that will be
    * used to override any of the same properties in effect
    * for the transformation.
+   *
+   * @see javax.xml.transform.OutputKeys
+   * @see java.util.Properties
+   *
+   * @throws IllegalArgumentException if any of the argument keys are not
+   * recognized and are not namespace qualified.   
    */
   public void setOutputProperties(Properties oformat)
+  		throws IllegalArgumentException
   {
 
     synchronized (m_reentryGuard)
@@ -882,7 +923,7 @@ public class TransformerImpl extends Transformer
 
         if (null != method)
           m_outputFormat = new OutputProperties(method);
-        else
+        else if(m_outputFormat==null)
           m_outputFormat = new OutputProperties();
       }
 
@@ -1102,6 +1143,7 @@ public class TransformerImpl extends Transformer
   public void transformNode(int node, Result outputTarget)
           throws TransformerException
   {
+    
 
     ContentHandler handler = createResultContentHandler(outputTarget);
 
@@ -1123,7 +1165,8 @@ public class TransformerImpl extends Transformer
    */
   public void transformNode(int node) throws TransformerException
   {
-
+    //dml
+    setExtensionsTable(getStylesheet());
     // Make sure we're not writing to the same output content handler.
     synchronized (m_outputContentHandler)
     {
@@ -1160,8 +1203,7 @@ public class TransformerImpl extends Transformer
             }
           }
         }
-
-        // ===========
+        // ===========        
         // System.out.println("Calling applyTemplateToNode - "+Thread.currentThread().getName());
         DTMIterator dtmIter = new org.apache.xpath.axes.SelfIteratorNoPredicate();
         dtmIter.setRoot(node, xctxt);
@@ -1205,8 +1247,16 @@ public class TransformerImpl extends Transformer
           {
             if(se instanceof org.xml.sax.SAXParseException)
               m_resultTreeHandler.fatalError((org.xml.sax.SAXParseException)se);
+            else if(se instanceof TransformerException)
+            {
+              TransformerException te = ((TransformerException)se);
+              SAXSourceLocator sl = new SAXSourceLocator( te.getLocator() );
+              m_resultTreeHandler.fatalError(new org.xml.sax.SAXParseException(te.getMessage(), sl, te)); 
+            }
             else
-              m_resultTreeHandler.fatalError(new org.xml.sax.SAXParseException(se.getMessage(), new SAXSourceLocator(), se));              
+            {
+              m_resultTreeHandler.fatalError(new org.xml.sax.SAXParseException(se.getMessage(), new SAXSourceLocator(), se)); 
+            }             
           }
           catch (Exception e){}
         }        
@@ -1507,6 +1557,43 @@ public class TransformerImpl extends Transformer
       return null;
     }
   }
+  
+  /**
+   * Reset parameters that the user specified for the transformation.
+   * Called during transformer.reset() after we have cleared the 
+   * variable stack. We need to make sure that user params are
+   * reset so that the transformer object can be reused. 
+   */
+  private void resetUserParameters()
+  {
+
+    try
+    {
+      
+      if (null == m_userParams)
+        return;
+
+      int n = m_userParams.size();
+      for (int i = n - 1; i >= 0; i--)
+      {
+        Arg arg = (Arg) m_userParams.elementAt(i);
+        QName name = arg.getQName();
+        // The first string might be the namespace, or it might be 
+        // the local name, if the namespace is null.
+        String s1 = name.getNamespace();
+        String s2 = name.getLocalPart();
+
+        setParameter(s2, s1, arg.getVal().object());
+        
+      }
+      
+    }
+    catch (java.util.NoSuchElementException nsee)
+    {
+      // Should throw some sort of an error.
+      
+    }
+  }
 
   /**
    * Set a bag of parameters for the transformation. Note that
@@ -1578,7 +1665,7 @@ public class TransformerImpl extends Transformer
    * <p>If we encounter a variable
    * that is already defined in the variable stack, we ignore it.  This
    * is because the second variable definition will be at a lower import
-   * precedence.  Presumably, global variables at the same import precedence
+   * precedence.  Presumably, global"variables at the same import precedence
    * with the same name will have been caught during the recompose process.
    * <p>However, if we encounter a parameter that is already defined in the
    * variable stack, we need to see if this is a parameter whose value was
@@ -1687,24 +1774,68 @@ public class TransformerImpl extends Transformer
   /**
    * <meta name="usage" content="advanced"/>
    * Given a stylesheet element, create a result tree fragment from it's
-   * contents.
+   * contents. The fragment will be built within the shared RTF DTM system
+   * used as a variable stack.
    * @param templateParent The template element that holds the fragment.
-   * @param sourceNode The current source context node.
-   * @param mode The mode under which the template is operating.
-   * @return An object that represents the result tree fragment.
+   * @return the NodeHandle for the root node of the resulting RTF.
    *
    * @throws TransformerException
    */
   public int transformToRTF(ElemTemplateElement templateParent)
           throws TransformerException
   {
+    // Retrieve a DTM to contain the RTF. At this writing, this may be a
+    // multi-document DTM (SAX2RTFDTM).
+    DTM dtmFrag = m_xcontext.getRTFDTM();
+    return transformToRTF(templateParent,dtmFrag);
+  }
+  
+  /**
+   * <meta name="usage" content="advanced"/>
+   * Given a stylesheet element, create a result tree fragment from it's
+   * contents. The fragment will also use the shared DTM system, but will
+   * obtain its space from the global variable pool rather than the dynamic
+   * variable stack. This allows late binding of XUnresolvedVariables without
+   * the risk that their content will be discarded when the variable stack
+   * is popped.
+   * 
+   * @param templateParent The template element that holds the fragment.
+   * @return the NodeHandle for the root node of the resulting RTF.
+   *
+   * @throws TransformerException
+   */
+  public int transformToGlobalRTF(ElemTemplateElement templateParent)
+          throws TransformerException
+  {
+    // Retrieve a DTM to contain the RTF. At this writing, this may be a
+    // multi-document DTM (SAX2RTFDTM).
+    DTM dtmFrag = m_xcontext.getGlobalRTFDTM();
+    return transformToRTF(templateParent,dtmFrag);
+  }
+  
+  /**
+   * <meta name="usage" content="advanced"/>
+   * Given a stylesheet element, create a result tree fragment from it's
+   * contents.
+   * @param templateParent The template element that holds the fragment.
+   * @param dtmFrag The DTM to write the RTF into
+   * @return the NodeHandle for the root node of the resulting RTF.
+   *
+   * @throws TransformerException
+   */
+  private int transformToRTF(ElemTemplateElement templateParent,DTM dtmFrag)
+          throws TransformerException
+  {
 
     XPathContext xctxt = m_xcontext;
-    DTM dtmFrag = xctxt.getDTM(null, true, this, false, false);
+    
     ContentHandler rtfHandler = dtmFrag.getContentHandler();
 
-    // Create a ResultTreeFrag object.
-    int resultFragment = resultFragment = dtmFrag.getDocument();
+    // Obtain the ResultTreeFrag's root node.
+    // NOTE: In SAX2RTFDTM, this value isn't available until after
+    // the startDocument has been issued, so assignment has been moved
+    // down a bit in the code.
+    int resultFragment; // not yet reliably = dtmFrag.getDocument();
 
     // Save the current result tree handler.
     ResultTreeHandler savedRTreeHandler = this.m_resultTreeHandler;
@@ -1717,7 +1848,12 @@ public class TransformerImpl extends Transformer
     try
     {
       rth.startDocument();
-
+      
+      // startDocument is "bottlenecked" in RTH. We need it acted upon immediately,
+      // to set the DTM's state as in-progress, so that if the xsl:variable's body causes
+      // further RTF activity we can keep that from bashing this DTM.
+      rth.flushPending(); 
+ 
       try
       {
 
@@ -1726,6 +1862,12 @@ public class TransformerImpl extends Transformer
 
         // Make sure everything is flushed!
         rth.flushPending();
+        
+        // Get the document ID. May not exist until the RTH has not only
+        // received, but flushed, the startDocument, and may be invalid
+        // again after the document has been closed (still debating that)
+        // ... so waiting until just before the end seems simplest/safest. 
+	resultFragment = dtmFrag.getDocument();      
       }
       finally
       {
@@ -1882,11 +2024,12 @@ public class TransformerImpl extends Transformer
     DTM dtm = m_xcontext.getDTM(child);
     short nodeType = dtm.getNodeType(child);
     boolean isDefaultTextRule = false;
+    boolean isApplyImports = false;    
 
     if (null == template)
     {
-      int maxImportLevel;
-      boolean isApplyImports = ((xslInstruction == null)
+      int maxImportLevel, endImportLevel=0;
+      isApplyImports = ((xslInstruction == null)
                                 ? false
                                 : xslInstruction.getXSLToken()
                                   == Constants.ELEMNAME_APPLY_IMPORTS);
@@ -1895,6 +2038,8 @@ public class TransformerImpl extends Transformer
       {
         maxImportLevel =
           xslInstruction.getStylesheetComposed().getImportCountComposed() - 1;
+        endImportLevel =
+          xslInstruction.getStylesheetComposed().getEndImportCountComposed();
       }
       else
       {
@@ -1923,9 +2068,14 @@ public class TransformerImpl extends Transformer
           xctxt.pushNamespaceContext(xslInstruction);
 
           QName mode = this.getMode();
-
-          template = m_stylesheetRoot.getTemplateComposed(xctxt, child, mode,
-                  maxImportLevel, m_quietConflictWarnings, dtm);
+          
+          if (isApplyImports)
+            template = m_stylesheetRoot.getTemplateComposed(xctxt, child, mode,
+                  maxImportLevel, endImportLevel, m_quietConflictWarnings, dtm);
+          else
+            template = m_stylesheetRoot.getTemplateComposed(xctxt, child, mode,
+                  m_quietConflictWarnings, dtm);
+          
         }
         finally
         {
@@ -1969,8 +2119,10 @@ public class TransformerImpl extends Transformer
       pushPairCurrentMatched(template, child);
       
       // Fix copy copy29 test.
-      DTMIterator cnl = new org.apache.xpath.NodeSetDTM(child, m_xcontext.getDTMManager());
-      m_xcontext.pushContextNodeList(cnl);
+      if (!isApplyImports) {
+          DTMIterator cnl = new org.apache.xpath.NodeSetDTM(child, m_xcontext.getDTMManager());
+          m_xcontext.pushContextNodeList(cnl);
+      }
 
       if (isDefaultTextRule)
       {
@@ -1991,8 +2143,8 @@ public class TransformerImpl extends Transformer
 
         // Fire a trace event for the template.
          
-                if (TransformerImpl.S_DEBUG)
-                  getTraceManager().fireTraceEvent(template);
+        if (TransformerImpl.S_DEBUG)
+          getTraceManager().fireTraceEvent(template);
         // And execute the child templates.
         // 9/11/00: If template has been compiled, hand off to it
         // since much (most? all?) of the processing has been inlined.
@@ -2006,6 +2158,9 @@ public class TransformerImpl extends Transformer
         // m_xcontext.getVarStack().link();
         m_xcontext.getVarStack().link(template.m_frameSize);
         executeChildTemplates(template, true);
+        
+        if (TransformerImpl.S_DEBUG)
+          getTraceManager().fireTraceEndEvent(template);
       }
     }
     catch (org.xml.sax.SAXException se)
@@ -2016,8 +2171,10 @@ public class TransformerImpl extends Transformer
     {
       m_xcontext.getVarStack().unlink();
       m_xcontext.popCurrentNode();
-      m_xcontext.popContextNodeList();
-      popCurrentMatched();
+      if (!isApplyImports) {
+          m_xcontext.popContextNodeList();
+          popCurrentMatched();
+      }
       popElemTemplateElement();
     }
 
@@ -2164,8 +2321,8 @@ public class TransformerImpl extends Transformer
 
     XPathContext xctxt = m_xcontext;
     xctxt.pushSAXLocatorNull();
-    int currentTemplateElementsTop = m_currentTemplateElementsTop;
-    m_currentTemplateElementsTop++;
+    int currentTemplateElementsTop = m_currentTemplateElements.size();
+    m_currentTemplateElements.push(null);
 
     try
     {
@@ -2178,13 +2335,19 @@ public class TransformerImpl extends Transformer
           continue;
 
         xctxt.setSAXLocator(t);
-        m_currentTemplateElements[currentTemplateElementsTop] = t;
+        m_currentTemplateElements.setElementAt(t,currentTemplateElementsTop);
         t.execute(this);
       }
     }
+    catch(RuntimeException re)
+    {
+    	TransformerException te = new TransformerException(re);
+    	te.setLocator(t);
+    	throw te;
+    }
     finally
     {
-      m_currentTemplateElementsTop--;
+      m_currentTemplateElements.pop();
       xctxt.popSAXLocator();
     }
 
@@ -2221,6 +2384,10 @@ public class TransformerImpl extends Transformer
     for (int i = 0; i < nElems; i++)
     {
       ElemSort sort = foreach.getSortElem(i);
+      
+      if (TransformerImpl.S_DEBUG)
+        getTraceManager().fireTraceEvent(sort);
+     
       String langString =
         (null != sort.getLang())
         ? sort.getLang().evaluate(xctxt, sourceNodeContext, foreach) : null;
@@ -2280,7 +2447,9 @@ public class TransformerImpl extends Transformer
       keys.addElement(new NodeSortKey(this, sort.getSelect(), treatAsNumbers,
                                       descending, langString, caseOrderUpper,
                                       foreach));
-    }
+      if (TransformerImpl.S_DEBUG)
+        getTraceManager().fireTraceEndEvent(sort);
+     }
 
     return keys;
   }
@@ -2288,6 +2457,50 @@ public class TransformerImpl extends Transformer
   //==========================================================
   // SECTION: TransformState implementation
   //==========================================================
+  
+  /**
+   * Get the stack of ElemTemplateElements.
+   * 
+   * @return A copy of stack that contains the xsl element instructions, 
+   * the earliest called in index zero, and the latest called in index size()-1.
+   */
+  public Vector getElementCallstack()
+  {
+  	Vector elems = new Vector();
+  	int nStackSize = m_currentTemplateElements.size();
+  	for(int i = 0; i < nStackSize; i++)
+  	{
+  		ElemTemplateElement elem = (ElemTemplateElement) m_currentTemplateElements.elementAt(i);
+  		if(null != elem)
+  		{
+  			elems.addElement(elem);
+  		}
+  	}
+  	return elems;
+  }
+  
+  /**
+   * Get the count of how many elements are 
+   * active.
+   * @return The number of active elements on 
+   * the currentTemplateElements stack.
+   */
+  public int getCurrentTemplateElementsCount()
+  {
+  	return m_currentTemplateElements.size();
+  }
+  
+  
+  /**
+   * Get the count of how many elements are 
+   * active.
+   * @return The number of active elements on 
+   * the currentTemplateElements stack.
+   */
+  public ObjectStack getCurrentTemplateElements()
+  {
+  	return m_currentTemplateElements;
+  }
 
   /**
    * Push the current template element.
@@ -2297,7 +2510,7 @@ public class TransformerImpl extends Transformer
    */
   public void pushElemTemplateElement(ElemTemplateElement elem)
   {
-    m_currentTemplateElements[m_currentTemplateElementsTop++] = elem;
+    m_currentTemplateElements.push(elem);
   }
 
   /**
@@ -2305,7 +2518,7 @@ public class TransformerImpl extends Transformer
    */
   public void popElemTemplateElement()
   {
-    m_currentTemplateElementsTop--;
+    m_currentTemplateElements.pop();
   }
 
   /**
@@ -2317,7 +2530,7 @@ public class TransformerImpl extends Transformer
    */
   public void setCurrentElement(ElemTemplateElement e)
   {
-    m_currentTemplateElements[m_currentTemplateElementsTop-1] = e;
+    m_currentTemplateElements.setTop(e);
   }
 
   /**
@@ -2329,7 +2542,8 @@ public class TransformerImpl extends Transformer
    */
   public ElemTemplateElement getCurrentElement()
   {
-    return m_currentTemplateElements[m_currentTemplateElementsTop-1];
+    return (m_currentTemplateElements.size() > 0) ? 
+        (ElemTemplateElement) m_currentTemplateElements.peek() : null;
   }
 
   /**
@@ -2342,6 +2556,29 @@ public class TransformerImpl extends Transformer
   {
     return m_xcontext.getCurrentNode();
   }
+  
+  /**
+   * Get the call stack of xsl:template elements.
+   * 
+   * @return A copy of stack that contains the xsl:template 
+   * (ElemTemplate) instructions, the earliest called in index 
+   * zero, and the latest called in index size()-1.
+   */
+  public Vector getTemplateCallstack()
+  {
+  	Vector elems = new Vector();
+  	int nStackSize = m_currentTemplateElements.size();
+  	for(int i = 0; i < nStackSize; i++)
+  	{
+  		ElemTemplateElement elem = (ElemTemplateElement) m_currentTemplateElements.elementAt(i);
+  		if(null != elem && (elem.getXSLToken() != Constants.ELEMNAME_TEMPLATE))
+  		{
+  			elems.addElement(elem);
+  		}
+  	}
+  	return elems;
+  }
+
 
   /**
    * This method retrieves the xsl:template
@@ -2558,7 +2795,7 @@ public class TransformerImpl extends Transformer
   }
 
   /**
-   * Get the recursion limit.
+   * Set the recursion limit.
    * Used for infinite loop check. If the value is -1, do not
    * check for infinite loops. Anyone who wants to enable that
    * check should change the value of this variable to be the

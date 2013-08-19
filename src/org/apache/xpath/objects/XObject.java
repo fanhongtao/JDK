@@ -66,9 +66,11 @@ import org.apache.xml.dtm.*;
 import java.io.Serializable;
 
 import org.apache.xpath.res.XPATHErrorResources;
+import org.apache.xpath.ExpressionOwner;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.NodeSetDTM;
 import org.apache.xpath.XPathException;
+import org.apache.xpath.XPathVisitor;
 import org.apache.xalan.res.XSLMessages;
 import org.apache.xpath.Expression;
 import org.apache.xml.utils.XMLString;
@@ -122,6 +124,10 @@ public class XObject extends Expression implements Serializable, Cloneable
 
   /**
    * Specify if it's OK for detach to release the iterator for reuse.
+   * This function should be called with a value of false for objects that are 
+   * stored in variables.
+   * Calling this with a value of false on a XNodeSet will cause the nodeset 
+   * to be cached.
    *
    * @param allowRelease true if it is OK for detach to release this iterator
    * for pooling.
@@ -151,6 +157,13 @@ public class XObject extends Expression implements Serializable, Cloneable
 
       m_obj = null;
     }
+  }
+  
+  /**
+   * Reset for fresh reuse.
+   */
+  public void reset()
+  {
   }
 
   /**
@@ -387,7 +400,6 @@ public class XObject extends Expression implements Serializable, Cloneable
   }
   
   
-  
   /**
    * For functions to override.
    *
@@ -434,6 +446,17 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return null;
   }
+  
+  /**
+   * Get a fresh copy of the object.  For use with variables.
+   *
+   * @return This object, unless overridden by subclass.
+   */
+  public XObject getFresh()
+  {
+    return this;
+  }
+
   
   /**
    * Cast result object to a nodelist. Always issues an error.
@@ -688,7 +711,7 @@ public class XObject extends Expression implements Serializable, Cloneable
    *
    * @throws javax.xml.transform.TransformerException
    */
-  protected void error(int msg)
+  protected void error(String msg)
           throws javax.xml.transform.TransformerException
   {
     error(msg, null);
@@ -703,7 +726,7 @@ public class XObject extends Expression implements Serializable, Cloneable
    *
    * @throws javax.xml.transform.TransformerException
    */
-  protected void error(int msg, Object[] args)
+  protected void error(String msg, Object[] args)
           throws javax.xml.transform.TransformerException
   {
 
@@ -715,9 +738,10 @@ public class XObject extends Expression implements Serializable, Cloneable
     //                                      null, fmsg, 0, 0);
     // if(shouldThrow)
     {
-      throw new XPathException(fmsg);
+      throw new XPathException(fmsg, this);
     }
   }
+  
   
   /**
    * XObjects should not normally need to fix up variables.
@@ -739,4 +763,29 @@ public class XObject extends Expression implements Serializable, Cloneable
   {
     fsb.append(str());
   }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	assertion(false, "callVisitors should not be called for this object!!!");
+  }
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!isSameClass(expr))
+  		return false;
+  		
+  	// If equals at the expression level calls deepEquals, I think we're 
+  	// still safe from infinite recursion since this object overrides 
+  	// equals.  I hope.
+  	if(!this.equals((XObject)expr))
+  		return false;
+  		
+  	return true;
+  }
+
 }

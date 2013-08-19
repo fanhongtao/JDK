@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsGraphicsUtils.java	1.7 01/12/03
+ * @(#)WindowsGraphicsUtils.java	1.9 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import javax.swing.plaf.basic.BasicGraphicsUtils;
  * A collection of static utility methods used for rendering the Windows look 
  * and feel.
  * 
- * @version 1.7 12/03/01
+ * @version 1.9 01/23/03
  * @author Mark Davidson
  * @since 1.4
  */
@@ -45,39 +45,39 @@ public class WindowsGraphicsUtils {
 	}
 
 	/* Draw the Text */
+	Color color = b.getForeground();
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
-	    g.setColor(b.getForeground());
+	    g.setColor(color);
 	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex,
 					  textRect.x + textShiftOffset,
 					  textRect.y + fm.getAscent() + textShiftOffset);
-	}
-	else {
-	    /*** paint the text disabled ***/
-	    if ( UIManager.getColor("Button.disabledForeground") instanceof Color &&
-		 UIManager.getColor("Button.disabledShadow") instanceof Color) {
-		g.setColor( UIManager.getColor("Button.disabledShadow") );
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                                              mnemIndex,
-					      textRect.x, 
-					      textRect.y + fm.getAscent());
-		g.setColor( UIManager.getColor("Button.disabledForeground") );
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                                              mnemIndex,
-					      textRect.x - 1, 
-					      textRect.y + fm.getAscent() - 1);
+	} else {	/*** paint the text disabled ***/
+	    color        = UIManager.getColor("Button.disabledForeground");
+	    Color shadow = UIManager.getColor("Button.disabledShadow");
+
+	    XPStyle xp = XPStyle.getXP();
+	    if (xp != null) {
+		color = xp.getColor("button.pushbutton(disabled).textcolor", color);
 	    } else {
-		g.setColor(b.getBackground().brighter());
+		// Paint shadow only if not XP
+		if (shadow == null) {
+		    shadow = b.getBackground().darker();
+		}
+		g.setColor(shadow);
 		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                                              mnemIndex, 
-					      textRect.x, 
-					      textRect.y + fm.getAscent());
-		g.setColor(b.getBackground().darker());
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                                              mnemIndex, 
-					      textRect.x - 1, 
-					      textRect.y + fm.getAscent() - 1);
+							     mnemIndex,
+							     textRect.x, 
+							     textRect.y + fm.getAscent());
 	    }
+	    if (color == null) {
+		color = b.getBackground().brighter();
+	    }
+	    g.setColor(color);
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+							 mnemIndex,
+							 textRect.x - 1, 
+							 textRect.y + fm.getAscent() - 1);
 	}
     }
 

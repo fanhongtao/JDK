@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemPreferences.java	1.13 02/05/28
+ * @(#)FileSystemPreferences.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.security.PrivilegedActionException;
  * (The file lock is obtained only for sync(), flush() and removeNode().)
  *
  * @author  Josh Bloch
- * @version 1.13, 05/28/02
+ * @version 1.17, 01/23/03
  * @see     Preferences
  * @since   1.4
  */
@@ -45,134 +45,160 @@ class FileSystemPreferences extends AbstractPreferences {
 
 
     /** 
-     * Logger for error messages. Backing store exception are logged at
+     * Returns logger for error messages. Backing store exceptions are logged at
      * WARNING level.
      */
-     private static final Logger logger = Logger.getLogger("java.util.prefs"); 
+    private static Logger getLogger() {
+        return Logger.getLogger("java.util.prefs"); 
+    }
 
     /**
      * Directory for system preferences.
      */
     private static File systemRootDir;
-    
-    static {
-        // Temp fix until installation script issues get  resolved
-        String systemPrefsDirName = (String)
-          AccessController.doPrivileged( new PrivilegedAction() {
-              public Object run() {
-                  return System.getProperty
-                          ("java.util.prefs.systemRoot","/etc/.java");
-              }
-        });
-        
-        systemRootDir = 
-                     new File(systemPrefsDirName, ".systemPrefs");
-    }
-
-    static {
-        AccessController.doPrivileged( new PrivilegedAction() {
-            public Object run() {
-            // Attempt to create root dir if it does not yet exist.
-                if (!systemRootDir.exists()) {
-                    if (systemRootDir.mkdirs()) {
-                        try {
-                            chmod(systemRootDir.getCanonicalPath(),
-                                                          USER_RWX_ALL_RX);
-                        } catch (IOException e) {
-                        }
-                        logger.info("Created system preferences directory" 
-                        + " in " + systemRootDir.getPath());
-                    } else {
-                        // Couldnt create systemRootDir
-                        // Switching  to java.home as the last resort
-                        systemRootDir = 
-                                      new File(System.getProperty("java.home"), 
-                                                                ".systemPrefs");
-                        if (systemRootDir.exists())
-                            return null;
-                        if (systemRootDir.mkdirs()) {
-                            logger.info("Created system preferences directory" +
-                                        " in java.home.");
-                            try {
-                                chmod(systemRootDir.getCanonicalPath(), 
-                                                              USER_RWX_ALL_RX);
-                            } catch (IOException e) {
-                            }
-                        }
-                        else
-                            logger.warning("Could not create system preferences"
-                            + " directory. System preferences are unusable."); 
-                    }
-                }
-                return null;
-            }
-        });
-    }
         
     /*
      * Flag, indicating whether systemRoot  directory is writable
      */
     private static boolean isSystemRootWritable;
     
-    static {
-        AccessController.doPrivileged( new PrivilegedAction() {
-            public Object run() {
-                isSystemRootWritable = systemRootDir.canWrite();
-                return null;
-            }
-        });
-    }
-
     /**
      * Directory for user preferences.
      */
     private static File userRootDir;
      
-    static { 
-        AccessController.doPrivileged( new PrivilegedAction() {
+    /*
+     * Flag, indicating whether userRoot  directory is writable
+     */
+    private static boolean isUserRootWritable;
+    
+   /**
+     * The user root.
+     */
+    static Preferences userRoot = null;
+
+    static synchronized Preferences getUserRoot() {
+        if (userRoot == null) { 
+            setupUserRoot();
+            userRoot = new FileSystemPreferences(true);
+        }
+        return userRoot;
+    } 
+
+    private static void setupUserRoot() {
+        AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
-                userRootDir = 
-                      new File(System.getProperty("java.util.prefs.userRoot", 
+                userRootDir =
+                      new File(System.getProperty("java.util.prefs.userRoot",
                       System.getProperty("user.home")), ".java/.userPrefs");
-                // Attempt to create root dir if it does not yet exist.        
+                // Attempt to create root dir if it does not yet exist.
                 if (!userRootDir.exists()) {
                     if (userRootDir.mkdirs()) {
                         try {
                             chmod(userRootDir.getCanonicalPath(), USER_RWX);
                         } catch (IOException e) {
+                            getLogger().warning("Could not change permissions" +
+                                " on userRoot directory. ");
                         }
-                        logger.info("Created user preferences directory.");
+                        getLogger().info("Created user preferences directory.");
                     }
                     else
-                        logger.warning("Could not create user preferences " +
-                        "directory. User preferences are unusable.");
+                        getLogger().warning("Couldn't create user preferences" +
+                        " directory. User preferences are unusable.");
                 }
-                return null;
-            }
-        });
-    }    
-    /*
-     * Flag, indicating whether userRoot  directory is writable
-     */
-    private static boolean isUserRootWritable;
-    static {
-        AccessController.doPrivileged( new PrivilegedAction() {
-            public Object run() {
                 isUserRootWritable = userRootDir.canWrite();
+                String USER_NAME = System.getProperty("user.name");
+                userLockFile = new File (userRootDir,".user.lock." + USER_NAME);
+                userRootModFile = new File (userRootDir,
+                                               ".userRootModFile." + USER_NAME);
+                if (!userRootModFile.exists())
+                try {
+                    // create if does not exist.
+                    userRootModFile.createNewFile();
+                    // Only user can read/write userRootModFile.
+                    int result = chmod(userRootModFile.getCanonicalPath(),
+                                                               USER_READ_WRITE);
+                    if (result !=0)
+                        getLogger().warning("Problem creating userRoot " + 
+                            "mod file. Chmod failed on " +
+                             userRootModFile.getCanonicalPath() +
+                             " Unix error code " + result);
+                } catch (IOException e) { 
+                    getLogger().warning(e.toString());
+                }
+                userRootModTime = userRootModFile.lastModified();
                 return null;
             }
         });
-    }    
-     
-    /**
-     * The user root.
-     */
-    static FileSystemPreferences userRoot   = new FileSystemPreferences(true);
+    }
+
 
     /**
      * The system root.
      */
-    static FileSystemPreferences systemRoot = new FileSystemPreferences(false);
+    static Preferences systemRoot;
+
+    static synchronized Preferences getSystemRoot() {
+        if (systemRoot == null) {
+            setupSystemRoot();
+            systemRoot = new FileSystemPreferences(false);
+        }
+        return systemRoot;
+    }
+
+    private static void setupSystemRoot() {
+        AccessController.doPrivileged( new PrivilegedAction() {
+            public Object run() {
+                String systemPrefsDirName = (String)
+                  System.getProperty("java.util.prefs.systemRoot","/etc/.java");
+                systemRootDir =
+                     new File(systemPrefsDirName, ".systemPrefs");
+                // Attempt to create root dir if it does not yet exist.
+                if (!systemRootDir.exists()) {
+                    // system root does not exist in /etc/.java  
+                    // Switching  to java.home
+                    systemRootDir =
+                                  new File(System.getProperty("java.home"),
+                                                            ".systemPrefs");
+                    if (!systemRootDir.exists()) {
+                        if (systemRootDir.mkdirs()) {
+                            getLogger().info(
+                                "Created system preferences directory"
+                                + "in java.home.");
+                            try {
+                                chmod(systemRootDir.getCanonicalPath(),
+                                                          USER_RWX_ALL_RX);
+                            } catch (IOException e) {
+                            }
+                        } else {
+                            getLogger().warning("Could not create " 
+                                + "system preferences directory. System "
+                                + "preferences are unusable.");
+                        }
+                    }
+                }
+                isSystemRootWritable = systemRootDir.canWrite();
+                systemLockFile = new File(systemRootDir, ".system.lock");
+                systemRootModFile =
+                               new File (systemRootDir,".systemRootModFile");
+                if (!systemRootModFile.exists() && isSystemRootWritable)
+                try {
+                    // create if does not exist.
+                    systemRootModFile.createNewFile();
+                    int result = chmod(systemRootModFile.getCanonicalPath(),
+                                                          USER_RW_ALL_READ);
+                    if (result !=0)
+                        getLogger().warning("Chmod failed on " +
+                               systemRootModFile.getCanonicalPath() +
+                              " Unix error code " + result);
+                } catch (IOException e) { getLogger().warning(e.toString());
+                }
+                systemRootModTime = systemRootModFile.lastModified();
+                return null;
+            }
+        });
+    }
+
 
     /** 
      * Unix user write/read permission
@@ -187,28 +213,16 @@ class FileSystemPreferences extends AbstractPreferences {
     private static final int USER_RWX = 0700;
 
     /**
-      * User name.
-      */
-    
-    private static final String USER_NAME = 
-        (String) AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                  return System.getProperty("user.name");
-              }
-        });
-
-
-    /**
      * The lock file for the user tree.
      */
-    static File userLockFile = new File (userRootDir,".user.lock." + USER_NAME); 
+    static File userLockFile; 
 
 
  
     /**
      * The lock file for the system tree.
      */
-    static File systemLockFile = new File(systemRootDir, ".system.lock");
+    static File systemLockFile;
 
     /**
      * Unix lock handle for userRoot.
@@ -253,8 +267,7 @@ class FileSystemPreferences extends AbstractPreferences {
     /** 
      * File, which keeps track of global modifications of userRoot.
      */
-    private static final File userRootModFile = 
-        new File (userRootDir,".userRootModFile." + USER_NAME);
+    private static  File userRootModFile; 
     
     /** 
      * Flag, which indicated whether userRoot was modified by another VM
@@ -268,35 +281,12 @@ class FileSystemPreferences extends AbstractPreferences {
      */
     private static long userRootModTime;
     
-    static {
-        AccessController.doPrivileged( new PrivilegedAction() {
-            public Object run() {        
-                if (!userRootModFile.exists())
-                try {
-                    // create if does not exist.                    
-                    userRootModFile.createNewFile(); 
-                    // Only user can read/write userRootModFile.
-                    int result = chmod(userRootModFile.getCanonicalPath(), 
-                                                               USER_READ_WRITE);
-                    if (result !=0) 
-                        logger.warning("Chmod failed on " + 
-                               userRootModFile.getCanonicalPath() +
-                              " Unix error code " + result);
-                    } catch (IOException e) { logger.warning(e.toString());
-                    }
-                    userRootModTime = userRootModFile.lastModified();
-                    return null;
-            }
-        });
-    }
-    
     
     /* 
      * File, which keeps track of global modifications of systemRoot
      */
-    private static final File systemRootModFile = 
-                                     new File (systemRootDir,".systemRootModFile");
-    /* 
+    private static File systemRootModFile;
+    /*
      * Flag, which indicates whether systemRoot was modified by another VM
      */
     private static boolean isSystemRootModified = false; 
@@ -307,26 +297,6 @@ class FileSystemPreferences extends AbstractPreferences {
      * systemRoot is modified.
      */
     private static long systemRootModTime;    
-    static {
-        AccessController.doPrivileged( new PrivilegedAction() {
-            public Object run() {                
-                if (!systemRootModFile.exists() && isSystemRootWritable)
-                try {
-                    // create if does not exist.
-                    systemRootModFile.createNewFile();
-                    int result = chmod(systemRootModFile.getCanonicalPath(), 
-                                                          USER_RW_ALL_READ);
-                    if (result !=0) 
-                        logger.warning("Chmod failed on " + 
-                               systemRootModFile.getCanonicalPath() +
-                              " Unix error code " + result);
-                } catch (IOException e) { logger.warning(e.toString());
-                }
-                systemRootModTime = systemRootModFile.lastModified();
-                return null;
-            }
-        });
-    }    
     
     /**
      * Locally cached preferences for this node (includes uncommitted
@@ -465,18 +435,33 @@ class FileSystemPreferences extends AbstractPreferences {
     }
 
     private static void syncWorld() {
-        try {
-            Preferences.userRoot().flush();
-        } catch(BackingStoreException e) {
-            logger.warning("Couldn't flush user prefs: " + e);
+        /*
+         * Synchronization necessary because userRoot and systemRoot are
+         * lazily initialized.
+         */
+        Preferences userRt;
+        Preferences systemRt;
+        synchronized(FileSystemPreferences.class) {
+            userRt   = userRoot;
+            systemRt = systemRoot;
         }
 
         try {
-            Preferences.systemRoot().flush();
+            if (userRt != null)
+                userRt.flush();
         } catch(BackingStoreException e) {
-            logger.warning("Couldn't flush system prefs: " + e);
+            getLogger().warning("Couldn't flush user prefs: " + e);
+        }
+
+        try {
+            if (systemRt != null)
+                systemRt.flush();
+        } catch(BackingStoreException e) {
+            getLogger().warning("Couldn't flush system prefs: " + e);
         }
     }
+
+    private final boolean isUserNode;
 
     /**
      * Special constructor for roots (both user and system).  This constructor
@@ -484,6 +469,7 @@ class FileSystemPreferences extends AbstractPreferences {
      */
     private FileSystemPreferences(boolean user) {
         super(null, "");
+        isUserNode = user;
         dir = (user ? userRootDir: systemRootDir);
         prefsFile = new File(dir, "prefs.xml");
         tmpFile   = new File(dir, "prefs.tmp");
@@ -496,6 +482,7 @@ class FileSystemPreferences extends AbstractPreferences {
      */
     private FileSystemPreferences(FileSystemPreferences parent, String name) {
         super(parent, name);
+        isUserNode = parent.isUserNode;
         dir  = new File(parent.dir, dirName(name));
         prefsFile = new File(dir, "prefs.xml");
         tmpFile  = new File(dir, "prefs.tmp");
@@ -511,6 +498,10 @@ class FileSystemPreferences extends AbstractPreferences {
             nodeCreate = new NodeCreate();
             changeLog.add(nodeCreate);
         }
+    }
+
+    public boolean isUserNode() {
+        return isUserNode;
     }
 
     protected void putSpi(String key, String value) {
@@ -571,14 +562,14 @@ class FileSystemPreferences extends AbstractPreferences {
                         fis.close();
                     } catch(Exception e) {
                         if (e instanceof InvalidPreferencesFormatException) {
-                            logger.warning("Invalid preferences format in " +
-                                                           prefsFile.getPath());
+                            getLogger().warning("Invalid preferences format in "
+                                                        +  prefsFile.getPath());
                             prefsFile.renameTo( new File(
                                                     prefsFile.getParentFile(),
                                                   "IncorrectFormatPrefs.xml"));
                             m = new TreeMap();
                         } else if (e instanceof FileNotFoundException) {
-                            logger.warning(" Prefs file removed in background " 
+                        getLogger().warning("Prefs file removed in background " 
                                            + prefsFile.getPath());
                         } else {
                             throw new BackingStoreException(e);
@@ -691,8 +682,9 @@ class FileSystemPreferences extends AbstractPreferences {
                     // dir should be empty now.  If it's not, empty it
                     File[] junk = dir.listFiles();
                     if (junk.length != 0) {
-                        logger.warning("Found extraneous files when removing node: "
-                        + Arrays.asList(junk));
+                        getLogger().warning(
+                           "Found extraneous files when removing node: "
+                            + Arrays.asList(junk));
                         for (int i=0; i<junk.length; i++)
                             junk[i].delete();
                     }
@@ -718,7 +710,6 @@ class FileSystemPreferences extends AbstractPreferences {
                otherwise use shared lock. */
             shared = !isSystemRootWritable;
         }
-            
         synchronized (isUserNode()? userLockFile:systemLockFile) {
            if (!lockFile(shared))
                throw(new BackingStoreException("Couldn't get file lock."));
@@ -769,9 +760,9 @@ class FileSystemPreferences extends AbstractPreferences {
         }                        
     }
     private void syncSpiPrivileged() throws BackingStoreException {
-        if (isRemoved())
-            throw new IllegalStateException("Node has been removed"); 
-        if (prefsCache == null)
+	if (isRemoved())
+	    throw new IllegalStateException("Node has been removed"); 
+	if (prefsCache == null)
             return;  // We've never been used, don't bother syncing
         long lastModifiedTime;
         if ((isUserNode() ? isUserRootModified : isSystemRootModified)) {
@@ -811,6 +802,8 @@ class FileSystemPreferences extends AbstractPreferences {
     }
 
     public void flush() throws BackingStoreException {
+	if (isRemoved())
+	    return;
         sync();
     }
 
@@ -927,8 +920,9 @@ class FileSystemPreferences extends AbstractPreferences {
             (isUserNode()? "User prefs." : "System prefs.") +
              "Lock file access denied.");
         if (errorCode != EAGAIN)
-            logger.warning("Could not lock " + (isUserNode()? "User prefs. " :
-                "System prefs.") + "Unix error code " + errorCode + ".");
+            getLogger().warning("Could not lock " + 
+                             (isUserNode()? "User prefs. " : "System prefs.") + 
+                             "Unix error code " + errorCode + ".");
     }             
         
     /**
@@ -972,13 +966,13 @@ class FileSystemPreferences extends AbstractPreferences {
         File lockFile = (usernode ? userLockFile : systemLockFile);
         int lockHandle = ( usernode ? userRootLockHandle:systemRootLockHandle);
         if (lockHandle == 0) {
-            logger.warning("Unlock: zero lockHandle for " + 
+            getLogger().warning("Unlock: zero lockHandle for " + 
                            (usernode ? "user":"system") + " preferences.)"); 
             return;
         }
         result = unlockFile0(lockHandle);    
         if (result != 0) {
-            logger.warning("Could not drop file-lock on " + 
+            getLogger().warning("Could not drop file-lock on " + 
             (isUserNode() ? "user" : "system") + " preferences." +
             "Unix error code " + result + ".");
             if (result == EACCES)

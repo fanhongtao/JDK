@@ -1,7 +1,7 @@
 /*
- * @(#)MenuComponent.java	1.67 02/03/21
+ * @(#)MenuComponent.java	1.70 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.67, 03/21/02
+ * @version 	1.70, 01/23/03
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -52,15 +52,15 @@ public abstract class MenuComponent implements java.io.Serializable {
      * This defaults to <code>null</code>.
      *
      * @serial
-     * @see setFont()
-     * @see getFont()
+     * @see #setFont(Font)
+     * @see #getFont()
      */
     Font font;
     /**
      * The menu component's name, which defaults to <code>null</code>.
      * @serial
-     * @see getName()
-     * @see setName()
+     * @see #getName()
+     * @see #setName(String)
      */
     private String name;
     /**
@@ -68,13 +68,13 @@ public abstract class MenuComponent implements java.io.Serializable {
      * If <code>true</code> the name will be set explicitly. 
      * This defaults to <code>false</code>.
      * @serial
-     * @see setName()
+     * @see #setName(String)
      */
     private boolean nameExplicitlySet = false;
     /**
      * Defaults to <code>false</code>.
      * @serial
-     * @see dispatchEvent()
+     * @see #dispatchEvent(AWTEvent)
      */
     boolean newEventsOnly = false;
  
@@ -220,7 +220,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * Sets the font to be used for this menu component to the specified 
      * font. This font is also used by all subcomponents of this menu 
      * component, unless those subcomponents specify a different font. 
-     * <p>Some look and feels may not support setting the font
+     * <p>Some platforms may not support setting the font
      * of a menu component; in this case, calling <code>setFont</code>
      * will have no effect.
      *
@@ -254,8 +254,8 @@ public abstract class MenuComponent implements java.io.Serializable {
      * Its use is discouraged, and it may not be supported
      * in the future.
      * @param evt the event which is to take place
-     * @deprecated As of JDK version 1.1,
-     * replaced by <code>dispatchEvent(AWTEvent)</code>.
+     * @deprecated As of JDK version 1.1, replaced by {@link
+     * #dispatchEvent(AWTEvent) dispatchEvent}.
      */
     public boolean postEvent(Event evt) {
 	MenuContainer parent = this.parent;
@@ -622,7 +622,7 @@ public abstract class MenuComponent implements java.io.Serializable {
         /**
          * Sets the <code>Cursor</code> of this object.
          *
-         * @param c the new <code>Cursor</code> for the object
+         * @param cursor the new <code>Cursor</code> for the object
          */
         public void setCursor(Cursor cursor) {
             // Not supported for MenuComponents
@@ -775,7 +775,7 @@ public abstract class MenuComponent implements java.io.Serializable {
          * The bounds specify this object's width, height, and location
          * relative to its parent.
          *
-         * @param a rectangle indicating this component's bounds
+         * @param r a rectangle indicating this component's bounds
          */
         public void setBounds(Rectangle r) {
             // Not supported for MenuComponents

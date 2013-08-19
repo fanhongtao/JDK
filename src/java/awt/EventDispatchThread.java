@@ -1,7 +1,7 @@
 /*
- * @(#)EventDispatchThread.java	1.44 02/03/07
+ * @(#)EventDispatchThread.java	1.46 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,7 @@ import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
 import sun.awt.SunToolkit;
 
+import sun.awt.dnd.SunDragSourceContextPeer;
 
 /**
  * EventDispatchThread is a package-private AWT class which takes
@@ -35,7 +36,7 @@ import sun.awt.SunToolkit;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.44, 03/07/02
+ * @version 1.46, 01/23/03
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -185,10 +186,13 @@ class EventDispatchThread extends Thread {
                             }
                             if (c != modalComponent) {
                                 eventOK = false;
-                                event.consume();
                             }
                         }
                     }
+                }
+                eventOK = eventOK && SunDragSourceContextPeer.checkEvent(event);
+                if (!eventOK) {
+                    event.consume();
                 }
             } while (eventOK == false);
                       

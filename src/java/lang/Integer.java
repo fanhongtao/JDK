@@ -1,7 +1,7 @@
 /*
- * @(#)Integer.java	1.74 02/02/06
+ * @(#)Integer.java	1.76 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.74, 02/06/02
+ * @version 1.76, 01/23/03
  * @since   JDK1.0
  */
 public final class Integer extends Number implements Comparable {
@@ -293,52 +293,94 @@ public final class Integer extends Number implements Comparable {
      * @return  a string representation of the argument in base&nbsp;10.
      */
     public static String toString(int i) {
-	int q, r, charPos  ; 
-	charPos = 12 ; 
-	char buf [] = new char [charPos] ; 
-	char sign = 0 ; 
+        switch(i) {
+            case Integer.MIN_VALUE: return "-2147483648";
+            case -3: return "-3";
+            case -2: return "-2";
+            case -1: return "-1";
+            case 0: return "0";
+            case 1: return "1";
+            case 2: return "2";
+            case 3: return "3";
+            case 4: return "4";
+            case 5: return "5";
+            case 6: return "6";
+            case 7: return "7";
+            case 8: return "8";
+            case 9: return "9";
+            case 10: return "10";
+        }
+        char[] buf = (char[])(perThreadBuffer.get());
+        int charPos = getChars(i, buf);
+        return new String(buf, charPos, 12 - charPos);
+    }
 
-  	if (i == Integer.MIN_VALUE) {
-            return "-2147483648";
+    // Per-thread buffer for string/stringbuffer conversion
+    private static ThreadLocal perThreadBuffer = new ThreadLocal() {
+        protected synchronized Object initialValue() {
+            return new char[12];
+        }
+    };
+
+    private static int getChars(int i, char[] buf) {
+        int q, r;
+        int charPos = 12;
+        char sign = 0;
+
+        if (i < 0) { 
+            sign = '-';
+            i = -i;
         }
 
-	if (i < 0) { 
-		sign = '-' ; 
-		i = -i ; 
-	}
+        // Generate two digits per iteration
+        while (i >= 65536) {
+            q = i / 100;
+        // really: r = i - (q * 100);
+            r = i - ((q << 6) + (q << 5) + (q << 2));
+            i = q;
+            buf [--charPos] = DigitOnes[r];
+            buf [--charPos] = DigitTens[r];
+        }
 
-	// Generate two digits per iteration
-	while ( i >= 65536 ) { 
-		q = i / 100 ; 
-		// really: r = i - (q * 100) ; 
-		r = i - ((q << 6) + (q << 5) + (q << 2)) ; 
-		i = q ; 
-		buf [--charPos] = DigitOnes [r] ; 
-		buf [--charPos] = DigitTens [r] ; 
-	}
-
-	// Fall thru to fast mode for smaller numbers
-	// assert(i <= 65536, i);
-	for (;;) { 
-		q = (i * 52429) >>> (16+3) ; 
-		r = i - ((q << 3) + (q << 1)) ;		// r = i-(q*10) ...
-		buf [--charPos] = digits [r] ; 
-		i = q ; 
-		if (i == 0) break ; 
-	}
-	if (sign != 0) {
-		buf [--charPos] = sign ; 
-	}
-
-	// Use the back-door private constructor -- we abandon the
-	// char [].  This requires that we drop the "private" from the
-	// java.lang.String: String (int Offset,int Count,char[]
-	// Value) constructor.
-
-	return new String ( charPos, 12 - charPos, buf ) ; 
-	}
-
-
+        // Fall thru to fast mode for smaller numbers
+        // assert(i <= 65536, i);
+        for (;;) { 
+            q = (i * 52429) >>> (16+3);
+            r = i - ((q << 3) + (q << 1));  // r = i-(q*10) ...
+            buf [--charPos] = digits [r];
+            i = q;
+            if (i == 0) break;
+        }
+        if (sign != 0) {
+            buf [--charPos] = sign;
+        }
+        return charPos;
+    }
+ 
+    static void appendTo(int i, StringBuffer sb) {
+        switch(i) {
+            case Integer.MIN_VALUE:
+                sb.append("-2147483648");
+                return;
+            case -3: sb.append("-3"); return;
+            case -2: sb.append("-2"); return;
+            case -1: sb.append("-1"); return;
+            case 0: sb.append("0"); return;
+            case 1: sb.append("1"); return;
+            case 2: sb.append("2"); return;
+            case 3: sb.append("3"); return;
+            case 4: sb.append("4"); return;
+            case 5: sb.append("5"); return;
+            case 6: sb.append("6"); return;
+            case 7: sb.append("7"); return;
+            case 8: sb.append("8"); return;
+            case 9: sb.append("9"); return;
+            case 10: sb.append("10"); return;
+        }
+        char[] buf = (char[])(perThreadBuffer.get());
+        int charPos = getChars(i, buf);
+        sb.append(buf, charPos, 12 - charPos);
+    }
     
     /**
      * Parses the string argument as a signed integer in the radix 

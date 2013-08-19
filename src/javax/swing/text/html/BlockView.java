@@ -1,7 +1,7 @@
 /*
- * @(#)BlockView.java	1.32 01/12/03
+ * @(#)BlockView.java	1.34 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -18,7 +18,7 @@ import javax.swing.text.*;
  * with CSS specifications.
  *
  * @author  Timothy Prinzing
- * @version 1.32 12/03/01
+ * @version 1.34 01/23/03
  */
 public class BlockView extends BoxView  {
 
@@ -229,7 +229,7 @@ public class BlockView extends BoxView  {
 	    CSS.LengthValue lv = (CSS.LengthValue) a.getAttribute(key);
 	    if ((lv != null) && lv.isPercentage()) {
 		// bound the span to the percentage specified
-		min = (int) lv.getValue(targetSpan);
+		min = Math.max((int) lv.getValue(targetSpan), min);
 		max = min;
 	    }
 

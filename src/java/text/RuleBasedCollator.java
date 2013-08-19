@@ -1,7 +1,7 @@
 /*
- * @(#)RuleBasedCollator.java	1.34 02/03/15
+ * @(#)RuleBasedCollator.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -359,6 +359,7 @@ public class RuleBasedCollator extends Collator{
     /**
      * Return a CollationElementIterator for the given String.
      * @see java.text.CollationElementIterator
+     * @since 1.2
      */
     public CollationElementIterator getCollationElementIterator(
                                                 CharacterIterator source) {

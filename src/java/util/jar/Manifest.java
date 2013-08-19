@@ -1,7 +1,7 @@
 /*
- * @(#)Manifest.java	1.39 02/03/21
+ * @(#)Manifest.java	1.41 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.39, 03/21/02
+ * @version 1.41, 01/23/03
  * @see	    Attributes
  * @since   1.2
  */
@@ -120,7 +120,12 @@ public class Manifest implements Cloneable {
 	while (it.hasNext()) {
 	    Map.Entry e = (Map.Entry)it.next();
             StringBuffer buffer = new StringBuffer("Name: ");
-	    buffer.append((String)e.getKey());
+            String value = (String)e.getKey();
+            if (value != null) {
+                byte[] vb = value.getBytes("UTF8");
+                value = new String(vb, 0, 0, vb.length);
+            }
+	    buffer.append(value);
 	    buffer.append("\r\n");
             make72Safe(buffer);
             dos.writeBytes(buffer.toString());
@@ -168,6 +173,8 @@ public class Manifest implements Cloneable {
 	int len;
 	String name = null;
         boolean skipEmptyLines = true;
+        byte[] lastline = null;
+
 	while ((len = fis.readLine(lbuf)) != -1) {
 	    if (lbuf[--len] != '\n') {
 		throw new IOException("manifest line too long");
@@ -183,18 +190,27 @@ public class Manifest implements Cloneable {
 	    if (name == null) {
 		name = parseName(lbuf, len);
 		if (name == null) {
-		    throw new IOException("invalid manifest format");
+		    throw new IOException("invalid manifest format");                
 		}
+                if (fis.peek() == ' ') {
+		    // name is wrapped
+                    lastline = new byte[len - 6];
+                    System.arraycopy(lbuf, 6, lastline, 0, len - 6);
+                    continue;
+                }
 	    } else {
 		// continuation line
-		name = name + new String(lbuf, 0, 1, len-1);
+                byte[] buf = new byte[lastline.length + len - 1];
+                System.arraycopy(lastline, 0, buf, 0, lastline.length);
+                System.arraycopy(lbuf, 1, buf, lastline.length, len - 1);
+                if (fis.peek() == ' ') {
+		    // name is wrapped
+                    lastline = buf;
+		    continue;
+	        }
+		name = new String(buf, 0, buf.length, "UTF8");
+                lastline = null;
 	    }
-
-	    if (fis.peek() == ' ') {
-		// name is wrapped
-		continue;
-	    }
-
 	    Attributes attr = getAttributes(name);
 	    if (attr == null) {
 		attr = new Attributes(asize);
@@ -217,7 +233,11 @@ public class Manifest implements Cloneable {
 	if (toLower(lbuf[0]) == 'n' && toLower(lbuf[1]) == 'a' &&
 	    toLower(lbuf[2]) == 'm' && toLower(lbuf[3]) == 'e' &&
 	    lbuf[4] == ':' && lbuf[5] == ' ') {
-	    return new String(lbuf, 0, 6, len - 6);
+            try {
+	        return new String(lbuf, 6, len - 6, "UTF8");
+            }
+            catch (Exception e) {
+            }
 	}
 	return null;
     }

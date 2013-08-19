@@ -1,7 +1,7 @@
 /*
- * @(#)CommandHandler.java	1.11 01/12/03
+ * @(#)CommandHandler.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.corba.se.internal.Activation;
@@ -11,7 +11,7 @@ import org.omg.CORBA.ORB;
 import java.io.PrintStream;
 
 /**
- * @version     1.11, 02/08/29
+ * @version     1.12, 03/06/20
  * @author      Rohit Garg
  * @since       JDK1.2
  */

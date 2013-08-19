@@ -1,7 +1,7 @@
 /*
- * @(#)UIManager.java	1.102 01/12/03
+ * @(#)UIManager.java	1.103 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -83,7 +83,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @see javax.swing.plaf.metal
  *
- * @version 1.102 12/03/01
+ * @version 1.103 01/23/03
  * @author Thomas Ball
  * @author Hans Muller
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationInstantiator.java	1.13 02/03/18
+ * @(#)ActivationInstantiator.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.rmi.RemoteException;
  * method to handle creating objects within the group.
  *
  * @author 	Ann Wollrath
- * @version	1.13, 03/18/02
+ * @version	1.14, 01/23/03
  * @see 	ActivationGroup
  * @since	1.2
  */

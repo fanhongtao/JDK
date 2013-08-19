@@ -1,7 +1,7 @@
 /*
- * @(#)Encoder.java	1.14 01/12/03
+ * @(#)Encoder.java	1.16 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -229,7 +229,7 @@ public class Encoder {
      * on the target and all the arguments and building a new 
      * expression with the results. 
      * 
-     * @param oldExp The expression to be written to the stream.
+     * @param oldStm The expression to be written to the stream.
      */
     public void writeStatement(Statement oldStm) { 
         // System.out.println("writeStatement: " + oldExp); 

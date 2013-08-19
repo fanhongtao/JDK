@@ -56,15 +56,10 @@
  */
 package org.apache.xpath.compiler;
 
-import org.apache.xml.utils.PrefixResolver;
-
 import java.util.Vector;
 
+import org.apache.xml.utils.PrefixResolver;
 import org.apache.xpath.res.XPATHErrorResources;
-import org.apache.xpath.XPath;
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.compiler.OpCodes;
-import org.apache.xpath.compiler.XPathParser;
 
 /**
  * This class is in charge of lexical processing of the XPath
@@ -151,13 +146,14 @@ class Lexer
           throws javax.xml.transform.TransformerException
   {
 
-    m_compiler.m_tokenQueueSize = 0;
     m_compiler.m_currentPattern = pat;
-    m_patternMapSize = 0;
-    m_compiler.m_opMap = new int[OpMap.MAXTOKENQUEUESIZE * 5];
+    m_patternMapSize = 0; 
+
+    // This needs to grow too.
+    m_compiler.m_opMap = new OpMapVector(OpMap.MAXTOKENQUEUESIZE * 5, OpMap.BLOCKTOKENQUEUESIZE * 5, OpMap.MAPINDEX_LENGTH);
 
     int nChars = pat.length();
-    int startSubstring = -1;
+    int startSubstring = -1; 
     int posOfNSSep = -1;
     boolean isStartOfPat = true;
     boolean isAttrName = false;
@@ -392,7 +388,8 @@ class Lexer
       isNum = false;
       isStartOfPat = mapPatternElemPos(nesting, isStartOfPat, isAttrName);
 
-      if (-1 != posOfNSSep)
+      if ((-1 != posOfNSSep) || 
+         ((m_namespaceContext != null) && (m_namespaceContext.handlesNullPrefixes())))
       {
         posOfNSSep = mapNSTokens(pat, startSubstring, posOfNSSep, nChars);
       }
@@ -402,7 +399,7 @@ class Lexer
       }
     }
 
-    if (0 == m_compiler.m_tokenQueueSize)
+    if (0 == m_compiler.getTokenQueueSize())
     {
       m_processor.error(XPATHErrorResources.ER_EMPTY_EXPRESSION, null);  //"Empty expression!");
     }
@@ -443,7 +440,7 @@ class Lexer
         m_patternMap[m_patternMapSize - 1] -= TARGETEXTRA;
       }
       m_patternMap[m_patternMapSize] =
-        (m_compiler.m_tokenQueueSize - (isAttrName ? 1 : 0)) + TARGETEXTRA;
+        (m_compiler.getTokenQueueSize() - (isAttrName ? 1 : 0)) + TARGETEXTRA;
 
       m_patternMapSize++;
 
@@ -476,7 +473,7 @@ class Lexer
   private final void resetTokenMark(int mark)
   {
 
-    int qsz = m_compiler.m_tokenQueueSize;
+    int qsz = m_compiler.getTokenQueueSize();
 
     m_processor.m_queueMark = (mark > 0)
                               ? ((mark <= qsz) ? mark - 1 : mark) : 0;
@@ -484,7 +481,7 @@ class Lexer
     if (m_processor.m_queueMark < qsz)
     {
       m_processor.m_token =
-        (String) m_compiler.m_tokenQueue[m_processor.m_queueMark++];
+        (String) m_compiler.getTokenQueue().elementAt(m_processor.m_queueMark++);
       m_processor.m_tokenChar = m_processor.m_token.charAt(0);
     }
     else
@@ -578,7 +575,7 @@ class Lexer
         tokPos += 2;
       }
 
-      targetStrings.addElement(m_compiler.m_tokenQueue[tokPos]);
+      targetStrings.addElement(m_compiler.getTokenQueue().elementAt(tokPos));
     }
   }
 
@@ -590,7 +587,7 @@ class Lexer
    */
   private final void addToTokenQueue(String s)
   {
-    m_compiler.m_tokenQueue[m_compiler.m_tokenQueueSize++] = s;
+    m_compiler.getTokenQueue().addElement(s);
   }
 
   /**
@@ -611,7 +608,12 @@ class Lexer
            throws javax.xml.transform.TransformerException
  {
 
-    String prefix = pat.substring(startSubstring, posOfNSSep);
+    String prefix = "";
+    
+    if ((startSubstring >= 0) && (posOfNSSep >= 0))
+    {
+       prefix = pat.substring(startSubstring, posOfNSSep);
+    }
     String uName;
 
     if ((null != m_namespaceContext) &&!prefix.equals("*")

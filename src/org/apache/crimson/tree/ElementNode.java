@@ -1,5 +1,5 @@
 /*
- * $Id: ElementNode.java,v 1.8 2001/04/11 02:27:56 edwingo Exp $
+ * $Id: ElementNode.java,v 1.9 2001/11/09 08:44:06 edwingo Exp $
  *
  * The Apache Software License, Version 1.1
  *
@@ -91,7 +91,7 @@ public class ElementNode extends ElementNode2
         ElementNode2 retval = new ElementNode(qName);
         if (attributes != null) {
             retval.attributes = new AttributeSet(attributes, true);
-            retval.attributes.setOwnerElement(this);
+            retval.attributes.setOwnerElement(retval);
         }
         retval.setIdAttributeName(getIdAttributeName());
         retval.setUserObject(getUserObject());

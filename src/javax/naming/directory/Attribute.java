@@ -1,7 +1,7 @@
 /*
- * @(#)Attribute.java	1.9 01/12/03
+ * @(#)Attribute.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ import javax.naming.OperationNotSupportedException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.9 01/12/03
+  * @version 1.10 03/01/23
   *
   * @see BasicAttribute
   * @since 1.3

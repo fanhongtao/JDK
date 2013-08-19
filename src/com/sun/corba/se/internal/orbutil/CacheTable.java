@@ -1,5 +1,5 @@
 /*
- * @(#)CacheTable.java	1.13 03/04/25
+ * @(#)CacheTable.java	1.14 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,15 +14,15 @@
  */
                     
 package com.sun.corba.se.internal.orbutil;
+
 import org.omg.CORBA.INTERNAL;
 import org.omg.CORBA.CompletionStatus;
 
 /**
- * _REVISIT_: Replace CacheTable with a better data structure, the searches
- * are linear, can be a performance bottleneck while deserializing an object
- * with lot of indirections.
+ *  _REVISIT_: Replace CacheTable with a better data structure, the searches
+ *  are linear, can be a performance bottleneck while deserializng an object
+ *  with lot of indirections.
  */
-
 public class CacheTable  {
 	
     private static final int kGrowthRate = 10;
@@ -63,17 +63,17 @@ public class CacheTable  {
 	    vals[index] = val;
 	    index++;
 	} else {
-		// If there is an entry in the Cachetable with the same key, then
-		// check to see if the Indirection(value) is different. If it is
-		// different then we have a bug in our code. This check is added
-		// to make sure that our serialization code doesn't do any
-		// unintended optimization w.r.t object aliasing.
-		int oldValue = this.getVal ( key );
-		if (oldValue != val) {
-			throw new INTERNAL( MinorCodes.DUPLICATE_INDIRECTION_OFFSET,
-			    CompletionStatus.COMPLETED_NO );
-		}
-	}
+            // If there is an entry in the Cachetable with the same key, then
+            // check to see if the Indirection(value) is different. If it is
+            // different then we have a bug in our code. This check is added
+            // to make sure that our serialization code doesn't do any 
+            // unintended optimization w.r.t object aliasing.
+            int oldValue = this.getVal( key );
+            if( oldValue != val ) {
+                throw new INTERNAL( MinorCodes.DUPLICATE_INDIRECTION_OFFSET,
+                    CompletionStatus.COMPLETED_NO );
+            }
+        }
     }
 
     public final boolean containsKey(java.lang.Object key){

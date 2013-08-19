@@ -1,7 +1,7 @@
 /*
- * @(#)PrivateCredentialPermission.java	1.25 01/12/03
+ * @(#)PrivateCredentialPermission.java	1.27 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,7 +82,7 @@ import sun.security.util.ResourcesMgr;
  * "a.b.Principal" with the name, "duke", and "c.d.Principal", with the name,
  * "dukette".
  *
- * @version 1.25, 12/03/01
+ * @version 1.27, 01/27/03
  */
 public final class PrivateCredentialPermission extends Permission {
 
@@ -151,7 +151,7 @@ public final class PrivateCredentialPermission extends Permission {
      *
      * @param actions the actions specifying that the Credential can be read.
      *
-     * @throw IllegalArgumentException if <code>name</code> does not conform
+     * @throws IllegalArgumentException if <code>name</code> does not conform
      *		to the correct syntax or if <code>actions</code> is not "read".
      */
     public PrivateCredentialPermission(String name, String actions) {

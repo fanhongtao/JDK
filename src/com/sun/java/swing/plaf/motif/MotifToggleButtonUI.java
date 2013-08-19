@@ -1,7 +1,7 @@
 /*
- * @(#)MotifToggleButtonUI.java	1.18 01/12/03
+ * @(#)MotifToggleButtonUI.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -26,7 +26,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.18 12/03/01
+ * @version 1.19 01/23/03
  * @author Rich Schiavi
  */
 public class MotifToggleButtonUI extends BasicToggleButtonUI 

@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedOutputStream.java	1.29 01/12/03
+ * @(#)BufferedOutputStream.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,13 +11,10 @@ package java.io;
  * The class implements a buffered output stream. By setting up such 
  * an output stream, an application can write bytes to the underlying 
  * output stream without necessarily causing a call to the underlying 
- * system for each byte written. The data is written into an internal 
- * buffer, and then written to the underlying stream if the buffer 
- * reaches its capacity, the buffer output stream is closed, or the 
- * buffer output stream is explicitly flushed. 
+ * system for each byte written.
  *
  * @author  Arthur van Hoff
- * @version 1.29, 12/03/01
+ * @version 1.31, 01/23/03
  * @since   JDK1.0
  */
 public 

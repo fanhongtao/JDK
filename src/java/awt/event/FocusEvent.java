@@ -1,7 +1,7 @@
 /*
- * @(#)FocusEvent.java	1.25 01/12/03
+ * @(#)FocusEvent.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import sun.awt.SunToolkit;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.25 12/03/01
+ * @version 1.28 01/23/03
  * @since 1.1
  */
 public class FocusEvent extends ComponentEvent {
@@ -85,11 +85,10 @@ public class FocusEvent extends ComponentEvent {
      * with a native application, a Java application in a different VM, or with
      * no other Component, then the opposite Component is null.
      *
-     * @serial
      * @see #getOppositeComponent
      * @since 1.4
      */
-    Component opposite;
+    transient Component opposite;
   
     /*
      * JDK 1.1 serialVersionUID 
@@ -206,4 +205,5 @@ public class FocusEvent extends ComponentEvent {
 	return typeStr + (temporary ? ",temporary" : ",permanent") +
 	    ",opposite=" + getOppositeComponent();
     }
+
 }

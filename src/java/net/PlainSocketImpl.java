@@ -1,7 +1,7 @@
 /*
- * @(#)PlainSocketImpl.java	1.62 03/12/02
+ * @(#)PlainSocketImpl.java	1.61 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.62, 12/02/03
+ * @version 1.61, 01/23/03
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -197,7 +197,7 @@ class PlainSocketImpl extends SocketImpl
 	    if (tmp < 0)
 		throw new IllegalArgumentException("timeout < 0");
 	    timeout = tmp;
-	    return;
+	    break;
 	case IP_TOS:
 	     if (val == null || !(val instanceof Integer)) {
 		 throw new SocketException("bad argument for IP_TOS");
@@ -438,22 +438,19 @@ class PlainSocketImpl extends SocketImpl
 	synchronized(fdLock) {
 	    if (fd != null) {
 		if (fdUseCount == 0) {
-                    if (closePending) {
-                        return;
-                    }
 		    closePending = true;
 		    /*
 		     * We close the FileDescriptor in two-steps - first the
-		     * "pre-close" which closes the socket but doesn't
+ 		     * "pre-close" which closes the socket but doesn't
 		     * release the underlying file descriptor. This operation
 		     * may be lengthy due to untransmitted data and a long
 		     * linger interval. Once the pre-close is done we do the
 		     * actual socket to release the fd.
 		     */
 		    try {
-			socketPreClose();
+		        socketPreClose();
 		    } finally {
-			socketClose();
+		        socketClose();
 		    }
 		    fd = null;
 		    return;
@@ -467,7 +464,7 @@ class PlainSocketImpl extends SocketImpl
 		    if (!closePending) {
 			closePending = true;
 		        fdUseCount--;
-		        socketPreClose();
+			socketPreClose();
 		    }
 		}
 	    }
@@ -541,7 +538,7 @@ class PlainSocketImpl extends SocketImpl
 	    if (fdUseCount == -1) {
 		if (fd != null) {
 	            try {
-		        socketClose();
+			socketClose();
 	            } catch (IOException e) { 
 		    } finally {
 		        fd = null;
@@ -609,14 +606,14 @@ class PlainSocketImpl extends SocketImpl
     private void socketPreClose() throws IOException {
 	socketClose0(true);
     }
-    
+
     /*
      * Close the socket (and release the file descriptor).
      */
     private void socketClose() throws IOException {
 	socketClose0(false);
     }
- 
+
     private native void socketCreate(boolean isServer) throws IOException;
     private native void socketConnect(InetAddress address, int port, int timeout)
 	throws IOException;

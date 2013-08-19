@@ -1,7 +1,7 @@
 /*
- * @(#)TextAttribute.java	1.41 02/03/14
+ * @(#)TextAttribute.java	1.44 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -129,7 +129,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the unlocalized font family name.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1" 
+     *     SUMMARY="Key, Value, Constants, Default, and Description 
+     *     for TextAttribute FAMILY">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">FAMILY</TD></TR>
@@ -157,7 +159,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the weight of a font.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Constants, Description, Default, 
+     *     and Fallback for TextAttribute WEIGHT">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">WEIGHT</TD></TR>
@@ -266,7 +270,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the width of a font.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Constants, Description, Default, 
+     *     and Fallback for TextAttribute WIDTH">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">WIDTH</TD></TR>
@@ -330,7 +336,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the posture of a font.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Constants, Default, Description, 
+     *     and Fallback for TextAttribute POSTURE">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">POSTURE</TD></TR>
@@ -383,7 +391,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the font size.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Default, Description, and Fallback 
+     *     for TextAttribute SIZE">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">SIZE</TD></TR>
@@ -408,7 +418,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the transform of a font.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Default, and Description for 
+     *     TextAttribute TRANSFORM">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">TRANSFORM</TD></TR>
@@ -451,7 +463,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for super and subscripting.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Constants, Default, Description, 
+     *     and Fallback for TextAttribute SUPERSCRIPT">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">SUPERSCRIPT</TD></TR>
@@ -499,7 +513,8 @@ public final class TextAttribute extends Attribute {
 
     /**
      * Attribute key for the font to use to render text.
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Default, and Description for TextAttribute FONT">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">FONT</TD></TR>
@@ -523,7 +538,8 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for a user_defined glyph to display in the text in lieu 
      * of a character.
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, and Description for TextAttribute CHAR_REPLACEMENT">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">CHAR_REPLACEMENT</TD></TR>
@@ -551,7 +567,8 @@ public final class TextAttribute extends Attribute {
      * Attribute key for the foreground paint
      *  adornment.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Default, and Description of TextAttribute FOREGROUND">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">FOREGROUND</TD></TR>
@@ -571,7 +588,8 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the background Paint adornment.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Default, and Description of TextAttribute BACKGROUND">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">BACKGROUND</TD></TR>
@@ -591,7 +609,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for underline adornments.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1" 
+     *     SUMMARY="Key, Value, Constants, Default, Description, 
+     *     and Fallback for TextAttribute UNDERLINE">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">UNDERLINE</TD></TR>
@@ -626,7 +646,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the strikethrough adornment.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Constants, Default, and Description
+     *     for TextAttribute STRIKETHROUGH">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">STRIKETHROUGH</TD></TR>
@@ -661,7 +683,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the run direction of the line.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Constants, Default, and Description 
+     *     of TextAttribute RUN_DIRECTION">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">RUN_DIRECTION</TD></TR>
@@ -703,7 +727,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the embedding level for nested bidirectional runs.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Limits, Default, and Description 
+     *     of TextAttribute BIDI_EMBEDDING">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">BIDI_EMBEDDING</TD></TR>
@@ -734,7 +760,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for the justification of a paragraph.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Limits, Default, and Description
+     *     of TextAttribute JUSTIFICATION">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">JUSTIFICATION</TD></TR>
@@ -794,7 +822,9 @@ public final class TextAttribute extends Attribute {
     /**
      * Attribute key for input method underline adornments.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
+     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
+     *     SUMMARY="Key, Value, Limits, Default and Description
+     *     of TextAttribute INPUT_METHOD_UNDERLINE">
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
      * <TD VALIGN="TOP">INPUT_METHOD_UNDERLINE</TD></TR>

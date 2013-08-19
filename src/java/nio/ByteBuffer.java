@@ -1,7 +1,7 @@
 /*
- * @(#)X-Buffer.java	1.44 02/02/06
+ * @(#)X-Buffer.java	1.48 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -230,7 +230,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.44, 02/02/06
+ * @version 1.48, 03/01/23
  * @since 1.4
  */
 
@@ -239,10 +239,9 @@ public abstract class ByteBuffer
     implements Comparable
 {
 
-    // These fields are used only by classes derived from Heap-X-Buffer and by
-    // the array() and arrayOffset() methods defined below.  They are declared
-    // here in order to reduce the number of virtual method invocations needed,
-    // especially when coding small buffers.
+    // These fields are declared here rather than in Heap-X-Buffer in order to
+    // reduce the number of virtual method invocations needed to access these
+    // values, which is especially costly when coding small buffers.
     //
     final byte[] hb;			// Non-null only for heap buffers
     final int offset;
@@ -278,6 +277,9 @@ public abstract class ByteBuffer
      *         The new buffer's capacity, in bytes
      *
      * @return  The new byte buffer
+     *
+     * @throws  IllegalArgumentException
+     *          If the <tt>capacity</tt> is a negative integer
      */
     public static ByteBuffer allocateDirect(int capacity) {
         return new DirectByteBuffer(capacity);
@@ -297,6 +299,9 @@ public abstract class ByteBuffer
      *         The new buffer's capacity, in bytes
      *
      * @return  The new byte buffer
+     *
+     * @throws  IllegalArgumentException
+     *          If the <tt>capacity</tt> is a negative integer
      */
     public static ByteBuffer allocate(int capacity) {
 	if (capacity < 0)
@@ -714,7 +719,7 @@ public abstract class ByteBuffer
      * except that it first checks that there is sufficient space in this
      * buffer and it is potentially much more efficient. </p>
      *
-     * @param  array
+     * @param  src
      *         The array from which bytes are to be read
      *
      * @param  offset
@@ -1288,6 +1293,9 @@ public abstract class ByteBuffer
      * @throws  BufferOverflowException
      *          If there are fewer than two bytes
      *          remaining in this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putChar(char value);
 
@@ -1328,6 +1336,9 @@ public abstract class ByteBuffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit,
      *          minus one
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putChar(int index, char value);
 
@@ -1381,6 +1392,9 @@ public abstract class ByteBuffer
      * @throws  BufferOverflowException
      *          If there are fewer than two bytes
      *          remaining in this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putShort(short value);
 
@@ -1421,6 +1435,9 @@ public abstract class ByteBuffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit,
      *          minus one
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putShort(int index, short value);
 
@@ -1474,6 +1491,9 @@ public abstract class ByteBuffer
      * @throws  BufferOverflowException
      *          If there are fewer than four bytes
      *          remaining in this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putInt(int value);
 
@@ -1514,6 +1534,9 @@ public abstract class ByteBuffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit,
      *          minus three
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putInt(int index, int value);
 
@@ -1567,6 +1590,9 @@ public abstract class ByteBuffer
      * @throws  BufferOverflowException
      *          If there are fewer than eight bytes
      *          remaining in this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putLong(long value);
 
@@ -1607,6 +1633,9 @@ public abstract class ByteBuffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit,
      *          minus seven
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putLong(int index, long value);
 
@@ -1660,6 +1689,9 @@ public abstract class ByteBuffer
      * @throws  BufferOverflowException
      *          If there are fewer than four bytes
      *          remaining in this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putFloat(float value);
 
@@ -1700,6 +1732,9 @@ public abstract class ByteBuffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit,
      *          minus three
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putFloat(int index, float value);
 
@@ -1753,6 +1788,9 @@ public abstract class ByteBuffer
      * @throws  BufferOverflowException
      *          If there are fewer than eight bytes
      *          remaining in this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putDouble(double value);
 
@@ -1793,6 +1831,9 @@ public abstract class ByteBuffer
      *          If <tt>index</tt> is negative
      *          or not smaller than the buffer's limit,
      *          minus seven
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is read-only
      */
     public abstract ByteBuffer putDouble(int index, double value);
 

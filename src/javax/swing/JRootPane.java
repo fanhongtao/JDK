@@ -1,7 +1,7 @@
 /*
- * @(#)JRootPane.java	1.80 02/03/20
+ * @(#)JRootPane.java	1.83 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -27,7 +27,9 @@ import javax.swing.border.*;
  * <p>
  * The following image shows the relationships between
  * the classes that use root panes.
- * <p align=center><img src="doc-files/JRootPane-1.gif" HEIGHT=484 WIDTH=629></p>
+ * <p align=center><img src="doc-files/JRootPane-1.gif" 
+ * alt="The following text describes this graphic."
+ * HEIGHT=484 WIDTH=629></p>
  * The &quot;heavyweight&quot; components (those that delegate to a peer, or native
  * component on the host system) are shown with a darker, heavier box. The four
  * heavyweight JFC/Swing containers (<code>JFrame</code>, <code>JDialog</code>,
@@ -45,10 +47,11 @@ import javax.swing.border.*;
  * can be used to obtain the <code>JRootPane</code> that contains
  * a given component.  
  * </blockquote>
- * <table align="right" border="0">
+ * <table align="right" border="0" summary="layout">
  * <tr>
  * <td align="center">
- * <img src="doc-files/JRootPane-2.gif" HEIGHT=386 WIDTH=349>
+ * <img src="doc-files/JRootPane-2.gif" 
+ * alt="The following text describes this graphic." HEIGHT=386 WIDTH=349>
  * </td>
  * </tr>
  * </table>
@@ -166,7 +169,7 @@ import javax.swing.border.*;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.80 03/20/02
+ * @version 1.83 01/23/03
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -704,7 +707,7 @@ public class JRootPane extends JComponent implements Accessible {
      * property to <code>null</code>.
      *
      * @see JButton#isDefaultButton 
-     * @param default the <code>JButton</code> which is to be the default button
+     * @param defaultButton the <code>JButton</code> which is to be the default button
      *
      * @beaninfo
      *  description: The button activated by default in this root pane
@@ -805,7 +808,8 @@ public class JRootPane extends JComponent implements Accessible {
         /**
          * Returns the amount of space the layout would like to have.
          *
-         * @param the Container for which this layout manager is being used
+         * @param parent the Container for which this layout manager
+         * is being used
          * @return a Dimension object containing the layout's preferred size
          */ 
         public Dimension preferredLayoutSize(Container parent) {
@@ -829,7 +833,8 @@ public class JRootPane extends JComponent implements Accessible {
         /**
          * Returns the minimum amount of space the layout needs.
          *
-         * @param the Container for which this layout manager is being used
+         * @param parent the Container for which this layout manager
+         * is being used
          * @return a Dimension object containing the layout's minimum size
          */ 
         public Dimension minimumLayoutSize(Container parent) {
@@ -852,7 +857,8 @@ public class JRootPane extends JComponent implements Accessible {
         /**
          * Returns the maximum amount of space the layout can use.
          *
-         * @param the Container for which this layout manager is being used
+         * @param target the Container for which this layout manager
+         * is being used
          * @return a Dimension object containing the layout's maximum size
          */ 
         public Dimension maximumLayoutSize(Container target) {
@@ -878,7 +884,8 @@ public class JRootPane extends JComponent implements Accessible {
          * Instructs the layout manager to perform the layout for the specified
          * container.
          *
-         * @param the Container for which this layout manager is being used
+         * @param parent the Container for which this layout manager
+         * is being used
          */ 
         public void layoutContainer(Container parent) {
             Rectangle b = parent.getBounds();

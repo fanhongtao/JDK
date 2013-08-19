@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeModel.java	1.51 01/12/03
+ * @(#)DefaultTreeModel.java	1.53 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.51 12/03/01
+ * @version 1.53 01/23/03
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -71,7 +71,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
       * or whether only certain nodes can have children.
       *
       * @param root a TreeNode object that is the root of the tree
-      * @param askAllowsChildren a boolean, false if any node can
+      * @param asksAllowsChildren a boolean, false if any node can
       *        have children, true if each node is asked to see if
       *        it can have children
       * @see #asksAllowsChildren
@@ -353,8 +353,6 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      * tree.
      * 
      * @param aNode the TreeNode to get the path for
-     * @param an array of TreeNodes giving the path from the root to the
-     *        specified node. 
      */
     public TreeNode[] getPathToRoot(TreeNode aNode) {
         return getPathToRoot(aNode, 0);
@@ -447,7 +445,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      *
      * @param source the node being changed
      * @param path the path to the root node
-     * @param childIndicies the indices of the changed elements
+     * @param childIndices the indices of the changed elements
      * @param children the changed elements
      * @see EventListenerList
      */
@@ -478,7 +476,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      *
      * @param source the node where new elements are being inserted
      * @param path the path to the root node
-     * @param childIndicies the indices of the new elements
+     * @param childIndices the indices of the new elements
      * @param children the new elements
      * @see EventListenerList
      */
@@ -509,7 +507,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      *
      * @param source the node where elements are being removed
      * @param path the path to the root node
-     * @param childIndicies the indices of the removed elements
+     * @param childIndices the indices of the removed elements
      * @param children the removed elements
      * @see EventListenerList
      */
@@ -540,7 +538,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      *
      * @param source the node where the tree model has changed
      * @param path the path to the root node
-     * @param childIndicies the indices of the affected elements
+     * @param childIndices the indices of the affected elements
      * @param children the affected elements
      * @see EventListenerList
      */

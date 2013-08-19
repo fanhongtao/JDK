@@ -1,7 +1,7 @@
 /*
- * @(#)Double.java	1.80 02/04/09
+ * @(#)Double.java	1.82 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.80, 04/09/02
+ * @version 1.82, 01/23/03
  * @since JDK1.0
  */
 public final class Double extends Number implements Comparable {
@@ -174,8 +174,26 @@ public final class Double extends Number implements Comparable {
      * floating-point value, use subclasses of {@link
      * java.text.NumberFormat}.
      *
+     * <p>Note that trailing format specifiers, specifiers that
+     * determine the type of a floating-point literal
+     * (<code>1.0f</code> is a <code>float</code> value;
+     * <code>1.0d</code> is a <code>double</code> value), do
+     * <em>not</em> influence the results of this method.  In other
+     * words, the numerical value of the input string is converted
+     * directly to the target floating-point type.  The two-step
+     * sequence of conversions, string to <code>float</code> followed
+     * by <code>float</code> to <code>double</code>, is <em>not</em>
+     * equivalent to converting a string directly to
+     * <code>double</code>. For example, the <code>float</code>
+     * literal <code>0.1f</code> is equal to the <code>double</code>
+     * value <code>0.10000000149011612</code>; the <code>float</code>
+     * literal <code>0.1f</code> represents a different numerical
+     * value than the <code>double</code> literal
+     * <code>0.1</code>. (The numerical value 0.1 cannot be exactly
+     * represented in a binary floating-point number.)
+     *
      * @param      s   the string to be parsed.
-     * @return      a <code>Double</code> object holding the value
+     * @return     a <code>Double</code> object holding the value
      *             represented by the <code>String</code> argument.
      * @exception  NumberFormatException  if the string does not contain a
      *               parsable number.

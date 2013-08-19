@@ -68,6 +68,7 @@ import java.util.Vector;
 
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.XPath;
+import org.apache.xpath.ExtensionsProvider;
 import org.apache.xpath.objects.XObject;
 import org.apache.xpath.objects.XBoolean;
 
@@ -128,9 +129,9 @@ public class FuncExtElementAvailable extends FunctionOneArg
     }
     else
     {
-      ExtensionsTable etable = xctxt.getExtensionsTable();
-
-      return etable.elementAvailable(namespace, methName)
+      //dml
+      ExtensionsProvider extProvider = (ExtensionsProvider)xctxt.getOwnerObject();
+      return extProvider.elementAvailable(namespace, methName)
              ? XBoolean.S_TRUE : XBoolean.S_FALSE;
     }
   }

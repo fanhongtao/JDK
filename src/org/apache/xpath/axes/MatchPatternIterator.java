@@ -192,6 +192,7 @@ public class MatchPatternIterator extends LocPathIterator
     
   }
   
+  
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -225,29 +226,10 @@ public class MatchPatternIterator extends LocPathIterator
    *   <code>null</code> if there are no more members in that set.
    */
   public int nextNode()
-  {
+  {      
+  	if(m_foundLast)
+  		return DTM.NULL;
 
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    if ((null != m_cachedNodes)
-            && (m_next < m_cachedNodes.size()))
-    {
-      int next = m_cachedNodes.elementAt(m_next);
-    
-      incrementNextPosition();
-      m_currentContextNode = next;
-
-      return next;
-    }
-
-    if (m_foundLast)
-    {
-      m_lastFetched = DTM.NULL;
-      return DTM.NULL;
-    }
-      
     int next;
     
     org.apache.xpath.VariableStack vars;
@@ -296,10 +278,7 @@ public class MatchPatternIterator extends LocPathIterator
           System.out.println("next: "+next);
           System.out.println("name: "+m_cdtm.getNodeName(next));
         }
-        if (null != m_cachedNodes)
-          m_cachedNodes.addElement(m_lastFetched);
-  
-        m_next++;
+        incrementCurrentPos();
   
         return next;
       }

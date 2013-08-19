@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsMenuBarUI.java	1.12 02/04/17
+ * @(#)WindowsMenuBarUI.java	1.14 03/05/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,8 +9,8 @@ package com.sun.java.swing.plaf.windows;
 
 import javax.swing.plaf.basic.*;
 import javax.swing.*;
-import javax.swing.plaf.ActionMapUIResource;
-import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 
@@ -28,6 +28,32 @@ public class WindowsMenuBarUI extends BasicMenuBarUI
 {
     public static ComponentUI createUI(JComponent x) {
 	return new WindowsMenuBarUI();
+    }
+
+    protected void installDefaults() {
+	// The following is added for 1.4.2 only. In 1.5 we will be using a new
+	// DesktopProperty for the menubar background color.
+	UIDefaults lafDefaults = UIManager.getLookAndFeelDefaults();
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    Color color = xp.getColor("sysmetrics.menubar", null);
+	    if (color != null) {
+		// Override default from WindowsLookAndFeel
+		lafDefaults.put("MenuBar.background", new ColorUIResource(color));
+	    }
+	} else {
+	    // Restore default from WindowsLookAndFeel
+	    Object classicBackgroundProperty =
+		lafDefaults.get("MenuBar.classicBackground");
+	    if ((classicBackgroundProperty instanceof Object[]) &&
+		((Object[])classicBackgroundProperty).length > 0) {
+
+		lafDefaults.put("MenuBar.background",
+				((Object[])classicBackgroundProperty)[0]);
+	    }
+	}
+
+	super.installDefaults();
     }
 
     protected void installKeyboardActions() {

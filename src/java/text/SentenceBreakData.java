@@ -1,7 +1,7 @@
 /*
- * @(#)SentenceBreakData.java	1.21 01/12/03
+ * @(#)SentenceBreakData.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -295,6 +295,8 @@ final class SentenceBreakData extends TextBoundaryData
         other,        // CURRENCY_SYMBOL        = 26,
         other,        // MODIFIER_SYMBOL        = 27,
         other,        // OTHER_SYMBOL           = 28;
+        openBracket,  // INITIAL_QUOTE_PUNCTUATION = 29,
+        closeBracket, // FINAL_QUOTE_PUNCTUATION = 30,
     };
 
     private static final SpecialMapping kExceptionChar[] =
@@ -360,7 +362,9 @@ final class SentenceBreakData extends TextBoundaryData
         false,            // kMathSymbol           = 25,
         false,            // kCurrencySymbol       = 26,
         false,            // kModifierSymbol       = 27,
-        false             // kOtherSymbol          = 28
+        false,            // kOtherSymbol          = 28,
+        false,            // kInitialQuotePunctuation = 29,
+        false,            // kFinalQuotePunctuation = 30,
     };
 
     private static final int kSentenceAsciiValues[] = {

@@ -1,7 +1,7 @@
 /*
- * @(#)SecureClassLoader.java	1.81 01/12/03
+ * @(#)SecureClassLoader.java	1.82 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -18,7 +18,7 @@ import sun.security.util.Debug;
  * classes with an associated code source and permissions which are
  * retrieved by the system policy by default.
  *
- * @version 1.81, 12/03/01
+ * @version 1.82, 01/23/03
  * @author  Li Gong 
  * @author  Roland Schemers
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.93 02/06/20
+ * @(#)BasicPopupMenuUI.java	1.101 03/01/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,13 +28,14 @@ import java.util.*;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.93 06/20/02
+ * @version 1.101 01/31/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
  */
 public class BasicPopupMenuUI extends PopupMenuUI {
     protected JPopupMenu popupMenu = null;
+    static boolean menuKeyboardHelperInstalled = false;
     static MenuKeyboardHelper menuKeyboardHelper = null;
 
 private static boolean checkInvokerEqual(MenuElement present, MenuElement last) {
@@ -86,8 +87,10 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
 	}
  	popupMenu.addPopupMenuListener(basicPopupMenuListener);
 
-        if (menuKeyboardHelper == null) {
-            menuKeyboardHelper = new MenuKeyboardHelper();
+        if (!menuKeyboardHelperInstalled) {
+            if (menuKeyboardHelper == null) {
+                menuKeyboardHelper = new MenuKeyboardHelper();
+            }
             MenuSelectionManager msm = MenuSelectionManager.defaultManager();
             msm.addChangeListener(menuKeyboardHelper);
         }
@@ -196,12 +199,49 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
         return (Window)w;
     }
 
+    private static MenuElement getFirstPopup() {
+	MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+	MenuElement[] p = msm.getSelectedPath();
+	MenuElement me = null;	    
+	
+	for(int i = 0 ; me == null && i < p.length ; i++) {
+	    if (p[i] instanceof JPopupMenu)
+		me = p[i];
+	}
+	
+	return me;
+    }
+
+    private static JPopupMenu getLastPopup() {
+	MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+	MenuElement[] p = msm.getSelectedPath();
+	JPopupMenu popup = null;	    
+	
+	for(int i = p.length - 1; popup == null && i >= 0; i--) {
+	    if (p[i] instanceof JPopupMenu)
+		popup = (JPopupMenu)p[i];
+	}
+	return popup;
+    }
+
+    private static List getPopups() {
+	MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+	MenuElement[] p = msm.getSelectedPath();
+	
+	List list = new ArrayList(p.length); 
+	for(int i = 0; i < p.length; i++) {
+	    if (p[i] instanceof JPopupMenu) {
+		list.add((JPopupMenu)p[i]);
+	    }
+	}
+	return list;
+    }
     
     private transient static MouseGrabber mouseGrabber = null;
 
     private static class MouseGrabber
         implements MouseListener, MouseMotionListener, MouseWheelListener,
-                   WindowListener,ComponentListener, ChangeListener {
+                   WindowListener, WindowFocusListener, ComponentListener, ChangeListener {
 	Vector grabbed = new Vector();
 	MenuElement lastGrabbed = null;
 	boolean lastGrabbedMenuBarChild = false;
@@ -235,12 +275,22 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
 	    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
 	    MenuElement[] p = msm.getSelectedPath();
 
-	    if (lastGrabbed==getFirstPopup()) {
+	    JPopupMenu firstPopup = (JPopupMenu)getFirstPopup();
+	    if (lastGrabbed == firstPopup) {
+		// 4234793: This action should call firePopupMenuCanceled but it's
+		// a protected method. The real solution could be to make 
+		// firePopupMenuCanceled public and call it directly.
+		List popups = getPopups();
+		Iterator iter = popups.iterator();
+		while (iter.hasNext()) {
+		    JPopupMenu popup = (JPopupMenu)iter.next();
+		    popup.putClientProperty("JPopupMenu.firePopupMenuCanceled", Boolean.TRUE);
+		}
 		MenuSelectionManager.defaultManager().clearSelectedPath();
 		ungrabContainers();
 	    } else {
 		// The cancel has cause another menu selection
-		lastGrabbed=getFirstPopup();
+		lastGrabbed = firstPopup;
 		if (p[0] instanceof JMenuBar) {
 		    lastGrabbedMenuBarChild = true;
 		} else {
@@ -298,18 +348,6 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
 	    lastPathSelected = p;
 	}
 	
-	private MenuElement getFirstPopup() {
-	    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
-	    MenuElement[] p = msm.getSelectedPath();
-	    MenuElement me = null;	    
-
-	    for(int i = 0 ; me == null && i < p.length ; i++) {
-		if (p[i] instanceof JPopupMenu)
-		    me = p[i];
-	    }
-
-	    return me;
-	}
 	
 	void grabContainer(Container c, Component excluded) {
 	    if(c == excluded)
@@ -327,6 +365,7 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
              Component ignore = null;
 	    if(c instanceof java.awt.Window) {
 		((java.awt.Window)c).addWindowListener(this);
+		((java.awt.Window)c).addWindowFocusListener(this);                
 		((java.awt.Window)c).addComponentListener(this);
 		grabbed.addElement(c);
 	    }
@@ -370,6 +409,7 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
                 cpn = (Component)grabbed.elementAt(i);
                 if(cpn instanceof java.awt.Window) {
                     ((java.awt.Window)cpn).removeWindowListener(this);
+                    ((java.awt.Window)cpn).removeWindowFocusListener(this);
                     ((java.awt.Window)cpn).removeComponentListener(this);
                 } else {
                     cpn.removeMouseListener(this);
@@ -440,16 +480,12 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
         }
         public void windowDeiconified(WindowEvent e) {}
         public void windowActivated(WindowEvent e) {
-            /*   cancelPopupMenu(); cannot do this because
-                 this might happen when using cascading heavy weight 
-                 menus
-                 */
         }
         public void windowDeactivated(WindowEvent e) {
-            /*   cancelPopupMenu(); cannot do this because
-                 this might happen when using cascading heavy weight 
-                 menus
-                 */
+        }
+        public void windowLostFocus(WindowEvent e) {
+        }
+        public void windowGainedFocus(WindowEvent e) {
         }
     }
 
@@ -498,6 +534,14 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
     private static class CancelAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 		
+	    // 4234793: This action should call JPopupMenu.firePopupMenuCanceled but it's
+	    // a protected method. The real solution could be to make 
+	    // firePopupMenuCanceled public and call it directly.
+	    JPopupMenu lastPopup = (JPopupMenu)getLastPopup();
+	    if (lastPopup != null) {
+		lastPopup.putClientProperty("JPopupMenu.firePopupMenuCanceled", Boolean.TRUE);
+	    }
+
 	    MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
 	    if(path.length > 4) { /* PENDING(arnaud) Change this to 2 when a mouse grabber is available for MenuBar */
 		MenuElement newPath[] = new MenuElement[path.length - 2];
@@ -510,6 +554,13 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
 
     private static class ReturnAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
+            KeyboardFocusManager fmgr =
+                KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            Component focusOwner = fmgr.getFocusOwner();
+            if(focusOwner != null && !(focusOwner instanceof JRootPane)) {
+                return;
+            }
+
             MenuSelectionManager msm = MenuSelectionManager.defaultManager();
 	    MenuElement path[] = msm.getSelectedPath();
 	    MenuElement lastElement;
@@ -786,21 +837,34 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
          */
         private boolean receivedKeyPressed = false;
 
-
         void removeItems() {
-        if (lastFocused != null) {
+            if (lastFocused != null) {
+                if(!lastFocused.requestFocusInWindow()) {
+                    // Workarounr for 4810575.
+                    // If lastFocused is not in currently focused window
+                    // requestFocusInWindow will fail. In this case we must
+                    // request focus by requestFocus() if it was not
+                    // transferred from our popup.
+                    Window cfw = KeyboardFocusManager
+                                 .getCurrentKeyboardFocusManager()
+                                  .getFocusedWindow();
+                    if(cfw != null &&
+                       "###focusableSwingPopup###".equals(cfw.getName())) {
                         lastFocused.requestFocus();
-                        }
-                        if (invokerRootPane != null) {
-                        invokerRootPane.removeKeyListener(menuKeyboardHelper);
-                        invokerRootPane.setFocusTraversalKeysEnabled(focusTraversalKeysEnabled);
-                        removeUIInputMap(invokerRootPane, menuInputMap);
-                        removeUIActionMap(invokerRootPane, menuActionMap);
-                        }
+                    }
 
-                        receivedKeyPressed = false;
-
-        } 
+                }
+                lastFocused = null;
+            }
+            if (invokerRootPane != null) {
+                invokerRootPane.removeKeyListener(menuKeyboardHelper);
+                invokerRootPane.setFocusTraversalKeysEnabled(focusTraversalKeysEnabled);
+                removeUIInputMap(invokerRootPane, menuInputMap);
+                removeUIActionMap(invokerRootPane, menuActionMap);
+                invokerRootPane = null;
+            } 
+            receivedKeyPressed = false;
+        }
 
         private FocusListener rootPaneFocusListener = new FocusAdapter() {
                 public void focusGained(FocusEvent ev) {
@@ -898,6 +962,13 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
         }
 
         public void stateChanged(ChangeEvent ev) {
+            if (!(UIManager.getLookAndFeel() instanceof BasicLookAndFeel)) {
+                MenuSelectionManager msm = MenuSelectionManager.
+                                           defaultManager();
+                msm.removeChangeListener(this);
+                menuKeyboardHelperInstalled = false;
+                return;
+            }
 	    MenuSelectionManager msm = (MenuSelectionManager)ev.getSource();
 	    MenuElement[] p = msm.getSelectedPath();
             JPopupMenu popup = getActivePopup(p);
@@ -932,13 +1003,19 @@ private static boolean checkInvokerEqual(MenuElement present, MenuElement last) 
                     }
                 } else {
                     Component c = popup.getInvoker();
-                    while (!(c instanceof JComponent)) {
-                        if (c == null) {
-                            return;
+                    if(c instanceof JFrame) {
+                        invoker = ((JFrame)c).getRootPane();
+                    } else if(c instanceof JApplet) {
+                        invoker = ((JApplet)c).getRootPane();
+                    } else {
+                        while (!(c instanceof JComponent)) {
+                            if (c == null) {
+                                return;
+                            }
+                            c = c.getParent();
                         }
-                        c = c.getParent();
+                        invoker = (JComponent)c;
                     }
-                    invoker = (JComponent)c;
                 }
 
                 // remember current focus owner

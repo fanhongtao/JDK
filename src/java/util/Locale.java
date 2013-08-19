@@ -1,7 +1,7 @@
 /*
- * @(#)Locale.java	1.68 01/12/03
+ * @(#)Locale.java	1.69 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -155,7 +155,7 @@ import sun.text.resources.LocaleData;
  * @see         java.text.Format
  * @see         java.text.NumberFormat
  * @see         java.text.Collator
- * @version     1.68, 12/03/01
+ * @version     1.69, 01/23/03
  * @author      Mark Davis
  * @since       1.1
  */

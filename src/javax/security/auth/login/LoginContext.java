@@ -1,7 +1,7 @@
 /*
- * @(#)LoginContext.java	1.93 02/02/21
+ * @(#)LoginContext.java	1.94 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -120,7 +120,7 @@ import sun.security.util.ResourcesMgr;
  * do not affect the <code>LoginModule</code> state, or the
  * LoginModule-specific options.
  * 
- * @version 1.93, 02/21/02
+ * @version 1.94, 01/23/03
  * @see javax.security.auth.Subject
  * @see javax.security.auth.callback.CallbackHandler
  * @see javax.security.auth.login.Configuration

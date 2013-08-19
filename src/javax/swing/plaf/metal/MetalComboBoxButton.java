@@ -1,7 +1,7 @@
 /*
- * @(#)MetalComboBoxButton.java	1.34 02/01/25
+ * @(#)MetalComboBoxButton.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MetalComboBoxButton
- * @version 1.34 01/25/02
+ * @version 1.35 01/23/03
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {

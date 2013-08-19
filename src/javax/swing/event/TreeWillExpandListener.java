@@ -1,7 +1,7 @@
 /*
- * @(#)TreeWillExpandListener.java	1.7 01/12/03
+ * @(#)TreeWillExpandListener.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import javax.swing.tree.ExpandVetoException;
   * <a href="http://java.sun.com/docs/books/tutorial/uiswing/events/treewillexpandlistener.html">How to Write a Tree-Will-Expand Listener</a>,
   * a section in <em>The Java Tutorial.</em>
   *
-  * @version 1.7 12/03/01
+  * @version 1.8 01/23/03
   * @author Scott Violet
   */
 

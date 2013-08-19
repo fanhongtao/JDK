@@ -56,16 +56,18 @@
  */
 package org.apache.xalan.lib.sql;
 
-import java.util.Properties;
-import java.util.Vector;
-import java.util.Enumeration;
-import java.lang.String;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
-import java.util.*;
-import java.sql.*;
+import java.sql.Driver;
+import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.Vector;
+import java.lang.reflect.Method;
+
+import org.apache.xalan.res.XSLMessages;
+import org.apache.xalan.res.XSLTErrorResources;
 
 /**
  * For internal connectiones, i.e. Connection information supplies in the
@@ -73,6 +75,11 @@ import java.sql.*;
  */
 public class DefaultConnectionPool implements ConnectionPool
 {
+  /**
+   * A placeholder thast will keep the driver loaded
+   * between calls.
+   */
+  private Object m_Driver = null;
   /**
    */
   private static final boolean DEBUG = false;
@@ -449,17 +456,20 @@ public class DefaultConnectionPool implements ConnectionPool
      // Check our initial values
      if ( m_driver == null )
      {
-       throw new IllegalArgumentException("No Driver Name Specified!");
+       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_NO_DRIVER_NAME_SPECIFIED, null));
+       // "No Driver Name Specified!");
      }
 
      if ( m_url == null )
      {
-       throw new IllegalArgumentException("No URL Specified!");
+       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_NO_URL_SPECIFIED, null));
+       // "No URL Specified!");
      }
 
      if ( m_PoolMinSize < 1 )
      {
-       throw new IllegalArgumentException("Pool size is less than 1!");
+       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_POOLSIZE_LESS_THAN_ONE, null));
+       // "Pool size is less than 1!");
      }
 
      // Create the Connections
@@ -467,11 +477,36 @@ public class DefaultConnectionPool implements ConnectionPool
 
      try
      {
-       Class.forName( m_driver );
+        // We need to implement the context classloader
+        Class cls = null;
+        try 
+        {
+          Method m = Thread.class.getMethod("getContextClassLoader", null);
+          ClassLoader classLoader = (ClassLoader) m.invoke(Thread.currentThread(), null);
+          cls = classLoader.loadClass(m_driver);
+        } 
+        catch (Exception e) 
+        {
+          cls = Class.forName(m_driver);  
+        }
+        
+        if (cls == null)
+          cls = Class.forName(m_driver);
+
+        // We have also had problems with drivers unloading
+        // load an instance that will get freed with the class.
+        m_Driver = cls.newInstance();
+
+
      }
      catch(ClassNotFoundException e)
      {
-       throw new IllegalArgumentException("Invalid Driver Name Specified!");
+       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_INVALID_DRIVER_NAME, null));
+       // "Invalid Driver Name Specified!");
+     }
+     catch(Exception e)
+     {
+       throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_INVALID_DRIVER_NAME, null));
      }
 
      // IF we are not active, don't actuall build a pool yet

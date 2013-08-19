@@ -1,7 +1,7 @@
 /*
- * @(#)RSAKeyGenParameterSpec.java	1.6 01/12/03
+ * @(#)RSAKeyGenParameterSpec.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.security.spec.AlgorithmParameterSpec;
  * key pair.
  * 
  * @author Jan Luehe
- * @version 1.6 12/03/01
+ * @version 1.7 01/23/03
  *
  * @see java.security.KeyPairGenerator#initialize(java.security.spec.AlgorithmParameterSpec)
  *

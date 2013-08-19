@@ -1,7 +1,7 @@
 /*
- * @(#)JSpinner.java	1.26 02/04/18
+ * @(#)JSpinner.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -68,7 +68,7 @@ import java.util.HashMap;
  * @see SpinnerDateModel
  * @see JFormattedTextField
  * 
- * @version 1.26 04/18/02
+ * @version 1.29 01/23/03
  * @author Hans Muller
  * @since 1.4
  */
@@ -96,6 +96,7 @@ public class JSpinner extends JComponent
     public JSpinner(SpinnerModel model) {
 	this.model = model;
 	this.editor = createEditor(model);
+	setOpaque(true);
         updateUI();
     }
 
@@ -796,7 +797,7 @@ public class JSpinner extends JComponent
          * The default implementation invokes <code>commitEdit</code> on the
          * <code>JFormattedTextField</code>.
          *
-         * @throw ParseException if the edited value is not legal
+         * @throws ParseException if the edited value is not legal
          */
         public void commitEdit()  throws ParseException {
             // If the value in the JFormattedTextField is legal, this will have

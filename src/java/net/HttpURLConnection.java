@@ -1,7 +1,7 @@
 /*
- * @(#)HttpURLConnection.java	1.34 02/04/15
+ * @(#)HttpURLConnection.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,6 +37,40 @@ abstract public class HttpURLConnection extends URLConnection {
      * The HTTP method (GET,POST,PUT,etc.). 
      */
     protected String method = "GET";
+
+    /**
+     * Returns the key for the <code>n</code><sup>th</sup> header field.
+     * Some implementations may treat the <code>0</code><sup>th</sup> 
+     * header field as special, i.e. as the status line returned by the HTTP
+     * server. In this case, {@link #getHeaderField(int) getHeaderField(0)} returns the status 
+     * line, but <code>getHeaderFieldKey(0)</code> returns null.
+     *
+     * @param   n   an index, where n >=0.
+     * @return  the key for the <code>n</code><sup>th</sup> header field,
+     *          or <code>null</code> if the key does not exist.
+     */
+    public String getHeaderFieldKey (int n) {
+	return null;
+    }
+
+    /**
+     * Returns the value for the <code>n</code><sup>th</sup> header field. 
+     * Some implementations may treat the <code>0</code><sup>th</sup> 
+     * header field as special, i.e. as the status line returned by the HTTP
+     * server. 
+     * <p>
+     * This method can be used in conjunction with the 
+     * {@link #getHeaderFieldKey getHeaderFieldKey} method to iterate through all 
+     * the headers in the message. 
+     *
+     * @param   n   an index, where n>=0.
+     * @return  the value of the <code>n</code><sup>th</sup> header field,
+     *		or <code>null</code> if the value does not exist.
+     * @see     java.net.HttpURLConnection#getHeaderFieldKey(int)
+     */
+    public String getHeaderField(int n) {
+	return null;
+    }
 
     /**
      * An <code>int</code> representing the three digit HTTP Status-Code.

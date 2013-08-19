@@ -1,7 +1,7 @@
 /*
- * @(#)MenuItem.java	1.79 01/12/03
+ * @(#)MenuItem.java	1.83 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * a simple labeled menu item.
  * <p>
  * This picture of a menu bar shows five menu items:
- * <IMG SRC="doc-files/MenuBar-1.gif"
+ * <IMG SRC="doc-files/MenuBar-1.gif" alt="The following text describes this graphic."
  * ALIGN=CENTER HSPACE=10 VSPACE=7>
  * <br CLEAR=LEFT>
  * The first two items are simple menu items, labeled
@@ -48,7 +48,7 @@ import javax.accessibility.*;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.79, 12/03/01
+ * @version 1.83, 01/23/03
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent implements Accessible {
@@ -68,8 +68,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * be set to false.
      *
      * @serial
-     * @see isEnabled()
-     * @see setEnabled()
+     * @see #isEnabled()
+     * @see #setEnabled(boolean)
      */
     boolean enabled = true;
 
@@ -78,8 +78,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * It can be any string.
      *
      * @serial
-     * @see getLabel()
-     * @see setLabel()
+     * @see #getLabel()
+     * @see #setLabel(String)
      */
     String label;
 
@@ -91,8 +91,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * set using setActionCommand.
      *
      * @serial
-     * @see setActionCommand()
-     * @see getActionCommand()
+     * @see #setActionCommand(String)
+     * @see #getActionCommand()
      */
     String actionCommand;
 
@@ -116,9 +116,9 @@ public class MenuItem extends MenuComponent implements Accessible {
      * work.
      *
      * @serial
-     * @see getShortcut()
-     * @see setShortcut()
-     * @see deleteShortcut()
+     * @see #getShortcut()
+     * @see #setShortcut(MenuShortcut)
+     * @see #deleteShortcut()
      */
     private MenuShortcut shortcut = null;
 
@@ -584,8 +584,9 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @since       JDK1.1
      */
     protected void processActionEvent(ActionEvent e) {
-        if (actionListener != null) {
-            actionListener.actionPerformed(e);
+        ActionListener listener = actionListener;
+        if (listener != null) {
+            listener.actionPerformed(e);
         }
     }
 
@@ -631,8 +632,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      *   <code>actionListenerK</code> indicating an
      *     <code>ActionListener</code> object
      *
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws IOException
@@ -653,9 +654,9 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
-     * @see removeActionListener()
-     * @see addActionListener()
-     * @see #writeObject
+     * @see #removeActionListener(actionListener)
+     * @see #addActionListener(actionListener)
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException
@@ -816,7 +817,7 @@ public class MenuItem extends MenuComponent implements Accessible {
          *
          * @return An Integer of 0 if this isn't selected or an Integer of 1 if
          * this is selected.
-         * @see AbstractButton#isSelected
+         * @see javax.swing.AbstractButton#isSelected()
          */
         public Number getCurrentAccessibleValue() {
             return new Integer(0);

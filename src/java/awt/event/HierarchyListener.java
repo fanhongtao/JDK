@@ -1,7 +1,7 @@
 /*
- * @(#)HierarchyListener.java	1.6 01/12/03
+ * @(#)HierarchyListener.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.EventListener;
  * of whether a program registers a <code>HierarchyListener</code> or not.
  *
  * @author	David Mendenhall
- * @version	1.6, 12/03/01
+ * @version	1.7, 01/23/03
  * @see		HierarchyEvent
  * @since 	1.3
  */

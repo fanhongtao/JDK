@@ -1,7 +1,7 @@
 /*
- * @(#)DocumentListener.java	1.12 01/12/03
+ * @(#)DocumentListener.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -28,7 +28,7 @@ import java.util.EventListener;
  * (i.e. the associated Document)</em>.
  *
  * @author  Timothy Prinzing
- * @version 1.12 12/03/01
+ * @version 1.13 01/23/03
  * @see javax.swing.text.Document
  * @see javax.swing.text.StyledDocument
  * @see DocumentEvent

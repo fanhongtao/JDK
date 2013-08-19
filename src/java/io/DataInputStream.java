@@ -1,7 +1,7 @@
 /*
- * @(#)DataInputStream.java	1.59 02/03/26
+ * @(#)DataInputStream.java	1.65 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,24 +24,81 @@ package java.io;
  * <p>
  * All characters in the range <code>'&#92;u0001'</code> to
  * <code>'&#92;u007F'</code> are represented by a single byte:
- * <center><table border="3">
- *   <tr><td><i>0</i></td>  <td>bits 6-0</td></tr>
- * </table></center>
+ *
+ * <center>
+ *    <table border="3" summary="Bit values and bytes">
+ *        <tr>
+ *            <td></td>
+ *            <th id="bit" colspan=2><P ALIGN="LEFT">Bit Values</P></th>
+ *        </tr>
+ *        <tr> 
+ *            <th id="byte1">Byte 1&nbsp;</th>
+ *            <td headers="bit byte1"><i>0</i></td>
+ *            <td>bits 6-0</td>
+ *        </tr>
+ *     </table>
+ * </center>
+ *
  * <p>
  * The null character <code>'&#92;u0000'</code> and characters in the
  * range <code>'&#92;u0080'</code> to <code>'&#92;u07FF'</code> are
  * represented by a pair of bytes:
- * <center><table border="3">
- *   <tr><td>1</td>  <td>1</td>  <td>0</td>  <td>bits 10-6</td></tr>
- *   <tr><td>1</td>  <td>0</td>  <td colspan=2>bits 5-0</td></tr>
- * </table></center><br>
+ *
+ * <center>
+ *     <table border="3" summary="Bit values and bytes">
+ *        <tr>
+ *            <td></td>
+ *            <th id="bit" colspan=4><P ALIGN="LEFT">Bit Values</P></th>
+ *        </tr>
+ *         <tr>
+ *             <th id="byte1">Byte 1&nbsp;</th>
+ *             <td headers="bit byte1">1</td>
+ *             <td headers="bit byte1">1</td>
+ *             <td headers="bit byte1">0</td>
+ *             <td headers="bit byte1">bits 10-6</td>
+ *         </tr>
+ *         <tr>
+ *             <th id="byte2">Byte 2&nbsp;</th>
+ *             <td headers="bit byte2">1</td>
+ *             <td headers="bit byte2">0</td>
+ *             <td headers="bit byte2" colspan=2>bits 5-0</td>
+ *         </tr>
+ *      </table>
+ *  </center>
+ *
+ * <br>
  * Characters in the range <code>'&#92;u0800'</code> to
  * <code>'&#92;uFFFF'</code> are represented by three bytes:
- * <center><table border="3">
- *   <tr><td>1</td>  <td>1</td>  <td>1</td>  <td>0</td>  <td>bits 15-12</td></tr>
- *   <tr><td>1</td>  <td>0</td>  <td colspan=3>bits 11-6</td></tr>
- *   <tr><td>1</td>  <td>0</td>  <td colspan=3>bits 5-0</td></tr>
- * </table></center>
+ *
+ * <center>
+ *    <table border="3" summary="Bit values and bytes">
+ *        <tr>
+ *            <td></td>
+ *            <th id="bit" colspan=5><P ALIGN="LEFT">Bit Values</P></th>
+ *        </tr>
+ * 
+ *        <tr>
+ *            <th id="byte1">Byte 1&nbsp;</th>
+ *            <td headers="bit byte1">1</td>
+ *            <td headers="bit byte1">1</td>
+ *            <td headers="bit byte1">1</td>
+ *            <td headers="bit byte1">0</td>
+ *            <td headers="bit byte1">bits 15-12</td>
+ *        </tr>
+ *        <tr>
+ *            <th id="byte2">Byte 2&nbsp;</th>
+ *            <td headers="bit byte2">1</td>
+ *            <td headers="bit byte2">0</td>
+ *            <td headers="bit byte2" colspan=3>bits 11-6</td>
+ *        </tr>
+ *        <tr>
+ *            <th id="byte3">Byte 3&nbsp;</th>
+ *            <td headers="bit byte3">1</td>
+ *            <td headers="bit byte3">0</td>
+ *            <td headers="bit byte3" colspan=3>bits 5-0</td>
+ *        </tr>
+ *     </table>
+ *   </center>
  * <p>
  * The two differences between this format and the
  * "standard" UTF-8 format are the following:
@@ -53,7 +110,7 @@ package java.io;
  * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.59, 03/26/02
+ * @version 1.65, 01/23/03
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -204,7 +261,6 @@ class DataInputStream extends FilterInputStream implements DataInput {
     public final void readFully(byte b[], int off, int len) throws IOException {
 	if (len < 0)
 	    throw new IndexOutOfBoundsException();
-	InputStream in = this.in;
 	int n = 0;
 	while (n < len) {
 	    int count = in.read(b, off + n, len - n);
@@ -227,7 +283,6 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @exception  IOException   if an I/O error occurs.
      */
     public final int skipBytes(int n) throws IOException {
-	InputStream in = this.in;
 	int total = 0;
 	int cur = 0;
 
@@ -316,12 +371,11 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final short readShort() throws IOException {
-	InputStream in = this.in;
-	int ch1 = in.read();
-	int ch2 = in.read();
-	if ((ch1 | ch2) < 0)
-	     throw new EOFException();
-	return (short)((ch1 << 8) + (ch2 << 0));
+        int ch1 = in.read();
+        int ch2 = in.read();
+        if ((ch1 | ch2) < 0)
+            throw new EOFException();
+        return (short)((ch1 << 8) + (ch2 << 0));
     }
 
     /**
@@ -340,12 +394,11 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final int readUnsignedShort() throws IOException {
-	InputStream in = this.in;
-	int ch1 = in.read();
-	int ch2 = in.read();
-	if ((ch1 | ch2) < 0)
-	     throw new EOFException();
-	return (ch1 << 8) + (ch2 << 0);
+        int ch1 = in.read();
+        int ch2 = in.read();
+        if ((ch1 | ch2) < 0)
+            throw new EOFException();
+        return (ch1 << 8) + (ch2 << 0);
     }
 
     /**
@@ -364,12 +417,11 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final char readChar() throws IOException {
-	InputStream in = this.in;
-	int ch1 = in.read();
-	int ch2 = in.read();
-	if ((ch1 | ch2) < 0)
-	     throw new EOFException();
-	return (char)((ch1 << 8) + (ch2 << 0));
+        int ch1 = in.read();
+        int ch2 = in.read();
+        if ((ch1 | ch2) < 0)
+            throw new EOFException();
+        return (char)((ch1 << 8) + (ch2 << 0));
     }
 
     /**
@@ -388,15 +440,16 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final int readInt() throws IOException {
-	InputStream in = this.in;
-	int ch1 = in.read();
-	int ch2 = in.read();
-	int ch3 = in.read();
-	int ch4 = in.read();
-	if ((ch1 | ch2 | ch3 | ch4) < 0)
-	     throw new EOFException();
-	return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+        int ch1 = in.read();
+        int ch2 = in.read();
+        int ch3 = in.read();
+        int ch4 = in.read();
+        if ((ch1 | ch2 | ch3 | ch4) < 0)
+            throw new EOFException();
+        return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
     }
+
+    private byte readBuffer[] = new byte[8];
 
     /**
      * See the general contract of the <code>readLong</code>
@@ -414,8 +467,15 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final long readLong() throws IOException {
-	InputStream in = this.in;
-	return ((long)(readInt()) << 32) + (readInt() & 0xFFFFFFFFL);
+        readFully(readBuffer, 0, 8);
+        return (((long)readBuffer[0] << 56) +
+                ((long)(readBuffer[1] & 255) << 48) +
+                ((long)(readBuffer[2] & 255) << 40) +
+                ((long)(readBuffer[3] & 255) << 32) +
+                ((long)(readBuffer[4] & 255) << 24) +
+                ((readBuffer[5] & 255) << 16) +
+                ((readBuffer[6] & 255) <<  8) +
+                ((readBuffer[7] & 255) <<  0));
     }
 
     /**
@@ -488,7 +548,6 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.FilterInputStream#in
      */
     public final String readLine() throws IOException {
-	InputStream in = this.in;
 	char buf[] = lineBuffer;
 
 	if (buf == null) {
@@ -509,7 +568,7 @@ loop:	while (true) {
 		int c2 = in.read();
 		if ((c2 != '\n') && (c2 != -1)) {
 		    if (!(in instanceof PushbackInputStream)) {
-			in = this.in = new PushbackInputStream(in);
+			this.in = new PushbackInputStream(in);
 		    }
 		    ((PushbackInputStream)in).unread(c2);
 		}
@@ -567,7 +626,7 @@ loop:	while (true) {
      *               before all the bytes.
      * @exception  IOException             if an I/O error occurs.
      * @exception  UTFDataFormatException  if the bytes do not represent a
-     *               valid UTF-8 encoding of a Unicode string.
+     *               valid Java modified UTF-8 encoding of a Unicode string.
      * @see        java.io.DataInputStream#readUnsignedShort()
      */
     public final static String readUTF(DataInput in) throws IOException {

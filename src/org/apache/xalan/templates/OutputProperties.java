@@ -66,6 +66,8 @@ import java.util.Properties;
 import java.util.Enumeration;
 
 import java.lang.Cloneable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.w3c.dom.Document;
 
@@ -143,6 +145,14 @@ public class OutputProperties extends ElemTemplateElement
         "{"+Constants.S_BUILTIN_EXTENSIONS_URL+"}";
   
   /**
+   * The old built-in extension namespace
+   */
+  static final String S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL=
+        "{"+Constants.S_BUILTIN_OLD_EXTENSIONS_URL+"}";
+  
+  static final int S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL_LEN = S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL.length();
+  
+  /**
    * Fix up a string in an output properties file according to 
    * the rules of {@link #loadPropertiesFile}.
    * 
@@ -181,7 +191,7 @@ public class OutputProperties extends ElemTemplateElement
    * @param resourceName non-null reference to resource name.
    * @param defaults Default properties, which may be null.
    */
-  static private Properties loadPropertiesFile(String resourceName, Properties defaults)
+  static private Properties loadPropertiesFile(final String resourceName, Properties defaults)
     throws IOException
   {
 
@@ -196,16 +206,36 @@ public class OutputProperties extends ElemTemplateElement
 
     try {
       try {
-        java.lang.reflect.Method getCCL = Thread.class.getMethod("getContextClassLoader", NO_CLASSES);
-        if (getCCL != null) {
-          ClassLoader contextClassLoader = (ClassLoader) getCCL.invoke(Thread.currentThread(), NO_OBJS);
-          is = contextClassLoader.getResourceAsStream("org/apache/xalan/templates/" + resourceName);
-        }
+	// Using doPrivileged to be able to read property file without opening
+        // up secured container permissions like J2EE container
+        is =(InputStream)AccessController.doPrivileged( new PrivilegedAction() {
+          public Object run() {
+            try {
+              java.lang.reflect.Method getCCL = Thread.class.getMethod(
+                  "getContextClassLoader", NO_CLASSES);
+              if (getCCL != null) {
+                ClassLoader contextClassLoader = (ClassLoader)
+                    getCCL.invoke(Thread.currentThread(), NO_OBJS);
+                return ( contextClassLoader.getResourceAsStream (
+                    "org/apache/xalan/templates/" + resourceName) );
+              }
+            }
+            catch ( Exception e ) { }
+
+            return null;
+            
+          } 
+        });
       }
       catch (Exception e) {}
 
       if ( is == null ) {
-        is = OutputProperties.class.getResourceAsStream(resourceName);
+        is = (InputStream)AccessController.doPrivileged( new PrivilegedAction(){
+	  public Object run() {
+            return OutputProperties.class.getResourceAsStream(resourceName);
+          }
+        });
+
       }
       
       bis = new BufferedInputStream(is);
@@ -418,6 +448,10 @@ public class OutputProperties extends ElemTemplateElement
     {
       setMethodDefaults(value);
     }
+    
+    if (key.startsWith(S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL))
+      key = S_BUILTIN_EXTENSIONS_UNIVERSAL + key.substring(S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL_LEN);
+    
     m_properties.put(key, value);
   }
 
@@ -446,6 +480,8 @@ public class OutputProperties extends ElemTemplateElement
    */
   public String getProperty(String key)
   {
+    if (key.startsWith(S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL))
+      key = S_BUILTIN_EXTENSIONS_UNIVERSAL + key.substring(S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL_LEN);
     return m_properties.getProperty(key);
   }
 
@@ -909,6 +945,10 @@ public class OutputProperties extends ElemTemplateElement
     while (enum.hasMoreElements())
     {
       String key = (String) enum.nextElement();
+    
+      if (!isLegalPropertyKey(key))
+        throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_OUTPUT_PROPERTY_NOT_RECOGNIZED, new Object[]{key})); //"output property not recognized: "
+      
       Object oldValue = m_properties.get(key);
       if (null == oldValue)
       {

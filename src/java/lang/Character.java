@@ -1,5 +1,5 @@
-// This file was generated AUTOMATICALLY from a template file Thu Feb 20 14:35:28 PST 2003
-/* @(#)Character.java.template	1.1 02/04/22
+// This file was generated AUTOMATICALLY from a template file Fri Jun 20 02:04:06 PDT 2003
+/* @(#)Character.java.template	1.7 03/01/13
  *
  * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -100,6 +100,17 @@ class Character extends Object implements java.io.Serializable, Comparable {
     * Normative general types
     */
 
+   /*
+    * General character types
+    */
+
+   /**
+    * General category "Cn" in the Unicode specification.
+    * @since   1.1
+    */
+    public static final byte
+        UNASSIGNED                  = 0;
+
    /**
     * General category "Lu" in the Unicode specification.
     * @since   1.1
@@ -122,6 +133,20 @@ class Character extends Object implements java.io.Serializable, Comparable {
         TITLECASE_LETTER            = 3;
 
    /**
+    * General category "Lm" in the Unicode specification.
+    * @since   1.1
+    */
+    public static final byte
+        MODIFIER_LETTER             = 4;
+
+   /**
+    * General category "Lo" in the Unicode specification.
+    * @since   1.1
+    */
+    public static final byte
+        OTHER_LETTER                = 5;
+
+   /**
     * General category "Mn" in the Unicode specification.
     * @since   1.1
     */
@@ -129,18 +154,18 @@ class Character extends Object implements java.io.Serializable, Comparable {
         NON_SPACING_MARK            = 6;
 
    /**
-    * General category "Mc" in the Unicode specification.
-    * @since   1.1
-    */
-    public static final byte
-        COMBINING_SPACING_MARK      = 8;
-
-   /**
     * General category "Me" in the Unicode specification.
     * @since   1.1
     */
     public static final byte
         ENCLOSING_MARK              = 7;
+
+   /**
+    * General category "Mc" in the Unicode specification.
+    * @since   1.1
+    */
+    public static final byte
+        COMBINING_SPACING_MARK      = 8;
 
    /**
     * General category "Nd" in the Unicode specification.
@@ -190,18 +215,14 @@ class Character extends Object implements java.io.Serializable, Comparable {
     */
     public static final byte
         CONTROL                     = 15;
+
    /**
     * General category "Cf" in the Unicode specification.
     * @since   1.1
     */
     public static final byte
         FORMAT                      = 16;
-   /**
-    * General category "Cs" in the Unicode specification.
-    * @since   1.1
-    */
-    public static final byte
-        SURROGATE                   = 19;
+
    /**
     * General category "Co" in the Unicode specification.
     * @since   1.1
@@ -210,36 +231,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
         PRIVATE_USE                 = 18;
 
    /**
-    * General category "Cn" in the Unicode specification.
+    * General category "Cs" in the Unicode specification.
     * @since   1.1
     */
     public static final byte
-        UNASSIGNED                  = 0;
-
-   /*
-    * Informative general types
-    */
-
-   /**
-    * General category "Lm" in the Unicode specification.
-    * @since   1.1
-    */
-    public static final byte
-        MODIFIER_LETTER             = 4;
-
-   /**
-    * General category "Lo" in the Unicode specification.
-    * @since   1.1
-    */
-    public static final byte
-        OTHER_LETTER                = 5;
-
-   /**
-    * General category "Pc" in the Unicode specification.
-    * @since   1.1
-    */
-    public static final byte
-        CONNECTOR_PUNCTUATION       = 23;
+        SURROGATE                   = 19;
 
    /**
     * General category "Pd" in the Unicode specification.
@@ -263,18 +259,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
         END_PUNCTUATION             = 22;
 
    /**
-    * General category "Pi" in the Unicode specification.
-    * @since   1.4
+    * General category "Pc" in the Unicode specification.
+    * @since   1.1
     */
     public static final byte
-        INITIAL_QUOTE_PUNCTUATION   = 29;
-
-   /**
-    * General category "Pf" in the Unicode specification.
-    * @since   1.4
-    */
-    public static final byte
-        FINAL_QUOTE_PUNCTUATION     = 30;
+        CONNECTOR_PUNCTUATION       = 23;
 
    /**
     * General category "Po" in the Unicode specification.
@@ -310,6 +299,20 @@ class Character extends Object implements java.io.Serializable, Comparable {
     */
     public static final byte
         OTHER_SYMBOL                = 28;
+
+   /**
+    * General category "Pi" in the Unicode specification.
+    * @since   1.4
+    */
+    public static final byte
+        INITIAL_QUOTE_PUNCTUATION   = 29;
+
+   /**
+    * General category "Pf" in the Unicode specification.
+    * @since   1.4
+    */
+    public static final byte
+        FINAL_QUOTE_PUNCTUATION     = 30;
 
     /**
      * Error or non-char flag
@@ -438,6 +441,13 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since 1.4
      */
     public static final byte DIRECTIONALITY_POP_DIRECTIONAL_FORMAT = 18;
+
+    // Maximum character handled by internal fast-path code which
+    // avoids initializing large tables.
+    // Note: performance of this "fast-path" code may be sub-optimal
+    // in negative cases for some accessors due to complicated ranges.
+    // Should revisit after optimization of table initialization.
+    private static final int FAST_PATH_MAX = 255;
 
     /**
      * Instances of this class represent particular subsets of the Unicode
@@ -1007,7 +1017,7 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since 1.4
      */
     public static String toString(char c) {
-        return String.valueOf(new char[] {c});
+        return String.valueOf(c);
     }
 
 
@@ -1038,7 +1048,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see     java.lang.Character#getType(char)
      */
     public static boolean isLowerCase(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F) == LOWERCASE_LETTER;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isLowerCase(ch);
+        } else {
+            return CharacterData.isLowerCase(ch);
+        }
     }
 
    /**
@@ -1067,7 +1081,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.0
      */
     public static boolean isUpperCase(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F) == UPPERCASE_LETTER;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isUpperCase(ch);
+        } else {
+            return CharacterData.isUpperCase(ch);
+        }
     }
 
     /**
@@ -1103,7 +1121,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.0.2
      */
     public static boolean isTitleCase(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F) == TITLECASE_LETTER;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isTitleCase(ch);
+        } else {
+            return CharacterData.isTitleCase(ch);
+        }
     }
 
     /**
@@ -1137,7 +1159,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see     java.lang.Character#getType(char)
      */
     public static boolean isDigit(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F) == DECIMAL_DIGIT_NUMBER;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isDigit(ch);
+        } else {
+            return CharacterData.isDigit(ch);
+        }
     }
 
     /**
@@ -1161,7 +1187,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.0.2
      */
     public static boolean isDefined(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F) != UNASSIGNED;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isDefined(ch);
+        } else {
+            return CharacterData.isDefined(ch);
+        }
     }
 
     /**
@@ -1195,12 +1225,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see     java.lang.Character#isUpperCase(char)
      */
     public static boolean isLetter(char ch) {
-        return (((((1 << UPPERCASE_LETTER) |
-                   (1 << LOWERCASE_LETTER) |
-                   (1 << TITLECASE_LETTER) |
-                   (1 << MODIFIER_LETTER) |
-                   (1 << OTHER_LETTER))
-                  >> (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F)) & 1) != 0);
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isLetter(ch);
+        } else {
+            return CharacterData.isLetter(ch);
+        }
     }
 
     /**
@@ -1223,13 +1252,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.0.2
      */
     public static boolean isLetterOrDigit(char ch) {
-        return (((((1 << UPPERCASE_LETTER) |
-                   (1 << LOWERCASE_LETTER) |
-                   (1 << TITLECASE_LETTER) |
-                   (1 << MODIFIER_LETTER) |
-                   (1 << OTHER_LETTER) |
-                   (1 << DECIMAL_DIGIT_NUMBER))
-                  >> (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F)) & 1) != 0);
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isLetterOrDigit(ch);
+        } else {
+            return CharacterData.isLetterOrDigit(ch);
+        }
     }
 
     /**
@@ -1318,7 +1345,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isJavaIdentifierStart(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x00007000) >= 0x00005000;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isJavaIdentifierStart(ch);
+        } else {
+            return CharacterData.isJavaIdentifierStart(ch);
+        }
     }
 
     /**
@@ -1349,7 +1380,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isJavaIdentifierPart(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x00003000) != 0;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isJavaIdentifierPart(ch);
+        } else {
+            return CharacterData.isJavaIdentifierPart(ch);
+        }
     }
 
     /**
@@ -1372,7 +1407,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isUnicodeIdentifierStart(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x00007000) == 0x00007000;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isUnicodeIdentifierStart(ch);
+        } else {
+            return CharacterData.isUnicodeIdentifierStart(ch);
+        }
     }
 
     /**
@@ -1402,7 +1441,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isUnicodeIdentifierPart(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)]& 0x00001000) != 0;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isUnicodeIdentifierPart(ch);
+        } else {
+            return CharacterData.isUnicodeIdentifierPart(ch);
+        }
     }
 
     /**
@@ -1432,7 +1475,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isIdentifierIgnorable(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x00007000) == 0x00001000;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isIdentifierIgnorable(ch);
+        } else {
+            return CharacterData.isIdentifierIgnorable(ch);
+        }
     }
 
     /**
@@ -1453,56 +1500,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see     java.lang.Character#toUpperCase(char)
      */
     public static char toLowerCase(char ch) {
-        char mapChar = ch;
-        int val = A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)];
-
-        if ((val & 0x00020000) != 0) {
-            if ((val & 0x07FC0000) == 0x07FC0000) {
-                switch(ch) {
-                    // map the offset overflow chars
-                    case '\u2126' : mapChar = '\u03C9'; break;
-                    case '\u212A' : mapChar = '\u006B'; break;
-                    case '\u212B' : mapChar = '\u00E5'; break;
-                    // map the titlecase chars with both a 1:M uppercase map
-                    // and a lowercase map
-                    case '\u1F88' : mapChar = '\u1F80'; break;
-                    case '\u1F89' : mapChar = '\u1F81'; break;
-                    case '\u1F8A' : mapChar = '\u1F82'; break;
-                    case '\u1F8B' : mapChar = '\u1F83'; break;
-                    case '\u1F8C' : mapChar = '\u1F84'; break;
-                    case '\u1F8D' : mapChar = '\u1F85'; break;
-                    case '\u1F8E' : mapChar = '\u1F86'; break;
-                    case '\u1F8F' : mapChar = '\u1F87'; break;
-                    case '\u1F98' : mapChar = '\u1F90'; break;
-                    case '\u1F99' : mapChar = '\u1F91'; break;
-                    case '\u1F9A' : mapChar = '\u1F92'; break;
-                    case '\u1F9B' : mapChar = '\u1F93'; break;
-                    case '\u1F9C' : mapChar = '\u1F94'; break;
-                    case '\u1F9D' : mapChar = '\u1F95'; break;
-                    case '\u1F9E' : mapChar = '\u1F96'; break;
-                    case '\u1F9F' : mapChar = '\u1F97'; break;
-                    case '\u1FA8' : mapChar = '\u1FA0'; break;
-                    case '\u1FA9' : mapChar = '\u1FA1'; break;
-                    case '\u1FAA' : mapChar = '\u1FA2'; break;
-                    case '\u1FAB' : mapChar = '\u1FA3'; break;
-                    case '\u1FAC' : mapChar = '\u1FA4'; break;
-                    case '\u1FAD' : mapChar = '\u1FA5'; break;
-                    case '\u1FAE' : mapChar = '\u1FA6'; break;
-                    case '\u1FAF' : mapChar = '\u1FA7'; break;
-                    case '\u1FBC' : mapChar = '\u1FB3'; break;
-                    case '\u1FCC' : mapChar = '\u1FC3'; break;
-                    case '\u1FFC' : mapChar = '\u1FF3'; break;
-                    // default mapChar is already set, so no
-                    // need to redo it here.
-                    // default       : mapChar = ch;
-                }
-            }
-            else {
-                int offset = val << 5 >> (5+18);
-                mapChar = (char)(ch + offset);
-            }
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.toLowerCase(ch);
+        } else {
+            return CharacterData.toLowerCase(ch);
         }
-        return mapChar;
     }
 
     /**
@@ -1523,57 +1525,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see     java.lang.Character#toTitleCase(char)
      */
     public static char toUpperCase(char ch) {
-        char mapChar = ch;
-        int val = A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)];
-
-        if ((val & 0x00010000) != 0) {
-            if ((val & 0x07FC0000) == 0x07FC0000) {
-                switch(ch) {
-                    // map chars with overflow offsets
-                    case '\u00B5' : mapChar = '\u039C'; break;
-                    case '\u017F' : mapChar = '\u0053'; break;
-                    case '\u1FBE' : mapChar = '\u0399'; break;
-                    // map char that have both a 1:1 and 1:M map
-                    case '\u1F80' : mapChar = '\u1F88'; break;
-                    case '\u1F81' : mapChar = '\u1F89'; break;
-                    case '\u1F82' : mapChar = '\u1F8A'; break;
-                    case '\u1F83' : mapChar = '\u1F8B'; break;
-                    case '\u1F84' : mapChar = '\u1F8C'; break;
-                    case '\u1F85' : mapChar = '\u1F8D'; break;
-                    case '\u1F86' : mapChar = '\u1F8E'; break;
-                    case '\u1F87' : mapChar = '\u1F8F'; break;
-                    case '\u1F90' : mapChar = '\u1F98'; break;
-                    case '\u1F91' : mapChar = '\u1F99'; break;
-                    case '\u1F92' : mapChar = '\u1F9A'; break;
-                    case '\u1F93' : mapChar = '\u1F9B'; break;
-                    case '\u1F94' : mapChar = '\u1F9C'; break;
-                    case '\u1F95' : mapChar = '\u1F9D'; break;
-                    case '\u1F96' : mapChar = '\u1F9E'; break;
-                    case '\u1F97' : mapChar = '\u1F9F'; break;
-                    case '\u1FA0' : mapChar = '\u1FA8'; break;
-                    case '\u1FA1' : mapChar = '\u1FA9'; break;
-                    case '\u1FA2' : mapChar = '\u1FAA'; break;
-                    case '\u1FA3' : mapChar = '\u1FAB'; break;
-                    case '\u1FA4' : mapChar = '\u1FAC'; break;
-                    case '\u1FA5' : mapChar = '\u1FAD'; break;
-                    case '\u1FA6' : mapChar = '\u1FAE'; break;
-                    case '\u1FA7' : mapChar = '\u1FAF'; break;
-                    case '\u1FB3' : mapChar = '\u1FBC'; break;
-                    case '\u1FC3' : mapChar = '\u1FCC'; break;
-                    case '\u1FF3' : mapChar = '\u1FFC'; break;
-                    // ch must have a 1:M case mapping, but we
-                    // can't handle it here. Return ch.
-                    // since mapChar is already set, no need
-                    // to redo it here.
-                    //default       : mapChar = ch;
-                }
-            }
-            else {
-                int offset = val  << 5 >> (5+18);
-                mapChar =  (char)(ch - offset);
-            }
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.toUpperCase(ch);
+        } else {
+            return CharacterData.toUpperCase(ch);
         }
-        return mapChar;
     }
 
     /**
@@ -1600,33 +1556,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.0.2
      */
     public static char toTitleCase(char ch) {
-        char mapChar = ch;
-        int val = A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)];
-
-        if ((val & 0x00008000) != 0) {
-            // There is a titlecase equivalent.  Perform further checks:
-            if ((val & 0x00010000) == 0) {
-                // The character does not have an uppercase equivalent, so it must
-                // already be uppercase; so add 1 to get the titlecase form.
-                mapChar = (char)(ch + 1);
-            }
-            else if ((val & 0x00020000) == 0) {
-                // The character does not have a lowercase equivalent, so it must
-                // already be lowercase; so subtract 1 to get the titlecase form.
-                mapChar = (char)(ch - 1);
-            }
-            // else {
-            // The character has both an uppercase equivalent and a lowercase
-            // equivalent, so it must itself be a titlecase form; return it.
-            // return ch;
-            //}
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.toTitleCase(ch);
+        } else {
+            return CharacterData.toTitleCase(ch);
         }
-        else if ((val & 0x00010000) != 0) {
-            // This character has no titlecase equivalent but it does have an
-            // uppercase equivalent, so use that (subtract the signed case offset).
-            mapChar = Character.toUpperCase(ch);
-        }
-        return mapChar;
     }
 
     /**
@@ -1663,19 +1597,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see     java.lang.Character#isDigit(char)
      */
     public static int digit(char ch, int radix) {
-        int value = -1;
-        if (radix >= Character.MIN_RADIX && radix <= Character.MAX_RADIX) {
-            int val = A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)];
-            int kind = val & 0x1F;
-            if (kind == DECIMAL_DIGIT_NUMBER) {
-                value = ch + ((val & 0x3E0) >> 5) & 0x1F;
-            }
-            else if ((val & 0xC00) == 0x00000C00) {
-                // Java supradecimal digit
-                value = (ch + ((val & 0x3E0) >> 5) & 0x1F) + 10;
-            }
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.digit(ch, radix);
+        } else {
+            return CharacterData.digit(ch, radix);
         }
-        return (value < radix) ? value : -1;
     }
 
     /**
@@ -1708,50 +1634,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static int getNumericValue(char ch) {
-        int val = A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)];
-        int retval = -1;
-
-        switch (val & 0xC00) {
-        default: // cannot occur
-        case (0x00000000):         // not numeric
-            retval = -1;
-            break;
-        case (0x00000400):              // simple numeric
-            retval = ch + ((val & 0x3E0) >> 5) & 0x1F;
-            break;
-        case (0x00000800)      :       // "strange" numeric
-            switch (ch) {
-                case '\u0BF1': retval = 100; break;         // TAMIL NUMBER ONE HUNDRED
-                case '\u0BF2': retval = 1000; break;        // TAMIL NUMBER ONE THOUSAND
-                case '\u1375': retval = 40; break;          // ETHIOPIC NUMBER FORTY
-                case '\u1376': retval = 50; break;          // ETHIOPIC NUMBER FIFTY
-                case '\u1377': retval = 60; break;          // ETHIOPIC NUMBER SIXTY
-                case '\u1378': retval = 70; break;          // ETHIOPIC NUMBER SEVENTY
-                case '\u1379': retval = 80; break;          // ETHIOPIC NUMBER EIGHTY
-                case '\u137A': retval = 90; break;          // ETHIOPIC NUMBER NINETY
-                case '\u137B': retval = 100; break;         // ETHIOPIC NUMBER HUNDRED
-                case '\u137C': retval = 10000; break;       // ETHIOPIC NUMBER TEN THOUSAND
-                case '\u215F': retval = 1; break;           // FRACTION NUMERATOR ONE
-                case '\u216C': retval = 50; break;          // ROMAN NUMERAL FIFTY
-                case '\u216D': retval = 100; break;         // ROMAN NUMERAL ONE HUNDRED
-                case '\u216E': retval = 500; break;         // ROMAN NUMERAL FIVE HUNDRED
-                case '\u216F': retval = 1000; break;        // ROMAN NUMERAL ONE THOUSAND
-                case '\u217C': retval = 50; break;          // SMALL ROMAN NUMERAL FIFTY
-                case '\u217D': retval = 100; break;         // SMALL ROMAN NUMERAL ONE HUNDRED
-                case '\u217E': retval = 500; break;         // SMALL ROMAN NUMERAL FIVE HUNDRED
-                case '\u217F': retval = 1000; break;        // SMALL ROMAN NUMERAL ONE THOUSAND
-                case '\u2180': retval = 1000; break;        // ROMAN NUMERAL ONE THOUSAND C D
-                case '\u2181': retval = 5000; break;        // ROMAN NUMERAL FIVE THOUSAND
-                case '\u2182': retval = 10000; break;       // ROMAN NUMERAL TEN THOUSAND
-                default:       retval = -2; break;
-            }
-            break;
-        case (0x00000C00):           // Java supradecimal
-            retval = (ch + ((val & 0x3E0) >> 5) & 0x1F) + 10;
-            break;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.getNumericValue(ch);
+        } else {
+            return CharacterData.getNumericValue(ch);
         }
-        return retval;
-
     }
 
     /**
@@ -1806,10 +1693,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isSpaceChar(char ch) {
-        return (((((1 << SPACE_SEPARATOR) |
-                   (1 << LINE_SEPARATOR) |
-                   (1 << PARAGRAPH_SEPARATOR))
-                    >> (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F)) & 1) != 0);
+        if (ch <=  FAST_PATH_MAX) {
+            return CharacterDataLatin1.isSpaceChar(ch);
+        } else {
+            return CharacterData.isSpaceChar(ch);
+        }
     }
 
     /**
@@ -1839,7 +1727,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static boolean isWhitespace(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x00007000) == 0x00004000;
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isWhitespace(ch);
+        } else {
+            return CharacterData.isWhitespace(ch);
+        }
     }
 
     /**
@@ -1900,7 +1792,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since   1.1
      */
     public static int getType(char ch) {
-        return (A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)] & 0x1F);
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.getType(ch);
+        } else {
+            return CharacterData.getType(ch);
+        }
     }
 
     /**
@@ -1946,8 +1842,8 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * visual ordering of text. The directionality value of undefined
      * <code>char</code> values is <code>DIRECTIONALITY_UNDEFINED</code>.
      *
-     * @param  c <code>char</code> for which the directionality property 
-     *		is requested.
+     * @param  ch <code>char</code> for which the directionality property 
+     *            is requested.
      * @return the directionality property of the <code>char</code> value.
      *
      * @see Character#DIRECTIONALITY_UNDEFINED
@@ -1972,37 +1868,12 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @see Character#DIRECTIONALITY_POP_DIRECTIONAL_FORMAT
      * @since 1.4
      */
-    public static byte getDirectionality(char c) {
-        int val = A[Y[((X[c>>5]&0xFF)<<4)|((c>>1)&0xF)]|(c&0x1)];
-        byte directionality = (byte)((val & 0x78000000) >> 27);
-        if (directionality == 0xF ) {
-            switch(c) {
-                case '\u202A' :
-                    // This is the only char with LRE
-                    directionality = DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING;
-                    break;
-                case '\u202B' :
-                    // This is the only char with RLE
-                    directionality = DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING;
-                    break;
-                case '\u202C' :
-                    // This is the only char with PDF
-                    directionality = DIRECTIONALITY_POP_DIRECTIONAL_FORMAT;
-                    break;
-                case '\u202D' :
-                    // This is the only char with LRO
-                    directionality = DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE;
-                    break;
-                case '\u202E' :
-                    // This is the only char with RLO
-                    directionality = DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE;
-                    break;
-                default :
-                    directionality = DIRECTIONALITY_UNDEFINED;
-                    break;
-            }
+    public static byte getDirectionality(char ch) {
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.getDirectionality(ch);
+        } else {
+            return CharacterData.getDirectionality(ch);
         }
-        return directionality;
     }
 
     /**
@@ -2014,14 +1885,17 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * parenthesis</i>.  This will appear as a "(" in text that is
      * left-to-right but as a ")" in text that is right-to-left.
      *
-     * @param  c <code>char</code> for which the mirrored property is requested
+     * @param  ch <code>char</code> for which the mirrored property is requested
      * @return <code>true</code> if the char is mirrored, <code>false</code>
      *         if the <code>char</code> is not mirrored or is not defined.
      * @since 1.4
      */
-    public static boolean isMirrored(char c) {
-        int val = A[Y[((X[c>>5]&0xFF)<<4)|((c>>1)&0xF)]|(c&0x1)];
-        return ((val & 0x80000000) != 0);
+    public static boolean isMirrored(char ch) {
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.isMirrored(ch);
+        } else {
+            return CharacterData.isMirrored(ch);
+        }
     }
 
     /**
@@ -2083,25 +1957,11 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @since 1.4
      */
     static char toUpperCaseEx(char ch) {
-        char mapChar = ch;
-        int val = A[Y[((X[ch>>5]&0xFF)<<4)|((ch>>1)&0xF)]|(ch&0x1)];
-
-        if ((val & 0x00010000) != 0) {
-            if ((val & 0x07FC0000) != 0x07FC0000) {
-                int offset = val  << 5 >> (5+18);
-                mapChar =  (char)(ch - offset);
-            }
-            else {
-                switch(ch) {
-                    // map overflow characters
-                    case '\u00B5' : mapChar = '\u039C'; break;
-                    case '\u017F' : mapChar = '\u0053'; break;
-                    case '\u1FBE' : mapChar = '\u0399'; break;
-                    default       : mapChar = CHAR_ERROR; break;
-                }
-            }
+        if (ch <= FAST_PATH_MAX) {
+            return CharacterDataLatin1.toUpperCaseEx(ch);
+        } else {
+            return CharacterData.toUpperCaseEx(ch);
         }
-        return mapChar;
     }
 
     /**
@@ -2115,11 +1975,20 @@ class Character extends Object implements java.io.Serializable, Comparable {
      * @return a <code>char[]</code> with the uppercased character.
      * @since 1.4
      */
+    static char[] sharpsMap = new char[] {'S', 'S'};
+    
     static char[] toUpperCaseCharArray(char ch) {
         char[] upperMap = {ch};
-        int location = findInCharMap(ch);
-        if (location != -1) {
-            upperMap = charMap[location][1];
+        if (ch <= FAST_PATH_MAX) {
+            if (ch == '\u00DF') {
+                upperMap = sharpsMap;
+            }
+            // else ch -> ch
+        } else {
+	    int location = findInCharMap(ch);
+	    if (location != -1) {
+	        upperMap = CharacterData.charMap[location][1];
+	    }
         }
         return upperMap;
     }
@@ -2135,631 +2004,18 @@ class Character extends Object implements java.io.Serializable, Comparable {
     static  int findInCharMap(char ch) {
         int top, bottom, current;
         bottom = 0;
-        top = charMap.length;
+        top = CharacterData.charMap.length;
         current = top/2;
-        // invariant: top > current >= bottom && ch >= charMap[bottom][0]
+        // invariant: top > current >= bottom && ch >= CharacterData.charMap[bottom][0]
         while (top - bottom > 1) {
-            if (ch >= charMap[current][0][0]) {
+            if (ch >= CharacterData.charMap[current][0][0]) {
                 bottom = current;
             } else {
                 top = current;
             }
             current = (top + bottom) / 2;
         }
-        if (ch == charMap[current][0][0]) return current;
+        if (ch == CharacterData.charMap[current][0][0]) return current;
         else return -1;
-    }
-
-
-    /* The character properties are currently encoded into 32 bits in the following manner:
-        1 bit   mirrored property
-        4 bits  directionality property
-        9 bits  signed offset used for converting case
-        1 bit   if 1, adding the signed offset converts the character to lowercase
-        1 bit   if 1, subtracting the signed offset converts the character to uppercase
-        1 bit   if 1, this character has a titlecase equivalent (possibly itself)
-        3 bits  0  may not be part of an identifier
-                1  ignorable control; may continue a Unicode identifier or Java identifier
-                2  may continue a Java identifier but not a Unicode identifier (unused)
-                3  may continue a Unicode identifier or Java identifier
-                4  is a Java whitespace character
-                5  may start or continue a Java identifier;
-                   may continue but not start a Unicode identifier (underscores)
-                6  may start or continue a Java identifier but not a Unicode identifier ($)
-                7  may start or continue a Unicode identifier or Java identifier
-                Thus:
-                   5, 6, 7 may start a Java identifier
-                   1, 2, 3, 5, 6, 7 may continue a Java identifier
-                   7 may start a Unicode identifier
-                   1, 3, 5, 7 may continue a Unicode identifier
-                   1 is ignorable within an identifier
-                   4 is Java whitespace
-        2 bits  0  this character has no numeric property
-                1  adding the digit offset to the character code and then
-                   masking with 0x1F will produce the desired numeric value
-                2  this character has a "strange" numeric value
-                3  a Java supradecimal digit: adding the digit offset to the
-                   character code, then masking with 0x1F, then adding 10
-                   will produce the desired numeric value
-        5 bits  digit offset
-        5 bits  character type
-
-        The encoding of character properties is subject to change at any time.
-     */
-
-    // The following tables and code generated using:
-  // java GenerateCharacter -template ../../tools/GenerateCharacter/Character.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk141-update/ws/control/build/linux-i586/gensrc/java/lang/Character.java -string 11 4 1
-      static char[][][] charMap = {
-        { {'\u00DF'}, {'\u0053', '\u0053', } },
-        { {'\u0149'}, {'\u02BC', '\u004E', } },
-        { {'\u01F0'}, {'\u004A', '\u030C', } },
-        { {'\u0390'}, {'\u0399', '\u0308', '\u0301', } },
-        { {'\u03B0'}, {'\u03A5', '\u0308', '\u0301', } },
-        { {'\u0587'}, {'\u0535', '\u0552', } },
-        { {'\u1E96'}, {'\u0048', '\u0331', } },
-        { {'\u1E97'}, {'\u0054', '\u0308', } },
-        { {'\u1E98'}, {'\u0057', '\u030A', } },
-        { {'\u1E99'}, {'\u0059', '\u030A', } },
-        { {'\u1E9A'}, {'\u0041', '\u02BE', } },
-        { {'\u1F50'}, {'\u03A5', '\u0313', } },
-        { {'\u1F52'}, {'\u03A5', '\u0313', '\u0300', } },
-        { {'\u1F54'}, {'\u03A5', '\u0313', '\u0301', } },
-        { {'\u1F56'}, {'\u03A5', '\u0313', '\u0342', } },
-        { {'\u1F80'}, {'\u1F08', '\u0399', } },
-        { {'\u1F81'}, {'\u1F09', '\u0399', } },
-        { {'\u1F82'}, {'\u1F0A', '\u0399', } },
-        { {'\u1F83'}, {'\u1F0B', '\u0399', } },
-        { {'\u1F84'}, {'\u1F0C', '\u0399', } },
-        { {'\u1F85'}, {'\u1F0D', '\u0399', } },
-        { {'\u1F86'}, {'\u1F0E', '\u0399', } },
-        { {'\u1F87'}, {'\u1F0F', '\u0399', } },
-        { {'\u1F88'}, {'\u1F08', '\u0399', } },
-        { {'\u1F89'}, {'\u1F09', '\u0399', } },
-        { {'\u1F8A'}, {'\u1F0A', '\u0399', } },
-        { {'\u1F8B'}, {'\u1F0B', '\u0399', } },
-        { {'\u1F8C'}, {'\u1F0C', '\u0399', } },
-        { {'\u1F8D'}, {'\u1F0D', '\u0399', } },
-        { {'\u1F8E'}, {'\u1F0E', '\u0399', } },
-        { {'\u1F8F'}, {'\u1F0F', '\u0399', } },
-        { {'\u1F90'}, {'\u1F28', '\u0399', } },
-        { {'\u1F91'}, {'\u1F29', '\u0399', } },
-        { {'\u1F92'}, {'\u1F2A', '\u0399', } },
-        { {'\u1F93'}, {'\u1F2B', '\u0399', } },
-        { {'\u1F94'}, {'\u1F2C', '\u0399', } },
-        { {'\u1F95'}, {'\u1F2D', '\u0399', } },
-        { {'\u1F96'}, {'\u1F2E', '\u0399', } },
-        { {'\u1F97'}, {'\u1F2F', '\u0399', } },
-        { {'\u1F98'}, {'\u1F28', '\u0399', } },
-        { {'\u1F99'}, {'\u1F29', '\u0399', } },
-        { {'\u1F9A'}, {'\u1F2A', '\u0399', } },
-        { {'\u1F9B'}, {'\u1F2B', '\u0399', } },
-        { {'\u1F9C'}, {'\u1F2C', '\u0399', } },
-        { {'\u1F9D'}, {'\u1F2D', '\u0399', } },
-        { {'\u1F9E'}, {'\u1F2E', '\u0399', } },
-        { {'\u1F9F'}, {'\u1F2F', '\u0399', } },
-        { {'\u1FA0'}, {'\u1F68', '\u0399', } },
-        { {'\u1FA1'}, {'\u1F69', '\u0399', } },
-        { {'\u1FA2'}, {'\u1F6A', '\u0399', } },
-        { {'\u1FA3'}, {'\u1F6B', '\u0399', } },
-        { {'\u1FA4'}, {'\u1F6C', '\u0399', } },
-        { {'\u1FA5'}, {'\u1F6D', '\u0399', } },
-        { {'\u1FA6'}, {'\u1F6E', '\u0399', } },
-        { {'\u1FA7'}, {'\u1F6F', '\u0399', } },
-        { {'\u1FA8'}, {'\u1F68', '\u0399', } },
-        { {'\u1FA9'}, {'\u1F69', '\u0399', } },
-        { {'\u1FAA'}, {'\u1F6A', '\u0399', } },
-        { {'\u1FAB'}, {'\u1F6B', '\u0399', } },
-        { {'\u1FAC'}, {'\u1F6C', '\u0399', } },
-        { {'\u1FAD'}, {'\u1F6D', '\u0399', } },
-        { {'\u1FAE'}, {'\u1F6E', '\u0399', } },
-        { {'\u1FAF'}, {'\u1F6F', '\u0399', } },
-        { {'\u1FB2'}, {'\u1FBA', '\u0399', } },
-        { {'\u1FB3'}, {'\u0391', '\u0399', } },
-        { {'\u1FB4'}, {'\u0386', '\u0399', } },
-        { {'\u1FB6'}, {'\u0391', '\u0342', } },
-        { {'\u1FB7'}, {'\u0391', '\u0342', '\u0399', } },
-        { {'\u1FBC'}, {'\u0391', '\u0399', } },
-        { {'\u1FC2'}, {'\u1FCA', '\u0399', } },
-        { {'\u1FC3'}, {'\u0397', '\u0399', } },
-        { {'\u1FC4'}, {'\u0389', '\u0399', } },
-        { {'\u1FC6'}, {'\u0397', '\u0342', } },
-        { {'\u1FC7'}, {'\u0397', '\u0342', '\u0399', } },
-        { {'\u1FCC'}, {'\u0397', '\u0399', } },
-        { {'\u1FD2'}, {'\u0399', '\u0308', '\u0300', } },
-        { {'\u1FD3'}, {'\u0399', '\u0308', '\u0301', } },
-        { {'\u1FD6'}, {'\u0399', '\u0342', } },
-        { {'\u1FD7'}, {'\u0399', '\u0308', '\u0342', } },
-        { {'\u1FE2'}, {'\u03A5', '\u0308', '\u0300', } },
-        { {'\u1FE3'}, {'\u03A5', '\u0308', '\u0301', } },
-        { {'\u1FE4'}, {'\u03A1', '\u0313', } },
-        { {'\u1FE6'}, {'\u03A5', '\u0342', } },
-        { {'\u1FE7'}, {'\u03A5', '\u0308', '\u0342', } },
-        { {'\u1FF2'}, {'\u1FFA', '\u0399', } },
-        { {'\u1FF3'}, {'\u03A9', '\u0399', } },
-        { {'\u1FF4'}, {'\u038F', '\u0399', } },
-        { {'\u1FF6'}, {'\u03A9', '\u0342', } },
-        { {'\u1FF7'}, {'\u03A9', '\u0342', '\u0399', } },
-        { {'\u1FFC'}, {'\u03A9', '\u0399', } },
-        { {'\uFB00'}, {'\u0046', '\u0046', } },
-        { {'\uFB01'}, {'\u0046', '\u0049', } },
-        { {'\uFB02'}, {'\u0046', '\u004C', } },
-        { {'\uFB03'}, {'\u0046', '\u0046', '\u0049', } },
-        { {'\uFB04'}, {'\u0046', '\u0046', '\u004C', } },
-        { {'\uFB05'}, {'\u0053', '\u0054', } },
-        { {'\uFB06'}, {'\u0053', '\u0054', } },
-        { {'\uFB13'}, {'\u0544', '\u0546', } },
-        { {'\uFB14'}, {'\u0544', '\u0535', } },
-        { {'\uFB15'}, {'\u0544', '\u053B', } },
-        { {'\uFB16'}, {'\u054E', '\u0546', } },
-        { {'\uFB17'}, {'\u0544', '\u053D', } },
-    };
-// The X table has 2048 entries for a total of 2048 bytes.
-
-  private static final byte X[] = new byte[2048];
-  private static final String X_DATA =
-    "\u0100\u0302\u0504\u0706\u0908\u0B0A\u0D0C\u0F0E\u1008\u1211\u1413\u1615\u1717"+
-    "\u1918\u1B1A\u1D1C\u1F1E\u0820\u0821\u2322\u2524\u2726\u2928\u2B2A\u2D2C\u2F2E"+
-    "\u3030\u3231\u3433\u2435\u3630\u2424\u2424\u2424\u2424\u2424\u3837\u3A39\u3C3B"+
-    "\u3E3D\u403F\u4241\u4443\u4645\u473B\u4948\u4B4A\u4D4C\u4F4E\u5150\u5352\u5154"+
-    "\u5552\u5156\u5857\u5A59\u5C5B\u245D\u5F5E\u2460\u6261\u6463\u6665\u2467\u6968"+
-    "\u246A\u6B24\u6D6C\u6868\u686E\u6F68\u7068\u6871\u6872\u7473\u7675\u6874\u7877"+
-    "\u6824\u7968\u685B\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u7A68\u687B"+
-    "\u7C68\u2424\u2424\u7D68\u7F7E\u6880\u8281\u8368\u2424\u2424\u2424\u2424\u2424"+
-    "\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424"+
-    "\u2424\u2424\u2424\u0808\u0808\u0884\u8508\u8786\u8988\u8B8A\u8D8C\u8F8E\u9190"+
-    "\u9392\u9594\u9796\u9998\u9B9A\u9D9C\u9F9E\uA1A0\uA3A2\uA5A4\uA7A6\uA9A8\u24AA"+
-    "\u2424\uACAB\uAEAD\uB0AF\uB2B1\uABAB\uABAB\uB4B3\uB6B5\uABB7\uB8AB\u2424\u2424"+
-    "\uBAB9\uBCBB\uBEBD\u2424\uABAB\uABAB\uABAB\uABAB\u2424\u2424\u2424\u2424\u2424"+
-    "\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424"+
-    "\u2424\u2424\u2424\u2424\uABBF\u9DAB\uABAB\uABAB\uABAB\uC0B3\uC2C1\u685B\u5BC3"+
-    "\uC468\uC6C5\u6868\u82C7\u2424\uC9C8\uCBCA\uCDCC\uCFCE\uA8A8\uD0A8\uA8A8\uCFD1"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\uD268\u2424"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\uD368\u2424\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\uD5D4\u24D6\u2424\u2424\u2424"+
-    "\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424"+
-    "\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u2424\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868\u6868"+
-    "\u6868\u6868\u6868\u6868\uD768\u2424\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8"+
-    "\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8"+
-    "\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD8D8\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9"+
-    "\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\uD9D9\u6868\u6868\u6868\u6868\uDA68"+
-    "\u2424\u2424\u2424\uDCDB\u30DD\uDE30\u30DF\u3030\u3030\u3030\u3030\uE030\u30E1"+
-    "\u30E2\uE4E3\uE524\uE7E6\u3030\uE830\uEAE9\uECEB\uEEED\uF0EF";
-
-  // The Y table has 3856 entries for a total of 7712 bytes.
-
-  private static final short Y[] = new short[3856];
-  private static final String Y_DATA =
-    "\000\000\000\000\002\004\006\000\000\000\000\000\000\000\010\004\012\014\016"+
-    "\020\022\024\026\030\032\032\032\032\032\034\036\040\042\044\044\044\044\044"+
-    "\044\044\044\044\044\044\044\046\050\052\054\056\056\056\056\056\056\056\056"+
-    "\056\056\056\056\060\062\064\000\000\066\000\000\000\000\000\000\000\000\000"+
-    "\000\000\000\000\070\072\072\074\076\100\102\104\106\110\112\114\116\120\122"+
-    "\124\126\126\126\126\126\126\126\126\126\126\126\130\126\126\126\132\134\134"+
-    "\134\134\134\134\134\134\134\134\134\136\134\134\134\140\142\142\142\142\142"+
-    "\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142"+
-    "\144\142\142\142\146\150\150\150\150\150\150\150\152\142\142\142\142\142\142"+
-    "\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\142\154\150"+
-    "\150\152\156\142\142\160\162\164\166\170\172\162\174\176\142\200\202\204\142"+
-    "\142\142\206\210\200\142\206\212\214\150\216\142\220\142\222\224\224\226\230"+
-    "\232\226\234\150\150\150\150\150\150\150\236\142\142\142\142\142\142\142\142"+
-    "\142\240\232\142\242\142\142\142\142\244\142\142\142\142\142\142\142\142\142"+
-    "\244\244\244\244\244\244\244\244\244\244\244\244\244\244\200\246\250\252\254"+
-    "\256\200\200\260\262\200\200\264\200\200\266\200\270\272\200\200\200\200\200"+
-    "\274\276\200\200\274\300\200\200\200\302\200\200\200\200\200\200\200\200\200"+
-    "\200\200\200\200\244\304\304\304\304\306\310\304\304\304\312\312\312\312\312"+
-    "\312\312\304\312\312\312\312\312\312\312\304\304\306\312\312\312\312\314\244"+
-    "\244\244\244\244\244\244\244\316\316\316\316\316\316\316\316\316\316\316\316"+
-    "\316\316\316\316\316\316\320\316\316\316\316\322\244\244\244\244\244\244\244"+
-    "\244\316\322\244\244\244\244\244\244\244\244\312\244\244\314\244\324\244\244"+
-    "\312\326\330\332\334\336\340\126\126\126\126\126\126\126\126\342\126\126\126"+
-    "\126\344\346\350\134\134\134\134\134\134\134\134\352\134\134\134\134\354\356"+
-    "\360\362\364\366\244\142\142\142\142\142\142\142\142\142\142\142\370\372\244"+
-    "\244\244\244\244\244\374\374\374\374\374\374\374\374\126\126\126\126\126\126"+
-    "\126\126\126\126\126\126\126\126\126\126\134\134\134\134\134\134\134\134\134"+
-    "\134\134\134\134\134\134\134\376\376\376\376\376\376\376\376\142\u0100\316"+
-    "\322\u0102\244\142\142\142\142\142\142\142\142\142\142\u0104\150\u0106\u0108"+
-    "\u0106\u0108\u0106\244\142\142\142\142\142\142\142\142\142\142\142\142\142"+
-    "\142\142\142\142\142\142\244\142\244\244\244\244\244\244\244\244\244\244\244"+
-    "\244\244\244\244\244\244\244\244\244\244\244\244\244\244\244\244\u010A\u010C"+
-    "\u010C\u010C\u010C\u010C\u010C\u010C\u010C\u010C\u010C\u010C\u010C\u010C\u010C"+
-    "\u010C\u010C\u010C\u010C\u010E\u0110\u0112\u0112\u0112\u0114\u0116\u0116\u0116"+
-    "\u0116\u0116\u0116\u0116\u0116\u0116\u0116\u0116\u0116\u0116\u0116\u0116\u0116"+
-    "\u0116\u0116\u0118\u011A\u011C\244\244\u011E\316\316\316\316\316\316\316\316"+
-    "\u011E\316\316\316\316\316\316\316\316\316\316\316\u011E\316\u0120\u0120\u0122"+
-    "\322\244\244\244\244\244\u0124\u0124\u0124\u0124\u0124\u0124\u0124\u0124\u0124"+
-    "\u0124\u0124\u0124\u0124\u0126\244\244\u0124\u0128\u012A\244\244\244\244\244"+
-    "\244\244\244\244\244\244\u012C\244\244\244\244\244\244\u012E\244\u012E\u0130"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0134"+
-    "\244\244\u0136\u0132\u0132\u0132\u0132\u0138\316\316\316\316\316\244\244\244"+
-    "\244\244\u013A\u013A\u013A\u013A\u013A\u013C\u013E\244\u0140\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0142\316\316\316\u0144\u0146\316\316\u0148\u014A"+
-    "\u014C\316\316\244\032\032\032\032\032\u0132\u014E\u0150\u0152\u0152\u0152"+
-    "\u0152\u0152\u0152\u0152\u0154\u0138\u0132\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0134\244\316\316\316\316\316\316\316"+
-    "\316\316\316\316\316\316\322\244\244\244\244\244\244\244\244\244\244\u0132"+
-    "\u0132\u0132\316\316\316\316\316\322\244\244\244\244\244\244\244\u011E\u0156"+
-    "\u0158\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\244\u015A\u015C\u015E\316\316\316\u0156"+
-    "\u015C\u015E\244\u0160\316\322\244\224\224\224\224\224\316\u0112\u0162\u0162"+
-    "\u0162\u0162\u0162\u0164\244\244\244\244\244\244\244\u011E\u015C\u0158\224"+
-    "\224\224\u0166\u0158\u0166\u0158\224\224\224\224\224\224\224\224\224\224\u0166"+
-    "\224\224\224\u0166\u0166\244\224\224\244\322\u015C\u015E\316\322\u0168\u016A"+
-    "\u0168\u015E\244\244\244\244\u0168\244\244\224\u0158\224\316\244\u0162\u0162"+
-    "\u0162\u0162\u0162\224\072\u016C\u016C\u016E\u0170\244\244\244\322\u0158\224"+
-    "\224\u0166\244\u0158\u0166\u0158\224\224\224\224\224\224\224\224\224\224\u0166"+
-    "\224\224\224\u0166\224\u0158\u0166\224\244\322\u015C\u015E\322\244\u011E\322"+
-    "\u011E\316\244\244\244\244\244\u0158\224\u0166\u0166\244\244\244\u0162\u0162"+
-    "\u0162\u0162\u0162\316\224\u0166\244\244\244\244\244\u011E\u0156\u0158\224"+
-    "\224\224\u0158\u0158\224\u0158\224\224\224\224\224\224\224\224\224\224\u0166"+
-    "\224\224\224\u0166\224\u0158\224\224\244\u015A\u015C\u015E\316\316\u011E\u0156"+
-    "\u0168\u015E\244\u0166\244\244\244\244\244\244\244\u0166\244\244\u0162\u0162"+
-    "\u0162\u0162\u0162\244\244\244\244\244\244\244\244\224\224\224\224\u0166\224"+
-    "\224\224\u0166\224\244\224\224\244\u015A\u015E\u015E\316\244\u0168\u016A\u0168"+
-    "\u015E\244\244\244\244\u0156\244\244\224\u0158\224\244\244\u0162\u0162\u0162"+
-    "\u0162\u0162\u0170\244\244\244\244\244\244\244\244\u0156\u0158\224\224\u0166"+
-    "\244\224\u0166\224\224\244\u0158\u0166\u0166\224\244\u0158\u0166\244\224\u0166"+
-    "\244\224\224\224\224\u0158\224\244\244\u015C\u0156\u016A\244\u015C\u016A\u015C"+
-    "\u015E\244\244\244\244\u0168\244\244\244\244\244\244\244\u0172\u0162\u0162"+
-    "\u0162\u0162\u0174\u0176\244\244\244\244\244\244\u0168\u015C\u0158\224\224"+
-    "\224\u0166\224\u0166\224\224\224\224\224\224\224\224\224\224\224\u0166\224"+
-    "\224\224\224\224\u0158\224\224\244\244\316\u0156\u015C\u016A\316\322\316\316"+
-    "\244\244\244\u011E\322\244\244\244\244\224\244\244\u0162\u0162\u0162\u0162"+
-    "\u0162\244\244\244\244\244\244\244\244\244\u015C\u0158\224\224\224\u0166\224"+
-    "\u0166\224\224\224\224\224\224\224\224\224\224\224\u0166\224\224\224\224\224"+
-    "\u0158\224\224\244\244\u015E\u015C\u015C\u016A\u0156\u016A\u015C\316\244\244"+
-    "\244\u0168\u016A\244\244\244\u0166\224\224\224\224\u0166\224\224\224\224\224"+
-    "\224\224\224\244\244\u015C\u015E\316\244\u015C\u016A\u015C\u015E\244\244\244"+
-    "\244\u0168\244\244\244\244\244\u015C\u0158\224\224\224\224\224\224\224\224"+
-    "\u0166\244\224\224\224\224\224\224\224\224\224\224\224\224\u0158\224\224\224"+
-    "\224\u0158\244\224\224\224\u0166\244\322\244\u0168\u015C\316\322\322\u015C"+
-    "\u015C\u015C\u015C\244\244\244\244\244\244\244\244\244\u015C\u0164\244\244"+
-    "\244\244\244\u0158\224\224\224\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\u0160\224\316\316\316\322\244\u0178\224"+
-    "\224\224\u017A\316\316\316\u017C\u017E\u017E\u017E\u017E\u017E\u0112\244\244"+
-    "\u0158\u0166\u0166\u0158\u0166\u0166\u0158\244\244\244\224\224\u0158\224\224"+
-    "\224\u0158\224\u0158\u0158\244\224\u0158\224\u0160\224\316\316\316\u011E\u015A"+
-    "\244\224\224\u0166\314\316\316\316\244\u017E\u017E\u017E\u017E\u017E\244\224"+
-    "\244\u0180\u0182\u0112\u0112\u0112\u0112\u0112\u0112\u0112\u0184\u0182\u0182"+
-    "\316\u0182\u0182\u0182\u0186\u0186\u0186\u0186\u0186\u0188\u0188\u0188\u0188"+
-    "\u0188\u0100\u0100\u0100\u018A\u018A\u015C\224\224\224\224\u0158\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\224\224\224\224\u0166\244\244\u011E\316"+
-    "\316\316\316\316\316\u0156\316\316\u017C\316\224\224\244\244\316\316\316\316"+
-    "\u011E\316\316\316\316\316\316\316\316\316\316\316\316\316\316\316\316\316"+
-    "\322\u0182\u0182\u0182\u0182\u018C\u0182\u0182\u0170\u018E\244\244\244\244"+
-    "\244\244\244\244\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\u0158\224\224\u0158\u0166\u015E\316\u0156\322\244\316\u015E\244\244"+
-    "\244\u0186\u0186\u0186\u0186\u0186\u0112\u0112\u0112\224\224\224\u015C\316"+
-    "\244\244\244\362\362\362\362\362\362\362\362\362\362\362\362\362\362\362\362"+
-    "\362\362\362\244\244\244\244\244\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\u0166\244\u011A\244\244\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\244\244\u0158\224\u0166\244\244\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\244\244\244\224\224\224\u0166\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\u0166\u0166\224\224\244\224\224\224\u0166\u0166"+
-    "\224\224\244\224\224\224\u0166\u0166\224\224\244\224\224\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\u0166\u0166\224\224\244\224\224\224\u0166"+
-    "\u0166\224\224\244\224\224\224\u0166\224\224\224\u0166\224\224\224\224\224"+
-    "\224\224\224\224\224\224\u0166\224\224\224\224\224\224\224\224\224\224\224"+
-    "\u0166\224\224\224\224\224\224\224\224\224\u0166\244\244\u011A\u0112\u0112"+
-    "\u0112\u0190\u0192\u0192\u0192\u0192\u0194\u0196\u0198\u0198\u0198\u0176\244"+
-    "\224\224\224\224\224\224\224\224\224\224\u0166\244\244\244\244\244\224\224"+
-    "\224\224\224\224\u019A\u019C\224\224\224\u0166\244\244\244\244\u019E\224\224"+
-    "\224\224\224\224\224\224\224\224\224\224\u01A0\u01A2\244\224\224\224\224\224"+
-    "\u019A\u0112\u01A4\u01A6\244\244\244\244\244\244\244\224\224\224\224\224\224"+
-    "\224\224\224\224\u015C\u015E\316\316\316\u015C\u015C\u015C\u015C\u0156\u015E"+
-    "\316\316\316\316\316\u0112\u0112\u0112\u01A8\u0164\244\u0186\u0186\u0186\u0186"+
-    "\u0186\244\244\244\244\244\244\244\244\244\244\244\020\020\020\u01AA\020\u01AC"+
-    "\u01AE\u01B0\u017E\u017E\u017E\u017E\u017E\244\244\244\224\u01B2\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\244\244\244\244\224\224\224\224\u0160\244\244\244\244\244"+
-    "\244\244\244\244\244\244\142\142\142\142\142\142\142\142\142\142\142\u01B4"+
-    "\u01B4\u01B6\244\244\142\142\142\142\142\142\142\142\142\142\142\142\142\244"+
-    "\244\244\u01B8\u01B8\u01B8\u01B8\u01BA\u01BA\u01BA\u01BA\u01B8\u01B8\u01B8"+
-    "\244\u01BA\u01BA\u01BA\244\u01B8\u01B8\u01B8\u01B8\u01BA\u01BA\u01BA\u01BA"+
-    "\u01B8\u01B8\u01B8\u01B8\u01BA\u01BA\u01BA\u01BA\u01B8\u01B8\u01B8\244\u01BA"+
-    "\u01BA\u01BA\244\u01BC\u01BC\u01BC\u01BC\u01BE\u01BE\u01BE\u01BE\u01B8\u01B8"+
-    "\u01B8\u01B8\u01BA\u01BA\u01BA\u01BA\u01C0\u01C2\u01C2\u01C4\u01C6\u01C8\u01CA"+
-    "\244\u01B4\u01B4\u01B4\u01B4\u01CC\u01CC\u01CC\u01CC\u01B4\u01B4\u01B4\u01B4"+
-    "\u01CC\u01CC\u01CC\u01CC\u01B4\u01B4\u01B4\u01B4\u01CC\u01CC\u01CC\u01CC\u01B8"+
-    "\u01B4\u01CE\u01B4\u01BA\u01D0\u01D2\u01D4\312\u01B4\u01CE\u01B4\u01D6\u01D6"+
-    "\u01D2\312\u01B8\u01B4\244\u01B4\u01BA\u01D8\u01DA\312\u01B8\u01B4\u01DC\u01B4"+
-    "\u01BA\u01DE\u01E0\312\244\u01B4\u01CE\u01B4\u01E2\u01E4\u01D2\u01E6\u01E8"+
-    "\u01E8\u01E8\u01EA\u01E8\u01EC\u01AE\u01EE\u01F0\u01F0\u01F0\020\u01F2\u01F4"+
-    "\u01F2\u01F4\020\020\020\020\u01F6\u01F8\u01F8\u01FA\u01FC\u01FC\u01FE\020"+
-    "\u0200\u0202\020\u0204\u0206\020\u0208\u020A\020\020\020\244\244\244\244\244"+
-    "\244\244\244\244\244\244\244\244\244\u01AE\u01AE\u01AE\u020C\244\110\110\110"+
-    "\u020E\u0208\u0210\u0212\u0212\u0212\u0212\u0212\u020E\u0208\u020A\244\244"+
-    "\244\244\244\244\244\244\072\072\072\072\072\072\072\072\244\244\244\244\244"+
-    "\244\244\244\244\244\244\244\244\244\244\244\316\316\316\316\316\316\u0144"+
-    "\u0102\u0146\u0102\244\244\244\244\244\244\244\244\244\244\244\244\244\244"+
-    "\074\u0214\074\u0216\074\u0218\362\200\362\u021A\u0216\074\u0216\362\362\074"+
-    "\074\074\u0214\u021C\u0214\u021E\362\u0220\362\u0216\220\224\u0222\u0224\244"+
-    "\244\244\244\244\244\244\244\244\244\244\u0226\122\122\122\122\122\122\u0228"+
-    "\u0228\u0228\u0228\u0228\u0228\u022A\u022A\u022C\u022C\u022C\u022C\u022C\u022C"+
-    "\u022E\u022E\u0230\u0232\244\244\244\244\244\244\u0234\u0234\u0236\074\074"+
-    "\u0234\074\074\u0236\u0238\074\u0236\074\074\074\u0236\074\074\074\074\074"+
-    "\074\074\074\074\074\074\074\074\074\074\u0234\074\u0236\u0236\074\074\074"+
-    "\074\074\074\074\074\074\074\074\074\074\074\074\244\244\244\244\244\244\u023A"+
-    "\u023C\036\u0234\u023C\u023C\u023C\u0234\u023A\u020E\u023A\036\u0234\u023C"+
-    "\u023C\u023A\u023C\036\036\036\u0234\u023A\u023C\u023C\u023C\u023C\u0234\u0234"+
-    "\u023A\u023A\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\036\u0234\u0234"+
-    "\u023C\u023C\u0234\u0234\u0234\u0234\u023A\036\036\u023C\u023C\u023C\u023C"+
-    "\u0234\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C"+
-    "\u023C\u023C\u023C\036\u023A\u023C\036\u0234\u0234\036\u0234\u0234\u0234\u0234"+
-    "\u023C\u0234\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\036\u0234"+
-    "\u0234\u023C\u0234\u0234\u0234\u0234\u023A\u023C\u023C\u0234\u023C\u0234\u0234"+
-    "\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u023C\u0234"+
-    "\u023C\244\244\244\244\244\244\244\074\074\074\074\u023C\u023C\074\074\074"+
-    "\074\074\074\074\074\074\074\u023C\074\074\074\u023E\u0240\074\074\074\074"+
-    "\074\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0242\u0244\074\074"+
-    "\074\074\074\074\074\074\074\074\074\u0246\074\074\u0224\244\244\074\074\074"+
-    "\074\074\074\074\074\074\074\074\074\074\074\074\074\074\074\074\u0224\244"+
-    "\244\244\244\244\244\244\244\244\244\244\244\074\074\074\074\074\u0224\244"+
-    "\244\244\244\244\244\244\244\244\244\u0248\u0248\u0248\u0248\u0248\u0248\u0248"+
-    "\u0248\u0248\u0248\u024A\u024A\u024A\u024A\u024A\u024A\u024A\u024A\u024A\u024A"+
-    "\u024C\u024C\u024C\u024C\u024C\u024C\u024C\u024C\u024C\u024C\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u024E\u024E\u024E"+
-    "\u024E\u024E\u024E\u024E\u024E\u024E\u024E\u024E\u024E\u024E\u0250\u0250\u0250"+
-    "\u0250\u0250\u0250\u0250\u0250\u0250\u0250\u0250\u0250\u0250\u0252\244\244"+
-    "\244\244\244\244\244\244\244\244\074\074\074\074\074\074\074\074\074\074\074"+
-    "\244\244\244\244\244\074\074\074\074\074\074\074\074\074\074\074\u0238\074"+
-    "\074\074\074\u0238\074\074\074\074\074\074\074\074\074\074\074\074\074\074"+
-    "\074\074\074\074\074\074\074\074\074\074\074\074\074\244\244\244\244\074\074"+
-    "\074\074\074\074\074\074\074\074\244\244\u0244\074\074\074\074\074\074\074"+
-    "\074\074\074\u0238\074\244\244\244\244\244\244\244\u0244\074\u0224\074\074"+
-    "\244\074\074\074\074\074\074\074\074\074\074\074\074\074\074\u0244\074\074"+
-    "\074\074\074\074\074\074\074\074\074\074\074\074\074\074\074\u0244\u0244\074"+
-    "\u0224\244\u0224\074\074\074\u0224\u0244\074\074\074\244\244\244\244\244\244"+
-    "\244\u0254\u0254\u0254\u0254\u0254\u0256\u0256\u0256\u0256\u0256\u0258\u0258"+
-    "\u0258\u0258\u0258\u0224\244\074\074\074\074\074\074\074\074\074\074\074\074"+
-    "\u0244\074\074\074\074\074\074\u0224\074\074\074\074\074\074\074\074\074\074"+
-    "\074\074\074\u0244\074\074\244\244\244\244\244\244\244\244\074\074\074\074"+
-    "\074\074\244\244\012\020\u025A\u025C\022\022\022\022\022\074\022\022\022\022"+
-    "\u025E\u0260\u0262\u0264\u0264\u0264\u0264\316\316\316\u0266\304\304\074\u0268"+
-    "\u026A\244\074\224\224\224\224\224\224\224\224\224\224\u0166\244\u011E\u026C"+
-    "\310\314\224\224\224\224\224\224\224\224\224\224\224\224\224\u026E\304\314"+
-    "\244\244\u0158\224\224\224\224\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\u0166\244\u0158\224\224\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\u0166\u0182\u0188\u0188\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0170"+
-    "\244\u0188\u0188\u0188\u0188\u0188\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\244\244\244\244\244\244\244\244\244\244"+
-    "\244\244\244\244\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\244\u018E\u0270\u0270\u0270\u0270\u0270\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0170\244\244\244\244\244\244\244\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\244\244\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0170\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0170\244\u018E\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182"+
-    "\u0182\u0182\u0182\u0182\u0182\u0182\u0182\u0182\244\224\224\224\224\224\224"+
-    "\224\224\224\224\224\244\244\244\244\244\224\224\224\244\244\244\244\244\244"+
-    "\244\244\244\244\244\244\244\224\224\224\224\224\224\u0166\244\074\074\074"+
-    "\074\074\074\074\074\074\244\074\074\074\074\074\074\074\074\u0244\074\074"+
-    "\074\074\074\u0224\074\u0224\u0224\244\244\244\244\244\244\244\244\244\244"+
-    "\244\244\224\224\244\244\244\244\244\244\244\244\244\244\244\244\244\244\u0272"+
-    "\u0272\u0272\u0272\u0272\u0272\u0272\u0272\u0272\u0272\u0272\u0272\u0272\u0272"+
-    "\u0272\u0272\u0274\u0274\u0274\u0274\u0274\u0274\u0274\u0274\u0274\u0274\u0274"+
-    "\u0274\u0274\u0274\u0274\u0274\224\224\224\224\224\224\224\244\244\244\244"+
-    "\244\244\244\244\244\u01B4\u01B4\u01B4\u01CE\244\244\244\244\244\u0276\u01B4"+
-    "\u01B4\244\244\u0278\u027A\u0124\u0124\u0124\u0124\u027C\u0124\u0124\u0124"+
-    "\u0124\u0124\u0124\u0126\u0124\u0124\u0126\u0126\u0124\u0278\u0126\u0124\u0124"+
-    "\u0124\u0124\u0124\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\244\244\244\244\244\244\244\244"+
-    "\244\244\244\244\244\244\244\244\u0130\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u018A\244\244\244\244\244\244\244\244\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\244"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\244\244"+
-    "\244\244\244\244\244\244\244\244\244\244\244\244\244\244\244\244\244\244\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\244\244\316\316\244\244\244\244\244\244\u027E"+
-    "\u0280\u0282\u0284\u0284\u0284\u0284\u0284\u0284\u0284\u01A2\244\u0286\020"+
-    "\u0204\u0288\034\u012C\u028A\020\u025E\u0284\u0284\u028C\020\u028E\u0234\u0290"+
-    "\u0292\u01FE\244\244\u0132\u0134\u0134\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132\u0132"+
-    "\u0134\u0154\u0286\014\016\020\u018A\024\026\030\032\032\032\032\032\034\u0234"+
-    "\u0294\042\044\044\044\044\044\044\044\044\044\044\044\044\u0296\u0298\052"+
-    "\054\056\056\056\056\056\056\056\056\056\056\056\056\u029A\u029C\u0290\u0286"+
-    "\u018A\u0204\224\224\224\224\224\u029E\224\224\224\224\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\224\224\224\224\304\224\224\224\224\224"+
-    "\224\224\224\224\224\224\224\224\224\224\u0166\244\224\224\224\244\224\224"+
-    "\224\244\224\224\224\244\224\u0166\244\072\u02A0\u02A2\u02A4\u0238\u0234\u0236"+
-    "\u0224\244\244\244\244\u0154\u01AE\074\244";
-
-  // The A table has 678 entries for a total of 2712 bytes.
-
-  private static final int A[] = new int[678];
-  private static final String A_DATA =
-    "\u4800\u100F\u4800\u100F\u4800\u100F\u5800\u400F\u5000\u400F\u5800\u400F\u6000"+
-    "\u400F\u5000\u400F\u5000\u400F\u5000\u400F\u6000\u400C\u6800\030\u6800\030"+
-    "\u2800\030\u2800\u601A\u2800\030\u6800\030\u6800\030\uE800\025\uE800\026\u6800"+
-    "\030\u2800\031\u3800\030\u2800\024\u3800\030\u2000\030\u1800\u3609\u1800\u3609"+
-    "\u3800\030\u6800\030\uE800\031\u6800\031\uE800\031\u6800\030\u6800\030\202"+
-    "\u7FE1\202\u7FE1\202\u7FE1\202\u7FE1\uE800\025\u6800\030\uE800\026\u6800\033"+
-    "\u6800\u5017\u6800\033\201\u7FE2\201\u7FE2\201\u7FE2\201\u7FE2\uE800\025\u6800"+
-    "\031\uE800\026\u6800\031\u4800\u100F\u4800\u100F\u5000\u100F\u3800\014\u6800"+
-    "\030\u2800\u601A\u2800\u601A\u6800\034\u6800\034\u6800\033\u6800\034\000\u7002"+
-    "\uE800\035\u6800\031\u6800\024\u6800\034\u6800\033\u2800\034\u2800\031\u1800"+
-    "\u060B\u1800\u060B\u6800\033\u07FD\u7002\u6800\034\u6800\030\u6800\033\u1800"+
-    "\u050B\000\u7002\uE800\036\u6800\u080B\u6800\u080B\u6800\u080B\u6800\030\202"+
-    "\u7001\202\u7001\202\u7001\u6800\031\202\u7001\u07FD\u7002\201\u7002\201\u7002"+
-    "\201\u7002\u6800\031\201\u7002\u061D\u7002\006\u7001\005\u7002\u04E6\u7001"+
-    "\u03A1\u7002\000\u7002\006\u7001\005\u7002\006\u7001\005\u7002\u07FD\u7002"+
-    "\u061E\u7001\006\u7001\000\u7002\u034A\u7001\u033A\u7001\006\u7001\005\u7002"+
-    "\u0336\u7001\u0336\u7001\006\u7001\005\u7002\000\u7002\u013E\u7001\u032A\u7001"+
-    "\u032E\u7001\006\u7001\u033E\u7001\u067D\u7002\u034E\u7001\u0346\u7001\000"+
-    "\u7002\000\u7002\u034E\u7001\u0356\u7001\000\u7002\u035A\u7001\u036A\u7001"+
-    "\006\u7001\005\u7002\u036A\u7001\005\u7002\u0366\u7001\u0366\u7001\006\u7001"+
-    "\005\u7002\u036E\u7001\000\u7002\000\u7005\000\u7002\u0721\u7002\000\u7005"+
-    "\000\u7005\012\uF001\007\uF003\011\uF002\012\uF001\007\uF003\011\uF002\011"+
-    "\uF002\006\u7001\005\u7002\u013D\u7002\u07FD\u7002\012\uF001\u067E\u7001\u0722"+
-    "\u7001\u7800\000\u7800\000\000\u7002\u0349\u7002\u0339\u7002\000\u7002\u0335"+
-    "\u7002\u0335\u7002\000\u7002\u0329\u7002\000\u7002\u032D\u7002\u0335\u7002"+
-    "\000\u7002\000\u7002\u033D\u7002\u0345\u7002\u034D\u7002\000\u7002\u034D\u7002"+
-    "\u0355\u7002\000\u7002\000\u7002\u0359\u7002\u0369\u7002\000\u7002\000\u7002"+
-    "\u0369\u7002\u0365\u7002\u0365\u7002\u036D\u7002\000\u7002\000\u7004\000\u7004"+
-    "\000\u7004\u6800\033\u6800\033\000\u7004\u6800\033\u6800\033\000\u7004\u7800"+
-    "\000\u4000\u3006\u4000\u3006\u4000\u3006\u46B1\u3006\u4000\u3006\u7800\000"+
-    "\u6800\030\u7800\000\232\u7001\u6800\030\226\u7001\226\u7001\226\u7001\u7800"+
-    "\000\u0102\u7001\u7800\000\376\u7001\376\u7001\u07FD\u7002\202\u7001\u7800"+
-    "\000\202\u7001\231\u7002\225\u7002\225\u7002\225\u7002\u07FD\u7002\201\u7002"+
-    "\175\u7002\201\u7002\u0101\u7002\375\u7002\375\u7002\u7800\000\371\u7002\345"+
-    "\u7002\000\u7001\000\u7001\000\u7001\275\u7002\331\u7002\000\u7002\u0159\u7002"+
-    "\u0141\u7002\u013D\u7002\000\u7002\u0142\u7001\u0142\u7001\u0141\u7002\u0141"+
-    "\u7002\000\034\u4000\u3006\u4000\007\u4000\007\000\u7001\006\u7001\005\u7002"+
-    "\u7800\000\u7800\000\006\u7001\u7800\000\302\u7001\302\u7001\302\u7001\302"+
-    "\u7001\u7800\000\u7800\000\000\u7004\000\030\000\030\u7800\000\301\u7002\301"+
-    "\u7002\301\u7002\301\u7002\u07FD\u7002\u7800\000\000\030\u6800\024\u7800\000"+
-    "\u7800\000\u4000\u3006\u0800\030\u4000\u3006\u4000\u3006\u0800\030\u0800\u7005"+
-    "\u0800\u7005\u0800\u7005\u7800\000\u0800\u7005\u0800\030\u0800\030\u7800\000"+
-    "\u3800\030\u7800\000\u7800\000\u1000\030\u7800\000\u1000\u7005\u1000\u7005"+
-    "\u1000\u7005\u1000\u7005\u7800\000\u1000\u7004\u1000\u7005\u1000\u7005\u4000"+
-    "\u3006\u3000\u3409\u3000\u3409\u2800\030\u3000\030\u3000\030\u1000\030\u4000"+
-    "\u3006\u1000\u7005\u1000\030\u1000\u7005\u4000\u3006\u4000\007\u4000\007\u4000"+
-    "\u3006\u4000\u3006\u1000\u7004\u1000\u7004\u4000\u3006\u4000\u3006\u6800\034"+
-    "\u1000\u7005\u1000\034\u1000\034\u7800\000\u1000\030\u1000\030\u7800\000\u4800"+
-    "\u1010\u4000\u3006\000\u3008\u7800\000\000\u7005\u4000\u3006\000\u7005\000"+
-    "\u3008\000\u3008\000\u3008\u4000\u3006\000\u7005\u4000\u3006\000\u3749\000"+
-    "\u3749\000\030\u7800\000\000\u7005\u7800\000\u7800\000\000\u3008\000\u3008"+
-    "\u7800\000\000\u05AB\000\u05AB\000\013\000\u06EB\000\034\u7800\000\u7800\000"+
-    "\000\u3749\000\u074B\000\u080B\000\u080B\u7800\000\u7800\000\u2800\u601A\000"+
-    "\u7004\u4000\u3006\u4000\u3006\000\030\000\u3609\000\u3609\000\u7005\000\034"+
-    "\000\034\000\034\000\030\000\034\000\u3409\000\u3409\000\013\000\013\u6800"+
-    "\025\u6800\026\u4000\u3006\000\034\u7800\000\000\034\000\030\000\u3709\000"+
-    "\u3709\000\u3709\000\u070B\000\u042B\000\u054B\000\u080B\000\u080B\000\u080B"+
-    "\000\u7005\000\030\000\030\000\u7005\u6000\u400C\000\u7005\000\u7005\u6800"+
-    "\025\u6800\026\u7800\000\000\u046B\000\u046B\000\u046B\u7800\000\000\030\u2800"+
-    "\u601A\u6800\024\u6800\030\u6800\030\u4800\u1010\u4800\u1010\u4800\u1010\u4800"+
-    "\u1010\u7800\000\000\u7005\000\u7004\u07FD\u7002\u07FD\u7002\u07FD\u7002\355"+
-    "\u7002\u07E1\u7002\u07E1\u7002\u07E2\u7001\u07E2\u7001\u07FD\u7002\u07E1\u7002"+
-    "\u7800\000\u07E2\u7001\u06D9\u7002\u06D9\u7002\u06A9\u7002\u06A9\u7002\u0671"+
-    "\u7002\u0671\u7002\u0601\u7002\u0601\u7002\u0641\u7002\u0641\u7002\u0609\u7002"+
-    "\u0609\u7002\u07FF\uF003\u07FF\uF003\u07FD\u7002\u7800\000\u06DA\u7001\u06DA"+
-    "\u7001\u07FF\uF003\u6800\033\u07FD\u7002\u6800\033\u06AA\u7001\u06AA\u7001"+
-    "\u0672\u7001\u0672\u7001\u7800\000\u6800\033\u07FD\u7002\u07E5\u7002\u0642"+
-    "\u7001\u0642\u7001\u07E6\u7001\u6800\033\u0602\u7001\u0602\u7001\u060A\u7001"+
-    "\u060A\u7001\u6800\033\u7800\000\u6000\u400C\u6000\u400C\u6000\u400C\u6000"+
-    "\014\u6000\u400C\u4800\u400C\000\u1010\u0800\u1010\u6800\024\u6800\024\u6800"+
-    "\035\u6800\036\u6800\025\u6800\035\u6000\u400D\u5000\u400E\u7800\u1010\u7800"+
-    "\u1010\u7800\u1010\u6000\014\u2800\030\u2800\030\u2800\030\u6800\030\u6800"+
-    "\030\uE800\035\uE800\036\u6800\030\u6800\030\u6800\u5017\u6800\u5017\u6800"+
-    "\030\u6800\031\uE800\025\uE800\026\u7800\000\u1800\u060B\u7800\000\u2800\031"+
-    "\u2800\031\uE800\026\000\u7002\u1800\u040B\u1800\u040B\000\u7001\u6800\034"+
-    "\u6800\034\000\u7001\000\u7002\000\u7001\000\u7001\000\u7002\u07FE\u7001\u6800"+
-    "\034\u07FE\u7001\u07FE\u7001\u2800\034\000\u7002\000\u7005\000\u7002\u6800"+
-    "\034\u7800\000\u7800\000\u6800\u080B\102\u742A\102\u742A\102\u780A\102\u780A"+
-    "\101\u762A\101\u762A\101\u780A\101\u780A\000\u780A\000\u780A\000\u780A\000"+
-    "\u700A\u6800\031\u6800\031\u6800\031\u6800\034\u6800\034\u6800\031\u6800\031"+
-    "\uE800\031\uE800\031\uE800\031\u6800\034\uE800\025\uE800\026\u6800\034\000"+
-    "\034\u6800\034\u7800\000\u6800\034\u6800\034\000\034\u1800\u042B\u1800\u042B"+
-    "\u1800\u05AB\u1800\u05AB\u1800\u072B\u1800\u072B\152\034\152\034\151\034\151"+
-    "\034\u1800\u06CB\u7800\000\u6800\u056B\u6800\u056B\u6800\u042B\u6800\u042B"+
-    "\u6800\u06EB\u6800\u06EB\u6800\034\000\u7004\000\u7005\000\u772A\u6800\024"+
-    "\u6800\025\u6800\026\u6800\026\u6800\034\000\u740A\000\u740A\000\u740A\u6800"+
-    "\024\000\u7004\000\u764A\000\u776A\000\u748A\u7800\000\u4000\u3006\u6800\033"+
-    "\000\u7005\u6800\u5017\000\u042B\000\u042B\000\023\000\023\000\022\000\022"+
-    "\u7800\000\u07FD\u7002\u7800\000\u0800\u7005\u4000\u3006\u0800\u7005\u0800"+
-    "\u7005\u2800\031\u6800\030\u6800\024\u6800\024\u6800\u5017\u6800\u5017\u6800"+
-    "\025\u6800\026\u6800\025\u7800\000\u6800\030\u6800\u5017\u6800\u5017\u6800"+
-    "\030\u3800\030\u6800\026\u2800\030\u2800\031\u2800\024\u6800\031\u7800\000"+
-    "\u6800\030\u2800\u601A\u6800\031\u6800\030\202\u7FE1\u6800\025\u6800\030\u6800"+
-    "\026\201\u7FE2\u6800\025\u6800\031\u6800\026\000\u7004\000\u7005\u6800\031"+
-    "\u6800\033\u6800\034\u2800\u601A\u2800\u601A\u7800\000";
-
-  // In all, the character property tables require 12472 bytes.
-
-    static {
-                { // THIS CODE WAS AUTOMATICALLY CREATED BY GenerateCharacter:
-            int len = X_DATA.length();
-            int j=0;
-            for (int i=0; i<len; ++i) {
-                int c = X_DATA.charAt(i);
-                for (int k=0; k<2; ++k) {
-                    X[j++] = (byte)c;
-                    c >>= 8;
-                }
-            }
-            if (j != 2048) throw new RuntimeException();
-        }
-        { // THIS CODE WAS AUTOMATICALLY CREATED BY GenerateCharacter:
-            if (Y_DATA.length() != 3856) throw new RuntimeException();
-            for (int i=0; i<3856; ++i)
-                Y[i] = (short)Y_DATA.charAt(i);
-        }
-        { // THIS CODE WAS AUTOMATICALLY CREATED BY GenerateCharacter:
-            int len = A_DATA.length();
-            int j=0;
-            int charsInEntry=0;
-            int entry=0;
-            for (int i=0; i<len; ++i) {
-                entry |= A_DATA.charAt(i);
-                if (++charsInEntry == 2) {
-                    A[j++] = entry;
-                    entry = 0;
-                    charsInEntry = 0;
-                }
-                else {
-                    entry <<= 16;
-                }
-            }
-            if (j != 678) throw new RuntimeException();
-        }
-
     }
 }

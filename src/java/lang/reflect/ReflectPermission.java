@@ -1,7 +1,7 @@
 /*
- * @(#)ReflectPermission.java	1.16 02/02/01
+ * @(#)ReflectPermission.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package java.lang.reflect;
  * and discusses the risks of granting code the permission.
  * <P>
  *
- * <table border=1 cellpadding=5>
+ * <table border=1 cellpadding=5 summary="Table shows permission target name, what the permission allows, and associated risks">
  * <tr>
  * <th>Permission Target Name</th>
  * <th>What the Permission Allows</th>

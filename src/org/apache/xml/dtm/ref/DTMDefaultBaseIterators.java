@@ -677,7 +677,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       if (_isRestartable)
       {
-        _startNode = getDocument();
+        _startNode = getDocumentRoot(node);
         _currentNode = NULL;
 
         return resetPosition();
@@ -1036,14 +1036,21 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
           return resetPosition();
         }
           
-        int type = getExpandedTypeID(node) & ExpandedNameTable.MASK_NODETYPE;
+        int type = m_expandedNameTable.getType(getExpandedTypeID(node));
         if(ExpandedNameTable.ATTRIBUTE == type 
            || ExpandedNameTable.NAMESPACE == type )
         {
           _currentNode = node;
         }
         else
-          _currentNode = getFirstChild(getParent(node));
+				{
+					// Be careful to handle the Document node properly
+					_currentNode = getParent(node);
+					if(NULL!=_currentNode)	
+						_currentNode = getFirstChild(_currentNode);
+					else
+						_currentNode = node;
+				}
 
         return resetPosition();
       }
@@ -1115,7 +1122,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
   /**
    * Iterator that returns preceding nodes of a given node.
    * This includes the node set {root+1, start-1}, but excludes
-   * all ancestors.
+   * all ancestors, attributes, and namespace nodes.
    */
   private class PrecedingIterator extends InternalAxisIteratorBase
   {
@@ -1124,7 +1131,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
     private final int _maxAncestors = 8;
 
     /**
-     * The stack of start node + ancestors up to ROOTNODE,
+     * The stack of start node + ancestors up to the root of the tree,
      *  which we must avoid.
      */
     private int[] _stack = new int[_maxAncestors];
@@ -1183,31 +1190,29 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       if (_isRestartable)
       {
-        node = node & m_mask;
+        node = makeNodeIdentity(node);
 
         // iterator is not a clone
         int parent, index;
 
         _startNode = node;
-        _currentNode = ROOTNODE;  // Remember it's the identity, not the full handle.
         _stack[index = 0] = node;
 
-        if (node > ROOTNODE)
-        {
-          while ((parent = _parent(node)) != ROOTNODE)
-          {
-            if (++index == _stack.length)
-            {
-              final int[] stack = new int[index + 4];
-
-              System.arraycopy(_stack, 0, stack, 0, index);
-
-              _stack = stack;
-            }
-
-            _stack[index] = node = parent;
-          }
+		parent=node;
+		while ((parent = _parent(parent)) != NULL)
+		{
+			if (++index == _stack.length)
+			{
+				final int[] stack = new int[index + 4];
+				System.arraycopy(_stack, 0, stack, 0, index);
+				_stack = stack;
+			}
+			_stack[index] = parent;
         }
+        if(index>0)
+	        --index; // Pop actual root node (if not start) back off the stack
+
+        _currentNode=_stack[index]; // Last parent before root node
 
         _oldsp = _sp = index;
 
@@ -1224,19 +1229,23 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
      */
     public int next()
     {
-
-      int node = _currentNode + 1;
-
-      if ((_sp >= 0) && (node < _stack[_sp]))
-      {
-        return returnNode((_currentNode = node) | m_dtmIdent);
-      }
-      else
-      {
-        _currentNode = node;  // skip ancestor
-
-        return --_sp >= 0 ? next() : NULL;
-      }
+    	// Bugzilla 8324: We were forgetting to skip Attrs and NS nodes.
+    	// Also recoded the loop controls for clarity and to flatten out
+    	// the tail-recursion.
+   		for(++_currentNode; 
+   			_sp>=0; 
+   			++_currentNode)
+   		{
+   			if(_currentNode < _stack[_sp])
+   			{
+   				if(_type(_currentNode) != ATTRIBUTE_NODE &&
+   					_type(_currentNode) != NAMESPACE_NODE)
+   					return returnNode(makeNodeHandle(_currentNode));
+   			}
+   			else
+   				--_sp;
+   		}
+   		return NULL;
     }
 
     // redefine DTMAxisIteratorBase's reset
@@ -1482,8 +1491,6 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
         else
           _startNode = getParent(node);
 
-        _currentNode = getDocument();
-        
         node = _startNode;
         while (node != END)
         {
@@ -1491,6 +1498,10 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
           node = getParent(node);
         }
         m_ancestorsPos = m_ancestors.size()-1;
+
+        _currentNode = (m_ancestorsPos>=0)
+                               ? m_ancestors.elementAt(m_ancestorsPos)
+                               : DTM.NULL;
 
         return resetPosition();
       }
@@ -1507,9 +1518,10 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
     public DTMAxisIterator reset()
     {
 
-      _currentNode = getDocument();
-            
       m_ancestorsPos = m_ancestors.size()-1;
+
+      _currentNode = (m_ancestorsPos>=0) ? m_ancestors.elementAt(m_ancestorsPos)
+                                         : DTM.NULL;
 
       return resetPosition();
     }
@@ -1524,11 +1536,10 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       int next = _currentNode;
       
-      int pos = m_ancestorsPos--;
-      if(pos < 0)
-        _currentNode = DTM.NULL;
-      else
-        _currentNode = m_ancestors.elementAt(pos);
+      int pos = --m_ancestorsPos;
+
+      _currentNode = (pos >= 0) ? m_ancestors.elementAt(m_ancestorsPos)
+                                : DTM.NULL;
       
       return returnNode(next);
     }
@@ -1615,7 +1626,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       if (_isRestartable)
       {
-        node = node & m_mask;
+        node = makeNodeIdentity(node);
         _startNode = node;
 
         if (_includeSelf)
@@ -1667,7 +1678,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
         if (ATTRIBUTE_NODE == type || NAMESPACE_NODE == type)
           continue;
 
-        return returnNode(node | m_dtmIdent);  // make handle.
+        return returnNode(makeNodeHandle(node));  // make handle.
       }
     }
   }  // end of DescendantIterator
@@ -1743,7 +1754,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       while ((node = super.next()) != END)
       {
-        node = (node & m_mask);
+        node = makeNodeIdentity(node);
 
         int parent = _parent(node);
         int child = _firstch(parent);

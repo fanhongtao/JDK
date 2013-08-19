@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)MetalworksFrame.java	1.17 02/06/13
+ * @(#)MetalworksFrame.java	1.18 03/01/23
  */
 
 import java.awt.*;
@@ -50,7 +50,7 @@ import javax.swing.plaf.metal.*;
 /**
   * This is the main container frame for the Metalworks demo app
   *
-  * @version 1.17 06/13/02
+  * @version 1.18 01/23/03
   * @author Steve Wilson
   */
 public class MetalworksFrame extends JFrame {

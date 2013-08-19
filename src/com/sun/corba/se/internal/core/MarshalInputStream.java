@@ -1,7 +1,7 @@
 /*
- * @(#)MarshalInputStream.java	1.29 02/02/12
+ * @(#)MarshalInputStream.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.corba.se.internal.core;

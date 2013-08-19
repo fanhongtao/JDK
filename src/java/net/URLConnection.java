@@ -1,7 +1,7 @@
 /*
- * @(#)URLConnection.java	1.89 02/04/19
+ * @(#)URLConnection.java	1.95 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.security.Permission;
 import java.security.AccessController;
+import sun.security.util.SecurityConstants;
 
 /**
  * The abstract class <code>URLConnection</code> is the superclass
@@ -25,7 +26,7 @@ import java.security.AccessController;
  * read from and to write to the resource referenced by the URL. In
  * general, creating a connection to a URL is a multistep process:
  * <p>
- * <center><table border=2>
+ * <center><table border=2 summary="Describes the process of creating a connection to a URL: openConnection() and connect() over time.">
  * <tr><th><code>openConnection()</code></th>
  *     <th><code>connect()</code></th></tr>
  * <tr><td>Manipulate parameters that affect the connection to the remote
@@ -123,7 +124,7 @@ import java.security.AccessController;
  * for it.
  *
  * @author  James Gosling
- * @version 1.89, 04/19/02
+ * @version 1.95, 01/23/03
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -505,11 +506,12 @@ public abstract class URLConnection {
 
     /**
      * Returns the key for the <code>n</code><sup>th</sup> header field.
+     * It returns <code>null</code> if there are fewer than <code>n+1</code> fields. 
      *
-     * @param   n   an index.
+     * @param   n   an index, where n>=0
      * @return  the key for the <code>n</code><sup>th</sup> header field,
-     *          or <code>null</code> if there are fewer than <code>n</code>
-     *          fields.
+     *          or <code>null</code> if there are fewer than <code>n+1</code>
+     *		fields.
      */
     public String getHeaderFieldKey(int n) {
 	return null;
@@ -517,15 +519,16 @@ public abstract class URLConnection {
 
     /**
      * Returns the value for the <code>n</code><sup>th</sup> header field. 
-     * It returns <code>null</code> if there are fewer than 
-     * <code>n</code> fields. 
+     * It returns <code>null</code> if there are fewer than
+     * <code>n+1</code>fields. 
      * <p>
      * This method can be used in conjunction with the 
-     * <code>getHeaderFieldKey</code> method to iterate through all 
+     * {@link #getHeaderFieldKey(int) getHeaderFieldKey} method to iterate through all 
      * the headers in the message. 
      *
-     * @param   n   an index.
-     * @return  the value of the <code>n</code><sup>th</sup> header field.
+     * @param   n   an index, where n>=0
+     * @return  the value of the <code>n</code><sup>th</sup> header field
+     *		or <code>null</code> if there are fewer than <code>n+1</code> fields
      * @see     java.net.URLConnection#getHeaderFieldKey(int)
      */
     public String getHeaderField(int n) {
@@ -564,7 +567,7 @@ public abstract class URLConnection {
      *     <code>UnknownServiceException</code> is thrown.
      * </ol>
      *
-     * @return     the object fetched. The <code>instanceOf</code> operation
+     * @return     the object fetched. The <code>instanceof</code> operator
      *               should be used to determine the specific kind of object
      *               returned.
      * @exception  IOException              if an I/O error occurs while
@@ -591,7 +594,7 @@ public abstract class URLConnection {
      * @return     the object fetched that is the first match of the type
      *               specified in the classes array. null if none of 
      *               the requested types are supported.
-     *               The <code>instanceOf</code> operation should be used to 
+     *               The <code>instanceof</code> operator should be used to 
      *               determine the specific kind of object returned.
      * @exception  IOException              if an I/O error occurs while
      *               getting the content.
@@ -650,7 +653,7 @@ public abstract class URLConnection {
      * computing it.  
      */
     public Permission getPermission() throws IOException {
-	return new java.security.AllPermission();
+	return SecurityConstants.ALL_PERMISSION;
     }
 
     /**
@@ -1226,7 +1229,6 @@ public abstract class URLConnection {
      */
     static public String guessContentTypeFromStream(InputStream is)
 			throws IOException {
-
 	// If we can't read ahead safely, just give up on guessing
 	if (!is.markSupported())
 	    return null;
@@ -1352,7 +1354,6 @@ public abstract class URLConnection {
 	     */
 	    return "audio/x-wav";  
 	}
-
 	return null;
     }
 
@@ -1393,44 +1394,66 @@ public abstract class URLConnection {
 	// the offset to the root directory entry is computed. That offset
 	// can be very large and isn't know until the stream has been read from
 	is.mark(0x100);
+
 	// Get the byte ordering located at 0x1E. 0xFE is Intel,
 	// 0xFF is other 
 	long toSkip = (long)0x1C;
-	long skipped = 0;
-	while (skipped != toSkip) {
-	    skipped += is.skip(toSkip - skipped);
+	long posn;
+
+        if ((posn = skipForward(is, toSkip)) < toSkip) {
+	  is.reset();
+	  return false;
 	}
-	long posn = skipped;
-	int byteOrder = is.read();
-	is.read();
+	
+	int c[] = new int[16];
+	if (readBytes(c, 2, is) < 0) {
+	    is.reset();
+	    return false;
+	}
+
+	int byteOrder = c[0];
+
 	posn+=2;
 	int uSectorShift;
+	if (readBytes(c, 2, is) < 0) {
+	    is.reset();
+	    return false;
+	}
+
 	if(byteOrder == 0xFE) {
-	    uSectorShift = is.read();
-	    uSectorShift += is.read() << 8;
+	    uSectorShift = c[0];
+	    uSectorShift += c[1] << 8;
 	}
 	else {
-	    uSectorShift = is.read() << 8;
-	    uSectorShift += is.read();
+	    uSectorShift = c[0] << 8;
+	    uSectorShift += c[1];
 	}
+
 	posn += 2;
 	toSkip = (long)0x30 - posn;
-	skipped = 0;
-	while (skipped != toSkip) {
-	    skipped += is.skip(toSkip - skipped);
+	long skipped = 0;
+	if ((skipped = skipForward(is, toSkip)) < toSkip) {
+	  is.reset();
+	  return false;
 	}
 	posn += skipped;
+
+	if (readBytes(c, 4, is) < 0) {
+	    is.reset();
+	    return false;
+	}
+
 	int sectDirStart;
 	if(byteOrder == 0xFE) {
-	    sectDirStart = is.read();
-	    sectDirStart += is.read()<<8;
-	    sectDirStart += is.read()<<16;
-	    sectDirStart += is.read()<<24;
+	    sectDirStart = c[0];
+	    sectDirStart += c[1] << 8;
+	    sectDirStart += c[2] << 16;
+	    sectDirStart += c[3] << 24;
 	} else {
-	    sectDirStart = is.read()<<24;
-	    sectDirStart += is.read()<<16;
-	    sectDirStart += is.read()<<8;
-	    sectDirStart += is.read();
+	    sectDirStart =  c[0] << 24;
+	    sectDirStart += c[1] << 16;
+	    sectDirStart += c[2] << 8;
+	    sectDirStart += c[3];
 	}
 	posn += 4;
 	is.reset(); // Reset back to the beginning
@@ -1439,17 +1462,23 @@ public abstract class URLConnection {
 		(long)((int)1<<uSectorShift)*sectDirStart + (long)0x50;
 
 	// Sanity check!
-	if (toSkip < 0)
+	if (toSkip < 0) {
 	    return false;
-
-	// How far can we skip? Is there any performance problem here?
-	// This skip can be fairly long, at least 0x4c650 in at least
-	// one case. Have to assume that the skip will fit in an int.
-	is.mark((int)toSkip+0x30); // Leave room to read whole root dir
-	skipped = 0;
-	while (skipped != toSkip) {
-	    skipped += is.skip(toSkip - skipped);
 	}
+
+	/*
+	 * How far can we skip? Is there any performance problem here?
+	 * This skip can be fairly long, at least 0x4c650 in at least
+	 * one case. Have to assume that the skip will fit in an int.
+         * Leave room to read whole root dir
+	 */
+	is.mark((int)toSkip+0x30);
+
+	if ((skipForward(is, toSkip)) < toSkip) {
+	    is.reset();
+	    return false;
+	}
+
 	/* should be at beginning of ClassID, which is as follows
 	 * (in Intel byte order):
 	 *    00 67 61 56 54 C1 CE 11 85 53 00 AA 00 A1 F9 5B
@@ -1461,9 +1490,12 @@ public abstract class URLConnection {
 	 * Test against this, ignoring second byte (Intel) since 
 	 * this could change depending on part of Fpx file we have.
 	 */
-	int c[] = new int[16];
 
-	for (int i=0; i<16; i++) c[i] = is.read();
+	if (readBytes(c, 16, is) < 0) {
+	    is.reset();
+	    return false;
+	}
+
 	// intel byte order
 	if (byteOrder == 0xFE && 
 	    c[0] == 0x00 && c[2] == 0x61 && c[3] == 0x56 &&
@@ -1474,6 +1506,7 @@ public abstract class URLConnection {
 	    is.reset();
 	    return true;
 	}
+
 	// non-intel byte order
 	else if (c[3] == 0x00 && c[1] == 0x61 && c[0] == 0x56 &&
 	    c[5] == 0x54 && c[4] == 0xC1 && c[7] == 0xCE &&
@@ -1483,9 +1516,58 @@ public abstract class URLConnection {
 	    is.reset();
 	    return true;
 	}
-    is.reset();
-    return false;
+        is.reset();
+        return false;
     }
+
+    /**
+     * Tries to read the specified number of bytes from the stream
+     * Returns -1, If EOF is reached before len bytes are read, returns 0
+     * otherwise 
+     */ 
+    static private int readBytes(int c[], int len, InputStream is) 
+		throws IOException {
+
+	byte buf[] = new byte[len];
+	if (is.read(buf, 0, len) < len) {
+	    return -1;
+	}
+	
+	// fill the passed in int array
+	for (int i = 0; i < len; i++) {
+	     c[i] = buf[i] & 0xff;
+	}       
+	return 0;
+    } 
+
+
+    /**
+     * Skips through the specified number of bytes from the stream
+     * until either EOF is reached, or the specified
+     * number of bytes have been skipped 
+     */
+    static private long skipForward(InputStream is, long toSkip)
+		throws IOException {
+
+	long eachSkip = 0;
+	long skipped = 0;
+
+        while (skipped != toSkip) {
+            eachSkip = is.skip(toSkip - skipped);
+
+            // check if EOF is reached
+            if (eachSkip <= 0) {
+                if (is.read() == -1) {
+                    return skipped ;
+                } else {
+                    skipped++;
+                }
+            }
+            skipped += eachSkip;
+        }
+	return skipped;
+    }
+
 }
 
 

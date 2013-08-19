@@ -1,7 +1,7 @@
 /*
- * @(#)RMIClassLoaderSpi.java	1.10 02/03/06
+ * @(#)RMIClassLoaderSpi.java	1.11 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.net.URL;
  * See the documentation for {@link RMIClassLoader} for a description
  * of how a provider instance is chosen.
  *
- * @version	1.10, 02/03/06
+ * @version	1.11, 03/01/23
  * @author	Peter Jones
  * @author	Laird Dornin
  * @see		RMIClassLoader

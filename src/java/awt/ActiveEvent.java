@@ -1,7 +1,7 @@
 /*
- * @(#)ActiveEvent.java	1.11 02/03/12
+ * @(#)ActiveEvent.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ package java.awt;
  * potential deadlocks and denial-of-service attacks.
  *
  * @author  Timothy Prinzing
- * @version 1.11 03/12/02
+ * @version 1.12 01/23/03
  * @since   1.2
  */
 public interface ActiveEvent {

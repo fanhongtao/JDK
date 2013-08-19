@@ -1,7 +1,7 @@
 /*
- * @(#)Element.java	1.21 01/12/03
+ * @(#)Element.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -11,7 +11,7 @@ package javax.swing.text;
  * is intended to capture the spirit of an SGML element.
  *
  * @author  Timothy Prinzing
- * @version 1.21 12/03/01
+ * @version 1.22 01/23/03
  */
 public interface Element {
 

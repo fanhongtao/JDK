@@ -1,7 +1,7 @@
 /*
- * @(#)DataOutputStream.java	1.34 01/12/03
+ * @(#)DataOutputStream.java	1.38 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.io;
  * then use a data input stream to read the data back in. 
  *
  * @author  unascribed
- * @version 1.34, 12/03/01
+ * @version 1.38, 01/23/03
  * @see     java.io.DataInputStream
  * @since   JDK1.0
  */
@@ -142,10 +142,9 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @see        java.io.FilterOutputStream#out
      */
     public final void writeShort(int v) throws IOException {
-	OutputStream out = this.out;
-	out.write((v >>> 8) & 0xFF);
-	out.write((v >>> 0) & 0xFF);
-	incCount(2);
+        out.write((v >>> 8) & 0xFF);
+        out.write((v >>> 0) & 0xFF);
+        incCount(2);
     }
 
     /**
@@ -158,10 +157,9 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @see        java.io.FilterOutputStream#out
      */
     public final void writeChar(int v) throws IOException {
-	OutputStream out = this.out;
-	out.write((v >>> 8) & 0xFF);
-	out.write((v >>> 0) & 0xFF);
-	incCount(2);
+        out.write((v >>> 8) & 0xFF);
+        out.write((v >>> 0) & 0xFF);
+        incCount(2);
     }
 
     /**
@@ -174,13 +172,14 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @see        java.io.FilterOutputStream#out
      */
     public final void writeInt(int v) throws IOException {
-	OutputStream out = this.out;
-	out.write((v >>> 24) & 0xFF);
-	out.write((v >>> 16) & 0xFF);
-	out.write((v >>>  8) & 0xFF);
-	out.write((v >>>  0) & 0xFF);
-	incCount(4);
+        out.write((v >>> 24) & 0xFF);
+        out.write((v >>> 16) & 0xFF);
+        out.write((v >>>  8) & 0xFF);
+        out.write((v >>>  0) & 0xFF);
+        incCount(4);
     }
+
+    private byte writeBuffer[] = new byte[8];
 
     /**
      * Writes a <code>long</code> to the underlying output stream as eight
@@ -192,15 +191,15 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @see        java.io.FilterOutputStream#out
      */
     public final void writeLong(long v) throws IOException {
-	OutputStream out = this.out;
-	out.write((int)(v >>> 56) & 0xFF);
-	out.write((int)(v >>> 48) & 0xFF);
-	out.write((int)(v >>> 40) & 0xFF);
-	out.write((int)(v >>> 32) & 0xFF);
-	out.write((int)(v >>> 24) & 0xFF);
-	out.write((int)(v >>> 16) & 0xFF);
-	out.write((int)(v >>>  8) & 0xFF);
-	out.write((int)(v >>>  0) & 0xFF);
+        writeBuffer[0] = (byte)(v >>> 56);
+        writeBuffer[1] = (byte)(v >>> 48);
+        writeBuffer[2] = (byte)(v >>> 40);
+        writeBuffer[3] = (byte)(v >>> 32);
+        writeBuffer[4] = (byte)(v >>> 24);
+        writeBuffer[5] = (byte)(v >>> 16);
+        writeBuffer[6] = (byte)(v >>>  8);
+        writeBuffer[7] = (byte)(v >>>  0);
+        out.write(writeBuffer, 0, 8);
 	incCount(8);
     }
 
@@ -250,7 +249,6 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @see        java.io.FilterOutputStream#out
      */
     public final void writeBytes(String s) throws IOException {
-	OutputStream out = this.out;
 	int len = s.length();
 	for (int i = 0 ; i < len ; i++) {
 	    out.write((byte)s.charAt(i));
@@ -271,25 +269,24 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @see        java.io.FilterOutputStream#out
      */
     public final void writeChars(String s) throws IOException {
-	OutputStream out = this.out;
-	int len = s.length();
-	for (int i = 0 ; i < len ; i++) {
-	    int v = s.charAt(i);
-	    out.write((v >>> 8) & 0xFF);
-	    out.write((v >>> 0) & 0xFF);
-	}
-	incCount(len * 2);
+        int len = s.length();
+        for (int i = 0 ; i < len ; i++) {
+            int v = s.charAt(i);
+            out.write((v >>> 8) & 0xFF); 
+            out.write((v >>> 0) & 0xFF); 
+        }
+        incCount(len * 2);
     }
 
     /**
-     * Writes a string to the underlying output stream using UTF-8 
-     * encoding in a machine-independent manner. 
+     * Writes a string to the underlying output stream using Java modified
+     * UTF-8 encoding in a machine-independent manner. 
      * <p>
      * First, two bytes are written to the output stream as if by the 
      * <code>writeShort</code> method giving the number of bytes to 
      * follow. This value is the number of bytes actually written out, 
      * not the length of the string. Following the length, each character 
-     * of the string is output, in sequence, using the UTF-8 encoding 
+     * of the string is output, in sequence, using the modified UTF-8 encoding
      * for the character. If no exception is thrown, the counter 
      * <code>written</code> is incremented by the total number of 
      * bytes written to the output stream. This will be at least two 
@@ -304,14 +301,14 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     /**
-     * Writes a string to the specified DataOutput using UTF-8 encoding in a
-     * machine-independent manner. 
+     * Writes a string to the specified DataOutput using Java modified UTF-8
+     * encoding in a machine-independent manner. 
      * <p>
      * First, two bytes are written to out as if by the <code>writeShort</code>
      * method giving the number of bytes to follow. This value is the number of
      * bytes actually written out, not the length of the string. Following the
      * length, each character of the string is output, in sequence, using the
-     * UTF-8 encoding for the character. If no exception is thrown, the
+     * modified UTF-8 encoding for the character. If no exception is thrown, the
      * counter <code>written</code> is incremented by the total number of 
      * bytes written to the output stream. This will be at least two 
      * plus the length of <code>str</code>, and at most two plus 
@@ -361,7 +358,6 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
 	    }
 	}
         out.write(bytearr);
-
 	return utflen + 2;
     }
 

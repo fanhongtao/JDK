@@ -1,7 +1,7 @@
 /*
- * @(#)FieldView.java	1.21 01/12/03
+ * @(#)FieldView.java	1.23 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * current visibility settings of the JTextField.
  *
  * @author  Timothy Prinzing
- * @version 1.21 12/03/01
+ * @version 1.23 01/23/03
  * @see     View
  */
 public class FieldView extends PlainView {
@@ -195,13 +195,23 @@ public class FieldView extends PlainView {
 	    Document doc = getDocument();
 	    int width;
 	    try {
+                FontMetrics fm = getFontMetrics();
 		doc.getText(0, doc.getLength(), buff);
-		width = Utilities.getTabbedTextWidth(buff, getFontMetrics(), 0, this, 0);
+		width = Utilities.getTabbedTextWidth(buff, fm, 0, this, 0);
+                if (buff.count > 0) {
+                    firstLineOffset = com.sun.java.swing.SwingUtilities2.
+                        getLeftSideBearing(fm.getFont(),
+                                           buff.array[buff.offset]);
+                    firstLineOffset = Math.max(0, -firstLineOffset);
+                }
+                else {
+                    firstLineOffset = 0;
+                }
 	    } catch (BadLocationException bl) {
 		width = 0; 
 	    }
             SegmentCache.releaseSharedSegment(buff);
-	    return width;
+	    return width + firstLineOffset;
 	default:
 	    return super.getPreferredSpan(axis);
 	}

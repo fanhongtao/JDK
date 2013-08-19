@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCaret.java	1.118 02/03/04
+ * @(#)DefaultCaret.java	1.121 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -88,7 +88,7 @@ import java.util.EventListener;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.118 03/04/02
+ * @version 1.121 01/23/03
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -301,7 +301,7 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 		} 
 	    } else if (SwingUtilities.isMiddleMouseButton(e)) {
 		// mouse 2 behavior
-		if (nclicks == 1) {
+		if (nclicks == 1 && component.isEditable() && component.isEnabled()) {
 		    // paste system selection, if it exists
 		    JTextComponent c = (JTextComponent) e.getSource();
 		    if (c != null) {
@@ -467,7 +467,7 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 		TextUI mapper = component.getUI();
 		Rectangle r = mapper.modelToView(component, dot, dotBias);
 
-                if (r == null) {
+                if ((r == null) || ((r.width == 0) && (r.height == 0))) {
                     return;
                 }
                 if (width > 0 && height > 0 &&

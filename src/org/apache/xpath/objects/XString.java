@@ -57,16 +57,18 @@
 package org.apache.xpath.objects;
 
 //import org.w3c.dom.*;
+import java.util.Locale;
+
 import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xpath.XPathContext;
+import org.apache.xml.utils.XMLCharacterRecognizer;
 import org.apache.xml.utils.XMLString;
 import org.apache.xml.utils.XMLStringFactory;
-import org.apache.xml.utils.XMLCharacterRecognizer;
-import org.apache.xml.utils.FastStringBuffer;
-
-import java.util.Locale;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.ext.LexicalHandler;
 
 /**
  * <meta name="usage" content="general"/>
@@ -397,10 +399,29 @@ public class XString extends XObject implements XMLString
     // In order to handle the 'all' semantics of 
     // nodeset comparisons, we always call the 
     // nodeset function.
-    if (obj2.getType() == XObject.CLASS_NODESET)
-      return obj2.equals(this);
+    int t = obj2.getType();
+    try
+    {
+	    if (XObject.CLASS_NODESET == t)
+	      return obj2.equals(this);
+	    // If at least one object to be compared is a boolean, then each object 
+	    // to be compared is converted to a boolean as if by applying the 
+	    // boolean function. 
+	    else if(XObject.CLASS_BOOLEAN == t)
+	    	return obj2.bool() == bool();
+	    // Otherwise, if at least one object to be compared is a number, then each object 
+	    // to be compared is converted to a number as if by applying the number function. 
+	    else if(XObject.CLASS_NUMBER == t)
+	    	return obj2.num() == num();
+    }
+    catch(javax.xml.transform.TransformerException te)
+    {
+    	throw new org.apache.xml.utils.WrappedRuntimeException(te);
+    }
 
-    return str().equals(obj2.str());
+    // Otherwise, both objects to be compared are converted to strings as 
+    // if by applying the string function. 
+    return xstr().equals(obj2.xstr());
   }
 
   /**
@@ -409,10 +430,8 @@ public class XString extends XObject implements XMLString
    * <code>null</code> and is a <code>String</code> object that represents
    * the same sequence of characters as this object.
    *
-   * @param   anObject   the object to compare this <code>String</code>
+   * @param obj2   the object to compare this <code>String</code>
    *                     against.
-   *
-   * NEEDSDOC @param obj2
    * @return  <code>true</code> if the <code>String </code>are equal;
    *          <code>false</code> otherwise.
    * @see     java.lang.String#compareTo(java.lang.String)
@@ -453,6 +472,8 @@ public class XString extends XObject implements XMLString
       // nodeset function.
     else if (obj2 instanceof XNodeSet)
       return obj2.equals(this);
+    else if(obj2 instanceof XNumber)
+    	return obj2.equals(this);
     else
       return str().equals(obj2.toString());
   }
@@ -1178,4 +1199,13 @@ public class XString extends XObject implements XMLString
 
     return edit ? xsf.newstr(new String(buf, start, d - start)) : this;
   }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	visitor.visitStringLiteral(owner, this);
+  }
+
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTitlePane.java	1.11 02/02/04
+ * @(#)MetalTitlePane.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Locale;
  * decoration style, and that if the style changes, a new one will
  * be created.
  *
- * @version 1.11 02/04/02
+ * @version 1.12 01/23/03
  * @author Terry Kellerman
  * @since 1.4
  */

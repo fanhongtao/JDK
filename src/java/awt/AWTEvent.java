@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEvent.java	1.48 01/12/03
+ * @(#)AWTEvent.java	1.50 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,7 @@ import java.awt.peer.LightweightPeer;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.48 12/03/01
+ * @version 1.50 01/27/03
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {

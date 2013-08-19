@@ -1,7 +1,7 @@
 /*
- * @(#)ProgressMonitor.java	1.25 01/12/03
+ * @(#)ProgressMonitor.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.awt.event.WindowEvent;
  *
  * @see ProgressMonitorInputStream
  * @author James Gosling
- * @version 1.25 12/03/01
+ * @version 1.27 01/23/03
  */
 public class ProgressMonitor extends Object
 {
@@ -335,8 +335,6 @@ public class ProgressMonitor extends Object
      * Returns the amount of time this object waits before deciding whether
      * or not to popup a progress monitor.
      *
-     * @param millisToDecideToPopup  an int specifying waiting time,
-     *        in milliseconds
      * @see #setMillisToDecideToPopup
      */
     public int getMillisToDecideToPopup() {
@@ -360,7 +358,6 @@ public class ProgressMonitor extends Object
     /**
      * Returns the amount of time it will take for the popup to appear.
      *
-     * @param millisToPopup  an int specifying the time in milliseconds
      * @see #setMillisToPopup
      */
     public int getMillisToPopup() {

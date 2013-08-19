@@ -1,7 +1,7 @@
 /*
- * @(#)JOptionPane.java	1.78 01/12/03
+ * @(#)JOptionPane.java	1.81 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,14 +49,31 @@ import javax.accessibility.*;
  * all uses of this class are one-line calls to one of the static 
  * <code>showXxxDialog</code> methods shown below:
  * <blockquote>
- * <table>
- * <tr align=top><td>showConfirmDialog<td>Asks a confirming question, 
- *                   like yes/no/cancel.
- * <tr align=top><td>showInputDialog<td>Prompt for some input.
- * <tr align=top><td>showMessageDialog<td>Tell the user about something 
- *                                        that has happened.
- * <tr align=top><td>showOptionDialog<td>The Grand Unification of the above three.
+ *
+ *
+ * <table border=1 summary="Common JOptionPane method names and their descriptions">
+ * <tr>
+ *    <th>Method Name</th>
+ *    <th>Description</th>
+ * </tr>
+ * <tr>
+ *    <td>showConfirmDialog</td>
+ *    <td>Asks a confirming question, like yes/no/cancel.</td>
+ * </tr>
+ * <tr>
+ *    <td>showInputDialog</td>
+ *    <td>Prompt for some input.</td>
+ * </tr>
+ * <tr>
+ *   <td>showMessageDialog</td>
+ *   <td>Tell the user about something that has happened.</td>
+ * </tr>
+ * <tr>
+ *   <td>showOptionDialog</td>
+ *   <td>The Grand Unification of the above three.</td>
+ * </tr>
  * </table>
+ *
  * </blockquote>
  * Each of these methods also comes in a <code>showInternalXXX</code>
  * flavor, which uses an internal frame to hold the dialog box (see
@@ -67,19 +84,20 @@ import javax.accessibility.*;
  * All dialogs are modal. Each <code>showXxxDialog</code> method blocks 
  * the current thread until the user's interaction is complete.
  * <p>
- * <table cellspacing=6 cellpadding=4 border=0 align=right>
+ *
+ * <table cellspacing=6 cellpadding=4 border=0 align=right summary="layout">
  * <tr>
- * <td bgcolor=#FFe0d0 rowspan=2>
- * icon
- * <td bgcolor=#FFe0d0>
- * message
+ *  <td bgcolor=#FFe0d0 rowspan=2>icon</td>
+ *  <td bgcolor=#FFe0d0>message</td>
+ * </tr>
  * <tr>
- * <td bgcolor=#FFe0d0>
- * input value
+ *  <td bgcolor=#FFe0d0>input value</td>
+ * </tr>
  * <tr>
- * <td bgcolor=#FFe0d0 colspan=2>
- * option buttons
+ *   <td bgcolor=#FFe0d0 colspan=2>option buttons</td>
+ * </tr>
  * </table>
+ *
  * The basic appearance of one of these dialog boxes is generally
  * similar to the picture at the right, although the various
  * look-and-feels are
@@ -266,7 +284,7 @@ import javax.accessibility.*;
  *      attribute: isContainer true
  *    description: A component which implements standard dialog box controls.
  *
- * @version 1.78 12/03/01
+ * @version 1.81 01/23/03
  * @author James Gosling
  * @author Scott Violet
  */
@@ -1741,7 +1759,7 @@ public class JOptionPane extends JComponent implements Accessible
     /**
      * Sets the icon to display. If non-<code>null</code>, the look and feel 
      * does not provide an icon.
-     * @param icon the <code>Icon</code> to display
+     * @param newIcon the <code>Icon</code> to display
      *
      * @see #getIcon
      * @beaninfo

@@ -1,7 +1,7 @@
 /*
- * @(#)X509CRL.java	1.23 02/02/08
+ * @(#)X509CRL.java	1.25 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -18,6 +18,7 @@ import javax.security.auth.x500.X500Principal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Set;
+import java.util.Arrays;
 
 import sun.security.x509.X509CRLImpl;
 
@@ -84,7 +85,7 @@ import sun.security.x509.X509CRLImpl;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.23
+ * @version 1.25, 01/23/03
  *
  * @see CRL
  * @see CertificateFactory
@@ -115,20 +116,17 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * match, false otherwise.
      */  
     public boolean equals(Object other) {
-        if (this == other)
+        if (this == other) {
             return true;
-        if (!(other instanceof X509CRL))
+	}
+        if (!(other instanceof X509CRL)) {
             return false;
+	}
         try {
-            byte[] thisCRL = this.getEncoded();
-            byte[] otherCRL = ((X509CRL)other).getEncoded();
-
-            if (thisCRL.length != otherCRL.length)
-                return false;
-            for (int i = 0; i < thisCRL.length; i++)
-                 if (thisCRL[i] != otherCRL[i])
-                     return false;
-            return true;
+            byte[] thisCRL = X509CRLImpl.getEncodedInternal(this);
+            byte[] otherCRL = X509CRLImpl.getEncodedInternal((X509CRL)other);
+	    
+	    return Arrays.equals(thisCRL, otherCRL);
         } catch (CRLException e) {
 	    return false;
         }
@@ -141,15 +139,15 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * @return the hashcode value.
      */  
     public int hashCode() {
-        int     retval = 0;
+        int retval = 0;
         try {
-            byte[] crlData = this.getEncoded();
+            byte[] crlData = X509CRLImpl.getEncodedInternal(this);
             for (int i = 1; i < crlData.length; i++) {
                  retval += crlData[i] * i;
             }
-            return(retval);
+            return retval;
         } catch (CRLException e) {
-            return(retval);
+            return retval;
         }
     }
 

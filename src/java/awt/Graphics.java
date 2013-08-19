@@ -1,7 +1,7 @@
 /*
- * @(#)Graphics.java	1.64 01/12/03
+ * @(#)Graphics.java	1.65 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -73,7 +73,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.64, 12/03/01
+ * @version 	1.65, 01/23/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component

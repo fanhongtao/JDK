@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSpinnerUI.java	1.12 02/04/18
+ * @(#)BasicSpinnerUI.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.awt.event.*;
 import java.text.ParseException;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.text.*;
@@ -25,7 +26,7 @@ import java.util.*;
 /**
  * The default Spinner UI delegate.
  *
- * @version 1.12 04/18/02
+ * @version 1.15 01/23/03
  * @author Hans Muller
  * @since 1.4
  */
@@ -160,6 +161,7 @@ public class BasicSpinnerUI extends SpinnerUI
      */
     protected void uninstallListeners() {
 	spinner.removePropertyChangeListener(propertyChangeListener);
+	removeEditorBorderListener(spinner.getEditor());
     }
 
 
@@ -243,10 +245,7 @@ public class BasicSpinnerUI extends SpinnerUI
      * @see #createNextButton
      */
     protected Component createPreviousButton() {
-	JButton b = new BasicArrowButton(SwingConstants.SOUTH);
-	b.addActionListener(previousButtonHandler);
-	b.addMouseListener(previousButtonHandler);
-	return b;
+	return createArrowButton(SwingConstants.SOUTH, previousButtonHandler);
     }
 
 
@@ -264,9 +263,21 @@ public class BasicSpinnerUI extends SpinnerUI
      * @see #createPreviousButton
      */
     protected Component createNextButton() {
-	JButton b = new BasicArrowButton(SwingConstants.NORTH);
-	b.addActionListener(nextButtonHandler);
-	b.addMouseListener(nextButtonHandler);
+	return createArrowButton(SwingConstants.NORTH, nextButtonHandler);
+    }
+
+    private Component createArrowButton(int direction, ArrowButtonHandler handler) {
+	JButton b = new BasicArrowButton(direction);
+	b.addActionListener(handler);
+	b.addMouseListener(handler);
+	Border buttonBorder = UIManager.getBorder("Spinner.arrowButtonBorder");
+	if (buttonBorder instanceof UIResource) {
+	    // Wrap the border to avoid having the UIResource be replaced by
+	    // the ButtonUI. This is the opposite of using BorderUIResource.
+	    b.setBorder(new CompoundBorder(buttonBorder, null));
+	} else {
+	    b.setBorder(buttonBorder);
+	}
 	return b;
     }
 
@@ -295,7 +306,10 @@ public class BasicSpinnerUI extends SpinnerUI
      * @see JSpinner#getEditor
      */
     protected JComponent createEditor() {
-	return spinner.getEditor();
+	JComponent editor = spinner.getEditor();
+	maybeRemoveEditorBorder(editor);
+	installEditorBorderListener(editor);
+	return editor;
     }
 
 
@@ -316,7 +330,61 @@ public class BasicSpinnerUI extends SpinnerUI
      */
     protected void replaceEditor(JComponent oldEditor, JComponent newEditor) {
 	spinner.remove(oldEditor);
+	maybeRemoveEditorBorder(newEditor);
+	installEditorBorderListener(newEditor);
 	spinner.add(newEditor, "Editor");
+    }
+
+    /**
+     * Remove the border around the inner editor component for LaFs
+     * that install an outside border around the spinner,
+     */
+    private void maybeRemoveEditorBorder(JComponent editor) {
+        if (!UIManager.getBoolean("Spinner.editorBorderPainted")) {
+	    if (editor instanceof JPanel &&
+		editor.getBorder() == null &&
+		editor.getComponentCount() > 0) {
+
+		editor = (JComponent)editor.getComponent(0);
+	    }
+
+	    if (editor != null && editor.getBorder() instanceof UIResource) {
+		editor.setBorder(null);
+	    }
+	}
+    }
+
+    /**
+     * Remove the border around the inner editor component for LaFs
+     * that install an outside border around the spinner,
+     */
+    private void installEditorBorderListener(JComponent editor) {
+        if (!UIManager.getBoolean("Spinner.editorBorderPainted")) {
+	    if (editor instanceof JPanel &&
+		editor.getBorder() == null &&
+		editor.getComponentCount() > 0) {
+
+		editor = (JComponent)editor.getComponent(0);
+	    }
+	    if (editor != null &&
+		(editor.getBorder() == null ||
+		 editor.getBorder() instanceof UIResource)) {
+		editor.addPropertyChangeListener(propertyChangeListener);
+	    }
+	}
+    }
+
+    private void removeEditorBorderListener(JComponent editor) {
+        if (!UIManager.getBoolean("Spinner.editorBorderPainted")) {
+	    if (editor instanceof JPanel &&
+		editor.getComponentCount() > 0) {
+
+		editor = (JComponent)editor.getComponent(0);
+	    }
+	    if (editor != null) {
+		editor.removePropertyChangeListener(propertyChangeListener);
+	    }
+	}
     }
 
 
@@ -406,8 +474,8 @@ public class BasicSpinnerUI extends SpinnerUI
      * so it doesn't have any state that persists beyond the limits
      * of a single button pressed/released gesture.
      */
-    private static class ArrowButtonHandler extends AbstractAction implements MouseListener 
-    {
+    private static class ArrowButtonHandler extends AbstractAction
+					    implements MouseListener, UIResource {
 	final javax.swing.Timer autoRepeatTimer;
 	final boolean isNext;
 	JSpinner spinner = null;
@@ -675,32 +743,46 @@ public class BasicSpinnerUI extends SpinnerUI
 	}
 
 	public void layoutContainer(Container parent) {
+	    int width  = parent.getWidth();
+	    int height = parent.getHeight();
+
 	    Insets insets = parent.getInsets();
-	    int availWidth = parent.getWidth() - (insets.left + insets.right);
-	    int availHeight = parent.getHeight() - (insets.top + insets.bottom);
 	    Dimension nextD = preferredSize(nextButton);
 	    Dimension previousD = preferredSize(previousButton);	    
-	    int nextHeight = availHeight / 2;
-	    int previousHeight = availHeight - nextHeight;
 	    int buttonsWidth = Math.max(nextD.width, previousD.width);
-	    int editorWidth = availWidth - buttonsWidth;
+	    int editorHeight = height - (insets.top + insets.bottom);
 
-	    /* Deal with the spinners componentOrientation property.
+	    // The arrowButtonInsets value is used instead of the JSpinner's
+	    // insets if not null. Defining this to be (0, 0, 0, 0) causes the
+	    // buttons to be aligned with the outer edge of the spinner's
+	    // border, and leaving it as "null" places the buttons completely
+	    // inside the spinner's border.
+	    Insets buttonInsets = UIManager.getInsets("Spinner.arrowButtonInsets");
+	    if (buttonInsets == null) {
+		buttonInsets = insets;
+	    }
+
+	    /* Deal with the spinner's componentOrientation property.
 	     */
-	    int editorX, buttonsX;
+	    int editorX, editorWidth, buttonsX;
 	    if (parent.getComponentOrientation().isLeftToRight()) {
 		editorX = insets.left;
-		buttonsX = editorX + editorWidth;
-	    }
-	    else {
-		buttonsX = insets.left;
+		editorWidth = width - insets.left - buttonsWidth - buttonInsets.right;
+		buttonsX = width - buttonsWidth - buttonInsets.right;
+	    } else {
+		buttonsX = buttonInsets.left;
 		editorX = buttonsX + buttonsWidth;
+		editorWidth = width - buttonInsets.left - buttonsWidth - insets.right;
 	    }
 
-	    int previousY = insets.top + nextHeight;
-	    setBounds(editor, editorX, insets.top, editorWidth, availHeight);
-	    setBounds(nextButton, buttonsX, insets.top, buttonsWidth, nextHeight);
-	    setBounds(previousButton, buttonsX, previousY, buttonsWidth, previousHeight);
+	    int nextY = buttonInsets.top;
+	    int nextHeight = (height / 2) + (height % 2) - nextY;
+	    int previousY = buttonInsets.top + nextHeight;
+	    int previousHeight = height - previousY - buttonInsets.bottom;
+
+	    setBounds(editor,         editorX,  insets.top, editorWidth, editorHeight);
+	    setBounds(nextButton,     buttonsX, nextY,      buttonsWidth, nextHeight);
+	    setBounds(previousButton, buttonsX, previousY,  buttonsWidth, previousHeight);
 	}
     }
 
@@ -716,21 +798,36 @@ public class BasicSpinnerUI extends SpinnerUI
         public void propertyChange(PropertyChangeEvent e)
         {
             String propertyName = e.getPropertyName();
-	    JSpinner spinner = (JSpinner)(e.getSource());
-            SpinnerUI spinnerUI = spinner.getUI();
+	    if (e.getSource() instanceof JSpinner) {
+		JSpinner spinner = (JSpinner)(e.getSource());
+		SpinnerUI spinnerUI = spinner.getUI();
 
-            if (spinnerUI instanceof BasicSpinnerUI) {
-                BasicSpinnerUI ui = (BasicSpinnerUI)spinnerUI;
+		if (spinnerUI instanceof BasicSpinnerUI) {
+		    BasicSpinnerUI ui = (BasicSpinnerUI)spinnerUI;
 
-                if ("editor".equals(propertyName)) {
-                    JComponent oldEditor = (JComponent)e.getOldValue();
-                    JComponent newEditor = (JComponent)e.getNewValue();
-                    ui.replaceEditor(oldEditor, newEditor);
-                    ui.updateEnabledState();
-                }
-                else if ("enabled".equals(propertyName)) {
-                    ui.updateEnabledState();
-                }
+		    if ("editor".equals(propertyName)) {
+			JComponent oldEditor = (JComponent)e.getOldValue();
+			JComponent newEditor = (JComponent)e.getNewValue();
+			ui.replaceEditor(oldEditor, newEditor);
+			ui.updateEnabledState();
+		    }
+		    else if ("enabled".equals(propertyName)) {
+			ui.updateEnabledState();
+		    }
+		}
+	    } else if (e.getSource() instanceof JComponent) {
+		JComponent c = (JComponent)e.getSource();
+		if ((c.getParent() instanceof JPanel) &&
+		    (c.getParent().getParent() instanceof JSpinner) &&
+		    "border".equals(propertyName)) {
+
+		    JSpinner spinner = (JSpinner)c.getParent().getParent();
+		    SpinnerUI spinnerUI = spinner.getUI();
+		    if (spinnerUI instanceof BasicSpinnerUI) {
+			BasicSpinnerUI ui = (BasicSpinnerUI)spinnerUI;
+			ui.maybeRemoveEditorBorder(c);
+		    }
+		}
 	    }
 	}
     }

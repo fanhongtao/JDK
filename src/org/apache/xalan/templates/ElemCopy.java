@@ -148,6 +148,9 @@ public class ElemCopy extends ElemUse
       {
         ResultTreeHandler rthandler = transformer.getResultTreeHandler();
 
+        if (TransformerImpl.S_DEBUG)
+          transformer.getTraceManager().fireTraceEvent(this);
+            
         // TODO: Process the use-attribute-sets stuff
         ClonerToResultTree.cloneToResultTree(sourceNode, nodeType, dtm, 
                                              rthandler, false);
@@ -163,11 +166,8 @@ public class ElemCopy extends ElemUse
           transformer.getResultTreeHandler().endElement(ns, localName,
                                                         dtm.getNodeName(sourceNode));
         }
-        else
-        {
-          if (TransformerImpl.S_DEBUG)
-            transformer.getTraceManager().fireTraceEvent(this);
-        }
+        if (TransformerImpl.S_DEBUG)
+		  transformer.getTraceManager().fireTraceEndEvent(this);         
       }
       else
       {
@@ -176,13 +176,16 @@ public class ElemCopy extends ElemUse
 
         super.execute(transformer);
         transformer.executeChildTemplates(this, true);
+
+        if (TransformerImpl.S_DEBUG)
+          transformer.getTraceManager().fireTraceEndEvent(this);
       }
     }
     catch(org.xml.sax.SAXException se)
     {
       throw new TransformerException(se);
     }
-                finally
+    finally
     {
       xctxt.popCurrentNode();
     }

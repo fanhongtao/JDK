@@ -1,13 +1,14 @@
                                    README
 
                       Java(TM) 2 SDK, Standard Edition
-                                Version 1.4.1
+                               Version 1.4.2
 
      For a more extensive HTML version of this file, see README.html.
 
 Contents
 
    * Introduction
+   * System Requirements & Installation
    * Release Notes
    * Bug Reports and Feedback
    * Java 2 SDK Documentation
@@ -29,15 +30,23 @@ Introduction
      provide a graphical user interface.
 
 
+System Requirements & Installation
+
+     System requirements, installation instructions and troubleshooting
+     tips are located on the Java Software web site at:
+
+        * http://java.sun.com/j2se/1.4.2/install.html
+
+
 Release Notes
 
       See the Release Notes on the Java Software web site for additional 
       information pertaining to this release. 
  
-      http://java.sun.com/j2se/1.4.1/relnotes.html
+      http://java.sun.com/j2se/1.4.2/relnotes.html
 
       The on-line release notes will be updated as needed, so you should 
-      check them occasionally for the latest information. 
+      check it occasionally for the latest information. 
 
 
 Bug Reports and Feedback
@@ -50,7 +59,7 @@ Bug Reports and Feedback
 
       To directly submit a bug or request a feature, fill out this form: 
 
-      http://java.sun.com/cgi-bin/bugreport.cgi 
+      http://java.sun.com/webapps/bugreport
 
       You can also send comments directly to Java Software engineering 
       team email addresses. 
@@ -64,13 +73,13 @@ Java 2 SDK Documentation
      feature descriptions, developer guides, tool reference pages, demos, 
      and links to related information. It is located at
 
-     http://java.sun.com/j2se/1.4.1/docs/
+     http://java.sun.com/j2se/1.4.2/docs/
 
      The Java 2 SDK documentation is also available in a download bundle 
      which you can install locally on your machine. See the 
      Java 2 SDK download page: 
      
-     http://java.sun.com/j2se/1.4.1/download.html
+     http://java.sun.com/j2se/1.4.2/download.html
 
 
 Redistribution
@@ -102,7 +111,7 @@ Redistribution
             sunjce_provider.jar - the SunJCE provider for Java 
               Cryptography APIs
             localedata.jar - contains many of the resources 
-              needed for non-US English locales
+              needed for non US English locales
             ldapsec.jar - contains security features supported 
               by the LDAP service provider
             dnsns.jar - for the InetAddress wrapper of JNDI DNS 
@@ -130,17 +139,13 @@ Redistribution
       src.zip 
             Archive of source files 
 
-      In addition, the Java Web Start product may be excluded from
-      redistributions. Depending on the platform, the Java Web Start 
-      product is contained in a file named as follows.  The actual
-      product version number would replace the <version number> notation.
+      In addition, the Java Web Start product may be excluded from 
+      redistributions.  The Java Web Start product is contained in 
+      a file named javaws-1_2-solaris-sparc-i.zip, 
+      javaws-1_2-solaris-i586-i.zip, javaws-1_2-linux-i586-i.zip, 
+      or javaws-1_2-windows-i586-i.exe, depending on the platform.
 
-      javaws-<version number>-solaris-sparc-i.zip
-      javaws-<version number>-solaris-i586-i.zip
-      javaws-<version number>-linux-i586-i.zip 
-      javaws-<version number>-windows-i586-i.exe
-
-
+      
       Unlimited Strength Java Cryptography Extension
 
       Due to import control restrictions for some countries, the 
@@ -180,7 +185,7 @@ Redistribution
       Mechanism, including the list of platform packages that it may 
       be used to override, see 
 
-            http://java.sun.com/j2se/1.4.1/docs/guide/standards/ 
+            http://java.sun.com/j2se/1.4.2/docs/guide/standards/ 
 
       Classes in the packages listed on that web page may be replaced
       only by classes implementing a more recent version of the API 
@@ -220,6 +225,5 @@ Sun Java Web Pages
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 
 Inc.  This product includes code licensed from RSA Security.
 
-Copyright 2004 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, 
+Copyright 2003 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, 
 California 95054, U.S.A.  All rights reserved.
-

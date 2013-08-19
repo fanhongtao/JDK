@@ -1,13 +1,14 @@
 /*
- * @(#)WindowsToggleButtonUI.java	1.22 01/12/03
+ * @(#)WindowsToggleButtonUI.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
 import javax.swing.plaf.basic.*;
+import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.*;
 
@@ -25,7 +26,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 12/03/01
+ * @version 1.26 01/23/03
  * @author Jeff Dinkins
  */
 public class WindowsToggleButtonUI extends BasicToggleButtonUI
@@ -59,6 +60,13 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
 	    focusColor = UIManager.getColor(pp + "focus");
 	    defaults_initialized = true;
 	}
+
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    b.setBorder(xp.getBorder("button.pushbutton"));
+	    b.setOpaque(false);
+	    b.setRolloverEnabled(true);
+	}
     }
 
     protected void uninstallDefaults(AbstractButton b) {
@@ -77,8 +85,9 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
     // ********************************
 
     protected void paintButtonPressed(Graphics g, AbstractButton b) {
-        if ( b.isContentAreaFilled() && 
-	     !(b.getBorder() instanceof UIResource)) {
+        if (XPStyle.getXP() == null &&
+	    b.isContentAreaFilled() && 
+	    !(b.getBorder() instanceof UIResource)) {
 	    // This is a special case in which the toggle button in the
 	    // Rollover JToolBar will render the button in a pressed state
 	    Color oldColor = g.getColor();
@@ -100,6 +109,14 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
 	    g.setColor(oldColor);
 	}
     }
+
+    public void paint(Graphics g, JComponent c) {
+	if (XPStyle.getXP() != null) {
+	    WindowsButtonUI.paintXPButtonBackground(g, c);
+	}
+	super.paint(g, c);
+    }
+
 
     /**
      * Overridden method to render the text without the mnemonic

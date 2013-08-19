@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsPopupMenuUI.java	1.17 02/04/17
+ * @(#)WindowsPopupMenuUI.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,6 @@ import javax.swing.plaf.basic.*;
 public class WindowsPopupMenuUI extends BasicPopupMenuUI {
 
     static MnemonicListener mnemonicListener = null;
-    static KeyEventPostProcessor altProcessor = null;
 
     public static ComponentUI createUI(JComponent c) {
 	return new WindowsPopupMenuUI();
@@ -44,12 +43,6 @@ public class WindowsPopupMenuUI extends BasicPopupMenuUI {
             mnemonicListener = new MnemonicListener();
             MenuSelectionManager.defaultManager().
                 addChangeListener(mnemonicListener);
-        }
-
-        if (altProcessor == null) {
-            altProcessor = new AltProcessor();
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                addKeyEventPostProcessor(altProcessor);
         }
     }
 
@@ -83,66 +76,6 @@ public class WindowsPopupMenuUI extends BasicPopupMenuUI {
                 if (c instanceof JPopupMenu) c = ((JPopupMenu)c).getInvoker();
                 repaintRoot = SwingUtilities.getRootPane(c);
             }
-        }
-    }
-
-    static class AltProcessor implements KeyEventPostProcessor {
-        static boolean altKeyPressed = false;
-        static boolean menuCanceledOnPress = false;
-
-        void altPressed() {
-            MenuSelectionManager msm =
-                MenuSelectionManager.defaultManager();
-            MenuElement[] path = msm.getSelectedPath();
-            if (path.length > 0 && ! (path[0] instanceof ComboPopup)) {
-                msm.clearSelectedPath();
-                menuCanceledOnPress = true;
-            } else {
-                menuCanceledOnPress = false;
-            }
-        }
-
-        void altReleased(KeyEvent ev) {
-            if (menuCanceledOnPress) {
-                return;
-            }
-
-            MenuSelectionManager msm =
-                MenuSelectionManager.defaultManager();
-            if (msm.getSelectedPath().length == 0) {
-                // if no menu is active, we try activating the menubar
-                JRootPane root = SwingUtilities.getRootPane(ev.getComponent());
-                java.awt.Window w = SwingUtilities.getWindowAncestor(root);
-
-                JMenuBar mbar = root != null ? root.getJMenuBar() : null;
-                JMenu menu = mbar != null ? mbar.getMenu(0) : null;
-
-                if (menu != null) {
-                    MenuElement[] path = new MenuElement[2];
-                    path[0] = mbar;
-                    path[1] = menu;
-                    msm.setSelectedPath(path);
-                }
-            }
-        }
-
-        public boolean postProcessKeyEvent(KeyEvent ev) {
-            if (ev.getKeyCode() == KeyEvent.VK_ALT) {
-                if (ev.getID() == KeyEvent.KEY_PRESSED) {
-                    if (!altKeyPressed) {
-                        altPressed();
-                    }
-                    altKeyPressed = true;
-                } else if (ev.getID() == KeyEvent.KEY_RELEASED) {
-                    if (altKeyPressed) {
-                        altReleased(ev);
-                    }
-                    altKeyPressed = false;
-                }
-            } else {
-                altKeyPressed = false;
-            }
-            return false;
         }
     }
 }

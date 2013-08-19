@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.windows;
@@ -17,7 +17,7 @@ import javax.swing.plaf.*;
  * will force the UIs to update all known Frames. You can invoke
  * <code>invalidate</code> to force the value to be fetched again.
  *
- * @version @(#)DesktopProperty.java	1.2 02/06/11
+ * @version @(#)DesktopProperty.java	1.5 03/01/23
  */
 // NOTE: Don't rely on this class staying in this location. It is likely
 // to move to a different package in the future.
@@ -26,6 +26,12 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
      * Indicates if an updateUI call is pending.
      */
     private static boolean updatePending;
+
+    /**
+     * ReferenceQueue of unreferenced WeakPCLs.
+     */
+    private static ReferenceQueue queue;
+
 
     /**
      * PropertyChangeListener attached to the Toolkit.
@@ -50,6 +56,23 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
     private Toolkit toolkit;
 
 
+    static {
+        queue = new ReferenceQueue();
+    }
+
+    /**
+     * Cleans up any lingering state held by unrefeernced
+     * DesktopProperties.
+     */
+    static void flushUnreferencedProperties() {
+        WeakPCL pcl;
+
+        while ((pcl = (WeakPCL)queue.poll()) != null) {
+            pcl.dispose();
+        }
+    }
+
+
     /**
      * Sets whether or not an updateUI call is pending.
      */
@@ -68,6 +91,12 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
      * Updates the UIs of all the known Frames.
      */
     private static void updateAllUIs() {
+	// Check if the current UI is WindowsLookAndfeel and flush the XP style map.
+	// Note: Change the package test if this class is moved to a different package.
+	Class uiClass = UIManager.getLookAndFeel().getClass();
+ 	if (uiClass.getPackage().equals(DesktopProperty.class.getPackage())) {
+	    XPStyle.invalidateStyle();
+ 	}
         Frame appFrames[] = Frame.getFrames();
 	for (int j=0; j < appFrames.length; j++) {
 	    updateWindowUI(appFrames[j]);			    
@@ -98,6 +127,16 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
         this.key = key;
         this.fallback = fallback;
         this.toolkit = toolkit;
+        // The only sure fire way to clear our references is to create a
+        // Thread and wait for a reference to be added to the queue.
+        // Because it is so rare that you will actually change the look
+        // and feel, this stepped is forgoed and a middle ground of
+        // flushing references from the constructor is instead done.
+        // The implication is that once one DesktopProperty is created
+        // there will most likely be n (number of DesktopProperties created
+        // by the LookAndFeel) WeakPCLs around, but this number will not
+        // grow past n.
+        flushUnreferencedProperties();
     }
 
     /**
@@ -122,7 +161,7 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
             this.toolkit = Toolkit.getDefaultToolkit();
         }
         Object value = toolkit.getDesktopProperty(getKey());
-        pcl = new WeakPCL(this, toolkit);
+        pcl = new WeakPCL(this, toolkit, getKey());
         toolkit.addPropertyChangeListener(getKey(), pcl);
         return value;
     }
@@ -206,10 +245,12 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
     private static class WeakPCL extends WeakReference
                                implements PropertyChangeListener {
         private Toolkit kit;
+        private String key;
 
-        WeakPCL(Object target, Toolkit kit) {
-            super(target);
+        WeakPCL(Object target, Toolkit kit, String key) {
+            super(target, queue);
             this.kit = kit;
+            this.key = key;
         }
 
         public void propertyChange(PropertyChangeEvent pce) {
@@ -218,12 +259,16 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
             if (property == null) {
                 // The property was GC'ed, we're no longer interested in
                 // PropertyChanges, remove the listener.
-                kit.removePropertyChangeListener(pce.getPropertyName(), this);
+                dispose();
             }
             else {
                 property.invalidate();
                 property.updateUI();
             }
+        }
+
+        void dispose() {
+            kit.removePropertyChangeListener(key, this);
         }
     }
 }

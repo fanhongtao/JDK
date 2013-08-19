@@ -1,7 +1,7 @@
 /*
- * @(#)PopupFactory.java	1.15 02/04/11
+ * @(#)PopupFactory.java	1.19 03/01/31
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.15 04/11/02
+ * @version 1.19 01/31/03
  * @since 1.4
  */
 public class PopupFactory {
@@ -271,10 +271,45 @@ public class PopupFactory {
             if (window != null) {
                 popup = getRecycledHeavyWeightPopup(window);
             }
-            if (popup == null) {
+
+            boolean focusPopup = false;
+            if(contents != null && contents.isFocusable()) {
+                if(contents instanceof JPopupMenu) {
+                    JPopupMenu jpm = (JPopupMenu) contents;
+                    Component popComps[] = jpm.getComponents();
+                    for(int i=0;i<popComps.length;i++) {
+                        if(!(popComps[i] instanceof MenuElement) &&
+                           !(popComps[i] instanceof JSeparator)) {
+                            focusPopup = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (popup == null || 
+                ((JWindow) popup.getComponent())
+                 .getFocusableWindowState() != focusPopup) {
+
+                if(popup != null) {
+                    // The recycled popup can't serve us well
+                    // dispose it and create new one
+                    popup._dispose();
+                }
+
                 popup = new HeavyWeightPopup();
             }
+
             popup.reset(owner, contents, ownerX, ownerY);
+
+            if(focusPopup) {
+                JWindow wnd = (JWindow) popup.getComponent();
+                wnd.setFocusableWindowState(true);
+                // Set window name. We need this in BasicPopupMenuUI
+                // to identify focusable popup window.
+                wnd.setName("###focusableSwingPopup###");
+            }
+
             return popup;
         }
 
@@ -373,6 +408,8 @@ public class PopupFactory {
 
                 if(cache.size() < MAX_CACHE_SIZE) {
                     cache.add(popup);
+                } else {
+                    popup._dispose();
                 }
             }
         }
@@ -449,6 +486,25 @@ public class PopupFactory {
             x = ownerX;
             y = ownerY;
             this.owner = owner;
+        }
+
+        boolean overlappedByOwnedWindow() {
+            Component component = getComponent();
+            if(owner != null && component != null) {
+                Window w = SwingUtilities.getWindowAncestor(owner);
+                if(w == null)
+                    return false;
+                Window[] ownedWindows = w.getOwnedWindows();
+                if(ownedWindows != null) {
+                    Rectangle bnd = component.getBounds();
+                    for(int i=0; i<ownedWindows.length;i++) {
+                        if(bnd.intersects(ownedWindows[i].getBounds())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         /**
@@ -538,7 +594,8 @@ public class PopupFactory {
                 popup = new LightWeightPopup();
             }
             popup.reset(owner, contents, ownerX, ownerY);
-            if (!popup.fitsOnScreen()) {
+            if (!popup.fitsOnScreen() || 
+                 popup.overlappedByOwnedWindow()) {
                 popup.hide();
                 return null;
             }
@@ -695,7 +752,8 @@ public class PopupFactory {
                 popup = new MediumWeightPopup();
             }
             popup.reset(owner, contents, ownerX, ownerY);
-            if (!popup.fitsOnScreen()) {
+            if (!popup.fitsOnScreen() ||
+                 popup.overlappedByOwnedWindow()) {
                 popup.hide();
                 return null;
             }

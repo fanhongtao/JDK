@@ -1,7 +1,7 @@
 /*
- * @(#)Paint.java	1.25 01/12/03
+ * @(#)Paint.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.awt.geom.Rectangle2D;
  * @see GradientPaint
  * @see TexturePaint
  * @see Graphics2D#setPaint
- * @version 1.25, 12/03/01
+ * @version 1.26, 01/23/03
  */
 
 public interface Paint extends Transparency {

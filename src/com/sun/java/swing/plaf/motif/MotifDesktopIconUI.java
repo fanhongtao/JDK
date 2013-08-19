@@ -1,7 +1,7 @@
 /*
- * @(#)MotifDesktopIconUI.java	1.20 01/12/03
+ * @(#)MotifDesktopIconUI.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  * Motif rendition of the component.
  *
- * @version 1.20 12/03/01
+ * @version 1.21 01/23/03
  * @author Thomas Ball
  * @author Rich Schiavi
  */

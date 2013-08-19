@@ -57,32 +57,22 @@
 package org.apache.xalan.templates;
 
 //import org.w3c.dom.*;
-import org.xml.sax.*;
-
-import org.apache.xpath.*;
-import org.apache.xpath.objects.XObject;
-
 import java.util.Vector;
 
-import org.apache.xalan.trace.TracerEvent;
-import org.apache.xml.utils.QName;
-import org.apache.xalan.res.XSLTErrorResources;
-import org.apache.xpath.VariableStack;
-import org.apache.xalan.transformer.TransformerImpl;
-import org.apache.xalan.transformer.ResultTreeHandler;
-import org.apache.xalan.transformer.ClonerToResultTree;
-import org.apache.xml.dtm.DTMAxisTraverser;
-import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.Axis;
-
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.SourceLocator;
-
-import org.apache.xml.dtm.DTMManager;
-
-// Experemental
-import org.apache.xml.dtm.ref.ExpandedNameTable;
+import org.apache.xalan.transformer.ResultTreeHandler;
+import org.apache.xalan.transformer.StackGuard;
+import org.apache.xalan.transformer.TransformerImpl;
+import org.apache.xml.dtm.DTM;
+import org.apache.xml.dtm.DTMIterator;
+import org.apache.xml.utils.QName;
+import org.apache.xpath.VariableStack;
+import org.apache.xpath.XPath;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.objects.XObject;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+import org.apache.xml.utils.IntStack;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -204,9 +194,6 @@ public class ElemApplyTemplates extends ElemCallTemplate
 
     try
     {
-      if (TransformerImpl.S_DEBUG)
-        transformer.getTraceManager().fireTraceEvent(this);
-
       // %REVIEW% Do we need this check??
       //      if (null != sourceNode)
       //      {
@@ -223,10 +210,16 @@ public class ElemApplyTemplates extends ElemCallTemplate
           transformer.pushMode(m_mode);
         }
       }
+      if (TransformerImpl.S_DEBUG)
+        transformer.getTraceManager().fireTraceEvent(this);
+
       transformSelectedNodes(transformer);
     }
     finally
     {
+      if (TransformerImpl.S_DEBUG)
+        transformer.getTraceManager().fireTraceEndEvent(this);
+
       if (pushMode)
         transformer.popMode();
 
@@ -253,7 +246,10 @@ public class ElemApplyTemplates extends ElemCallTemplate
     DTMIterator sourceNodes = m_selectExpression.asIterator(xctxt, sourceNode);
     VariableStack vars = xctxt.getVarStack();
     int nParams = getParamElemCount();
-
+    int thisframe = vars.getStackFrame();
+    StackGuard guard = transformer.getStackGuard();
+    boolean check = (guard.getRecursionLimit() > -1) ? true : false;
+      
     try
     {
 
@@ -266,9 +262,11 @@ public class ElemApplyTemplates extends ElemCallTemplate
         sourceNodes = sortNodes(xctxt, keys, sourceNodes);
 
       if (TransformerImpl.S_DEBUG)
+      {
         transformer.getTraceManager().fireSelectedEvent(sourceNode, this,
                 "select", new XPath(m_selectExpression),
                 new org.apache.xpath.objects.XNodeSet(sourceNodes));
+      }
 
       final ResultTreeHandler rth = transformer.getResultTreeHandler();
       ContentHandler chandler = rth.getContentHandler();
@@ -276,22 +274,8 @@ public class ElemApplyTemplates extends ElemCallTemplate
       final TemplateList tl = sroot.getTemplateListComposed();
       final boolean quiet = transformer.getQuietConflictWarnings();
       
-      xctxt.pushCurrentNode(DTM.NULL);
-      int[] currentNodes = xctxt.getCurrentNodeStack();
-      int currentNodePos = xctxt.getCurrentNodeFirstFree() - 1;
-      
-      xctxt.pushCurrentExpressionNode(DTM.NULL);
-      int[] currentExpressionNodes = xctxt.getCurrentExpressionNodeStack();
-      int currentExpressionNodePos = xctxt.getCurrentExpressionNodesFirstFree() - 1;
-
-      xctxt.pushSAXLocatorNull();
-      xctxt.pushContextNodeList(sourceNodes);
-      transformer.pushElemTemplateElement(null);
-      // pushParams(transformer, xctxt);
-
       // Should be able to get this from the iterator but there must be a bug.
       DTM dtm = xctxt.getDTM(sourceNode);
-      int docID = sourceNode & DTMManager.IDENT_DTM_DEFAULT;
       
       int argsFrame = -1;
       if(nParams > 0)
@@ -299,7 +283,6 @@ public class ElemApplyTemplates extends ElemCallTemplate
         // This code will create a section on the stack that is all the 
         // evaluated arguments.  These will be copied into the real params 
         // section of each called template.
-        int thisframe = vars.getStackFrame();
         argsFrame = vars.link(nParams);
         vars.setStackFrame(thisframe);
         
@@ -313,21 +296,30 @@ public class ElemApplyTemplates extends ElemCallTemplate
         vars.setStackFrame(argsFrame);
       }
       
+      xctxt.pushCurrentNode(DTM.NULL);
+      IntStack currentNodes = xctxt.getCurrentNodeStack();
+      
+      xctxt.pushCurrentExpressionNode(DTM.NULL);
+      IntStack currentExpressionNodes = xctxt.getCurrentExpressionNodeStack();     
+
+      xctxt.pushSAXLocatorNull();
+      xctxt.pushContextNodeList(sourceNodes);
+      transformer.pushElemTemplateElement(null);
+      // pushParams(transformer, xctxt);
       
       int child;
       while (DTM.NULL != (child = sourceNodes.nextNode()))
       {
-        currentNodes[currentNodePos] = child;
-        currentExpressionNodes[currentExpressionNodePos] = child;
+        currentNodes.setTop(child);
+        currentExpressionNodes.setTop(child);
 
-        if((child & DTMManager.IDENT_DTM_DEFAULT) != docID)
+        if(xctxt.getDTM(child) != dtm)
         {
           dtm = xctxt.getDTM(child);
-          docID = sourceNode & DTMManager.IDENT_DTM_DEFAULT;
         }
         
         final int exNodeType = dtm.getExpandedTypeID(child);
-        final int nodeType = (exNodeType >> ExpandedNameTable.ROTAMOUNT_TYPE);
+        final int nodeType = dtm.getNodeType(child);
 
         final QName mode = transformer.getMode();
 
@@ -365,11 +357,20 @@ public class ElemApplyTemplates extends ElemCallTemplate
             continue;
           }
         }
-        
+        else
+        {
+        	transformer.setCurrentElement(template);
+        }
+                
         transformer.pushPairCurrentMatched(template, child);
+        if (check)
+	        guard.checkForInfinateLoop();
 
+        int currentFrameBottom;  // See comment with unlink, below
         if(template.m_frameSize > 0)
         {
+          xctxt.pushRTFContext();
+          currentFrameBottom = vars.getStackFrame();  // See comment with unlink, below
           vars.link(template.m_frameSize);
           // You can't do the check for nParams here, otherwise the 
           // xsl:params might not be nulled.
@@ -404,9 +405,8 @@ public class ElemApplyTemplates extends ElemCallTemplate
             
           }
         }
-
-        // if (check)
-        //  guard.push(this, child);
+        else
+        	currentFrameBottom = 0;
 
         // Fire a trace event for the template.
         if (TransformerImpl.S_DEBUG)
@@ -419,12 +419,40 @@ public class ElemApplyTemplates extends ElemCallTemplate
              t != null; t = t.m_nextSibling)
         {
           xctxt.setSAXLocator(t);
-          transformer.setCurrentElement(t);
-          t.execute(transformer);
+          try
+          {
+          	transformer.pushElemTemplateElement(t);
+          	t.execute(transformer);
+          }
+          finally
+          {
+          	transformer.popElemTemplateElement();
+          }
         }
         
+        if (TransformerImpl.S_DEBUG)
+	      transformer.getTraceManager().fireTraceEndEvent(template); 
+	    
         if(template.m_frameSize > 0)
-          vars.unlink();
+        {
+          // See Frank Weiss bug around 03/19/2002 (no Bugzilla report yet).
+          // While unlink will restore to the proper place, the real position 
+          // may have been changed for xsl:with-param, so that variables 
+          // can be accessed.  
+          // of right now.
+          // More:
+          // When we entered this function, the current 
+          // frame buffer (cfb) index in the variable stack may 
+          // have been manually set.  If we just call 
+          // unlink(), however, it will restore the cfb to the 
+          // previous link index from the link stack, rather than 
+          // the manually set cfb.  So, 
+          // the only safe solution is to restore it back 
+          // to the same position it was on entry, since we're 
+          // really not working in a stack context here. (Bug4218)
+          vars.unlink(currentFrameBottom);
+          xctxt.popRTFContext();
+        }
           
         transformer.popCurrentMatched();
         
@@ -440,9 +468,10 @@ public class ElemApplyTemplates extends ElemCallTemplate
         transformer.getTraceManager().fireSelectedEndEvent(sourceNode, this,
                 "select", new XPath(m_selectExpression),
                 new org.apache.xpath.objects.XNodeSet(sourceNodes));
-
+      
+      // Unlink to the original stack frame  
       if(nParams > 0)
-        vars.unlink();
+        vars.unlink(thisframe);
       xctxt.popSAXLocator();
       xctxt.popContextNodeList();
       transformer.popElemTemplateElement();

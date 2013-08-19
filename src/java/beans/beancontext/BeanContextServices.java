@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextServices.java	1.7 01/12/03
+ * @(#)BeanContextServices.java	1.9 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,8 +39,8 @@ public interface BeanContextServices extends BeanContext, BeanContextServicesLis
      * the addition of the service was successful.
      * If the given service has already been added, this method 
      * simply returns <code>false</code>.
-     * @param <code>serviceClass</code> the service to add
-     * @param serviceProvider the <code>BeanContextServiceProvider</code> 
+     * @param serviceClass     the service to add
+     * @param serviceProvider  the <code>BeanContextServiceProvider</code> 
      * associated with the service
      */
     boolean addService(Class serviceClass, BeanContextServiceProvider serviceProvider);

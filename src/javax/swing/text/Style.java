@@ -1,7 +1,7 @@
 /*
- * @(#)Style.java	1.19 01/12/03
+ * @(#)Style.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -26,7 +26,7 @@ import java.util.Hashtable;
  * implementations that are more efficient.
  *
  * @author  Timothy Prinzing
- * @version 1.19 12/03/01
+ * @version 1.20 01/23/03
  */
 public interface Style extends MutableAttributeSet {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)DragSource.java	1.40 02/04/25
+ * @(#)DragSource.java	1.42 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -97,7 +97,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * duration of the operation with respect to the 
  * <code>DragSource</code>. 
  *
- * @version 	1.40, 04/25/02
+ * @version 	1.42, 01/23/03
  * @since 1.2
  */
 
@@ -354,7 +354,7 @@ public class DragSource implements Serializable {
      * @param trigger		the <code>DragGestureEvent</code> that initiated the drag
      * @param dragCursor	the initial <code>Cursor</code> or <code>null</code> for defaults
      * @param dragImage		the <code>Image</code> to drag or <code>null</code>
-     * @param imageOffset	the offset of the <code>Image</code> origin from the hotspot
+     * @param dragOffset	the offset of the <code>Image</code> origin from the hotspot
      *				of the <code>Cursor</code> at the instant of the trigger
      * @param transferable	the subject data of the drag
      * @param dsl		the <code>DragSourceListener</code>
@@ -582,7 +582,7 @@ public class DragSource implements Serializable {
      * If a <code>null</code> listener is specified, no action is taken and no
      * exception is thrown.
      *
-     * @param dsl the <code>DragSourceMotionListener</code> to add
+     * @param dsml the <code>DragSourceMotionListener</code> to add
      *
      * @see      #removeDragSourceMotionListener
      * @see      #getDragSourceMotionListeners

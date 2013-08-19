@@ -1,7 +1,7 @@
 /*
- * @(#)FloatingDecimal.java	1.24 02/02/06
+ * @(#)FloatingDecimal.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -102,8 +102,7 @@ class FloatingDecimal{
 
     private static synchronized FDBigInt
     big5pow( int p ){
-	if ( p < 0 )
-	    throw new RuntimeException( "Assertion botch: negative power of 5");
+        assert p >= 0 : p; // negative power of 5
 	if ( b5p == null ){
 	    b5p = new FDBigInt[ p+1 ];
 	}else if (b5p.length <= p ){
@@ -189,8 +188,7 @@ class FloatingDecimal{
 	if ( binexp > 0 ){
 	    lbits |= fractHOB;
 	} else {
-	    if ( lbits == 0L )
-		throw new RuntimeException("Assertion botch: doubleToBigInt(0.0)");
+            assert lbits != 0L : lbits; // doubleToBigInt(0.0)
 	    binexp +=1;
 	    while ( (lbits & fractHOB ) == 0L){
 		lbits <<= 1;
@@ -300,13 +298,12 @@ class FloatingDecimal{
 	    }
 	}
 	if ( lvalue <= Integer.MAX_VALUE ){
-	    if ( lvalue <= 0L )
-		throw new RuntimeException("Assertion botch: value "+lvalue+" <= 0");
-
+            assert lvalue > 0L : lvalue; // lvalue <= 0
 	    // even easier subcase!
 	    // can do int arithmetic rather than long!
 	    int  ivalue = (int)lvalue;
-	    digits = new char[ ndigits=10 ];
+            ndigits = 10;
+            digits = (char[])(perThreadBuffer.get());
 	    digitno = ndigits-1;
 	    c = ivalue%10;
 	    ivalue /= 10;
@@ -325,7 +322,8 @@ class FloatingDecimal{
 	} else {
 	    // same algorithm as above (same bugs, too )
 	    // but using long arithmetic.
-	    digits = new char[ ndigits=20 ];
+            ndigits = 20;
+	    digits = (char[])(perThreadBuffer.get());
 	    digitno = ndigits-1;
 	    c = (int)(lvalue%10L);
 	    lvalue /= 10L;
@@ -344,12 +342,8 @@ class FloatingDecimal{
 	}
 	char result [];
 	ndigits -= digitno;
-	if ( digitno == 0 )
-	    result = digits;
-	else {
-	    result = new char[ ndigits ];
-	    System.arraycopy( digits, digitno, result, 0, ndigits );
-	}
+	result = new char[ ndigits ];
+	System.arraycopy( digits, digitno, result, 0, ndigits );
 	this.digits = result;
 	this.decExponent = decExponent+1;
 	this.nDigits = ndigits;
@@ -699,10 +693,8 @@ class FloatingDecimal{
 		m *= 10;
 		low  = (b <  m );
 		high = (b+m > tens );
-		if ( q >= 10 ){
-		    // bummer, dude
-		    throw new RuntimeException( "Assertion botch: excessivly large digit "+q);
-		} else if ( (q == 0) && ! high ){
+                assert q < 10 : q; // excessively large digit
+		if ( (q == 0) && ! high ){
 		    // oops. Usually ignore leading zero.
 		    decExp--;
 		} else {
@@ -721,10 +713,7 @@ class FloatingDecimal{
 		    q = (int) ( b / s );
 		    b = 10 * ( b % s );
 		    m *= 10;
-		    if ( q >= 10 ){
-			// bummer, dude
-			throw new RuntimeException( "Assertion botch: excessivly large digit "+q);
-		    }
+                    assert q < 10 : q; // excessively large digit
 		    if ( m > 0L ){
 			low  = (b <  m );
 			high = (b+m > tens );
@@ -757,10 +746,8 @@ class FloatingDecimal{
 		m *= 10L;
 		low  = (b <  m );
 		high = (b+m > tens );
-		if ( q >= 10 ){
-		    // bummer, dude
-		    throw new RuntimeException( "Assertion botch: excessivly large digit "+q);
-		} else if ( (q == 0) && ! high ){
+                assert q < 10 : q; // excessively large digit
+                if ( (q == 0) && ! high ){
 		    // oops. Usually ignore leading zero.
 		    decExp--;
 		} else {
@@ -779,10 +766,7 @@ class FloatingDecimal{
 		    q = (int) ( b / s );
 		    b = 10 * ( b % s );
 		    m *= 10;
-		    if ( q >= 10 ){
-			// bummer, dude
-			throw new RuntimeException( "Assertion botch: excessivly large digit "+q);
-		    }
+                    assert q < 10 : q;  // excessively large digit
 		    if ( m > 0L ){
 			low  = (b <  m );
 			high = (b+m > tens );
@@ -826,10 +810,8 @@ class FloatingDecimal{
 	    Mval = Mval.mult( 10 );
 	    low  = (Bval.cmp( Mval ) < 0);
 	    high = (Bval.add( Mval ).cmp( tenSval ) > 0 );
-	    if ( q >= 10 ){
-		// bummer, dude
-		throw new RuntimeException( "Assertion botch: excessivly large digit "+q);
-	    } else if ( (q == 0) && ! high ){
+            assert q < 10 : q; // excessively large digit
+            if ( (q == 0) && ! high ){
 		// oops. Usually ignore leading zero.
 		decExp--;
 	    } else {
@@ -847,10 +829,7 @@ class FloatingDecimal{
 	    while( ! low && ! high ){
 		q = Bval.quoRemIteration( Sval );
 		Mval = Mval.mult( 10 );
-		if ( q >= 10 ){
-		    // bummer, dude
-		    throw new RuntimeException( "Assertion botch: excessivly large digit "+q);
-		}
+                assert q < 10 : q;  // excessively large digit
 		low  = (Bval.cmp( Mval ) < 0);
 		high = (Bval.add( Mval ).cmp( tenSval ) > 0 );
 		digits[ndigit++] = (char)('0' + q);
@@ -898,77 +877,95 @@ class FloatingDecimal{
 	return new String(result);
     }
 
-    public String
-    toJavaFormatString(){
-	char result[] = new char[ nDigits + 10 ];
-	int  i = 0;
-	if ( isNegative ){ result[0] = '-'; i = 1; }
-	if ( isExceptional ){
-	    System.arraycopy( digits, 0, result, i, nDigits );
+    public String toJavaFormatString() {
+        char result[] = (char[])(perThreadBuffer.get());
+        int i = getChars(result);
+        return new String(result, 0, i);
+    }
+
+    private int getChars(char[] result) {
+        assert nDigits <= 17 : nDigits; // bound on size of nDigits
+	int i = 0;
+	if (isNegative) { result[0] = '-'; i = 1; }
+	if (isExceptional) {
+	    System.arraycopy(digits, 0, result, i, nDigits);
 	    i += nDigits;
 	} else {
-	    if ( decExponent > 0 && decExponent < 8 ){
+	    if (decExponent > 0 && decExponent < 8) {
 		// print digits.digits.
-		int charLength = Math.min( nDigits, decExponent );
-		System.arraycopy( digits, 0, result, i, charLength );
+		int charLength = Math.min(nDigits, decExponent);
+		System.arraycopy(digits, 0, result, i, charLength);
 		i += charLength;
-		if ( charLength < decExponent ){
+		if (charLength < decExponent) {
 		    charLength = decExponent-charLength;
-		    System.arraycopy( zero, 0, result, i, charLength );
+		    System.arraycopy(zero, 0, result, i, charLength);
 		    i += charLength;
 		    result[i++] = '.';
 		    result[i++] = '0';
 		} else {
 		    result[i++] = '.';
-		    if ( charLength < nDigits ){
+		    if (charLength < nDigits) {
 			int t = nDigits - charLength;
-			System.arraycopy( digits, charLength, result, i, t );
+			System.arraycopy(digits, charLength, result, i, t);
 			i += t;
-		    } else{
+		    } else {
 			result[i++] = '0';
 		    }
 		}
-	    } else if ( decExponent <=0 && decExponent > -3 ){
+	    } else if (decExponent <=0 && decExponent > -3) {
 		result[i++] = '0';
 		result[i++] = '.';
-		if ( decExponent != 0 ){
-		    System.arraycopy( zero, 0, result, i, -decExponent );
+		if (decExponent != 0) {
+		    System.arraycopy(zero, 0, result, i, -decExponent);
 		    i -= decExponent;
 		}
-		System.arraycopy( digits, 0, result, i, nDigits );
+		System.arraycopy(digits, 0, result, i, nDigits);
 		i += nDigits;
 	    } else {
 		result[i++] = digits[0];
 		result[i++] = '.';
-		if ( nDigits > 1 ){
-		    System.arraycopy( digits, 1, result, i, nDigits-1 );
+		if (nDigits > 1) {
+		    System.arraycopy(digits, 1, result, i, nDigits-1);
 		    i += nDigits-1;
 		} else {
 		    result[i++] = '0';
 		}
 		result[i++] = 'E';
 		int e;
-		if ( decExponent <= 0 ){
+		if (decExponent <= 0) {
 		    result[i++] = '-';
 		    e = -decExponent+1;
 		} else {
 		    e = decExponent-1;
 		}
 		// decExponent has 1, 2, or 3, digits
-		if ( e <= 9 ) {
-		    result[i++] = (char)( e+'0' );
-		} else if ( e <= 99 ){
-		    result[i++] = (char)( e/10 +'0' );
-		    result[i++] = (char)( e%10 + '0' );
+		if (e <= 9) {
+		    result[i++] = (char)(e+'0');
+		} else if (e <= 99) {
+		    result[i++] = (char)(e/10 +'0');
+		    result[i++] = (char)(e%10 + '0');
 		} else {
 		    result[i++] = (char)(e/100+'0');
 		    e %= 100;
 		    result[i++] = (char)(e/10+'0');
-		    result[i++] = (char)( e%10 + '0' );
+		    result[i++] = (char)(e%10 + '0');
 		}
 	    }
 	}
-	return new String(result, 0, i);
+	return i;
+    }
+
+    // Per-thread buffer for string/stringbuffer conversion
+    private static ThreadLocal perThreadBuffer = new ThreadLocal() {
+            protected synchronized Object initialValue() {
+                return new char[24];
+            }
+        };
+
+    void appendTo(StringBuffer buf) {
+        char result[] = (char[])(perThreadBuffer.get());
+        int i = getChars(result);
+        buf.append(result, 0, i);
     }
 
     public static FloatingDecimal
@@ -1003,12 +1000,9 @@ class FloatingDecimal{
 		if(c == 'N') {
 		    targetChars = notANumber;
 		    potentialNaN = true;
-		}
-		else {
+		} else {
 		    targetChars = infinity;
 		}
-		
-		// assert(targetChars != null)
 		
 		// compare Input string to "NaN" or "Infinity" 
 		int j = 0;
@@ -2135,14 +2129,18 @@ class FDBigInt {
 		nzeros++;
 	    else
 		nzeros = 0;
-	    c >>= 32; // signed shift.
+	    c >>= 32; // signed shift
 	}
-	if ( c != 0L )
-	    throw new RuntimeException("Assertion botch: borrow out of subtract");
-	while ( i < m )
-	    if ( other.data[i++] != 0 )
-		throw new RuntimeException("Assertion botch: negative result of subtract");
+        assert c == 0L : c; // borrow out of subtract
+	assert dataInRangeIsZero(i, m, other); // negative result of subtract
 	return new FDBigInt( r, n-nzeros );
+    }
+
+    private static boolean dataInRangeIsZero(int i, int m, FDBigInt other) {
+        while ( i < m )
+            if (other.data[i++] != 0)
+                return false;
+        return true;
     }
 
     /*
@@ -2245,8 +2243,7 @@ class FDBigInt {
 		 * as -1 -- it would have to be a single-bit carry-out, or
 		 * +1.
 		 */
-		if ( sum !=0 && sum != 1 )
-		    throw new RuntimeException("Assertion botch: "+sum+" carry out of division correction");
+                assert sum == 0 || sum == 1 : sum; // carry out of division correction
 		q -= 1;
 	    }
 	}
@@ -2259,32 +2256,21 @@ class FDBigInt {
 	    data[i] = (int)p;
 	    p >>= 32; // SIGNED shift.
 	}
-	if ( p != 0L )
-	    throw new RuntimeException("Assertion botch: carry out of *10");
-
+        assert p == 0L : p; // Carry out of *10
 	return (int)q;
     }
 
     public long
     longValue(){
-	// if this can be represented as a long,
-	// return the value
-	int i;
-	for ( i = this.nWords-1; i > 1 ; i-- ){
-	    if ( data[i] != 0 ){
-		throw new RuntimeException("Assertion botch: value too big");
-	    }
-	}
-	switch(i){
-	case 1:
-	    if ( data[1] < 0 )
-		throw new RuntimeException("Assertion botch: value too big");
-	    return ((long)(data[1]) << 32) | ((long)data[0]&0xffffffffL);
-	case 0:
-	    return ((long)data[0]&0xffffffffL);
-	default:
-	    throw new RuntimeException("Assertion botch: longValue confused");
-	}
+	// if this can be represented as a long, return the value
+        assert this.nWords > 0 : this.nWords; // longValue confused
+
+        if (this.nWords == 1)
+            return ((long)data[0]&0xffffffffL);
+
+        assert dataInRangeIsZero(2, this.nWords, this); // value too big
+        assert data[1] >= 0;  // value too big
+        return ((long)(data[1]) << 32) | ((long)data[0]&0xffffffffL);
     }
 
     public String

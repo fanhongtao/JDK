@@ -56,13 +56,18 @@
  */
 package org.apache.xpath.functions;
 
+import java.util.Vector;
+
+import org.apache.xalan.res.XSLMessages;
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathVisitor;
 
 /**
  * <meta name="usage" content="advanced"/>
  * Base class for functions that accept one argument.
  */
-public class FunctionOneArg extends Function
+public class FunctionOneArg extends Function implements ExpressionOwner
 {
 
   /** The first argument passed to the function (at index 0).
@@ -94,9 +99,12 @@ public class FunctionOneArg extends Function
   {
 
     if (0 == argNum)
+    {
       m_arg0 = arg;
+      arg.exprSetParent(this);
+    }
     else
-      throw new WrongNumberArgsException("1");
+      reportWrongNumberArgs();
   }
 
   /**
@@ -110,7 +118,17 @@ public class FunctionOneArg extends Function
   public void checkNumberArgs(int argNum) throws WrongNumberArgsException
   {
     if (argNum != 1)
-      throw new WrongNumberArgsException("1");
+      reportWrongNumberArgs();
+  }
+
+  /**
+   * Constructs and throws a WrongNumberArgException with the appropriate
+   * message for this function object.
+   *
+   * @throws WrongNumberArgsException
+   */
+  protected void reportWrongNumberArgs() throws WrongNumberArgsException {
+      throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("one", null));
   }
   
   /**
@@ -139,5 +157,55 @@ public class FunctionOneArg extends Function
     if(null != m_arg0)
       m_arg0.fixupVariables(vars, globalsSize);
   }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callArgVisitors(XPathVisitor visitor)
+  {
+  	if(null != m_arg0)
+  		m_arg0.callVisitors(this, visitor);
+  }
+
+
+  /**
+   * @see ExpressionOwner#getExpression()
+   */
+  public Expression getExpression()
+  {
+    return m_arg0;
+  }
+
+  /**
+   * @see ExpressionOwner#setExpression(Expression)
+   */
+  public void setExpression(Expression exp)
+  {
+  	exp.exprSetParent(this);
+  	m_arg0 = exp;
+  }
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!super.deepEquals(expr))
+  		return false;
+  		
+  	if(null != m_arg0)
+  	{
+  		if(null == ((FunctionOneArg)expr).m_arg0)
+  			return false;
+  			
+  		if(!m_arg0.deepEquals(((FunctionOneArg)expr).m_arg0))
+  			return false;
+  	}
+  	else if(null != ((FunctionOneArg)expr).m_arg0)
+  		return false;
+
+  	return true;
+  }
+
 
 }

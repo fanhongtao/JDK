@@ -1,5 +1,5 @@
 /*
- * @(#)ZipInputStream.java	1.32 03/02/08
+ * @(#)ZipInputStream.java	1.33 03/02/07
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.32, 02/08/03
+ * @version	1.33, 02/07/03
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -125,7 +125,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      */
     public int read(byte[] b, int off, int len) throws IOException {
         ensureOpen();
-	if (off < 0 || len < 0 || off > b.length - len) {
+        if (off < 0 || len < 0 || off > b.length - len) {
 	    throw new IndexOutOfBoundsException();
 	} else if (len == 0) {
 	    return 0;
@@ -351,12 +351,17 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    /* EXT descriptor present */
 	    readFully(tmpbuf, 0, EXTHDR);
 	    long sig = get32(tmpbuf, 0);
-	    if (sig != EXTSIG) {
-		throw new ZipException("invalid EXT descriptor signature");
-	    }
-	    e.crc = get32(tmpbuf, EXTCRC);
-	    e.csize = get32(tmpbuf, EXTSIZ);
-	    e.size = get32(tmpbuf, EXTLEN);
+            if (sig != EXTSIG) { // no EXTSIG present
+                e.crc = sig;
+                e.csize = get32(tmpbuf, EXTSIZ - EXTCRC);
+                e.size = get32(tmpbuf, EXTLEN - EXTCRC);
+                ((PushbackInputStream)in).unread(
+                                           tmpbuf, EXTHDR - EXTCRC - 1, EXTCRC);
+            } else {
+                e.crc = get32(tmpbuf, EXTCRC);
+                e.csize = get32(tmpbuf, EXTSIZ);
+                e.size = get32(tmpbuf, EXTLEN);
+            }  
 	}
 	if (e.size != inf.getTotalOut()) {
 	    throw new ZipException(

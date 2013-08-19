@@ -1,7 +1,7 @@
 /*
- * @(#)GridBagLayout.java	1.46 02/04/09
+ * @(#)GridBagLayout.java	1.49 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -115,10 +115,10 @@ class GridBagLayoutInfo implements java.io.Serializable {
  * <code>ComponentOrientation</code> property while absolute values
  * are not.  Valid values are:</dd>
  * <p>
- * <center><table BORDER=0 COLS=2 WIDTH=800>
+ * <center><table BORDER=0 COLS=2 WIDTH=800 SUMMARY="absolute and relative values as described above">
  * <tr>
- * <td><b>Absolute Values</b></td>
- * <td><b>Relative Values</b></td>
+ * <th><P ALIGN="LEFT">Absolute Values</th>
+ * <th><P ALIGN="LEFT">Relative Values</th>
  * </tr>
  * <tr>
  * <td>
@@ -162,13 +162,13 @@ class GridBagLayoutInfo implements java.io.Serializable {
  * left-to-right container and Figure 2 shows the layout for a horizontal,
  * right-to-left container.
  * <p>
- * <center><table COLS=2 WIDTH=600>
+ * <center><table COLS=2 WIDTH=600 summary="layout">
  * <tr ALIGN=CENTER>
  * <td>
- * <img src="doc-files/GridBagLayout-1.gif" ALIGN=center HSPACE=10 VSPACE=7>
+ * <img src="doc-files/GridBagLayout-1.gif" alt="The preceeding text describes this graphic (Figure 1)." ALIGN=center HSPACE=10 VSPACE=7>
  * </td>
  * <td>
- * <img src="doc-files/GridBagLayout-2.gif" ALIGN=center HSPACE=10 VSPACE=7>
+ * <img src="doc-files/GridBagLayout-2.gif" alt="The preceeding text describes this graphic (Figure 2)." ALIGN=center HSPACE=10 VSPACE=7>
  * </td>
  * <tr ALIGN=CENTER>
  * <td>Figure 1: Horizontal, Left-to-Right</td>
@@ -807,9 +807,9 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is obsolete and supplied for backwards compatability only;
-     * new code should call getLayoutInfo() instead.
-     * @see getLayoutInfo
+     * This method is obsolete and supplied for backwards
+     * compatability only; new code should call {@link
+     * #getLayoutInfo(Container, int) getLayoutInfo} instead.
      */
   protected GridBagLayoutInfo GetLayoutInfo(Container parent, int sizeflag) {
    synchronized (parent.getTreeLock()) {
@@ -1184,9 +1184,10 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is obsolete and supplied for backwards compatability only;
-     * new code should call <code>adjustForGravity</code> instead.
-     * @see adjustForGravity
+     * This method is obsolete and supplied for backwards
+     * compatability only; new code should call {@link
+     * #adjustForGravity(GridBagConstraints, Rectangle)
+     * adjustForGravity} instead.
      */
   protected void AdjustForGravity(GridBagConstraints constraints,
 				  Rectangle r) {
@@ -1303,9 +1304,9 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is obsolete and supplied for backwards compatability only;
-     * new code should call <code>getMinSize</code> instead.
-     * @see getMinSize
+     * This method is obsolete and supplied for backwards
+     * compatability only; new code should call {@link
+     * #getMinSize(Container, GridBagLayoutInfo) getMinSize} instead.
      */
   protected Dimension GetMinSize(Container parent, GridBagLayoutInfo info) {
     Dimension d = new Dimension();
@@ -1337,9 +1338,9 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is obsolete and supplied for backwards compatability only;
-     * new code should call <code>arrangeGrid</code> instead.
-     * @see arrangeGrid
+     * This method is obsolete and supplied for backwards
+     * compatability only; new code should call {@link
+     * #arrangeGrid(Container) arrangeGrid} instead.
      */
   protected void ArrangeGrid(Container parent) {
     Component comp;

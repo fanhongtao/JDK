@@ -1,7 +1,7 @@
 /*
- * @(#)LookAndFeel.java	1.29 01/12/03
+ * @(#)LookAndFeel.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
  * Completely characterizes a look and feel from the point of view
  * of the pluggable look and feel components.  
  * 
- * @version 1.29 12/03/01
+ * @version 1.30 01/23/03
  * @author Tom Ball
  * @author Hans Muller
  */

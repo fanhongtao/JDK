@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextServiceProvider.java	1.7 01/12/03
+ * @(#)BeanContextServiceProvider.java	1.9 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,9 +77,10 @@ public interface BeanContextServiceProvider {
      * parameter to a constructor for the service implementation class, 
      * a value for a particular service's property, or a key into a 
      * map of existing implementations. 
-     * @param bcs the <code>BeanContextServices</code> for this request
-     * @param service the specified service
-     * @return the current service selectors for the specified serviceClass
+     *
+     * @param bcs           the <code>BeanContextServices</code> for this request
+     * @param serviceClass  the specified service
+     * @return   the current service selectors for the specified serviceClass
      */
     Iterator getCurrentServiceSelectors(BeanContextServices bcs, Class serviceClass);
 }

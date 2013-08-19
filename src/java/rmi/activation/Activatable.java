@@ -1,7 +1,7 @@
 /*
- * @(#)Activatable.java	1.31 02/03/18
+ * @(#)Activatable.java	1.32 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.rmi.server.*;
  * can be activated by the system.
  *
  * @author	Ann Wollrath
- * @version	1.31, 02/03/18
+ * @version	1.32, 03/01/23
  * @since	1.2
  */
 public abstract class Activatable extends RemoteServer {

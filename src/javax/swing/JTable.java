@@ -1,7 +1,7 @@
 /*
- * @(#)JTable.java	1.204 03/12/02
+ * @(#)JTable.java	1.208 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -122,7 +122,7 @@ import java.text.DateFormat;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.204 12/02/03
+ * @version 1.208 01/23/03
  * @author Philip Milne
  */
 /* The first versions of the JTable, contained in Swing-0.1 through
@@ -266,6 +266,17 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     private boolean dragEnabled;
     private boolean surrendersFocusOnKeystroke;
     private PropertyChangeListener editorRemover = null;
+    /**
+     * The last value of getValueIsAdjusting from the column selection models
+     * columnSelectionChanged notification. Used to test if a repaint is
+     * needed.
+     */
+    private boolean columnSelectionAdjusting;
+    /**
+     * The last value of getValueIsAdjusting from the row selection models
+     * valueChanged notification. Used to test if a repaint is needed.
+     */
+    private boolean rowSelectionAdjusting;
 
 //
 // Constructors
@@ -529,7 +540,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Sets the <code>tableHeader</code> working with this <code>JTable</code> to <code>newHeader</code>.
      * It is legal to have a <code>null</code> <code>tableHeader</code>.
      *
-     * @param   newHeader                       new tableHeader
+     * @param   tableHeader                       new tableHeader
      * @see     #getTableHeader
      * @beaninfo
      *  bound: true
@@ -2172,7 +2183,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    if (delta != 0) {
 		resizingColumn.setWidth(resizingColumn.getWidth() + delta);
 	    }
-            setWidthsFromPreferredWidths(true);
 	}
 
 	super.doLayout();
@@ -2216,7 +2226,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    else {
                 int delta = getWidth() - getColumnModel().getTotalColumnWidth();
 	        accommodateDelta(resizingColumn, delta);
-                setWidthsFromPreferredWidths(true);
 	    }
 	}
     }
@@ -2297,6 +2306,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
         adjustSizes(totalWidth + delta, r, false);
 
+	setWidthsFromPreferredWidths(true);
+	// setWidthsFromPreferredWidths(false);
 	return;
     }
 
@@ -2683,7 +2694,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Sets the data model for this table to <code>newModel</code> and registers
      * with it for listener notifications from the new data model.
      *
-     * @param   newModel        the new data source for this table
+     * @param   dataModel        the new data source for this table
      * @exception IllegalArgumentException      if <code>newModel</code> is <code>null</code>
      * @see     #getModel
      * @beaninfo
@@ -3068,14 +3079,32 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see TableColumnModelListener
      */
     public void columnSelectionChanged(ListSelectionEvent e) {
+        boolean isAdjusting = e.getValueIsAdjusting();
+        if (columnSelectionAdjusting && !isAdjusting) {
+            // The assumption is that when the model is no longer adjusting
+            // we will have already gotten all the changes, and therefore
+            // don't need to do an additional paint.
+            columnSelectionAdjusting = false;
+            return;
+        }
+        columnSelectionAdjusting = isAdjusting;
 	// The getCellRect() call will fail unless there is at least one row.
 	if (getRowCount() <= 0 || getColumnCount() <= 0) {
 	    return;
 	}
         int firstIndex = limit(e.getFirstIndex(), 0, getColumnCount()-1);
         int lastIndex = limit(e.getLastIndex(), 0, getColumnCount()-1);
-        Rectangle firstColumnRect = getCellRect(0, firstIndex, false);
-        Rectangle lastColumnRect = getCellRect(getRowCount()-1, lastIndex, false);
+        int minRow = 0;
+        int maxRow = getRowCount() - 1;
+        if (getRowSelectionAllowed()) {
+            minRow = selectionModel.getMinSelectionIndex();
+            maxRow = selectionModel.getMaxSelectionIndex();
+            if (minRow == -1 || maxRow == -1) {
+                return;
+            }
+        }
+        Rectangle firstColumnRect = getCellRect(minRow, firstIndex, false);
+        Rectangle lastColumnRect = getCellRect(maxRow, lastIndex, false);
         Rectangle dirtyRegion = firstColumnRect.union(lastColumnRect);
         repaint(dirtyRegion);
     }
@@ -3095,6 +3124,15 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see ListSelectionListener
      */
     public void valueChanged(ListSelectionEvent e) {
+        boolean isAdjusting = e.getValueIsAdjusting();
+        if (rowSelectionAdjusting && !isAdjusting) {
+            // The assumption is that when the model is no longer adjusting
+            // we will have already gotten all the changes, and therefore
+            // don't need to do an additional paint.
+            rowSelectionAdjusting = false;
+            return;
+        }
+        rowSelectionAdjusting = isAdjusting;
 	// The getCellRect() calls will fail unless there is at least one column.
 	if (getRowCount() <= 0 || getColumnCount() <= 0) {
 	    return;
@@ -4679,12 +4717,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * otherwise -1.
          */
         public int getAccessibleRow(int index) {
-            int numCells = getAccessibleColumnCount() * getAccessibleRowCount();
-            if (index >= numCells) {
-                return -1;
-            } else {
-                return numCells / getAccessibleRowCount();
-            }
+	    return getAccessibleRowAtIndex(index);
         }
 
         /**
@@ -4695,15 +4728,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * otherwise -1.
          */
         public int getAccessibleColumn(int index) {
-            int numCells = getAccessibleColumnCount() * getAccessibleRowCount();
-            if (index >= numCells) {
-                return -1;
-            } else {
-                return numCells / getAccessibleRowCount();
-            }
+	    return getAccessibleColumnAtIndex(index);
         }
 
-        /*
+        /**
          * Returns the index at a row and column in the table.
          *
          * @param r zero-based row of the table
@@ -4712,12 +4740,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * otherwise -1.
          */
         public int getAccessibleIndex(int r, int c) {
-            if (r >= getAccessibleRowCount() ||
-                c >= getAccessibleColumnCount()) {
-                return -1;
-            } else {
-                return r * c + c;
-            }
+	    return getAccessibleIndexAt(r, c);
         }
 
         // end of AccessibleExtendedTable implementation ------------
@@ -4865,32 +4888,223 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *      headers
 	 */
         public AccessibleTable getAccessibleColumnHeader() {
-            JTableHeader header = JTable.this.getTableHeader();
-            final AccessibleContext ac = header.getAccessibleContext();
-            if (ac != null) {
-		TableModel dataModel = new AbstractTableModel() {
-		    public int getColumnCount() {
-			return ac.getAccessibleChildrenCount();
-		    }
-		    public int getRowCount() {
-			return 1;
-		    }
-		    public Object getValueAt(int row, int col) {
-			return ac.getAccessibleChild(col);
-		    }
-		};
-		JTable table = new JTable(dataModel);
-
-                AccessibleContext ac2 = table.getAccessibleContext();
-		if (ac2 != null) {
-		    return ac2.getAccessibleTable();
-		} else {
-		    return null;
-		}
-            } else {
-                return null;
-            }
+	    return new AccessibleTableHeader(JTable.this.getTableHeader());
         }
+	
+        /*
+         * Private class representing a table column header
+         */
+	private class AccessibleTableHeader implements AccessibleTable {
+	    private JTableHeader header;
+	    private TableColumnModel headerModel;
+
+	    AccessibleTableHeader(JTableHeader header) {
+		this.header = header;
+		this.headerModel = header.getColumnModel();
+	    }
+
+	    /**
+	     * Returns the caption for the table.
+	     *
+	     * @return the caption for the table
+	     */
+	    public Accessible getAccessibleCaption() { return null; }
+	    
+	    
+	    /**
+	     * Sets the caption for the table.
+	     *
+	     * @param a the caption for the table
+	     */
+	    public void setAccessibleCaption(Accessible a) {}
+	    
+	    /**
+	     * Returns the summary description of the table.
+	     * 
+	     * @return the summary description of the table
+	     */
+	    public Accessible getAccessibleSummary() { return null; }
+	    
+	    /**
+	     * Sets the summary description of the table
+	     *
+	     * @param a the summary description of the table
+	     */
+	    public void setAccessibleSummary(Accessible a) {}
+	    
+	    /**
+	     * Returns the number of rows in the table.
+	     *
+	     * @return the number of rows in the table
+	     */
+	    public int getAccessibleRowCount() { return 1; }
+	    
+	    /**
+	     * Returns the number of columns in the table.
+	     *
+	     * @return the number of columns in the table
+	     */
+	    public int getAccessibleColumnCount() {
+		return headerModel.getColumnCount();
+	    }
+	    
+	    /**
+	     * Returns the Accessible at a specified row and column
+	     * in the table.
+	     *
+	     * @param row zero-based row of the table
+	     * @param column zero-based column of the table
+	     * @return the Accessible at the specified row and column
+	     */
+	    public Accessible getAccessibleAt(int row, int column) {
+
+                TableColumn aColumn = headerModel.getColumn(column);
+                TableCellRenderer renderer = aColumn.getHeaderRenderer();
+                if (renderer == null) {
+                    renderer = header.getDefaultRenderer();
+                }
+                Component component = renderer.getTableCellRendererComponent(
+                                  header.getTable(),
+                                  aColumn.getHeaderValue(), false, false,
+                                  -1, column);
+                if (component instanceof Accessible) {
+                    return ((Accessible) component);
+                } else {
+                    return null;
+                }
+            }
+
+	    /**
+	     * Returns the number of rows occupied by the Accessible at
+	     * a specified row and column in the table.
+	     *
+	     * @return the number of rows occupied by the Accessible at a
+	     * given specified (row, column)
+	     */
+	    public int getAccessibleRowExtentAt(int r, int c) { return 1; }
+	    
+	    /**
+	     * Returns the number of columns occupied by the Accessible at
+	     * a specified row and column in the table.
+	     *
+	     * @return the number of columns occupied by the Accessible at a
+	     * given specified row and column
+	     */
+	    public int getAccessibleColumnExtentAt(int r, int c) { return 1; }
+	    
+	    /**
+	     * Returns the row headers as an AccessibleTable.
+	     *
+	     * @return an AccessibleTable representing the row
+	     * headers
+	     */
+	    public AccessibleTable getAccessibleRowHeader() { return null; }
+	    
+	    /**
+	     * Sets the row headers.
+	     *
+	     * @param table an AccessibleTable representing the
+	     * row headers
+	     */
+	    public void setAccessibleRowHeader(AccessibleTable table) {}
+	    
+	    /**
+	     * Returns the column headers as an AccessibleTable.
+	     *
+	     * @return an AccessibleTable representing the column
+	     * headers
+	     */
+	    public AccessibleTable getAccessibleColumnHeader() { return null; }
+	    
+	    /**
+	     * Sets the column headers.
+	     *
+	     * @param table an AccessibleTable representing the
+	     * column headers
+	     */
+	    public void setAccessibleColumnHeader(AccessibleTable table) {}
+	    
+	    /**
+	     * Returns the description of the specified row in the table.
+	     *
+	     * @param r zero-based row of the table
+	     * @return the description of the row
+	     */
+	    public Accessible getAccessibleRowDescription(int r) { return null; }
+	    
+	    /**
+	     * Sets the description text of the specified row of the table.
+	     *
+	     * @param r zero-based row of the table
+	     * @param a the description of the row
+	     */
+	    public void setAccessibleRowDescription(int r, Accessible a) {}
+	    
+	    /**
+	     * Returns the description text of the specified column in the table.
+	     *
+	     * @param c zero-based column of the table
+	     * @return the text description of the column
+	     */
+	    public Accessible getAccessibleColumnDescription(int c) { return null; }
+	    
+	    /**
+	     * Sets the description text of the specified column in the table.
+	     *
+	     * @param c zero-based column of the table
+	     * @param a the text description of the column
+	     */
+	    public void setAccessibleColumnDescription(int c, Accessible a) {}
+	    
+	    /**
+	     * Returns a boolean value indicating whether the accessible at
+	     * a specified row and column is selected.
+	     *
+	     * @param r zero-based row of the table
+	     * @param c zero-based column of the table
+	     * @return the boolean value true if the accessible at the
+	     * row and column is selected. Otherwise, the boolean value 
+	     * false
+	     */
+	    public boolean isAccessibleSelected(int r, int c) { return false; }
+	    
+	    /**
+	     * Returns a boolean value indicating whether the specified row
+	     * is selected.
+	     *
+	     * @param r zero-based row of the table
+	     * @return the boolean value true if the specified row is selected.
+	     * Otherwise, false.
+	     */
+	    public boolean isAccessibleRowSelected(int r) { return false; }
+	    
+	    /**
+	     * Returns a boolean value indicating whether the specified column
+	     * is selected.
+	     *
+	     * @param r zero-based column of the table
+	     * @return the boolean value true if the specified column is selected.
+	     * Otherwise, false.
+	     */
+	    public boolean isAccessibleColumnSelected(int c) { return false; }
+	    
+	    /**
+	     * Returns the selected rows in a table.
+	     *
+	     * @return an array of selected rows where each element is a
+	     * zero-based row of the table
+	     */
+	    public int [] getSelectedAccessibleRows() { return new int[0]; }
+	    
+	    /**
+	     * Returns the selected columns in a table.
+	     *
+	     * @return an array of selected columns where each element is a
+	     * zero-based column of the table
+	     */
+	    public int [] getSelectedAccessibleColumns() { return new int[0]; }
+	}
+	
 
 	/**
 	 * Returns the column headers as an <code>AccessibleTable</code>.
@@ -4999,7 +5213,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * Returns a boolean value indicating whether the specified column
 	 * is selected.
 	 *
-	 * @param r zero-based column of the table
+	 * @param c zero-based column of the table
 	 * @return the boolean value true if the specified column is selected;
 	 *     otherwise, false
 	 */
@@ -5027,24 +5241,34 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    return JTable.this.getSelectedColumns();
 	}
 
-        /*
+        /**
          * Returns the row at a given index into the table.
          *
          * @param i zero-based index into the table
          * @return the row at a given index
          */
         public int getAccessibleRowAtIndex(int i) {
-            return (i / getAccessibleColumnCount());
+	    int columnCount = getAccessibleColumnCount();
+	    if (columnCount == 0) {
+		return -1;
+	    } else {
+		return (i / columnCount);
+	    }
         }
 
-        /*
+        /**
          * Returns the column at a given index into the table.
          *
          * @param i zero-based index into the table
          * @return the column at a given index
          */
         public int getAccessibleColumnAtIndex(int i) {
-            return (i % getAccessibleColumnCount());
+	    int columnCount = getAccessibleColumnCount();
+	    if (columnCount == 0) {
+		return -1;
+	    } else {
+		return (i % columnCount);
+	    }
         }
 
         /**
@@ -5329,7 +5553,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
              * Adds a <code>PropertyChangeListener</code> to the listener list.
              * The listener is registered for all properties.
              *
-             * @param listener  the <code>PropertyChangeListener</code>
+             * @param l  the <code>PropertyChangeListener</code>
              *     to be added
              */
             public void addPropertyChangeListener(PropertyChangeListener l) {
@@ -5346,7 +5570,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
              * listener list. This removes a <code>PropertyChangeListener</code>
              * that was registered for all properties.
              *
-             * @param listener  the <code>PropertyChangeListener</code>
+             * @param l  the <code>PropertyChangeListener</code>
              *    to be removed
              */
             public void removePropertyChangeListener(PropertyChangeListener l) {
@@ -5676,7 +5900,14 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             public boolean isShowing() {
                 AccessibleContext ac = getCurrentAccessibleContext();
                 if (ac instanceof AccessibleComponent) {
-                    return ((AccessibleComponent) ac).isShowing();
+                    if (ac.getAccessibleParent() != null) {
+                        return ((AccessibleComponent) ac).isShowing();
+                    } else {
+                        // Fixes 4529616 - AccessibleJTableCell.isShowing()
+                        // returns false when the cell on the screen
+                        // if no parent
+                        return isVisible();
+                    }
                 } else {
                     Component c = getCurrentComponent();
                     if (c != null) {

@@ -1,7 +1,7 @@
 /*
- * @(#)InputStream.java	1.38 01/12/03
+ * @(#)InputStream.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package java.io;
  * must always provide a method that returns the next byte of input.
  *
  * @author  Arthur van Hoff
- * @version 1.38, 12/03/01
+ * @version 1.40, 01/23/03
  * @see     java.io.BufferedInputStream
  * @see     java.io.ByteArrayInputStream
  * @see     java.io.DataInputStream
@@ -82,6 +82,7 @@ public abstract class InputStream {
      *             <code>-1</code> is there is no more data because the end of
      *             the stream has been reached.
      * @exception  IOException  if an I/O error occurs.
+     * @exception  NullPointerException  if <code>b</code> is <code>null</code>.
      * @see        java.io.InputStream#read(byte[], int, int)
      */
     public int read(byte b[]) throws IOException {
@@ -147,6 +148,7 @@ public abstract class InputStream {
      *             <code>-1</code> if there is no more data because the end of
      *             the stream has been reached.
      * @exception  IOException  if an I/O error occurs.
+     * @exception  NullPointerException  if <code>b</code> is <code>null</code>.
      * @see        java.io.InputStream#read()
      */
     public int read(byte b[], int off, int len) throws IOException {

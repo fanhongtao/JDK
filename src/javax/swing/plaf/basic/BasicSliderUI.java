@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSliderUI.java	1.94 01/12/03
+ * @(#)BasicSliderUI.java	1.95 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import javax.swing.plaf.*;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.94 12/03/01
+ * @version 1.95 01/23/03
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{

@@ -1,7 +1,7 @@
 /*
- * @(#)Action.java	1.24 01/12/03
+ * @(#)Action.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -75,7 +75,7 @@ import java.beans.*;
  * you should take care to only use <code>Action</code>s where their benefits
  * are desired, and use simple <code>ActionListeners</code> elsewhere.
  *
- * @version 1.24 12/03/01
+ * @version 1.26 01/23/03
  * @author Georges Saab
  * @see AbstractAction
  */
@@ -84,6 +84,9 @@ public interface Action extends ActionListener {
      * Useful constants that can be used as the storage-retrieval key 
      * when setting or getting one of this object's properties (text
      * or icon).
+     */
+    /**
+     * Not currently used.
      */
     public static final String DEFAULT = "Default";
     /** 

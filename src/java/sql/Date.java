@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.28 01/12/03
+ * @(#)Date.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,9 +77,12 @@ public class Date extends java.util.Date {
      * Converts a string in JDBC date escape format to
      * a <code>Date</code> value.
      *
-     * @param s date in format "yyyy-mm-dd"
-     * @return a <code>java.sql.Date</code> object representing the 
+     * @param s a <code>String</code> object representing a date in 
+     *        in the format "yyyy-mm-dd"
+     * @return a <code>java.sql.Date</code> object representing the
      *         given date
+     * @throws IllegalArgumentException if the date given is not in the
+     *         JDBC date escape format (yyyy-mm-dd)
      */
     public static Date valueOf(String s) {
 	int year;
@@ -210,5 +213,11 @@ public class Date extends java.util.Date {
     public void setSeconds(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
+
+   /**
+    * Private serial version unique ID to ensure serialization
+    * compatibility.
+    */ 
+    static final long serialVersionUID = 1511598038487230103L;
 }
 

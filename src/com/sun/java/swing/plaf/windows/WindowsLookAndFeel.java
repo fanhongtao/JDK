@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.133 02/04/27
+ * @(#)WindowsLookAndFeel.java	1.142 03/05/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import sun.security.action.GetPropertyAction;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.133 04/27/02
+ * @version 1.142 05/06/03
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -74,7 +74,6 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 
     private boolean useSystemFontSettings = true;
     private boolean useSystemFontSizeSettings;
-    static boolean useNativeAnimation = true;
 
     public String getName() {
         return "Windows";
@@ -128,17 +127,9 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             useSystemFontSettings = (value == null ||
                                      Boolean.TRUE.equals(value));
         }
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().
+            addKeyEventPostProcessor(WindowsRootPaneUI.altProcessor);
 
-	String nativeAnimation = (String) java.security.AccessController.doPrivileged(
-	       new GetPropertyAction("swing.useNativeAnimation"));
-	useNativeAnimation = (nativeAnimation == null? false : nativeAnimation.equals("true"));
-
-	if (!isClassicWindows) {
-	    // Install the WindowsPopupFactory to support popups with
-	    // transition effects; this forces heavyweight popups, so only
-	    // do this if we know it's 98/2000 or greater....
-	    PopupFactory.setSharedInstance(new WindowsPopupFactory());
-	}
     }
     
     /** 
@@ -163,7 +154,11 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
          "RadioButtonUI", windowsPackageName + "WindowsRadioButtonUI",
         "ToggleButtonUI", windowsPackageName + "WindowsToggleButtonUI",
          "ProgressBarUI", windowsPackageName + "WindowsProgressBarUI",
+	      "SliderUI", windowsPackageName + "WindowsSliderUI",
+	   "SeparatorUI", windowsPackageName + "WindowsSeparatorUI",
            "SplitPaneUI", windowsPackageName + "WindowsSplitPaneUI",
+	     "SpinnerUI", windowsPackageName + "WindowsSpinnerUI",
+	  "TabbedPaneUI", windowsPackageName + "WindowsTabbedPaneUI",
             "TextAreaUI", windowsPackageName + "WindowsTextAreaUI",
            "TextFieldUI", windowsPackageName + "WindowsTextFieldUI",
        "PasswordFieldUI", windowsPackageName + "WindowsPasswordFieldUI",
@@ -171,8 +166,9 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
           "EditorPaneUI", windowsPackageName + "WindowsEditorPaneUI",
                 "TreeUI", windowsPackageName + "WindowsTreeUI",
 	     "ToolBarUI", windowsPackageName + "WindowsToolBarUI",	      
-    "ToolBarSeparatorUI", windowsPackageName + "WindowsSeparatorUI",
+    "ToolBarSeparatorUI", windowsPackageName + "WindowsToolBarSeparatorUI",
             "ComboBoxUI", windowsPackageName + "WindowsComboBoxUI",
+	 "TableHeaderUI", windowsPackageName + "WindowsTableHeaderUI",
        "InternalFrameUI", windowsPackageName + "WindowsInternalFrameUI",
          "DesktopPaneUI", windowsPackageName + "WindowsDesktopPaneUI",
          "DesktopIconUI", windowsPackageName + "WindowsDesktopIconUI",
@@ -398,9 +394,6 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
                   "control SPACE", "activate-link-action",
                 "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
 	});
-
-	Object toolBarSeparatorSize = new DimensionUIResource(6,20);
-
 
 	Object menuItemAcceleratorDelimiter = new String("+");
 
@@ -640,10 +633,10 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "EditorPane.inactiveForeground", InactiveTextColor,
 
 	    "FileChooser.homeFolderIcon",  new LazyFileChooserIcon(null,                 "icons/HomeFolder.gif"),
-	    "FileChooser.listViewIcon",    new LazyFileChooserIcon("fileChooserIcon 2",  "icons/ListView.gif"),
-	    "FileChooser.detailsViewIcon", new LazyFileChooserIcon("fileChooserIcon 3",  "icons/DetailsView.gif"),
-	    "FileChooser.upFolderIcon",    new LazyFileChooserIcon("fileChooserIcon 8",  "icons/UpFolder.gif"),
-	    "FileChooser.newFolderIcon",   new LazyFileChooserIcon("fileChooserIcon 11", "icons/NewFolder.gif"),
+	    "FileChooser.listViewIcon",    new LazyFileChooserIcon("fileChooserIcon ListView",   "icons/ListView.gif"),
+	    "FileChooser.detailsViewIcon", new LazyFileChooserIcon("fileChooserIcon DetailsView","icons/DetailsView.gif"),
+	    "FileChooser.upFolderIcon",    new LazyFileChooserIcon("fileChooserIcon UpFolder",   "icons/UpFolder.gif"),
+	    "FileChooser.newFolderIcon",   new LazyFileChooserIcon("fileChooserIcon NewFolder",  "icons/NewFolder.gif"),
 
             "FileChooser.lookInLabelMnemonic", new Integer(KeyEvent.VK_I),
             "FileChooser.fileNameLabelMnemonic", new Integer(KeyEvent.VK_N),
@@ -787,6 +780,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "Menu.font", MenuFont,
             "Menu.foreground", MenuTextColor,
             "Menu.background", MenuBackgroundColor,
+	    "Menu.useMenuBarBackgroundForTopLevel", Boolean.TRUE,
             "Menu.selectionForeground", SelectionTextColor,
             "Menu.selectionBackground", SelectionBackgroundColor,
 	    "Menu.acceleratorForeground", MenuTextColor,
@@ -800,6 +794,10 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    // MenuBar.
 	    "MenuBar.font", MenuFont,
 	    "MenuBar.background", MenuBackgroundColor,
+	    // The background color may be overridden for XP in WindowsMenuBarUI.
+	    // Save the classic background here in case the user switches from
+	    // XP to classic at runtime.
+	    "MenuBar.classicBackground", new Object[] { MenuBackgroundColor },
 	    "MenuBar.foreground", MenuTextColor,
 	    "MenuBar.shadow", ControlShadowColor,
 	    "MenuBar.highlight", ControlHighlightColor,
@@ -1167,7 +1165,6 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "TextField.selectionBackground", SelectionBackgroundColor,
 	    "TextField.selectionForeground", SelectionTextColor,
 	    "TextField.caretForeground", WindowTextColor,
-	    "TextField.margin", new InsetsUIResource(1,1,1,1),
 
 	    // *** TextPane
 	    "TextPane.font", ControlFont,
@@ -1220,7 +1217,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 		     "RIGHT", "navigateRight",
 		  "KP_RIGHT", "navigateRight"
 		 }),
-	    "ToolBar.separatorSize", toolBarSeparatorSize,
+	    "ToolBar.separatorSize", null,
 
 	    // *** ToolTip
             "ToolTip.font", ToolTipFont,
@@ -1240,7 +1237,6 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "Tree.textBackground", WindowBackgroundColor,
 	    "Tree.selectionForeground", SelectionTextColor,
 	    "Tree.selectionBackground", SelectionBackgroundColor,
-            "Tree.selectionBorderColor", yellow,
             "Tree.expandedIcon", treeExpandedIcon,
             "Tree.collapsedIcon", treeCollapsedIcon,
 	    "Tree.focusInputMap",
@@ -1340,12 +1336,31 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
     //
     private Object[] getLazyValueDefaults() {
 
-	Object buttonBorder = new UIDefaults.ProxyLazyValue(
+	XPStyle xp = XPStyle.getXP();
+
+	Object buttonBorder;
+	if (xp != null) {
+	    buttonBorder = xp.getBorder("button.pushbutton");
+	} else {
+	    buttonBorder = new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getButtonBorder");
-	Object comboBoxBorder = new UIDefaults.ProxyLazyValue(
+	}
+	Object textFieldBorder;
+	Object textFieldMargin;
+	if (xp != null) {
+	    textFieldBorder = xp.getBorder("edit");
+	    textFieldMargin = new InsetsUIResource(1, 5, 2, 4);
+	} else {
+	    textFieldBorder = new UIDefaults.ProxyLazyValue(
 			       "javax.swing.plaf.basic.BasicBorders", 
 			       "getTextFieldBorder");
+	    textFieldMargin = new InsetsUIResource(1, 1, 1, 1);
+	}
+
+	Object spinnerBorder = textFieldBorder;
+
+	Object comboBoxBorder = (xp != null) ? xp.getBorder("combobox") : textFieldBorder;
 
 	// For focus rectangle for cells and trees.
 	Object focusCellHighlightBorder = new UIDefaults.ProxyLazyValue(
@@ -1386,6 +1401,9 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 			       "javax.swing.plaf.basic.BasicBorders", 
 			       "getRadioButtonBorder");
 
+	Object scrollPaneBorder = (xp != null) ? xp.getBorder("listbox") : textFieldBorder;
+	Object tableScrollPaneBorder = (xp != null) ? scrollPaneBorder : loweredBevelBorder;
+
 	Object tableHeaderBorder = new UIDefaults.ProxyLazyValue(
 			  "com.sun.java.swing.plaf.windows.WindowsBorders",
 			  "getTableHeaderBorder");
@@ -1394,6 +1412,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	Object toolBarBorder = new UIDefaults.ProxyLazyValue(
 			      "com.sun.java.swing.plaf.windows.WindowsBorders", 
 			      "getToolBarBorder");
+
         // *** ToolTips
         Object toolTipBorder = new UIDefaults.ProxyLazyValue(
                               "javax.swing.plaf.BorderUIResource",
@@ -1427,17 +1446,26 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "CheckBox.border", radioButtonBorder,
             "ComboBox.border", comboBoxBorder,
 	    "DesktopIcon.border", internalFrameBorder,
+	    "FormattedTextField.border", textFieldBorder,
+	    "FormattedTextField.margin", textFieldMargin,
 	    "InternalFrame.border", internalFrameBorder,
 	    "List.focusCellHighlightBorder", focusCellHighlightBorder,
+	    "Table.focusCellHighlightBorder", focusCellHighlightBorder,
+	    "Tree.selectionBorderColor", focusCellHighlightBorder,
 	    "Menu.border", marginBorder,
 	    "MenuBar.border", menuBarBorder,
             "MenuItem.border", marginBorder,
+            "PasswordField.border", textFieldBorder,
+            "PasswordField.margin", textFieldMargin,
 	    "PopupMenu.border", popupMenuBorder,
 	    "ProgressBar.border", progressBarBorder,
             "RadioButton.border", radioButtonBorder,
-	    "Spinner.border", loweredBevelBorder,
-	    "Table.scrollPaneBorder", loweredBevelBorder,
+	    "ScrollPane.border", scrollPaneBorder,
+	    "Spinner.border", spinnerBorder,
+	    "Table.scrollPaneBorder", tableScrollPaneBorder,
 	    "TableHeader.cellBorder", tableHeaderBorder,
+	    "TextField.border", textFieldBorder,
+	    "TextField.margin", textFieldMargin,
             "TitledBorder.border", etchedBorder,
             "ToggleButton.border", radioButtonBorder,
 	    "ToolBar.border", toolBarBorder,
@@ -1456,19 +1484,13 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
     public void uninitialize() {
 	toolkit = null;
 
-	if (!isClassicWindows) {
-	    // restore original PopupFactory
-	    PopupFactory.setSharedInstance(new PopupFactory());
-	}
-
         if (WindowsPopupMenuUI.mnemonicListener != null) {
             MenuSelectionManager.defaultManager().
                 removeChangeListener(WindowsPopupMenuUI.mnemonicListener);
         }
-        if (WindowsPopupMenuUI.altProcessor != null) {
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                removeKeyEventPostProcessor(WindowsPopupMenuUI.altProcessor);
-        }
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().
+            removeKeyEventPostProcessor(WindowsRootPaneUI.altProcessor);
+        DesktopProperty.flushUnreferencedProperties();
     }
 
 

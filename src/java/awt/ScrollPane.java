@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPane.java	1.88 01/12/03
+ * @(#)ScrollPane.java	1.89 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -63,7 +63,7 @@ import java.io.IOException;
  * will change dynamically depending on whether the scrollbars are
  * currently visible or not.
  *
- * @version     1.88 12/03/01
+ * @version     1.89 01/23/03
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing

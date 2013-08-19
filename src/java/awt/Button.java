@@ -1,7 +1,7 @@
 /*
- * @(#)Button.java	1.68 01/12/03
+ * @(#)Button.java	1.73 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import javax.accessibility.*;
  * depicts three views of a "<code>Quit</code>" button as it appears
  * under the Solaris operating system:
  * <p>
- * <img src="doc-files/Button-1.gif"
+ * <img src="doc-files/Button-1.gif" alt="The following context describes the graphic"
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * The first view shows the button as it appears normally.
@@ -59,7 +59,7 @@ import javax.accessibility.*;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.68 12/03/01
+ * @version 	1.73 01/23/03
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener
@@ -377,8 +377,9 @@ public class Button extends Component implements Accessible {
      * @since       JDK1.1
      */
     protected void processActionEvent(ActionEvent e) {
-        if (actionListener != null) {
-            actionListener.actionPerformed(e);
+        ActionListener listener = actionListener;
+        if (listener != null) {
+            listener.actionPerformed(e);
         }
     }
 
@@ -420,9 +421,9 @@ public class Button extends Component implements Accessible {
      *     <code>ActionListener</code> object
      * 			
      * @param s the <code>ObjectOutputStream</code> to write
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.actionListenerK
-     * @see #readObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component#actionListenerK
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws IOException
@@ -444,10 +445,10 @@ public class Button extends Component implements Accessible {
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @serial
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @see #removeActionListener(ActionListener)
+     * @see #addActionListener(ActionListener)
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException
@@ -592,7 +593,7 @@ public class Button extends Component implements Accessible {
          *
          * @return An Integer of 0 if this isn't selected or an Integer of 1 if
          * this is selected.
-         * @see AbstractButton#isSelected
+         * @see javax.swing.AbstractButton#isSelected()
          */
         public Number getCurrentAccessibleValue() {
             return new Integer(0);

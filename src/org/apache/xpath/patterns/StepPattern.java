@@ -56,22 +56,26 @@
  */
 package org.apache.xpath.patterns;
 
+import java.util.Vector;
+
+import javax.xml.transform.TransformerException;
+import org.apache.xml.dtm.Axis;
+import org.apache.xml.dtm.DTM;
+import org.apache.xml.dtm.DTMAxisTraverser;
+import org.apache.xml.dtm.DTMFilter;
 import org.apache.xpath.Expression;
-import org.apache.xpath.objects.XObject;
+import org.apache.xpath.ExpressionOwner;
 import org.apache.xpath.XPathContext;
-import org.apache.xml.utils.PrefixResolver;
+import org.apache.xpath.XPathVisitor;
 import org.apache.xpath.axes.SubContextList;
 import org.apache.xpath.compiler.PsuedoNames;
-import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMFilter;
-import org.apache.xml.dtm.DTMAxisTraverser;
-import org.apache.xml.dtm.Axis;
+import org.apache.xpath.objects.XObject;
 
 /**
  * <meta name="usage" content="advanced"/>
  * This class represents a single pattern match step.
  */
-public class StepPattern extends NodeTest implements SubContextList
+public class StepPattern extends NodeTest implements SubContextList, ExpressionOwner
 {
 
   /** The axis for this test. */
@@ -219,6 +223,7 @@ public class StepPattern extends NodeTest implements SubContextList
   {
 
     m_relativePathPattern = expr;
+    expr.exprSetParent(this);
 
     calcScore();
   }
@@ -317,6 +322,13 @@ public class StepPattern extends NodeTest implements SubContextList
   {
 
     m_predicates = predicates;
+    if(null != predicates)
+    {
+    	for(int i = 0; i < predicates.length; i++)
+    	{
+    		predicates[i].exprSetParent(this);
+    	}
+    }
 
     calcScore();
   }
@@ -958,5 +970,122 @@ public class StepPattern extends NodeTest implements SubContextList
   {
     return m_axis;
   }
+  
+  class PredOwner implements ExpressionOwner
+  {
+  	int m_index;
+  	
+  	PredOwner(int index)
+  	{
+  		m_index = index;
+  	}
+  	
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_predicates[m_index];
+    }
+
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(StepPattern.this);
+    	m_predicates[m_index] = exp;
+    }
+  }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	 	if(visitor.visitMatchPattern(owner, this))
+  	 	{
+  	 		callSubtreeVisitors(visitor);
+  	 	}
+  }
+
+  /**
+   * Call the visitors on the subtree.  Factored out from callVisitors 
+   * so it may be called by derived classes.
+   */
+  protected void callSubtreeVisitors(XPathVisitor visitor)
+  {
+    if (null != m_predicates)
+    {
+      int n = m_predicates.length;
+      for (int i = 0; i < n; i++)
+      {
+        ExpressionOwner predOwner = new PredOwner(i);
+        if (visitor.visitPredicate(predOwner, m_predicates[i]))
+        {
+          m_predicates[i].callVisitors(predOwner, visitor);
+        }
+      }
+    }
+    if (null != m_relativePathPattern)
+    {
+      m_relativePathPattern.callVisitors(this, visitor);
+    }
+  }
+
+
+  /**
+   * @see ExpressionOwner#getExpression()
+   */
+  public Expression getExpression()
+  {
+    return m_relativePathPattern;
+  }
+
+  /**
+   * @see ExpressionOwner#setExpression(Expression)
+   */
+  public void setExpression(Expression exp)
+  {
+    exp.exprSetParent(this);
+  	m_relativePathPattern = (StepPattern)exp;
+  }
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!super.deepEquals(expr))
+  		return false;
+  		
+  	StepPattern sp = (StepPattern)expr;
+  	
+    if (null != m_predicates)
+    {
+        int n = m_predicates.length;
+        if ((null == sp.m_predicates) || (sp.m_predicates.length != n))
+              return false;
+        for (int i = 0; i < n; i++)
+        {
+          if (!m_predicates[i].deepEquals(sp.m_predicates[i]))
+          	return false; 
+        }
+    }
+    else if (null != sp.m_predicates)
+    	return false;
+  		
+  	if(null != m_relativePathPattern)
+  	{
+  		if(!m_relativePathPattern.deepEquals(sp.m_relativePathPattern))
+  			return false;
+  	}
+  	else if(sp.m_relativePathPattern != null)
+  		return false;
+  		
+  	return true;
+  }
+
 
 }

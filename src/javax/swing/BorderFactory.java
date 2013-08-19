@@ -1,7 +1,7 @@
 /*
- * @(#)BorderFactory.java	1.25 01/12/03
+ * @(#)BorderFactory.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -20,7 +20,7 @@ import javax.swing.border.*;
  to Use Borders</a>,
  * a section in <em>The Java Tutorial</em>.
  *
- * @version 1.25 12/03/01
+ * @version 1.27 01/23/03
  * @author David Kloba
  */
 public class BorderFactory 
@@ -255,7 +255,6 @@ public class BorderFactory
      * @param border     the <code>Border</code> object to add the title to, if
      *                   null the <code>Border</code> is determined by the
      *                   current look and feel.
-     * @param title      a <code>String</code> containing the text of the title
      * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border)       {

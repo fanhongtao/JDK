@@ -70,6 +70,7 @@ import org.apache.xpath.objects.XNumber;
 import org.apache.xpath.axes.SubContextList;
 import org.apache.xpath.axes.ContextNodeList;
 import org.apache.xpath.NodeSetDTM;
+import org.apache.xpath.compiler.Compiler;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -77,6 +78,16 @@ import org.apache.xpath.NodeSetDTM;
  */
 public class FuncPosition extends Function
 {
+  private boolean m_isTopLevel;
+  
+  /**
+   * Figure out if we're executing a toplevel expression.
+   * If so, we can't be inside of a predicate. 
+   */
+  public void postCompileStep(Compiler compiler)
+  {
+    m_isTopLevel = compiler.getLocationPathDepth() == -1;
+  }
 
   /**
    * Get the position in the current context node list.
@@ -91,12 +102,12 @@ public class FuncPosition extends Function
 
     // System.out.println("FuncPosition- entry");
     // If we're in a predicate, then this will return non-null.
-    SubContextList iter = xctxt.getSubContextList();
+    SubContextList iter = m_isTopLevel ? null : xctxt.getSubContextList();
 
     if (null != iter)
     {
       int prox = iter.getProximityPosition(xctxt);
-
+ 
       // System.out.println("FuncPosition- prox: "+prox);
       return prox;
     }

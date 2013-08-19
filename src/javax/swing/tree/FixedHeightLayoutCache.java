@@ -1,7 +1,7 @@
 /*
- * @(#)FixedHeightLayoutCache.java	1.19 01/12/03
+ * @(#)FixedHeightLayoutCache.java	1.22 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.util.Stack;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 12/03/01
+ * @version 1.22 01/23/03
  * @author Scott Violet
  */
 
@@ -478,9 +478,15 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 
                 wasExpanded = changedNode.isExpanded();
                 wasVisible = changedNode.isVisible();
-                parent.removeChildAtModelIndex(changedNode.getChildIndex(),
-                                               wasVisible);
+
+  		int index = parent.getIndex(changedNode);
+  		changedNode.collapse(false);
+  		parent.remove(index);
+
                 if(wasVisible && wasExpanded) {
+ 		    int row = changedNode.getRow();
+ 		    parent.resetChildrenRowsFrom(row, index,
+ 						 changedNode.getChildIndex());
                     changedNode = getNodeForPath(changedPath, false, true);
                     changedNode.expand();
                 }
@@ -725,6 +731,9 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	/** Index of this node from the model. */
 	protected int             childIndex;
 
+  	/** Child count of the receiver. */
+  	protected int             childCount;
+ 	
 	/** Row of the receiver. This is only valid if the row is expanded.
 	 */
 	protected int             row;
@@ -854,8 +863,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	    }
 	    // YECK!
 	    return getRow() + 1 + getTotalChildCount() -
-		             (treeModel.getChildCount(getUserObject()) -
-			      index);
+		             (childCount - index);
 	}
 
 	/**
@@ -878,7 +886,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 			   (nextSibling.childIndex - childIndex);
 		}
 		else {
-		    int   retCount = getModel().getChildCount(getUserObject());
+ 		    int retCount = childCount;
 
 		    for(int counter = getChildCount() - 1; counter >= 0;
 			counter--) {
@@ -1049,8 +1057,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		    child.row = lastRow++;
 		}
 	    }
-	    return lastRow + treeModel.getChildCount(getUserObject()) -
-		             lastModelIndex;
+	    return lastRow + childCount - lastModelIndex;
 	}
 
 	/**
@@ -1083,8 +1090,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		    node.row = lastRow++;
 		}
 	    }
-	    lastRow += treeModel.getChildCount(getUserObject()) -
-		                 lastModelIndex;
+	    lastRow += childCount - lastModelIndex;
 	    node = (FHTreeStateNode)getParent();
 	    if(node != null) {
 		node.resetChildrenRowsFrom(lastRow, node.getIndex(this) + 1,
@@ -1126,6 +1132,8 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		boolean            visible = isVisible();
 
 		isExpanded = true;
+		childCount = treeModel.getChildCount(getUserObject());
+
 		if(visible) {
 		    didExpand();
 		}
@@ -1207,6 +1215,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		childNode.collapse(false);
 		remove(index);
 		adjustChildIndexs(index, -1);
+		childCount--;
 		if(isChildVisible) {
 		    // Adjust the rows.
 		    resetChildrenRowsFrom(row, index, modelIndex);
@@ -1229,6 +1238,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 			for(; counter < maxCounter; counter++)
 			    ((FHTreeStateNode)getChildAt(counter)).
 				              childIndex--;
+			childCount--;
 			return;
 		    }
 		}
@@ -1238,6 +1248,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		    adjustRowBy(-1, maxCounter);
 		    adjustRowCountBy(-1);
 		}
+		childCount--;
 	    }
 	}
 
@@ -1273,6 +1284,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		       index, no need to continue testing with the above. */
 		    for(; counter < maxCounter; counter++)
 			((FHTreeStateNode)getChildAt(counter)).childIndex++;
+		    childCount++;
 		    return;
 		}
 	    }
@@ -1282,6 +1294,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		adjustRowBy(1, maxCounter);
 		adjustRowCountBy(1);
 	    }
+	    childCount++;
 	}
 
 	/**
@@ -1333,8 +1346,6 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		}
 		lastChild = child;
 	    }
-
-	    int      childCount = treeModel.getChildCount(getUserObject());
 
 	    // Not in children, but we should have it, offset from
 	    // nextRow.

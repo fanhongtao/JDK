@@ -1,5 +1,5 @@
 /*
- * @(#)TransferHandler.java	1.24 03/01/19
+ * @(#)TransferHandler.java	1.24 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import javax.swing.event.*;
  * 
  *
  * @author  Timothy Prinzing
- * @version 1.24 01/19/03
+ * @version 1.24 01/23/03
  */
 public class TransferHandler implements Serializable {
 
@@ -69,13 +69,14 @@ public class TransferHandler implements Serializable {
      * &quot;copy&quot; or &quot;move&quot;.
      */
     public static final int COPY_OR_MOVE = DnDConstants.ACTION_COPY_OR_MOVE;
-
+    
     /**
      * An <code>int</code> representing a &quot;link&quot; transfer action.
-     * This value is used to specify that data should be linked in a drag 
-     * and drop operation
+     * This value is used to specify that data should be linked in a drag
+     * and drop operation.
      */
     private static final int LINK = DnDConstants.ACTION_LINK;
+
 
     /**
      * Returns an <code>Action</code> that behaves like a 'cut' operation.

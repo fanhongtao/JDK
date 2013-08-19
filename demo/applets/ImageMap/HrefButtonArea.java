@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)HrefButtonArea.java	1.11 02/06/13
+ * @(#)HrefButtonArea.java	1.12 03/01/23
  */
 
 import java.awt.Graphics;
@@ -49,7 +49,7 @@ import java.net.MalformedURLException;
  * are used to make the area look and feel like a 3-D button.
  *
  * @author 	Jim Graham
- * @version 	1.11, 06/13/02
+ * @version 	1.12, 01/23/03
  */
 class HrefButtonArea extends ImageMapArea {
     /** The URL to be fetched when the user clicks on this area. */

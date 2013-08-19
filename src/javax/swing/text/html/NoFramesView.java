@@ -1,7 +1,7 @@
 /*
- * @(#)NoFramesView.java	1.7 01/12/03
+ * @(#)NoFramesView.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -16,7 +16,7 @@ import java.awt.*;
  * when the JTextComponent the view is contained in is editable.
  *
  * @author  Sunita Mani
- * @version 1.7 12/03/01
+ * @version 1.8 01/23/03
  */
 class NoFramesView extends BlockView {
 

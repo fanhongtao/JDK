@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsEnvironment.java	1.53 02/04/27
+ * @(#)GraphicsEnvironment.java	1.55 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 	1.53, 04/27/02
+ * @version 	1.55, 01/23/03
  */
 
 public abstract class GraphicsEnvironment {
@@ -147,7 +147,7 @@ public abstract class GraphicsEnvironment {
      * @return an array containing all the <code>GraphicsDevice</code>
      * objects that represent screen devices
      * @exception HeadlessException if isHeadless() returns true
-     * @see isHeadless
+     * @see #isHeadless()
      */
     public abstract GraphicsDevice[] getScreenDevices()
         throws HeadlessException;
@@ -157,7 +157,7 @@ public abstract class GraphicsEnvironment {
      * @return the <code>GraphicsDevice</code> that represents the
      * default screen device
      * @exception HeadlessException if isHeadless() returns true
-     * @see isHeadless
+     * @see #isHeadless()
      */
     public abstract GraphicsDevice getDefaultScreenDevice()
         throws HeadlessException;

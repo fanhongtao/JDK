@@ -1,7 +1,7 @@
 /*
- * @(#)X509Certificate.java	1.34 02/02/08
+ * @(#)X509Certificate.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -80,7 +80,7 @@ import sun.security.x509.X509CertImpl;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.34
+ * @version 1.35
  *
  * @see Certificate
  * @see CertificateFactory

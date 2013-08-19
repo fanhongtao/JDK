@@ -1,7 +1,7 @@
 /*
- * @(#)Direct-X-Buffer.java	1.39 02/05/06
+ * @(#)Direct-X-Buffer.java	1.45 03/04/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@
 
 package java.nio;
 
+import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 import sun.nio.ch.FileChannelImpl;
@@ -50,7 +51,46 @@ class DirectByteBufferR
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Primary constructor
+    //
     DirectByteBufferR(int cap) {			// package-private
+
 
 
 
@@ -86,57 +126,29 @@ class DirectByteBufferR
 
 
 
-
-
-
-
-    DirectByteBufferR(int cap,			// package-private
-			   long addr, int off,
-			   boolean mapped)
-    {
+    // For memory-mapped buffers -- invoked by FileChannelImpl via reflection
+    //
+    protected DirectByteBufferR(int cap, long addr, Runnable unmapper) {
 
 
 
 
 
 
-
-
-
-
-
-
-	super(cap, addr, off, mapped);
+	super(cap, addr, unmapper);
 
     }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // For duplicates and slices
+    //
     DirectByteBufferR(DirectBuffer db,	        // package-private
 			       int mark, int pos, int lim, int cap,
 			       int off)
     {
+
+
 
 
 
@@ -408,23 +420,6 @@ class DirectByteBufferR
 
     }
 
-    protected void finalize() {		
-	if (allocated)
-	    free();
-	else if (isAMappedBuffer && viewedBuffer == null) {
-            // Only unmap the root buffer
-	    FileChannelImpl.unmap(this);
-	    isAMappedBuffer = false;
-	}
-    }
-
-    synchronized void free() {				// package-private
-	if (allocated) {
-	    unsafe.freeMemory(this.address);
-	    allocated = false;
-	}
-    }
-
 
 
 
@@ -447,6 +442,8 @@ class DirectByteBufferR
 
 
     private ByteBuffer putChar(long a, char x) {
+
+
 
 
 
@@ -543,6 +540,8 @@ class DirectByteBufferR
 
 
 
+
+
 	throw new ReadOnlyBufferException();
 
     }
@@ -625,6 +624,8 @@ class DirectByteBufferR
 
 
     private ByteBuffer putInt(long a, int x) {
+
+
 
 
 
@@ -721,6 +722,8 @@ class DirectByteBufferR
 
 
 
+
+
 	throw new ReadOnlyBufferException();
 
     }
@@ -810,6 +813,8 @@ class DirectByteBufferR
 
 
 
+
+
 	throw new ReadOnlyBufferException();
 
     }
@@ -892,6 +897,8 @@ class DirectByteBufferR
 
 
     private ByteBuffer putDouble(long a, double x) {
+
+
 
 
 

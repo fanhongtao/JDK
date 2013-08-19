@@ -1,10 +1,10 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)BigInteger.java	1.53 02/06/11
+ * @(#)BigInteger.java	1.55 03/01/29
  */
 
 package java.math;
@@ -71,7 +71,7 @@ import java.io.*;
  * a null object reference for any input parameter.
  *
  * @see     BigDecimal
- * @version 1.53, 06/11/02
+ * @version 1.55, 01/29/03
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -663,12 +663,10 @@ public class BigInteger extends Number implements Comparable {
 
         // Step 1
         int d = 5;
-        int sign = 1;
-        while (jacobiSymbol(Math.abs(d), this) != -1) {
-            d += 2;
-            sign = -sign;
+        while (jacobiSymbol(d, this) != -1) {
+            // 5, -7, 9, -11, ...
+            d = (d<0) ? Math.abs(d)+2 : -(d+2);
         }
-        d = d * sign;
         
         // Step 2
         BigInteger u = lucasLehmerSequence(d, thisPlusOne, this);
@@ -689,7 +687,15 @@ public class BigInteger extends Number implements Comparable {
 	int j = 1;
 	int u = n.mag[n.mag.length-1];
 
-	// First, get rid of factors of 2 in p
+        // Make p positive
+        if (p < 0) {
+            p = -p;
+            int n8 = u & 7;
+            if ((n8 == 3) || (n8 == 7))
+                j = -j; // 3 (011) or 7 (111) mod 8
+        }
+
+	// Get rid of factors of 2 in p
 	while ((p & 3) == 0)
             p >>= 2;
 	if ((p & 1) == 0) {

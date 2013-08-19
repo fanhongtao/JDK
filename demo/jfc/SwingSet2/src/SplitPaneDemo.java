@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)SplitPaneDemo.java	1.6 02/06/13
+ * @(#)SplitPaneDemo.java	1.8 03/01/23
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * Split Pane demo
  *
- * @version 1.6 06/13/02
+ * @version 1.8 01/23/03
  * @author Scott Violet
  * @author Jeff Dinkins
  */
@@ -114,7 +114,7 @@ public class SplitPaneDemo extends DemoModule {
 	
         /* Create a radio button to vertically split the split pane. */
         button = new JRadioButton(getString("SplitPaneDemo.vert_split"));
-        button.setMnemonic(getMnemonic("SplitPaneDemo.vert_split"));
+        button.setMnemonic(getMnemonic("SplitPaneDemo.vert_split_mnemonic"));
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
@@ -125,7 +125,7 @@ public class SplitPaneDemo extends DemoModule {
 
         /* Create a radio button the horizontally split the split pane. */
         button = new JRadioButton(getString("SplitPaneDemo.horz_split"));
-        button.setMnemonic(getMnemonic("SplitPaneDemo.horz_split"));
+        button.setMnemonic(getMnemonic("SplitPaneDemo.horz_split_mnemonic"));
         button.setSelected(true);
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -138,7 +138,7 @@ public class SplitPaneDemo extends DemoModule {
         /* Create a check box as to whether or not the split pane continually
            lays out the component when dragging. */
         JCheckBox checkBox = new JCheckBox(getString("SplitPaneDemo.cont_layout"));
-        checkBox.setMnemonic(getMnemonic("SplitPaneDemo.cont_layout"));
+        checkBox.setMnemonic(getMnemonic("SplitPaneDemo.cont_layout_mnemonic"));
         checkBox.setSelected(true);
 	
         checkBox.addChangeListener(new ChangeListener() {
@@ -152,7 +152,7 @@ public class SplitPaneDemo extends DemoModule {
         /* Create a check box as to whether or not the split pane divider
            contains the oneTouchExpandable buttons. */
         checkBox = new JCheckBox(getString("SplitPaneDemo.one_touch_expandable"));
-        checkBox.setMnemonic(getMnemonic("SplitPaneDemo.one_touch_expandable"));
+        checkBox.setMnemonic(getMnemonic("SplitPaneDemo.one_touch_expandable_mnemonic"));
         checkBox.setSelected(true);
 	
         checkBox.addChangeListener(new ChangeListener() {
@@ -198,7 +198,7 @@ public class SplitPaneDemo extends DemoModule {
 	tfWrapper.add(label);
 	tfWrapper.add(tf);
 	label.setLabelFor(tf);
-	label.setDisplayedMnemonic(getMnemonic("SplitPaneDemo.divider_size"));
+	label.setDisplayedMnemonic(getMnemonic("SplitPaneDemo.divider_size_mnemonic"));
 	wrapper.add(tfWrapper);
 	
 	/* Create a text field that will change the preferred/minimum size
@@ -232,7 +232,7 @@ public class SplitPaneDemo extends DemoModule {
 	tfWrapper.add(label);
 	tfWrapper.add(tf);
 	label.setLabelFor(tf);
-	label.setDisplayedMnemonic(getMnemonic("SplitPaneDemo.first_component_min_size"));
+	label.setDisplayedMnemonic(getMnemonic("SplitPaneDemo.first_component_min_size_mnemonic"));
 	wrapper.add(tfWrapper);
 	
 	/* Create a text field that will change the preferred/minimum size
@@ -266,7 +266,7 @@ public class SplitPaneDemo extends DemoModule {
 	tfWrapper.add(label);
 	tfWrapper.add(tf);
 	label.setLabelFor(tf);
-	label.setDisplayedMnemonic(getMnemonic("SplitPaneDemo.second_component_min_size"));
+	label.setDisplayedMnemonic(getMnemonic("SplitPaneDemo.second_component_min_size_mnemonic"));
 	wrapper.add(tfWrapper);
 	
 	return wrapper;

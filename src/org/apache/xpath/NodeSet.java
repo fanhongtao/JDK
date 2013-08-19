@@ -307,7 +307,7 @@ public class NodeSet
 
     if (!m_cacheNodes)
       throw new RuntimeException(
-        "This NodeSet can not iterate to a previous node!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NODESET_CANNOT_ITERATE, null)); //"This NodeSet can not iterate to a previous node!");
 
     if ((m_next - 1) > 0)
     {
@@ -362,7 +362,7 @@ public class NodeSet
 
     if (!m_cacheNodes)
       throw new RuntimeException(
-        "This NodeSet can not do indexing or counting functions!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NODESET_CANNOT_INDEX, null)); //"This NodeSet can not do indexing or counting functions!");
 
     if ((index >= 0) && (m_next < m_firstFree))
       m_next = index;
@@ -785,7 +785,7 @@ public class NodeSet
 
     if (!m_cacheNodes)
       throw new RuntimeException(
-        "This NodeSet can not do indexing or counting functions!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NODESET_CANNOT_INDEX, null)); //"This NodeSet can not do indexing or counting functions!");
 
     m_next = i;
   }
@@ -802,7 +802,7 @@ public class NodeSet
 
     if (!m_cacheNodes)
       throw new RuntimeException(
-        "This NodeSet can not do indexing or counting functions!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NODESET_CANNOT_INDEX, null)); //"This NodeSet can not do indexing or counting functions!");
 
     int saved = m_next;
     Node n = (m_next < m_firstFree) ? elementAt(m_next) : null;
@@ -844,7 +844,7 @@ public class NodeSet
 
     if (!isFresh())
       throw new RuntimeException(
-        "Can not call setShouldCacheNodes after nextNode has been called!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_CANNOT_CALL_SETSHOULDCACHENODE, null)); //"Can not call setShouldCacheNodes after nextNode has been called!");
 
     m_cacheNodes = b;
     m_mutable = true;

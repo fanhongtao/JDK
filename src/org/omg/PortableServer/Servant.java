@@ -1,7 +1,7 @@
 /*
- * @(#)Servant.java	1.14 01/12/03
+ * @(#)Servant.java	1.16 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.PortableServer;
@@ -44,7 +44,7 @@ abstract public class Servant {
      * Supports the Java ORB portability
      * interfaces by providing a method for classes that support
      * ORB portability through delegation to set their delegate.
-     * @param <code>delegate</code> ORB vendor-specific implementation of
+     * @param delegate ORB vendor-specific implementation of
      *                 the <code>PortableServer::Servant</code>.
      */
     final public void _set_delegate(Delegate delegate) {
@@ -64,7 +64,7 @@ abstract public class Servant {
     /**
      * Allows the servant to obtain the object reference for
      * the target CORBA Object it is incarnating for that request.
-     * @param <code>orb</code> ORB with which the servant is associated.
+     * @param orb ORB with which the servant is associated.
      * @return <code>_this_object</code> reference associated with the request.
      */
     final public org.omg.CORBA.Object _this_object(ORB orb) {
@@ -125,7 +125,7 @@ abstract public class Servant {
      * Checks to see if the specified <code>repository_id</code> is present
      * on the list returned by <code>_all_interfaces()</code> or is the
      * <code>repository_id</code> for the generic CORBA Object.
-     * @param <code>repository_id</code> the <code>repository_id</code>
+     * @param repository_id the <code>repository_id</code>
      *		to be checked in the repository list or against the id
      *		of generic CORBA objects.
      * @return <code>is_a</code> boolean indicating whether the specified
@@ -239,8 +239,8 @@ abstract public class Servant {
     /**
      * Used by the ORB to obtain complete type 
      * information from the servant.
-     * @param <code>poa</code> POA with which the servant is associated.
-     * @param <code>objectId</code> is the id corresponding to the object
+     * @param poa POA with which the servant is associated.
+     * @param objectId is the id corresponding to the object
      *         associated with this servant.
      * @return list of type information for the object.
      */

@@ -1,7 +1,7 @@
 /*
- * @(#)ConfigFile.java	1.15 01/12/03
+ * @(#)ConfigFile.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -557,6 +557,10 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 
     private String expand(String value)
 	throws PropertyExpander.ExpandException, IOException {
+
+	if ("".equals(value)) {
+	    return value;
+	}
 
 	if (expandProp) {
 

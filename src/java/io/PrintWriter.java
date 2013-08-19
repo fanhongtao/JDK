@@ -1,7 +1,7 @@
 /*
- * @(#)PrintWriter.java	1.28 01/12/03
+ * @(#)PrintWriter.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ package java.io;
  * <p> Methods in this class never throw I/O exceptions.  The client may
  * inquire as to whether any errors have occurred by invoking checkError().
  *
- * @version 	1.28, 12/03/01
+ * @version 	1.29, 01/23/03
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1

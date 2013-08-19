@@ -1,7 +1,7 @@
 /*
- * @(#)Polygon.java	1.46 02/03/15
+ * @(#)Polygon.java	1.49 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -242,7 +242,8 @@ public class Polygon implements Shape, java.io.Serializable {
      * <code>Polygon</code> has already been performed, such as  
      * <code>getBounds</code> or <code>contains</code>, then this 
      * method updates the bounding box. 
-     * @param       x,&nbsp;y   the specified coordinates
+     * @param       x the specified x coordinate
+     * @param       y the specified y coordinate
      * @see         java.awt.Polygon#getBounds
      * @see         java.awt.Polygon#contains
      */
@@ -311,7 +312,8 @@ public class Polygon implements Shape, java.io.Serializable {
      * Determines whether the specified coordinates are inside this 
      * <code>Polygon</code>.   
      * <p>
-     * @param x,&nbsp;y  the specified coordinates to be tested
+     * @param x the specified x coordinate to be tested
+     * @param y the specified y coordinate to be tested
      * @return  <code>true</code> if this <code>Polygon</code> contains
      * 			the specified coordinates, (<i>x</i>,&nbsp;<i>y</i>);  
      * 			<code>false</code> otherwise.
@@ -325,7 +327,8 @@ public class Polygon implements Shape, java.io.Serializable {
     /**
      * Determines whether the specified coordinates are contained in this 
      * <code>Polygon</code>.
-     * @param x,&nbsp;y  the specified coordinates to be tested
+     * @param x the specified x coordinate to be tested
+     * @param y the specified y coordinate to be tested
      * @return  <code>true</code> if this <code>Polygon</code> contains
      * 		the specified coordinates, (<i>x</i>,&nbsp;<i>y</i>);  
      * 		<code>false</code> otherwise.
@@ -350,7 +353,8 @@ public class Polygon implements Shape, java.io.Serializable {
      * Determines if the specified coordinates are inside this 
      * <code>Polygon</code>.  For the definition of
      * <i>insideness</i>, see the class comments of {@link Shape}.
-     * @param x,&nbsp;y the specified coordinates
+     * @param x the specified x coordinate
+     * @param y the specified y coordinate
      * @return <code>true</code> if the <code>Polygon</code> contains the
      * specified coordinates; <code>false</code> otherwise.
      */
@@ -455,7 +459,9 @@ public class Polygon implements Shape, java.io.Serializable {
     /**
      * Tests if the interior of this <code>Polygon</code> intersects the 
      * interior of a specified set of rectangular coordinates.
-     * @param x,&nbsp;y the coordinates of the specified rectangular
+     * @param x the x coordinate of the specified rectangular
+     *			shape's top-left corner
+     * @param y the y coordinate of the specified rectangular
      *			shape's top-left corner
      * @param w the width of the specified rectangular shape
      * @param h the height of the specified rectangular shape
@@ -490,7 +496,9 @@ public class Polygon implements Shape, java.io.Serializable {
     /**
      * Tests if the interior of this <code>Polygon</code> entirely
      * contains the specified set of rectangular coordinates.
-     * @param x,&nbsp;y the coordinate of the top-left corner of the
+     * @param x the x coordinate of the top-left corner of the
+     * 			specified set of rectangular coordinates
+     * @param y the y coordinate of the top-left corner of the
      * 			specified set of rectangular coordinates
      * @param w the width of the set of rectangular coordinates
      * @param h the height of the set of rectangular coordinates
@@ -568,6 +576,10 @@ public class Polygon implements Shape, java.io.Serializable {
 	public PolygonPathIterator(Polygon pg, AffineTransform at) {
 	    poly = pg;
 	    transform = at;
+	    if (pg.npoints == 0) {
+		// Prevent a spurious SEG_CLOSE segment
+		index = 1;
+	    }
 	}
 
 	/**

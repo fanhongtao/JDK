@@ -1,7 +1,7 @@
 /*
- * @(#)Authenticator.java	1.25 01/12/03
+ * @(#)Authenticator.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ package java.net;
  * @see java.net.Authenticator#getPasswordAuthentication()
  *
  * @author  Bill Foote
- * @version 1.25, 12/03/01
+ * @version 1.27, 01/23/03
  * @since   1.2
  */
 
@@ -77,10 +77,13 @@ class Authenticator {
      * @see java.net.NetPermission
      */
     public synchronized static void setDefault(Authenticator a) {
-	NetPermission setDefaultPermission
-	    = new NetPermission("setDefaultAuthenticator");
 	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) sm.checkPermission(setDefaultPermission);
+	if (sm != null) {
+	    NetPermission setDefaultPermission
+		= new NetPermission("setDefaultAuthenticator");
+	    sm.checkPermission(setDefaultPermission);
+	}
+
 	theAuthenticator = a;
     }
 
@@ -118,10 +121,12 @@ class Authenticator {
 					    String prompt,
 					    String scheme) {
 
-	NetPermission requestPermission
-	    = new NetPermission("requestPasswordAuthentication");
 	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) sm.checkPermission(requestPermission);
+	if (sm != null) {
+	    NetPermission requestPermission
+		= new NetPermission("requestPasswordAuthentication");
+	    sm.checkPermission(requestPermission);
+	}
 
 	Authenticator a = theAuthenticator;
 	if (a == null) {
@@ -178,10 +183,12 @@ class Authenticator {
 					    String prompt,
 					    String scheme) {
 
-	NetPermission requestPermission
-	    = new NetPermission("requestPasswordAuthentication");
 	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) sm.checkPermission(requestPermission);
+	if (sm != null) {
+	    NetPermission requestPermission
+		= new NetPermission("requestPasswordAuthentication");
+	    sm.checkPermission(requestPermission);
+	}
 
 	Authenticator a = theAuthenticator;
 	if (a == null) {

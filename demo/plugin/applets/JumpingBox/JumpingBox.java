@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)JumpingBox.java	1.12 02/06/13
+ * @(#)JumpingBox.java	1.14 03/01/23
  */
 
 import java.awt.event.*;
@@ -108,7 +108,7 @@ public class JumpingBox extends java.applet.Applet
                          "sounds/tiptoe.thru.the.tulips.au");
                     break;
                 case 1:
-                    play(getCodeBase(), "sounds/danger,danger...!.au");
+                    play(getCodeBase(), "sounds/danger.au");
                     break;
                 case 2:
                     play(getCodeBase(), "sounds/adapt-or-die.au");

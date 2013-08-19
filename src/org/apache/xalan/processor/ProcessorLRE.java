@@ -249,7 +249,8 @@ public class ProcessorLRE extends ProcessorTemplateElem
           isExtension = parentElem.containsExtensionElementURI(uri);
 
           if ((false == isExtension) && (null != uri)
-              && uri.equals(Constants.S_BUILTIN_EXTENSIONS_URL))
+              && (uri.equals(Constants.S_BUILTIN_EXTENSIONS_URL)
+                  || uri.equals(Constants.S_BUILTIN_OLD_EXTENSIONS_URL)))
           {
             isComponentDecl = true;
           }

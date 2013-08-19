@@ -1,7 +1,7 @@
 /*
- * @(#)Thread.java	1.125 01/12/03
+ * @(#)Thread.java	1.127 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.security.AccessControlContext;
 import java.util.Map;
 import java.util.Collections;
 import sun.nio.ch.Interruptible;
+import sun.security.util.SecurityConstants;
 
 
 /**
@@ -99,7 +100,7 @@ import sun.nio.ch.Interruptible;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.125, 12/03/01
+ * @version 1.127, 01/23/03
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -145,9 +146,6 @@ class Thread implements Runnable {
     private static synchronized int nextThreadNum() {
 	return threadInitNumber++;
     }
-
-    // static permissions
-    private static RuntimePermission stopThreadPermission;
 
     /* ThreadLocal values pertaining to this thread. This map is maintained
      * by the ThreadLocal class. */
@@ -625,10 +623,7 @@ class Thread implements Runnable {
 	    if (security != null) {
 		checkAccess();
 		if (this != Thread.currentThread()) {
-		    if (stopThreadPermission == null)
-			stopThreadPermission =
-			    new RuntimePermission("stopThread");
-		    security.checkPermission(stopThreadPermission);
+		    security.checkPermission(SecurityConstants.STOP_THREAD_PERMISSION);
 		}
 	    }
 	    resume(); // Wake up thread if it was suspended; no-op otherwise
@@ -690,9 +685,7 @@ class Thread implements Runnable {
 	    checkAccess();
 	    if ((this != Thread.currentThread()) ||
 		(!(obj instanceof ThreadDeath))) {
-		if (stopThreadPermission == null)
-		    stopThreadPermission = new RuntimePermission("stopThread");
-		security.checkPermission(stopThreadPermission);
+		security.checkPermission(SecurityConstants.STOP_THREAD_PERMISSION);
 	    }
 	}
 	resume(); // Wake up thread if it was suspended; no-op otherwise
@@ -1186,7 +1179,7 @@ class Thread implements Runnable {
 	    ClassLoader ccl = ClassLoader.getCallerClassLoader();
 	    if (ccl != null && ccl != contextClassLoader && 
                     !contextClassLoader.isAncestor(ccl)) {
-		sm.checkPermission(ClassLoader.getGetClassLoaderPerm());
+		sm.checkPermission(SecurityConstants.GET_CLASSLOADER_PERMISSION);
 	    }
 	}
 	return contextClassLoader;

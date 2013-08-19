@@ -1,7 +1,7 @@
 /*
- * @(#)File.java	1.110 02/05/06
+ * @(#)File.java	1.113 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -84,7 +84,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.110, 05/06/02
+ * @version 1.113, 01/23/03
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -287,7 +287,7 @@ public class File implements java.io.Serializable, Comparable {
      * <p> For a given abstract pathname <i>f</i> it is guaranteed that
      *
      * <blockquote><tt>
-     * new File(</tt><i>&nbsp;f</i><tt>.{@link #toURI() toURI}()).equals(</tt><i>&nbsp;f</i><tt>)
+     * new File(</tt><i>&nbsp;f</i><tt>.{@link #toURI() toURI}()).equals(</tt><i>&nbsp;f</i><tt>.{@link #getAbsoluteFile() getAbsoluteFile}())
      * </tt></blockquote>
      *
      * so long as the original abstract pathname, the URI, and the new abstract
@@ -582,7 +582,7 @@ public class File implements java.io.Serializable, Comparable {
      * <p> For a given abstract pathname <i>f</i>, it is guaranteed that
      *
      * <blockquote><tt>
-     * new {@link #File(java.net.URI) File}(</tt><i>&nbsp;f</i><tt>.toURI()).equals(</tt><i>&nbsp;f</i><tt>)
+     * new {@link #File(java.net.URI) File}(</tt><i>&nbsp;f</i><tt>.toURI()).equals(</tt><i>&nbsp;f</i><tt>.{@link #getAbsoluteFile() getAbsoluteFile}())
      * </tt></blockquote>
      *
      * so long as the original abstract pathname, the URI, and the new abstract
@@ -661,15 +661,16 @@ public class File implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Tests whether the file denoted by this abstract pathname exists.
+     * Tests whether the file or directory denoted by this abstract pathname
+     * exists.
      *
-     * @return  <code>true</code> if and only if the file denoted by this
-     *          abstract pathname exists; <code>false</code> otherwise
+     * @return  <code>true</code> if and only if the file or directory denoted
+     *          by this abstract pathname exists; <code>false</code> otherwise
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
      *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
-     *          method denies read access to the file
+     *          method denies read access to the file or directory
      */
     public boolean exists() {
 	SecurityManager security = System.getSecurityManager();

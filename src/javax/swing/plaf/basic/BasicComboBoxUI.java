@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboBoxUI.java	1.151 02/04/05
+ * @(#)BasicComboBoxUI.java	1.155 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import sun.awt.AppContext;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.151 04/05/02
+ * @version 1.155 01/23/03
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -464,6 +464,10 @@ public class BasicComboBoxUI extends ComboBoxUI {
         public void focusGained( FocusEvent e ) {
             hasFocus = true;
             comboBox.repaint();
+	    
+	    if (comboBox.isEditable() && editor != null) {
+		editor.requestFocus();
+	    }
 
             // Notify assistive technologies that the combo box
             // gained focus.
@@ -1103,9 +1107,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
         int height = comboBox.getHeight();
         Insets insets = getInsets();
         int buttonSize = height - (insets.top + insets.bottom);
-        if ( arrowButton != null ) {
+	if ( arrowButton != null ) {
             buttonSize = arrowButton.getWidth();
-        }
+	}
 	if(BasicGraphicsUtils.isLeftToRight(comboBox)) {
 	    return new Rectangle(insets.left, insets.top,
 			     width - (insets.left + insets.right + buttonSize),
@@ -1221,12 +1225,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     protected Dimension getDefaultSize() {
 	// Calculates the height and width using the default text renderer
-	Component c = getDefaultListCellRenderer().getListCellRendererComponent(listBox, " ", -1, false, false);
-
-	currentValuePane.add(c);
-	c.setFont(comboBox.getFont());
-	Dimension d = c.getPreferredSize();
-	currentValuePane.remove(c);
+	Dimension d = getSizeForComponent(getDefaultListCellRenderer().getListCellRendererComponent(listBox, " ", -1, false, false));
 
         return new Dimension(d.width, d.height);
     }
@@ -1257,35 +1256,28 @@ public class BasicComboBoxUI extends ComboBoxUI {
         Object prototypeValue = comboBox.getPrototypeDisplayValue();
         if (prototypeValue != null)  {
             // Calculates the dimension based on the prototype value
-            Component cpn = renderer.getListCellRendererComponent(listBox, prototypeValue,
-                                                        -1, false, false);
-            currentValuePane.add(cpn);
-            cpn.setFont(comboBox.getFont());
-            result = cpn.getPreferredSize();
-            currentValuePane.remove(cpn);
-
+            result = getSizeForComponent(renderer.getListCellRendererComponent(listBox, 
+									       prototypeValue,
+									       -1, false, false));
         } else {
             // Calculate the dimension by iterating over all the elements in the combo
             // box list.
             ComboBoxModel model = comboBox.getModel();
             int modelSize = model.getSize();
+	    Dimension d;
 
             Component cpn;
-            Dimension d;
             
             if (modelSize > 0 ) {
                 for (int i = 0; i < modelSize ; i++ ) {
                     // Calculates the maximum height and width based on the largest
                     // element
-                    cpn = renderer.getListCellRendererComponent(listBox, model.getElementAt(i),
-                                                                -1, false, false);
-                    currentValuePane.add(cpn);
-                    cpn.setFont(comboBox.getFont());
-                    d = cpn.getPreferredSize();
-                    currentValuePane.remove(cpn);
-                
+                    d = getSizeForComponent(renderer.getListCellRendererComponent(listBox, 
+										  model.getElementAt(i),
+										  -1, false, false));
                     result.width = Math.max(result.width,d.width);
                     result.height = Math.max(result.height,d.height);
+
                 }
             } else {
 		result = getDefaultSize();
@@ -1293,13 +1285,13 @@ public class BasicComboBoxUI extends ComboBoxUI {
 		    result.width = 100;
 		}
             }
-	    if ( comboBox.isEditable() ) {
-		d = editor.getPreferredSize();
-		result.width = Math.max(result.width,d.width);
-		result.height = Math.max(result.height,d.height);
-	    }
-
         }
+
+	if ( comboBox.isEditable() ) {
+	    Dimension d = editor.getPreferredSize();
+	    result.width = Math.max(result.width,d.width);
+	    result.height = Math.max(result.height,d.height);
+	}
         
         // Set the cached value
         cachedDisplaySize.setSize(result.width, result.height);
@@ -1307,6 +1299,21 @@ public class BasicComboBoxUI extends ComboBoxUI {
 
         return result;
     }
+
+    /**
+     * This has been refactored out in hopes that it may be investigated and
+     * simplified for the next major release. adding/removing
+     * the component to the currentValuePane and changing the font may be 
+     * redundant operations.
+     */
+    private Dimension getSizeForComponent(Component comp) {
+	currentValuePane.add(comp);
+	comp.setFont(comboBox.getFont());
+	Dimension d = comp.getPreferredSize();
+	currentValuePane.remove(comp);
+	return d;
+    }
+	
 
     //
     // end Size Utility Methods
@@ -1389,6 +1396,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
 	public void actionPerformed( ActionEvent e ) {
 	    JComboBox comboBox = (JComboBox)e.getSource();
 	    if ( comboBox.isEnabled() ) {
+		comboBox.firePopupMenuCanceled();
 		comboBox.setPopupVisible(false);
 	    }
 	}

@@ -1,7 +1,7 @@
 /*
- * @(#)CharacterBreakData.java	1.15 01/12/03
+ * @(#)CharacterBreakData.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -201,6 +201,8 @@ final class CharacterBreakData extends TextBoundaryData
         baseForm, //CURRENCY_SYMBOL     = 26,
         baseForm, //MODIFIER_SYMBOL     = 27,
         baseForm, //OTHER_SYMBOL        = 28;
+        baseForm, //INITIAL_QUOTE_PUNCTUATION = 29;
+        baseForm, //FINAL_QUOTE_PUNCTUATION   = 30;
     };
 
     private static final SpecialMapping kExceptionChar[] = //{};
@@ -243,7 +245,9 @@ final class CharacterBreakData extends TextBoundaryData
         false,          // kMathSymbol              = 25,
         false,          // kCurrencySymbol          = 26,
         false,          // kModifierSymbol          = 27,
-        false           // kOtherSymbol             = 28
+        false,          // kOtherSymbol             = 28,
+        false,          // kInitialQuotePunctuation = 29,
+        false,          // kFinalQuotePunctuation   = 30,
     };
 
     private static final int kCharacterAsciiValues[] = {

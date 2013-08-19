@@ -1,7 +1,7 @@
 /*
- * @(#)ListSelectionModel.java	1.18 01/12/03
+ * @(#)ListSelectionModel.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * a closed interval, i.e. the interval includes both index0 and
  * index1.
  * 
- * @version 1.18 12/03/01
+ * @version 1.20 01/23/03
  * @author Hans Muller
  * @author Philip Milne
  * @see DefaultListSelectionModel
@@ -232,7 +232,7 @@ public interface ListSelectionModel
      * Add a listener to the list that's notified each time a change
      * to the selection occurs.
      * 
-     * @param l the ListSelectionListener
+     * @param x the ListSelectionListener
      * @see #removeListSelectionListener
      * @see #setSelectionInterval
      * @see #addSelectionInterval
@@ -247,7 +247,7 @@ public interface ListSelectionModel
      * Remove a listener from the list that's notified each time a 
      * change to the selection occurs.
      * 
-     * @param l the ListSelectionListener
+     * @param x the ListSelectionListener
      * @see #addListSelectionListener
      */  
     void removeListSelectionListener(ListSelectionListener x);

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFormatter.java	1.7 02/03/20
+ * @(#)DefaultFormatter.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -36,7 +36,7 @@ import javax.swing.text.*;
  *
  * @see javax.swing.JFormattedTextField.AbstractFormatter
  *
- * @version 1.7 03/20/02
+ * @version 1.10 01/23/03
  * @since 1.4
  */
 public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
@@ -210,7 +210,7 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
      * argument String constructor, <code>string</code> will be returned.
      *
      * @throws ParseException if there is an error in the conversion
-     * @param String String to convert
+     * @param string String to convert
      * @return Object representation of text
      */
     public Object stringToValue(String string) throws ParseException {
@@ -660,11 +660,23 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
     private class DefaultNavigationFilter extends NavigationFilter
                              implements Serializable {
         public void setDot(FilterBypass fb, int dot, Position.Bias bias) {
-            DefaultFormatter.this.setDot(fb, dot, bias);
+	    JTextComponent tc = DefaultFormatter.this.getFormattedTextField();
+            if (tc.composedTextExists()) {
+		// bypass the filter
+                fb.setDot(dot, bias);
+	    } else {
+                DefaultFormatter.this.setDot(fb, dot, bias);
+	    }
         }
 
         public void moveDot(FilterBypass fb, int dot, Position.Bias bias) {
-            DefaultFormatter.this.moveDot(fb, dot, bias);
+	    JTextComponent tc = DefaultFormatter.this.getFormattedTextField();
+            if (tc.composedTextExists()) {
+		// bypass the filter
+                fb.moveDot(dot, bias);
+	    } else {
+                DefaultFormatter.this.moveDot(fb, dot, bias);
+	    }
         }
 
         public int getNextVisualPositionFrom(JTextComponent text, int pos,
@@ -672,8 +684,14 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
                                              int direction,
                                              Position.Bias[] biasRet)
                                            throws BadLocationException {
-            return DefaultFormatter.this.getNextVisualPositionFrom(
-                    text, pos, bias, direction, biasRet);
+            if (text.composedTextExists()) {
+		// forward the call to the UI directly
+		return text.getUI().getNextVisualPositionFrom(
+			text, pos, bias, direction, biasRet);
+	    } else {
+		return DefaultFormatter.this.getNextVisualPositionFrom(
+			text, pos, bias, direction, biasRet);
+	    }
         }
     }
 
@@ -686,19 +704,39 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
                              Serializable {
         public void remove(FilterBypass fb, int offset, int length) throws
                               BadLocationException {
-            DefaultFormatter.this.replace(fb, offset, length, null, null);
+	    JTextComponent tc = DefaultFormatter.this.getFormattedTextField();
+	    if (tc.composedTextExists()) {
+		// bypass the filter
+		fb.remove(offset, length);
+	    } else {
+		DefaultFormatter.this.replace(fb, offset, length, null, null);
+	    }
         }
 
         public void insertString(FilterBypass fb, int offset,
                                  String string, AttributeSet attr) throws
                               BadLocationException {
-            DefaultFormatter.this.replace(fb, offset, 0, string, attr);
+	    JTextComponent tc = DefaultFormatter.this.getFormattedTextField();
+	    if (tc.composedTextExists() || 
+		Utilities.isComposedTextAttributeDefined(attr)) {
+		// bypass the filter
+		fb.insertString(offset, string, attr);
+	    } else {
+		DefaultFormatter.this.replace(fb, offset, 0, string, attr);
+	    }
         }
 
         public void replace(FilterBypass fb, int offset, int length,
                                  String text, AttributeSet attr) throws
                               BadLocationException {
-            DefaultFormatter.this.replace(fb, offset, length, text, attr);
+	    JTextComponent tc = DefaultFormatter.this.getFormattedTextField();
+	    if (tc.composedTextExists() || 
+		Utilities.isComposedTextAttributeDefined(attr)) {
+		// bypass the filter
+		fb.replace(offset, length, text, attr);
+	    } else {
+		DefaultFormatter.this.replace(fb, offset, length, text, attr);
+	    }
         }
     }
 }

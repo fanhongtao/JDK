@@ -1,7 +1,7 @@
 /*
- * @(#)Robot.java	1.21 02/03/15
+ * @(#)Robot.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,7 @@ import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
 import sun.awt.ComponentFactory;
 import sun.awt.SunToolkit;
+import sun.security.util.SecurityConstants;
 
 /**
  * This class is used to generate native system input events
@@ -37,7 +38,7 @@ import sun.awt.SunToolkit;
  * Applications that use Robot for purposes other than self-testing should 
  * handle these error conditions gracefully.
  *
- * @version 	1.21, 03/15/02
+ * @version 	1.24, 01/23/03
  * @author 	Robi Khan
  * @since   	1.3
  */
@@ -46,8 +47,6 @@ public class Robot {
     private RobotPeer peer;
     private boolean isAutoWaitForIdle = false;
     private int	autoDelay = 0;
-    private static AWTPermission readDisplayPixelsPermission = null;
-    private static AWTPermission createRobotPermission = null;
     private static final int LEGAL_BUTTON_MASK = 
 					    InputEvent.BUTTON1_MASK|
 					    InputEvent.BUTTON2_MASK|
@@ -118,16 +117,9 @@ public class Robot {
 
     /* determine if the security policy allows Robot's to be created */
     private void checkRobotAllowed() {
-	synchronized(Robot.class) {
-	    SecurityManager security = System.getSecurityManager();
-	    AWTPermission createRobotPermission = null;
-
-	    if (security != null) {
-		if (createRobotPermission == null) {
-		    createRobotPermission = new AWTPermission("createRobot");
-		}
-		security.checkPermission(createRobotPermission);
-	    }
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkPermission(SecurityConstants.CREATE_ROBOT_PERMISSION);
 	}
     }
 
@@ -213,7 +205,7 @@ public class Robot {
      * (e.g. <code>KeyEvent.VK_SHIFT</code> could mean either the 
      * left or right shift key) will map to the left key.
      *
-     * @param	keyCode	Key to press (e.g. <code>KeyEvent.VK_A</code>)
+     * @param	keycode	Key to press (e.g. <code>KeyEvent.VK_A</code>)
      * @throws 	IllegalArgumentException if <code>keycode</code> is not a valid key
      * @see     java.awt.event.KeyEvent
      */
@@ -230,7 +222,7 @@ public class Robot {
      * (e.g. <code>KeyEvent.VK_SHIFT</code> could mean either the 
      * left or right shift key) will map to the left key.
      *
-     * @param	keyCode	Key to release (e.g. <code>KeyEvent.VK_A</code>)
+     * @param	keycode	Key to release (e.g. <code>KeyEvent.VK_A</code>)
      * @throws 	IllegalArgumentException if <code>keycode</code> is not a valid key
      * @see     java.awt.event.KeyEvent
      */
@@ -315,15 +307,10 @@ public class Robot {
     }
 
     private static void checkScreenCaptureAllowed() {
-	synchronized(Robot.class) {
-	    SecurityManager security = System.getSecurityManager();
-
-	    if (security != null) {
-		if (readDisplayPixelsPermission == null) {
-		    readDisplayPixelsPermission = new AWTPermission("readDisplayPixels");
-		}
-		security.checkPermission(readDisplayPixelsPermission);
-	    }
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkPermission(
+		SecurityConstants.READ_DISPLAY_PIXELS_PERMISSION);
 	}
     }
 

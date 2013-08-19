@@ -102,13 +102,47 @@ public class Constants
 	S_VENDORURL = "http://xml.apache.org";
 
   /** S_BUILTIN_EXTENSIONS_URL is a mnemonic for the XML Namespace 
-   *(http://xml.apache.org/xslt) predefined to signify Xalan's
+   *(http://xml.apache.org/xalan) predefined to signify Xalan's
    * built-in XSLT Extensions. When used in stylesheets, this is often 
    * bound to the "xalan:" prefix.
    */
   public static final String 
-    S_BUILTIN_EXTENSIONS_URL = "http://xml.apache.org/xslt"; 
+    S_BUILTIN_EXTENSIONS_URL = "http://xml.apache.org/xalan"; 
+
+  /**
+   * The old built-in extension url. It is still supported for
+   * backward compatibility.
+   */
+  public static final String 
+    S_BUILTIN_OLD_EXTENSIONS_URL = "http://xml.apache.org/xslt"; 
   
+  /**
+   * Xalan extension namespaces.
+   */
+  public static final String 
+    // The old namespace for Java extension
+    S_EXTENSIONS_OLD_JAVA_URL = "http://xml.apache.org/xslt/java",
+    // The new namespace for Java extension
+    S_EXTENSIONS_JAVA_URL = "http://xml.apache.org/xalan/java",
+    S_EXTENSIONS_LOTUSXSL_JAVA_URL = "http://xsl.lotus.com/java",
+    S_EXTENSIONS_XALANLIB_URL = "http://xml.apache.org/xalan",
+    S_EXTENSIONS_REDIRECT_URL = "http://xml.apache.org/xalan/redirect",
+    S_EXTENSIONS_PIPE_URL = "http://xml.apache.org/xalan/PipeDocument",
+    S_EXTENSIONS_SQL_URL = "http://xml.apache.org/xalan/sql";
+  
+  /**
+   * EXSLT extension namespaces.
+   */
+  public static final String
+    S_EXSLT_COMMON_URL = "http://exslt.org/common",
+    S_EXSLT_MATH_URL = "http://exslt.org/math",
+    S_EXSLT_SETS_URL = "http://exslt.org/sets",
+    S_EXSLT_DATETIME_URL = "http://exslt.org/dates-and-times",
+    S_EXSLT_FUNCTIONS_URL = "http://exslt.org/functions",
+    S_EXSLT_DYNAMIC_URL = "http://exslt.org/dynamic",
+    S_EXSLT_STRINGS_URL = "http://exslt.org/strings";
+    
+    
   /**
    * The minimum version of XSLT supported by this processor.
    */
@@ -177,7 +211,7 @@ public class Constants
   ELEMNAME_EXTENSIONSCRIPT = 86, ELEMNAME_OUTPUT = 80,
   ELEMNAME_COMPONENT = 81, ELEMNAME_SCRIPT = 82;
 
-  // Next free number: 87
+  // Next free number: 90 (88 and 89 used for EXSLT elements);
 
   /**
    * Literals for XSL element names.  Note that there are more
@@ -251,6 +285,17 @@ public class Constants
       ELEMNAME_VARIABLE_STRING = "variable",
       ELEMNAME_WHEN_STRING = "when",
       ELEMNAME_WITHPARAM_STRING = "with-param";
+  
+  /**
+   * Literals for EXSLT function elements.
+   */
+  public static final String
+    EXSLT_ELEMNAME_FUNCTION_STRING = "function",
+    EXSLT_ELEMNAME_FUNCRESULT_STRING = "result";
+  public static final int
+    EXSLT_ELEMNAME_FUNCTION = 88,
+    EXSLT_ELEMNAME_FUNCRESULT = 89;
+  
   
   /**
    * Literals for XSL attribute names.  Note that there may be more
@@ -433,6 +478,8 @@ public class Constants
   /** For Stylesheet-prefix and result-prefix in xsl:namespace-alias          */
   public static final String ATTRVAL_DEFAULT_PREFIX = "#default";
 
+ /** Integer equivalents for above        */
+  public static final int NUMBERLETTER_ALPHABETIC = 1, NUMBERLETTER_TRADITIONAL = 2;
   
   /** Integer equivelents for above        */
   public static final int NUMBERLEVEL_SINGLE = 1, NUMBERLEVEL_MULTI = 2,
@@ -452,6 +499,14 @@ public class Constants
                              ATTRVAL_CASEORDER_UPPER = "upper-first",
                              ATTRVAL_CASEORDER_LOWER = "lower-first";
 
+ /** Integer equivelents for DATATYPE attribute */
+  public static final int SORTDATATYPE_TEXT = 1, SORTDATATYPE_NUMBER = 2;
+
+  /** Integer equivelents for ORDER attribute */
+  public static final int SORTORDER_ASCENDING = 1, SORTORDER_DESCENDING = 2;
+  
+  /** Integer equivelents for CASE-ORDER attribute */
+  public static final int SORTCASEORDER_UPPERFIRST = 1, SORTCASEORDER_LOWERFIRST = 2;
   
   /** some stuff for Decimal-format       */
   public static final String ATTRVAL_INFINITY = "Infinity",

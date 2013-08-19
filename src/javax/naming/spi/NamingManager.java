@@ -1,7 +1,7 @@
 /*
- * @(#)NamingManager.java	1.16 01/12/03
+ * @(#)NamingManager.java	1.18 03/05/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import com.sun.naming.internal.FactoryEnumeration;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.16 01/12/03
+ * @version 1.18 03/05/09
  * @since 1.3
  */
 
@@ -750,16 +750,18 @@ public class NamingManager {
      * @exception NamingException If a naming exception occurred.
      */
     public static Context getContinuationContext(CannotProceedException cpe)
-	    throws NamingException
-    {
+	    throws NamingException {
+
 	Hashtable env = cpe.getEnvironment();
-	if (env == null) {
-	    env = new Hashtable(7);
-	    cpe.setEnvironment(env);
-	}
+        if (env == null) {
+            env = new Hashtable(7);
+        } else {
+            // Make a (shallow) copy of the environment.
+            env = (Hashtable) env.clone();
+        }
 	env.put(CPE, cpe);
 
-	ContinuationContext cctx = new ContinuationContext(cpe);
+	ContinuationContext cctx = new ContinuationContext(cpe, env);
 	return cctx.getTargetContext();
     }
 

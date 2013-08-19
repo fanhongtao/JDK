@@ -1,7 +1,7 @@
 /*
- * @(#)LegacyGlueFocusTraversalPolicy.java	1.3 01/12/03
+ * @(#)LegacyGlueFocusTraversalPolicy.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -22,7 +22,7 @@ import java.io.*;
  * been hard coded, then that traversal is provided either by the custom
  * DefaultFocusManager, or by a wrapped FocusTraversalPolicy instance.
  *
- * @version 1.3, 12/03/01
+ * @version 1.5, 01/23/03
  * @author David Mendenhall
  */
 final class LegacyGlueFocusTraversalPolicy extends FocusTraversalPolicy
@@ -59,7 +59,8 @@ final class LegacyGlueFocusTraversalPolicy extends FocusTraversalPolicy
             prevHardCoded = hardCoded;
             hardCoded = (Component)forwardMap.get(hardCoded);
             if (hardCoded == null) {
-                if (delegatePolicy != null) {
+                if (delegatePolicy != null &&
+		    prevHardCoded.isFocusCycleRoot(focusCycleRoot)) {
                     return delegatePolicy.getComponentAfter(focusCycleRoot,
                                                             prevHardCoded);
                 } else if (delegateManager != null) {
@@ -87,7 +88,8 @@ final class LegacyGlueFocusTraversalPolicy extends FocusTraversalPolicy
             prevHardCoded = hardCoded;
             hardCoded = (Component)backwardMap.get(hardCoded);
             if (hardCoded == null) {
-                if (delegatePolicy != null) {
+                if (delegatePolicy != null &&
+		    prevHardCoded.isFocusCycleRoot(focusCycleRoot)) {
                     return delegatePolicy.getComponentBefore(focusCycleRoot,
                                                        prevHardCoded);
                 } else if (delegateManager != null) {

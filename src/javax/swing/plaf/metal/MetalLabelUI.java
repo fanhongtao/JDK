@@ -1,7 +1,7 @@
 /*
- * @(#)MetalLabelUI.java	1.9 01/12/03
+ * @(#)MetalLabelUI.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.awt.*;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.9 12/03/01
+ * @version 1.10 01/23/03
  * @author Hans Muller
  */
 

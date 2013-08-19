@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSet.java	1.17 01/12/03
+ * @(#)AbstractSet.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,10 +21,14 @@ package java.util;
  *
  * Note that this class does not override any of the implementations from
  * the <tt>AbstractCollection</tt> class.  It merely adds implementations
- * for <tt>equals</tt> and <tt>hashCode</tt>.
+ * for <tt>equals</tt> and <tt>hashCode</tt>.<p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.17, 12/03/01
+ * @version 1.19, 01/23/03
  * @see Collection
  * @see AbstractCollection
  * @see Set

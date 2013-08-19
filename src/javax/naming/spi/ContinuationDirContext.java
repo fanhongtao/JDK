@@ -1,7 +1,7 @@
 /*
- * @(#)ContinuationDirContext.java	1.5 01/12/03
+ * @(#)ContinuationDirContext.java	1.7 03/05/09
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,14 +27,14 @@ import javax.naming.directory.ModificationItem;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 01/12/03
+  * @version 1.7 03/05/09
   * @since 1.3
   */
 
 class ContinuationDirContext extends ContinuationContext implements DirContext {
 
-    ContinuationDirContext(CannotProceedException cpe) {
-	super(cpe);
+    ContinuationDirContext(CannotProceedException cpe, Hashtable env) {
+	super(cpe, env);
     }
 
     protected DirContextNamePair getTargetContext(Name name)
@@ -46,7 +46,7 @@ class ContinuationDirContext extends ContinuationContext implements DirContext {
 	Context ctx = NamingManager.getContext(cpe.getResolvedObj(),
 					       cpe.getAltName(),
 					       cpe.getAltNameCtx(),
-					       cpe.getEnvironment());
+					       env);
 	if (ctx == null)
 	    throw (NamingException)cpe.fillInStackTrace();
 
@@ -82,7 +82,7 @@ class ContinuationDirContext extends ContinuationContext implements DirContext {
 	Context ctx = NamingManager.getContext(cpe.getResolvedObj(),
 					       cpe.getAltName(),
 					       cpe.getAltNameCtx(),
-					       cpe.getEnvironment());
+					       env);
 
 	if (ctx instanceof DirContext)
 	    return new DirContextStringPair((DirContext)ctx, name);

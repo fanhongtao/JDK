@@ -1,7 +1,7 @@
 /*
- * @(#)Charset.java	1.34 03/12/02
+ * @(#)Charset.java	1.36 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import sun.misc.ASCIICaseInsensitiveComparator;
 import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 import sun.nio.cs.StandardCharsets;
@@ -123,7 +124,8 @@ import sun.nio.cs.ThreadLocalCoders;
  * following standard charsets.  Consult the release documentation for your
  * implementation to see if any other charsets are supported.
  * 
- * <blockquote><table width="80%">
+ * <blockquote><table width="80%" summary="Description of standard charsets">
+ * <tr><th><p align="left">Charset</p></th><th><p align="left">Description</p></th></tr>
  * <tr><td valign=top><tt>US-ASCII</tt></td>
  *     <td>Seven-bit ASCII, a.k.a. <tt>ISO646-US</tt>,
  *         a.k.a. the Basic Latin block of the Unicode character set</td></tr>
@@ -232,7 +234,7 @@ import sun.nio.cs.ThreadLocalCoders;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.34, 03/12/02
+ * @version 1.36, 03/01/23
  * @since 1.4
  *
  * @see CharsetDecoder
@@ -371,43 +373,6 @@ public abstract class Charset
 	}
     }
 
-    /* The extended set of charsets */
-    private static Object extendedProviderLock = new Object();
-    private static boolean extendedProviderProbed = false;
-    private static CharsetProvider extendedProvider = null;
-
-    private static void probeExtendedProvider() {
-      AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                  try {
-                      Class epc
-                          = Class.forName("sun.nio.cs.ext.ExtendedCharsets");
-                      extendedProvider = (CharsetProvider)epc.newInstance();
-                  } catch (ClassNotFoundException x) {
-                      // Extended charsets not available
-                      // (charsets.jar not present)
-                  } catch (InstantiationException x) {
-                      throw new Error(x);
-                  } catch (IllegalAccessException x) {
-                      throw new Error(x);
-                  }
-                  return null;
-              }
-          });
-    }
-
-    private static Charset lookupExtendedCharset(String charsetName) {
-      CharsetProvider ecp = null;
-      synchronized (extendedProviderLock) {
-          if (!extendedProviderProbed) {
-              probeExtendedProvider();
-              extendedProviderProbed = true;
-          }
-          ecp = extendedProvider;
-      }
-      return (ecp != null) ? ecp.charsetForName(charsetName) : null;
-    }
-
     private static Charset lookup(String charsetName) {
 	if (charsetName == null)
 	    throw new IllegalArgumentException("Null charset name");
@@ -415,9 +380,6 @@ public abstract class Charset
 	if ((ca != null) && ca[0].equals(charsetName))
 	    return (Charset)ca[1];
 	Charset cs = standardProvider.charsetForName(charsetName);
-	if (cs != null)
-	    return cache(charsetName, cs);
-	cs = lookupExtendedCharset(charsetName);
 	if (cs != null)
 	    return cache(charsetName, cs);
 	cs = lookupViaProviders(charsetName);
@@ -509,7 +471,7 @@ public abstract class Charset
 	return (SortedMap)AccessController
 	    .doPrivileged(new PrivilegedAction() {
 		public Object run() {
-		    TreeMap m = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+		    TreeMap m = new TreeMap(ASCIICaseInsensitiveComparator.CASE_INSENSITIVE_ORDER);
 		    put(standardProvider.charsets(), m);
 		    for (Iterator i = providers(); i.hasNext();) {
 			CharsetProvider cp = (CharsetProvider)i.next();
@@ -733,7 +695,7 @@ public abstract class Charset
      * detect such sequences, use the {@link
      * CharsetEncoder#encode(java.nio.CharBuffer)} method directly.  </p>
      *
-     * @param  bb  The char buffer to be encoded
+     * @param  cb  The char buffer to be encoded
      *
      * @return  A byte buffer containing the encoded characters
      */

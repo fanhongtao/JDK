@@ -1,7 +1,7 @@
 /*
- * @(#)ViewportLayout.java	1.34 01/12/03
+ * @(#)ViewportLayout.java	1.36 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.34 12/03/01
+ * @version 1.36 01/23/03
  * @author Hans Muller
  */
 public class ViewportLayout implements LayoutManager, Serializable
@@ -43,14 +43,14 @@ public class ViewportLayout implements LayoutManager, Serializable
     /**
      * Adds the specified component to the layout. Not used by this class.
      * @param name the name of the component
-     * @param comp the the component to be added
+     * @param c the the component to be added
      */
     public void addLayoutComponent(String name, Component c) { }
 
     /**
      * Removes the specified component from the layout. Not used by
      * this class.
-     * @param comp the component to remove
+     * @param c the component to remove
      */
     public void removeLayoutComponent(Component c) { }
 
@@ -58,7 +58,7 @@ public class ViewportLayout implements LayoutManager, Serializable
     /**
      * Returns the preferred dimensions for this layout given the components
      * in the specified target container.
-     * @param target the component which needs to be laid out
+     * @param parent the component which needs to be laid out
      * @return a <code>Dimension</code> object containing the
      *		preferred dimensions
      * @see #minimumLayoutSize
@@ -81,7 +81,7 @@ public class ViewportLayout implements LayoutManager, Serializable
      * Returns the minimum dimensions needed to layout the components
      * contained in the specified target container.
      *
-     * @param target the component which needs to be laid out
+     * @param parent the component which needs to be laid out
      * @return a <code>Dimension</code> object containing the minimum
      *		dimensions
      * @see #preferredLayoutSize

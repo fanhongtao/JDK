@@ -1,7 +1,7 @@
 /*
- * @(#)PlainDocument.java	1.39 01/12/03
+ * @(#)PlainDocument.java	1.40 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -36,7 +36,7 @@ import javax.swing.event.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.39 12/03/01
+ * @version 1.40 01/23/03
  * @see     Document
  * @see     AbstractDocument
  */

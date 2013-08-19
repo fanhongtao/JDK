@@ -1,7 +1,7 @@
 /*
- * @(#)Line2D.java	1.24 01/12/03
+ * @(#)Line2D.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.Rectangle;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.24, 12/03/01
+ * @version 	1.27, 01/23/03
  * @author	Jim Graham
  */
 public abstract class Line2D implements Shape, Cloneable {
@@ -625,7 +625,11 @@ public abstract class Line2D implements Shape, Cloneable {
 	// vector minus the length of its projection onto the line
 	// (which is zero if the projection falls outside the range
 	//  of the line segment).
-	return PX * PX + PY * PY - projlenSq;
+	double lenSq = PX * PX + PY * PY - projlenSq;
+	if (lenSq < 0) {
+	    lenSq = 0;
+	}
+	return lenSq;
     }
 
     /**
@@ -753,7 +757,11 @@ public abstract class Line2D implements Shape, Cloneable {
 	double projlenSq = dotprod * dotprod / (X2 * X2 + Y2 * Y2);
 	// Distance to line is now the length of the relative point
 	// vector minus the length of its projection onto the line
-	return PX * PX + PY * PY - projlenSq;
+	double lenSq = PX * PX + PY * PY - projlenSq;
+	if (lenSq < 0) {
+	    lenSq = 0;
+	}
+	return lenSq;
     }
 
     /**

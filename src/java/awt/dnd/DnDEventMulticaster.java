@@ -1,7 +1,7 @@
 /*
- * @(#)DnDEventMulticaster.java	1.3 01/12/17
+ * @(#)DnDEventMulticaster.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt.dnd;
@@ -20,7 +20,7 @@ import java.util.EventListener;
  * thread-safe multi-cast event dispatching for the drag-and-drop events defined
  * in the java.awt.dnd package.
  *
- * @version 	1.3, 12/17/01
+ * @version 	1.4, 01/23/03
  * @since 	1.4
  * @see AWTEventMulticaster
  */

@@ -59,12 +59,22 @@
 
 package org.apache.crimson.parser;
 
+import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.FileNotFoundException;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Vector;
+import java.util.Properties;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
@@ -185,17 +195,18 @@ public class Parser2
     private DeclHandler         declHandler;
     private LexicalHandler      lexicalHandler;
 
+    private boolean disallowDoctypeDecl = false ;    
+    private String propertyEntityExpansionLimit = null;
+    private String propertyDisallowDoctypeDecl = null ;
+    
     //restricting entity expansions
     //set this value to zero, initially no entity is expanded
     private int entityExpansionCount = 0 ;
     //this can be set to any arbitrary value, it would be reset by the value obtained from system property.
     private int entityExpansionLimit = -1 ;
-    private String propertyEntityExpansionLimit = null;
-    
-    //disllow doctype decl
-    private String propertyDisallowDoctypeDecl = null;
-    private boolean disallowDoctypeDecl = false ;
 
+    private static final int DEFAULT_ENTITY_EXPANSION_LIMIT = 64000 ;
+    
     // Compile time option:  disable validation support for a better
     // fit in memory-critical environments (P-Java etc).  Doing that
     // and removing the validating parser support saves (at this time)
@@ -208,10 +219,12 @@ public class Parser2
     // package private
     static final String         strANY = "ANY";
     static final String         strEMPTY = "EMPTY";
-
+    
     // system properties
     static final String SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT = "entityExpansionLimit" ;
     static final String SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL = "disallowDoctypeDecl" ;
+    
+    static final boolean SECURITY_DEBUG = false ;
 
     ////////////////////////////////////////////////////////////////
     //
@@ -225,7 +238,9 @@ public class Parser2
     public Parser2 ()
     {
         locator = new DocLocator ();
-        setHandlers ();
+        setHandlers ();        
+        //setSecuirtyConstraintValues()
+        setSecurityConstraintValues() ;
     }
 
     /**
@@ -382,7 +397,6 @@ public class Parser2
     private void init ()
     {
         in = null;
-
         // alloc temporary data used in parsing
         attTmp = new AttributesExImpl ();
         strTmp = new StringBuffer ();
@@ -425,28 +439,114 @@ public class Parser2
         
         setHandlers ();
         
+        //only for SECURITY_DEBUG
+        if(SECURITY_DEBUG)System.out.println(" Last Entity expansion count = " + entityExpansionCount );
+        
         //reset it to zero before next parse
         entityExpansionCount = 0;
         
-        //SYSTEM PROPERTY ENTITY EXPANSION LIMIT
-	
-        //its good to check for system property value again (though this is little overhead) for every parse, 
-        //an application might set the different limit for another XML document
-        propertyEntityExpansionLimit = System.getProperty(SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT);
-        if(propertyEntityExpansionLimit != null){
-            entityExpansionLimit = Integer.parseInt(propertyEntityExpansionLimit);
+        //if there is no limit set by the application.. set the default entity expansion limit to DEFAULT_ENTITY_EXPANSION_LIMIT 
+        if(entityExpansionLimit < 0){
+            entityExpansionLimit = DEFAULT_ENTITY_EXPANSION_LIMIT ;
         }
-	
-        //SYSTEM PROPERTY DISALLOW DOCTYPE DECL
-        //its good to check for system property value again (though this is little overhead) for every parse, 
-        //an application might set the different value for another XML document        
-        propertyDisallowDoctypeDecl = System.getProperty(SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL);
-        if(propertyDisallowDoctypeDecl != null && (propertyDisallowDoctypeDecl.equals("true") || propertyDisallowDoctypeDecl.equals("TRUE"))){
-            disallowDoctypeDecl = true;
+        if(SECURITY_DEBUG){ 
+            System.out.println(" Entity expansion limit in effect = " + entityExpansionLimit );
+            System.out.println(" DisallowDoctypeDecl in effect = " + disallowDoctypeDecl );
         }
-	
+        
     }//init()
 
+    void setSecurityConstraintValues(){
+        
+        //SYSTEM PROPERTY ENTITY EXPANSION LIMIT        
+        //get the value of  entityExpansionLimit from SYSTEM PROPERTY
+        //put this code in doPriviliged block so it can still be executed if the caller have less privileges        
+        try {
+            propertyEntityExpansionLimit = (String)AccessController.doPrivileged(new PrivilegedAction(){
+                public Object run(){
+                    return System.getProperty(SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT);
+                }
+            });
+        } catch ( SecurityException se ) {
+            //This exception can happen in case we are running as an applet
+        }
+
+        //SYSTEM PROPERTY DISALLOW DOCTYPE DECL
+        //get the value of disallowDoctypeDecl from system property 
+        //put this code in doPriviliged block so it can still be executed if the caller have less privileges        
+        try {
+            propertyDisallowDoctypeDecl = (String) AccessController.doPrivileged( new PrivilegedAction(){
+                public Object run(){
+                    return System.getProperty(SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL);
+                }
+            });
+
+        } catch ( SecurityException se ) {
+            //This exception can happen in case we are running as an applet
+        }
+
+        if(SECURITY_DEBUG){
+            System.out.println(" ENTITY_EXPANSION_LIMIT SET FROM SYSTEM PROPERTY = " + propertyEntityExpansionLimit );
+            System.out.println(" DISALLOW_DOCTYPE_DECL SET FROM SYSTEM PROPERTY = " + propertyDisallowDoctypeDecl );
+        }
+        
+        //if either of the value is not set.. try to get the value from jaxp.properties file.. 
+        if( propertyEntityExpansionLimit == null || propertyDisallowDoctypeDecl == null ){            
+            //for performance reasons don't read jaxp.properties file again and again.. 
+            
+            // try to read from $java.home/lib/jaxp.properties
+            try {
+                //put this code in doPriviliged block so it can still be executed if the caller have less privileges
+                FileInputStream fis = (FileInputStream) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                    public Object run() throws FileNotFoundException {
+                        String javah = System.getProperty( "java.home" );
+                        String configFile = javah + File.separator +
+                        "lib" + File.separator + "jaxp.properties";
+                        File f = new File( configFile );                         
+                        if(f.exists()){
+                            return new FileInputStream(f);
+                        }
+                        else{
+                            return null ;
+                        }
+                    }
+                });
+                if(fis != null){
+                    Properties props = new Properties();
+                    props.load( fis );
+                    //we dont know which one was null..
+                    if(propertyEntityExpansionLimit == null){
+                        propertyEntityExpansionLimit = props.getProperty(SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT);
+                        if(SECURITY_DEBUG)System.out.println("Value from jaxp.properites file, propertyEntityExpansionLimit = " + propertyEntityExpansionLimit );
+                    }
+                    //we dont know which one was null..
+                    if(propertyDisallowDoctypeDecl == null){
+                        propertyDisallowDoctypeDecl = props.getProperty(SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL);
+                        if(SECURITY_DEBUG)System.out.println("Value from jaxp.properites file, propertyDisallowDoctypeDecl = " + propertyDisallowDoctypeDecl );                        
+                    }
+                }                
+            } catch(Exception ex ) {
+                //ignore the exception
+            }
+        }
+                       
+        //get the value of entityExpansionLimit
+        try{
+            if(propertyEntityExpansionLimit != null){
+                entityExpansionLimit = Integer.parseInt(propertyEntityExpansionLimit);
+            }
+        }catch(NumberFormatException nfe){
+            //ignore the exception.. or             
+        }
+        
+        //get the value of disallowDoctypeDecl
+        if(propertyDisallowDoctypeDecl != null && (propertyDisallowDoctypeDecl.equals("true") || propertyDisallowDoctypeDecl.equals("TRUE"))){
+            disallowDoctypeDecl = true;
+        }    
+        
+        
+    }//getSecurityConstraintValues()
+    
     static private final NullHandler nullHandler = new NullHandler();
 
     private void setHandlers ()
@@ -830,7 +930,9 @@ public class Parser2
         Object  entity = table.get (name);
         
         //throw fatal error when entity expansion count reaches the limit set by application
-        if( propertyEntityExpansionLimit != null && entityExpansionCount++ >= entityExpansionLimit){
+        //if we don't want to have any costraint on number of entity that can be expanaded 
+        //set the DEFAULT_ENTITY_EXPANSION_LIMIT to -1.
+        if( entityExpansionLimit != -1 && entityExpansionCount++ >= entityExpansionLimit){
             fatal ("P-086", new Object[] {new Integer(entityExpansionLimit)});
         };
 
@@ -1159,11 +1261,11 @@ public class Parser2
         //      (S ExternalID)?
         //      S? ('[' (markupdecl|PEReference|S)* ']' S?)?
         //      '>'
-        if (!peek ("<!DOCTYPE")) {
+        if (!peek ("<!DOCTYPE")){
             return false;
-	}
+        }
         else{
-            if( (propertyDisallowDoctypeDecl != null) && disallowDoctypeDecl){
+            if(disallowDoctypeDecl){
                 fatal("P-085", new Object[] {SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL} );
             }
         }
@@ -2559,9 +2661,14 @@ public class Parser2
         }
 
         //throw fatal error when entity expansion count reaches the limit set by application
-        if(propertyEntityExpansionLimit != null && entityExpansionCount++ >= entityExpansionLimit){
+        //if we don't want to have any costraint on number of entity that can be expanaded 
+        //set the DEFAULT_ENTITY_EXPANSION_LIMIT to -1.        
+        if(entityExpansionLimit != -1 && entityExpansionCount++ >= entityExpansionLimit){
             fatal ("P-086", new Object[] {new Integer(entityExpansionLimit)});
         };
+        
+        //only for SECURITY_DEBUG        
+        //System.out.println("Entity Expansion Count = " + entityExpansionCount + " :: Entity Name = " + name );
         
         if (entity instanceof InternalEntity) {
             InternalEntity      e = (InternalEntity) entity;

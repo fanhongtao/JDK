@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.31 01/12/03
+ * @(#)DefaultTableCellRenderer.java	1.33 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.31 12/03/01
+ * @version 1.33 01/23/03
  * @author Philip Milne 
  * @see JTable
  */
@@ -126,7 +126,7 @@ public class DefaultTableCellRenderer extends JLabel
      * @param value  the value to assign to the cell at
      *			<code>[row, column]</code>
      * @param isSelected true if cell is selected
-     * @param isFocus true if cell has focus
+     * @param hasFocus true if cell has focus
      * @param row  the row of the cell to render
      * @param column the column of the cell to render
      * @return the default table cell renderer

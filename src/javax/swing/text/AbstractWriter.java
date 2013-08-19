@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractWriter.java	1.16 01/12/03
+ * @(#)AbstractWriter.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.Enumeration;
  * But this value can be set by subclasses.
  *
  * @author Sunita Mani
- * @version 1.16, 12/03/01
+ * @version 1.19, 01/23/03
  */
 
 public abstract class AbstractWriter {
@@ -94,8 +94,8 @@ public abstract class AbstractWriter {
      * Initializes the ElementIterator with the default
      * root of the document.
      *
-     * @param a Writer.
-     * @param a Document
+     * @param w a Writer.
+     * @param doc a Document
      */
     protected AbstractWriter(Writer w, Document doc) {
 	this(w, doc, 0, doc.getLength());
@@ -106,8 +106,8 @@ public abstract class AbstractWriter {
      * Initializes the ElementIterator with the
      * element passed in.
      *
-     * @param a Writer
-     * @param an Element
+     * @param w a Writer
+     * @param doc an Element
      * @param pos The location in the document to fetch the
      *   content.
      * @param len The amount to write out.
@@ -143,8 +143,8 @@ public abstract class AbstractWriter {
      * Initializes the ElementIterator with the
      * element passed in.
      *
-     * @param a Writer
-     * @param an Element
+     * @param w a Writer
+     * @param root an Element
      */
     protected AbstractWriter(Writer w, Element root) {
 	this(w, root, 0, root.getEndOffset());
@@ -155,8 +155,8 @@ public abstract class AbstractWriter {
      * Initializes the ElementIterator with the
      * element passed in.
      *
-     * @param a Writer
-     * @param an Element
+     * @param w a Writer
+     * @param root an Element
      * @param pos The location in the document to fetch the
      *   content.
      * @param len The amount to write out.
@@ -222,7 +222,7 @@ public abstract class AbstractWriter {
      * inRange() returns true if the range specified intersects
      * with the element's range.
      *
-     * @param  an Element.
+     * @param  next an Element.
      * @return boolean that indicates whether the element
      *         is in the range.
      */
@@ -252,7 +252,7 @@ public abstract class AbstractWriter {
      * leaf element.  Throws a BadLocationException
      * when encountered.
      *
-     * @param     an <code>Element</code>
+     * @param     elem an <code>Element</code>
      * @exception BadLocationException if pos represents an invalid
      *            location within the document
      * @return    the text as a <code>String</code>
@@ -268,7 +268,7 @@ public abstract class AbstractWriter {
      * is invoked, then only the appropriate range of text is written
      * out.
      *
-     * @param     an Element.
+     * @param     elem an Element.
      * @exception IOException on any I/O error
      * @exception BadLocationException if pos represents an invalid
      *            location within the document.
@@ -292,7 +292,7 @@ public abstract class AbstractWriter {
      * Enables subclasses to set the number of characters they
      * want written per line.   The default is 100.
      *
-     * @param the maximum line length.
+     * @param l the maximum line length.
      */
     protected void setLineLength(int l) {
 	maxLineLength = l;
@@ -363,7 +363,7 @@ public abstract class AbstractWriter {
      * maps to. When indentation takes place, the indent level
      * is multiplied by this mapping.  The default is 2.
      *
-     * @param an int representing the space to indent mapping.
+     * @param space an int representing the space to indent mapping.
      */
     protected void setIndentSpace(int space) {
 	indentSpace = space;
@@ -467,7 +467,7 @@ public abstract class AbstractWriter {
      * Writes out a character. This is implemented to invoke
      * the <code>write</code> method that takes a char[].
      *
-     * @param     a char.
+     * @param     ch a char.
      * @exception IOException on any I/O error
      */
     protected void write(char ch) throws IOException {
@@ -482,10 +482,13 @@ public abstract class AbstractWriter {
      * Writes out a string. This is implemented to invoke the
      * <code>write</code> method that takes a char[].
      *
-     * @param     a String.
+     * @param     content a String.
      * @exception IOException on any I/O error
      */
     protected void write(String content) throws IOException {
+	if (content == null) {
+	    return;
+	}
 	int size = content.length();
 	if (tempChars == null || tempChars.length < size) {
 	    tempChars = new char[size];
@@ -650,7 +653,7 @@ public abstract class AbstractWriter {
      * Writes out the set of attributes as " <name>=<value>"
      * pairs. It throws an IOException when encountered.
      *
-     * @param     an AttributeSet.
+     * @param     attr an AttributeSet.
      * @exception IOException on any I/O error
      */
     protected void writeAttributes(AttributeSet attr) throws IOException {

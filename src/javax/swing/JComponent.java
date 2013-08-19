@@ -1,7 +1,7 @@
 /*
- * @(#)JComponent.java	2.205 02/04/18
+ * @(#)JComponent.java	2.210 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -993,6 +993,9 @@ public abstract class JComponent extends Container implements Serializable
 
 	Container nearestRoot =
 	    (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
+	if (nearestRoot == null) {
+	    return;
+	}
 	FocusTraversalPolicy policy = nearestRoot.getFocusTraversalPolicy();
 	if (policy instanceof LegacyGlueFocusTraversalPolicy) {
 	    ((LegacyGlueFocusTraversalPolicy)policy).
@@ -1195,8 +1198,8 @@ public abstract class JComponent extends Container implements Serializable
      * input in the current focus owner is not "passed" by the input
      * verifier for that component.
      *
-     * @param flag value for the <code>verifyInputWhenFocusTarget</code>
-     *		property
+     * @param verifyInputWhenFocusTarget value for the
+     *        <code>verifyInputWhenFocusTarget</code> property
      * @see InputVerifier
      * @see #setInputVerifier
      * @see #getInputVerifier
@@ -2293,7 +2296,7 @@ public abstract class JComponent extends Container implements Serializable
     /**
      * Sets the font for this component.
      *
-     * @param the desired <code>Font</code> for this component
+     * @param font the desired <code>Font</code> for this component
      * @see java.awt.Component#getFont
      *
      * @beaninfo
@@ -2759,7 +2762,7 @@ public abstract class JComponent extends Container implements Serializable
     /**
      * Processes mouse motion events, such as MouseEvent.MOUSE_DRAGGED.
      *
-     * @param the <code>MouseEvent</code>
+     * @param e the <code>MouseEvent</code>
      * @see MouseEvent
      */
     protected void processMouseMotionEvent(MouseEvent e) {
@@ -3433,6 +3436,11 @@ public abstract class JComponent extends Container implements Serializable
      * @see #addPropertyChangeListener
      */
     public final void putClientProperty(Object key, Object value) {
+        if (value == null && clientProperties == null) {
+            // Both the value and Hashtable are null, implying we don't
+            // have to do anything.
+            return;
+        }
         Object oldValue = getClientProperties().get(key);
 
         if (value != null) {
@@ -3940,7 +3948,7 @@ public abstract class JComponent extends Container implements Serializable
      * @param propertyName the programmatic name of the property
      *		that was changed
      * @param oldValue the old value of the property (as a boolean)
-     * @param oldValue the old value of the property (as a boolean)
+     * @param newValue the new value of the property (as a boolean)
      * @see #firePropertyChange(java.lang.String, java.lang.Object,
      *		java.lang.Object)
      */
@@ -4429,6 +4437,16 @@ public abstract class JComponent extends Container implements Serializable
         return true;
     }
 
+    /**
+     * Returns true if a paint triggered on a child component should cause
+     * painting to originate from this Component, or one of its ancestors.
+     *
+     * @return true if painting should originate from this Component or
+     *         one of its ancestors.
+     */
+    boolean isPaintingOrigin() {
+        return false;
+    }
 
     /**
      * Paints the specified region in this component and all of its
@@ -4560,23 +4578,29 @@ public abstract class JComponent extends Container implements Serializable
                     // . Otherwise we aren't obscured and thus don't need to
                     //   start painting from parent.
                     if (c != this) {
-                        Component[] children = c.getComponents();
-                        int i = 0;
-                        for (; i<children.length; i++) {
-                            if (children[i] == child) break;
+                        if (jc.isPaintingOrigin()) {
+                            resetPC = true;
                         }
-                        switch (jc.getObscuredState(i, paintImmediatelyClip.x,
+                        else {
+                            Component[] children = c.getComponents();
+                            int i = 0;
+                            for (; i<children.length; i++) {
+                                if (children[i] == child) break;
+                            }
+                            switch (jc.getObscuredState(i,
+                                            paintImmediatelyClip.x,
                                             paintImmediatelyClip.y,
                                             paintImmediatelyClip.width,
                                             paintImmediatelyClip.height)) {
-                        case NOT_OBSCURED:
-                            resetPC = false;
-                            break;
-                        case COMPLETELY_OBSCURED:
-                            return;
-                        default:
-                            resetPC = true;
-                            break;
+                            case NOT_OBSCURED:
+                                resetPC = false;
+                                break;
+                            case COMPLETELY_OBSCURED:
+                                return;
+                            default:
+                                resetPC = true;
+                                break;
+                            }
                         }
                     }
                     else {
@@ -4765,7 +4789,7 @@ public abstract class JComponent extends Container implements Serializable
                     osg.translate(-x,-y);
                     osg.setClip(x,y,bw,bh);
 
-		    if (getFlag(IS_REPAINTING)) {
+		    if (paintingComponent.getFlag(IS_REPAINTING)) {
 			// Called from paintImmediately (RepaintManager) to fill 
 			// repaint request
                         paintingComponent.paint(osg);

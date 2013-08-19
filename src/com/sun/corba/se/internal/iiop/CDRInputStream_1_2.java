@@ -1,5 +1,5 @@
 /*
- * @(#)CDRInputStream_1_2.java	1.10 03/04/25
+ * @(#)CDRInputStream_1_2.java	1.11 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -57,6 +57,9 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
         // value of 0.
         int len = read_long();
 
+        // IMPORTANT: Do not replace 'new String("")' with "", it may result
+        // in a Serialization bug (See serialization.zerolengthstring) and
+        // bug id: 4728756 for details
         if (len == 0)
             return new String("");
 

@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsDesktopIconUI.java	1.14 01/12/03
+ * @(#)WindowsDesktopIconUI.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,10 +44,20 @@ public class WindowsDesktopIconUI extends BasicDesktopIconUI {
         width = UIManager.getInt("DesktopIcon.width");
     }
 
+    public void installUI(JComponent c)   {
+	super.installUI(c);
+
+	c.setOpaque(XPStyle.getXP() == null);
+    }
+
     protected void installComponents() {
         windowsIconPane = new WindowsInternalFrameTitlePane(frame);
         desktopIcon.setLayout(new BorderLayout());
         desktopIcon.add(windowsIconPane, BorderLayout.CENTER);
+
+	if (XPStyle.getXP() != null) {
+	    desktopIcon.setBorder(null);
+	}
     }
 
     protected void uninstallComponents() {

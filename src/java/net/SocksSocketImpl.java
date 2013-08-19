@@ -1,7 +1,7 @@
 /*
- * @(#)SocksSocketImpl.java	1.6 01/12/03
+ * @(#)SocksSocketImpl.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -305,6 +305,10 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	InputStream in = cmdIn;
 	    
 	if (useV4) {
+	    // SOCKS Protocol version 4 doesn't know how to deal with 
+	    // DOMAIN type of addresses (unresolved addresses here)
+	    if (epoint.isUnresolved())
+		throw new UnknownHostException(epoint.toString());
 	    connectV4(in, out, epoint);
 	    return;
 	}

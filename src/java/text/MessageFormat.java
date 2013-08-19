@@ -1,7 +1,7 @@
 /*
- * @(#)MessageFormat.java	1.47 01/12/03
+ * @(#)MessageFormat.java	1.51 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -137,72 +137,73 @@ import sun.text.Utility;
  * shown in the table are illegal. A <i>SubformatPattern</i> must
  * be a valid pattern string for the Format subclass used.
  * <p>
- * <table border=1>
+ * <table border=1 summary="Shows how FormatType and FormatStyle values map to Format instances">
  *    <tr>
- *       <th>Format Type
- *       <th>Format Style
- *       <th>Subformat Created
+ *       <th id="ft">Format Type
+ *       <th id="fs">Format Style
+ *       <th id="sc">Subformat Created
  *    <tr>
- *       <td colspan=2><i>(none)</i>
- *       <td><code>null</code>
+ *       <td headers="ft"><i>(none)</i>
+ *       <td headers="fs"><i>(none)</i>
+ *       <td headers="sc"><code>null</code>
  *    <tr>
- *       <td rowspan=5><code>number</code>
- *       <td><i>(none)</i>
- *       <td><code>NumberFormat.getInstance(getLocale())</code>
+ *       <td headers="ft" rowspan=5><code>number</code>
+ *       <td headers="fs"><i>(none)</i>
+ *       <td headers="sc"><code>NumberFormat.getInstance(getLocale())</code>
  *    <tr>
- *       <td><code>integer</code>
- *       <td><code>NumberFormat.getIntegerInstance(getLocale())</code>
+ *       <td headers="fs"><code>integer</code>
+ *       <td headers="sc"><code>NumberFormat.getIntegerInstance(getLocale())</code>
  *    <tr>
- *       <td><code>currency</code>
- *       <td><code>NumberFormat.getCurrencyInstance(getLocale())</code>
+ *       <td headers="fs"><code>currency</code>
+ *       <td headers="sc"><code>NumberFormat.getCurrencyInstance(getLocale())</code>
  *    <tr>
- *       <td><code>percent</code>
- *       <td><code>NumberFormat.getPercentInstance(getLocale())</code>
+ *       <td headers="fs"><code>percent</code>
+ *       <td headers="sc"><code>NumberFormat.getPercentInstance(getLocale())</code>
  *    <tr>
- *       <td><i>SubformatPattern</i>
- *       <td><code>new DecimalFormat(subformatPattern, new DecimalFormatSymbols(getLocale()))</code>
+ *       <td headers="fs"><i>SubformatPattern</i>
+ *       <td headers="sc"><code>new DecimalFormat(subformatPattern, new DecimalFormatSymbols(getLocale()))</code>
  *    <tr>
- *       <td rowspan=6><code>date</code>
- *       <td><i>(none)</i>
- *       <td><code>DateFormat.getDateInstance(DateFormat.DEFAULT, getLocale())</code>
+ *       <td headers="ft" rowspan=6><code>date</code>
+ *       <td headers="fs"><i>(none)</i>
+ *       <td headers="sc"><code>DateFormat.getDateInstance(DateFormat.DEFAULT, getLocale())</code>
  *    <tr>
- *       <td><code>short</code>
- *       <td><code>DateFormat.getDateInstance(DateFormat.SHORT, getLocale())</code>
+ *       <td headers="fs"><code>short</code>
+ *       <td headers="sc"><code>DateFormat.getDateInstance(DateFormat.SHORT, getLocale())</code>
  *    <tr>
- *       <td><code>medium</code>
- *       <td><code>DateFormat.getDateInstance(DateFormat.DEFAULT, getLocale())</code>
+ *       <td headers="fs"><code>medium</code>
+ *       <td headers="sc"><code>DateFormat.getDateInstance(DateFormat.DEFAULT, getLocale())</code>
  *    <tr>
- *       <td><code>long</code>
- *       <td><code>DateFormat.getDateInstance(DateFormat.LONG, getLocale())</code>
+ *       <td headers="fs"><code>long</code>
+ *       <td headers="sc"><code>DateFormat.getDateInstance(DateFormat.LONG, getLocale())</code>
  *    <tr>
- *       <td><code>full</code>
- *       <td><code>DateFormat.getDateInstance(DateFormat.FULL, getLocale())</code>
+ *       <td headers="fs"><code>full</code>
+ *       <td headers="sc"><code>DateFormat.getDateInstance(DateFormat.FULL, getLocale())</code>
  *    <tr>
- *       <td><i>SubformatPattern</i>
- *       <td><code>new SimpleDateFormat(subformatPattern, getLocale())
+ *       <td headers="fs"><i>SubformatPattern</i>
+ *       <td headers="sc"><code>new SimpleDateFormat(subformatPattern, getLocale())
  *    <tr>
- *       <td rowspan=6><code>time</code>
- *       <td><i>(none)</i>
- *       <td><code>DateFormat.getTimeInstance(DateFormat.DEFAULT, getLocale())</code>
+ *       <td headers="ft" rowspan=6><code>time</code>
+ *       <td headers="fs"><i>(none)</i>
+ *       <td headers="sc"><code>DateFormat.getTimeInstance(DateFormat.DEFAULT, getLocale())</code>
  *    <tr>
- *       <td><code>short</code>
- *       <td><code>DateFormat.getTimeInstance(DateFormat.SHORT, getLocale())</code>
+ *       <td headers="fs"><code>short</code>
+ *       <td headers="sc"><code>DateFormat.getTimeInstance(DateFormat.SHORT, getLocale())</code>
  *    <tr>
- *       <td><code>medium</code>
- *       <td><code>DateFormat.getTimeInstance(DateFormat.DEFAULT, getLocale())</code>
+ *       <td headers="fs"><code>medium</code>
+ *       <td headers="sc"><code>DateFormat.getTimeInstance(DateFormat.DEFAULT, getLocale())</code>
  *    <tr>
- *       <td><code>long</code>
- *       <td><code>DateFormat.getTimeInstance(DateFormat.LONG, getLocale())</code>
+ *       <td headers="fs"><code>long</code>
+ *       <td headers="sc"><code>DateFormat.getTimeInstance(DateFormat.LONG, getLocale())</code>
  *    <tr>
- *       <td><code>full</code>
- *       <td><code>DateFormat.getTimeInstance(DateFormat.FULL, getLocale())</code>
+ *       <td headers="fs"><code>full</code>
+ *       <td headers="sc"><code>DateFormat.getTimeInstance(DateFormat.FULL, getLocale())</code>
  *    <tr>
- *       <td><i>SubformatPattern</i>
- *       <td><code>new SimpleDateFormat(subformatPattern, getLocale())
+ *       <td headers="fs"><i>SubformatPattern</i>
+ *       <td headers="sc"><code>new SimpleDateFormat(subformatPattern, getLocale())
  *    <tr>
- *       <td><code>choice</code>
- *       <td><i>SubformatPattern</i>
- *       <td><code>new ChoiceFormat(subformatPattern)</code>
+ *       <td headers="ft"><code>choice</code>
+ *       <td headers="fs"><i>SubformatPattern</i>
+ *       <td headers="sc"><code>new ChoiceFormat(subformatPattern)</code>
  * </table>
  * <p>
  *
@@ -322,7 +323,7 @@ import sun.text.Utility;
  * @see          NumberFormat
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.47, 12/03/01
+ * @version      1.51, 01/23/03
  * @author       Mark Davis
  */
 
@@ -724,7 +725,7 @@ public class MessageFormat extends Format {
      * argument is <i>unavailable</i> if <code>arguments</code> is
      * <code>null</code> or has fewer than argumentIndex+1 elements.
      * <p>
-     * <table border=1>
+     * <table border=1 summary="Examples of subformat,argument,and formatted text">
      *    <tr>
      *       <th>Subformat
      *       <th>Argument

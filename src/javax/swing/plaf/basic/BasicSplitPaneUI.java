@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.72 02/04/09
+ * @(#)BasicSplitPaneUI.java	1.73 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.plaf.UIResource;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.72 04/09/02
+ * @version 1.73 01/23/03
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar

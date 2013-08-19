@@ -84,4 +84,5 @@ public class FuncBoolean extends FunctionOneArg
   {
     return m_arg0.execute(xctxt).bool() ? XBoolean.S_TRUE : XBoolean.S_FALSE;
   }
+  
 }

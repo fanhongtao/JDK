@@ -1,7 +1,7 @@
 /*
- * @(#)DSAPublicKey.java	1.19 01/12/03
+ * @(#)DSAPublicKey.java	1.20 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.math.BigInteger;
  * @see DSAKey
  * @see DSAPrivateKey
  *
- * @version 1.19 01/12/03
+ * @version 1.20 03/01/23
  * @author Benjamin Renaud
  */
 public interface DSAPublicKey extends DSAKey, java.security.PublicKey {

@@ -56,8 +56,13 @@
  */
 package org.apache.xpath.patterns;
 
+import java.util.Vector;
+
+import javax.xml.transform.TransformerException;
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
 import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
 import org.apache.xpath.objects.XObject;
 
 /**
@@ -113,6 +118,14 @@ public class UnionPattern extends Expression
   public void setPatterns(StepPattern[] patterns)
   {
     m_patterns = patterns;
+    if(null != patterns)
+    {
+    	for(int i = 0; i < patterns.length; i++)
+    	{
+    		patterns[i].exprSetParent(this);
+    	}
+    }
+    
   }
 
   /**
@@ -165,4 +178,79 @@ public class UnionPattern extends Expression
 
     return bestScore;
   }
+  
+  class UnionPathPartOwner implements ExpressionOwner
+  {
+  	int m_index;
+  	
+  	UnionPathPartOwner(int index)
+  	{
+  		m_index = index;
+  	}
+  	
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_patterns[m_index];
+    }
+
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(UnionPattern.this);
+    	m_patterns[m_index] = (StepPattern)exp;
+    }
+  }
+  
+  /**
+   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	visitor.visitUnionPattern(owner, this);
+  	if(null != m_patterns)
+  	{
+  		int n = m_patterns.length;
+  		for(int i = 0; i < n; i++)
+  		{
+  			m_patterns[i].callVisitors(new UnionPathPartOwner(i), visitor);
+  		}
+  	}
+  }
+  
+  /**
+   * @see Expression#deepEquals(Expression)
+   */
+  public boolean deepEquals(Expression expr)
+  {
+  	if(!isSameClass(expr))
+  		return false;
+  		
+  	UnionPattern up = (UnionPattern)expr;
+  		
+  	if(null != m_patterns)
+  	{
+  		int n = m_patterns.length;
+  		if((null == up.m_patterns) || (up.m_patterns.length != n))
+  			return false;
+  			
+  		for(int i = 0; i < n; i++)
+  		{
+  			if(!m_patterns[i].deepEquals(up.m_patterns[i]))
+  				return false;
+  		}
+  	}
+  	else if(up.m_patterns != null)
+  		return false;
+  		
+  	return true;
+  	
+  }
+
+
 }

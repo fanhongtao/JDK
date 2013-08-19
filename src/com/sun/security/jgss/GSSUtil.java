@@ -1,7 +1,7 @@
 /*
- * @(#)GSSUtil.java	1.6 01/12/03
+ * @(#)GSSUtil.java	1.8 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -34,12 +34,12 @@ public class GSSUtil {
      * @return a Subject with the entries that contain elements from the
      * given GSSName and GSSCredential.
      *
-     * @param principal a GSSName containing one or more mechanism specific 
+     * @param principals a GSSName containing one or more mechanism specific 
      * representations of the same entity. These mechanism specific 
      * representations will be populated in the returned Subject's principal 
      * set.
      *
-     * @param credential a GSSCredential containing one or more mechanism 
+     * @param credentials a GSSCredential containing one or more mechanism 
      * specific credentials for the same entity. These mechanism specific 
      * credentials will be populated in the returned Subject's private
      * credential set. Passing in a value of null will imply that the private 

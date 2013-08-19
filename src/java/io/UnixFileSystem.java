@@ -1,7 +1,7 @@
 /*
- * @(#)UnixFileSystem.java	1.10 01/12/03
+ * @(#)UnixFileSystem.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,6 +15,7 @@ class UnixFileSystem extends FileSystem {
 
     private final char slash;
     private final char colon;
+    private final String javaHome;
 
     public UnixFileSystem() {
         slash = 
@@ -23,6 +24,9 @@ class UnixFileSystem extends FileSystem {
 	colon = 
 	    ((String) AccessController.doPrivileged(
               new GetPropertyAction("path.separator"))).charAt(0);
+	javaHome = 
+	    (String) AccessController.doPrivileged(
+              new GetPropertyAction("java.home"));
     }
 
 
@@ -114,8 +118,100 @@ class UnixFileSystem extends FileSystem {
 	return resolve(System.getProperty("user.dir"), f.getPath());
     }
 
-    public native String canonicalize(String path) throws IOException;
+    // Caches for canonicalization results to improve startup performance.
+    // The first cache handles repeated canonicalizations of the same path
+    // name. The prefix cache handles repeated canonicalizations within the
+    // same directory, and must not create results differing from the true
+    // canonicalization algorithm in canonicalize_md.c. For this reason the
+    // prefix cache is conservative and is not used for complex path names.
+    private ExpiringCache cache = new ExpiringCache();
+    // On Unix symlinks can jump anywhere in the file system, so we only
+    // treat prefixes in java.home as trusted and cacheable in the
+    // canonicalization algorithm
+    private ExpiringCache javaHomePrefixCache = new ExpiringCache();
 
+    public String canonicalize(String path) throws IOException {
+        if (!useCanonCaches) {
+            return canonicalize0(path);
+        } else {
+            String res = cache.get(path);
+            if (res == null) {
+		String dir = null;
+		String resDir = null;
+                if (useCanonPrefixCache) {
+                    dir = parentOrNull(path);
+                    if (dir != null) {
+                        resDir = javaHomePrefixCache.get(dir);
+                        if (resDir != null) {
+                            // Hit only in prefix cache; full path is canonical
+                            String filename = path.substring(1 + dir.length());
+                            res = resDir + slash + filename;
+                            cache.put(dir + slash + filename, res);
+                        }
+                    }
+                }
+                if (res == null) {
+                    res = canonicalize0(path);
+                    cache.put(path, res);
+                    if (useCanonPrefixCache &&
+			dir != null && dir.startsWith(javaHome)) {
+                        resDir = parentOrNull(res);
+                        if (resDir != null && resDir.startsWith(javaHome)) {
+                            File f = new File(res);
+                            if (f.exists() && !f.isDirectory()) {
+                                javaHomePrefixCache.put(dir, resDir);
+                            }
+                        }
+                    }
+                }
+            }
+            assert canonicalize0(path).equals(res);
+            return res;
+        }
+    }
+    private native String canonicalize0(String path) throws IOException;
+    // Best-effort attempt to get parent of this path; used for
+    // optimization of filename canonicalization. This must return null for
+    // any cases where the code in canonicalize_md.c would throw an
+    // exception or otherwise deal with non-simple pathnames like handling
+    // of "." and "..". It may conservatively return null in other
+    // situations as well. Returning null will cause the underlying
+    // (expensive) canonicalization routine to be called.
+    static String parentOrNull(String path) {
+        if (path == null) return null;
+        char sep = File.separatorChar;
+        int last = path.length() - 1;
+        int idx = last;
+        int adjacentDots = 0;
+        int nonDotCount = 0;
+        while (idx > 0) {
+            char c = path.charAt(idx);
+            if (c == '.') {
+                if (++adjacentDots >= 2) {
+                    // Punt on pathnames containing . and ..
+                    return null;
+                }
+            } else if (c == sep) {
+                if (adjacentDots == 1 && nonDotCount == 0) {
+                    // Punt on pathnames containing . and ..
+                    return null;
+                }
+                if (idx == 0 ||
+                    idx >= last - 1 ||
+                    path.charAt(idx - 1) == sep) {
+                    // Punt on pathnames containing adjacent slashes
+                    // toward the end
+                    return null;
+                }
+                return path.substring(0, idx);
+            } else {
+                ++nonDotCount;
+                adjacentDots = 0;
+            }
+            --idx;
+        }
+        return null;
+    }
 
     /* -- Attribute accessors -- */
 
@@ -137,11 +233,31 @@ class UnixFileSystem extends FileSystem {
 
     public native boolean createFileExclusively(String path)
 	throws IOException;
-    public native boolean delete(File f);
+    public boolean delete(File f) {
+        // Keep canonicalization caches in sync after file deletion
+        // and renaming operations. Could be more clever than this
+        // (i.e., only remove/update affected entries) but probably
+        // not worth it since these entries expire after 30 seconds
+        // anyway.
+        cache.clear();
+        javaHomePrefixCache.clear();
+        return delete0(f);
+    }
+    private native boolean delete0(File f);
     public synchronized native boolean deleteOnExit(File f);
     public native String[] list(File f);
     public native boolean createDirectory(File f);
-    public native boolean rename(File f1, File f2);
+    public boolean rename(File f1, File f2) {
+        // Keep canonicalization caches in sync after file deletion
+        // and renaming operations. Could be more clever than this
+        // (i.e., only remove/update affected entries) but probably
+        // not worth it since these entries expire after 30 seconds
+        // anyway.
+        cache.clear();
+        javaHomePrefixCache.clear();
+        return rename0(f1, f2);
+    }
+    private native boolean rename0(File f1, File f2);
     public native boolean setLastModifiedTime(File f, long time);
     public native boolean setReadOnly(File f);
 

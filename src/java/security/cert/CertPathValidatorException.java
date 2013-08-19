@@ -1,7 +1,7 @@
 /*
- * @(#)CertPathValidatorException.java	1.6 01/12/03
+ * @(#)CertPathValidatorException.java	1.7 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.io.PrintWriter;
  *
  * @see CertPathValidator
  *
- * @version 	1.6 12/03/01
+ * @version 	1.7 01/23/03
  * @since	1.4
  * @author 	Yassir Elley
  */

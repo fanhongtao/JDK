@@ -1,7 +1,7 @@
 /*
- * @(#)TreeSet.java	1.23 01/12/03
+ * @(#)TreeSet.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,10 +53,14 @@ package java.util;
  * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:   <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
+ * should be used only to detect bugs.</i><p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.23, 12/03/01
+ * @version 1.26, 01/23/03
  * @see	    Collection
  * @see	    Set
  * @see	    HashSet
@@ -442,7 +446,7 @@ public class TreeSet extends AbstractSet
      *		   set's Comparator, or by the elements' natural ordering if
      *             the set has no Comparator).
      */
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
+    private void writeObject(java.io.ObjectOutputStream s)
         throws java.io.IOException {
 	// Write out any hidden stuff
 	s.defaultWriteObject();
@@ -462,7 +466,7 @@ public class TreeSet extends AbstractSet
      * Reconstitute the <tt>TreeSet</tt> instance from a stream (that is,
      * deserialize it).
      */
-    private synchronized void readObject(java.io.ObjectInputStream s)
+    private void readObject(java.io.ObjectInputStream s)
         throws java.io.IOException, ClassNotFoundException {
 	// Read in any hidden stuff
 	s.defaultReadObject();
@@ -479,4 +483,6 @@ public class TreeSet extends AbstractSet
 
         ((TreeMap)m).readTreeSet(size, s, PRESENT);
     }
+
+    private static final long serialVersionUID = -2479143000061671589L;
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsDesktopPaneUI.java	1.17 01/12/03
+ * @(#)WindowsDesktopPaneUI.java	1.20 03/02/03
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version %i% 12/03/01
+ * @version %i% 02/03/03
  * @author David Kloba
  */
 public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
@@ -38,6 +38,10 @@ public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
 	}
     }
 
+    protected void installDefaults() {
+        super.installDefaults();
+    }
+
     protected void installKeyboardActions() {
 	super.installKeyboardActions();
 
@@ -46,6 +50,4 @@ public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
             desktop.requestFocus();
         }
     }
-
 }
-

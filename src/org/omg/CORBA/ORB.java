@@ -1,7 +1,7 @@
 /*
- * @(#)ORB.java	1.126 02/04/01
+ * @(#)ORB.java	1.129 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -67,7 +67,7 @@ import java.security.PrivilegedAction;
  * three <code>init</code> methods.  Two of the three methods use the properties
  * (associations of a name with a value) shown in the
  * table below.<BR>
- * <TABLE BORDER>
+ * <TABLE BORDER=1 SUMMARY="Standard Java CORBA Properties">
  * <TR><TH>Property Name</TH>   <TH>Property Value</TH></TR>
  * <CAPTION>Standard Java CORBA Properties:</CAPTION>
  *     <TR><TD>org.omg.CORBA.ORBClass</TD>
@@ -293,7 +293,7 @@ abstract public class ORB {
 
         try {
             return (ORB) Class.forName(className, true, cl).newInstance();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
 	    SystemException systemException = new INITIALIZE(
                "can't instantiate default ORB implementation " + className);
 	    systemException.initCause(ex);

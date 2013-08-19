@@ -278,35 +278,35 @@ public interface Document extends Node {
      *   instantiate.
      * @return A new <code>Element</code> object with the following 
      *   attributes:
-     * <table border='1'>
+     * <table border='1' summary="Description of attributes and values for the new Element object">
      * <tr>
      * <th>Attribute</th>
      * <th>Value</th>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.nodeName</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>
+     * <td valign='top'><code>Node.nodeName</code></td>
+     * <td valign='top'>
      *   <code>qualifiedName</code></td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.namespaceURI</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>
+     * <td valign='top'><code>Node.namespaceURI</code></td>
+     * <td valign='top'>
      *   <code>namespaceURI</code></td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.prefix</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>prefix, extracted 
+     * <td valign='top'><code>Node.prefix</code></td>
+     * <td valign='top'>prefix, extracted 
      *   from <code>qualifiedName</code>, or <code>null</code> if there is 
      *   no prefix</td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.localName</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>local name, extracted from 
+     * <td valign='top'><code>Node.localName</code></td>
+     * <td valign='top'>local name, extracted from 
      *   <code>qualifiedName</code></td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Element.tagName</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>
+     * <td valign='top'><code>Element.tagName</code></td>
+     * <td valign='top'>
      *   <code>qualifiedName</code></td>
      * </tr>
      * </table>
@@ -335,41 +335,41 @@ public interface Document extends Node {
      * @param qualifiedName The qualified name of the attribute to 
      *   instantiate.
      * @return A new <code>Attr</code> object with the following attributes:
-     * <table border='1'>
+     * <table border='1' summary="Description of attributes and values for the new Attr object">
      * <tr>
      * <th>
      *   Attribute</th>
      * <th>Value</th>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.nodeName</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>qualifiedName</td>
+     * <td valign='top'><code>Node.nodeName</code></td>
+     * <td valign='top'>qualifiedName</td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'>
+     * <td valign='top'>
      *   <code>Node.namespaceURI</code></td>
-     * <td valign='top' rowspan='1' colspan='1'><code>namespaceURI</code></td>
+     * <td valign='top'><code>namespaceURI</code></td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'>
+     * <td valign='top'>
      *   <code>Node.prefix</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>prefix, extracted from 
+     * <td valign='top'>prefix, extracted from 
      *   <code>qualifiedName</code>, or <code>null</code> if there is no 
      *   prefix</td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.localName</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>local name, extracted from 
+     * <td valign='top'><code>Node.localName</code></td>
+     * <td valign='top'>local name, extracted from 
      *   <code>qualifiedName</code></td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Attr.name</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>
+     * <td valign='top'><code>Attr.name</code></td>
+     * <td valign='top'>
      *   <code>qualifiedName</code></td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'><code>Node.nodeValue</code></td>
-     * <td valign='top' rowspan='1' colspan='1'>the empty 
+     * <td valign='top'><code>Node.nodeValue</code></td>
+     * <td valign='top'>the empty 
      *   string</td>
      * </tr>
      * </table>

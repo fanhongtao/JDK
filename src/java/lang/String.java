@@ -1,7 +1,7 @@
 /*
- * @(#)String.java	1.154 02/04/04
+ * @(#)String.java	1.159 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,6 +62,10 @@ import java.util.regex.PatternSyntaxException;
  * inherited by all classes in Java. For additional information on
  * string concatenation and conversion, see Gosling, Joy, and Steele,
  * <i>The Java Language Specification</i>.
+ *
+ * <p> Unless otherwise noted, passing a <tt>null</tt> argument to a constructor
+ * or method in this class will cause a {@link NullPointerException} to be
+ * thrown.
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
@@ -132,8 +136,6 @@ public final class String
      * constructor is unnecessary since Strings are immutable. 
      *
      * @param   original   a <code>String</code>.
-     * @throws NullPointerException
-     *         if <code>original</code> is <code>null</code>
      */
     public String(String original) {
  	this.count = original.count;
@@ -159,7 +161,6 @@ public final class String
      * string.
      *
      * @param  value   the initial value of the string.
-     * @throws NullPointerException if <code>value</code> is <code>null</code>.
      */
     public String(char value[]) {
         this.count = value.length;
@@ -182,8 +183,6 @@ public final class String
      * @exception  IndexOutOfBoundsException  if the <code>offset</code>
      *               and <code>count</code> arguments index characters outside
      *               the bounds of the <code>value</code> array.
-     * @exception NullPointerException if <code>value</code> is
-     *               <code>null</code>.
      */
     public String(char value[], int offset, int count) {
         if (offset < 0) {
@@ -224,8 +223,6 @@ public final class String
      * @param      count     the length.
      * @exception  IndexOutOfBoundsException  if the <code>offset</code>
      *               or <code>count</code> argument is invalid.
-     * @exception NullPointerException if <code>ascii</code> is
-     *                       <code>null</code>.
      * @see        java.lang.String#String(byte[], int)
      * @see        java.lang.String#String(byte[], int, int, java.lang.String)
      * @see        java.lang.String#String(byte[], int, int)
@@ -268,8 +265,6 @@ public final class String
      *
      * @param      ascii    the bytes to be converted to characters.
      * @param      hibyte   the top 8 bits of each 16-bit Unicode character.
-     * @exception NullPointerException If <code>ascii</code> is
-     *                      <code>null</code>.
      * @see        java.lang.String#String(byte[], int, int, java.lang.String)
      * @see        java.lang.String#String(byte[], int, int)
      * @see        java.lang.String#String(byte[], java.lang.String)
@@ -314,8 +309,6 @@ public final class String
      *          if the <tt>offset</tt> and <tt>length</tt> arguments
      *          index characters outside the bounds of the <tt>bytes</tt>
      *          array
-     * @throws  NullPointerException
-     *          if <tt>charsetName</tt> is <tt>null</tt>
      * @since JDK1.1
      */
     public String(byte bytes[], int offset, int length, String charsetName)
@@ -345,9 +338,6 @@ public final class String
      *
      * @exception  UnsupportedEncodingException
      *             If the named charset is not supported
-     * @exception  NullPointerException
-     *             If <code>charsetName</code> or the <code>bytes</code> array
-     *             is <code>null</code>
      * @since      JDK1.1
      */
     public String(byte bytes[], String charsetName)
@@ -374,8 +364,6 @@ public final class String
      *         if the <code>offset</code> and the <code>length</code>
      *         arguments index characters outside the bounds of the
      *         <code>bytes</code> array
-     * @throws NullPointerException
-     *         if <code>bytes</code> array is <code>null</code>
      * @since  JDK1.1
      */
     public String(byte bytes[], int offset, int length) {
@@ -396,8 +384,6 @@ public final class String
      * over the decoding process is required.
      *
      * @param  bytes   the bytes to be decoded into characters
-     * @throws NullPointerException
-     *         if <code>bytes</code> is <code>null</code>
      * @since  JDK1.1
      */
     public String(byte bytes[]) {
@@ -411,8 +397,6 @@ public final class String
      * buffer does not affect the newly created string.
      *
      * @param   buffer   a <code>StringBuffer</code>.
-     * @throws NullPointerException If <code>buffer</code> is
-     * <code>null</code>.
      */
     public String (StringBuffer buffer) {
         synchronized(buffer) {
@@ -491,7 +475,6 @@ public final class String
      *            <li><code>dstBegin</code> is negative
      *            <li><code>dstBegin+(srcEnd-srcBegin)</code> is larger than
      *                <code>dst.length</code></ul>
-     * @exception NullPointerException if <code>dst</code> is <code>null</code>
      */
     public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
         if (srcBegin < 0) {
@@ -543,7 +526,6 @@ public final class String
      *           <li><code>dstBegin</code> is negative
      *           <li><code>dstBegin+(srcEnd-srcBegin)</code> is larger than
      *            <code>dst.length</code></ul>
-     * @exception NullPointerException if <code>dst</code> is <code>null</code>
      */
     public void getBytes(int srcBegin, int srcEnd, byte dst[], int dstBegin) {
         if (srcBegin < 0) {
@@ -651,21 +633,21 @@ public final class String
      * @return  <tt>true</tt> if and only if this <tt>String</tt> represents
      *          the same sequence of characters as the specified
      *          <tt>StringBuffer</tt>, otherwise <tt>false</tt>.
-     * @exception java.lang.NullPointerException if <code>sb</code> is
-     *            <code>null</code>.
      * @since 1.4
      */
     public boolean contentEquals(StringBuffer sb) {
-        if (count != sb.length())
-            return false;
-        char v1[] = value;
-        char v2[] = sb.getValue();
-        int i = offset;
-        int j = 0;
-        int n = count;
-        while (n-- != 0) {
-            if (v1[i++] != v2[j++])
+        synchronized(sb) {
+            if (count != sb.length())
                 return false;
+            char v1[] = value;
+            char v2[] = sb.getValue();
+            int i = offset;
+            int j = 0;
+            int n = count;
+            while (n-- != 0) {
+                if (v1[i++] != v2[j++])
+                    return false;
+            }
         }
         return true;
     }
@@ -740,8 +722,6 @@ public final class String
      *          is lexicographically less than the string argument; and a
      *          value greater than <code>0</code> if this string is
      *          lexicographically greater than the string argument.
-     * @exception java.lang.NullPointerException if <code>anotherString</code>
-     *          is <code>null</code>.
      */
     public int compareTo(String anotherString) {
 	int len1 = count;
@@ -893,8 +873,6 @@ public final class String
      * @return  <code>true</code> if the specified subregion of this string
      *          exactly matches the specified subregion of the string argument;
      *          <code>false</code> otherwise.
-     * @exception java.lang.NullPointerException if <tt>other</tt> is
-     *          <tt>null</tt>.
      */
     public boolean regionMatches(int toffset, String other, int ooffset,
 				 int len) {
@@ -933,8 +911,8 @@ public final class String
      * <tt>String</tt> object.
      * <li><tt>ooffset+len</tt> is greater than the length of the other
      * argument.
-     * <li>There is some nonnegative integer <i>k</i> less than <tt>len</tt>
-     * such that:
+     * <li><tt>ignoreCase</tt> is <tt>false</tt> and there is some nonnegative
+     * integer <i>k</i> less than <tt>len</tt> such that:
      * <blockquote><pre>
      * this.charAt(toffset+k) != other.charAt(ooffset+k)
      * </pre></blockquote>
@@ -1021,8 +999,6 @@ public final class String
      *          <pre>
      *          this.subString(toffset).startsWith(prefix)
      *          </pre>
-     * @exception java.lang.NullPointerException if <code>prefix</code> is
-     *          <code>null</code>.
      */
     public boolean startsWith(String prefix, int toffset) {
 	char ta[] = value;
@@ -1053,8 +1029,6 @@ public final class String
      *          argument is an empty string or is equal to this
      *          <code>String</code> object as determined by the
      *          {@link #equals(Object)} method.
-     * @exception java.lang.NullPointerException if <code>prefix</code> is
-     *          <code>null</code>.
      * @since   1. 0
      */
     public boolean startsWith(String prefix) {
@@ -1071,8 +1045,6 @@ public final class String
      *          result will be <code>true</code> if the argument is the
      *          empty string or is equal to this <code>String</code> object
      *          as determined by the {@link #equals(Object)} method.
-     * @exception java.lang.NullPointerException if <code>suffix</code> is
-     *          <code>null</code>.
      */
     public boolean endsWith(String suffix) {
 	return startsWith(suffix, count - suffix.count);
@@ -1241,8 +1213,6 @@ public final class String
      *          object, then the index of the first character of the first
      *          such substring is returned; if it does not occur as a
      *          substring, <code>-1</code> is returned.
-     * @exception java.lang.NullPointerException if <code>str</code> is
-     *          <code>null</code>.
      */
     public int indexOf(String str) {
 	return indexOf(str, 0);
@@ -1261,8 +1231,6 @@ public final class String
      * @param   fromIndex   the index from which to start the search.
      * @return  the index within this string of the first occurrence of the
      *          specified substring, starting at the specified index.
-     * @exception java.lang.NullPointerException if <code>str</code> is
-     *            <code>null</code>.
      */
     public int indexOf(String str, int fromIndex) {
         return indexOf(value, offset, count,
@@ -1339,8 +1307,6 @@ public final class String
      *          within this object, then the index of the first character of
      *          the last such substring is returned. If it does not occur as
      *          a substring, <code>-1</code> is returned.
-     * @exception java.lang.NullPointerException  if <code>str</code> is
-     *          <code>null</code>.
      */
     public int lastIndexOf(String str) {
 	return lastIndexOf(str, count);
@@ -1359,8 +1325,6 @@ public final class String
      * @param   fromIndex   the index to start the search from.
      * @return  the index within this string of the last occurrence of the
      *          specified substring.
-     * @exception java.lang.NullPointerException if <code>str</code> is 
-     *          <code>null</code>.
      */
     public int lastIndexOf(String str, int fromIndex) {
         return lastIndexOf(value, offset, count,
@@ -1534,8 +1498,6 @@ public final class String
      *                of this <code>String</code>.
      * @return  a string that represents the concatenation of this object's
      *          characters followed by the string argument's characters.
-     * @exception java.lang.NullPointerException if <code>str</code> is
-     *          <code>null</code>.
      */
     public String concat(String str) {
 	int otherLen = str.length();
@@ -1626,9 +1588,6 @@ public final class String
      * @throws  PatternSyntaxException
      *          if the regular expression's syntax is invalid
      *
-     * @throws  NullPointerException
-     *          if <tt>regex</tt> is <tt>null</tt>
-     *
      * @see java.util.regex.Pattern
      *
      * @since 1.4
@@ -1662,9 +1621,6 @@ public final class String
      * @throws  PatternSyntaxException
      *          if the regular expression's syntax is invalid
      *
-     * @throws  NullPointerException
-     *          if <tt>regex</tt> is <tt>null</tt>
-     *
      * @see java.util.regex.Pattern
      *
      * @since 1.4
@@ -1697,9 +1653,6 @@ public final class String
      *
      * @throws  PatternSyntaxException
      *          if the regular expression's syntax is invalid
-     *
-     * @throws  NullPointerException
-     *          if <tt>regex</tt> is <tt>null</tt>
      *
      * @see java.util.regex.Pattern
      *
@@ -1735,10 +1688,12 @@ public final class String
      * <p> The string <tt>"boo:and:foo"</tt>, for example, yields the
      * following results with these parameters:
      *
-     * <blockquote><table cellpadding=1 cellspacing=0>
-     * <tr><td><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
-     *     <td><i>Limit&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
-     *     <td><i>Result</i></td></tr>
+     * <blockquote><table cellpadding=1 cellspacing=0 summary="Split example showing regex, limit, and result">
+     * <tr>
+     *     <th>Regex</th>
+     *     <th>Limit</th>
+     *     <th>Result</th>
+     * </tr>
      * <tr><td align=center>:</td>
      *     <td align=center>2</td>
      *     <td><tt>{ "boo", "and:foo" }</tt></td></tr>
@@ -1783,9 +1738,6 @@ public final class String
      * @throws  PatternSyntaxException
      *          if the regular expression's syntax is invalid
      *
-     * @throws  NullPointerException
-     *          if <tt>regex</tt> is <tt>null</tt>
-     *
      * @see java.util.regex.Pattern
      *
      * @since 1.4
@@ -1807,9 +1759,11 @@ public final class String
      * <p> The string <tt>"boo:and:foo"</tt>, for example, yields the following
      * results with these expressions:
      *
-     * <blockquote><table cellpadding=1 cellspacing=0>
-     * <tr><td><i>Regex&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
-     *     <td><i>Result</i></td></tr>
+     * <blockquote><table cellpadding=1 cellspacing=0 summary="Split examples showing regex and result">
+     * <tr>
+     *  <th>Regex</th>
+     *  <th>Result</th>
+     * </tr>
      * <tr><td align=center>:</td>
      *     <td><tt>{ "boo", "and", "foo" }</tt></td></tr>
      * <tr><td align=center>o</td>
@@ -1825,9 +1779,6 @@ public final class String
      *
      * @throws  PatternSyntaxException
      *          if the regular expression's syntax is invalid
-     *
-     * @throws  NullPointerException
-     *          if <tt>regex</tt> is <tt>null</tt>
      *
      * @see java.util.regex.Pattern
      *
@@ -1846,7 +1797,7 @@ public final class String
      * may be a different length than the original <code>String</code>.
      * <p>
      * Examples of lowercase  mappings are in the following table:
-     * <table border>
+     * <table border="1" summary="Lowercase mapping examples showing language code of locale, upper case, lower case, and description">
      * <tr>
      *   <th>Language Code of Locale</th>
      *   <th>Upper Case</th>
@@ -1873,12 +1824,12 @@ public final class String
      * </tr>
      * <tr>
      *   <td>(all)</td>
-     *   <td><img src="doc-files/capiota.gif"><img src="doc-files/capchi.gif"><img
-     *       src="doc-files/captheta.gif"><img src="doc-files/capupsil.gif"><img
-     *       src="doc-files/capsigma.gif"></td>
-     *   <td><img src="doc-files/iota.gif"><img src="doc-files/chi.gif"><img
-     *       src="doc-files/theta.gif"><img src="doc-files/upsilon.gif"><img
-     *       src="doc-files/sigma1.gif"></td>
+     *   <td><img src="doc-files/capiota.gif" alt="capiota"><img src="doc-files/capchi.gif" alt="capchi">
+     *       <img src="doc-files/captheta.gif" alt="captheta"><img src="doc-files/capupsil.gif" alt="capupsil">
+     *       <img src="doc-files/capsigma.gif" alt="capsigma"></td>
+     *   <td><img src="doc-files/iota.gif" alt="iota"><img src="doc-files/chi.gif" alt="chi">
+     *       <img src="doc-files/theta.gif" alt="theta"><img src="doc-files/upsilon.gif" alt="upsilon">
+     *       <img src="doc-files/sigma1.gif" alt="sigma"></td>
      *   <td>lowercased all chars in String</td>
      * </tr>
      * </table>
@@ -1891,6 +1842,9 @@ public final class String
      * @since   1.1
      */
     public String toLowerCase(Locale locale) {
+	if (locale == null)
+	    throw new NullPointerException();
+	
         int     len        = count;
         int     off        = offset;
         char[]  val        = value;
@@ -1954,7 +1908,7 @@ public final class String
      * <p>
      * Examples of locale-sensitive and 1:M case mappings are in the following table.
      * <p>
-     * <table border>
+     * <table border="1" summary="Examples of locale-sensitive and 1:M case mappings. Shows Language code of locale, lower case, upper case, and description.">
      * <tr>
      *   <th>Language Code of Locale</th>
      *   <th>Lower Case</th>
@@ -2207,8 +2161,6 @@ public final class String
      * @param   count    the length of the value of the <code>String</code>.
      * @return  a string representing the sequence of characters contained 
      *          in the subarray of the character array argument.
-     * @exception NullPointerException if <code>data</code> is
-     *          <code>null</code>.
      * @exception IndexOutOfBoundsException if <code>offset</code> is
      *          negative, or <code>count</code> is negative, or
      *          <code>offset+count</code> is larger than

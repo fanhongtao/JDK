@@ -1,5 +1,5 @@
 /*
- * $Id: XmlDocument.java,v 1.9 2001/05/22 02:15:02 edwingo Exp $
+ * $Id: XmlDocument.java,v 1.10 2001/11/09 08:44:06 edwingo Exp $
  *
  * The Apache Software License, Version 1.1
  *
@@ -129,7 +129,7 @@ import org.apache.crimson.util.XmlNames;
  *
  * @author David Brownell
  * @author Rajiv Mordani
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  */
 public class XmlDocument extends ParentNode implements DocumentEx
 {
@@ -1111,7 +1111,8 @@ public class XmlDocument extends ParentNode implements DocumentEx
      * Changes the "owner document" of the given node, and all child
      * and associated attribute nodes, to be this document.  If the
      * node has a parent, it is first removed from that parent.
-     * <b>Obsolete</b> Use importNode method instead.
+     * <b>Obsolete</b> Use importNode method instead.  Still useful for
+     * internal implementation.
      * 
      * @param node
      * @exception DOMException WRONG_DOCUMENT_ERROR when attempting

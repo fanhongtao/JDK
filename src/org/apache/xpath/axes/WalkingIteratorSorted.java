@@ -65,13 +65,17 @@ import org.apache.xml.dtm.Axis;
 
 /**
  * <meta name="usage" content="internal"/>
- * NEEDSDOC Class WalkingIteratorSorted <needs-comment/>
+ * This class iterates over set of nodes that needs to be sorted.
  */
 public class WalkingIteratorSorted extends WalkingIterator
 {
 
-  /** NEEDSDOC Field m_inNaturalOrder          */
-  protected boolean m_inNaturalOrder = false;
+//  /** True if the nodes will be found in document order */
+//  protected boolean m_inNaturalOrder = false;
+  
+  /** True if the nodes will be found in document order, and this can 
+   * be determined statically. */
+  protected boolean m_inNaturalOrderStatic = false;
 
   /**
    * Create a WalkingIteratorSorted object.
@@ -85,36 +89,46 @@ public class WalkingIteratorSorted extends WalkingIterator
   }
 
   /**
-   * Create a WalkingIteratorSorted iteratorWalkingIteratorSortedWalkingIteratorSorted.
+   * Create a WalkingIterator iterator, including creation
+   * of step walkers from the opcode list, and call back
+   * into the Compiler to create predicate expressions.
    *
    * @param compiler The Compiler which is creating
    * this expression.
    * @param opPos The position of this iterator in the
    * opcode list from the compiler.
-   * NEEDSDOC @param analysis
    * @param shouldLoadWalkers True if walkers should be
    * loaded, or false if this is a derived iterator and
    * it doesn't wish to load child walkers.
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public WalkingIteratorSorted(
+  WalkingIteratorSorted(
           Compiler compiler, int opPos, int analysis, boolean shouldLoadWalkers)
             throws javax.xml.transform.TransformerException
   {
-
     super(compiler, opPos, analysis, shouldLoadWalkers);
-
-    //this.setShouldCacheNodes(true);
+  }
+  
+  /**
+   * Returns true if all the nodes in the iteration well be returned in document 
+   * order.
+   * 
+   * @return true as a default.
+   */
+  public boolean isDocOrdered()
+  {
+    return m_inNaturalOrderStatic;
   }
 
+    
   /**
-   * NEEDSDOC Method canBeWalkedInNaturalDocOrder 
+   * Tell if the nodeset can be walked in doc order, via static analysis. 
    *
    *
-   * NEEDSDOC (canBeWalkedInNaturalDocOrder) @return
+   * @return true if the nodeset can be walked in doc order, without sorting.
    */
-  boolean canBeWalkedInNaturalDocOrder()
+  boolean canBeWalkedInNaturalDocOrderStatic()
   {
 
     if (null != m_firstWalker)
@@ -126,12 +140,15 @@ public class WalkingIteratorSorted extends WalkingIterator
       for(int i = 0; null != walker; i++)
       {
         int axis = walker.getAxis();
-        boolean isSimpleDownAxis = ((axis == Axis.CHILD)
-           || (axis == Axis.SELF)
-           || (axis == Axis.ROOT));
+        
         if(walker.isDocOrdered())
         {
-          if(isSimpleDownAxis)
+          boolean isSimpleDownAxis = ((axis == Axis.CHILD)
+                                   || (axis == Axis.SELF)
+                                   || (axis == Axis.ROOT));
+          // Catching the filtered list here is only OK because
+          // FilterExprWalker#isDocOrdered() did the right thing.
+          if(isSimpleDownAxis || (axis == -1))
             walker = walker.getNextWalker();
           else
           {
@@ -154,143 +171,82 @@ public class WalkingIteratorSorted extends WalkingIterator
     return false;
   }
 
+
+//  /**
+//   * NEEDSDOC Method canBeWalkedInNaturalDocOrder 
+//   *
+//   *
+//   * NEEDSDOC (canBeWalkedInNaturalDocOrder) @return
+//   */
+//  boolean canBeWalkedInNaturalDocOrder()
+//  {
+//
+//    if (null != m_firstWalker)
+//    {
+//      AxesWalker walker = m_firstWalker;
+//      int prevAxis = -1;
+//      boolean prevIsSimpleDownAxis = true;
+//
+//      for(int i = 0; null != walker; i++)
+//      {
+//        int axis = walker.getAxis();
+//        
+//        if(walker.isDocOrdered())
+//        {
+//          boolean isSimpleDownAxis = ((axis == Axis.CHILD)
+//                                   || (axis == Axis.SELF)
+//                                   || (axis == Axis.ROOT));
+//          // Catching the filtered list here is only OK because
+//          // FilterExprWalker#isDocOrdered() did the right thing.
+//          if(isSimpleDownAxis || (axis == -1))
+//            walker = walker.getNextWalker();
+//          else
+//          {
+//            boolean isLastWalker = (null == walker.getNextWalker());
+//            if(isLastWalker)
+//            {
+//              if(walker.isDocOrdered() && (axis == Axis.DESCENDANT || 
+//                 axis == Axis.DESCENDANTORSELF || axis == Axis.DESCENDANTSFROMROOT
+//                 || axis == Axis.DESCENDANTSORSELFFROMROOT) || (axis == Axis.ATTRIBUTE))
+//                return true;
+//            }
+//            return false;
+//          }
+//        }
+//        else
+//          return false;
+//      }
+//      return true;
+//    }
+//    return false;
+//  }
+  
   /**
-   * Initialize the context values for this expression
-   * after it is cloned.
-   *
-   * @param execContext The XPath runtime context for this
-   * transformation.
-   *
-   * NEEDSDOC @param context
-   * NEEDSDOC @param environment
+   * This function is used to perform some extra analysis of the iterator.
+   * 
+   * @param vars List of QNames that correspond to variables.  This list 
+   * should be searched backwards for the first qualified name that 
+   * corresponds to the variable reference qname.  The position of the 
+   * QName in the vector from the start of the vector will be its position 
+   * in the stack frame (but variables above the globalsTop value will need 
+   * to be offset to the current stack frame).
    */
-  public void setRoot(int context, Object environment)
+  public void fixupVariables(java.util.Vector vars, int globalsSize)
   {
+    super.fixupVariables(vars, globalsSize);
 
-    super.setRoot(context, environment);
-
-    m_inNaturalOrder = canBeWalkedInNaturalDocOrder();
-
-    if (!m_inNaturalOrder)
+    int analysis = getAnalysisBits();
+    if(WalkerFactory.isNaturalDocOrder(analysis))
     {
-      this.setShouldCacheNodes(true);
-
-      // This should really be done in the super's setRoot, but if I do that 
-      // it becomes unhappy in the minitest... possibly something to do with 
-      // the keyref iterator.  -sb
-      m_cachedNodes.setLast(0);
-      m_cachedNodes.reset();
-      m_cachedNodes.RemoveAllNoClear();
-      setNextPosition(0);
-      m_firstWalker.setRoot(context);
-
-      m_lastUsedWalker = m_firstWalker;
-
-      int nextNode = DTM.NULL;
-      AxesWalker walker = getLastUsedWalker();
-      XPathContext execContext = (XPathContext) environment;
-
-      execContext.pushCurrentNodeAndExpression(context, context);
-
-      try
-      {
-        do
-        {
-          while (true)
-          {
-            if (null == walker)
-              break;
-
-            nextNode = walker.getNextNode();
-
-            if (DTM.NULL == nextNode)
-            {
-              walker = walker.m_prevWalker;
-            }
-            else
-            {
-              if (walker.acceptNode(nextNode) != DTMIterator.FILTER_ACCEPT)
-              {
-                continue;
-              }
-
-              if (null == walker.m_nextWalker)
-              {
-                setLastUsedWalker(walker);
-
-                // return walker.returnNextNode(nextNode);
-                break;
-              }
-              else
-              {
-                AxesWalker prev = walker;
-
-                walker = walker.m_nextWalker;
-
-                walker.setRoot(nextNode);
-
-                walker.m_prevWalker = prev;
-
-                continue;
-              }
-            }  // if(null != nextNode)
-          }  // while(null != walker)
-
-          if (DTM.NULL != nextNode)
-          {
-            incrementNextPosition();
-
-            // m_currentContextNode = nextNode;
-            m_cachedNodes.addNodeInDocOrder(nextNode, execContext);
-
-            walker = getLastUsedWalker();
-          }
-        }
-        while (DTM.NULL != nextNode);
-      }
-      finally
-      {
-        execContext.popCurrentNodeAndExpression();
-      }
-
-      // m_prevReturned = nextNode;
-      setNextPosition(0);
-
-      m_last = m_cachedNodes.size();
-      m_lastFetched = DTM.NULL;
-      m_currentContextNode = DTM.NULL;
-      m_foundLast = true;
+    	m_inNaturalOrderStatic = true;
     }
-  }
-
-  //  public int nextNode()
-  //  {
-  //    return super.nextNode();
-  //  }
-
-  /**
-   * Reset the iterator.
-   */
-  public void reset()
-  {
-
-    if (m_inNaturalOrder)
-      super.reset();
     else
     {
-
-      // super.reset();
-      // m_foundLast = false;
-      m_lastFetched = DTM.NULL;
-      m_next = 0;
-
-      // m_last = 0;
-      if (null != m_firstWalker)
-      {
-        m_lastUsedWalker = m_firstWalker;
-
-        m_firstWalker.setRoot(m_context);
-      }
+    	m_inNaturalOrderStatic = false;
+    	// System.out.println("Setting natural doc order to false: "+
+    	//    WalkerFactory.getAnalysisString(analysis));
     }
+    
   }
+
 }

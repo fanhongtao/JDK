@@ -1,7 +1,7 @@
 /*
- * @(#)LabelView.java	1.60 01/12/03
+ * @(#)LabelView.java	1.62 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -16,7 +16,7 @@ import javax.swing.event.*;
  * used for rendering.
  *
  * @author Timothy Prinzing
- * @version 1.60 12/03/01
+ * @version 1.62 01/23/03
  */
 public class LabelView extends GlyphView implements TabableView {
 
@@ -61,7 +61,7 @@ public class LabelView extends GlyphView implements TabableView {
      * only meant if you need to update some additional
      * state when set.
      *
-     * @param u true if the view has a strike/line
+     * @param s true if the view has a strike/line
      *          through it, otherwise false
      * @see #isStrikeThrough
      */
@@ -77,7 +77,7 @@ public class LabelView extends GlyphView implements TabableView {
      * only meant if you need to update some additional
      * state when set.
      *
-     * @param u true if the view represents a
+     * @param s true if the view represents a
      *          superscript, otherwise false
      * @see #isSuperscript
      */
@@ -92,7 +92,7 @@ public class LabelView extends GlyphView implements TabableView {
      * only meant if you need to update some additional
      * state when set.
      *
-     * @param u true if the view represents a
+     * @param s true if the view represents a
      *          subscript, otherwise false
      * @see #isSubscript
      */

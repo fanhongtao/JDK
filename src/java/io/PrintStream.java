@@ -1,7 +1,7 @@
 /*
- * @(#)PrintStream.java	1.24 01/12/03
+ * @(#)PrintStream.java	1.25 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ package java.io;
  * PrintWriter}</code> class should be used in situations that require writing
  * characters rather than bytes.
  *
- * @version    1.24, 01/12/03
+ * @version    1.25, 03/01/23
  * @author     Frank Yellin
  * @author     Mark Reinhold
  * @since      JDK1.0

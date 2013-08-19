@@ -744,7 +744,10 @@ public class TransformerIdentityImpl extends Transformer
   public void setErrorListener(ErrorListener listener)
           throws IllegalArgumentException
   {
-    m_errorListener = listener;
+      if (listener == null)
+        throw new IllegalArgumentException(XSLMessages.createMessage(XSLTErrorResources.ER_NULL_ERROR_HANDLER, null));
+      else
+        m_errorListener = listener;
   }
 
   /**

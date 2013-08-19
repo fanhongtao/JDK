@@ -32,7 +32,7 @@ package org.w3c.dom;
  * <p>The values of <code>nodeName</code>, 
  * <code>nodeValue</code>, and <code>attributes</code> vary according to the 
  * node type as follows: 
- * <table border='1'>
+ * <table border='1' summary="Describes interface, node name, node value, and attributes">
  * <tr>
  * <th>Interface</th>
  * <th>nodeName</th>
@@ -40,84 +40,84 @@ package org.w3c.dom;
  * <th>attributes</th>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Attr</td>
- * <td valign='top' rowspan='1' colspan='1'>name of 
+ * <td valign='top'>Attr</td>
+ * <td valign='top'>name of 
  * attribute</td>
- * <td valign='top' rowspan='1' colspan='1'>value of attribute</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>value of attribute</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>CDATASection</td>
- * <td valign='top' rowspan='1' colspan='1'><code>"#cdata-section"</code></td>
- * <td valign='top' rowspan='1' colspan='1'>
+ * <td valign='top'>CDATASection</td>
+ * <td valign='top'><code>"#cdata-section"</code></td>
+ * <td valign='top'>
  * content of the CDATA Section</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Comment</td>
- * <td valign='top' rowspan='1' colspan='1'><code>"#comment"</code></td>
- * <td valign='top' rowspan='1' colspan='1'>content of 
+ * <td valign='top'>Comment</td>
+ * <td valign='top'><code>"#comment"</code></td>
+ * <td valign='top'>content of 
  * the comment</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Document</td>
- * <td valign='top' rowspan='1' colspan='1'><code>"#document"</code></td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>Document</td>
+ * <td valign='top'><code>"#document"</code></td>
+ * <td valign='top'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>DocumentFragment</td>
- * <td valign='top' rowspan='1' colspan='1'>
+ * <td valign='top'>DocumentFragment</td>
+ * <td valign='top'>
  * <code>"#document-fragment"</code></td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>DocumentType</td>
- * <td valign='top' rowspan='1' colspan='1'>document type name</td>
- * <td valign='top' rowspan='1' colspan='1'>
+ * <td valign='top'>DocumentType</td>
+ * <td valign='top'>document type name</td>
+ * <td valign='top'>
  * null</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Element</td>
- * <td valign='top' rowspan='1' colspan='1'>tag name</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
- * <td valign='top' rowspan='1' colspan='1'>NamedNodeMap</td>
+ * <td valign='top'>Element</td>
+ * <td valign='top'>tag name</td>
+ * <td valign='top'>null</td>
+ * <td valign='top'>NamedNodeMap</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Entity</td>
- * <td valign='top' rowspan='1' colspan='1'>entity name</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>Entity</td>
+ * <td valign='top'>entity name</td>
+ * <td valign='top'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>
+ * <td valign='top'>
  * EntityReference</td>
- * <td valign='top' rowspan='1' colspan='1'>name of entity referenced</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>name of entity referenced</td>
+ * <td valign='top'>null</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Notation</td>
- * <td valign='top' rowspan='1' colspan='1'>notation name</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
- * <td valign='top' rowspan='1' colspan='1'>
+ * <td valign='top'>Notation</td>
+ * <td valign='top'>notation name</td>
+ * <td valign='top'>null</td>
+ * <td valign='top'>
  * null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>ProcessingInstruction</td>
- * <td valign='top' rowspan='1' colspan='1'>target</td>
- * <td valign='top' rowspan='1' colspan='1'>entire content excluding the target</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>ProcessingInstruction</td>
+ * <td valign='top'>target</td>
+ * <td valign='top'>entire content excluding the target</td>
+ * <td valign='top'>null</td>
  * </tr>
  * <tr>
- * <td valign='top' rowspan='1' colspan='1'>Text</td>
- * <td valign='top' rowspan='1' colspan='1'>
+ * <td valign='top'>Text</td>
+ * <td valign='top'>
  * <code>"#text"</code></td>
- * <td valign='top' rowspan='1' colspan='1'>content of the text node</td>
- * <td valign='top' rowspan='1' colspan='1'>null</td>
+ * <td valign='top'>content of the text node</td>
+ * <td valign='top'>null</td>
  * </tr>
  * </table> 
  * <p>See also the <a href='http://www.w3.org/TR/2000/REC-DOM-Level-2-Core-20001113'>Document Object Model (DOM) Level 2 Core Specification</a>.

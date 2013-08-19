@@ -185,7 +185,7 @@ public class StylesheetPIHandler extends DefaultHandler
       String media = null;  // CDATA #IMPLIED
       String charset = null;  // CDATA #IMPLIED
       boolean alternate = false;  // (yes|no) "no"
-      StringTokenizer tokenizer = new StringTokenizer(data, " \t=", true);
+      StringTokenizer tokenizer = new StringTokenizer(data, " \t=\n", true);
       boolean lookedAhead = false; 
       Source source = null;
 

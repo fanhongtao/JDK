@@ -1,7 +1,7 @@
 /*
- * @(#)MetalComboBoxUI.java	1.40 01/12/10
+ * @(#)MetalComboBoxUI.java	1.42 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.beans.*;
  *
  * @see MetalComboBoxEditor
  * @see MetalComboBoxButton
- * @version 1.40 12/10/01
+ * @version 1.42 01/23/03
  * @author Tom Santos
  */
 public class MetalComboBoxUI extends BasicComboBoxUI {
@@ -191,6 +191,7 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
             size = super.getMinimumSize( c );
             Insets margin = arrowButton.getMargin();
             size.height += margin.top + margin.bottom;
+            size.width += margin.left + margin.right;
         }
         else {
             size = super.getMinimumSize( c );

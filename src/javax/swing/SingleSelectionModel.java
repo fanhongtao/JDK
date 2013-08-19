@@ -1,7 +1,7 @@
 /*
- * @(#)SingleSelectionModel.java	1.16 01/12/03
+ * @(#)SingleSelectionModel.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import javax.swing.event.*;
 /**
  * A model that supports at most one indexed selection.
  *
- * @version 1.16 12/03/01
+ * @version 1.18 01/23/03
  * @author Dave Moore
  */
 public interface SingleSelectionModel {
@@ -29,7 +29,7 @@ public interface SingleSelectionModel {
      *
      * Notifies any listeners if the model changes
      *
-     * @param an int specifying the model selection
+     * @param index an int specifying the model selection
      * @see   #getSelectedIndex
      * @see   #addChangeListener
      */
@@ -48,13 +48,13 @@ public interface SingleSelectionModel {
 
     /**
      * Adds <I>listener</I> as a listener to changes in the model.
-     * @param l the ChangeListener to add
+     * @param listener the ChangeListener to add
      */
     void addChangeListener(ChangeListener listener);
 
     /**
      * Removes <I>listener</I> as a listener to changes in the model.
-     * @param l the ChangeListener to remove
+     * @param listener the ChangeListener to remove
      */
     void removeChangeListener(ChangeListener listener);
 }

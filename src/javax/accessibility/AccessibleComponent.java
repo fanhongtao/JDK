@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleComponent.java	1.13 01/12/03
+ * @(#)AccessibleComponent.java	1.15 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -78,7 +78,7 @@ public interface AccessibleComponent {
     /**
      * Sets the Cursor of this object.
      *
-     * @param c the new Cursor for the object
+     * @param cursor  the new Cursor for the object
      * @see #getCursor
      */
     public void setCursor(Cursor cursor);

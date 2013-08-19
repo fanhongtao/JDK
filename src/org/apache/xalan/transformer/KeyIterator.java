@@ -58,42 +58,29 @@ package org.apache.xalan.transformer;
 
 import java.util.Vector;
 
-import org.apache.xpath.axes.WalkingIterator;
-import org.apache.xml.utils.PrefixResolver;
-import org.apache.xml.utils.XMLString;
-import org.apache.xml.utils.QName;
-import org.apache.xalan.templates.KeyDeclaration;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.objects.XObject;
-import org.apache.xpath.XPath;
-
-import org.apache.xml.dtm.DTM;
-
 import javax.xml.transform.TransformerException;
+import org.apache.xalan.res.XSLMessages;
+import org.apache.xalan.res.XSLTErrorResources;
+import org.apache.xalan.templates.KeyDeclaration;
+import org.apache.xml.dtm.Axis;
+import org.apache.xml.dtm.DTMIterator;
+import org.apache.xml.utils.QName;
+import org.apache.xpath.XPath;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.axes.OneStepIteratorForward;
 
 /**
  * <meta name="usage" content="internal"/>
  * This class implements an optimized iterator for 
- * "key()" patterns. This iterator incrementally walks the 
- * source tree and finds all the nodes that match
- * a given key name and match pattern.
+ * "key()" patterns, matching each node to the 
+ * match attribute in one or more xsl:key declarations.
  */
-public class KeyIterator extends WalkingIterator
+public class KeyIterator extends OneStepIteratorForward
 {
-  
-  /** The key table this iterator is associated to.
-   *  @serial          */
-  private KeyTable m_keyTable;
 
   /** Key name.
    *  @serial           */
   private QName m_name;
-  
-  /** 
-   * Flag indicating whether the whole source tree has been walked.     
-   * True if we still need to finish walking the tree.
-   * */
-  transient private boolean m_lookForMoreNodes = true;
 
   /**
    * Get the key name from a key declaration this iterator will process
@@ -122,109 +109,84 @@ public class KeyIterator extends WalkingIterator
   }
 
   /**
-   * Constructor KeyIterator
-   *
-   *
-   * @param doc The document node
-   * @param nscontext The prefix resolver for the execution context.
-   * @param name The key name
-   * @param keyDeclarations The key declarations from the stylesheet 
-   * @param xctxt The XPath runtime state
-   */
-  public KeyIterator(int doc, PrefixResolver nscontext, QName name,
-                     Vector keyDeclarations, XPathContext xctxt)
+    * Create a KeyIterator object.
+    *
+    * @param compiler A reference to the Compiler that contains the op map.
+    * @param opPos The position within the op map, which contains the
+    * location path expression for this itterator.
+    *
+    * @throws javax.xml.transform.TransformerException
+    */
+  KeyIterator(QName name, Vector keyDeclarations)
   {
-
-    super(nscontext);
-
-    int current = xctxt.getCurrentNode();
-    setRoot(current, xctxt);
-
-    m_name = name;
+    super(Axis.ALL);
     m_keyDeclarations = keyDeclarations;
-    m_firstWalker = new KeyWalker(this);
-
-    this.setLastUsedWalker(m_firstWalker);
+    // m_prefixResolver = nscontext;
+    m_name = name;
   }
 
   /**
-   * Returns the next node in the set and advances the position of the
-   * iterator in the set. After a NodeIterator is created, the first call
-   * to nextNode() returns the first node in the set.
+   *  Test whether a specified node is visible in the logical view of a
+   * TreeWalker or NodeIterator. This function will be called by the
+   * implementation of TreeWalker and NodeIterator; it is not intended to
+   * be called directly from user code.
    * 
-   * @return  The next <code>Node</code> in the set being iterated over, or
-   *   <code>null</code> if there are no more members in that set.
+   * @param testnode  The node to check to see if it passes the filter or not.
+   *
+   * @return  a constant to determine whether the node is accepted,
+   *   rejected, or skipped, as defined  above .
    */
-  public int nextNode()
+  public short acceptNode(int testNode)
   {
+    boolean foundKey = false;
+    KeyIterator ki = (KeyIterator) m_lpi;
+    org.apache.xpath.XPathContext xctxt = ki.getXPathContext();
+    Vector keys = ki.getKeyDeclarations();
 
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    int n = super.nextNode();
+    QName name = ki.getName();
+    try
+    {
+      // System.out.println("lookupKey: "+lookupKey);
+      int nDeclarations = keys.size();
 
-    // System.out.println("--> "+((null == n) ? "null" : n.getNodeName()));
-    return n;
+      // Walk through each of the declarations made with xsl:key
+      for (int i = 0; i < nDeclarations; i++)
+      {
+        KeyDeclaration kd = (KeyDeclaration) keys.elementAt(i);
+
+        // Only continue if the name on this key declaration
+        // matches the name on the iterator for this walker. 
+        if (!kd.getName().equals(name))
+          continue;
+
+        foundKey = true;
+        // xctxt.setNamespaceContext(ki.getPrefixResolver());
+
+        // See if our node matches the given key declaration according to 
+        // the match attribute on xsl:key.
+        XPath matchExpr = kd.getMatch();
+        double score = matchExpr.getMatchScore(xctxt, testNode);
+
+        if (score == kd.getMatch().MATCH_SCORE_NONE)
+          continue;
+
+        return DTMIterator.FILTER_ACCEPT;
+
+      } // end for(int i = 0; i < nDeclarations; i++)
+    }
+    catch (TransformerException se)
+    {
+
+      // TODO: What to do?
+    }
+
+    if (!foundKey)
+      throw new RuntimeException(
+        XSLMessages.createMessage(
+          XSLTErrorResources.ER_NO_XSLKEY_DECLARATION,
+          new Object[] { name.getLocalName()}));
+          
+    return DTMIterator.FILTER_REJECT;
   }
 
-  /**
-   * Set the value of the key that this iterator will look for 
-   *
-   *
-   * @param lookupKey value of the key to look for
-   */
-  public void setLookupKey(XMLString lookupKey)
-  {
-
-    // System.out.println("setLookupKey - lookupKey: "+lookupKey);
-    ((KeyWalker) m_firstWalker).m_lookupKey = lookupKey;
-
-    int context = getContext();
-    DTM dtm = this.getDTM(context);
-    m_firstWalker.setRoot(dtm.getDocument());
-    this.setLastUsedWalker(m_firstWalker);
-    this.setNextPosition(0);
-  }
-  
-  /**
-   * Set the KeyTable associated with this iterator  
-   *
-   *
-   * @param keyTable, the KeyTable associated with this iterator
-   */
-  void setKeyTable(KeyTable keyTable)
-  {
-    m_keyTable = keyTable;
-  }  
-  
-  /**
-   * Add this value(ref) to the refsTable in KeyTable  
-   *
-   *
-   * @param ref Key value(ref)(from key use field)
-   * @param node Node matching that ref 
-   */
-  void addRefNode(XMLString ref, int node)
-  {
-    m_keyTable.addRefNode(ref, node);
-  }
-  
-  /**
-   * Indicate whether we have walked the whole tree  
-   *
-   * @param b False if we have walked the whole tree
-   */
-  void setLookForMoreNodes(boolean b)
-  {
-    m_lookForMoreNodes = b;
-  }
-  
-  /**
-   * Get flag indicating whether we have walked the whole tree  
-   *
-   */
-  boolean getLookForMoreNodes()
-  {
-    return m_lookForMoreNodes;
-  }
-  
 }

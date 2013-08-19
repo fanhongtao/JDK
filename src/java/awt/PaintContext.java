@@ -1,7 +1,7 @@
 /*
- * @(#)PaintContext.java	1.22 01/12/03
+ * @(#)PaintContext.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,9 @@ AffineTransform, RenderingHints) createContext} method of
     /**
      * Returns a <code>Raster</code> containing the colors generated for 
      * the graphics operation.
-     * @param x,&nbsp;y the coordinates of the area in device space
+     * @param x the x coordinate of the area in device space
+     * for which colors are generated.
+     * @param y the y coordinate of the area in device space
      * for which colors are generated.
      * @param w the width of the area in device space 
      * @param h the height of the area in device space

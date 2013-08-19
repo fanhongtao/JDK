@@ -92,6 +92,8 @@ public class DTMNodeList implements org.w3c.dom.NodeList
 {
   private DTMIterator dtm_iter;
   private boolean valid=true;
+  private int m_firstChild;
+  private DTM m_parentDTM;
 
   //================================================================
   // Methods unique to this class
@@ -114,6 +116,24 @@ public class DTMNodeList implements org.w3c.dom.NodeList
       dtm_iter.runTo(-1);
       dtm_iter.setCurrentPos(pos);
     }
+
+  /** Public constructor: Create a NodeList to support
+   * DTMNodeProxy.getChildren().
+   *
+   * Unfortunately AxisIterators and DTMIterators don't share an API,
+   * so I can't use the existing Axis.CHILD iterator. Rather than
+   * create Yet Another Class, let's set up a special case of this
+   * one.
+   *
+   * @param parentDTM The DTM containing this node
+   * @param parentHandle DTM node-handle integer
+   * */
+  public DTMNodeList(DTM parentDTM,int parentHandle)
+  {
+    dtm_iter=null;
+    m_parentDTM=parentDTM;
+    m_firstChild=parentDTM.getFirstChild(parentHandle);
+  }
 
   /** Access the wrapped DTMIterator. I'm not sure whether anyone will
    * need this or not, but let's write it and think about it.
@@ -138,8 +158,18 @@ public class DTMNodeList implements org.w3c.dom.NodeList
      */
     public Node item(int index)
     {
-      int handle=dtm_iter.item(index);
-      return dtm_iter.getDTM(handle).getNode(handle);
+      if(dtm_iter!=null)
+      {
+        int handle=dtm_iter.item(index);
+        return dtm_iter.getDTM(handle).getNode(handle);
+      }
+      else
+      {
+        int handle=m_firstChild;
+        while(--index>=0 && handle!=DTM.NULL)
+          handle=m_parentDTM.getNextSibling(handle);
+        return m_parentDTM.getNode(handle);
+      }
     }
 
     /**
@@ -148,6 +178,18 @@ public class DTMNodeList implements org.w3c.dom.NodeList
      */
     public int getLength()
     {
+      if(dtm_iter!=null)
+      {
         return dtm_iter.getLength();
+      }
+      else
+      {
+        int count=0;
+        for(int handle=m_firstChild;
+            handle!=DTM.NULL;
+            handle=m_parentDTM.getNextSibling(handle))
+          ++count;
+        return count;
+      }
     }
 }

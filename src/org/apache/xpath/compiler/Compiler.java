@@ -112,20 +112,13 @@ public class Compiler extends OpMap
    * @param errorHandler Error listener where messages will be sent, or null 
    *                     if messages should be sent to System err.
    * @param locator The location object where the expression lives, which 
-   *                may be null.
+   *                may be null, but which, if not null, must be valid over 
+   *                the long haul, in other words, it will not be cloned.
    */
   public Compiler(ErrorListener errorHandler, SourceLocator locator)
   {
     m_errorHandler = errorHandler;
-    if(null != locator)
-    {
-      SAXSourceLocator ssl = new SAXSourceLocator();
-      ssl.setColumnNumber(locator.getColumnNumber());
-      ssl.setLineNumber(locator.getLineNumber());
-      ssl.setPublicId(locator.getPublicId());
-      ssl.setSystemId(locator.getSystemId());
-      m_locator = ssl;
-    }
+    m_locator = locator;
   }
 
   /**
@@ -153,7 +146,7 @@ public class Compiler extends OpMap
   public Expression compile(int opPos) throws TransformerException
   {
 
-    int op = m_opMap[opPos];
+    int op = getOp(opPos);
 
     Expression expr = null;
     // System.out.println(getPatternString()+"op: "+op);
@@ -227,10 +220,10 @@ public class Compiler extends OpMap
       break;
     default :
       error(XPATHErrorResources.ER_UNKNOWN_OPCODE,
-            new Object[]{ Integer.toString(m_opMap[opPos]) });  //"ERROR! Unknown op code: "+m_opMap[opPos]);
+            new Object[]{ Integer.toString(getOp(opPos)) });  //"ERROR! Unknown op code: "+m_opMap[opPos]);
     }
-    if(null != expr)
-      expr.setSourceLocator(m_locator);
+//    if(null != expr)
+//      expr.setSourceLocator(m_locator);
 
     return expr;
   }
@@ -544,7 +537,7 @@ public class Compiler extends OpMap
 
     opPos = getFirstChildPos(opPos);
 
-    return (XString) m_tokenQueue[m_opMap[opPos]];
+    return (XString) getTokenQueue().elementAt(getOp(opPos));
   }
 
   /**
@@ -561,7 +554,7 @@ public class Compiler extends OpMap
 
     opPos = getFirstChildPos(opPos);
 
-    return (XNumber) m_tokenQueue[m_opMap[opPos]];
+    return (XNumber) getTokenQueue().elementAt(getOp(opPos));
   }
 
   /**
@@ -580,12 +573,12 @@ public class Compiler extends OpMap
 
     opPos = getFirstChildPos(opPos);
 
-    int nsPos = m_opMap[opPos];
+    int nsPos = getOp(opPos);
     java.lang.String namespace 
       = (OpCodes.EMPTY == nsPos) ? null 
-                                   : (java.lang.String) m_tokenQueue[nsPos];
+                                   : (java.lang.String) getTokenQueue().elementAt(nsPos);
     java.lang.String localname 
-      = (java.lang.String) m_tokenQueue[m_opMap[opPos+1]];
+      = (java.lang.String) getTokenQueue().elementAt(getOp(opPos+1));
     QName qname = new QName(namespace, localname);
 
     var.setQName(qname);
@@ -631,7 +624,7 @@ public class Compiler extends OpMap
    * 
    * @param opPos The current position in the m_opMap array.
    *
-   * @return reference to {@link org.apache.xpath.axes.UnionPathIterator} instance.
+   * @return reference to {@link org.apache.xpath.axes.LocPathIterator} instance.
    *
    * @throws TransformerException if a error occurs creating the Expression.
    */
@@ -640,7 +633,7 @@ public class Compiler extends OpMap
     locPathDepth++;
     try
     {
-      return new UnionPathIterator(this, opPos);
+      return UnionPathIterator.createUnionIterator(this, opPos);
     }
     finally
     {
@@ -708,32 +701,39 @@ public class Compiler extends OpMap
    */
   protected Expression matchPattern(int opPos) throws TransformerException
   {
-
-    // First, count...
-    int nextOpPos = opPos;
-    int i;
-
-    for (i = 0; m_opMap[nextOpPos] == OpCodes.OP_LOCATIONPATHPATTERN; i++)
+    locPathDepth++;
+    try
     {
-      nextOpPos = getNextOpPos(nextOpPos);
+      // First, count...
+      int nextOpPos = opPos;
+      int i;
+
+      for (i = 0; getOp(nextOpPos) == OpCodes.OP_LOCATIONPATHPATTERN; i++)
+      {
+        nextOpPos = getNextOpPos(nextOpPos);
+      }
+
+      if (i == 1)
+        return compile(opPos);
+
+      UnionPattern up = new UnionPattern();
+      StepPattern[] patterns = new StepPattern[i];
+
+      for (i = 0; getOp(opPos) == OpCodes.OP_LOCATIONPATHPATTERN; i++)
+      {
+        nextOpPos = getNextOpPos(opPos);
+        patterns[i] = (StepPattern) compile(opPos);
+        opPos = nextOpPos;
+      }
+
+      up.setPatterns(patterns);
+
+      return up;
     }
-
-    if (i == 1)
-      return compile(opPos);
-
-    UnionPattern up = new UnionPattern();
-    StepPattern[] patterns = new StepPattern[i];
-
-    for (i = 0; m_opMap[opPos] == OpCodes.OP_LOCATIONPATHPATTERN; i++)
+    finally
     {
-      nextOpPos = getNextOpPos(opPos);
-      patterns[i] = (StepPattern) compile(opPos);
-      opPos = nextOpPos;
+      locPathDepth--;
     }
-
-    up.setPatterns(patterns);
-
-    return up;
   }
 
   /**
@@ -848,7 +848,7 @@ private static final boolean DEBUG = false;
   {
 
     int startOpPos = opPos;
-    int stepType = getOpMap()[opPos];
+    int stepType = getOp(opPos);
 
     if (OpCodes.ENDOP == stepType)
     {
@@ -871,7 +871,7 @@ private static final boolean DEBUG = false;
       if(DEBUG)
         System.out.println("MATCH_FUNCTION: "+m_currentPattern); 
       addMagicSelf = false;
-      argLen = m_opMap[opPos + OpMap.MAPINDEX_LENGTH];
+      argLen = getOp(opPos + OpMap.MAPINDEX_LENGTH);
       pattern = new FunctionPattern(compileFunction(opPos), Axis.PARENT, Axis.CHILD);
       break;
     case OpCodes.FROM_ROOT :
@@ -1042,11 +1042,11 @@ private static final boolean DEBUG = false;
   Expression compileFunction(int opPos) throws TransformerException
   {
 
-    int endFunc = opPos + m_opMap[opPos + 1] - 1;
+    int endFunc = opPos + getOp(opPos + 1) - 1;
 
     opPos = getFirstChildPos(opPos);
 
-    int funcID = m_opMap[opPos];
+    int funcID = getOp(opPos);
 
     opPos++;
 
@@ -1054,6 +1054,8 @@ private static final boolean DEBUG = false;
     {
       Function func = FunctionTable.getFunction(funcID);
 
+      func.postCompileStep(this);
+      
       try
       {
         int i = 0;
@@ -1072,8 +1074,10 @@ private static final boolean DEBUG = false;
       {
         java.lang.String name = FunctionTable.m_functions[funcID].getName();
 
-        m_errorHandler.fatalError( new TransformerException(name + " only allows " + wnae.getMessage()
-                               + " arguments", m_locator));
+        m_errorHandler.fatalError( new TransformerException(
+                  XSLMessages.createXPATHMessage(XPATHErrorResources.ER_ONLY_ALLOWS, 
+                      new Object[]{name, wnae.getMessage()}), m_locator)); 
+              //"name + " only allows " + wnae.getMessage() + " arguments", m_locator));
       }
 
       return func;
@@ -1099,16 +1103,16 @@ private static final boolean DEBUG = false;
           throws TransformerException
   {
 
-    int endExtFunc = opPos + m_opMap[opPos + 1] - 1;
+    int endExtFunc = opPos + getOp(opPos + 1) - 1;
 
     opPos = getFirstChildPos(opPos);
 
-    java.lang.String ns = (java.lang.String) m_tokenQueue[m_opMap[opPos]];
+    java.lang.String ns = (java.lang.String) getTokenQueue().elementAt(getOp(opPos));
 
     opPos++;
 
     java.lang.String funcName =
-      (java.lang.String) m_tokenQueue[m_opMap[opPos]];
+      (java.lang.String) getTokenQueue().elementAt(getOp(opPos));
 
     opPos++;
 
@@ -1147,7 +1151,7 @@ private static final boolean DEBUG = false;
   /**
    * Warn the user of an problem.
    *
-   * @param msg An error number that corresponds to one of the numbers found 
+   * @param msg An error msgkey that corresponds to one of the constants found 
    *            in {@link org.apache.xpath.res.XPATHErrorResources}, which is 
    *            a key for a format string.
    * @param args An array of arguments represented in the format string, which 
@@ -1156,7 +1160,7 @@ private static final boolean DEBUG = false;
    * @throws TransformerException if the current ErrorListoner determines to 
    *                              throw an exception.
    */
-  public void warn(int msg, Object[] args) throws TransformerException
+  public void warn(String msg, Object[] args) throws TransformerException
   {
 
     java.lang.String fmsg = XSLMessages.createXPATHWarning(msg, args);
@@ -1200,7 +1204,7 @@ private static final boolean DEBUG = false;
    * Tell the user of an error, and probably throw an
    * exception.
    *
-   * @param msg An error number that corresponds to one of the numbers found 
+   * @param msg An error msgkey that corresponds to one of the constants found 
    *            in {@link org.apache.xpath.res.XPATHErrorResources}, which is 
    *            a key for a format string.
    * @param args An array of arguments represented in the format string, which 
@@ -1209,7 +1213,7 @@ private static final boolean DEBUG = false;
    * @throws TransformerException if the current ErrorListoner determines to 
    *                              throw an exception.
    */
-  public void error(int msg, Object[] args) throws TransformerException
+  public void error(String msg, Object[] args) throws TransformerException
   {
 
     java.lang.String fmsg = XSLMessages.createXPATHMessage(msg, args);

@@ -1,5 +1,5 @@
 /*
- * @(#)SlotTableStack.java	1.9 03/01/19
+ * @(#)SlotTableStack.java	1.9 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,7 @@
 package com.sun.corba.se.internal.Interceptors;
 
 import org.omg.CORBA.CompletionStatus;
+import org.omg.CORBA.INTERNAL;
 import org.omg.PortableInterceptor.Current;
 import org.omg.PortableInterceptor.InvalidSlot;
 
@@ -66,8 +67,8 @@ public class SlotTableStack
     }
    
     // Contains all the active SlotTables for each thread.
-    // The ArrayList is made to behave like a stack.
-    private java.util.ArrayList tableContainer;
+    // The List is made to behave like a stack.
+    private java.util.List tableContainer;
 
     // Keeps track of number of PICurrents in the stack.
     private int currentIndex;
@@ -111,18 +112,17 @@ public class SlotTableStack
             SlotTable tableTemp = peekSlotTable();
             table = new SlotTable( piOrb, tableTemp.getSize( ));
         }
-        // NOTE: Very important not to always "add" - otherwise a memory leak.
-        if (currentIndex == tableContainer.size()) {
-            // Add will cause the table to grow.
-            tableContainer.add( currentIndex, table );
-        } else if (currentIndex > tableContainer.size()) {
-            throw new org.omg.CORBA.INTERNAL(
-                               "currentIndex > tableContainer.size(): " +
-                               currentIndex + " > " + tableContainer.size());
-        } else {
-            // Set will override unused slots.
-            tableContainer.set( currentIndex, table );
-        }
+	// NOTE: Very important not to always "add" - otherwise a memory leak.
+	if (currentIndex == tableContainer.size()) {
+	    // Add will cause the table to grow.
+	    tableContainer.add( currentIndex, table );
+	} else if (currentIndex > tableContainer.size()) {
+	    throw new INTERNAL("currentIndex > tableContainer.size(): " +
+			       currentIndex + " > " + tableContainer.size());
+	} else {
+	    // Set will override unused slots.
+	    tableContainer.set( currentIndex, table );
+	}
         currentIndex++;
     }
 
@@ -160,3 +160,5 @@ public class SlotTableStack
     }
 
 }
+
+// End of file.

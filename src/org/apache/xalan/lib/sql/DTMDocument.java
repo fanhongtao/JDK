@@ -1,5 +1,5 @@
 /**
- * @(#)DTMDocument.java	1.2 01/12/03 
+ * @(#) SQLDocument.java
  *
  * The Apache Software License, Version 1.1
  *
@@ -91,10 +91,6 @@ import org.xml.sax.ext.*;
  */
 public class DTMDocument extends DTMDefaultBaseIterators
 {
-    // Bitmask for the portion of a DTM Node handle which refers only
-    // to the node, without the portion that specifies which DTM it
-    // resides in.
-    static final int NODEIDENTITYBITS=DTMManager.IDENT_NODE_DEFAULT;
 
   /**
    */
@@ -362,9 +358,13 @@ public class DTMDocument extends DTMDefaultBaseIterators
    */
   public int getFirstAttribute( int parm1 )
   {
-    if (DEBUG) System.out.println("getFirstAttribute("+ (parm1&NODEIDENTITYBITS)+")");
-    int nodeIdx = parm1 & NODEIDENTITYBITS;
-    if (nodeIdx != DTM.NULL) return m_attribute.elementAt(nodeIdx) | m_dtmIdent;
+    if (DEBUG) System.out.println("getFirstAttribute("+ parm1+")");
+    int nodeIdx = makeNodeIdentity(parm1);
+    if (nodeIdx != DTM.NULL)
+    {
+      int attribIdx =  m_attribute.elementAt(nodeIdx);
+      return makeNodeHandle(attribIdx);
+    }
     else return DTM.NULL;
   }
 
@@ -377,7 +377,7 @@ public class DTMDocument extends DTMDefaultBaseIterators
     if (DEBUG) System.out.println("getNodeValue(" + parm1 + ")");
     try
     {
-      Object o = m_ObjectArray.getAt(parm1 & NODEIDENTITYBITS);
+      Object o = m_ObjectArray.getAt(makeNodeIdentity(parm1));
       if (o != null)
       {
         return o.toString();
@@ -401,10 +401,11 @@ public class DTMDocument extends DTMDefaultBaseIterators
    */
   public XMLString getStringValue( int parm1 )
   {
-    if (DEBUG) System.out.println("getStringValue(" + parm1 + ")");
+    int nodeIdx = makeNodeIdentity(parm1);
+    if (DEBUG) System.out.println("getStringValue(" + nodeIdx + ")");
     try
     {
-      Object o = m_ObjectArray.getAt(parm1 & NODEIDENTITYBITS);
+      Object o = m_ObjectArray.getAt(nodeIdx);
       if (o != null)
       {
         return m_xstrf.newstr(o.toString());
@@ -428,9 +429,9 @@ public class DTMDocument extends DTMDefaultBaseIterators
    */
   public int getNextAttribute( int parm1 )
   {
-    if (DEBUG) System.out.println("getNextAttribute(" + parm1 + ")");
-    int nodeIdx = parm1 & NODEIDENTITYBITS;
-    if (nodeIdx != DTM.NULL) return m_nextsib.elementAt(nodeIdx) | m_dtmIdent;
+    int nodeIdx = makeNodeIdentity(parm1);
+    if (DEBUG) System.out.println("getNextAttribute(" + nodeIdx + ")");
+    if (nodeIdx != DTM.NULL) return makeNodeHandle(m_nextsib.elementAt(nodeIdx));
     else return DTM.NULL;
   }
 
@@ -491,18 +492,18 @@ public class DTMDocument extends DTMDefaultBaseIterators
       for (int i = 0; i < nRecords; i++)
       {
         ps.println("=========== " + i + " ===========");
-        ps.println("NodeName: " + getNodeName(i));
-        ps.println("NodeNameX: " + getNodeNameX(i));
-        ps.println("LocalName: " + getLocalName(i));
-        ps.println("NamespaceURI: " + getNamespaceURI(i));
-        ps.println("Prefix: " + getPrefix(i));
+        ps.println("NodeName: " + getNodeName(makeNodeHandle(i)));
+        ps.println("NodeNameX: " + getNodeNameX(makeNodeHandle(i)));
+        ps.println("LocalName: " + getLocalName(makeNodeHandle(i)));
+        ps.println("NamespaceURI: " + getNamespaceURI(makeNodeHandle(i)));
+        ps.println("Prefix: " + getPrefix(makeNodeHandle(i)));
 
-        int exTypeID = getExpandedTypeID(i);
+        int exTypeID = getExpandedTypeID(makeNodeHandle(i));
 
         ps.println("Expanded Type ID: "
                            + Integer.toHexString(exTypeID));
 
-        int type = getNodeType(i);
+        int type = getNodeType(makeNodeHandle(i));
         String typestring;
 
         switch (type)
@@ -633,7 +634,7 @@ public class DTMDocument extends DTMDefaultBaseIterators
    * @return
    * @throws org.xml.sax.SAXException
    */
-  protected static void dispatchNodeData( Node node, ContentHandler ch, int depth )throws org.xml.sax.SAXException 
+  protected static void dispatchNodeData( Node node, ContentHandler ch, int depth )throws org.xml.sax.SAXException
   {
 
     switch (node.getNodeType())
@@ -741,7 +742,8 @@ public class DTMDocument extends DTMDefaultBaseIterators
    */
   public String getLocalName( int parm1 )
   {
-    int exID = this.getExpandedTypeID( parm1 & NODEIDENTITYBITS );
+//    int exID = this.getExpandedTypeID( makeNodeIdentity(parm1) );
+      int exID = getExpandedTypeID(parm1);
 
     if (DEBUG)
     {
@@ -760,7 +762,8 @@ public class DTMDocument extends DTMDefaultBaseIterators
    */
   public String getNodeName( int parm1 )
   {
-    int exID = this.getExpandedTypeID( parm1 & NODEIDENTITYBITS );
+//    int exID = getExpandedTypeID( makeNodeIdentity(parm1) );
+    int exID = getExpandedTypeID( parm1 );
     if (DEBUG)
     {
       DEBUG = false;
@@ -862,7 +865,7 @@ public class DTMDocument extends DTMDefaultBaseIterators
    * @return
    * @throws org.xml.sax.SAXException
    */
-  public void dispatchToEvents( int parm1, ContentHandler parm2 )throws org.xml.sax.SAXException 
+  public void dispatchToEvents( int parm1, ContentHandler parm2 )throws org.xml.sax.SAXException
   {
     if (DEBUG)
     {
@@ -893,7 +896,7 @@ public class DTMDocument extends DTMDefaultBaseIterators
    * @return
    * @throws org.xml.sax.SAXException
    */
-  public void dispatchCharactersEvents( int nodeHandle, ContentHandler ch, boolean normalize )throws org.xml.sax.SAXException 
+  public void dispatchCharactersEvents( int nodeHandle, ContentHandler ch, boolean normalize )throws org.xml.sax.SAXException
   {
     if (DEBUG)
     {
@@ -1312,8 +1315,8 @@ public class DTMDocument extends DTMDefaultBaseIterators
     if (DEBUG)
     {
       DEBUG=false;
-      System.out.print("getNodeType(" + (parm1 & NODEIDENTITYBITS) + ") ");
-      int exID = this.getExpandedTypeID( parm1 & NODEIDENTITYBITS );
+      System.out.print("getNodeType(" + parm1 + ") ");
+      int exID = getExpandedTypeID(parm1);
       String name = getLocalNameFromExpandedNameID(exID);
       System.out.println(
         ".. Node name [" + name + "]" +

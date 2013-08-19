@@ -1,7 +1,7 @@
 /*
- * @(#)IndexColorModel.java	1.88 01/12/03
+ * @(#)IndexColorModel.java	1.92 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,28 +14,56 @@ import java.math.BigInteger;
 /**
  * The <code>IndexColorModel</code> class is a <code>ColorModel</code>
  * class that works with pixel values consisting of a
- * single sample which is an index into a fixed colormap in the default
- * sRGB ColorSpace.  The colormap specifies red, green, blue, and
+ * single sample that is an index into a fixed colormap in the default
+ * sRGB color space.  The colormap specifies red, green, blue, and
  * optional alpha components corresponding to each index.  All components
- * are represented in the colormap as 8-bit unsigned integral values.  If
- * alpha is not present, an opaque alpha component (alpha = 1.0) is
- * assumed for each entry.  An optional transparent
- * pixel value can be supplied that indicates a completely transparent
- * pixel, regardless of any alpha component recorded for that pixel value.
- * Note that alpha values in <code>IndexColorModel</code> objects are 
- * never premultiplied.
+ * are represented in the colormap as 8-bit unsigned integral values.
+ * Some constructors allow the caller to specify "holes" in the colormap
+ * by indicating which colormap entries are valid and which represent
+ * unusable colors via the bits set in a <code>BigInteger</code> object.
  * This color model is similar to an X11 PseudoColor visual.
  * <p>
+ * Some constructors provide a means to specify an alpha component
+ * for each pixel in the colormap, while others either provide no
+ * such means or, in some cases, a flag to indicate whether the
+ * colormap data contains alpha values.  If no alpha is supplied to
+ * the constructor, an opaque alpha component (alpha = 1.0) is
+ * assumed for each entry.
+ * An optional transparent pixel value can be supplied that indicates a
+ * completely transparent pixel, regardless of any alpha component
+ * supplied or assumed for that pixel value.
+ * Note that the color components in the colormap of an
+ * <code>IndexColorModel</code> objects are never pre-multiplied with
+ * the alpha components.
+ * <p>
+ * <a name="transparency">
+ * The transparency of an <code>IndexColorModel</code> object is
+ * determined by examining the alpha components of the colors in the
+ * colormap and choosing the most specific value after considering
+ * the optional alpha values and any transparent index specified.
+ * The transparency value is <code>Transparency.OPAQUE</code>
+ * only if all valid colors in
+ * the colormap are opaque and there is no valid transparent pixel.
+ * If all valid colors
+ * in the colormap are either completely opaque (alpha = 1.0) or
+ * completely transparent (alpha = 0.0), which typically occurs when
+ * a valid transparent pixel is specified,
+ * the value is <code>Transparency.BITMASK</code>.
+ * Otherwise, the value is <code>Transparency.TRANSLUCENT</code>, indicating
+ * that some valid color has an alpha component that is
+ * neither completely transparent nor completely opaque (0.0 < alpha < 1.0).
+ * </a>
+ * <p>
  * The index represented by a pixel value is stored in the least
- * significant n bits of the pixel representations passed to the
- * methods of this class, where n is the pixel size specified to the
- * constructor for a particular <code>IndexColorModel</code> object 
- * and n must be between 1 and 16.  
+ * significant <em>n</em> bits of the pixel representations passed to the
+ * methods of this class, where <em>n</em> is the pixel size specified to the
+ * constructor for a particular <code>IndexColorModel</code> object;
+ * <em>n</em> must be between 1 and 16, inclusive.  
  * Higher order bits in pixel representations are assumed to be zero.
  * For those methods that use a primitive array pixel representation of
  * type <code>transferType</code>, the array length is always one.  
- * The transfer types supported are DataBuffer.TYPE_BYTE and 
- * DataBuffer.TYPE_USHORT.  A single int pixel 
+ * The transfer types supported are <code>DataBuffer.TYPE_BYTE</code> and 
+ * <code>DataBuffer.TYPE_USHORT</code>.  A single int pixel 
  * representation is valid for all objects of this class, since it is 
  * always possible to represent pixel values used with this class in a 
  * single int.  Therefore, methods that use this representation do 
@@ -62,6 +90,9 @@ public class IndexColorModel extends ColorModel {
     private boolean allgrayopaque;
     private BigInteger validBits;
     
+    private static int[] opaqueBits = {8, 8, 8};
+    private static int[] alphaBits = {8, 8, 8, 8};
+
     static private native void initIDs();
     static {
         ColorModel.loadLibraries();
@@ -74,10 +105,12 @@ public class IndexColorModel extends ColorModel {
      * unnormalized (1.0&nbsp;normalized), which means they
      * are fully opaque.  All of the arrays specifying the color 
      * components must have at least the specified number of entries.  
-     * The <code>ColorSpace</code> is the default sRGB space.  The 
-     * transparency value is Transparency.OPAQUE.  The transfer type is
-     * the smallest of DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT
-     * that can hold a single pixel.
+     * The <code>ColorSpace</code> is the default sRGB space.
+     * Since there is no alpha information in any of the arguments
+     * to this constructor, the transparency value is always 
+     * <code>Transparency.OPAQUE</code>.
+     * The transfer type is the smallest of <code>DataBuffer.TYPE_BYTE</code>
+     * or <code>DataBuffer.TYPE_USHORT</code> that can hold a single pixel.
      * @param bits	the number of bits each pixel occupies
      * @param size	the size of the color component arrays
      * @param r		the array of red color components
@@ -90,16 +123,15 @@ public class IndexColorModel extends ColorModel {
      */
     public IndexColorModel(int bits, int size,
 			   byte r[], byte g[], byte b[]) {
-	super(bits, IndexColorModel.setBits(bits, false),
+	super(bits, opaqueBits,
               ColorSpace.getInstance(ColorSpace.CS_sRGB),
-              false, false, Transparency.OPAQUE,
+              false, false, OPAQUE,
               ColorModel.getDefaultTransferType(bits));
         if (bits < 1 || bits > 16) {
             throw new IllegalArgumentException("Number of bits must be between"
                                                +" 1 and 16.");
         }
 	setRGBs(size, r, g, b, null);
-        checkAllGrayOpaque();
     }
 
     /**
@@ -109,10 +141,13 @@ public class IndexColorModel extends ColorModel {
      * (1.0&nbsp;normalized), which means they are fully opaque, except 
      * for the indicated transparent pixel.  All of the arrays
      * specifying the color components must have at least the specified
-     * number of entries.  The ColorSpace is the default sRGB space.
-     * The transparency value is Transparency.BITMASK.
-     * The transfer type is the smallest of DataBuffer.TYPE_BYTE or
-     * DataBuffer.TYPE_USHORT that can hold a
+     * number of entries.
+     * The <code>ColorSpace</code> is the default sRGB space.
+     * The transparency value may be <code>Transparency.OPAQUE</code> or
+     * <code>Transparency.BITMASK</code> depending on the arguments, as
+     * specified in the <a href="#transparency">class description</a> above.
+     * The transfer type is the smallest of <code>DataBuffer.TYPE_BYTE</code>
+     * or <code>DataBuffer.TYPE_USHORT</code> that can hold a
      * single pixel.
      * @param bits	the number of bits each pixel occupies
      * @param size	the size of the color component arrays
@@ -127,30 +162,31 @@ public class IndexColorModel extends ColorModel {
      */
     public IndexColorModel(int bits, int size,
 			   byte r[], byte g[], byte b[], int trans) {
-	super(bits, IndexColorModel.setBits(bits, (trans>=0)),
+	super(bits, opaqueBits,
               ColorSpace.getInstance(ColorSpace.CS_sRGB),
-              (trans > -1), false, Transparency.BITMASK,
+              false, false, OPAQUE,
               ColorModel.getDefaultTransferType(bits));
         if (bits < 1 || bits > 16) {
             throw new IllegalArgumentException("Number of bits must be between"
                                                +" 1 and 16.");
         }
 	setRGBs(size, r, g, b, null);
-        if (trans > -1) {
-            transparency = Transparency.BITMASK;
-            setTransparentPixel(trans);
-        }
-        checkAllGrayOpaque();
+	setTransparentPixel(trans);
     }
  
     /**
      * Constructs an <code>IndexColorModel</code> from the given 
      * arrays of red, green, blue and alpha components.  All of the 
      * arrays specifying the components must have at least the specified 
-     * number of entries.  The ColorSpace is the default sRGB space.
-     * The transparency value is Transparency.TRANSLUCENT.
-     * The transfer type is the smallest of DataBuffer.TYPE_BYTE or 
-     * DataBuffer.TYPE_USHORT that can hold a single pixel.
+     * number of entries.
+     * The <code>ColorSpace</code> is the default sRGB space.
+     * The transparency value may be any of <code>Transparency.OPAQUE</code>,
+     * <code>Transparency.BITMASK</code>,
+     * or <code>Transparency.TRANSLUCENT</code>
+     * depending on the arguments, as specified
+     * in the <a href="#transparency">class description</a> above.
+     * The transfer type is the smallest of <code>DataBuffer.TYPE_BYTE</code>
+     * or <code>DataBuffer.TYPE_USHORT</code> that can hold a single pixel.
      * @param bits	the number of bits each pixel occupies
      * @param size	the size of the color component arrays
      * @param r		the array of red color components
@@ -164,17 +200,15 @@ public class IndexColorModel extends ColorModel {
      */
     public IndexColorModel(int bits, int size,
 			   byte r[], byte g[], byte b[], byte a[]) {
-        super (bits, IndexColorModel.setBits(bits, true),
+        super (bits, alphaBits,
                ColorSpace.getInstance(ColorSpace.CS_sRGB),
-               true, false, Transparency.TRANSLUCENT,
+               true, false, TRANSLUCENT,
                ColorModel.getDefaultTransferType(bits));
         if (bits < 1 || bits > 16) {
             throw new IllegalArgumentException("Number of bits must be between"
                                                +" 1 and 16.");
         }
         setRGBs (size, r, g, b, a);
-        setTransparentPixel (-1);
-        checkAllGrayOpaque();
     }
 
     /**
@@ -182,11 +216,14 @@ public class IndexColorModel extends ColorModel {
      * array of interleaved red, green, blue and optional alpha 
      * components.  The array must have enough values in it to 
      * fill all of the needed component arrays of the specified 
-     * size.  The ColorSpace is the default sRGB space.  The 
-     * transparency value is Transparency.TRANSLUCENT if 
-     * <code>hasAlpha</code> is <code>true</code>, Transparency.OPAQUE
-     * otherwise.  The transfer type is the smallest of
-     * DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT 
+     * size.  The <code>ColorSpace</code> is the default sRGB space.
+     * The transparency value may be any of <code>Transparency.OPAQUE</code>,
+     * <code>Transparency.BITMASK</code>,
+     * or <code>Transparency.TRANSLUCENT</code>
+     * depending on the arguments, as specified
+     * in the <a href="#transparency">class description</a> above.
+     * The transfer type is the smallest of
+     * <code>DataBuffer.TYPE_BYTE</code> or <code>DataBuffer.TYPE_USHORT</code> 
      * that can hold a single pixel.
      * 
      * @param bits	the number of bits each pixel occupies
@@ -216,13 +253,14 @@ public class IndexColorModel extends ColorModel {
      * entirely transparent regardless of any alpha value specified
      * for it.  The array must have enough values in it to fill all
      * of the needed component arrays of the specified size.
-     * The ColorSpace is the default sRGB space.  The transparency
-     * value is Transparency.TRANSLUCENT if <code>hasAlpha</code>
-     * is <code>true</code>; otherwise it is Transparency.BITMASK 
-     * if <code>trans</code> is a valid index into the colormap 
-     * (between 0 and size - 1) or Transparency.OPAQUE if <code>trans</code>
-     * is not a valid index.  The transfer type is the smallest of
-     * DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT
+     * The <code>ColorSpace</code> is the default sRGB space.
+     * The transparency value may be any of <code>Transparency.OPAQUE</code>,
+     * <code>Transparency.BITMASK</code>,
+     * or <code>Transparency.TRANSLUCENT</code>
+     * depending on the arguments, as specified
+     * in the <a href="#transparency">class description</a> above.
+     * The transfer type is the smallest of
+     * <code>DataBuffer.TYPE_BYTE</code> or <code>DataBuffer.TYPE_USHORT</code>
      * that can hold a single pixel.
      * @param bits	the number of bits each pixel occupies
      * @param size	the size of the color component arrays
@@ -239,12 +277,9 @@ public class IndexColorModel extends ColorModel {
     public IndexColorModel(int bits, int size, byte cmap[], int start,
 			   boolean hasalpha, int trans) {
 	// REMIND: This assumes the ordering: RGB[A]
-	super(bits, IndexColorModel.setBits(bits, hasalpha || (trans > -1)),
+	super(bits, opaqueBits,
               ColorSpace.getInstance(ColorSpace.CS_sRGB),
-              (hasalpha || (trans > -1)), false,
-              hasalpha ? Transparency.TRANSLUCENT
-                       : (trans >= 0 ? Transparency.BITMASK
-                                     : Transparency.OPAQUE),
+              false, false, OPAQUE,
               ColorModel.getDefaultTransferType(bits));
 
         if (bits < 1 || bits > 16) {
@@ -259,49 +294,34 @@ public class IndexColorModel extends ColorModel {
 	rgb = new int[calcRealMapSize(bits, size)];
 	int j = start;
 	int alpha = 0xff;
-        transparency = OPAQUE;
+	boolean allgray = true;
+        int transparency = OPAQUE;
 	for (int i = 0; i < size; i++) {
-	    rgb[i] = ((cmap[j++] & 0xff) << 16)
-		| ((cmap[j++] & 0xff) << 8)
-		| (cmap[j++] & 0xff);
+	    int r = cmap[j++] & 0xff;
+	    int g = cmap[j++] & 0xff;
+	    int b = cmap[j++] & 0xff;
+	    allgray = allgray && (r == g) && (g == b);
 	    if (hasalpha) {
-		alpha = cmap[j++];
-		if (alpha != 0xff && transparency != TRANSLUCENT) {
-                    transparency =  (alpha == 0x0
-                                     ? BITMASK
-                                     : TRANSLUCENT);
+		alpha = cmap[j++] & 0xff;
+		if (alpha != 0xff) {
+		    if (alpha == 0x00) {
+			if (transparency == OPAQUE) {
+			    transparency = BITMASK;
+			}
+			if (transparent_index < 0) {
+			    transparent_index = i;
+			}
+		    } else {
+			transparency = TRANSLUCENT;
+		    }
+		    allgray = false;
 		}
 	    }
-	    rgb[i] |= (alpha << 24);
+	    rgb[i] = (alpha << 24) | (r << 16) | (g << 8) | b;
 	}
-
-        setTransparentPixel(trans);
-        if (transparent_index >= 0) {
-            if (transparency == OPAQUE) {
-                transparency = BITMASK;
-            }
-        }
-        else if (transparency == OPAQUE) {
-            // Force it in case transparent_index was invalid
-            supportsAlpha = false;
-            numComponents = 3;
-        }
-        
-        if (supportsAlpha) {
-            nBits = new int[4];
-            nBits[0] = nBits[1] = nBits[2] = nBits[3] = 8;
-        }
-        else {
-            if (transparent_index > -1) {
-                nBits = new int[4];
-                nBits[3] = 1;
-            }
-            else {
-                nBits = new int[3];
-            }
-            nBits[0] = nBits[1] = nBits[2] = 8;
-        }
-        checkAllGrayOpaque();
+	this.allgrayopaque = allgray;
+	setTransparency(transparency);
+	setTransparentPixel(trans);
     }
 
     /**
@@ -312,12 +332,12 @@ public class IndexColorModel extends ColorModel {
      * entirely transparent regardless of any alpha value specified
      * for it.  The array must have enough values in it to fill all
      * of the needed component arrays of the specified size.
-     * The ColorSpace is the default sRGB space.  The transparency
-     * value is Transparency.TRANSLUCENT if <code>hasAlpha</code> is 
-     * <code>true</code>; otherwise it is Transparency.BITMASK if 
-     * <code>trans</code> is a valid index into the colormap 
-     * (between 0 and size - 1) or Transparency.OPAQUE if 
-     * <code>trans</code> is not a valid index.  
+     * The <code>ColorSpace</code> is the default sRGB space.
+     * The transparency value may be any of <code>Transparency.OPAQUE</code>,
+     * <code>Transparency.BITMASK</code>,
+     * or <code>Transparency.TRANSLUCENT</code>
+     * depending on the arguments, as specified
+     * in the <a href="#transparency">class description</a> above.
      * @param bits	the number of bits each pixel occupies
      * @param size	the size of the color component arrays
      * @param cmap	the array of color components
@@ -341,13 +361,9 @@ public class IndexColorModel extends ColorModel {
                            int cmap[], int start,
 			   boolean hasalpha, int trans, int transferType) {
 	// REMIND: This assumes the ordering: RGB[A]
-	super(bits, IndexColorModel.setBits(bits, hasalpha),
+	super(bits, opaqueBits,
               ColorSpace.getInstance(ColorSpace.CS_sRGB),
-              hasalpha ? true : (trans >= 0 ? true : false),
-              false,
-              hasalpha ? Transparency.TRANSLUCENT
-                       : (trans >= 0 ? Transparency.BITMASK
-                                    : Transparency.OPAQUE),
+              false, false, OPAQUE,
               transferType);
 
         if (bits < 1 || bits > 16) {
@@ -363,36 +379,9 @@ public class IndexColorModel extends ColorModel {
             throw new IllegalArgumentException("transferType must be either" +
                 "DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT");
         }
-	map_size = size;
-	rgb = new int[calcRealMapSize(bits, size)];
-	int j = start;
-	int alpha = 0xff000000;
-        transparency = OPAQUE;
-        if (!hasalpha) {
-            // Need to make sure that the alpha is 0xff
-            for (int i=0; i < size; i++, j++) {
-                rgb[i] = cmap[j] | 0xff000000;
-            }
-        }
-        else {
-            for (int i = 0; i < size; i++, j++) {
-                rgb[i] = cmap[j];
-                alpha = cmap[j] & 0xff000000;
-                if (alpha != 0xff000000 && transparency != TRANSLUCENT) {
-                    transparency =  (alpha == 0x0
-                                     ? BITMASK
-                                     : TRANSLUCENT);
-                }
-            }
-	}
 
+	setRGBs(size, cmap, start, hasalpha);
         setTransparentPixel(trans);
-        if (transparent_index >= 0) {
-            if (transparency == OPAQUE) {
-                transparency = BITMASK;
-            }
-        }
-        checkAllGrayOpaque();
     }
 
     /**
@@ -403,6 +392,11 @@ public class IndexColorModel extends ColorModel {
      * The array must have enough values in it to fill all
      * of the needed component arrays of the specified size.
      * The <code>ColorSpace</code> is the default sRGB space.  
+     * The transparency value may be any of <code>Transparency.OPAQUE</code>,
+     * <code>Transparency.BITMASK</code>,
+     * or <code>Transparency.TRANSLUCENT</code>
+     * depending on the arguments, as specified
+     * in the <a href="#transparency">class description</a> above.
      * The transfer type must be one of <code>DataBuffer.TYPE_BYTE</code>
      * <code>DataBuffer.TYPE_USHORT</code>.
      * The <code>BigInteger</code> object specifies the valid/invalid pixels
@@ -418,7 +412,7 @@ public class IndexColorModel extends ColorModel {
      *    set in the BigInteger, the pixel at that index is valid.
      *    If a bit is not set, the pixel at that index
      *    is considered invalid.  If null, all pixels are valid.
-     *    Only bits from 0 to map_size will be considered.
+     *    Only bits from 0 to the map size are considered.
      * @throws IllegalArgumentException if <code>bits</code> is less
      *           than 1 or greater than 16
      * @throws IllegalArgumentException if <code>size</code> is less
@@ -430,9 +424,9 @@ public class IndexColorModel extends ColorModel {
      */
     public IndexColorModel(int bits, int size, int cmap[], int start,
                            int transferType, BigInteger validBits) {
-        super (bits, IndexColorModel.setBits(bits, true),
+        super (bits, alphaBits,
                ColorSpace.getInstance(ColorSpace.CS_sRGB),
-               true, false, Transparency.TRANSLUCENT,
+               true, false, TRANSLUCENT,
                transferType);
         
         if (bits < 1 || bits > 16) {
@@ -449,7 +443,6 @@ public class IndexColorModel extends ColorModel {
                 "DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT");
         }
 
-	map_size = size;
         if (validBits != null) {
             // Check to see if it is all valid
             for (int i=0; i < size; i++) {
@@ -460,23 +453,7 @@ public class IndexColorModel extends ColorModel {
             }
         }
         
-	rgb = new int[calcRealMapSize(bits, size)];
-	int j = start;
-	int alpha;
-        transparency = OPAQUE;
-
-        for (int i = 0; i < size; i++, j++) {
-            rgb[i] = cmap[j];
-            alpha = cmap[j] & 0xff000000;
-            if (alpha != 0xff000000 && transparency != TRANSLUCENT) {
-                transparency =  (alpha == 0x0
-                                 ? BITMASK
-                                 : TRANSLUCENT);
-            }
-        }
-
-        checkAllGrayOpaque();
-        
+	setRGBs(size, cmap, start, true);
     }
     
     private void setRGBs(int size, byte r[], byte g[], byte b[], byte a[]) {
@@ -487,25 +464,73 @@ public class IndexColorModel extends ColorModel {
 	map_size = size;
 	rgb = new int[calcRealMapSize(pixel_bits, size)];
 	int alpha = 0xff;
-        transparency = OPAQUE;
+        int transparency = OPAQUE;
+	boolean allgray = true;
 	for (int i = 0; i < size; i++) {
+	    int rc = r[i] & 0xff;
+	    int gc = g[i] & 0xff;
+	    int bc = b[i] & 0xff;
+	    allgray = allgray && (rc == gc) && (gc == bc);
 	    if (a != null) {
-		alpha = (a[i] & 0xff);
-		if (alpha != 0xff && transparency != TRANSLUCENT) {
-                    transparency =  (alpha == 0x0
-                                     ? BITMASK
-                                     : TRANSLUCENT);
+		alpha = a[i] & 0xff;
+		if (alpha != 0xff) {
+		    if (alpha == 0x00) {
+			if (transparency == OPAQUE) {
+			    transparency = BITMASK;
+			}
+			if (transparent_index < 0) {
+			    transparent_index = i;
+			}
+		    } else {
+			transparency = TRANSLUCENT;
+		    }
+		    allgray = false;
 		}
 	    }
-	    rgb[i] = (alpha << 24)
-		| ((r[i] & 0xff) << 16)
-		| ((g[i] & 0xff) << 8)
-		| (b[i] & 0xff);
+	    rgb[i] = (alpha << 24) | (rc << 16) | (gc << 8) | bc;
 	}
-        nBits = new int[4];
-        nBits[0] = nBits[1] = nBits[2] = nBits[3] = 8;
-        maxBits = 8;
-        
+	this.allgrayopaque = allgray;
+	setTransparency(transparency);
+    }
+
+    private void setRGBs(int size, int cmap[], int start, boolean hasalpha) {
+	map_size = size;
+	rgb = new int[calcRealMapSize(pixel_bits, size)];
+	int j = start;
+        int transparency = OPAQUE;
+	boolean allgray = true;
+	BigInteger validBits = this.validBits;
+	for (int i = 0; i < size; i++, j++) {
+	    if (validBits != null && !validBits.testBit(i)) {
+		continue;
+	    }
+	    int cmaprgb = cmap[j];
+	    int r = (cmaprgb >> 16) & 0xff;
+	    int g = (cmaprgb >>  8) & 0xff;
+	    int b = (cmaprgb      ) & 0xff;
+	    allgray = allgray && (r == g) && (g == b);
+	    if (hasalpha) {
+		int alpha = cmaprgb >>> 24;
+		if (alpha != 0xff) {
+		    if (alpha == 0x00) {
+			if (transparency == OPAQUE) {
+			    transparency = BITMASK;
+			}
+			if (transparent_index < 0) {
+			    transparent_index = i;
+			}
+		    } else {
+			transparency = TRANSLUCENT;
+		    }
+		    allgray = false;
+		}
+	    } else {
+		cmaprgb |= 0xff000000;
+	    }
+	    rgb[i] = cmaprgb;
+	}
+	this.allgrayopaque = allgray;
+	setTransparency(transparency);
     }
 
     private int calcRealMapSize(int bits, int size) {
@@ -514,7 +539,6 @@ public class IndexColorModel extends ColorModel {
     }
 
     private BigInteger getAllValid() {
-        BigInteger validBits;
 	int numbytes = (map_size+7)/8;
 	byte[] valid = new byte[numbytes];
 	java.util.Arrays.fill(valid, (byte)0xff);
@@ -522,30 +546,6 @@ public class IndexColorModel extends ColorModel {
 
 	return new BigInteger(1, valid);
     }        
-    private void checkAllGrayOpaque() {
-        int c;
-
-        allgrayopaque = false;
-        if ((transparent_index >= 0) || (transparency == TRANSLUCENT)) {
-            return;
-        }
-        for (int i = 0; i < map_size; i++) {
-            c = rgb[i];
-            if (c == 0x0) {
-                /* ignore transparent black */
-                continue;
-            }
-            if ((c & 0xff000000) != 0xff000000) {
-                return;
-            }
-            if ((((c >> 16) & 0xff) != ((c >> 8) & 0xff)) ||
-                (((c >> 8) & 0xff) != (c & 0xff))) {
-                return;
-            }
-        }
-        allgrayopaque = true;
-        transparency = OPAQUE;
-    }
 
     /**
      * Returns the transparency.  Returns either OPAQUE, BITMASK,
@@ -667,12 +667,29 @@ public class IndexColorModel extends ColorModel {
     }
 
     private void setTransparentPixel(int trans) {
-	if (trans >= map_size || trans < 0) {
-	    trans = -1;
-	} else {
+	if (trans >= 0 && trans < map_size) {
 	    rgb[trans] &= 0x00ffffff;
+	    transparent_index = trans;
+	    allgrayopaque = false;
+	    if (this.transparency == OPAQUE) {
+		setTransparency(BITMASK);
+	    }
 	}
-	transparent_index = trans;
+    }
+
+    private void setTransparency(int transparency) {
+	if (this.transparency != transparency) {
+	    this.transparency = transparency;
+	    if (transparency == OPAQUE) {
+		supportsAlpha = false;
+		numComponents = 3;
+		nBits = opaqueBits;
+	    } else {
+		supportsAlpha = true;
+		numComponents = 4;
+		nBits = alphaBits;
+	    }
+	}
     }
 
     /**
@@ -793,7 +810,9 @@ public class IndexColorModel extends ColorModel {
 
 	    for (int i = 0; i < map_size; i++) {
 		if (this.rgb[i] == 0x0) {
-		    // ignore transparent black
+		    // For allgrayopaque colormaps, entries are 0
+		    // iff they are an invalid color and should be
+		    // ignored during color searches.
 		    continue;
 		}
 		d = (this.rgb[i] & 0xff) - gray;
@@ -807,17 +826,20 @@ public class IndexColorModel extends ColorModel {
 		}
 	    }
 	} else if (alpha == 0) {
-            // Look for another transparent pixel
-            if (transparent_index > -1) {
+            // Return transparent pixel if we have one
+            if (transparent_index >= 0) {
                 pix = transparent_index;
             }
             else {
-                // Search for one
-                for (int i=0; i < map_size; i++) {
-		    if (this.rgb[i] < (1 << 24)) {
-                        transparent_index = i;
-                        pix = i;
-                        break;
+                // Search for smallest alpha
+		int smallestAlpha = 256;
+                for (int i = 0; i < map_size; i++) {
+		    int a = this.rgb[i] >>> 24;
+		    if (smallestAlpha > alpha &&
+			(validBits == null || validBits.testBit(i)))
+		    {
+			smallestAlpha = alpha;
+			pix = i;
                     }
                 }
             }
@@ -855,7 +877,9 @@ public class IndexColorModel extends ColorModel {
 			if (currentError < smallestError) {
 			    tmp = (lutrgb & 0xff) - blue;
 			    currentError += tmp * tmp;
-			    if (currentError < smallestError) {
+			    if (currentError < smallestError &&
+				(validBits == null || validBits.testBit(i)))
+			    {
 				pix = i;
 				smallestError = currentError;
 			    }
@@ -1299,12 +1323,8 @@ public class IndexColorModel extends ColorModel {
      * is valid; <code>false</code> otherwise.
      */
     public boolean isValid(int pixel) {
-        if (validBits == null) {
-            return (pixel >= 0 && pixel < map_size);
-        }
-        else {
-            return (pixel < map_size && validBits.testBit(pixel));
-        }
+	return ((pixel >= 0 && pixel < map_size) &&
+		(validBits == null || validBits.testBit(pixel)));
     }
  		
     /**
@@ -1322,7 +1342,7 @@ public class IndexColorModel extends ColorModel {
      * <code>BigInteger</code> value at that index is set, and is invalid
      * if the <code>BigInteger</code> value at that index is not set.
      * The only valid ranges to query in the <code>BigInteger</code> are
-     * between 0 and map_size.
+     * between 0 and the map size.
      * @return a <code>BigInteger</code> indicating the valid/invalid pixels.
      */
     public BigInteger getValidPixels() {
@@ -1334,15 +1354,6 @@ public class IndexColorModel extends ColorModel {
         }
     }
  
-    private static int[] setBits(int bits, boolean hasAlpha) {
-        int[] b = new int[3+(hasAlpha ? 1 : 0)];
-        b[0] = b[1] = b[2] = 8;
-        if (hasAlpha) {
-            b[3] = 8;
-        }
-        return b;
-    }
-
     /**
      * Disposes of system resources associated with this
      * <code>ColorModel</code> once this <code>ColorModel</code> is no

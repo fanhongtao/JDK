@@ -1,5 +1,5 @@
 /*
- * @(#)JApplet.java	1.55 03/01/19
+ * @(#)JApplet.java	1.56 03/01/23
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -65,7 +65,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: Swing's Applet subclass.
  *
- * @version 1.55 01/19/03
+ * @version 1.56 01/23/03
  * @author Arnaud Weber
  */
 public class JApplet extends Applet implements Accessible, RootPaneContainer 
@@ -117,12 +117,15 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
         setLayout(new BorderLayout());
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
-
- 	setFocusCycleRoot(true);
- 	setFocusTraversalPolicy(KeyboardFocusManager.
- 				getCurrentKeyboardFocusManager().
- 				getDefaultFocusTraversalPolicy());
-
+	
+	// This code should be changed after the RFE 4719336 is resolved
+	// to not make the applet a FocusCycleRoot, but set it's
+	// FocusTraversalPolicy only.
+	setFocusCycleRoot(true);
+	setFocusTraversalPolicy(KeyboardFocusManager.
+				getCurrentKeyboardFocusManager().
+				getDefaultFocusTraversalPolicy());
+	
         enableEvents(AWTEvent.KEY_EVENT_MASK);
     }
 
@@ -143,7 +146,7 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
    /**
     * Sets the menubar for this applet.
-    * @param menubar the menubar being placed in the applet
+    * @param menuBar the menubar being placed in the applet
     *
     * @see #getJMenuBar
     *

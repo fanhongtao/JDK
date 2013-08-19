@@ -1,7 +1,7 @@
 /*
- * @(#)FileOutputStream.java	1.54 02/02/06
+ * @(#)FileOutputStream.java	1.56 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileWriter</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.54, 02/06/02
+ * @version 1.56, 01/23/03
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see     java.io.FileInputStream
@@ -168,6 +168,9 @@ class FileOutputStream extends OutputStream
 	if (security != null) {
 	    security.checkWrite(name);
 	}
+        if (name == null) {
+            throw new NullPointerException();
+        }
 	fd = new FileDescriptor();
         this.append = append;
 	if (append) {

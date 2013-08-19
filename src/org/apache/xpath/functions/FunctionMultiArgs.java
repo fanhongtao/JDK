@@ -56,7 +56,14 @@
  */
 package org.apache.xpath.functions;
 
+import java.util.Vector;
+
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.functions.Function3Args.Arg2Owner;
+import org.apache.xpath.res.XPATHErrorResources;
+import org.apache.xalan.res.XSLMessages;
 
 /**
  * <meta name="usage" content="advanced"/>
@@ -69,6 +76,16 @@ public class FunctionMultiArgs extends Function3Args
   /** Argument expressions that are at index 3 or greater.
    *  @serial */
   Expression[] m_args;
+  
+  /**
+   * Return an expression array containing arguments at index 3 or greater.
+   *
+   * @return An array that contains the arguments at index 3 or greater.
+   */
+  public Expression[] getArgs()
+  {
+    return m_args;
+  }
 
   /**
    * Set an argument expression for a function.  This method is called by the
@@ -104,6 +121,7 @@ public class FunctionMultiArgs extends Function3Args
         args[m_args.length] = arg;
         m_args = args;
       }
+      arg.exprSetParent(this);
     }
   }
   
@@ -140,6 +158,21 @@ public class FunctionMultiArgs extends Function3Args
   public void checkNumberArgs(int argNum) throws WrongNumberArgsException{}
 
   /**
+   * Constructs and throws a WrongNumberArgException with the appropriate
+   * message for this function object.  This class supports an arbitrary
+   * number of arguments, so this method must never be called.
+   *
+   * @throws WrongNumberArgsException
+   */
+  protected void reportWrongNumberArgs() throws WrongNumberArgsException {
+    String fMsg = XSLMessages.createXPATHMessage(
+        XPATHErrorResources.ER_INCORRECT_PROGRAMMER_ASSERTION,
+        new Object[]{ "Programmer's assertion:  the method FunctionMultiArgs.reportWrongNumberArgs() should never be called." });
+
+    throw new RuntimeException(fMsg);
+  }
+
+  /**
    * Tell if this expression or it's subexpressions can traverse outside
    * the current subtree.
    *
@@ -163,4 +196,79 @@ public class FunctionMultiArgs extends Function3Args
       return false;
     }
   }
+  
+  class ArgMultiOwner implements ExpressionOwner
+  {
+  	int m_argIndex;
+  	
+  	ArgMultiOwner(int index)
+  	{
+  		m_argIndex = index;
+  	}
+  	
+    /**
+     * @see ExpressionOwner#getExpression()
+     */
+    public Expression getExpression()
+    {
+      return m_args[m_argIndex];
+    }
+
+
+    /**
+     * @see ExpressionOwner#setExpression(Expression)
+     */
+    public void setExpression(Expression exp)
+    {
+    	exp.exprSetParent(FunctionMultiArgs.this);
+    	m_args[m_argIndex] = exp;
+    }
+  }
+
+   
+    /**
+     * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+     */
+    public void callArgVisitors(XPathVisitor visitor)
+    {
+      super.callArgVisitors(visitor);
+      if (null != m_args)
+      {
+        int n = m_args.length;
+        for (int i = 0; i < n; i++)
+        {
+          m_args[i].callVisitors(new ArgMultiOwner(i), visitor);
+        }
+      }
+    }
+    
+    /**
+     * @see Expression#deepEquals(Expression)
+     */
+    public boolean deepEquals(Expression expr)
+    {
+      if (!super.deepEquals(expr))
+            return false;
+
+      FunctionMultiArgs fma = (FunctionMultiArgs) expr;
+      if (null != m_args)
+      {
+        int n = m_args.length;
+        if ((null == fma) || (fma.m_args.length != n))
+              return false;
+
+        for (int i = 0; i < n; i++)
+        {
+          if (!m_args[i].deepEquals(fma.m_args[i]))
+                return false;
+        }
+
+      }
+      else if (null != fma.m_args)
+      {
+          return false;
+      }
+
+      return true;
+    }
 }

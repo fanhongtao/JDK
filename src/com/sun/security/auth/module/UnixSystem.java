@@ -1,7 +1,7 @@
 /*
- * @(#)UnixSystem.java	1.3 01/12/03
+ * @(#)UnixSystem.java	1.4 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import javax.security.auth.login.*;
  * <p> This class implementation retrieves and makes available Unix
  * UID/GID/groups information for the current user.
  * 
- * @version 1.3, 12/03/01
+ * @version 1.4, 01/23/03
  */
 public class UnixSystem {
 

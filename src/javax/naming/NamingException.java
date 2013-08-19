@@ -1,7 +1,7 @@
 /*
- * @(#)NamingException.java	1.6 01/12/03
+ * @(#)NamingException.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 01/12/03
+  * @version 1.8 03/01/23
   * @since 1.3
   */
 
@@ -279,7 +279,7 @@ public class NamingException extends Exception {
       * Retrieves the root cause of this NamingException, if any.
       * The root cause of a naming exception is used when the service provider
       * wants to indicate to the caller a non-naming related exception
-      * but at the same time want to use the NamingException structure
+      * but at the same time wants to use the NamingException structure
       * to indicate how far the naming operation proceeded.
       *
       * @return The possibly null exception that caused this naming 
@@ -287,24 +287,36 @@ public class NamingException extends Exception {
       *	   set for this naming exception.
       * @see #setRootCause
       * @see #rootException
+      * @see #getCause
       */
     public Throwable getRootCause() {
 	return rootException;
     }
 
     /**
-      * Records that the root cause of this NamingException.
-      * If <tt>e</tt> is <tt>this</tt>, this method does no do anything.
+      * Records the root cause of this NamingException.
+      * If <tt>e</tt> is <tt>this</tt>, this method does not do anything.
       * @param e The possibly null exception that caused the naming 
       * 	 operation to fail. If null, it means this naming
       * 	 exception has no root cause.
       * @see #getRootCause
       * @see #rootException
+      * @see #initCause
       */
     public void setRootCause(Throwable e) {
 	if (e != this) {
 	    rootException = e;
 	}
+    }
+
+    public Throwable getCause() {
+	return getRootCause();
+    }
+
+    public Throwable initCause(Throwable cause) {
+	super.initCause(cause);
+	setRootCause(cause);
+	return this;
     }
 
     /**
@@ -355,53 +367,4 @@ public class NamingException extends Exception {
      * Use serialVersionUID from JNDI 1.1.1 for interoperability
      */
     private static final long serialVersionUID = -1299181962103167177L;
-
-    /**
-     * Prints this exception's stack trace to <tt>System.err</tt>.
-     * If this exception has a root exception, the stack trace of the
-     * root exception is printed instead.
-     */
-    public void printStackTrace() {
-	printStackTrace(System.err);
-    }
-
-    /**
-     * Prints this exception's stack trace to a print stream.
-     * If this exception has a root exception, the stack trace of the
-     * root exception is printed instead.
-     * @param ps The non-null print stream to which to print.
-     */
-    public void printStackTrace(java.io.PrintStream ps) {
-	if (rootException != null) {
-	    String superString = super.toString();
-	    synchronized (ps) {
-		ps.print(superString
-			 + (superString.endsWith(".") ? "" : ".")
-			 + "  Root exception is ");
-		rootException.printStackTrace(ps);
-	    }
-	} else {
-	    super.printStackTrace(ps);
-	}
-    }
-
-    /**
-     * Prints this exception's stack trace to a print writer.
-     * If this exception has a root exception, the stack trace of the
-     * root exception is printed instead.
-     * @param pw The non-null print writer to which to print.
-     */
-    public void printStackTrace(java.io.PrintWriter pw) {
-	if (rootException != null) {
-	    String superString = super.toString();
-	    synchronized (pw) {
-		pw.print(superString
-			 + (superString.endsWith(".") ? "" : ".")
-			 + "  Root exception is ");
-		rootException.printStackTrace(pw);
-	    }
-	} else {
-	    super.printStackTrace(pw);
-	}
-    }
 };

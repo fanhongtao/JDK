@@ -1,7 +1,7 @@
 /*
- * @(#)TreeCellRenderer.java	1.18 01/12/03
+ * @(#)TreeCellRenderer.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.tree;
@@ -17,7 +17,7 @@ import javax.swing.JTree;
  * for an example of implementing a tree cell renderer
  * that displays custom icons.
  *
- * @version 1.18 12/03/01
+ * @version 1.19 01/23/03
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet

@@ -1,7 +1,7 @@
 /*
- * @(#)X-Buffer.java	1.44 02/02/06
+ * @(#)X-Buffer.java	1.48 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -230,7 +230,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.44, 02/02/06
+ * @version 1.48, 03/01/23
  * @since 1.4
  */
 
@@ -239,10 +239,9 @@ public abstract class ShortBuffer
     implements Comparable
 {
 
-    // These fields are used only by classes derived from Heap-X-Buffer and by
-    // the array() and arrayOffset() methods defined below.  They are declared
-    // here in order to reduce the number of virtual method invocations needed,
-    // especially when coding small buffers.
+    // These fields are declared here rather than in Heap-X-Buffer in order to
+    // reduce the number of virtual method invocations needed to access these
+    // values, which is especially costly when coding small buffers.
     //
     final short[] hb;			// Non-null only for heap buffers
     final int offset;
@@ -285,6 +284,9 @@ public abstract class ShortBuffer
 
 
 
+
+
+
     /**
      * Allocates a new short buffer.
      *
@@ -297,6 +299,9 @@ public abstract class ShortBuffer
      *         The new buffer's capacity, in shorts
      *
      * @return  The new short buffer
+     *
+     * @throws  IllegalArgumentException
+     *          If the <tt>capacity</tt> is a negative integer
      */
     public static ShortBuffer allocate(int capacity) {
 	if (capacity < 0)
@@ -714,7 +719,7 @@ public abstract class ShortBuffer
      * except that it first checks that there is sufficient space in this
      * buffer and it is potentially much more efficient. </p>
      *
-     * @param  array
+     * @param  src
      *         The array from which shorts are to be read
      *
      * @param  offset

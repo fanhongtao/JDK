@@ -1,7 +1,7 @@
 /*
- * @(#)BoundedRangeModel.java	1.24 01/12/03
+ * @(#)BoundedRangeModel.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import javax.swing.event.*;
  href="http://java.sun.com/docs/books/tutorial/uiswing/overview/anatomy.html">The Anatomy of a Swing-Based Program</a>
  * in <em>The Java Tutorial.</em>
  * 
- * @version 1.24 12/03/01
+ * @version 1.26 01/23/03
  * @author Hans Muller
  * @see DefaultBoundedRangeModel
  */
@@ -217,7 +217,7 @@ public interface BoundedRangeModel
      * @param extent an int giving the amount by which the value can "jump"
      * @param min    an int giving the minimum value
      * @param max    an int giving the maximum value
-     * @param isAdjusting a boolean, true if a series of changes are in
+     * @param adjusting a boolean, true if a series of changes are in
      *                    progress
      * 
      * @see #setValue

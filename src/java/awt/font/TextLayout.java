@@ -1,7 +1,7 @@
 /*
- * @(#)TextLayout.java	1.86 01/12/03
+ * @(#)TextLayout.java	1.88 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -328,7 +328,7 @@ public final class TextLayout implements Cloneable {
             // latin-1 we handle both cases.  We could add an additional check for Japanese since currently
             // it doesn't require layout and the advance cache would be simple, but right now we don't.
 
-            if (AdvanceCache.supportsText(chars)) {
+            if (!font.isTransformed() && AdvanceCache.supportsText(chars)) {
 		if (attrs == null || attrs.get(TextAttribute.CHAR_REPLACEMENT) == null) {
 		    return new OptInfo(frc, chars, font, metrics, attrs);
 		}

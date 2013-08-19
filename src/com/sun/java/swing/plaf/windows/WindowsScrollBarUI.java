@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsScrollBarUI.java	1.13 01/12/03
+ * @(#)WindowsScrollBarUI.java	1.16 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,6 +41,28 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
         return new WindowsScrollBarUI();
     }
 
+    protected void installDefaults() {
+	super.installDefaults();
+
+	if (XPStyle.getXP() != null) {
+	    scrollbar.setBorder(null);
+	}
+    }
+
+    public Dimension getPreferredSize(JComponent c) {
+	Dimension d = super.getPreferredSize(c);
+
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
+		d.width = xp.getInt("sysmetrics.scrollbarwidth", 17);
+	    } else {
+		d.height = xp.getInt("sysmetrics.scrollbarheight", 17);
+	    }
+	}
+	return d;
+    }
+
     public void uninstallUI(JComponent c) {
         super.uninstallUI(c);
         thumbGrid = highlightGrid = null;
@@ -49,10 +71,14 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
     protected void configureScrollBarColors() {
         super.configureScrollBarColors();
 	Color color = UIManager.getColor("ScrollBar.trackForeground");
-        thumbGrid = Grid.getGrid(color, trackColor);
+        if (color != null && trackColor != null) {
+            thumbGrid = Grid.getGrid(color, trackColor);
+        }
 
 	color = UIManager.getColor("ScrollBar.trackHighlightForeground");
-        highlightGrid = Grid.getGrid(color, trackHighlightColor);
+        if (color != null && trackHighlightColor != null) {
+            highlightGrid = Grid.getGrid(color, trackHighlightColor);
+        }
     }
 
     protected JButton createDecreaseButton(int orientation)  {
@@ -73,7 +99,19 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 
 
     protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds){
-        if (thumbGrid == null) {
+	boolean v = (scrollbar.getOrientation() == JScrollBar.VERTICAL);
+
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    JScrollBar sb = (JScrollBar)c;
+	    int index = 0;
+	    // Pending: Implement rollover 1 and pressed 2
+	    if (!sb.isEnabled()) {
+		index = 3;
+	    }
+	    String category = v ? "scrollbar.lowertrackvert" : "scrollbar.lowertrackhorz";
+	    xp.getSkin(category).paintSkin(g, trackBounds, index);
+	} else if (thumbGrid == null) {
             super.paintTrack(g, c, trackBounds);
         }
         else {
@@ -87,6 +125,35 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
             }
         }
     }
+
+    protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+	boolean v = (scrollbar.getOrientation() == JScrollBar.VERTICAL);
+
+	XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+	    JScrollBar sb = (JScrollBar)c;
+	    int index = 0;
+	    // Pending: Implement rollover 1
+	    if (!sb.isEnabled()) {
+		index = 3;
+	    } else if (isDragging) {
+		index = 2;
+	    }
+	    // Paint thumb
+	    XPStyle.Skin skin = xp.getSkin(v ? "scrollbar.thumbbtnvert" : "scrollbar.thumbbtnhorz");
+	    skin.paintSkin(g, thumbBounds, index);
+	    // Paint gripper
+	    skin = xp.getSkin(v ? "scrollbar.grippervert" : "scrollbar.gripperhorz");
+	    skin.paintSkin(g,
+			   thumbBounds.x + (thumbBounds.width  - skin.getWidth()) / 2,
+			   thumbBounds.y + (thumbBounds.height - skin.getHeight()) / 2,
+			   skin.getWidth(), skin.getHeight(), index);
+
+	} else {
+	    super.paintThumb(g, c, thumbBounds);
+	}
+    }
+
 
     protected void paintDecreaseHighlight(Graphics g) {
         if (highlightGrid == null) {
@@ -155,6 +222,24 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
         public WindowsArrowButton(int direction) {
             super(direction);
         }
+
+	public void paint(Graphics g) {
+	    XPStyle xp = XPStyle.getXP();
+	    if (xp != null) {
+		XPStyle.Skin skin = xp.getSkin("scrollbar.arrowbtn");
+		int index = 0;
+		switch (direction) {
+		    case NORTH: index =  0; break;
+		    case SOUTH: index =  4; break;
+		    case WEST:  index =  8; break;
+		    case EAST:  index = 12; break;
+		}
+
+		skin.paintSkin(g, 0, 0, getSize().width, getSize().height, index);
+	    } else {
+		super.paint(g);
+	    }
+	}
 
         public Dimension getPreferredSize() {
             int size = 16;

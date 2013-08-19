@@ -54,7 +54,6 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>. 
  *
- * $Id: JavaUtils.java,v 1.3 2001/07/23 22:40:47 costin Exp $ 
  */
 
 package org.apache.xml.utils.synthetic;

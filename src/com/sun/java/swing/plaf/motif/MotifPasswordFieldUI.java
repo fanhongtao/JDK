@@ -1,7 +1,7 @@
 /*
- * @(#)MotifPasswordFieldUI.java	1.13 01/12/03
+ * @(#)MotifPasswordFieldUI.java	1.14 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
@@ -22,7 +22,7 @@ import javax.swing.plaf.basic.BasicPasswordFieldUI;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.13 12/03/01
+ * @version 1.14 01/23/03
  */
 public class MotifPasswordFieldUI extends BasicPasswordFieldUI {
 

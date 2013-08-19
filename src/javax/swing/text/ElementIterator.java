@@ -1,7 +1,7 @@
 /*
- * @(#)ElementIterator.java	1.11 01/12/03
+ * @(#)ElementIterator.java	1.13 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.util.Enumeration;
  *    }
  *
  * @author Sunita Mani
- * @version 1.11 12/03/01
+ * @version 1.13 01/23/03
  *
  */
 
@@ -104,7 +104,7 @@ public class ElementIterator implements Cloneable {
      * root element is taken to get the
      * default root element of the document.
      *
-     * @param a Document.
+     * @param document a Document.
      */
     public ElementIterator(Document document) {
 	root = document.getDefaultRootElement();
@@ -114,7 +114,7 @@ public class ElementIterator implements Cloneable {
     /**
      * Creates a new ElementIterator.
      *
-     * @param the root Element.
+     * @param root the root Element.
      */
     public ElementIterator(Element root) {
 	this.root = root;

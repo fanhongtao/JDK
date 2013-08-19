@@ -35,9 +35,34 @@ public class IteratorPool implements java.io.Serializable
    *
    * @return An instance of the given object
    */
+  public synchronized DTMIterator getInstanceOrThrow()
+    throws CloneNotSupportedException
+  {
+    // Check if the pool is empty.
+    if (m_freeStack.isEmpty())
+    {
+
+      // Create a new object if so.
+      return (DTMIterator)m_orig.clone();
+    }
+    else
+    {
+      // Remove object from end of free pool.
+      DTMIterator result = (DTMIterator)m_freeStack.lastElement();
+
+      m_freeStack.setSize(m_freeStack.size() - 1);
+
+      return result;
+    }
+  }
+  
+  /**
+   * Get an instance of the given object in this pool 
+   *
+   * @return An instance of the given object
+   */
   public synchronized DTMIterator getInstance()
   {
-
     // Check if the pool is empty.
     if (m_freeStack.isEmpty())
     {

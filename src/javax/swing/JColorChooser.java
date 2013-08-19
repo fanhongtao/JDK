@@ -1,7 +1,7 @@
 /*
- * @(#)JColorChooser.java	1.42 02/03/20
+ * @(#)JColorChooser.java	1.44 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.42 03/20/02
+ * @version 1.44 01/23/03
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -389,7 +389,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Removes the Color Panel specified.
      *
-     * @param name   a string that specifies the panel to be removed
+     * @param panel   a string that specifies the panel to be removed
      * @return the color panel
      * @exception IllegalArgumentException if panel is not in list of
      * 			known chooser panels

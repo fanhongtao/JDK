@@ -1,7 +1,7 @@
 /*
- * @(#)WrappedPlainView.java	1.28 01/12/03
+ * @(#)WrappedPlainView.java	1.32 03/03/06
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -31,7 +31,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.28 12/03/01
+ * @version 1.32 03/06/03
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
@@ -315,6 +315,8 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * @return the tab stop, measured in points >= 0
      */
     public float nextTabStop(float x, int tabOffset) {
+	if (tabSize == 0)
+	    return x;
         int ntabs = ((int) x - tabBase) / tabSize;
         return tabBase + ((ntabs + 1) * tabSize);
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)UnresolvedPermission.java	1.22 02/02/01
+ * @(#)UnresolvedPermission.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -50,15 +50,30 @@ import java.security.cert.*;
  * permissions of that type are "resolved". That is,
  * for each such UnresolvedPermission, a new object of
  * the appropriate class type is instantiated, based on the
- * information in the UnresolvedPermission. This new object
- * replaces the UnresolvedPermission, which is removed.
+ * information in the UnresolvedPermission.
+ *
+ * <p> To instantiate the new class, UnresolvedPermission assumes
+ * the class provides a zero, one, and/or two-argument constructor.
+ * The zero-argument constructor would be used to instantiate
+ * a permission without a name and without actions.
+ * A one-arg constructor is assumed to take a <code>String</code>
+ * name as input, and a two-arg constructor is assumed to take a
+ * <code>String</code> name and <code>String</code> actions
+ * as input.  UnresolvedPermission may invoke a
+ * constructor with a <code>null</code> name and/or actions.
+ * If an appropriate permission constructor is not available,
+ * the UnresolvedPermission is ignored and the relevant permission
+ * will not be granted to executing code.
+ *
+ * <p> The newly created permission object replaces the
+ * UnresolvedPermission, which is removed.
  *
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.22 02/02/01
+ * @version 1.24 03/01/23
  *
  * @author Roland Schemers
  */

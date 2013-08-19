@@ -152,4 +152,16 @@ public class ElemWhen extends ElemTemplateElement
    *
    */
   public ElemWhen(){}
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+  {
+  	if(callAttrs)
+  		m_test.getExpression().callVisitors(m_test, visitor);
+    super.callChildVisitors(visitor, callAttrs);
+  }
+
 }

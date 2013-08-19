@@ -104,7 +104,7 @@ public class FuncKey extends Function2Args
     XNodeSet nodes = null;
     int context = xctxt.getCurrentNode();
     DTM dtm = xctxt.getDTM(context);
-    int docContext = dtm.getDocument();
+    int docContext = dtm.getDocumentRoot(context);
 
     if (DTM.NULL == docContext)
     {
@@ -117,6 +117,16 @@ public class FuncKey extends Function2Args
     XObject arg = getArg1().execute(xctxt);
     boolean argIsNodeSetDTM = (XObject.CLASS_NODESET == arg.getType());
     KeyManager kmgr = transformer.getKeyManager();
+    
+    // Don't bother with nodeset logic if the thing is only one node.
+    if(argIsNodeSetDTM)
+    {
+    	XNodeSet ns = (XNodeSet)arg;
+    	ns.setShouldCacheNodes(true);
+    	int len = ns.getLength();
+    	if(len <= 1)
+    		argIsNodeSetDTM = false;
+    }
 
     if (argIsNodeSetDTM)
     {
@@ -124,6 +134,7 @@ public class FuncKey extends Function2Args
       DTMIterator ni = arg.iter();
       int pos;
       UnionPathIterator upi = new UnionPathIterator();
+      upi.exprSetParent(this);
 
       while (DTM.NULL != (pos = ni.nextNode()))
       {
@@ -147,13 +158,15 @@ public class FuncKey extends Function2Args
           usedrefs.put(ref, ISTRUE);
         }
 
-        LocPathIterator nl =
+        XNodeSet nl =
           kmgr.getNodeSetDTMByKey(xctxt, docContext, keyname, ref,
                                xctxt.getNamespaceContext());
+                               
+        nl.setRoot(xctxt.getCurrentNode(), xctxt);
 
 //        try
 //        {
-          upi.addIterator((LocPathIterator)nl.asIterator(xctxt, docContext));
+          upi.addIterator(nl);
 //        }
 //        catch(CloneNotSupportedException cnse)
 //        {
@@ -170,18 +183,10 @@ public class FuncKey extends Function2Args
     else
     {
       XMLString ref = arg.xstr();
-      LocPathIterator nl = kmgr.getNodeSetDTMByKey(xctxt, docContext, keyname,
+      nodes = kmgr.getNodeSetDTMByKey(xctxt, docContext, keyname,
                                                 ref,
                                                 xctxt.getNamespaceContext());
-
-      try
-      {
-        nodes = new XNodeSet((LocPathIterator)nl.cloneWithReset());
-      }
-      catch(CloneNotSupportedException cnse)
-      {
-        // will never happen.
-      }
+      nodes.setRoot(xctxt.getCurrentNode(), xctxt);
     }
 
     return nodes;

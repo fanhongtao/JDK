@@ -62,12 +62,12 @@ package org.apache.xml.utils;
  * applications, thread-safety of a StringBuffer is a somewhat
  * dubious concept in any case.
  * <p>
- * Note that Stree is using a single FastStringBuffer as a string pool,
- * by recording start and length indices within a single buffer. This
+ * Note that Stree and DTM used a single FastStringBuffer as a string pool,
+ * by recording start and length indices within this single buffer. This
  * minimizes heap overhead, but of course requires more work when retrieving
  * the data.
  * <p>
- * This has been recoded to operate as a "chunked buffer". Doing so
+ * FastStringBuffer operates as a "chunked buffer". Doing so
  * reduces the need to recopy existing information when an append
  * exceeds the space available; we just allocate another chunk and
  * flow across to it. (The array of chunks may need to grow,
@@ -76,16 +76,59 @@ package org.apache.xml.utils;
  * boundaries; larger chunks make that less frequent.
  * <p>
  * The size values are parameterized, to allow tuning this code. In
- * theory, RTFs might want to be tuned differently from the main
- * document's text.
+ * theory, Result Tree Fragments might want to be tuned differently 
+ * from the main document's text. 
+ * <p>
+ * %REVIEW% An experiment in self-tuning is
+ * included in the code (using nested FastStringBuffers to achieve
+ * variation in chunk sizes), but this implementation has proven to
+ * be problematic when data may be being copied from the FSB into itself.
+ * We should either re-architect that to make this safe (if possible)
+ * or remove that code and clean up for performance/maintainability reasons.
  * <p>
  */
 public class FastStringBuffer
 {
   // If nonzero, forces the inial chunk size.
   /**/static final int DEBUG_FORCE_INIT_BITS=0;
+  
+  	// %BUG% %REVIEW% *****PROBLEM SUSPECTED: If data from an FSB is being copied
+  	// back into the same FSB (variable set from previous variable, for example) 
+  	// and blocksize changes in mid-copy... there's risk of severe malfunction in 
+  	// the read process, due to how the resizing code re-jiggers storage. Arggh. 
+  	// If we want to retain the variable-size-block feature, we need to reconsider 
+  	// that issue. For now, I have forced us into fixed-size mode.
+	static boolean DEBUG_FORCE_FIXED_CHUNKSIZE=true;
 
-  /**
+	/** Manefest constant: Suppress leading whitespace.
+	 * This should be used when normalize-to-SAX is called for the first chunk of a
+	 * multi-chunk output, or one following unsuppressed whitespace in a previous
+	 * chunk.
+	 * @see sendNormalizedSAXcharacters(char[],int,int,org.xml.sax.ContentHandler,int)
+	 */
+	public static final int SUPPRESS_LEADING_WS=0x01;
+	
+	/** Manefest constant: Suppress trailing whitespace.
+	 * This should be used when normalize-to-SAX is called for the last chunk of a
+	 * multi-chunk output; it may have to be or'ed with SUPPRESS_LEADING_WS.
+	 */
+	public static final int SUPPRESS_TRAILING_WS=0x02;
+	
+	/** Manefest constant: Suppress both leading and trailing whitespace.
+	 * This should be used when normalize-to-SAX is called for a complete string.
+	 * (I'm not wild about the name of this one. Ideas welcome.)
+	 * @see sendNormalizedSAXcharacters(char[],int,int,org.xml.sax.ContentHandler,int)
+	 */
+	public static final int SUPPRESS_BOTH
+		= SUPPRESS_LEADING_WS | SUPPRESS_TRAILING_WS;
+
+	/** Manefest constant: Carry trailing whitespace of one chunk as leading 
+	 * whitespace of the next chunk. Used internally; I don't see any reason
+	 * to make it public right now.
+	 */
+	private static final int CARRY_WS=0x04;
+
+	/**
    * Field m_chunkBits sets our chunking strategy, by saying how many
    * bits of index can be used within a single chunk before flowing over
    * to the next chunk. For example, if m_chunkbits is set to 15, each
@@ -189,6 +232,16 @@ public class FastStringBuffer
                           int rebundleBits)
   {
     if(DEBUG_FORCE_INIT_BITS!=0) initChunkBits=DEBUG_FORCE_INIT_BITS;
+    
+    // %REVIEW%
+    // Should this force to larger value, or smaller? Smaller less efficient, but if
+    // someone requested variable mode it's because they care about storage space.
+    // On the other hand, given the other changes I'm making, odds are that we should
+    // adopt the larger size. Dither, dither, dither... This is just stopgap workaround
+    // anyway; we need a permanant solution.
+    //
+    if(DEBUG_FORCE_FIXED_CHUNKSIZE) maxChunkBits=initChunkBits;
+    //if(DEBUG_FORCE_FIXED_CHUNKSIZE) initChunkBits=maxChunkBits;
 
     m_array = new char[16][];
 
@@ -302,30 +355,33 @@ public class FastStringBuffer
    * if additional storage does exist, its contents are unpredictable.
    * The only safe use for our setLength() is to truncate the FastStringBuffer
    * to a shorter string.
-   * <p>
-   * TODO: %REVEIW% Current setLength code is probably not the best solution.
-   * It releases memory that in theory we shouldn retain and
-   * reuse. Holding onto that would require recursive truncation of
-   * the inner FSB, and extending the append operations to recurse
-   * into the inner FSB when space exists within them. Could be done,
-   * but nontrivial change and adds some overhead to the append
-   * operation. Consider alternatives. 
    *
    * @param l New length. If l<0 or l>=getLength(), this operation will
    * not report an error but future operations will almost certainly fail.
    */
   public final void setLength(int l)
   {
-
     m_lastChunk = l >>> m_chunkBits;
 
     if (m_lastChunk == 0 && m_innerFSB != null)
     {
+      // Replace this FSB with the appropriate inner FSB, truncated
       m_innerFSB.setLength(l, this);
     }
     else
     {
       m_firstFree = l & m_chunkMask;
+      
+	  // There's an edge case if l is an exact multiple of m_chunkBits, which risks leaving
+	  // us pointing at the start of a chunk which has not yet been allocated. Rather than 
+	  // pay the cost of dealing with that in the append loops (more scattered and more
+	  // inner-loop), we correct it here by moving to the safe side of that
+	  // line -- as we would have left the indexes had we appended up to that point.
+      if(m_firstFree==0 && m_lastChunk>0)
+      {
+      	--m_lastChunk;
+      	m_firstFree=m_chunkSize;
+      }
     }
   }
 
@@ -349,6 +405,7 @@ public class FastStringBuffer
     {
 
       // Undo encapsulation -- pop the innerFSB data back up to root.
+      // Inefficient, but attempts to keep the code simple.
       rootFSB.m_chunkBits = m_chunkBits;
       rootFSB.m_maxChunkBits = m_maxChunkBits;
       rootFSB.m_rebundleBits = m_rebundleBits;
@@ -396,7 +453,7 @@ public class FastStringBuffer
    */
   public final void append(char value)
   {
-
+    
     char[] chunk;
 
     // We may have preallocated chunks. If so, all but last should
@@ -459,6 +516,8 @@ public class FastStringBuffer
   public final void append(String value)
   {
 
+    if (value == null) 
+      return;
     int strlen = value.length();
 
     if (0 == strlen)
@@ -539,6 +598,8 @@ public class FastStringBuffer
   public final void append(StringBuffer value)
   {
 
+    if (value == null) 
+      return;
     int strlen = value.length();
 
     if (0 == strlen)
@@ -707,6 +768,8 @@ public class FastStringBuffer
     // different chunk sizes, and even if they're the same we're
     // probably on a different alignment due to previously appended
     // data. We have to work through the source in bite-sized chunks.
+    if (value == null) 
+      return;
     int strlen = value.length();
 
     if (0 == strlen)
@@ -966,8 +1029,10 @@ public class FastStringBuffer
     if (stopChunk == 0 && m_innerFSB != null)
       m_innerFSB.sendSAXcharacters(ch, startColumn, stopColumn - startColumn);
     else if (stopColumn > startColumn)
+    {
       ch.characters(m_array[stopChunk], startColumn,
                     stopColumn - startColumn);
+    }
   }
   
   /**
@@ -977,13 +1042,31 @@ public class FastStringBuffer
    * @param ch SAX ContentHandler object to receive the event.
    * @param start Offset of first character in the range.
    * @param length Number of characters to send.
+   * @return normalization status to apply to next chunk (because we may
+   * have been called recursively to process an inner FSB):
+   * <dl>
+   * <dt>0</dt>
+   * <dd>if this output did not end in retained whitespace, and thus whitespace
+   * at the start of the following chunk (if any) should be converted to a
+   * single space.
+   * <dt>SUPPRESS_LEADING_WS</dt>
+   * <dd>if this output ended in retained whitespace, and thus whitespace
+   * at the start of the following chunk (if any) should be completely
+   * suppressed.</dd>
+   * </dd>
+   * </dl>
    * @exception org.xml.sax.SAXException may be thrown by handler's
    * characters() method.
    */
-  public void sendNormalizedSAXcharacters(
+  public int sendNormalizedSAXcharacters(
           org.xml.sax.ContentHandler ch, int start, int length)
             throws org.xml.sax.SAXException
   {
+	// This call always starts at the beginning of the 
+    // string being written out, either because it was called directly or
+    // because it was an m_innerFSB recursion. This is important since
+	// it gives us a well-known initial state for this flag:
+	int stateForNextChunk=SUPPRESS_LEADING_WS;
 
     int stop = start + length;
     int startChunk = start >>> m_chunkBits;
@@ -994,108 +1077,160 @@ public class FastStringBuffer
     for (int i = startChunk; i < stopChunk; ++i)
     {
       if (i == 0 && m_innerFSB != null)
+				stateForNextChunk=
         m_innerFSB.sendNormalizedSAXcharacters(ch, startColumn,
                                      m_chunkSize - startColumn);
       else
+				stateForNextChunk=
         sendNormalizedSAXcharacters(m_array[i], startColumn, 
-                                    m_chunkSize - startColumn, ch);
+                                    m_chunkSize - startColumn, 
+																		ch,stateForNextChunk);
 
       startColumn = 0;  // after first chunk
     }
 
     // Last, or only, chunk
     if (stopChunk == 0 && m_innerFSB != null)
+			stateForNextChunk= // %REVIEW% Is this update really needed?
       m_innerFSB.sendNormalizedSAXcharacters(ch, startColumn, stopColumn - startColumn);
     else if (stopColumn > startColumn)
     {
-      sendNormalizedSAXcharacters(m_array[stopChunk], startColumn,
-                    stopColumn - startColumn, ch);
+			stateForNextChunk= // %REVIEW% Is this update really needed?
+      sendNormalizedSAXcharacters(m_array[stopChunk], 
+																	startColumn, stopColumn - startColumn,
+																	ch, stateForNextChunk | SUPPRESS_TRAILING_WS);
     }
+		return stateForNextChunk;
   }
   
-  static char[] m_oneChar = {' '};
-  
+  static final char[] SINGLE_SPACE = {' '};
+	  
   /**
-   * Directly normalize and dispatch the character array.
+   * Internal method to directly normalize and dispatch the character array.
+   * This version is aware of the fact that it may be called several times
+   * in succession if the data is made up of multiple "chunks", and thus
+   * must actively manage the handling of leading and trailing whitespace.
+   * 
+   * Note: The recursion is due to the possible recursion of inner FSBs.
    *
    * @param ch The characters from the XML document.
    * @param start The start position in the array.
    * @param length The number of characters to read from the array.
+   * @param handler SAX ContentHandler object to receive the event.
+   * @param edgeTreatmentFlags How leading/trailing spaces should be handled. 
+   * This is a bitfield contining two flags, bitwise-ORed together:
+   * <dl>
+   * <dt>SUPPRESS_LEADING_WS</dt>
+   * <dd>When false, causes leading whitespace to be converted to a single
+   * space; when true, causes it to be discarded entirely.
+   * Should be set TRUE for the first chunk, and (in multi-chunk output)
+   * whenever the previous chunk ended in retained whitespace.</dd>
+   * <dt>SUPPRESS_TRAILING_WS</dt>
+   * <dd>When false, causes trailing whitespace to be converted to a single
+   * space; when true, causes it to be discarded entirely.
+   * Should be set TRUE for the last or only chunk.
+   * </dd>
+   * </dl>
+   * @return normalization status, as in the edgeTreatmentFlags parameter:
+   * <dl>
+   * <dt>0</dt>
+   * <dd>if this output did not end in retained whitespace, and thus whitespace
+   * at the start of the following chunk (if any) should be converted to a
+   * single space.
+   * <dt>SUPPRESS_LEADING_WS</dt>
+   * <dd>if this output ended in retained whitespace, and thus whitespace
+   * at the start of the following chunk (if any) should be completely
+   * suppressed.</dd>
+   * </dd>
+   * </dl>
+   *
    * 
    * @exception org.xml.sax.SAXException Any SAX exception, possibly
    *            wrapping another exception.
    */
-  public static void sendNormalizedSAXcharacters(char ch[], 
+  static int sendNormalizedSAXcharacters(char ch[], 
              int start, int length, 
-             org.xml.sax.ContentHandler handler)
+             org.xml.sax.ContentHandler handler,
+						 int edgeTreatmentFlags)
           throws org.xml.sax.SAXException
   {
     int end = length + start;
-    int s;
-    for (s = start; s < end; s++)
+    int scanpos=start;
+		
+    // Leading whitespaces should be _completely_ suppressed if and only if
+    // (a) we're the first chunk in the normalized sequence or (b) the
+    // previous chunk ended in a normalized-but-not-suppressed whitespace.
+    // If no suppression required and first char is whitespace, than
+    // add single space and suppress following white spaces
+    if (XMLCharacterRecognizer.isWhiteSpace(ch[scanpos]))
     {
-      char c = ch[s];
-      if(!XMLCharacterRecognizer.isWhiteSpace(c))
-        break;
+        if(0 == (edgeTreatmentFlags&SUPPRESS_LEADING_WS) )
+            handler.characters(SINGLE_SPACE, 0, 1);
+
+        while(++scanpos < end)
+        {
+            char c = ch[scanpos];
+            if(!XMLCharacterRecognizer.isWhiteSpace(c))
+                break;
+        }
     }
 
-    boolean whiteSpaceFound = false;
-    boolean needToFlushSpace = false;
-    int d = s;
-    for (; s < end; s++)
+	// %REVIEW% Do we really need both flags?
+    boolean whiteSpaceFound = false;  // Last char seen was whitespace
+    // Pending whitespace. May be carried from previous chunk
+    boolean needToFlushSpace = 0!=(edgeTreatmentFlags&CARRY_WS); 
+    
+    int datapos = scanpos;	// Start of non-whitespace data (if any)
+    for (; scanpos < end; scanpos++)
     {
-      char c = ch[s];
+      char c = ch[scanpos];
 
       if (XMLCharacterRecognizer.isWhiteSpace(c))
       {
         if (!whiteSpaceFound)
         {
           whiteSpaceFound = true;
-          if(c != ' ')
+          int len = (scanpos-datapos);
+          if( len > 0)
           {
-            int len = (s-d);
-            if( len > 0)
-            {
-              if(needToFlushSpace)
-                handler.characters(m_oneChar, 0, 1);
-                
-              handler.characters(ch, d, len);
-              needToFlushSpace = true;
-              // handler.characters(m_oneChar, 0, 1);
-            }
-            d = s+1;
+            if(needToFlushSpace)
+              handler.characters(SINGLE_SPACE, 0, 1);
+              
+            handler.characters(ch, datapos, len);
+            needToFlushSpace = true;
           }
+          datapos = scanpos+1;
         }
         else
         {
-          int z;
-          for (z = s+1; z < end; z++)
+          int nonwhitescan = scanpos+1; // Hunt for first nonwhite character after whitespace
+          for (; nonwhitescan < end; nonwhitescan++)
           {
-            c = ch[z];
+            c = ch[nonwhitescan];
             if(!XMLCharacterRecognizer.isWhiteSpace(c))
               break;
           }
 
-          int len = (s-d);
-
-          if(z == end)
+          if(nonwhitescan == end)
           {
-            end = s;
+            end = scanpos;
             break; // Let the flush at the end handle it.
           }
+
+          int len = (scanpos-datapos);
           if(len > 0)
           {
             if(needToFlushSpace)
             {
-              handler.characters(m_oneChar, 0, 1);
+              handler.characters(SINGLE_SPACE, 0, 1);
               needToFlushSpace = false;
             }
               
-            handler.characters(ch, d, len);
+            handler.characters(ch, datapos, len);
           }
 
           whiteSpaceFound = false;
-          d = s = z;
+          datapos = scanpos = nonwhitescan;
         }
       }
       else
@@ -1105,19 +1240,54 @@ public class FastStringBuffer
     }
 
     if (whiteSpaceFound)
-      s--;
+      scanpos--;
     
-    int len = (s-d);
-    
+    int len = (scanpos-datapos);
+
+	// If have non-space text, output it (possibly with a space before it)
+	// and 
     if(len > 0)
     {
-      if(needToFlushSpace)
-        handler.characters(m_oneChar, 0, 1);
-      handler.characters(ch, d, len);
+      if(needToFlushSpace) // Pending space
+        handler.characters(SINGLE_SPACE, 0, 1); // Output single space
+  
+  	  handler.characters(ch, datapos, len);
+  	  edgeTreatmentFlags &= ~(SUPPRESS_LEADING_WS | CARRY_WS);
     }
+    // If we ended in (nonsuppressed) whitespace, tell the next chunk to suppress
+    // leading whitespace _BUT_ to output a single space before any non-whitespace.
+    // (This allows us to skip through multiple chunks' worth of whitespace, if
+    // necessary, yet still output the one required space if needed. The last block
+    // will aways have SUPPRESS_TRAILING_WS set, and so discard any remaining space.)
+	if(whiteSpaceFound && 0==(edgeTreatmentFlags&SUPPRESS_TRAILING_WS))
+	{
+        // handler.characters(SINGLE_SPACE, 0, 1); // Output single space
+		edgeTreatmentFlags |= SUPPRESS_LEADING_WS | CARRY_WS;
+    }
+		
+	return edgeTreatmentFlags;
   }
   
   /**
+   * Directly normalize and dispatch the character array.
+   *
+   * @param ch The characters from the XML document.
+   * @param start The start position in the array.
+   * @param length The number of characters to read from the array.
+   * @param handler SAX ContentHandler object to receive the event.
+   * @exception org.xml.sax.SAXException Any SAX exception, possibly
+   *            wrapping another exception.
+   */
+  public static void sendNormalizedSAXcharacters(char ch[], 
+             int start, int length, 
+             org.xml.sax.ContentHandler handler)
+          throws org.xml.sax.SAXException
+  {
+		sendNormalizedSAXcharacters(ch, start, length, 
+             handler, SUPPRESS_BOTH);
+	}
+		
+	/**
    * Sends the specified range of characters as sax Comment.
    * <p>
    * Note that, unlike sendSAXcharacters, this has to be done as a single 

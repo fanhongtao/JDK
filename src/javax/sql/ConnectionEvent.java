@@ -1,7 +1,7 @@
 /*
- * @(#)ConnectionEvent.java	1.6 01/12/03
+ * @(#)ConnectionEvent.java	1.8 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,6 +65,12 @@ public class ConnectionEvent extends java.util.EventObject {
    * @serial
    */
   private SQLException ex = null;
+
+  /**
+   * Private serial version unique ID to ensure serialization
+   * compatibility.
+   */
+  static final long serialVersionUID = -4843217645290030002L;
 
  } 
 

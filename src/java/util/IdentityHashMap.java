@@ -1,7 +1,7 @@
 /*
- * @(#)IdentityHashMap.java	1.10 01/12/03
+ * @(#)IdentityHashMap.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -95,6 +95,10 @@ package java.util;
  * tables than does using separate arrays.)  For many JRE implementations
  * and operation mixes, this class will yield better performance than
  * {@link HashMap} (which uses <i>chaining</i> rather than linear-probing). 
+ *
+ * <p>This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @see     System#identityHashCode(Object)
  * @see     Object#hashCode()

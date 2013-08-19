@@ -1,7 +1,7 @@
 /*
- * @(#)ByteArrayInputStream.java	1.39 01/12/03
+ * @(#)ByteArrayInputStream.java	1.42 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.39, 12/03/01
+ * @version 1.42, 01/23/03
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */
@@ -94,7 +94,8 @@ class ByteArrayInputStream extends InputStream {
      * that uses <code>buf</code> as its
      * buffer array. The initial value of <code>pos</code>
      * is <code>offset</code> and the initial value
-     * of <code>count</code> is <code>offset+len</code>.
+     * of <code>count</code> is the minimum of <code>offset+length</code>
+     * and <code>buf.length</code>.
      * The buffer array is not copied. The buffer's mark is
      * set to the specified offset.
      *
@@ -210,7 +211,9 @@ class ByteArrayInputStream extends InputStream {
     }
 
     /**
-     * Tests if ByteArrayInputStream supports mark/reset.
+     * Tests if this <code>InputStream</code> supports mark/reset. The
+     * <code>markSupported</code> method of <code>ByteArrayInputStream</code>
+     * always returns <code>true</code>.
      *
      * @since   JDK1.1
      */

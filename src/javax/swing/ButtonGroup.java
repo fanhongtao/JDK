@@ -1,7 +1,7 @@
 /*
- * @(#)ButtonGroup.java	1.33 01/12/07
+ * @(#)ButtonGroup.java	1.35 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -51,7 +51,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.33 12/07/01
+ * @version 1.35 01/23/03
  * @author Jeff Dinkins
  */
 public class ButtonGroup implements Serializable {
@@ -125,8 +125,8 @@ public class ButtonGroup implements Serializable {
     /**
      * Sets the selected value for the <code>ButtonModel</code>.
      * Only one button in the group may be selected at a time.
-     * @param the <code>ButtonModel</code>
-     * @param <code>true</code> if this button is to be
+     * @param m the <code>ButtonModel</code>
+     * @param b <code>true</code> if this button is to be
      *   selected, otherwise <code>false</code>
      */
     public void setSelected(ButtonModel m, boolean b) {

@@ -1,7 +1,7 @@
 /*
- * @(#)MetalToolBarUI.java	1.30 01/12/03
+ * @(#)MetalToolBarUI.java	1.33 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import javax.swing.plaf.basic.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.30 12/03/01
+ * @version 1.33 01/23/03
  * @author Jeff Shapiro
  */
 public class MetalToolBarUI extends BasicToolBarUI
@@ -97,24 +97,32 @@ public class MetalToolBarUI extends BasicToolBarUI
     }
 
     protected Border createRolloverBorder() {
-	return new CompoundBorder(new MetalBorders.RolloverButtonBorder(), 
+	return new BorderUIResource.CompoundBorderUIResource(new MetalBorders.RolloverButtonBorder(), 
 				  new MetalBorders.RolloverMarginBorder());
     }
 
     protected Border createNonRolloverBorder() {
-	return new CompoundBorder(new MetalBorders.ButtonBorder(),
+	return new BorderUIResource.CompoundBorderUIResource(new MetalBorders.ButtonBorder(),
 				  new MetalBorders.RolloverMarginBorder());
+    }
+
+
+    /**
+     * Creates a non rollover border for Toggle buttons in the toolbar.
+     */
+    private Border createNonRolloverToggleBorder() {
+	return createNonRolloverBorder();
     }
     
     protected void setBorderToNonRollover(Component c) {
 	super.setBorderToNonRollover(c);
 	if (c instanceof AbstractButton) {
 	    AbstractButton b = (AbstractButton)c;
-	    if (b.getBorder() != null) {
+	    if (b.getBorder() instanceof UIResource) {
 		if (b instanceof JToggleButton && !(b instanceof JCheckBox)) {
 		    // only install this border for the ToggleButton
 		    if (nonRolloverBorder == null) {
-			nonRolloverBorder = createNonRolloverBorder();
+			nonRolloverBorder = createNonRolloverToggleBorder();
 		    }
 		    b.setBorder(nonRolloverBorder);
 		}

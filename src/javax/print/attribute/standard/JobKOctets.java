@@ -1,7 +1,7 @@
 /*
- * @(#)JobKOctets.java	1.3 01/12/03
+ * @(#)JobKOctets.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -47,7 +47,7 @@ import javax.print.attribute.PrintJobAttribute;
  * specified by the doc's {@link javax.print.DocFlavor DocFlavor}, as 
  * shown in the table below. 
  * <P>
- * <TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+ * <TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1 SUMMARY="Table showing computation of doc sizes">
  * <TR BGCOLOR="#E5E5E5">
  * <TH>Representation Class</TH>
  * <TH>Document Size</TH>

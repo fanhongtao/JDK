@@ -1,5 +1,5 @@
 /*
- * @(#)URLClassLoader.java	1.79 03/06/24
+ * @(#)URLClassLoader.java	1.80 03/06/07
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,6 +33,7 @@ import java.security.PermissionCollection;
 import sun.misc.Resource;
 import sun.misc.URLClassPath;
 import sun.net.www.ParseUtil;
+import sun.security.util.SecurityConstants;
 
 /**
  * This class loader is used to load classes and resources from a search
@@ -48,7 +49,7 @@ import sun.net.www.ParseUtil;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.79, 06/24/03
+ * @version 1.80, 06/07/03
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -445,14 +446,14 @@ public class URLClassLoader extends SecureClassLoader {
 	    String path = p.getName();
 	    if (path.endsWith(File.separator)) {
 		path += "-";
-		p = new FilePermission(path, "read");
+		p = new FilePermission(path, SecurityConstants.FILE_READ_ACTION);
 	    }
 	} else if ((p == null) && (url.getProtocol().equals("file"))) {
 	    String path = url.getFile().replace('/', File.separatorChar);
             path = ParseUtil.decode(path);
 	    if (path.endsWith(File.separator))
 		path += "-";
-	    p =  new FilePermission(path, "read");
+	    p =  new FilePermission(path, SecurityConstants.FILE_READ_ACTION);
 	} else {
 	    URL locUrl = url;
 	    if (urlConnection instanceof JarURLConnection) {
@@ -461,7 +462,8 @@ public class URLClassLoader extends SecureClassLoader {
 	    String host = locUrl.getHost();
 	    if (host == null)
 		host = "localhost";
-	    p = new SocketPermission(host,"connect, accept");
+	    p = new SocketPermission(host,
+		SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION);
 	}
 
 	// make sure the person that created this class loader
@@ -565,10 +567,10 @@ final class FactoryURLClassLoader extends URLClassLoader {
                     cname = cname.substring(b);
                 }
             }
-            int i = cname.lastIndexOf('.');
-            if (i != -1) {
-                sm.checkPackageAccess(cname.substring(0, i));
-            }
+	    int i = cname.lastIndexOf('.');
+	    if (i != -1) {
+		sm.checkPackageAccess(cname.substring(0, i));
+	    }
 	}
 	return super.loadClass(name, resolve);
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)Dictionary.java	1.16 01/12/03
+ * @(#)Dictionary.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,10 +19,10 @@ package java.util;
  * implementations of this class to decide if two keys are the same. 
  * <p>
  * <strong>NOTE: This class is obsolete.  New implementations should
- * implement the Map interface, rather than extendidng this class.</strong>
+ * implement the Map interface, rather than extending this class.</strong>
  *
  * @author  unascribed
- * @version 1.16, 12/03/01
+ * @version 1.18, 01/23/03
  * @see	    java.util.Map
  * @see     java.lang.Object#equals(java.lang.Object)
  * @see     java.lang.Object#hashCode()

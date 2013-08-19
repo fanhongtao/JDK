@@ -1,13 +1,14 @@
 /*
- * @(#)JFormattedTextField.java	1.13 02/02/11
+ * @(#)JFormattedTextField.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.im.InputContext;
 import java.io.*;
 import java.text.*;
 import java.util.*;
@@ -34,7 +35,9 @@ import javax.swing.text.*;
  * <code>JFormattedTextField</code> allows
  * configuring what action should be taken when focus is lost. The possible
  * configurations are:
- * <table><tr><td>JFormattedTextField.REVERT
+ * <table summary="Possible JFormattedTextField configurations and their descriptions">
+ * <tr><th><p align="left">Value</p></th><th><p align="left">Description</p></th></tr>
+ * <tr><td>JFormattedTextField.REVERT
  *            <td>Revert the display to match that of <code>getValue</code>,
  *                possibly losing the current edit.
  *        <tr><td>JFormattedTextField.COMMIT
@@ -149,7 +152,7 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 02/11/02
+ * @version 1.17 01/23/03
  * @since 1.4
  */
 public class JFormattedTextField extends JTextField {
@@ -231,6 +234,14 @@ public class JFormattedTextField extends JTextField {
      * ActionMap that the TextFormatter Actions are added to.
      */
     private ActionMap textFormatterActionMap;
+    /**
+     * Indicates the input method composed text is in the document
+     */
+    private boolean composedTextExists = false;
+    /**
+     * A handler for FOCUS_LOST event
+     */
+    private FocusLostHandler focusLostHandler;
 
 
     /**
@@ -456,7 +467,7 @@ public class JFormattedTextField extends JTextField {
      * <p>
      * This is a JavaBeans bound property.
      *
-     * @pararm value Current value to display
+     * @param value Current value to display
      * @beaninfo
      *       bound: true
      *   attribute: visualUpdate true
@@ -543,6 +554,30 @@ public class JFormattedTextField extends JTextField {
     protected void invalidEdit() {
 	UIManager.getLookAndFeel().provideErrorFeedback(JFormattedTextField.this);
     }
+    
+    /**
+     * Processes any input method events, such as
+     * <code>InputMethodEvent.INPUT_METHOD_TEXT_CHANGED</code> or
+     * <code>InputMethodEvent.CARET_POSITION_CHANGED</code>.
+     *
+     * @param e the <code>InputMethodEvent</code>
+     * @see InputMethodEvent
+     */
+    protected void processInputMethodEvent(InputMethodEvent e) {
+	AttributedCharacterIterator text = e.getText();
+	int commitCount = e.getCommittedCharacterCount();
+
+	// Keep track of the composed text
+	if (text != null) {
+	    int begin = text.getBeginIndex();
+	    int end = text.getEndIndex();
+	    composedTextExists = ((end - begin) > commitCount);
+	} else {
+	    composedTextExists = false;
+	}
+
+	super.processInputMethodEvent(e);
+    }
 
     /**
      * Processes any focus events, such as
@@ -555,27 +590,56 @@ public class JFormattedTextField extends JTextField {
     protected void processFocusEvent(FocusEvent e) {
         super.processFocusEvent(e);
 
+	// ignore temporary focus event
+	if (e.isTemporary()) {
+	    return;
+	}
+
         if (isEdited() && e.getID() == FocusEvent.FOCUS_LOST) {
-            int fb = getFocusLostBehavior();
-            if (fb == COMMIT || fb == COMMIT_OR_REVERT) {
-                try {
-                    commitEdit();
-                    // Give it a chance to reformat.
-                    setValue(getValue(), true);
-                } catch (ParseException pe) {
-                    if (fb == COMMIT_OR_REVERT) {
-                        setValue(getValue(), true);
-                    }
-                }
-            }
-            else if (fb == REVERT) {
-                setValue(getValue(), true);
-            }
+	    InputContext ic = getInputContext();
+	    if (focusLostHandler == null) {
+		focusLostHandler = new FocusLostHandler();
+	    }
+	    
+	    // if there is a composed text, process it first
+	    if ((ic != null) && composedTextExists) {
+		ic.endComposition();
+		EventQueue.invokeLater(focusLostHandler);
+	    } else {
+		focusLostHandler.run();
+	    }
         }
         else if (!isEdited()) {
             // reformat
             setValue(getValue(), true);
         }
+    }
+
+    /**
+     * FOCUS_LOST behavior implementation
+     */
+    private class FocusLostHandler implements Runnable, Serializable {
+	public void run() {
+            int fb = JFormattedTextField.this.getFocusLostBehavior();
+            if (fb == JFormattedTextField.COMMIT || 
+	        fb == JFormattedTextField.COMMIT_OR_REVERT) {
+                try {
+                    JFormattedTextField.this.commitEdit();
+                    // Give it a chance to reformat.
+                    JFormattedTextField.this.setValue(
+		        JFormattedTextField.this.getValue(), true);
+                } catch (ParseException pe) {
+                    if (fb == JFormattedTextField.this.COMMIT_OR_REVERT) {
+                        JFormattedTextField.this.setValue(
+			    JFormattedTextField.this.getValue(), true);
+                    }
+                }
+            }
+            else if (fb == JFormattedTextField.REVERT) {
+                JFormattedTextField.this.setValue(
+		    JFormattedTextField.this.getValue(), true);
+            }
+	}
     }
 
     /**

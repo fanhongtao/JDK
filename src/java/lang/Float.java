@@ -1,7 +1,7 @@
 /*
- * @(#)Float.java	1.78 02/04/09
+ * @(#)Float.java	1.80 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.78, 04/09/02
+ * @version 1.80, 01/23/03
  * @since JDK1.0 
  */
 public final class Float extends Number implements Comparable {
@@ -176,6 +176,24 @@ public final class Float extends Number implements Comparable {
      * To interpret localized string representations of a
      * floating-point value, use subclasses of {@link
      * java.text.NumberFormat}.
+     *
+     * <p>Note that trailing format specifiers, specifiers that
+     * determine the type of a floating-point literal
+     * (<code>1.0f</code> is a <code>float</code> value;
+     * <code>1.0d</code> is a <code>double</code> value), do
+     * <em>not</em> influence the results of this method.  In other
+     * words, the numerical value of the input string is converted
+     * directly to the target floating-point type.  In general, the
+     * two-step sequence of conversions, string to <code>double</code>
+     * followed by <code>double</code> to <code>float</code>, is
+     * <em>not</em> equivalent to converting a string directly to
+     * <code>float</code>.  For example, if first converted to an
+     * intermediate <code>double</code> and then to
+     * <code>float</code>, the string<br>
+     * <code>"1.00000017881393421514957253748434595763683319091796875001d"</code><br>
+     * results in the <code>float</code> value
+     * <code>1.0000002f</code>; if the string is converted directly to
+     * <code>float</code>, <code>1.000000<b>1</b>f</code> results.
      *
      * @param      s   the string to be parsed.
      * @return     a <code>Float</code> object holding the value

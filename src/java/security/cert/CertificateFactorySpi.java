@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateFactorySpi.java	1.14 01/12/03
+ * @(#)CertificateFactorySpi.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.security.NoSuchProviderException;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.14, 12/03/01
+ * @version 1.15, 01/23/03
  *
  * @see CertificateFactory
  * @see Certificate

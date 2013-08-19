@@ -1,7 +1,7 @@
 /*
- * @(#)FontRenderContext.java	1.27 01/12/03
+ * @(#)FontRenderContext.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,14 +32,15 @@ import java.awt.geom.AffineTransform;
 *   affect the size of a character because of rounding to pixel
 *   boundaries.
 *   <p>
-*   Typically, instances of <code>FontRenderContext</code> are obtained from
-*   a {@link Graphics2D} object.  A <code>FontRenderContext</code> 
-*   which is directly constructed will most likely not represent any actual
-*   graphics device, and may lead to unexpected or incorrect results.
+*   Typically, instances of <code>FontRenderContext</code> are
+*   obtained from a {@link java.awt.Graphics2D Graphics2D} object.  A
+*   <code>FontRenderContext</code> which is directly constructed will
+*   most likely not represent any actual graphics device, and may lead
+*   to unexpected or incorrect results.
 *   <p>
 *   @see java.awt.RenderingHints#KEY_TEXT_ANTIALIASING
 *   @see java.awt.RenderingHints#KEY_FRACTIONALMETRICS
-*   @see java.awt.Graphics2D#getFontRenderContext
+*   @see java.awt.Graphics2D#getFontRenderContext()
 *   @see java.awt.font.LineMetrics
 */
 

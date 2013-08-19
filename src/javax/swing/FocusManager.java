@@ -1,7 +1,7 @@
 /*
- * @(#)FocusManager.java	1.23 01/12/03
+ * @(#)FocusManager.java	1.25 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -18,7 +18,7 @@ import java.awt.*;
  *
  * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  *
- * @version 1.23, 12/03/01
+ * @version 1.25, 01/23/03
  * @author Arnaud Weber
  * @author David Mendenhall
  */
@@ -72,7 +72,7 @@ public abstract class FocusManager extends DefaultKeyboardFocusManager {
      * this method will throw a <code>SecurityException</code>,
      * and the current <code>KeyboardFocusManager</code> will be unchanged.
      *
-     * @param newManager the new <code>KeyboardFocusManager</code>
+     * @param aFocusManager the new <code>KeyboardFocusManager</code>
      *     for this thread's context
      * @see #getCurrentManager
      * @see java.awt.DefaultKeyboardFocusManager

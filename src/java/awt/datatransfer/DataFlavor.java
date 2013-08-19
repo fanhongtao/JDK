@@ -1,7 +1,7 @@
 /*
- * @(#)DataFlavor.java	1.69 02/04/02
+ * @(#)DataFlavor.java	1.73 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.awt.datatransfer.DataTransferer;
  * instantiated.
  * </p>
  *
- * @version     1.69, 04/02/02
+ * @version     1.73, 01/23/03
  * @author      Blake Sullivan
  * @author      Laurence P. G. Cable
  * @author      Jeff Dunn
@@ -97,7 +97,7 @@ public class DataFlavor implements Externalizable, Cloneable {
      * where:
      * <pre>
      *     representationClass = java.lang.String
-     *     mimeType            = "application/x-java-serialized-object"        
+     *     mimeType           = "application/x-java-serialized-object"        
      * </pre> 
      */
     
@@ -198,9 +198,21 @@ public class DataFlavor implements Externalizable, Cloneable {
 
     /**
      * Constructs a fully specified <code>DataFlavor</code>.
+     *
+     * @exception NullPointerException if either <code>primaryType</code>,
+     *            <code>subType</code> or <code>representationClass</code> is null
      */
     private DataFlavor(String primaryType, String subType, MimeTypeParameterList params, Class representationClass, String humanPresentableName) {
         super();
+        if (primaryType == null) {
+            throw new NullPointerException("primaryType");
+        }
+        if (subType == null) {
+            throw new NullPointerException("subType");
+        }
+        if (representationClass == null) {
+            throw new NullPointerException("representationClass");
+        }
         
         if (params == null) params = new MimeTypeParameterList();
         
@@ -238,9 +250,13 @@ public class DataFlavor implements Externalizable, Cloneable {
      * @param humanPresentableName the human-readable string used to identify 
      *                 this flavor; if this parameter is <code>null</code>
      *		       then the value of the the MIME Content Type is used
+     * @exception NullPointerException if <code>representationClass</code> is null
      */
     public DataFlavor(Class representationClass, String humanPresentableName) {
         this("application", "x-java-serialized-object", null, representationClass, humanPresentableName);
+        if (representationClass == null) {
+            throw new NullPointerException("representationClass");
+        }
     }
 
     /**
@@ -270,10 +286,13 @@ public class DataFlavor implements Externalizable, Cloneable {
      *		       then the value of the the MIME Content Type is used
      * @exception IllegalArgumentException if <code>mimeType</code> is
      *	               invalid or if the class is not successfully loaded
+     * @exception NullPointerException if <code>mimeType</code> is null
      */
     public DataFlavor(String mimeType, String humanPresentableName) {
         super();
-        
+        if (mimeType == null) {
+            throw new NullPointerException("mimeType");
+        }
         try {
             initialize(mimeType, humanPresentableName, this.getClass().getClassLoader());
         } catch (MimeTypeParseException mtpe) {
@@ -307,9 +326,13 @@ public class DataFlavor implements Externalizable, Cloneable {
      * @exception ClassNotFoundException if the class is not loaded
      * @exception IllegalArgumentException if <code>mimeType</code> is
      *	               invalid
+     * @exception NullPointerException if <code>mimeType</code> is null
      */
     public DataFlavor(String mimeType, String humanPresentableName, ClassLoader classLoader) throws ClassNotFoundException {
 	super();
+        if (mimeType == null) {
+            throw new NullPointerException("mimeType");
+        }
 	try {
             initialize(mimeType, humanPresentableName, classLoader);
         } catch (MimeTypeParseException mtpe) {
@@ -331,9 +354,13 @@ public class DataFlavor implements Externalizable, Cloneable {
      * @exception ClassNotFoundException if the class is not loaded
      * @exception IllegalArgumentException if <code>mimeType</code> is
      *	               invalid
+     * @exception NullPointerException if <code>mimeType</code> is null
      */
     public DataFlavor(String mimeType) throws ClassNotFoundException {
         super();
+        if (mimeType == null) {
+            throw new NullPointerException("mimeType");
+        }
         try {
             initialize(mimeType, null, this.getClass().getClassLoader());
         } catch (MimeTypeParseException mtpe) {
@@ -351,10 +378,14 @@ public class DataFlavor implements Externalizable, Cloneable {
     *
     * @throws MimeTypeParseException
     * @throws ClassNotFoundException
+    * @throws  NullPointerException if <code>mimeType</code> is null
     *
     * @see tryToLoadClass
     */
     private void initialize(String mimeType, String humanPresentableName, ClassLoader classLoader) throws MimeTypeParseException, ClassNotFoundException {
+        if (mimeType == null) {
+            throw new NullPointerException("mimeType");
+        }
         
         this.mimeType = new MimeType(mimeType); // throws
 	
@@ -381,19 +412,6 @@ public class DataFlavor implements Externalizable, Cloneable {
         this.humanPresentableName = humanPresentableName; // set it.
         
         this.mimeType.removeParameter("humanPresentableName"); // just in case
-    }
-    
-    /**
-     * used by clone implementation
-     */
-    
-    private DataFlavor(MimeType mt, Class rc, String hrn, int a) {
-        super();
-        
-        mimeType             = mt;
-        representationClass  = rc;
-        humanPresentableName = hrn;
-        atom                 = a;
     }
 
     /**
@@ -788,7 +806,7 @@ public class DataFlavor implements Externalizable, Cloneable {
      * @param paramName the parameter name requested
      * @return the value of the name parameter, or <code>null</code>
      * 	if there is no associated value
-     * @see MimeType#getParameter
+     * @see MimeType#getParameter()
      */
     
     public String getParameter(String paramName) {
@@ -825,7 +843,7 @@ public class DataFlavor implements Externalizable, Cloneable {
      * <code>selectBestTextFlavor</code> for a list of text flavors which
      * support the charset parameter.
      *
-     * @param that the <code>Object</code> to compare with <code>this</code>
+     * @param o the <code>Object</code> to compare with <code>this</code>
      * @return <code>true</code> if <code>that</code> is equivalent to this
      *         <code>DataFlavor</code>; <code>false</code> otherwise
      * @see #selectBestTextFlavor

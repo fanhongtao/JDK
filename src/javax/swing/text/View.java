@@ -1,7 +1,7 @@
 /*
- * @(#)View.java	1.63 01/12/12
+ * @(#)View.java	1.68 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -80,7 +80,8 @@ A view has the following responsibilities:
     implementation, the minimum span will be &lt;= the preferred span which in turn
     will be &lt;= the maximum span.
     </p>
-    <p align=center><img src="doc-files/View-flexibility.jpg">
+    <p align=center><img src="doc-files/View-flexibility.jpg" 
+                     alt="The above text describes this graphic.">
     <p>The minimum set of methods for layout are:
     <ul>
     <li><a href="#getMinimumSpan(int)">getMinimumSpan</a>
@@ -106,7 +107,10 @@ A view has the following responsibilities:
     This allows parent View implementations to cache the child requirements if
     desired.  The calling sequence looks something like the following:
     </p>
-    <p align=center><img src="doc-files/View-layout.jpg">
+    <p align=center>
+      <img src="doc-files/View-layout.jpg" 
+       alt="Sample calling sequence between parent view and child view: 
+       setSize, getMinimum, getPreferred, getMaximum, getAlignment, setSize">
     <p>The exact calling sequence is up to the layout functionality of
     the parent view (if the view has any children).  The view may collect
     the preferences of the children prior to determining what it will give 
@@ -196,7 +200,7 @@ A view has the following responsibilities:
 </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.63 12/12/01
+ * @version 1.68 01/23/03
  */
 public abstract class View implements SwingConstants {
 
@@ -437,7 +441,7 @@ public abstract class View implements SwingConstants {
      * This is implemented to do nothing, because by default
      * a view has no children.
      *
-     * @param index the starting index into the child views to insert
+     * @param offset the starting index into the child views to insert
      *   the new views.  This should be a value >= 0 and <= getViewCount
      * @param length the number of existing child views to remove
      *   This should be a value >= 0 and <= (getViewCount() - offset).
@@ -513,6 +517,11 @@ public abstract class View implements SwingConstants {
 	case NORTH:
 	case SOUTH:
 	{
+	    if (pos == -1) {
+		pos = (direction == NORTH) ? Math.max(0, getEndOffset() - 1) :
+		    getStartOffset();
+		break;
+	    }
 	    JTextComponent target = (JTextComponent) getContainer();
 	    Caret c = (target != null) ? target.getCaret() : null;
 	    // YECK! Ideally, the x location from the magic caret position
@@ -1223,7 +1232,6 @@ public abstract class View implements SwingConstants {
      *  for (may be <code>null</code> if there were no changes)
      * @param e the change information from the associated document
      * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
      * @see #insertUpdate
      * @see #removeUpdate
      * @see #changedUpdate     

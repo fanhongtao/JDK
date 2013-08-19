@@ -1,7 +1,7 @@
 /*
- * @(#)Scrollbar.java	1.94 02/03/11
+ * @(#)Scrollbar.java	1.98 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * scroll bars could be used as slider controls to pick
  * the red, green, and blue components of a color:
  * <p>
- * <img src="doc-files/Scrollbar-1.gif"
+ * <img src="doc-files/Scrollbar-1.gif" alt="Image shows 3 vertical sliders, side-by-side."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * Each scroll bar in this example could be created with
@@ -41,6 +41,7 @@ import javax.accessibility.*;
  * represents a range:
  * <p>
  * <img src="doc-files/Scrollbar-2.gif"
+ * alt="Image shows horizontal slider with starting range of 0 and ending range of 300. The slider thumb is labeled 60."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * The value range represented by the bubble is the <em>visible</em>
@@ -132,7 +133,7 @@ import javax.accessibility.*;
  * </ul>
  * <p>
  *
- * @version 	1.94, 03/11/02
+ * @version 	1.98, 01/23/03
  * @author 	Sami Shaio
  * @see         java.awt.event.AdjustmentEvent
  * @see         java.awt.event.AdjustmentListener
@@ -272,7 +273,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      * The default properties of the scroll bar are listed in
      * the following table:
      * <p> </p>
-     * <table border>
+     * <table border=1 summary="Scrollbar default properties">
      * <tr>
      *   <th>Property</th>
      *   <th>Description</th>
@@ -418,7 +419,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
 
     /**
      * Sets the orientation for this scroll bar.
-     * @param     the orientation of this scroll bar, either
+     * @param orientation  the orientation of this scroll bar, either
      *               <code>Scrollbar.HORIZONTAL</code> or
      *               <code>Scrollbar.VERTICAL</code>
      * @see       java.awt.Scrollbar#getOrientation
@@ -986,8 +987,9 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      * @since       JDK1.1
      */
     protected void processAdjustmentEvent(AdjustmentEvent e) {
-        if (adjustmentListener != null) {
-            adjustmentListener.adjustmentValueChanged(e);
+        AdjustmentListener listener = adjustmentListener;
+        if (listener != null) {
+            listener.adjustmentValueChanged(e);
         }
     }
 
@@ -1035,9 +1037,9 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      *   <code>adjustmentListenerK</code> indicating an
      *     <code>AdjustmentListener</code> object
      *
-     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.adjustmentListenerK
-     * @see #writeObject
+     * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component#adjustmentListenerK
+     * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws IOException
@@ -1060,7 +1062,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless
-     * @see #writeObject
+     * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException

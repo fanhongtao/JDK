@@ -1,7 +1,7 @@
 /*
- * @(#)JLayeredPane.java	1.41 01/12/03
+ * @(#)JLayeredPane.java	1.45 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -24,10 +24,12 @@ import javax.accessibility.*;
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/layeredpane.html">How to Use a Layered Pane</a>,
  * a section in <em>The Java Tutorial</em>.
  * <P>
- * <TABLE ALIGN="RIGHT" BORDER="0">
+ * <TABLE ALIGN="RIGHT" BORDER="0" SUMMARY="layout">
  * <TR>
  *   <TD ALIGN="CENTER">
- *     <P ALIGN="CENTER"><IMG SRC="doc-files/JLayeredPane-1.gif" WIDTH="269" HEIGHT="264" ALIGN="BOTTOM" BORDER="0">
+ *     <P ALIGN="CENTER"><IMG SRC="doc-files/JLayeredPane-1.gif" 
+ *     alt="The following text describes this image."
+ *     WIDTH="269" HEIGHT="264" ALIGN="BOTTOM" BORDER="0">
  *   </TD>
  * </TR>
  * </TABLE>
@@ -215,6 +217,9 @@ public class JLayeredPane extends JComponent implements Accessible {
     public void remove(int index) {
         Component c = getComponent(index);
         super.remove(index);
+        if (c != null && !(c instanceof JComponent)) {
+            getComponentToLayer().remove(c);
+        }
         validateOptimizedDrawing();
     }
 

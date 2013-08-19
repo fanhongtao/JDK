@@ -89,6 +89,11 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.ErrorListener;
 
 import org.apache.xml.dtm.ref.ExpandedNameTable;
+//dml
+import org.apache.xml.utils.StringVector;
+import org.apache.xalan.extensions.ExtensionNamespaceSupport;
+import org.apache.xalan.extensions.ExtensionHandler;
+import org.apache.xalan.extensions.ExtensionNamespacesManager;
 
 /**
  * <meta name="usage" content="general"/>
@@ -126,7 +131,7 @@ public class StylesheetRoot extends StylesheetComposed
    * @serial
    */
   private Hashtable m_availElems;
-
+  
   /**
    * Creates a StylesheetRoot and retains a pointer to the schema used to create this
    * StylesheetRoot.  The schema may be needed later for an element-available() function call.
@@ -139,7 +144,6 @@ public class StylesheetRoot extends StylesheetComposed
 
     this(listener);
     m_availElems = schema.getElemsAvailable();
-
   }
 
   /**
@@ -162,6 +166,39 @@ public class StylesheetRoot extends StylesheetComposed
   {
     return m_availElems;
   }
+  
+  private ExtensionNamespacesManager m_extNsMgr = null;
+  
+  /**
+   * Only instantiate an ExtensionNamespacesManager if one is called for
+   * (i.e., if the stylesheet contains  extension functions and/or elements).
+   */
+  public ExtensionNamespacesManager getExtensionNamespacesManager()
+  {
+     if (m_extNsMgr == null)
+       m_extNsMgr = new ExtensionNamespacesManager();
+     return m_extNsMgr;
+  }
+  
+  /**
+   * Get the vector of extension namespaces. Used to provide
+   * the extensions table access to a list of extension
+   * namespaces encountered during composition of a stylesheet.
+   */
+  public Vector getExtensions()
+  {
+    return m_extNsMgr != null ? m_extNsMgr.getExtensions() : null;
+  }  
+
+/*
+  public void runtimeInit(TransformerImpl transformer) throws TransformerException
+  {
+    System.out.println("StylesheetRoot.runtimeInit()");
+      
+  //    try{throw new Exception("StylesheetRoot.runtimeInit()");} catch(Exception e){e.printStackTrace();}
+
+    }
+*/  
 
   //============== Templates Interface ================
 
@@ -212,6 +249,9 @@ public class StylesheetRoot extends StylesheetComposed
    */
   public void recompose() throws TransformerException
   {
+    // Now we make a Vector that is going to hold all of the recomposable elements
+
+      Vector recomposableElements = new Vector();
 
     // First, we build the global import tree.
 
@@ -220,7 +260,7 @@ public class StylesheetRoot extends StylesheetComposed
 
       Vector importList = new Vector();
 
-      addImports(this, true, importList);
+      addImports(this, true, importList);            
 
       // Now we create an array and reverse the order of the importList vector.
       // We built the importList vector backwards so that we could use addElement
@@ -230,16 +270,18 @@ public class StylesheetRoot extends StylesheetComposed
 
       m_globalImportList = new StylesheetComposed[importList.size()];
 
-      for (int i = importList.size() - 1, j= 0; i >= 0; i--)
-        m_globalImportList[j++] = (StylesheetComposed) importList.elementAt(i);
-    }
-
-    // Now we make a Vector that is going to hold all of the recomposable elements
-
-    Vector recomposableElements = new Vector();
-
+      for (int i =  0, j= importList.size() -1; i < importList.size(); i++)
+      {  
+        m_globalImportList[j] = (StylesheetComposed) importList.elementAt(i);
+        // Build the global include list for this stylesheet.
+        // This needs to be done ahead of the recomposeImports
+        // because we need the info from the composed includes. 
+        m_globalImportList[j].recomposeIncludes(m_globalImportList[j]);
+        // Calculate the number of this import.    
+        m_globalImportList[j--].recomposeImports();        
+      }
+    }    
     // Next, we walk the import tree and add all of the recomposable elements to the vector.
-
     int n = getGlobalImportCount();
 
     for (int i = 0; i < n; i++)
@@ -294,7 +336,10 @@ public class StylesheetRoot extends StylesheetComposed
         composeTemplates(included);
       }
     }
-    
+    // Attempt to register any remaining unregistered extension namespaces.
+    if (m_extNsMgr != null)
+      m_extNsMgr.registerUnregisteredNamespaces();
+
     clearComposeState();
   }
 
@@ -697,9 +742,6 @@ public class StylesheetRoot extends StylesheetComposed
    * @param xctxt non-null reference to XPath runtime execution context.
    * @param targetNode non-null reference of node that the template must match.
    * @param mode qualified name of the node, or null.
-   * @param maxImportLevel The maximum importCountComposed that we should consider or -1
-   *        if we should consider all import levels.  This is used by apply-imports to
-   *        access templates that have been overridden.
    * @param quietConflictWarnings true if conflict warnings should not be reported.
    *
    * @return reference to ElemTemplate that is the best match for targetNode, or 
@@ -710,13 +752,44 @@ public class StylesheetRoot extends StylesheetComposed
   public ElemTemplate getTemplateComposed(XPathContext xctxt,
                                           int targetNode,
                                           QName mode,
-                                          int maxImportLevel,
                                           boolean quietConflictWarnings,
                                           DTM dtm)
             throws TransformerException
   {
     return m_templateList.getTemplate(xctxt, targetNode, mode, 
-                                      maxImportLevel,
+                                      quietConflictWarnings,
+                                      dtm);
+  }
+  
+  /**
+   * Get an "xsl:template" property by node match. This looks in the imports as
+   * well as this stylesheet.
+   * @see <a href="http://www.w3.org/TR/xslt#section-Defining-Template-Rules">section-Defining-Template-Rules in XSLT Specification</a>
+   *
+   * @param xctxt non-null reference to XPath runtime execution context.
+   * @param targetNode non-null reference of node that the template must match.
+   * @param mode qualified name of the node, or null.
+   * @param maxImportLevel The maximum importCountComposed that we should consider or -1
+   *        if we should consider all import levels.  This is used by apply-imports to
+   *        access templates that have been overridden.
+   * @param endImportLevel The count of composed imports
+   * @param quietConflictWarnings true if conflict warnings should not be reported.
+   *
+   * @return reference to ElemTemplate that is the best match for targetNode, or 
+   *         null if no match could be made.
+   *
+   * @throws TransformerException
+   */
+  public ElemTemplate getTemplateComposed(XPathContext xctxt,
+                                          int targetNode,
+                                          QName mode,
+                                          int maxImportLevel, int endImportLevel,
+                                          boolean quietConflictWarnings,
+                                          DTM dtm)
+            throws TransformerException
+  {
+    return m_templateList.getTemplate(xctxt, targetNode, mode, 
+                                      maxImportLevel, endImportLevel,
                                       quietConflictWarnings,
                                       dtm);
   }
@@ -842,7 +915,7 @@ public class StylesheetRoot extends StylesheetComposed
 
     if (null != m_whiteSpaceInfoList)
       return (WhiteSpaceInfo) m_whiteSpaceInfoList.getTemplate(support,
-              targetElement, null, -1, false, dtm);
+              targetElement, null, false, dtm);
     else
       return null;
   }
@@ -867,7 +940,7 @@ public class StylesheetRoot extends StylesheetComposed
       {
         DTM dtm = support.getDTM(targetElement);
         WhiteSpaceInfo info = (WhiteSpaceInfo) m_whiteSpaceInfoList.getTemplate(support,
-                targetElement, null, -1, false, dtm);
+                targetElement, null, false, dtm);
         if(null != info)
           return info.getShouldStripSpace();
         

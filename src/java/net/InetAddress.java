@@ -1,5 +1,5 @@
 /*
- * @(#)InetAddress.java	1.97 03/04/25
+ * @(#)InetAddress.java	1.99 03/01/23 
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,8 +40,8 @@ import sun.net.spi.nameservice.*;
  *
  * <h4> Address types </h4>
  *
- * <blockquote><table cellspacing=2>
- *   <tr><td valign=top><i>unicast</i></td>
+ * <blockquote><table cellspacing=2 summary="Description of unicast and multicast address types">
+ *   <tr><th valign=top><i>unicast</i></th>
  *       <td>An identifier for a single interface. A packet sent to
  *         a unicast address is delivered to the interface identified by
  *         that address.
@@ -60,7 +60,7 @@ import sun.net.spi.nameservice.*;
  *         IP address loops around and becomes IP input on the local
  *         host. This address is often used when testing a
  *         client.</td></tr>
- *   <tr><td valign=top><i>multicast</i></td>
+ *   <tr><th valign=top><i>multicast</i></th>
  *       <td>An identifier for a set of interfaces (typically belonging 
  *         to different nodes). A packet sent to a multicast address is
  *         delivered to all interfaces identified by that address.</td></tr>
@@ -148,7 +148,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.97, 04/25/03
+ * @version 1.99, 01/23/03
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -588,13 +588,13 @@ class InetAddress implements java.io.Serializable {
      */
     static final class CacheEntry {
 
-	CacheEntry(Object address, long expiration) {
+        CacheEntry(Object address, long expiration) {
             this.address = address;
             this.expiration = expiration;
         }
 
-	Object address;
-	long expiration;
+        Object address;
+        long expiration;
     }
 
     /**
@@ -602,88 +602,88 @@ class InetAddress implements java.io.Serializable {
      * at creation time.
      */
     static final class Cache {
-        private int policy;
-        private LinkedHashMap cache;
+	private int policy;
+	private LinkedHashMap cache; 
 
-        /**
-         * Create cache with specific policy 
-         */
-        public Cache(int policy) {
-            this.policy = policy;
-            cache = new LinkedHashMap();
-        }
+	/**
+	 * Create cache with specific policy 
+	 */
+	public Cache(int policy) {
+	    this.policy = policy;
+	    cache = new LinkedHashMap();
+	}
 
-        /**
-         * Add an entry to the cache. If there's already an
-         * entry then for this host then the entry will be 
-         * replaced.
-         */
-        public Cache put(String host, Object address) {
-            if (policy == InetAddressCachePolicy.NEVER) {
+	/**
+	 * Add an entry to the cache. If there's already an
+	 * entry then for this host then the entry will be 
+	 * replaced.
+	 */
+	public Cache put(String host, Object address) {
+	    if (policy == InetAddressCachePolicy.NEVER) {
                 return this;
 	    }
 
 	    // purge any expired entries
 
 	    if (policy != InetAddressCachePolicy.FOREVER) {
+
 		// As we iterate in insertion order we can
-                // terminate when a non-expired entry is found.         
+		// terminate when a non-expired entry is found.		
                 LinkedList expired = new LinkedList();
                 Iterator i = cache.keySet().iterator();
-                long now = System.currentTimeMillis();
+		long now = System.currentTimeMillis();
                 while (i.hasNext()) {
                     String key = (String)i.next();
                     CacheEntry entry = (CacheEntry)cache.get(key);
 
-		    if (entry.expiration >= 0 && entry.expiration < now) {
+                    if (entry.expiration >= 0 && entry.expiration < now) {
                         expired.add(key);
                     } else {
                         break;
                     }
                 }
 
-		i = expired.iterator();
+                i = expired.iterator();
                 while (i.hasNext()) {
                     cache.remove(i.next());
-                }
+		}
             }
 
 	    // create new entry and add it to the cache
-            // -- as a HashMap replaces existing entries we
-            //    don't need to explicitly check if there is 
-            //    already an entry for this host.
-            long expiration;
-            if (policy == InetAddressCachePolicy.FOREVER) {
-                expiration = -1;
-            } else {
-                expiration = System.currentTimeMillis() + (policy * 1000);
-            }
-            CacheEntry entry = new CacheEntry(address, expiration);
-            cache.put(host, entry);
-            return this;
-
+	    // -- as a HashMap replaces existing entries we
+	    //    don't need to explicitly check if there is 
+	    //    already an entry for this host.
+	    long expiration;
+	    if (policy == InetAddressCachePolicy.FOREVER) {
+		expiration = -1;
+	    } else {
+		expiration = System.currentTimeMillis() + (policy * 1000);
+	    }
+	    CacheEntry entry = new CacheEntry(address, expiration);
+	    cache.put(host, entry);
+	    return this;
 	}
 
 	/**
-         * Query the cache for the specific host. If found then
-         * return its CacheEntry, or null if not found.
-         */
-        public CacheEntry get(String host) {
-            if (policy == InetAddressCachePolicy.NEVER) {
-                return null;
-            }
-            CacheEntry entry = (CacheEntry)cache.get(host);
+	 * Query the cache for the specific host. If found then
+	 * return its CacheEntry, or null if not found.
+	 */
+	public CacheEntry get(String host) {
+	    if (policy == InetAddressCachePolicy.NEVER) {
+		return null;
+	    }
+	    CacheEntry entry = (CacheEntry)cache.get(host);
 
-            // check if entry has expired
-            if (entry != null && policy != InetAddressCachePolicy.FOREVER) {
-                if (entry.expiration >= 0 &&
-                    entry.expiration < System.currentTimeMillis()) {
-                    cache.remove(host);
-                    entry = null;
-                }
-            }
+	    // check if entry has expired
+	    if (entry != null && policy != InetAddressCachePolicy.FOREVER) {
+		if (entry.expiration >= 0 && 
+		    entry.expiration < System.currentTimeMillis()) {
+		    cache.remove(host);
+		    entry = null;
+		}
+	    }
 
-            return entry;
+	    return entry;
 	}
     }
 
@@ -699,21 +699,22 @@ class InetAddress implements java.io.Serializable {
         unknown_array = new InetAddress[1];
         unknown_array[0] = impl.anyLocalAddress();
 
-	addressCache.put(impl.anyLocalAddress().getHostName(),
-                         unknown_array);
+	addressCache.put(impl.anyLocalAddress().getHostName(), 
+	                 unknown_array);
 
-	addressCacheInit = true;
+        addressCacheInit = true;
     }
 
     /*
      * Cache the given hostname and address.
      */
     private static void cacheAddress(String hostname, Object address,
-                                     boolean success) {
+				     boolean success) {
+
 	synchronized (addressCache) {
 	    cacheInitIfNeeded();
-            if (success) {
-                addressCache.put(hostname, address);
+	    if (success) {
+		addressCache.put(hostname, address);
 	    } else {
 		negativeCache.put(hostname, address);
 	    }
@@ -727,25 +728,25 @@ class InetAddress implements java.io.Serializable {
     private static Object getCachedAddress(String hostname) {
         hostname = hostname.toLowerCase();
 
-	// search both positive & negative caches
+	// search both positive & negative caches 
 
 	synchronized (addressCache) {
 	    CacheEntry entry;
 
-            cacheInitIfNeeded();
+	    cacheInitIfNeeded();
 
-            entry = (CacheEntry)addressCache.get(hostname);
-            if (entry == null) {
-                entry = (CacheEntry)negativeCache.get(hostname);
+	    entry = (CacheEntry)addressCache.get(hostname);
+	    if (entry == null) {
+		entry = (CacheEntry)negativeCache.get(hostname);
 	    }
 
 	    if (entry != null) {
-                return entry.address;
-            }
-	}
+	        return entry.address;
+	    }
+ 	}
 
 	// not found
-        return null;
+	return null;
     }
 
     static {
@@ -870,8 +871,13 @@ class InetAddress implements java.io.Serializable {
      * either the form defined in RFC 2732 or the literal IPv6 address
      * format defined in RFC 2373 is accepted.
      *
-     * @param      host   the specified host, or <code>null</code> for the
-     *                    local host.
+     * <p> If the host is <tt>null</tt> then an <tt>InetAddress</tt>
+     * representing an address of the loopback interface is returned.
+     * See <a href="http://www.ietf.org/rfc/rfc3330.txt">RFC&nbsp;3330</a>
+     * section&nbsp;2 and <a href="http://www.ietf.org/rfc/rfc2373.txt">RFC&nbsp;2373</a>
+     * section&nbsp;2.5.3. </p>
+     *
+     * @param      host   the specified host, or <code>null</code>.
      * @return     an IP address for the given host name.
      * @exception  UnknownHostException  if no IP address for the
      *               <code>host</code> could be found.
@@ -896,6 +902,12 @@ class InetAddress implements java.io.Serializable {
      * either the form defined in RFC 2732 or the literal IPv6 address
      * format defined in RFC 2373 is accepted.
      *
+     * <p> If the host is <tt>null</tt> then an <tt>InetAddress</tt>
+     * representing an address of the loopback interface is returned.
+     * See <a href="http://www.ietf.org/rfc/rfc3330.txt">RFC&nbsp;3330</a>
+     * section&nbsp;2 and <a href="http://www.ietf.org/rfc/rfc2373.txt">RFC&nbsp;2373</a>
+     * section&nbsp;2.5.3. </p>
+     *
      * <p> If there is a security manager and <code>host</code> is not 
      * null and <code>host.length() </code> is not equal to zero, the
      * security manager's
@@ -903,7 +915,7 @@ class InetAddress implements java.io.Serializable {
      * with the hostname and <code>-1</code> 
      * as its arguments to see if the operation is allowed.
      *
-     * @param      host   the name of the host.
+     * @param      host   the name of the host, or <code>null</code>.
      * @return     an array of all the IP addresses for a given host name.
      * 
      * @exception  UnknownHostException  if no IP address for the

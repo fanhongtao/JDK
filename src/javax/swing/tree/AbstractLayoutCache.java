@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractLayoutCache.java	1.13 01/12/03
+ * @(#)AbstractLayoutCache.java	1.15 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.Enumeration;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 12/03/01
+ * @version 1.15 01/23/03
  * @author Scott Violet
  */
 
@@ -132,9 +132,6 @@ public abstract class AbstractLayoutCache implements RowMapper {
      * Returns the height of each row.  If the returned value is less than
      * or equal to 0 the height for each row is determined by the
      * renderer.
-     *
-     * @param the height of each cell, in pixels. Zero or negative if the
-     *        height of each row is determined by the tree cell renderer
      */
     public int getRowHeight() {
         return rowHeight;

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultEditorKit.java	1.62 01/12/03
+ * @(#)DefaultEditorKit.java	1.63 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -49,7 +49,7 @@ import javax.swing.UIManager;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.62 12/03/01
+ * @version 1.63 01/23/03
  */
 public class DefaultEditorKit extends EditorKit {
     

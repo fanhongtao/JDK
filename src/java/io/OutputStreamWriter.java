@@ -1,7 +1,7 @@
 /*
- * @(#)OutputStreamWriter.java	1.43 01/12/03
+ * @(#)OutputStreamWriter.java	1.45 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,7 @@ import sun.nio.cs.StreamEncoder;
  * @see OutputStream
  * @see java.nio.charset.Charset
  *
- * @version 	1.43, 01/12/03
+ * @version 	1.45, 03/01/23
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -102,7 +102,7 @@ public class OutputStreamWriter extends Writer {
      * @param  out
      *         An OutputStream
      *
-     * @param  charset
+     * @param  cs
      *         A charset
      *
      * @since 1.4

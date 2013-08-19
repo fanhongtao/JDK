@@ -56,36 +56,28 @@
  */
 package org.apache.xpath.axes;
 
-import java.util.Stack;
 import java.util.Vector;
 
-// Xalan imports
-import org.apache.xpath.axes.LocPathIterator;
-import org.apache.xml.utils.PrefixResolver;
-import org.apache.xpath.axes.SubContextList;
-import org.apache.xpath.compiler.Compiler;
-import org.apache.xpath.compiler.OpCodes;
-import org.apache.xpath.Expression;
-import org.apache.xpath.objects.XObject;
-import org.apache.xpath.patterns.NodeTestFilter;
-import org.apache.xpath.patterns.NodeTest;
-import org.apache.xpath.XPathContext;
-import org.apache.xpath.XPath;
-
+import javax.xml.transform.TransformerException;
 import org.apache.xml.dtm.DTM;
-import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
 import org.apache.xml.dtm.DTMAxisTraverser;
-import org.apache.xml.dtm.Axis;
+import org.apache.xml.dtm.DTMIterator;
+import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionOwner;
+import org.apache.xpath.XPathContext;
+import org.apache.xpath.XPathVisitor;
+import org.apache.xpath.compiler.Compiler;
+import org.apache.xpath.patterns.NodeTest;
 
-import org.apache.xml.utils.XMLString;
+import org.apache.xpath.res.XPATHErrorResources;
+import org.apache.xalan.res.XSLMessages;
 
 /**
  * Serves as common interface for axes Walkers, and stores common
  * state variables.
  */
 public class AxesWalker extends PredicatedNodeTest
-        implements Cloneable
+        implements Cloneable, PathComponent, ExpressionOwner
 {
   
   /**
@@ -215,6 +207,19 @@ public class AxesWalker extends PredicatedNodeTest
     return null;    
   }
   
+  /**
+   * Detaches the walker from the set which it iterated over, releasing
+   * any computational resources and placing the iterator in the INVALID
+   * state.
+   */
+  public void detach()
+  { 
+  	m_currentNode = DTM.NULL;
+  	m_dtm = null;
+  	m_isFresh = true;
+  	m_root = DTM.NULL;
+  }
+  
   //=============== TreeWalker Implementation ===============
 
   /**
@@ -227,6 +232,17 @@ public class AxesWalker extends PredicatedNodeTest
   {
     return m_root;
   }
+  
+  /** 
+   * Get the analysis bits for this walker, as defined in the WalkerFactory.
+   * @return One of WalkerFactory#BIT_DESCENDANT, etc.
+   */
+  public int getAnalysisBits()
+  {
+  	int axis = getAxis();
+  	int bit = WalkerFactory.getAnalysisBitFromAxes(axis);
+  	return bit;
+  }
 
   /**
    * Set the root node of the TreeWalker.
@@ -237,7 +253,8 @@ public class AxesWalker extends PredicatedNodeTest
   public void setRoot(int root)
   {
     // %OPT% Get this directly from the lpi.
-    m_dtm = wi().getXPathContext().getDTM(root);
+    XPathContext xctxt = wi().getXPathContext();
+    m_dtm = xctxt.getDTM(root);
     m_traverser = m_dtm.getAxisTraverser(m_axis);
     m_isFresh = true;
     m_foundLast = false;
@@ -247,7 +264,7 @@ public class AxesWalker extends PredicatedNodeTest
     if (DTM.NULL == root)
     {
       throw new RuntimeException(
-        "\n !!!! Error! Setting the root of a walker to null!!!");
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_SETTING_WALKER_ROOT_TO_NULL, null)); //"\n !!!! Error! Setting the root of a walker to null!!!");
     }
 
     resetProximityPositions();
@@ -527,7 +544,59 @@ public class AxesWalker extends PredicatedNodeTest
   {
     return m_axis;
   }
+  
+  /**
+   * This will traverse the heararchy, calling the visitor for 
+   * each member.  If the called visitor method returns 
+   * false, the subtree should not be called.
+   * 
+   * @param owner The owner of the visitor, where that path may be 
+   *              rewritten if needed.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
+  {
+  	if(visitor.visitStep(owner, this))
+  	{
+  		callPredicateVisitors(visitor);
+  		if(null != m_nextWalker)
+  		{
+  			m_nextWalker.callVisitors(this, visitor);
+  		}
+  	}
+  }
+  
+  /**
+   * @see ExpressionOwner#getExpression()
+   */
+  public Expression getExpression()
+  {
+    return m_nextWalker;
+  }
 
+  /**
+   * @see ExpressionOwner#setExpression(Expression)
+   */
+  public void setExpression(Expression exp)
+  {
+  	exp.exprSetParent(this);
+  	m_nextWalker = (AxesWalker)exp;
+  }
+  
+    /**
+     * @see Expression#deepEquals(Expression)
+     */
+    public boolean deepEquals(Expression expr)
+    {
+      if (!super.deepEquals(expr))
+                return false;
+
+      AxesWalker walker = (AxesWalker)expr;
+      if(this.m_axis != walker.m_axis)
+      	return false;
+
+      return true;
+    }
 
   /**
    *  The root node of the TreeWalker, as specified when it was created.
@@ -554,5 +623,5 @@ public class AxesWalker extends PredicatedNodeTest
   protected int m_axis = -1;
 
   /** The DTM inner traversal class, that corresponds to the super axis. */
-  protected DTMAxisTraverser m_traverser;   
+  protected DTMAxisTraverser m_traverser; 
 }

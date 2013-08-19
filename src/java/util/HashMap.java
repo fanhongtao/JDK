@@ -1,7 +1,7 @@
 /*
- * @(#)HashMap.java	1.52 02/04/20
+ * @(#)HashMap.java	1.57 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -81,10 +81,14 @@ import  java.io.*;
  * exception for its correctness: <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
+ * <p>This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
+ *
  * @author  Doug Lea
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.52, 04/20/02
+ * @version 1.57, 01/23/03
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -109,7 +113,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
-     * The load fast used when none specified in constructor.
+     * The load factor used when none specified in constructor.
      **/
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
@@ -192,7 +196,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      */
     public HashMap() {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
-        threshold = (int)(DEFAULT_INITIAL_CAPACITY);
+        threshold = (int)(DEFAULT_INITIAL_CAPACITY * DEFAULT_LOAD_FACTOR);
         table = new Entry[DEFAULT_INITIAL_CAPACITY];
         init();
     }
@@ -423,21 +427,27 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     }
 
     /**
-     * Rehashes the contents of this map into a new <tt>HashMap</tt> instance
-     * with a larger capacity. This method is called automatically when the
-     * number of keys in this map exceeds its capacity and load factor.
+     * Rehashes the contents of this map into a new array with a
+     * larger capacity.  This method is called automatically when the
+     * number of keys in this map reaches its threshold.
      *
-     * @param newCapacity the new capacity, MUST be a power of two.
+     * If current capacity is MAXIMUM_CAPACITY, this method does not
+     * resize the map, but but sets threshold to Integer.MAX_VALUE.
+     * This has the effect of preventing future calls.
+     *
+     * @param newCapacity the new capacity, MUST be a power of two;
+     *        must be greater than current capacity unless current
+     *        capacity is MAXIMUM_CAPACITY (in which case value
+     *        is irrelevant).
      */
     void resize(int newCapacity) {
-        // assert (newCapacity & -newCapacity) == newCapacity; // power of 2
         Entry[] oldTable = table;
         int oldCapacity = oldTable.length;
-    
-        // check if needed
-        if (size < threshold || oldCapacity > newCapacity) 
+        if (oldCapacity == MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
             return;
-    
+        }
+
         Entry[] newTable = new Entry[newCapacity];
         transfer(newTable);
         table = newTable;
@@ -470,25 +480,35 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * These mappings will replace any mappings that
      * this map had for any of the keys currently in the specified map.
      *
-     * @param t mappings to be stored in this map.
+     * @param m mappings to be stored in this map.
      * @throws NullPointerException if the specified map is null.
      */
-    public void putAll(Map t) {
-        // Expand enough to hold t's elements without resizing.
-        int n = t.size();
-        if (n == 0)
+    public void putAll(Map m) {
+        int numKeysToBeAdded = m.size();
+        if (numKeysToBeAdded == 0)
             return;
-        if (n >= threshold) {
-            n = (int)(n / loadFactor + 1);
-            if (n > MAXIMUM_CAPACITY)
-                n = MAXIMUM_CAPACITY;
-            int capacity = table.length;
-            while (capacity < n) 
-                capacity <<= 1;
-            resize(capacity);
+
+        /*
+         * Expand the map if the map if the number of mappings to be added
+         * is greater than or equal to threshold.  This is conservative; the
+         * obvious condition is (m.size() + size) >= threshold, but this
+         * condition could result in a map with twice the appropriate capacity,
+         * if the keys to be added overlap with the keys already in this map.
+         * By using the conservative calculation, we subject ourself
+         * to at most one extra resize.
+         */
+        if (numKeysToBeAdded > threshold) {
+            int targetCapacity = (int)(numKeysToBeAdded / loadFactor + 1);
+            if (targetCapacity > MAXIMUM_CAPACITY)
+                targetCapacity = MAXIMUM_CAPACITY;
+            int newCapacity = table.length;
+            while (newCapacity < targetCapacity)
+                newCapacity <<= 1;
+            if (newCapacity > table.length)
+                resize(newCapacity);
         }
 
-        for (Iterator i = t.entrySet().iterator(); i.hasNext(); ) {
+        for (Iterator i = m.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry e = (Map.Entry) i.next();
             put(e.getKey(), e.getValue());
         }

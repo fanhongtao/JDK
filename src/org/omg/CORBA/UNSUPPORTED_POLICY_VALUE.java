@@ -1,7 +1,7 @@
 /*
- * @(#)UNSUPPORTED_POLICY_VALUE.java	1.9 01/12/03
+ * @(#)UNSUPPORTED_POLICY_VALUE.java	1.10 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package org.omg.CORBA;
  * is not currently supported.
  *
  * @author rip-dev
- * @version 1.9 12/03/01
+ * @version 1.10 01/23/03
  */
 public interface UNSUPPORTED_POLICY_VALUE {
     /**

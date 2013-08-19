@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)TableSorter.java	1.11 02/06/13
+ * @(#)TableSorter.java	1.12 03/01/23
  */
 
 /**
@@ -51,7 +51,7 @@
  * which means that it does not move around rows when its comparison 
  * function returns 0 to denote that they are equivalent. 
  *
- * @version 1.11 06/13/02
+ * @version 1.12 01/23/03
  * @author Philip Milne
  */
 

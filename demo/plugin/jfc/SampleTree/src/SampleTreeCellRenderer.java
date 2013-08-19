@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)SampleTreeCellRenderer.java	1.15 02/06/13
+ * @(#)SampleTreeCellRenderer.java	1.16 03/01/23
  */
 
 import javax.swing.Icon;

@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationSystem.java	1.15 02/03/18
+ * @(#)ActivationSystem.java	1.16 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.rmi.activation.UnknownObjectException;
  * and inactive groups.
  *
  * @author 	Ann Wollrath
- * @version	1.15, 03/18/02
+ * @version	1.16, 01/23/03
  * @see		Activator
  * @see		ActivationMonitor
  * @since	1.2

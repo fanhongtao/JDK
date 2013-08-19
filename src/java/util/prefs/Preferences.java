@@ -1,7 +1,7 @@
 /*
- * @(#)Preferences.java	1.16 02/05/06
+ * @(#)Preferences.java	1.19 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -174,7 +174,7 @@ import java.lang.Double;
  * qualified name of a class implementing the <tt>PreferencesFactory</tt>.
  *
  * @author  Josh Bloch
- * @version 1.16, 05/06/02
+ * @version 1.19, 01/23/03
  * @since   1.4
  */
 public abstract class Preferences {
@@ -939,11 +939,13 @@ s     * @throws IllegalStateException if this node (or an ancestor) has been
      * persistent.  Note however that any preference value changes in
      * ancestors are <i>not</i> guaranteed to be made persistent.
      *
+     * <p> If this method is invoked on a node that has been removed with 
+     * the {@link #removeNode()} method, flushSpi() is invoked on this node, 
+     * but not on others.
+     *
      * @throws BackingStoreException if this operation cannot be completed
      *         due to a failure in the backing store, or inability to 
      *         communicate with it.
-     * @throws IllegalStateException if this node (or an ancestor) has been
-     *         removed with the {@link #removeNode()} method.
      * @see    #sync()
      */
     public abstract void flush() throws BackingStoreException;

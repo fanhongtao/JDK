@@ -162,7 +162,9 @@ public class ReverseAxesWalker extends AxesWalker
     if(predicateIndex < 0)
       return -1;
       
-    if (m_proximityPositions[predicateIndex] <= 0)
+    int count = m_proximityPositions[predicateIndex];
+      
+    if (count <= 0)
     {
       AxesWalker savedWalker = wi().getLastUsedWalker();
 
@@ -179,7 +181,7 @@ public class ReverseAxesWalker extends AxesWalker
         wi().setLastUsedWalker(clone);
 
         // Count 'em all
-        int count = 1;
+        count++;
         int next;
 
         while (DTM.NULL != (next = clone.nextNode()))
@@ -187,7 +189,7 @@ public class ReverseAxesWalker extends AxesWalker
           count++;
         }
 
-        m_proximityPositions[predicateIndex] += count;
+        m_proximityPositions[predicateIndex] = count;
       }
       catch (CloneNotSupportedException cnse)
       {
@@ -199,8 +201,8 @@ public class ReverseAxesWalker extends AxesWalker
         wi().setLastUsedWalker(savedWalker);
       }
     }
-
-    return m_proximityPositions[predicateIndex];
+    
+    return count;
   }
 
   /**

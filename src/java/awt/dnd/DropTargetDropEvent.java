@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetDropEvent.java	1.24 01/12/03
+ * @(#)DropTargetDropEvent.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import java.util.List;
  * first constant found. If no constant is found the <i>user drop action</i>
  * is <code>DnDConstants.ACTION_NONE</code>.
  * 
- * @version 	1.24, 12/03/01
+ * @version 	1.26, 01/23/03
  * @since 1.2
  */
 
@@ -117,7 +117,7 @@ public class DropTargetDropEvent extends DropTargetEvent {
      * hotspot in Component's coordinates
      * @param dropAction the user drop action.
      * @param srcActions the source drop actions.
-     * @param isLocalTx  True if the source is in the same JVM as the target
+     * @param isLocal  True if the source is in the same JVM as the target
      *
      * @throws <code>NullPointerException</code> if cursorLocn is
      *         <code>null</code> 

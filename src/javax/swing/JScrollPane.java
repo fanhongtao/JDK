@@ -1,7 +1,7 @@
 /*
- * @(#)JScrollPane.java	1.87 02/02/11
+ * @(#)JScrollPane.java	1.91 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,15 +32,16 @@ import java.io.IOException;
  * vertical and horizontal scroll bars, and optional row and
  * column heading viewports.
  * You can find task-oriented documentation of <code>JScrollPane</code> in
- * <a
- href="http://java.sun.com/docs/books/tutorial/uiswing/components/scrollpane.html">How to Use Scroll Panes</a>,
+ *  <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/scrollpane.html">How to Use Scroll Panes</a>,
  * a section in <em>The Java Tutorial</em>.  Note that
  * <code>JScrollPane</code> does not support heavyweight components.
  * <p>
- * <TABLE ALIGN="RIGHT" BORDER="0">
+ * <TABLE ALIGN="RIGHT" BORDER="0" SUMMARY="layout">
  *    <TR>
  *    <TD ALIGN="CENTER">
- *      <P ALIGN="CENTER"><IMG SRC="doc-files/JScrollPane-1.gif" WIDTH="256" HEIGHT="248" ALIGN="BOTTOM" BORDER="0">
+ *      <P ALIGN="CENTER"><IMG SRC="doc-files/JScrollPane-1.gif" 
+ *      alt="The following text describes this image." 
+ *      WIDTH="256" HEIGHT="248" ALIGN="BOTTOM" BORDER="0">
  *    </TD>
  *    </TR>
  * </TABLE>
@@ -1188,7 +1189,12 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	else {
 	    throw new IllegalArgumentException("invalid corner key");
 	}
-	add(corner, key);
+	if (old != null) {
+	    remove(old);
+	}
+	if (corner != null) {
+	    add(corner, key);
+	}
 	firePropertyChange(key, old, corner);
 	revalidate();
 	repaint();

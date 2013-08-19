@@ -1,7 +1,7 @@
 /*
- * @(#)DisplayMode.java	1.3 01/12/03
+ * @(#)DisplayMode.java	1.5 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,13 +22,15 @@ public final class DisplayMode {
     private int refreshRate;
         
     /**
-     * Create a new display mode object with the supplied parameters
-     * @width the width of the display, in pixels
-     * @height the height of the display, in pixels
-     * @bitDepth the bit depth of the display, in bits per pixel.  This can be
-     * <code>BIT_DEPTH_MULTI</code> if multiple bit depths are available.
-     * @refreshRate the refresh rate of the display, in hertz.  This can be
-     * <code>REFRESH_RATE_UNKNOWN</code> if the information is not available.
+     * Create a new display mode object with the supplied parameters.
+     * @param width the width of the display, in pixels
+     * @param height the height of the display, in pixels
+     * @param bitDepth the bit depth of the display, in bits per
+     *        pixel.  This can be <code>BIT_DEPTH_MULTI</code> if multiple
+     *        bit depths are available.
+     * @param refreshRate the refresh rate of the display, in hertz.
+     *        This can be <code>REFRESH_RATE_UNKNOWN</code> if the
+     *        information is not available.
      * @see #BIT_DEPTH_MULTI
      * @see #REFRESH_RATE_UNKNOWN
      */

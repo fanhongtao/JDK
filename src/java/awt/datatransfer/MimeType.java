@@ -1,7 +1,7 @@
 /*
- * @(#)MimeType.java	1.20 01/12/03
+ * @(#)MimeType.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,6 +42,7 @@ class MimeType implements Externalizable, Cloneable {
      * Builds a <code>MimeType</code> from a <code>String</code>.
      *
      * @param rawdata text used to initialize the <code>MimeType</code>
+     * @throws NullPointerException if <code>rawdata</code> is null
      */
     public MimeType(String rawdata) throws MimeTypeParseException {
         parse(rawdata);
@@ -53,6 +54,8 @@ class MimeType implements Externalizable, Cloneable {
      *
      * @param primary the primary type of this <code>MimeType</code>
      * @param sub the subtype of this <code>MimeType</code>
+     * @throws NullPointerException if either <code>primary</code> or
+     *         <code>sub</code> is null
      */
     public MimeType(String primary, String sub) throws MimeTypeParseException {
 	this(primary, sub, new MimeTypeParameterList());
@@ -65,6 +68,8 @@ class MimeType implements Externalizable, Cloneable {
      * @param primary the primary type of this <code>MimeType</code>
      * @param sub the subtype of this <code>MimeType</code>
      * @param mtpl the requested parameter list
+     * @throws NullPointerException if either <code>primary</code>,
+     *         <code>sub</code> or <code>mtpl</code> is null
      */
     public MimeType(String primary, String sub, MimeTypeParameterList mtpl) throws
 MimeTypeParseException {
@@ -119,9 +124,10 @@ MimeTypeParseException {
     
     /**
      * A routine for parsing the MIME type out of a String.
+     *
+     * @throws NullPointerException if <code>rawdata</code> is null
      */
     private void parse(String rawdata) throws MimeTypeParseException {
-	//System.out.println("MimeType.parse("+rawdata+")");
         int slashIndex = rawdata.indexOf('/');
         int semIndex = rawdata.indexOf(';');
         if((slashIndex < 0) && (semIndex < 0)) {
@@ -276,7 +282,16 @@ MimeTypeParameterList(rawdata.substring(semIndex));
      * @exception IOException Includes any I/O exceptions that may occur
      */
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeUTF(toString());
+        String s = toString(); // contains ASCII chars only
+        // one-to-one correspondence between ASCII char and byte in UTF string
+        if (s.length() <= 65535) { // 65535 is max length of UTF string
+            out.writeUTF(s);
+        } else {
+            out.writeByte(0);
+            out.writeByte(0);
+            out.writeInt(s.length());
+            out.write(s.getBytes());
+        }
     }
 
     /**
@@ -290,8 +305,14 @@ MimeTypeParameterList(rawdata.substring(semIndex));
      */
     public void readExternal(ObjectInput in) throws IOException,
 ClassNotFoundException {
+        String s = in.readUTF();
+        if (s == null || s.length() == 0) { // long mime type
+            byte[] ba = new byte[in.readInt()];
+            in.readFully(ba);
+            s = new String(ba);
+        }
         try {
-            parse(in.readUTF());
+            parse(s);
         } catch(MimeTypeParseException e) {
             throw new IOException(e.toString());
         }
@@ -327,6 +348,8 @@ ClassNotFoundException {
     
     /**
      * Determines whether or not a given string is a legal token.
+     *
+     * @throws NullPointerException if <code>s</code> is null
      */
     private boolean isValidToken(String s) {
         int len = s.length();

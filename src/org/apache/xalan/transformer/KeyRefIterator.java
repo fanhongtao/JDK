@@ -56,55 +56,25 @@
  */
 package org.apache.xalan.transformer;
 
-import java.util.Vector;
-
-import org.apache.xpath.axes.LocPathIterator;
-import org.apache.xml.utils.QName;
-import org.apache.xml.utils.XMLString;
-import org.apache.xalan.templates.KeyDeclaration;
-import org.apache.xpath.NodeSetDTM;
-
-//import org.w3c.dom.Node;
-//import org.w3c.dom.DOMException;
-//import org.w3c.dom.traversal.NodeIterator;
 import org.apache.xml.dtm.DTM;
 import org.apache.xml.dtm.DTMIterator;
+import org.apache.xml.utils.NodeVector;
+import org.apache.xml.utils.XMLString;
+import org.apache.xpath.objects.XNodeSet;
+import org.apache.xpath.objects.XObject;
+import java.util.Vector;
+import org.apache.xml.utils.QName;
+import org.apache.xalan.templates.KeyDeclaration;
+import org.apache.xalan.res.XSLMessages;
+import org.apache.xalan.res.XSLTErrorResources;
 
 /**
  * <meta name="usage" content="internal"/>
- * This class implements an optimized iterator for 
- * "key()" patterns. It uses a KeyIterator to walk the 
- * source tree and incrementally build a list of nodes that match
- * a given key name, match pattern and value.  
+ * This class filters nodes from a key iterator, according to 
+ * whether or not the use value matches the ref value.  
  */
-public class KeyRefIterator extends LocPathIterator
+public class KeyRefIterator extends org.apache.xpath.axes.ChildTestIterator
 {
-
-  /** Key name.
-   *  @serial         */
-  private final QName m_name;    
-  
-  /** Use field of key function.
-   *  @serial         */
-  private final XMLString m_lookupKey;  
-  
-  /** Main Key iterator for this iterator.
-   *  @serial    */
-  private final KeyIterator m_ki;    
-  
-  /**
-   * Get key name
-   *
-   *
-   * @return Key name
-   */
-  public QName getName()
-  {
-    return m_name;
-  }
-  
-  
-
   /**
    * Constructor KeyRefIterator
    *
@@ -112,142 +82,124 @@ public class KeyRefIterator extends LocPathIterator
    * @param ref Key value to match
    * @param ki The main key iterator used to walk the source tree 
    */
-  public KeyRefIterator(XMLString ref, KeyIterator ki)
+  public KeyRefIterator(QName name, XMLString ref, Vector keyDecls, DTMIterator ki)
   {
-
-    super(ki.getPrefixResolver());   
-    m_ki = ki;
-    m_name = ki.getName();
-    m_lookupKey = ref;
-    this.m_execContext = ki.getXPathContext();
-    setShouldCacheNodes(true);
+    super(null);
+    m_name = name;
+    m_ref = ref;
+    m_keyDeclarations = keyDecls;
+    m_keysNodes = ki;
+    setWhatToShow(org.apache.xml.dtm.DTMFilter.SHOW_ALL);
+  }
+  
+  DTMIterator m_keysNodes;
+  
+  /**
+   * Get the next node via getNextXXX.  Bottlenecked for derived class override.
+   * @return The next node on the axis, or DTM.NULL.
+   */
+  protected int getNextNode()
+  {                  
+  	int next;   
+    while(DTM.NULL != (next = m_keysNodes.nextNode()))
+    {
+    	if(DTMIterator.FILTER_ACCEPT == filterNode(next))
+    		break;
+    }
+    m_lastFetched = next;
+    
+    return next;
   }
 
+
   /**
-   *  Returns the next node in the set and advances the position of the
-   * iterator in the set. After a NodeIterator is created, the first call
-   * to nextNode() returns the first node in the set.
+   *  Test whether a specified node is visible in the logical view of a
+   * TreeWalker or NodeIterator. This function will be called by the
+   * implementation of TreeWalker and NodeIterator; it is not intended to
+   * be called directly from user code.
    * 
-   * @return  The next <code>Node</code> in the set being iterated over, or
-   *   <code>null</code> if there are no more members in that set.
+   * @param testnode  The node to check to see if it passes the filter or not.
+   *
+   * @return  a constant to determine whether the node is accepted,
+   *   rejected, or skipped, as defined  above .
    */
-  public int nextNode()
-  {   
+  public short filterNode(int testNode)
+  {
+    boolean foundKey = false;
+    Vector keys = m_keyDeclarations;
+
+    QName name = m_name;
+    KeyIterator ki = (KeyIterator)(((XNodeSet)m_keysNodes).getContainedIter());
+    org.apache.xpath.XPathContext xctxt = ki.getXPathContext();
     
-    // If the cache is on, and the node has already been found, then 
-    // just return from the list.
-    NodeSetDTM m_cachedNodes = getCachedNodes();
-    
-    // We are not using the NodeSetDTM methods getCurrentPos() and nextNode()
-    // in this case because the nodeset is not cloned and therefore
-    // the positions it indicates may not be associated with the 
-    // current iterator.
-    if ((null != m_cachedNodes)
-        && (m_next < m_cachedNodes.size()))        
+    if(null == xctxt)
+    	assertion(false, "xctxt can not be null here!");
+
+    try
     {
-      int next = m_cachedNodes.elementAt(m_next); 
-      this.setCurrentPos(++m_next); 
-      m_lastFetched = next;
-      
-      return next;
+      XMLString lookupKey = m_ref;
+
+      // System.out.println("lookupKey: "+lookupKey);
+      int nDeclarations = keys.size();
+
+      // Walk through each of the declarations made with xsl:key
+      for (int i = 0; i < nDeclarations; i++)
+      {
+        KeyDeclaration kd = (KeyDeclaration) keys.elementAt(i);
+
+        // Only continue if the name on this key declaration
+        // matches the name on the iterator for this walker. 
+        if (!kd.getName().equals(name))
+          continue;
+
+        foundKey = true;
+        // xctxt.setNamespaceContext(ki.getPrefixResolver());
+
+        // Query from the node, according the the select pattern in the
+        // use attribute in xsl:key.
+        XObject xuse = kd.getUse().execute(xctxt, testNode, ki.getPrefixResolver());
+
+        if (xuse.getType() != xuse.CLASS_NODESET)
+        {
+          XMLString exprResult = xuse.xstr();
+
+          if (lookupKey.equals(exprResult))
+            return DTMIterator.FILTER_ACCEPT;
+        }
+        else
+        {
+          DTMIterator nl = ((XNodeSet)xuse).iterRaw();
+          int useNode;
+          
+          while (DTM.NULL != (useNode = nl.nextNode()))
+          {
+            DTM dtm = getDTM(useNode);
+            XMLString exprResult = dtm.getStringValue(useNode);
+            if ((null != exprResult) && lookupKey.equals(exprResult))
+              return DTMIterator.FILTER_ACCEPT;
+          }
+        }
+
+      } // end for(int i = 0; i < nDeclarations; i++)
     }
-    
-    if (m_foundLast)
+    catch (javax.xml.transform.TransformerException te)
     {
-      m_lastFetched = DTM.NULL;
-      return DTM.NULL;
+      throw new org.apache.xml.utils.WrappedRuntimeException(te);
     }
 
-    int next = DTM.NULL;       
-    if ( m_ki.getLookForMoreNodes()) 
-    {
-      ((KeyWalker)m_ki.getFirstWalker()).m_lookupKey = m_lookupKey;
-      next = m_ki.nextNode();        
-    }
-    
-    if (DTM.NULL != next)
-    {  
-      m_lastFetched = next;
-      this.setCurrentPos(++m_next);
-      return next;
-    }
-    else
-      m_foundLast = true;                      
-    
-    m_lastFetched = DTM.NULL;
-    return DTM.NULL;
-  }
-  
-  /**
-   * Get a cloned LocPathIterator that holds the same 
-   * position as this iterator.
-   *
-   * @return A clone of this iterator that holds the same node position.
-   *
-   * @throws CloneNotSupportedException 
-   */
-  public Object clone() throws CloneNotSupportedException
-  {
-    // I wonder if we really want to clone the second time.  Myriam review.
-    KeyRefIterator clone = (KeyRefIterator)super.clone();
-    // clone.m_ki = (KeyIterator)m_ki.clone();
-
-    return clone;
-  }
-  
-//  /**
-//   * Get a cloned Iterator that is reset to the beginning 
-//   * of the query.
-//   *
-//   * @return A cloned NodeIterator set of the start of the query.
-//   *
-//   * @throws CloneNotSupportedException
-//   */
-//  public NodeIterator cloneWithReset() throws CloneNotSupportedException
-//  {
-//    KeyRefIterator clone = (KeyRefIterator)super.cloneWithReset();
-//
-//    return clone;
-//  }
-  
-  /**
-   * Reset the iterator.
-   */
-  public void reset()
-  {
-    super.reset();
-    // setShouldCacheNodes(true);
-    setCurrentPos(0);
-  }
-  
-  /**
-   *  Detaches the iterator from the set which it iterated over, releasing
-   * any computational resources and placing the iterator in the INVALID
-   * state. After<code>detach</code> has been invoked, calls to
-   * <code>nextNode</code> or<code>previousNode</code> will raise the
-   * exception INVALID_STATE_ERR.
-   */
-  public void detach()
-  {    
-    // I don't think we want to detach at all for this iterator.
-    // Myriam needs to review.  -sb.
+    if (!foundKey)
+      throw new RuntimeException(
+        XSLMessages.createMessage(
+          XSLTErrorResources.ER_NO_XSLKEY_DECLARATION,
+          new Object[] { name.getLocalName()}));
+    return DTMIterator.FILTER_REJECT;
   }
 
-  
-  /**
-   * Add a node matching this ref to the cached nodes for this iterator 
-   *
-   *
-   * @param node Node to add to cached nodes
-   */
-  public void addNode(int node) 
-  {
-    NodeSetDTM m_cachedNodes = getCachedNodes();
-    if (null != m_cachedNodes)
-    {
-      if(!m_cachedNodes.contains(node))
-        m_cachedNodes.addElement(node);
-    }
-  }  
-       
+  protected XMLString m_ref;
+  protected QName m_name;
+
+  /** Vector of Key declarations in the stylesheet.
+   *  @serial          */
+  protected Vector m_keyDeclarations;
+
 }

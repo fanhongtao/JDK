@@ -1,7 +1,7 @@
 /*
- * @(#)Subject.java	1.117 01/12/03
+ * @(#)Subject.java	1.119 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,7 @@ import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
 import java.security.ProtectionDomain;
 import sun.security.util.ResourcesMgr;
+import sun.security.util.SecurityConstants;
 
 /**
  * <p> A <code>Subject</code> represents a grouping of related information
@@ -76,7 +77,7 @@ import sun.security.util.ResourcesMgr;
  * <code>Principal</code> implementations associated with Subjects
  * must implement <code>Serializable</code>.
  *
- * @version 1.117, 12/03/01
+ * @version 1.119, 01/23/03
  * @see java.security.Principal
  * @see java.security.DomainCombiner
  */
@@ -305,7 +306,7 @@ public final class Subject implements java.io.Serializable {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-	    sm.checkPermission(new AuthPermission("doAs"));
+	    sm.checkPermission(SecurityConstants.DO_AS_PERMISSION);
 	}
 	if (action == null)
 	    throw new NullPointerException
@@ -364,7 +365,7 @@ public final class Subject implements java.io.Serializable {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-	    sm.checkPermission(new AuthPermission("doAs"));
+	    sm.checkPermission(SecurityConstants.DO_AS_PERMISSION);
 	}
 
 	if (action == null)
@@ -418,7 +419,7 @@ public final class Subject implements java.io.Serializable {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-	    sm.checkPermission(new AuthPermission("doAsPrivileged"));
+	    sm.checkPermission(SecurityConstants.DO_AS_PRIVILEGED_PERMISSION);
 	}
 
 	if (action == null)
@@ -482,7 +483,7 @@ public final class Subject implements java.io.Serializable {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-	    sm.checkPermission(new AuthPermission("doAsPrivileged"));
+	    sm.checkPermission(SecurityConstants.DO_AS_PRIVILEGED_PERMISSION);
 	}
 
 	if (action == null)

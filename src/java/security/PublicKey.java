@@ -1,7 +1,7 @@
 /*
- * @(#)PublicKey.java	1.30 01/12/03
+ * @(#)PublicKey.java	1.31 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ package java.security;
  * @see java.security.interfaces.DSAPublicKey
  * @see java.security.interfaces.RSAPublicKey
  *
- * @version 1.30 01/12/03
+ * @version 1.31 03/01/23
  */
 
 public interface PublicKey extends Key {

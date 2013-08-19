@@ -1,7 +1,7 @@
 /*
- * @(#)FilterInputStream.java	1.24 01/12/03
+ * @(#)FilterInputStream.java	1.26 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.io;
  * and fields.
  *
  * @author  Jonathan Payne
- * @version 1.24, 12/03/01
+ * @version 1.26, 01/23/03
  * @since   JDK1.0
  */
 public
@@ -134,7 +134,7 @@ class FilterInputStream extends InputStream {
      * stream without blocking. 
      * <p>
      * This method
-     * simply performs <code>in.available(n)</code> and
+     * simply performs <code>in.available()</code> and
      * returns the result.
      *
      * @return     the number of bytes that can be read from the input stream

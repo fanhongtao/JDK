@@ -1,7 +1,7 @@
 /*
- * @(#)Dimension2D.java	1.11 01/12/03
+ * @(#)Dimension2D.java	1.12 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.awt.geom;
  * The actual storage representation of the sizes is left to
  * the subclass.
  * 
- * @version 	1.11, 12/03/01
+ * @version 	1.12, 01/23/03
  * @author	Jim Graham
  */
 public abstract class Dimension2D implements Cloneable {

@@ -1,5 +1,5 @@
 /*
- * @(#)ArcIterator.java	1.14 03/07/08
+ * @(#)ArcIterator.java	1.14 03/04/10
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ class ArcIterator implements PathIterator {
 
     private static double btan(double increment) {
 	increment /= 2.0;
-        return 4.0 / 3.0 * Math.sin(increment) / (1.0 + Math.cos(increment));
+	return 4.0 / 3.0 * Math.sin(increment) / (1.0 + Math.cos(increment));
     }
 
     /**

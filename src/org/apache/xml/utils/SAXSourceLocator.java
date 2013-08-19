@@ -102,6 +102,22 @@ public class SAXSourceLocator extends LocatorImpl
    * Constructor SAXSourceLocator
    *
    *
+   * @param locator Source locator
+   */
+  public SAXSourceLocator(javax.xml.transform.SourceLocator locator)
+  {
+    m_locator = null;
+    this.setColumnNumber(locator.getColumnNumber());
+    this.setLineNumber(locator.getLineNumber());
+    this.setPublicId(locator.getPublicId());
+    this.setSystemId(locator.getSystemId());
+  }
+
+  
+  /**
+   * Constructor SAXSourceLocator
+   *
+   *
    * @param spe SAXParseException exception.
    */
   public SAXSourceLocator(SAXParseException spe)

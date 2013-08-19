@@ -1,7 +1,7 @@
 /*
- * @(#)CubicCurve2D.java	1.27 01/12/03
+ * @(#)CubicCurve2D.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.util.Arrays;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.27, 12/03/01
+ * @version 	1.28, 01/23/03
  * @author	Jim Graham
  */
 public abstract class CubicCurve2D implements Shape, Cloneable {

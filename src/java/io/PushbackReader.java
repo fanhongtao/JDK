@@ -1,7 +1,7 @@
 /*
- * @(#)PushbackReader.java	1.15 01/12/03
+ * @(#)PushbackReader.java	1.17 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.io;
  * A character-stream reader that allows characters to be pushed back into the
  * stream.
  *
- * @version 	1.15, 01/12/03
+ * @version 	1.17, 03/01/23
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -225,6 +225,36 @@ public class PushbackReader extends FilterReader {
     public void close() throws IOException {
 	super.close();
 	buf = null;
+    }
+
+    /**
+     * Skip characters.  This method will block until some characters are
+     * available, an I/O error occurs, or the end of the stream is reached.
+     *
+     * @param  n  The number of characters to skip
+     *
+     * @return    The number of characters actually skipped
+     *
+     * @exception  IllegalArgumentException  If <code>n</code> is negative.
+     * @exception  IOException  If an I/O error occurs
+     */
+    public long skip(long n) throws IOException {
+        if (n < 0L)
+            throw new IllegalArgumentException("skip value is negative");
+	synchronized (lock) {
+            ensureOpen();
+            int avail = buf.length - pos;
+            if (avail > 0) {
+                if (n <= avail) {
+                    pos += n;
+                    return n;
+                } else {
+                    pos = buf.length;
+                    n -= avail;
+                }
+            }
+            return avail + super.skip(n);
+        }
     }
 
 }

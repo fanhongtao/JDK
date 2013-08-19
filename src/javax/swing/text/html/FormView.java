@@ -1,7 +1,7 @@
 /*
- * @(#)FormView.java	1.18 01/12/03
+ * @(#)FormView.java	1.21 03/01/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -28,51 +28,64 @@ import javax.swing.text.*;
  * <p>
  * The following table shows what components get built
  * by this view.
- * <table>
+ * <table summary="shows what components get built by this view">
  * <tr>
- *   <th>Element Type
- *   <th>Component built
+ *   <th>Element Type</th>
+ *   <th>Component built</th>
+ * </tr>
  * <tr>
- *   <td>input, type button
- *   <td>JButton
+ *   <td>input, type button</td>
+ *   <td>JButton</td>
+ * </tr>
  * <tr>
- *   <td>input, type checkbox
- *   <td>JCheckBox
+ *   <td>input, type checkbox</td>
+ *   <td>JCheckBox</td>
+ * </tr>
  * <tr>
- *   <td>input, type image
- *   <td>JButton
+ *   <td>input, type image</td>
+ *   <td>JButton</td>
+ * </tr>
  * <tr>
- *   <td>input, type password
- *   <td>JPasswordField
+ *   <td>input, type password</td>
+ *   <td>JPasswordField</td>
+ * </tr>
  * <tr>
- *   <td>input, type radio
- *   <td>JRadioButton
+ *   <td>input, type radio</td>
+ *   <td>JRadioButton</td>
+ * </tr>
  * <tr>
- *   <td>input, type reset
- *   <td>JButton
+ *   <td>input, type reset</td>
+ *   <td>JButton</td>
+ * </tr>
  * <tr>
- *   <td>input, type submit
- *   <td>JButton
+ *   <td>input, type submit</td>
+ *   <td>JButton</td>
+ * </tr>
  * <tr>
- *   <td>input, type text
- *   <td>JTextField
+ *   <td>input, type text</td>
+ *   <td>JTextField</td>
+ * </tr>
  * <tr>
- *   <td>select, size &gt; 1 or multiple attribute defined
- *   <td>JList in a JScrollPane
+ *   <td>select, size &gt; 1 or multiple attribute defined</td>
+ *   <td>JList in a JScrollPane</td>
+ * </tr>
  * <tr>
- *   <td>select, size unspecified or 1
- *   <td>JComboBox
+ *   <td>select, size unspecified or 1</td>
+ *   <td>JComboBox</td>
+ * </tr>
  * <tr>
- *   <td>textarea
- *   <td>JTextArea in a JScrollPane
+ *   <td>textarea</td>
+ *   <td>JTextArea in a JScrollPane</td>
+ * </tr>
  * <tr>
- *   <td>input, type file
- *   <td>JTextField
+ *   <td>input, type file</td>
+ *   <td>JTextField</td>
+ * </tr>
  * </table>
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.18 12/03/01
+ * @version 1.21 01/27/03
  */
 public class FormView extends ComponentView implements ActionListener {
 
@@ -550,7 +563,7 @@ public class FormView extends ComponentView implements ActionListener {
      * to a click on an image -- an &lt;INPUT&gt; form
      * element of type "image".
      *
-     * @param the mouse click coordinates.
+     * @param imageData the mouse click coordinates.
      */
     protected void imageSubmit(String imageData) {
 

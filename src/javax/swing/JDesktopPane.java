@@ -1,7 +1,7 @@
 /*
- * @(#)JDesktopPane.java	1.44 01/12/03
+ * @(#)JDesktopPane.java	1.46 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see DesktopManager
  *
- * @version 1.44 12/03/01
+ * @version 1.46 01/23/03
  * @author David Kloba
  */
 public class JDesktopPane extends JLayeredPane implements Accessible
@@ -178,8 +178,6 @@ public class JDesktopPane extends JLayeredPane implements Accessible
     /** 
      * Returns the <code>DesktopManger</code> that handles
      * desktop-specific UI actions.
-     *
-     * @param d the <code>DesktopManager</code> currently in use 
      */
     public DesktopManager getDesktopManager() {
         return desktopManager;

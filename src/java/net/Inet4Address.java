@@ -1,7 +1,7 @@
 /*
- * @(#)Inet4Address.java	1.20 02/04/18
+ * @(#)Inet4Address.java	1.24 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import sun.security.action.*;
  * Textual representation of IPv4 address used as input to methods
  * takes one of the following forms:
  *
- * <blockquote><table cellpadding=0 cellspacing=0>
+ * <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
  * <tr><td><tt>d.d.d.d</tt><td></tr>
  * <tr><td><tt>d.d.d</tt><td></tr>
  * <tr><td><tt>d.d</td></tr>
@@ -68,6 +68,12 @@ import sun.security.action.*;
 public final
 class Inet4Address extends InetAddress {
     final static int INADDRSZ = 4;
+
+    /** use serialVersionUID from InetAddress, but Inet4Address instance
+     *  is always replaced by an InetAddress instance before being
+     *  serialized */
+    private static final long serialVersionUID = 3286316764910316507L;
+
     /*
      * Perform initializations.
      */
@@ -368,7 +374,9 @@ class Inet4Address extends InetAddress {
 	while (i < srcb.length) {
 	    ch = srcb[i++];
 	    if (Character.isDigit(ch)) {
-		int sum =  dst[cur]*10 + (Character.digit(ch, 10) & 0xff);
+		// note that Java byte is signed, so need to convert to int
+		int sum = (dst[cur] & 0xff)*10
+		    + (Character.digit(ch, 10) & 0xff);
 		
 		if (sum > 255)
 		    return null;

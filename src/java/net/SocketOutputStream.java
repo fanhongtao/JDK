@@ -1,7 +1,7 @@
 /*
- * @(#)SocketOutputStream.java	1.27 02/04/23
+ * @(#)SocketOutputStream.java	1.28 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.nio.channels.FileChannel;
  * SocketOutputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.27, 04/23/02
+ * @version     1.28, 01/23/03
  * @author 	Jonathan Payne
  * @author	Arthur van Hoff
  */

@@ -58,7 +58,8 @@ package org.apache.xpath.functions;
 
 import org.apache.xml.utils.PrefixResolver;
 import org.apache.xalan.templates.Constants;
-import org.apache.xalan.extensions.ExtensionsTable;
+//import org.apache.xalan.transformer.TransformerImpl;
+//import org.apache.xalan.extensions.ExtensionsTable;
 
 //import org.w3c.dom.Node;
 
@@ -66,6 +67,7 @@ import java.util.Vector;
 
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.XPath;
+import org.apache.xpath.ExtensionsProvider;
 import org.apache.xpath.compiler.Keywords;
 import org.apache.xpath.objects.XObject;
 import org.apache.xpath.objects.XBoolean;
@@ -123,9 +125,9 @@ public class FuncExtFunctionAvailable extends FunctionOneArg
     }
     else
     {
-      ExtensionsTable etable = xctxt.getExtensionsTable();
-
-      return etable.functionAvailable(namespace, methName)
+      //dml
+      ExtensionsProvider extProvider = (ExtensionsProvider)xctxt.getOwnerObject();
+      return extProvider.functionAvailable(namespace, methName)
              ? XBoolean.S_TRUE : XBoolean.S_FALSE;
     }
   }

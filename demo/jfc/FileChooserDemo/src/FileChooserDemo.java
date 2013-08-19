@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  */
 
 /*
- * @(#)FileChooserDemo.java	1.21 02/06/13
+ * @(#)FileChooserDemo.java	1.22 03/01/23
  */
 
 import javax.swing.*;
@@ -50,7 +50,7 @@ import java.beans.*;
  *
  * A demo which makes extensive use of the file chooser.
  *
- * 1.21 06/13/02
+ * 1.22 01/23/03
  * @author Jeff Dinkins
  */
 public class FileChooserDemo extends JPanel implements ActionListener {

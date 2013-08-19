@@ -90,7 +90,14 @@ import java.util.*;
 
 /**
  * An XSLT extension that allows a stylesheet to
- * access JDBC data. From the stylesheet perspective,
+ * access JDBC data. 
+ *
+ * It is accessed by specifying a namespace URI as follows:
+ * <pre>
+ *    xmlns:sql="http://xml.apache.org/xalan/sql"
+ * </pre>
+ *
+ * From the stylesheet perspective,
  * XConnection provides 3 extension functions: new(),
  * query(), and close().
  * Use new() to call one of XConnection constructors, which
@@ -571,8 +578,10 @@ public class XConnection
 
       m_PoolMgr.registerPool(poolName, defpool);
       m_ConnectionPool = defpool;
-
-
+    }
+    else
+    {
+      m_ConnectionPool = cpool;
     }
 
     m_IsDefaultPool = true;
@@ -651,9 +660,8 @@ public class XConnection
           if (null != con) m_ConnectionPool.releaseConnectionOnError(con);
         } catch(Exception e1) { }
 
-        // Re throw the error so the process can handle the error
-        // normally
-        throw e;
+        buildErrorDocument(exprContext, e);
+        return null;
       }
 
       if (DEBUG) System.out.println("..creatingSQLDocument");

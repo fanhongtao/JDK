@@ -561,6 +561,9 @@ public class NodeVector implements Serializable, Cloneable
       m_map = new int[m_blocksize];
       m_mapSize = m_blocksize;
     }
+    
+    if(index == -1)
+    	addElement(node);
 
     m_map[index] = node;
   }

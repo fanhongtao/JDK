@@ -103,4 +103,6 @@ public interface PrefixResolver
    * may not accurately reflect that context information.
    */
   public String getBaseIdentifier();
+  
+  public boolean handlesNullPrefixes();
 }

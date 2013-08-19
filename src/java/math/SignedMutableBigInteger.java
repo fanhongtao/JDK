@@ -1,10 +1,10 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)SignedMutableBigInteger.java	1.7 02/06/11
+ * @(#)SignedMutableBigInteger.java	1.8 03/01/23
  */
 
 package java.math;
@@ -24,7 +24,7 @@ package java.math;
  * subtraction. All other operations occur as with MutableBigIntegers.
  * 
  * @see     BigInteger
- * @version 1.7, 06/11/02
+ * @version 1.8, 01/23/03
  * @author  Michael McCloskey
  * @since   1.3
  */

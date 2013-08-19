@@ -260,13 +260,13 @@ public class ElemValueOf extends ElemTemplateElement
     XPathContext xctxt = transformer.getXPathContext();
     ResultTreeHandler rth = transformer.getResultTreeHandler();
 
+    if (TransformerImpl.S_DEBUG)
+      transformer.getTraceManager().fireTraceEvent(this);
+
     try
     {
-      if (TransformerImpl.S_DEBUG)
-        transformer.getTraceManager().fireTraceEvent(this);
-
       // Optimize for "."
-      if (false && m_isDot &&!TransformerImpl.S_DEBUG)
+      if (false && m_isDot && !TransformerImpl.S_DEBUG)
       {
         int child = xctxt.getCurrentNode();
         DTM dtm = xctxt.getDTM(child);
@@ -334,6 +334,16 @@ public class ElemValueOf extends ElemTemplateElement
     {
       throw new TransformerException(se);
     }
+    catch (RuntimeException re) {
+    	TransformerException te = new TransformerException(re);
+    	te.setLocator(this);
+    	throw te;
+    }
+    finally
+    {
+      if (TransformerImpl.S_DEBUG)
+	    transformer.getTraceManager().fireTraceEndEvent(this); 
+    }
   }
 
   /**
@@ -355,4 +365,16 @@ public class ElemValueOf extends ElemTemplateElement
     //" to " + this.m_elemName);
     return null;
   }
+  
+  /**
+   * Call the children visitors.
+   * @param visitor The visitor whose appropriate method will be called.
+   */
+  protected void callChildVisitors(XSLTVisitor visitor, boolean callAttrs)
+  {
+  	if(callAttrs)
+  		m_selectExpression.getExpression().callVisitors(m_selectExpression, visitor);
+    super.callChildVisitors(visitor, callAttrs);
+  }
+
 }

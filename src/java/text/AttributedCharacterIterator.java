@@ -1,7 +1,7 @@
 /*
- * @(#)AttributedCharacterIterator.java	1.28 01/12/03
+ * @(#)AttributedCharacterIterator.java	1.30 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,6 +59,7 @@ public interface AttributedCharacterIterator extends CharacterIterator {
      * keys are used in AttributedCharacterIterator and AttributedString.
      * @see AttributedCharacterIterator
      * @see AttributedString
+     * @since 1.2
      */
 
     public static class Attribute implements Serializable {

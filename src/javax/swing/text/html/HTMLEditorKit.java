@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLEditorKit.java	1.117 02/06/25
+ * @(#)HTMLEditorKit.java	1.121 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -140,7 +140,7 @@ import java.lang.ref.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.117 06/25/02
+ * @version 1.121 01/23/03
  */
 public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 
@@ -731,13 +731,18 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
                     TextUI ui = editor.getUI();
                     Shape s1 = ui.modelToView(editor, offset,
                                               Position.Bias.Forward);
+		    if (s1 == null) {
+			return false;
+		    }
                     Rectangle r1 = (s1 instanceof Rectangle) ? (Rectangle)s1 :
                                     s1.getBounds();
                     Shape s2 = ui.modelToView(editor, e.getEndOffset(),
                                               Position.Bias.Backward);
-                    Rectangle r2 = (s2 instanceof Rectangle) ? (Rectangle)s2 :
+		    if (s2 != null) {
+			Rectangle r2 = (s2 instanceof Rectangle) ? (Rectangle)s2 :
                                     s2.getBounds();
-                    r1.add(r2);
+			r1.add(r2);
+		    }
                     return r1.contains(x, y);
                 } catch (BadLocationException ble) {
                 }
@@ -752,7 +757,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	 * args both == -1.
          *
          * @param pos the position
-         * @param html the editor pane
+         * @param editor the editor pane
 	 */
 	protected void activateLink(int pos, JEditorPane editor) {
 	    activateLink(pos, editor, -1, -1);
@@ -947,7 +952,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
      * table describes what this factory will build by
      * default.
      *
-     * <table>
+     * <table summary="Describes the tag and view created by this factory by default">
      * <tr>
      * <th align=left>Tag<th align=left>View created
      * </tr><tr>

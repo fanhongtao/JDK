@@ -1,7 +1,7 @@
 /*
- * @(#)JPanel.java	1.42 01/12/03
+ * @(#)JPanel.java	1.44 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -36,7 +36,7 @@ import java.io.IOException;
  * @beaninfo
  * description: A generic lightweight container.
  * 
- * @version 1.42 12/03/01
+ * @version 1.44 01/23/03
  * @author Arnaud Weber
  * @author Steve Wilson
  */
@@ -79,7 +79,6 @@ public class JPanel extends JComponent implements Accessible
      * If <code>isDoubleBuffered</code> is true, the <code>JPanel</code>
      * will use a double buffer.
      *
-     * @param layout  the LayoutManager to use
      * @param isDoubleBuffered  a boolean, true for double-buffering, which
      *        uses additional memory space to achieve fast, flicker-free 
      *        updates

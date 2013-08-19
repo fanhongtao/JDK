@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractList.java	1.35 01/12/03
+ * @(#)AbstractList.java	1.37 03/01/18
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,10 +37,14 @@ package java.util;
  *
  * The documentation for each non-abstract methods in this class describes its
  * implementation in detail.  Each of these methods may be overridden if the
- * collection being implemented admits a more efficient implementation.
+ * collection being implemented admits a more efficient implementation.<p>
+ *
+ * This class is a member of the 
+ * <a href="{@docRoot}/../guide/collections/index.html">
+ * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.35, 12/03/01
+ * @version 1.37, 01/18/03
  * @see Collection
  * @see List
  * @see AbstractSequentialList
@@ -412,9 +416,9 @@ public abstract class AbstractList extends AbstractCollection implements List {
 	}
 
 	public Object next() {
+            checkForComodification();
 	    try {
 		Object next = get(cursor);
-		checkForComodification();
 		lastRet = cursor++;
 		return next;
 	    } catch(IndexOutOfBoundsException e) {
@@ -455,10 +459,10 @@ public abstract class AbstractList extends AbstractCollection implements List {
 	}
 
         public Object previous() {
+            checkForComodification();
             try {
                 int i = cursor - 1;
                 Object previous = get(i);
-                checkForComodification();
                 lastRet = cursor = i;
                 return previous;
             } catch(IndexOutOfBoundsException e) {

@@ -1,7 +1,7 @@
 /*
- * @(#)JTabbedPane.java	1.127 02/07/22
+ * @(#)JTabbedPane.java	1.131 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -58,7 +58,7 @@ import java.io.IOException;
  *    description: A component which provides a tab folder metaphor for 
  *                 displaying one component from a set of components.
  *
- * @version 1.127 07/22/02
+ * @version 1.131 01/23/03
  * @author Dave Moore
  * @author Philip Milne
  * @author Amy Fowler
@@ -398,7 +398,7 @@ public class JTabbedPane extends JComponent
      * layout policies, in which case the value of this property may be
      * ignored.
      *
-     * @param layoutPolicy the policy used to layout the tabs
+     * @param tabLayoutPolicy the policy used to layout the tabs
      * @exception IllegalArgumentException if layoutPolicy value isn't one
      *				of the above valid values
      * @see #getTabLayoutPolicy
@@ -741,7 +741,7 @@ public class JTabbedPane extends JComponent
      * Cover method for <code>insertTab</code>.
      *
      * @param component the component to be displayed when this tab is clicked
-     * @constraints the object to be displayed in the tab
+     * @param constraints the object to be displayed in the tab
      * @param index the position to insert this new tab 
      *
      * @see #insertTab
@@ -1173,7 +1173,7 @@ public class JTabbedPane extends JComponent
      * An internal exception is raised if there is no tab at that index. 
      *
      * @param index the tab index where the disabled icon should be set 
-     * @param icon the icon to be displayed in the tab when disabled
+     * @param disabledIcon the icon to be displayed in the tab when disabled
      * @exception IndexOutOfBoundsException if index is out of range 
      *            (index &lt; 0 || index &gt;= tab count)
      *

@@ -1,7 +1,7 @@
 /*
- * @(#)CertPath.java	1.5 01/12/03
+ * @(#)CertPath.java	1.6 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -83,7 +83,7 @@ import java.util.List;
  * @see CertificateFactory
  * @see CertPathBuilder
  *
- * @version 1.5 12/03/01
+ * @version 1.6 01/23/03
  * @author	Yassir Elley
  * @since	1.4
  */

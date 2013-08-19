@@ -1,7 +1,7 @@
 /*
- * @(#)Statement.java	1.17 01/12/13
+ * @(#)Statement.java	1.18 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -23,7 +23,7 @@ import java.util.*;
  *
  * @since 1.4
  *
- * @version 1.17 12/13/01
+ * @version 1.18 01/23/03
  * @author Philip Milne
  */
 

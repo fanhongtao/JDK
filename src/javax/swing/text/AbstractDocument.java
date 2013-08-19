@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractDocument.java	1.134 03/04/25
+ * @(#)AbstractDocument.java	1.140 03/03/17
  *
  * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -77,7 +77,7 @@ import sun.awt.font.BidiUtils;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.134 04/25/03
+ * @version 1.140 03/17/03
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -329,7 +329,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Sets the asynchronous loading priority. 
      * @param p the new asynchronous loading priority; a value
-     *   less than zero indicates that the document should be
+     *   less than zero indicates that the document should not be
      *   loaded asynchronously
      */
     public void setAsynchronousLoadPriority(int p) {
@@ -594,11 +594,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
             boolean isComposedTextElement = false;
             // Check whether the position of interest is the composed text
-            Element elem = getDefaultRootElement();
-            while (!elem.isLeaf()) {
-                elem = elem.getElement(elem.getElementIndex(offs));
-            }
-            isComposedTextElement = Utilities.isComposedTextElement(elem);
+            isComposedTextElement = Utilities.isComposedTextElement(this, offs);
 		
             removeUpdate(chng);
             UndoableEdit u = data.remove(offs, len);
@@ -665,8 +661,12 @@ public abstract class AbstractDocument implements Document, Serializable {
                                attrs);
             }
             else {
-                remove(offset, length);
-                insertString(offset, text, attrs);
+                if (length > 0) {
+                    remove(offset, length);
+                }
+                if (text != null && text.length() > 0) {
+                    insertString(offset, text, attrs);
+                }
             }
         } finally {
             writeUnlock();
@@ -1552,12 +1552,12 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Document property that indicates whether internationalization
      * functions such as text reordering or reshaping should be
-     * performed. This property should not be publicly exposed, 
-     * since it is used for implementation convenience only.  As a  
-     * side effect, copies of this property may be in its subclasses 
-     * that live in different packages (e.g. HTMLDocument as of now), 
-     * so those copies should also be taken care of when this property 
-     * needs to be modified. 
+     * performed. This property should not be publicly exposed,
+     * since it is used for implementation convenience only.  As a 
+     * side effect, copies of this property may be in its subclasses
+     * that live in different packages (e.g. HTMLDocument as of now),
+     * so those copies should also be taken care of when this property
+     * needs to be modified.
      */
     static final String I18NProperty = "i18n";
 
@@ -1566,7 +1566,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      * into the document that is more than one byte long.  GlyphView uses
      * this to determine if it should use BreakIterator.
      */
-    static final Object MultiByteProperty = new Object();
+    static final Object MultiByteProperty = "multiByte";
 
     /**
      * Document property that indicates asynchronous loading is
@@ -1784,7 +1784,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	/**
 	 * Dumps a debugging representation of the element hierarchy.
          *
-         * @param out the output stream
+         * @param psOut the output stream
          * @param indentAmount the indentation level >= 0
 	 */
 	public void dump(PrintStream psOut, int indentAmount) {
@@ -1836,16 +1836,6 @@ public abstract class AbstractDocument implements Document, Serializable {
 		    e.dump(psOut, indentAmount+1);
 		}
 	    }
-	}
-	 
-	// --- Object methods ---------------------------
-
-        /**
-         * Finalizes an AbstractElement.
-         */
-	protected void finalize() throws Throwable {
-	    AttributeContext context = getAttributeContext();
-	    context.reclaim(attributes);
 	}
 
 	// --- AttributeSet ----------------------------

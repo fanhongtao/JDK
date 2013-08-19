@@ -1,7 +1,7 @@
 /*
- * @(#)CDRInputStream_1_0.java	1.82 03/12/02
+ * @(#)CDRInputStream_1_0.java	1.81 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -463,8 +463,11 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
     private final String internalReadString(int len) {
     	// Workaround for ORBs which send string lengths of
     	// zero to mean empty string.
+        // IMPORTANT: Do not replace 'new String("")' with "", it may result
+        // in a Serialization bug (See serialization.zerolengthstring) and
+        // bug id: 4728756 for details 
     	if (len == 0)
-    	    return new String(""); 
+    	    return new String("");
 
         char[] result = getConvertedChars(len - 1, getCharConverter());
 
@@ -480,6 +483,9 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
     	// Workaround for ORBs which send string lengths of
     	// zero to mean empty string.
     	//
+        // IMPORTANT: Do not replace 'new String("")' with "", it may result
+        // in a Serialization bug (See serialization.zerolengthstring) and
+        // bug id: 4728756 for details 
     	if (len == 0)
     	    return new String("");
 
@@ -534,6 +540,9 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
     	// Workaround for ORBs which send string lengths of
     	// zero to mean empty string.
     	//
+        // IMPORTANT: Do not replace 'new String("")' with "", it may result
+        // in a Serialization bug (See serialization.zerolengthstring) and
+        // bug id: 4728756 for details 
     	if (len == 0)
     	    return new String("");
 
@@ -1755,7 +1764,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
 	} else {
 
 	    // read first array element and store it as an indirection to the whole array
-	    int indirection = get_offset(); 
+	    int indirection = get_offset() - 4; 
 	    String repID = read_repositoryId();
             if (repositoryIdCache == null)
         	repositoryIdCache = new CacheTable(false);

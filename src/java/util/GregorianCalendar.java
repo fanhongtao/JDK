@@ -1,7 +1,7 @@
 /*
- * @(#)GregorianCalendar.java	1.69 02/04/17
+ * @(#)GregorianCalendar.java	1.73 03/04/27
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -178,7 +178,7 @@ import sun.util.calendar.ZoneInfo;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.69
+ * @version      1.73
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -375,7 +375,6 @@ public class GregorianCalendar extends Calendar {
      */
     public GregorianCalendar(int year, int month, int date) {
         super(TimeZone.getDefault(), Locale.getDefault());
-        this.set(ERA, AD);
         this.set(YEAR, year);
         this.set(MONTH, month);
         this.set(DATE, date);
@@ -396,7 +395,6 @@ public class GregorianCalendar extends Calendar {
     public GregorianCalendar(int year, int month, int date, int hour,
                              int minute) {
         super(TimeZone.getDefault(), Locale.getDefault());
-        this.set(ERA, AD);
         this.set(YEAR, year);
         this.set(MONTH, month);
         this.set(DATE, date);
@@ -421,7 +419,6 @@ public class GregorianCalendar extends Calendar {
     public GregorianCalendar(int year, int month, int date, int hour,
                              int minute, int second) {
         super(TimeZone.getDefault(), Locale.getDefault());
-        this.set(ERA, AD);
         this.set(YEAR, year);
         this.set(MONTH, month);
         this.set(DATE, date);
@@ -798,7 +795,6 @@ public class GregorianCalendar extends Calendar {
                 if (newHour < 0) {
                     newHour += max + 1;
                 }
-//System.err.println("start="+start.getTime()+", hours="+oldHour+","+newHour);
                 setTime(new Date(start.getTime() + ONE_HOUR * (newHour - oldHour)));
                 return;
             }
@@ -1292,7 +1288,6 @@ public class GregorianCalendar extends Calendar {
 /////////////////////////////
 
     /**
-     * Overrides Calendar
      * Converts UTC as milliseconds to time field values.
      * The time is <em>not</em>
      * recomputed first; to recompute the time, then the fields, call the
@@ -1300,6 +1295,23 @@ public class GregorianCalendar extends Calendar {
      * @see Calendar#complete
      */
     protected void computeFields() {
+	computeFieldsImpl();
+
+	// Careful here: We are manually setting the time stamps[]
+	// flags to INTERNALLY_SET, so we must be sure that the
+	// computeFieldsImpl method actually does set all the fields.
+	for (int i = 0; i < FIELD_COUNT; ++i) {
+	    stamp[i] = INTERNALLY_SET;
+	    isSet[i] = true;
+	}
+    }
+
+    /**
+     * This computeFieldsImpl implements the conversion from UTC (a
+     * millisecond offset from 1970-01-01T00:00:00.000Z) to calendar
+     * field values.
+     */
+    private void computeFieldsImpl() {
 	TimeZone tz = getTimeZone();
 	int[] offsets = new int[2];
 	int offset;
@@ -1346,14 +1358,6 @@ public class GregorianCalendar extends Calendar {
 
         internalSet(ZONE_OFFSET, offsets[0]);
         internalSet(DST_OFFSET, offsets[1]);
-
-        // Careful here: We are manually setting the time stamps[] flags to
-        // INTERNALLY_SET, so we must be sure that the above code actually does
-        // set all these fields.
-        for (int i = 0; i < FIELD_COUNT; ++i) {
-            stamp[i] = INTERNALLY_SET;
-            isSet[i] = true; // Remove later
-        }
     }
 
     /**
@@ -1525,9 +1529,16 @@ public class GregorianCalendar extends Calendar {
         // The year defaults to the epoch start.
         int year = (stamp[YEAR] != UNSET) ? internalGet(YEAR) : EPOCH_YEAR;
 
+	// The YEAR field must always be used regardless of its SET
+	// state because YEAR is a mandatory field to determine the date
+	// and the default value (EPOCH_YEAR) may change through the
+	// normalization process.
+	int fieldMask = 1 << YEAR;
+
         int era = AD;
         if (stamp[ERA] != UNSET) {
             era = internalGet(ERA);
+	    fieldMask |= 1 << ERA;
             if (era == BC) {
                 year = 1 - year;
             } else if (era != AD) {
@@ -1535,6 +1546,8 @@ public class GregorianCalendar extends Calendar {
                 throw new IllegalArgumentException("Invalid era");
 	    }
         }
+
+	int[] fieldMaskParam = { fieldMask };
 
         // First, use the year to determine whether to use the Gregorian or the
         // Julian calendar. If the year is not the year of the cutover, this
@@ -1549,7 +1562,7 @@ public class GregorianCalendar extends Calendar {
         // algorithm will interpret such a date using the Julian calendar,
         // yielding Oct. 20, 1582 (Gregorian).
         boolean isGregorian = year >= gregorianCutoverYear;
-        long julianDay = computeJulianDay(isGregorian, year);
+        long julianDay = computeJulianDay(isGregorian, year, fieldMaskParam);
         long millis = julianDayToMillis(julianDay);
 
         // The following check handles portions of the cutover year BEFORE the
@@ -1563,9 +1576,12 @@ public class GregorianCalendar extends Calendar {
         // the cutover doesn't warrant it.
         if (isGregorian != (millis >= normalizedGregorianCutover) &&
             julianDay != -106749550580L) { // See above
-            julianDay = computeJulianDay(!isGregorian, year);
+	    fieldMaskParam[0] = fieldMask;
+            julianDay = computeJulianDay(!isGregorian, year, fieldMaskParam);
             millis = julianDayToMillis(julianDay);
         }
+
+	fieldMask = fieldMaskParam[0];
 
         // Do the time portion of the conversion.
 
@@ -1584,24 +1600,36 @@ public class GregorianCalendar extends Calendar {
                 // Don't normalize here; let overflow bump into the next period.
                 // This is consistent with how we handle other fields.
                 millisInDay += internalGet(HOUR_OF_DAY);
-
+		fieldMask |= 1 << HOUR_OF_DAY;
             } else {
                 // Don't normalize here; let overflow bump into the next period.
                 // This is consistent with how we handle other fields.
                 millisInDay += internalGet(HOUR);
+		fieldMask |= 1 << HOUR;
 
-                millisInDay += 12 * internalGet(AM_PM); // Default works for unset AM_PM
+		// The default value of AM_PM is 0 which designates AM.
+		if (stamp[AM_PM] != UNSET) {
+		    millisInDay += 12 * internalGet(AM_PM);
+		    fieldMask |= 1 << AM_PM;
+		}
             }
         }
 
-        // We use the fact that unset == 0; we start with millisInDay
-        // == HOUR_OF_DAY.
         millisInDay *= 60;
-        millisInDay += internalGet(MINUTE); // now have minutes
+	if (stamp[MINUTE] != UNSET) {
+	    millisInDay += internalGet(MINUTE); // now have minutes
+	    fieldMask |= 1 << MINUTE;
+	}
         millisInDay *= 60;
-        millisInDay += internalGet(SECOND); // now have seconds
+	if (stamp[SECOND] != UNSET) {
+	    millisInDay += internalGet(SECOND); // now have seconds
+	    fieldMask |= 1 << SECOND;
+	}
         millisInDay *= 1000;
-        millisInDay += internalGet(MILLISECOND); // now have millis
+	if (stamp[MILLISECOND] != UNSET) {
+	    millisInDay += internalGet(MILLISECOND); // now have millis
+	    fieldMask |= 1 << MILLISECOND;
+	}
 
         // Now add date and millisInDay together, to make millis contain local wall
         // millis, with no zone or DST adjustments
@@ -1624,19 +1652,54 @@ public class GregorianCalendar extends Calendar {
 	if (zone instanceof ZoneInfo) {
 	    int[] offsets = new int[2];
 	    ((ZoneInfo)zone).getOffsetsByWall(millis, offsets);
-	    int zoneOffset = (stamp[ZONE_OFFSET] >= MINIMUM_USER_STAMP) ?
-				internalGet(ZONE_OFFSET) : offsets[0];
-	    zoneOffset += (stamp[DST_OFFSET] >= MINIMUM_USER_STAMP) ?
-				internalGet(DST_OFFSET) : offsets[1];
+	    int zoneOffset = 0;
+	    if (stamp[ZONE_OFFSET] >= MINIMUM_USER_STAMP) {
+		zoneOffset = internalGet(ZONE_OFFSET);
+		fieldMask |= 1 << ZONE_OFFSET;
+	    } else {
+		zoneOffset = offsets[0];
+	    }
+	    if (stamp[DST_OFFSET] >= MINIMUM_USER_STAMP) {
+		zoneOffset += internalGet(DST_OFFSET);
+		fieldMask |= 1 << DST_OFFSET;
+	    } else {
+		zoneOffset += offsets[1];
+	    }
 	    time = millis - zoneOffset;
 	} else {
-	    int zoneOffset = (stamp[ZONE_OFFSET] >= MINIMUM_USER_STAMP) ?
-				internalGet(ZONE_OFFSET) : zone.getRawOffset();
-	    if (stamp[DST_OFFSET] >= MINIMUM_USER_STAMP) {
-		time = millis - zoneOffset - internalGet(DST_OFFSET);
-		return;
+	    int zoneOffset = 0;
+	    if (stamp[ZONE_OFFSET] >= MINIMUM_USER_STAMP) {
+		zoneOffset = internalGet(ZONE_OFFSET);
+		fieldMask |= 1 << ZONE_OFFSET;
+	    } else {
+		zoneOffset = zone.getRawOffset();
 	    }
-	    time = millis - zone.getOffsets(millis - (long)zoneOffset, null);
+	    if (stamp[DST_OFFSET] >= MINIMUM_USER_STAMP) {
+		time = millis - (zoneOffset + internalGet(DST_OFFSET));
+		fieldMask |= 1 << DST_OFFSET;
+	    } else {
+		time = millis - zone.getOffsets(millis - (long)zoneOffset, null);
+	    }
+	}
+
+	// In lenient mode, we need to normalize the fields that have
+	// any SET state (i.e., not UNSET) from the time value. First,
+	// we calculate all field values and then discard values of
+	// the UNSET fields. (4685354)
+	if (isLenient()) {
+	    computeFieldsImpl();
+	}
+
+	for (int i = 0; i < fields.length; i++) {
+	    if (isSet(i)) {
+		int bitMask = 1 << i;
+		if ((fieldMask & bitMask) != bitMask) {
+		    internalClear(i);
+		} else {
+		    stamp[i] = INTERNALLY_SET;
+		    isSet[i] = true;
+		}
+	    }
 	}
     }
 
@@ -1646,11 +1709,19 @@ public class GregorianCalendar extends Calendar {
      * @param isGregorian if true, use the Gregorian calendar
      * @param year the adjusted year number, with 0 indicating the
      * year 1 BC, -1 indicating 2 BC, etc.
+     * @param fieldMaskParam fieldMaskParam[0] is a bit mask to
+     * specify which fields have been used to determine the date. The
+     * value is updated upon return.
      * @return the Julian day number
      */
-    private final long computeJulianDay(boolean isGregorian, int year) {
+    private final long computeJulianDay(boolean isGregorian, int year,
+					int[] fieldMaskParam) {
         int month = 0, date = 0, y;
         long millis = 0;
+
+	// bit masks to remember which fields have been used to
+	// determine the date
+	int fieldMask = fieldMaskParam[0];
 
         // Find the most recent group of fields specifying the day within
         // the year.  These may be any of the following combinations:
@@ -1721,6 +1792,10 @@ public class GregorianCalendar extends Calendar {
                 year += floorDivide(month, 12, rem);
                 month = rem[0];
             }
+
+	    // Set the MONTH field mask because it's been determined
+	    // to use the MONTH field.
+	    fieldMask |= 1 << MONTH;
         }
 
         boolean isLeap = year%4 == 0;
@@ -1743,7 +1818,12 @@ public class GregorianCalendar extends Calendar {
             julianDay += isLeap ? LEAP_NUM_DAYS[month] : NUM_DAYS[month];
 
             if (bestStamp == domStamp) {
-                date = (stamp[DAY_OF_MONTH] != UNSET) ? internalGet(DAY_OF_MONTH) : 1;
+		if (stamp[DAY_OF_MONTH] != UNSET) {
+		    date = internalGet(DAY_OF_MONTH);
+		    fieldMask |= 1 << DAY_OF_MONTH;
+		} else {
+		    date = 1;
+		}
             } else { // assert(bestStamp == womStamp || bestStamp == dowimStamp)
                 // Compute from day of week plus week number or from the day of
                 // week plus the day of week in month.  The computations are
@@ -1768,6 +1848,7 @@ public class GregorianCalendar extends Calendar {
                     if (normalizedDayOfWeek < 0) {
                         normalizedDayOfWeek += 7;
                     }
+		    fieldMask |= 1 << DAY_OF_WEEK;
                 }
                 date = 1 - fdm + normalizedDayOfWeek;
 
@@ -1779,6 +1860,7 @@ public class GregorianCalendar extends Calendar {
 
                     // Now adjust for the week number.
                     date += 7 * (internalGet(WEEK_OF_MONTH) - 1);
+		    fieldMask |= 1 << WEEK_OF_MONTH;
                 }
                 else { // assert(bestStamp == dowimStamp)
                     // Adjust into the month, if needed.
@@ -1789,8 +1871,13 @@ public class GregorianCalendar extends Calendar {
                     // We are basing this on the day-of-week-in-month.  The only
                     // trickiness occurs if the day-of-week-in-month is
                     // negative.
-                    int dim = stamp[DAY_OF_WEEK_IN_MONTH] != UNSET ?
-                        internalGet(DAY_OF_WEEK_IN_MONTH) : 1;
+                    int dim;
+		    if (stamp[DAY_OF_WEEK_IN_MONTH] != UNSET) {
+                        dim = internalGet(DAY_OF_WEEK_IN_MONTH);
+			fieldMask |= 1 << DAY_OF_WEEK_IN_MONTH;
+		    } else {
+			dim = 1;
+		    }
                     if (dim >= 0) {
 			date += 7*(dim - 1);
                     } else {
@@ -1801,7 +1888,7 @@ public class GregorianCalendar extends Calendar {
                         // in this month.  Note that we handle -2, -3,
                         // etc. correctly, even though values < -1 are
                         // technically disallowed.
-                        date += ((monthLength(internalGet(MONTH), year) - date) / 7 + dim + 1) * 7;
+                        date += ((monthLength(month, year) - date) / 7 + dim + 1) * 7;
                     }
                 }
             }
@@ -1816,6 +1903,7 @@ public class GregorianCalendar extends Calendar {
 
             if (bestStamp == doyStamp) {
                 julianDay += internalGet(DAY_OF_YEAR);
+		fieldMask |= 1 << DAY_OF_YEAR;
             } else { // assert(bestStamp == woyStamp)
                 // Compute from day of week plus week of year
 
@@ -1837,6 +1925,7 @@ public class GregorianCalendar extends Calendar {
                     if (normalizedDayOfWeek < 0) {
                         normalizedDayOfWeek += 7;
                     }
+		    fieldMask |= 1 << DAY_OF_WEEK;
                 }
                 date = 1 - fdy + normalizedDayOfWeek;
 
@@ -1847,11 +1936,13 @@ public class GregorianCalendar extends Calendar {
 
                 // Now adjust for the week number.
                 date += 7 * (internalGet(WEEK_OF_YEAR) - 1);
+		fieldMask |= 1 << WEEK_OF_YEAR;
 
                 julianDay += date;
             }
         }
 
+	fieldMaskParam[0] = fieldMask;
         return julianDay;
     }
 

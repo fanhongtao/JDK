@@ -102,7 +102,7 @@ public class WalkerFactory
   {
 
     AxesWalker firstWalker = null;
-    int stepType = compiler.getOpMap()[stepOpCodePos];
+    int stepType = compiler.getOp(stepOpCodePos);
 
     if (stepType != OpCodes.ENDOP)
     {
@@ -142,14 +142,15 @@ public class WalkerFactory
     int stepType;
     AxesWalker firstWalker = null;
     AxesWalker walker, prevWalker = null;
-    int ops[] = compiler.getOpMap();
+
     int analysis = analyze(compiler, stepOpCodePos, stepIndex);
 
-    while (OpCodes.ENDOP != (stepType = ops[stepOpCodePos]))
+    while (OpCodes.ENDOP != (stepType = compiler.getOp(stepOpCodePos)))
     {
       walker = createDefaultWalker(compiler, stepOpCodePos, lpi, analysis);
 
       walker.init(compiler, stepOpCodePos, stepType);
+      walker.exprSetParent(lpi);
 
       // walker.setAnalysis(analysis);
       if (null == firstWalker)
@@ -344,8 +345,7 @@ public class WalkerFactory
             throws javax.xml.transform.TransformerException
   {
 
-    int ops[] = compiler.getOpMap();
-    int stepType = ops[stepOpCodePos];
+    int stepType = compiler.getOp(stepOpCodePos);
 
     switch (stepType)
     {
@@ -386,7 +386,59 @@ public class WalkerFactory
 
     throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NULL_ERROR_HANDLER, new Object[]{Integer.toString(stepType)})); //"Programmer's assertion: unknown opcode: "
                                //+ stepType);
-  }
+   }
+    
+    /**
+     * Get a corresponding BIT_XXX from an axis.
+     * @param axis One of Axis.ANCESTOR, etc.
+     * @return One of BIT_ANCESTOR, etc.
+     */
+    static public int getAnalysisBitFromAxes(int axis)
+    {
+      switch (axis) // Generate new traverser
+        {
+        case Axis.ANCESTOR :
+          return BIT_ANCESTOR;
+        case Axis.ANCESTORORSELF :
+          return BIT_ANCESTOR_OR_SELF;
+        case Axis.ATTRIBUTE :
+          return BIT_ATTRIBUTE;
+        case Axis.CHILD :
+          return BIT_CHILD;
+        case Axis.DESCENDANT :
+          return BIT_DESCENDANT;
+        case Axis.DESCENDANTORSELF :
+          return BIT_DESCENDANT_OR_SELF;
+        case Axis.FOLLOWING :
+          return BIT_FOLLOWING;
+        case Axis.FOLLOWINGSIBLING :
+          return BIT_FOLLOWING_SIBLING;
+        case Axis.NAMESPACE :
+        case Axis.NAMESPACEDECLS :
+          return BIT_NAMESPACE;
+        case Axis.PARENT :
+          return BIT_PARENT;
+        case Axis.PRECEDING :
+          return BIT_PRECEDING;
+        case Axis.PRECEDINGSIBLING :
+          return BIT_PRECEDING_SIBLING;
+        case Axis.SELF :
+          return BIT_SELF;
+        case Axis.ALLFROMNODE :
+          return BIT_DESCENDANT_OR_SELF;
+          // case Axis.PRECEDINGANDANCESTOR :
+        case Axis.DESCENDANTSFROMROOT :
+        case Axis.ALL :
+        case Axis.DESCENDANTSORSELFFROMROOT :
+          return BIT_ANY_DESCENDANT_FROM_ROOT;
+        case Axis.ROOT :
+          return BIT_ROOT;
+        case Axis.FILTEREDLIST :
+          return BIT_FILTER;
+        default :
+          return BIT_FILTER;
+      }
+    }
   
   static boolean functionProximateOrContainsProximate(Compiler compiler, 
                                                       int opPos)
@@ -493,6 +545,7 @@ public class WalkerFactory
       switch(predOp)
       {
         case OpCodes.OP_VARIABLE:
+        	return true; // Would need more smarts to tell if this could be a number or not!
         case OpCodes.OP_LOCATIONPATH:
           // OK.
           break;
@@ -549,7 +602,6 @@ public class WalkerFactory
   {
 
     int stepType;
-    int ops[] = compiler.getOpMap();
     int stepCount = 0;
     boolean foundDorDS = false;
     boolean foundSelf = false;
@@ -557,7 +609,7 @@ public class WalkerFactory
     
     int nodeTestType = OpCodes.NODETYPE_NODE;
     
-    while (OpCodes.ENDOP != (stepType = ops[stepOpCodePos]))
+    while (OpCodes.ENDOP != (stepType = compiler.getOp(stepOpCodePos)))
     {
       // The DescendantIterator can only do one node test.  If there's more 
       // than one, use another iterator.
@@ -623,7 +675,7 @@ public class WalkerFactory
       if (nextStepOpCodePos < 0)
         break;
         
-      if(OpCodes.ENDOP != ops[nextStepOpCodePos])
+      if(OpCodes.ENDOP != compiler.getOp(nextStepOpCodePos))
       {
         if(compiler.countPredicates(stepOpCodePos) > 0)
         {
@@ -658,11 +710,10 @@ public class WalkerFactory
   {
 
     int stepType;
-    int ops[] = compiler.getOpMap();
     int stepCount = 0;
     int analysisResult = 0x00000000;  // 32 bits of analysis
 
-    while (OpCodes.ENDOP != (stepType = ops[stepOpCodePos]))
+    while (OpCodes.ENDOP != (stepType = compiler.getOp(stepOpCodePos)))
     {
       stepCount++;
 
@@ -748,7 +799,7 @@ public class WalkerFactory
                                    //+ stepType);
       }
 
-      if (OpCodes.NODETYPE_NODE == ops[stepOpCodePos + 3])  // child::node()
+      if (OpCodes.NODETYPE_NODE == compiler.getOp(stepOpCodePos + 3))  // child::node()
       {
         analysisResult |= BIT_NODETEST_ANY;
       }
@@ -821,10 +872,9 @@ public class WalkerFactory
     int stepType;
     StepPattern step = null;
     StepPattern firstStep = null, prevStep = null;
-    int ops[] = compiler.getOpMap();
     int analysis = analyze(compiler, stepOpCodePos, stepIndex);
 
-    while (OpCodes.ENDOP != (stepType = ops[stepOpCodePos]))
+    while (OpCodes.ENDOP != (stepType = compiler.getOp(stepOpCodePos)))
     {
       step = createDefaultStepPattern(compiler, stepOpCodePos, mpi, analysis,
                                       firstStep, prevStep);
@@ -1399,12 +1449,18 @@ public class WalkerFactory
     return isSet(analysis, BIT_DESCENDANT | BIT_DESCENDANT_OR_SELF | BIT_CHILD);
   }
   
-  public static boolean walksSubtreeOnly(int analysis)
+  public static boolean walksSubtreeOnlyMaybeAbsolute(int analysis)
   {
     return walksSubtree(analysis)
            && !walksExtraNodes(analysis) 
            && !walksUp(analysis) 
            && !walksSideways(analysis) 
+           ;
+  }
+  
+  public static boolean walksSubtreeOnly(int analysis)
+  {
+    return walksSubtreeOnlyMaybeAbsolute(analysis) 
            && !isAbsolute(analysis) 
            ;
   }
@@ -1426,12 +1482,19 @@ public class WalkerFactory
 
   public static boolean walksInDocOrder(int analysis)
   {
-    return (walksSubtree(analysis)
-           || walksExtraNodes(analysis)
-           || isSet(analysis, BIT_SELF | BIT_FOLLOWING_SIBLING | BIT_FOLLOWING)) 
-           && !walksUp(analysis) 
-           && !isSet(analysis, BIT_PRECEDING | BIT_PRECEDING_SIBLING) 
+    return (walksSubtreeOnlyMaybeAbsolute(analysis)
+           || walksExtraNodesOnly(analysis)
+           || walksFollowingOnlyMaybeAbsolute(analysis)) 
            && !isSet(analysis, BIT_FILTER) 
+           ;
+  }
+  
+  public static boolean walksFollowingOnlyMaybeAbsolute(int analysis)
+  {
+    return isSet(analysis, BIT_SELF | BIT_FOLLOWING_SIBLING | BIT_FOLLOWING)
+           && !walksSubtree(analysis) 
+           && !walksUp(analysis) 
+           && !walksSideways(analysis) 
            ;
   }
   
@@ -1475,7 +1538,7 @@ public class WalkerFactory
            && !walksDescendants(analysis) 
            && !walksUp(analysis) 
            && !walksSideways(analysis) 
-           && !isAbsolute(analysis) 
+           && (!isAbsolute(analysis) || isSet(analysis, BIT_ROOT))
            ;
   }
   
@@ -1485,7 +1548,7 @@ public class WalkerFactory
            && !walksDescendants(analysis) 
            && !walksUp(analysis) 
            && !walksSideways(analysis) 
-           && !isAbsolute(analysis) 
+           && (!isAbsolute(analysis) || isSet(analysis, BIT_ROOT))
            ;
   }
   
@@ -1495,7 +1558,7 @@ public class WalkerFactory
            && walksDescendants(analysis) 
            && !walksUp(analysis) 
            && !walksSideways(analysis) 
-           && !isAbsolute(analysis) 
+           && (!isAbsolute(analysis) || isSet(analysis, BIT_ROOT))
            ;
   }
   
@@ -1570,14 +1633,35 @@ public class WalkerFactory
    * Tell if the pattern can be 'walked' with the iteration steps in natural 
    * document order, without duplicates.
    *
+   * @param analysis The general analysis of the pattern.
+   *
+   * @return true if the walk can be done in natural order.
+   *
+   * @throws javax.xml.transform.TransformerException
+   */
+  static public boolean isNaturalDocOrder(int analysis)
+  {
+    if(canCrissCross(analysis) || isSet(analysis, BIT_NAMESPACE) ||
+       walksFilteredList(analysis))
+      return false;
+      
+    if(walksInDocOrder(analysis))
+      return true;
+      
+    return false;
+  }
+  
+  /**
+   * Tell if the pattern can be 'walked' with the iteration steps in natural 
+   * document order, without duplicates.
+   *
    * @param compiler non-null reference to compiler object that has processed
    *                 the XPath operations into an opcode map.
    * @param stepOpCodePos The opcode position for the step.
    * @param stepIndex The top-level step index withing the iterator.
    * @param analysis The general analysis of the pattern.
    *
-   * @return 32 bits as an integer that give information about the location
-   * path as a whole.
+   * @return true if the walk can be done in natural order.
    *
    * @throws javax.xml.transform.TransformerException
    */
@@ -1609,7 +1693,6 @@ public class WalkerFactory
     // Unfortunately, we can't do this just via the analysis bits.
     
     int stepType;
-    int ops[] = compiler.getOpMap();
     int stepCount = 0;
     boolean foundWildAttribute = false;
     
@@ -1618,7 +1701,7 @@ public class WalkerFactory
     // combonation are counted with this variable.
     int potentialDuplicateMakingStepCount = 0;
     
-    while (OpCodes.ENDOP != (stepType = ops[stepOpCodePos]))
+    while (OpCodes.ENDOP != (stepType = compiler.getOp(stepOpCodePos)))
     {        
       stepCount++;
         

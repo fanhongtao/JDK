@@ -1,7 +1,7 @@
 /*
- * @(#)MetalIconFactory.java	1.53 02/02/08
+ * @(#)MetalIconFactory.java	1.54 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.53 02/08/02
+ * @version 1.54 01/23/03
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {

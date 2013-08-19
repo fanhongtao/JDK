@@ -1,5 +1,5 @@
 /*
- * $Id: XmlReader.java,v 1.1.1.1 2000/11/23 01:53:33 edwingo Exp $
+ * $Id: XmlReader.java,v 1.3 2002/01/24 20:25:27 edwingo Exp $
  *
  * The Apache Software License, Version 1.1
  *
@@ -85,7 +85,7 @@ import java.util.Hashtable;
  * US-ASCII, ISO-8859-5, Shift_JIS, EUC-JP, and ISO-2022-JP.
  *
  * @author David Brownell
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.3 $
  */
 // package private
 final class XmlReader extends Reader

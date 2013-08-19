@@ -56,17 +56,18 @@
  */
 package org.apache.xpath.objects;
 
-import org.w3c.dom.NodeList;
-
+import javax.xml.transform.TransformerException;
 import org.apache.xml.dtm.DTM;
 import org.apache.xml.dtm.DTMIterator;
-import org.apache.xml.dtm.DTMFilter;
-
+import org.apache.xml.utils.FastStringBuffer;
 import org.apache.xml.utils.XMLString;
-
-import org.apache.xpath.DOMHelper;
-import org.apache.xpath.XPathContext;
 import org.apache.xpath.Expression;
+import org.apache.xpath.ExpressionNode;
+import org.apache.xpath.XPathContext;
+import org.w3c.dom.NodeList;
+
+import org.apache.xml.dtm.Axis;
+import org.apache.xpath.axes.RTFIterator;
 
 /**
  * <meta name="usage" content="general"/>
@@ -78,7 +79,7 @@ public class XRTreeFrag extends XObject implements Cloneable
   DTM m_dtm;
   int m_dtmRoot;
   XPathContext m_xctxt;
-  boolean m_allowRelease = true;
+  boolean m_allowRelease = false;
 
 //  /**
 //   * Create an XRTreeFrag Object.
@@ -98,6 +99,22 @@ public class XRTreeFrag extends XObject implements Cloneable
    *
    * @param frag Document fragment this will wrap
    */
+  public XRTreeFrag(int root, XPathContext xctxt, ExpressionNode parent)
+  {
+    super(null);
+    
+    // Obviously, this constructor should be avoided when possible.
+    exprSetParent(parent);
+    m_dtmRoot = root;
+    m_xctxt = xctxt;
+    m_dtm = xctxt.getDTM(root);
+  }
+  
+  /**
+   * Create an XRTreeFrag Object.
+   *
+   * @param frag Document fragment this will wrap
+   */
   public XRTreeFrag(int root, XPathContext xctxt)
   {
     super(null);
@@ -107,6 +124,7 @@ public class XRTreeFrag extends XObject implements Cloneable
     m_xctxt = xctxt;
     m_dtm = xctxt.getDTM(root);
   }
+
   
   /**
    * Return a java object that's closest to the representation
@@ -116,7 +134,10 @@ public class XRTreeFrag extends XObject implements Cloneable
    */
   public Object object()
   {
-    return new org.apache.xml.dtm.ref.DTMNodeIterator((DTMIterator)(new org.apache.xpath.NodeSetDTM(m_dtmRoot, m_xctxt.getDTMManager())));
+    if (m_xctxt != null)
+      return new org.apache.xml.dtm.ref.DTMNodeIterator((DTMIterator)(new org.apache.xpath.NodeSetDTM(m_dtmRoot, m_xctxt.getDTMManager())));
+    else
+      return super.object();
   }
   
   /**
@@ -131,12 +152,13 @@ public class XRTreeFrag extends XObject implements Cloneable
   
   /**
    * Release any resources this object may have by calling destruct().
+   * %ISSUE% This release will occur asynchronously. Resources it manipulates
+   * MUST be thread-safe!
    *
    * @throws Throwable
    */
   protected void finalize() throws Throwable
   {
-
     try
     {
       destruct();
@@ -171,7 +193,12 @@ public class XRTreeFrag extends XObject implements Cloneable
   {
     if(m_allowRelease)
     {
-      if(null != m_dtm)
+    	// %REVIEW% Do we actually _need_ detach, now that DTM RTF
+    	// storage is managed as a stack?
+      // See #destruct() for a comment about this next check.
+      int ident = m_xctxt.getDTMIdentity(m_dtm);
+      DTM foundDTM = m_xctxt.getDTM(ident);      
+      if(foundDTM == m_dtm)
       {
         m_xctxt.release(m_dtm, true);
         m_dtm = null;
@@ -189,9 +216,32 @@ public class XRTreeFrag extends XObject implements Cloneable
   {
     if(null != m_dtm)
     {
-      m_xctxt.release(m_dtm, true);
-      m_dtm = null;
-      m_xctxt = null;
+      // For this next check, see http://nagoya.apache.org/bugzilla/show_bug.cgi?id=7622.
+      // What happens if you don't do this this check:
+      // 1) Transform#1 creates an XRTreeFrag.  This has a reference to a DTM, that in turn 
+      //    is registered with a DTMManager.  The DTM will need to be deleted from the 
+      //    DTMManager when the XRTreeFrag is deleted.  The XRTreeFrag  also contains a 
+      //    reference to the XPathContext.
+      // 2) Transform#1 completes.  The XPathContext is reset... namely the a bunch 
+      //    of structures are reset or rebuilt, including DTMManagerDefault#m_dtms.  
+      //    BUT, the XRTreeFrags are still hanging around, waiting to unregister themselves.
+      // 3) Transform#2 starts humming along.  It builds a XRTreeFrag and installs that 
+      //    RTF DTM into DTMManagerDefault#m_dtms[2].
+      // 4) The finalizer thread wakes and decides to delete some of those old XRTreeFrags 
+      //    from Transform#1.
+      // 5) The XRTreeFrag#finalize() method references through the XPathContext, and 
+      //    deletes what it thinks is it's DTM from  DTMManagerDefault#m_dtms[2] (via 
+      //    getDTMIdentity(dtm)).
+      // 6) Transform#2 tries to reference DTMManagerDefault#m_dtms[2], finds it is 
+      //    null, and chaos results.
+      int ident = m_xctxt.getDTMIdentity(m_dtm);
+      DTM foundDTM = m_xctxt.getDTM(ident);      
+      if(foundDTM == m_dtm)
+      {
+        m_xctxt.release(m_dtm, true);
+        m_dtm = null;
+        m_xctxt = null;
+      }
     }
     m_obj = null;
  }
@@ -293,12 +343,14 @@ public class XRTreeFrag extends XObject implements Cloneable
 
   /**
    * Cast result object to a DTMIterator.
-   *
+   * dml - modified to return an RTFIterator for
+   * benefit of EXSLT object-type function in 
+   * {@link org.apache.xalan.lib.ExsltCommon}.
    * @return The document fragment as a DTMIterator
    */
   public DTMIterator asNodeIterator()
   {
-    return m_xctxt.createDTMIterator(m_dtmRoot);
+    return new RTFIterator(m_dtmRoot, m_xctxt.getDTMManager());
   }
 
   /**

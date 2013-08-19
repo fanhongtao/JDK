@@ -1,7 +1,7 @@
 /*
- * @(#)ValueUtility.java	1.26 02/05/07
+ * @(#)ValueUtility.java	1.27 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*

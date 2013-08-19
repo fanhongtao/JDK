@@ -1,7 +1,7 @@
 /*
- * @(#)StringTokenizer.java	1.26 01/12/03
+ * @(#)StringTokenizer.java	1.29 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ import java.lang.*;
  * <blockquote><pre>
  *     StringTokenizer st = new StringTokenizer("this is a test");
  *     while (st.hasMoreTokens()) {
- *         println(st.nextToken());
+ *         System.out.println(st.nextToken());
  *     }
  * </pre></blockquote>
  * <p>
@@ -55,8 +55,30 @@ import java.lang.*;
  *     test
  * </pre></blockquote>
  *
+ * <p>
+ * <tt>StringTokenizer</tt> is a legacy class that is retained for
+ * compatibility reasons although its use is discouraged in new code. It is
+ * recommended that anyone seeking this functionality use the <tt>split</tt>
+ * method of <tt>String</tt> or the java.util.regex package instead.
+ * <p>
+ * The following example illustrates how the <tt>String.split</tt>
+ * method can be used to break up a string into its basic tokens:
+ * <blockquote><pre>
+ *     String[] result = "this is a test".split("\\s");
+ *     for (int x=0; x&lt;result.length; x++)
+ *         System.out.println(result[x]);
+ * </pre></blockquote>
+ * <p>
+ * prints the following output:
+ * <blockquote><pre>
+ *     this
+ *     is
+ *     a
+ *     test
+ * </pre></blockquote>
+ *
  * @author  unascribed
- * @version 1.26, 12/03/01
+ * @version 1.29, 01/23/03
  * @see     java.io.StreamTokenizer
  * @since   JDK1.0
  */
@@ -105,6 +127,11 @@ class StringTokenizer implements Enumeration {
      * delimiter is returned as a string of length one. If the flag is 
      * <code>false</code>, the delimiter characters are skipped and only 
      * serve as separators between tokens. 
+     * <p>
+     * Note that if <tt>delim</tt> is <tt>null</tt>, this constructor does
+     * not throw an exception. However, trying to invoke other methods on the
+     * resulting <tt>StringTokenizer</tt> may result in a 
+     * <tt>NullPointerException</tt>.
      *
      * @param   str            a string to be parsed.
      * @param   delim          the delimiters.

@@ -58,6 +58,7 @@ package org.apache.xalan.extensions;
 
 import java.util.Hashtable;
 import java.util.Vector;
+import org.apache.xml.utils.StringVector;
 
 import org.apache.xpath.objects.XNull;
 import org.apache.xpath.XPathProcessorException;
@@ -65,13 +66,27 @@ import org.apache.xpath.XPathProcessorException;
 import org.apache.xalan.res.XSLMessages;
 import org.apache.xalan.res.XSLTErrorResources;
 
+import org.apache.xalan.transformer.TransformerImpl;
+
+import org.apache.xalan.templates.Constants;
+import org.apache.xalan.templates.ElemTemplateElement;
+import org.apache.xalan.templates.ElemTemplate;
+import org.apache.xalan.templates.StylesheetRoot;
+import org.apache.xalan.templates.TemplateList;
+
+import org.apache.xpath.XPathContext;
+
+import org.apache.xml.utils.QName;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 /**
  * <meta name="usage" content="internal"/>
  * Class holding a table registered extension namespace handlers
  */
 public class ExtensionsTable
-{
-
+{  
   /**
    * <meta name="usage" content="internal"/>
    * Table of extensions that may be called from the expression language
@@ -79,36 +94,33 @@ public class ExtensionsTable
    * name.
    */
   public Hashtable m_extensionFunctionNamespaces = new Hashtable();
-
+  
   /**
-   * <meta name="usage" content="internal"/>
-   * Primes the new ExtensionsTable object with built-in namespaces.
+   * The StylesheetRoot associated with this extensions table.
    */
-  public ExtensionsTable()
+  private StylesheetRoot m_sroot;
+  
+  /**
+   * <meta name="usage" content="advanced"/>
+   * The constructor (called from TransformerImpl) registers the
+   * StylesheetRoot for the transformation and instantiates an
+   * ExtensionHandler for each extension namespace.
+   */
+  public ExtensionsTable(StylesheetRoot sroot)
+    throws javax.xml.transform.TransformerException
   {
-
-    // register the java namespace as being implemented by the 
-    // xslt-javaclass engine. Note that there's no real code
-    // per se for this extension as the functions carry the 
-    // object on which to call etc. and all the logic of breaking
-    // that up is in the xslt-javaclass engine.
-    String uri = "http://xml.apache.org/xslt/java";
-    ExtensionHandler fh = new ExtensionHandlerJavaPackage(uri,
-                            "xslt-javaclass", "");
-
-    addExtensionNamespace(uri, fh);
-
-    uri = "http://xsl.lotus.com/java";
-
-    addExtensionNamespace(uri, fh);
-
-    uri = "http://xml.apache.org/xalan";
-    fh = new ExtensionHandlerJavaClass(uri, "javaclass",
-                                       "org.apache.xalan.lib.Extensions");
-
-    addExtensionNamespace(uri, fh);
-  }
-
+    m_sroot = sroot;
+    Vector extensions = m_sroot.getExtensions();
+    for (int i = 0; i < extensions.size(); i++)
+    {
+      ExtensionNamespaceSupport extNamespaceSpt = 
+                 (ExtensionNamespaceSupport)extensions.elementAt(i);
+      ExtensionHandler extHandler = extNamespaceSpt.launch();
+        if (extHandler != null)
+          addExtensionNamespace(extNamespaceSpt.getNamespace(), extHandler);
+      }
+    }
+       
   /**
    * Get an ExtensionHandler object that represents the
    * given namespace.
@@ -148,71 +160,41 @@ public class ExtensionsTable
   public boolean functionAvailable(String ns, String funcName)
           throws javax.xml.transform.TransformerException
   {
-
     boolean isAvailable = false;
-
+    
     if (null != ns)
     {
-      ExtensionHandler extNS =
-        (ExtensionHandler) m_extensionFunctionNamespaces.get(ns);
-
-      if (extNS == null)
-      {
-        extNS = makeJavaNamespace(ns);
-
-        addExtensionNamespace(ns, extNS);
-      }
-
+      ExtensionHandler extNS = 
+           (ExtensionHandler) m_extensionFunctionNamespaces.get(ns);
       if (extNS != null)
-      {
         isAvailable = extNS.isFunctionAvailable(funcName);
-      }
     }
-
-    // System.err.println (">>> functionAvailable (ns=" + ns + 
-    //                    ", func=" + funcName + ") = " + isAvailable);
     return isAvailable;
   }
-
+  
   /**
    * Execute the element-available() function.
    * @param ns       the URI of namespace in which the function is needed
-   * @param funcName the function name being tested
    * @param elemName name of element being tested
    *
-   * @return whether the given function is available or not.
+   * @return whether the given element is available or not.
    *
    * @throws javax.xml.transform.TransformerException
    */
   public boolean elementAvailable(String ns, String elemName)
           throws javax.xml.transform.TransformerException
   {
-
     boolean isAvailable = false;
-
     if (null != ns)
     {
-      ExtensionHandler extNS =
-        (ExtensionHandler) m_extensionFunctionNamespaces.get(ns);
-
-      if (extNS == null)
-      {
-        extNS = makeJavaNamespace(ns);
-
-        addExtensionNamespace(ns, extNS);
-      }
-
-      if (extNS != null)
-      {
+      ExtensionHandler extNS = 
+               (ExtensionHandler) m_extensionFunctionNamespaces.get(ns);
+      if (extNS != null) // defensive
         isAvailable = extNS.isElementAvailable(elemName);
-      }
-    }
-
-    // System.err.println (">>> elementAvailable (ns=" + ns + 
-    //                    ", elem=" + elemName + ") = " + isAvailable);
-    return isAvailable;
-  }
-
+    } 
+    return isAvailable;        
+  }  
+  
   /**
    * Handle an extension function.
    * @param ns        the URI of namespace in which the function is needed
@@ -228,28 +210,16 @@ public class ExtensionsTable
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public Object extFunction(
-          String ns, String funcName, Vector argVec, Object methodKey, 
-          ExpressionContext exprContext)
+  public Object extFunction(String ns, String funcName, 
+                            Vector argVec, Object methodKey, 
+                            ExpressionContext exprContext)
             throws javax.xml.transform.TransformerException
   {
-
     Object result = null;
-
     if (null != ns)
     {
       ExtensionHandler extNS =
         (ExtensionHandler) m_extensionFunctionNamespaces.get(ns);
-
-      // If the handler for this extension URI is not found try to auto declare 
-      // this extension namespace:
-      if (null == extNS)
-      {
-        extNS = makeJavaNamespace(ns);
-
-        addExtensionNamespace(ns, extNS);
-      }
-
       if (null != extNS)
       {
         try
@@ -268,61 +238,10 @@ public class ExtensionsTable
       }
       else
       {
-        throw new XPathProcessorException(XSLMessages.createMessage(XSLTErrorResources.ER_EXTENSION_FUNC_UNKNOWN, new Object[]{ns, funcName })); //"Extension function '" + ns + ":"
-                                         // + funcName + "' is unknown");
+        throw new XPathProcessorException(XSLMessages.createMessage(XSLTErrorResources.ER_EXTENSION_FUNC_UNKNOWN, new Object[]{ns, funcName })); 
+        //"Extension function '" + ns + ":" + funcName + "' is unknown");
       }
     }
-
-    return result;
-  }
-
-  /**
-   * Declare the appropriate java extension handler.
-   * @param ns        the URI of namespace in which the function is needed
-   * @return          an ExtensionHandler for this namespace, or null if 
-   *                  not found.
-   *
-   * @throws javax.xml.transform.TransformerException
-   */
-  public ExtensionHandler makeJavaNamespace(String ns)
-          throws javax.xml.transform.TransformerException
-  {
-    if(null == ns || ns.trim().length() == 0) // defensive. I don't think it's needed.  -sb
-      return null;
-
-    // First, prepare the name of the actual class or package.  We strip
-    // out any leading "class:".  Next, we see if there is a /.  If so,
-    // only look at anything to the right of the rightmost /.
-    // In the documentation, we state that any classes or packages
-    // declared using this technique must start with xalan://.  However,
-    // in this version, we don't enforce that.
-    String className = ns;
-
-    if (className.startsWith("class:"))
-    {
-      className = className.substring(6);
-    }
-
-    int lastSlash = className.lastIndexOf("/");
-
-    if (-1 != lastSlash)
-      className = className.substring(lastSlash + 1);
-      
-    // The className can be null here, and can cause an error in getClassForName
-    // in JDK 1.8.
-    if(null == className || className.trim().length() == 0) 
-      return null;
-
-    try
-    {
-      ExtensionHandler.getClassForName(className);
-
-      return new ExtensionHandlerJavaClass(ns, "javaclass", className);
-    }
-    catch (ClassNotFoundException e)
-    {
-      return new ExtensionHandlerJavaPackage(ns, "javapackage",
-                                             className + ".");
-    }
+    return result;    
   }
 }

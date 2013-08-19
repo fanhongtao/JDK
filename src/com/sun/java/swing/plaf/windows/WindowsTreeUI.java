@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsTreeUI.java	1.19 01/12/03
+ * @(#)WindowsTreeUI.java	1.21 03/01/23
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,8 +17,7 @@ import javax.swing.plaf.basic.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.*;
 
 
 /**
@@ -31,7 +30,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.19 12/03/01
+ * @version 1.21 01/23/03
  * @author Scott Violet
  */
 public class WindowsTreeUI extends BasicTreeUI {
@@ -41,15 +40,26 @@ public class WindowsTreeUI extends BasicTreeUI {
 	return new WindowsTreeUI();
       }
 
-    protected void paintVerticalLine( Graphics g, JComponent c, int x, int top, int bottom )
-      {
-	drawDashedVerticalLine( g, x, top, bottom );
-      }
 
-    protected void paintHorizontalLine( Graphics g, JComponent c, int y, int left, int right )
-      {
-	drawDashedHorizontalLine( g, y, left, right );
-      }
+    protected void paintHorizontalPartOfLeg(Graphics g, Rectangle clipBounds,
+					    Insets insets, Rectangle bounds,
+					    TreePath path, int row,
+					    boolean isExpanded,
+					    boolean hasBeenExpanded, boolean
+					    isLeaf) {
+	if (XPStyle.getXP() == null) {
+	    super.paintHorizontalPartOfLeg(g, clipBounds, insets, bounds, path,
+					   row, isExpanded, hasBeenExpanded, isLeaf);
+	}
+    }
+
+    protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds,
+					  Insets insets, TreePath path) {
+	if (XPStyle.getXP() == null) {
+	    super.paintVerticalPartOfLeg(g, clipBounds, insets, path);
+	}
+    }    
+
 
     /**
       * Ensures that the rows identified by beginRow through endRow are
@@ -110,11 +120,19 @@ public class WindowsTreeUI extends BasicTreeUI {
      * long term persistence.
      */
     public static class ExpandedIcon implements Icon, Serializable {
+	XPStyle xp = XPStyle.getXP();
+	XPStyle.Skin skin = (xp != null) ? xp.getSkin("treeview.glyph") : null;
+
         static public Icon createExpandedIcon() {
 	    return new ExpandedIcon();
 	}
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    if (skin != null) {
+		skin.paintSkin(g, x, y, 1);
+		return;
+	    }
+
 	    Color     backgroundColor = c.getBackground();
 
 	    if(backgroundColor != null)
@@ -127,8 +145,8 @@ public class WindowsTreeUI extends BasicTreeUI {
 	    g.setColor(Color.black);
 	    g.drawLine(x + 2, y + HALF_SIZE, x + (SIZE - 3), y + HALF_SIZE);
 	}
-	public int getIconWidth() { return SIZE; }
-	public int getIconHeight() { return SIZE; }
+	public int getIconWidth() { return (skin != null) ? skin.getWidth() : SIZE; }
+	public int getIconHeight() { return (skin != null) ? skin.getHeight() : SIZE; }
     }
 
     /**
@@ -147,8 +165,12 @@ public class WindowsTreeUI extends BasicTreeUI {
 	}
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    if (skin != null) {
+		skin.paintSkin(g, x, y, 0);
+	    } else {
 	    super.paintIcon(c, g, x, y);
 	    g.drawLine(x + HALF_SIZE, y + 2, x + HALF_SIZE, y + (SIZE - 3));
+	    }
 	}
     }
 
